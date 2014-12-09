@@ -36,10 +36,14 @@ def _normalize(v, desired_segments=0):
 
 def format_hdp_stack_version(input):
   """
-  :param input: Input string, e.g. "2.2" or "GlusterFS", or "2.0.6.GlusterFS"
+  :param input: Input string, e.g. "2.2" or "GlusterFS", or "2.0.6.GlusterFS", or "2.2.0.1-885"
   :return: Returns a well-formatted HDP stack version of the form #.#.#.# as a string.
   """
   if input:
+    if "-" in input:
+      input_array = input.split("-")
+      input = input_array[0]
+
     input = re.sub(r'^\D+', '', input)
     input = re.sub(r'\D+$', '', input)
     input = input.strip('.')

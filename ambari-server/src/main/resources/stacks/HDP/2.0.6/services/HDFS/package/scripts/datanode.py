@@ -17,8 +17,9 @@ limitations under the License.
 
 """
 
-from resource_management import *
 from hdfs_datanode import datanode
+from resource_management import *
+from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from hdfs import hdfs
 
 
@@ -28,6 +29,15 @@ class DataNode(Script):
 
     self.install_packages(env, params.exclude_packages)
     env.set_params(params)
+
+  def pre_rolling_restart(self, env):
+    Logger.info("Executing Rolling Upgrade pre-restart")
+    import params
+    env.set_params(params)
+
+    version = default("/commandParams/version", None)
+    if version and compare_versions(format_hdp_stack_version(version), '2.2.0.0') >= 0:
+      Execute(format("hdp-select set hadoop-hdfs-datanode {version}"))
 
   def start(self, env):
     import params

@@ -200,14 +200,8 @@
             <command>su {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -getDatanodeInfo {{hdfs-site/dfs.datanode.ipc.address}}'</command>
             <ignore>255</ignore>
           </task>
-          
-
-          <!-- TODO, move this to HDFS Datanode restart. -->
-          <task xsi:type="execute">
-            <command>hdp-select set hadoop-hdfs-datanode {{version}}</command>
-          </task>
-          
         </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>

@@ -33,15 +33,15 @@ from resource_management.core.logger import Logger
 
 SUDO_ENVIRONMENT_PLACEHOLDER = "{ENV_PLACEHOLDER}"
 
-def checked_call(command, logoutput=False, 
+def checked_call(command, verbose=False, logoutput=False,
          cwd=None, env={}, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, path=None, output_file=None, sudo=False):
-  return _call(command, logoutput, True, cwd, env, preexec_fn, user, wait_for_finish, timeout, path, output_file, sudo)
+  return _call(command, verbose, logoutput, True, cwd, env, preexec_fn, user, wait_for_finish, timeout, path, output_file, sudo)
 
-def call(command, logoutput=False, 
+def call(command, verbose=False, logoutput=False,
          cwd=None, env={}, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, path=None, output_file=None, sudo=False):
-  return _call(command, logoutput, False, cwd, env, preexec_fn, user, wait_for_finish, timeout, path, output_file, sudo)
+  return _call(command, verbose, logoutput, False, cwd, env, preexec_fn, user, wait_for_finish, timeout, path, output_file, sudo)
             
-def _call(command, logoutput=False, throw_on_failure=True, 
+def _call(command, verbose=False, logoutput=False, throw_on_failure=True,
          cwd=None, env={}, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, path=None, output_file=None, sudo=False):
   """
   Execute shell command
@@ -74,7 +74,9 @@ def _call(command, logoutput=False, throw_on_failure=True,
     command = string_cmd_from_args_list(command)
   # replace placeholder from as_sudo / as_user if present
   command = command.replace(SUDO_ENVIRONMENT_PLACEHOLDER, get_environment_str(env), 1)
-  
+  if verbose:
+    Logger.info("Call command: " + Logger.get_protected_text(command))
+
   subprocess_command = ["/bin/bash","--login","-c", command]
   proc = subprocess.Popen(subprocess_command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                           cwd=cwd, env=env, shell=False,

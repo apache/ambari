@@ -45,6 +45,24 @@ class NameNode(Script):
     self.configure(env)
     namenode(action="start")
 
+  def pre_rolling_restart(self, env):
+    Logger.info("Executing Rolling Upgrade pre-restart")
+    import params
+    env.set_params(params)
+
+    version = default("/commandParams/version", None)
+    if version and compare_versions(format_hdp_stack_version(version), '2.2.0.0') >= 0:
+      Execute(format("hdp-select set hadoop-hdfs-namenode {version}"))
+
+  def post_rolling_restart(self, env):
+    Logger.info("Executing Rolling Upgrade post-restart")
+    import params
+    env.set_params(params)
+
+    Execute("hdfs dfsadmin -report -live",
+            user=params.hdfs_principal_name if params.security_enabled else params.hdfs_user
+    )
+
   def stop(self, env):
     import params
 

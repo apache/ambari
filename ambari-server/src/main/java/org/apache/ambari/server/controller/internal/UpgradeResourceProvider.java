@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -361,7 +362,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     List<UpgradeGroupHolder> groups = helper.createUpgrade(cluster, pack);
     List<UpgradeGroupEntity> groupEntities = new ArrayList<UpgradeGroupEntity>();
 
-    RequestStageContainer req = createRequest((String) requestMap.get(UPGRADE_VERSION));
+    final String version = (String) requestMap.get(UPGRADE_VERSION);
+    RequestStageContainer req = createRequest(version);
 
     for (UpgradeGroupHolder group : groups) {
       UpgradeGroupEntity groupEntity = new UpgradeGroupEntity();
@@ -378,7 +380,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         itemEntities.add(itemEntity);
 
         // upgrade items match a stage
-        createStage(cluster, req, itemEntity, wrapper);
+        createStage(cluster, req, version, itemEntity, wrapper);
       }
 
       itemEntities = injectVariables(configHelper, cluster, itemEntities);
@@ -415,18 +417,18 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     return requestStages;
   }
 
-  private void createStage(Cluster cluster, RequestStageContainer request,
+  private void createStage(Cluster cluster, RequestStageContainer request, final String version,
       UpgradeItemEntity entity, StageWrapper wrapper) throws AmbariException {
 
     if (wrapper.hasCommand()) {
-      makeRestartStage(cluster, request, entity, wrapper);
+      makeRestartStage(cluster, request, version, entity, wrapper);
     } else {
-      makeActionStage(cluster, request, entity, wrapper);
+      makeActionStage(cluster, request, version, entity, wrapper);
     }
 
   }
 
-  private void makeActionStage(Cluster cluster, RequestStageContainer request,
+  private void makeActionStage(Cluster cluster, RequestStageContainer request, final String version,
       UpgradeItemEntity entity, StageWrapper wrapper) throws AmbariException {
 
     Map<String, String> hostLevelParams = new HashMap<String, String>();
@@ -475,7 +477,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     request.addStages(Collections.singletonList(stage));
   }
 
-  private void makeRestartStage(Cluster cluster, RequestStageContainer request,
+  private void makeRestartStage(Cluster cluster, RequestStageContainer request, final String version,
       UpgradeItemEntity entity, StageWrapper wrapper) throws AmbariException {
 
     List<RequestResourceFilter> filters = new ArrayList<RequestResourceFilter>();
@@ -486,10 +488,14 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           new ArrayList<String>(tw.getHosts())));
     }
 
+    Map<String, String> restartCommandParams = new HashMap<String, String>();
+    restartCommandParams.put("restart_type", "rolling_upgrade");
+    restartCommandParams.put("version", version);
+
     ActionExecutionContext actionContext = new ActionExecutionContext(
         cluster.getClusterName(), "RESTART",
         filters,
-        Collections.<String, String>emptyMap());
+        restartCommandParams);
     actionContext.setTimeout(Short.valueOf((short)-1));
 
     ExecuteCommandJson jsons = commandExecutionHelper.get().getCommandJson(
