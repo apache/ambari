@@ -467,6 +467,86 @@ public class AlertsDAOTest {
     assertEquals(0, summary.getCriticalCount());
   }
 
+  /**
+   *
+   */
+  @Test
+  public void testFindCurrentHostSummary() throws Exception {
+    // start out with 1 since all alerts are for a single host and are OK
+    AlertHostSummaryDTO summary = m_dao.findCurrentHostCounts(m_cluster.getClusterId());
+    assertEquals(0, summary.getWarningCount());
+    assertEquals(0, summary.getCriticalCount());
+    assertEquals(0, summary.getUnknownCount());
+    assertEquals(1, summary.getOkCount());
+
+    // grab 1 and change it to warning
+    AlertHistoryEntity h1 = m_dao.findCurrentByCluster(m_cluster.getClusterId()).get(
+        1).getAlertHistory();
+
+    h1.setAlertState(AlertState.WARNING);
+    m_dao.merge(h1);
+
+    // verify host changed to warning
+    summary = m_dao.findCurrentHostCounts(m_cluster.getClusterId());
+    assertEquals(1, summary.getWarningCount());
+    assertEquals(0, summary.getCriticalCount());
+    assertEquals(0, summary.getUnknownCount());
+    assertEquals(0, summary.getOkCount());
+
+    h1.setAlertState(AlertState.CRITICAL);
+    m_dao.merge(h1);
+
+    // verify host changed to critical
+    summary = m_dao.findCurrentHostCounts(m_cluster.getClusterId());
+    assertEquals(0, summary.getWarningCount());
+    assertEquals(1, summary.getCriticalCount());
+    assertEquals(0, summary.getUnknownCount());
+    assertEquals(0, summary.getOkCount());
+
+    // grab another and change the host so that an OK shows up
+    AlertHistoryEntity h2 = m_dao.findCurrentByCluster(m_cluster.getClusterId()).get(
+        2).getAlertHistory();
+
+    h2.setHostName(h2.getHostName() + "-foo");
+    m_dao.merge(h2);
+
+    summary = m_dao.findCurrentHostCounts(m_cluster.getClusterId());
+    assertEquals(0, summary.getWarningCount());
+    assertEquals(1, summary.getCriticalCount());
+    assertEquals(0, summary.getUnknownCount());
+    assertEquals(1, summary.getOkCount());
+
+    // grab another and change that host name as well
+    AlertHistoryEntity h3 = m_dao.findCurrentByCluster(m_cluster.getClusterId()).get(
+        3).getAlertHistory();
+
+    // change the name to simulate a 3rd host
+    h3.setHostName(h3.getHostName() + "-bar");
+    m_dao.merge(h3);
+
+    // verify 2 hosts report OK
+    summary = m_dao.findCurrentHostCounts(m_cluster.getClusterId());
+    assertEquals(0, summary.getWarningCount());
+    assertEquals(1, summary.getCriticalCount());
+    assertEquals(0, summary.getUnknownCount());
+    assertEquals(2, summary.getOkCount());
+
+    // grab another and change that host name and the state to UNKNOWN
+    AlertHistoryEntity h4 = m_dao.findCurrentByCluster(m_cluster.getClusterId()).get(
+        4).getAlertHistory();
+
+    h4.setHostName(h4.getHostName() + "-baz");
+    h4.setAlertState(AlertState.UNKNOWN);
+    m_dao.merge(h3);
+
+    // verify a new host shows up with UNKNOWN status hosts report OK
+    summary = m_dao.findCurrentHostCounts(m_cluster.getClusterId());
+    assertEquals(0, summary.getWarningCount());
+    assertEquals(1, summary.getCriticalCount());
+    assertEquals(1, summary.getUnknownCount());
+    assertEquals(2, summary.getOkCount());
+  }
+
   @Test
   public void testFindAggregates() throws Exception {
     // definition

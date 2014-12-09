@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -30,6 +29,7 @@ import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.orm.dao.AlertHostSummaryDTO;
 import org.apache.ambari.server.orm.dao.AlertSummaryDTO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.state.AlertState;
@@ -38,6 +38,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
@@ -48,6 +49,17 @@ import com.google.inject.Provider;
 public class AlertSummaryPropertyProvider extends BaseProvider implements PropertyProvider {
 
   private final static Logger LOG = LoggerFactory.getLogger(AlertSummaryPropertyProvider.class);
+
+  /**
+   * The property ID for a summary of all cluster-wide alerts.
+   */
+  private final static String ALERTS_SUMMARY = "alerts_summary";
+
+  /**
+   * The property ID for a summary of all cluster-wide alerts that have a host
+   * associated with them.
+   */
+  private final static String ALERTS_SUMMARY_HOSTS = "alerts_summary_hosts";
 
   @Inject
   private static Provider<Clusters> s_clusters = null;
@@ -68,7 +80,7 @@ public class AlertSummaryPropertyProvider extends BaseProvider implements Proper
    */
   AlertSummaryPropertyProvider(Resource.Type type,
       String clusterPropertyId, String typeIdPropertyId) {
-    super(Collections.singleton("alerts_summary"));
+    super(ImmutableSet.<String> of(ALERTS_SUMMARY, ALERTS_SUMMARY_HOSTS));
     m_resourceType = type;
     m_clusterPropertyId = clusterPropertyId;
     m_typeIdPropertyId = typeIdPropertyId;
@@ -95,6 +107,7 @@ public class AlertSummaryPropertyProvider extends BaseProvider implements Proper
   private void populateResource(Resource resource, Set<String> requestedIds) throws AmbariException {
 
     AlertSummaryDTO summary = null;
+    AlertHostSummaryDTO hostSummary = null;
 
     String clusterName = (String) resource.getPropertyValue(m_clusterPropertyId);
 
@@ -107,7 +120,19 @@ public class AlertSummaryPropertyProvider extends BaseProvider implements Proper
 
     switch (m_resourceType.getInternalType()) {
       case Cluster:
-        summary = s_dao.findCurrentCounts(cluster.getClusterId(), null, null);
+        long clusterId = cluster.getClusterId();
+
+        // only make the calculation of asked
+        if (BaseProvider.isPropertyRequested(ALERTS_SUMMARY, requestedIds)) {
+          summary = s_dao.findCurrentCounts(cluster.getClusterId(), null, null);
+        }
+
+        // only make the calculation of asked
+        if (BaseProvider.isPropertyRequested(ALERTS_SUMMARY_HOSTS,
+            requestedIds)) {
+          hostSummary = s_dao.findCurrentHostCounts(clusterId);
+        }
+
         break;
       case Service:
         summary = s_dao.findCurrentCounts(cluster.getClusterId(), typeId, null);
@@ -119,6 +144,7 @@ public class AlertSummaryPropertyProvider extends BaseProvider implements Proper
         break;
     }
 
+    // all alerts in the cluster, in summary count form
     if (null != summary) {
       Map<AlertState, Integer> map = new HashMap<AlertState, Integer>();
       map.put(AlertState.OK, Integer.valueOf(summary.getOkCount()));
@@ -126,7 +152,17 @@ public class AlertSummaryPropertyProvider extends BaseProvider implements Proper
       map.put(AlertState.CRITICAL, Integer.valueOf(summary.getCriticalCount()));
       map.put(AlertState.UNKNOWN, Integer.valueOf(summary.getUnknownCount()));
 
-      setResourceProperty(resource, "alerts_summary", map, requestedIds);
+      setResourceProperty(resource, ALERTS_SUMMARY, map, requestedIds);
+    }
+
+    // the summary of hosts with warning or critical alerts
+    if (null != hostSummary) {
+      Map<AlertState, Integer> map = new HashMap<AlertState, Integer>();
+      map.put(AlertState.OK, Integer.valueOf(hostSummary.getOkCount()));
+      map.put(AlertState.WARNING, Integer.valueOf(hostSummary.getWarningCount()));
+      map.put(AlertState.CRITICAL, Integer.valueOf(hostSummary.getCriticalCount()));
+      map.put(AlertState.UNKNOWN, Integer.valueOf(hostSummary.getUnknownCount()));
+      setResourceProperty(resource, ALERTS_SUMMARY_HOSTS, map, requestedIds);
     }
 
   }
@@ -136,7 +172,7 @@ public class AlertSummaryPropertyProvider extends BaseProvider implements Proper
     Set<String> rejects = new HashSet<String>();
 
     for (String id : propertyIds) {
-      if (!id.startsWith("alerts_summary")) {
+      if (!id.startsWith(ALERTS_SUMMARY)) {
         rejects.add(id);
       }
     }

@@ -275,10 +275,13 @@ public class AlertTargetResourceProvider extends
 
       // groups are not required on creation
       if (requestMap.containsKey(ALERT_TARGET_GROUPS)) {
-        List<Long> groupIds = (List<Long>) requestMap.get(ALERT_TARGET_GROUPS);
-        Set<AlertGroupEntity> groups = new HashSet<AlertGroupEntity>();
-        groups.addAll(s_dao.findGroupsById(groupIds));
-        entity.setAlertGroups(groups);
+        Collection<Long> groupIds = (Collection<Long>) requestMap.get(ALERT_TARGET_GROUPS);
+        if( !groupIds.isEmpty() ){
+          Set<AlertGroupEntity> groups = new HashSet<AlertGroupEntity>();
+          List<Long> ids = new ArrayList<Long>(groupIds);
+          groups.addAll(s_dao.findGroupsById(ids));
+          entity.setAlertGroups(groups);
+        }
       }
 
       entity.setDescription(description);

@@ -340,6 +340,65 @@ public class AlertsDAO {
   }
 
   /**
+   * Retrieve the summary alert information for all hosts. This is different
+   * from {@link #findCurrentCounts(long, String, String)} since this will not
+   * return alerts that are not related to a particular host, such as aggregate
+   * alerts. In general, {@link #findCurrentCounts(long, String, String)} and
+   * this method will return very similar counts.
+   *
+   * @param clusterId
+   *          the cluster id
+   * @return the summary DTO for host alerts.
+   */
+  @RequiresSession
+  public AlertHostSummaryDTO findCurrentHostCounts(long clusterId) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("SELECT MAX(CASE WHEN history.alertState = :criticalState THEN 3 WHEN history.alertState = :warningState THEN 2 WHEN history.alertState = :unknownState THEN 1 ELSE 0 END) ");
+    sb.append("FROM AlertCurrentEntity alert JOIN alert.alertHistory history ");
+    sb.append("WHERE history.clusterId = :clusterId AND history.hostName IS NOT NULL GROUP BY history.hostName");
+
+    TypedQuery<Integer> query = entityManagerProvider.get().createQuery(
+        sb.toString(), Integer.class);
+
+    query.setParameter("clusterId", Long.valueOf(clusterId));
+    query.setParameter("criticalState", AlertState.CRITICAL);
+    query.setParameter("warningState", AlertState.WARNING);
+    query.setParameter("unknownState", AlertState.UNKNOWN);
+
+    int okCount = 0;
+    int warningCount = 0;
+    int criticalCount = 0;
+    int unknownCount = 0;
+
+    List<Integer> hostStateValues = daoUtils.selectList(query);
+    for (Integer hostStateValue : hostStateValues) {
+      if (null == hostStateValue) {
+        continue;
+      }
+
+      switch (hostStateValue) {
+        case 0:
+          okCount++;
+          break;
+        case 1:
+          unknownCount++;
+          break;
+        case 2:
+          warningCount++;
+          break;
+        case 3:
+          criticalCount++;
+          break;
+      }
+    }
+
+    AlertHostSummaryDTO hostSummary = new AlertHostSummaryDTO(okCount,
+        unknownCount, warningCount, criticalCount);
+
+    return hostSummary;
+  }
+
+  /**
    * Gets the current alerts for a given service.
    *
    * @return the current alerts for the given service or an empty list if none
