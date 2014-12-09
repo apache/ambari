@@ -39,12 +39,9 @@ App.MainMenuView = Em.CollectionView.extend({
         result.push(
           { label: Em.I18n.t('menu.item.dashboard'), routing: 'dashboard', active: 'active'},
           { label: Em.I18n.t('menu.item.services'), routing: 'services'},
-          { label: Em.I18n.t('menu.item.hosts'), routing: 'hosts', hasAlertsLabel: true}
+          { label: Em.I18n.t('menu.item.hosts'), routing: 'hosts', hasAlertsLabel: true},
+          { label: Em.I18n.t('menu.item.alerts'), routing: 'alerts'}
         );
-
-        if (App.get('supports.alerts')) {
-          result.push({ label: Em.I18n.t('menu.item.alerts'), routing: 'alerts'});
-        }
 
         if (!App.get('isHadoop2Stack')) {
           result.push({ label: Em.I18n.t('menu.item.jobs'), routing: 'apps'});
@@ -58,7 +55,7 @@ App.MainMenuView = Em.CollectionView.extend({
     }
     return result;
   }.property('App.router.loggedIn', 'views.length',
-    'App.router.clusterController.isLoaded', 'App.router.clusterInstallCompleted', 'App.supports.alerts'),
+    'App.router.clusterController.isLoaded', 'App.router.clusterInstallCompleted'),
 
   itemViewClass: Em.View.extend({
 

@@ -40,14 +40,12 @@ App.MainHostMenuView = Em.CollectionView.extend({
         routing: 'stackVersions'
       });
     }
-    if (App.get('supports.alerts')) {
-      array.push({
-        label: 'Alerts',
-        routing: 'alerts',
-        badgeText: '0',
-        badgeClasses: 'label '
-      });
-    }
+    array.push({
+      label: 'Alerts',
+      routing: 'alerts',
+      badgeText: '0',
+      badgeClasses: 'label '
+    });
     return array;
   }.property(''),
 

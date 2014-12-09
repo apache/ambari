@@ -59,7 +59,6 @@ App.enableExperimental = false;
 App.supports = {
   stackUpgrade: false,
   autoRollbackHA: false,
-  alerts: true,
   alwaysEnableManagedMySQLForHive: false,
   automatedKerberos: false,
   customizeAgentUserAccount: false
