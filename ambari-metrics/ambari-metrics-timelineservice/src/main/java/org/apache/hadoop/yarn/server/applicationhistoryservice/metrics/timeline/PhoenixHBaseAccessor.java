@@ -26,6 +26,7 @@ import org.apache.hadoop.hbase.util.RetryCounterFactory;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.yarn.util.timeline.TimelineUtils;
+import org.apache.phoenix.exception.SQLExceptionCode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import java.io.IOException;
@@ -39,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.ALTER_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.CREATE_METRICS_AGGREGATE_HOURLY_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.CREATE_METRICS_AGGREGATE_MINUTE_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.CREATE_METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_SQL;
@@ -47,6 +49,10 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.Condition;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.DEFAULT_ENCODING;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.DEFAULT_TABLE_COMPRESSION;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.METRICS_AGGREGATE_HOURLY_TABLE_NAME;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.UPSERT_AGGREGATE_RECORD_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.UPSERT_CLUSTER_AGGREGATE_SQL;
@@ -239,13 +245,36 @@ public class PhoenixHBaseAccessor {
         encoding, clusterMinTtl, compression));
       stmt.executeUpdate(String.format(CREATE_METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_SQL,
         encoding, clusterHourTtl, compression));
+
+      //alter TTL options to update tables
+      stmt.executeUpdate(String.format(ALTER_SQL,
+        METRICS_RECORD_TABLE_NAME,
+        precisionTtl));
+      stmt.executeUpdate(String.format(ALTER_SQL,
+        METRICS_AGGREGATE_MINUTE_TABLE_NAME,
+        hostMinTtl));
+      stmt.executeUpdate(String.format(ALTER_SQL,
+        METRICS_AGGREGATE_HOURLY_TABLE_NAME,
+        hostHourTtl));
+      stmt.executeUpdate(String.format(ALTER_SQL,
+        METRICS_CLUSTER_AGGREGATE_TABLE_NAME,
+        clusterMinTtl));
+      stmt.executeUpdate(String.format(ALTER_SQL,
+        METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME,
+        clusterHourTtl));
+
       conn.commit();
     } catch (SQLException sql) {
-      LOG.warn("Error creating Metrics Schema in HBase using Phoenix.", sql);
-      throw new MetricsInitializationException(
-        "Error creating Metrics Schema in HBase using Phoenix.", sql);
+      if (sql.getErrorCode() ==
+        SQLExceptionCode.SET_UNSUPPORTED_PROP_ON_ALTER_TABLE.getErrorCode()) {
+        LOG.warn("Cannot update TTL on tables. " + sql.getMessage());
+      } else {
+        LOG.error("Error creating Metrics Schema in HBase using Phoenix.", sql);
+        throw new MetricsInitializationException(
+          "Error creating Metrics Schema in HBase using Phoenix.", sql);
+      }
     } catch (InterruptedException e) {
-      LOG.warn("Error creating Metrics Schema in HBase using Phoenix.", e);
+      LOG.error("Error creating Metrics Schema in HBase using Phoenix.", e);
       throw new MetricsInitializationException(
         "Error creating Metrics Schema in HBase using Phoenix.", e);
     } finally {

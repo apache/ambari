@@ -116,6 +116,11 @@ public class PhoenixTransactSQL {
       "TTL=%s, COMPRESSION='%s'";
 
   /**
+   * ALTER table to set new options
+   */
+  public static final String ALTER_SQL = "ALTER TABLE %s SET TTL=%s";
+
+  /**
    * Insert into metric records table.
    */
   public static final String UPSERT_METRICS_SQL = "UPSERT INTO %s " +
