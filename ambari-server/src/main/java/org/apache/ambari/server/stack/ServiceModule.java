@@ -104,7 +104,8 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> {
       serviceInfo.setVersion(parent.getVersion());
     }
 
-    if (serviceInfo.getRequiredServices() == null) {
+    if (serviceInfo.getRequiredServices() == null
+        || serviceInfo.getRequiredServices().size() == 0) {
       serviceInfo.setRequiredServices(parent.getRequiredServices() != null ?
           parent.getRequiredServices() :
           Collections.<String>emptyList());
