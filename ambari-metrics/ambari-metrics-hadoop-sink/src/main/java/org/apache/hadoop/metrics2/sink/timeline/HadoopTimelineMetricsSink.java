@@ -110,7 +110,7 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
   private String getServiceName(SubsetConfiguration conf) {
     String serviceNamePrefix = conf.getString(SERVICE_NAME_PREFIX, "");
     return serviceNamePrefix.isEmpty() ? getFirstConfigPrefix(conf) :
-      serviceNamePrefix + "-" + getFirstConfigPrefix(conf);
+           serviceNamePrefix + "-" + getFirstConfigPrefix(conf);
   }
 
   private String getFirstConfigPrefix(SubsetConfiguration conf) {
