@@ -107,6 +107,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
         item.reporting = convertedReportDefinitions;
 
         rawSourceData[item.AlertDefinition.id] = item.AlertDefinition.source;
+        item.AlertDefinition.description = item.AlertDefinition.description || '';
 
         var alertDefinition = this.parseIt(item, this.get('config'));
 
