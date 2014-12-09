@@ -24,7 +24,7 @@
           <span>&nbsp;</span>
           {{view Em.Select
           contentBinding="alertGroups"
-          optionLabelPath="content.displayNameDefinitions"
+          optionLabelPath="content.label"
           selectionBinding="view.selectedAlertGroup"
           multiple="multiple"
           class="group-select select-group-box"
@@ -73,7 +73,7 @@
             </div>
             <div class="row-fluid notification-editable-list">
               <div class="span11">
-                {{view App.EditableList itemsBinding="selectedAlertGroup.notifications" resourcesBinding="selectedAlertGroup.alertNotifications" nameBinding="selectedAlertGroup.displayName"}}
+                {{view App.EditableList itemsBinding="selectedAlertGroup.notifications" resourcesBinding="controller.alertNotifications" nameBinding="selectedAlertGroup.displayName"}}
               </div>
             </div>
 

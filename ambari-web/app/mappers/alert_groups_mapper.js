@@ -80,9 +80,10 @@ App.alertGroupsMapper = App.QuickDataMapper.create({
         Em.keys(typesMap).forEach(function(k) {
           group[typesMap[k]] = [];
         });
+        group.targets = [];
         if (item.AlertGroup.definitions) {
           item.AlertGroup.definitions.forEach(function(definition) {
-              var type = typesMap[definition.source_type];
+            var type = typesMap[definition.source_type];
             if (!group[type].contains(definition.id)) {
               group[type].push(definition.id);
             }
@@ -94,6 +95,9 @@ App.alertGroupsMapper = App.QuickDataMapper.create({
         }
         if (item.AlertGroup.targets) {
           item.AlertGroup.targets.forEach(function(target) {
+            if (!group.targets.contains(target.id)) {
+              group.targets.push(target.id);
+            }
             if (Em.isNone(alertNotificationsGroupsMap[target.id])) {
               alertNotificationsGroupsMap[target.id] = [];
             }

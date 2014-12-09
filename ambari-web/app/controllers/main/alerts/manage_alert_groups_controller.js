@@ -34,138 +34,119 @@ App.ManageAlertGroupsController = Em.Controller.extend({
 
   selectedDefinitions: [],
 
-  alertDefinitions: [],
-
-  alertNotifications: [],
-
-  // load alert definitions for all services
-  loadAlertDefinitions: function () {
-    App.ajax.send({
-      name: 'alerts.load_all_alert_definitions',
-      sender: this,
-      success: 'onLoadAlertDefinitionsSuccess',
-      error: 'onLoadAlertDefinitionsError'
-    });
-  },
-
-  onLoadAlertDefinitionsSuccess: function (data) {
-    var alertDefinitions = [];
-    if (data && data.items) {
-      data.items.forEach( function(def) {
-        if (def && def.AlertDefinition) {
-          alertDefinitions.pushObject (Em.Object.create({
-            name: def.AlertDefinition.name,
-            serviceName: def.AlertDefinition.service_name,
-            serviceNameDisplay:function() {
-              return App.format.role(this.get('serviceName'));
-            }.property('serviceName'),
-            componentName: def.AlertDefinition.component_name,
-            componentNameDisplay: function() {
-              return App.format.role(this.get('componentName'));
-            }.property('componentName'),
-            label: def.AlertDefinition.label,
-            id: def.AlertDefinition.id
-          }));
-        }
+  /**
+   * List of all Alert Notifications
+   * @type {App.AlertNotification[]}
+   */
+  alertNotifications: function () {
+    return this.get('isLoaded') ? App.AlertNotification.find().map (function (target) {
+      return Em.Object.create ({
+        name: target.get('name'),
+        id: target.get('id'),
+        description: target.get('description'),
+        type: target.get('type'),
+        global: target.get('global')
       });
-    }
-    this.set('alertDefinitions', alertDefinitions);
-  },
+    }) : [];
+  }.property('isLoaded'),
 
-  onLoadAlertDefinitionsError: function () {
-    console.error('Unable to load all alert definitions.');
-  },
+  /**
+   * List of all global Alert Notifications
+   * @type {App.AlertNotification[]}
+   */
+  alertGlobalNotifications: function () {
+    return this.get('alertNotifications').filterProperty('global');
+  }.property('alertNotifications'),
 
-  // load all alert notifications
+  /**
+   * Load all Alert Notifications from server
+   * @returns {$.ajax|null}
+   */
   loadAlertNotifications: function () {
-    App.ajax.send({
-      name: 'alerts.load_alert_notification',
-      sender: this,
-      success: 'onLoadAlertNotificationsSuccess',
-      error: 'onLoadAlertNotificationsError'
-    });
-  },
-
-  onLoadAlertNotificationsSuccess: function (data) {
-    var alertNotifications = [];
-    if (data && data.items) {
-      data.items.forEach( function(target) {
-        if (target && target.AlertTarget) {
-          alertNotifications.pushObject (Em.Object.create({
-            name: target.AlertTarget.name,
-            type: target.AlertTarget.notification_type,
-            description: target.AlertTarget.description,
-            global: target.AlertTarget.global,
-            id: target.AlertTarget.id
-          }));
-        }
-      });
-    }
-    this.set('alertNotifications', alertNotifications);
-    this.set('alertGlobalNotifications', alertNotifications.filterProperty('global'));
-  },
-
-  onLoadAlertNotificationsError: function () {
-    console.error('Unable to load all alert notifications.');
-  },
-
-  loadAlertGroups: function () {
     this.set('isLoaded', false);
     this.set('alertGroups', []);
     this.set('originalAlertGroups', []);
+    this.set('selectedAlertGroup', null);
     this.set('isRemoveButtonDisabled', true);
     this.set('isRenameButtonDisabled', true);
     this.set('isDuplicateButtonDisabled', true);
-    App.ajax.send({
-      name: 'alerts.load_alert_groups',
+    return App.ajax.send({
+      name: 'alerts.notifications',
       sender: this,
-      success: 'onLoadAlertGroupsSuccess',
-      error: 'onLoadAlertGroupsError'
+      success: 'getAlertNotificationsSuccessCallback',
+      error: 'getAlertNotificationsErrorCallback'
     });
   },
 
-  onLoadAlertGroupsSuccess: function (data) {
-    var self = this;
-    if (data && data.items) {
-      this.set('alertGroupsCount', data.items.length);
-      data.items.forEach(function(alert_group) {
-        App.ajax.send({
-          name: 'alerts.load_an_alert_group',
-          sender: self,
-          data: {
-            "group_id": alert_group.AlertGroup.id
-          },
-          success: 'onLoadAlertGroupSuccess',
-          error: 'onLoadAlertGroupError'
+  /**
+   * Success-callback for load alert notifications request
+   * @param {object} json
+   * @method getAlertNotificationsSuccessCallback
+   */
+  getAlertNotificationsSuccessCallback: function (json) {
+    App.alertNotificationMapper.map(json);
+    this.loadAlertGroups();
+  },
+
+  /**
+   * Error-callback for load alert notifications request
+   * @method getAlertNotificationsErrorCallback
+   */
+  getAlertNotificationsErrorCallback: function () {
+    this.set('isLoaded', true);
+  },
+
+  /**
+   * Load all alert groups from alert group model
+   */
+  loadAlertGroups: function () {
+    var alertGroups = App.AlertGroup.find().map(function (group) {
+      var definitions = group.get('definitions').map (function (def) {
+        return Em.Object.create ({
+          name: def.get('name'),
+          serviceName: def.get('serviceName'),
+          componentName: def.get('componentName'),
+          serviceNameDisplay: def.get('service.displayName'),
+          componentNameDisplay: def.get('componentNameFormatted'),
+          label: def.get('label'),
+          id: def.get('id')
         });
-      }, this);
-    }
-  },
+      });
 
-  onLoadAlertGroupSuccess: function (data) {
-    var alertGroups = this.get('alertGroups');
-    if (data && data.AlertGroup) {
-      alertGroups.pushObject (App.AlertGroupComplex.create({
-        name: data.AlertGroup.name,
-        default: data.AlertGroup.default,
-        id: data.AlertGroup.id,
-        definitions: data.AlertGroup.definitions,
-        notifications: data.AlertGroup.targets
-      }));
-    }
-    if (this.get('alertGroupsCount') == alertGroups.length) {
-      this.set('isLoaded', true);
-      this.set('originalAlertGroups', this.copyAlertGroups(alertGroups));
-      this.set('selectedAlertGroup', alertGroups[0])
-    }
-  },
+      var targets = group.get('targets').map (function (target) {
+        return Em.Object.create ({
+          name: target.get('name'),
+          id: target.get('id'),
+          description: target.get('description'),
+          type: target.get('type'),
+          global: target.get('global')
+        });
+      });
 
-
-  onLoadAlertGroupsError: function () {
-    console.error('Unable to load all alert groups.');
-  },
-  onLoadAlertGroupError: function () {
-    console.error('Unable to load an alert group.');
+      return Em.Object.create({
+        id: group.get('id'),
+        name: group.get('name'),
+        default: group.get('default'),
+        displayName: function () {
+          var name = this.get('name');
+          if (name && name.length > App.config.CONFIG_GROUP_NAME_MAX_LENGTH) {
+            var middle = Math.floor(App.config.CONFIG_GROUP_NAME_MAX_LENGTH / 2);
+            name = name.substring(0, middle) + "..." + name.substring(name.length - middle);
+          }
+          return this.get('default') ? (name + ' Default') : name;
+        }.property('name', 'default'),
+        label: function () {
+          return this.get('displayName') + ' (' + this.get('definitions.length') + ')';
+        }.property('displayName', 'definitions.length'),
+        definitions: definitions,
+        isAddDefinitionsDisabled: group.get('isAddDefinitionsDisabled'),
+        notifications: targets
+      });
+    });
+    this.set('alertGroups', alertGroups);
+    this.set('isLoaded', true);
+    this.set('originalAlertGroups', this.copyAlertGroups(this.get('alertGroups')));
+    this.set('selectedAlertGroup', this.get('alertGroups')[0]);
   },
 
   /**
@@ -205,7 +186,6 @@ App.ManageAlertGroupsController = Em.Controller.extend({
       alertGroups.removeObject(defaultGroup);
     });
     var sorted = defaultGroups.sortProperty('name').concat(alertGroups.sortProperty('name'));
-   // var sorted = alertGroups.sortProperty('name');
 
     this.removeObserver('alertGroups.@each.name', this, 'resortAlertGroup');
     this.set('alertGroups', sorted);
@@ -235,13 +215,44 @@ App.ManageAlertGroupsController = Em.Controller.extend({
   }.property('selectedAlertGroup', 'selectedAlertGroup.definitions.length', 'selectedDefinitions.length'),
 
   /**
+   * Provides alert definitions which are available for inclusion in
+   * non-default alert groups.
+   */
+  getAvailableDefinitions: function (selectedAlertGroup) {
+    if (selectedAlertGroup.get('default')) return [];
+    var usedDefinitionsMap = {};
+    var availableDefinitions = [];
+    var sharedDefinitions = App.AlertDefinition.getAllDefinitions();
+
+    selectedAlertGroup.get('definitions').forEach(function (def) {
+      usedDefinitionsMap[def.name] = true;
+    });
+    sharedDefinitions.forEach(function (shared_def) {
+      if (!usedDefinitionsMap[shared_def.get('name')]) {
+        availableDefinitions.pushObject(shared_def);
+      }
+    });
+    return availableDefinitions.map (function (def) {
+      return Em.Object.create ({
+        name: def.get('name'),
+        serviceName: def.get('serviceName'),
+        componentName: def.get('componentName'),
+        serviceNameDisplay: def.get('service.displayName'),
+        componentNameDisplay: def.get('componentNameFormatted'),
+        label: def.get('label'),
+        id: def.get('id')
+      });
+    });
+  },
+
+  /**
    * add alert definitions to a group
    */
   addDefinitions: function () {
     if (this.get('selectedAlertGroup.isAddDefinitionsDisabled')){
       return false;
     }
-    var availableDefinitions = this.get('selectedAlertGroup.availableDefinitions');
+    var availableDefinitions = this.getAvailableDefinitions(this.get('selectedAlertGroup'));
     var popupDescription = {
       header: Em.I18n.t('alerts.actions.manage_alert_groups_popup.selectDefsDialog.title'),
       dialogMessage: Em.I18n.t('alerts.actions.manage_alert_groups_popup.selectDefsDialog.message').format(this.get('selectedAlertGroup.displayName'))
@@ -461,7 +472,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
   copyAlertGroups: function (originGroups) {
     var alertGroups = [];
     originGroups.forEach(function (alertGroup) {
-      var copiedGroup =  App.AlertGroupComplex.create($.extend(true, {}, alertGroup));
+      var copiedGroup =  Em.Object.create($.extend(true, {}, alertGroup));
       alertGroups.pushObject(copiedGroup);
     });
     return alertGroups;
@@ -667,10 +678,23 @@ App.ManageAlertGroupsController = Em.Controller.extend({
         return !(this.get('alertGroupName').trim().length > 0 && !this.get('warningMessage'));
       }.property('warningMessage', 'alertGroupName'),
       onPrimary: function () {
-        var newAlertGroup = App.AlertGroupComplex.create({
+        var newAlertGroup = Em.Object.create({
           name: this.get('alertGroupName').trim(),
+          default: false,
+          displayName: function () {
+            var name = this.get('name');
+            if (name && name.length > App.config.CONFIG_GROUP_NAME_MAX_LENGTH) {
+              var middle = Math.floor(App.config.CONFIG_GROUP_NAME_MAX_LENGTH / 2);
+              name = name.substring(0, middle) + "..." + name.substring(name.length - middle);
+            }
+            return this.get('default') ? (name + ' Default') : name;
+          }.property('name', 'default'),
+          label: function () {
+            return this.get('displayName') + ' (' + this.get('definitions.length') + ')';
+          }.property('displayName', 'definitions.length'),
           definitions: [],
-          notifications: self.get('alertGlobalNotifications')
+          notifications: self.get('alertGlobalNotifications'),
+          isAddDefinitionsDisabled: false
         });
         self.get('alertGroups').pushObject(newAlertGroup);
         self.set('selectedAlertGroup', newAlertGroup);

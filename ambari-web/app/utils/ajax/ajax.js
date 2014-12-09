@@ -304,11 +304,6 @@ var urls = {
     'real': '/clusters/{clusterName}/request_schedules/{request_schedule_id}',
     'type': 'DELETE'
   },
-
-  'alerts.load_alert_notification': {
-    'real': '/alert_targets?fields=*',
-    'mock': 'data/alerts/alertNotifications.json'
-  },
   'alerts.load_alert_groups': {
     'real': '/clusters/{clusterName}/alert_groups?fields=*',
     'mock': 'data/alerts/alertGroups.json'

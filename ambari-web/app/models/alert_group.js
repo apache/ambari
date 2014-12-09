@@ -79,7 +79,10 @@ App.AlertGroup = DS.Model.extend({
    */
   scriptAlertDefinitions: DS.hasMany('App.ScriptAlertDefinition'),
 
-  targets: [],
+  /**
+   * @type {App.AlertNotification[]}
+   */
+  targets: DS.hasMany('App.AlertNotification'),
 
   /**
    * @type {string}
@@ -96,67 +99,14 @@ App.AlertGroup = DS.Model.extend({
   /**
    * @type {string}
    */
-  displayNameDefinitions: function () {
-    return this.get('displayName') + ' (' + this.get('definitions.length') + ')';
-  }.property('displayName', 'definitions.length')
-});
-App.AlertGroup.FIXTURES = [];
-
-App.AlertGroupComplex = Ember.Object.extend({
-  id: null,
-  name: null,
-  default: null,
-  definitions: [],
-  targets: [],
-
-  /**
-   * all alert definitions that belong to all services
-   */
-  alertDefinitionsBinding: 'App.router.manageAlertGroupsController.alertDefinitions',
-  /**
-   * all alert notifications
-   */
-  alertNotificationsBinding: 'App.router.manageAlertGroupsController.alertNotifications',
-
-
-  displayName: function () {
-    var name = this.get('name');
-    if (name && name.length > App.config.CONFIG_GROUP_NAME_MAX_LENGTH) {
-      var middle = Math.floor(App.config.CONFIG_GROUP_NAME_MAX_LENGTH / 2);
-      name = name.substring(0, middle) + "..." + name.substring(name.length - middle);
-    }
-    return this.get('default') ? (name + ' Default') : name;
-  }.property('name', 'default'),
-
   displayNameDefinitions: function () {
     return this.get('displayName') + ' (' + this.get('definitions.length') + ')';
   }.property('displayName', 'definitions.length'),
 
-  /**
-   * Provides alert definitions which are available for inclusion in
-   * non-default alert groups.
-   */
-  availableDefinitions: function () {
-    if (this.get('default')) return [];
-    var usedDefinitionsMap = {};
-    var availableDefinitions = [];
-    var sharedDefinitions = this.get('alertDefinitions');
-
-    this.get('definitions').forEach(function (def) {
-      usedDefinitionsMap[def.name] = true;
-    });
-    sharedDefinitions.forEach(function (shared_def) {
-      if (!usedDefinitionsMap[shared_def.get('name')]) {
-        availableDefinitions.pushObject(shared_def);
-      }
-    });
-    return availableDefinitions;
-  }.property('alertDefinitions', 'definitions.@each', 'definitions.length'),
-
   isAddDefinitionsDisabled: function () {
-    return (this.get('default') || this.get('availableDefinitions.length') === 0);
-  }.property('availableDefinitions.length')
-
+    return this.get('default');
+  }.property('default')
 });
+App.AlertGroup.FIXTURES = [];
 
 

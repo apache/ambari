@@ -67,8 +67,6 @@ App.MainAlertsManageAlertGroupView = Em.View.extend({
    * @method willInsertElement
    */
   willInsertElement: function() {
-    this.get('controller').loadAlertGroups();
-    this.get('controller').loadAlertDefinitions();
     this.get('controller').loadAlertNotifications();
   },
 
