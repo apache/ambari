@@ -142,9 +142,18 @@ class PythonExecutor:
     to make possible unit testing
     """
     close_fds = None if OSCheck.get_os_family() == OSConst.WINSRV_FAMILY else True
+
+    if OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:
+      command_env = dict(os.environ)
+      command_env["PYTHONPATH"] = os.pathsep.join(sys.path)
+      for k, v in command_env.iteritems():
+        command_env[k] = str(v)
+    else:
+      command_env = None
+
     return subprocess.Popen(command,
       stdout=tmpout,
-      stderr=tmperr, close_fds=close_fds)
+      stderr=tmperr, close_fds=close_fds, env=command_env)
 
   def isSuccessfull(self, returncode):
     return not self.python_process_has_been_killed and returncode == 0

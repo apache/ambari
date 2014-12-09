@@ -366,7 +366,7 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
             PropertyHelper.getPropertyName(desiredConfigKey + '/' + e.getKey());
           String absCatategory =
             PropertyHelper.getPropertyCategory(desiredConfigKey + '/' + e.getKey());
-          parseProperties(newConfig, absCatategory, propName, e.getValue().toString());
+          parseProperties(newConfig, absCatategory, propName, e.getValue() == null ? null : e.getValue().toString());
         }
         configs.add(newConfig);
       }

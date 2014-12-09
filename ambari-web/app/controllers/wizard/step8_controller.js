@@ -1721,7 +1721,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
 
     coreSiteObj.forEach(function (_coreSiteObj) {
       //proxyuser_group property should be added only if proxyuser properties are used
-      if (_coreSiteObj.name === proxyuserGroup.name) return;
+      if (proxyuserGroup && _coreSiteObj.name === proxyuserGroup.name) return;
 
       // exclude some configs if service wasn't selected
       var addProperty = optionalCoreSiteConfigs.every(function (config) {

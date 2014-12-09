@@ -85,6 +85,7 @@ CREATE TABLE adminprincipal (principal_id BIGINT NOT NULL, principal_type_id INT
 CREATE TABLE adminpermission (permission_id BIGINT NOT NULL, permission_name VARCHAR(255) NOT NULL, resource_type_id INTEGER NOT NULL, PRIMARY KEY(permission_id));
 CREATE TABLE adminprivilege (privilege_id BIGINT, permission_id BIGINT NOT NULL, resource_id BIGINT NOT NULL, principal_id BIGINT NOT NULL, PRIMARY KEY(privilege_id));
 CREATE TABLE host_version (id BIGINT NOT NULL, host_name VARCHAR(255) NOT NULL, stack VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL, state VARCHAR(32) NOT NULL, PRIMARY KEY (id));
+CREATE TABLE repo_version (repo_version_id BIGINT NOT NULL, stack VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL, display_name VARCHAR(128) NOT NULL, upgrade_package VARCHAR(255) NOT NULL, repositories VARCHAR(MAX) NOT NULL, PRIMARY KEY(repo_version_id));
 
 -- altering tables by creating unique constraints----------
 --------altering tables to add constraints----------
@@ -97,6 +98,8 @@ ALTER TABLE viewinstance ADD CONSTRAINT UQ_viewinstance_name UNIQUE (view_name, 
 ALTER TABLE viewinstance ADD CONSTRAINT UQ_viewinstance_name_id UNIQUE (view_instance_id, view_name, name);
 ALTER TABLE serviceconfig ADD CONSTRAINT UQ_scv_service_version UNIQUE (cluster_id, service_name, version);
 ALTER TABLE adminpermission ADD CONSTRAINT UQ_perm_name_resource_type_id UNIQUE (permission_name, resource_type_id);
+ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_display_name UNIQUE (display_name);
+ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_stack_version UNIQUE (stack, version);
 
 -- altering tables by creating foreign keys----------
 ALTER TABLE members ADD CONSTRAINT FK_members_group_id FOREIGN KEY (group_id) REFERENCES groups (group_id);
@@ -360,7 +363,9 @@ BEGIN TRANSACTION
   UNION ALL
   SELECT 'upgrade_item_id_seq', 0
   UNION ALL
-  SELECT 'host_version_id_seq', 0;
+  SELECT 'host_version_id_seq', 0
+  UNION ALL
+  SELECT 'repo_version_id_seq', 0;
 
   insert into adminresourcetype (resource_type_id, resource_type_name)
     select 1, 'AMBARI'

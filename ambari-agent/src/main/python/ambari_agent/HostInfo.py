@@ -47,6 +47,8 @@ class HostInfo(object):
     "hadoop", "zookeeper"
   ]
 
+  RESULT_UNAVAILABLE = "unable_to_determine"
+
   current_umask = -1
 
   def __init__(self, config=None):
@@ -166,8 +168,6 @@ class HostInfoLinux(HostInfo):
   IGNORE_REPOS = [
     "ambari", "HDP-UTILS"
   ]
-
-  RESULT_UNAVAILABLE = "unable_to_determine"
 
   DEFAULT_SERVICE_NAME = "ntpd"
   SERVICE_STATUS_CMD = "%s %s status" % (SERVICE_CMD, DEFAULT_SERVICE_NAME)
@@ -412,6 +412,8 @@ class HostInfoWindows(HostInfo):
   DEFAULT_LIVE_SERVICES = [
     {OSConst.WINSRV_FAMILY: "W32Time"}
   ]
+  DEFAULT_USERS = ["hadoop"]
+
   def checkUsers(self, users, results):
     get_users_cmd = ["powershell", '-noProfile', '-NonInteractive', '-nologo', "-Command", self.GET_USERS_CMD]
     try:

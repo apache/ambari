@@ -205,3 +205,5 @@ IF OBJECT_ID('adminprincipal', 'U') IS NOT NULL DROP TABLE adminprincipal
 GO
 IF OBJECT_ID('adminprincipaltype', 'U') IS NOT NULL DROP TABLE adminprincipaltype
 GO
+IF OBJECT_ID('repo_version', 'U') IS NOT NULL DROP TABLE repo_version
+GO
