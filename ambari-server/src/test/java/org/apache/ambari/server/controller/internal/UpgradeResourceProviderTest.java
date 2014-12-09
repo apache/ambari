@@ -18,8 +18,8 @@
 package org.apache.ambari.server.controller.internal;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -132,6 +132,8 @@ public class UpgradeResourceProviderTest {
     ServiceComponent component = service.addServiceComponent("ZOOKEEPER_SERVER");
     component.addServiceComponentHost("h1");
 
+    component = service.addServiceComponent("ZOOKEEPER_CLIENT");
+    component.addServiceComponentHost("h1");
 
   }
 
@@ -167,11 +169,12 @@ public class UpgradeResourceProviderTest {
 
     UpgradeGroupEntity group = entity.getUpgradeGroups().get(0);
 
-    assertEquals(3, group.getItems().size());
+    assertEquals(4, group.getItems().size());
 
     assertTrue(group.getItems().get(0).getText().contains("Preparing"));
     assertTrue(group.getItems().get(1).getText().contains("Restarting"));
     assertTrue(group.getItems().get(2).getText().contains("Completing"));
+    assertTrue(group.getItems().get(3).getText().contains("Service Check"));
 
     ActionManager am = injector.getInstance(ActionManager.class);
     List<Long> requests = am.getRequestsByStatus(RequestStatus.IN_PROGRESS, 100, true);
@@ -181,7 +184,7 @@ public class UpgradeResourceProviderTest {
 
 
     List<Stage> stages = am.getRequestStatus(requests.get(0).longValue());
-    assertEquals(3, stages.size());
+    assertEquals(4, stages.size());
     for (int i = 0; i < stages.size(); i++) {
       Stage stage = stages.get(i);
       UpgradeItemEntity upgradeItem = group.getItems().get(i);
@@ -189,9 +192,8 @@ public class UpgradeResourceProviderTest {
       assertEquals(UpgradeState.NONE, upgradeItem.getState());
     }
 
-
     List<HostRoleCommand> tasks = am.getRequestTasks(requests.get(0).longValue());
-    assertEquals(3, tasks.size());
+    assertEquals(4, tasks.size());
 
     return status;
   }
@@ -257,7 +259,7 @@ public class UpgradeResourceProviderTest {
     ResourceProvider upgradeItemResourceProvider = new UpgradeItemResourceProvider(amc);
     resources = upgradeItemResourceProvider.getResources(request, predicate);
 
-    assertEquals(3, resources.size());
+    assertEquals(4, resources.size());
     res = resources.iterator().next();
     assertNotNull(res.getPropertyValue("UpgradeItem/status"));
 

@@ -375,8 +375,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       for (StageWrapper wrapper : group.items) {
         UpgradeItemEntity itemEntity = new UpgradeItemEntity();
         itemEntity.setText(wrapper.getText());
-        itemEntity.setTasks(wrapper.getHostsJson());
-        itemEntity.setHosts(wrapper.getTasksJson());
+        itemEntity.setTasks(wrapper.getTasksJson());
+        itemEntity.setHosts(wrapper.getHostsJson());
         itemEntities.add(itemEntity);
 
         // upgrade items match a stage
@@ -420,16 +420,35 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private void createStage(Cluster cluster, RequestStageContainer request, final String version,
       UpgradeItemEntity entity, StageWrapper wrapper) throws AmbariException {
 
-    if (wrapper.hasCommand()) {
-      makeRestartStage(cluster, request, version, entity, wrapper);
-    } else {
-      makeActionStage(cluster, request, version, entity, wrapper);
+    switch (wrapper.getType()) {
+      case RESTART:
+        makeRestartStage(cluster, request, version, entity, wrapper);
+        break;
+      case RU_TASKS:
+        makeActionStage(cluster, request, version, entity, wrapper);
+        break;
+      case SERVICE_CHECK:
+        makeServiceCheckStage(cluster, request, version, entity, wrapper);
+        break;
     }
 
   }
 
   private void makeActionStage(Cluster cluster, RequestStageContainer request, final String version,
       UpgradeItemEntity entity, StageWrapper wrapper) throws AmbariException {
+
+    // add each host to this stage
+    RequestResourceFilter filter = new RequestResourceFilter("", "",
+        new ArrayList<String>(wrapper.getHosts()));
+
+    Map<String, String> params = new HashMap<String, String>();
+    params.put("tasks", entity.getTasks());
+
+    ActionExecutionContext actionContext = new ActionExecutionContext(
+        cluster.getClusterName(), "ru_execute_tasks",
+        Collections.singletonList(filter),
+        params);
+    actionContext.setTimeout(Short.valueOf((short)60));
 
     Map<String, String> hostLevelParams = new HashMap<String, String>();
     hostLevelParams.put(JDK_LOCATION, getManagementController().getJdkResourceUrl());
@@ -448,20 +467,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
     stage.setStageId(stageId);
     entity.setStageId(Long.valueOf(stageId));
-
-    // add each host to this stage
-    RequestResourceFilter filter = new RequestResourceFilter("", "",
-        new ArrayList<String>(wrapper.getHosts()));
-
-    // !!! TODO when the custom action is underway, change this
-    Map<String, String> params = new HashMap<String, String>();
-    params.put("tasks", entity.getTasks());
-
-    ActionExecutionContext actionContext = new ActionExecutionContext(
-        cluster.getClusterName(), "ru_execute_tasks",
-        Collections.singletonList(filter),
-        params);
-    actionContext.setTimeout(Short.valueOf((short)60));
 
     // !!! TODO verify the action is valid
 
@@ -527,5 +532,48 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     request.addStages(Collections.singletonList(stage));
   }
 
+  private void makeServiceCheckStage(Cluster cluster, RequestStageContainer request, String version,
+      UpgradeItemEntity entity, StageWrapper wrapper) throws AmbariException {
+
+    List<RequestResourceFilter> filters = new ArrayList<RequestResourceFilter>();
+
+    for (TaskWrapper tw : wrapper.getTasks()) {
+      filters.add(new RequestResourceFilter(tw.getService(), "", Collections.<String>emptyList()));
+    }
+
+    Map<String, String> restartCommandParams = new HashMap<String, String>();
+    restartCommandParams.put("version", version);
+
+    ActionExecutionContext actionContext = new ActionExecutionContext(
+        cluster.getClusterName(), "SERVICE_CHECK",
+        filters,
+        restartCommandParams);
+    actionContext.setTimeout(Short.valueOf((short)-1));
+
+    ExecuteCommandJson jsons = commandExecutionHelper.get().getCommandJson(
+        actionContext, cluster);
+
+    Stage stage = stageFactory.get().createNew(request.getId().longValue(),
+        "/tmp/ambari",
+        cluster.getClusterName(),
+        cluster.getClusterId(),
+        entity.getText(),
+        jsons.getClusterHostInfo(),
+        jsons.getCommandParamsForStage(),
+        jsons.getHostParamsForStage());
+
+    long stageId = request.getLastStageId() + 1;
+    if (0L == stageId) {
+      stageId = 1L;
+    }
+    stage.setStageId(stageId);
+    entity.setStageId(Long.valueOf(stageId));
+
+    Map<String, String> requestParams = new HashMap<String, String>();
+
+    commandExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, requestParams);
+
+    request.addStages(Collections.singletonList(stage));
+  }
 
 }

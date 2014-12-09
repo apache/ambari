@@ -19,6 +19,7 @@ package org.apache.ambari.server.state.stack.upgrade;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -28,6 +29,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
+import org.apache.commons.lang.StringUtils;
 
 /**
  *
@@ -55,13 +57,15 @@ public class Grouping {
   private static class DefaultBuilder extends StageWrapperBuilder {
 
     private List<StageWrapper> stages = new ArrayList<StageWrapper>();
+    private Set<String> serviceChecks = new HashSet<String>();
 
     @Override
     public void add(Set<String> hosts, String service, ProcessingComponent pc) {
       if (null != pc.preTasks && pc.preTasks.size() > 0) {
         StageWrapper stage = new StageWrapper(
+            StageWrapper.Type.RU_TASKS,
             getStageText("Preparing", pc.name, hosts),
-            Collections.singletonList(new TaskWrapper(service, pc.name, hosts, pc.preTasks)));
+            new TaskWrapper(service, pc.name, hosts, pc.preTasks));
         stages.add(stage);
       }
 
@@ -71,8 +75,9 @@ public class Grouping {
         if (RestartTask.class.isInstance(t)) {
           for (String hostName : hosts) {
             StageWrapper stage = new StageWrapper(
+                StageWrapper.Type.RESTART,
                 getStageText("Restarting", pc.name, Collections.singleton(hostName)),
-                Collections.singletonList(new TaskWrapper(service, pc.name, Collections.singleton(hostName), t)));
+                new TaskWrapper(service, pc.name, Collections.singleton(hostName), t));
             stages.add(stage);
           }
         }
@@ -80,14 +85,35 @@ public class Grouping {
 
       if (null != pc.postTasks && pc.postTasks.size() > 0) {
         StageWrapper stage = new StageWrapper(
+            StageWrapper.Type.RU_TASKS,
             getStageText("Completing", pc.name, hosts),
-            Collections.singletonList(new TaskWrapper(service, pc.name, hosts, pc.postTasks)));
+            new TaskWrapper(service, pc.name, hosts, pc.postTasks));
         stages.add(stage);
       }
+
+      serviceChecks.add(service);
+
     }
 
     @Override
     public List<StageWrapper> build() {
+
+      List<TaskWrapper> tasks = new ArrayList<TaskWrapper>();
+      for (String service : serviceChecks) {
+        tasks.add(new TaskWrapper(
+            service, "", Collections.<String>emptySet(), new ServiceCheckTask()));
+      }
+
+      if (serviceChecks.size() > 0) {
+        StageWrapper wrapper = new StageWrapper(
+            StageWrapper.Type.SERVICE_CHECK,
+            "Service Check " + StringUtils.join(serviceChecks, ", "),
+            tasks.toArray(new TaskWrapper[0])
+            );
+
+        stages.add(wrapper);
+      }
+
       return stages;
     }
 

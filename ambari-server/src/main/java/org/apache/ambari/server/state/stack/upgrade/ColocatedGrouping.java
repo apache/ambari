@@ -19,6 +19,7 @@ package org.apache.ambari.server.state.stack.upgrade;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +59,7 @@ public class ColocatedGrouping extends Grouping {
     private Map<String, List<TaskProxy>> initialBatch = new LinkedHashMap<String, List<TaskProxy>>();
     private Map<String, List<TaskProxy>> finalBatches = new LinkedHashMap<String, List<TaskProxy>>();
 
+
     private MultiHomedHolder(Batch batch) {
       this.batch = batch;
     }
@@ -83,6 +86,7 @@ public class ColocatedGrouping extends Grouping {
           proxy = new TaskProxy();
           proxy.message = getStageText("Preparing", pc.name, Collections.singleton(host));
           proxy.tasks.add(new TaskWrapper(service, pc.name, Collections.singleton(host), pc.preTasks));
+          proxy.service = service;
           proxy.component = pc.name;
           targetList.add(proxy);
         }
@@ -94,6 +98,7 @@ public class ColocatedGrouping extends Grouping {
             proxy = new TaskProxy();
             proxy.tasks.add(new TaskWrapper(service, pc.name, Collections.singleton(host), t));
             proxy.restart = true;
+            proxy.service = service;
             proxy.component = pc.name;
             proxy.message = getStageText("Restarting ", pc.name, Collections.singleton(host));
 
@@ -104,6 +109,7 @@ public class ColocatedGrouping extends Grouping {
         if (null != pc.postTasks && pc.postTasks.size() > 0) {
           proxy = new TaskProxy();
           proxy.component = pc.name;
+          proxy.service = service;
           proxy.tasks.add(new TaskWrapper(service, pc.name, Collections.singleton(host), pc.postTasks));
           proxy.message = getStageText("Completing", pc.name, Collections.singleton(host));
           targetList.add(proxy);
@@ -123,20 +129,23 @@ public class ColocatedGrouping extends Grouping {
 
       results.addAll(fromProxies(initialBatch));
 
+      // !!! TODO when manual tasks are ready
 //      StageWrapper wrapper = new StageWrapper(
 //      ManualTask task = new ManualTask();
 //      task.message = batch.message;
 //      wrapper.tasks.add(new TaskWrapper(null, null, null, task));
-      // !!! TODO
 //      results.add(wrapper);
 
       results.addAll(fromProxies(finalBatches));
+
 
       return results;
     }
 
     private List<StageWrapper> fromProxies(Map<String, List<TaskProxy>> wrappers) {
       List<StageWrapper> results = new ArrayList<StageWrapper>();
+
+      Set<String> serviceChecks = new HashSet<String>();
 
       for (Entry<String, List<TaskProxy>> entry : wrappers.entrySet()) {
 
@@ -145,13 +154,15 @@ public class ColocatedGrouping extends Grouping {
         StageWrapper execwrapper = null;
 
         for (TaskProxy t : entry.getValue()) {
+          serviceChecks.add(t.service);
+
           if (!t.restart) {
             if (null == wrapper) {
-              wrapper = new StageWrapper(t.message, t.tasks);
+              wrapper = new StageWrapper(StageWrapper.Type.RU_TASKS, t.message, t.getTasksArray());
             }
           } else {
             if (null == execwrapper) {
-              execwrapper = new StageWrapper(t.message, t.tasks);
+              execwrapper = new StageWrapper(StageWrapper.Type.RESTART, t.message, t.getTasksArray());
             }
           }
         }
@@ -165,6 +176,21 @@ public class ColocatedGrouping extends Grouping {
         }
       }
 
+      if (serviceChecks.size() > 0) {
+        // !!! add the service check task
+        List<TaskWrapper> tasks = new ArrayList<TaskWrapper>();
+        for (String service : serviceChecks) {
+          tasks.add(new TaskWrapper(service, "", Collections.<String>emptySet(), new ServiceCheckTask()));
+        }
+
+        StageWrapper wrapper = new StageWrapper(
+            StageWrapper.Type.SERVICE_CHECK,
+            "Service Check " + StringUtils.join(serviceChecks, ", "),
+            tasks.toArray(new TaskWrapper[tasks.size()]));
+
+        results.add(wrapper);
+      }
+
       return results;
     }
 
@@ -175,6 +201,7 @@ public class ColocatedGrouping extends Grouping {
    */
   private static class TaskProxy {
     private boolean restart = false;
+    private String service;
     private String component;
     private String message;
     private List<TaskWrapper> tasks = new ArrayList<TaskWrapper>();
@@ -187,6 +214,10 @@ public class ColocatedGrouping extends Grouping {
       }
 
       return s;
+    }
+
+    private TaskWrapper[] getTasksArray() {
+      return tasks.toArray(new TaskWrapper[0]);
     }
   }
 

@@ -55,7 +55,11 @@ public abstract class Task {
     /**
      * Task that is a restart command.
      */
-    RESTART;
+    RESTART,
+    /**
+     * Task that is a service check
+     */
+    SERVICE_CHECK;
 
     /**
      * @return {@code true} if the task is manual or automated.

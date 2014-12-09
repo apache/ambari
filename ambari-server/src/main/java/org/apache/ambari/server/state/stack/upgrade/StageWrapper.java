@@ -18,7 +18,7 @@
 package org.apache.ambari.server.state.stack.upgrade;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -32,10 +32,16 @@ public class StageWrapper {
 
   private static Gson gson = new Gson();
   private String text;
+  private Type type;
 
   private List<TaskWrapper> tasks;
 
-  public StageWrapper(String text, List<TaskWrapper> tasks) {
+  public StageWrapper(Type type, String text, TaskWrapper... tasks) {
+    this(type, text, Arrays.asList(tasks));
+  }
+
+  private StageWrapper(Type type, String text, List<TaskWrapper> tasks) {
+    this.type = type;
     this.text = text;
     this.tasks = tasks;
   }
@@ -57,23 +63,6 @@ public class StageWrapper {
     }
 
     return gson.toJson(realTasks);
-  }
-
-  /**
-   * @return {@code true} if any of the tasks is a command type.  This affects
-   * the type of stage that is created.
-   */
-  public boolean hasCommand() {
-
-    for (TaskWrapper tw : tasks) {
-      for (Task t : tw.getTasks()) {
-        if (t.getType().isCommand()) {
-          return true;
-        }
-      }
-    }
-
-    return false;
   }
 
   /**
@@ -101,5 +90,25 @@ public class StageWrapper {
   public String getText() {
     return text;
   }
+
+  /**
+   * Gets the type of stage.  All tasks defined for the stage execute this type.
+   * @return the type
+   */
+  public Type getType() {
+    return type;
+  }
+
+  /**
+   * Indicates the type of wrapper.
+   */
+  public enum Type {
+    MANUAL,
+    RESTART,
+    RU_TASKS,
+    SERVICE_CHECK
+  }
+
+
 
 }
