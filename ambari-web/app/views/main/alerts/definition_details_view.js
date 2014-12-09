@@ -65,9 +65,9 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
    */
   tooltipsUpdater: function () {
     Em.run.next(function () {
-      App.tooltip($(".timeago, .alert-text"));
+      App.tooltip($(".timeago, .alert-text, .enable-disable-button"));
     });
-  }.observes('pageContent.@each'),
+  }.observes('pageContent.@each.text', 'controller.content.enabled'),
 
   /**
    * View calculates and represents count of alerts on appropriate host during last day

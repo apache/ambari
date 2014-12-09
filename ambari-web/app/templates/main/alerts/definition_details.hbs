@@ -51,8 +51,12 @@
       <div><a href="javascript:void(null)" data-toggle="modal" {{action back}}><i class="icon-arrow-left"></i>&nbsp;{{t common.back}}</a></div>
 
       {{! Alert Definition Configs }}
-      <div class="definition-details-block">
-        <strong>{{t common.configuration}}</strong>
+      <div class="box">
+        <div class="box-header">
+          <div class="pull-left">
+            <h4>{{t common.configuration}}</h4>
+          </div>
+          <div class="pull-right span5 row-fluid" style="padding:0 10px;">
           {{#isAccessible ADMIN}}
             {{#unless App.router.mainAlertDefinitionConfigsController.canEdit}}
               <a {{action editConfigs target="App.router.mainAlertDefinitionConfigsController"}} class="pull-right edit-link">
@@ -60,7 +64,8 @@
               </a>
             {{/unless}}
           {{/isAccessible}}
-        <hr>
+          </div>
+        </div>
         {{view App.AlertDefinitionConfigsView contentBinding="view.controller.content" alertDefinitionTypeBinding="view.controller.content.type" canEdit=false}}
         {{#if App.router.mainAlertDefinitionConfigsController.canEdit}}
           <div class="edit-buttons">
@@ -72,7 +77,6 @@
         {{/if}}
       </div>
       {{! Alert Definition Configs end }}
-
     </div>
     {{! Left column end }}
 
@@ -81,31 +85,38 @@
       <div class="status">
         {{{controller.content.status}}}
       </div>
-      <div class="buttons-block">
-        {{#isAccessible ADMIN}}
-          {{#if controller.content.enabled}}
-            <button {{action toggleState target="controller"}} class="btn btn-danger disable-button"><i
-               class="icon-power-off"></i>&nbsp;{{t alerts.definition.details.disable}}</button>
-          {{else}}
-            <button {{action toggleState target="controller"}} class="btn btn-success enable-button"><i
-               class="icon-power-off"></i>&nbsp;{{t alerts.definition.details.enable}}</button>
-          {{/if}}
-          <button {{action deleteAlertDefinition target="controller"}} class="btn delete-button"><i
-              class="icon-trash"></i>&nbsp;{{t common.delete}}</button>
-        {{/isAccessible}}
-      </div>
       <div class="properties-list">
         <div class="row-fluid">
           <div class="span4 property-name">{{t alerts.table.state}}:</div>
           <div class="span8">
             {{#if controller.content.enabled}}
-              <span {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
-                <span class="icon-off"></span> {{t alerts.table.state.enabled}}
-              </span>
+              {{#isAccessible ADMIN}}
+                <span class="enable-disable-button" {{translateAttr data-original-title="alerts.table.state.enabled.tooltip"}}>
+                  <a href="#" {{action "toggleState" controller.content target="controller"}} {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
+                      <span class="icon-off"></span>
+                      {{t alerts.table.state.enabled}}
+                  </a>
+                </span>
+              {{/isAccessible}}
+              {{#isAccessible NON_ADMIN}}
+                <span {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
+                      {{t alerts.table.state.enabled}}
+                </span>
+              {{/isAccessible}}
             {{else}}
-              <span {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
-                <span class="icon-off"></span> {{t alerts.table.state.disabled}}
-              </span>
+              {{#isAccessible ADMIN}}
+                <span class="enable-disable-button" {{translateAttr data-original-title="alerts.table.state.disabled.tooltip"}}>
+                  <a href="#" {{action "toggleState" controller.content target="controller"}} {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
+                      <span class="icon-off"></span>
+                      {{t alerts.table.state.disabled}}
+                  </a>
+                </span>
+              {{/isAccessible}}
+              {{#isAccessible NON_ADMIN}}
+                <span {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
+                      {{t alerts.table.state.disabled}}
+                </span>
+              {{/isAccessible}}
             {{/if}}
           </div>
         </div>
@@ -160,7 +171,6 @@
         <thead>
         <tr>
           <th class="first">{{t alerts.definition.details.serviceHost}}</th>
-          <th>{{t alerts.table.header.lastTriggered}}</th>
           <th>{{t common.status}}</th>
           <th>{{t alerts.definition.details.24-hour}}</th>
           <th>{{t alerts.table.header.text}}</th>
@@ -179,7 +189,6 @@
                   <a {{action goToHostAlerts instance.host target="controller"}} href="#">{{instance.host.hostName}}</a>
                 {{/if}}
               </td>
-              <td>{{instance.lastTriggeredFormatted}}</td>
               <td>{{{instance.status}}}  <time class="timeago" {{bindAttr data-original-title="instance.lastTriggeredFormatted"}}>{{instance.lastTriggeredForFormatted}}</time></td>
               <td>{{view view.lastDayCount hostBinding="instance.host"}}</td>
               <td><span class="alert-text" {{bindAttr data-original-title="instance.text"}} class="alert-text">{{instance.text}}</span></td>

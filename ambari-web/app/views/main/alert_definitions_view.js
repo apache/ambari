@@ -376,7 +376,10 @@ App.MainAlertDefinitionsView = App.TableView.extend({
       if (value != undefined ) {
         this.get('content').setEach('selected', false);
         this.set('selected', this.get('content').findProperty('value', value));
-        this.get('content').findProperty('value', value).set('selected', true);
+        var selectEntry = this.get('content').findProperty('value', value);
+        if (selectEntry) {
+          selectEntry.set('selected', true);
+        }
       }
     }.observes('value')
   }),

@@ -158,24 +158,19 @@
   .col1,
   td:first-child + td,
   th:first-child + th {
-    width: 15%;
+    width: 20%;
   }
 
   .col2,
   td:first-child + td + td,
   th:first-child + th + th {
-    width: 15%;
-  }
-  .col3,
-  td:first-child + td + td + td,
-  th:first-child + th + th + th {
     width: 10%
   }
 
-  .col4,
-  td:first-child + td + td + td + td,
-  th:first-child + th + th + th + th {
-    width: 30%;
+  .col3,
+  td:first-child + td + td + td,
+  th:first-child + th + th + th {
+    width: 40%;
   }
 
   .alert-text {
@@ -188,6 +183,15 @@
 }
 
 #alert-definition-details {
+  .box {
+    .box-header {
+      .edit-link {
+        margin: 5px;
+      }
+    }
+    margin-top: 20px;
+    margin-bottom: 0px;
+  }
   .definition-details-block {
     margin-top: 30px;
     .multiline-text {
@@ -207,7 +211,7 @@
 
   .status {
     margin-bottom: 30px;
-    text-align: center;
+    text-align: right;
     .label {
       font-size: 14px;
       padding: 5px 8px;
@@ -258,7 +262,8 @@
 
   .edit-buttons {
     text-align: right;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
+    margin-right: 10px;
   }
 
   .text-area-edit {
@@ -273,11 +278,6 @@
     cursor: pointer;
   }
 
-  .buttons-block {
-    button {
-      font-size: 1.1em;
-    }
-  }
 }
 
 .alert-configs {
@@ -300,6 +300,10 @@
     input {
       width: 98%;
     }
+  }
+
+  .input-append {
+    padding-right: 13px;
   }
 
   .alert-interval-input {

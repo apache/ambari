@@ -165,10 +165,12 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       }),
       App.AlertConfigProperties.Thresholds.OkThreshold.create({
         label: 'Thresholds',
+        showInputForValue: false,
         text: isWizard ? '' : this.getThresholdsProperty('ok', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('ok', 'value')
       }),
       App.AlertConfigProperties.Thresholds.CriticalThreshold.create({
+        showInputForValue: false,
         text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
       })
@@ -282,14 +284,17 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       }),
       App.AlertConfigProperties.Thresholds.OkThreshold.create({
         label: 'Thresholds',
+        showInputForValue: false,
         text: isWizard ? '' : this.getThresholdsProperty('ok', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('ok', 'value')
       }),
       App.AlertConfigProperties.Thresholds.WarningThreshold.create({
+        showInputForValue: false,
         text: isWizard ? '' : this.getThresholdsProperty('warning', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('warning', 'value')
       }),
       App.AlertConfigProperties.Thresholds.CriticalThreshold.create({
+        showInputForValue: false,
         text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
       })
@@ -318,11 +323,13 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       }),
       App.AlertConfigProperties.Thresholds.WarningThreshold.create({
         text: isWizard ? '' : this.getThresholdsProperty('warning', 'text'),
-        value: isWizard ? '' : this.getThresholdsProperty('warning', 'value')
+        value: isWizard ? '' : this.getThresholdsProperty('warning', 'value'),
+        valueMetric: '%'
       }),
       App.AlertConfigProperties.Thresholds.CriticalThreshold.create({
         text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
-        value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
+        value: isWizard ? '' : this.getThresholdsProperty('critical', 'value'),
+        valueMetric: '%'
       })
     ];
   },

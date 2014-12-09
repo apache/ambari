@@ -248,6 +248,18 @@ App.AlertConfigProperties = {
     value: '',
 
     /**
+     * Type of value. This will be a fixed set of types (like %).
+     */
+    valueMetric: null,
+
+    /**
+     * Value actually displayed to the user. This value is transformed
+     * based on the limited types of 'valueMetric's. Mappings from 
+     * 'value' to 'displayValue' is handled by observers.
+     */
+    displayValue: '',
+
+    /**
      * threshold-text
      * @type {string}
      */
@@ -258,6 +270,11 @@ App.AlertConfigProperties = {
     classNames: 'alert-thresholds-input',
 
     apiProperty: [],
+
+    init:function () {
+      this.valueWasChanged();
+      this._super();
+    },
 
     /**
      * @type {string[]}
@@ -300,7 +317,33 @@ App.AlertConfigProperties = {
     wasChanged: function () {
       return (this.get('previousValue') !== null && this.get('value') !== this.get('previousValue')) ||
         (this.get('previousText') !== null && this.get('text') !== this.get('previousText'));
-    }.property('value', 'text', 'previousValue', 'previousText')
+    }.property('value', 'text', 'previousValue', 'previousText'),
+
+    valueWasChanged : function() {
+      var value = this.get('value');
+      var valueMetric = this.get('valueMetric');
+      var displayValue = this.get('displayValue');
+      var newDisplayValue = value;
+      if ('%' == valueMetric) {
+        newDisplayValue = (Number(value) * 100) + '';
+      }
+      if (newDisplayValue != displayValue) {
+        this.set('displayValue', newDisplayValue);
+      }
+    }.observes('value', 'valueMetric'),
+
+    displayValueWasChanged: function () {
+      var value = this.get('value');
+      var valueMetric = this.get('valueMetric');
+      var displayValue = this.get('displayValue');
+      var newValue = displayValue;
+      if ('%' == valueMetric) {
+        newValue = (Number(displayValue) / 100) + '';
+      }
+      if (newValue != value) {
+        this.set('value', newValue);
+      }
+    }.observes('displayValue', 'valueMetric')
 
   }),
 

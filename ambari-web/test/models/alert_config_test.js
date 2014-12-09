@@ -52,6 +52,35 @@ describe('App.AlertConfigProperties', function () {
 
     });
 
+    describe('#valueWasChanged', function () {
+
+      it('value change should effect displayValue', function () {
+
+        model = App.AlertConfigProperties.Threshold.create({
+          value: '0.4',
+          valueMetric: '%',
+          text: 'text',
+          showInputForValue: false,
+          showInputForText: false
+        });
+
+        expect(model.get('displayValue')).to.eql('40');
+      });
+
+      it('value change should not effect displayValue', function () {
+
+        model = App.AlertConfigProperties.Threshold.create({
+          value: '0.4',
+          text: 'text',
+          showInputForValue: false,
+          showInputForText: false
+        });
+
+        expect(model.get('displayValue')).to.eql('0.4');
+      });
+
+    });
+
     describe('#badgeCssClass', function () {
 
       it ('should be based on badge', function () {

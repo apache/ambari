@@ -23,6 +23,7 @@ App.AlertDefinition = DS.Model.extend({
 
   name: DS.attr('string'),
   label: DS.attr('string'),
+  description: DS.attr('string'),
   service: DS.belongsTo('App.Service'),
   serviceName: DS.attr('string'),
   componentName: DS.attr('string'),
@@ -213,8 +214,6 @@ App.AlertDefinition = DS.Model.extend({
   severityOrder: ['CRITICAL', 'WARNING', 'OK', 'UNKNOWN', 'PENDING'],
   order: ['OK', 'WARNING', 'CRITICAL', 'UNKNOWN'],
 
-  // todo: in future be mapped from server response
-  description: 'Description for the Alert Definition.',
   // todo: in future be mapped from server response
   thresholds: '5-10'
 });
