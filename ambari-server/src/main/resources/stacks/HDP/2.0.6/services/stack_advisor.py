@@ -18,7 +18,7 @@ limitations under the License.
 """
 
 import re
-import sys
+import os
 from math import ceil
 
 from stack_advisor import DefaultStackAdvisor
@@ -91,13 +91,13 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       config[configType]["properties"][key] = str(value)
     return appendProperty
 
-  def recommendYARNConfigurations(self, configurations, clusterData):
+  def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
     putYarnProperty = self.putProperty(configurations, "yarn-site")
     putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(clusterData['containers'] * clusterData['ramPerContainer'])))
     putYarnProperty('yarn.scheduler.minimum-allocation-mb', int(clusterData['ramPerContainer']))
     putYarnProperty('yarn.scheduler.maximum-allocation-mb', int(round(clusterData['containers'] * clusterData['ramPerContainer'])))
 
-  def recommendMapReduce2Configurations(self, configurations, clusterData):
+  def recommendMapReduce2Configurations(self, configurations, clusterData, services, hosts):
     putMapredProperty = self.putProperty(configurations, "mapred-site")
     putMapredProperty('yarn.app.mapreduce.am.resource.mb', int(clusterData['amMemory']))
     putMapredProperty('yarn.app.mapreduce.am.command-opts', "-Xmx" + str(int(round(0.8 * clusterData['amMemory']))) + "m")
@@ -196,20 +196,19 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     for service in services["services"]:
       serviceName = service["StackServices"]["service_name"]
       validator = self.validateServiceConfigurations(serviceName)
-      if validator is not None:
-        siteName = validator[0]
-        method = validator[1]
-        if siteName in recommendedDefaults:
-          siteProperties = getSiteProperties(configurations, siteName)
-          if siteProperties is not None:
-            resultItems = method(siteProperties, recommendedDefaults[siteName]["properties"], configurations)
-            items.extend(resultItems)
+      if validator is not  None:
+        for siteName, method in validator.items():
+          if siteName in recommendedDefaults:
+            siteProperties = getSiteProperties(configurations, siteName)
+            if siteProperties is not None:
+              resultItems = method(siteProperties, recommendedDefaults[siteName]["properties"], configurations, services, hosts)
+              items.extend(resultItems)
     return items
 
   def getServiceConfigurationValidators(self):
     return {
-      "MAPREDUCE2": ["mapred-site", self.validateMapReduce2Configurations],
-      "YARN": ["yarn-site", self.validateYARNConfigurations]
+      "MAPREDUCE2": {"mapred-site": self.validateMapReduce2Configurations},
+      "YARN": {"yarn-site": self.validateYARNConfigurations}
     }
 
   def validateServiceConfigurations(self, serviceName):
@@ -230,6 +229,21 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
   def getErrorItem(self, message):
     return {"level": "ERROR", "message": message}
+
+  def validatorEnoughDiskSpace(self, properties, propertyName, hostInfo, reqiuredDiskSpace):
+    if not propertyName in properties:
+      return self.getErrorItem("Value should be set")
+    dir = properties[propertyName]
+    if not dir.startswith("hdfs://"):
+      dir = re.sub("^file://", "", dir, count=1)
+    mountPoints = {}
+    for mountPoint in hostInfo["disk_info"]:
+      mountPoints[mountPoint["mountpoint"]] = to_number(mountPoint["available"])
+    mountPoint = getMountPointForDir(dir, mountPoints.keys())
+
+    if mountPoints[mountPoint] < reqiuredDiskSpace:
+      return self.getWarnItem("Recommended disk space for partition {0} is {1}k".format(mountPoint, reqiuredDiskSpace))
+    return None
 
   def validatorLessThenDefaultValue(self, properties, recommendedDefaults, propertyName):
     if not propertyName in properties:
@@ -260,7 +274,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       return self.getWarnItem("Value is less than the recommended default of -Xmx" + defaultValueXmx)
     return None
 
-  def validateMapReduce2Configurations(self, properties, recommendedDefaults, configurations):
+  def validateMapReduce2Configurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ {"config-name": 'mapreduce.map.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.map.java.opts')},
                         {"config-name": 'mapreduce.reduce.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.reduce.java.opts')},
                         {"config-name": 'mapreduce.task.io.sort.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.task.io.sort.mb')},
@@ -270,7 +284,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
                         {"config-name": 'yarn.app.mapreduce.am.command-opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.command-opts')} ]
     return self.toConfigurationValidationProblems(validationItems, "mapred-site")
 
-  def validateYARNConfigurations(self, properties, recommendedDefaults, configurations):
+  def validateYARNConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ {"config-name": 'yarn.nodemanager.resource.memory-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.nodemanager.resource.memory-mb')},
                         {"config-name": 'yarn.scheduler.minimum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.minimum-allocation-mb')},
                         {"config-name": 'yarn.scheduler.maximum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.maximum-allocation-mb')} ]
@@ -371,3 +385,26 @@ def isSecurePort(port):
     return port < 1024
   else:
     return False
+
+def getMountPointForDir(dir, mountPoints):
+  """
+  :param dir: Directory to check, even if it doesn't exist.
+  :return: Returns the closest mount point as a string for the directory.
+  if the "dir" variable is None, will return None.
+  If the directory does not exist, will return "/".
+  """
+  bestMountFound = None
+  if dir:
+    dir = dir.strip().lower()
+
+    # If the path is "/hadoop/hdfs/data", then possible matches for mounts could be
+    # "/", "/hadoop/hdfs", and "/hadoop/hdfs/data".
+    # So take the one with the greatest number of segments.
+    for mountPoint in mountPoints:
+      if dir.startswith(mountPoint):
+        if bestMountFound is None:
+          bestMountFound = mountPoint
+        elif bestMountFound.count(os.path.sep) < mountPoint.count(os.path.sep):
+          bestMountFound = mountPoint
+
+  return bestMountFound

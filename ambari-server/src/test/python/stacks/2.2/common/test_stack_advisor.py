@@ -16,7 +16,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import json
 import os
 from unittest import TestCase
 
@@ -62,7 +61,7 @@ class TestHDP22StackAdvisor(TestCase):
         }
       }
     }
-    self.stackAdvisor.recommendTezConfigurations(configurations, clusterData)
+    self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, None, None)
     self.assertEquals(configurations, expected)
 
   def test_recommendTezConfigurations_amMemoryMoreThan3072(self):
@@ -85,7 +84,7 @@ class TestHDP22StackAdvisor(TestCase):
         }
       }
     }
-    self.stackAdvisor.recommendTezConfigurations(configurations, clusterData)
+    self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, None, None)
     self.assertEquals(configurations, expected)
 
   def test_recommendTezConfigurations_mapMemoryLessThan768(self):
@@ -108,7 +107,7 @@ class TestHDP22StackAdvisor(TestCase):
         }
       }
     }
-    self.stackAdvisor.recommendTezConfigurations(configurations, clusterData)
+    self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, None, None)
     self.assertEquals(configurations, expected)
 
 
@@ -140,7 +139,7 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     expected = []  # No warnings
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations)
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
     self.assertEquals(validation_problems, expected)
 
     # TEST CASE: Unsecured cluster, unsecure ports
@@ -157,7 +156,7 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     expected = []  # No warnings
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations)
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
     self.assertEquals(validation_problems, expected)
 
     # TEST CASE: Secure cluster, invalid dfs.http.policy value
@@ -179,7 +178,7 @@ class TestHDP22StackAdvisor(TestCase):
                  'level': 'WARN',
                  'message': "Invalid property value: WRONG_VALUE. Valid values are ['HTTP_ONLY', 'HTTPS_ONLY', 'HTTP_AND_HTTPS']",
                  'type': 'configuration'}]
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations)
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
     self.assertEquals(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, https address not defined
@@ -196,7 +195,7 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     expected = [ ]
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations)
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
     self.assertEquals(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, https address defined and secure
@@ -214,7 +213,7 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     expected = []
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations)
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
     self.assertEquals(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, https address defined and non secure
@@ -232,7 +231,7 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     expected = []
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations)
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
     self.assertEquals(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, non secure dfs port, https property not defined
@@ -276,7 +275,7 @@ class TestHDP22StackAdvisor(TestCase):
                             "order to be able to use HTTPS.",
                  'type': 'configuration'}
     ]
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations)
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
     self.assertEquals(validation_problems, expected)
 
 
@@ -321,7 +320,7 @@ class TestHDP22StackAdvisor(TestCase):
                             "able to use HTTPS.",
                  'type': 'configuration'}
     ]
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations)
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
     self.assertEquals(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, valid non-root configuration
@@ -340,7 +339,7 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     expected = []
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations)
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
     self.assertEquals(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTP_ONLY, insecure port
@@ -376,7 +375,7 @@ class TestHDP22StackAdvisor(TestCase):
                             "['dfs.datanode.address', 'dfs.datanode.http.address'] use secure ports.",
                  'type': 'configuration'}
                 ]
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations)
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
     self.assertEquals(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTP_ONLY, valid configuration
@@ -394,7 +393,7 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     expected = []
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations)
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
     self.assertEquals(validation_problems, expected)
 
     # TEST CASE: Secure cluster, absent dfs.http.policy (typical situation)
@@ -411,7 +410,7 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     expected = []
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations)
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
     self.assertEquals(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTP_ONLY, misusage of dfs.data.transfer.protection warning
@@ -435,7 +434,7 @@ class TestHDP22StackAdvisor(TestCase):
                  'message': "dfs.data.transfer.protection property can not be used when dfs.http.policy is "
                             "set to any value other then HTTPS_ONLY. Tip: When dfs.http.policy property is not defined, it defaults to HTTP_ONLY",
                  'type': 'configuration'}]
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations)
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
     self.assertEquals(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, wrong dfs.data.transfer.protection value
@@ -458,7 +457,7 @@ class TestHDP22StackAdvisor(TestCase):
                  'level': 'WARN',
                  'message': "Invalid property value: WRONG_VALUE. Valid values are ['authentication', 'integrity', 'privacy'].",
                  'type': 'configuration'}]
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations)
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
     self.assertEquals(validation_problems, expected)
 
     # TEST CASE: Hadoop wire encryption enabled
@@ -477,7 +476,7 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     expected = []  # No warnings
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations)
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
     self.assertEquals(validation_problems, expected)
 
   def test_recommendYARNConfigurations(self):
@@ -498,5 +497,54 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
 
-    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, None, None)
+    self.assertEquals(configurations, expected)
+
+  def test_recommendAmsConfigurations(self):
+    configurations = {}
+    clusterData = {}
+
+    services = {
+      "services":  [ {
+        "StackServices": {
+          "service_name": "AMS"
+        },"components": [{
+          "StackServiceComponents": {
+            "component_name": "METRIC_COLLECTOR",
+            "hostnames": ["host1"]
+          }
+
+        }]
+      }]
+    }
+    hosts = {
+      "items": [{
+        "Hosts": {
+          "host_name": "host1",
+
+        }
+      }]
+    }
+
+    expected = {
+      "ams-hbase-env": {
+        "properties": {
+          "hbase_master_heapsize": "1024m",
+          "hbase_regionserver_heapsize": "1024m",
+        }
+      },
+      "ams-hbase-site": {
+        "properties": {
+          "hbase.regionserver.global.memstore.lowerLimit": "0.4",
+          "hbase.regionserver.global.memstore.upperLimit": "0.5",
+          "hfile.block.cache.size": "0.3"
+        }
+      },
+      "ams-site": {
+        "properties": {
+          "timeline.metrics.host.aggregator.ttl": "86400"
+        }
+      }
+    }
+    self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)

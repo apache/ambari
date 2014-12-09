@@ -29,7 +29,7 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
 
-  def recommendOozieConfigurations(self, configurations, clusterData):
+  def recommendOozieConfigurations(self, configurations, clusterData, services, hosts):
     if "FALCON_SERVER" in clusterData["components"]:
       putMapredProperty = self.putProperty(configurations, "oozie-site")
       putMapredProperty("oozie.services.ext",
@@ -37,7 +37,7 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
                         "org.apache.oozie.service.PartitionDependencyManagerService," +
                         "org.apache.oozie.service.HCatAccessorService")
 
-  def recommendHiveConfigurations(self, configurations, clusterData):
+  def recommendHiveConfigurations(self, configurations, clusterData, services, hosts):
     containerSize = clusterData['mapMemory'] if clusterData['mapMemory'] > 2048 else int(clusterData['reduceMemory'])
     containerSize = min(clusterData['containers'] * clusterData['ramPerContainer'], containerSize)
     putHiveProperty = self.putProperty(configurations, "hive-site")
@@ -46,7 +46,7 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
                     + "m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps")
     putHiveProperty('hive.tez.container.size', containerSize)
 
-  def recommendTezConfigurations(self, configurations, clusterData):
+  def recommendTezConfigurations(self, configurations, clusterData, services, hosts):
     putTezProperty = self.putProperty(configurations, "tez-site")
     putTezProperty("tez.am.resource.memory.mb", int(clusterData['amMemory']))
     putTezProperty("tez.am.java.opts",
@@ -71,19 +71,19 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
   def getServiceConfigurationValidators(self):
     parentValidators = super(HDP21StackAdvisor, self).getServiceConfigurationValidators()
     childValidators = {
-      "HIVE": ["hive-site", self.validateHiveConfigurations],
-      "TEZ": ["tez-site", self.validateTezConfigurations]
+      "HIVE": {"hive-site": self.validateHiveConfigurations},
+      "TEZ": {"tez-site": self.validateTezConfigurations}
     }
     parentValidators.update(childValidators)
     return parentValidators
 
-  def validateHiveConfigurations(self, properties, recommendedDefaults, configurations):
+  def validateHiveConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ {"config-name": 'hive.tez.container.size', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hive.tez.container.size')},
                         {"config-name": 'hive.tez.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'hive.tez.java.opts')},
                         {"config-name": 'hive.auto.convert.join.noconditionaltask.size', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hive.auto.convert.join.noconditionaltask.size')} ]
     return self.toConfigurationValidationProblems(validationItems, "hive-site")
 
-  def validateTezConfigurations(self, properties, recommendedDefaults, configurations):
+  def validateTezConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ {"config-name": 'tez.am.resource.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.am.resource.memory.mb')},
                         {"config-name": 'tez.am.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'tez.am.java.opts')} ]
     return self.toConfigurationValidationProblems(validationItems, "tez-site")

@@ -25,21 +25,22 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       "HDFS": self.recommendHDFSConfigurations,
       "MAPREDUCE2": self.recommendMapReduce2Configurations,
       "TEZ": self.recommendTezConfigurations,
+      "AMS": self.recommendAmsConfigurations,
       "YARN": self.recommendYARNConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
 
-  def recommendYARNConfigurations(self, configurations, clusterData):
-    super(HDP22StackAdvisor, self).recommendYARNConfigurations(configurations, clusterData)
+  def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDP22StackAdvisor, self).recommendYARNConfigurations(configurations, clusterData, services, hosts)
     putYarnProperty = self.putProperty(configurations, "yarn-site")
     putYarnProperty('yarn.nodemanager.resource.cpu-vcores', clusterData['cpu'])
 
-  def recommendHDFSConfigurations(self, configurations, clusterData):
+  def recommendHDFSConfigurations(self, configurations, clusterData, services, hosts):
     putHdfsPropery = self.putProperty(configurations, "hdfs-site")
     putHdfsPropery("dfs.datanode.max.transfer.threads", 16384 if clusterData["hBaseInstalled"] else 4096)
 
-  def recommendTezConfigurations(self, configurations, clusterData):
+  def recommendTezConfigurations(self, configurations, clusterData, services, hosts):
     putTezProperty = self.putProperty(configurations, "tez-site")
     putTezProperty("tez.am.resource.memory.mb", int(clusterData['amMemory']) * 2 if int(clusterData['amMemory']) < 3072 else int(clusterData['amMemory']))
     putTezProperty("tez.am.java.opts",
@@ -52,17 +53,57 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putTezProperty("tez.runtime.io.sort.mb", int(taskResourceMemory * 0.4) if int(taskResourceMemory * 0.4) <= 2147483644 else 2147483644)
     putTezProperty("tez.runtime.unordered.output.buffer.size-mb", int(taskResourceMemory * 0.075))
 
+  def recommendAmsConfigurations(self, configurations, clusterData, services, hosts):
+    putAmsHbaseSiteProperty = self.putProperty(configurations, "ams-hbase-site")
+    putTimelineServiceProperty = self.putProperty(configurations, "ams-site")
+    putHbaseEnvProperty = self.putProperty(configurations, "ams-hbase-env")
+
+    amsCollectorHosts = self.getComponentHostNames(services, "AMS", "METRIC_COLLECTOR")
+
+    # TODO recommend configuration for multiple AMS collectors
+    if len(amsCollectorHosts) > 1:
+      pass
+    else:
+      totalHostsCount = len(hosts["items"])
+      # TODO Tune values according to performance testing results
+      if totalHostsCount > 400:
+        putAmsHbaseSiteProperty("hfile.block.cache.size", 0.3)
+        putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", 0.5)
+        putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.lowerLimit", 0.4)
+        putTimelineServiceProperty("timeline.metrics.host.aggregator.ttl", 86400)
+
+        putHbaseEnvProperty("hbase_master_heapsize", "8096m")
+        putHbaseEnvProperty("hbase_regionserver_heapsize", "8096m")
+      elif totalHostsCount > 100:
+        putAmsHbaseSiteProperty("hfile.block.cache.size", 0.3)
+        putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", 0.5)
+        putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.lowerLimit", 0.4)
+        putTimelineServiceProperty("timeline.metrics.host.aggregator.ttl", 86400)
+
+        putHbaseEnvProperty("hbase_master_heapsize", "2048m")
+        putHbaseEnvProperty("hbase_regionserver_heapsize", "2048m")
+      else:
+        putAmsHbaseSiteProperty("hfile.block.cache.size", 0.3)
+        putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", 0.5)
+        putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.lowerLimit", 0.4)
+        putTimelineServiceProperty("timeline.metrics.host.aggregator.ttl", 86400)
+
+        putHbaseEnvProperty("hbase_master_heapsize", "1024m")
+        putHbaseEnvProperty("hbase_regionserver_heapsize", "1024m")
+
   def getServiceConfigurationValidators(self):
     parentValidators = super(HDP22StackAdvisor, self).getServiceConfigurationValidators()
     childValidators = {
-      "HDFS": ["hdfs-site", self.validateHDFSConfigurations],
-      "MAPREDUCE2": ["mapred-site", self.validateMapReduce2Configurations],
-      "TEZ": ["tez-site", self.validateTezConfigurations]
+      "HDFS": {"hdfs-site": self.validateHDFSConfigurations},
+      "MAPREDUCE2": {"mapred-site": self.validateMapReduce2Configurations},
+      "AMS": {"ams-hbase-site": self.validateAmsHbaseSiteConfigurations,
+              "ams-hbase-env": self.validateAmsHbaseEnvConfigurations},
+      "TEZ": {"tez-site": self.validateTezConfigurations}
     }
     parentValidators.update(childValidators)
     return parentValidators
 
-  def validateTezConfigurations(self, properties, recommendedDefaults, configurations):
+  def validateTezConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ {"config-name": 'tez.am.resource.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.am.resource.memory.mb')},
                         {"config-name": 'tez.am.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'tez.am.java.opts')},
                         {"config-name": 'tez.task.resource.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.task.resource.memory.mb')},
@@ -70,7 +111,61 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                         {"config-name": 'tez.runtime.unordered.output.buffer.size-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.runtime.unordered.output.buffer.size-mb')},]
     return self.toConfigurationValidationProblems(validationItems, "tez-site")
 
-  def recommendMapReduce2Configurations(self, configurations, clusterData):
+  def validateAmsHbaseSiteConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+
+    amsCollectorHosts = self.getComponentHostNames(services, "AMS", "METRIC_COLLECTOR")
+    recommendedDiskSpace = 10485760
+    # TODO validate configuration for multiple AMS collectors
+    if len(amsCollectorHosts) > 1:
+      pass
+    else:
+      totalHostsCount = len(hosts["items"])
+      if totalHostsCount > 400:
+        recommendedDiskSpace  = 104857600  # * 1k == 100 Gb
+      elif totalHostsCount > 100:
+        recommendedDiskSpace  = 52428800  # * 1k == 50 Gb
+      elif totalHostsCount > 10:
+        recommendedDiskSpace  = 20971520  # * 1k == 20 Gb
+
+
+    validationItems = []
+    for collectorHostName in amsCollectorHosts:
+      for host in hosts["items"]:
+        if host["Hosts"]["host_name"] == collectorHostName:
+          validationItems.extend([ {"config-name": 'hbase.rootdir', "item": self.validatorEnoughDiskSpace(properties, 'hbase.rootdir', host["Hosts"], recommendedDiskSpace)}])
+          break
+
+    return self.toConfigurationValidationProblems(validationItems, "ams-hbase-site")
+
+  def validateAmsHbaseEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    regionServerItem = self.validatorLessThenDefaultValue(properties, recommendedDefaults, "hbase_regionserver_heapsize")
+    masterItem = self.validatorLessThenDefaultValue(properties, recommendedDefaults, "hbase_master_heapsize")
+
+    if regionServerItem is None and masterItem is None:
+      hbase_regionserver_heapsize = formatXmxSizeToBytes(properties["hbase_regionserver_heapsize"])
+      hbase_master_heapsize = formatXmxSizeToBytes(properties["hbase_master_heapsize"])
+
+      # TODO Add AMS Collector Xmx property to ams-env
+      # Collector + HBASE Master + HBASE RegionServer HeapSize
+      requiredMemory = 1073741824 + hbase_regionserver_heapsize + hbase_master_heapsize
+
+      amsCollectorHosts = self.getComponentHostNames(services, "AMS", "METRIC_COLLECTOR")
+      for collectorHostName in amsCollectorHosts:
+        for host in hosts["items"]:
+          if host["Hosts"]["host_name"] == collectorHostName:
+            if host["Hosts"]["total_mem"] * 1024 < requiredMemory:  # in bytes
+              message = "Not enough total RAM on the host {0}, " \
+                        "at least {1} MB required" \
+                        .format(collectorHostName, requiredMemory/1048576)  # MB
+              regionServerItem = self.getWarnItem(message)
+              masterItem = self.getWarnItem(message)
+              break
+
+    validationItems = [{"config-name": "hbase_regionserver_heapsize", "item": regionServerItem},
+                       {"config-name": "hbase_master_heapsize", "item": masterItem}]
+    return self.toConfigurationValidationProblems(validationItems, "ams-hbase-env")
+
+  def recommendMapReduce2Configurations(self, configurations, clusterData, services, hosts):
     putMapredProperty = self.putProperty(configurations, "mapred-site")
     putMapredProperty('yarn.app.mapreduce.am.resource.mb', int(clusterData['amMemory']))
     putMapredProperty('yarn.app.mapreduce.am.command-opts', "-Xmx" + str(int(round(0.8 * clusterData['amMemory']))) + "m" + " -Dhdp.version=${hdp.version}")
@@ -80,7 +175,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putMapredProperty('mapreduce.reduce.java.opts', "-Xmx" + str(int(round(0.8 * clusterData['reduceMemory']))) + "m")
     putMapredProperty('mapreduce.task.io.sort.mb', min(int(round(0.4 * clusterData['mapMemory'])), 1024))
 
-  def validateMapReduce2Configurations(self, properties, recommendedDefaults, configurations):
+  def validateMapReduce2Configurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ {"config-name": 'mapreduce.map.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.map.java.opts')},
                         {"config-name": 'mapreduce.reduce.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.reduce.java.opts')},
                         {"config-name": 'mapreduce.task.io.sort.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.task.io.sort.mb')},
@@ -89,7 +184,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                         {"config-name": 'yarn.app.mapreduce.am.resource.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.resource.mb')}]
     return self.toConfigurationValidationProblems(validationItems, "mapred-site")
 
-  def validateHDFSConfigurations(self, properties, recommendedDefaults, configurations):
+  def validateHDFSConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     # We can not access property hadoop.security.authentication from the
     # other config (core-site). That's why we are using another heuristics here
     hdfs_site = properties
@@ -195,5 +290,27 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                                       data_transfer_protection_value, VALID_TRANSFER_PROTECTION_VALUES))})
     return self.toConfigurationValidationProblems(validationItems, "hdfs-site")
 
+  def getMastersWithMultipleInstances(self):
+    result = super(HDP22StackAdvisor, self).getMastersWithMultipleInstances()
+    result.extend(['METRIC_COLLECTOR'])
+    return result
 
+  def getNotValuableComponents(self):
+    result = super(HDP22StackAdvisor, self).getNotValuableComponents()
+    result.extend(['METRIC_MONITOR'])
+    return result
 
+  def getNotPreferableOnServerComponents(self):
+    result = super(HDP22StackAdvisor, self).getNotPreferableOnServerComponents()
+    result.extend(['METRIC_COLLECTOR'])
+    return result
+
+  def getCardinalitiesDict(self):
+    result = super(HDP22StackAdvisor, self).getCardinalitiesDict()
+    result['METRIC_COLLECTOR'] = {"min": 1}
+    return result
+
+  def getComponentLayoutSchemes(self):
+    result = super(HDP22StackAdvisor, self).getComponentLayoutSchemes()
+    result['METRIC_COLLECTOR'] = {"else": 2}
+    return result

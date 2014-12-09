@@ -17,7 +17,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import time
 import socket
 
 class StackAdvisor(object):
@@ -480,7 +479,7 @@ class DefaultStackAdvisor(StackAdvisor):
     for service in servicesList:
       calculation = self.getServiceConfigurationRecommender(service)
       if calculation is not None:
-        calculation(configurations, clusterSummary)
+        calculation(configurations, clusterSummary, services, hosts)
 
     return recommendations
 
@@ -584,3 +583,11 @@ class DefaultStackAdvisor(StackAdvisor):
     host index where component should exist.
     """
     return {}
+
+  def getComponentHostNames(self, servicesDict, serviceName, componentName):
+    for service in servicesDict["services"]:
+      if service["StackServices"]["service_name"] == serviceName:
+        for component in service['components']:
+          if component["StackServiceComponents"]["component_name"] == componentName:
+            return component["StackServiceComponents"]["hostnames"]
+  pass

@@ -337,7 +337,7 @@ class TestHDP206StackAdvisor(TestCase):
       }
     }
 
-    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, None, None)
     self.assertEquals(configurations, expected)
 
   def test_recommendMapReduce2Configurations_mapMemoryLessThan2560(self):
@@ -361,7 +361,7 @@ class TestHDP206StackAdvisor(TestCase):
       }
     }
 
-    self.stackAdvisor.recommendMapReduce2Configurations(configurations, clusterData)
+    self.stackAdvisor.recommendMapReduce2Configurations(configurations, clusterData, None, None)
     self.assertEquals(configurations, expected)
 
   def test_getConfigurationClusterSummary_noHostsWithoutHBase(self):

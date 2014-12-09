@@ -18,7 +18,6 @@ limitations under the License.
 """
 
 import re
-import sys
 from math import ceil
 
 from stack_advisor import DefaultStackAdvisor
@@ -259,7 +258,7 @@ class BaseBIGTOP08StackAdvisor(DefaultStackAdvisor):
       return self.getWarnItem("Value is less than the recommended default of -Xmx" + defaultValueXmx)
     return None
 
-  def validateMapReduce2Configurations(self, properties, recommendedDefaults, configurations):
+  def validateMapReduce2Configurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ {"config-name": 'mapreduce.map.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.map.java.opts')},
                         {"config-name": 'mapreduce.reduce.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.reduce.java.opts')},
                         {"config-name": 'mapreduce.task.io.sort.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.task.io.sort.mb')},
@@ -269,7 +268,7 @@ class BaseBIGTOP08StackAdvisor(DefaultStackAdvisor):
                         {"config-name": 'yarn.app.mapreduce.am.command-opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.command-opts')} ]
     return self.toConfigurationValidationProblems(validationItems, "mapred-site")
 
-  def validateYARNConfigurations(self, properties, recommendedDefaults, configurations):
+  def validateYARNConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ {"config-name": 'yarn.nodemanager.resource.memory-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.nodemanager.resource.memory-mb')},
                         {"config-name": 'yarn.scheduler.minimum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.minimum-allocation-mb')},
                         {"config-name": 'yarn.scheduler.maximum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.maximum-allocation-mb')} ]
@@ -318,7 +317,7 @@ class BIGTOP08StackAdvisor(BaseBIGTOP08StackAdvisor):
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
 
-  def recommendOozieConfigurations(self, configurations, clusterData):
+  def recommendOozieConfigurations(self, configurations, clusterData, services, hosts):
     if "FALCON_SERVER" in clusterData["components"]:
       putMapredProperty = self.putProperty(configurations, "oozie-site")
       putMapredProperty("oozie.services.ext",
@@ -326,7 +325,7 @@ class BIGTOP08StackAdvisor(BaseBIGTOP08StackAdvisor):
                         "org.apache.oozie.service.PartitionDependencyManagerService," +
                         "org.apache.oozie.service.HCatAccessorService")
 
-  def recommendHiveConfigurations(self, configurations, clusterData):
+  def recommendHiveConfigurations(self, configurations, clusterData, services, hosts):
     containerSize = clusterData['mapMemory'] if clusterData['mapMemory'] > 2048 else int(clusterData['reduceMemory'])
     containerSize = min(clusterData['containers'] * clusterData['ramPerContainer'], containerSize)
     putHiveProperty = self.putProperty(configurations, "hive-site")
@@ -335,7 +334,7 @@ class BIGTOP08StackAdvisor(BaseBIGTOP08StackAdvisor):
                     + "m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC")
     putHiveProperty('hive.tez.container.size', containerSize)
 
-  def recommendTezConfigurations(self, configurations, clusterData):
+  def recommendTezConfigurations(self, configurations, clusterData, services, hosts):
     putTezProperty = self.putProperty(configurations, "tez-site")
     putTezProperty("tez.am.resource.memory.mb", int(clusterData['amMemory']))
     putTezProperty("tez.am.java.opts",
@@ -366,13 +365,13 @@ class BIGTOP08StackAdvisor(BaseBIGTOP08StackAdvisor):
     parentValidators.update(childValidators)
     return parentValidators
 
-  def validateHiveConfigurations(self, properties, recommendedDefaults, configurations):
+  def validateHiveConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ {"config-name": 'hive.tez.container.size', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hive.tez.container.size')},
                         {"config-name": 'hive.tez.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'hive.tez.java.opts')},
                         {"config-name": 'hive.auto.convert.join.noconditionaltask.size', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hive.auto.convert.join.noconditionaltask.size')} ]
     return self.toConfigurationValidationProblems(validationItems, "hive-site")
 
-  def validateTezConfigurations(self, properties, recommendedDefaults, configurations):
+  def validateTezConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ {"config-name": 'tez.am.resource.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.am.resource.memory.mb')},
                         {"config-name": 'tez.am.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'tez.am.java.opts')} ]
     return self.toConfigurationValidationProblems(validationItems, "tez-site")

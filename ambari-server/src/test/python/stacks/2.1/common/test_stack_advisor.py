@@ -47,7 +47,7 @@ class TestHDP21StackAdvisor(TestCase):
     expected = {
     }
 
-    self.stackAdvisor.recommendOozieConfigurations(configurations, clusterData)
+    self.stackAdvisor.recommendOozieConfigurations(configurations, clusterData, None, None)
     self.assertEquals(configurations, expected)
 
   def test_recommendOozieConfigurations_withFalconServer(self):
@@ -65,7 +65,7 @@ class TestHDP21StackAdvisor(TestCase):
       }
     }
 
-    self.stackAdvisor.recommendOozieConfigurations(configurations, clusterData)
+    self.stackAdvisor.recommendOozieConfigurations(configurations, clusterData, None, None)
     self.assertEquals(configurations, expected)
 
   def test_recommendHiveConfigurations_mapMemoryLessThan2048(self):
@@ -86,7 +86,7 @@ class TestHDP21StackAdvisor(TestCase):
       }
     }
 
-    self.stackAdvisor.recommendHiveConfigurations(configurations, clusterData)
+    self.stackAdvisor.recommendHiveConfigurations(configurations, clusterData, None, None)
     self.assertEquals(configurations, expected)
 
   def test_recommendHiveConfigurations_mapMemoryMoreThan2048(self):
@@ -107,7 +107,7 @@ class TestHDP21StackAdvisor(TestCase):
       }
     }
 
-    self.stackAdvisor.recommendHiveConfigurations(configurations, clusterData)
+    self.stackAdvisor.recommendHiveConfigurations(configurations, clusterData, None, None)
     self.assertEquals(configurations, expected)
 
   def test_createComponentLayoutRecommendations_mastersIn10nodes(self):
@@ -157,5 +157,5 @@ class TestHDP21StackAdvisor(TestCase):
       }
     }
 
-    self.stackAdvisor.recommendHiveConfigurations(configurations, clusterData)
+    self.stackAdvisor.recommendHiveConfigurations(configurations, clusterData, None, None)
     self.assertEquals(configurations, expected)
