@@ -21,7 +21,6 @@ limitations under the License.
 from resource_management import *
 from yaml_utils import escape_yaml_propetry
 import sys
-from ambari_agent.AgentException import AgentException
 
 def storm():
   import params
@@ -89,4 +88,4 @@ def _find_real_user_min_uid():
     for line in f:
       if line.strip().startswith('UID_MIN') and len(line.split()) == 2 and line.split()[1].isdigit():
         return int(line.split()[1])
-  raise AgentException ("Unable to find UID_MIN in file /etc/login.defs. Expecting format e.g.: 'UID_MIN    500'")  
+  raise Fail("Unable to find UID_MIN in file /etc/login.defs. Expecting format e.g.: 'UID_MIN    500'")  

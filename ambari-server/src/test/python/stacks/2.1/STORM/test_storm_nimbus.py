@@ -65,14 +65,16 @@ class TestStormNimbus(TestStormBase):
                        command = "stop",
                        config_file="default.json"
     )
-    self.assertResourceCalled('Execute', 'kill `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1',
-                              not_if = '! (ls /var/run/storm/nimbus.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1)'
+    self.assertResourceCalled('Execute', 'sudo kill `cat /var/run/storm/nimbus.pid`',
+        not_if = '! (ls /var/run/storm/nimbus.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1)',
     )
-    self.assertResourceCalled('Execute', 'kill -9 `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1',
-                              not_if = 'sleep 2; ! (ls /var/run/storm/nimbus.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1) || sleep 20; ! (ls /var/run/storm/nimbus.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1)',
-                              ignore_failures=True
+    self.assertResourceCalled('Execute', 'sudo kill -9 `cat /var/run/storm/nimbus.pid`',
+        not_if = 'sleep 2; ! (ls /var/run/storm/nimbus.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1) || sleep 20; ! (ls /var/run/storm/nimbus.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1)',
+        ignore_failures = True,
     )
-    self.assertResourceCalled('Execute', 'rm -f /var/run/storm/nimbus.pid')
+    self.assertResourceCalled('File', '/var/run/storm/nimbus.pid',
+        action = ['delete'],
+    )
     self.assertNoMoreResources()
 
   def test_configure_secured(self):
@@ -114,13 +116,15 @@ class TestStormNimbus(TestStormBase):
                        command = "stop",
                        config_file="secured.json"
     )
-    self.assertResourceCalled('Execute', 'kill `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1',
-                              not_if = '! (ls /var/run/storm/nimbus.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1)'
+    self.assertResourceCalled('Execute', 'sudo kill `cat /var/run/storm/nimbus.pid`',
+        not_if = '! (ls /var/run/storm/nimbus.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1)',
     )
-    self.assertResourceCalled('Execute', 'kill -9 `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1',
-                              not_if = 'sleep 2; ! (ls /var/run/storm/nimbus.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1) || sleep 20; ! (ls /var/run/storm/nimbus.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1)',
-                              ignore_failures=True
+    self.assertResourceCalled('Execute', 'sudo kill -9 `cat /var/run/storm/nimbus.pid`',
+        not_if = 'sleep 2; ! (ls /var/run/storm/nimbus.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1) || sleep 20; ! (ls /var/run/storm/nimbus.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1)',
+        ignore_failures = True,
     )
-    self.assertResourceCalled('Execute', 'rm -f /var/run/storm/nimbus.pid')
+    self.assertResourceCalled('File', '/var/run/storm/nimbus.pid',
+        action = ['delete'],
+    )
     self.assertNoMoreResources()
     

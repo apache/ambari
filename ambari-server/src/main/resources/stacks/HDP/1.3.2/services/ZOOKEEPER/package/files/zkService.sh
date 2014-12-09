@@ -23,4 +23,4 @@
 zkcli_script=$1
 user=$2
 conf_dir=$3
-su -s /bin/bash - $user -c "source $conf_dir/zookeeper-env.sh ; echo 'ls /' | $zkcli_script"
+sudo su $user -s /bin/bash - -c "source $conf_dir/zookeeper-env.sh ; echo 'ls /' | $zkcli_script"

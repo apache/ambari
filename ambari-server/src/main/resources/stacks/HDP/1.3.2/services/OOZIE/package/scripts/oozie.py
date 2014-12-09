@@ -128,23 +128,26 @@ def oozie_server_specific(
     mode = 0755,
     recursive = True
   )
-       
-  cmd1 = "cd /usr/lib/oozie && tar -xvf oozie-sharelib.tar.gz"
-  cmd2 =  format("cd /usr/lib/oozie && mkdir -p {oozie_tmp_dir}")
   
-  # this is different for HDP2
-  cmd3 = format("cd /usr/lib/oozie && chown {oozie_user}:{user_group} {oozie_tmp_dir}")
-  if params.jdbc_driver_name=="com.mysql.jdbc.Driver" or params.jdbc_driver_name=="oracle.jdbc.driver.OracleDriver":
-    cmd3 += format(" && mkdir -p {oozie_libext_dir} && cp {jdbc_driver_jar} {oozie_libext_dir}")
-    
-  # this is different for HDP2
-  cmd4 = format("cd {oozie_tmp_dir} && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 {hadoop_jar_location} -extjs {ext_js_path} {jar_option} {jar_path}")
+  Directory(params.oozie_libext_dir,
+            recursive=True,
+  )
   
   no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1")
-  Execute( [cmd1, cmd2, cmd3],
-    not_if  = no_op_test
+       
+  Execute(('tar','-xvf', format('{oozie_home}/oozie-sharelib.tar.gz'), '-C', params.oozie_home),
+    not_if  = no_op_test,
+    sudo = True
   )
-  Execute( cmd4,
+  
+  if params.jdbc_driver_name=="com.mysql.jdbc.Driver" or params.jdbc_driver_name=="oracle.jdbc.driver.OracleDriver":
+    Execute(('cp', params.jdbc_driver_jar, params.oozie_libext_dir),
+      not_if  = no_op_test,
+      sudo = True
+    )
+  
+  oozie_setup_cmd = format("cd {oozie_tmp_dir} && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 {hadoop_jar_location} -extjs {ext_js_path} {jar_option} {jar_path}")
+  Execute( oozie_setup_cmd,
     user = params.oozie_user,
     not_if  = no_op_test
   )

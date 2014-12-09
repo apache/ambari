@@ -37,4 +37,6 @@ def webhcat_service(action='start'):
     Execute(demon_cmd,
             user=params.webhcat_user
     )
-    Execute(format('rm -f {webhcat_pid_file}'))
+    File(params.webhcat_pid_file,
+         action="delete",
+    )

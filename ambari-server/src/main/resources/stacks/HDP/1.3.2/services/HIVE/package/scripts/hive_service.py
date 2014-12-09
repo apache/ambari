@@ -84,12 +84,15 @@ def hive_service(
       elapsed_time = time.time() - start_time
       
       if is_service_socket_valid == False: 
-        raise Fail("Connection to Hive server %s on port %s failed after %d seconds" % (address, port, elapsed_time))
+        raise Fail("Connection to Hive server %s on port %s failed after %d seconds" % (address, port, elapsedwebhcat_service.py_time))
       
       print "Successfully connected to Hive at %s on port %s after %d seconds" % (address, port, elapsed_time)    
             
   elif action == 'stop':
-    demon_cmd = format("kill `cat {pid_file}` >/dev/null 2>&1 && rm -f {pid_file}")
+    demon_cmd = format("sudo kill `cat {pid_file}`")
     Execute(demon_cmd,
-            not_if = format("! ({process_id_exists})")
+         not_if = format("! ({process_id_exists})")
+    )
+    File(pid_file,
+         action = "delete",
     )

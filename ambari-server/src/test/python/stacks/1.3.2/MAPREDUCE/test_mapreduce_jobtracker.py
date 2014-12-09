@@ -61,7 +61,9 @@ class TestJobtracker(RMFTestCase):
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/bin/hadoop-daemon.sh --config /etc/hadoop/conf stop jobtracker',
                               user = 'mapred'
     )
-    self.assertResourceCalled('Execute', 'rm -f /var/run/hadoop/mapred/hadoop-mapred-jobtracker.pid')
+    self.assertResourceCalled('File', '/var/run/hadoop/mapred/hadoop-mapred-jobtracker.pid',
+        action = ['delete'],
+    )
     self.assertNoMoreResources()
 
   def test_decommission_default(self):
@@ -139,7 +141,9 @@ class TestJobtracker(RMFTestCase):
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/bin/hadoop-daemon.sh --config /etc/hadoop/conf stop jobtracker',
                        user = 'mapred'
     )
-    self.assertResourceCalled('Execute', 'rm -f /var/run/hadoop/mapred/hadoop-mapred-jobtracker.pid')
+    self.assertResourceCalled('File', '/var/run/hadoop/mapred/hadoop-mapred-jobtracker.pid',
+        action = ['delete'],
+    )
     self.assertNoMoreResources()
 
   def test_decommission_secured(self):

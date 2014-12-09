@@ -450,7 +450,9 @@ public class ConfigHelper {
       for (PropertyInfo serviceProperty : serviceProperties) {
         if(serviceProperty.getPropertyTypes().contains(propertyType)) {
           String stackPropertyConfigType = fileNameToConfigType(serviceProperty.getFilename());
-          result.add(cluster.getDesiredConfigByType(stackPropertyConfigType).getProperties().get(serviceProperty.getName()));
+          try {
+            result.add(cluster.getDesiredConfigByType(stackPropertyConfigType).getProperties().get(serviceProperty.getName()));
+          } catch(Exception ex) {}
         }
       }
     }

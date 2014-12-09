@@ -65,7 +65,9 @@ class TestHistoryServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/bin/hadoop-daemon.sh --config /etc/hadoop/conf stop historyserver',
                               user = 'mapred'
     )
-    self.assertResourceCalled('Execute', 'rm -f /var/run/hadoop/mapred/hadoop-mapred-historyserver.pid')
+    self.assertResourceCalled('File', '/var/run/hadoop/mapred/hadoop-mapred-historyserver.pid',
+        action = ['delete'],
+    )
     self.assertNoMoreResources()
 
 
@@ -108,7 +110,9 @@ class TestHistoryServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/bin/hadoop-daemon.sh --config /etc/hadoop/conf stop historyserver',
                               user = 'mapred'
     )
-    self.assertResourceCalled('Execute', 'rm -f /var/run/hadoop/mapred/hadoop-mapred-historyserver.pid')
+    self.assertResourceCalled('File', '/var/run/hadoop/mapred/hadoop-mapred-historyserver.pid',
+        action = ['delete'],
+    )
     self.assertNoMoreResources()
 
   def assert_configure_default(self):

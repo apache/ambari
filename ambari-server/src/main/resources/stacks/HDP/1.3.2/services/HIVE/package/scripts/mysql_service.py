@@ -25,14 +25,15 @@ def mysql_service(daemon_name=None, action='start'):
   cmd = format('service {daemon_name} {action}')
 
   if action == 'status':
-    logoutput = False
+    Execute(cmd,
+            path="/usr/local/bin/:/bin/:/sbin/",
+            logoutput=False)
   else:
-    logoutput = True
-
-  Execute(cmd,
-          path="/usr/local/bin/:/bin/:/sbin/",
-          tries=1,
-          logoutput=logoutput)
+    import params
+    Execute(cmd,
+            path="/usr/local/bin/:/bin/:/sbin/",
+            user=params.mysql_user,
+            logoutput=True)
 
 
 

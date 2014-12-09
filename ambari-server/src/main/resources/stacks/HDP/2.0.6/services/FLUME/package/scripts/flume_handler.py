@@ -55,8 +55,8 @@ class FlumeHandler(Script):
 
   def status(self, env):
     import params
-
     env.set_params(params)
+
 
     processes = get_flume_status(params.flume_conf_dir, params.flume_run_dir)
     expected_agents = find_expected_agent_names(params.flume_conf_dir)

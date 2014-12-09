@@ -188,13 +188,15 @@ def jdbc_connector():
   import params
 
   if params.hive_jdbc_driver == "com.mysql.jdbc.Driver":
-    cmd = format("hive mkdir -p {artifact_dir} ; rm -f {target} ; cp /usr/share/java/{jdbc_jar_name} {target}")
-
-    Execute(cmd,
+    File(params.target,
+         action="delete",
+    )
+    Execute(('cp', format('/usr/share/java/{jdbc_jar_name}'), params.target),
             not_if=format("test -f {target}"),
             creates=params.target,
-            environment= {'PATH' : params.execute_path },
-            path=["/bin", "/usr/bin/"])
+            path=["/bin", "/usr/bin/"],
+            sudo=True
+    )
   elif params.hive_jdbc_driver == "org.postgresql.Driver":
     cmd = format("hive mkdir -p {artifact_dir} ; rm -f {target} ; cp /usr/share/java/{jdbc_jar_name} {target}")
 

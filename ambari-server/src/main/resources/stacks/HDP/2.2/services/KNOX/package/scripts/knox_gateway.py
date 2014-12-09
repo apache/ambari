@@ -28,8 +28,10 @@ class KnoxGateway(Script):
     self.install_packages(env)
     import params
     env.set_params(params)
-    cmd = format('rm -f {knox_conf_dir}/topologies/sandbox.xml')
-    Execute(cmd)
+    
+    File(format('{knox_conf_dir}/topologies/sandbox.xml'),
+         action = "delete",
+    )
 
   def configure(self, env):
     import params

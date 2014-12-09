@@ -67,9 +67,13 @@ def oozie_service(action = 'start'): # 'start' or 'stop'
       not_if  = no_op_test,
     )
   elif action == 'stop':
-    stop_cmd  = format("su -s /bin/bash - {oozie_user} -c  'cd {oozie_tmp_dir} && {oozie_home}/bin/oozie-stop.sh' && rm -f {pid_file}")
-    Execute( stop_cmd,
-      only_if  = no_op_test
+    stop_cmd  = format("cd {oozie_tmp_dir} && {oozie_home}/bin/oozie-stop.sh")
+    Execute(stop_cmd,
+      only_if  = no_op_test,
+      user = params.oozie_user
+    )
+    File(params.pid_file,
+         action = "delete",
     )
 
   

@@ -26,16 +26,16 @@ mysqldbpasswd=$3
 mysqldbhost=$4
 myhostname=$(hostname -f)
 
-service $mysqldservice start
+sudo su mysql -s /bin/bash - -c "service $mysqldservice start"
 echo "Adding user $mysqldbuser@$mysqldbhost and $mysqldbuser@localhost"
-mysql -u root -e "CREATE USER '$mysqldbuser'@'$mysqldbhost' IDENTIFIED BY '$mysqldbpasswd';"
-mysql -u root -e "CREATE USER '$mysqldbuser'@'localhost' IDENTIFIED BY '$mysqldbpasswd';"
-mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO '$mysqldbuser'@'$mysqldbhost';"
-mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO '$mysqldbuser'@'localhost';"
-if [ '$(mysql -u root -e "select user from mysql.user where user='$mysqldbuser' and host='$myhostname'" | grep "$mysqldbuser")' != '0' ]; then
+sudo su mysql -s /bin/bash - -c "mysql -u root -e \"CREATE USER '$mysqldbuser'@'$mysqldbhost' IDENTIFIED BY '$mysqldbpasswd';\""
+sudo su mysql -s /bin/bash - -c "mysql -u root -e \"CREATE USER '$mysqldbuser'@'localhost' IDENTIFIED BY '$mysqldbpasswd';\""
+sudo su mysql -s /bin/bash - -c "mysql -u root -e \"GRANT ALL PRIVILEGES ON *.* TO '$mysqldbuser'@'$mysqldbhost';\""
+sudo su mysql -s /bin/bash - -c "mysql -u root -e \"GRANT ALL PRIVILEGES ON *.* TO '$mysqldbuser'@'localhost';\""
+if [ '$(sudo su mysql -s /bin/bash - -c "mysql -u root -e \"select user from mysql.user where user='$mysqldbuser' and host='$myhostname'\" | grep \"$mysqldbuser\"")' != '0' ]; then
   echo "Adding user $mysqldbuser@$myhostname";
-  mysql -u root -e "CREATE USER '$mysqldbuser'@'$myhostname' IDENTIFIED BY '$mysqldbpasswd';";
-  mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO '$mysqldbuser'@'$myhostname';";
+  sudo su mysql -s /bin/bash - -c "mysql -u root -e \"CREATE USER '$mysqldbuser'@'$myhostname' IDENTIFIED BY '$mysqldbpasswd';\";"
+  sudo su mysql -s /bin/bash - -c "mysql -u root -e \"GRANT ALL PRIVILEGES ON *.* TO '$mysqldbuser'@'$myhostname';\";"
 fi
-mysql -u root -e "flush privileges;"
-service $mysqldservice stop
+sudo su mysql -s /bin/bash - -c "mysql -u root -e \"flush privileges;\""
+sudo su mysql -s /bin/bash - -c "service $mysqldservice stop"

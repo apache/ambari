@@ -55,20 +55,31 @@ def knox():
                       owner = params.knox_user,
                       template_tag = None
       )
-    cmd = format('chown -R {knox_user}:{knox_group} {knox_data_dir} {knox_logs_dir} {knox_pid_dir} {knox_conf_dir}')
-    Execute(cmd)
+
+    dirs_to_chown = (params.knox_data_dir, params.knox_logs_dir, params.knox_logs_dir, params.knox_pid_dir, params.knox_conf_dir)
+    cmd = ('chown','-R',format('{knox_user}:{knox_group}'))+dirs_to_chown
+    Execute(cmd,
+            sudo = True,
+    )
+    
+    #File([params.knox_data_dir, params.knox_logs_dir, params.knox_logs_dir, params.knox_pid_dir, params.knox_conf_dir],
+    #     owner = params.knox_user,
+    #     group = params.knox_group
+    #)
 
     cmd = format('{knox_client_bin} create-master --master {knox_master_secret!p}')
+    master_secret_exist = as_user(format('test -f {knox_master_secret_path}'), params.knox_user)
+    
     Execute(cmd,
             user=params.knox_user,
             environment={'JAVA_HOME': params.java_home},
-            not_if=format('test -f {knox_master_secret_path}')
+            not_if=master_secret_exist,
     )
 
     cmd = format('{knox_client_bin} create-cert --hostname {knox_host_name_in_cluster}')
     Execute(cmd,
             user=params.knox_user,
             environment={'JAVA_HOME': params.java_home},
-            not_if=format('test -f {knox_cert_store_path}')
+            not_if=master_secret_exist,
     )
 

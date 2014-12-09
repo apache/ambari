@@ -16,7 +16,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from stacks.utils.RMFTestCase import *
 import os
 
 from unittest import TestCase
@@ -45,7 +44,8 @@ class TestExecuteHadoopResource(TestCase):
                         'tries': 1,
                         'user': 'user',
                         'try_sleep': 0,
-                        'path': []})
+                        'path': [],
+                        'environment': {}})
 
 
   @patch("resource_management.core.providers.system.ExecuteProvider")
@@ -69,7 +69,8 @@ class TestExecuteHadoopResource(TestCase):
                         'tries': 1,
                         'user': 'user',
                         'try_sleep': 0,
-                        'path': []})
+                        'path': [],
+                        'environment': {}})
 
 
   @patch("resource_management.core.providers.system.ExecuteProvider")
@@ -98,7 +99,8 @@ class TestExecuteHadoopResource(TestCase):
                         'tries': 2,
                         'user': 'user',
                         'try_sleep': 2,
-                        'path': []})
+                        'path': [],
+                        'environment': {}})
 
 
   @patch("resource_management.core.providers.system.ExecuteProvider")
@@ -123,6 +125,7 @@ class TestExecuteHadoopResource(TestCase):
                        {'logoutput': False,
                         'tries': 1,
                         'user': 'user',
+                        'environment': {},
                         'try_sleep': 0,
                         'path': []})
       self.assertEqual(execute_mock.call_args_list[1][0][0].arguments,
@@ -130,7 +133,8 @@ class TestExecuteHadoopResource(TestCase):
                         'tries': 1,
                         'user': 'user',
                         'try_sleep': 0,
-                        'path': []})
+                        'path': [],
+                        'environment': {}})
 
 
   @patch("resource_management.core.providers.system.ExecuteProvider")
@@ -183,7 +187,8 @@ class TestExecuteHadoopResource(TestCase):
                         'tries': 1,
                         'user': 'user',
                         'try_sleep': 0,
-                        'path': []})
+                        'path': [],
+                        'environment': {}})
 
 
   @patch("resource_management.core.providers.system.ExecuteProvider")

@@ -21,25 +21,31 @@ limitations under the License.
 from resource_management import *
 
 
-def mysql_service(daemon_name=None, action='start'):
+def mysql_service(daemon_name=None, action='start'): 
   status_cmd = format('service {daemon_name} status | grep running')
   cmd = format('service {daemon_name} {action}')
 
   if action == 'status':
     Execute(status_cmd)
   elif action == 'stop':
+    import params
     Execute(cmd,
             logoutput = True,
-            only_if = status_cmd
+            only_if = status_cmd,
+            user = params.mysql_user
     )
   elif action == 'start':
+    import params
     # required for running hive
-    replace_bind_address = format("sed -i 's|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|' {mysql_configname}")  
-    Execute(replace_bind_address)
+    replace_bind_address = ('sed','-i','s|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|',params.mysql_configname)
+    Execute(replace_bind_address,
+            sudo = True,
+    )
     
     Execute(cmd,
       logoutput = True,
-      not_if = status_cmd
+      not_if = status_cmd,
+      user = params.mysql_user
     )
 
 

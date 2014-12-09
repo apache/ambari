@@ -47,9 +47,10 @@ def service(
     )
   elif action == 'stop':
     daemon_cmd = format("{cmd} stop {name}")
-    rm_pid =  format("rm -f {pid_file}")
 
     Execute(daemon_cmd,
             user=params.mapred_user
     )
-    Execute(rm_pid)
+    File(pid_file,
+         action = "delete",
+    )

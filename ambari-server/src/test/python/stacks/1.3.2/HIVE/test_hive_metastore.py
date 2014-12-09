@@ -85,8 +85,11 @@ class TestHiveMetastore(RMFTestCase):
                        config_file="default.json"
     )
 
-    self.assertResourceCalled('Execute', 'kill `cat /var/run/hive/hive.pid` >/dev/null 2>&1 && rm -f /var/run/hive/hive.pid',
-                              not_if = '! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1)'
+    self.assertResourceCalled('Execute', 'sudo kill `cat /var/run/hive/hive.pid`',
+        not_if = '! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1)',
+    )
+    self.assertResourceCalled('File', '/var/run/hive/hive.pid',
+        action = ['delete'],
     )
     self.assertNoMoreResources()
 
@@ -153,16 +156,22 @@ class TestHiveMetastore(RMFTestCase):
                        config_file="secured.json"
     )
 
-    self.assertResourceCalled('Execute', 'kill `cat /var/run/hive/hive.pid` >/dev/null 2>&1 && rm -f /var/run/hive/hive.pid',
-                              not_if = '! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1)'
+    self.assertResourceCalled('Execute', 'sudo kill `cat /var/run/hive/hive.pid`',
+        not_if = '! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1)',
+    )
+    self.assertResourceCalled('File', '/var/run/hive/hive.pid',
+        action = ['delete'],
     )
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
-    self.assertResourceCalled('Execute', 'hive mkdir -p /tmp/AMBARI-artifacts/ ; cp /usr/share/java/mysql-connector-java.jar /usr/lib/hive/lib//mysql-connector-java.jar',
-      creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
-      path = ['/bin', '/usr/bin/'],
-      not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
+    self.assertResourceCalled('Execute', ('cp',
+     '/usr/share/java/mysql-connector-java.jar',
+     '/usr/lib/hive/lib//mysql-connector-java.jar'),
+        creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
+        path = ['/bin', '/usr/bin/'],
+        sudo = True,
+        not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
     )
     self.assertResourceCalled('Directory', '/etc/hive/conf',
       owner = 'hive',
@@ -223,10 +232,13 @@ class TestHiveMetastore(RMFTestCase):
     )
 
   def assert_configure_secured(self):
-    self.assertResourceCalled('Execute', 'hive mkdir -p /tmp/AMBARI-artifacts/ ; cp /usr/share/java/mysql-connector-java.jar /usr/lib/hive/lib//mysql-connector-java.jar',
-      creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
-      path = ['/bin', '/usr/bin/'],
-      not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
+    self.assertResourceCalled('Execute', ('cp',
+     '/usr/share/java/mysql-connector-java.jar',
+     '/usr/lib/hive/lib//mysql-connector-java.jar'),
+        creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
+        path = ['/bin', '/usr/bin/'],
+        sudo = True,
+        not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
     )
     self.assertResourceCalled('Directory', '/etc/hive/conf',
       owner = 'hive',

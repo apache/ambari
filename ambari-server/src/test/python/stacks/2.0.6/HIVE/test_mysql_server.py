@@ -38,11 +38,16 @@ class TestMySqlServer(RMFTestCase):
                        config_file="default.json"
     )
 
-    self.assertResourceCalled('Execute', "sed -i 's|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|' /etc/my.cnf",
+    self.assertResourceCalled('Execute', ('sed',
+     '-i',
+     's|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|',
+     '/etc/my.cnf'),
+        sudo = True,
     )
     self.assertResourceCalled('Execute', 'service mysql start',
                        logoutput = True,
-                       not_if = 'service mysql status | grep running'
+                       not_if = 'service mysql status | grep running',
+                       user = 'mysql',
     )
     self.assertNoMoreResources()
 
@@ -55,6 +60,7 @@ class TestMySqlServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'service mysql stop',
                               logoutput = True,
                               only_if = 'service mysql status | grep running',
+                              user = 'mysql',
     )
     self.assertNoMoreResources()
 
@@ -75,11 +81,16 @@ class TestMySqlServer(RMFTestCase):
                        config_file="secured.json"
     )
 
-    self.assertResourceCalled('Execute', "sed -i 's|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|' /etc/my.cnf",
+    self.assertResourceCalled('Execute', ('sed',
+     '-i',
+     's|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|',
+     '/etc/my.cnf'),
+        sudo = True,
     )
     self.assertResourceCalled('Execute', 'service mysql start',
                               logoutput = True,
-                              not_if = 'service mysql status | grep running'
+                              not_if = 'service mysql status | grep running',
+                              user = 'mysql',
                               )
     self.assertNoMoreResources()
 
@@ -92,7 +103,8 @@ class TestMySqlServer(RMFTestCase):
     
     self.assertResourceCalled('Execute', 'service mysql stop',
                               logoutput = True,
-                              only_if = 'service mysql status | grep running'
+                              only_if = 'service mysql status | grep running',
+                              user = 'mysql',
                               )
     self.assertNoMoreResources()
 

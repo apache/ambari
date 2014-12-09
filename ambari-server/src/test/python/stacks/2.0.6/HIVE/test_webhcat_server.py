@@ -57,7 +57,9 @@ class TestWebHCatServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr /usr/lib/hcatalog/sbin/webhcat_server.sh stop',
                               user = 'hcat',
                               )
-    self.assertResourceCalled('Execute', 'rm -f /var/run/webhcat/webhcat.pid')
+    self.assertResourceCalled('File', '/var/run/webhcat/webhcat.pid',
+        action = ['delete'],
+    )
     self.assertNoMoreResources()
 
     def test_configure_secured(self):
@@ -94,7 +96,9 @@ class TestWebHCatServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr /usr/lib/hcatalog/sbin/webhcat_server.sh stop',
                               user = 'hcat',
                               )
-    self.assertResourceCalled('Execute', 'rm -f /var/run/webhcat/webhcat.pid')
+    self.assertResourceCalled('File', '/var/run/webhcat/webhcat.pid',
+        action = ['delete'],
+    )
     self.assertNoMoreResources()
 
   def assert_configure_default(self):

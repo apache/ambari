@@ -42,6 +42,7 @@ pid_file = status_params.pid_file
 hadoop_jar_location = "/usr/lib/hadoop/"
 # for HDP2 it's "/usr/share/HDP-oozie/ext-2.2.zip"
 ext_js_path = "/usr/share/HDP-oozie/ext.zip"
+oozie_home = "/usr/lib/oozie"
 oozie_libext_dir = "/usr/lib/oozie/libext"
 lzo_enabled = config['configurations']['mapred-env']['lzo_enabled']
 security_enabled = config['configurations']['cluster-env']['security_enabled']

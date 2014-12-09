@@ -128,36 +128,50 @@ def oozie_server_specific():
     not_if="ls {pid_file} >/dev/null 2>&1 && !(ps `cat {pid_file}` >/dev/null 2>&1)"
   )
   
-  oozie_server_directorties = [params.oozie_pid_dir, params.oozie_log_dir, params.oozie_tmp_dir, os.path.abspath(os.path.join(params.oozie_data_dir, "..")), params.oozie_data_dir, params.oozie_lib_dir, params.oozie_webapps_dir, params.oozie_webapps_conf_dir, params.oozie_server_dir]
+  oozie_server_directorties = [format("{oozie_home}/{oozie_tmp_dir}"), params.oozie_pid_dir, params.oozie_log_dir, params.oozie_tmp_dir, os.path.abspath(os.path.join(params.oozie_data_dir, "..")), params.oozie_data_dir, params.oozie_lib_dir, params.oozie_webapps_dir, params.oozie_webapps_conf_dir, params.oozie_server_dir]
   Directory( oozie_server_directorties,
     owner = params.oozie_user,
     group = params.user_group,
     mode = 0755,
     recursive = True
   )
-
-  cmd1 = format("cd {oozie_home} && tar -xvf oozie-sharelib.tar.gz")
-  cmd2 = format("cd {oozie_home} && mkdir -p {oozie_tmp_dir}")
   
-  # this is different for HDP1
-  cmd3 = format("cd {oozie_home} && chown {oozie_user}:{user_group} {oozie_tmp_dir} && mkdir -p {oozie_libext_dir} && cp {ext_js_path} {oozie_libext_dir} && chown {oozie_user}:{user_group} {oozie_libext_dir}/{ext_js_file}  && chown -RL {oozie_user}:{user_group} {oozie_webapps_conf_dir}")
+  Directory(params.oozie_libext_dir,
+            recursive=True,
+  )
+  
+  configure_cmds = []  
+  configure_cmds.append(('tar','-xvf',format('{oozie_home}/oozie-sharelib.tar.gz'),'-C',params.oozie_home))
+  configure_cmds.append(('cp', params.ext_js_path, params.oozie_libext_dir))
+  configure_cmds.append(('chown', format('{oozie_user}:{user_group}'), format('{oozie_libext_dir}/{ext_js_file}')))
+  configure_cmds.append(('chown', '-RL', format('{oozie_user}:{user_group}'), params.oozie_webapps_conf_dir))
+  
+  no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1")
+  Execute( configure_cmds,
+    not_if  = no_op_test,
+    sudo = True,
+  )
+
   if params.jdbc_driver_name=="com.mysql.jdbc.Driver" or params.jdbc_driver_name=="oracle.jdbc.driver.OracleDriver":
-    cmd3 += format(" && cp {jdbc_driver_jar} {oozie_libext_dir}")
+    Execute(('cp', params.jdbc_driver_jar, params.oozie_libext_dir),
+      not_if  = no_op_test,
+      sudo = True,
+    )
   #falcon el extension
   if params.has_falcon_host:
-    cmd3 += format(' && cp {falcon_home}/oozie/ext/falcon-oozie-el-extension-*.jar {oozie_libext_dir} && chown {oozie_user}:{user_group} {oozie_libext_dir}/falcon-oozie-el-extension-*.jar')
+    Execute(format('sudo cp {falcon_home}/oozie/ext/falcon-oozie-el-extension-*.jar {oozie_libext_dir}'),
+      not_if  = no_op_test,
+    )
+    Execute(format('sudo chown {oozie_user}:{user_group} {oozie_libext_dir}/falcon-oozie-el-extension-*.jar'),
+      not_if  = no_op_test,
+    )
   if params.lzo_enabled:
     Package(params.lzo_packages_for_current_host)
+    Execute(format('sudo cp {hadoop_lib_home}/hadoop-lzo*.jar {oozie_lib_dir}'),
+      not_if  = no_op_test,
+    )
 
-    cmd3 += format(' && cp {hadoop_lib_home}/hadoop-lzo*.jar {oozie_lib_dir}')
-  # this is different for HDP1
-  cmd4 = format("cd {oozie_tmp_dir} && {oozie_setup_sh} prepare-war")
-
-  no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1")
-  Execute( [cmd1, cmd2, cmd3],
-    not_if  = no_op_test
-  )
-  Execute( cmd4,
+  Execute(format("cd {oozie_tmp_dir} && {oozie_setup_sh} prepare-war"),
     user = params.oozie_user,
     not_if  = no_op_test
   )

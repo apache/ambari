@@ -71,8 +71,9 @@ def flume(action = None):
       _set_desired_state('STARTED')
 
     # It is important to run this command as a background process.
-    flume_base = format('su -s /bin/bash {flume_user} -c "export JAVA_HOME={java_home}; '
-      '{flume_bin} agent --name {{0}} --conf {{1}} --conf-file {{2}} {{3}}" &')
+    
+    
+    flume_base = as_user(format("{flume_bin} agent --name {{0}} --conf {{1}} --conf-file {{2}} {{3}}"), params.flume_user, env={'JAVA_HOME': params.java_home}) + " &"
 
     for agent in cmd_target_names():
       flume_agent_conf_dir = params.flume_conf_dir + os.sep + agent
@@ -92,7 +93,10 @@ def flume(action = None):
         flume_cmd = flume_base.format(agent, flume_agent_conf_dir,
            flume_agent_conf_file, extra_args)
 
-        Execute(flume_cmd, wait_for_finish=False)
+        Execute(flume_cmd, 
+          wait_for_finish=False,
+          environment={'JAVA_HOME': params.java_home}
+        )
 
         # sometimes startup spawns a couple of threads - so only the first line may count
         pid_cmd = format('pgrep -o -u {flume_user} -f ^{java_home}.*{agent}.* > {flume_agent_pid_file}')
@@ -177,11 +181,10 @@ def cmd_target_names():
 
 def _set_desired_state(state):
   import params
-  try:
-    with open(os.path.join(params.flume_run_dir, 'ambari-state.txt'), 'w') as fp:
-      fp.write(state)
-  except:
-    pass
+  filename = os.path.join(params.flume_run_dir, 'ambari-state.txt')
+  File(filename,
+    content = state,
+  )
 
 
 def get_desired_state():

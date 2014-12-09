@@ -33,6 +33,7 @@ class ExecuteHadoop(Resource):
   logoutput = BooleanArgument(default=False)
   principal = ResourceArgument(default=lambda obj: obj.user)
   bin_dir = ResourceArgument(default=[]) # appended to $PATH
+  environment = ResourceArgument(default={})
   
   conf_dir = ResourceArgument()
   

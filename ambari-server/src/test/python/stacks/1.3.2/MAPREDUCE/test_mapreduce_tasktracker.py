@@ -64,7 +64,9 @@ class TestTasktracker(RMFTestCase):
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/bin/hadoop-daemon.sh --config /etc/hadoop/conf stop tasktracker',
                               user = 'mapred'
     )
-    self.assertResourceCalled('Execute', 'rm -f /var/run/hadoop/mapred/hadoop-mapred-tasktracker.pid')
+    self.assertResourceCalled('File', '/var/run/hadoop/mapred/hadoop-mapred-tasktracker.pid',
+        action = ['delete'],
+    )
     self.assertNoMoreResources()
 
 
@@ -106,7 +108,9 @@ class TestTasktracker(RMFTestCase):
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/bin/hadoop-daemon.sh --config /etc/hadoop/conf stop tasktracker',
                               user = 'mapred'
     )
-    self.assertResourceCalled('Execute', 'rm -f /var/run/hadoop/mapred/hadoop-mapred-tasktracker.pid')
+    self.assertResourceCalled('File', '/var/run/hadoop/mapred/hadoop-mapred-tasktracker.pid',
+        action = ['delete'],
+    )
     self.assertNoMoreResources()
 
   def assert_configure_default(self):

@@ -114,18 +114,16 @@ class TestOozieServer(RMFTestCase):
       recursive = True,
       mode = 0755,
     )
-    self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && tar -xvf oozie-sharelib.tar.gz',
-      not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
+    self.assertResourceCalled('Directory', '/usr/lib/oozie/libext',
+        recursive = True,
     )
-    self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && mkdir -p /var/tmp/oozie',
-      not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
-    )
-    self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && chown oozie:hadoop /var/tmp/oozie',
-      not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
+    self.assertResourceCalled('Execute', ('tar', '-xvf', '/usr/lib/oozie/oozie-sharelib.tar.gz', '-C', '/usr/lib/oozie'),
+        not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
+        sudo = True,
     )
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 /usr/lib/hadoop/ -extjs /usr/share/HDP-oozie/ext.zip -jars `LZO_JARS=($(find /usr/lib/hadoop/lib/ -name "hadoop-lzo-*")); echo ${LZO_JARS[0]}`:',
-      not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
-      user = 'oozie',
+        not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
+        user = 'oozie',
     )
     self.assertNoMoreResources()
 
@@ -160,8 +158,12 @@ class TestOozieServer(RMFTestCase):
                          command = "stop",
                          config_file="default.json"
     )
-    self.assertResourceCalled('Execute', "su -s /bin/bash - oozie -c  'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-stop.sh' && rm -f /var/run/oozie/oozie.pid",
-      only_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
+    self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-stop.sh',
+        only_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
+        user = 'oozie',
+    )
+    self.assertResourceCalled('File', '/var/run/oozie/oozie.pid',
+        action = ['delete'],
     )
     self.assertNoMoreResources()
 
@@ -258,18 +260,16 @@ class TestOozieServer(RMFTestCase):
       recursive = True,
       mode = 0755,
     )
-    self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && tar -xvf oozie-sharelib.tar.gz',
-      not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
+    self.assertResourceCalled('Directory', '/usr/lib/oozie/libext',
+        recursive = True,
     )
-    self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && mkdir -p /var/tmp/oozie',
-      not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
-    )
-    self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && chown oozie:hadoop /var/tmp/oozie',
-      not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
+    self.assertResourceCalled('Execute', ('tar', '-xvf', '/usr/lib/oozie/oozie-sharelib.tar.gz', '-C', '/usr/lib/oozie'),
+        not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
+        sudo = True,
     )
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 /usr/lib/hadoop/ -extjs /usr/share/HDP-oozie/ext.zip -jars `LZO_JARS=($(find /usr/lib/hadoop/lib/ -name "hadoop-lzo-*")); echo ${LZO_JARS[0]}`:',
-      not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
-      user = 'oozie',
+        not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
+        user = 'oozie',
     )
     self.assertNoMoreResources()
 
@@ -303,8 +303,12 @@ class TestOozieServer(RMFTestCase):
                          command = "stop",
                          config_file="secured.json"
     )
-    self.assertResourceCalled('Execute', "su -s /bin/bash - oozie -c  'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-stop.sh' && rm -f /var/run/oozie/oozie.pid",
-      only_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
+    self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-stop.sh',
+        only_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
+        user = 'oozie',
+    )
+    self.assertResourceCalled('File', '/var/run/oozie/oozie.pid',
+        action = ['delete'],
     )
     self.assertNoMoreResources()
 
@@ -395,19 +399,17 @@ class TestOozieServer(RMFTestCase):
                               recursive = True,
                               mode = 0755,
                               )
-    self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && tar -xvf oozie-sharelib.tar.gz',
-                              not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
-                              )
-    self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && mkdir -p /var/tmp/oozie',
-                              not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
-                              )
-    self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && chown oozie:hadoop /var/tmp/oozie',
-                              not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
-                              )
+    self.assertResourceCalled('Directory', '/usr/lib/oozie/libext',
+        recursive = True,
+    )
+    self.assertResourceCalled('Execute', ('tar', '-xvf', '/usr/lib/oozie/oozie-sharelib.tar.gz', '-C', '/usr/lib/oozie'),
+        not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
+        sudo = True,
+    )
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 /usr/lib/hadoop/ -extjs /usr/share/HDP-oozie/ext.zip -jars `LZO_JARS=($(find /usr/lib/hadoop/lib/ -name "hadoop-lzo-*")); echo ${LZO_JARS[0]}`:',
-                              not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
-                              user = 'oozie',
-                              )
+        not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
+        user = 'oozie',
+    )
 
   def configure_secured(self):
     self.assertResourceCalled('HdfsDirectory', '/user/oozie',
@@ -496,16 +498,14 @@ class TestOozieServer(RMFTestCase):
                               recursive = True,
                               mode = 0755,
                               )
-    self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && tar -xvf oozie-sharelib.tar.gz',
-                              not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
-                              )
-    self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && mkdir -p /var/tmp/oozie',
-                              not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
-                              )
-    self.assertResourceCalled('Execute', 'cd /usr/lib/oozie && chown oozie:hadoop /var/tmp/oozie',
-                              not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
-                              )
+    self.assertResourceCalled('Directory', '/usr/lib/oozie/libext',
+        recursive = True,
+    )
+    self.assertResourceCalled('Execute', ('tar', '-xvf', '/usr/lib/oozie/oozie-sharelib.tar.gz', '-C', '/usr/lib/oozie'),
+        not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
+        sudo = True,
+    )
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 /usr/lib/hadoop/ -extjs /usr/share/HDP-oozie/ext.zip -jars `LZO_JARS=($(find /usr/lib/hadoop/lib/ -name "hadoop-lzo-*")); echo ${LZO_JARS[0]}`:',
-                              not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
-                              user = 'oozie',
-                              )
+        not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
+        user = 'oozie',
+    )

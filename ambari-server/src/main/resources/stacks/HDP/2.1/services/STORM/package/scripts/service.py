@@ -71,12 +71,14 @@ def service(
 
   elif action == "stop":
     process_dont_exist = format("! ({no_op_test})")
-    pid = format("`cat {pid_file}` >/dev/null 2>&1")
-    Execute(format("kill {pid}"),
+    pid = format("`cat {pid_file}`")
+    Execute(format("sudo kill {pid}"),
             not_if=process_dont_exist
     )
-    Execute(format("kill -9 {pid}"),
+    Execute(format("sudo kill -9 {pid}"),
             not_if=format("sleep 2; {process_dont_exist} || sleep 20; {process_dont_exist}"),
             ignore_failures=True
     )
-    Execute(format("rm -f {pid_file}"))
+    File(pid_file,
+         action = "delete",
+    )

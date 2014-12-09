@@ -53,17 +53,25 @@ class TestKnoxGateway(RMFTestCase):
                               owner = 'knox',
                               content = InlineTemplate(self.getConfig()['configurations']['topology']['content'])
     )
-    self.assertResourceCalled('Execute', 'chown -R knox:knox /var/lib/knox/data /var/log/knox /var/run/knox /etc/knox/conf'
+    self.assertResourceCalled('Execute', ('chown',
+     '-R',
+     'knox:knox',
+     '/var/lib/knox/data',
+     '/var/log/knox',
+     '/var/log/knox',
+     '/var/run/knox',
+     '/etc/knox/conf'),
+        sudo = True,
     )
     self.assertResourceCalled('Execute', '/usr/lib/knox/bin/knoxcli.sh create-master --master sa',
-                              user='knox',
-                              environment={'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
-                              not_if='test -f /var/lib/knox/data/security/master'
+        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+        not_if = "/usr/bin/sudo su knox -l -s /bin/bash -c 'export {ENV_PLACEHOLDER} > /dev/null ; test -f /var/lib/knox/data/security/master'",
+        user = 'knox',
     )
     self.assertResourceCalled('Execute', '/usr/lib/knox/bin/knoxcli.sh create-cert --hostname c6401.ambari.apache.org',
-                              user='knox',
-                              environment={'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
-                              not_if='test -f /var/lib/knox/data/security/keystores/gateway.jks'
+        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
+        not_if = "/usr/bin/sudo su knox -l -s /bin/bash -c 'export {ENV_PLACEHOLDER} > /dev/null ; test -f /var/lib/knox/data/security/master'",
+        user = 'knox',
     )
     self.assertResourceCalled('File', '/etc/knox/conf/ldap-log4j.properties',
                               mode=0644,

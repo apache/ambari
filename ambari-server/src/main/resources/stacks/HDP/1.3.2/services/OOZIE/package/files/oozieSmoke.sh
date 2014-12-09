@@ -32,9 +32,9 @@ function checkOozieJobStatus {
   local i=0
   local rc=1
   local cmd="source ${oozie_conf_dir}/oozie-env.sh ; /usr/bin/oozie job -oozie ${OOZIE_SERVER} -info $job_id"
-  su -s /bin/bash - ${smoke_test_user} -c "$cmd"
+  sudo su ${smoke_test_user} -s /bin/bash - -c "$cmd"
   while [ $i -lt $num_of_tries ] ; do
-    cmd_output=`su -s /bin/bash - ${smoke_test_user} -c "$cmd"`
+    cmd_output=`sudo su ${smoke_test_user} -s /bin/bash - -c "$cmd"`
     (IFS='';echo $cmd_output)
     act_status=$(IFS='';echo $cmd_output | grep ^Status | cut -d':' -f2 | sed 's| ||g')
     echo "workflow_status=$act_status"
@@ -67,12 +67,12 @@ export OOZIE_SERVER=`getValueFromField ${oozie_conf_dir}/oozie-site.xml oozie.ba
 export OOZIE_EXAMPLES_DIR=`rpm -ql oozie-client | grep 'oozie-examples.tar.gz$' | xargs dirname`
 cd $OOZIE_EXAMPLES_DIR
 
-tar -zxf oozie-examples.tar.gz
-sed -i "s|nameNode=hdfs://localhost:8020|nameNode=$NAMENODE|g"  examples/apps/map-reduce/job.properties
-sed -i "s|nameNode=hdfs://localhost:9000|nameNode=$NAMENODE|g"  examples/apps/map-reduce/job.properties
-sed -i "s|jobTracker=localhost:8021|jobTracker=$JOBTRACKER|g" examples/apps/map-reduce/job.properties
-sed -i "s|jobTracker=localhost:9001|jobTracker=$JOBTRACKER|g" examples/apps/map-reduce/job.properties
-sed -i "s|oozie.wf.application.path=hdfs://localhost:9000|oozie.wf.application.path=$NAMENODE|g" examples/apps/map-reduce/job.properties
+sudo tar -zxf oozie-examples.tar.gz
+sudo sed -i "s|nameNode=hdfs://localhost:8020|nameNode=$NAMENODE|g"  examples/apps/map-reduce/job.properties
+sudo sed -i "s|nameNode=hdfs://localhost:9000|nameNode=$NAMENODE|g"  examples/apps/map-reduce/job.properties
+sudo sed -i "s|jobTracker=localhost:8021|jobTracker=$JOBTRACKER|g" examples/apps/map-reduce/job.properties
+sudo sed -i "s|jobTracker=localhost:9001|jobTracker=$JOBTRACKER|g" examples/apps/map-reduce/job.properties
+sudo sed -i "s|oozie.wf.application.path=hdfs://localhost:9000|oozie.wf.application.path=$NAMENODE|g" examples/apps/map-reduce/job.properties
 
 if [[ $security_enabled == "True" ]]; then
   kinitcmd="${kinit_path_local} -kt ${smoke_user_keytab} ${smoke_test_user}; "
@@ -80,13 +80,13 @@ else
   kinitcmd=""
 fi
 
-su -s /bin/bash - ${smoke_test_user} -c "hadoop dfs -rmr examples"
-su -s /bin/bash - ${smoke_test_user} -c "hadoop dfs -rmr input-data"
-su -s /bin/bash - ${smoke_test_user} -c "hadoop dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples examples"
-su -s /bin/bash - ${smoke_test_user} -c "hadoop dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples/input-data input-data"
+sudo su ${smoke_test_user} -s /bin/bash - -c "hadoop dfs -rmr examples"
+sudo su ${smoke_test_user} -s /bin/bash - -c "hadoop dfs -rmr input-data"
+sudo su ${smoke_test_user} -s /bin/bash - -c "hadoop dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples examples"
+sudo su ${smoke_test_user} -s /bin/bash - -c "hadoop dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples/input-data input-data"
 
 cmd="${kinitcmd}source ${oozie_conf_dir}/oozie-env.sh ; /usr/bin/oozie job -oozie $OOZIE_SERVER -config $OOZIE_EXAMPLES_DIR/examples/apps/map-reduce/job.properties  -run"
-job_info=`su -s /bin/bash - ${smoke_test_user} -c "$cmd" | grep "job:"`
+job_info=`sudo su ${smoke_test_user} -s /bin/bash - -c "$cmd" | grep "job:"`
 job_id="`echo $job_info | cut -d':' -f2`"
 checkOozieJobStatus "$job_id"
 OOZIE_EXIT_CODE="$?"

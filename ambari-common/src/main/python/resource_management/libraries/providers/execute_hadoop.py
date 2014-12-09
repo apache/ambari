@@ -47,5 +47,6 @@ class ExecuteHadoopProvider(Provider):
         tries       = self.resource.tries,
         try_sleep   = self.resource.try_sleep,
         logoutput   = self.resource.logoutput,
-        path        = self.resource.bin_dir
+        path        = self.resource.bin_dir,
+        environment = self.resource.environment,
       )

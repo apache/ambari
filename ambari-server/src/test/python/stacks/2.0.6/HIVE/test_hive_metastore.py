@@ -59,8 +59,11 @@ class TestHiveMetastore(RMFTestCase):
                        config_file="default.json"
     )
 
-    self.assertResourceCalled('Execute', 'kill `cat /var/run/hive/hive.pid` >/dev/null 2>&1 && rm -f /var/run/hive/hive.pid',
-                              not_if = '! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1)'
+    self.assertResourceCalled('Execute', 'sudo kill `cat /var/run/hive/hive.pid`',
+        not_if = '! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1)',
+    )
+    self.assertResourceCalled('File', '/var/run/hive/hive.pid',
+        action = ['delete'],
     )
     self.assertNoMoreResources()
 
@@ -101,8 +104,11 @@ class TestHiveMetastore(RMFTestCase):
                        config_file="secured.json"
     )
 
-    self.assertResourceCalled('Execute', 'kill `cat /var/run/hive/hive.pid` >/dev/null 2>&1 && rm -f /var/run/hive/hive.pid',
-                              not_if = '! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1)'
+    self.assertResourceCalled('Execute', 'sudo kill `cat /var/run/hive/hive.pid`',
+        not_if = '! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1)',
+    )
+    self.assertResourceCalled('File', '/var/run/hive/hive.pid',
+        action = ['delete'],
     )
     self.assertNoMoreResources()
 
@@ -189,10 +195,15 @@ class TestHiveMetastore(RMFTestCase):
                               owner = 'hive',
                               group = 'hadoop',
                               )
-    self.assertResourceCalled('Execute', 'hive mkdir -p /tmp/AMBARI-artifacts/ ; rm -f /usr/lib/hive/lib//mysql-connector-java.jar ; cp /usr/share/java/mysql-connector-java.jar /usr/lib/hive/lib//mysql-connector-java.jar',
+    self.assertResourceCalled('File', '/usr/lib/hive/lib//mysql-connector-java.jar',
+        action = ['delete'],
+    )
+    self.assertResourceCalled('Execute', ('cp',
+     '/usr/share/java/mysql-connector-java.jar',
+     '/usr/lib/hive/lib//mysql-connector-java.jar'),
         creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
-        environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin" + os.pathsep + "/usr/bin"},
         path = ['/bin', '/usr/bin/'],
+        sudo = True,
         not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
     )
     self.assertResourceCalled('Execute', '/bin/sh -c \'cd /usr/lib/ambari-agent/ && curl -kf -x "" --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar\'',
@@ -305,10 +316,15 @@ class TestHiveMetastore(RMFTestCase):
                               owner = 'hive',
                               group = 'hadoop',
                               )
-    self.assertResourceCalled('Execute', 'hive mkdir -p /tmp/AMBARI-artifacts/ ; rm -f /usr/lib/hive/lib//mysql-connector-java.jar ; cp /usr/share/java/mysql-connector-java.jar /usr/lib/hive/lib//mysql-connector-java.jar',
+    self.assertResourceCalled('File', '/usr/lib/hive/lib//mysql-connector-java.jar',
+        action = ['delete'],
+    )
+    self.assertResourceCalled('Execute', ('cp',
+     '/usr/share/java/mysql-connector-java.jar',
+     '/usr/lib/hive/lib//mysql-connector-java.jar'),
         creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
         path = ['/bin', '/usr/bin/'],
-        environment = {'PATH' : os.environ['PATH'] + os.pathsep + "/usr/lib/hive/bin" + os.pathsep + "/usr/bin"},
+        sudo = True,
         not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
     )
     self.assertResourceCalled('Execute', '/bin/sh -c \'cd /usr/lib/ambari-agent/ && curl -kf -x "" --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar\'',
