@@ -412,4 +412,18 @@ public interface Cluster {
    * @return true if the access to this cluster is allowed
    */
   public boolean checkPermission(PrivilegeEntity privilegeEntity, boolean readOnly);
+
+  /**
+   * Add the given map of attributes to the session for this cluster.
+   *
+   * @param attributes  the session attributes
+   */
+  public void addSessionAttributes(Map<String, Object> attributes);
+
+  /**
+   * Get the map of session attributes for this cluster.
+   *
+   * @return the map of session attributes for this cluster; never null
+   */
+  public Map<String, Object> getSessionAttributes();
 }

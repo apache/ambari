@@ -90,7 +90,7 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
 
     switch (type.getInternalType()) {
       case Cluster:
-        return new ClusterResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new ClusterResourceProvider(managementController);
       case Service:
         return resourceProviderFactory.getServiceResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Component:

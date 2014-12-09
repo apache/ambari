@@ -19,6 +19,7 @@
 package org.apache.ambari.server.controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -40,21 +41,39 @@ public class ClusterRequest {
 
   private ServiceConfigVersionRequest serviceConfigVersionRequest = null;
 
-  public ClusterRequest(Long clusterId, String clusterName, 
+  /**
+   * The cluster session attributes.
+   */
+  private final Map<String, Object> sessionAttributes;
+
+
+  // ----- Constructors ------------------------------------------------------
+
+  public ClusterRequest(Long clusterId, String clusterName,
       String stackVersion, Set<String> hostNames) {
     this(clusterId, clusterName, null, stackVersion, hostNames);
   }  
   
   public ClusterRequest(Long clusterId, String clusterName, 
       String provisioningState, String stackVersion, Set<String> hostNames) {
-    super();
-    this.clusterId = clusterId;
-    this.clusterName = clusterName;
-    this.provisioningState = provisioningState;
-    this.stackVersion = stackVersion;
-    this.hostNames = hostNames;    
+    this(clusterId, clusterName, provisioningState, stackVersion, hostNames, null);
   }
-  
+
+  public ClusterRequest(Long clusterId, String clusterName,
+                        String provisioningState, String stackVersion,
+                        Set<String> hostNames, Map<String, Object> sessionAttributes) {
+    super();
+    this.clusterId         = clusterId;
+    this.clusterName       = clusterName;
+    this.provisioningState = provisioningState;
+    this.stackVersion      = stackVersion;
+    this.hostNames         = hostNames;
+    this.sessionAttributes = sessionAttributes;
+  }
+
+
+  // ----- ClusterRequest ----------------------------------------------------
+
   /**
    * @return the clusterId
    */
@@ -129,11 +148,12 @@ public class ClusterRequest {
   }
   
   /**
-   * Sets the configs requests (if any)
-   * @param configRequest
+   * Sets the configs requests (if any).
+   *
+   * @param configRequests  the list of configuration requests
    */
-  public void setDesiredConfig(List<ConfigurationRequest> configRequest) {
-    configs = configRequest;
+  public void setDesiredConfig(List<ConfigurationRequest> configRequests) {
+    configs = configRequests;
   }
   
   /**
@@ -168,9 +188,17 @@ public class ClusterRequest {
     return sb.toString();
   }
 
-
   public ServiceConfigVersionRequest getServiceConfigVersionRequest() {
     return serviceConfigVersionRequest;
+  }
+
+  /**
+   * Get the session attributes of this request.
+   *
+   * @return the session attributes; may be null
+   */
+  public Map<String, Object> getSessionAttributes() {
+    return sessionAttributes;
   }
 
   public void setServiceConfigVersionRequest(ServiceConfigVersionRequest serviceConfigVersionRequest) {

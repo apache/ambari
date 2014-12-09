@@ -1142,6 +1142,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     for (ClusterRequest request : requests) {
       // TODO : Is there ever a real world case where we could have multiple non-null responses?
       response = updateCluster(request);
+      // set any session attributes for this cluster request
+      clusters.addSessionAttributes(request.getClusterName(), request.getSessionAttributes());
     }
     return response;
   }
@@ -3316,7 +3318,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private Set<OperatingSystemResponse> getOperatingSystems(
       OperatingSystemRequest request) throws AmbariException {
 
-    Set<OperatingSystemResponse> responses = new HashSet<OperatingSystemResponse>();;
+    Set<OperatingSystemResponse> responses = new HashSet<OperatingSystemResponse>();
 
     String stackName = request.getStackName();
     String stackVersion = request.getStackVersion();

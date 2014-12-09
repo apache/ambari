@@ -414,9 +414,7 @@ public class JMXHostProviderTest {
     AbstractProviderModule {
 
     ResourceProvider clusterResourceProvider = new
-      ClusterResourceProvider(PropertyHelper.getPropertyIds(Resource.Type
-      .Cluster), PropertyHelper.getKeyPropertyIds(Resource.Type.Cluster),
-      controller);
+      ClusterResourceProvider(controller);
 
     Injector injector = createNiceMock(Injector.class);
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);

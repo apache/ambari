@@ -44,6 +44,7 @@ import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.controller.AmbariSessionManager;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ConfigurationResponse;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
@@ -98,7 +99,6 @@ import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
@@ -124,6 +124,11 @@ public class ClusterImpl implements Cluster {
     LoggerFactory.getLogger(ClusterImpl.class);
   private static final Logger configChangeLog =
     LoggerFactory.getLogger("configchange");
+
+  /**
+   * Prefix for cluster session attributes name.
+   */
+  private static final String CLUSTER_SESSION_ATTRIBUTES_PREFIX = "cluster_session_attributes:";
 
   @Inject
   private Clusters clusters;
@@ -212,6 +217,9 @@ public class ClusterImpl implements Cluster {
 
   @Inject
   private UpgradeDAO upgradeDAO;
+
+  @Inject
+  private AmbariSessionManager sessionManager;
 
   private volatile boolean svcHostsLoaded = false;
 
@@ -2316,5 +2324,38 @@ public class ClusterImpl implements Cluster {
       }
     }
     return false;
+  }
+
+  @Override
+  public void addSessionAttributes(Map<String, Object> attributes) {
+    if (attributes != null && !attributes.isEmpty()) {
+
+      Map<String, Object>  sessionAttributes = new HashMap<String, Object>(getSessionAttributes());
+
+      sessionAttributes.putAll(attributes);
+
+      String attributeName = CLUSTER_SESSION_ATTRIBUTES_PREFIX + getClusterName();
+
+      getSessionManager().setAttribute(attributeName, sessionAttributes);
+    }
+  }
+
+  @Override
+  public Map<String, Object> getSessionAttributes() {
+    String attributeName = CLUSTER_SESSION_ATTRIBUTES_PREFIX + getClusterName();
+
+    Map<String, Object>  attributes =
+        (Map<String, Object>) getSessionManager().getAttribute(attributeName);
+
+    return attributes == null ? Collections.<String, Object>emptyMap() : attributes;
+  }
+
+  /**
+   * Get the associated session manager.
+   *
+   * @return the session manager
+   */
+  protected AmbariSessionManager getSessionManager() {
+    return sessionManager;
   }
 }

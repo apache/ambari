@@ -184,4 +184,21 @@ public interface Clusters {
    * @return true if access to the cluster is allowed
    */
   public boolean checkPermission(String clusterName, boolean readOnly);
+
+  /**
+   * Add the given map of attributes to the session for the cluster identified by the given name.
+   *
+   * @param name        the cluster name
+   * @param attributes  the session attributes
+   */
+  public void addSessionAttributes(String name, Map<String, Object> attributes);
+
+  /**
+   * Get the map of session attributes for the cluster identified by the given name.
+   *
+   * @param name  the cluster name
+   *
+   * @return the map of session attributes for the cluster; never null
+   */
+  public Map<String, Object> getSessionAttributes(String name);
 }

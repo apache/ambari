@@ -103,10 +103,11 @@ public class AmbariManagementControllerImplTest {
   private static final ActionDBAccessorImpl actionDBAccessor = createNiceMock(ActionDBAccessorImpl.class);
   private static final AmbariMetaInfo ambariMetaInfo = createMock(AmbariMetaInfo.class);
   private static final Users users = createMock(Users.class);
+  private static final AmbariSessionManager sessionManager = createNiceMock(AmbariSessionManager.class);
 
   @Before
   public void before() throws Exception {
-    reset(ldapDataPopulator, clusters,actionDBAccessor, ambariMetaInfo, users);
+    reset(ldapDataPopulator, clusters,actionDBAccessor, ambariMetaInfo, users, sessionManager);
   }
 
   @Test
@@ -514,7 +515,7 @@ public class AmbariManagementControllerImplTest {
     expectLastCall();
 
     // replay mocks
-    replay(actionManager, cluster, clusters, injector, clusterRequest);
+    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager);
 
     // test
     AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, injector);
@@ -522,7 +523,7 @@ public class AmbariManagementControllerImplTest {
 
     // assert and verify
     assertSame(controller, controllerCapture.getValue());
-    verify(actionManager, cluster, clusters, injector, clusterRequest);
+    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager);
   }
 
   /**
@@ -553,7 +554,7 @@ public class AmbariManagementControllerImplTest {
     expectLastCall().andThrow(new RollbackException());
 
     // replay mocks
-    replay(actionManager, cluster, clusters, injector, clusterRequest);
+    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager);
 
     // test
     AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, injector);
@@ -565,7 +566,7 @@ public class AmbariManagementControllerImplTest {
     }
     // assert and verify
     assertSame(controller, controllerCapture.getValue());
-    verify(actionManager, cluster, clusters, injector, clusterRequest);
+    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager);
   }
 
   @Test
@@ -1573,6 +1574,7 @@ public class AmbariManagementControllerImplTest {
       binder.bind(ActionDBAccessorImpl.class).toInstance(actionDBAccessor);
       binder.bind(AmbariMetaInfo.class).toInstance(ambariMetaInfo);
       binder.bind(Users.class).toInstance(users);
+      binder.bind(AmbariSessionManager.class).toInstance(sessionManager);
     }
   }
 

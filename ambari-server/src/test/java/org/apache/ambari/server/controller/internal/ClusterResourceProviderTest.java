@@ -3418,9 +3418,7 @@ public class ClusterResourceProviderTest {
                                 ResourceProvider hostComponentResourceProvider,
                                 ResourceProvider configGroupResourceProvider) {
 
-      super(PropertyHelper.getPropertyIds(Resource.Type.Cluster),
-            PropertyHelper.getKeyPropertyIds(Resource.Type.Cluster),
-            managementController);
+      super(managementController);
 
       this.serviceResourceProvider = serviceResourceProvider;
       this.componentResourceProvider = componentResourceProvider;

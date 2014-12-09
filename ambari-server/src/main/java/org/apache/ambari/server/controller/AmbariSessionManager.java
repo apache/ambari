@@ -47,19 +47,10 @@ public class AmbariSessionManager {
    * @return the current session id; null if no request is associated with the current thread
    */
   public String getCurrentSessionId() {
-    RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
 
-    if (requestAttributes instanceof ServletRequestAttributes) {
-      ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) requestAttributes;
+    HttpSession session = getHttpSession();
 
-      HttpServletRequest request = servletRequestAttributes.getRequest();
-      if (request != null) {
-        HttpSession session = request.getSession(true);
-
-        return session.getId();
-      }
-    }
-    return null;
+    return session == null ? null : session.getId();
   }
 
   /**
@@ -69,5 +60,66 @@ public class AmbariSessionManager {
    */
   public String getSessionCookie() {
     return sessionManager.getSessionCookie();
+  }
+
+  /**
+   * Set an attribute value on the current session.
+   *
+   * @param name   the attribute name
+   * @param value  the attribute value
+   */
+  public void setAttribute(String name, Object value) {
+    HttpSession session = getHttpSession();
+    if (session != null) {
+      session.setAttribute(name, value);
+    }
+  }
+
+  /**
+   * Get an attribute value from the current session.
+   *
+   * @param name  the attribute name
+   *
+   * @return the attribute value
+   */
+  public Object getAttribute(String name) {
+    HttpSession session = getHttpSession();
+    if (session != null) {
+      return session.getAttribute(name);
+    }
+    return null;
+  }
+
+  /**
+   * Remove the attribute identified by the given name from the current session.
+   *
+   * @param name  the attribute name
+   */
+  public void removeAttribute(String name) {
+    HttpSession session = getHttpSession();
+    if (session != null) {
+      session.removeAttribute(name);
+    }
+  }
+
+
+  // ----- helper methods ----------------------------------------------------
+
+  /**
+   * Get the current session.
+   *
+   * @return the current session
+   */
+  protected HttpSession getHttpSession() {
+
+    RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+
+    if (requestAttributes != null && requestAttributes instanceof ServletRequestAttributes) {
+
+      HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
+
+      return request == null ? null : request.getSession(true);
+    }
+    return null;
   }
 }

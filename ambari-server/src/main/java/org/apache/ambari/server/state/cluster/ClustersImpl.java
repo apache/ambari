@@ -47,7 +47,6 @@ import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
-import org.apache.ambari.server.orm.dao.ResourceDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
@@ -107,8 +106,6 @@ public class ClustersImpl implements Clusters {
   ClusterVersionDAO clusterVersionDAO;
   @Inject
   HostVersionDAO hostVersionDAO;
-  @Inject
-  ResourceDAO resourceDAO;
   @Inject
   ResourceTypeDAO resourceTypeDAO;
   @Inject
@@ -762,15 +759,44 @@ public class ClustersImpl implements Clusters {
   @Override
   public boolean checkPermission(String clusterName, boolean readOnly) {
 
-    Cluster cluster = null;
-    try {
-      cluster = clusterName == null ? null : getCluster(clusterName);
-    } catch (AmbariException e) {
-      // do nothing
-    }
+    Cluster cluster = findCluster(clusterName);
 
     return (cluster == null && readOnly) || !configuration.getApiAuthentication()
       || checkPermission(cluster, readOnly);
+  }
+
+  @Override
+  public void addSessionAttributes(String name, Map<String, Object> attributes) {
+    Cluster cluster = findCluster(name);
+    if (cluster != null) {
+      cluster.addSessionAttributes(attributes);
+    }
+  }
+
+  @Override
+  public Map<String, Object> getSessionAttributes(String name) {
+    Cluster cluster = findCluster(name);
+    return cluster == null ? Collections.<String, Object>emptyMap() : cluster.getSessionAttributes();
+  }
+
+
+  // ----- helper methods ---------------------------------------------------
+
+  /**
+   * Find the cluster for the given name.
+   *
+   * @param name  the cluster name
+   *
+   * @return the cluster for the given name; null if the cluster can not be found
+   */
+  protected Cluster findCluster(String name) {
+    Cluster cluster = null;
+    try {
+      cluster = name == null ? null : getCluster(name);
+    } catch (AmbariException e) {
+      // do nothing
+    }
+    return cluster;
   }
 
   /**

@@ -68,6 +68,12 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
   protected static final String CLUSTER_TOTAL_HOSTS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "total_hosts");
   protected static final String CLUSTER_HEALTH_REPORT_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "health_report");
   protected static final String BLUEPRINT_PROPERTY_ID = PropertyHelper.getPropertyId(null, "blueprint");
+  protected static final String SESSION_ATTRIBUTES_PROPERTY_ID = "session_attributes";
+
+  /**
+   * The session attributes property prefix.
+   */
+  private static final String SESSION_ATTRIBUTES_PROPERTY_PREFIX = SESSION_ATTRIBUTES_PROPERTY_ID + "/";
 
   /**
    * Request info property ID.  Allow internal getResources call to bypass permissions check.
@@ -79,6 +85,31 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
    */
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{CLUSTER_ID_PROPERTY_ID}));
+
+  /**
+   * The key property ids for a cluster resource.
+   */
+  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
+  static {
+    keyPropertyIds.put(Resource.Type.Cluster, CLUSTER_NAME_PROPERTY_ID);
+  }
+
+  /**
+   * The property ids for a cluster resource.
+   */
+  private static Set<String> propertyIds = new HashSet<String>();
+  static {
+    propertyIds.add(CLUSTER_ID_PROPERTY_ID);
+    propertyIds.add(CLUSTER_NAME_PROPERTY_ID);
+    propertyIds.add(CLUSTER_VERSION_PROPERTY_ID);
+    propertyIds.add(CLUSTER_PROVISIONING_STATE_PROPERTY_ID);
+    propertyIds.add(CLUSTER_DESIRED_CONFIGS_PROPERTY_ID);
+    propertyIds.add(CLUSTER_DESIRED_SERVICE_CONFIG_VERSIONS_PROPERTY_ID);
+    propertyIds.add(CLUSTER_TOTAL_HOSTS_PROPERTY_ID);
+    propertyIds.add(CLUSTER_HEALTH_REPORT_PROPERTY_ID);
+    propertyIds.add(BLUEPRINT_PROPERTY_ID);
+    propertyIds.add(SESSION_ATTRIBUTES_PROPERTY_ID);
+  }
 
   /**
    * Maps configuration type (string) to associated properties
@@ -97,14 +128,9 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
   /**
    * Create a  new resource provider for the given management controller.
    *
-   * @param propertyIds           the property ids
-   * @param keyPropertyIds        the key property ids
    * @param managementController  the management controller
    */
-  ClusterResourceProvider(Set<String> propertyIds,
-                          Map<Resource.Type, String> keyPropertyIds,
-                          AmbariManagementController managementController) {
-
+  ClusterResourceProvider(AmbariManagementController managementController) {
     super(propertyIds, keyPropertyIds, managementController);
   }
 
@@ -318,7 +344,6 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
   }
 
 
-
   // ----- utility methods ---------------------------------------------------
 
   /**
@@ -334,7 +359,8 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
         (String) properties.get(CLUSTER_NAME_PROPERTY_ID),
         (String) properties.get(CLUSTER_PROVISIONING_STATE_PROPERTY_ID),
         (String) properties.get(CLUSTER_VERSION_PROPERTY_ID),
-        null);
+        null,
+        getSessionAttributes(properties));
 
     List<ConfigurationRequest> configRequests = getConfigurationRequests("Clusters", properties);
 
@@ -348,6 +374,28 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
     }
 
     return cr;
+  }
+
+  /**
+   * Get the map of session attributes from the given property map.
+   *
+   * @param properties  the property map from the request
+   *
+   * @return the map of session attributes
+   */
+  private Map<String, Object> getSessionAttributes(Map<String, Object> properties) {
+    Map<String, Object> sessionAttributes = new HashMap<String, Object>();
+
+    for (Map.Entry<String, Object> entry : properties.entrySet()) {
+
+      String property = entry.getKey();
+
+      if (property.startsWith(SESSION_ATTRIBUTES_PROPERTY_PREFIX)) {
+        String attributeName = property.substring(SESSION_ATTRIBUTES_PROPERTY_PREFIX.length());
+        sessionAttributes.put(attributeName, entry.getValue());
+      }
+    }
+    return sessionAttributes;
   }
 
   /**
@@ -371,10 +419,8 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
         else if (propName.equals("service_config_version_note")) {
           serviceConfigVersionRequest.setNote(entry.getValue().toString());
         }
-
       }
     }
-
     return serviceConfigVersionRequest;
   }
 
