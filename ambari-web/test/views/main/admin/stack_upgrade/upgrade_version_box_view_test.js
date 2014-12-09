@@ -35,8 +35,7 @@ describe('App.UpgradeVersionBoxView', function () {
     });
     it("version is loaded", function () {
       view.set('version', Em.Object.create({
-        stack: 'HDP',
-        version: '2.2'
+        repository_name: 'HDP-2.2'
       }));
       view.propertyDidChange('versionName');
       expect(view.get('versionName')).to.equal('HDP-2.2');
@@ -51,11 +50,13 @@ describe('App.UpgradeVersionBoxView', function () {
       view.get('controller').upgrade.restore();
     });
     it("call upgrade()", function () {
-      expect(view.runAction({context: 'upgrade'})).to.be.true;
+      view.set('method', 'upgrade');
+      expect(view.runAction()).to.be.true;
       expect(view.get('controller').upgrade.calledOnce).to.be.true;
     });
     it("no method should be called", function () {
-      expect(view.runAction({context: null})).to.be.false;
+      view.set('method', null);
+      expect(view.runAction()).to.be.false;
       expect(view.get('controller').upgrade.called).to.be.false;
     });
   });

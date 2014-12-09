@@ -1,117 +1,752 @@
 {
+  "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42?fields=Upgrade,upgrade_groups/UpgradeGroup,upgrade_groups/upgrade_items/*,upgrade_groups/upgrade_items/tasks/*",
   "Upgrade" : {
+    "abort_reason" : null,
+    "aborted_task_count" : 0,
     "cluster_name" : "c1",
-    "id" : 1
+    "completed_task_count" : 1,
+    "create_time" : 1418134043541,
+    "end_time" : -1,
+    "exclusive" : false,
+    "failed_task_count" : 0,
+    "inputs" : null,
+    "operation_level" : null,
+    "progress_percent" : 27.0,
+    "queued_task_count" : 0,
+    "request_context" : "Upgrading to 2.2.0.1-885",
+    "request_id" : 42,
+    "request_status" : "IN_PROGRESS",
+    "resource_filters" : [ ],
+    "start_time" : 1418134043581,
+    "task_count" : 5,
+    "timed_out_task_count" : 0,
+    "type" : "INTERNAL_REQUEST",
+    "request_schedule" : {
+      "href" : null,
+      "schedule_id" : null
+    }
   },
   "upgrade_groups" : [
     {
+      "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/109",
       "UpgradeGroup" : {
-        "group_id" : 1,
+        "group_id" : 109,
         "name" : "ZOOKEEPER",
-        "state" : "COMPLETED",
-        "title" : "Upgrade Zookeepers",
-        "upgrade_id" : 1,
-        "progress": 100
+        "progress_percent" : 27.0,
+        "request_id" : 42,
+        "status" : "IN_PROGRESS",
+        "title" : "Zookeeper"
+      },
+      "upgrade_items" : [ ]
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/110",
+      "UpgradeGroup" : {
+        "group_id" : 110,
+        "name" : "CORE_MASTER",
+        "progress_percent" : 45.0,
+        "request_id" : 42,
+        "status" : "IN_PROGRESS",
+        "title" : "Core Masters"
       },
       "upgrade_items" : [
         {
+          "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/110/upgrade_items/1",
           "UpgradeItem" : {
-            "group_id" : 1,
-            "id" : 1,
-            "upgrade_id" : 1,
-            "state": "COMPLETED"
-          }
+            "cluster_host_info" : "{}",
+            "cluster_name" : "c1",
+            "command_params" : "{}",
+            "context" : "Preparing NAMENODE on dev01.hortonworks.com",
+            "end_time" : 1418134044126,
+            "group_id" : 110,
+            "host_params" : "{\"jdk_location\":\"http://dev01.hortonworks.com:8080/resources/\"}",
+            "log_info" : null,
+            "progress_percent" : 100.0,
+            "request_id" : 42,
+            "stage_id" : 1,
+            "start_time" : 1418134043584,
+            "status" : "COMPLETED"
+          },
+          "tasks" : [
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/110/upgrade_items/1/tasks/192",
+              "Tasks" : {
+                "attempt_cnt" : 1,
+                "cluster_name" : "c1",
+                "command" : "ACTIONEXECUTE",
+                "command_detail" : "Preparing NAMENODE on dev01.hortonworks.com",
+                "end_time" : 1418134044126,
+                "error_log" : "/var/lib/ambari-agent/data/errors-192.txt",
+                "exit_code" : 0,
+                "host_name" : "dev01.hortonworks.com",
+                "id" : 192,
+                "output_log" : "/var/lib/ambari-agent/data/output-192.txt",
+                "request_id" : 42,
+                "role" : "ru_execute_tasks",
+                "stage_id" : 1,
+                "start_time" : 1418134043584,
+                "status" : "COMPLETED",
+                "stderr" : "None",
+                "stdout" : "2014-12-09 06:07:23,948 - Task: dev01.hortonworks.com",
+                "structured_out" : { }
+              }
+            },
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/110/upgrade_items/1/tasks/193",
+              "Tasks" : {
+                "attempt_cnt" : 1,
+                "cluster_name" : "c1",
+                "command" : "CUSTOM_COMMAND",
+                "command_detail" : "RESTART HDFS/NAMENODE",
+                "custom_command_name" : "RESTART",
+                "end_time" : -1,
+                "error_log" : "/var/lib/ambari-agent/data/errors-193.txt",
+                "exit_code" : 777,
+                "host_name" : "dev01.hortonworks.com",
+                "id" : 193,
+                "output_log" : "/var/lib/ambari-agent/data/output-193.txt",
+                "request_id" : 42,
+                "role" : "NAMENODE",
+                "stage_id" : 2,
+                "start_time" : 1418134053610,
+                "status" : "IN_PROGRESS",
+                "stderr" : "",
+                "stdout" : "",
+                "structured_out" : { }
+              }
+            },
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/110/upgrade_items/1/tasks/194",
+              "Tasks" : {
+                "attempt_cnt" : 0,
+                "cluster_name" : "c1",
+                "command" : "ACTIONEXECUTE",
+                "command_detail" : "Completing NAMENODE on dev01.hortonworks.com",
+                "end_time" : -1,
+                "error_log" : "/var/lib/ambari-agent/data/errors-194.txt",
+                "exit_code" : 999,
+                "host_name" : "dev01.hortonworks.com",
+                "id" : 194,
+                "output_log" : "/var/lib/ambari-agent/data/output-194.txt",
+                "request_id" : 42,
+                "role" : "ru_execute_tasks",
+                "stage_id" : 3,
+                "start_time" : -1,
+                "status" : "PENDING",
+                "stderr" : "",
+                "stdout" : "",
+                "structured_out" : null
+              }
+            },
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/110/upgrade_items/1/tasks/195",
+              "Tasks" : {
+                "attempt_cnt" : 0,
+                "cluster_name" : "c1",
+                "command" : "ACTIONEXECUTE",
+                "command_detail" : "Preparing DATANODE on dev01.hortonworks.com",
+                "end_time" : -1,
+                "error_log" : "/var/lib/ambari-agent/data/errors-195.txt",
+                "exit_code" : 999,
+                "host_name" : "dev01.hortonworks.com",
+                "id" : 195,
+                "output_log" : "/var/lib/ambari-agent/data/output-195.txt",
+                "request_id" : 42,
+                "role" : "ru_execute_tasks",
+                "stage_id" : 4,
+                "start_time" : -1,
+                "status" : "PENDING",
+                "stderr" : "",
+                "stdout" : "",
+                "structured_out" : null
+              }
+            },
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/110/upgrade_items/1/tasks/196",
+              "Tasks" : {
+                "attempt_cnt" : 0,
+                "cluster_name" : "c1",
+                "command" : "CUSTOM_COMMAND",
+                "command_detail" : "RESTART HDFS/DATANODE",
+                "custom_command_name" : "RESTART",
+                "end_time" : -1,
+                "error_log" : "/var/lib/ambari-agent/data/errors-196.txt",
+                "exit_code" : 999,
+                "host_name" : "dev01.hortonworks.com",
+                "id" : 196,
+                "output_log" : "/var/lib/ambari-agent/data/output-196.txt",
+                "request_id" : 42,
+                "role" : "DATANODE",
+                "stage_id" : 5,
+                "start_time" : -1,
+                "status" : "PENDING",
+                "stderr" : "",
+                "stdout" : "",
+                "structured_out" : null
+              }
+            }
+          ]
         },
         {
+          "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/110/upgrade_items/2",
           "UpgradeItem" : {
-            "group_id" : 1,
-            "id" : 2,
-            "upgrade_id" : 1,
-            "state": "COMPLETED"
-          }
+            "cluster_host_info" : "{\"all_hosts\":[\"dev01.hortonworks.com\"],\"namenode_host\":[\"0\"],\"snamenode_host\":[\"0\"],\"slave_hosts\":[\"0\"],\"ambari_server_host\":[\"dev01.hortonworks.com\"],\"all_ping_ports\":[\"8670:0\"]}",
+            "cluster_name" : "c1",
+            "command_params" : "{}",
+            "context" : "Restarting NAMENODE on dev01.hortonworks.com",
+            "end_time" : 0,
+            "group_id" : 110,
+            "host_params" : "{\"ambari_db_rca_driver\":\"org.postgresql.Driver\",\"ambari_db_rca_password\":\"mapred\",\"ambari_db_rca_url\":\"jdbc:postgresql://dev01.hortonworks.com/ambarirca\",\"ambari_db_rca_username\":\"mapred\",\"db_driver_filename\":\"mysql-connector-java.jar\",\"db_name\":\"ambari\",\"java_home\":\"/usr/jdk64/jdk1.7.0_67\",\"jce_name\":\"UnlimitedJCEPolicyJDK7.zip\",\"jdk_location\":\"http://dev01.hortonworks.com:8080/resources/\",\"jdk_name\":\"jdk-7u67-linux-x64.tar.gz\",\"mysql_jdbc_url\":\"http://dev01.hortonworks.com:8080/resources//mysql-connector-java.jar\",\"oracle_jdbc_url\":\"http://dev01.hortonworks.com:8080/resources//ojdbc6.jar\",\"stack_name\":\"HDP\",\"stack_version\":\"2.2\"}",
+            "log_info" : null,
+            "progress_percent" : 35.0,
+            "request_id" : 42,
+            "stage_id" : 2,
+            "start_time" : 1418134053610,
+            "status" : "IN_PROGRESS"
+          },
+          "tasks" : [
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/110/upgrade_items/2/tasks/192",
+              "Tasks" : {
+                "attempt_cnt" : 1,
+                "cluster_name" : "c1",
+                "command" : "ACTIONEXECUTE",
+                "command_detail" : "Preparing NAMENODE on dev01.hortonworks.com",
+                "end_time" : 1418134044126,
+                "error_log" : "/var/lib/ambari-agent/data/errors-192.txt",
+                "exit_code" : 0,
+                "host_name" : "dev01.hortonworks.com",
+                "id" : 192,
+                "output_log" : "/var/lib/ambari-agent/data/output-192.txt",
+                "request_id" : 42,
+                "role" : "ru_execute_tasks",
+                "stage_id" : 1,
+                "start_time" : 1418134043584,
+                "status" : "COMPLETED",
+                "stderr" : "None",
+                "stdout" : "2014-12-09 06:07:23,948 - Task: dev01.hortonworks.com",
+                "structured_out" : { }
+              }
+            },
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/110/upgrade_items/2/tasks/193",
+              "Tasks" : {
+                "attempt_cnt" : 1,
+                "cluster_name" : "c1",
+                "command" : "CUSTOM_COMMAND",
+                "command_detail" : "RESTART HDFS/NAMENODE",
+                "custom_command_name" : "RESTART",
+                "end_time" : -1,
+                "error_log" : "/var/lib/ambari-agent/data/errors-193.txt",
+                "exit_code" : 777,
+                "host_name" : "dev01.hortonworks.com",
+                "id" : 193,
+                "output_log" : "/var/lib/ambari-agent/data/output-193.txt",
+                "request_id" : 42,
+                "role" : "NAMENODE",
+                "stage_id" : 2,
+                "start_time" : 1418134053610,
+                "status" : "IN_PROGRESS",
+                "stderr" : "",
+                "stdout" : "",
+                "structured_out" : { }
+              }
+            },
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/110/upgrade_items/2/tasks/194",
+              "Tasks" : {
+                "attempt_cnt" : 0,
+                "cluster_name" : "c1",
+                "command" : "ACTIONEXECUTE",
+                "command_detail" : "Completing NAMENODE on dev01.hortonworks.com",
+                "end_time" : -1,
+                "error_log" : "/var/lib/ambari-agent/data/errors-194.txt",
+                "exit_code" : 999,
+                "host_name" : "dev01.hortonworks.com",
+                "id" : 194,
+                "output_log" : "/var/lib/ambari-agent/data/output-194.txt",
+                "request_id" : 42,
+                "role" : "ru_execute_tasks",
+                "stage_id" : 3,
+                "start_time" : -1,
+                "status" : "PENDING",
+                "stderr" : "",
+                "stdout" : "",
+                "structured_out" : null
+              }
+            },
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/110/upgrade_items/2/tasks/195",
+              "Tasks" : {
+                "attempt_cnt" : 0,
+                "cluster_name" : "c1",
+                "command" : "ACTIONEXECUTE",
+                "command_detail" : "Preparing DATANODE on dev01.hortonworks.com",
+                "end_time" : -1,
+                "error_log" : "/var/lib/ambari-agent/data/errors-195.txt",
+                "exit_code" : 999,
+                "host_name" : "dev01.hortonworks.com",
+                "id" : 195,
+                "output_log" : "/var/lib/ambari-agent/data/output-195.txt",
+                "request_id" : 42,
+                "role" : "ru_execute_tasks",
+                "stage_id" : 4,
+                "start_time" : -1,
+                "status" : "PENDING",
+                "stderr" : "",
+                "stdout" : "",
+                "structured_out" : null
+              }
+            },
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/110/upgrade_items/2/tasks/196",
+              "Tasks" : {
+                "attempt_cnt" : 0,
+                "cluster_name" : "c1",
+                "command" : "CUSTOM_COMMAND",
+                "command_detail" : "RESTART HDFS/DATANODE",
+                "custom_command_name" : "RESTART",
+                "end_time" : -1,
+                "error_log" : "/var/lib/ambari-agent/data/errors-196.txt",
+                "exit_code" : 999,
+                "host_name" : "dev01.hortonworks.com",
+                "id" : 196,
+                "output_log" : "/var/lib/ambari-agent/data/output-196.txt",
+                "request_id" : 42,
+                "role" : "DATANODE",
+                "stage_id" : 5,
+                "start_time" : -1,
+                "status" : "PENDING",
+                "stderr" : "",
+                "stdout" : "",
+                "structured_out" : null
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/110/upgrade_items/3",
+          "UpgradeItem" : {
+            "cluster_host_info" : "{}",
+            "cluster_name" : "c1",
+            "command_params" : "{}",
+            "context" : "Completing NAMENODE on dev01.hortonworks.com",
+            "end_time" : 0,
+            "group_id" : 110,
+            "host_params" : "{\"jdk_location\":\"http://dev01.hortonworks.com:8080/resources/\"}",
+            "log_info" : null,
+            "progress_percent" : 0.0,
+            "request_id" : 42,
+            "stage_id" : 3,
+            "start_time" : -1,
+            "status" : "PENDING"
+          },
+          "tasks" : [
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/110/upgrade_items/3/tasks/192",
+              "Tasks" : {
+                "attempt_cnt" : 1,
+                "cluster_name" : "c1",
+                "command" : "ACTIONEXECUTE",
+                "command_detail" : "Preparing NAMENODE on dev01.hortonworks.com",
+                "end_time" : 1418134044126,
+                "error_log" : "/var/lib/ambari-agent/data/errors-192.txt",
+                "exit_code" : 0,
+                "host_name" : "dev01.hortonworks.com",
+                "id" : 192,
+                "output_log" : "/var/lib/ambari-agent/data/output-192.txt",
+                "request_id" : 42,
+                "role" : "ru_execute_tasks",
+                "stage_id" : 1,
+                "start_time" : 1418134043584,
+                "status" : "COMPLETED",
+                "stderr" : "None",
+                "stdout" : "2014-12-09 06:07:23,948 - Task: dev01.hortonworks.com",
+                "structured_out" : { }
+              }
+            },
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/110/upgrade_items/3/tasks/193",
+              "Tasks" : {
+                "attempt_cnt" : 1,
+                "cluster_name" : "c1",
+                "command" : "CUSTOM_COMMAND",
+                "command_detail" : "RESTART HDFS/NAMENODE",
+                "custom_command_name" : "RESTART",
+                "end_time" : -1,
+                "error_log" : "/var/lib/ambari-agent/data/errors-193.txt",
+                "exit_code" : 777,
+                "host_name" : "dev01.hortonworks.com",
+                "id" : 193,
+                "output_log" : "/var/lib/ambari-agent/data/output-193.txt",
+                "request_id" : 42,
+                "role" : "NAMENODE",
+                "stage_id" : 2,
+                "start_time" : 1418134053610,
+                "status" : "IN_PROGRESS",
+                "stderr" : "",
+                "stdout" : "",
+                "structured_out" : { }
+              }
+            },
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/110/upgrade_items/3/tasks/194",
+              "Tasks" : {
+                "attempt_cnt" : 0,
+                "cluster_name" : "c1",
+                "command" : "ACTIONEXECUTE",
+                "command_detail" : "Completing NAMENODE on dev01.hortonworks.com",
+                "end_time" : -1,
+                "error_log" : "/var/lib/ambari-agent/data/errors-194.txt",
+                "exit_code" : 999,
+                "host_name" : "dev01.hortonworks.com",
+                "id" : 194,
+                "output_log" : "/var/lib/ambari-agent/data/output-194.txt",
+                "request_id" : 42,
+                "role" : "ru_execute_tasks",
+                "stage_id" : 3,
+                "start_time" : -1,
+                "status" : "PENDING",
+                "stderr" : "",
+                "stdout" : "",
+                "structured_out" : null
+              }
+            },
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/110/upgrade_items/3/tasks/195",
+              "Tasks" : {
+                "attempt_cnt" : 0,
+                "cluster_name" : "c1",
+                "command" : "ACTIONEXECUTE",
+                "command_detail" : "Preparing DATANODE on dev01.hortonworks.com",
+                "end_time" : -1,
+                "error_log" : "/var/lib/ambari-agent/data/errors-195.txt",
+                "exit_code" : 999,
+                "host_name" : "dev01.hortonworks.com",
+                "id" : 195,
+                "output_log" : "/var/lib/ambari-agent/data/output-195.txt",
+                "request_id" : 42,
+                "role" : "ru_execute_tasks",
+                "stage_id" : 4,
+                "start_time" : -1,
+                "status" : "PENDING",
+                "stderr" : "",
+                "stdout" : "",
+                "structured_out" : null
+              }
+            },
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/110/upgrade_items/3/tasks/196",
+              "Tasks" : {
+                "attempt_cnt" : 0,
+                "cluster_name" : "c1",
+                "command" : "CUSTOM_COMMAND",
+                "command_detail" : "RESTART HDFS/DATANODE",
+                "custom_command_name" : "RESTART",
+                "end_time" : -1,
+                "error_log" : "/var/lib/ambari-agent/data/errors-196.txt",
+                "exit_code" : 999,
+                "host_name" : "dev01.hortonworks.com",
+                "id" : 196,
+                "output_log" : "/var/lib/ambari-agent/data/output-196.txt",
+                "request_id" : 42,
+                "role" : "DATANODE",
+                "stage_id" : 5,
+                "start_time" : -1,
+                "status" : "PENDING",
+                "stderr" : "",
+                "stdout" : "",
+                "structured_out" : null
+              }
+            }
+          ]
         }
       ]
     },
     {
+      "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/111",
       "UpgradeGroup" : {
-        "group_id" : 2,
-        "name" : "CM",
-        "state" : "IN_PROGRESS",
-        "title" : "Upgrade Core Master",
-        "upgrade_id" : 1,
-        "progress": 4
+        "group_id" : 111,
+        "name" : "CORE_SLAVES",
+        "progress_percent" : 0.0,
+        "request_id" : 42,
+        "status" : "PENDING",
+        "title" : "Core Slaves"
       },
       "upgrade_items" : [
         {
+          "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/111/upgrade_items/4",
           "UpgradeItem" : {
-            "group_id" : 2,
-            "id" : 1,
-            "upgrade_id" : 1,
-            "state": "IN_PROGRESS",
-            "name": "Upgrade DATANODE"
-          }
-        }
-      ]
-    },
-    {
-      "UpgradeGroup" : {
-        "group_id" : 3,
-        "name" : "CL",
-        "state" : "FAILED",
-        "title" : "Upgrade Core Slaves",
-        "upgrade_id" : 1,
-        "progress": 1
-      },
-      "upgrade_items" : [
+            "cluster_host_info" : "{}",
+            "cluster_name" : "c1",
+            "command_params" : "{}",
+            "context" : "Preparing DATANODE on dev01.hortonworks.com",
+            "end_time" : 0,
+            "group_id" : 111,
+            "host_params" : "{\"jdk_location\":\"http://dev01.hortonworks.com:8080/resources/\"}",
+            "log_info" : null,
+            "progress_percent" : 0.0,
+            "request_id" : 42,
+            "stage_id" : 4,
+            "start_time" : -1,
+            "status" : "PENDING"
+          },
+          "tasks" : [
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/111/upgrade_items/4/tasks/192",
+              "Tasks" : {
+                "attempt_cnt" : 1,
+                "cluster_name" : "c1",
+                "command" : "ACTIONEXECUTE",
+                "command_detail" : "Preparing NAMENODE on dev01.hortonworks.com",
+                "end_time" : 1418134044126,
+                "error_log" : "/var/lib/ambari-agent/data/errors-192.txt",
+                "exit_code" : 0,
+                "host_name" : "dev01.hortonworks.com",
+                "id" : 192,
+                "output_log" : "/var/lib/ambari-agent/data/output-192.txt",
+                "request_id" : 42,
+                "role" : "ru_execute_tasks",
+                "stage_id" : 1,
+                "start_time" : 1418134043584,
+                "status" : "COMPLETED",
+                "stderr" : "None",
+                "stdout" : "2014-12-09 06:07:23,948 - Task: dev01.hortonworks.com",
+                "structured_out" : { }
+              }
+            },
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/111/upgrade_items/4/tasks/193",
+              "Tasks" : {
+                "attempt_cnt" : 1,
+                "cluster_name" : "c1",
+                "command" : "CUSTOM_COMMAND",
+                "command_detail" : "RESTART HDFS/NAMENODE",
+                "custom_command_name" : "RESTART",
+                "end_time" : -1,
+                "error_log" : "/var/lib/ambari-agent/data/errors-193.txt",
+                "exit_code" : 777,
+                "host_name" : "dev01.hortonworks.com",
+                "id" : 193,
+                "output_log" : "/var/lib/ambari-agent/data/output-193.txt",
+                "request_id" : 42,
+                "role" : "NAMENODE",
+                "stage_id" : 2,
+                "start_time" : 1418134053610,
+                "status" : "IN_PROGRESS",
+                "stderr" : "",
+                "stdout" : "",
+                "structured_out" : { }
+              }
+            },
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/111/upgrade_items/4/tasks/194",
+              "Tasks" : {
+                "attempt_cnt" : 0,
+                "cluster_name" : "c1",
+                "command" : "ACTIONEXECUTE",
+                "command_detail" : "Completing NAMENODE on dev01.hortonworks.com",
+                "end_time" : -1,
+                "error_log" : "/var/lib/ambari-agent/data/errors-194.txt",
+                "exit_code" : 999,
+                "host_name" : "dev01.hortonworks.com",
+                "id" : 194,
+                "output_log" : "/var/lib/ambari-agent/data/output-194.txt",
+                "request_id" : 42,
+                "role" : "ru_execute_tasks",
+                "stage_id" : 3,
+                "start_time" : -1,
+                "status" : "PENDING",
+                "stderr" : "",
+                "stdout" : "",
+                "structured_out" : null
+              }
+            },
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/111/upgrade_items/4/tasks/195",
+              "Tasks" : {
+                "attempt_cnt" : 0,
+                "cluster_name" : "c1",
+                "command" : "ACTIONEXECUTE",
+                "command_detail" : "Preparing DATANODE on dev01.hortonworks.com",
+                "end_time" : -1,
+                "error_log" : "/var/lib/ambari-agent/data/errors-195.txt",
+                "exit_code" : 999,
+                "host_name" : "dev01.hortonworks.com",
+                "id" : 195,
+                "output_log" : "/var/lib/ambari-agent/data/output-195.txt",
+                "request_id" : 42,
+                "role" : "ru_execute_tasks",
+                "stage_id" : 4,
+                "start_time" : -1,
+                "status" : "PENDING",
+                "stderr" : "",
+                "stdout" : "",
+                "structured_out" : null
+              }
+            },
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/111/upgrade_items/4/tasks/196",
+              "Tasks" : {
+                "attempt_cnt" : 0,
+                "cluster_name" : "c1",
+                "command" : "CUSTOM_COMMAND",
+                "command_detail" : "RESTART HDFS/DATANODE",
+                "custom_command_name" : "RESTART",
+                "end_time" : -1,
+                "error_log" : "/var/lib/ambari-agent/data/errors-196.txt",
+                "exit_code" : 999,
+                "host_name" : "dev01.hortonworks.com",
+                "id" : 196,
+                "output_log" : "/var/lib/ambari-agent/data/output-196.txt",
+                "request_id" : 42,
+                "role" : "DATANODE",
+                "stage_id" : 5,
+                "start_time" : -1,
+                "status" : "PENDING",
+                "stderr" : "",
+                "stdout" : "",
+                "structured_out" : null
+              }
+            }
+          ]
+        },
         {
+          "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/111/upgrade_items/5",
           "UpgradeItem" : {
-            "group_id" : 3,
-            "id" : 1,
-            "upgrade_id" : 1,
-            "state": "FAILED",
-            "name": "Upgrade DATANODE"
-          }
-        }
-      ]
-    },
-    {
-      "UpgradeGroup" : {
-        "group_id" : 4,
-        "name" : "MS",
-        "state" : "IN_PROGRESS",
-        "title" : "Manual Step",
-        "upgrade_id" : 1,
-        "progress": 0,
-        "type": "manual"
-      },
-      "upgrade_items" : [
-        {
-          "UpgradeItem" : {
-            "group_id" : 4,
-            "id" : 1,
-            "upgrade_id" : 1,
-            "state": "IN_PROGRESS"
-          }
-        }
-      ]
-    },
-    {
-      "UpgradeGroup" : {
-        "group_id" : 5,
-        "name" : "UH",
-        "state" : "PENDING",
-        "title" : "Upgrade Hive",
-        "upgrade_id" : 1,
-        "progress": 0
-      },
-      "upgrade_items" : [
-        {
-          "UpgradeItem" : {
-            "group_id" : 5,
-            "id" : 1,
-            "upgrade_id" : 1,
-            "state": "PENDING"
-          }
+            "cluster_host_info" : "{\"all_hosts\":[\"dev01.hortonworks.com\"],\"namenode_host\":[\"0\"],\"snamenode_host\":[\"0\"],\"slave_hosts\":[\"0\"],\"ambari_server_host\":[\"dev01.hortonworks.com\"],\"all_ping_ports\":[\"8670:0\"]}",
+            "cluster_name" : "c1",
+            "command_params" : "{}",
+            "context" : "Restarting  DATANODE on dev01.hortonworks.com",
+            "end_time" : 0,
+            "group_id" : 111,
+            "host_params" : "{\"ambari_db_rca_driver\":\"org.postgresql.Driver\",\"ambari_db_rca_password\":\"mapred\",\"ambari_db_rca_url\":\"jdbc:postgresql://dev01.hortonworks.com/ambarirca\",\"ambari_db_rca_username\":\"mapred\",\"db_driver_filename\":\"mysql-connector-java.jar\",\"db_name\":\"ambari\",\"java_home\":\"/usr/jdk64/jdk1.7.0_67\",\"jce_name\":\"UnlimitedJCEPolicyJDK7.zip\",\"jdk_location\":\"http://dev01.hortonworks.com:8080/resources/\",\"jdk_name\":\"jdk-7u67-linux-x64.tar.gz\",\"mysql_jdbc_url\":\"http://dev01.hortonworks.com:8080/resources//mysql-connector-java.jar\",\"oracle_jdbc_url\":\"http://dev01.hortonworks.com:8080/resources//ojdbc6.jar\",\"stack_name\":\"HDP\",\"stack_version\":\"2.2\"}",
+            "log_info" : null,
+            "progress_percent" : 0.0,
+            "request_id" : 42,
+            "stage_id" : 5,
+            "start_time" : -1,
+            "status" : "PENDING"
+          },
+          "tasks" : [
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/111/upgrade_items/5/tasks/192",
+              "Tasks" : {
+                "attempt_cnt" : 1,
+                "cluster_name" : "c1",
+                "command" : "ACTIONEXECUTE",
+                "command_detail" : "Preparing NAMENODE on dev01.hortonworks.com",
+                "end_time" : 1418134044126,
+                "error_log" : "/var/lib/ambari-agent/data/errors-192.txt",
+                "exit_code" : 0,
+                "host_name" : "dev01.hortonworks.com",
+                "id" : 192,
+                "output_log" : "/var/lib/ambari-agent/data/output-192.txt",
+                "request_id" : 42,
+                "role" : "ru_execute_tasks",
+                "stage_id" : 1,
+                "start_time" : 1418134043584,
+                "status" : "COMPLETED",
+                "stderr" : "None",
+                "stdout" : "2014-12-09 06:07:23,948 - Task: dev01.hortonworks.com",
+                "structured_out" : { }
+              }
+            },
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/111/upgrade_items/5/tasks/193",
+              "Tasks" : {
+                "attempt_cnt" : 1,
+                "cluster_name" : "c1",
+                "command" : "CUSTOM_COMMAND",
+                "command_detail" : "RESTART HDFS/NAMENODE",
+                "custom_command_name" : "RESTART",
+                "end_time" : -1,
+                "error_log" : "/var/lib/ambari-agent/data/errors-193.txt",
+                "exit_code" : 777,
+                "host_name" : "dev01.hortonworks.com",
+                "id" : 193,
+                "output_log" : "/var/lib/ambari-agent/data/output-193.txt",
+                "request_id" : 42,
+                "role" : "NAMENODE",
+                "stage_id" : 2,
+                "start_time" : 1418134053610,
+                "status" : "IN_PROGRESS",
+                "stderr" : "",
+                "stdout" : "",
+                "structured_out" : { }
+              }
+            },
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/111/upgrade_items/5/tasks/194",
+              "Tasks" : {
+                "attempt_cnt" : 0,
+                "cluster_name" : "c1",
+                "command" : "ACTIONEXECUTE",
+                "command_detail" : "Completing NAMENODE on dev01.hortonworks.com",
+                "end_time" : -1,
+                "error_log" : "/var/lib/ambari-agent/data/errors-194.txt",
+                "exit_code" : 999,
+                "host_name" : "dev01.hortonworks.com",
+                "id" : 194,
+                "output_log" : "/var/lib/ambari-agent/data/output-194.txt",
+                "request_id" : 42,
+                "role" : "ru_execute_tasks",
+                "stage_id" : 3,
+                "start_time" : -1,
+                "status" : "PENDING",
+                "stderr" : "",
+                "stdout" : "",
+                "structured_out" : null
+              }
+            },
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/111/upgrade_items/5/tasks/195",
+              "Tasks" : {
+                "attempt_cnt" : 0,
+                "cluster_name" : "c1",
+                "command" : "ACTIONEXECUTE",
+                "command_detail" : "Preparing DATANODE on dev01.hortonworks.com",
+                "end_time" : -1,
+                "error_log" : "/var/lib/ambari-agent/data/errors-195.txt",
+                "exit_code" : 999,
+                "host_name" : "dev01.hortonworks.com",
+                "id" : 195,
+                "output_log" : "/var/lib/ambari-agent/data/output-195.txt",
+                "request_id" : 42,
+                "role" : "ru_execute_tasks",
+                "stage_id" : 4,
+                "start_time" : -1,
+                "status" : "PENDING",
+                "stderr" : "",
+                "stdout" : "",
+                "structured_out" : null
+              }
+            },
+            {
+              "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/42/upgrade_groups/111/upgrade_items/5/tasks/196",
+              "Tasks" : {
+                "attempt_cnt" : 0,
+                "cluster_name" : "c1",
+                "command" : "CUSTOM_COMMAND",
+                "command_detail" : "RESTART HDFS/DATANODE",
+                "custom_command_name" : "RESTART",
+                "end_time" : -1,
+                "error_log" : "/var/lib/ambari-agent/data/errors-196.txt",
+                "exit_code" : 999,
+                "host_name" : "dev01.hortonworks.com",
+                "id" : 196,
+                "output_log" : "/var/lib/ambari-agent/data/output-196.txt",
+                "request_id" : 42,
+                "role" : "DATANODE",
+                "stage_id" : 5,
+                "start_time" : -1,
+                "status" : "PENDING",
+                "stderr" : "",
+                "stdout" : "",
+                "structured_out" : null
+              }
+            }
+          ]
         }
       ]
     }

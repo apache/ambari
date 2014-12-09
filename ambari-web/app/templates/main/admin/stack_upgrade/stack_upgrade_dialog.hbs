@@ -17,22 +17,25 @@
 }}
 
 <div id="stack-upgrade-dialog">
-
-  <div class="row-fluid">
-    <div class="span2">{{t common.progress}}</div>
-    <div class="span9">
-      <div class="progress progress-striped active">
-        <div class="bar" style="width: 40%;"></div>
+  {{#if view.isLoaded}}
+    <div class="row-fluid">
+      <div class="span2">{{t common.progress}}</div>
+      <div class="span9">
+        <div class="progress progress-striped active">
+          <div class="bar" {{bindAttr style="view.progressWidth"}}></div>
+        </div>
+      </div>
+      <div class="span1">
+        {{view.overallProgress}}%
       </div>
     </div>
-    <div class="span1">
-      40%
-    </div>
-  </div>
 
-  <div class="task-list">
-    {{#each group in view.groups}}
-      {{view App.upgradeTaskView contentBinding="group"}}
-    {{/each}}
-  </div>
+    <div class="task-list">
+      {{#each group in view.groups}}
+        {{view App.upgradeTaskView contentBinding="group"}}
+      {{/each}}
+    </div>
+  {{else}}
+    <div class="spinner"></div>
+  {{/if}}
 </div>

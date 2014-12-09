@@ -39,6 +39,7 @@ module.exports = Em.Application.create({
    * state of stack upgrade process
    * states:
    *  - INIT
+   *  - PENDING
    *  - IN_PROGRESS
    *  - STOPPED
    *  - COMPLETED

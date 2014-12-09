@@ -1,0 +1,29 @@
+{
+  "href" : "http://192.168.56.101:8080/api/v1/clusters/c1/upgrades/7?fields=Upgrade",
+  "Upgrade" : {
+    "abort_reason" : null,
+    "aborted_task_count" : 0,
+    "cluster_name" : "c1",
+    "completed_task_count" : 5,
+    "create_time" : 1418056703338,
+    "end_time" : 1418056791194,
+    "exclusive" : false,
+    "failed_task_count" : 0,
+    "inputs" : null,
+    "operation_level" : null,
+    "progress_percent" : 100.0,
+    "queued_task_count" : 0,
+    "request_context" : "Upgrading to 2.2.0.1-885",
+    "request_id" : 7,
+    "request_status" : "COMPLETED",
+    "resource_filters" : [ ],
+    "start_time" : 1418056703366,
+    "task_count" : 5,
+    "timed_out_task_count" : 0,
+    "type" : "INTERNAL_REQUEST",
+    "request_schedule" : {
+      "href" : null,
+      "schedule_id" : null
+    }
+  }
+}

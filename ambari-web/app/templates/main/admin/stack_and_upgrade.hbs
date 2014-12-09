@@ -26,8 +26,8 @@
       {{#view view.sourceVersionView classNames="span2 offset3 box"}}
         <div class="version-name"><strong>{{view.versionName}}</strong></div>
         <div>
-          {{#if view.action.label}}
-            <button {{bindAttr class=":btn view.btnClass"}} {{action runAction view.action.method target="view"}}>{{view.action.label}}</button>
+          {{#if view.label}}
+            <button {{bindAttr class=":btn view.btnClass"}} {{action runAction target="view"}}>{{view.label}}</button>
           {{else}}
             {{view.hostsCount}}
             &nbsp;{{pluralize view.hostsCount singular="t:admin.stackUpgrade.host" plural="t:admin.stackUpgrade.hosts"}}
@@ -39,17 +39,18 @@
         <div>{{view.upgradeStateLabel}}</div>
       </div>
       {{#view view.targetVersionView classNames="span2 box"}}
-        {{view Em.Select classBinding="view.hasVersionsToUpgrade::hidden"
+        {{view Ember.Select
+        classBinding="view.showSelect::hidden"
         contentBinding="view.versionsSelectContent"
         optionValuePath="content.value"
         optionLabelPath="content.label"
-        selectionBinding="view.selectedVersion"
+        selectionBinding="view.version"
         }}
-        <div {{bindAttr class="view.hasVersionsToUpgrade:hidden :version-name"}}><strong>{{view.versionName}}</strong>
+        <div {{bindAttr class="view.showSelect:hidden :version-name"}}><strong>{{view.versionName}}</strong>
         </div>
         <div>
-          {{#if view.action.label}}
-            <button {{bindAttr class=":btn view.btnClass"}} {{action runAction view.action.method target="view"}}>{{view.action.label}}</button>
+          {{#if view.label}}
+            <button {{bindAttr class=":btn view.btnClass"}} {{action runAction target="view"}}>{{view.label}}</button>
           {{/if}}
         </div>
       {{/view}}

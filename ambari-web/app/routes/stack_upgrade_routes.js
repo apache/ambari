@@ -24,42 +24,31 @@ module.exports = App.WizardRoute.extend({
   enter: function (router) {
     console.log('in /admin/stack/upgrade:enter');
     Ember.run.next(function () {
-      var upgradeVersion = 'HDP-2.2.1';
       App.router.get('updateController').set('isWorking', false);
 
       return App.ModalPopup.show({
-        header: Em.I18n.t('admin.stackUpgrade.dialog.header').format(upgradeVersion),
-        bodyClass: Em.View.extend({
-          controllerBinding: 'App.router.mainAdminStackAndUpgradeController',
-          templateName: require('templates/main/admin/stack_upgrade/stack_upgrade_dialog'),
-          willInsertElement: function () {
-            this.startPolling();
-          },
-          /**
-           * start polling upgrade tasks data
-           */
-          startPolling: function () {
-            this.get('controller').loadUpgradeData();
-          },
-          groups: function () {
-            return this.get('controller.upgradeGroups');
-          }.property('controller.upgradeGroups')
-        }),
+        header: function () {
+          return Em.I18n.t('admin.stackUpgrade.dialog.header').format(App.router.get('mainAdminStackAndUpgradeController').get('upgradeVersion'));
+        }.property('App.router.mainAdminStackAndUpgradeController.upgradeVersion'),
+        bodyClass: App.upgradeWizardView,
         primary: null,
         secondary: null,
         onClose: function() {
-          App.router.get('updateController').set('isWorking', true);
-          App.router.transitionTo('main.admin.stackAndUpgrade');
-          this._super();
+          var self = this;
+          var header = Em.I18n.t('admin.stackUpgrade.state.paused');
+          var body = Em.I18n.t('admin.stackUpgrade.dialog.closePause');
+          if (['IN_PROGRESS', 'PENDING'].contains(App.get('upgradeState'))) {
+            header = Em.I18n.t('admin.stackUpgrade.state.inProgress');
+            body = Em.I18n.t('admin.stackUpgrade.dialog.closeProgress');
+          }
           App.ModalPopup.show({
-            header: Em.I18n.t('admin.stackUpgrade.state.inProgress'),
-            body: Em.I18n.t('admin.stackUpgrade.dialog.close'),
-            primary: Em.I18n.t('admin.stackUpgrade.dialog.keepRunning'),
-            secondary: Em.I18n.t('admin.stackUpgrade.dialog.stop'),
-            secondaryClass: 'btn-danger',
+            header: header,
+            body: body,
             showCloseButton: false,
-            onSecondary: function() {
-              App.router.get('mainAdminStackAndUpgradeController').stopUpgrade();
+            onPrimary: function() {
+              App.router.get('updateController').set('isWorking', true);
+              App.router.transitionTo('main.admin.stackAndUpgrade');
+              self.hide();
               this._super();
             }
           })

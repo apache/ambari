@@ -19,7 +19,7 @@
 var App = require('app');
 var stringUtils = require('utils/string_utils');
 
-App.MainAdminStackAndUpgradeController = Em.Controller.extend({
+App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, {
   name: 'mainAdminStackAndUpgradeController',
 
   /**
@@ -28,15 +28,22 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend({
   serviceToInstall: null,
 
   /**
-   * @type {Array}
+   * @type {object}
+   * @default null
    */
-  upgradeGroups: [],
+  upgradeData: null,
 
   /**
-   * TODO should have actual value from call that start upgrade
-   * @type {Number|null}
+   * @type {number}
+   * @default null
    */
-  upgradeId: 1,
+  upgradeId: null,
+
+  /**
+   * @type {string}
+   * @default null
+   */
+  upgradeVersion: null,
 
   /**
    * version that currently applied to server
@@ -49,6 +56,17 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend({
    * @type {Array}
    */
   targetVersions: [],
+
+  /**
+   * restore data from localStorage
+   */
+  init: function () {
+    ['upgradeId', 'upgradeVersion'].forEach(function (property) {
+      if (this.getDBProperty(property)) {
+        this.set(property, this.getDBProperty(property));
+      }
+    }, this);
+  },
 
   /**
    * @type {Array}
@@ -89,35 +107,54 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend({
    * @param data
    */
   loadVersionsInfoSuccessCallback: function (data) {
-    var current = data.items.findProperty('ClusterStackVersions.state', 'CURRENT');
-    var currentVersion = current.repository_versions[0].RepositoryVersions.repository_version;
-    var targetVersions = data.items.without(current)
-      .filter(function (version) {
-        var repositoryVersion = version.repository_versions[0].RepositoryVersions.repository_version;
-        //Only higher versions that have already been installed to all the hosts are shown
-        return (version.ClusterStackVersions.state === 'INSTALLED' &&
-               stringUtils.compareVersions(repositoryVersion, currentVersion) === 1);
-      }).map(function (version) {
-        return version.ClusterStackVersions;
-      });
-
-    this.set('currentVersion', current.ClusterStackVersions);
+    var versions = this.parseVersionsData(data);
+    var current = versions.findProperty('state', 'CURRENT');
+    var targetVersions = versions.without(current).filter(function (version) {
+      //Only higher versions that have already been installed to all the hosts are shown
+      return (version.state === 'INSTALLED' &&
+        stringUtils.compareVersions(version.repository_version, current.repository_version) === 1);
+    });
+    this.set('currentVersion', current);
     this.set('targetVersions', targetVersions);
   },
 
   /**
-   * load upgrade tasks by upgrade id
-   * @return {$.ajax}
+   * parse ClusterStackVersions data to form common structure
+   * @param {object} data
+   * @return {Array}
    */
-  loadUpgradeData: function () {
-    return App.ajax.send({
-      name: 'admin.upgrade.data',
-      sender: this,
-      data: {
-        id: this.get('upgradeId')
-      },
-      success: 'loadUpgradeDataSuccessCallback'
+  parseVersionsData: function (data) {
+    return data.items.map(function (item) {
+      item.ClusterStackVersions.repository_name = item.repository_versions[0].RepositoryVersions.display_name;
+      item.ClusterStackVersions.repository_id = item.repository_versions[0].RepositoryVersions.id;
+      item.ClusterStackVersions.repository_version = item.repository_versions[0].RepositoryVersions.repository_version;
+      return item.ClusterStackVersions;
     });
+  },
+
+  /**
+   * load upgrade tasks by upgrade id
+   * @return {$.Deferred}
+   * @param {boolean} onlyState
+   */
+  loadUpgradeData: function (onlyState) {
+    var upgradeId = this.get('upgradeId');
+    var deferred = $.Deferred();
+
+    if (Em.isNone(upgradeId)) {
+      deferred.resolve();
+      console.log('Upgrade in INIT state');
+    } else {
+      App.ajax.send({
+        name: (onlyState) ? 'admin.upgrade.state' : 'admin.upgrade.data',
+        sender: this,
+        data: {
+          id: upgradeId
+        },
+        success: 'loadUpgradeDataSuccessCallback'
+      }).then(deferred.resolve);
+    }
+    return deferred.promise();
   },
 
   /**
@@ -125,7 +162,10 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend({
    * @param data
    */
   loadUpgradeDataSuccessCallback: function (data) {
-    this.set("upgradeGroups", data.upgrade_groups);
+    App.set('upgradeState', data.Upgrade.request_status);
+    if (data.upgrade_groups) {
+      this.set("upgradeData", data);
+    }
   },
 
   /**
@@ -137,10 +177,33 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend({
 
   /**
    * make call to start upgrade process and show popup with current progress
+   * @param {object} version
    */
-  upgrade: function () {
-    //TODO start upgrade
-    this.loadUpgradeData();
+  upgrade: function (version) {
+    App.ajax.send({
+      name: 'admin.upgrade.start',
+      sender: this,
+      data: {
+        version: version.value
+      },
+      success: 'upgradeSuccessCallback'
+    });
+    this.set('upgradeVersion', version.label);
+    this.setDBProperty('upgradeVersion', version.label);
+  },
+
+  /**
+   * success callback of <code>upgrade()</code>
+   * @param {object} data
+   */
+  upgradeSuccessCallback: function (data) {
+    this.set('upgradeId', data.resources[0].Upgrade.request_id);
+    this.setDBProperty('upgradeId', data.resources[0].Upgrade.request_id);
+    App.clusterStatus.setClusterStatus({
+      clusterName: App.get('clusterName'),
+      clusterState: 'DEFAULT',
+      localdb: App.db.data
+    });
     this.openUpgradeDialog();
   },
 
@@ -162,7 +225,25 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend({
    * make call to finish upgrade process
    */
   finalize: function () {
-    //TODO start finalize
+    //TODO execute finalize
+    this.finish();
+  },
+
+  /**
+   * finish upgrade wizard
+   * clean auxiliary data
+   */
+  finish: function () {
+    this.set('upgradeId', null);
+    this.setDBProperty('upgradeId', undefined);
+    App.set('upgradeState', 'INIT');
+    this.set('upgradeVersion', null);
+    this.setDBProperty('upgradeVersion', undefined);
+    App.clusterStatus.setClusterStatus({
+      clusterName: App.get('clusterName'),
+      clusterState: 'DEFAULT',
+      localdb: App.db.data
+    });
   },
 
   /**

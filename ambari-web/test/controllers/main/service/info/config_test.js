@@ -1187,13 +1187,15 @@ describe("App.MainServiceInfoConfigsController", function () {
       }
     ];
 
-    var a = App.get('isAdmin');
+    beforeEach(function(){
+      this.mock = sinon.stub(App, 'isAccessible');
+    });
     afterEach(function () {
-      App.set('isAdmin', a);
+      this.mock.restore();
     });
     tests.forEach(function(t) {
       it("set isEditable " + t.isEditable + t.m, function(){
-        App.set('isAdmin', t.isAdmin);
+        this.mock.returns(t.isAdmin);
         mainServiceInfoConfigsController.set("isHostsConfigsPage", t.isHostsConfigsPage);
         var serviceConfigProperty = Em.Object.create({
           isReconfigurable: t.isReconfigurable

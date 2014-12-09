@@ -1338,11 +1338,29 @@ var urls = {
     'mock': '/data/wizard/{mock}'
   },
   'admin.upgrade.data': {
-    'real': '/clusters/{clusterName}/upgrades/{id}?fields=upgrade_groups/UpgradeGroup,upgrade_groups/upgrade_items',
+    'real': '/clusters/{clusterName}/upgrades/{id}?fields=Upgrade,upgrade_groups/UpgradeGroup,upgrade_groups/upgrade_items/*,upgrade_groups/upgrade_items/tasks/*',
     'mock': '/data/stack_versions/upgrade.json'
   },
+  'admin.upgrade.state': {
+    'real': '/clusters/{clusterName}/upgrades/{id}?fields=Upgrade',
+    'mock': '/data/stack_versions/upgrade_state.json'
+  },
+  'admin.upgrade.start': {
+    'real': '/clusters/{clusterName}/upgrades/{id}',
+    'mock': '/data/stack_versions/start_upgrade.json',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          "Upgrade": {
+            "repository_version": data.version
+          }
+        })
+      }
+    }
+  },
   'admin.stack_versions.all': {
-    'real': '/clusters/{clusterName}/stack_versions?fields=ClusterStackVersions/*&minimal_response=true',
+    'real': '/clusters/{clusterName}/stack_versions?fields=ClusterStackVersions/*,repository_versions/RepositoryVersions/*&minimal_response=true',
     'mock': '/data/stack_versions/stack_version_all.json'
   },
   'admin.stack_version.install.repo_version': {

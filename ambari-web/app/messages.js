@@ -1292,12 +1292,13 @@ Em.I18n.translations = {
   'admin.stackUpgrade.state.notAvailable': "No Upgrade Available",
   'admin.stackUpgrade.state.resume': "Resume Upgrade",
   'admin.stackUpgrade.state.inProgress': "Upgrade in progress",
+  'admin.stackUpgrade.state.paused': "Upgrade is paused",
   'admin.stackUpgrade.state.stopped': "Upgrade Stopped",
   'admin.stackUpgrade.state.completed': "Upgrade Finished",
   'admin.stackUpgrade.state.upgrading': "Upgrading...",
   'admin.stackUpgrade.hosts': "hosts",
   'admin.stackUpgrade.host': "host",
-  'admin.stackUpgrade.dialog.header': "Upgrade to {0} in progress",
+  'admin.stackUpgrade.dialog.header': "Upgrade to {0}",
   'admin.stackUpgrade.dialog.operationFailed': "This operation failed.",
   'admin.stackUpgrade.dialog.stop': "Stop Upgrade",
   'admin.stackUpgrade.dialog.continue': "Ignore and Proceed",
@@ -1306,9 +1307,8 @@ Em.I18n.translations = {
   'admin.stackUpgrade.dialog.failed': "Failed on:",
   'admin.stackUpgrade.dialog.manual': "Manual steps required",
   'admin.stackUpgrade.dialog.manualDone': "I have preformed the manual steps above.",
-  'admin.stackUpgrade.dialog.close': "Upgrade is in progress. \n" +
-    "Do you want to keep running Upgrade in the background," +
-    " or do you want to stop the Upgrade? If you stop the Upgrade, you can resume later.",
+  'admin.stackUpgrade.dialog.closeProgress': "Upgrade is in progress. \n If you dismiss this window, Upgrade will keep running in background.",
+  'admin.stackUpgrade.dialog.closePause': "Upgrade is paused. \n If you dismiss this window, you can resume Upgrade later.",
 
   'services.service.start':'Start',
   'services.service.stop':'Stop',

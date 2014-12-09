@@ -23,6 +23,13 @@ App.MainAdminStackAndUpgradeView = Em.View.extend({
   templateName: require('templates/main/admin/stack_and_upgrade'),
 
   /**
+   * update timer
+   * @type {number|null}
+   * @default null
+   */
+  updateTimer: null,
+
+  /**
    * label with number of HEALTHY hosts
    * @type {String}
    */
@@ -39,6 +46,7 @@ App.MainAdminStackAndUpgradeView = Em.View.extend({
     switch (App.get('upgradeState')) {
       case 'INIT':
         return (this.get('controller.targetVersions.length') > 0) ? Em.I18n.t('admin.stackUpgrade.state.available') : "";
+      case 'PENDING':
       case 'IN_PROGRESS':
         return Em.I18n.t('admin.stackUpgrade.state.inProgress');
       case 'STOPPED':
@@ -50,9 +58,35 @@ App.MainAdminStackAndUpgradeView = Em.View.extend({
     }
   }.property('App.upgradeState', 'controller.targetVersions'),
 
+  /**
+   * load ClusterStackVersions data
+   */
   willInsertElement: function () {
-    if (App.get('supports.stackUpgrade')) this.get('controller').loadVersionsInfo();
+    var self = this;
+    if (App.get('supports.stackUpgrade')) {
+      self.get('controller').loadVersionsInfo();
+      self.doPolling();
+    }
   },
+
+  /**
+   * stop polling upgrade state
+   */
+  willDestroyElement: function () {
+    clearTimeout(this.get('updateTimer'));
+  },
+
+  /**
+   * poll upgrade state,
+   */
+  doPolling: function () {
+    var self = this;
+    this.set('updateTimer', setTimeout(function () {
+      self.get('controller').loadUpgradeData(true);
+      self.doPolling();
+    }, App.bgOperationsUpdateInterval));
+  },
+
 
   /**
    * box that display info about current version
@@ -63,15 +97,26 @@ App.MainAdminStackAndUpgradeView = Em.View.extend({
       return this.get('controller.currentVersion');
     }.property('controller.currentVersion'),
     btnClass: 'btn-danger',
-    action: function () {
-      return {
-        method: ['UPGRADING', 'UPGRADED', 'UPGRADE_FAILED'].contains(this.get('version.state')) && 'downgrade',
-        label: ['UPGRADING', 'UPGRADED', 'UPGRADE_FAILED'].contains(this.get('version.state')) && Em.I18n.t('common.downgrade')
-      };
-    }.property('version.state'),
+
+    /**
+     * method of controller called on click of source version button
+     * @type {string}
+     * @default null
+     */
+    method: null,
+
+    /**
+     * label of source version button
+     * @type {string}
+     */
+    label: "",
+    buttonObserver: function () {
+      this.set('method', App.get('upgradeState') !== 'INIT' && 'downgrade');
+      this.set('label', App.get('upgradeState') !== 'INIT' && Em.I18n.t('common.downgrade'));
+    }.observes('App.upgradeState'),
     hostsCount: function () {
-      return this.get('version.current_hosts.length');
-    }.property('version.current_hosts.length')
+      return this.get('version.host_states.CURRENT.length');
+    }.property('version.host_states.CURRENT.length')
   }),
 
   /**
@@ -79,23 +124,43 @@ App.MainAdminStackAndUpgradeView = Em.View.extend({
    * @type {Em.View}
    */
   targetVersionView: App.UpgradeVersionBoxView.extend({
+    /**
+     * method of controller called on click of target version button
+     * @type {string}
+     * @default null
+     */
+    method: null,
+
+    /**
+     * label of target version button
+     * @type {string}
+     */
+    label: "",
     versions: function () {
       return this.get('controller.targetVersions');
     }.property('controller.targetVersions'),
     btnClass: 'btn-success',
     versionName: function () {
-      if (!this.get('hasVersionsToUpgrade')) return Em.I18n.t('admin.stackUpgrade.state.notAvailable');
-      return this.get('version.stack') + "-" + this.get('version.version');
-    }.property('version.stack', 'version.version', 'hasVersionsToUpgrade'),
-    hasVersionsToUpgrade: function () {
-      return this.get('versions.length') > 0;
-    }.property('versions.length'),
-    selectedVersion: null,
+      if (this.get('versions.length') === 0) return Em.I18n.t('admin.stackUpgrade.state.notAvailable');
+      return this.get('controller.upgradeVersion');
+    }.property('controller.upgradeVersion', 'showSelect'),
+    showSelect: function () {
+      return this.get('versions.length') > 0 && App.get('upgradeState') === 'INIT';
+    }.property('versions.length', 'App.upgradeState'),
+
+    /**
+     * fix for Ember.Select
+     * if Ember.Select initiated with empty content then after content is populated no option selected
+     */
+    initSelect: function () {
+      if (this.get('versions.length') > 0) this.set('version', this.get('versionsSelectContent')[0]);
+    }.observes('versions.length'),
+    version: null,
     versionsSelectContent: function () {
       return this.get('versions').map(function (version) {
         return {
-          label: version.stack + "-" + version.version,
-          value: version.id
+          label: version.repository_name,
+          value: version.repository_version
         }
       });
     }.property('versions.length'),
@@ -106,10 +171,10 @@ App.MainAdminStackAndUpgradeView = Em.View.extend({
      * - label <code>label</code>
      * @type {Object}
      */
-    action: function () {
+    buttonObserver: function () {
       var method = null,
-          label = "",
-          versions = this.get('versions');
+        label = "",
+        versions = this.get('versions');
       switch (App.get('upgradeState')) {
         case 'INIT':
           if (this.get('versions.length') > 0) {
@@ -117,6 +182,7 @@ App.MainAdminStackAndUpgradeView = Em.View.extend({
             method = 'upgrade';
           }
           break;
+        case 'PENDING':
         case 'IN_PROGRESS':
           label = Em.I18n.t('admin.stackUpgrade.state.upgrading');
           method = 'openUpgradeDialog';
@@ -130,11 +196,9 @@ App.MainAdminStackAndUpgradeView = Em.View.extend({
           method = 'finalize';
           break;
       }
-      return {
-        method: method,
-        label: label
-      };
-    }.property('versions.length', 'App.upgradeState')
+      this.set('method', method);
+      this.set('label',  label);
+    }.observes('versions.length', 'App.upgradeState')
   })
 });
 

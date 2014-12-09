@@ -21,7 +21,14 @@ var App = require('app');
 
 App.UpgradeVersionBoxView = Em.View.extend({
   /**
-   * @type {object|null}
+   * @type {string}
+   * @default null
+   */
+  method: null,
+
+  /**
+   * @type {object}
+   * @default null
    */
   version: null,
 
@@ -30,8 +37,8 @@ App.UpgradeVersionBoxView = Em.View.extend({
    */
   versionName: function () {
     if (Em.isNone(this.get('version'))) return "";
-    return this.get('version.stack') + "-" + this.get('version.version');
-  }.property('version.stack', 'version.version'),
+    return this.get('version.repository_name');
+  }.property('version.repository_name'),
 
   /**
    * @type {string}
@@ -45,12 +52,12 @@ App.UpgradeVersionBoxView = Em.View.extend({
 
   /**
    * run action by name of method
-   * @param event
-   * @return {Boolean}
+   * @param {object} event
+   * @return {boolean}
    */
   runAction: function (event) {
-    if (typeof this.get('controller')[event.context] === 'function') {
-      this.get('controller')[event.context]();
+    if (typeof this.get('controller')[this.get('method')] === 'function') {
+      this.get('controller')[this.get('method')](this.get('version'));
       return true;
     }
     return false;

@@ -83,120 +83,99 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   });
 
   describe("#loadVersionsInfoSuccessCallback()", function() {
+    beforeEach(function(){
+      sinon.stub(controller, 'parseVersionsData', function (data) {
+        return data;
+      });
+    });
+    afterEach(function(){
+      controller.parseVersionsData.restore();
+    });
     it("target version installed and higher than current", function() {
-      var data = {"items": [
+      var data = [
         {
-          "ClusterStackVersions": {
-            "state": "CURRENT"
-          },
-          "repository_versions": [
-            {
-              "RepositoryVersions" : {
-                "repository_version" : "2.2.0.1-885"
-              }
-            }
-          ]
+          "state": "CURRENT",
+          "repository_version": "2.2.0.1-885"
         },
         {
-          "ClusterStackVersions": {
-            "state": "INSTALLED"
-          },
-          "repository_versions": [
-            {
-              "RepositoryVersions" : {
-                "repository_version" : "2.2.1.1-885"
-              }
-            }
-          ]
+          "state": "INSTALLED",
+          "repository_version": "2.2.1.1-885"
         }
-      ]};
+      ];
       controller.loadVersionsInfoSuccessCallback(data);
       expect(controller.get('currentVersion')).to.eql({
-        "state": "CURRENT"
+        "state": "CURRENT",
+        "repository_version": "2.2.0.1-885"
       });
       expect(controller.get('targetVersions')).to.eql([{
-        "state": "INSTALLED"
+        "state": "INSTALLED",
+        "repository_version": "2.2.1.1-885"
       }]);
     });
     it("target version installed and lower than current", function() {
-      var data = {"items": [
+      var data = [
         {
-          "ClusterStackVersions": {
-            "state": "CURRENT"
-          },
-          "repository_versions": [
-            {
-              "RepositoryVersions" : {
-                "repository_version" : "2.2.0.1-885"
-              }
-            }
-          ]
+          "state": "CURRENT",
+          "repository_version": "2.2.0.1-885"
         },
         {
-          "ClusterStackVersions": {
-            "state": "INSTALLED"
-          },
-          "repository_versions": [
-            {
-              "RepositoryVersions" : {
-                "repository_version" : "2.2.0.1-885"
-              }
-            }
-          ]
+          "state": "INSTALLED",
+          "repository_version" : "2.2.0.1-885"
         }
-      ]};
+      ];
       controller.loadVersionsInfoSuccessCallback(data);
       expect(controller.get('currentVersion')).to.eql({
-        "state": "CURRENT"
+        "state": "CURRENT",
+        "repository_version": "2.2.0.1-885"
       });
       expect(controller.get('targetVersions')).to.be.empty;
     });
     it("target version not installed and lower than current", function() {
-      var data = {"items": [
+      var data = [
         {
-          "ClusterStackVersions": {
-            "state": "CURRENT"
-          },
-          "repository_versions": [
-            {
-              "RepositoryVersions" : {
-                "repository_version" : "2.2.0.1-885"
-              }
-            }
-          ]
+          "state": "CURRENT",
+          "repository_version": "2.2.0.1-885"
         },
         {
-          "ClusterStackVersions": {
-            "state": "INIT"
-          },
-          "repository_versions": [
-            {
-              "RepositoryVersions" : {
-                "repository_version" : "2.2.0.1-885"
-              }
-            }
-          ]
+          "state": "INIT",
+          "repository_version" : "2.2.0.1-885"
         }
-      ]};
+      ];
       controller.loadVersionsInfoSuccessCallback(data);
       expect(controller.get('currentVersion')).to.eql({
-        "state": "CURRENT"
+        "state": "CURRENT",
+        "repository_version": "2.2.0.1-885"
       });
       expect(controller.get('targetVersions')).to.be.empty;
     });
   });
 
   describe("#loadUpgradeData()", function() {
-    before(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
+    beforeEach(function () {
+      sinon.stub(App.ajax, 'send').returns({
+        then: Em.K
+      });
     });
-    after(function () {
+    afterEach(function () {
       App.ajax.send.restore();
     });
-    it("make ajax call", function() {
+    it("get entire data", function() {
+      controller.set('upgradeId', 1);
       controller.loadUpgradeData();
       expect(App.ajax.send.getCall(0).args[0]).to.eql({
         name: 'admin.upgrade.data',
+        sender: controller,
+        data: {
+          id: 1
+        },
+        success: 'loadUpgradeDataSuccessCallback'
+      })
+    });
+    it("get only state", function() {
+      controller.set('upgradeId', 1);
+      controller.loadUpgradeData(true);
+      expect(App.ajax.send.getCall(0).args[0]).to.eql({
+        name: 'admin.upgrade.state',
         sender: controller,
         data: {
           id: 1
@@ -208,7 +187,11 @@ describe('App.MainAdminStackAndUpgradeController', function() {
 
   describe("#loadUpgradeDataSuccessCallback()", function() {
     it("", function() {
-      var data = {"upgrade_groups": [
+      var data = {
+        "Upgrade": {
+          "request_status": "COMPLETED"
+        },
+        "upgrade_groups": [
         {
           "UpgradeGroup": {
             "id": 1
@@ -217,14 +200,8 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         }
       ]};
       controller.loadUpgradeDataSuccessCallback(data);
-      expect(controller.get('upgradeGroups')).to.eql([
-        {
-          "UpgradeGroup": {
-            "id": 1
-          },
-          "upgrade_items": []
-        }
-      ]);
+      expect(controller.get('upgradeData')).to.eql(data);
+      expect(App.get('upgradeState')).to.equal('COMPLETED');
     });
   });
 

@@ -18,21 +18,24 @@
 
 
 <div class="row-fluid">
-  <div class="span6"><i {{bindAttr class="view.iconClass"}}></i><a>{{view.content.UpgradeGroup.title}}</a></div>
-  <div class="span4">
-    {{#if view.showProgressBar}}
+  <div class="span8"><i {{bindAttr class="view.iconClass"}}></i><a>{{view.content.UpgradeGroup.title}}</a></div>
+
+  {{#if view.showProgressBar}}
+    <div class="span3">
       <div class="progress progress-striped active">
         <div class="bar" {{bindAttr style="view.progressWidth"}}></div>
       </div>
-    {{/if}}
-  </div>
-  <div class="offset2"></div>
+    </div>
+    <div class="span1">
+      <div>{{view.progress}}%</div>
+    </div>
+  {{/if}}
 </div>
 {{#if view.isInProgress}}
   <div class="box task-details">
     <div>
       {{t admin.stackUpgrade.dialog.inProgress}}&nbsp;
-      <a href>{{view.runningItem.UpgradeItem.name}}</a>
+      <a href>{{view.runningItem.UpgradeItem.context}}</a>
     </div>
   </div>
 {{/if}}

@@ -32,7 +32,7 @@ describe('App.upgradeTaskView', function () {
       view.set('statusIconMap', {
         'S1': 'icon1'
       });
-      view.set('content.UpgradeGroup.state', 'S1');
+      view.set('content.UpgradeGroup.status', 'S1');
       view.propertyDidChange('iconClass');
       expect(view.get('iconClass')).to.equal('icon1');
     });
@@ -40,7 +40,7 @@ describe('App.upgradeTaskView', function () {
       view.set('statusIconMap', {
         'S1': 'icon1'
       });
-      view.set('content.UpgradeGroup.state', 'S2');
+      view.set('content.UpgradeGroup.status', 'S2');
       view.propertyDidChange('iconClass');
       expect(view.get('iconClass')).to.equal('icon-question-sign');
     });
@@ -48,12 +48,12 @@ describe('App.upgradeTaskView', function () {
 
   describe("#isFailed", function () {
     it("task is not failed", function () {
-      view.set('content.UpgradeGroup.state', 'COMPLETED');
+      view.set('content.UpgradeGroup.status', 'COMPLETED');
       view.propertyDidChange('isFailed');
       expect(view.get('isFailed')).to.be.false;
     });
     it("task is not failed", function () {
-      view.set('content.UpgradeGroup.state', 'FAILED');
+      view.set('content.UpgradeGroup.status', 'FAILED');
       view.propertyDidChange('isFailed');
       expect(view.get('isFailed')).to.be.true;
     });

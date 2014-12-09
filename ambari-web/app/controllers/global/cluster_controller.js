@@ -267,6 +267,11 @@ App.ClusterController = Em.Controller.extend({
       App.router.get('mainController').startPolling();
       return;
     }
+
+    if (App.get('supports.stackUpgrade')) {
+      App.router.get('mainAdminStackAndUpgradeController').loadUpgradeData(true);
+    }
+
     var clusterUrl = this.getUrl('/data/clusters/cluster.json', '?fields=Clusters');
     var racksUrl = "/data/racks/racks.json";
 
