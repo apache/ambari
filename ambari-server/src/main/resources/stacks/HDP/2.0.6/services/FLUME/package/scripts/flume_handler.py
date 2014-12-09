@@ -31,7 +31,7 @@ class FlumeHandler(Script):
     self.install_packages(env)
     env.set_params(params)
 
-  def start(self, env):
+  def start(self, env, rolling_restart=False):
     import params
 
     env.set_params(params)
@@ -39,7 +39,7 @@ class FlumeHandler(Script):
 
     flume(action='start')
 
-  def stop(self, env):
+  def stop(self, env, rolling_restart=False):
     import params
 
     env.set_params(params)

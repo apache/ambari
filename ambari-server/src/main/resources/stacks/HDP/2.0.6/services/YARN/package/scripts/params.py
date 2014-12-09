@@ -20,6 +20,7 @@ Ambari Agent
 """
 import os
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
+from resource_management.libraries.functions.default import default
 from resource_management import *
 import status_params
 
@@ -30,6 +31,11 @@ tmp_dir = Script.get_tmp_dir()
 # This is expected to be of the form #.#.#.#
 hdp_stack_version = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(hdp_stack_version)
+
+# New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
+version = default("/commandParams/version", None)
+
+hostname = config['hostname']
 
 #hadoop params
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
@@ -98,6 +104,9 @@ else:
 
 nm_webui_address = config['configurations']['yarn-site']['yarn.nodemanager.webapp.address']
 hs_webui_address = config['configurations']['mapred-site']['mapreduce.jobhistory.webapp.address']
+nm_address = config['configurations']['yarn-site']['yarn.nodemanager.address']  # still contains 0.0.0.0
+if hostname and nm_address and nm_address.startswith("0.0.0.0:"):
+  nm_address = nm_address.replace("0.0.0.0", hostname)
 
 nm_local_dirs = config['configurations']['yarn-site']['yarn.nodemanager.local-dirs']
 nm_log_dirs = config['configurations']['yarn-site']['yarn.nodemanager.log-dirs']
@@ -120,8 +129,6 @@ user_group = config['configurations']['cluster-env']['user_group']
 #exclude file
 exclude_hosts = default("/clusterHostInfo/decom_nm_hosts", [])
 exclude_file_path = default("/configurations/yarn-site/yarn.resourcemanager.nodes.exclude-path","/etc/hadoop/conf/yarn.exclude")
-
-hostname = config['hostname']
 
 ats_host = set(default("/clusterHostInfo/app_timeline_server_hosts", []))
 has_ats = not len(ats_host) == 0

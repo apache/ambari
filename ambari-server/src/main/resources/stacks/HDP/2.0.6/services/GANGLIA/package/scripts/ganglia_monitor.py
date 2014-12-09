@@ -37,13 +37,13 @@ class GangliaMonitor(Script):
     functions.turn_off_autostart(params.gmond_service_name)
     functions.turn_off_autostart("gmetad") # since the package is installed as well
 
-  def start(self, env):
+  def start(self, env, rolling_restart=False):
     import params
     env.set_params(params)
     self.configure(env)
     ganglia_monitor_service.monitor("start")
 
-  def stop(self, env):
+  def stop(self, env, rolling_restart=False):
     ganglia_monitor_service.monitor("stop")
 
 

@@ -59,6 +59,13 @@ public class Grouping {
     private List<StageWrapper> stages = new ArrayList<StageWrapper>();
     private Set<String> serviceChecks = new HashSet<String>();
 
+    /**
+     * Add stages where the restart stages are ordered
+     * E.g., preupgrade, restart hosts(0), ..., restart hosts(n-1), postupgrade
+     * @param hosts the hosts
+     * @param service the service name
+     * @param pc the ProcessingComponent derived from the upgrade pack.
+     */
     @Override
     public void add(Set<String> hosts, String service, ProcessingComponent pc) {
       if (null != pc.preTasks && pc.preTasks.size() > 0) {
@@ -116,8 +123,5 @@ public class Grouping {
 
       return stages;
     }
-
   }
-
-
 }

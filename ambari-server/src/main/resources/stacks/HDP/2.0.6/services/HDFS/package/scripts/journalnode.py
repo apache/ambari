@@ -18,6 +18,9 @@ limitations under the License.
 """
 
 from resource_management import *
+from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions.format import format
+
 from utils import service
 from hdfs import hdfs
 
@@ -29,7 +32,15 @@ class JournalNode(Script):
     self.install_packages(env, params.exclude_packages)
     env.set_params(params)
 
-  def start(self, env):
+  def pre_rolling_restart(self, env):
+    Logger.info("Executing Rolling Upgrade pre-restart")
+    import params
+    env.set_params(params)
+
+    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      Execute(format("hdp-select set hadoop-hdfs-journalnode {version}"))
+
+  def start(self, env, rolling_restart=False):
     import params
 
     env.set_params(params)
@@ -45,7 +56,7 @@ class JournalNode(Script):
       create_log_dir=True
     )
 
-  def stop(self, env):
+  def stop(self, env, rolling_restart=False):
     import params
 
     env.set_params(params)

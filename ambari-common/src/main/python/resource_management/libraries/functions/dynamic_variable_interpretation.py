@@ -146,6 +146,7 @@ def copy_tarballs_to_hdfs(tarball_prefix, component_user, file_owner, group_owne
 
   # Ubuntu returns: "stdin: is not a tty", as subprocess output.
   tmpfile = tempfile.NamedTemporaryFile()
+  out = None
   with open(tmpfile.name, 'r+') as file:
     get_hdp_version_cmd = '/usr/bin/hdp-select versions > %s' % tmpfile.name
     code, stdoutdata = shell.call(get_hdp_version_cmd)

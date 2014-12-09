@@ -53,10 +53,11 @@ class ExecuteUpgradeTasks(Script):
     # Parse parameters
     config = Script.get_config()
 
-    # TODO HACK, should be retrieved from the command.
+    # TODO Rolling Upgrade, should be retrieved from the command.
     host_name = socket.gethostname()
     version = "2.2.0.0"
 
+    # TODO Rolling Upgrade, does this work on Ubuntu?
     code, out = checked_call("hdp-select")
     if code == 0 and out:
       p = re.compile(r"(2\.2\.0\.0\-\d{4})")
@@ -97,20 +98,20 @@ class ExecuteUpgradeTasks(Script):
           unless = replace_variables(unless, host_name, version)
 
           if first:
-            code, out = call(first)
+            code, out = call(first, verbose=True)
             Logger.info("Pre-condition command. Code: %s, Out: %s" % (str(code), str(out)))
             if code != 0:
               break
 
           if unless:
-            code, out = call(unless)
+            code, out = call(unless, verbose=True)
             Logger.info("Unless command. Code: %s, Out: %s" % (str(code), str(out)))
             if code == 0:
               break
 
           for i in range(1, effective_times+1):
             # TODO, Execute already has a tries and try_sleep, see hdfs_namenode.py for an example
-            code, out = call(command)
+            code, out = call(command, verbose=True)
             Logger.info("Command. Code: %s, Out: %s" % (str(code), str(out)))
 
             if code == 0 or code in ignore_return_codes:
@@ -121,7 +122,7 @@ class ExecuteUpgradeTasks(Script):
               try:
                 if on_failure:
                   on_failure = replace_variables(on_failure, host_name, version)
-                  code_failure_handler, out_failure_handler = call(on_failure)
+                  code_failure_handler, out_failure_handler = call(on_failure, verbose=True)
                   Logger.error("Failure Handler. Code: %s, Out: %s" % (str(code_failure_handler), str(out_failure_handler)))
               except:
                 pass

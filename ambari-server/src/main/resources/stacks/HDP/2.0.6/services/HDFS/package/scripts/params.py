@@ -30,6 +30,10 @@ tmp_dir = Script.get_tmp_dir()
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+
+# New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
+version = default("/commandParams/version", None)
+
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 hdfs_user = status_params.hdfs_user
 hadoop_pid_dir_prefix = status_params.hadoop_pid_dir_prefix
@@ -45,7 +49,7 @@ secure_dn_ports_are_in_use = False
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
   mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
   hadoop_libexec_dir = "/usr/hdp/current/hadoop-client/libexec"
-  hadoop_bin = "/usr/hdp/current/hadoop-client/sbin"
+  hadoop_bin = "/usr/hdp/current/hadoop-client/sbin"    # TODO Rolling Upgrade, switch from hadoop-client to server when starting daemon.
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
   hadoop_home = "/usr/hdp/current/hadoop-client"
   if not security_enabled:
@@ -178,6 +182,7 @@ data_dir_mount_file = config['configurations']['hadoop-env']['dfs.datanode.data.
 dfs_ha_enabled = False
 dfs_ha_nameservices = default("/configurations/hdfs-site/dfs.nameservices", None)
 dfs_ha_namenode_ids = default(format("/configurations/hdfs-site/dfs.ha.namenodes.{dfs_ha_nameservices}"), None)
+dfs_ha_automatic_failover_enabled = default("/configurations/hdfs-site/dfs.ha.automatic-failover.enabled", False)
 
 namenode_id = None
 namenode_rpc = None

@@ -35,14 +35,14 @@ class OozieServer(Script):
 
     oozie(is_server=True)
     
-  def start(self, env):
+  def start(self, env, rolling_restart=False):
     import params
     env.set_params(params)
     #TODO remove this when config command will be implemented
     self.configure(env)
     oozie_service(action='start')
     
-  def stop(self, env):
+  def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
     oozie_service(action='stop')

@@ -35,10 +35,18 @@ SUDO_ENVIRONMENT_PLACEHOLDER = "{ENV_PLACEHOLDER}"
 
 def checked_call(command, verbose=False, logoutput=False,
          cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, path=None, output_file=None, sudo=False):
+  """
+  Execute the process and throw an exception on failure.
+  @return: return_code, stdout
+  """
   return _call(command, verbose, logoutput, True, cwd, env, preexec_fn, user, wait_for_finish, timeout, path, output_file, sudo)
 
 def call(command, verbose=False, logoutput=False,
          cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, path=None, output_file=None, sudo=False):
+  """
+  Execute the process despite failures.
+  @return: return_code, stdout
+  """
   return _call(command, verbose, logoutput, False, cwd, env, preexec_fn, user, wait_for_finish, timeout, path, output_file, sudo)
             
 def _call(command, verbose=False, logoutput=False, throw_on_failure=True,
@@ -51,7 +59,7 @@ def _call(command, verbose=False, logoutput=False, throw_on_failure=True,
   @param logoutput: boolean, whether command output should be logged of not
   @param throw_on_failure: if true, when return code is not zero exception is thrown
   
-  @return: retrun_code, stdout
+  @return: return_code, stdout
   """
 
   # Append current PATH to env['PATH'] and path

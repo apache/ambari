@@ -19,18 +19,18 @@ Ambari Agent
 
 """
 
-import sys
 import re
+
 from resource_management import *
-from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import get_unique_id_and_date
 from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions.format import format
 from resource_management.core.shell import call
-
 
 from zookeeper import zookeeper
 from zookeeper_service import zookeeper_service
+
 
 @retry(times=10, sleep_time=2, err_class=Fail)
 def call_and_match_output(command, regex_expression, err_message):
@@ -39,8 +39,10 @@ def call_and_match_output(command, regex_expression, err_message):
   :param command: Command to call
   :param regex_expression: Regex expression to search in the output
   """
+  # TODO Rolling Upgrade, does this work in Ubuntu? If it doesn't see dynamic_variable_interpretation.py to see how stdout was redirected
+  # to a temporary file, which was then read.
   code, out = call(command, verbose=True)
-  if not (out and re.search(regex_expression, out)):
+  if not (out and re.search(regex_expression, out, re.IGNORECASE)):
     raise Fail(err_message)
 
 
@@ -59,11 +61,10 @@ class ZookeeperServer(Script):
     import params
     env.set_params(params)
 
-    version = default("/commandParams/version", None)
-    if version and compare_versions(format_hdp_stack_version(version), '2.2.0.0') >= 0:
+    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       Execute(format("hdp-select set zookeeper-server {version}"))
 
-  def start(self, env):
+  def start(self, env, rolling_restart=False):
     import params
     env.set_params(params)
     self.configure(env)
@@ -83,9 +84,9 @@ class ZookeeperServer(Script):
     quorum_err_message = "Failed to establish zookeeper quorum"
     call_and_match_output(create_command, 'Created', quorum_err_message)
     call_and_match_output(list_command, r"\[.*?" + unique + ".*?\]", quorum_err_message)
-    call(delete_command)
+    call(delete_command, verbose=True)
 
-  def stop(self, env):
+  def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
     zookeeper_service(action = 'stop')

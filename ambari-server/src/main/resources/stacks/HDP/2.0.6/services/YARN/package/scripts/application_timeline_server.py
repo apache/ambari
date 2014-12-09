@@ -19,8 +19,10 @@ Ambari Agent
 
 """
 
-import sys
 from resource_management import *
+from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions.format import format
+
 from yarn import yarn
 from service import service
 
@@ -35,13 +37,21 @@ class ApplicationTimelineServer(Script):
     env.set_params(params)
     yarn(name='apptimelineserver')
 
-  def start(self, env):
+  def pre_rolling_restart(self, env):
+    Logger.info("Executing Rolling Upgrade pre-restart")
+    import params
+    env.set_params(params)
+
+    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      Execute(format("hdp-select set hadoop-yarn-timelineserver {version}"))
+
+  def start(self, env, rolling_restart=False):
     import params
     env.set_params(params)
     self.configure(env) # FOR SECURITY
     service('timelineserver', action='start')
 
-  def stop(self, env):
+  def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
     service('timelineserver', action='stop')

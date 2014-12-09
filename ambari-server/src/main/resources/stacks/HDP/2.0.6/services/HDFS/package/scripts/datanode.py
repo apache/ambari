@@ -35,18 +35,17 @@ class DataNode(Script):
     import params
     env.set_params(params)
 
-    version = default("/commandParams/version", None)
-    if version and compare_versions(format_hdp_stack_version(version), '2.2.0.0') >= 0:
+    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       Execute(format("hdp-select set hadoop-hdfs-datanode {version}"))
 
-  def start(self, env):
+  def start(self, env, rolling_restart=False):
     import params
 
     env.set_params(params)
     self.configure(env)
     datanode(action="start")
 
-  def stop(self, env):
+  def stop(self, env, rolling_restart=False):
     import params
 
     env.set_params(params)

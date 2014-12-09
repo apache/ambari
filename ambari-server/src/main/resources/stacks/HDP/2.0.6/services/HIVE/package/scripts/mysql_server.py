@@ -40,12 +40,12 @@ class MysqlServer(Script):
     env.set_params(params)
     mysql_users.mysql_adduser(params)
 
-  def start(self, env):
+  def start(self, env, rolling_restart=False):
     import params
     env.set_params(params)
     mysql_service(daemon_name=params.daemon_name, action='start')
 
-  def stop(self, env):
+  def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
     mysql_service(daemon_name=params.daemon_name, action='stop')

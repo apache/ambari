@@ -19,9 +19,14 @@ package org.apache.ambari.server.state;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.LinkedHashSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.ambari.server.controller.internal.RequestResourceProvider;
 import org.apache.ambari.server.controller.internal.StageResourceProvider;
@@ -45,6 +50,7 @@ import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapperBuilder;
 import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
+import org.apache.ambari.server.utils.HTTPUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +60,60 @@ import org.slf4j.LoggerFactory;
 public class UpgradeHelper {
 
   private static Logger LOG = LoggerFactory.getLogger(UpgradeHelper.class);
+
+  /**
+   * Tuple of namenode states
+   */
+  public static class NameNodePair {
+    String activeHostName;
+    String standbyHostName;
+  }
+
+  /**
+   * Retrieve a class that represents a tuple of the active and standby namenodes. This should be called in an HA cluster.
+   * @param hosts
+   * @return
+   */
+  public static NameNodePair getNameNodePair(Set<String> hosts) {
+    if (hosts != null && hosts.size() == 2) {
+      Iterator iter = hosts.iterator();
+      HashMap<String, String> stateToHost = new HashMap<String, String>();
+      Pattern pattern = Pattern.compile("^.*org\\.apache\\.hadoop\\.hdfs\\.server\\.namenode\\.NameNode\".*?\"State\"\\s*:\\s*\"(.+?)\".*$");
+
+      while(iter.hasNext()) {
+        String hostname = (String) iter.next();
+        try {
+          // TODO Rolling Upgrade, don't hardcode jmx port number
+          // E.g.,
+          // dfs.namenode.http-address.dev.nn1 : c6401.ambari.apache.org:50070
+          // dfs.namenode.http-address.dev.nn2 : c6402.ambari.apache.org:50070
+          String endpoint = "http://" + hostname + ":50070/jmx";
+          String response = HTTPUtils.requestURL(endpoint);
+
+          if (response != null && !response.isEmpty()) {
+            Matcher matcher = pattern.matcher(response);
+            if (matcher.matches()) {
+              String state = matcher.group(1);
+              stateToHost.put(state.toLowerCase(), hostname);
+            }
+          } else {
+            throw new Exception("Response from endpoint " + endpoint + " was empty.");
+          }
+        } catch (Exception e) {
+          LOG.warn("Failed to parse namenode jmx endpoint to get state for host " + hostname + ". Error: " + e.getMessage());
+        }
+      }
+
+      if (stateToHost.containsKey("active") && stateToHost.containsKey("standby") && !stateToHost.get("active").equalsIgnoreCase(stateToHost.get("standby"))) {
+        NameNodePair pair = new NameNodePair();
+        pair.activeHostName = stateToHost.get("active");
+        pair.standbyHostName = stateToHost.get("standby");
+        return pair;
+      }
+    }
+
+    return null;
+  }
 
   /**
    * Generates a list of UpgradeGroupHolder items that are used to execute an upgrade
@@ -101,7 +161,19 @@ public class UpgradeHelper {
 
           ProcessingComponent pc = allTasks.get(service.serviceName).get(component);
 
-          builder.add(componentHosts, service.serviceName, pc);
+          // Special case for NAMENODE
+          if (service.serviceName.equalsIgnoreCase("HDFS") && component.equalsIgnoreCase("NAMENODE")) {
+              NameNodePair pair = getNameNodePair(componentHosts);
+              if (pair != null ) {
+                // The order is important, first do the standby, then the active namenode.
+                Set<String> order = new LinkedHashSet<String>();
+                order.add(pair.standbyHostName);
+                order.add(pair.activeHostName);
+                builder.add(order, service.serviceName, pc);
+              }
+          } else {
+            builder.add(componentHosts, service.serviceName, pc);
+          }
         }
       }
 

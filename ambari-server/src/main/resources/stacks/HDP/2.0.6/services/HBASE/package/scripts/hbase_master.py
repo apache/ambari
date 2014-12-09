@@ -36,7 +36,7 @@ class HbaseMaster(Script):
 
     hbase(name='master')
     
-  def start(self, env):
+  def start(self, env, rolling_restart=False):
     import params
     env.set_params(params)
     self.configure(env) # for security
@@ -45,7 +45,7 @@ class HbaseMaster(Script):
       action = 'start'
     )
     
-  def stop(self, env):
+  def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
 

@@ -17,16 +17,21 @@ limitations under the License.
 
 """
 
-from resource_management import *
-from hdfs_namenode import namenode
-from hdfs import hdfs
-import time
-import json
-import subprocess
-import hdfs_rebalance
 import sys
 import os
+import json
+import subprocess
 from datetime import datetime
+
+from resource_management import *
+from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.check_process_status import check_process_status
+
+from hdfs_namenode import namenode
+from hdfs import hdfs
+import hdfs_rebalance
+from utils import failover_namenode
 
 
 class NameNode(Script):
@@ -38,21 +43,20 @@ class NameNode(Script):
     #TODO we need this for HA because of manual steps
     self.configure(env)
 
-  def start(self, env):
-    import params
-
-    env.set_params(params)
-    self.configure(env)
-    namenode(action="start")
-
   def pre_rolling_restart(self, env):
     Logger.info("Executing Rolling Upgrade pre-restart")
     import params
     env.set_params(params)
 
-    version = default("/commandParams/version", None)
-    if version and compare_versions(format_hdp_stack_version(version), '2.2.0.0') >= 0:
+    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       Execute(format("hdp-select set hadoop-hdfs-namenode {version}"))
+
+  def start(self, env, rolling_restart=False):
+    import params
+
+    env.set_params(params)
+    self.configure(env)
+    namenode(action="start", rolling_restart=rolling_restart, env=env)
 
   def post_rolling_restart(self, env):
     Logger.info("Executing Rolling Upgrade post-restart")
@@ -63,18 +67,24 @@ class NameNode(Script):
             user=params.hdfs_principal_name if params.security_enabled else params.hdfs_user
     )
 
-  def stop(self, env):
+  def stop(self, env, rolling_restart=False):
     import params
-
     env.set_params(params)
-    namenode(action="stop")
+
+    if rolling_restart and params.dfs_ha_enabled:
+      if params.dfs_ha_automatic_failover_enabled:
+        failover_namenode()
+      else:
+        raise Fail("Rolling Upgrade - dfs.ha.automatic-failover.enabled must be enabled to perform a rolling restart")
+
+    namenode(action="stop", rolling_restart=rolling_restart, env=env)
 
   def configure(self, env):
     import params
 
     env.set_params(params)
     hdfs()
-    namenode(action="configure")
+    namenode(action="configure", env=env)
     pass
 
   def status(self, env):

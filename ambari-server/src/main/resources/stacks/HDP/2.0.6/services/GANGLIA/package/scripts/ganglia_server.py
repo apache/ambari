@@ -37,13 +37,13 @@ class GangliaServer(Script):
     functions.turn_off_autostart(params.gmond_service_name) # since the package is installed as well
     functions.turn_off_autostart("gmetad")
 
-  def start(self, env):
+  def start(self, env, rolling_restart=False):
     import params
     env.set_params(params)
     self.configure(env)
     ganglia_server_service.server("start")
 
-  def stop(self, env):
+  def stop(self, env, rolling_restart=False):
     import params
 
     env.set_params(params)

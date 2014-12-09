@@ -18,9 +18,11 @@ limitations under the License.
 Ambari Agent
 
 """
-import sys
+
 from resource_management import *
 from resource_management.libraries.functions.dynamic_variable_interpretation import copy_tarballs_to_hdfs
+from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions.format import format
 
 from yarn import yarn
 from service import service
@@ -34,14 +36,23 @@ class HistoryServer(Script):
     env.set_params(params)
     yarn(name="historyserver")
 
-  def start(self, env):
+  def pre_rolling_restart(self, env):
+    Logger.info("Executing Rolling Upgrade pre-restart")
+    import params
+    env.set_params(params)
+
+    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      Execute(format("hdp-select set hadoop-mapreduce-historyserver {version}"))
+      copy_tarballs_to_hdfs('mapreduce', params.mapred_user, params.hdfs_user, params.user_group)
+
+  def start(self, env, rolling_restart=False):
     import params
     env.set_params(params)
     self.configure(env) # FOR SECURITY
     copy_tarballs_to_hdfs('mapreduce', params.mapred_user, params.hdfs_user, params.user_group)
     service('historyserver', action='start', serviceName='mapreduce')
 
-  def stop(self, env):
+  def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
     service('historyserver', action='stop', serviceName='mapreduce')

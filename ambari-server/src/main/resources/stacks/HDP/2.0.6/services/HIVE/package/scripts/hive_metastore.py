@@ -37,7 +37,7 @@ class HiveMetastore(Script):
 
     hive(name='metastore')
 
-  def start(self, env):
+  def start(self, env, rolling_restart=False):
     import params
     env.set_params(params)
     self.configure(env) # FOR SECURITY
@@ -45,7 +45,7 @@ class HiveMetastore(Script):
                    action = 'start'
     )
 
-  def stop(self, env):
+  def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
 

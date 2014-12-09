@@ -20,6 +20,7 @@ Ambari Agent
 """
 
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
+from resource_management.libraries.functions.default import default
 from resource_management import *
 import status_params
 
@@ -30,10 +31,13 @@ tmp_dir = Script.get_tmp_dir()
 hdp_stack_version = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(hdp_stack_version)
 
+# New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
+version = default("/commandParams/version", None)
+
 #hadoop params
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
   zk_home = '/usr/hdp/current/zookeeper-client'
-  zk_bin = '/usr/hdp/current/zookeeper-client/bin'
+  zk_bin = '/usr/hdp/current/zookeeper-client/bin'    # TODO Rolling Upgrade, needs to be server binary when starting server daemon...
   zk_cli_shell = '/usr/hdp/current/zookeeper-client/bin/zkCli.sh'
 else:
   zk_home = '/usr'

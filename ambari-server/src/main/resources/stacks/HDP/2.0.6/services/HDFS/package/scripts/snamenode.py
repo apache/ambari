@@ -23,6 +23,7 @@ from hdfs import hdfs
 
 
 class SNameNode(Script):
+
   def install(self, env):
     import params
 
@@ -30,18 +31,20 @@ class SNameNode(Script):
 
     self.install_packages(env, params.exclude_packages)
 
+  def pre_rolling_restart(self, env):
+    # Secondary namenode is actually removed in an HA cluster, which is a pre-requisite for Rolling Upgrade,
+    # so it does not need any Rolling Restart logic.
+    pass
 
-  def start(self, env):
+  def start(self, env, rolling_restart=False):
     import params
-
     env.set_params(params)
 
     self.configure(env)
     snamenode(action="start")
 
-  def stop(self, env):
+  def stop(self, env, rolling_restart=False):
     import params
-
     env.set_params(params)
 
     snamenode(action="stop")

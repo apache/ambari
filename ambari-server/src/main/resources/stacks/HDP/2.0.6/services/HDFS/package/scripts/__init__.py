@@ -15,39 +15,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
+Ambari Agent
+
 """
-
-from resource_management import *
-from hdfs import hdfs
-from utils import service
-
-
-class HdfsClient(Script):
-  def install(self, env):
-    import params
-
-    self.install_packages(env, params.exclude_packages)
-    env.set_params(params)
-    self.config(env)
-
-  def start(self, env, rolling_restart=False):
-    import params
-
-    env.set_params(params)
-
-  def stop(self, env, rolling_restart=False):
-    import params
-
-    env.set_params(params)
-
-  def status(self, env):
-    raise ClientComponentHasNoStatus()
-
-  def config(self, env):
-    import params
-    hdfs()
-    pass
-
-
-if __name__ == "__main__":
-  HdfsClient().execute()

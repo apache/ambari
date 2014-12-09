@@ -17,12 +17,13 @@ limitations under the License.
 
 """
 
-from resource_management.core.shell import checked_call
 from resource_management import *
-from utils import service
+from resource_management.core.exceptions import ComponentIsNotRunning
+
+from utils import service, safe_zkfc_op
 
 
-def namenode(action=None, do_format=True):
+def namenode(action=None, do_format=True, rolling_restart=False, env=None):
   import params
   #we need this directory to be present before any action(HA manual steps for
   #additional namenode)
@@ -46,11 +47,20 @@ def namenode(action=None, do_format=True):
               group=params.user_group
     )
 
+    options = "-rollingUpgrade started" if rolling_restart else ""
+
     service(
-      action="start", name="namenode", user=params.hdfs_user,
+      action="start",
+      name="namenode",
+      user=params.hdfs_user,
+      options=options,
       create_pid_dir=True,
       create_log_dir=True
     )
+
+    if rolling_restart:    
+      # Must start Zookeeper Failover Controller if it exists on this host because it could have been killed in order to initiate the failover.
+      safe_zkfc_op(action, env)
 
     if params.security_enabled:
       Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
@@ -66,7 +76,7 @@ def namenode(action=None, do_format=True):
     # If HA is enabled and it is in standby, then stay in safemode, otherwise, leave safemode.
     leave_safe_mode = True
     if dfs_check_nn_status_cmd is not None:
-      code, out = shell.call(dfs_check_nn_status_cmd)
+      code, out = shell.call(dfs_check_nn_status_cmd) # If active NN, code will be 0
       if code != 0:
         leave_safe_mode = False
 
@@ -89,6 +99,7 @@ def namenode(action=None, do_format=True):
             only_if=dfs_check_nn_status_cmd #skip when HA not active
     )
     create_hdfs_directories(dfs_check_nn_status_cmd)
+
   if action == "stop":
     service(
       action="stop", name="namenode", 
