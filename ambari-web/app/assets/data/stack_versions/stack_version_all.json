@@ -6,6 +6,7 @@
       "ClusterStackVersions" : {
         "cluster_name" : "1",
         "id" : 1,
+        "repository_version" : 1,
         "stack" : "HDP",
         "state" : "CURRENT",
         "version" : "2.2",
@@ -83,6 +84,7 @@
       "ClusterStackVersions" : {
         "cluster_name" : "1",
         "id" : 2,
+        "repository_version" : 2,
         "stack" : "HDP",
         "state" : "INSTALLED",
         "version" : "2.2",

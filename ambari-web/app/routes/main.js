@@ -535,6 +535,15 @@ module.exports = Em.Route.extend({
         connectOutlets: function (router, stackVersion) {
           router.get('mainAdminController').connectOutlet('mainStackVersionsDetails', stackVersion);
         }
+      }),
+      update: Em.Route.extend({
+        route: '/updates',
+        connectOutlets: function (router) {
+          if(App.get('supports.stackUpgrade')) {
+            router.set('mainAdminController.category', "stackVersions");
+            router.get('mainAdminController').connectOutlet('repoVersions');
+          }
+        }
       })
     }),
     adminAdvanced: Em.Route.extend({

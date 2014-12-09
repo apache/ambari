@@ -53,6 +53,7 @@ require('controllers/main/admin/highAvailability/resourceManager/step3_controlle
 require('controllers/main/admin/highAvailability/resourceManager/step4_controller');
 require('controllers/main/admin/stack_and_upgrade_controller');
 require('controllers/main/admin/stack_upgrade_controller');
+require('controllers/main/admin/stack_versions/repo_versions_controller');
 require('controllers/main/admin/stack_versions/stack_versions_controller');
 require('controllers/main/admin/stack_versions/stack_version_details_controller');
 require('controllers/main/admin/serviceAccounts_controller');

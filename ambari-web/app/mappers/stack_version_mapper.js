@@ -43,11 +43,11 @@ App.stackVersionMapper = App.QuickDataMapper.create({
     if (json && json.items) {
       json.items.forEach(function (item) {
         var stack = item.ClusterStackVersions;
-        if (item.repository_versions[0]) {
-          stack.repository_version_id = item.repository_versions[0].RepositoryVersions.id;
+        stack.repository_version_id = item.ClusterStackVersions.repository_version;
+        if (item.repository_versions && item.repository_versions[0]) {
           item.repository_versions[0].RepositoryVersions.stackVersionId = item.ClusterStackVersions.id;
           resultStack.push(this.parseIt(stack, this.get('modelStack')));
-          App.repoVersionMapper.map({"items": item.repository_versions });
+          App.repoVersionMapper.map({"items": item.repository_versions }, true);
         }
       }, this);
     }

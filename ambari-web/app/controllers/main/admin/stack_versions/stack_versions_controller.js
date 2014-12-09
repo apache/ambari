@@ -30,7 +30,7 @@ App.MainStackVersionsController = Em.ArrayController.extend({
     return App.apiPrefix + '/clusters/' + App.get('clusterName') + '/stack_versions?fields=*,repository_versions/*,repository_versions/operatingSystems/repositories/*';
   }.property('App.clusterName'),
   realUpdateUrl: function () {
-    return App.apiPrefix + '/clusters/' + App.get('clusterName') + '/stack_versions?fields=*,repository_versions/*,repository_versions/operatingSystems/repositories/*';
+    return App.apiPrefix + '/clusters/' + App.get('clusterName') + '/stack_versions?fields=ClusterStackVersions/*';
     //TODO return App.apiPrefix + '/clusters/' + App.get('clusterName') + '/stack_versions?fields=ClusterStackVersions/state,ClusterStackVersions/host_states&minimal_response=true';
   }.property('App.clusterName'),
 

@@ -16,69 +16,55 @@
 * limitations under the License.
 }}
 {{view App.StackVersionMenuView}}
-<div id="stack_versions">
+<div id="repository_versions">
   <table class="table advanced-header-table table-bordered table-striped">
     <thead>
     {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
-      {{view view.parentView.stackNameSort}}
-      {{view view.parentView.stackVersionSort}}
+      {{view view.parentView.repoNameSort}}
+      {{view view.parentView.repoVersionSort}}
       {{view view.parentView.osSort}}
-      {{view view.parentView.installedSort}}
-      {{view view.parentView.currentSort}}
+      <th class="action-col">Actions</th>
     {{/view}}
 
     <tr class="filter-row">
-      <th class="first stack-name-filter">{{view view.stackNameFilterView}}</th>
-      <th class="repo-version-filter">{{view view.stackVersionFilterView}}</th>
+      <th class="first repo-name-filter">{{view view.repoNameFilterView}}</th>
+      <th class="repo-version-filter">{{view view.repoVersionFilterView}}</th>
       <th class="os-type-filter">{{view view.osFilterView}}</th>
-      <th class="installed-hosts-filter">{{view view.installedFilterView}}</th>
-      <th class="current-hosts-filter">{{view view.currentFilterView}}</th>
+      <th></th>
     </tr>
     </thead>
     <tbody class="services-menu">
       {{#if view.pageContent}}
         {{#each item in view.pageContent}}
-          {{#view view.StackVersionView contentBinding="item"}}
-            <td class="first stack-name">
-               <span class="stack-name">{{view.content.name}}</span>
+          {{#view view.RepositoryVersionView contentBinding="item"}}
+            <td class="first repo-name">
+               <span>{{view.content.repositoryVersion}}</span>
             </td>
-            <td class="repo-version">
-              <a href="#/main/admin/versions/{{unbound view.content.id}}">{{view.content.repositoryVersion.displayName}}</a>
+            <td class="repo-display-name">
+              <span>{{view.content.displayName}}</span>
             </td>
             <td class="os-types">
               <a href="#" class="os-expander" {{action toggleOs target="view"}}>
                 <span {{bindAttr class="view.isOsCollapsed:icon-caret-right:icon-caret-down"}}></span>
-                {{view.content.repositoryVersion.operatingSystems.length}} {{pluralize view.content.repositoryVersion.operatingSystems.length singular="t:common.os" plural="t:common.oss"}}
+                {{view.content.operatingSystems.length}} {{pluralize view.content.operatingSystems.length singular="t:common.os" plural="t:common.oss"}}
               </a>
 
-              <div id="stack-{{view.content.name}}" class="operating-systems">
+              <div id="stack-{{view.content.repositoryVersion}}" class="operating-systems">
                 {{{view.labels}}}
               </div>
             </td>
-            <td class="installed-hosts-count">
-              <span  {{bindAttr class="view.content.noInstalledHosts:not-active-link"}}>
-                <a href="#"
-                  title='installed' {{action showHosts view.content.repositoryVersion.displayName view.content.installedHosts target="controller"}}>
-                  <span>{{view.content.installedHosts.length}}</span>
-                </a>
-              </span>
-            </td>
-            <td class="current-hosts-count">
-              <span {{bindAttr class="view.content.noCurrentHosts:not-active-link"}}>
-                <a href="#"
-                  title='current' {{action showHosts view.content.repositoryVersion.displayName view.content.currentHosts target="controller"}}>
-                  <span>{{view.content.currentHosts.length}}</span>
-                </a>
-              </span>
+            <td class="repo-version-install">
+              <a href="#" class="btn btn-success" {{action installRepoVersion view.content target="controller"}}>{{t common.install}}</a>
             </td>
           {{/view}}
         {{/each}}
       {{else}}
         <tr>
-          <td class="first empty-table" colspan="5">
+          <td class="first empty-table" colspan="4">
             {{t dashboard.configHistory.table.empty}}
           </td>
         </tr>
+
       {{/if}}
     </tbody>
   </table>

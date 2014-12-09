@@ -64,7 +64,7 @@ App.repoVersionMapper = App.QuickDataMapper.create({
     stack_version : 'Repositories.stack_version'
   },
 
-  map: function (json) {
+  map: function (json, loadAll) {
     var modelRepoVersions = this.get('modelRepoVersions');
     var modelOperatingSystems = this.get('modelOperatingSystems');
     var modelRepositories = this.get('modelRepositories');
@@ -75,29 +75,32 @@ App.repoVersionMapper = App.QuickDataMapper.create({
 
     if (json && json.items) {
       json.items.forEach(function (item) {
-        var repo = item;
-        var osArray = [];
-
-        if (Em.get(item, 'operating_systems')) {
-          item.operating_systems.forEach(function (os) {
-            os.id = item.RepositoryVersions.repository_version + os.OperatingSystems.os_type;
-            os.repository_version_id = repo.id;
-            var repoArray = [];
-            if (Em.get(os, 'repositories')) {
-              os.repositories.forEach(function(repo) {
-                repo.id = repo.Repositories.repo_id + os.id;
-                repo.operating_system_id = os.id;
-                repoArray.pushObject(repo);
-                resultRepo.push(this.parseIt(repo, this.get('modelRepository')));
-              }, this);
-            }
-            os.repositories = repoArray;
-            osArray.pushObject(os);
-            resultOS.push(this.parseIt(os, this.get('modelOS')));
-          }, this);
+        if (loadAll || !App.StackVersion.find().someProperty('repositoryVersion.id', item.RepositoryVersions.id.toString())) {
+          var repo = item;
+          var osArray = [];
+          //TODO leave onr property name after api will be fixed
+          var operatingSystems = Em.get(item, 'operating_systems') || Em.get(item, 'operatingSystems');
+          if (operatingSystems) {
+            operatingSystems.forEach(function (os) {
+              os.id = item.RepositoryVersions.repository_version + os.OperatingSystems.os_type;
+              os.repository_version_id = repo.id;
+              var repoArray = [];
+              if (Em.get(os, 'repositories')) {
+                os.repositories.forEach(function (repo) {
+                  repo.id = repo.Repositories.repo_id + os.id;
+                  repo.operating_system_id = os.id;
+                  repoArray.pushObject(repo);
+                  resultRepo.push(this.parseIt(repo, this.get('modelRepository')));
+                }, this);
+              }
+              os.repositories = repoArray;
+              osArray.pushObject(os);
+              resultOS.push(this.parseIt(os, this.get('modelOS')));
+            }, this);
+          }
+          repo.operating_systems = osArray;
+          resultRepoVersion.push(this.parseIt(repo, this.get('modelRepoVersion')));
         }
-        repo.operating_systems = osArray;
-        resultRepoVersion.push(this.parseIt(repo, this.get('modelRepoVersion')));
       }, this);
     }
     App.store.commit();

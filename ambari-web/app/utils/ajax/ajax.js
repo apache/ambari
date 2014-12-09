@@ -1346,13 +1346,13 @@ var urls = {
     'mock': '/data/stack_versions/stack_version_all.json'
   },
   'admin.stack_version.install.repo_version': {
-    'type': 'POST',
-    'real': 'clusters/{clusterName}/requests',
+    'real': '/clusters/{clusterName}/stack_versions',
     'format': function (data) {
       return {
         type: 'POST',
-        dataType: 'text',
-        data: data.data
+        data: JSON.stringify({
+          ClusterStackVersions: data.ClusterStackVersions
+        })
       }
     },
     'mock': ''
