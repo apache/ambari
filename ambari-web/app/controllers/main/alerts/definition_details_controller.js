@@ -216,13 +216,15 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
    */
   toggleState: function () {
     var alertDefinition = this.get('content');
+    var newState = !alertDefinition.get('enabled');
+    alertDefinition.set('enabled', newState);
     return App.ajax.send({
       name: 'alerts.update_alert_definition',
       sender: this,
       data: {
         id: alertDefinition.get('id'),
         data: {
-          "AlertDefinition/enabled": !alertDefinition.get('enabled')
+          "AlertDefinition/enabled": newState
         }
       }
     });
