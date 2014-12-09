@@ -138,7 +138,9 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
             else {
               self.hide();
               App.router.get('updateController').updateAlertGroups(function () {
-                App.router.get('updateController').updateAlertNotifications(Em.K);
+                App.router.get('updateController').updateAlertDefinitions(function() {
+                  App.router.get('updateController').updateAlertNotifications(Em.K);
+                });
               });
             }
           } else {

@@ -52,7 +52,7 @@ App.AlertGroup = DS.Model.extend({
       this.get('aggregateAlertDefinitions').toArray(),
       this.get('scriptAlertDefinitions').toArray()
     );
-  }.property('portAlertDefinitions', 'metricsAlertDefinitions', 'webAlertDefinitions', 'aggregateAlertDefinitions', 'scriptAlertDefinitions'),
+  }.property('portAlertDefinitions.length', 'metricsAlertDefinitions.length', 'webAlertDefinitions.length', 'aggregateAlertDefinitions.length', 'scriptAlertDefinitions.length'),
 
   /**
    * @type {App.PortAlertDefinition[]}
