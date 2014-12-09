@@ -217,4 +217,55 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(App.router.transitionTo.calledWith('admin.stackUpgrade')).to.be.true;
     });
   });
+
+
+  describe("#runPreUpgradeCheck()", function() {
+    before(function () {
+      sinon.stub(App.ajax, 'send', Em.K);
+    });
+    after(function () {
+      App.ajax.send.restore();
+    });
+    it("make ajax call", function() {
+      controller.runPreUpgradeCheck("2.2.1");
+      expect(App.ajax.send.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#runPreUpgradeCheckSuccess()", function () {
+    beforeEach(function () {
+      sinon.stub(App.ModalPopup, 'show', Em.K);
+      sinon.stub(controller, 'upgrade', Em.K);
+    });
+    afterEach(function () {
+      App.ModalPopup.show.restore();
+      controller.upgrade.restore();
+    });
+    it("shows popup", function () {
+      var check =  {UpgradeChecks: [{
+        "check": "Work-preserving RM/NM restart is enabled in YARN configs",
+        "status": "FAIL",
+        "reason": "FAIL",
+        "failed_on": [],
+        "check_type": "SERVICE"
+      }]};
+      controller.runPreUpgradeCheckSuccess(check,null,{label: "name"});
+      expect(controller.upgrade.calledOnce).to.be.false;
+      expect(App.ModalPopup.show.calledOnce).to.be.true;
+    });
+    it("runs upgrade popup", function () {
+      var check = {UpgradeChecks: [{
+        "check": "Work-preserving RM/NM restart is enabled in YARN configs",
+        "status": "PASS",
+        "reason": "OK",
+        "failed_on": [],
+        "check_type": "SERVICE"
+      }]};
+      controller.runPreUpgradeCheckSuccess(check,null,{label: "name"});
+      expect(controller.upgrade.calledOnce).to.be.true;
+      expect(App.ModalPopup.show.calledOnce).to.be.false;
+    });
+  });
+
+
 });

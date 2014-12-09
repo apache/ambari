@@ -1379,7 +1379,10 @@ var urls = {
     },
     'mock': ''
   },
-
+  'admin.rolling_upgrade.pre_upgrade_check': {
+    'real': '/clusters/{clusterName}/rolling_upgrades_check',
+    'mock': '/data/stack_versions/pre_upgrade_check.json'
+  },
 
   'wizard.advanced_repositories.valid_url': {
     'real': '/stacks/{stackName}/versions/{stackVersion}/operating_systems/{osType}/repositories/{repoId}',

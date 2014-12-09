@@ -179,7 +179,7 @@ App.MainAdminStackAndUpgradeView = Em.View.extend({
         case 'INIT':
           if (this.get('versions.length') > 0) {
             label = Em.I18n.t('common.upgrade');
-            method = 'upgrade';
+            method = 'runPreUpgradeCheck';
           }
           break;
         case 'PENDING':

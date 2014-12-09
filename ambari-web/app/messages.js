@@ -242,6 +242,7 @@ Em.I18n.translations = {
   'common.prerequisites': 'Prerequisites',
   'common.finalize': "Finalize",
   'common.severity': "Severity",
+  'common.dismiss': "Dismiss",
 
   'models.alert_instance.tiggered.verbose': "Occured on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occured on {0}",
@@ -1268,6 +1269,8 @@ Em.I18n.translations = {
   'admin.stackVersions.table.header.os': "OS",
   'admin.stackVersions.table.header.installed': "Installed on",
   'admin.stackVersions.table.header.current': "Current on",
+  'admin.stackVersions.table.empty': "No cluster stack versions to display",
+  'admin.repoVersions.table.empty': "No repository versions to display",
 
   'admin.stackVersions.datails.versionName': "Version Name",
   'admin.stackVersions.datails.installed.on': "Installed On",
@@ -1309,7 +1312,12 @@ Em.I18n.translations = {
   'admin.stackUpgrade.dialog.manualDone': "I have preformed the manual steps above.",
   'admin.stackUpgrade.dialog.closeProgress': "Upgrade is in progress. \n If you dismiss this window, Upgrade will keep running in background.",
   'admin.stackUpgrade.dialog.closePause': "Upgrade is paused. \n If you dismiss this window, you can resume Upgrade later.",
-
+  'admin.stackUpgrade.preupgradeCheck.header': "Upgrade to {0}",
+  'admin.stackUpgrade.preupgradeCheck.title': "Upgrade Requirements Not Met",
+  'admin.stackUpgrade.preupgradeCheck.alert': "You have not met the following requirements for performing on upgrade.<br/>"+
+    "You must fix them before you continue",
+  'admin.stackUpgrade.preupgradeCheck.failedOn': "Failed on: ",
+  'admin.stackUpgrade.preupgradeCheck.reason': "Reason: ",
   'services.service.start':'Start',
   'services.service.stop':'Stop',
   'services.service.metrics':'Metrics',
