@@ -18,36 +18,6 @@
 
 var App = require('app');
 
-var bound;
-
-bound = function(fnName) {
-  return Ember.computed(fnName,function() {
-    return this.get(fnName).bind(this);
-  });
-};
-
-App.ClickElsewhereMixin = Ember.Mixin.create({
-  onClickElsewhere: Ember.K,
-  clickHandler: bound("elsewhereHandler"),
-  elsewhereHandler: function(e) {
-    var $target, element, thisIsElement;
-    element = this.get("element");
-    $target = $(e.target);
-    thisIsElement = $target.closest(element).length === 1;
-    if (!thisIsElement) {
-      return this.onClickElsewhere(event);
-    }
-  },
-  didInsertElement: function() {
-    this._super.apply(this, arguments);
-    return $(window).on("click", this.get("clickHandler"));
-  },
-  willDestroyElement: function() {
-    $(window).off("click", this.get("clickHandler"));
-    return this._super.apply(this, arguments);
-  }
-});
-
 App.ConfirmDeleteComponent = Em.Component.extend(App.ClickElsewhereMixin,{
   confirm:false,
   onClickElsewhere:function () {
@@ -60,7 +30,7 @@ App.ConfirmDeleteComponent = Em.Component.extend(App.ClickElsewhereMixin,{
         this.sendAction('action', this.get('param'));
       } else {
         this.toggleProperty('confirm');
-      };
+      }
     }
   },
   tagName:'a',
@@ -73,7 +43,7 @@ App.ConfirmDeleteComponent = Em.Component.extend(App.ClickElsewhereMixin,{
       }).tooltip('show');
     } else {
       element.tooltip('destroy')
-    };
+    }
   }.observes('confirm'),
   click:function (e) {
     this.send('delete');

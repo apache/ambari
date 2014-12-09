@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-<div class="input-group path-input">
+<div {{bind-attr class=":input-group :path-input isError:has-error" }} >
   {{view inputFieldView pathSource=pathMap value=path}}
   <span class="input-group-btn">
     <button {{action cancel}} class="btn btn-danger" type="button">

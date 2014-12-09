@@ -33,7 +33,7 @@ App.QueuesController = Ember.ArrayController.extend({
     addQ:function (parentPath,name) {
       if (!parentPath || this.get('hasNewQueue')) {
         return;
-      };
+      }
       name = name || '';
       var newQueue = this.store.createRecord('queue',{
         name:name,
@@ -42,7 +42,12 @@ App.QueuesController = Ember.ArrayController.extend({
         isNewQueue:true
       });
       this.set('newQueue',newQueue);
-      this.send('goToQueue',newQueue);
+      if (name) {
+        this.send('goToQueue',newQueue);
+        this.send('createQ',newQueue);
+      } else {
+        this.send('goToQueue',newQueue);
+      }
     },
     createQ:function (record) {
       record.save().then(Em.run.bind(this,this.set,'newQueue',null));
@@ -50,13 +55,13 @@ App.QueuesController = Ember.ArrayController.extend({
     delQ:function (record) {
       if (record.get('isNew')) {
         this.set('newQueue',null);
-      };
+      }
       if (!record.get('isNewQueue')) {
         this.set('hasDeletedQueues',true);
-      };
+      }
       if (record.isCurrent) {
         this.transitionToRoute('queue',record.get('parentPath'));
-      };
+      }
       this.store.deleteRecord(record);
     },
     saveConfig:function (mark) {
@@ -64,9 +69,16 @@ App.QueuesController = Ember.ArrayController.extend({
         this.get('store').markForRestart();
       } else if (mark == 'refresh') {
         this.get('store').markForRefresh();
-      };
-      Em.RSVP.Promise.all([this.get('scheduler').save(),this.get('model').save()])
-        .catch(Em.run.bind(this,this.saveError));
+      }
+
+      var hadDeletedQueues = this.get('hasDeletedQueues'),
+          scheduler = this.get('scheduler').save(),
+          model = this.get('model').save(),
+          all = Em.RSVP.Promise.all([model,scheduler]);
+
+      all.catch(Em.run.bind(this,this.saveError,hadDeletedQueues));
+
+      this.set('hasDeletedQueues',false);
     },
     toggleEditScheduler:function () {
       this.toggleProperty('isEditScheduler');
@@ -77,10 +89,14 @@ App.QueuesController = Ember.ArrayController.extend({
   },
 
   alertMessage:null,
-  saveError:function (error) {
+  saveError:function (hadDeletedQueues,error) {
+    this.set('hasDeletedQueues',hadDeletedQueues);
     var response = JSON.parse(error.responseText);
     this.set('alertMessage',response);
   },
+
+  isOperator:false,
+  isNotOperator:cmp.not('isOperator'),
 
   isEditScheduler:false,
 
@@ -89,7 +105,7 @@ App.QueuesController = Ember.ArrayController.extend({
    * check if RM needs refresh
    * @type {bool}
    */
-  needRefresh: cmp.any('hasChanges', 'hasNewQueues','dirtyScheduler'),
+  needRefresh: cmp.and('needRefreshProps','noNeedRestart'),
 
   /**
    * props for 'needRefresh'
@@ -99,6 +115,9 @@ App.QueuesController = Ember.ArrayController.extend({
   newQueues: cmp.filterBy('content', 'isNewQueue', true),
   hasChanges: cmp.notEmpty('dirtyQueues.[]'),
   hasNewQueues: cmp.notEmpty('newQueues.[]'),
+
+  needRefreshProps: cmp.any('hasChanges', 'hasNewQueues','dirtyScheduler'),
+  noNeedRestart: cmp.not('needRestart'),
   
   /**
    * check if RM needs restart 
@@ -122,7 +141,7 @@ App.QueuesController = Ember.ArrayController.extend({
    * check if can save configs
    * @type {bool}
    */
-  canNotSave: cmp.any('hasOverCapacity', 'hasUncompetedAddings','hasNotValid'),
+  canNotSave: cmp.any('hasOverCapacity', 'hasUncompetedAddings','hasNotValid','isNotOperator'),
 
   /**
    * props for canNotSave
@@ -134,21 +153,34 @@ App.QueuesController = Ember.ArrayController.extend({
   hasOverCapacity:cmp.notEmpty('overCapacityQ.[]'),
   hasUncompetedAddings:cmp.notEmpty('uncompetedAddings.[]'),
 
+  /**
+   * check there is some changes for save
+   * @type {bool}
+   */
+  needSave: cmp.any('needRestart', 'needRefresh'),
+
   newQueue:null,
   hasNewQueue: cmp.bool('newQueue'),
   trackNewQueue:function () {
     var newQueue = this.get('newQueue');
     if (Em.isEmpty(newQueue)){
       return;
-    };
+    }
     var name = newQueue.get('name');
     var parentPath = newQueue.get('parentPath');
 
     this.get('newQueue').setProperties({
       name:name.replace(/\s/g, ''),
       path:parentPath+'.'+name,
-      id:(parentPath+'.'+name).dasherize(),
+      id:(parentPath+'.'+name).dasherize()
     });
 
-  }.observes('newQueue.name')
+  }.observes('newQueue.name'),
+
+  configNote:function (arg,val) {
+    if (arguments.length > 1) {
+      this.set('store.configNote',val);
+    }
+    return this.get('store.configNote');
+  }.property('store.configNote')
 });

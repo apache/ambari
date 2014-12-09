@@ -17,6 +17,11 @@
 
 exports.config = 
 
+  watcher:
+    usePolling: true
+
+  fileListInterval: 512
+
   files: 
     
     javascripts: 
@@ -58,15 +63,8 @@ exports.config =
   modules:
     addSourceURLs: true
 
-  paths:
-    public: '/usr/lib/ambari-server/web/views-debug/CAPACITY-SCHEDULER/0.1.0/CS_1/'
-
   overrides:
-    production:
-        paths:
-          public: 'public'
+    development:
+      paths:
+        public: '/usr/lib/ambari-server/web/views-debug/CAPACITY-SCHEDULER/0.2.0/CS_1/'
 
-  server:
-    port: 3333
-    base: '/'
-    run: no

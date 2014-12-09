@@ -23,10 +23,11 @@ var _stopState = 'STOPPED';
 
 App.QueueController = Ember.ObjectController.extend({
   needs:['queues'],
+  isOperator:Em.computed.alias('controllers.queues.isOperator'),
+  isNotOperator:Em.computed.alias('controllers.queues.isNotOperator'),
   actions:{
     setState:function (state) {
-      var state = (state === "running")?_runState:_stopState;
-      this.content.set('state',state);
+      this.content.set('state', (state === "running") ? _runState : _stopState );
     },
     createQ:function (record) {
       this.get('controllers.queues').send('createQ',this.get('content'));
@@ -42,7 +43,7 @@ App.QueueController = Ember.ObjectController.extend({
         this.content.addObserver('name',this,this.setQueuePath);
         this.toggleProperty('isRenaming');
         return;
-      };
+      }
       if (opt == 'cancel') {
         this.send('rollbackProp','name');
         this.send('rollbackProp','id');
@@ -50,7 +51,7 @@ App.QueueController = Ember.ObjectController.extend({
         this.content.removeObserver('name',this,this.setQueuePath);
         this.toggleProperty('isRenaming');
         return;
-      };
+      }
       if (opt) {
         var self = this;
         this.store.filter('queue',function (q) {
@@ -58,7 +59,7 @@ App.QueueController = Ember.ObjectController.extend({
         }).then(function(queues){
           if (queues.get('length') > 1) {
             return self.content.get('errors').add('path', 'Queue already exists');
-          };
+          }
           self.toggleProperty('isRenaming');
           self.content.removeObserver('name',self,self.setQueuePath);
           self.transitionToRoute('queue',self.content.id);
@@ -86,7 +87,7 @@ App.QueueController = Ember.ObjectController.extend({
     queue.setProperties({
       name:name.replace(/\s|\./g, ''),
       path:parentPath+'.'+name,
-      id:(parentPath+'.'+name).dasherize(),
+      id:(parentPath+'.'+name).dasherize()
     });
 
     if (name == '') {
@@ -108,57 +109,39 @@ App.QueueController = Ember.ObjectController.extend({
   isEditRA:false,
   isEditACL:false,
 
-  acl_administer_queue:null,
+  handleAcl:function (key,value) {
+    if (value) {
+      this.set(key,(value == '*')?'*':' ');
+    }
+    return (this.get(key) == '*')? '*':'custom';
+  },
+
+  acl_administer_queue: function (key, value, previousValue) {
+    return this.handleAcl('content.acl_administer_queue',value);
+  }.property('content.acl_administer_queue'),
   aaq_anyone:Ember.computed.equal('acl_administer_queue', '*'),
   aaq_dirty:function () {
     var attributes = this.content.changedAttributes();
     return attributes.hasOwnProperty('acl_administer_queue');
   }.property('content.acl_administer_queue'),
 
-  acl_administer_jobs:null,
+  acl_administer_jobs: function (key, value, previousValue) {
+    return this.handleAcl('content.acl_administer_jobs',value);
+  }.property('content.acl_administer_jobs'),
   aaj_anyone:Ember.computed.equal('acl_administer_jobs', '*'),
   aaj_dirty:function () {
     var attributes = this.content.changedAttributes();
     return attributes.hasOwnProperty('acl_administer_jobs');
   }.property('content.acl_administer_jobs'),
 
-  acl_submit_applications:null,
+  acl_submit_applications: function (key, value, previousValue) {
+    return this.handleAcl('content.acl_submit_applications',value);
+  }.property('content.acl_submit_applications'),
   asa_anyone:Ember.computed.equal('acl_submit_applications', '*'),
   asa_dirty:function () {
     var attributes = this.content.changedAttributes();
     return attributes.hasOwnProperty('acl_submit_applications');
   }.property('content.acl_submit_applications'),
-
-  aclSerializer:function (c,o) {
-    var acl = o.substr(o.indexOf('.')+1);
-    var aclProp = c.get(o);
-    var aclVal;
-    switch(aclProp) {
-      case '*': 
-        aclVal = '*'; 
-        break;
-      
-      default:
-        aclVal = 'custom'; 
-    }
-    c.set(acl,aclVal);
-  }.observes('content.acl_administer_queue','content.acl_administer_jobs','content.acl_submit_applications'),
-
-  aclDeserializer:function (c,o) {
-    var aclVal = c.get(o);
-    var aclProp;
-    switch(aclVal) {
-      case '*': 
-        aclProp = '*'; 
-        this.set('content.'+o,aclProp);
-        break;
-      
-      default:
-        if (this.get('content.'+o)=='*') {
-          this.set('content.'+o,' ');
-        }
-    }
-  }.observes('acl_administer_queue','acl_administer_jobs','acl_submit_applications'),
 
   capacityControl:function () {
     var leafQueues = this.get('leafQueues');
@@ -167,7 +150,7 @@ App.QueueController = Ember.ObjectController.extend({
     leafQueues.forEach(function (queue) {
       total+=Number(queue.get('capacity'));
     });
-    leafQueues.setEach('overCapacity',total>100)
+    leafQueues.setEach('overCapacity',total>100);
   }.observes('content.capacity','leafQueues.@each.capacity'),
   leafQueues:function () {
     return this.get('allQueues').filterBy('parentPath',this.get('content.parentPath'));
@@ -176,8 +159,8 @@ App.QueueController = Ember.ObjectController.extend({
   queueNamesControl:function (c,o) {
     var leaf = c.get('leafQueues');
     var parent = c.get('allQueues').filterBy('path',c.get('content.parentPath')).get('firstObject');
-    if (parent) parent.set('queueNames',leaf.mapBy('name').join());
-  }.observes('allQueues.length','allQueues.@each.name'),
+    if (parent) parent.set('queueNames',leaf.mapBy('name').join() || null);
+  }.observes('allQueues.length','allQueues.@each.name','content'),
 
   pathErrors:Ember.computed.mapBy('content.errors.path','message')
   

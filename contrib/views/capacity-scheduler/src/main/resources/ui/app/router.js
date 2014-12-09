@@ -49,6 +49,9 @@ App.QueuesRoute = Ember.Route.extend({
     return this.store.find('queue');
   },
   setupController:function (c,model) {
+    this.store.checkOperator().then(function (isOperator) {
+      c.set('isOperator',isOperator);
+    });
     c.set('model',model);
     this.store.find('scheduler','scheduler').then(function (s) {
       c.set('scheduler',s);
@@ -80,7 +83,7 @@ App.QueueRoute = Ember.Route.extend({
     willTransition: function (tr) {
       if (this.get('controller.isRenaming')) {
         tr.abort();
-      };
+      }
     }
   }
 

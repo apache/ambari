@@ -18,28 +18,32 @@
 
 var App = require('app');
 
-App.UserGroupInputComponent = Em.Component.extend({
-  layoutName:'components/userGroupInput',
+var bound;
 
-  ug:'',
+bound = function(fnName) {
+  return Ember.computed(fnName,function() {
+    return this.get(fnName).bind(this);
+  });
+};
 
-  users:function (key, value, previousValue) {
-    if (value) {
-      this.set('ug',[value,this.get('groups')].join(' '));
+App.ClickElsewhereMixin = Ember.Mixin.create({
+  onClickElsewhere: Ember.K,
+  clickHandler: bound("elsewhereHandler"),
+  elsewhereHandler: function(e) {
+    var $target, element, thisIsElement;
+    element = this.get("element");
+    $target = $(e.target);
+    thisIsElement = $target.closest(element).length === 1;
+    if (!thisIsElement) {
+      return this.onClickElsewhere(e);
     }
-    var ug = this.get('ug');
-    return (ug == '*')?'*':(ug || '').split(' ')[0];
-  }.property('ug'),
-
-  groups:function (key, value, previousValue) {
-    if (value) {
-      this.set('ug',[this.get('users'),value].join(' '));
-    }
-    var ug = this.get('ug');
-    return (ug == '*')?'*':(ug || '').split(' ')[1] || '';
-  }.property('ug'),
-
-  noSpace:function (e) {
-    return (e.keyCode != 32);
+  },
+  didInsertElement: function() {
+    this._super.apply(this, arguments);
+    return $(window).on("click", this.get("clickHandler"));
+  },
+  willDestroyElement: function() {
+    $(window).off("click", this.get("clickHandler"));
+    return this._super.apply(this, arguments);
   }
 });

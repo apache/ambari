@@ -33,7 +33,7 @@ App.TotalCapacityComponent = Ember.Component.extend({
     },
     deleteQueue:function (queue) {
       this.sendAction('deleteQueue',queue);
-    },
+    }
   },
 
   /**
@@ -70,8 +70,8 @@ App.TotalCapacityComponent = Ember.Component.extend({
   }.property('allQueues','currentPrPath'),
 
   currentInLeaf:function (argument) {
-    var leaf = this.get('leafQueues');
-    leaf.setEach('isCurrent',false);
+    var queues = this.get('allQueues');
+    queues.setEach('isCurrent',false);
     if(!this.get('currentQueue.currentState.stateName').match(/root.deleted/)) {
       this.get('currentQueue').set('isCurrent',true);
     }
@@ -90,7 +90,7 @@ App.CapacityEditFormView = Em.View.extend({
     this.addObserver('controller.target.isEdit',this,'slide');
     if (!this.get('controller.target.isEdit')) {
       this.$('.capacity-edit-form').hide();
-    };
+    }
   }.on('didInsertElement'),
   slide:function () {
     this.$('.capacity-edit-form').slideToggle(100);

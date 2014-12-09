@@ -47,8 +47,8 @@ App.Queue = DS.Model.extend({
   acl_administer_jobs: DS.attr('string', { defaultValue: '*' }),
   acl_submit_applications: DS.attr('string', { defaultValue: '*' }),
   
-  minimum_user_limit_percent: DS.attr('number', { defaultValue: 0 }),
-  user_limit_factor: DS.attr('number', { defaultValue: 0 }),
+  minimum_user_limit_percent: DS.attr('number', { defaultValue: 100 }),
+  user_limit_factor: DS.attr('number', { defaultValue: 1 }),
   
   queueNames: DS.attr('string'),
   queueNamesArray:function () {

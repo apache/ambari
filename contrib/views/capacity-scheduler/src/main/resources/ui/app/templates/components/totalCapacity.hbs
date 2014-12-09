@@ -20,13 +20,15 @@
   <div class="panel-heading">
   <div class="panel-title">
     <strong>Capacity</strong>
-    <a href="#" {{action 'toggleEdit'}} class="text-right"> 
-      {{#if view.isEdit}}
-        <div class="edit-link">Hide Edit</div>
-      {{else}}
-        <div class="edit-link">Show Edit</div>
-      {{/if}}
-    </a>
+    {{#if isOperator}}
+      <a href="#" {{action 'toggleEdit'}} class="text-right">
+        {{#if view.isEdit}}
+          <div class="edit-link">Hide Edit</div>
+        {{else}}
+          <div class="edit-link">Show Edit</div>
+        {{/if}}
+      </a>
+    {{/if}}
   </div>
   </div>
   <div class="panel-body total">

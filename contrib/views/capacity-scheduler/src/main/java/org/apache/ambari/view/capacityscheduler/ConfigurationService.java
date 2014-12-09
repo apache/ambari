@@ -101,15 +101,12 @@ public class ConfigurationService {
     URL url = null;
     try {
         url = new URL(baseUrl);
-    } catch (MalformedURLException e) {
-        // !!! I know, I know
-        e.printStackTrace();
+    } catch (MalformedURLException ex) {
+      throw new ServiceFormattedException("Error in ambari.server.url property: " + ex.getMessage(), ex);
     }
 
-    // !!! and yes, I know
-    String file = url.getFile();
-    serverUrl = baseUrl.substring(0, baseUrl.length() - file.length());
-
+    String clusterName = url.getFile(); // TODO: make it more robust
+    serverUrl = baseUrl.substring(0, baseUrl.length() - clusterName.length());
   }
 
   // ================================================================================

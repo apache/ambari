@@ -18,28 +18,17 @@
 
 var App = require('app');
 
-App.UserGroupInputComponent = Em.Component.extend({
-  layoutName:'components/userGroupInput',
-
-  ug:'',
-
-  users:function (key, value, previousValue) {
-    if (value) {
-      this.set('ug',[value,this.get('groups')].join(' '));
+App.QueuesView = Em.View.extend({
+  actions:{
+    saveModal:function (mode) {
+      this.set('saveMode',mode);
+      this.$('#noteModal').modal('show');
     }
-    var ug = this.get('ug');
-    return (ug == '*')?'*':(ug || '').split(' ')[0];
-  }.property('ug'),
-
-  groups:function (key, value, previousValue) {
-    if (value) {
-      this.set('ug',[this.get('users'),value].join(' '));
-    }
-    var ug = this.get('ug');
-    return (ug == '*')?'*':(ug || '').split(' ')[1] || '';
-  }.property('ug'),
-
-  noSpace:function (e) {
-    return (e.keyCode != 32);
-  }
+  },
+  saveMode:'',
+  clearSaveMode:function () {
+    $('#noteModal').on('hidden.bs.modal', function (e) {
+      this.set('saveMode','');
+    }.bind(this));
+  }.on('didInsertElement')
 });

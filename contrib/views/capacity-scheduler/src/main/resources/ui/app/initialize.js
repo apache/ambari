@@ -36,5 +36,8 @@ require('templates');
 // models
 require('models');
 
+//views
+require('views/queues');
+
 // routes
 require('router');

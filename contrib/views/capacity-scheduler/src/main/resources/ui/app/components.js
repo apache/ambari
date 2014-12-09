@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+require('components/clickElsewhere');
 require('components/capacityBar');
 require('components/capacityInput');
 require('components/totalCapacity');
@@ -25,3 +26,4 @@ require('components/radioButton');
 require('components/userGroupInput');
 require('components/escapeAcl');
 require('components/confirmDelete');
+require('components/dropdownConfirmation');

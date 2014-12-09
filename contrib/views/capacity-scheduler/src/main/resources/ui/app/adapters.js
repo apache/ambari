@@ -107,6 +107,18 @@ App.QueueAdapter = DS.Adapter.extend({
     });
 
   },
+
+  getPrivilege:function () {
+    var uri = _getCapacitySchedulerUri(this.clusterName, this.tag);
+    return new Ember.RSVP.Promise(function(resolve, reject) {
+      this.ajax([uri,'privilege'].join('/'),'GET').then(function(data) {
+        Ember.run(null, resolve, data);
+      }, function(jqXHR) {
+        jqXHR.then = null;
+        Ember.run(null, reject, jqXHR);
+      });
+    }.bind(this));
+  },
      
   ajax: function(url, type, hash) {
     var adapter = this;
@@ -149,7 +161,7 @@ App.QueueAdapter = DS.Adapter.extend({
     }
 
     return jqXHR;
-  },
+  }
 });
 
 App.SchedulerAdapter = App.QueueAdapter.extend({
@@ -157,12 +169,14 @@ App.SchedulerAdapter = App.QueueAdapter.extend({
     return store.findAll('scheduler').then(function (scheduler) {
       return {"scheduler":scheduler.findBy('id',id).toJSON({includeId:true})};
     });
-  },
+  }
 });
 
 App.ApplicationStore = DS.Store.extend({
 
   adapter: App.QueueAdapter,
+
+  configNote:'',
 
   markForRefresh:function (mark) {
     this.set('defaultAdapter.saveMark','saveAndRefresh');
@@ -209,6 +223,9 @@ App.ApplicationStore = DS.Store.extend({
       record.adapterDidError();
     }
   },
+  checkOperator:function () {
+    return this.get('defaultAdapter').getPrivilege();
+  }
 });
 
 App.ApplicationSerializer = DS.RESTSerializer.extend({
@@ -217,6 +234,7 @@ App.ApplicationSerializer = DS.RESTSerializer.extend({
 
   serializeConfig:function (records) {
     var config = {},
+        note = this.get('store.configNote'),
         prefix = this.PREFIX;
     records.forEach(function (record) {
       if (record.id == 'scheduler') {
@@ -243,7 +261,9 @@ App.ApplicationSerializer = DS.RESTSerializer.extend({
       }
     }
 
-    return {properties : config};
+    this.set('store.configNote','');
+
+    return {properties : config, service_config_version_note: note};
 
   },
   normalizeConfig:function (store, payload) {

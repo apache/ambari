@@ -22,9 +22,12 @@ App.PathInputComponent = Em.Component.extend({
   layoutName:'components/pathInput',
   actions:{
     add:function () {
-      var path = this.get('path'),
-          basedir = path.substr(0,path.lastIndexOf('.'));
-
+      var currentBasedir = this.get('currentBasedir'),
+          path = this.get('path'),
+          basedir = path.substr(0,path.lastIndexOf('.')) || currentBasedir;
+      if (!path) {
+        return this.set('isError',true);
+      }
       if (this.get('pathMap').contains(path)) {
         this.sendAction('action',path);
         this.set('activeFlag',false);
@@ -40,22 +43,43 @@ App.PathInputComponent = Em.Component.extend({
   queues:[],
   activeFlag:false,
   pathMap:Em.computed.mapBy('queues','path'),
+  currentBasedir:Em.computed(function() {
+    return this.get('queues').filterBy('isCurrent',true).get('firstObject.path') || "root";
+  }),
   path:'',
+  isError:false,
+  didChangePath:function () {
+    return this.set('isError',false);
+  }.observes('path'),
   inputFieldView: Em.TextField.extend({
     classNames:['form-control newQPath'],
     action:'add',
     pathSource:[],
     placeholder:"Enter queue path...",
     typeaheadInit:function () {
-      $(this.get('element')).typeahead({
+      this.$().typeahead({
           source: this.get('pathSource'),
           matcher: function (item) {
             return ~item.toLowerCase().indexOf(this.query.toLowerCase())
           },
-          minLength:0,
+          minLength:2,
           items:100,
           scrollHeight:5
       }).focus();
     }.observes('pathSource').on('didInsertElement'),
+    tooltipInit:function () {
+      this.$().tooltip({
+        title:'Enter queue name.',
+        placement:'bottom',
+        trigger:'manual'
+      });
+    }.on('didInsertElement'),
+    tooltipToggle:function (e,o) {
+      this.$().tooltip((e.get(o)?'show':'hide'));
+    }.observes('parentView.isError'),
+    willClearRender:function () {
+      this.$().typeahead('destroy');
+      this.$().tooltip('destroy');
+    }
   })
 });

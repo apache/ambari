@@ -17,60 +17,57 @@
 }}
 
 <div class="well-queue">
-  
   <div class="row queue-heading-row">
-      <div class="col-md-12">
-          {{#if content.isNew}}
-            <div class="input-group">
-            <h3>
-              {{focus-input value=content.name length="250" class="form-control" classBinding="content.isValid::input-error" action="createQ" revert="delQ" placeholder="Enter Queue Name"}}
-              <span class="input-group-btn">
-                <button {{action "delQ" content target="controllers.queues"}} {{bind-attr class=":btn :btn-danger"}} type="button">Cancel</button>
-                <button {{action "createQ" content target="controllers.queues"}} {{bind-attr class=":btn :btn-success content.isValid::disabled"}} type="button">Create</button>
-              </span>
-            </h3>
-            </div>
-            {{else}}
-              {{#unless isRenaming}}
-                <h3>
-                  {{content.name}}
-                  {{#unless isRoot}}
+    <div class="col-md-12">
+      <h3>
+        {{#if content.isNew}}
+          <div class="input-group col-md-8">
+            {{focus-input value=content.name length="250" class="form-control" classBinding="content.isValid::input-error" action="createQ" revert="delQ" placeholder="Enter Queue Name"}}
+            <span class="input-group-btn">
+              <button {{action "delQ" content target="controllers.queues"}} {{bind-attr class=":btn :btn-danger"}} type="button">Cancel</button>
+              <button {{action "createQ" content target="controllers.queues"}} {{bind-attr class=":btn :btn-success content.isValid::disabled"}} type="button">Create</button>
+            </span>
+          </div>
+        {{else}}
+          {{#unless isRenaming}}
+              {{content.name}}
+              {{#unless isRoot}}
+                {{#unless isNotOperator}}
                   <small>
-                    <a href="#" {{action "renameQ" 'ask'}} class="">
+                    <a href="#" {{action "renameQ" 'ask'}}>
                       <i class="fa fa-edit"></i>
                     </a>
                   </small>
                   <small>
                     {{confirm-delete action="delQ" param=content}}
                   </small>
-                  {{/unless}}
-                </h3>
-              {{else}}
-              <div class="input-group">
-                <h3>
-                {{focus-input value=content.name length="250" class="form-control" action="renameQ" revert="renameQ" classBinding="content.isValid::input-error" placeholder="Enter Queue Name"}}
-                <span class="input-group-btn">
-                  <button {{action "renameQ" 'cancel'}} {{bind-attr class=":btn :btn-danger"}} type="button">Cancel</button>
-                  <button {{action "renameQ" 'rename'}} {{bind-attr class=":btn :btn-success content.isValid::disabled"}} type="button">Rename</button>
-                </span>
-                </h3>
-              </div>
+                {{/unless}}
               {{/unless}}
-          {{/if}}
-            {{#each pathErrors}}
-                <p class="help-block red">{{this}}</p>
-            {{/each}}
-          <h4 ><small>{{content.path}}</small>
-            <div class="btn-group btn-group-xs" data-toggle="buttons" >
-              <label  {{action 'setState' 'running'}} {{bind-attr class=":btn isRunning:btn-success:btn-default isRunning:active" }}>
-                <input type="radio" name="options"> Running
-              </label>
-              <label  {{action 'setState' 'stopped'}} {{bind-attr class=":btn isRunning:btn-default:btn-danger isRunning::active" }}>
-                <input type="radio" name="options"> Stopped
-              </label>
+            {{else}}
+            <div class="input-group col-md-8">
+              {{focus-input value=content.name length="250" class="form-control" action="renameQ" revert="renameQ" classBinding="content.isValid::input-error" placeholder="Enter Queue Name"}}
+              <span class="input-group-btn">
+                <button {{action "renameQ" 'cancel'}} {{bind-attr class=":btn :btn-danger"}} type="button">Cancel</button>
+                <button {{action "renameQ" 'rename'}} {{bind-attr class=":btn :btn-success content.isValid::disabled"}} type="button">Rename</button>
+              </span>
             </div>
-          </h4>
-      </div>
+          {{/unless}}
+        {{/if}}
+      </h3>
+      {{#each pathErrors}}
+        <p class="help-block red">{{this}}</p>
+      {{/each}}
+      <h4 ><small>{{content.path}}</small>
+        <div class="btn-group btn-group-xs" data-toggle="buttons" >
+          <label  {{action 'setState' 'running'}} {{bind-attr class=":btn isRunning:btn-success:btn-default isRunning:active isNotOperator:disabled" }}>
+            <input type="radio" name="options"> Running
+          </label>
+          <label  {{action 'setState' 'stopped'}} {{bind-attr class=":btn isRunning:btn-default:btn-danger isRunning::active isNotOperator:disabled" }}>
+            <input type="radio" name="options"> Stopped
+          </label>
+        </div>
+      </h4>
+    </div>
   </div>
   <div class="row queue-capacity-row">
     <div class="col-md-12">
@@ -82,6 +79,7 @@
         createQueue="createQ" 
         deleteQueue="delQ" 
         hasNew=controllers.queues.hasNewQueue
+        isOperator=isOperator
       }}
     </div>
   </div>
@@ -91,13 +89,15 @@
         <div class="panel-heading">
           <div class="panel-title">
             <strong>Access Control</strong>
-            <a href="#" {{action 'toggleEditACL'}} class="text-right"> 
-              {{#if isEditACL}}
-                <div class="edit-link">Hide Edit</div>
-              {{else}}
-                <div class="edit-link">Show Edit</div>
-              {{/if}}
-            </a>
+            {{#if isOperator}}
+              <a href="#" {{action 'toggleEditACL'}} class="text-right">
+                {{#if isEditACL}}
+                  <div class="edit-link">Hide Edit</div>
+                {{else}}
+                  <div class="edit-link">Show Edit</div>
+                {{/if}}
+              </a>
+            {{/if}}
           </div>
         </div>
         <div class="panel-body">
@@ -191,13 +191,15 @@
         <div class="panel-heading">
           <div class="panel-title">
             <strong>Resource Allocation</strong>
-            <a href="#" {{action 'toggleEditRA'}} class="text-right"> 
-              {{#if isEditRA}}
-                <div class="edit-link">Hide Edit</div>
-              {{else}}
-                <div class="edit-link">Show Edit</div>
-              {{/if}}
-            </a>
+            {{#if isOperator}}
+              <a href="#" {{action 'toggleEditRA'}} class="text-right">
+                {{#if isEditRA}}
+                  <div class="edit-link">Hide Edit</div>
+                {{else}}
+                  <div class="edit-link">Show Edit</div>
+                {{/if}}
+              </a>
+            {{/if}}
           </div>
         </div>
         <div class="panel-body">
