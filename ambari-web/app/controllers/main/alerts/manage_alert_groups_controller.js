@@ -113,6 +113,9 @@ App.ManageAlertGroupsController = Em.Controller.extend({
     this.set('isLoaded', false);
     this.set('alertGroups', []);
     this.set('originalAlertGroups', []);
+    this.set('isRemoveButtonDisabled', true);
+    this.set('isRenameButtonDisabled', true);
+    this.set('isDuplicateButtonDisabled', true);
     App.ajax.send({
       name: 'alerts.load_alert_groups',
       sender: this,
