@@ -51,7 +51,7 @@ import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider
 import static org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
 public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
-  static final Map<String, String> TIMLINE_APPID_MAP = new HashMap<String, String>();
+  static final Map<String, String> TIMELINE_APPID_MAP = new HashMap<String, String>();
   private static ObjectMapper mapper;
   //private final HttpClient httpClient = new HttpClient();
   private final static ObjectReader timelineObjectReader;
@@ -60,8 +60,10 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
   private static final Set<String> PERCENTAGE_METRIC;
 
   static {
-    TIMLINE_APPID_MAP.put("HBASE_MASTER", "HBASE");
-    TIMLINE_APPID_MAP.put("HBASE_REGIONSERVER", "HBASE");
+    TIMELINE_APPID_MAP.put("HBASE_MASTER", "HBASE");
+    TIMELINE_APPID_MAP.put("HBASE_REGIONSERVER", "HBASE");
+    TIMELINE_APPID_MAP.put("METRIC_COLLECTOR", "AMS-HBASE");
+
     mapper = new ObjectMapper();
     AnnotationIntrospector introspector = new JaxbAnnotationIntrospector();
     mapper.setAnnotationIntrospector(introspector);
@@ -171,8 +173,8 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
 
           String componentName = getComponentName(resource);
           if (componentName != null && !componentName.isEmpty()) {
-            if (TIMLINE_APPID_MAP.containsKey(componentName)) {
-              componentName = TIMLINE_APPID_MAP.get(componentName);
+            if (TIMELINE_APPID_MAP.containsKey(componentName)) {
+              componentName = TIMELINE_APPID_MAP.get(componentName);
             }
             uriBuilder.setParameter("appId", componentName);
           }

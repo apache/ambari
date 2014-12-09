@@ -42,6 +42,7 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
   private String serviceName = "";
   private List<? extends SocketAddress> metricsServers;
   private String collectorUri;
+  private static final String SERVICE_NAME_PREFIX = "serviceName-prefix";
 
   @Override
   public void init(SubsetConfiguration conf) {
@@ -61,7 +62,7 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
       }
     }
 
-    serviceName = getFirstConfigPrefix(conf);
+    serviceName = getServiceName(conf);
 
     // Load collector configs
     metricsServers = Servers.parse(conf.getString(COLLECTOR_HOST_PROPERTY), 8188);
@@ -104,6 +105,12 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
         useTagsMap.put(contextName, set);
       }
     }
+  }
+
+  private String getServiceName(SubsetConfiguration conf) {
+    String serviceNamePrefix = conf.getString(SERVICE_NAME_PREFIX, "");
+    return serviceNamePrefix.isEmpty() ? getFirstConfigPrefix(conf) :
+      serviceNamePrefix + "-" + getFirstConfigPrefix(conf);
   }
 
   private String getFirstConfigPrefix(SubsetConfiguration conf) {
