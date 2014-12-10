@@ -159,6 +159,22 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
         Set<Resource> resourceSet = resourceEntry.getValue();
 
         for (Resource resource : resourceSet) {
+          String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
+
+          // Check liveliness of host
+          if (!hostProvider.isCollectorHostLive(clusterName, TIMELINE_METRICS)) {
+            LOG.info("METRIC_COLLECTOR host is not live. Skip populating " +
+              "resources with metrics.");
+            return Collections.emptySet();
+          }
+
+          // Check liveliness of Collector
+          if (!hostProvider.isCollectorComponentLive(clusterName, TIMELINE_METRICS)) {
+            LOG.info("METRIC_COLLECTOR is not live. Skip populating resources" +
+              " with metrics.");
+            return Collections.emptySet();
+          }
+
           String metricsParam = getSetString(metrics.keySet(), -1);
           // Reuse uriBuilder
           uriBuilder.removeQuery();
