@@ -61,7 +61,7 @@ def namenode(action=None, do_format=True):
     else:
       dfs_check_nn_status_cmd = None
 
-    namenode_safe_mode_off = format("hadoop dfsadmin -safemode get | grep 'Safe mode is OFF'")
+    namenode_safe_mode_off = format("hdfs dfsadmin -safemode get | grep 'Safe mode is OFF'")
 
     # If HA is enabled and it is in standby, then stay in safemode, otherwise, leave safemode.
     leave_safe_mode = True
