@@ -55,6 +55,12 @@ def storm():
        group=params.user_group
   )
 
+  if params.has_metric_collector:
+    File(format("{conf_dir}/storm-metrics2.properties"),
+        owner=params.storm_user,
+        group=params.user_group,
+        content=Template("storm-metrics2.properties.j2")
+    )
 
   File(format("{conf_dir}/storm-env.sh"),
     owner=params.storm_user,
