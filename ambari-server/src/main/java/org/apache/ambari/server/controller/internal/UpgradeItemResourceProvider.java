@@ -21,26 +21,27 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
+import org.apache.ambari.server.actionmanager.StageStatus;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.UpgradeHelper;
 
 import com.google.inject.Inject;
@@ -89,10 +90,41 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
   /**
    * Constructor.
    *
-   * @param controller
+   * @param controller  the controller
    */
   UpgradeItemResourceProvider(AmbariManagementController controller) {
     super(PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
+  }
+
+  @Override
+  public RequestStatus updateResources(Request request, Predicate predicate)
+      throws SystemException, UnsupportedPropertyException,
+      NoSuchResourceException, NoSuchParentResourceException {
+
+    // the request should contain a single map of update properties...
+    Iterator<Map<String,Object>> iterator = request.getProperties().iterator();
+    if (iterator.hasNext()) {
+
+      Map<String,Object> updateProperties = iterator.next();
+
+      String statusPropertyId = STAGE_MAPPED_IDS.get(StageResourceProvider.STAGE_STATUS);
+      String stageStatus      = (String) updateProperties.get(statusPropertyId);
+
+      if (stageStatus != null) {
+
+        StageStatus   desiredStatus = StageStatus.valueOf(stageStatus);
+        Set<Resource> resources     = getResources(PropertyHelper.getReadRequest(), predicate);
+
+        for (Resource resource : resources) {
+          // Set the desired status on the underlying stage.
+          Long stageId = (Long) resource.getPropertyValue(UPGRADE_ITEM_STAGE_ID);
+          StageResourceProvider.updateStageStatus(stageId, desiredStatus);
+        }
+      }
+    }
+    notifyUpdate(Resource.Type.UpgradeItem, request, predicate);
+
+    return getRequestStatus(null);
   }
 
   @Override
@@ -174,16 +206,6 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
     }
     return results;
   }
-
-  private Cluster getCluster(Long clusterId) throws SystemException {
-    Clusters clusters = getManagementController().getClusters();
-    try {
-      return clusters.getClusterById(clusterId.longValue());
-    } catch (AmbariException e) {
-      throw new SystemException("Cannot load cluster for upgrade items");
-    }
-  }
-
 
   @Override
   protected Set<String> getPKPropertyIds() {

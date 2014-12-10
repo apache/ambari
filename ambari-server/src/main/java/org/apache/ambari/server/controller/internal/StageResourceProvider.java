@@ -19,6 +19,7 @@ package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.actionmanager.StageStatus;
 import org.apache.ambari.server.controller.spi.ExtendedResourceProvider;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -30,6 +31,8 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PredicateBuilder;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
@@ -41,6 +44,7 @@ import javax.inject.Provider;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -145,7 +149,27 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
   public RequestStatus updateResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
-    throw new UnsupportedOperationException();
+
+    Iterator<Map<String,Object>> iterator = request.getProperties().iterator();
+    if (iterator.hasNext()) {
+
+      Map<String,Object> updateProperties = iterator.next();
+
+      ensureClusters();
+
+      List<StageEntity> entities = dao.findAll(request, predicate);
+      for (StageEntity entity : entities) {
+
+        String stageStatus = (String) updateProperties.get(STAGE_STATUS);
+        if (stageStatus != null) {
+          StageStatus desiredStatus = StageStatus.valueOf(stageStatus);
+          updateStageStatus(entity, desiredStatus);
+        }
+      }
+    }
+    notifyUpdate(Resource.Type.Stage, request, predicate);
+
+    return getRequestStatus(null);
   }
 
   @Override
@@ -185,8 +209,49 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
     return new QueryResponseImpl(results, request.getSortRequest() != null, false, results.size());
   }
 
+  // ----- StageResourceProvider ---------------------------------------------
+
+  /**
+   * Update the stage identified by the given stage id with the desired status.
+   *
+   * @param stageId        the stage id
+   * @param desiredStatus  the desired stage status
+   */
+  public static void updateStageStatus(long stageId, StageStatus desiredStatus) {
+    Predicate predicate =
+        new PredicateBuilder().property(STAGE_STAGE_ID).equals(stageId).toPredicate();
+
+    List<StageEntity> entityList = dao.findAll(PropertyHelper.getReadRequest(), predicate);
+    for (StageEntity stageEntity : entityList) {
+      updateStageStatus(stageEntity, desiredStatus);
+    }
+  }
+
 
   // ----- helper methods ----------------------------------------------------
+
+  /**
+   * Update the given stage entity with the desired status.
+   *
+   * @param entity         the stage entity to update
+   * @param desiredStatus  the desired stage status
+   *
+   * @throws java.lang.IllegalArgumentException if the transition to the desired status is not a
+   *         legal transition
+   */
+  private static void updateStageStatus(StageEntity entity, StageStatus desiredStatus) {
+    Collection<HostRoleCommandEntity> tasks = entity.getHostRoleCommands();
+
+    Map<HostRoleStatus, Integer> taskStatusCounts = calculateTaskStatusCounts(tasks);
+
+    StageStatus currentStatus = calculateSummaryStatus(taskStatusCounts, tasks.size());
+
+    if (!currentStatus.isValidManualTransition(desiredStatus)) {
+      throw new IllegalArgumentException("Can not transition a stage from " +
+          currentStatus + " to " + desiredStatus);
+    }
+    // TODO : call ActionScheduler to release holding state
+  }
 
   /**
    * Converts the {@link StageEntity} to a {@link Resource}.
@@ -266,12 +331,12 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
    *
    * @return summary request status based on statuses of tasks in different states.
    */
-  private HostRoleStatus calculateSummaryStatus(Map<HostRoleStatus, Integer> counters, int totalTasks) {
-    return counters.get(HostRoleStatus.FAILED) > 0 ? HostRoleStatus.FAILED :
-        counters.get(HostRoleStatus.ABORTED) > 0 ? HostRoleStatus.ABORTED :
-        counters.get(HostRoleStatus.TIMEDOUT) > 0 ? HostRoleStatus.TIMEDOUT :
-        counters.get(HostRoleStatus.IN_PROGRESS) > 0 ? HostRoleStatus.IN_PROGRESS :
-        counters.get(HostRoleStatus.COMPLETED) == totalTasks ? HostRoleStatus.COMPLETED : HostRoleStatus.PENDING;
+  private static StageStatus calculateSummaryStatus(Map<HostRoleStatus, Integer> counters, int totalTasks) {
+    return counters.get(HostRoleStatus.FAILED) > 0 ? StageStatus.FAILED :
+        counters.get(HostRoleStatus.ABORTED) > 0 ? StageStatus.ABORTED :
+        counters.get(HostRoleStatus.TIMEDOUT) > 0 ? StageStatus.TIMEDOUT :
+        counters.get(HostRoleStatus.IN_PROGRESS) > 0 ? StageStatus.IN_PROGRESS :
+        counters.get(HostRoleStatus.COMPLETED) == totalTasks ? StageStatus.COMPLETED : StageStatus.PENDING;
   }
 
   /**
@@ -281,7 +346,7 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
    *
    * @return a map of counts of tasks keyed by the task status
    */
-  private Map<HostRoleStatus, Integer> calculateTaskStatusCounts(Collection<HostRoleCommandEntity> tasks) {
+  private static Map<HostRoleStatus, Integer> calculateTaskStatusCounts(Collection<HostRoleCommandEntity> tasks) {
     Map<HostRoleStatus, Integer> counters = new HashMap<HostRoleStatus, Integer>();
     // initialize
     for (HostRoleStatus hostRoleStatus : HostRoleStatus.values()) {
