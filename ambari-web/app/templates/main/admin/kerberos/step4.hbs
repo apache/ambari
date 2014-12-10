@@ -15,16 +15,20 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div id="serviceConfig">
-  <h2>{{t admin.kerberos.wizard.step4.header}}</h2>
-  <p class="alert alert-info">
-    {{t admin.kerberos.wizard.step4.info.body}}
-  </p>
+<div id="kerberos-wizard-step4">
+  <div id="serviceConfig">
+    <h2>{{t admin.kerberos.wizard.step4.header}}</h2>
 
-  {{view App.ServicesConfigView}}
+    <p class="alert alert-info">
+      {{t admin.kerberos.wizard.step4.info.body}}
+    </p>
 
-  <div class="btn-area">
-    <button id="submit-kerberos-step4" class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}}
-       {{action submit target="controller"}}>{{t common.next}} &rarr;</button>
+    {{view App.ServicesConfigView}}
+
+    <div class="btn-area">
+      <button id="back-kerberos-step4" class="btn" {{action back}}>&larr; {{t common.back}}</button>
+      <button id="submit-kerberos-step4" class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}}
+        {{action submit target="controller"}}>{{t common.next}} &rarr;</button>
+    </div>
   </div>
 </div>
