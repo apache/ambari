@@ -186,7 +186,7 @@ class TestHiveMetastore(RMFTestCase):
     )
     self.assertResourceCalled('Execute', '/bin/sh -c \'cd /usr/lib/ambari-agent/ && curl -kf -x "" --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar\'',
         environment = {'no_proxy': 'c6401.ambari.apache.org'},
-        not_if = '[ -f DBConnectionVerification.jar]',
+        not_if = '[ -f /usr/lib/ambari-agent/DBConnectionVerification.jar ]',
     )
     self.assertResourceCalled('File', '/tmp/start_metastore_script',
         content = StaticFile('startMetastore.sh'),
@@ -286,7 +286,7 @@ class TestHiveMetastore(RMFTestCase):
     )
     self.assertResourceCalled('Execute', '/bin/sh -c \'cd /usr/lib/ambari-agent/ && curl -kf -x "" --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar\'',
         environment = {'no_proxy': 'c6401.ambari.apache.org'},
-        not_if = '[ -f DBConnectionVerification.jar]',
+        not_if = '[ -f /usr/lib/ambari-agent/DBConnectionVerification.jar ]',
     )
     self.assertResourceCalled('File', '/tmp/start_metastore_script',
         content = StaticFile('startMetastore.sh'),

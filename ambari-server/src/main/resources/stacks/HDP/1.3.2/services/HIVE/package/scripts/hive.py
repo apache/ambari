@@ -64,7 +64,7 @@ def hive(name=None):
                "-o {check_db_connection_jar_name}'")
 
   Execute(cmd,
-          not_if=format("[ -f {check_db_connection_jar_name}]"),
+          not_if=format("[ -f {check_db_connection_jar} ]"),
           environment = environment)
 
   if name == 'metastore':

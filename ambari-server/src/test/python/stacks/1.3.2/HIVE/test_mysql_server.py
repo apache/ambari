@@ -37,10 +37,10 @@ class TestMySqlServer(RMFTestCase):
                        config_file="default.json"
     )
 
-    self.assertResourceCalled('Execute', 'service mysql start',
+    self.assertResourceCalled('Execute', ('service','mysql','start'),
         logoutput = True,
         path = ['/usr/local/bin/:/bin/:/sbin/'],
-        user = 'mysql',
+        sudo = True,
     )
     self.assertNoMoreResources()
 
@@ -51,10 +51,10 @@ class TestMySqlServer(RMFTestCase):
                        config_file="default.json"
     )
 
-    self.assertResourceCalled('Execute', 'service mysql stop',
+    self.assertResourceCalled('Execute', ('service','mysql','stop'),
         logoutput = True,
         path = ['/usr/local/bin/:/bin/:/sbin/'],
-        user = 'mysql',
+        sudo = True,
     )
     self.assertNoMoreResources()
 
@@ -75,10 +75,10 @@ class TestMySqlServer(RMFTestCase):
                        config_file="secured.json"
     )
 
-    self.assertResourceCalled('Execute', 'service mysql start',
+    self.assertResourceCalled('Execute', ('service','mysql','start'),
         logoutput = True,
         path = ['/usr/local/bin/:/bin/:/sbin/'],
-        user = 'mysql',
+        sudo = True,
     )
     self.assertNoMoreResources()
 
@@ -88,18 +88,18 @@ class TestMySqlServer(RMFTestCase):
                        command = "stop",
                        config_file="secured.json"
     )
-    self.assertResourceCalled('Execute', 'service mysql stop',
+    self.assertResourceCalled('Execute', ('service','mysql','stop'),
         logoutput = True,
         path = ['/usr/local/bin/:/bin/:/sbin/'],
-        user = 'mysql',
+        sudo = True,
     )
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
-    self.assertResourceCalled('Execute', 'service mysql start',
+    self.assertResourceCalled('Execute', ('service','mysql','start'),
         logoutput = True,
         path = ['/usr/local/bin/:/bin/:/sbin/'],
-        user = 'mysql',
+        sudo = True,
     )
     self.assertResourceCalled('File', '/tmp/addMysqlUser.sh',
       content = StaticFile('addMysqlUser.sh'),
@@ -110,17 +110,17 @@ class TestMySqlServer(RMFTestCase):
       tries = 3,
       try_sleep = 5,
     )
-    self.assertResourceCalled('Execute', 'service mysql stop',
+    self.assertResourceCalled('Execute', ('service','mysql','stop'),
       logoutput = True,
       path = ['/usr/local/bin/:/bin/:/sbin/'],
-      user = 'mysql',
+      sudo = True,
     )
 
   def assert_configure_secured(self):
-    self.assertResourceCalled('Execute', 'service mysql start',
+    self.assertResourceCalled('Execute', ('service','mysql','start'),
       logoutput = True,
       path = ['/usr/local/bin/:/bin/:/sbin/'],
-      user = 'mysql',
+      sudo = True,
     )
     self.assertResourceCalled('File', '/tmp/addMysqlUser.sh',
       content = StaticFile('addMysqlUser.sh'),
@@ -131,8 +131,8 @@ class TestMySqlServer(RMFTestCase):
       tries = 3,
       try_sleep = 5,
     )
-    self.assertResourceCalled('Execute', 'service mysql stop',
+    self.assertResourceCalled('Execute', ('service','mysql','stop'),
       logoutput = True,
       path = ['/usr/local/bin/:/bin/:/sbin/'],
-      user = 'mysql',
+      sudo = True,
     )

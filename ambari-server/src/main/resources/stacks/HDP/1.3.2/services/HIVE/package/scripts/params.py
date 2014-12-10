@@ -87,8 +87,6 @@ start_hiveserver2_script = 'startHiveserver2.sh'
 
 hadoop_home = '/usr'
 
-mysql_user = 'mysql'
-
 ##Starting metastore
 start_metastore_script = 'startMetastore.sh'
 hive_metastore_pid = status_params.hive_metastore_pid

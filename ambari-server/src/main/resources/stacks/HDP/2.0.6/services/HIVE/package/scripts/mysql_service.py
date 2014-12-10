@@ -23,7 +23,7 @@ from resource_management import *
 
 def mysql_service(daemon_name=None, action='start'): 
   status_cmd = format('service {daemon_name} status | grep running')
-  cmd = format('service {daemon_name} {action}')
+  cmd = ('service', daemon_name, action)
 
   if action == 'status':
     Execute(status_cmd)
@@ -32,7 +32,7 @@ def mysql_service(daemon_name=None, action='start'):
     Execute(cmd,
             logoutput = True,
             only_if = status_cmd,
-            user = params.mysql_user
+            sudo = True,
     )
   elif action == 'start':
     import params
@@ -45,7 +45,7 @@ def mysql_service(daemon_name=None, action='start'):
     Execute(cmd,
       logoutput = True,
       not_if = status_cmd,
-      user = params.mysql_user
+      sudo = True,
     )
 
 

@@ -44,10 +44,10 @@ class TestMySqlServer(RMFTestCase):
      '/etc/my.cnf'),
         sudo = True,
     )
-    self.assertResourceCalled('Execute', 'service mysql start',
+    self.assertResourceCalled('Execute', ('service','mysql','start'),
                        logoutput = True,
                        not_if = 'service mysql status | grep running',
-                       user = 'mysql',
+                       sudo = True,
     )
     self.assertNoMoreResources()
 
@@ -57,10 +57,10 @@ class TestMySqlServer(RMFTestCase):
                        command = "stop",
                        config_file="default.json"
     )
-    self.assertResourceCalled('Execute', 'service mysql stop',
+    self.assertResourceCalled('Execute', ('service','mysql','stop'),
                               logoutput = True,
                               only_if = 'service mysql status | grep running',
-                              user = 'mysql',
+                              sudo = True,
     )
     self.assertNoMoreResources()
 
@@ -87,10 +87,10 @@ class TestMySqlServer(RMFTestCase):
      '/etc/my.cnf'),
         sudo = True,
     )
-    self.assertResourceCalled('Execute', 'service mysql start',
+    self.assertResourceCalled('Execute', ('service','mysql','start'),
                               logoutput = True,
                               not_if = 'service mysql status | grep running',
-                              user = 'mysql',
+                              sudo = True,
                               )
     self.assertNoMoreResources()
 
@@ -101,10 +101,10 @@ class TestMySqlServer(RMFTestCase):
                        config_file="secured.json"
     )
     
-    self.assertResourceCalled('Execute', 'service mysql stop',
+    self.assertResourceCalled('Execute', ('service','mysql','stop'),
                               logoutput = True,
                               only_if = 'service mysql status | grep running',
-                              user = 'mysql',
+                              sudo = True,
                               )
     self.assertNoMoreResources()
 

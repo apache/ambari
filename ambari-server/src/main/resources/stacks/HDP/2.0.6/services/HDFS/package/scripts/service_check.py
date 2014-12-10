@@ -42,7 +42,7 @@ class HdfsServiceCheck(Script):
     test_cmd = format("fs -test -e {tmp_file}")
     if params.security_enabled:
       Execute(format("{kinit_path_local} -kt {smoke_user_keytab} {smoke_user}"),
-        users=params.smoke_user
+        user=params.smoke_user
       )
     ExecuteHadoop(safemode_command,
                   user=params.smoke_user,

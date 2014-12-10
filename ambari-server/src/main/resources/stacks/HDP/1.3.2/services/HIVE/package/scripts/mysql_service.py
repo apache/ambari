@@ -22,18 +22,20 @@ from resource_management import *
 
 
 def mysql_service(daemon_name=None, action='start'):
-  cmd = format('service {daemon_name} {action}')
+  cmd = ('service', daemon_name, action)
 
   if action == 'status':
     Execute(cmd,
             path="/usr/local/bin/:/bin/:/sbin/",
-            logoutput=False)
+            logoutput=False,
+            sudo=True,
+    )
   else:
-    import params
     Execute(cmd,
             path="/usr/local/bin/:/bin/:/sbin/",
-            user=params.mysql_user,
-            logoutput=True)
+            logoutput=True,
+            sudo=True,
+    )
 
 
 

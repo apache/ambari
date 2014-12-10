@@ -26,7 +26,7 @@ mysqldbpasswd=$3
 mysqldbhost=$4
 myhostname=$(hostname -f)
 
-sudo su mysql -s /bin/bash - -c "service $mysqldservice start"
+sudo service $mysqldservice start
 echo "Adding user $mysqldbuser@$mysqldbhost and $mysqldbuser@localhost"
 sudo su mysql -s /bin/bash - -c "mysql -u root -e \"CREATE USER '$mysqldbuser'@'$mysqldbhost' IDENTIFIED BY '$mysqldbpasswd';\""
 sudo su mysql -s /bin/bash - -c "mysql -u root -e \"CREATE USER '$mysqldbuser'@'localhost' IDENTIFIED BY '$mysqldbpasswd';\""
@@ -38,4 +38,4 @@ if [ '$(sudo su mysql -s /bin/bash - -c "mysql -u root -e \"select user from mys
   sudo su mysql -s /bin/bash - -c "mysql -u root -e \"GRANT ALL PRIVILEGES ON *.* TO '$mysqldbuser'@'$myhostname';\";"
 fi
 sudo su mysql -s /bin/bash - -c "mysql -u root -e \"flush privileges;\""
-sudo su mysql -s /bin/bash - -c "service $mysqldservice stop"
+sudo service $mysqldservice stop

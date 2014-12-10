@@ -165,7 +165,6 @@ java64_home = config['hostLevelParams']['java_home']
 ##### MYSQL
 
 db_name = config['configurations']['hive-env']['hive_database_name']
-mysql_user = "mysql"
 mysql_group = 'mysql'
 mysql_host = config['clusterHostInfo']['hive_mysql_host']
 
