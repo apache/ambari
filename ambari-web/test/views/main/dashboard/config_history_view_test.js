@@ -47,11 +47,40 @@ describe('App.MainConfigHistoryView', function() {
 
       view.didInsertElement();
       expect(view.addObserver.calledTwice).to.be.true;
+      expect(view.get('isInitialRendering')).to.be.true;
       expect(view.get('controller.isPolling')).to.be.true;
       expect(view.get('controller').doPolling.calledOnce).to.be.true;
 
       view.addObserver.restore();
       view.get('controller').doPolling.restore();
+    });
+  });
+
+  describe('#updateFilter()', function () {
+    var cases = [
+      {
+        isInitialRendering: false,
+        updateFilterCalled: true,
+        title: 'updateFilter should be called'
+      },
+      {
+        isInitialRendering: true,
+        updateFilterCalled: false,
+        title: 'updateFilter should not be called'
+      }
+    ];
+    beforeEach(function () {
+      sinon.stub(view, 'saveFilterConditions', Em.K);
+    });
+    afterEach(function () {
+      view.saveFilterConditions.restore();
+    });
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        view.set('isInitialRendering', item.isInitialRendering);
+        view.updateFilter(1, 'value', 'string');
+        expect(view.get('saveFilterConditions').calledWith(1, 'value', 'string')).to.equal(item.updateFilterCalled);
+      });
     });
   });
 

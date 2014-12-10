@@ -25,6 +25,7 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
 
   controllerBinding: 'App.router.mainConfigHistoryController',
   filteringComplete: false,
+  isInitialRendering: true,
 
   /**
    * return filtered number of all content number information displayed on the page footer bar
@@ -37,6 +38,7 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
   didInsertElement: function () {
     this.addObserver('startIndex', this, 'updatePagination');
     this.addObserver('displayLength', this, 'updatePagination');
+    this.set('isInitialRendering', true);
     this.refresh();
     this.set('controller.isPolling', true);
     this.get('controller').doPolling();
@@ -48,6 +50,12 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
   willDestroyElement: function () {
     this.set('controller.isPolling', false);
     clearTimeout(this.get('controller.timeoutRef'));
+  },
+
+  updateFilter: function (iColumn, value, type) {
+    if (!this.get('isInitialRendering')) {
+      this._super(iColumn, value, type);
+    }
   },
 
   sortView: sort.serverWrapperView,
@@ -178,6 +186,7 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
     var self = this;
     this.set('filteringComplete', false);
     this.get('controller').load().done(function () {
+      self.set('isInitialRendering', false);
       self.set('filteringComplete', true);
       self.propertyDidChange('pageContent');
       self.set('controller.resetStartIndex', false);
