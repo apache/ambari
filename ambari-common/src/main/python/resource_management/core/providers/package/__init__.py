@@ -37,11 +37,11 @@ class PackageProvider(Provider):
 
   def action_install(self):
     package_name = self.get_package_name_with_version()
-    self.install_package(package_name)
+    self.install_package(package_name, self.resource.use_repos)
 
   def action_upgrade(self):
     package_name = self.get_package_name_with_version()
-    self.upgrade_package(package_name)
+    self.upgrade_package(package_name, self.resource.use_repos)
 
   def action_remove(self):
     package_name = self.get_package_name_with_version()

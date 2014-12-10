@@ -47,18 +47,22 @@ class InstallPackages(Script):
 
     # Select dict that contains parameters
     try:
+      repository_version = config['roleParams']['repository_version']
       base_urls = json.loads(config['roleParams']['base_urls'])
       package_list = json.loads(config['roleParams']['package_list'])
     except KeyError:
       # Last try
+      repository_version = config['commandParams']['repository_version']
       base_urls = json.loads(config['commandParams']['base_urls'])
       package_list = json.loads(config['commandParams']['package_list'])
 
     # Install/update repositories
     installed_repositories = []
+    current_repositories = ['base']  # Some our packages are installed from the base repo
     try:
       for url_info in base_urls:
-        self.install_repository(url_info)
+        repo_name = self.install_repository(url_info, repository_version)
+        current_repositories.append(repo_name)
 
       installed_repositories = list_ambari_managed_repos()
     except Exception, err:
@@ -70,7 +74,7 @@ class InstallPackages(Script):
     if not delayed_fail:
       try:
         for package in package_list:
-          Package(package['name'])
+          Package(package['name'], use_repos=current_repositories)
         package_install_result = True
       except Exception, err:
         print "Can not install packages."
@@ -81,6 +85,7 @@ class InstallPackages(Script):
     # Build structured output
     structured_output = {
       'ambari_repositories': installed_repositories,
+      'installed_repository_version': repository_version,
       'package_installation_result': 'SUCCESS' if package_install_result else 'FAIL'
     }
     self.put_structured_out(structured_output)
@@ -90,11 +95,11 @@ class InstallPackages(Script):
       raise Fail("Failed to distribute repositories/install packages")
 
 
-  def install_repository(self, url_info):
+  def install_repository(self, url_info, repository_version):
     template = "repo_suse_rhel.j2" if OSCheck.is_redhat_family() or OSCheck.is_suse_family() else "repo_ubuntu.j2"
 
     repo = {
-      'repoName': url_info['repositoryId']
+      'repoName': "{0}-{1}".format(url_info['name'], repository_version)
     }
 
     if not 'baseUrl' in url_info:
@@ -107,7 +112,7 @@ class InstallPackages(Script):
     else:
       repo['mirrorsList'] = url_info['mirrorsList']
 
-    ubuntu_components = [repo['repoName']] + self.UBUNTU_REPO_COMPONENTS_POSTFIX
+    ubuntu_components = [url_info['repositoryId']] + self.UBUNTU_REPO_COMPONENTS_POSTFIX
 
     Repository(repo['repoName'],
       action = "create",
@@ -117,7 +122,7 @@ class InstallPackages(Script):
       repo_template = template,
       components = ubuntu_components,  # ubuntu specific
     )
-
+    return repo['repoName']
 
 if __name__ == "__main__":
   InstallPackages().execute()

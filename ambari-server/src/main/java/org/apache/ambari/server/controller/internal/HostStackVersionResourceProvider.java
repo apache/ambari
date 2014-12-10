@@ -235,7 +235,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
           NoSuchParentResourceException {
     Iterator<Map<String,Object>> iterator = request.getProperties().iterator();
     String hostName;
-    String desiredRepoVersion;
+    final String desiredRepoVersion;
     String stackName;
     String stackVersion;
     if (request.getProperties().size() != 1) {
@@ -362,6 +362,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     final String repoList = gson.toJson(repoInfo);
 
     Map<String, String> params = new HashMap<String, String>(){{
+      put("repository_version", desiredRepoVersion);
       put("base_urls", repoList);
       put("package_list", packageList);
     }};
@@ -374,7 +375,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
             cluster.getClusterName(), INSTALL_PACKAGES_ACTION,
             Collections.singletonList(filter),
             params);
-    actionContext.setTimeout((short) 60);
+    actionContext.setTimeout((short) 600);
 
     String caption = String.format(INSTALL_PACKAGES_FULL_NAME + " on host %s", hostName);
     RequestStageContainer req = createRequest(caption);

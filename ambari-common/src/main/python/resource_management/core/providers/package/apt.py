@@ -40,7 +40,7 @@ def replace_underscores(function_to_decorate):
 class AptProvider(PackageProvider):
 
   @replace_underscores
-  def install_package(self, name):
+  def install_package(self, name, use_repos=[]):
     if not self._check_existence(name):
       cmd = INSTALL_CMD + [name]
       Logger.info("Installing package %s ('%s')" % (name, string_cmd_from_args_list(cmd)))
@@ -61,8 +61,8 @@ class AptProvider(PackageProvider):
       Logger.info("Skipping installing existent package %s" % (name))
 
   @replace_underscores
-  def upgrade_package(self, name):
-    return self.install_package(name)
+  def upgrade_package(self, name, use_repos=[]):
+    return self.install_package(name, use_repos)
 
   @replace_underscores
   def remove_package(self, name):

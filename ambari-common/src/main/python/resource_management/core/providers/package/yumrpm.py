@@ -30,16 +30,20 @@ REMOVE_CMD = ['/usr/bin/yum', '-d', '0', '-e', '0', '-y', 'erase']
 CHECK_CMD = "installed_pkgs=`rpm -qa %s` ; [ ! -z \"$installed_pkgs\" ]"
 
 class YumProvider(PackageProvider):
-  def install_package(self, name):
-    if not self._check_existence(name):
-      cmd = INSTALL_CMD + [name]
+  def install_package(self, name, use_repos=[]):
+    if not self._check_existence(name) or use_repos:
+      cmd = INSTALL_CMD
+      if use_repos:
+        enable_repo_option = '--enablerepo=' + ",".join(use_repos)
+        cmd = cmd + ['--disablerepo=*', enable_repo_option]
+      cmd = cmd + [name]
       Logger.info("Installing package %s ('%s')" % (name, string_cmd_from_args_list(cmd)))
       shell.checked_call(cmd, sudo=True)
     else:
       Logger.info("Skipping installing existent package %s" % (name))
 
-  def upgrade_package(self, name):
-    return self.install_package(name)
+  def upgrade_package(self, name, use_repos=[]):
+    return self.install_package(name, use_repos)
 
   def remove_package(self, name):
     if self._check_existence(name):

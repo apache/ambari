@@ -90,6 +90,18 @@ class TestPackageResource(TestCase):
 
   @patch.object(shell, "call", new = MagicMock(return_value=(0, None)))
   @patch.object(shell, "checked_call")
+  @patch.object(System, "os_family", new = 'redhat')
+  def test_action_install_use_repos_rhel(self, shell_mock):
+    with Environment('/') as env:
+      Package("some_package", use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885']
+              )
+    self.assertEquals(shell_mock.call_args[0][0],
+                      ['/usr/bin/yum', '-d', '0', '-e', '0', '-y', 'install',
+                       '--disablerepo=*',
+                       '--enablerepo=HDP-UTILS-2.2.0.1-885,HDP-2.2.0.1-885', 'some_package'])
+
+  @patch.object(shell, "call", new = MagicMock(return_value=(0, None)))
+  @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'suse')
   def test_action_install_existent_suse(self, shell_mock):
     with Environment('/') as env:

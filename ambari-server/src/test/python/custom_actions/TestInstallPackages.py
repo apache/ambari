@@ -42,35 +42,36 @@ class TestInstallPackages(RMFTestCase):
     self.assertTrue(put_structured_out.called)
     self.assertEquals(put_structured_out.call_args[0][0],
                       {'package_installation_result': 'SUCCESS',
+                       'installed_repository_version': u'2.2.0.1-885',
                        'ambari_repositories': []})
-    self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
+    self.assertResourceCalled('Repository', 'HDP-UTILS-2.2.0.1-885',
                               base_url='http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP-UTILS-1.1.0.20', 'main'],
                               repo_template='repo_suse_rhel.j2',
-                              repo_file_name='HDP-UTILS-1.1.0.20',
+                              repo_file_name='HDP-UTILS-2.2.0.1-885',
                               mirror_list=None,
     )
-    self.assertResourceCalled('Repository', 'HDP-2.2',
+    self.assertResourceCalled('Repository', 'HDP-2.2.0.1-885',
                               base_url='http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP-2.2', 'main'],
                               repo_template='repo_suse_rhel.j2',
-                              repo_file_name='HDP-2.2',
+                              repo_file_name='HDP-2.2.0.1-885',
                               mirror_list=None,
     )
-    self.assertResourceCalled('Package', 'hadoop_2_2_*',)
-    self.assertResourceCalled('Package', 'snappy',)
-    self.assertResourceCalled('Package', 'snappy-devel',)
-    self.assertResourceCalled('Package', 'lzo',)
-    self.assertResourceCalled('Package', 'hadooplzo_2_2_*',)
-    self.assertResourceCalled('Package', 'hadoop_2_2_*-libhdfs',)
-    self.assertResourceCalled('Package', 'ambari-log4j',)
+    self.assertResourceCalled('Package', 'hadoop_2_2_*', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'snappy', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'snappy-devel', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'lzo', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'hadooplzo_2_2_*', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'hadoop_2_2_*-libhdfs', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'ambari-log4j', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
     self.assertNoMoreResources()
 
 
   @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos",
-         new=MagicMock(return_value=["HDP-UTILS-1.0.0.20"]))
+         new=MagicMock(return_value=["HDP-UTILS-2.2.0.1-885"]))
   @patch("resource_management.libraries.script.Script.put_structured_out")
   def test_exclude_existing_repo(self, put_structured_out):
     self.executeScript("scripts/install_packages.py",
@@ -83,30 +84,31 @@ class TestInstallPackages(RMFTestCase):
     self.assertTrue(put_structured_out.called)
     self.assertEquals(put_structured_out.call_args[0][0],
                       {'package_installation_result': 'SUCCESS',
-                       'ambari_repositories': ["HDP-UTILS-1.0.0.20"]})
-    self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
+                       'installed_repository_version': u'2.2.0.1-885',
+                       'ambari_repositories': ["HDP-UTILS-2.2.0.1-885"]})
+    self.assertResourceCalled('Repository', 'HDP-UTILS-2.2.0.1-885',
                               base_url='http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP-UTILS-1.1.0.20', 'main'],
                               repo_template='repo_suse_rhel.j2',
-                              repo_file_name='HDP-UTILS-1.1.0.20',
+                              repo_file_name='HDP-UTILS-2.2.0.1-885',
                               mirror_list=None,
     )
-    self.assertResourceCalled('Repository', 'HDP-2.2',
+    self.assertResourceCalled('Repository', 'HDP-2.2.0.1-885',
                               base_url='http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP-2.2', 'main'],
                               repo_template='repo_suse_rhel.j2',
-                              repo_file_name='HDP-2.2',
+                              repo_file_name='HDP-2.2.0.1-885',
                               mirror_list=None,
     )
-    self.assertResourceCalled('Package', 'hadoop_2_2_*',)
-    self.assertResourceCalled('Package', 'snappy',)
-    self.assertResourceCalled('Package', 'snappy-devel',)
-    self.assertResourceCalled('Package', 'lzo',)
-    self.assertResourceCalled('Package', 'hadooplzo_2_2_*',)
-    self.assertResourceCalled('Package', 'hadoop_2_2_*-libhdfs',)
-    self.assertResourceCalled('Package', 'ambari-log4j',)
+    self.assertResourceCalled('Package', 'hadoop_2_2_*', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'snappy', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'snappy-devel', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'lzo', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'hadooplzo_2_2_*', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'hadoop_2_2_*-libhdfs', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
+    self.assertResourceCalled('Package', 'ambari-log4j', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
     self.assertNoMoreResources()
 
 

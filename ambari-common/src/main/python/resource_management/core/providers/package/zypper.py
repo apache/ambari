@@ -30,7 +30,7 @@ REMOVE_CMD = ['/usr/bin/zypper', '--quiet', 'remove', '--no-confirm']
 CHECK_CMD = "installed_pkgs=`rpm -qa %s` ; [ ! -z \"$installed_pkgs\" ]"
 
 class ZypperProvider(PackageProvider):
-  def install_package(self, name):
+  def install_package(self, name, use_repos=[]):
     if not self._check_existence(name):
       cmd = INSTALL_CMD + [name]
       Logger.info("Installing package %s ('%s')" % (name, string_cmd_from_args_list(cmd)))
@@ -38,8 +38,8 @@ class ZypperProvider(PackageProvider):
     else:
       Logger.info("Skipping installing existent package %s" % (name))
 
-  def upgrade_package(self, name):
-    return self.install_package(name)
+  def upgrade_package(self, name, use_repos=[]):
+    return self.install_package(name, use_repos)
   
   def remove_package(self, name):
     if self._check_existence(name):

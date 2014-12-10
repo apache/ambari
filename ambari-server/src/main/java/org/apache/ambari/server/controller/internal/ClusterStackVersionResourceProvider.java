@@ -220,7 +220,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
           NoSuchParentResourceException {
     Iterator<Map<String, Object>> iterator = request.getProperties().iterator();
     String clName;
-    String desiredRepoVersion;
+    final String desiredRepoVersion;
     String stackName;
     String stackVersion;
     if (request.getProperties().size() != 1) {
@@ -334,6 +334,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       final String repoList = gson.toJson(repoInfo);
 
       Map<String, String> params = new HashMap<String, String>() {{
+        put("repository_version", desiredRepoVersion);
         put("base_urls", repoList);
         put("package_list", packageList);
       }};
@@ -346,7 +347,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
               cluster.getClusterName(), INSTALL_PACKAGES_ACTION,
               Collections.singletonList(filter),
               params);
-      actionContext.setTimeout((short) 60);
+      actionContext.setTimeout((short) 600);
 
       try {
         actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage);
@@ -356,19 +357,22 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     }
 
     try {
-      req.persist();
-
-      try {  // Create/persist cluster stack version
-        cluster.createClusterVersion(stackId, desiredRepoVersion, managementController.getAuthName(), RepositoryVersionState.INSTALLED);
-        ClusterVersionEntity newCSVer = clusterVersionDAO.findByClusterAndStackAndVersion(clName, stackId, desiredRepoVersion);
-        cluster.initHostVersions(newCSVer);
-      } catch (AmbariException e) {
-        throw new SystemException(
-                String.format(
-                        "Can not create cluster stack version %s for cluster %s",
-                        desiredRepoVersion, clName),
-                e);
+      ClusterVersionEntity existingCSVer = clusterVersionDAO.findByClusterAndStackAndVersion(clName, stackId, desiredRepoVersion);
+      if (existingCSVer == null) {
+        try {  // Create/persist new cluster stack version
+          cluster.createClusterVersion(stackId, desiredRepoVersion, managementController.getAuthName(), RepositoryVersionState.INSTALLED);
+          ClusterVersionEntity newCSVer = clusterVersionDAO.findByClusterAndStackAndVersion(clName, stackId, desiredRepoVersion);
+          cluster.initHostVersions(newCSVer);
+        } catch (AmbariException e) {
+          throw new SystemException(
+                  String.format(
+                          "Can not create cluster stack version %s for cluster %s",
+                          desiredRepoVersion, clName),
+                  e);
+        }
       }
+
+      req.persist();
 
     } catch (AmbariException e) {
       throw new SystemException("Can not persist request", e);
