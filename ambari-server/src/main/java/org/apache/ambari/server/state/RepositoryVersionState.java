@@ -29,11 +29,24 @@ package org.apache.ambari.server.state;
  * Step 1: Initial Configuration
  * Version 1 is CURRENT
  *
- * Step 2: Add another repository and start an upgrade from Version 1 to Version 2
+ * Step 2: Add another repository and trigger distributing repositories/installing packages
+ * Version 1: CURRENT
+ * Version 2: INSTALLING
+ *
+ * Step 3: distributing repositories/installing packages action finishes successfully or fails
+ * Version 1: CURRENT
+ * Version 2: INSTALLED
+ *
+ * or
+ *
+ * Version 1: CURRENT
+ * Version 2: INSTALL_FAILED (a retry can set this back to INSTALLING)
+ *
+ * Step 4: Start an upgrade from Version 1 to Version 2
  * Version 1: CURRENT
  * Version 2: UPGRADING
  *
- * Step 3: Upgrade can either complete successfully or fail
+ * Step 5: Upgrade can either complete successfully or fail
  * Version 1: CURRENT
  * Version 2: UPGRADE_FAILED (a retry can set this back to UPGRADING)
  *

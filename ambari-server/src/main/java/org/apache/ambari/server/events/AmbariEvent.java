@@ -85,7 +85,12 @@ public abstract class AmbariEvent {
     /**
      * A host/service/component has had a maintenance mode change.
      */
-    MAINTENANCE_MODE;
+    MAINTENANCE_MODE,
+
+    /**
+     * Received a final command report for some action
+     */
+    ACTION_EXECUTION_FINISHED
   }
 
   /**

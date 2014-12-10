@@ -39,9 +39,11 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
+import org.apache.ambari.server.events.ActionFinalReportReceivedEvent;
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Alert;
@@ -123,6 +125,9 @@ public class HeartBeatHandler {
    */
   @Inject
   private AlertEventPublisher alertEventPublisher;
+
+  @Inject
+  private AmbariEventPublisher ambariEventPublisher;
 
   private Map<String, Long> hostResponseIds = new ConcurrentHashMap<String, Long>();
 
@@ -357,7 +362,7 @@ public class HeartBeatHandler {
         host.persist();
       }
 
-      //If host doesn't belongs to any cluster
+      //If host doesn't belong to any cluster
       if ((clusterFsm.getClustersForHost(host.getHostName())).size() == 0) {
         healthStatus = HealthStatus.HEALTHY;
         host.setStatus(healthStatus.name());
@@ -380,9 +385,22 @@ public class HeartBeatHandler {
 
     Iterator<HostRoleCommand> hostRoleCommandIterator = commands.iterator();
     for (CommandReport report : reports) {
+
+      Long clusterId = report.getClusterName() != null ?
+        clusterFsm.getCluster(report.getClusterName()).getClusterId() : null;
+
       LOG.debug("Received command report: " + report);
       // Fetch HostRoleCommand that corresponds to a given task ID
       HostRoleCommand hostRoleCommand = hostRoleCommandIterator.next();
+
+      // Send event for final command reports for actions
+      if (RoleCommand.valueOf(report.getRoleCommand()) == RoleCommand.ACTIONEXECUTE &&
+          HostRoleStatus.valueOf(report.getStatus()).isCompletedState()) {
+        ActionFinalReportReceivedEvent event = new ActionFinalReportReceivedEvent(
+                clusterId, hostname, report, report.getRole());
+        ambariEventPublisher.publish(event);
+      }
+
       // Skip sending events for command reports for ABORTed commands
       if (hostRoleCommand.getStatus() == HostRoleStatus.ABORTED) {
         continue;
@@ -414,7 +432,7 @@ public class HeartBeatHandler {
           ServiceComponentHost scHost = svcComp.getServiceComponentHost(hostname);
           String schName = scHost.getServiceComponentName();
 
-          if (report.getStatus().equals("COMPLETED")) {
+          if (report.getStatus().equals(HostRoleStatus.COMPLETED.toString())) {
             // Updating stack version, if needed
             if (scHost.getState().equals(State.UPGRADING)) {
               scHost.setStackVersion(scHost.getDesiredStackVersion());
