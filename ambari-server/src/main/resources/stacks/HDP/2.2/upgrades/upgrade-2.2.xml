@@ -32,12 +32,14 @@
 <upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <target>2.2.*.*</target>
   <order>
+  
     <group name="ZOOKEEPER" title="Zookeeper">
       <service name="ZOOKEEPER">
         <component>ZOOKEEPER_SERVER</component>
         <component>ZOOKEEPER_CLIENT</component>
       </service>
     </group>
+    
     <group name="CORE_MASTER" title="Core Masters">
       <service name="HDFS">
         <component>JOURNALNODE</component>
@@ -47,6 +49,7 @@
         <component>RESOURCEMANAGER</component>
       </service>
     </group>
+    
     <group name="CORE_SLAVES" title="Core Slaves" xsi:type="colocated">
       <service name="HDFS">
         <component>DATANODE</component>
@@ -57,15 +60,30 @@
       <service name="YARN">
         <component>NODEMANAGER</component>
       </service>
-      
       <batch>
         <percent>20</percent>
         <message>Please run additional tests</message>
       </batch>
     </group>
+    
+    <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize Upgrade">
+      <execute-stage title="Confirm Finalize">
+        <task xsi:type="manual">
+          <message>Please confirm you are ready to finalize</message>
+        </task>
+      </execute-stage>
+      <execute-stage service="HDFS" component="NAMENODE" title="Execute HDFS Finalize">
+        <task xsi:type="execute">
+          <command>ls</command>
+        </task>
+      </execute-stage>
+    </group>
+    
   </order>
   
+  
   <processing>
+  
     <service name="ZOOKEEPER">
       <component name="ZOOKEEPER_SERVER">
         <!-- TODO, optimization
@@ -97,6 +115,7 @@
     </service>
     <service name="HDFS">
       <component name="NAMENODE">
+        
         <pre-upgrade>
           <!-- Backup the image,
           Enter Safemode if not already in it,

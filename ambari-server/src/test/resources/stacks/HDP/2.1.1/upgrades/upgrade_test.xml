@@ -17,7 +17,26 @@
 -->
 <upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <target>2.2.*</target>
+  
   <order>
+    <group xsi:type="cluster" name="PRE_CLUSTER" title="Pre Upgrade" stage="pre">
+      <execute-stage title="Confirm 1">
+        <task xsi:type="manual">
+          <message>Foo</message>
+        </task>
+      </execute-stage>
+      <execute-stage service="HDFS" component="NAMENODE" title="Finalize HDFS">
+        <task xsi:type="execute">
+          <command>ls</command>
+        </task>
+      </execute-stage>
+      <execute-stage title="Confirm 2">
+        <task xsi:type="manual">
+          <message>Foo</message>
+        </task>
+      </execute-stage>
+    </group>
+  
     <group name="ZOOKEEPER" title="Zookeeper">
       <service name="ZOOKEEPER">
         <component>ZOOKEEPER_SERVER</component>
@@ -49,9 +68,25 @@
         <message>Please run additional tests</message>
       </batch>
     </group>
+    
+    <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize Upgrade" stage="post">
+      <execute-stage title="Confirm Finalize">
+        <task xsi:type="manual">
+          <message>Please confirm you are ready to finalize</message>
+        </task>
+      </execute-stage>
+      <execute-stage service="HDFS" component="NAMENODE" title="Execute HDFS Finalize">
+        <task xsi:type="execute">
+          <command>ls</command>
+        </task>
+      </execute-stage>
+    </group>
+        
   </order>
+  
 
   <processing>
+  
     <service name="ZOOKEEPER">
       <component name="ZOOKEEPER_SERVER">
         <pre-upgrade>

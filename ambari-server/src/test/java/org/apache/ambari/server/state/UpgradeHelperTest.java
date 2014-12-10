@@ -77,14 +77,18 @@ public class UpgradeHelperTest {
     UpgradeHelper helper = new UpgradeHelper();
     List<UpgradeGroupHolder> groups = helper.createUpgrade(cluster, upgrade);
 
-    assertEquals(3, groups.size());
-    assertEquals("ZOOKEEPER", groups.get(0).name);
-    assertEquals("CORE_MASTER", groups.get(1).name);
-    assertEquals("CORE_SLAVES", groups.get(2).name);
+    assertEquals(5, groups.size());
 
-    assertEquals(6, groups.get(0).items.size());
-    assertEquals(5, groups.get(1).items.size());
-    assertEquals(6, groups.get(2).items.size());
+    assertEquals("PRE_CLUSTER", groups.get(0).name);
+    assertEquals("ZOOKEEPER", groups.get(1).name);
+    assertEquals("CORE_MASTER", groups.get(2).name);
+    assertEquals("CORE_SLAVES", groups.get(3).name);
+    assertEquals("POST_CLUSTER", groups.get(4).name);
+
+    assertEquals(6, groups.get(1).items.size());
+    assertEquals(5, groups.get(2).items.size());
+    assertEquals(6, groups.get(3).items.size());
+
   }
 
   public Cluster makeCluster() throws AmbariException {

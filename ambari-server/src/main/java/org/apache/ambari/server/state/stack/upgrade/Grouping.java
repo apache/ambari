@@ -34,7 +34,7 @@ import org.apache.commons.lang.StringUtils;
 /**
  *
  */
-@XmlSeeAlso(value = { ColocatedGrouping.class })
+@XmlSeeAlso(value = { ColocatedGrouping.class, ClusterGrouping.class })
 public class Grouping {
 
   @XmlAttribute(name="name")
@@ -44,7 +44,7 @@ public class Grouping {
   public String title;
 
   @XmlElement(name="service")
-  public List<UpgradePack.OrderService> services;
+  public List<UpgradePack.OrderService> services = new ArrayList<UpgradePack.OrderService>();
 
   /**
    * Gets the default builder.

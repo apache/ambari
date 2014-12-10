@@ -28,11 +28,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
@@ -60,6 +61,7 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
+import org.apache.ambari.server.serveraction.upgrades.ManualStageAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.StackId;
@@ -68,6 +70,7 @@ import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -430,6 +433,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       case SERVICE_CHECK:
         makeServiceCheckStage(cluster, request, version, entity, wrapper);
         break;
+      case MANUAL:
+        makeManualStage(cluster, request, version, entity, wrapper);
+        break;
     }
 
   }
@@ -575,5 +581,52 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     request.addStages(Collections.singletonList(stage));
   }
+
+  private void makeManualStage(Cluster cluster, RequestStageContainer request, String version,
+      UpgradeItemEntity entity, StageWrapper wrapper) throws AmbariException {
+
+    Map<String, String> restartCommandParams = new HashMap<String, String>();
+    restartCommandParams.put("version", version);
+
+    ActionExecutionContext actionContext = new ActionExecutionContext(
+        cluster.getClusterName(), Role.AMBARI_SERVER_ACTION.toString(),
+        Collections.<RequestResourceFilter>emptyList(),
+        restartCommandParams);
+    actionContext.setTimeout(Short.valueOf((short)-1));
+
+    ExecuteCommandJson jsons = commandExecutionHelper.get().getCommandJson(
+        actionContext, cluster);
+
+
+    Stage stage = stageFactory.get().createNew(request.getId().longValue(),
+        "/tmp/ambari",
+        cluster.getClusterName(),
+        cluster.getClusterId(),
+        entity.getText(),
+        jsons.getClusterHostInfo(),
+        jsons.getCommandParamsForStage(),
+        jsons.getHostParamsForStage());
+
+    long stageId = request.getLastStageId() + 1;
+    if (0L == stageId) {
+      stageId = 1L;
+    }
+    stage.setStageId(stageId);
+    entity.setStageId(Long.valueOf(stageId));
+
+    // !!! hack hack hack
+    String host = cluster.getAllHostsDesiredConfigs().keySet().iterator().next();
+
+    stage.addServerActionCommand(ManualStageAction.class.getName(),
+        Role.AMBARI_SERVER_ACTION,
+        RoleCommand.EXECUTE,
+        cluster.getClusterName(), host,
+        new ServiceComponentHostServerActionEvent(StageUtils.getHostName(), System.currentTimeMillis()),
+        Collections.<String, String>emptyMap(), 1200);
+
+    request.addStages(Collections.singletonList(stage));
+
+  }
+
 
 }

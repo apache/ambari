@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -106,7 +105,7 @@ public class Stage {
     requestId = stageEntity.getRequestId();
     stageId = stageEntity.getStageId();
     logDir = stageEntity.getLogInfo();
-    
+
     long clusterId = stageEntity.getClusterId().longValue();
     if (-1L != clusterId) {
       try {
@@ -116,7 +115,7 @@ public class Stage {
             Long.valueOf(clusterId), Long.valueOf(stageId));
       }
     }
-    
+
     requestContext = stageEntity.getRequestContext();
     clusterHostInfo = stageEntity.getClusterHostInfo();
     commandParamsStage = stageEntity.getCommandParamsStage();
@@ -208,7 +207,7 @@ public class Stage {
   public void setClusterHostInfo(String clusterHostInfo) {
     this.clusterHostInfo = clusterHostInfo;
   }
- 
+
   public String getCommandParamsStage() {
     return commandParamsStage;
   }
@@ -247,7 +246,7 @@ public class Stage {
   public String getActionId() {
     return StageUtils.getActionId(requestId, getStageId());
   }
-  
+
   private synchronized ExecutionCommandWrapper addGenericExecutionCommand(String clusterName, String hostName, Role role, RoleCommand command, ServiceComponentHostEvent event){
     //used on stage creation only, no need to check if wrappers loaded
     HostRoleCommand hrc = new HostRoleCommand(hostName, role, event, command);
@@ -259,9 +258,9 @@ public class Stage {
     cmd.setCommandId(this.getActionId());
     cmd.setRole(role.name());
     cmd.setRoleCommand(command);
-    
+
     cmd.setServiceName("");
-    
+
     Map<String, HostRoleCommand> hrcMap = this.hostRoleCommands.get(hostName);
     if (hrcMap == null) {
       hrcMap = new LinkedHashMap<String, HostRoleCommand>();
@@ -278,7 +277,7 @@ public class Stage {
       execCmdList = new ArrayList<ExecutionCommandWrapper>();
       this.commandsToSend.put(hostName, execCmdList);
     }
-    
+
     if (execCmdList.contains(wrapper)) {
       //todo: proper exception
       throw new RuntimeException(
@@ -297,7 +296,7 @@ public class Stage {
   public synchronized void addHostRoleExecutionCommand(String host, Role role,  RoleCommand command,
       ServiceComponentHostEvent event, String clusterName, String serviceName) {
     ExecutionCommandWrapper commandWrapper = addGenericExecutionCommand(clusterName, host, role, command, event);
-    
+
     commandWrapper.getExecutionCommand().setServiceName(serviceName);
   }
 
@@ -320,10 +319,41 @@ public class Stage {
    *                      timeout will be used
    */
   public synchronized void addServerActionCommand(String actionName, Role role, RoleCommand command,
-                                                  String clusterName, ServiceComponentHostServerActionEvent event,
+      String clusterName, ServiceComponentHostServerActionEvent event,
+      @Nullable Map<String, String> commandParams,
+      @Nullable Integer timeout) {
+
+    addServerActionCommand(actionName, role, command,
+        clusterName, StageUtils.getHostName(), event, commandParams, timeout);
+  }
+
+  /**
+   * THIS METHOD IS TO WORKAROUND A BUG!  The assumption of the framework
+   * is that the Ambari Server is installed on a host WITHIN the cluster, which
+   * is not always true.  This method adds a host parameter.
+   *
+   * Creates server-side execution command.
+   * <p/>
+   * The action name for this command is expected to be the classname of a
+   * {@link org.apache.ambari.server.serveraction.ServerAction} implementation which will be
+   * instantiated and invoked as needed.
+   *
+   * @param actionName    a String declaring the action name (in the form of a classname) to execute
+   * @param role          the Role for this command
+   * @param command       the RoleCommand for this command
+   * @param clusterName   a String identifying the cluster on which to to execute this command
+   * @param host          the name of the host
+   * @param event         a ServiceComponentHostServerActionEvent
+   * @param commandParams a Map of String to String data used to pass to the action - this may be
+   *                      empty or null if no data is relevant
+   * @param timeout       an Integer declaring the timeout for this action - if null, a default
+   *                      timeout will be used
+   */
+  public synchronized void addServerActionCommand(String actionName, Role role, RoleCommand command,
+                                                  String clusterName, String hostName, ServiceComponentHostServerActionEvent event,
                                                   @Nullable Map<String, String> commandParams,
                                                   @Nullable Integer timeout) {
-    ExecutionCommandWrapper commandWrapper = addGenericExecutionCommand(clusterName, StageUtils.getHostName(), role, command, event);
+    ExecutionCommandWrapper commandWrapper = addGenericExecutionCommand(clusterName, hostName, role, command, event);
     ExecutionCommand cmd = commandWrapper.getExecutionCommand();
 
     Map<String, String> cmdParams = new HashMap<String, String>();
@@ -347,15 +377,15 @@ public class Stage {
     ExecutionCommandWrapper commandWrapper = addGenericExecutionCommand(clusterName, hostName, Role.AMBARI_SERVER_ACTION, RoleCommand.ABORT, null);
     ExecutionCommand cmd = commandWrapper.getExecutionCommand();
     cmd.setCommandType(AgentCommandType.CANCEL_COMMAND);
-    
+
     Assert.notEmpty(cancelTargets, "Provided targets task Id are empty.");
-    
+
     Map<String, String> roleParams = new HashMap<String, String>();
-    
+
     roleParams.put("cancelTaskIdTargets", StringUtils.join(cancelTargets, ','));
     cmd.setRoleParams(roleParams);
   }
-  
+
   /**
    *
    * @return list of hosts
@@ -397,11 +427,11 @@ public class Stage {
   public String getClusterName() {
     return clusterName;
   }
-  
+
   public long getClusterId() {
     return clusterId;
   }
-  
+
 
   public String getRequestContext() {
     return requestContext;

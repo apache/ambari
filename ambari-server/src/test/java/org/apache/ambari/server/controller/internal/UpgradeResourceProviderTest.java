@@ -165,10 +165,9 @@ public class UpgradeResourceProviderTest {
     UpgradeEntity entity = upgrades.get(0);
     assertEquals(cluster.getClusterId(), entity.getClusterId().longValue());
 
-    assertEquals(3, entity.getUpgradeGroups().size());
+    assertEquals(5, entity.getUpgradeGroups().size());
 
-    UpgradeGroupEntity group = entity.getUpgradeGroups().get(0);
-
+    UpgradeGroupEntity group = entity.getUpgradeGroups().get(1);
     assertEquals(4, group.getItems().size());
 
     assertTrue(group.getItems().get(0).getText().contains("Preparing"));
@@ -184,16 +183,12 @@ public class UpgradeResourceProviderTest {
 
 
     List<Stage> stages = am.getRequestStatus(requests.get(0).longValue());
-    assertEquals(4, stages.size());
-    for (int i = 0; i < stages.size(); i++) {
-      Stage stage = stages.get(i);
-      UpgradeItemEntity upgradeItem = group.getItems().get(i);
-      assertEquals(stage.getStageId(), upgradeItem.getStageId().longValue());
-      assertEquals(UpgradeState.NONE, upgradeItem.getState());
-    }
+
+    assertEquals(7, stages.size());
 
     List<HostRoleCommand> tasks = am.getRequestTasks(requests.get(0).longValue());
-    assertEquals(4, tasks.size());
+    // same number of tasks as stages here
+    assertEquals(7, tasks.size());
 
     return status;
   }
@@ -240,7 +235,7 @@ public class UpgradeResourceProviderTest {
     ResourceProvider upgradeGroupResourceProvider = new UpgradeGroupResourceProvider(amc);
     resources = upgradeGroupResourceProvider.getResources(request, predicate);
 
-    assertEquals(3, resources.size());
+    assertEquals(5, resources.size());
     res = resources.iterator().next();
     assertNotNull(res.getPropertyValue("UpgradeGroup/status"));
     assertNotNull(res.getPropertyValue("UpgradeGroup/group_id"));
@@ -259,7 +254,7 @@ public class UpgradeResourceProviderTest {
     ResourceProvider upgradeItemResourceProvider = new UpgradeItemResourceProvider(amc);
     resources = upgradeItemResourceProvider.getResources(request, predicate);
 
-    assertEquals(4, resources.size());
+    assertEquals(2, resources.size());
     res = resources.iterator().next();
     assertNotNull(res.getPropertyValue("UpgradeItem/status"));
 

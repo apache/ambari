@@ -23,13 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.RequestResourceProvider;
 import org.apache.ambari.server.controller.internal.StageResourceProvider;
-import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
-import org.apache.ambari.server.controller.predicate.EqualsPredicate;
-import org.apache.ambari.server.controller.predicate.OrPredicate;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -44,11 +40,11 @@ import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
+import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapperBuilder;
 import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
-import org.codehaus.jackson.map.ser.PropertyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,6 +68,14 @@ public class UpgradeHelper {
     List<UpgradeGroupHolder> groups = new ArrayList<UpgradeGroupHolder>();
 
     for (Grouping group : upgradePack.getGroups()) {
+      if (ClusterGrouping.class.isInstance(group)) {
+        UpgradeGroupHolder groupHolder = getClusterGroupHolder(cluster, (ClusterGrouping) group);
+        if (null != groupHolder) {
+          groups.add(groupHolder);
+          continue;
+        }
+      }
+
       UpgradeGroupHolder groupHolder = new UpgradeGroupHolder();
       groupHolder.name = group.name;
       groupHolder.title = group.title;
@@ -91,7 +95,6 @@ public class UpgradeHelper {
           }
 
           Set<String> componentHosts = getClusterHosts(cluster, service.serviceName, component);
-
           if (0 == componentHosts.size()) {
             continue;
           }
@@ -104,11 +107,15 @@ public class UpgradeHelper {
 
       List<StageWrapper> proxies = builder.build();
 
-      if (LOG.isDebugEnabled()) {
+      groupHolder.items = proxies;
+    }
+
+    if (LOG.isDebugEnabled()) {
+      for (UpgradeGroupHolder group : groups) {
         LOG.debug(group.name);
 
         int i = 0;
-        for (StageWrapper proxy : proxies) {
+        for (StageWrapper proxy : group.items) {
           LOG.debug("  Stage {}", Integer.valueOf(i++));
           int j = 0;
 
@@ -117,37 +124,11 @@ public class UpgradeHelper {
           }
         }
       }
-
-      groupHolder.items = proxies;
     }
 
     return groups;
-
   }
 
-  /**
-   * @param cluster the cluster
-   * @param serviceName name of the service
-   * @param componentName name of the component
-   * @return the set of hosts for the provided service and component
-   */
-  private Set<String> getClusterHosts(Cluster cluster, String serviceName, String componentName) {
-    Map<String, Service> services = cluster.getServices();
-
-    if (!services.containsKey(serviceName)) {
-      return Collections.emptySet();
-    }
-
-    Service service = services.get(serviceName);
-    Map<String, ServiceComponent> components = service.getServiceComponents();
-
-    if (!components.containsKey(componentName) ||
-        components.get(componentName).getServiceComponentHosts().size() == 0) {
-      return Collections.emptySet();
-    }
-
-    return components.get(componentName).getServiceComponentHosts().keySet();
-  }
 
   /**
    * Short-lived objects that hold information about upgrade groups
@@ -249,6 +230,55 @@ public class UpgradeHelper {
     }
 
     return resources.iterator().next();
+  }
+
+  /**
+   * @param cluster the cluster
+   * @param serviceName name of the service
+   * @param componentName name of the component
+   * @return the set of hosts for the provided service and component
+   */
+  public Set<String> getClusterHosts(Cluster cluster, String serviceName, String componentName) {
+    Map<String, Service> services = cluster.getServices();
+
+    if (!services.containsKey(serviceName)) {
+      return Collections.emptySet();
+    }
+
+    Service service = services.get(serviceName);
+    Map<String, ServiceComponent> components = service.getServiceComponents();
+
+    if (!components.containsKey(componentName) ||
+        components.get(componentName).getServiceComponentHosts().size() == 0) {
+      return Collections.emptySet();
+    }
+
+    return components.get(componentName).getServiceComponentHosts().keySet();
+  }
+
+  /**
+   * Special handling for ClusterGrouping.
+   * @param cluster the cluster
+   * @param grouping the grouping
+   * @return the holder, or {@code null} if there are no clustergrouping tasks.
+   */
+  private UpgradeGroupHolder getClusterGroupHolder(Cluster cluster, ClusterGrouping grouping) {
+
+    grouping.getBuilder().setHelpers(this, cluster);
+    List<StageWrapper> wrappers = grouping.getBuilder().build();
+
+    if (wrappers.size() > 0) {
+      UpgradeGroupHolder holder = new UpgradeGroupHolder();
+      holder.name = grouping.name;
+      holder.title = grouping.title;
+      holder.items = wrappers;
+
+      return holder;
+    }
+
+
+    return null;
+
   }
 
 }
