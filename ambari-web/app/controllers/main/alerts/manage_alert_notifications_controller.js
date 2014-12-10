@@ -172,16 +172,18 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
 
   /**
    * Load all Alert Notifications from server
-   * Don't do anything if controller not isLoaded
-   * @returns {$.ajax|null}
+   * @method loadAlertNotifications
    */
   loadAlertNotifications: function () {
+    var self = this;
     this.set('isLoaded', false);
-    return App.ajax.send({
-      name: 'alerts.notifications',
-      sender: this,
-      success: 'getAlertNotificationsSuccessCallback',
-      error: 'getAlertNotificationsErrorCallback'
+    App.router.get('updateController').updateAlertGroups(function () {
+      App.ajax.send({
+        name: 'alerts.notifications',
+        sender: self,
+        success: 'getAlertNotificationsSuccessCallback',
+        error: 'getAlertNotificationsErrorCallback'
+      });
     });
   },
 
@@ -278,7 +280,15 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
         controller: this,
         templateName: require('templates/main/alerts/create_alert_notification'),
 
+        /**
+         * @type {string}
+         */
+        tooltipForGlobalCheckbox: function () {
+          return isEdit ? '' : Em.I18n.t('alerts.actions.manage_alert_notifications_popup.global.tooltip');
+        }.property(),
+
         didInsertElement: function () {
+          App.tooltip($('.checkbox-tooltip'));
           this.nameValidation();
         },
 
@@ -291,6 +301,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
         }.observes('controller.inputFields.name.value'),
 
         groupsSelectView: Em.Select.extend({
+          attributeBindings: ['disabled'],
           init: function () {
             this._super();
             this.set('parentView.groupSelect', this);
@@ -300,11 +311,15 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
         groupSelect: null,
 
         selectAllGroups: function () {
-          this.set('groupSelect.selection', this.get('groupSelect.content').slice());
+          if (!this.get('controller.inputFields.global.value')) {
+            this.set('groupSelect.selection', this.get('groupSelect.content').slice());
+          }
         },
 
         clearAllGroups: function () {
-          this.set('groupSelect.selection', []);
+          if (!this.get('controller.inputFields.global.value')) {
+            this.set('groupSelect.selection', []);
+          }
         },
 
         severitySelectView: Em.Select.extend({
@@ -357,7 +372,6 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
   formatNotificationAPIObject: function () {
     var inputFields = this.get('inputFields');
     var properties = {};
-    var clusterId = App.Cluster.find().objectAt(0).get('id');
     if (inputFields.get('method.value') === 'EMAIL') {
       properties['ambari.dispatch.recipients'] = inputFields.get('email.value').replace(/\s/g, '').split(',');
       properties['mail.smtp.host'] = inputFields.get('SMTPServer.value');
@@ -372,24 +386,20 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
     inputFields.get('customProperties').forEach(function (customProperty) {
       properties[customProperty.name] = customProperty.value;
     });
-    return {
+    var apiObject = {
       AlertTarget: {
         name: inputFields.get('name.value'),
         description: inputFields.get('description.value'),
         global: inputFields.get('global.value'),
-        groups: inputFields.get('groups.value').map(function (group) {
-          return {
-            name: group.get('name'),
-            id: group.get('id'),
-            default: group.get('default'),
-            cluster_id: clusterId
-          };
-        }),
         notification_type: inputFields.get('method.value'),
         alert_states: inputFields.get('severityFilter.value'),
         properties: properties
       }
     };
+    if (!inputFields.get('global.value')) {
+      apiObject.AlertTarget.groups = inputFields.get('groups.value').mapProperty('id');
+    }
+    return apiObject;
   },
 
   /**

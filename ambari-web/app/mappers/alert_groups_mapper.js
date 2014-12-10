@@ -31,7 +31,11 @@ App.alertGroupsMapper = App.QuickDataMapper.create({
     id: 'AlertGroup.id',
     name: 'AlertGroup.name',
     default: 'AlertGroup.default',
-    targets: 'AlertGroup.targets'
+    targets_key: 'AlertGroup.targets',
+    targets_type: 'array',
+    targets: {
+      item: 'id'
+    }
   },
 
   /**

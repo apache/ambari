@@ -64,7 +64,6 @@ describe('App.ManageAlertNotificationsController', function () {
       controller.set('isLoaded', true);
       controller.loadAlertNotifications();
       expect(controller.get('isLoaded')).to.be.false;
-      expect(App.ajax.send.calledOnce).to.be.true;
     });
 
   });
@@ -277,75 +276,113 @@ describe('App.ManageAlertNotificationsController', function () {
 
   describe("#showCreateEditPopup()", function () {
 
-    before(function () {
-      sinon.stub(App.ModalPopup, 'show', function () {
-        return 'popup';
-      });
+    beforeEach(function () {
+      sinon.spy(App.ModalPopup, 'show');
     });
 
-    after(function () {
+    afterEach(function () {
       App.ModalPopup.show.restore();
     });
 
     it("should open popup and set popup object to createEditPopup", function () {
 
-      controller.set('createEditPopup', null);
-
       controller.showCreateEditPopup();
-
       expect(App.ModalPopup.show.calledOnce).to.be.true;
-      expect(controller.get('createEditPopup')).to.equal('popup');
+
+    });
+
+    describe('#bodyClass', function () {
+
+      var view;
+
+      beforeEach(function () {
+
+        view = controller.showCreateEditPopup().get('bodyClass').create({
+          controller: Em.Object.create({
+            inputFields: {
+              global: {}
+            }
+          }),
+          groupSelect: Em.Object.create({
+            selection: [],
+            content: [{}, {}]
+          })
+        });
+
+      });
+
+      describe('#selectAllGroups', function () {
+
+        it('should check inputFields.global.value', function () {
+
+          view.set('controller.inputFields.global.value', true);
+          view.selectAllGroups();
+          expect(view.get('groupSelect.selection')).to.eql([]);
+
+          view.set('controller.inputFields.global.value', false);
+          view.selectAllGroups();
+          expect(view.get('groupSelect.selection')).to.eql([{}, {}]);
+
+        });
+
+      });
+
+      describe('#clearAllGroups', function () {
+
+        it('should check inputFields.global.value', function () {
+
+          view.set('controller.inputFields.global.value', false);
+          view.selectAllGroups();
+
+          view.set('controller.inputFields.global.value', true);
+          view.clearAllGroups();
+          expect(view.get('groupSelect.selection')).to.eql([{}, {}]);
+
+          view.set('controller.inputFields.global.value', false);
+          view.clearAllGroups();
+          expect(view.get('groupSelect.selection')).to.eql([]);
+
+        });
+
+      });
+
     });
 
   });
 
   describe("#formatNotificationAPIObject()", function () {
 
-    beforeEach(function(){
-      sinon.stub(App.Cluster, 'find', function () {
-        return {
-          objectAt: function () {
-            return Em.Object.create({
-              id: 1
-            })
-          }
-        }
-      });
-    });
-
-    afterEach(function() {
-      App.Cluster.find.restore();
+    var inputFields = Em.Object.create({
+      name: {
+        value: 'test_name'
+      },
+      groups: {
+        value: [{id: 1}, {id: 2}, {id: 3}]
+      },
+      global: {
+        value: false
+      },
+      method: {
+        value: 'EMAIL'
+      },
+      email: {
+        value: 'test1@test.test, test2@test.test,test3@test.test , test4@test.test'
+      },
+      severityFilter: {
+        value: ['OK', 'CRITICAL']
+      },
+      description: {
+        value: 'test_description'
+      },
+      customProperties: [
+        {name: 'n1', value: 'v1'},
+        {name: 'n2', value: 'v2'}
+      ]
     });
 
     it("should create object with properties from inputFields values", function () {
 
-      controller.set('inputFields', Em.Object.create({
-        name: {
-          value: 'test_name'
-        },
-        groups: {
-          value: []
-        },
-        global: {
-          value: false
-        },
-        method: {
-          value: 'EMAIL'
-        },
-        email: {
-          value: 'test1@test.test, test2@test.test,test3@test.test , test4@test.test'
-        },
-        severityFilter: {
-          value: ['OK', 'CRITICAL']
-        },
-        description: {
-          value: 'test_description'
-        },
-        customProperties: [
-          {name: 'n1', value: 'v1'},
-          {name: 'n2', value: 'v2'}
-        ]
-      }));
+      controller.set('inputFields', inputFields);
 
       var result = controller.formatNotificationAPIObject();
 
@@ -354,7 +391,6 @@ describe('App.ManageAlertNotificationsController', function () {
           name: 'test_name',
           description: 'test_description',
           global: false,
-          groups: [],
           notification_type: 'EMAIL',
           alert_states: ['OK', 'CRITICAL'],
           properties: {
@@ -366,9 +402,20 @@ describe('App.ManageAlertNotificationsController', function () {
             ],
             'n1': 'v1',
             'n2': 'v2'
-          }
+          },
+          groups: [1,2,3]
         }
       }));
+    });
+
+    it('should ignore groups if global is true', function () {
+
+      controller.set('inputFields', inputFields);
+      controller.set('inputFields.global.value', true);
+
+      var result = controller.formatNotificationAPIObject();
+      expect(Em.keys(result.AlertTarget)).to.not.contain('groups');
+
     });
 
   });
@@ -609,4 +656,3 @@ describe('App.ManageAlertNotificationsController', function () {
   });
 
 });
-

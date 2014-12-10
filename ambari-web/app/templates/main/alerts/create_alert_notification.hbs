@@ -20,6 +20,8 @@
 
   <form class="form-horizontal">
 
+
+    {{! alert-notification name }}
     <div class="control-group">
       <label class="control-label" for="inputName">{{controller.inputFields.name.label}}</label>
 
@@ -27,29 +29,38 @@
         {{view Em.TextField valueBinding="controller.inputFields.name.value" id="inputName" class="input-xlarge"}}
       </div>
     </div>
+    {{! alert-notification name end }}
 
+    {{! alert-notification is global }}
+    <div class="control-group">
+      <label class="control-label" for="inputGlobal">{{controller.inputFields.global.label}}</label>
+
+      <div class="controls">
+        <span class="checkbox-tooltip" {{bindAttr data-original-title="view.tooltipForGlobalCheckbox"}}>
+          {{view Em.Checkbox checkedBinding="controller.inputFields.global.value" disabledBinding="controller.inputFields.global.disabled" id="inputGlobal" class="input-xlarge"}}
+        </span>
+      </div>
+    </div>
+    {{! alert-notification is global end }}
+
+    {{! alert-notification groups }}
     <div class="control-group">
       <label class="control-label" for="inputGroups">{{controller.inputFields.groups.label}}</label>
 
       <div class="controls">
         {{view view.groupsSelectView multiple="true" id="inputGroups" class="input-large"
+          disabledBinding="controller.inputFields.global.value"
           selectionBinding="controller.inputFields.groups.value"
           contentBinding="controller.allAlertGroups"
           optionLabelPath="content.displayName"
         }}
-        <a href="#" {{action selectAllGroups target="view"}}>{{t alerts.actions.manage_alert_notifications_popup.selectAll}}</a> |
-        <a href="#" {{action clearAllGroups target="view"}}>{{t alerts.actions.manage_alert_notifications_popup.clearAll}}</a>
+        <a href="#" {{action selectAllGroups target="view"}} {{bindAttr class="controller.inputFields.global.value:disabled"}}>{{t alerts.actions.manage_alert_notifications_popup.selectAll}}</a> |
+        <a href="#" {{action clearAllGroups target="view"}} {{bindAttr class="controller.inputFields.global.value:disabled"}}>{{t alerts.actions.manage_alert_notifications_popup.clearAll}}</a>
       </div>
     </div>
+    {{! alert-notification groups end }}
 
-    <div class="control-group">
-      <label class="control-label" for="inputGlobal">{{controller.inputFields.global.label}}</label>
-
-      <div class="controls">
-        {{view Em.Checkbox checkedBinding="controller.inputFields.global.value" disabledBinding="controller.inputFields.global.disabled" id="inputGlobal" class="input-xlarge"}}
-      </div>
-    </div>
-
+    {{! alert-notification severity }}
     <div class="control-group">
       <label class="control-label">{{controller.inputFields.severityFilter.label}}</label>
 
@@ -62,7 +73,9 @@
         <a href="#" {{action clearAllSeverity target="view"}}>{{t alerts.actions.manage_alert_notifications_popup.clearAll}}</a>
       </div>
     </div>
+    {{! alert-notification severity end }}
 
+    {{! alert-notification description }}
     <div class="control-group">
       <label class="control-label" for="inputDescription">{{controller.inputFields.description.label}}</label>
 
@@ -70,7 +83,9 @@
         {{view Em.TextArea valueBinding="controller.inputFields.description.value" id="inputDescription" rows="4" class="input-xlarge"}}
       </div>
     </div>
+    {{! alert-notification description end }}
 
+    {{! alert-notification method }}
     <div class="control-group">
       <label class="control-label" for="inputMethod">{{controller.inputFields.method.label}}</label>
 
@@ -78,7 +93,9 @@
         {{view Em.Select contentBinding="controller.methods" selectionBinding="controller.inputFields.method.value" id="inputMethod" class="input-xlarge"}}
       </div>
     </div>
+    {{! alert-notification method end }}
 
+    {{! alert-notification email }}
     {{#if view.isEmailMethodSelected}}
       <div class="control-group">
         <label class="control-label" for="inputEmail">{{controller.inputFields.email.label}}</label>
@@ -138,7 +155,9 @@
         </div>
       </div>
     {{/if}}
+    {{! alert-notification email end }}
 
+    {{! alert-notification custom properties }}
     {{#each customProperty in controller.inputFields.customProperties}}
       <div class="control-group">
         <label class="control-label" for="inputGroups">{{customProperty.name}}</label>
@@ -149,6 +168,7 @@
         </div>
       </div>
     {{/each}}
+    {{! alert-notification custom properties end }}
 
     <a href="#" class="add-custom-property" {{action addCustomPropertyHandler target="controller"}}>{{t installer.step7.config.addProperty}} ...</a>
 

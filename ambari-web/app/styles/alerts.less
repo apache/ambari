@@ -416,6 +416,17 @@
   .add-custom-property {
     margin-left: 140px;
   }
+
+  a {
+    &.disabled {
+      cursor: default;
+      color: gray;
+      &:hover {
+        text-decoration: none;
+      }
+    }
+  }
+
 }
 
 .create-edit-alert-notification-popup {

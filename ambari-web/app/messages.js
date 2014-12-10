@@ -1902,6 +1902,7 @@ Em.I18n.translations = {
   'alerts.actions.manage_alert_notifications_popup.community':'Community',
   'alerts.actions.manage_alert_notifications_popup.port':'Port',
   'alerts.actions.manage_alert_notifications_popup.global':'Global',
+  'alerts.actions.manage_alert_notifications_popup.global.tooltip':'Check this checkbox to make the notification apply globally to all groups defined in Ambari',
   'alerts.actions.manage_alert_notifications_popup.severityFilter':'Severity Filter',
   'alerts.actions.manage_alert_notifications_popup.clearAll':'Clear All',
   'alerts.actions.manage_alert_notifications_popup.selectAll':'Select All',

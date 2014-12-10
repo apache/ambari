@@ -40,7 +40,8 @@ describe('App.alertGroupsMapper', function () {
               }
             ],
             "id" : 3,
-            "name" : "ZOOKEEPER"
+            "name" : "ZOOKEEPER",
+            "targets": [{id: 1}, {id: 2}]
           }
         },
         {
@@ -77,7 +78,8 @@ describe('App.alertGroupsMapper', function () {
               }
             ],
             "id" : 2,
-            "name" : "YARN"
+            "name" : "YARN",
+            "targets": [{id: 2}, {id: 3}]
           }
         }
       ]
@@ -115,7 +117,8 @@ describe('App.alertGroupsMapper', function () {
           metrics_alert_definitions: [],
           web_alert_definitions: [],
           aggregate_alert_definitions: [9],
-          script_alert_definitions: []
+          script_alert_definitions: [],
+          targets: [1, 2]
         },
         {
           id: 2,
@@ -125,7 +128,8 @@ describe('App.alertGroupsMapper', function () {
           metrics_alert_definitions: [1, 5],
           web_alert_definitions: [2, 3, 7],
           aggregate_alert_definitions: [4],
-          script_alert_definitions: [6]
+          script_alert_definitions: [6],
+          targets: [2, 3]
         }
       ];
 
