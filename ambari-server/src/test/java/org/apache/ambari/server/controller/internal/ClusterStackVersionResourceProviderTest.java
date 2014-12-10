@@ -64,7 +64,6 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -140,7 +139,7 @@ public class ClusterStackVersionResourceProviderTest {
     injector.getInstance(PersistService.class).stop();
   }
 
-  @Ignore
+
   @Test
   public void testCreateResources() throws Exception {
     Resource.Type type = Resource.Type.ClusterStackVersion;

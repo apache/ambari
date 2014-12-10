@@ -47,8 +47,8 @@ public class ClusterVersionDAO extends CrudDAO<ClusterVersionEntity, Long>{
   /**
    * Retrieve all of the cluster versions for the given stack and version.
    *
-   * @param stack Stack id (e.g., HDP-2.2)
-   * @param version Repository version (e.g., 2.2.0.1-995)
+   * @param stack Stack name (e.g., HDP)
+   * @param version Stack version (e.g., 2.2.0.1-995)
    * @return Return a list of cluster versions that match the stack and version.
    */
   @RequiresSession
@@ -64,8 +64,8 @@ public class ClusterVersionDAO extends CrudDAO<ClusterVersionEntity, Long>{
    * Get the cluster version for the given cluster name, stack name, and stack version.
    *
    * @param clusterName Cluster name
-   * @param stack Stack id (e.g., HDP-2.2)
-   * @param version Repository version (e.g., 2.2.0.1-995)
+   * @param stack Stack name (e.g., HDP)
+   * @param version Stack version (e.g., 2.2.0.1-995)
    * @return Return all of the cluster versions associated with the given cluster.
    */
   @RequiresSession

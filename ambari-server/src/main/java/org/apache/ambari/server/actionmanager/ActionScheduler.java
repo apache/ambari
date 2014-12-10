@@ -43,8 +43,6 @@ import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.HostsMap;
-import org.apache.ambari.server.events.ActionFinalReportReceivedEvent;
-import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.serveraction.ServerActionExecutor;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -69,6 +67,7 @@ import com.google.common.reflect.TypeToken;
 import com.google.inject.persist.UnitOfWork;
 
 
+
 /**
  * This class encapsulates the action scheduler thread.
  * Action schedule frequently looks at action database and determines if
@@ -90,7 +89,6 @@ class ActionScheduler implements Runnable {
   private final short maxAttempts;
   private final ActionQueue actionQueue;
   private final Clusters fsmObject;
-  private final AmbariEventPublisher ambariEventPublisher;
   private boolean taskTimeoutAdjustment = true;
   private final HostsMap hostsMap;
   private final Object wakeupSyncObject = new Object();
@@ -126,17 +124,15 @@ class ActionScheduler implements Runnable {
   private Cache<String, Map<String, String>> hostParamsStageCache;
 
   public ActionScheduler(long sleepTimeMilliSec, long actionTimeoutMilliSec,
-                         ActionDBAccessor db, ActionQueue actionQueue, Clusters fsmObject,
-                         int maxAttempts, HostsMap hostsMap,
-                         UnitOfWork unitOfWork, AmbariEventPublisher ambariEventPublisher,
-                         Configuration configuration) {
+      ActionDBAccessor db, ActionQueue actionQueue, Clusters fsmObject,
+      int maxAttempts, HostsMap hostsMap,
+      UnitOfWork unitOfWork, Configuration configuration) {
     this.sleepTime = sleepTimeMilliSec;
     this.hostsMap = hostsMap;
     this.actionTimeout = actionTimeoutMilliSec;
     this.db = db;
     this.actionQueue = actionQueue;
     this.fsmObject = fsmObject;
-    this.ambariEventPublisher = ambariEventPublisher;
     this.maxAttempts = (short) maxAttempts;
     this.serverActionExecutor = new ServerActionExecutor(db, sleepTimeMilliSec);
     this.unitOfWork = unitOfWork;
@@ -844,23 +840,6 @@ class ActionScheduler implements Runnable {
         cancelCommand.setTargetTaskId(hostRoleCommand.getTaskId());
         cancelCommand.setReason(reason);
         actionQueue.enqueue(hostRoleCommand.getHostName(), cancelCommand);
-      }
-      // If host role is an Action, we have to send an event
-      if (hostRoleCommand.getRoleCommand().equals(RoleCommand.ACTIONEXECUTE)) {
-        String clusterName = hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getClusterName();
-        try {
-          // Usually clusterId is defined (except the awkward case when
-          // "Distribute repositories/install packages" action has been issued
-          // against a concrete host without binding to a cluster)
-          Long clusterId = clusterName != null ?
-                  fsmObject.getCluster(clusterName).getClusterId() : null;
-          ActionFinalReportReceivedEvent event = new ActionFinalReportReceivedEvent(
-                  clusterId, hostRoleCommand.getHostName(), null,
-                  hostRoleCommand.getRole().toString());
-          ambariEventPublisher.publish(event);
-        } catch (AmbariException e) {
-          LOG.error(String.format("Can not get cluster %s", clusterName), e);
-        }
       }
     }
   }

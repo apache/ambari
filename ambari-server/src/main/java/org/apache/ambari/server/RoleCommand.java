@@ -33,14 +33,6 @@ public enum RoleCommand {
   ABORT,
   UPGRADE,
   SERVICE_CHECK,
-
-  /**
-   * Represents any custom command
-   */
   CUSTOM_COMMAND,
-
-  /**
-   * Represents any action
-   */
   ACTIONEXECUTE
 }

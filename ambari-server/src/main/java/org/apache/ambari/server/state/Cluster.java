@@ -121,33 +121,19 @@ public interface Cluster {
   public void setCurrentStackVersion(StackId stackVersion) throws AmbariException;
 
   /**
-   * Create host versions for all of the hosts that don't already have the stack version.
+   * Create host versions for all of the hosts with the applied desired state using the cluster's current stack version.
    * @param hostNames Collection of host names
-   * @param currentClusterVersion Entity that contains the cluster's current stack (with its name and version)
    * @param desiredState Desired state must be {@link RepositoryVersionState#CURRENT} or {@link RepositoryVersionState#UPGRADING}
    * @throws AmbariException
    */
   public void mapHostVersions(Set<String> hostNames, ClusterVersionEntity currentClusterVersion, RepositoryVersionState desiredState) throws AmbariException;
 
   /**
-   * Create/update host versions for all of the hosts within a cluster based on state of cluster stack version.
-   * The difference of this method compared to {@link Cluster#mapHostVersions}
-   * is that it affects all hosts (not only missing hosts). Also, current method contains some additional logics to allow only INSTALLING
-   * state for hosts.
-   * @param sourceClusterVersion cluster version to be queried for a stack name/version info and desired RepositoryVersionState. The only valid state
-   * of a cluster version is {@link RepositoryVersionState#INSTALLING}
+   * Create host versions for all of the hosts within a cluster with the INSTALLED state.
+   * @param currentClusterVersion cluster version to be queried for a stack name/version info
    * @throws AmbariException
    */
-  public void inferHostVersions(ClusterVersionEntity sourceClusterVersion) throws AmbariException;
-
-  /**
-   * Update state of a cluster stack version for cluster based on states of host versions.
-   * May be called multiple times.
-   * As of now, only transition from INSTALLING to INSTALLING/INSTALLED/INSTALL_FAILED
-   * is supported
-   * @throws AmbariException
-   */
-  void recalculateClusterVersionState(String repositoryVersion) throws AmbariException;
+  public void initHostVersions(ClusterVersionEntity currentClusterVersion) throws AmbariException;
 
   /**
    * Create a cluster version for the given stack and version, whose initial state must either

@@ -226,23 +226,15 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     if (request.getProperties().size() != 1) {
       throw new UnsupportedOperationException("Multiple requests cannot be executed at the same time.");
     }
+
     Map<String, Object> propertyMap = iterator.next();
-
-    Set<String> requiredProperties = new HashSet<String>(){{
-      add(CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
-      add(CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
-      add(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID);
-      add(CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID);
-    }};
-
-    for (String requiredProperty : requiredProperties) {
-      if (! propertyMap.containsKey(requiredProperty)) {
-        throw new IllegalArgumentException(
-                String.format("The required property %s is not defined",
-                        requiredProperty));
-      }
+    if (!propertyMap.containsKey(CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID) ||
+            !propertyMap.containsKey(CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID)) {
+      throw new IllegalArgumentException(
+              String.format("%s or %s not defined",
+                      CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID,
+                      CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID));
     }
-
     clName = (String) propertyMap.get(CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
     desiredRepoVersion = (String) propertyMap.get(CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
 
@@ -368,8 +360,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       ClusterVersionEntity existingCSVer = clusterVersionDAO.findByClusterAndStackAndVersion(clName, stackId, desiredRepoVersion);
       if (existingCSVer == null) {
         try {  // Create/persist new cluster stack version
-          cluster.createClusterVersion(stackId, desiredRepoVersion, managementController.getAuthName(), RepositoryVersionState.INSTALLING);
-          existingCSVer = clusterVersionDAO.findByClusterAndStackAndVersion(clName, stackId, desiredRepoVersion);
+          cluster.createClusterVersion(stackId, desiredRepoVersion, managementController.getAuthName(), RepositoryVersionState.INSTALLED);
+          ClusterVersionEntity newCSVer = clusterVersionDAO.findByClusterAndStackAndVersion(clName, stackId, desiredRepoVersion);
+          cluster.initHostVersions(newCSVer);
         } catch (AmbariException e) {
           throw new SystemException(
                   String.format(
@@ -377,11 +370,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
                           desiredRepoVersion, clName),
                   e);
         }
-      } else {
-        // Move CSV into INSTALLING state (retry installation)
-        cluster.transitionClusterVersion(stackId, desiredRepoVersion, RepositoryVersionState.INSTALLING);
       }
-      cluster.inferHostVersions(existingCSVer);
 
       req.persist();
 

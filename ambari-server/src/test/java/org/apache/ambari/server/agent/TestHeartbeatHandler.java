@@ -75,7 +75,6 @@ import org.apache.ambari.server.agent.HostStatus.Status;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.HostsMap;
-import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Alert;
@@ -98,7 +97,6 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.codehaus.jackson.JsonGenerationException;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -725,7 +723,7 @@ public class TestHeartbeatHandler {
     clusters.addCluster(DummyCluster);
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
     ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(), clusters, db,
-        new HostsMap((String) null), unitOfWork, injector.getInstance(RequestFactory.class), null, null);
+        new HostsMap((String) null), unitOfWork, injector.getInstance(RequestFactory.class), null);
     populateActionDB(db, DummyHostname1);
     Stage stage = db.getAllStages(requestId).get(0);
     Assert.assertEquals(stageId, stage.getStageId());
@@ -1058,7 +1056,6 @@ public class TestHeartbeatHandler {
     assertTrue(registrationResponse.getStatusCommands().get(0).equals(statusCmd1));
   }
 
-  @Ignore
   @Test
   @SuppressWarnings("unchecked")
   public void testTaskInProgressHandling() throws AmbariException, InvalidStateTransitionException {
@@ -1121,7 +1118,6 @@ public class TestHeartbeatHandler {
     assertEquals("Host state should still be installing", State.INSTALLING, componentState1);
   }
 
-  @Ignore
   @Test
   @SuppressWarnings("unchecked")
   public void testOPFailedEventForAbortedTask() throws AmbariException, InvalidStateTransitionException {
@@ -1330,7 +1326,6 @@ public class TestHeartbeatHandler {
         State.INSTALLED, serviceComponentHost1.getState());
   }
 
-  @Ignore
   @Test
   @SuppressWarnings("unchecked")
   public void testUpgradeSpecificHandling() throws AmbariException, InvalidStateTransitionException {
@@ -1595,7 +1590,6 @@ public class TestHeartbeatHandler {
             stack122, serviceComponentHost2.getStackVersion());
   }
 
-  @Ignore
   @Test
   @SuppressWarnings("unchecked")
   public void testComponentUpgradeInProgressReport() throws AmbariException, InvalidStateTransitionException {
@@ -1686,7 +1680,6 @@ public class TestHeartbeatHandler {
   }
 
 
-  @Ignore
   @Test
   @SuppressWarnings("unchecked")
   public void testComponentUpgradeFailReport() throws AmbariException, InvalidStateTransitionException {
@@ -2004,7 +1997,6 @@ public class TestHeartbeatHandler {
     assertEquals(HostHealthStatus.HealthStatus.ALERT.name(), hostObject.getStatus());
   }
 
-  @Ignore
   @Test
   @SuppressWarnings("unchecked")
   public void testIgnoreCustomActionReport() throws AmbariException, InvalidStateTransitionException {
@@ -2123,7 +2115,7 @@ public class TestHeartbeatHandler {
             addMockedMethod("getTasks").
             withConstructor((long)0, (long)0, actionQueueMock, clustersMock,
                     actionDBAccessor, new HostsMap((String) null), unitOfWork,
-                    injector.getInstance(RequestFactory.class), configurationMock, createNiceMock(AmbariEventPublisher.class)).
+                    injector.getInstance(RequestFactory.class), configurationMock).
             createMock();
     return actionManager;
   }
