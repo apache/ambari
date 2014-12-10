@@ -58,6 +58,10 @@ angular.module('ambariAdminConsole')
     $scope.getStackVersions();
   };
 
+  $scope.goToCluster = function() {
+    window.location.replace('/#/main/admin/versions/updates');
+  };
+
   $scope.tableInfo = {
     total: 0,
     showed: 0,

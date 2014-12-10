@@ -65,6 +65,7 @@
           {{stack.cluster}}
         </a>
     <select ng-show="!stack.cluster"
+            ng-change="goToCluster()"
             ng-model="selectedCluster"
             ng-options="cluster.Clusters.cluster_name for cluster in clusters">
     </select>
