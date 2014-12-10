@@ -488,8 +488,9 @@
     <!-- for unit tests only -->
     <dependency>
       <groupId>org.apache.phoenix</groupId>
-      <artifactId>phoenix-core-tests</artifactId>
-      <version>4.2.0</version>
+      <artifactId>phoenix-core</artifactId>
+      <type>test-jar</type>
+      <version>4.2.0.2.2.0.0-2041</version>
       <scope>test</scope>
     </dependency>
     <dependency>
