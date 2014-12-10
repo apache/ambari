@@ -16,11 +16,8 @@
  * limitations under the License.
  */
 
-App.KerberosWizardStep4Controller = Em.Controller.extend(App.AddSecurityConfigs, {
+App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecurityConfigs, {
   name: 'kerberosWizardStep4Controller',
-  stepConfigs: [],
-  selectedService: null,
-  isRecommendedLoaded: false,
   
   clearStep: function() {
     this.set('isRecommendedLoaded', false);
@@ -45,7 +42,7 @@ App.KerberosWizardStep4Controller = Em.Controller.extend(App.AddSecurityConfigs,
    * @returns {Em.Object} 
    */
   createServiceConfig: function(configCategories, configs) {
-    return Em.Object.create({
+    return App.ServiceConfig.create({
       displayName: 'Kerberos Descriptor',
       name: 'KERBEROS',
       serviceName: 'KERBEROS',
@@ -107,7 +104,13 @@ App.KerberosWizardStep4Controller = Em.Controller.extend(App.AddSecurityConfigs,
   },
 
   submit: function() {
+    this.saveConfigurations();
     App.router.send('next');
-  }
+  },
   
+  saveConfigurations: function() {
+    var configs = this.get('stepConfigs')[0].get('configs');
+    this.get('wizardController').setDBProperty('kerberosDescriptorConfigs', configs);
+    this.set('wizardController.content.kerberosDescriptorConfigs', configs);
+  }
 });

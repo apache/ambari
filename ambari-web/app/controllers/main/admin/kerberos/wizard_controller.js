@@ -41,6 +41,7 @@ App.KerberosWizardController = App.WizardController.extend({
     services: null,
     advancedServiceConfig: null,
     serviceConfigProperties: [],
+    kerberosDescriptorConfigs: null,
     failedTask: null
   }),
 
