@@ -105,7 +105,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
       configs.push({
         name: 'nimbus_principal_name',
         serviceName: 'STORM'
-      })
+      });
     }
     return configs;
   }.property('App.isHadoop22Stack'),
@@ -381,5 +381,138 @@ App.AddSecurityConfigs = Em.Mixin.create({
       return true;
     }
     return false;
+  },
+
+  /**
+   * Generate stack descriptor configs.
+   *
+   * @returns {$.Deferred} 
+   */
+  getStackDescriptorConfigs: function() {
+    return this.loadStackDescriptorConfigs().pipe(this.createServicesStackDescriptorConfigs.bind(this));
+  },
+
+  /**
+   * 
+   * @param {object[]} items - stack descriptor json response
+   * @returns {App.ServiceConfigProperty[]} 
+   */
+  createServicesStackDescriptorConfigs: function(items) {
+    var self = this;
+    var configs = [];
+    var clusterConfigs = [];
+    
+    // generate configs for root level properties object, currently realm, keytab_dir
+    clusterConfigs = clusterConfigs.concat(this.expandKerberosStackDescriptorProps(items.properties));
+    // generate configs for root level identities object, currently spnego property
+    clusterConfigs = clusterConfigs.concat(this.createConfigsByIdentities(items.identities, 'Cluster'));
+    clusterConfigs.setEach('serviceName', 'Cluster');
+    // generate properties for services object
+    items.services.forEach(function(service) {
+      var serviceName = service.name;
+      service.components.forEach(function(component) {
+        var componentName = component.name;
+        var identityConfigs = self.createConfigsByIdentities(component.identities, componentName);
+        identityConfigs.setEach('serviceName', serviceName);
+        configs = configs.concat(identityConfigs);
+      });
+    });    
+    // unite cluster and service configs
+    configs = configs.concat(clusterConfigs);
+    // return configs with uniq names
+    return configs.reduce(function(p,c) {
+      if (!p.findProperty('name', c.get('name'))) p.push(c);
+      return p;
+    }, []);
+  },
+
+  /**
+   * Create service properties based on component identity
+   *
+   * @param {object[]} identities
+   * @param {string} componentName
+   * @returns {App.ServiceConfigProperty[]} 
+   */
+  createConfigsByIdentities: function(identities, componentName) {
+    var self = this;
+    var configs = [];
+    
+    identities.forEach(function(identity) {
+      var defaultObject = {
+        isOverridable: false,
+        isVisible: true,
+        isSecureConfig: true,
+        componentName: componentName,
+        name: identity.name
+      };
+      if (identity.name == '/spnego') {
+        defaultObject.isEditable = false;
+      }
+      self.parseIdentityObject(identity).forEach(function(item) {
+        configs.push(App.ServiceConfigProperty.create($.extend({}, defaultObject, item)));
+      });
+    });
+
+    return configs;
+  },
+
+  /**
+   * Bootstrap base object according to identity info. Generate objects will be converted to
+   * App.ServiceConfigProperty model class instances.
+   *
+   * @param {object} identity
+   * @returns {object[]} 
+   */
+  parseIdentityObject: function(identity) {
+    var result = [];
+    var keys = Em.keys(identity);
+    var name = identity[keys.shift()];
+    keys.forEach(function(item) {
+      var configObject = {};
+      var prop = identity[item];
+      if (name == '/spnego') configObject.observesValueFrom = 'spnego_' + item;
+      configObject.defaultValue = configObject.value = item == 'principal' ? prop.value : prop.file;
+      configObject.filename = prop.configuration ? prop.configuration.split('/')[0] : 'cluster-env';
+      configObject.name = configObject.displayName = prop.configuration ? prop.configuration.split('/')[1] : name + '_' + item;
+      result.push(configObject);
+    });
+    return result;
+  },
+
+  /**
+   * Wrap kerberos properties to App.ServiceConfigProperty model class instances.
+   * 
+   * @param {object} kerberosProperties
+   * @returns {App.ServiceConfigProperty[]} 
+   */
+  expandKerberosStackDescriptorProps: function(kerberosProperties) {
+    var configs = [];
+    
+    for (var propertyName in kerberosProperties) {
+      var propertyObject = {
+        name: propertyName,
+        value: kerberosProperties[propertyName],
+        defaultValue: kerberosProperties[propertyName],
+        serviceName: 'Cluster',
+        displayName: propertyName,
+        isOverridable: false,
+        isEditable: propertyName != 'realm',
+        isSecureConfig: true
+      };
+      configs.push(App.ServiceConfigProperty.create(propertyObject));
+    }
+
+    return configs;
+  },
+  /**
+   * Make request for stack descriptor configs.
+   *
+   * @returns {$.ajax} 
+   */
+  loadStackDescriptorConfigs: function() {
+    return App.ajax.send({
+      sender: this,
+      name: 'admin.kerberize.stack_descriptor'
+    });
   }
 });

@@ -16,7 +16,98 @@
  * limitations under the License.
  */
 
-App.KerberosWizardStep4Controller = Em.Controller.extend({
-  name: 'kerberosWizardStep4Controller'
-});
+App.KerberosWizardStep4Controller = Em.Controller.extend(App.AddSecurityConfigs, {
+  name: 'kerberosWizardStep4Controller',
+  stepConfigs: [],
+  selectedService: null,
+  isRecommendedLoaded: false,
+  
+  clearStep: function() {
+    this.set('isRecommendedLoaded', false);
+    this.set('selectedService', null);
+    this.set('stepConfigs', []);
+  },
+  
+  loadStep: function() {
+    var self = this;
+    this.clearStep();
+    this.getStackDescriptorConfigs().then(function(properties) {
+      self.setStepConfigs(properties);
+      self.set('isRecommendedLoaded', true);
+    });
+  },
 
+  /**
+   * Create service config object for Kerberos service.
+   *
+   * @param {Em.Object[]} configCategories
+   * @param {App.ServiceConfigProperty[]} configs
+   * @returns {Em.Object} 
+   */
+  createServiceConfig: function(configCategories, configs) {
+    return Em.Object.create({
+      displayName: 'Kerberos Descriptor',
+      name: 'KERBEROS',
+      serviceName: 'KERBEROS',
+      configCategories: configCategories,
+      configs: configs,
+      showConfig: true,
+      selected: true
+    });
+  },
+
+  /**
+   * Prepare step configs using stack descriptor properties.
+   * 
+   * @param {App.ServiceConfigProperty[]} configs
+   */
+  setStepConfigs: function(configs) {
+    var selectedService = App.StackService.find().findProperty('serviceName', 'KERBEROS');
+    var configCategories = selectedService.get('configCategories');
+    this.prepareConfigProperties(configs);
+    this.get('stepConfigs').pushObject(this.createServiceConfig(configCategories, configs));
+    this.set('selectedService', this.get('stepConfigs')[0]);
+  },
+
+  /**
+   * 
+   * @param {} configs
+   */
+  prepareConfigProperties: function(configs) {
+    var self = this;
+    var realmValue = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'realm').value;
+    configs.findProperty('name', 'realm').set('value', realmValue);
+    configs.findProperty('name', 'realm').set('defaultValue', realmValue);
+    
+    configs.setEach('isSecureConfig', false);
+    configs.forEach(function(property, item, allConfigs) {
+      if (['spnego_keytab', 'spnego_principal'].contains(property.get('name'))) {
+        property.addObserver('value', self, 'spnegoPropertiesObserver');
+      }
+      if (property.get('observesValueFrom')) {
+        var observedValue = allConfigs.findProperty('name', property.get('observesValueFrom')).get('value');
+        property.set('value', observedValue);
+        property.set('defaultValue', observedValue);
+      }
+      if (property.get('serviceName') == 'Cluster') property.set('category', 'General');
+      else property.set('category', 'Advanced');
+    });
+  },
+
+  spnegoPropertiesObserver: function(configProperty) {
+    var self = this;
+    this.get('stepConfigs')[0].get('configs').forEach(function(config) {
+      if (config.get('observesValueFrom') == configProperty.get('name')) {
+        Em.run.once(self, function() {
+          config.set('value', configProperty.get('value'));
+          config.set('defaultValue', configProperty.get('value'));
+        });
+      }
+    });
+  },
+
+  submit: function() {
+    App.router.send('next');
+  }
+  
+});

@@ -1297,6 +1297,10 @@ var urls = {
       }
     }
   },
+  'admin.kerberize.stack_descriptor': {
+    'real': '',
+    'mock': '/data/wizard/kerberos/stack_descriptors.json'
+  },
   'admin.poll.kerberize.cluster.request': {
     'real': '/clusters/{clusterName}/requests/{requestId}?fields=stages/Stage/context,stages/Stage/status,stages/Stage/progress_percent,stages/tasks/*,Requests/*',
     'mock': '/data/wizard/kerberos/kerberize_cluster.json'

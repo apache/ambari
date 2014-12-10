@@ -17,15 +17,16 @@
  */
 
 var App = require('app');
+var stackDescriptorData = require('test/mock_data_setup/stack_descriptors');
 
 require('mixins/wizard/addSecurityConfigs');
 
 describe('App.AddSecurityConfigs', function () {
 
-  var controller = App.AddSecurityConfigs.create({
+  var controller = Em.Object.extend(App.AddSecurityConfigs,{}).create({
     content: {},
     enableSubmit: function () {
-      this._super()
+      this._super();
     },
     secureMapping: [],
     secureProperties: []
@@ -37,7 +38,7 @@ describe('App.AddSecurityConfigs', function () {
       expect(controller.get('secureServices')).to.eql([{}]);
       controller.reopen({
         secureServices: []
-      })
+      });
     });
   });
 
@@ -49,11 +50,13 @@ describe('App.AddSecurityConfigs', function () {
       });
       sinon.stub(controller, 'setConfigValue', Em.K);
       sinon.stub(controller, 'formatConfigName', Em.K);
+      sinon.stub(App.Service, 'find').returns([{serviceName: 'SOME_SERVICE'}]);
     });
     afterEach(function(){
       controller.checkServiceForConfigValue.restore();
       controller.setConfigValue.restore();
       controller.formatConfigName.restore();
+      App.Service.find.restore();
     });
 
     it('secureMapping is empty', function() {
@@ -66,6 +69,7 @@ describe('App.AddSecurityConfigs', function () {
         name: 'config1',
         value: 'value1',
         filename: 'file1',
+        serviceName: 'SOME_SERVICE',
         foreignKey: null
       }]);
 
@@ -82,7 +86,8 @@ describe('App.AddSecurityConfigs', function () {
         value: 'value1',
         filename: 'file1',
         foreignKey: null,
-        dependedServiceName: 'service'
+        serviceName: 'SOME_SERVICE',
+        dependedServiceName: 'SOME_SERVICE'
       }]);
 
       expect(controller.loadUiSideSecureConfigs()).to.eql([{
@@ -98,14 +103,10 @@ describe('App.AddSecurityConfigs', function () {
         value: 'value1',
         filename: 'file1',
         foreignKey: true,
-        serviceName: 'service'
+        serviceName: 'NO_SERVICE'
       }]);
-      sinon.stub(App.Service, 'find', function(){
-        return [];
-      });
 
       expect(controller.loadUiSideSecureConfigs()).to.be.empty;
-      App.Service.find.restore();
     });
     it('Config has correct serviceName', function() {
       controller.set('secureMapping', [{
@@ -113,11 +114,8 @@ describe('App.AddSecurityConfigs', function () {
         value: 'value1',
         filename: 'file1',
         foreignKey: true,
-        serviceName: 'HDFS'
+        serviceName: 'SOME_SERVICE'
       }]);
-      sinon.stub(App.Service, 'find', function(){
-        return [{serviceName: 'HDFS'}];
-      });
 
       expect(controller.loadUiSideSecureConfigs()).to.eql([{
         "id": "site property",
@@ -127,7 +125,6 @@ describe('App.AddSecurityConfigs', function () {
       }]);
       expect(controller.setConfigValue.calledOnce).to.be.true;
       expect(controller.formatConfigName.calledOnce).to.be.true;
-      App.Service.find.restore();
     });
   });
 
@@ -216,6 +213,7 @@ describe('App.AddSecurityConfigs', function () {
         templateName: ['config1']
       };
       controller.set('globalProperties', []);
+      controller.set('configs', []);
 
       expect(controller.setConfigValue(config)).to.be.true;
       expect(config.value).to.be.null;
@@ -332,7 +330,163 @@ describe('App.AddSecurityConfigs', function () {
     });
   });
 
+  describe('#createServicesStackDescriptorConfigs', function() {
+    var result = controller.createServicesStackDescriptorConfigs(stackDescriptorData);
+    var propertyValidationTests = [
+      {
+        property: 'spnego_keytab',
+        e: [
+          { key: 'value', value: '${keytab_dir}/spnego.service.keytab' },
+          { key: 'serviceName', value: 'Cluster' },
+        ]
+      }
+    ];
+
+    it('resulted array should have unique properties by name', function() {
+      expect(result.mapProperty('name').length).to.be.eql(result.mapProperty('name').uniq().length);
+    });
+    
+    propertyValidationTests.forEach(function(test) {
+      it('property {0} should be created'.format(test.property), function() {
+        expect(result.findProperty('name', test.property)).to.be.ok;
+      });
+      test.e.forEach(function(expected) {
+        it('property `{0}` should have `{1}` with value `{2}`'.format(test.property, expected.key, expected.value), function() {
+          expect(result.findProperty('name', test.property)).to.have.deep.property(expected.key, expected.value);
+        });
+      });
+    });
+  });
+
+  describe('#expandKerberosStackDescriptorProps', function() {
+    var result = controller.expandKerberosStackDescriptorProps(stackDescriptorData.properties);
+    var testCases = [
+      {
+        property: 'realm',
+        e: [
+          { key: 'isEditable', value: false },
+          { key: 'serviceName', value: 'Cluster' },
+        ]
+      },
+      {
+        property: 'keytab_dir',
+        e: [
+          { key: 'isEditable', value: true },
+          { key: 'serviceName', value: 'Cluster' },
+        ]
+      }
+    ];
+    testCases.forEach(function(test) {
+      it('property {0} should be created'.format(test.property), function() {
+        expect(result.findProperty('name', test.property)).to.be.ok;
+      });
+      test.e.forEach(function(expected) {
+        it('property `{0}` should have `{1}` with value `{2}`'.format(test.property, expected.key, expected.value), function() {
+          expect(result.findProperty('name', test.property)).to.have.deep.property(expected.key, expected.value);
+        });
+      });
+    });
+  });
+
+  describe('#createConfigsByIdentity', function() {
+    var identitiesData = stackDescriptorData.services[0].components[0].identities;
+    var tests = [
+      {
+        property: 'dfs.namenode.kerberos.principal',
+        e: [
+          { key: 'value', value: 'nn/_HOST@${realm}' },
+        ]
+      },
+      {
+        property: 'dfs.web.authentication.kerberos.principal',
+        e: [
+          { key: 'observesValueFrom', value: 'spnego_principal' },
+          { key: 'isEditable', value: false }
+        ]
+      }     
+    ];
+    var properties = controller.createConfigsByIdentities(identitiesData, 'NAMENODE');
+    tests.forEach(function(test) {
+      it('property {0} should be created'.format(test.property), function() {
+        expect(properties.findProperty('name', test.property)).to.be.ok;
+      });
+      test.e.forEach(function(expected) {
+        it('property `{0}` should have `{1}` with value `{2}`'.format(test.property, expected.key, expected.value), function() {
+          expect(properties.findProperty('name', test.property)).to.have.deep.property(expected.key, expected.value);
+        });
+      });
+    });
+  });
+
+  describe('#parseIdentityObject', function() {
+    var testCases = [
+      {
+        identity: stackDescriptorData.services[0].components[0].identities[0],
+        tests: [
+          {
+            property: 'dfs.namenode.kerberos.principal',
+            e: [
+              { key: 'filename', value: 'hdfs-site' },
+            ]
+          },
+          {
+            property: 'dfs.namenode.keytab.file',
+            e: [
+              { key: 'value', value: '${keytab_dir}/nn.service.keytab' }
+            ]
+          }
+        ],
+      },
+      {
+        identity: stackDescriptorData.services[0].components[0].identities[1],
+        tests: [
+          {
+            property: 'dfs.namenode.kerberos.https.principal',
+            e: [
+              { key: 'filename', value: 'hdfs-site' }
+            ]
+          }
+        ],
+      },
+      {
+        identity: stackDescriptorData.identities[0],
+        tests: [
+          {
+            property: 'spnego_principal',
+            e: [
+              { key: 'displayName', value: 'spnego_principal' },
+              { key: 'filename', value: 'cluster-env' },
+            ]
+          }
+        ]
+      },
+      {
+        identity: stackDescriptorData.identities[0],
+        tests: [
+          {
+            property: 'spnego_keytab',
+            e: [
+              { key: 'displayName', value: 'spnego_keytab' },
+              { key: 'filename', value: 'cluster-env' },
+            ]
+          }
+        ]
+      }
+    ];
+    
+    testCases.forEach(function(testCase) {
+      testCase.tests.forEach(function(test) {
+        var result = controller.parseIdentityObject(testCase.identity);
+        it('property `{0}` should be present'.format(test.property), function() {
+          expect(result.findProperty('name', test.property)).to.be.ok;
+        });
+        test.e.forEach(function(expected) {
+          it('property `{0}` should have `{1}` with value `{2}`'.format(test.property, expected.key, expected.value), function() {
+            expect(result.findProperty('name', test.property)).to.have.deep.property(expected.key, expected.value);
+          });
+        });
+      });
+    });
+  });
+  
 });
-
-
-

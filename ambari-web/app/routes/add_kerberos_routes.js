@@ -92,7 +92,7 @@ module.exports = App.WizardRoute.extend({
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
         controller.connectOutlet('kerberosWizardStep1', controller.get('content'));
-      })
+      });
     },
 
     unroutePath: function () {
@@ -123,7 +123,7 @@ module.exports = App.WizardRoute.extend({
         var kerberosWizardStep2Controller = router.get('kerberosWizardStep2Controller');
         kerberosWizardStep2Controller.set('wizardController', controller);
         controller.connectOutlet('kerberosWizardStep2', controller.get('content'));
-      })
+      });
     },
     unroutePath: function () {
       return false;
@@ -149,7 +149,7 @@ module.exports = App.WizardRoute.extend({
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
         controller.connectOutlet('kerberosWizardStep3', controller.get('content'));
-      })
+      });
     },
     unroutePath: function () {
       return false;
@@ -170,10 +170,13 @@ module.exports = App.WizardRoute.extend({
     connectOutlets: function (router) {
       console.log('in kerberosWizardController.step4:connectOutlets');
       var controller = router.get('kerberosWizardController');
+      var step4Controller = router.get('kerberosWizardStep4Controller');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
+        controller.setCurrentStep(4);
+        step4Controller.set('wizardController', controller);
         controller.connectOutlet('kerberosWizardStep4', controller.get('content'));
-      })
+      });
     },
     unroutePath: function () {
       return false;
@@ -196,7 +199,7 @@ module.exports = App.WizardRoute.extend({
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
         controller.connectOutlet('kerberosWizardStep5', controller.get('content'));
-      })
+      });
     },
     unroutePath: function () {
       return false;
@@ -220,7 +223,7 @@ module.exports = App.WizardRoute.extend({
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
         controller.connectOutlet('kerberosWizardStep6', controller.get('content'));
-      })
+      });
     },
     unroutePath: function () {
       return false;
