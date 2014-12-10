@@ -151,7 +151,7 @@ def copy_tarballs_to_hdfs(tarball_prefix, component_user, file_owner, group_owne
     code, stdoutdata = shell.call(get_hdp_version_cmd)
     out = file.read()
   pass
-  if code != 0 or out is None or not out.startswith(params.hdp_stack_version):
+  if code != 0 or out is None:
     Logger.warning("Could not verify HDP version by calling '%s'. Return Code: %s, Output: %s." %
                    (get_hdp_version_cmd, str(code), str(out)))
     return 1
