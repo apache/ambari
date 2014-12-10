@@ -41,7 +41,7 @@ public abstract class BaseStacksResourceDefinition extends BaseResourceDefinitio
     return Collections.<PostProcessor>singletonList(new StacksHrefProcessor());
   }
 
-  private class StacksHrefProcessor extends BaseHrefPostProcessor {
+  private class StacksHrefProcessor extends BaseHrefPostProcessor { 
     @Override
     /**
      * If processing a /stacks or /stack_versions endpoint, replace the endpoint names.
@@ -57,7 +57,9 @@ public abstract class BaseStacksResourceDefinition extends BaseResourceDefinitio
 
         // The UI currently expects the old sub-resource names so don't do replacement
         // if the href contains "_=" as only the UI uses this syntax.
-        if (! href.contains("_=")) {
+        // UPD: added another hotfix to properly rename subresources for stack_versions and repository_versions,
+        // it is backward compatible with old fix 
+        if (! href.contains("_=") || href.contains("/stack_versions/") || href.contains("/repository_versions/")) {
           renameChildren(resultNode);
         }
       }

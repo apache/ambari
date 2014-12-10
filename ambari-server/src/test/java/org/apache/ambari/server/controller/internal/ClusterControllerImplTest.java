@@ -56,6 +56,7 @@ import org.apache.ambari.server.controller.spi.SortRequest;
 import org.apache.ambari.server.controller.spi.SortRequestProperty;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -972,15 +973,11 @@ public class ClusterControllerImplTest {
       }
       providers.put(Resource.Type.Cluster, new TestClusterResourceProvider());
       providers.put(Resource.Type.Host, new TestHostResourceProvider());
-
-
       providers.put(Resource.Type.Stack, new TestStackResourceProvider());
       providers.put(Resource.Type.StackVersion, new TestStackVersionResourceProvider());
       providers.put(Resource.Type.OperatingSystem, new TestOperatingSystemResourceProvider());
       providers.put(Resource.Type.Repository, new TestRepositoryResourceProvider());
-
-
-
+      providers.put(Resource.Type.RepositoryVersion, new TestRepositoryVersionResourceProvider());
     }
 
     @Override
@@ -1002,6 +999,10 @@ public class ClusterControllerImplTest {
 
     private TestResourceProvider(Resource.Type type) {
       super(PropertyHelper.getPropertyIds(type), PropertyHelper.getKeyPropertyIds(type));
+    }
+    
+    private TestResourceProvider(Set<String> propertyIds, Map<Resource.Type, String> keyPropertyIds) {
+      super(propertyIds, keyPropertyIds);
     }
 
     @Override
@@ -1201,7 +1202,7 @@ public class ClusterControllerImplTest {
 
   private static class TestOperatingSystemResourceProvider extends TestResourceProvider {
     private TestOperatingSystemResourceProvider() {
-      super(Resource.Type.OperatingSystem);
+      super(OperatingSystemResourceProvider.propertyIds, OperatingSystemResourceProvider.keyPropertyIds);
     }
 
     @Override
@@ -1219,7 +1220,7 @@ public class ClusterControllerImplTest {
 
   private static class TestRepositoryResourceProvider extends TestResourceProvider {
     private TestRepositoryResourceProvider() {
-      super(Resource.Type.Repository);
+      super(RepositoryResourceProvider.propertyIds, RepositoryResourceProvider.keyPropertyIds);
     }
 
     @Override
@@ -1233,6 +1234,23 @@ public class ClusterControllerImplTest {
       return getResources(Resource.Type.Repository, predicate, "Repositories/repo_id", keyPropertyValues);
     }
   }
+  
+  private static class TestRepositoryVersionResourceProvider extends TestResourceProvider {
+    private TestRepositoryVersionResourceProvider() {
+      super(RepositoryVersionResourceProvider.propertyIds, RepositoryVersionResourceProvider.keyPropertyIds);
+    }
+
+    @Override
+    public Set<Resource> getResources(Request request, Predicate predicate)
+        throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+      Set<String> keyPropertyValues = new LinkedHashSet<String>();
+
+      keyPropertyValues.add("1");
+      keyPropertyValues.add("2");
+
+      return getResources(Resource.Type.RepositoryVersion, predicate, "RepositoriVersions/id", keyPropertyValues);
+    }
+  }  
 
 }
 

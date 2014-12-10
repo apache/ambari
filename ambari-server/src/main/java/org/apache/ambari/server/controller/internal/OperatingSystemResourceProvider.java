@@ -55,7 +55,7 @@ public class OperatingSystemResourceProvider extends ReadOnlyResourceProvider {
   };
 
   @SuppressWarnings("serial")
-  private static Set<String> propertyIds = new HashSet<String>() {
+  public static Set<String> propertyIds = new HashSet<String>() {
     {
       add(OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID);
       add(OPERATING_SYSTEM_STACK_NAME_PROPERTY_ID);
@@ -65,7 +65,7 @@ public class OperatingSystemResourceProvider extends ReadOnlyResourceProvider {
   };
 
   @SuppressWarnings("serial")
-  private static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
+  public static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
     {
       put(Resource.Type.OperatingSystem, OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID);
       put(Resource.Type.Stack, OPERATING_SYSTEM_STACK_NAME_PROPERTY_ID);

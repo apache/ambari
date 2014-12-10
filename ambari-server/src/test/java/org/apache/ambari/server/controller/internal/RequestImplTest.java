@@ -51,7 +51,6 @@ public class RequestImplTest {
   }
 
   @Test
-  @Ignore
   public void testValidPropertyIds() {
     Request request = PropertyHelper.getReadRequest(PropertyHelper.getPropertyIds(Resource.Type.HostComponent));
     Set<String> validPropertyIds = request.getPropertyIds();
@@ -211,7 +210,7 @@ public class RequestImplTest {
     Assert.assertTrue(validPropertyIds.contains("Versions/stack_version"));
     Assert.assertTrue(validPropertyIds.contains("Versions/min_upgrade_version"));
 
-    request = PropertyHelper.getReadRequest(PropertyHelper.getPropertyIds(Resource.Type.OperatingSystem));
+    request = PropertyHelper.getReadRequest(OperatingSystemResourceProvider.propertyIds);
     validPropertyIds = request.getPropertyIds();
 
     //OperatingSystem resource properties
@@ -220,7 +219,7 @@ public class RequestImplTest {
     Assert.assertTrue(validPropertyIds.contains("OperatingSystems/stack_version"));
     Assert.assertTrue(validPropertyIds.contains("OperatingSystems/os_type"));
 
-    request = PropertyHelper.getReadRequest(PropertyHelper.getPropertyIds(Resource.Type.Repository));
+    request = PropertyHelper.getReadRequest(RepositoryResourceProvider.propertyIds);
     validPropertyIds = request.getPropertyIds();
 
     //Repository resource properties

@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
+import org.apache.ambari.server.api.resources.OperatingSystemResourceDefinition;
 import org.apache.ambari.server.api.resources.RepositoryResourceDefinition;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -72,7 +73,8 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
   public static final String REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("RepositoryVersions", "repository_version");
   public static final String REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID       = PropertyHelper.getPropertyId("RepositoryVersions", "display_name");
   public static final String REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID       = PropertyHelper.getPropertyId("RepositoryVersions", "upgrade_pack");
-  public static final String REPOSITORY_VERSION_OPERATING_SYSTEMS_PROPERTY_ID  = PropertyHelper.getPropertyId("RepositoryVersions", "operating_systems");
+  public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID         = "operating_systems"; //TODO should be replaced with resource definition when we get rid of Stacks2Service 
+  public static final String SUBRESOURCE_REPOSITORIES_PROPERTY_ID              = new RepositoryResourceDefinition().getPluralName();
 
   @SuppressWarnings("serial")
   private static Set<String> pkPropertyIds = new HashSet<String>() {
@@ -82,7 +84,7 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
   };
 
   @SuppressWarnings("serial")
-  private static Set<String> propertyIds = new HashSet<String>() {
+  public static Set<String> propertyIds = new HashSet<String>() {
     {
       add(REPOSITORY_VERSION_ID_PROPERTY_ID);
       add(REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
@@ -90,12 +92,12 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
       add(REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID);
       add(REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID);
       add(REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID);
-      add(REPOSITORY_VERSION_OPERATING_SYSTEMS_PROPERTY_ID);
+      add(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID);
     }
   };
 
   @SuppressWarnings("serial")
-  private static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
+  public static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
     {
       put(Type.Stack, REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID);
       put(Type.StackVersion, REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID);
@@ -136,7 +138,7 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
         public Void invoke() throws AmbariException {
           final String[] requiredProperties = {
               REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID,
-              REPOSITORY_VERSION_OPERATING_SYSTEMS_PROPERTY_ID,
+              SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID,
               REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID,
               REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID,
               REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID
@@ -229,7 +231,7 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
             throw new ObjectNotFoundException("There is no repository version with id " + id);
           }
 
-          if (propertyMap.get(REPOSITORY_VERSION_OPERATING_SYSTEMS_PROPERTY_ID) != null) {
+          if (propertyMap.get(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID) != null) {
 
             final List<ClusterVersionEntity> clusterVersionEntities =
                 clusterVersionDAO.findByStackAndVersion(entity.getStack(), entity.getVersion());
@@ -240,9 +242,15 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
                 firstClusterVersion.getState().name() + " on cluster " + firstClusterVersion.getClusterEntity().getClusterName());
             }
 
-            if (propertyMap.get(REPOSITORY_VERSION_OPERATING_SYSTEMS_PROPERTY_ID) != null) {
-              final Object repositories = propertyMap.get(REPOSITORY_VERSION_OPERATING_SYSTEMS_PROPERTY_ID);
-              entity.setOperatingSystems(gson.toJson(repositories));
+            if (propertyMap.get(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID) != null) {
+              final Object operatingSystems = propertyMap.get(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID);
+              final String operatingSystemsJson = gson.toJson(operatingSystems);
+              try {
+                parseOperatingSystems(operatingSystemsJson);
+              } catch (Exception ex) {
+                throw new AmbariException("Json structure for operating systems is incorrect", ex);
+              }
+              entity.setOperatingSystems(operatingSystemsJson);
             }
 
           }
@@ -354,16 +362,15 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
     final String stackVersion = properties.get(REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID).toString();
     entity.setDisplayName(properties.get(REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID).toString());
     entity.setStack(new StackId(stackName, stackVersion).getStackId());
-    entity.setUpgradePackage(properties.get(REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID).toString());
     entity.setVersion(properties.get(REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID).toString());
-    final Object repositories = properties.get(REPOSITORY_VERSION_OPERATING_SYSTEMS_PROPERTY_ID);
-    final String repositoriesJson = gson.toJson(repositories);
+    final Object operatingSystems = properties.get(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID);
+    final String operatingSystemsJson = gson.toJson(operatingSystems);
     try {
-      parseRepositories(repositoriesJson);
+      parseOperatingSystems(operatingSystemsJson);
     } catch (Exception ex) {
       throw new AmbariException("Json structure for operating systems is incorrect", ex);
     }
-    entity.setOperatingSystems(repositoriesJson);
+    entity.setOperatingSystems(operatingSystemsJson);
     entity.setUpgradePackage(getUpgradePackageName(stackName, stackVersion, entity.getVersion()));
     return entity;
   }
@@ -427,14 +434,13 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
    * @return list of operating system entities
    * @throws Exception if any kind of json parsing error happened
    */
-  public static List<OperatingSystemEntity> parseRepositories(String repositoriesJson) throws Exception {
+  public static List<OperatingSystemEntity> parseOperatingSystems(String repositoriesJson) throws Exception {
     final List<OperatingSystemEntity> operatingSystems = new ArrayList<OperatingSystemEntity>();
     final JsonArray rootJson = new JsonParser().parse(repositoriesJson).getAsJsonArray();
-    final String repositoriesSubresourceName = new RepositoryResourceDefinition().getPluralName();
     for (JsonElement operatingSystemJson: rootJson) {
       final OperatingSystemEntity operatingSystemEntity = new OperatingSystemEntity();
       operatingSystemEntity.setOsType(operatingSystemJson.getAsJsonObject().get(OperatingSystemResourceProvider.OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID).getAsString());
-      for (JsonElement repositoryJson: operatingSystemJson.getAsJsonObject().get(repositoriesSubresourceName).getAsJsonArray()) {
+      for (JsonElement repositoryJson: operatingSystemJson.getAsJsonObject().get(SUBRESOURCE_REPOSITORIES_PROPERTY_ID).getAsJsonArray()) {
         final RepositoryEntity repositoryEntity = new RepositoryEntity();
         repositoryEntity.setBaseUrl(repositoryJson.getAsJsonObject().get(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID).getAsString());
         repositoryEntity.setName(repositoryJson.getAsJsonObject().get(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID).getAsString());

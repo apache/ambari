@@ -67,7 +67,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
   };
 
   @SuppressWarnings("serial")
-  private static Set<String> propertyIds = new HashSet<String>() {
+  public static Set<String> propertyIds = new HashSet<String>() {
     {
       add(REPOSITORY_REPO_NAME_PROPERTY_ID);
       add(REPOSITORY_STACK_NAME_PROPERTY_ID);
@@ -84,7 +84,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
   };
 
   @SuppressWarnings("serial")
-  private static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
+  public static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
     {
       put(Resource.Type.Stack, REPOSITORY_STACK_NAME_PROPERTY_ID);
       put(Resource.Type.StackVersion, REPOSITORY_STACK_VERSION_PROPERTY_ID);

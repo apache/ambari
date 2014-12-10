@@ -54,7 +54,6 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 
@@ -163,7 +162,6 @@ public class QueryImplTest {
   }
 
   @Test
-  @Ignore
   public void testGetJoinedResourceProperties() throws Exception {
     ResourceDefinition resourceDefinition = new StackResourceDefinition();
 
@@ -205,7 +203,6 @@ public class QueryImplTest {
   }
 
   @Test
-  @Ignore
   public void testExecute_subResourcePredicate() throws Exception {
     ResourceDefinition resourceDefinition = new StackResourceDefinition();
 
@@ -249,7 +246,6 @@ public class QueryImplTest {
   }
 
   @Test
-  @Ignore
   public void testExecute__Stack_instance_specifiedSubResources() throws Exception {
     ResourceDefinition resourceDefinition = new StackResourceDefinition();
 
@@ -279,7 +275,7 @@ public class QueryImplTest {
     Assert.assertEquals("StackVersion:1", versionNode.getName());
     Assert.assertEquals(Resource.Type.StackVersion, versionNode.getObject().getType());
 
-    Assert.assertEquals(3, versionNode.getChildren().size());
+    Assert.assertEquals(4, versionNode.getChildren().size());
     TreeNode<Resource> opSystemsNode = versionNode.getChild("operatingSystems");
     Assert.assertEquals(3, opSystemsNode.getChildren().size());
 
@@ -346,7 +342,6 @@ public class QueryImplTest {
   }
 
   @Test
-  @Ignore
   public void testExecute_StackVersionPageSubResourcePredicate()
       throws NoSuchParentResourceException, UnsupportedPropertyException,
     NoSuchResourceException, SystemException {

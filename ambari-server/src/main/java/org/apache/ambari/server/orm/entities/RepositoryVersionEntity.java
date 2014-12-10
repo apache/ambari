@@ -33,6 +33,7 @@ import javax.persistence.UniqueConstraint;
 
 import org.apache.ambari.server.controller.internal.RepositoryVersionResourceProvider;
 import org.apache.ambari.server.state.StackId;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -141,13 +142,15 @@ public class RepositoryVersionEntity {
   }
 
   public List<OperatingSystemEntity> getOperatingSystems() {
-    try {
-      return RepositoryVersionResourceProvider.parseRepositories(operatingSystems);
-    } catch (Exception ex) {
-      // Should never happen as we validate json before storing it to DB
-      LOG.error("Could not parse operating systems json stored in database:" + operatingSystems, ex);
-      return Collections.emptyList();
+    if (StringUtils.isNotBlank(operatingSystems)) {
+      try {
+        return RepositoryVersionResourceProvider.parseOperatingSystems(operatingSystems);
+      } catch (Exception ex) {
+        // Should never happen as we validate json before storing it to DB
+        LOG.error("Could not parse operating systems json stored in database:" + operatingSystems, ex);
+      }  
     }
+    return Collections.emptyList();
   }
 
   public String getStackName() {
