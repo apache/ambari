@@ -180,7 +180,14 @@ describe('App.ManageAlertNotificationsController', function () {
             'test1@test.test',
             'test2@test.test'
           ],
-          'customName': 'customValue'
+          'customName': 'customValue',
+          "mail.smtp.from" : "from",
+          "ambari.dispatch.credential.username" : "user",
+          "mail.smtp.host" : "s1",
+          "mail.smtp.port" : "25",
+          "mail.smtp.auth" : "true",
+          "ambari.dispatch.credential.password" : "pass",
+          "mail.smtp.starttls.enable" : "true"
         }
       }));
 
@@ -210,6 +217,18 @@ describe('App.ManageAlertNotificationsController', function () {
           value: ''
         },
         SMTPPort: {
+          value: ''
+        },
+        SMTPUseAuthentication: {
+          value: ''
+        },
+        SMTPUsername: {
+          value: ''
+        },
+        SMTPPassword: {
+          value: ''
+        },
+        SMTPSTARTTLS: {
           value: ''
         },
         emailFrom: {
@@ -258,9 +277,27 @@ describe('App.ManageAlertNotificationsController', function () {
         description: {
           value: 'test_description'
         },
-        SMTPServer: {},
-        SMTPPort: {},
-        emailFrom: {},
+        SMTPServer: {
+          value: 's1'
+        },
+        SMTPPort: {
+          value: '25'
+        },
+        SMTPUseAuthentication: {
+          value: "true"
+        },
+        SMTPUsername: {
+          value: 'user'
+        },
+        SMTPPassword: {
+          value: 'pass'
+        },
+        SMTPSTARTTLS: {
+          value: "true"
+        },
+        emailFrom: {
+          value: 'from'
+        },
         version: {},
         OIDs: {},
         community: {},
@@ -371,6 +408,27 @@ describe('App.ManageAlertNotificationsController', function () {
       severityFilter: {
         value: ['OK', 'CRITICAL']
       },
+      SMTPServer: {
+        value: 's1'
+      },
+      SMTPPort: {
+        value: '25'
+      },
+      SMTPUseAuthentication: {
+        value: "true"
+      },
+      SMTPUsername: {
+        value: 'user'
+      },
+      SMTPPassword: {
+        value: 'pass'
+      },
+      SMTPSTARTTLS: {
+        value: "true"
+      },
+      emailFrom: {
+        value: 'from'
+      },
       description: {
         value: 'test_description'
       },
@@ -400,6 +458,13 @@ describe('App.ManageAlertNotificationsController', function () {
               'test3@test.test',
               'test4@test.test'
             ],
+            "mail.smtp.host" : "s1",
+            "mail.smtp.port" : "25",
+            "mail.smtp.from" : "from",
+            "mail.smtp.auth" : "true",
+            "ambari.dispatch.credential.username" : "user",
+            "ambari.dispatch.credential.password" : "pass",
+            "mail.smtp.starttls.enable" : "true",
             'n1': 'v1',
             'n2': 'v2'
           },

@@ -77,6 +77,29 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
       value: '',
       defaultValue: ''
     },
+    SMTPUseAuthentication: Em.Object.create({
+      label: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.SMTPUseAuthentication'),
+      value: false,
+      defaultValue: false,
+      inversedValue: function () {
+        return !this.get('value');
+      }.property('value')
+    }),
+    SMTPUsername: {
+      label: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.SMTPUsername'),
+      value: '',
+      defaultValue: ''
+    },
+    SMTPPassword: {
+      label: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.SMTPPassword'),
+      value: '',
+      defaultValue: ''
+    },
+    SMTPSTARTTLS: {
+      label: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.SMTPSTARTTLS'),
+      value: false,
+      defaultValue: false
+    },
     emailFrom: {
       label: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.emailFrom'),
       value: '',
@@ -167,8 +190,20 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
    * List custom property names that shouldn't be displayed on Edit page
    * @type {string[]}
    */
-  ignoredCustomProperties: ['ambari.dispatch.recipients', 'mail.smtp.host', 'mail.smtp.port', 'mail.smtp.from', 'ambari.dispatch.snmp.version',
-    'ambari.dispatch.snmp.oids.trap', 'ambari.dispatch.snmp.community', 'ambari.dispatch.snmp.port'],
+  ignoredCustomProperties: [
+    'ambari.dispatch.credential.password',
+    'ambari.dispatch.credential.username',
+    'ambari.dispatch.recipients',
+    'ambari.dispatch.snmp.community',
+    'ambari.dispatch.snmp.oids.trap',
+    'ambari.dispatch.snmp.port',
+    'ambari.dispatch.snmp.version',
+    'mail.smtp.auth',
+    'mail.smtp.from',
+    'mail.smtp.host',
+    'mail.smtp.port',
+    'mail.smtp.starttls.enable'
+  ],
 
   /**
    * Load all Alert Notifications from server
@@ -241,6 +276,10 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
         selectedAlertNotification.get('properties')['ambari.dispatch.recipients'].join(', ') : '');
     inputFields.set('SMTPServer.value', selectedAlertNotification.get('properties')['mail.smtp.host']);
     inputFields.set('SMTPPort.value', selectedAlertNotification.get('properties')['mail.smtp.port']);
+    inputFields.set('SMTPUseAuthentication.value', selectedAlertNotification.get('properties')['mail.smtp.auth']);
+    inputFields.set('SMTPUsername.value', selectedAlertNotification.get('properties')['ambari.dispatch.credential.username']);
+    inputFields.set('SMTPPassword.value', selectedAlertNotification.get('properties')['ambari.dispatch.credential.password']);
+    inputFields.set('SMTPSTARTTLS.value', selectedAlertNotification.get('properties')['mail.smtp.starttls.enable']);
     inputFields.set('emailFrom.value', selectedAlertNotification.get('properties')['mail.smtp.from']);
     inputFields.set('version.value', selectedAlertNotification.get('properties')['ambari.dispatch.snmp.version']);
     inputFields.set('OIDs.value', selectedAlertNotification.get('properties')['ambari.dispatch.snmp.oids.trap']);
@@ -377,6 +416,12 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
       properties['mail.smtp.host'] = inputFields.get('SMTPServer.value');
       properties['mail.smtp.port'] = inputFields.get('SMTPPort.value');
       properties['mail.smtp.from'] = inputFields.get('emailFrom.value');
+      properties['mail.smtp.auth'] = inputFields.get('SMTPUseAuthentication.value');
+      if (inputFields.get('SMTPUseAuthentication.value')) {
+        properties['ambari.dispatch.credential.username'] = inputFields.get('SMTPUsername.value');
+        properties['ambari.dispatch.credential.password'] = inputFields.get('SMTPPassword.value');
+        properties['mail.smtp.starttls.enable'] = inputFields.get('SMTPSTARTTLS.value');
+      }
     } else {
       properties['ambari.dispatch.snmp.version'] = inputFields.get('version.value');
       properties['ambari.dispatch.snmp.oids.trap'] = inputFields.get('OIDs.value');

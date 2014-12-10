@@ -104,6 +104,7 @@
           {{view Em.TextField valueBinding="controller.inputFields.email.value" id="inputEmail" class="input-xlarge"}}
         </div>
       </div>
+
       <div class="control-group">
         <label class="control-label">{{controller.inputFields.SMTPServer.label}}</label>
 
@@ -111,6 +112,7 @@
           {{view Em.TextField valueBinding="controller.inputFields.SMTPServer.value" class="input-xlarge"}}
         </div>
       </div>
+
       <div class="control-group">
         <label class="control-label">{{controller.inputFields.SMTPPort.label}}</label>
 
@@ -118,6 +120,39 @@
           {{view Em.TextField valueBinding="controller.inputFields.SMTPPort.value" class="input-xlarge"}}
         </div>
       </div>
+
+      <div class="control-group">
+        <label class="control-label" for="inputUseAuthentication">{{controller.inputFields.SMTPUseAuthentication.label}}</label>
+
+        <div class="controls">
+          {{view Em.Checkbox checkedBinding="controller.inputFields.SMTPUseAuthentication.value" id="inputUseAuthentication" class="input-xlarge"}}
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label">{{controller.inputFields.SMTPUsername.label}}</label>
+
+        <div class="controls">
+          {{view Em.TextField disabledBinding="controller.inputFields.SMTPUseAuthentication.inversedValue" valueBinding="controller.inputFields.SMTPUsername.value" class="input-xlarge"}}
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label">{{controller.inputFields.SMTPPassword.label}}</label>
+
+        <div class="controls">
+          {{view Em.TextField disabledBinding="controller.inputFields.SMTPUseAuthentication.inversedValue" valueBinding="controller.inputFields.SMTPPassword.value" class="input-xlarge"}}
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label" for="inputSMTPSTARTTLS">{{controller.inputFields.SMTPSTARTTLS.label}}</label>
+
+        <div class="controls">
+          {{view Em.Checkbox disabledBinding="controller.inputFields.SMTPUseAuthentication.inversedValue" checkedBinding="controller.inputFields.SMTPSTARTTLS.value" id="inputSMTPSTARTTLS" class="input-xlarge"}}
+        </div>
+      </div>
+
       <div class="control-group">
         <label class="control-label">{{controller.inputFields.emailFrom.label}}</label>
 
@@ -133,6 +168,7 @@
           {{view Em.Select selectionBinding="controller.inputFields.version.value" contentBinding="controller.SNMPVersions" class="input-xlarge"}}
         </div>
       </div>
+
       <div class="control-group">
         <label class="control-label">{{controller.inputFields.OIDs.label}}</label>
 
@@ -140,6 +176,7 @@
           {{view Em.TextField valueBinding="controller.inputFields.OIDs.value" class="input-xlarge"}}
         </div>
       </div>
+
       <div class="control-group">
         <label class="control-label">{{controller.inputFields.community.label}}</label>
 
@@ -147,6 +184,7 @@
           {{view Em.TextField valueBinding="controller.inputFields.community.value" class="input-xlarge"}}
         </div>
       </div>
+
       <div class="control-group">
         <label class="control-label">{{controller.inputFields.port.label}}</label>
 
