@@ -28,6 +28,12 @@ limitations under the License.
   <artifactId>ambari-metrics-hadoop-sink</artifactId>
   <version>0.1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
+  <properties>
+    <sinkJarName>${project.artifactId}-with-common-${project.version}.jar</sinkJarName>
+  </properties>
+
+
+
   <build>
     <plugins>
       <plugin>
@@ -123,6 +129,12 @@ limitations under the License.
           <copyright>2012, Apache Software Foundation</copyright>
           <group>Development</group>
           <description>Maven Recipe: RPM Package.</description>
+
+          <postinstallScriptlet>
+            <scriptFile>${project.build.outputDirectory}/rpm/postinstall.sh</scriptFile>
+            <fileEncoding>utf-8</fileEncoding>
+          </postinstallScriptlet>
+
           <mappings>
             <mapping>
               <directory>/usr/lib/ambari-metrics-hadoop-sink</directory>
@@ -133,10 +145,6 @@ limitations under the License.
                 <source>
                   <location>target/${project.artifactId}-with-common-${project.version}.jar</location>
                 </source>
-                <softlinkSource>
-                  <destination>ambari-metrics-hadoop-sink.jar</destination>
-                  <location>/usr/lib/ambari-metrics-hadoop-sink/${project.artifactId}-with-common-${project.version}.jar</location>
-                </softlinkSource>
               </sources>
 
             </mapping>
@@ -145,6 +153,14 @@ limitations under the License.
         </configuration>
       </plugin>
     </plugins>
+
+    <resources>
+      <resource>
+        <directory>src/main/package</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+
   </build>
 
   <dependencies>
