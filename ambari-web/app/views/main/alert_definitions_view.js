@@ -373,13 +373,16 @@ App.MainAlertDefinitionsView = App.TableView.extend({
 
     onValueChange: function () {
       var value = this.get('value');
-      if (value != undefined ) {
+      if (value != undefined) {
         this.get('content').setEach('selected', false);
         this.set('selected', this.get('content').findProperty('value', value));
         var selectEntry = this.get('content').findProperty('value', value);
         if (selectEntry) {
           selectEntry.set('selected', true);
         }
+      } else {
+        this.set('value', '');
+        this.get('parentView').updateFilter(this.get('column'), '', 'alert_group');
       }
     }.observes('value')
   }),
