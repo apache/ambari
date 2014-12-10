@@ -65,6 +65,12 @@ def flume(action = None):
            content=InlineTemplate(params.flume_env_sh_template)
       )
 
+      if params.has_metric_collector:
+        File(os.path.join(flume_agent_conf_dir, "flume-metrics2.properties"),
+             owner=params.flume_user,
+             content=Template("flume-metrics2.properties.j2")
+        )
+
   elif action == 'start':
     # desired state for service should be STARTED
     if len(params.flume_command_targets) == 0:
@@ -89,6 +95,8 @@ def flume(action = None):
         if params.ganglia_server_host is not None:
           extra_args = '-Dflume.monitoring.type=ganglia -Dflume.monitoring.hosts={0}:{1}'
           extra_args = extra_args.format(params.ganglia_server_host, '8655')
+        if params.has_metric_collector:
+          extra_args = '-Dflume.monitoring.type=org.apache.hadoop.metrics2.sink.flume.FlumeTimelineMetricsSink'
 
         flume_cmd = flume_base.format(agent, flume_agent_conf_dir,
            flume_agent_conf_file, extra_args)
