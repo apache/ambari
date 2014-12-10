@@ -1783,5 +1783,32 @@ App.MainHostDetailsController = Em.Controller.extend({
     }
     App.showAlertPopup(Em.I18n.t('services.service.actions.run.executeCustomCommand.error'), error);
     console.warn('Error during executing custom command');
+  },
+
+  /**
+   * install HostStackVersion on host
+   * @param {object} event
+   */
+  installVersion: function (event) {
+    App.ajax.send({
+      name: 'host.stack_versions.install',
+      sender: this,
+      data: {
+        hostName: this.get('content.hostName'),
+        version: event.context
+      },
+      success: 'installVersionSuccessCallback'
+    });
+  },
+
+  /**
+   * success callback of <code>installVersion</code>
+   * on success set version status to INSTALLING
+   * @param {object} data
+   * @param {object} opt
+   * @param {object} params
+   */
+  installVersionSuccessCallback: function (data, opt, params) {
+    App.HostStackVersion.find(params.version.get('id')).set('status', 'INSTALLING');
   }
 });

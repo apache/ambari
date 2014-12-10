@@ -64,11 +64,6 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
     return [];
   }.property('controller.content'),
 
-  stackVersions: function () {
-    //TODO obtain versions from model App.StackVersion
-    return App.HostStackVersion.find().mapProperty('version').uniq();
-  }.property(),
-
   onRequestErrorHandler: function() {
     this.set('requestError', null);
     this.get('controller').get('dataSource').setEach('isRequested', false);
@@ -1014,7 +1009,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
               value: '',
               label: Em.I18n.t('common.all')
             }
-          ].concat(this.get('parentView.parentView.parentView.stackVersions').map(function (version) {
+          ].concat(App.HostStackVersion.find().mapProperty('version').uniq().map(function (version) {
             return {
               value: version,
               label: version

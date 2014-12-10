@@ -18,14 +18,14 @@
 <table class="table advanced-header-table table-bordered table-striped">
   <thead>
   {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
-    {{view view.parentView.stackNameSort classNames="first"}}
-    {{view view.parentView.versionSort}}
+    {{view view.parentView.stackSort classNames="first"}}
+    {{view view.parentView.repoVersionSort}}
     {{view view.parentView.statusSort}}
     <th></th>
   {{/view}}
   <tr class="filter-row">
-    <th class="first stack-name-filter">{{view view.stackNameFilterView}}</th>
-    <th class="repo-version-filter">{{view view.versionFilterView}}</th>
+    <th class="first stack-name-filter">{{view view.stackFilterView}}</th>
+    <th class="repo-version-filter">{{view view.repoVersionFilterView}}</th>
     <th class="status-filter">{{view view.statusFilterView}}</th>
     <th> </th>
   </tr>
@@ -34,8 +34,8 @@
   {{#if view.pageContent}}
     {{#each view.pageContent}}
       <tr>
-        <td class="first stack-name">{{this.stackName}}</td>
-        <td class="repo-version">{{this.version}}</td>
+        <td class="first stack-name">{{this.stack}}</td>
+        <td class="repo-version">{{this.repoVersion}}</td>
         <td class="host-stack-version-status">
           {{this.displayStatus}}
           {{#if this.isCurrent}}
@@ -44,7 +44,7 @@
         </td>
         <td class="install-repo-version">
           {{#isAccessible ADMIN}}
-            <button class="btn" {{bindAttr disabled="this.installDisabled"}}><i class="icon-off"></i>&nbsp;{{t common.install}}</button>
+            <button class="btn" {{action installVersion this target="controller"}} {{bindAttr disabled="this.installDisabled"}}><i class="icon-off"></i>&nbsp;{{t common.install}}</button>
           {{/isAccessible}}
         </td>
       </tr>

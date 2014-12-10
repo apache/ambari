@@ -66,9 +66,10 @@ App.hostsMapper = App.QuickDataMapper.create({
     admin_state: 'HostRoles.desired_admin_state'
   },
   stackVersionConfig: {
-    id: 'id',
-    stack_id: 'stack_id',
-    stack_name: 'HostStackVersions.stack',
+    id: 'HostStackVersions.id',
+    stack: 'HostStackVersions.stack',
+    repo_id: 'repository_versions[0].RepositoryVersions.id',
+    repo_version: 'repository_versions[0].RepositoryVersions.repository_version',
     version: 'HostStackVersions.version',
     status: 'HostStackVersions.state',
     host_name: 'host_name',
@@ -107,9 +108,7 @@ App.hostsMapper = App.QuickDataMapper.create({
 
         if (App.get('supports.stackUpgrade')) {
           item.stack_versions.forEach(function (stackVersion) {
-            stackVersion.id = stackVersion.HostStackVersions.stack + "_" + stackVersion.HostStackVersions.version + "_" + item.Hosts.host_name;
             stackVersion.host_name = item.Hosts.host_name;
-            stackVersion.stack_id = stackVersion.HostStackVersions.stack + stackVersion.HostStackVersions.version;
             stackVersions.push(this.parseIt(stackVersion, this.stackVersionConfig));
           }, this);
         }
@@ -124,7 +123,7 @@ App.hostsMapper = App.QuickDataMapper.create({
             stack_versions_key: 'stack_versions',
             stack_versions_type: 'array',
             stack_versions: {
-              item: 'id'
+              item: 'HostStackVersions.id'
             }
           })
         }

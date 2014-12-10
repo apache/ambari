@@ -24,35 +24,56 @@ App.MainHostStackVersionsView = App.TableView.extend({
   templateName: require('templates/main/host/stack_versions'),
   classNames: ['host-tab-content'],
 
+  /**
+   * @type {Ember.Object}
+   */
   host: function () {
     return App.router.get('mainHostDetailsController.content');
   }.property('App.router.mainHostDetailsController.content'),
 
+  /**
+   * @type {Ember.Array}
+   */
   content: function () {
     return App.HostStackVersion.find();
   }.property(),
 
   /**
    * return filtered number of all content number information displayed on the page footer bar
-   * @returns {String}
+   * @returns {string}
    */
   filteredContentInfo: function () {
     return this.t('hosts.host.stackVersions.table.filteredInfo').format(this.get('filteredCount'), this.get('totalCount'));
   }.property('filteredCount', 'totalCount'),
 
+  /**
+   * @type {Ember.View}
+   */
   sortView: sort.wrapperView,
-  stackNameSort: sort.fieldView.extend({
+
+  /**
+   * @type {Ember.View}
+   */
+  stackSort: sort.fieldView.extend({
     column: 1,
-    name: 'stackName',
+    name: 'stack',
     displayName: Em.I18n.t('common.stack'),
     type: 'version'
   }),
-  versionSort: sort.fieldView.extend({
+
+  /**
+   * @type {Ember.View}
+   */
+  repoVersionSort: sort.fieldView.extend({
     column: 2,
-    name: 'version',
+    name: 'repoVersion',
     displayName: Em.I18n.t('common.version'),
     type: 'version'
   }),
+
+  /**
+   * @type {Ember.View}
+   */
   statusSort: sort.fieldView.extend({
     column: 3,
     name: 'status',
@@ -62,8 +83,9 @@ App.MainHostStackVersionsView = App.TableView.extend({
   /**
    * Filter view for stackName column
    * Based on <code>filters</code> library
+   * @type {Ember.View}
    */
-  stackNameFilterView: filters.createSelectView({
+  stackFilterView: filters.createSelectView({
     column: 1,
     fieldType: 'filter-input-width',
     content: function () {
@@ -72,7 +94,7 @@ App.MainHostStackVersionsView = App.TableView.extend({
           value: '',
           label: Em.I18n.t('common.all')
         }
-      ].concat(this.get('parentView.content').mapProperty('stackName').uniq().map(function (item) {
+      ].concat(this.get('parentView.content').mapProperty('stack').uniq().map(function (item) {
         return {
           value: item,
           label: item
@@ -87,8 +109,9 @@ App.MainHostStackVersionsView = App.TableView.extend({
   /**
    * Filter view for version column
    * Based on <code>filters</code> library
+   * @type {Ember.View}
    */
-  versionFilterView: filters.createSelectView({
+  repoVersionFilterView: filters.createSelectView({
     column: 2,
     fieldType: 'filter-input-width',
     content: function () {
@@ -97,10 +120,10 @@ App.MainHostStackVersionsView = App.TableView.extend({
           value: '',
           label: Em.I18n.t('common.all')
         }
-      ].concat(this.get('parentView.content').map(function (item) {
+      ].concat(this.get('parentView.content').mapProperty('repoVersion').uniq().map(function (version) {
         return {
-          value: item.get('version'),
-          label: item.get('version')
+          value: version,
+          label: version
         }
       }));
     }.property('App.router.clusterController.isLoaded'),
@@ -112,6 +135,7 @@ App.MainHostStackVersionsView = App.TableView.extend({
   /**
    * Filter view for status column
    * Based on <code>filters</code> library
+   * @type {Ember.View}
    */
   statusFilterView: filters.createSelectView({
     column: 3,
@@ -134,10 +158,13 @@ App.MainHostStackVersionsView = App.TableView.extend({
     }
   }),
 
+  /**
+   * @type {Array}
+   */
   colPropAssoc: function () {
     var associations = [];
-    associations[1] = 'stackName';
-    associations[2] = 'version';
+    associations[1] = 'stack';
+    associations[2] = 'repoVersion';
     associations[3] = 'status';
     return associations;
   }.property()

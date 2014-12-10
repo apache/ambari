@@ -2030,6 +2030,22 @@ var urls = {
     'real': '/clusters/{clusterName}?fields=Clusters/health_report,Clusters/total_hosts,alerts_summary&minimal_response=true',
     'mock': '/data/hosts/HDP2/host_status_counters.json'
   },
+  'host.stack_versions.install': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}/stack_versions',
+    'mock': '',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          "HostStackVersions": {
+            "stack": data.version.get('stack'),
+            "version": data.version.get('version'),
+            "repository_version": data.version.get('repoVersion')
+          }
+        })
+      }
+    }
+  },
   'components.filter_by_status': {
     'real': '/clusters/{clusterName}/components?fields=host_components/HostRoles/host_name,ServiceComponentInfo/component_name,ServiceComponentInfo/started_count{urlParams}&minimal_response=true',
     'mock': ''

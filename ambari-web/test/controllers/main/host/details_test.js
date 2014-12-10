@@ -21,6 +21,7 @@ var App = require('app');
 require('controllers/main/host/details');
 require('models/service');
 require('models/host_component');
+require('models/host_stack_version');
 var batchUtils = require('utils/batch_scheduled_requests');
 var componentsUtils = require('utils/components');
 var controller;
@@ -2315,6 +2316,40 @@ describe('App.MainHostDetailsController', function () {
       expect(App.ajax.defaultErrorHandler.calledOnce).to.be.true;
       App.ajax.defaultErrorHandler.restore();
       controller.loadConfigs.restore();
+    });
+  });
+
+  describe("#installVersion()", function() {
+    it("call App.ajax.send", function() {
+      controller.set('content.hostName', 'host1');
+      controller.installVersion({context: {}});
+      expect(App.ajax.send.getCall(0).args[0]).to.eql({
+        name: 'host.stack_versions.install',
+        sender: controller,
+        data: {
+          hostName: 'host1',
+          version: {}
+        },
+        success: 'installVersionSuccessCallback'
+      });
+    });
+  });
+
+  describe("#installVersionSuccessCallback()", function () {
+    before(function () {
+      this.mock = sinon.stub(App.HostStackVersion, 'find');
+    });
+    after(function () {
+      this.mock.restore();
+    });
+    it("", function () {
+      var version = Em.Object.create({
+        id: 1,
+        status: 'INIT'
+      });
+      this.mock.returns(version);
+      controller.installVersionSuccessCallback({}, {}, {version: version});
+      expect(version.get('status')).to.equal('INSTALLING');
     });
   });
 });

@@ -95,4 +95,24 @@ describe('App.HostStackVersion', function () {
       });
     }, this);
   });
+
+  describe("#isCurrent", function () {
+    afterEach(function () {
+      App.HostStackVersion.find().clear();
+    });
+    it("status is CURRENT", function () {
+      App.store.load(App.HostStackVersion, {
+        id: 1,
+        status: 'CURRENT'
+      });
+      expect(App.HostStackVersion.find(1).get('isCurrent')).to.be.true;
+    });
+    it("status is not CURRENT", function () {
+      App.store.load(App.HostStackVersion, {
+        id: 1,
+        status: 'INSTALLED'
+      });
+      expect(App.HostStackVersion.find(1).get('isCurrent')).to.be.false;
+    });
+  });
 });

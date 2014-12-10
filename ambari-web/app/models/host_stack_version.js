@@ -19,9 +19,11 @@
 var App = require('app');
 
 App.HostStackVersion = DS.Model.extend({
-  stackName: DS.attr('string'),
-  stack: DS.belongsTo('App.StackVersion'),
+  stack: DS.attr('string'),
   version: DS.attr('string'),
+  repo: DS.belongsTo('App.Repository'),
+  repoVersion: DS.attr('string'),
+
   /**
    * possible property value defined at App.HostStackVersion.statusDefinition
    */

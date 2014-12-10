@@ -60,7 +60,7 @@ App.Host = DS.Model.extend({
   isRequested: DS.attr('boolean'),
 
   currentVersion: function () {
-    return this.get('stackVersions').findProperty('isCurrent').get('version');
+    return this.get('stackVersions').findProperty('isCurrent').get('repoVersion');
   }.property('stackVersions.@each.isCurrent'),
 
   /**
