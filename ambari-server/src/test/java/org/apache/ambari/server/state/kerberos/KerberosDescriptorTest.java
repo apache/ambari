@@ -22,6 +22,8 @@ import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.junit.Test;
 
+import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -216,7 +218,7 @@ public class KerberosDescriptorTest {
     Assert.assertEquals("red", configProperties.get("property1"));
   }
 
-  private KerberosDescriptor createFromJSON() {
+  private KerberosDescriptor createFromJSON() throws AmbariException {
     return KerberosDescriptor.fromJSON(JSON_VALUE);
   }
 
@@ -236,7 +238,7 @@ public class KerberosDescriptorTest {
   }
 
   @Test
-  public void testJSONDeserialize() {
+  public void testJSONDeserialize() throws AmbariException {
     validateFromJSON(createFromJSON());
   }
 
@@ -245,6 +247,18 @@ public class KerberosDescriptorTest {
     validateFromMap(createFromMap());
   }
 
+  @Test
+  public void testInvalid() {
+    // Invalid JSON syntax
+    try {
+      KerberosServiceDescriptor.fromJSON(JSON_VALUE + "erroneous text");
+      Assert.fail("Should have thrown AmbariException.");
+    } catch (AmbariException e) {
+      // This is expected
+    } catch (Throwable t) {
+      Assert.fail("Should have thrown AmbariException.");
+    }
+  }
 
   @Test
   public void testEquals() throws AmbariException {

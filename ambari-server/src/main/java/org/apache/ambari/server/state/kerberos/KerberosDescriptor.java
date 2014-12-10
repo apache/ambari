@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.state.kerberos;
 
+import org.apache.ambari.server.AmbariException;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -102,10 +104,16 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
    *
    * @param file a File pointing to the file containing JSON-formatted text
    * @return a newly created KerberosDescriptor
-   * @throws FileNotFoundException if the file does not point to a readable file
+   * @throws FileNotFoundException if the specified File does not point to a valid file
+   * @throws IOException           if the specified File is not a readable file
+   * @throws AmbariException       if the specified File does not contain valid JSON data
    */
   public static KerberosDescriptor fromFile(File file) throws IOException {
-    return new KerberosDescriptor(parseFile(file));
+    try {
+      return new KerberosDescriptor(parseFile(file));
+    } catch (AmbariException e) {
+      throw new AmbariException(String.format("An error occurred processing the JSON-formatted file: %s", file.getAbsolutePath()), e);
+    }
   }
 
   /**
@@ -113,9 +121,14 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
    *
    * @param json a File pointing to the file containing JSON-formatted text
    * @return a newly created KerberosDescriptor
+   * @throws AmbariException if an error occurs while processing the JSON-formatted String
    */
-  public static KerberosDescriptor fromJSON(String json) {
-    return new KerberosDescriptor(parseJSON(json));
+  public static KerberosDescriptor fromJSON(String json) throws AmbariException {
+    try {
+      return new KerberosDescriptor(parseJSON(json));
+    } catch (AmbariException e) {
+      throw new AmbariException("An error occurred processing the JSON-formatted string", e);
+    }
   }
 
   /**

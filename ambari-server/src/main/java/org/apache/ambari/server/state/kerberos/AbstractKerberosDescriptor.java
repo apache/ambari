@@ -19,6 +19,7 @@
 package org.apache.ambari.server.state.kerberos;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import org.apache.ambari.server.AmbariException;
 
@@ -218,6 +219,7 @@ public abstract class AbstractKerberosDescriptor {
    * @return a Map of the data
    * @throws FileNotFoundException if the specified File does not point to a valid file
    * @throws IOException           if the specified File is not a readable file
+   * @throws AmbariException       if the specified File does not contain valid JSON data
    */
   protected static Map<String, Object> parseFile(File file) throws IOException {
     if (file == null) {
@@ -225,9 +227,13 @@ public abstract class AbstractKerberosDescriptor {
     } else if (!file.isFile() || !file.canRead()) {
       throw new IOException(String.format("%s is not a readable file", file.getAbsolutePath()));
     } else {
-      return new Gson().fromJson(new FileReader(file),
-          new TypeToken<Map<String, Object>>() {
-          }.getType());
+      try {
+        return new Gson().fromJson(new FileReader(file),
+            new TypeToken<Map<String, Object>>() {
+            }.getType());
+      } catch (JsonSyntaxException e) {
+        throw new AmbariException(String.format("Failed to parse JSON-formatted file: %s", file.getAbsolutePath()), e);
+      }
     }
   }
 
@@ -236,14 +242,19 @@ public abstract class AbstractKerberosDescriptor {
    *
    * @param json a String containing the JSON-formatted text to parse
    * @return a Map of the data
+   * @throws AmbariException if an error occurs while parsing the JSON-formatted String
    */
-  protected static Map<String, Object> parseJSON(String json) {
+  protected static Map<String, Object> parseJSON(String json) throws AmbariException {
     if ((json == null) || json.isEmpty()) {
       return Collections.emptyMap();
     } else {
-      return new Gson().fromJson(json,
-          new TypeToken<Map<String, Object>>() {
-          }.getType());
+      try {
+        return new Gson().fromJson(json,
+            new TypeToken<Map<String, Object>>() {
+            }.getType());
+      } catch (JsonSyntaxException e) {
+        throw new AmbariException("Failed to parse JSON-formatted string", e);
+      }
     }
   }
 

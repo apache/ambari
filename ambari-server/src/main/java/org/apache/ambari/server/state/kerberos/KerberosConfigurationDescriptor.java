@@ -67,17 +67,19 @@ public class KerberosConfigurationDescriptor extends AbstractKerberosDescriptor 
     if (data != null) {
       Set<?> keySet = data.keySet();
 
-      // Only a single entry is expected...
-      Object key = keySet.iterator().next();
-      if (key != null) {
-        Object object = data.get(key);
+      if (!keySet.isEmpty()) {
+        // Only a single entry is expected...
+        Object key = keySet.iterator().next();
+        if (key != null) {
+          Object object = data.get(key);
 
-        setType(key.toString());
+          setType(key.toString());
 
-        if (object instanceof Map) {
-          for (Map.Entry<?, ?> entry : ((Map<?, ?>) object).entrySet()) {
-            Object value = entry.getValue();
-            putProperty(entry.getKey().toString(), (value == null) ? null : value.toString());
+          if (object instanceof Map) {
+            for (Map.Entry<?, ?> entry : ((Map<?, ?>) object).entrySet()) {
+              Object value = entry.getValue();
+              putProperty(entry.getKey().toString(), (value == null) ? null : value.toString());
+            }
           }
         }
       }

@@ -21,6 +21,9 @@ import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,6 +47,46 @@ public class KerberosServiceDescriptorTest {
           "      }" +
           "    }" +
           "  ]" +
+          "}";
+
+  public static final String JSON_VALUE_SERVICES =
+      "{ " +
+          "\"services\" : [" +
+          "{" +
+          "  \"name\": \"SERVICE_NAME\"," +
+          "  \"identities\": [" +
+          KerberosIdentityDescriptorTest.JSON_VALUE +
+          "]," +
+          "  \"components\": [" +
+          KerberosComponentDescriptorTest.JSON_VALUE +
+          "]," +
+          "  \"configurations\": [" +
+          "    {" +
+          "      \"service-site\": {" +
+          "        \"service.property1\": \"value1\"," +
+          "        \"service.property2\": \"value2\"" +
+          "      }" +
+          "    }" +
+          "  ]" +
+          "}," +
+          "{" +
+          "  \"name\": \"A_DIFFERENT_SERVICE_NAME\"," +
+          "  \"identities\": [" +
+          KerberosIdentityDescriptorTest.JSON_VALUE +
+          "]," +
+          "  \"components\": [" +
+          KerberosComponentDescriptorTest.JSON_VALUE +
+          "]," +
+          "  \"configurations\": [" +
+          "    {" +
+          "      \"service-site\": {" +
+          "        \"service.property1\": \"value1\"," +
+          "        \"service.property2\": \"value2\"" +
+          "      }" +
+          "    }" +
+          "  ]" +
+          "}" +
+          "]" +
           "}";
 
   public static final Map<String, Object> MAP_VALUE =
@@ -70,6 +113,13 @@ public class KerberosServiceDescriptorTest {
           }});
         }
       };
+
+  public static void validateFromJSON(KerberosServiceDescriptor[] serviceDescriptors) {
+    Assert.assertNotNull(serviceDescriptors);
+    Assert.assertEquals(2, serviceDescriptors.length);
+
+    validateFromJSON(serviceDescriptors[0]);
+  }
 
   public static void validateFromJSON(KerberosServiceDescriptor serviceDescriptor) {
     Assert.assertNotNull(serviceDescriptor);
@@ -190,19 +240,75 @@ public class KerberosServiceDescriptorTest {
     Assert.assertEquals("green", properties.get("service.property"));
   }
 
-  private KerberosServiceDescriptor createFromJSON() {
+  private KerberosServiceDescriptor createFromJSON() throws AmbariException {
     return KerberosServiceDescriptor.fromJSON("SERVICE_NAME", JSON_VALUE);
+  }
+
+  private KerberosServiceDescriptor[] createMultipleFromJSON() throws AmbariException {
+    return KerberosServiceDescriptor.fromJSON(JSON_VALUE_SERVICES);
   }
 
   private KerberosServiceDescriptor createFromMap() throws AmbariException {
     return new KerberosServiceDescriptor(MAP_VALUE);
   }
 
+  private KerberosServiceDescriptor[] createFromFile() throws IOException {
+    URL url = getClass().getClassLoader().getResource("service_level_kerberos.json");
+    File file = (url == null) ? null : new File(url.getFile());
+    return KerberosServiceDescriptor.fromFile(file);
+  }
+
   @Test
-  public void testJSONDeserialize() {
+  public void testJSONDeserialize() throws AmbariException {
     validateFromJSON(createFromJSON());
   }
 
+  @Test
+  public void testJSONDeserializeMultiple() throws AmbariException {
+    validateFromJSON(createMultipleFromJSON());
+  }
+
+  @Test
+  public void testInvalid() {
+    // Invalid JSON syntax
+    try {
+      KerberosServiceDescriptor.fromJSON(JSON_VALUE_SERVICES + "erroneous text");
+      Assert.fail("Should have thrown AmbariException.");
+    } catch (AmbariException e) {
+      // This is expected
+    } catch (Throwable t) {
+      Assert.fail("Should have thrown AmbariException.");
+    }
+
+    // Test missing top-level "services"
+    try {
+      KerberosServiceDescriptor.fromJSON(JSON_VALUE);
+      Assert.fail("Should have thrown AmbariException.");
+    } catch (AmbariException e) {
+      // This is expected
+    } catch (Throwable t) {
+      Assert.fail("Should have thrown AmbariException.");
+    }
+
+    // Test missing top-level "services" in file
+    URL url = getClass().getClassLoader().getResource("service_level_kerberos_invalid.json");
+    File file = (url == null) ? null : new File(url.getFile());
+    try {
+      KerberosServiceDescriptor.fromFile(file);
+      Assert.fail("Should have thrown AmbariException.");
+    } catch (AmbariException e) {
+      // This is expected
+    } catch (Throwable t) {
+      Assert.fail("Should have thrown AmbariException.");
+    }
+  }
+
+  @Test
+  public void testFileDeserialize() throws IOException {
+    KerberosServiceDescriptor[] descriptors = createFromFile();
+    Assert.assertNotNull(descriptors);
+    Assert.assertEquals(2, descriptors.length);
+  }
 
   @Test
   public void testMapDeserialize() throws AmbariException {
