@@ -52,6 +52,30 @@ App.upgradeWizardView = Em.View.extend({
   }.property('controller.upgradeData.Upgrade.progress_percent'),
 
   /**
+   * label of Upgrade status
+   * @type {string}
+   */
+  upgradeStatusLabel: function() {
+    switch (this.get('controller.upgradeData.Upgrade.request_status')) {
+      case 'PENDING':
+      case 'IN_PROGRESS':
+        return Em.I18n.t('admin.stackUpgrade.state.inProgress');
+        break;
+      case 'COMPLETED':
+        return Em.I18n.t('admin.stackUpgrade.state.completed');
+        break;
+      case 'HOLDING':
+        return Em.I18n.t('admin.stackUpgrade.state.paused');
+        break;
+      case 'FAILED':
+        return Em.I18n.t('admin.stackUpgrade.state.paused');
+        break;
+      default:
+        return ""
+    }
+  }.property('controller.upgradeData.Upgrade.request_status'),
+
+  /**
    * start polling upgrade data
    */
   startPolling: function () {
@@ -88,12 +112,5 @@ App.upgradeWizardView = Em.View.extend({
       self.get('controller').loadUpgradeData();
       self.doPolling();
     }, App.bgOperationsUpdateInterval));
-  },
-
-  /**
-   * @type {Array}
-   */
-  groups: function () {
-    return this.get('controller.upgradeData.upgrade_groups');
-  }.property('controller.upgradeData.upgrade_groups')
+  }
 });

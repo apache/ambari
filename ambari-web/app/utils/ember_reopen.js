@@ -174,3 +174,7 @@ Em.View.reopen({
     }
   }
 });
+
+Ember.TextArea.reopen({
+  attributeBindings: ['readonly']
+});

@@ -18,42 +18,21 @@
 
 
 var App = require('app');
-require('views/main/admin/stack_upgrade/upgrade_task_view');
+require('views/main/admin/stack_upgrade/upgrade_group_view');
 
-describe('App.upgradeTaskView', function () {
-  var view = App.upgradeTaskView.create({
-    content: Em.Object.create({
-      UpgradeGroup: {}
-    })
-  });
-
-  describe("#iconClass", function () {
-    it("status has icon", function () {
-      view.set('statusIconMap', {
-        'S1': 'icon1'
-      });
-      view.set('content.UpgradeGroup.status', 'S1');
-      view.propertyDidChange('iconClass');
-      expect(view.get('iconClass')).to.equal('icon1');
-    });
-    it("status undefined", function () {
-      view.set('statusIconMap', {
-        'S1': 'icon1'
-      });
-      view.set('content.UpgradeGroup.status', 'S2');
-      view.propertyDidChange('iconClass');
-      expect(view.get('iconClass')).to.equal('icon-question-sign');
-    });
+describe('App.upgradeGroupView', function () {
+  var view = App.upgradeGroupView.create({
+    content: Em.Object.create({})
   });
 
   describe("#isFailed", function () {
     it("task is not failed", function () {
-      view.set('content.UpgradeGroup.status', 'COMPLETED');
+      view.set('content.status', 'COMPLETED');
       view.propertyDidChange('isFailed');
       expect(view.get('isFailed')).to.be.false;
     });
     it("task is not failed", function () {
-      view.set('content.UpgradeGroup.status', 'FAILED');
+      view.set('content.status', 'FAILED');
       view.propertyDidChange('isFailed');
       expect(view.get('isFailed')).to.be.true;
     });

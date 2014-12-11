@@ -164,8 +164,78 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   loadUpgradeDataSuccessCallback: function (data) {
     App.set('upgradeState', data.Upgrade.request_status);
     if (data.upgrade_groups) {
-      this.set("upgradeData", data);
+      this.updateUpgradeData(data);
     }
+  },
+
+  /**
+   * update data of Upgrade
+   * @param {object} newData
+   */
+  updateUpgradeData: function (newData) {
+    var oldData = this.get('upgradeData'),
+        groupsMap = {},
+        itemsMap = {},
+        tasksMap = {};
+
+    if (Em.isNone(oldData)) {
+      this.initUpgradeData(newData);
+    } else {
+      //create entities maps
+      newData.upgrade_groups.forEach(function (newGroup) {
+        groupsMap[newGroup.UpgradeGroup.group_id] = newGroup.UpgradeGroup;
+        newGroup.upgrade_items.forEach(function (item) {
+          itemsMap[item.UpgradeItem.stage_id] = item.UpgradeItem;
+          item.tasks.forEach(function (task) {
+            tasksMap[task.Tasks.id] = task.Tasks;
+          });
+        })
+      });
+
+      //update existed entities with new data
+      oldData.upgradeGroups.forEach(function (oldGroup) {
+        oldGroup.set('status', groupsMap[oldGroup.get('group_id')].status);
+        oldGroup.set('progress_percent', groupsMap[oldGroup.get('group_id')].progress_percent);
+        oldGroup.upgradeItems.forEach(function (item) {
+          item.set('status', itemsMap[item.get('stage_id')].status);
+          item.set('progress_percent', itemsMap[item.get('stage_id')].progress_percent);
+          item.tasks.forEach(function (task) {
+            task.set('status', tasksMap[task.get('id')].status);
+          });
+        })
+      });
+    }
+  },
+
+  /**
+   * change structure of Upgrade
+   * In order to maintain nested views in template object should have direct link to its properties, for example
+   * item.UpgradeItem.<properties> -> item.<properties>
+   * @param {object} newData
+   */
+  initUpgradeData: function (newData) {
+    var upgradeGroups = [];
+
+    //wrap all entities into App.upgradeEntity
+    newData.upgrade_groups.forEach(function (newGroup) {
+      var oldGroup = App.upgradeEntity.create(newGroup.UpgradeGroup);
+      var upgradeItems = [];
+      newGroup.upgrade_items.forEach(function (item) {
+        var oldItem = App.upgradeEntity.create(item.UpgradeItem);
+        var tasks = [];
+        item.tasks.forEach(function (task) {
+          tasks.pushObject(App.upgradeEntity.create(task.Tasks));
+        });
+        oldItem.set('tasks', tasks);
+        upgradeItems.pushObject(oldItem);
+      });
+      oldGroup.set('upgradeItems', upgradeItems);
+      upgradeGroups.pushObject(oldGroup);
+    });
+    this.set('upgradeData', Em.Object.create({
+      upgradeGroups: upgradeGroups,
+      Upgrade: newData.Upgrade
+    }));
   },
 
   /**
@@ -291,4 +361,57 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   openUpgradeDialog: function () {
     App.router.transitionTo('admin.stackUpgrade');
   }
+});
+
+
+/**
+ * @type {Ember.Object}
+ * @class
+ */
+App.upgradeEntity = Em.Object.extend({
+
+  /**
+   * @type {boolean}
+   */
+  errorLogOpened: false,
+
+  /**
+   * @type {boolean}
+   */
+  outputLogOpened: false,
+
+  /**
+   * @type {boolean}
+   */
+  isExpanded: false,
+
+  /**
+   * @type {boolean}
+   */
+  isRunning: function () {
+    return ['IN_PROGRESS'].contains(this.get('status'));
+  }.property('status'),
+
+  /**
+   * width style of progress bar
+   * @type {string}
+   */
+  progressWidth: function () {
+    return "width:" + Math.floor(this.get('progress')) + '%;';
+  }.property('progress'),
+
+  /**
+   * @type {number}
+   */
+  progress: function () {
+    return Math.floor(this.get('progress_percent'));
+  }.property('progress_percent'),
+
+  /**
+   * indicate whether entity has active link
+   * @type {boolean}
+   */
+  isActive: function () {
+    return this.get('status') !== 'PENDING';
+  }.property('status')
 });

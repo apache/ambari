@@ -723,6 +723,42 @@ App.registerBoundHelper('formatWordBreak', Em.View.extend({
 }));
 
 /**
+ * Return <i></i> with class that correspond to status
+ *
+ * @param {string} content - status
+ *
+ * Examples:
+ *
+ * {{statusIcon view.status}}
+ * returns 'icon-cog'
+ *
+ */
+App.registerBoundHelper('statusIcon', Em.View.extend({
+  tagName: 'i',
+
+  /**
+   * relation map between status and icon class
+   * @type {object}
+   */
+  statusIconMap: {
+    'COMPLETED': 'icon-ok',
+    'WARNING': 'icon-warning-sign',
+    'FAILED': 'icon-warning-sign',
+    'PENDING': 'icon-cog',
+    'IN_PROGRESS': 'icon-cogs',
+    'HOLDING': 'icon-pause'
+  },
+
+  classNameBindings: ['iconClass'],
+  /**
+   * @type {string}
+   */
+  iconClass: function () {
+    return this.get('statusIconMap')[this.get('content')] || 'icon-question-sign';
+  }.property('content')
+}));
+
+/**
  * Ambari overrides the default date transformer.
  * This is done because of the non-standard data
  * sent. For example Nagios sends date as "12345678".

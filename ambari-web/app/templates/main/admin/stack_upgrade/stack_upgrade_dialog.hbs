@@ -19,7 +19,7 @@
 <div id="stack-upgrade-dialog">
   {{#if view.isLoaded}}
     <div class="row-fluid">
-      <div class="span2">{{t common.progress}}</div>
+      <div class="span2">{{statusIcon controller.upgradeData.Upgrade.request_status}}&nbsp;{{view.upgradeStatusLabel}}</div>
       <div class="span9">
         <div class="progress progress-striped active">
           <div class="bar" {{bindAttr style="view.progressWidth"}}></div>
@@ -30,9 +30,9 @@
       </div>
     </div>
 
-    <div class="task-list">
-      {{#each group in view.groups}}
-        {{view App.upgradeTaskView contentBinding="group"}}
+    <div class="task-list limited-height-2">
+      {{#each group in controller.upgradeData.upgradeGroups}}
+        {{view App.upgradeGroupView contentBinding="group"}}
       {{/each}}
     </div>
   {{else}}

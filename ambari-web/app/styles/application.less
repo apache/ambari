@@ -6551,8 +6551,8 @@ i.icon-asterisks {
 
 #stack-upgrade-dialog {
   .task-list {
-    overflow: auto;
-    .task-details {
+    overflow-x: hidden;
+    .details-box {
       padding: 2px 4px;
       margin-left: 15px;
       .button-row {
@@ -6569,11 +6569,19 @@ i.icon-asterisks {
     .progress {
       margin-bottom: 0;
     }
-  }
-  .task-list>div {
-    padding: 5px;
+    padding-left: 20px;
     i {
       margin-right: 5px;
+    }
+    .task-details {
+      .manage-controls a {
+        cursor: pointer;
+        margin-right: 12px;
+      }
+      textarea {
+        width: 100%;
+        min-height: 100px;
+      }
     }
   }
 }

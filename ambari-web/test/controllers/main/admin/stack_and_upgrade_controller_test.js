@@ -186,22 +186,28 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   });
 
   describe("#loadUpgradeDataSuccessCallback()", function() {
+    beforeEach(function () {
+      sinon.stub(controller, 'updateUpgradeData', Em.K);
+    });
+    afterEach(function () {
+      controller.updateUpgradeData.restore();
+    });
     it("", function() {
       var data = {
         "Upgrade": {
           "request_status": "COMPLETED"
         },
         "upgrade_groups": [
-        {
-          "UpgradeGroup": {
-            "id": 1
-          },
-          "upgrade_items": []
-        }
-      ]};
+          {
+            "UpgradeGroup": {
+              "id": 1
+            },
+            "upgrade_items": []
+          }
+        ]};
       controller.loadUpgradeDataSuccessCallback(data);
-      expect(controller.get('upgradeData')).to.eql(data);
       expect(App.get('upgradeState')).to.equal('COMPLETED');
+      expect(controller.updateUpgradeData.called).to.be.true;
     });
   });
 

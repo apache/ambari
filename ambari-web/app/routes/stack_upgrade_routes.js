@@ -27,12 +27,16 @@ module.exports = App.WizardRoute.extend({
       App.router.get('updateController').set('isWorking', false);
 
       return App.ModalPopup.show({
+        classNames: ['full-width-modal'],
         header: function () {
           return Em.I18n.t('admin.stackUpgrade.dialog.header').format(App.router.get('mainAdminStackAndUpgradeController').get('upgradeVersion'));
         }.property('App.router.mainAdminStackAndUpgradeController.upgradeVersion'),
         bodyClass: App.upgradeWizardView,
         primary: null,
         secondary: null,
+        didInsertElement: function () {
+          this.fitHeight();
+        },
         onClose: function() {
           var self = this;
           var header = Em.I18n.t('admin.stackUpgrade.state.paused');
