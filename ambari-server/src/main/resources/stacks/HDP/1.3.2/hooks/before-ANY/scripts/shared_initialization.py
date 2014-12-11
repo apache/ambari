@@ -95,7 +95,7 @@ def set_uid(user, user_dirs):
   File(format("{tmp_dir}/changeUid.sh"),
        content=StaticFile("changeToSecureUid.sh"),
        mode=0555)
-  Execute(format("{tmp_dir}/changeUid.sh {user} {user_dirs} 2>/dev/null"),
+  Execute(format("{tmp_dir}/changeUid.sh {user} {user_dirs}"),
           not_if = format("test $(id -u {user}) -gt 1000"))
     
 def setup_hadoop_env():

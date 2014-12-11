@@ -42,9 +42,12 @@ then
   exit 1
 fi
 
+set -e
+
 dir_array=($(echo $directories | sed 's/,/\n/g'))
 old_uid=$(id -u $username)
+sudo_prefix="sudo -H -E"
 echo "Changing uid of $username from $old_uid to $newUid"
 echo "Changing directory permisions for ${dir_array[@]}"
-usermod -u $newUid $username && for dir in ${dir_array[@]} ; do chown -Rh $newUid $dir ; done
+$sudo_prefix usermod -u $newUid $username && for dir in ${dir_array[@]} ; do ls $dir && echo "Changing permission for $dir" && $sudo_prefix chown -Rh $newUid $dir ; done
 exit 0
