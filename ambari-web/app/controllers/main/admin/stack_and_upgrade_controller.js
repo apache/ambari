@@ -282,12 +282,16 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @param version
    */
   runPreUpgradeCheck: function(version) {
-    App.ajax.send({
-      name: "admin.rolling_upgrade.pre_upgrade_check",
-      sender: this,
-      data: version,
-      success: "runPreUpgradeCheckSuccess"
-    })
+    if (App.supports.preUpgradeCheck) {
+      App.ajax.send({
+        name: "admin.rolling_upgrade.pre_upgrade_check",
+        sender: this,
+        data: version,
+        success: "runPreUpgradeCheckSuccess"
+      });
+    } else {
+      this.upgrade(version);
+    }
   },
 
   /**
