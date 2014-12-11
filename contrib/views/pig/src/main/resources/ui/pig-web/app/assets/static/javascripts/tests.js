@@ -16,11 +16,14 @@
  * limitations under the License.
  */
 
-var App = require('app');
+var folderOrder = [
+  'test'
+];
 
-App.File = DS.Model.extend({
-  fileContent: DS.attr('string'),
-  hasNext:DS.attr('boolean'),
-  page:DS.attr('number'),
-  pageCount:DS.attr('number')
+folderOrder.forEach(function(folder) {
+  window.require.list().filter(function(module) {
+    return new RegExp('^' + folder + '/').test(module);
+  }).forEach(function(module) {
+      require(module);
+    });
 });

@@ -22,6 +22,7 @@ App.CodeMirrorComponent = Ember.Component.extend({
   tagName: "textarea",
   readOnly:false,
   codeMirror:null,
+  fullscreen:false,
   updateCM:function () {
     var cm = this.get('codeMirror');
     if (this.get('readOnly')) {
@@ -39,28 +40,62 @@ App.CodeMirrorComponent = Ember.Component.extend({
       cmElement.addClass('inactive');
     }
   }.observes('codeMirror', 'content.didLoad'),
+  toggleFullScreen:function () {
+    Em.run.next(this,function () {
+      this.get('codeMirror').setOption("fullScreen", this.get('fullscreen'));
+    });
+  }.observes('fullscreen'),
   didInsertElement: function() {
     var cm = CodeMirror.fromTextArea(this.get('element'),{
       lineNumbers: true,
       matchBrackets: true,
       indentUnit: 4,
-      keyMap: "emacs"
+      keyMap: "emacs",
+      mode: "text/x-pig",
+      extraKeys: {
+        "Ctrl-Space": function (cm) {
+          if (!cm.getOption('readOnly')) {
+            cm.showHint({completeSingle:false});
+          }
+        },
+        "F11": function(cm) {
+          this.set('fullscreen',!this.get("fullscreen"));
+        }.bind(this),
+        "Esc": function(cm) {
+          if (this.get("fullscreen")) this.set("fullscreen", false);
+        }.bind(this)
+      }
     });
+
+    var updateToggle = function () {
+      var addMargin = $('.CodeMirror-vscrollbar').css('display') === "block";
+      var margin = $('.CodeMirror-vscrollbar').width();
+      $('.fullscreen-toggle').css('right',((addMargin)?3+margin:3));
+    }
+
+    cm.on('viewportChange',updateToggle);
 
     $('.editor-container').resizable({
       stop:function () {
         cm.setSize(null, this.style.height);
+        updateToggle();
       },
       resize: function() {
         this.getElementsByClassName('CodeMirror')[0].style.height = this.style.height;
         this.getElementsByClassName('CodeMirror-gutters')[0].style.height = this.style.height;
       },
-      minHeight:215,
+      minHeight:218,
       handles: {'s': '#sgrip' }
     });
 
     this.set('codeMirror',cm);
     if (!this.get('readOnly')) {
+      cm.on('keyup',function (cm, e) {
+        var inp = String.fromCharCode(e.keyCode);
+        if (e.type == "keyup" && /[a-zA-Z0-9-_ ]/.test(inp)) {
+          cm.showHint({completeSingle:false});
+        }
+      });
       cm.focus();
       cm.on('change', Em.run.bind(this,this.editorDidChange));
     }
@@ -78,6 +113,7 @@ App.CodeMirrorComponent = Ember.Component.extend({
     }
   }.observes('content.fileContent'),
   willClearRender:function () {
+    this.set('fullscreen', false);
     this.get('codeMirror').toTextArea();
   }
 });

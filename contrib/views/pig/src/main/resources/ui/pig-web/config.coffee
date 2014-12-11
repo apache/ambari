@@ -26,9 +26,11 @@ exports.config =
       defaultExtension: 'js'
       joinTo: 
         'static/javascripts/app.js': /^app/
-        'static/javascripts/vendor.js': /^bower_components|vendor/
+        'static/javascripts/vendor.js': /^bower_components|vendor/,
+        'static/javascripts/test.js': /^test(\/|\\)(?!vendor)/
       order:
         before: [
+          'bower_components/moment/moment.js',
           'bower_components/jquery/dist/jquery.js',
           'vendor/jquery-ui/core.js',
           'vendor/jquery-ui/widget.js',

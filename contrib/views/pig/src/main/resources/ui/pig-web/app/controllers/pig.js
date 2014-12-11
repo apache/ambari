@@ -31,9 +31,7 @@ App.PigController = Em.ArrayController.extend({
           this.send('showAlert', {'message':Em.I18n.t('scripts.alert.script_saved',{title: script.get('title')}),status:'success'});
         }.bind(this),
         onFail = function(error){
-          var trace = null;
-          if (error && error.responseJSON.trace)
-            trace = error.responseJSON.trace;
+          var trace = (error && error.responseJSON.trace)?error.responseJSON.trace:null;
           this.send('showAlert', {'message':Em.I18n.t('scripts.alert.save_error'),status:'error',trace:trace});
         }.bind(this);
 
@@ -50,9 +48,7 @@ App.PigController = Em.ArrayController.extend({
             this.send('showAlert', {'message':Em.I18n.t('scripts.alert.script_deleted',{title : model.get('title')}),status:'success'});
           }.bind(this);
       var onFail = function(error){
-            var trace = null;
-            if (error && error.responseJSON.trace)
-              trace = error.responseJSON.trace;
+            var trace = (error && error.responseJSON.trace)?error.responseJSON.trace:null;
             this.send('showAlert', {'message':Em.I18n.t('scripts.alert.delete_failed'),status:'error',trace:trace});
           }.bind(this);
       script.deleteRecord();

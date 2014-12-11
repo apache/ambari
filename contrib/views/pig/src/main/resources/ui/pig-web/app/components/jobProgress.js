@@ -26,7 +26,7 @@ App.JobProgressComponent = Em.Component.extend({
   },
   update:function () {
     var progress = (!this.get('job.isTerminated'))?this.get('job.percentStatus'):100;
-    $(this.get('element')).find('.progress-bar').css('width',progress+'%');
+    this.$().find('.progress-bar').css('width',progress+'%');
   }.observes('job.percentStatus'),
   layout:Em.Handlebars.compile('<div {{bind-attr class=":progress-bar job.isTerminated:progress-bar-danger:progress-bar-success" }}role="progressbar"></div>')
 });

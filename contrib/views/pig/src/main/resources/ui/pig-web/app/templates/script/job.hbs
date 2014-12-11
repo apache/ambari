@@ -118,8 +118,9 @@
         </h4>
       </div>
       {{#view "view.collapsePanel" id="scriptDetails" class="panel-collapse collapse" }}
-        <div class="panel-body body-title">
+        <div {{bind-attr class=":panel-body :body-title :body-title-contents fullscreen:fullscreen "}} >
           {{t 'job.script_contents'}}:
+          <div class="fullscreen-toggle pull-right" {{action 'fullscreen'}} data-toggle="tooltip" data-placement="bottom" {{translateAttr title="editor.toggle_fullscreen"}}><i {{bind-attr class=":fa :fa-lg fullscreen:fa-compress:fa-expand"}} ></i></div>
         </div>
           {{#if scriptContents.isPending}}
             <div class="panel-body">
@@ -128,7 +129,7 @@
           {{else}}
             {{#if scriptContents.isFulfilled}}
               <div class="editor-container">
-                {{code-mirror id="pig_script" content=scriptContents readOnly=true}}
+                {{code-mirror id="pig_script" content=scriptContents readOnly=true fullscreen=fullscreen}}
                 <div class="ui-resizable-handle ui-resizable-s" id="sgrip"><i class="fa fa-ellipsis-h"></i></div>
               </div>
             {{else}}
@@ -143,9 +144,15 @@
           {{t 'common.arguments'}}:
         </div>
         <div class="panel-body arguments-wrap">
-          {{#each argumentsArray}}
-            <span class="label label-primary">{{this}}</span>
-          {{/each}}
+          {{#if argumentsArray}}
+            {{#each argumentsArray}}
+              <span class="label label-primary">{{this}}</span>
+            {{/each}}
+          {{else}}
+            <div class="alert alert-info" role="alert">
+              {{t 'job.no_arguments_message'}}
+            </div>
+          {{/if}}
         </div>
       {{/view}}
     </div>

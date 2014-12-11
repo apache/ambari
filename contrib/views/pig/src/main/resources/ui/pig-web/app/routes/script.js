@@ -49,11 +49,11 @@ App.ScriptRoute = Em.Route.extend({
       var targetParams = transition.params[transition.targetName];
       if (targetParams['script_id']) {
         return targetParams['script_id'] != this.controllerFor('pig').get('activeScriptId');
-      };
+      }
       if (targetParams['job_id'] && this.modelFor('script.history')) {
         return this.modelFor('script.history').get('content').filterBy('id',targetParams['job_id']).length == 0;
-      };
-    };
+      }
+    }
     return isScriptAway;
   }
 });

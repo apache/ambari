@@ -38,7 +38,7 @@ App.ScriptController = Em.ObjectController.extend({
   },
 
   deleteJobSuccess:function (data) {
-    this.send('showAlert', {message:Em.I18n.t('job.alert.job_deleted'),status:'info'})
+    this.send('showAlert', {message:Em.I18n.t('job.alert.job_deleted'),status:'info'});
   },
   deleteJobFailed:function (job,error) {
     var trace = (error.responseJSON)?error.responseJSON.trace:null;
@@ -58,14 +58,19 @@ App.ScriptController = Em.ObjectController.extend({
   staticTabs:function () {
     return [
       {label:'Script',name:'script',url:'script.edit',target:this.get('controllers.pig.activeScript.id')},
-      {label:'History',name:'history',url:'script.history',target:this.get('controllers.pig.activeScript.id')},
+      {label:'History',name:'history',url:'script.history',target:this.get('controllers.pig.activeScript.id')}
     ];
   }.property('controllers.pig.activeScript.id'),
 
   jobTabs:function () {
     var jobTabs = [];
     this.get('activeJobs').forEach(function (job) {
-      jobTabs.push({label:job.get('title') + ' - ' + job.get('status').decamelize().capitalize(), name:job.get('id'),url:'script.job',target:job.get('id')})
+      jobTabs.push({
+        label:job.get('title') + ' - ' + job.get('status').decamelize().capitalize(),
+        name:job.get('id'),
+        url:'script.job',
+        target:job.get('id')
+      });
     });
     return jobTabs;
   }.property('activeJobs.[]','activeJobs.@each.status'),
@@ -81,15 +86,15 @@ App.ScriptController = Em.ObjectController.extend({
       this.onPoll();
     },
     stop: function(){
-      Em.run.cancel(this.get('timer'))
+      Em.run.cancel(this.get('timer'));
     },
     onPoll: function() {
       this.get('jobs').forEach(function (job) {
         if (job.get('needsPing')) {
           job.reload();
         } else {
-          this.jobs.removeObject(job)
-        };
+          this.jobs.removeObject(job);
+        }
       }.bind(this));
 
       if (this.get('jobs.length') > 0) {
@@ -112,6 +117,6 @@ App.ScriptController = Em.ObjectController.extend({
   activeJobsWatcher:function () {
     if (this.get('activeJobs.firstObject.scriptId') != this.get('controllers.pig.activeScript.id')) {
       this.set('activeJobs',[]);
-    };
+    }
   }.observes('controllers.pig.activeScript.id')
 });

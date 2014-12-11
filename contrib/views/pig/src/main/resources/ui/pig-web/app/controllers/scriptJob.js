@@ -19,6 +19,7 @@
 var App = require('app');
 
 App.ScriptJobController = Em.ObjectController.extend(App.FileHandler,{
+  fullscreen:false,
   scriptContents:function () {
     var promise = new Ember.RSVP.Promise(function(resolve,reject){
       return this.get('content.pigScript').then(function (pigScript) {
@@ -60,6 +61,9 @@ App.ScriptJobController = Em.ObjectController.extend(App.FileHandler,{
       var file = (opt == 'results')?'jobResults.content.fileContent':'jobLogs.content.fileContent';
       var suffix = (opt == 'results')?'_results.txt':'_logs.txt';
       return this.downloadFile(this.get(file), this.get("suggestedFilenamePrefix")+suffix);
+    },
+    fullscreen:function () {
+      this.toggleProperty('fullscreen');
     }
   }
 });

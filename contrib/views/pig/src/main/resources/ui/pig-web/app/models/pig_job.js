@@ -57,7 +57,7 @@ App.Job = DS.Model.extend({
     var namespace = self.store.adapterFor('application').get('namespace');
     var url = [host, namespace,'jobs',self.get('id')].join('/');
 
-    self.set('isKilling',true)
+    self.set('isKilling',true);
     return Em.$.ajax(url, {
       type:'DELETE',
       contentType:'application/json',

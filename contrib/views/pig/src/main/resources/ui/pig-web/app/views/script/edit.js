@@ -20,7 +20,10 @@ var App = require('app');
 
 App.ScriptEditView = Em.View.extend({
   didInsertElement:function () {
-    $('.file-path').tooltip();
+    $('.file-path, .fullscreen-toggle').tooltip();
+  },
+  willClearRender:function () {
+    this.set("controller.fullscreen", false);
   },
   showTitleWarn:function () {
     if (this.get('controller.titleWarn')) {
@@ -51,6 +54,14 @@ App.ScriptEditView = Em.View.extend({
       if (event.keyCode=="13") {
         this.send('sendArgument');
       }
+    }
+  }),
+  focusInput:Em.TextField.extend({
+    becomeFocused: function () {
+      this.$().focus().val(this.$().val());
+    }.on('didInsertElement'),
+    cancel:function (argument) {
+      this.sendAction('action','cancel');
     }
   })
 });

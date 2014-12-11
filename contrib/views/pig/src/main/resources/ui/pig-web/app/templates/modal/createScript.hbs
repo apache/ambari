@@ -16,18 +16,18 @@
    limitations under the License.
 }}
 
-{{#pig-modal ok='confirm' close='cancel' escape-press='cancel'}}
+{{#pig-modal ok='confirm' close='cancel'}}
   <div class="modal-header">
     <button type="button" class="close" {{action "cancel" target="view"}} aria-hidden="true">&times;</button>
     <h4 class="modal-title">{{t 'scripts.modal.create_script'}}</h4>
   </div>
   <div class="modal-body">
-  <div class="form-group">
+  <div {{bind-attr class=":form-group titleErrorMessage:has-error"}}>
       <label>{{t 'scripts.title'}}</label>
-      {{input class="form-control" placeholderTranslation="scripts.modal.script_title_placeholder" valueBinding="content.title"}}
+      {{input class="form-control" placeholderTranslation="scripts.modal.script_title_placeholder" valueBinding="content.title" change=titleChange}}
     </div>
-    {{#if titleError}}
-      <div class="alert alert-danger">{{titleError}}</div>
+    {{#if content.isBlankTitle}}
+      <div  {{bind-attr class=":alert :alert-danger titleErrorMessage::hide"}}>{{titleErrorMessage}}</div>
     {{/if}}
     <div class="form-group">
       <label for="exampleInputPassword1">{{t 'scripts.path'}}</label>
@@ -37,6 +37,6 @@
   </div>
   <div class="modal-footer">
     <button type="button" {{action "cancel" target="view"}} class="btn btn-default" >{{t 'common.cancel'}}</button>
-    <button type="button" {{action "ok" target="view"}} {{bind-attr class="titleError:disabled :btn :btn-success"}} >{{t 'common.create'}}</button>
+    <button type="button" {{action "ok" target="view"}} {{bind-attr class="content.isBlankTitle:disabled :btn :btn-success"}} >{{t 'common.create'}}</button>
   </div>
 {{/pig-modal}}

@@ -22,7 +22,7 @@ App.Script = DS.Model.extend({
   title:DS.attr('string'),
   pigScript:DS.belongsTo('file', { async: true }),
   dateCreated:DS.attr('isodate', { defaultValue: moment()}),
-  templetonArguments:DS.attr('string', { defaultValue: '-useHCatalog'}),
+  templetonArguments:DS.attr('string'),
   // nav item identifier
   name:function (q){
     return this.get('title')+this.get('id');
@@ -44,5 +44,9 @@ App.Script = DS.Model.extend({
 
   dateCreatedUnix:function () {
     return moment(this.get('dateCreated')).unix();
-  }.property('dateCreated')
+  }.property('dateCreated'),
+
+  isBlankTitle:function () {
+    return Ember.isBlank(this.get('title'));
+  }.property('title')
 });

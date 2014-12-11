@@ -17,38 +17,12 @@
  */
 
 var App = require('app');
-var pigHelpers = require('./helpers-data');
 
-App.PigHelperComponent = Em.Component.extend({
-  layoutName: 'components/pigHelper',
-  helpers: pigHelpers,
-  editor: null,
+App.DeleteUdfController = Ember.ObjectController.extend({
+  needs:['pigUdfs'],
   actions:{
-    putToEditor:function (helper) {
-      var editor = this.get('editor');
-      var cursor = editor.getCursor();
-      var pos = this.findPosition(helper);
-
-      editor.replaceRange(helper, cursor, cursor);
-      editor.focus();
-
-      if (pos.length>1) {
-        editor.setSelection(
-          {line:cursor.line, ch:cursor.ch + pos[0]},
-          {line:cursor.line, ch:cursor.ch + pos[1]+1}
-        );
-      }
-
-      return false;
+    confirm:function () {
+      this.get('controllers.pigUdfs').send('deleteUdf',this.get('content'));
     }
-  },
-  findPosition: function (curLine){
-    var pos = curLine.indexOf("%");
-    var posArr = [];
-    while(pos > -1) {
-      posArr.push(pos);
-      pos = curLine.indexOf("%", pos+1);
-    }
-    return posArr;
   }
 });

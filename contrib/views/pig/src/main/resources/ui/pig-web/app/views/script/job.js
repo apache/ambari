@@ -27,9 +27,21 @@ App.ScriptJobView = Em.View.extend({
       this.$().on('show.bs.collapse', function (e) {
         this.$().parent().find('.toggle-icon').addClass('fa-rotate-90');
       }.bind(this));
+      //fix for CodeMirror not rendered properly in hidden container
+      if (this.get('elementId') === "scriptDetails") {
+        this.$().on('shown.bs.collapse', function (e) {
+          var cme = this.$('.CodeMirror').get(0);
+          if (cme && cme.CodeMirror) {
+            cme.CodeMirror.setSize(null, this.$('.editor-container').height());
+          }
+        }.bind(this));
+      }
     }.on('didInsertElement'),
     unbindToggle:function () {
       this.$().off('hide.bs.collapse','show.bs.collapse');
     }.on('willClearRender')
-  })
+  }),
+  bindTooltips:function () {
+    $('.fullscreen-toggle').tooltip();
+  }.on('didInsertElement')
 });

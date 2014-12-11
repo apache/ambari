@@ -68,10 +68,10 @@ App.register('lib:fileSaver', App.FileSaver);
 
 
 Ember.Handlebars.registerBoundHelper('showDate', function(date,format) {
-  return moment(date).format(format)
+  return moment(date).format(format);
 });
 
-Em.TextField.reopen(Em.I18n.TranslateableAttributes)
+Em.TextField.reopen(Em.I18n.TranslateableAttributes);
 
 require('translations');
 require('router');
@@ -113,6 +113,7 @@ require("controllers/errorLog");
 require("controllers/modal/confirmAway");
 require("controllers/modal/confirmDelete");
 require("controllers/modal/deleteJob");
+require("controllers/modal/deleteUdf");
 require("controllers/modal/createScript");
 require("controllers/modal/createUdf");
 require("controllers/modal/gotoCopy");
@@ -140,6 +141,7 @@ require("templates/modal/confirmAway");
 require("templates/modal/confirmDelete");
 require("templates/modal/createScript");
 require("templates/modal/deleteJob");
+require("templates/modal/deleteUdf");
 require("templates/modal/createUdf");
 require("templates/modal/gotoCopy");
 require("templates/modal/logDownload");

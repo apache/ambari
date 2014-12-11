@@ -22,31 +22,30 @@ App.CreateScriptController = Ember.ObjectController.extend({
   needs:['pigScripts'],
   filePath:'',
   clearFilePath:function () {
-    this.set('didInsertTtle',false);
     this.set('filePath','');
+    this.set('titleErrorMessage','');
   }.observes('content'),
   actions:{
     confirm:function () {
-      var title = this.get('content.title');
-      if (!title) {
-        this.set('error', Em.I18n.t('scripts.modal.error_empty_title'));
-        return;
-      }
       this.get('controllers.pigScripts').send('confirmcreate',this.get('content'),this.get('filePath'));
     },
     cancel:function (script) {
       this.get('content').deleteRecord();
     }
   },
-  didInsertTtle:false,
-  titleError:function () {
-    var title = this.get('content.title');
-
-    if (!title && this.get('didInsertTtle')) {
-      return Em.I18n.t('scripts.modal.error_empty_title');
-    } else {
-      this.set('didInsertTtle',true);
+  titleErrorMessage:'',
+  clearAlert:function () {
+    if (!this.get('content.isBlankTitle')) {
+      this.set('titleErrorMessage','');
     }
-    return '';
-  }.property('content.title')
+  }.observes('content.title'),
+  titleChange:function () {
+    var target = this.get('targetObject');
+    var message = (Ember.isBlank(target.get('content.title')))?Em.I18n.t('scripts.modal.error_empty_title'):'';
+
+    target.set('titleErrorMessage',message);
+  },
+  isValid:function () {
+    return !this.get('content.isBlankTitle');
+  }.property('content.isBlankTitle')
 });

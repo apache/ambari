@@ -16,11 +16,22 @@
  * limitations under the License.
  */
 
-var App = require('app');
 
-App.File = DS.Model.extend({
-  fileContent: DS.attr('string'),
-  hasNext:DS.attr('boolean'),
-  page:DS.attr('number'),
-  pageCount:DS.attr('number')
+moduleFor('controller:pig', 'App.PigController', {
+  needs:['controller:scriptEdit','controller:script'],
+});
+
+test('Can get active Script after active Script Id script is set', function () {
+
+  var pig = this.subject();
+
+  var script = Ember.Object.create({ title: 'script_1', id:'1' });
+
+  Ember.run(function() {
+
+    pig.set('model', [script]);
+    pig.set('activeScriptId', '1');
+
+    deepEqual(script, pig.get('activeScript'), 'script is set');
+  });
 });

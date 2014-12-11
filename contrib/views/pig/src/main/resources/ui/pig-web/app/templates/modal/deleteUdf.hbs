@@ -16,23 +16,16 @@
    limitations under the License.
 }}
 
-{{#pig-modal ok='confirm' close='cancel'}}
+{{#pig-modal ok='confirm'}}
   <div class="modal-header">
-    <button type="button" class="close" {{action "cancel" target="view"}} aria-hidden="true">&times;</button>
-    <h4 class="modal-title">{{t 'udfs.modal.create_udf'}}</h4>
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h4 class="modal-title">{{t 'scripts.modal.confirm_delete'}}</h4>
   </div>
   <div class="modal-body">
-  <div class="form-group">
-      <label for="exampleInputEmail1">{{t 'common.name'}}</label>
-      {{input class="form-control" placeholderTranslation="udfs.modal.udf_name" valueBinding="content.name"}}
-    </div>
-    <div class="form-group">
-      <label for="exampleInputPassword1">{{t 'common.path'}}</label>
-      {{input class="form-control" placeholderTranslation="udfs.modal.hdfs_path" valueBinding="content.path"}}
-    </div>
+  {{t 'udfs.modal.delete_udf' titleBinding="content.name" tagName="p"}}
   </div>
   <div class="modal-footer">
-    <button type="button" {{action "cancel" content target="view"}} class="btn btn-default">{{t 'common.cancel'}}</button>
-    <button type="button" {{action "ok" target="view"}} {{bind-attr class=":btn :btn-success isValid::disabled"}}>{{t 'common.create'}}</button>
+    <button type="button" {{action "cancel" target="view"}} class="btn btn-default" data-dismiss="modal">{{t 'common.cancel'}}</button>
+    <button type="button" {{action "ok" content target="view"}} class="btn btn-danger">{{t 'common.delete'}}</button>
   </div>
 {{/pig-modal}}

@@ -28,7 +28,7 @@ App.CreateUdfController = Ember.ObjectController.extend({
       this.get('content').deleteRecord();
     }
   },
-  udfInvalid:function (argument) {
-    return !this.get('content.name') || !this.get('content.path');
+  isValid:function () {
+    return !Em.isBlank(this.get('content.name')) && !Em.isBlank(this.get('content.path'));
   }.property('content.name','content.path')
 });

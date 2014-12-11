@@ -23,7 +23,7 @@ App.PigAlertController = Ember.ArrayController.extend({
   needs: ['pigErrorLog'],
   actions:{
     removeAlertObject:function (alert) {
-      this.content.removeObject(alert)
+      this.content.removeObject(alert);
     },
     showErrorLog:function (context) {
       errorLogController = this.get('controllers.pigErrorLog');

@@ -26,6 +26,9 @@ App.PigUdfsController = Em.ArrayController.extend(App.Pagination,{
     createUdf:function (udf) {
       return udf.save().then(this.onCreateSuccess.bind(this),this.onCreateFail.bind(this));
     },
+    deleteUdfModal:function(udf){
+      return this.send('openModal','deleteUdf',udf);
+    },
     deleteUdf:function(udf){
       udf.deleteRecord();
       return udf.save().then(this.onDeleteSuccess.bind(this),this.onDeleteFail.bind(this));
@@ -38,13 +41,11 @@ App.PigUdfsController = Em.ArrayController.extend(App.Pagination,{
     });
   },
   onCreateFail:function (error) {
-    var trace = null;
-    if (error && error.responseJSON.trace) {
-      trace = error.responseJSON.trace;
-    }
+    var trace = (error && error.responseJSON.trace)?error.responseJSON.trace:null;
     this.send('showAlert', {
       message:Em.I18n.t('udfs.alert.create_failed'),
-      status:'error',trace:trace
+      status:'error',
+      trace:trace
     });
   },
   onDeleteSuccess: function(model){
@@ -54,10 +55,7 @@ App.PigUdfsController = Em.ArrayController.extend(App.Pagination,{
     });
   },
   onDeleteFail:function(error){
-    var trace = null;
-    if (error && error.responseJSON.trace)
-      trace = error.responseJSON.trace;
-
+    var trace = (error && error.responseJSON.trace)?error.responseJSON.trace:null;
     this.send('showAlert', {
       message: Em.I18n.t('udfs.alert.delete_failed'),
       status:'error',

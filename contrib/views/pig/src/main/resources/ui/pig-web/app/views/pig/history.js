@@ -21,11 +21,11 @@ var App = require('app');
 App.PigHistoryView = Em.View.extend({
   initTooltips:function () {
     if ( this.$('td:last-child a')) {
-      Em.run.next(this.addTooltip.bind(this))
+      Em.run.next(this.addTooltip.bind(this));
     }
   }.on('didInsertElement').observes('controller.page','controller.content.@each'),
   addTooltip:function () {
-    this.$('td:last-child a').tooltip({placement:'bottom'})
+    this.$('td:last-child a').tooltip({placement:'bottom'});
   },
   scriptLink:Em.Component.extend({
     tagName:'a',

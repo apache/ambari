@@ -14,6 +14,18 @@
     "file-saver": "*"
   },
   "overrides": {
+    "codemirror":{
+      "main" : [
+        "lib/codemirror.js",
+        "lib/codemirror.css",
+        "mode/pig/pig.js",
+        "addon/hint/show-hint.css",
+        "addon/hint/show-hint.js",
+        "addon/display/fullscreen.js",
+        "addon/display/fullscreen.css",
+        "addon/hint/anyword-hint.js"
+      ]
+    },
     "bootstrap": {
       "main": [
         "./dist/js/bootstrap.js"

@@ -97,7 +97,8 @@ Ember.I18n.translations = {
     'no_arguments_message':'This pig script has no arguments defined.',
     'execute':'Execute',
     'explain':'Explain',
-    'syntax_check':'Syntax check'
+    'syntax_check':'Syntax check',
+    'toggle_fullscreen':'Toggle fullscreen (F11)'
   },
   'job':{
     'title': "Title",
@@ -112,6 +113,7 @@ Ember.I18n.translations = {
     'kill_job': "Kill Job",
     'script_details': "Script Details",
     'script_contents': "Script contents",
+    'no_arguments_message':'This job was executed without arguments.',
     'alert':{
       'job_started' :'Job started!',
       'job_killed' :'{{title}} job killed',
@@ -153,7 +155,8 @@ Ember.I18n.translations = {
     'modal':{
       'create_udf':'Create UDF',
       'udf_name':'UDF name',
-      'hdfs_path':'/hdfs/path/to/udf'
+      'hdfs_path':'/hdfs/path/to/udf',
+      'delete_udf':'Are you sure you want to delete {{title}} udf?'
     }
   },
   'history':{

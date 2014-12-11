@@ -36,7 +36,7 @@ App.PigScriptsController = Em.ArrayController.extend(App.Pagination,{
           var file = this.store.createRecord('file',{
             id:filePath,
             fileContent:''
-          })
+          });
         } catch (e) {
           return this.createScriptError(script,e);
         }

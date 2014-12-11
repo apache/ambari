@@ -234,6 +234,9 @@
             <exclude>contrib/views/pig/src/main/resources/ui/pig-web/node/**</exclude>
             <exclude>contrib/views/pig/src/main/resources/ui/pig-web/bower_components/**</exclude>
             <exclude>contrib/views/pig/src/main/resources/ui/pig-web/vendor/**</exclude>
+            <exclude>contrib/views/pig/src/main/resources/ui/pig-web/app/assets/static/stylesheets/**</exclude>
+            <exclude>contrib/views/pig/src/main/resources/ui/pig-web/app/assets/static/javascripts/**</exclude>
+            <exclude>contrib/views/pig/src/main/resources/ui/pig-web/runner.js</exclude>
             <exclude>contrib/views/slider/src/main/resources/ui/public/**</exclude>
             <exclude>contrib/views/slider/src/main/resources/ui/node_modules/**</exclude>
             <exclude>contrib/views/slider/src/main/resources/ui/vendor/**</exclude>

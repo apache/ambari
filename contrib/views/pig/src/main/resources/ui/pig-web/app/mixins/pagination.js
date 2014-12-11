@@ -38,7 +38,7 @@ App.Pagination = Ember.Mixin.create({
   pageWatcher:function () {
     if (this.get('page') > this.get('totalPages')) {
       this.set('page',this.get('totalPages') || 1);
-    };
+    }
   }.observes('totalPages'),
 
   totalPages: function() {
@@ -94,6 +94,6 @@ App.Pagination = Ember.Mixin.create({
   paginationInfo: function () {
     var start = (this.get('page') - 1) * this.get('perPage') + 1;
     var end = start + this.get('paginatedContent.length') - 1;
-    return start + ' - ' + end + ' of ' + this.get('arrangedContent.length')
+    return start + ' - ' + end + ' of ' + this.get('arrangedContent.length');
   }.property('page', 'arrangedContent.length', 'perPage')
 });

@@ -37,7 +37,7 @@ App.ConfirmAwayController = Ember.ObjectController.extend({
         script.rollback();
         file.rollback();
         this.get('waitingTransition').retry();
-      }.bind(this))
+      }.bind(this));
     }
   },
   saveCallback:function(response){

@@ -26,6 +26,7 @@ App.ScriptEditController = Em.ObjectController.extend({
   titleWarn:false,
   tmpArgument:'',
   editor:null,
+  fullscreen:false,
 
   handleRenaming:function () {
     if (this.get('content.title')) {
@@ -53,28 +54,28 @@ App.ScriptEditController = Em.ObjectController.extend({
       }
     } else {
       controller.set('pigParams',[]);
-    };
+    }
   }.observes('content.pigScript.fileContent','content.id'),
 
 
   oldTitle:'',
   actions: {
     rename:function (opt) {
-      var changedAttributes = this.get('content').changedAttributes()
+      var changedAttributes = this.get('content').changedAttributes();
 
-      if (opt==='ask') {
+      if (opt === 'ask') {
         this.set('oldTitle',this.get('content.title'));
         this.set('isRenaming',true);
-      };
+      }
 
-      if (opt==='cancel') {
+      if (opt === 'cancel') {
         this.set('content.title',this.get('oldTitle'));
         this.set('oldTitle','');
         this.set('isRenaming',false);
-      };
+      }
 
-      if (opt==='confirm') {
-        if (Em.isArray(changedAttributes.title) && this.get('content.title')) {
+      if (opt === this.get('content.title') && !Em.isBlank(this.get('content.title'))) {
+        if (Em.isArray(changedAttributes.title)) {
           this.get('content').save().then(function () {
             this.send('showAlert', {message:Em.I18n.t('editor.title_updated'),status:'success'});
           }.bind(this));
@@ -117,6 +118,9 @@ App.ScriptEditController = Em.ObjectController.extend({
         .then(executeMethod[operation].bind(this))
         .then(this.executeSuccess.bind(this), this.executeError.bind(this))
         .finally(Em.run.bind(this,this.set,'isExec',false));
+    },
+    fullscreen:function () {
+      this.toggleProperty('fullscreen');
     }
   },
 

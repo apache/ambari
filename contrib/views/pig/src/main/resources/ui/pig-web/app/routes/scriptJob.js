@@ -37,9 +37,7 @@ App.ScriptJobRoute = Em.Route.extend({
           job.reload();
           self.send('showAlert', {'message': Em.I18n.t('job.alert.job_killed',{title:self.get('title')}), status:'info'});
         },function (reason) {
-          var trace = null;
-          if (reason && reason.responseJSON.trace)
-            trace = reason.responseJSON.trace;
+          var trace = (reason && reason.responseJSON.trace)?reason.responseJSON.trace:null;
           self.send('showAlert', {'message': Em.I18n.t('job.alert.job_kill_error'), status:'error', trace:trace});
         });
       }

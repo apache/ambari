@@ -44,7 +44,13 @@ App.PigModalComponent = Ember.Component.extend({
   },
   keyUp:function (e) {
     if (e.keyCode == 27) {
-      this.sendAction('close');
+      return this.sendAction('close');
+    }
+  },
+  keyDown:function (e) {
+    if (e.keyCode == 13 && this.get('targetObject.isValid')) {
+      this.$('.modal').modal('hide');
+      return this.sendAction('ok');
     }
   },
   show: function() {

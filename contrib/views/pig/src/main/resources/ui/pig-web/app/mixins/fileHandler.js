@@ -29,14 +29,14 @@ var _promise = function (controller, url, output) {
         controller.send('showAlert', {'message': Em.I18n.t('job.alert.promise_error',
           {status:response.status, message:response.message}), status:'error', trace: response.trace});
       }
-    })
+    });
   });
 };
 
 App.FileHandler = Ember.Mixin.create({
   fileProxy:function (url) {
     var promise,
-        host = this.store.adapterFor('application').get('host');
+        host = this.store.adapterFor('application').get('host'),
         namespace = this.store.adapterFor('application').get('namespace');
 
     url = [host, namespace, url].join('/');

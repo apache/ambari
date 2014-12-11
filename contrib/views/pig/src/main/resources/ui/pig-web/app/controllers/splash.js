@@ -23,7 +23,7 @@ App.SplashController = Ember.ObjectController.extend({
     toggleStackTrace:function () {
       var value = this.get('isExpanded');
       this.set('isExpanded', !value);
-    },
+    }
   },
   isExpanded: false,
 
