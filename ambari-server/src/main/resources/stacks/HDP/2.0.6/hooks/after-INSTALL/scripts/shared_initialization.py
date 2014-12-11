@@ -28,7 +28,8 @@ def setup_hdp_install_directory():
 
 def setup_config():
   import params
-  if params.has_namenode:
+  stackversion = params.hdp_full_stack_version
+  if params.has_namenode or stackversion.find('Gluster') >= 0:
     XmlConfig("core-site.xml",
               conf_dir=params.hadoop_conf_dir,
               configurations=params.config['configurations']['core-site'],

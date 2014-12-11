@@ -34,6 +34,7 @@ java_home = config['hostLevelParams']['java_home']
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
 hdp_stack_version = str(config['hostLevelParams']['stack_version'])
+hdp_full_stack_version = hdp_stack_version
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 hdp_stack_version = format_hdp_stack_version(hdp_stack_version)
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']

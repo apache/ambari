@@ -99,7 +99,8 @@ def set_uid(user, user_dirs):
     
 def setup_hadoop_env():
   import params
-  if params.has_namenode:
+  stackversion = params.hdp_full_stack_version
+  if params.has_namenode or stackversion.find('Gluster') >= 0:
     if params.security_enabled:
       tc_owner = "root"
     else:
@@ -115,11 +116,18 @@ def setup_hadoop_env():
               owner=params.hdfs_user,
               group=params.user_group
     )
-    Directory(params.hadoop_conf_empty_dir,
+    if stackversion.find('Gluster') >= 0:
+        Directory(params.hadoop_conf_empty_dir,
+              recursive=True,
+              owner="root",
+              group=params.user_group
+        )
+    else:
+        Directory(params.hadoop_conf_empty_dir,
               recursive=True,
               owner=tc_owner,
               group=params.user_group
-    )
+        )
     Link(params.hadoop_conf_dir,
          to=params.hadoop_conf_empty_dir,
          not_if=format("ls {hadoop_conf_dir}")
