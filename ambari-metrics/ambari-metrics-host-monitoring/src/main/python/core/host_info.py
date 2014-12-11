@@ -24,6 +24,8 @@ import os
 from collections import namedtuple
 import platform
 import socket
+import time
+import threading
 
 logger = logging.getLogger()
 
@@ -35,23 +37,28 @@ pass
 
 
 class HostInfo():
-
+  def __init__(self):
+    self.__last_network_io_time = 0;
+    self.__last_network_data = {}
+    self.__last_network_lock = threading.Lock()
 
   def get_cpu_times(self):
     """
     Return cpu stats at current time
     """
-    cpu_times = psutil.cpu_times()
+    cpu_times = psutil.cpu_times_percent()
     load_avg = os.getloadavg()
 
+    number2percents = lambda x: x * 100
+
     return {
-      'cpu_user' : cpu_times.user if hasattr(cpu_times, 'user') else '',
-      'cpu_system' : cpu_times.system if hasattr(cpu_times, 'system') else '',
-      'cpu_idle' : cpu_times.idle if hasattr(cpu_times, 'idle') else '',
-      'cpu_nice' : cpu_times.nice if hasattr(cpu_times, 'nice') else '',
-      'cpu_wio' : cpu_times.iowait if hasattr(cpu_times, 'iowait') else '',
-      'cpu_intr' : cpu_times.irq if hasattr(cpu_times, 'irq') else '',
-      'cpu_sintr' : cpu_times.softirq if hasattr(cpu_times, 'softirq') else '',
+      'cpu_user': number2percents(cpu_times.user) if hasattr(cpu_times, 'user') else '',
+      'cpu_system': number2percents(cpu_times.system) if hasattr(cpu_times, 'system') else '',
+      'cpu_idle': number2percents(cpu_times.idle) if hasattr(cpu_times, 'idle') else '',
+      'cpu_nice': number2percents(cpu_times.nice) if hasattr(cpu_times, 'nice') else '',
+      'cpu_wio': number2percents(cpu_times.iowait) if hasattr(cpu_times, 'iowait') else '',
+      'cpu_intr': number2percents(cpu_times.irq) if hasattr(cpu_times, 'irq') else '',
+      'cpu_sintr': number2percents(cpu_times.softirq) if hasattr(cpu_times, 'softirq') else '',
       'load_one' : load_avg[0] if len(load_avg) > 0 else '',
       'load_five' : load_avg[1] if len(load_avg) > 1 else '',
       'load_fifteen' : load_avg[2] if len(load_avg) > 2 else ''
@@ -90,12 +97,14 @@ class HostInfo():
     swap_stats = psutil.swap_memory()
     disk_usage = self.get_combined_disk_usage()
 
+    bytes2kilobytes = lambda x: x / 1024
+
     return {
-      'mem_free' : mem_stats.free if hasattr(mem_stats, 'free') else '',
-      'mem_shared' : mem_stats.shared if hasattr(mem_stats, 'shared') else '',
-      'mem_buffered' : mem_stats.buffers if hasattr(mem_stats, 'buffers') else '',
-      'mem_cached' : mem_stats.cached if hasattr(mem_stats, 'cached') else '',
-      'swap_free' : swap_stats.free if hasattr(mem_stats, 'free') else '',
+      'mem_free': bytes2kilobytes(mem_stats.free) if hasattr(mem_stats, 'free') else '',
+      'mem_shared': bytes2kilobytes(mem_stats.shared) if hasattr(mem_stats, 'shared') else '',
+      'mem_buffered': bytes2kilobytes(mem_stats.buffers) if hasattr(mem_stats, 'buffers') else '',
+      'mem_cached': bytes2kilobytes(mem_stats.cached) if hasattr(mem_stats, 'cached') else '',
+      'swap_free': bytes2kilobytes(swap_stats.free) if hasattr(swap_stats, 'free') else '',
       'disk_free' : disk_usage.get("disk_free"),
       # todo: cannot send string
       #'part_max_used' : disk_usage.get("max_part_used")[0],
@@ -107,14 +116,31 @@ class HostInfo():
     """
     Return network counters
     """
-    net_stats = psutil.net_io_counters()
 
-    return {
-      'bytes_out' : net_stats.bytes_sent,
-      'bytes_in' : net_stats.bytes_recv,
-      'pkts_out' : net_stats.packets_sent,
-      'pkts_in' : net_stats.packets_recv
-    }
+    with self.__last_network_lock:
+      current_time = time.time()
+      delta = current_time - self.__last_network_io_time
+      self.__last_network_io_time = current_time
+
+    if delta <= 0:
+      delta = float("inf")
+
+    net_stats = psutil.net_io_counters(True)
+    new_net_stats = {}
+    for interface, values in net_stats.iteritems():
+      if interface != 'lo':
+        new_net_stats = {'bytes_out': new_net_stats.get('bytes_out', 0) + values.bytes_sent,
+                         'bytes_in': new_net_stats.get('bytes_in', 0) + values.bytes_recv,
+                         'pkts_out': new_net_stats.get('pkts_out', 0) + values.packets_sent,
+                         'pkts_in': new_net_stats.get('pkts_in', 0) + values.packets_recv
+        }
+
+    with self.__last_network_lock:
+      result = dict((k, (v - self.__last_network_data.get(k, 0)) / delta) for k, v in new_net_stats.iteritems())
+      result = dict((k, 0 if v < 0 else v) for k, v in result.iteritems())
+      self.__last_network_data = new_net_stats
+
+    return result
   pass
 
   # Faster version

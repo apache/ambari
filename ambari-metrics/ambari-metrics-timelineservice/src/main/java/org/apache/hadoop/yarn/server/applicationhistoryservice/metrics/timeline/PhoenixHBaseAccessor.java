@@ -38,6 +38,7 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.ALTER_SQL;
@@ -162,8 +163,9 @@ public class PhoenixHBaseAccessor {
     metric.setTimestamp(rs.getLong("SERVER_TIME"));
     metric.setStartTime(rs.getLong("START_TIME"));
     metric.setType(rs.getString("UNITS"));
-    metric.setMetricValues(
-      (Map<Long, Double>) readMetricFromJSON(rs.getString("METRICS")));
+    Map<Long, Double> sortedByTimeMetrics =
+        new TreeMap<Long, Double>((Map<Long, Double>) readMetricFromJSON(rs.getString("METRICS")));
+    metric.setMetricValues(sortedByTimeMetrics);
     return metric;
   }
 

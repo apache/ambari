@@ -58,6 +58,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
   private static final DecimalFormat decimalFormat = new DecimalFormat("#.00");
 
   private static final Set<String> PERCENTAGE_METRIC;
+  private static final String METRIC_REGEXP_PATTERN = "\\([^)]*\\)";
 
   static {
     TIMELINE_APPID_MAP.put("HBASE_MASTER", "HBASE");
@@ -175,7 +176,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
             return Collections.emptySet();
           }
 
-          String metricsParam = getSetString(metrics.keySet(), -1);
+          String metricsParam = getSetString(processRegexps(metrics.keySet()), -1);
           // Reuse uriBuilder
           uriBuilder.removeQuery();
 
@@ -214,8 +215,11 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
             TimelineMetrics timelineMetrics = timelineObjectReader.readValue(reader);
             LOG.debug("Timeline metrics response => " + timelineMetrics);
 
+            Set<String> patterns = createPatterns(metrics.keySet());
+
             for (TimelineMetric metric : timelineMetrics.getMetrics()) {
-              if (metric.getMetricName() != null && metric.getMetricValues() != null) {
+              if (metric.getMetricName() != null && metric.getMetricValues() != null
+                  && checkMetricName(patterns, metric.getMetricName())) {
                 populateResource(resource, metric);
               }
             }
@@ -237,6 +241,41 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
       }
 
       return Collections.emptySet();
+    }
+
+    private Set<String> createPatterns(Set<String> rawNames) {
+      Pattern pattern = Pattern.compile(METRIC_REGEXP_PATTERN);
+      Set<String> result = new HashSet<String>();
+      for (String rawName : rawNames) {
+        Matcher matcher = pattern.matcher(rawName);
+        StringBuilder sb = new StringBuilder();
+        int lastPos = 0;
+        while (matcher.find()) {
+          sb.append(Pattern.quote(rawName.substring(lastPos, matcher.start())));
+          sb.append(matcher.group());
+          lastPos = matcher.end();
+        }
+        sb.append(Pattern.quote(rawName.substring(lastPos)));
+        result.add(sb.toString());
+      }
+      return result;
+    }
+
+    private boolean checkMetricName(Set<String> patterns, String name) {
+      for (String pattern : patterns) {
+        if (Pattern.matches(pattern, name)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    private Set<String> processRegexps(Set<String> metricNames) {
+      Set<String> result = new HashSet<String>();
+      for (String name : metricNames) {
+        result.add(name.replaceAll(METRIC_REGEXP_PATTERN, Matcher.quoteReplacement("%")));
+      }
+      return result;
     }
 
     private void populateResource(Resource resource, TimelineMetric metric) {

@@ -29,30 +29,31 @@ logger = logging.getLogger()
 class TestHostInfo(TestCase):
   
   @patch("os.getloadavg")
-  @patch("psutil.cpu_times")
+  @patch("psutil.cpu_times_percent")
   def testCpuTimes(self, cp_mock, avg_mock):
     
     cp = cp_mock.return_value
-    cp.user = "user"
-    cp.system = "system"
-    cp.idle = "idle"
-    cp.nice = "nice"
-    cp.iowait = "iowait"
-    cp.irq = "irq"
-    cp.softirq = "softirq"
+    cp.user = 0.1
+    cp.system = 0.1
+    cp.idle = 0.7
+    cp.nice = 0.1
+    cp.iowait = 0
+    cp.irq = 0
+    cp.softirq = 0
+
     avg_mock.return_value  = [13, 13, 13]
     
     hostinfo = HostInfo()
     
     cpu = hostinfo.get_cpu_times()
     
-    self.assertEqual(cpu['cpu_user'], 'user')
-    self.assertEqual(cpu['cpu_system'], 'system')
-    self.assertEqual(cpu['cpu_idle'], 'idle')
-    self.assertEqual(cpu['cpu_nice'], 'nice')
-    self.assertEqual(cpu['cpu_wio'], 'iowait')
-    self.assertEqual(cpu['cpu_intr'], 'irq')
-    self.assertEqual(cpu['cpu_sintr'], 'softirq')
+    self.assertAlmostEqual(cpu['cpu_user'], 10)
+    self.assertAlmostEqual(cpu['cpu_system'], 10)
+    self.assertAlmostEqual(cpu['cpu_idle'], 70)
+    self.assertAlmostEqual(cpu['cpu_nice'], 10)
+    self.assertAlmostEqual(cpu['cpu_wio'], 0)
+    self.assertAlmostEqual(cpu['cpu_intr'], 0)
+    self.assertAlmostEqual(cpu['cpu_sintr'], 0)
     self.assertEqual(cpu['load_one'], 13)
     self.assertEqual(cpu['load_five'], 13)
     self.assertEqual(cpu['load_fifteen'], 13)
@@ -64,23 +65,23 @@ class TestHostInfo(TestCase):
   def testMemInfo(self, vm_mock, sw_mock, dm_mock, du_mock):
     
     vm = vm_mock.return_value
-    vm.free = "free"
-    vm.shared = "shared"
-    vm.buffers = "buffers"
-    vm.cached = "cached"
+    vm.free = 2312043
+    vm.shared = 1243
+    vm.buffers = 23435
+    vm.cached = 23545
     
     sw = sw_mock.return_value
-    sw.free = "free"
+    sw.free = 2341234
     
     hostinfo = HostInfo()
     
     cpu = hostinfo.get_mem_info()
     
-    self.assertEqual(cpu['mem_free'], 'free')
-    self.assertEqual(cpu['mem_shared'], 'shared')
-    self.assertEqual(cpu['mem_buffered'], 'buffers')
-    self.assertEqual(cpu['mem_cached'], 'cached')
-    self.assertEqual(cpu['swap_free'], 'free')
+    self.assertAlmostEqual(cpu['mem_free'], 2257)
+    self.assertAlmostEqual(cpu['mem_shared'], 1)
+    self.assertAlmostEqual(cpu['mem_buffered'], 22)
+    self.assertAlmostEqual(cpu['mem_cached'], 22)
+    self.assertAlmostEqual(cpu['swap_free'], 2286)
 
 
   @patch("psutil.process_iter")

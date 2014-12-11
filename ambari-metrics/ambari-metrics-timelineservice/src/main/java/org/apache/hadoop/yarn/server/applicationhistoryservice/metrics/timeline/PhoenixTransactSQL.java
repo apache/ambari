@@ -532,4 +532,71 @@ public class PhoenixTransactSQL {
         '}';
     }
   }
+
+  static class LikeCondition extends Condition {
+
+    LikeCondition(List<String> metricNames, String hostname,
+                         String appId, String instanceId, Long startTime,
+                         Long endTime, Integer limit, boolean grouped) {
+      super(metricNames, hostname, appId, instanceId, startTime, endTime,
+          limit, grouped);
+    }
+
+    @Override
+    String getConditionClause() {
+      StringBuilder sb = new StringBuilder();
+      boolean appendConjunction = false;
+
+      if (getMetricNames() != null) {
+        sb.append("(");
+        for (String name : metricNames) {
+          if (sb.length() > 1) {
+            sb.append(" OR ");
+          }
+          sb.append("METRIC_NAME LIKE ?");
+        }
+        sb.append(")");
+        appendConjunction = true;
+      }
+      if (appendConjunction) {
+        sb.append(" AND");
+      }
+      appendConjunction = false;
+      if (getHostname() != null) {
+        sb.append(" HOSTNAME = ?");
+        appendConjunction = true;
+      }
+      if (appendConjunction) {
+        sb.append(" AND");
+      }
+      appendConjunction = false;
+      if (getAppId() != null) {
+        sb.append(" APP_ID = ?");
+        appendConjunction = true;
+      }
+      if (appendConjunction) {
+        sb.append(" AND");
+      }
+      appendConjunction = false;
+      if (getInstanceId() != null) {
+        sb.append(" INSTANCE_ID = ?");
+        appendConjunction = true;
+      }
+      if (appendConjunction) {
+        sb.append(" AND");
+      }
+      appendConjunction = false;
+      if (getStartTime() != null) {
+        sb.append(" SERVER_TIME >= ?");
+        appendConjunction = true;
+      }
+      if (appendConjunction) {
+        sb.append(" AND");
+      }
+      if (getEndTime() != null) {
+        sb.append(" SERVER_TIME < ?");
+      }
+      return sb.toString();
+    }
+  }
 }
