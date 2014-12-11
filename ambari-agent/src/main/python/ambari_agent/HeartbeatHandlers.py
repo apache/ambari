@@ -71,7 +71,7 @@ class HeartbeatStopHandlersWindows(HeartbeatStopHandlers):
       raise FatalException(-1, "Error waiting for stop/heartbeat events: " + str(result))
     if (win32event.WAIT_TIMEOUT == result):
       return -1
-    return result
+    return result # 0 -> stop, 1 -> heartbeat
 
 # linux impl
 
@@ -119,13 +119,13 @@ class HeartbeatStopHandlersLinux(HeartbeatStopHandlers):
   def wait(self, timeout1, timeout2=0):
     if self.heartbeat_wait_event.wait(timeout=timeout1):
       # Event signaled, exit
-      return 0
+      return 1
     # Stop loop when stop event received
     # Otherwise sleep a bit more to allow STATUS_COMMAND results to be collected
     # and sent in one heartbeat. Also avoid server overload with heartbeats
     if self.stop_event.wait(timeout=timeout2):
       logger.info("Stop event received")
-      return 1
+      return 0
     # Timeout
     return -1
 
