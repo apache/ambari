@@ -38,6 +38,7 @@ with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   from ambari_agent.Controller import Controller
   from ambari_agent.DataCleaner import DataCleaner
   import ambari_agent.HeartbeatHandlers as HeartbeatHandlers
+  from ambari_agent.shell import shellRunner
 
 class TestMain(unittest.TestCase):
 
@@ -189,7 +190,7 @@ class TestMain(unittest.TestCase):
 
 
   @patch("time.sleep")
-  @patch("os.kill")
+  @patch.object(shellRunner,"run")
   @patch("os._exit")
   @patch("os.path.exists")
   def test_daemonize_and_stop(self, exists_mock, _exit_mock, kill_mock, sleep_mock):
@@ -207,18 +208,19 @@ class TestMain(unittest.TestCase):
     # Testing normal exit
     exists_mock.return_value = False
     main.stop_agent()
-    kill_mock.assert_called_with(int(pid), signal.SIGTERM)
+    kill_mock.assert_called_with(['sudo', 'kill', '-15', pid])
     _exit_mock.assert_called_with(0)
 
     # Restore
     kill_mock.reset_mock()
     _exit_mock.reset_mock()
+    kill_mock.return_value = {'exitCode': 0, 'output': 'out', 'error': 'err'}
 
     # Testing exit when failed to remove pid file
     exists_mock.return_value = True
     main.stop_agent()
-    kill_mock.assert_any_call(int(pid), signal.SIGTERM)
-    kill_mock.assert_any_call(int(pid), signal.SIGKILL)
+    kill_mock.assert_any_call(['sudo', 'kill', '-15', pid])
+    kill_mock.assert_any_call(['sudo', 'kill', '-9', pid])
     _exit_mock.assert_called_with(1)
 
     # Restore
