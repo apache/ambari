@@ -29,7 +29,7 @@ App.MainStackVersionsView = App.TableView.extend({
 
   /**
    * return filtered number of all content number information displayed on the page footer bar
-   * @returns {String}
+   * @type {String}
    */
   filteredContentInfo: function () {
     return this.t('tableView.filters.filteredConfigVersionInfo').format(this.get('filteredCount'), this.get('content.length'));
@@ -65,8 +65,9 @@ App.MainStackVersionsView = App.TableView.extend({
   }),
   osSort: sort.fieldView.extend({
     column: 3,
-    name: 'repositoryVersionoperatingSystems',
-    displayName: Em.I18n.t('admin.stackVersions.table.header.os')
+    name: 'repositoryVersion.operatingSystems.length',
+    displayName: Em.I18n.t('admin.stackVersions.table.header.os'),
+    type: 'number'
   }),
   installedSort: sort.fieldView.extend({
     column: 4,
@@ -111,11 +112,25 @@ App.MainStackVersionsView = App.TableView.extend({
     }
   }),
 
-  osFilterView: filters.createTextView({
+  osFilterView: filters.createSelectView({
     column: 3,
     fieldType: 'filter-input-width',
+    content: function () {
+      var names = App.OS.find().mapProperty('osType').uniq();
+      return [
+        {
+          value: '',
+          label: Em.I18n.t('common.all')
+        }
+      ].concat(names.map(function (name) {
+          return {
+            value: name,
+            label: name
+          }
+        }));
+    }.property('App.router.mainStackVersionsController.dataIsLoaded'),
     onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'os');
     }
   }),
 
@@ -140,7 +155,6 @@ App.MainStackVersionsView = App.TableView.extend({
     this.get('controller').load();
     this.get('controller').doPolling();
   },
-
 
   willDestroyElement: function () {
     this.set('controller.isPolling', false);

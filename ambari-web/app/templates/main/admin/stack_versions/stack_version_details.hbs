@@ -46,8 +46,8 @@
             <div class="span3">{{t admin.stackVersions.datails.not.installed.on}}</div>
             <div {{bindAttr class="noInitHosts:not-active-link :span6"}}>
               <a href="#" title='current' class="not-installed-hosts-count"
-                {{action showHosts content.repositoryVersion.displayName content.notInstalledHosts target="App.router.mainStackVersionsController"}}>
-                {{notInstalledHostsCount}}/{{totalHostCount}}
+                {{action showHosts content.repositoryVersion.displayName content.noInstallFailedHosts target="App.router.mainStackVersionsController"}}>
+                {{content.installFailedHosts.length}}/{{totalHostCount}}
               </a>
             </div>
           </div>

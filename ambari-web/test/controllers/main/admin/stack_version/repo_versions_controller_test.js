@@ -50,7 +50,7 @@ describe('App.RepoVersionsController', function () {
   });
 
   describe('#load', function () {
-    it('', function () {
+    it('loads data by running loadRepoVersionsToModel', function () {
       sinon.stub(repoVersionsController, 'loadRepoVersionsToModel').returns({done: Em.K});
       repoVersionsController.load();
       expect(repoVersionsController.loadRepoVersionsToModel.calledOnce).to.be.true;
@@ -58,7 +58,7 @@ describe('App.RepoVersionsController', function () {
     });
   });
   describe('#loadRepoVersionsToModel()', function () {
-    it('', function () {
+    it('loads data to model', function () {
       sinon.stub(App.HttpClient, 'get', Em.K);
       sinon.stub(repoVersionsController, 'getUrl', Em.K);
       sinon.stub(App.get('router.mainStackVersionsController'), 'loadStackVersionsToModel', function() { return $.Deferred().resolve()});
@@ -72,6 +72,31 @@ describe('App.RepoVersionsController', function () {
       App.get('router.mainStackVersionsController').loadStackVersionsToModel.restore();
       repoVersionsController.getUrl.restore();
       App.HttpClient.get.restore();
+    });
+  });
+
+  describe('#installStackVersionSuccess()', function () {
+    it('success callback for install stack version', function () {
+      var repoId = "1";
+      var requestId = "2";
+      var stackVersion = {repositoryVersion: {id: repoId}};
+      sinon.stub(App.db, 'set', Em.K);
+      sinon.stub(App.get('router.mainStackVersionsController'), 'loadStackVersionsToModel', function() { return $.Deferred().resolve()});
+      sinon.stub(App.router, 'transitionTo', Em.K);
+      sinon.stub(App.StackVersion, 'find', function() {
+        return [stackVersion];
+      });
+
+      repoVersionsController.installStackVersionSuccess({Requests: {id: requestId}}, null, {id: repoId});
+      expect(App.db.set.calledWith('stackUpgrade', 'id', [requestId])).to.be.true;
+      expect(App.get('router.mainStackVersionsController').loadStackVersionsToModel.calledOnce).to.be.true;
+      expect(App.StackVersion.find.calledOnce).to.be.true;
+      expect(App.router.transitionTo.calledWith('main.admin.adminStackVersions.version', stackVersion)).to.be.true;
+
+      App.db.set.restore();
+      App.get('router.mainStackVersionsController').loadStackVersionsToModel.restore();
+      App.router.transitionTo.restore();
+      App.StackVersion.find.restore();
     });
   });
 

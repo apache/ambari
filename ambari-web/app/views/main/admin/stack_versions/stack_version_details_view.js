@@ -27,7 +27,7 @@ App.MainStackVersionsDetailsView = Em.View.extend({
   }.property('controller.content'),
   /**
    * text on install buttons
-   * {String}
+   * @type {String}
    */
   stackTextStatus: function() {
     var self = this;
@@ -39,20 +39,22 @@ App.MainStackVersionsDetailsView = Em.View.extend({
       case 'INSTALLED':
         return Em.I18n.t('admin.stackVersions.datails.hosts.btn.nothing');
         break;
+      //TODO remove INIT case if it would not be user
       case 'INIT':
         return Em.I18n.t('admin.stackVersions.datails.hosts.btn.install').format(self.get('totalHostCount') - self.get('content.installedHosts.length'));
         break;
       default:
         return self.get('content.state') && self.get('content.state').toCapital();
     }
-  }.property('content.state', 'content.notInstalledHostStacks.length'),
+  }.property('content.state'),
 
   /**
    * class on install buttons
-   * {String}
+   * @type {String}
    */
   statusClass: function() {
     switch (this.get('content.state')) {
+      //TODO remove INSTALL case if it would not be user
       case 'INSTALL':
         return 'btn-success';
         break;
@@ -69,7 +71,6 @@ App.MainStackVersionsDetailsView = Em.View.extend({
     App.get('router.mainStackVersionsController').load();
     App.get('router.mainStackVersionsController').doPolling();
   },
-
 
   willDestroyElement: function () {
     App.get('router.mainStackVersionsController').set('isPolling', false);

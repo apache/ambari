@@ -25,17 +25,32 @@ App.MainStackVersionsController = Em.ArrayController.extend({
   timeoutRef: null,
   isPolling: false,
   dataIsLoaded: false,
+
+  /**
+   *  path to the mock json
+   * @type {String}
+   */
   mockUrl: '/data/stack_versions/stack_version_all.json',
+
+  /**
+   * api to get ClusterStackVersions with repository_versions (use to init data load)
+   * @type {String}
+   */
   realUrl: function () {
     return App.apiPrefix + '/clusters/' + App.get('clusterName') + '/stack_versions?fields=*,repository_versions/*,repository_versions/operatingSystems/repositories/*';
   }.property('App.clusterName'),
+
+  /**
+   * api to get ClusterStackVersions without repository_versions (use to update data)
+   * @type {String}
+   */
   realUpdateUrl: function () {
     return App.apiPrefix + '/clusters/' + App.get('clusterName') + '/stack_versions?fields=ClusterStackVersions/*';
-    //TODO return App.apiPrefix + '/clusters/' + App.get('clusterName') + '/stack_versions?fields=ClusterStackVersions/state,ClusterStackVersions/host_states&minimal_response=true';
   }.property('App.clusterName'),
 
   /**
    * request latest data from server and update content
+   * @method doPolling
    */
   doPolling: function () {
     var self = this;
@@ -51,6 +66,7 @@ App.MainStackVersionsController = Em.ArrayController.extend({
   /**
    * load all data components required by stack version table
    * @return {*}
+   * @method load
    */
   load: function () {
     var dfd = $.Deferred();
@@ -65,6 +81,7 @@ App.MainStackVersionsController = Em.ArrayController.extend({
   /**
    * get stack versions from server and push it to model
    * @return {*}
+   * @method loadStackVersionsToModel
    */
   loadStackVersionsToModel: function (isUpdate) {
     var dfd = $.Deferred();
@@ -77,11 +94,25 @@ App.MainStackVersionsController = Em.ArrayController.extend({
     return dfd.promise();
   },
 
+  /**
+   * returns api url to get clusteStackVersion wirh repositoryVersion
+   * or just clustrerStackVersion if only updates are requested
+   * or mock json if testmode is on
+   * @param isUpdate true if data needs to be updated
+   * @returns {String}
+   * @method getUrl
+   */
   getUrl: function (isUpdate) {
     return App.get('testMode') ? this.get('mockUrl') :
       isUpdate ? this.get('realUpdateUrl') : this.get('realUrl');
   },
 
+  /**
+   * goes to the hosts page with content filtered by repo_version_name and repo_version_state
+   * @param version
+   * @param state
+   * @method filterHostsByStack
+   */
   filterHostsByStack: function (version, state) {
     if (!version || !state)
       return;
@@ -90,6 +121,12 @@ App.MainStackVersionsController = Em.ArrayController.extend({
     App.router.transitionTo('hosts.index');
   },
 
+  /**
+   * shows popup with listed hosts wich has current state of hostStackVersion
+   * @param event
+   * @returns {*|void}
+   * @method showHosts
+   */
   showHosts: function(event) {
     var self = this;
     var status = event.currentTarget.title.toCapital();

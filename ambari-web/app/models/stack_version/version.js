@@ -42,6 +42,10 @@ App.StackVersion = DS.Model.extend({
 
   noCurrentHosts: function() {
     return this.get('currentHosts.length') == 0;
+  }.property('currentHosts.length'),
+
+  noInstallFailedHosts: function() {
+    return this.get('installFailedHosts.length') == 0;
   }.property('currentHosts.length')
 });
 

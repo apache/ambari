@@ -62,8 +62,9 @@ App.RepoVersionsView = App.TableView.extend({
   }),
   osSort: sort.fieldView.extend({
     column: 3,
-    name: 'operatingSystems',
-    displayName: Em.I18n.t('admin.stackVersions.table.header.os')
+    name: 'operatingSystems.length',
+    displayName: Em.I18n.t('admin.stackVersions.table.header.os'),
+    type: 'number'
   }),
 
   repoNameFilterView: filters.createSelectView({
@@ -96,11 +97,25 @@ App.RepoVersionsView = App.TableView.extend({
     }
   }),
 
-  osFilterView: filters.createTextView({
+  osFilterView: filters.createSelectView({
     column: 3,
     fieldType: 'filter-input-width',
+    content: function () {
+      var names = App.OS.find().mapProperty('osType').uniq();
+      return [
+        {
+          value: '',
+          label: Em.I18n.t('common.all')
+        }
+      ].concat(names.map(function (name) {
+          return {
+            value: name,
+            label: name
+          }
+        }));
+    }.property('App.router.mainStackVersionsController.dataIsLoaded'),
     onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'os');
     }
   }),
 

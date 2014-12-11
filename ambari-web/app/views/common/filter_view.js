@@ -581,6 +581,11 @@ module.exports = {
           return origin == compareValue;
         };
         break;
+      case 'os':
+        return function (origin, compareValue) {
+          return origin.getEach('osType').contains(compareValue)
+        };
+        break;
       case 'range':
         return function (origin, compareValue) {
           if (compareValue[1] && compareValue[0]) {
