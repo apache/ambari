@@ -42,7 +42,7 @@
   </property>
   <property>
     <name>yarn.nodemanager.recovery.enabled</name>
-    <value>false</value>
+    <value>true</value>
     <description>Enable the node manager to recover after starting</description>
   </property>
   <property>
@@ -65,7 +65,7 @@
   </property>
   <property>
     <name>yarn.resourcemanager.recovery.enabled</name>
-    <value>false</value>
+    <value>true</value>
     <description>
       Enable RM to recover state after starting.
       If true, then yarn.resourcemanager.store.class must be specified.
@@ -73,7 +73,7 @@
   </property>
   <property>
     <name>yarn.resourcemanager.work-preserving-recovery.enabled</name>
-    <value>false</value>
+    <value>true</value>
     <description>
       Enable RM work preserving recovery. This configuration is private to YARN for experimenting the feature.
     </description>
