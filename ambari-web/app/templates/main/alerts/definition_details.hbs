@@ -91,12 +91,11 @@
           <div class="span8">
             {{#if controller.content.enabled}}
               {{#isAccessible ADMIN}}
-                <span class="enable-disable-button" {{translateAttr data-original-title="alerts.table.state.enabled.tooltip"}}>
-                  <a href="#" {{action "toggleState" controller.content target="controller"}} {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
-                      <span class="icon-off"></span>
-                      {{t alerts.table.state.enabled}}
-                  </a>
-                </span>
+                <a href="#" {{action "toggleState" controller.content target="controller"}} {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
+                  <span class="enable-disable-button" {{translateAttr data-original-title="alerts.table.state.enabled.tooltip"}}>
+                      {{view.enabledDisplay}}
+                  </span>
+                </a>
               {{/isAccessible}}
               {{#isAccessible NON_ADMIN}}
                 <span {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
@@ -105,12 +104,11 @@
               {{/isAccessible}}
             {{else}}
               {{#isAccessible ADMIN}}
-                <span class="enable-disable-button" {{translateAttr data-original-title="alerts.table.state.disabled.tooltip"}}>
-                  <a href="#" {{action "toggleState" controller.content target="controller"}} {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
-                      <span class="icon-off"></span>
-                      {{t alerts.table.state.disabled}}
-                  </a>
-                </span>
+                <a href="#" {{action "toggleState" controller.content target="controller"}} {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
+                  <span class="enable-disable-button" {{translateAttr data-original-title="alerts.table.state.disabled.tooltip"}}>
+                    {{view.disabledDisplay}}
+                  </span>
+                </a>
               {{/isAccessible}}
               {{#isAccessible NON_ADMIN}}
                 <span {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>

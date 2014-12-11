@@ -41,9 +41,9 @@
                   </div>
                   <div class="name-text"><a href="#" {{action "gotoAlertDetails" alertInstance target="view"}}>{{alertInstance.label}}</a></div>
                   <div class="status-col" rel="alert-status-tooltip" {{bindAttr title="alertInstance.lastTriggered"}}>
-                    <span class="timeago" {{bindAttr data-original-title="alertInstance.lastTriggeredVerboseDisplay"}}>
+                    <span>
                       <span class="status-icon">{{{alertInstance.status}}}</span>
-                      <time>{{alertInstance.lastTriggeredForFormatted}}</time>
+                      <time class="timeago" {{bindAttr data-original-title="alertInstance.lastTriggeredVerboseDisplay"}}>{{alertInstance.lastTriggeredForFormatted}}</time>
                     </span>
                   </div>
               </div>

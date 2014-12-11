@@ -52,6 +52,16 @@ App.MainAlertDefinitionsView = App.TableView.extend({
    */
   disabledTooltip: Em.I18n.t('alerts.table.state.disabled.tooltip'),
 
+  /**
+   * @type {string}
+   */
+  enabledDisplay: Em.I18n.t('alerts.table.state.enabled'),
+
+  /**
+   * @type {string}
+   */
+  disabledDisplay: Em.I18n.t('alerts.table.state.disabled'),
+
   sortView: sort.wrapperView,
 
   /**

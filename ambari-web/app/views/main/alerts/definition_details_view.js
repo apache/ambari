@@ -28,6 +28,16 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
    */
   isLoaded: false,
 
+  /**
+   * @type {string}
+   */
+  enabledDisplay: Em.I18n.t('alerts.table.state.enabled'),
+
+  /**
+   * @type {string}
+   */
+  disabledDisplay: Em.I18n.t('alerts.table.state.disabled'),
+
   content: function () {
     return this.get('controller.alerts');
   }.property('controller.alerts.@each'),
