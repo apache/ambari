@@ -149,12 +149,23 @@ public class StackManager {
   private void fullyResolveStacks(
       Map<String, StackModule> stackModules, Map<String, ServiceModule> commonServiceModules)
       throws AmbariException {
+    // Resolve all stacks without finalizing the stacks.
     for (StackModule stack : stackModules.values()) {
       if (stack.getModuleState() == ModuleState.INIT) {
         stack.resolve(null, stackModules, commonServiceModules);
       }
     }
-    // execute all of the repo tasks in a single thread executor
+    // Finalize the common services and stacks to remove sub-modules marked for deletion.
+    // Finalizing the stacks AFTER all stacks are resolved ensures that the sub-modules marked for deletion are
+    // inherited into the child module when explicit parent is defined and thereby ensuring all modules from parent module
+    // are inlined into the child module even if the module is marked for deletion.
+    for(ServiceModule commonService : commonServiceModules.values()) {
+      commonService.finalizeModule();
+    }
+    for (StackModule stack : stackModules.values()) {
+      stack.finalizeModule();
+    }
+    // Execute all of the repo tasks in a single thread executor
     stackContext.executeRepoTasks();
   }
 

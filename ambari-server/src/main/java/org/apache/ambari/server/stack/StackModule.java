@@ -140,15 +140,13 @@ public class StackModule extends BaseModule<StackModule, StackInfo> {
       throws AmbariException {
     moduleState = ModuleState.VISITED;
     String parentVersion = stackInfo.getParentStackVersion();
+    mergeServicesWithExplicitParent(allStacks, commonServices);
     // merge with parent version of same stack definition
     if (parentVersion != null) {
       mergeStackWithParent(parentVersion, allStacks, commonServices);
     }
-    mergeServicesWithExplicitParent(allStacks, commonServices);
     processRepositories();
     moduleState = ModuleState.RESOLVED;
-
-    finalizeModule();
   }
 
   @Override

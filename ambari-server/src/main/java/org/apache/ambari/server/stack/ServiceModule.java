@@ -295,8 +295,10 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> {
 
     for (ConfigurationModule module : mergedModules) {
       configurationModules.put(module.getId(), module);
-      serviceInfo.getProperties().addAll(module.getModuleInfo().getProperties());
-      serviceInfo.setTypeAttributes(module.getConfigType(), module.getModuleInfo().getAttributes());
+      if(!module.isDeleted()) {
+        serviceInfo.getProperties().addAll(module.getModuleInfo().getProperties());
+        serviceInfo.setTypeAttributes(module.getConfigType(), module.getModuleInfo().getAttributes());
+      }
     }
   }
 

@@ -91,13 +91,13 @@ public class StackManagerTest {
   @Test
   public void testGetStacks_count() throws Exception {
     Collection<StackInfo> stacks = stackManager.getStacks();
-    assertEquals(16, stacks.size());
+    assertEquals(17, stacks.size());
   }
 
   @Test
   public void testGetStack_name__count() {
     Collection<StackInfo> stacks = stackManager.getStacks("HDP");
-    assertEquals(12, stacks.size());
+    assertEquals(13, stacks.size());
 
     stacks = stackManager.getStacks("OTHER");
     assertEquals(2, stacks.size());
@@ -446,6 +446,10 @@ public class StackManagerTest {
     ServiceInfo yarnService = stack.getService("YARN");
     assertNull(yarnService.getComponentByName("YARN_CLIENT"));
 
+    stack = stackManager.getStack("HDP", "2.0.6.1");
+    yarnService = stack.getService("YARN");
+    assertNull(yarnService.getComponentByName("YARN_CLIENT"));
+
     stack = stackManager.getStack("HDP", "2.0.7");
     yarnService = stack.getService("YARN");
     assertNotNull(yarnService.getComponentByName("YARN_CLIENT"));
@@ -538,6 +542,7 @@ public class StackManagerTest {
     // the new version also excludes hbase-policy
     stack = stackManager.getStack("OTHER", "2.0");
     service = stack.getService("HBASE");
+    assertFalse(service.hasConfigType("hbase-policy"));
     assertFalse(service.hasConfigType("global"));
     configTypes = service.getConfigTypeAttributes();
     assertEquals(1, configTypes.size());
