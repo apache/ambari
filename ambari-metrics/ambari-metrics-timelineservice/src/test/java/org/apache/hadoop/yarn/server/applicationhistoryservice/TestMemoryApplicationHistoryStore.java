@@ -30,6 +30,7 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.records.Applicati
 import org.apache.hadoop.yarn.server.applicationhistoryservice.records.ApplicationHistoryData;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.records.ContainerHistoryData;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class TestMemoryApplicationHistoryStore extends
@@ -184,6 +185,7 @@ public class TestMemoryApplicationHistoryStore extends
   }
 
   @Test
+  @Ignore
   public void testMassiveWriteContainerHistory() throws IOException {
     long mb = 1024 * 1024;
     Runtime runtime = Runtime.getRuntime();
