@@ -42,6 +42,7 @@ MON_TAR_DIR="${BUILD_DIR}/${PKG_NAME}-$VERSION/"
 
 mkdir -p "${MON_TAR_DIR}"
 cp -r ${BASEDIR}/../../src/addOns/nagios/* ${MON_TAR_DIR}
+cp -r ${BASEDIR}/../../../nagios-alerts/* ${MON_TAR_DIR}
 
 TAR_DEST="${BUILD_DIR}/${PKG_NAME}-$VERSION.tar.gz"
 

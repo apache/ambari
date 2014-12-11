@@ -41,12 +41,14 @@ PKG_FULL_NAME="${PKG_NAME}-$VERSION"
 
 MON_TAR_DIR="${BUILD_DIR}/${PKG_FULL_NAME}/"
 SRC_DIR="${BASEDIR}/../../src/addOns/nagios/"
+NAGIOS_ALERTS_DIR="${BASEDIR}/../../../nagios-alerts"
 
 
 ############ Mapping
 
 mkdir -p "${MON_TAR_DIR}/usr/lib64/nagios"
 cp -r "${SRC_DIR}/plugins" "${MON_TAR_DIR}/usr/lib64/nagios"
+cp -r "${NAGIOS_ALERTS_DIR}/plugins" "${MON_TAR_DIR}/usr/lib64/nagios"
 
 mkdir -p "${MON_TAR_DIR}/etc/apache2"
 cp -r "${SRC_DIR}/conf.d" "${MON_TAR_DIR}/etc/apache2"
