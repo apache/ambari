@@ -26,9 +26,10 @@ mysqldbpasswd=$3
 userhost=$4
 
 sudo service $mysqldservice start
-echo "Adding user $mysqldbuser@$userhost and $mysqldbuser@localhost"
-sudo su mysql -s /bin/bash - -c "mysql -u root -e \"CREATE USER '$mysqldbuser'@'$userhost' IDENTIFIED BY '$mysqldbpasswd';\""
-sudo su mysql -s /bin/bash - -c "mysql -u root -e \"GRANT ALL PRIVILEGES ON *.* TO '$mysqldbuser'@'$userhost';\""
+echo "Adding user $mysqldbuser@% and removing users with empty name"
+sudo su mysql -s /bin/bash - -c "mysql -u root -e \"CREATE USER '$mysqldbuser'@'%' IDENTIFIED BY '$mysqldbpasswd';\""
+sudo su mysql -s /bin/bash - -c "mysql -u root -e \"GRANT ALL PRIVILEGES ON *.* TO '$mysqldbuser'@'%';\""
+sudo su mysql -s /bin/bash - -c "mysql -u root -e \"DELETE FROM mysql.user WHERE user='';\""
 sudo su mysql -s /bin/bash - -c "mysql -u root -e \"flush privileges;\""
 
 sudo service $mysqldservice stop
