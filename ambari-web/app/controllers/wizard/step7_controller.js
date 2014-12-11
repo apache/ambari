@@ -242,7 +242,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
         attributeValue: filter.attributeValue,
         name: this.t(filter.caption),
         selected: false
-      })
+      });
     }, this);
   }.property('propertyFilters'),
 
@@ -256,6 +256,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
    * @method clearStep
    */
   clearStep: function () {
+    this.set('configValidationGlobalMessage', []);
     this.set('submitButtonClicked', false);
     this.set('isSubmitDisabled', true);
     this.set('isRecommendedLoaded', false);

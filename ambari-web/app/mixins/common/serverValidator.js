@@ -37,6 +37,11 @@ App.ServerValidatorMixin = Em.Mixin.create({
   configValidationFailed: false,
 
   /**
+   * @type {object[]} contains additional message about validation errors
+   */
+  configValidationGlobalMessage: [],
+
+  /**
    * recommendation configs loaded from server
    * (used only during install)
    * @type {Object}
@@ -73,7 +78,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
     return this.get('content.serviceName')
         ? [App.StackService.find(this.get('content.serviceName'))]
         : this.get('content.services').filter(function(s){
-          return (s.get('isSelected') || s.get('isInstalled'))
+          return (s.get('isSelected') || s.get('isInstalled'));
         }).concat(require("data/service_configs"));
   }.property('content.serviceName', 'content.services', 'content.services.@each.isSelected', 'content.services.@each.isInstalled', 'content.stacks.@each.isSelected'),
 
@@ -137,6 +142,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
   serverSideValidation: function () {
     var deferred = $.Deferred();
     this.set('configValidationFailed', false);
+    this.set('configValidationGlobalMessage', []);
     if (this.get('configValidationFailed')) {
       this.warnUser(deferred);
     } else {
@@ -189,6 +195,8 @@ App.ServerValidatorMixin = Em.Mixin.create({
    */
   validationSuccess: function(data) {
     var self = this;
+    var checkedProperties = [];
+    var globalWarning = [];
     self.set('configValidationError', false);
     self.set('configValidationWarning', false);
     data.resources.forEach(function(r) {
@@ -206,12 +214,28 @@ App.ServerValidatorMixin = Em.Mixin.create({
                   property.set('warnMessage', item.message);
                   property.set('warn', true);
                 }
+                // store property data to detect WARN or ERROR messages for missed property
+                if (["ERROR", "WARN"].contains(item.level)) checkedProperties.push(item['config-type'] + '/' + item['config-name']);
               }
             });
-          })
+          });
+          // check if error or warn message detected for property that absent in step configs
+          if (["ERROR", "WARN"].contains(item.level) && !checkedProperties.contains(item['config-type'] + '/' + item['config-name'])) {
+            var message = {
+              propertyName: item['config-name'],
+              filename: item['config-type'],
+              warnMessage: item.message,
+              serviceName: App.StackService.find().filter(function(service) {
+                return !!service.get('configTypes')[item['config-type']];
+              })[0].get('displayName')
+            };
+            self.set(item.level == 'WARN' ? 'configValidationWarning' : 'configValidationError', true);
+            globalWarning.push(message);
+          }
         }
       });
     });
+    self.set('configValidationGlobalMessage', globalWarning);
   },
 
   validationError: function (jqXHR, ajaxOptions, error, opt) {
