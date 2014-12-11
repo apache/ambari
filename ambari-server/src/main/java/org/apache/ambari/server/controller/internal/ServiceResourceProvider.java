@@ -109,6 +109,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     serviceStateMap.put("HDFS", new HDFSServiceState());
     serviceStateMap.put("HBASE", new HBaseServiceState());
     serviceStateMap.put("FLUME", new FlumeServiceState());
+    serviceStateMap.put("HIVE", new HiveServiceState());
   }
 
   private static final ServiceState DEFAULT_SERVICE_STATE = new DefaultServiceState();
@@ -1044,6 +1045,86 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
                    hasClient   ? clientState == null ? State.INSTALLED : clientState :
                    hasDisabled ? State.DISABLED :
                    hasMM       ? maxMMState : State.UNKNOWN;
+          }
+        } catch (AmbariException e) {
+          LOG.error("Can't determine service state.", e);
+        }
+      }
+      return State.UNKNOWN;
+    }
+  }
+
+  /**
+   * Calculator of HIVE service state.
+   */
+  protected static class HiveServiceState implements ServiceState {
+
+    @Override
+    public State getState(AmbariManagementController controller, String clusterName, String serviceName) {
+      AmbariMetaInfo ambariMetaInfo = controller.getAmbariMetaInfo();
+      Clusters       clusters       = controller.getClusters();
+
+      if (clusterName != null && clusterName.length() > 0) {
+        try {
+          Cluster cluster = clusters.getCluster(clusterName);
+          if (cluster != null) {
+            StackId stackId = cluster.getDesiredStackVersion();
+
+            ServiceComponentHostRequest request = new ServiceComponentHostRequest(clusterName,
+                    serviceName, null, null, null);
+
+            Set<ServiceComponentHostResponse> hostComponentResponses =
+                    controller.getHostComponents(Collections.singleton(request));
+
+            int activeHiveMetastoreComponentCount = 0;
+            State nonStartedState = null;
+            boolean embeddedMysqlComponentExists = false;
+            boolean hiveServerComponentStarted = false;
+            boolean webHcatComponentStarted = false;
+            boolean mysqlComponentStarted = false;
+
+            for (ServiceComponentHostResponse hostComponentResponse : hostComponentResponses ) {
+              try {
+                ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
+                        stackId.getStackVersion(), hostComponentResponse.getServiceName(),
+                        hostComponentResponse.getComponentName());
+
+                if (componentInfo.isMaster()) {
+                  State state = getHostComponentState(hostComponentResponse);
+
+                  String componentName = hostComponentResponse.getComponentName();
+                  if (componentName.equals("MYSQL_SERVER")) {
+                    embeddedMysqlComponentExists = true;
+                  }
+
+                  switch (state) {
+                    case STARTED:
+                    case DISABLED:
+                      if (componentName.equals("HIVE_METASTORE")) {
+                        ++activeHiveMetastoreComponentCount;
+                      } else if (componentName.equals("HIVE_SERVER")) {
+                        hiveServerComponentStarted = true;
+                      } else if (componentName.equals("MYSQL_SERVER")) {
+                        mysqlComponentStarted = true;
+                      } else if (componentName.equals("WEBHCAT_SERVER")) {
+                        webHcatComponentStarted = true;
+                      }
+                      break;
+                    default:
+                      nonStartedState = state;
+                  }
+                }
+              } catch (ObjectNotFoundException e) {
+                // component doesn't exist, nothing to do
+              }
+            }
+
+            if (nonStartedState == null ||
+                (hiveServerComponentStarted && webHcatComponentStarted && activeHiveMetastoreComponentCount > 0 &&
+                 (embeddedMysqlComponentExists ? mysqlComponentStarted : true))) {
+              return State.STARTED;
+            }
+            return nonStartedState == null ? State.INSTALLED : nonStartedState;
           }
         } catch (AmbariException e) {
           LOG.error("Can't determine service state.", e);
