@@ -34,15 +34,15 @@ from resource_management.core.logger import Logger
 SUDO_ENVIRONMENT_PLACEHOLDER = "{ENV_PLACEHOLDER}"
 
 def checked_call(command, verbose=False, logoutput=False,
-         cwd=None, env={}, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, path=None, output_file=None, sudo=False):
+         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, path=None, output_file=None, sudo=False):
   return _call(command, verbose, logoutput, True, cwd, env, preexec_fn, user, wait_for_finish, timeout, path, output_file, sudo)
 
 def call(command, verbose=False, logoutput=False,
-         cwd=None, env={}, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, path=None, output_file=None, sudo=False):
+         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, path=None, output_file=None, sudo=False):
   return _call(command, verbose, logoutput, False, cwd, env, preexec_fn, user, wait_for_finish, timeout, path, output_file, sudo)
             
 def _call(command, verbose=False, logoutput=False, throw_on_failure=True,
-         cwd=None, env={}, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, path=None, output_file=None, sudo=False):
+         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, path=None, output_file=None, sudo=False):
   """
   Execute shell command
   
@@ -53,16 +53,14 @@ def _call(command, verbose=False, logoutput=False, throw_on_failure=True,
   
   @return: retrun_code, stdout
   """
-  
+
   # Append current PATH to env['PATH'] and path
-  if 'PATH' in env:
-    env['PATH'] = os.pathsep.join([os.environ['PATH'], env['PATH']])
+  env = {} if not env else env
+  env['PATH'] = os.pathsep.join([os.environ['PATH'], env['PATH']]) if 'PATH' in env else os.environ['PATH']
   if path:
-    if not 'PATH' in env:
-      env['PATH'] = ''
     path = os.pathsep.join(path) if isinstance(path, (list, tuple)) else path
-    env['PATH'] = os.pathsep.join([os.environ['PATH'], path])
-    
+    env['PATH'] = os.pathsep.join([env['PATH'], path])
+
   # prepare command cmd
   if sudo:
     command = as_sudo(command, env=env)
@@ -77,7 +75,8 @@ def _call(command, verbose=False, logoutput=False, throw_on_failure=True,
   if verbose:
     Logger.info("Call command: " + Logger.get_protected_text(command))
 
-  subprocess_command = ["/bin/bash","--login","-c", command]
+  # --noprofile is used to preserve PATH set for ambari-agent
+  subprocess_command = ["/bin/bash","--login","--noprofile","-c", command]
   proc = subprocess.Popen(subprocess_command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                           cwd=cwd, env=env, shell=False,
                           preexec_fn=preexec_fn)
@@ -129,7 +128,7 @@ def as_sudo(command, env=SUDO_ENVIRONMENT_PLACEHOLDER):
     raise Fail(err_msg)
   
   env = get_environment_str(env) if env != SUDO_ENVIRONMENT_PLACEHOLDER else SUDO_ENVIRONMENT_PLACEHOLDER
-  return "/usr/bin/sudo {0} -H {1}".format(env, command)
+  return "/usr/bin/sudo {0} -H -E {1}".format(env, command)
 
 def as_user(command, user , env=SUDO_ENVIRONMENT_PLACEHOLDER):
   if isinstance(command, (list, tuple)):

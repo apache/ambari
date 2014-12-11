@@ -90,7 +90,7 @@ class TestExecuteResource(TestCase):
       execute_resource = Execute('echo "1"',
                                  path=["/test/one", "test/two"]
       )
-    expected_command = ['/bin/bash', '--login', '-c', 'echo "1"']
+    expected_command = ['/bin/bash', '--login', '--noprofile', '-c', 'echo "1"']
     self.assertEqual(popen_mock.call_args_list[0][0][0], expected_command)
 
   @patch('time.sleep')
@@ -178,7 +178,7 @@ class TestExecuteResource(TestCase):
       )
       
 
-    expected_command = ['/bin/bash', '--login', '-c', '/usr/bin/sudo su test_user -l -s /bin/bash -c \'export  PATH=' + os.environ['PATH'] + ':/bin JAVA_HOME=/test/java/home > /dev/null ; echo "1"\'']
+    expected_command = ['/bin/bash', '--login', '--noprofile', '-c', '/usr/bin/sudo su test_user -l -s /bin/bash -c \'export  PATH=' + os.environ['PATH'] + ':/bin JAVA_HOME=/test/java/home > /dev/null ; echo "1"\'']
     self.assertEqual(popen_mock.call_args_list[0][0][0], expected_command)
 
 
@@ -225,12 +225,12 @@ class TestExecuteResource(TestCase):
       Execute(('arg1', 'arg2', "`ls /root`"),
       )
 
-    self.assertEqual(popen_mock.call_args_list[0][0][0][3], expected_command0)
-    self.assertEqual(popen_mock.call_args_list[1][0][0][3], expected_command1)
-    self.assertEqual(popen_mock.call_args_list[2][0][0][3], expected_command2)
-    self.assertEqual(popen_mock.call_args_list[3][0][0][3], expected_command3)
-    self.assertEqual(popen_mock.call_args_list[4][0][0][3], expected_command4)
-    self.assertEqual(popen_mock.call_args_list[5][0][0][3], expected_command5)
+    self.assertEqual(popen_mock.call_args_list[0][0][0][4], expected_command0)
+    self.assertEqual(popen_mock.call_args_list[1][0][0][4], expected_command1)
+    self.assertEqual(popen_mock.call_args_list[2][0][0][4], expected_command2)
+    self.assertEqual(popen_mock.call_args_list[3][0][0][4], expected_command3)
+    self.assertEqual(popen_mock.call_args_list[4][0][0][4], expected_command4)
+    self.assertEqual(popen_mock.call_args_list[5][0][0][4], expected_command5)
 
   @patch.object(subprocess, "Popen")
   def test_attribute_command_one_line(self, popen_mock):
@@ -243,4 +243,4 @@ class TestExecuteResource(TestCase):
     with Environment("/") as env:
       Execute(expected_command)
 
-    self.assertEqual(popen_mock.call_args_list[0][0][0][3], expected_command)
+    self.assertEqual(popen_mock.call_args_list[0][0][0][4], expected_command)

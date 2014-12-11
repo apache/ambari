@@ -33,7 +33,7 @@ case "$1" in
         ;;
 esac
 
-export PATH=/usr/lib/ambari-server/*:$PATH
+export PATH=/usr/sbin:/sbin:/usr/lib/ambari-server/*:$PATH
 export AMBARI_CONF_DIR=/etc/ambari-server/conf:$PATH
 
 # Because Ambari rpm unpacks modules here on all systems
@@ -48,7 +48,7 @@ AMBARI_AGENT_PY_SCRIPT=/usr/lib/python2.6/site-packages/ambari_agent/AmbariAgent
 OK=1
 NOTOK=0
 
-sudo -v
+echo "" | sudo -S -l > /dev/null 2>&1
 if [ "$?" != "0" ]; then
  echo "You can't perform this operation as non-sudoer user. Please, re-login as one"
  exit 0
