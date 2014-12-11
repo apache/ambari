@@ -81,10 +81,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
   protected static final String HOST_STACK_VERSION_VERSION_PROPERTY_ID         = PropertyHelper.getPropertyId("HostStackVersions", "version");
   protected static final String HOST_STACK_VERSION_STATE_PROPERTY_ID           = PropertyHelper.getPropertyId("HostStackVersions", "state");
   protected static final String HOST_STACK_VERSION_REPOSITORIES_PROPERTY_ID    = PropertyHelper.getPropertyId("HostStackVersions", "repositories");
-
-  protected static final String STACK_VERSION_REPO_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("StackVersion", "repository_version");
-  protected static final String STACK_VERSION_STACK_PROPERTY_ID    = PropertyHelper.getPropertyId("StackVersion", "stack");
-  protected static final String STACK_VERSION_VERSION_PROPERTY_ID    = PropertyHelper.getPropertyId("StackVersion", "version");
+  protected static final String HOST_STACK_VERSION_REPO_VERSION_PROPERTY_ID    = PropertyHelper.getPropertyId("HostStackVersions", "repository_version");
 
   protected static final String INSTALL_PACKAGES_ACTION = "install_packages";
   protected static final String INSTALL_PACKAGES_FULL_NAME = "Distribute repositories/install packages";
@@ -98,9 +95,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
       add(HOST_STACK_VERSION_ID_PROPERTY_ID);
       add(HOST_STACK_VERSION_STACK_PROPERTY_ID);
       add(HOST_STACK_VERSION_VERSION_PROPERTY_ID);
-      add(STACK_VERSION_REPO_VERSION_PROPERTY_ID);
-      add(STACK_VERSION_STACK_PROPERTY_ID);
-      add(STACK_VERSION_VERSION_PROPERTY_ID);
+      add(HOST_STACK_VERSION_REPO_VERSION_PROPERTY_ID);
     }
   };
 
@@ -114,9 +109,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
       add(HOST_STACK_VERSION_VERSION_PROPERTY_ID);
       add(HOST_STACK_VERSION_STATE_PROPERTY_ID);
       add(HOST_STACK_VERSION_REPOSITORIES_PROPERTY_ID);
-      add(STACK_VERSION_REPO_VERSION_PROPERTY_ID);
-      add(STACK_VERSION_STACK_PROPERTY_ID);
-      add(STACK_VERSION_VERSION_PROPERTY_ID);
+      add(HOST_STACK_VERSION_REPO_VERSION_PROPERTY_ID);
     }
   };
 
@@ -128,7 +121,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
       put(Type.HostStackVersion, HOST_STACK_VERSION_ID_PROPERTY_ID);
       put(Type.Stack, HOST_STACK_VERSION_STACK_PROPERTY_ID);
       put(Type.StackVersion, HOST_STACK_VERSION_VERSION_PROPERTY_ID);
-      put(Type.RepositoryVersion, STACK_VERSION_REPO_VERSION_PROPERTY_ID);
+      put(Type.RepositoryVersion, HOST_STACK_VERSION_REPO_VERSION_PROPERTY_ID);
     }
   };
 
@@ -221,7 +214,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
 
       if (repoVerEntity!=null) {
         Long repoVersionId = repoVerEntity.getId();
-        setResourceProperty(resource, STACK_VERSION_REPO_VERSION_PROPERTY_ID, repoVersionId, requestedIds);
+        setResourceProperty(resource, HOST_STACK_VERSION_REPO_VERSION_PROPERTY_ID, repoVersionId, requestedIds);
       }
 
       resources.add(resource);
@@ -246,9 +239,9 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
 
     Set<String> requiredProperties = new HashSet<String>(){{
       add(HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID);
-      add(STACK_VERSION_REPO_VERSION_PROPERTY_ID);
-      add(STACK_VERSION_STACK_PROPERTY_ID);
-      add(STACK_VERSION_VERSION_PROPERTY_ID);
+      add(HOST_STACK_VERSION_REPO_VERSION_PROPERTY_ID);
+      add(HOST_STACK_VERSION_STACK_PROPERTY_ID);
+      add(HOST_STACK_VERSION_VERSION_PROPERTY_ID);
     }};
 
     for (String requiredProperty : requiredProperties) {
@@ -260,7 +253,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     }
     String clName = (String) propertyMap.get(HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
     hostName = (String) propertyMap.get(HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID);
-    desiredRepoVersion = (String) propertyMap.get(STACK_VERSION_REPO_VERSION_PROPERTY_ID);
+    desiredRepoVersion = (String) propertyMap.get(HOST_STACK_VERSION_REPO_VERSION_PROPERTY_ID);
 
     Host host;
     try {
@@ -272,8 +265,8 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     AmbariManagementController managementController = getManagementController();
     AmbariMetaInfo ami = managementController.getAmbariMetaInfo();
 
-    stackName = (String) propertyMap.get(STACK_VERSION_STACK_PROPERTY_ID);
-    stackVersion = (String) propertyMap.get(STACK_VERSION_VERSION_PROPERTY_ID);
+    stackName = (String) propertyMap.get(HOST_STACK_VERSION_STACK_PROPERTY_ID);
+    stackVersion = (String) propertyMap.get(HOST_STACK_VERSION_VERSION_PROPERTY_ID);
     String stackId = new StackId(stackName, stackVersion).getStackId();
     if (!ami.isSupportedStack(stackName, stackVersion)) {
       throw new NoSuchParentResourceException(String.format("Stack %s is not supported",
@@ -407,9 +400,6 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
 
     try {
       req.persist();
-
-      //TODO: create cluster version entity
-      //clusterVersionDAO.create();
     } catch (AmbariException e) {
       throw new SystemException("Can not persist request", e);
     }
