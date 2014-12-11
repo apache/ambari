@@ -1886,6 +1886,7 @@ Em.I18n.translations = {
   'alerts.actions.manage_alert_groups_popup.selectDefsDialog.message.warning': 'At least one alert definition needs to be selected.',
 
   'alerts.actions.manage_alert_notifications_popup.header':'Manage Alert Notifications',
+  'alerts.actions.manage_alert_notifications_popup.noAlertNotification':'No alert notifications defined',
   'alerts.actions.manage_alert_notifications_popup.addButton':'Create new Alert Notification',
   'alerts.actions.manage_alert_notifications_popup.addHeader':'Create Alert Notification',
   'alerts.actions.manage_alert_notifications_popup.removeButton':'Delete Alert Notification',
@@ -1906,8 +1907,7 @@ Em.I18n.translations = {
   'alerts.actions.manage_alert_notifications_popup.community':'Community',
   'alerts.actions.manage_alert_notifications_popup.port':'Port',
   'alerts.actions.manage_alert_notifications_popup.global':'Global',
-  'alerts.actions.manage_alert_notifications_popup.global.tooltip':'Check this checkbox to make the notification apply globally to all groups defined in Ambari',
-  'alerts.actions.manage_alert_notifications_popup.severityFilter':'Severity Filter',
+  'alerts.actions.manage_alert_notifications_popup.severityFilter':'Severity',
   'alerts.actions.manage_alert_notifications_popup.clearAll':'Clear All',
   'alerts.actions.manage_alert_notifications_popup.selectAll':'Select All',
   'alerts.actions.manage_alert_notifications_popup.confirmDeleteHeader':'Confirm Delete',

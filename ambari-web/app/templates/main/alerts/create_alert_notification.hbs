@@ -31,31 +31,26 @@
     </div>
     {{! alert-notification name end }}
 
-    {{! alert-notification is global }}
-    <div class="control-group">
-      <label class="control-label" for="inputGlobal">{{controller.inputFields.global.label}}</label>
-
-      <div class="controls">
-        <span class="checkbox-tooltip" {{bindAttr data-original-title="view.tooltipForGlobalCheckbox"}}>
-          {{view Em.Checkbox checkedBinding="controller.inputFields.global.value" disabledBinding="controller.inputFields.global.disabled" id="inputGlobal" class="input-xlarge"}}
-        </span>
-      </div>
-    </div>
-    {{! alert-notification is global end }}
-
     {{! alert-notification groups }}
     <div class="control-group">
       <label class="control-label" for="inputGroups">{{controller.inputFields.groups.label}}</label>
 
       <div class="controls">
-        {{view view.groupsSelectView multiple="true" id="inputGroups" class="input-large"
-          disabledBinding="controller.inputFields.global.value"
-          selectionBinding="controller.inputFields.groups.value"
-          contentBinding="controller.allAlertGroups"
-          optionLabelPath="content.displayName"
-        }}
-        <a href="#" {{action selectAllGroups target="view"}} {{bindAttr class="controller.inputFields.global.value:disabled"}}>{{t alerts.actions.manage_alert_notifications_popup.selectAll}}</a> |
-        <a href="#" {{action clearAllGroups target="view"}} {{bindAttr class="controller.inputFields.global.value:disabled"}}>{{t alerts.actions.manage_alert_notifications_popup.clearAll}}</a>
+
+        <div>
+          {{view Ember.RadioButton name="allGroups" selectionBinding="controller.inputFields.allGroups.value" disabledBinding="controller.inputFields.allGroups.disabled" value="all"}} {{t common.all}}
+        </div>
+        <div>
+          {{view Ember.RadioButton name="allGroups" selectionBinding="controller.inputFields.allGroups.value" disabledBinding="controller.inputFields.allGroups.disabled" value="custom"}} {{t common.custom}}
+        </div>
+          {{view view.groupsSelectView multiple="true" id="inputGroups" class="input-large"
+            disabledBinding="controller.inputFields.allGroups.isAll"
+            selectionBinding="controller.inputFields.groups.value"
+            contentBinding="controller.allAlertGroups"
+            optionLabelPath="content.displayName"
+          }}
+          <a href="#" {{action selectAllGroups target="view"}} {{bindAttr class="controller.inputFields.allGroups.isAll:disabled view.allGroupsSelected:disabled"}}>{{t alerts.actions.manage_alert_notifications_popup.selectAll}}</a> |
+          <a href="#" {{action clearAllGroups target="view"}} {{bindAttr class="controller.inputFields.allGroups.isAll:disabled view.noneGroupsSelected:disabled"}}>{{t alerts.actions.manage_alert_notifications_popup.clearAll}}</a>
       </div>
     </div>
     {{! alert-notification groups end }}
@@ -69,8 +64,8 @@
         selectionBinding="controller.inputFields.severityFilter.value"
         contentBinding="controller.severities"
         }}
-        <a href="#" {{action selectAllSeverity target="view"}}>{{t alerts.actions.manage_alert_notifications_popup.selectAll}}</a> |
-        <a href="#" {{action clearAllSeverity target="view"}}>{{t alerts.actions.manage_alert_notifications_popup.clearAll}}</a>
+        <a href="#" {{action selectAllSeverity target="view"}} {{bindAttr class="view.allSeveritySelected:disabled"}}>{{t alerts.actions.manage_alert_notifications_popup.selectAll}}</a> |
+        <a href="#" {{action clearAllSeverity target="view"}} {{bindAttr class="view.noneSeveritySelected:disabled"}}>{{t alerts.actions.manage_alert_notifications_popup.clearAll}}</a>
       </div>
     </div>
     {{! alert-notification severity end }}

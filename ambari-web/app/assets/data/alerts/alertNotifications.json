@@ -12,6 +12,7 @@
         ],
         "description" : "123",
         "id" : 1,
+        "global": true,
         "name" : "123",
         "notification_type" : "EMAIL",
         "properties" : {

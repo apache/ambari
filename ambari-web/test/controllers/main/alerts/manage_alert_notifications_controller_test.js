@@ -130,12 +130,15 @@ describe('App.ManageAlertNotificationsController', function () {
         },
         global: {
           value: false
-        }
+        },
+        allGroups: Em.Object.create({
+          value: 'custom'
+        })
       }));
       controller.addAlertNotification();
 
       Em.keys(controller.get('inputFields')).forEach(function (key) {
-        expect(controller.get('inputFields.' + key + '.value')).to.equal(controller.get('inputFields.' + key + '.defaultValue'));
+        expect(controller.get('inputFields.' + key + '.value')).to.eql(controller.get('inputFields.' + key + '.defaultValue'));
       });
       expect(controller.showCreateEditPopup.calledOnce).to.be.true;
     });
@@ -201,6 +204,9 @@ describe('App.ManageAlertNotificationsController', function () {
         global: {
           value: false
         },
+        allGroups: {
+          value: false
+        },
         method: {
           value: ''
         },
@@ -263,6 +269,10 @@ describe('App.ManageAlertNotificationsController', function () {
         },
         global: {
           value: true,
+          disabled: true
+        },
+        allGroups: {
+          value: 'all',
           disabled: true
         },
         method: {
@@ -337,7 +347,8 @@ describe('App.ManageAlertNotificationsController', function () {
         view = controller.showCreateEditPopup().get('bodyClass').create({
           controller: Em.Object.create({
             inputFields: {
-              global: {}
+              global: {},
+              allGroups: {}
             }
           }),
           groupSelect: Em.Object.create({
@@ -350,13 +361,13 @@ describe('App.ManageAlertNotificationsController', function () {
 
       describe('#selectAllGroups', function () {
 
-        it('should check inputFields.global.value', function () {
+        it('should check inputFields.allGroups.value', function () {
 
-          view.set('controller.inputFields.global.value', true);
+          view.set('controller.inputFields.allGroups.value', 'all');
           view.selectAllGroups();
           expect(view.get('groupSelect.selection')).to.eql([]);
 
-          view.set('controller.inputFields.global.value', false);
+          view.set('controller.inputFields.allGroups.value', 'custom');
           view.selectAllGroups();
           expect(view.get('groupSelect.selection')).to.eql([{}, {}]);
 
@@ -366,16 +377,16 @@ describe('App.ManageAlertNotificationsController', function () {
 
       describe('#clearAllGroups', function () {
 
-        it('should check inputFields.global.value', function () {
+        it('should check inputFields.allGroups.value', function () {
 
-          view.set('controller.inputFields.global.value', false);
+          view.set('controller.inputFields.allGroups.value', 'custom');
           view.selectAllGroups();
 
-          view.set('controller.inputFields.global.value', true);
+          view.set('controller.inputFields.allGroups.value', 'all');
           view.clearAllGroups();
           expect(view.get('groupSelect.selection')).to.eql([{}, {}]);
 
-          view.set('controller.inputFields.global.value', false);
+          view.set('controller.inputFields.allGroups.value', 'custom');
           view.clearAllGroups();
           expect(view.get('groupSelect.selection')).to.eql([]);
 
@@ -395,6 +406,9 @@ describe('App.ManageAlertNotificationsController', function () {
       },
       groups: {
         value: [{id: 1}, {id: 2}, {id: 3}]
+      },
+      allGroups: {
+        value: 'custom'
       },
       global: {
         value: false
@@ -476,7 +490,7 @@ describe('App.ManageAlertNotificationsController', function () {
     it('should ignore groups if global is true', function () {
 
       controller.set('inputFields', inputFields);
-      controller.set('inputFields.global.value', true);
+      controller.set('inputFields.allGroups.value', 'all');
 
       var result = controller.formatNotificationAPIObject();
       expect(Em.keys(result.AlertTarget)).to.not.contain('groups');
