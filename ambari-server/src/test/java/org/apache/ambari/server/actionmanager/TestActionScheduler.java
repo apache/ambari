@@ -263,7 +263,6 @@ public class TestActionScheduler {
 
   }
 
-  @Ignore
   @Test
   public void testActionTimeoutForLostHost() throws Exception {
     ActionQueue aq = new ActionQueue();
@@ -314,9 +313,10 @@ public class TestActionScheduler {
     }).when(db).timeoutHostRole(anyString(), anyLong(), anyLong(), anyString());
 
     //Small action timeout to test rescheduling
+    AmbariEventPublisher aep = EasyMock.createNiceMock(AmbariEventPublisher.class);
     ActionScheduler scheduler = EasyMock.createMockBuilder(ActionScheduler.class).
         withConstructor((long) 100, (long) 50, db, aq, fsm, 3,
-            new HostsMap((String) null), unitOfWork, EasyMock.anyObject(AmbariEventPublisher.class), null, conf).
+            new HostsMap((String) null), unitOfWork, aep, conf).
         addMockedMethod("cancelHostRoleCommands").
         createMock();
     scheduler.cancelHostRoleCommands((Collection<HostRoleCommand>)EasyMock.anyObject(),EasyMock.anyObject(String.class));
@@ -1006,7 +1006,6 @@ public class TestActionScheduler {
     Assert.assertEquals(HostRoleStatus.QUEUED, stages.get(1).getHostRoleStatus(hostname1, "GANGLIA_MONITOR"));
   }
 
-  @Ignore
   @Test
   public void testRequestFailureOnStageFailure() throws Exception {
     ActionQueue aq = new ActionQueue();
@@ -1116,7 +1115,7 @@ public class TestActionScheduler {
     ActionScheduler scheduler = EasyMock.createMockBuilder(ActionScheduler.class).
         withConstructor((long)100, (long)50, db, aq, fsm, 3,
           new HostsMap((String) null),
-          unitOfWork, null, conf).
+          unitOfWork, EasyMock.createNiceMock(AmbariEventPublisher.class), conf).
           addMockedMethod("cancelHostRoleCommands").
           createMock();
     scheduler.cancelHostRoleCommands(EasyMock.capture(cancelCommandList),

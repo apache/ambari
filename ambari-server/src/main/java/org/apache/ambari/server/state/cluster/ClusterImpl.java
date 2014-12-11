@@ -1263,8 +1263,11 @@ public class ClusterImpl implements Cluster {
             throw new AmbariException(String.format("Repo version %s is not installed on host %s",
                     repositoryVersion, hostName));
           }
-          if (hostVersion.getState() != worstState) {
+          if (hostVersion.getState() == RepositoryVersionState.INSTALL_FAILED) {
             worstState = hostVersion.getState();
+            break;
+          } else if (hostVersion.getState() == RepositoryVersionState.INSTALLING) {
+            worstState = RepositoryVersionState.INSTALLING;
           }
         }
         if (worstState != clusterVersion.getState()) {

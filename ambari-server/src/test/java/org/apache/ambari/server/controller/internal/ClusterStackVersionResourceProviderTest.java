@@ -64,7 +64,6 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -140,7 +139,6 @@ public class ClusterStackVersionResourceProviderTest {
     injector.getInstance(PersistService.class).stop();
   }
 
-  @Ignore
   @Test
   public void testCreateResources() throws Exception {
     Resource.Type type = Resource.Type.ClusterStackVersion;
@@ -224,6 +222,8 @@ public class ClusterStackVersionResourceProviderTest {
     // add properties to the request map
     properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID, "2.2.0.1-885");
+    properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_STACK_PROPERTY_ID, "HDP");
+    properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID, "2.0.7");
 
     propertySet.add(properties);
 
