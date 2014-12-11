@@ -54,7 +54,6 @@ class TestHDP22StackAdvisor(TestCase):
       "tez-site": {
         "properties": {
           "tez.am.resource.memory.mb": "4000",
-          "tez.am.java.opts": "-server -Xmx1600m -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC",
           "tez.task.resource.memory.mb": "768",
           "tez.runtime.io.sort.mb": "307",
           "tez.runtime.unordered.output.buffer.size-mb": "57"
@@ -77,7 +76,6 @@ class TestHDP22StackAdvisor(TestCase):
       "tez-site": {
         "properties": {
           "tez.am.resource.memory.mb": "3100",
-          "tez.am.java.opts": "-server -Xmx2480m -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC",
           "tez.task.resource.memory.mb": "768",
           "tez.runtime.io.sort.mb": "307",
           "tez.runtime.unordered.output.buffer.size-mb": "57"
@@ -100,7 +98,6 @@ class TestHDP22StackAdvisor(TestCase):
       "tez-site": {
         "properties": {
           "tez.am.resource.memory.mb": "4000",
-          "tez.am.java.opts": "-server -Xmx1600m -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC",
           "tez.task.resource.memory.mb": "760",
           "tez.runtime.io.sort.mb": "304",
           "tez.runtime.unordered.output.buffer.size-mb": "57"
