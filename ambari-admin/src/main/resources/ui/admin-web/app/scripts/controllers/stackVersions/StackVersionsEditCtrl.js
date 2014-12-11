@@ -18,51 +18,50 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('StackVersionsEditCtrl', ['$scope', 'StackVersions', '$routeParams', function($scope, StackVersions, $routeParams) {
-  function loadStackVersionInfo() {
-    return StackVersions.get($routeParams.id).then(function (response) {
-      loadStackRepositories(response.data.RepositoryVersions);
-      $scope.stackVersion = response.data.RepositoryVersions;
-    });
-  }
-
-  function loadStackRepositories(stackVersion) {
-    //todo replace "2.2" with actual version
-    return StackVersions.getStackRepositories('2.2').then(function (response) {
-      var repos = [];
-      response.data.items.forEach(function (repo) {
-        var installedRepo;
-        for (var i in stackVersion.operating_systems) {
-          if (stackVersion.operating_systems[i].OperatingSystems.os_type === repo.OperatingSystems.os_type) {
-            installedRepo = stackVersion.operating_systems[i];
-            break;
-          }
-        }
-        if (installedRepo) {
-          installedRepo.selected = true;
-          repos.push(installedRepo);
-        } else {
-          repo.selected = false;
-          repos.push(repo);
-        }
+.controller('StackVersionsEditCtrl', ['$scope', '$location', 'Stack', '$routeParams', 'ConfirmationModal', 'Alert', function($scope, $location, Stack, $routeParams, ConfirmationModal, Alert) {
+  function loadStackVersionInfo () {
+    return Stack.getRepo($routeParams.versionId).then(function (response) {
+      $scope.id = response.id;
+      $scope.stack = response.stack;
+      $scope.versionName = response.versionName;
+      $scope.stackVersion = response.stackVersion;
+      $scope.updateObj = response.updateObj;
+      $scope.repoVersionFullName = response.repoVersionFullName;
+      angular.forEach(response.osList, function (os) {
+        os.selected = true;
       });
-      $scope.stackVersion.operatingSystems = repos;
+      $scope.osList = response.osList;
     });
   }
 
-  $scope.stackVersion;
   $scope.skipValidation = false;
-  $scope.editVersionDisabled = true;
   $scope.deleteEnabled = true;
-  $scope.toggleVersionEdit = function() {
-    $scope.editVersionDisabled = !$scope.editVersionDisabled;
-  };
-  $scope.save = function() {
+
+  $scope.save = function () {
     $scope.editVersionDisabled = true;
-  };
-  $scope.cancel = function() {
-    $scope.editVersionDisabled = true;
+
+    delete $scope.updateObj.href;
+    Stack.updateRepo($scope.stackVersion, $scope.id, $scope.updateObj).then(function () {
+      Alert.success('Edited version <a href="#/stackVersions/' + $scope.versionName + '/edit">' + $scope.repoVersionFullName + '</a>');
+      $location.path('/stackVersions');
+    }).catch(function (data) {
+      Alert.error('Version update error', data.message);
+    });
   };
 
+  $scope.cancel = function () {
+    $scope.editVersionDisabled = true;
+    $location.path('/stackVersions');
+  };
+
+  $scope.delete = function () {
+    ConfirmationModal.show('Delete Version', 'Are you sure you want to delete version "'+ $scope.versionName +'"?').then(function() {
+      Stack.deleteRepo($scope.stackVersion, $scope.id).then( function () {
+        $location.path('/stackVersions');
+      }).catch(function (data) {
+        Alert.error('Version delete error', data.message);
+      });
+    });
+  };
   loadStackVersionInfo();
 }]);

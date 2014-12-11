@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.factory('StackVersions', ['$http', '$q', 'Settings', function ($http, $q, Settings) {
+.factory('Stack', ['$http', '$q', 'Settings', function ($http, $q, Settings) {
   var statusMap = {
     'INSTALLED': {
       label: 'Installed',
@@ -50,7 +50,31 @@ angular.module('ambariAdminConsole')
   }
 
   return {
-    list: function (filter, pagination) {
+    allStackVersions: function () {
+      var url = Settings.baseUrl + '/stacks?fields=*';
+      var deferred = $q.defer();
+      $http.get(url, {mock: 'stack/allStackVersions.json'})
+      .success(function (data) {
+        var allStackVersions = [];
+        angular.forEach(data.items, function (stack) {
+          angular.forEach(stack.versions, function (version) {
+            var stack_name = version.Versions.stack_name;
+            var stack_version = version.Versions.stack_version;
+            allStackVersions.push({
+              displayName: stack_name + '-' + stack_version,
+              value: stack_version
+            });
+          });
+        });
+        deferred.resolve(allStackVersions)
+      })
+      .error(function (data) {
+        deferred.reject(data);
+      });
+      return deferred.promise;
+    },
+
+    allRepos: function (filter, pagination) {
       var stackFilter = filter.stack.current.value;
       var versionFilter = filter.version;
       var clusterFilter = filter.cluster.current.value;
@@ -77,17 +101,18 @@ angular.module('ambariAdminConsole')
       return deferred.promise;
     },
 
-    add: function (stack, version, osList) {
+    addRepo: function (stack, version, osList) {
       var url = '/stacks/HDP/versions/2.2/repository_versions/';
       var payload = {};
+      var payloadWrap = { RepositoryVersions : payload };
       payload.repository_version = stack + '.' + version;
       payload.display_name = 'HDP-' + payload.repository_version;
       payload.upgrade_pack = "upgrade-2.2"; // TODO get this value from backend
-      payload.operating_systems = [];
+      payloadWrap.operating_systems = [];
       angular.forEach(osList, function (osItem) {
         if (osItem.selected)
         {
-          payload.operating_systems.push({
+          payloadWrap.operating_systems.push({
             "OperatingSystems" : {
               "os_type" : osItem.os
             },
@@ -103,18 +128,59 @@ angular.module('ambariAdminConsole')
           });
         }
       });
-      var payloadWrap = { RepositoryVersions : payload };
       return $http.post(Settings.baseUrl + url, payloadWrap);
     },
 
-    get: function (version) {
-      var url = Settings.baseUrl + '/stacks?versions/RepositoryVersions/repository_version=' + version +'&fields=versions/RepositoryVersions';
-      return $http.get(url, {mock: 'version/version.json'});
+    getRepo: function (repoVersion) {
+      // TODO do not hard code HDP
+      var url = Settings.baseUrl + '/stacks/HDP/versions?' +
+                'fields=repository_versions/operating_systems/repositories/*' +
+                '&repository_versions/RepositoryVersions/repository_version=' + repoVersion;
+      var deferred = $q.defer();
+      $http.get(url, {mock: 'version/version.json'})
+      .success(function (data) {
+        data = data.items[0];
+        var response = {
+          id : data.repository_versions[0].RepositoryVersions.id,
+          stackVersion : data.Versions.stack_version,
+          stack: data.Versions.stack_name + '-' + data.Versions.stack_version,
+          versionName: data.repository_versions[0].RepositoryVersions.repository_version,
+          repoVersionFullName : data.Versions.stack_name + '-' + data.repository_versions[0].RepositoryVersions.repository_version,
+          osList: data.repository_versions[0].operating_systems,
+          updateObj: data.repository_versions[0]
+        };
+        deferred.resolve(response);
+      })
+      .error(function (data) {
+        deferred.reject(data);
+      });
+      return deferred.promise;
     },
 
-    getStackRepositories: function (version) {
-      var url = Settings.baseUrl + '/stacks/HDP/versions/' + version + '/operating_systems?fields=*';
-      return $http.get(url, {mock: 'stack/stack.json'});
+    updateRepo: function (stackVersion, id, payload) {
+      var url = Settings.baseUrl + '/stacks/HDP/versions/' + stackVersion + '/repository_versions/' + id;
+      var deferred = $q.defer();
+      $http.put(url, payload)
+      .success(function (data) {
+        deferred.resolve(data)
+      })
+      .error(function (data) {
+        deferred.reject(data);
+      });
+      return deferred.promise;
+    },
+
+    deleteRepo: function (stackVersion, id) {
+      var url = Settings.baseUrl + '/stacks/HDP/versions/' + stackVersion + '/repository_versions/' + id;
+      var deferred = $q.defer();
+      $http.delete(url)
+      .success(function (data) {
+        deferred.resolve(data)
+      })
+      .error(function (data) {
+        deferred.reject(data);
+      });
+      return deferred.promise;
     }
   };
 }]);

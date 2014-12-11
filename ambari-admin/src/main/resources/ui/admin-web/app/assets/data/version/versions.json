@@ -11,19 +11,19 @@
         "totalHosts": 100,
         "cluster": "myCluster"
       }
-    },
-    {
-      "RepositoryVersions": {
-        "id": 2,
-        "repository_version": "2.2.1.1-885",
-        "display_name": "HDP 2.2.1",
-        "upgrade_pack": "upgrade-2.2",
-        "current_hosts": ["host1", "host2"],
-        "status": "INSTALLED",
-        "totalHosts": 100,
-        "cluster": "anotherCluster"
-      }
-    },
+},
+{
+"RepositoryVersions": {
+"id": 2,
+"repository_version": "2.2.1.1-885",
+"display_name": "HDP 2.2.1",
+"upgrade_pack": "upgrade-2.2",
+"current_hosts": ["host1", "host2"],
+"status": "INSTALLED",
+"totalHosts": 100,
+"cluster": "anotherCluster"
+}
+},
     {
       "RepositoryVersions": {
         "id": 3,

@@ -32,8 +32,8 @@
         <div class="col-sm-3">
           <select class="form-control"
                   ng-model="upgradeStack.value"
-                  ng-options="o as o for o in upgradeStack.options"
-            ></select>
+                  ng-options="o.value as o.displayName for o in upgradeStack.options">
+          </select>
         </div>
       </div>
       <div class="form-group">

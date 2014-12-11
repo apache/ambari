@@ -57,7 +57,7 @@
     </thead>
     <tbody>
     <tr ng-repeat="stack in stacks">
-      <td class="col-small">{{stack.display_name}}</td>
+      <td class="col-small">{{stack.stack_name + '-' + stack.stack_version}}</td>
       <td class="col-medium"><a href="#/stackVersions/{{stack.repository_version}}/edit">{{stack.repository_version}}</a></td>
       <td class="col-small">
         <a href ng-show="stack.cluster">

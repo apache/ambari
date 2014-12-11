@@ -19,38 +19,35 @@
 <div class="clearfix">
   <ol class="breadcrumb pull-left">
     <li><a href="#/stackVersions">Versions</a></li>
-    <li class="active">{{stackVersion.repository_version}}</li>
+    <li class="active">{{versionName}}</li>
   </ol>
   <div class="pull-right top-margin-4" ng-switch="deleteEnabled">
     <button ng-switch-when="false" class="btn disabled btn-default" tooltip="Cannot Delete Static Instances">Deregister
       Version
     </button>
-    <button ng-switch-when="true" class="btn btn-danger" ng-click="deleteInstance(stackVersion)">Deregister Version
+    <button ng-switch-when="true" class="btn btn-danger" ng-click="delete()">Deregister Version
     </button>
   </div>
 </div>
 <hr>
 <form class="form-horizontal edit-version-form" role="form" name="form-editVersionForm" novalidate>
   <div class="panel panel-default">
-    <div class="panel-heading clearfix">
-      <h3 class="panel-title pull-left">Details</h3>
-      <div class="pull-right" ng-switch="editVersionDisabled">
-        <a href ng-switch-when="true" ng-click="toggleVersionEdit()" ng-show="editVersionDisabled" class="settings-edit-toggle"> <span class="glyphicon glyphicon-pencil" ></span> Edit</a>
-        <span ng-switch-when="false"> <span class="glyphicon glyphicon-pencil" ></span> Edit</span>
-      </div>
+  <div class="panel-heading clearfix">
+    <h3 class="panel-title pull-left">Details</h3>
+  </div>
+  <div class="panel-body">
+    <div class="form-group">
+      <div class="col-sm-3"><label class="control-label">Stack</label></div>
+      <div class="col-sm-9 form-control-static">{{stack}}</div>
     </div>
-    <div class="panel-body">
-      <div class="form-group">
-        <div class="col-sm-3"><label class="control-label">Stack</label></div>
-        <div class="col-sm-9">{{stackVersion.stack}}</div>
-      </div>
-      <div class="form-group">
-        <div class="col-sm-3"><label class="control-label">Version Name</label></div>
-        <div class="col-sm-3"><input type="text" class="form-control" placeholder="Version Name" ng-model="stackVersion.display_name" ng-disabled="editVersionDisabled"></div>
-      </div>
+    <div class="form-group">
+      <div class="col-sm-3"><label class="control-label">Version Name</label></div>
+      <div class="col-sm-3 form-control-static">{{versionName}}</div>
     </div>
   </div>
+  </div>
 
+  <!--
   <div class="panel panel-default">
     <div class="panel-heading">
       <h3 class="panel-title">Clusters</h3>
@@ -67,10 +64,14 @@
       </div>
     </div>
   </div>
-
+  -->
   <div class="panel panel-default">
-    <div class="panel-heading">
-      <h3 class="panel-title">Repositories</h3>
+    <div class="panel-heading clearfix">
+      <h3 class="panel-title pull-left">Repositories</h3>
+      <div class="pull-right" ng-switch="editReposDisabled">
+        <a href ng-switch-when="true" ng-click="toggleReposEdit()" class="settings-edit-toggle"> <span class="glyphicon glyphicon-pencil" ></span> Edit</a>
+        <span ng-switch-when="false"> <span class="glyphicon glyphicon-pencil" ></span> Edit</span>
+      </div>
     </div>
     <div class="panel-body ">
       <div class="alert alert-info" role="alert">
@@ -81,7 +82,7 @@
         <div class="col-sm-3"><h5><label>Name</label></h5></div>
         <div class="col-sm-6"><h5><label>Base URL</label></h5></div>
       </div>
-      <div class="clearfix border-bottom bottom-margin" ng-repeat="os in stackVersion.operatingSystems">
+      <div class="clearfix border-bottom bottom-margin" ng-repeat="os in osList">
         <div class="col-sm-3">
           <div class="checkbox">
             <label>

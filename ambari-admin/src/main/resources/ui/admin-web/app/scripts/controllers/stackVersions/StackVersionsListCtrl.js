@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-  .controller('StackVersionsListCtrl', ['$scope', 'Cluster', 'StackVersions', '$routeParams', function ($scope, Cluster, StackVersions, $routeParams) {
+  .controller('StackVersionsListCtrl', ['$scope', 'Cluster', 'Stack', '$routeParams', function ($scope, Cluster, Stack, $routeParams) {
   $scope.clusterName = $routeParams.clusterName;
 
   // TODO retrieve a list of stacks having "upgrade_pack" from backend
@@ -91,7 +91,7 @@ angular.module('ambariAdminConsole')
   $scope.getAllClusters();
 
   $scope.getStackVersions = function () {
-    return StackVersions.list($scope.filter, $scope.pagination).then(function (stacks) {
+    return Stack.allRepos($scope.filter, $scope.pagination).then(function (stacks) {
       $scope.pagination.totalStacks = stacks.items.length;
       $scope.stacks = [];
       angular.forEach(stacks.items, function(stack) {
