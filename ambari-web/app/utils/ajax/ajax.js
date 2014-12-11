@@ -31,6 +31,17 @@ var App = require('app');
  */
 var urls = {
 
+  'common.cluster.update' : {
+    'type': 'PUT',
+    'real': '/clusters/{clusterName}',
+    'mock': '/data/wizard/deploy/poll_1.json',
+    'format': function (data) {
+      return {
+        data: JSON.stringify(data.data)
+      };
+    }
+  },
+
   'common.services.update' : {
     'real': '/clusters/{clusterName}/services?{urlParams}',
     'mock': '/data/wizard/deploy/poll_1.json',

@@ -114,32 +114,6 @@
     </description>
     <value/>
   </property>
-  <property>
-    <name>test_principal</name>
-    <description>
-      The principal that may be used to test the Kerberos configuration (this will not be retained)
-    </description>
-    <value/>
-  </property>
-  <property>
-    <name>test_password</name>
-    <description>
-      The password for the administrative principal (either this value or the keytab value is
-      required to be set, neither is expected to be retained)
-    </description>
-    <value/>
-    <property-type>PASSWORD</property-type>
-  </property>
-  <property>
-    <name>test_keytab</name>
-    <description>
-      The base64-encoded keytab for the test principal (either this value or the password
-      value is required to be set, neither is expected to be retained)
-    </description>
-    <value>
-
-    </value>
-  </property>
 
 
   <property>

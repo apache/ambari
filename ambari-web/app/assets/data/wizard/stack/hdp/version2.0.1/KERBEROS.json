@@ -323,50 +323,6 @@
         "stack_version" : "2.2",
         "type" : "krb5-conf.xml"
       }
-    },
-    {
-      "href" : "http://c6403.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/KERBEROS/configurations/test_keytab",
-      "StackConfigurations" : {
-        "final" : "false",
-        "property_description" : "\n      The base64-encoded keytab for the test principal (either this value or the password\n      value is required to be set, neither is expected to be retained)\n    ",
-        "property_name" : "test_keytab",
-        "property_type" : [ ],
-        "property_value" : "\n\n    ",
-        "service_name" : "KERBEROS",
-        "stack_name" : "HDP",
-        "stack_version" : "2.2",
-        "type" : "krb5-conf.xml"
-      }
-    },
-    {
-      "href" : "http://c6403.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/KERBEROS/configurations/test_password",
-      "StackConfigurations" : {
-        "final" : "false",
-        "property_description" : "\n      The password for the administrative principal (either this value or the keytab value is\n      required to be set, neither is expected to be retained)\n    ",
-        "property_name" : "test_password",
-        "property_type" : [
-          "PASSWORD"
-        ],
-        "property_value" : "",
-        "service_name" : "KERBEROS",
-        "stack_name" : "HDP",
-        "stack_version" : "2.2",
-        "type" : "krb5-conf.xml"
-      }
-    },
-    {
-      "href" : "http://c6403.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/KERBEROS/configurations/test_principal",
-      "StackConfigurations" : {
-        "final" : "false",
-        "property_description" : "\n      The principal that may be used to test the Kerberos configuration (this will not be retained)\n    ",
-        "property_name" : "test_principal",
-        "property_type" : [ ],
-        "property_value" : "",
-        "service_name" : "KERBEROS",
-        "stack_name" : "HDP",
-        "stack_version" : "2.2",
-        "type" : "krb5-conf.xml"
-      }
     }
   ]
 }

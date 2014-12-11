@@ -87,7 +87,9 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
       self.createKerberosComponent().done(function () {
         self.createKerberosHostComponents().done(function () {
           self.createConfigurations().done(function () {
-            App.router.send('next');
+            self.createKerberosAdminSession().done(function() {
+              App.router.send('next');
+            });
           });
         });
       });
@@ -210,6 +212,28 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
       }
     }, this);
     return {"type": site, "tag": tag, "properties": properties};
+  },
+
+  /**
+   * puts kerberos admin credentials in the live cluster session
+   * @returns {*} jqXHr
+   */
+  createKerberosAdminSession: function () {
+    var configs = this.get('stepConfigs')[0].get('configs');
+    var adminPrincipalValue = configs.findProperty('name','admin_principal').value;
+    var adminPasswordValue = configs.findProperty('name','admin_password').value;
+    return App.ajax.send({
+      name: 'common.cluster.update',
+      sender: this,
+      data: {
+        clusterName: App.get('clusterName') || App.clusterStatus.get('clusterName'),
+        data: [{
+          session_attributes : {
+            kerberos_admin : {principal : adminPrincipalValue, password : adminPasswordValue}
+          }
+        }]
+      }
+    });
   }
 });
 
