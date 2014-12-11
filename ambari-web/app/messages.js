@@ -2020,7 +2020,7 @@ Em.I18n.translations = {
   'hosts.host.installComponent.popup.confirm':'Confirm Install',
   'hosts.host.installComponent.msg':'Are you sure you want to install {0}?',
   'hosts.host.addComponent.msg':'Are you sure you want to add {0}?',
-  'hosts.host.addComponent.addZooKeeper':'Adding ZooKeeper Server may reconfigure such properties:<ul><li>ha.zookeeper.quorum</li><li>hbase.zookeeper.quorum</li><li>templeton.zookeeper.hosts</li><li>yarn.resourcemanager.zk-address</li><li>hive.zookeeper.quorum</li><li>hive.cluster.delegation.token.store.zookeeper.connectString</li></ul>',
+  'hosts.host.addComponent.ZOOKEEPER_SERVER':'Adding ZooKeeper Server may reconfigure such properties:<ul><li>ha.zookeeper.quorum</li><li>hbase.zookeeper.quorum</li><li>templeton.zookeeper.hosts</li><li>yarn.resourcemanager.zk-address</li><li>hive.zookeeper.quorum</li><li>hive.cluster.delegation.token.store.zookeeper.connectString</li></ul>',
   'hosts.host.addComponent.deleteHostWithZooKeeper':'Deleting host with ZooKeeper Server may reconfigure such properties:<ul><li>ha.zookeeper.quorum</li><li>hbase.zookeeper.quorum</li><li>templeton.zookeeper.hosts</li><li>yarn.resourcemanager.zk-address</li><li>hive.zookeeper.quorum</li><li>hive.cluster.delegation.token.store.zookeeper.connectString</li></ul>',
   'host.host.addComponent.popup.dependedComponents.body': '{0} requires {1} to be installed along with it on the same host. Please add them first and then try adding {0}',
   'host.host.addComponent.popup.dependedComponents.header': 'Component dependencies',
@@ -2043,6 +2043,9 @@ Em.I18n.translations = {
   'hosts.host.hbase_regionserver.decommission.warning':'Last RegionServer can\'t be decommissioned',
   'hosts.host.decommissioned':'Decommissioned',
   'hosts.host.decommissioning':'Decommissioning',
+  'hosts.host.addComponent.HIVE_METASTORE':'Adding Hive Metastore will reconfigure such properties:<ul><li>hive.metastore.uris</li></ul>',
+  'hosts.host.deleteComponent.popup.deleteHiveMetastore':'Deleting <i>Hive Metastorer</i> reconfigure such properties:<ul><li>hive.metastore.uris</li></ul>',
+  'hosts.host.hive.configs.save.note': 'This configuration is created by ambari while installing/deleting hive component on a host',
 
   'hosts.component.passive.implied.host.mode.tooltip':'Cannot Turn Off Maintenance Mode because Host is in Maintenance Mode',
   'hosts.component.passive.implied.service.mode.tooltip':'Cannot Turn Off Maintenance Mode because {0} is in Maintenance Mode',
@@ -2309,6 +2312,7 @@ Em.I18n.translations = {
 
   'dashboard.services.hive.clients':'Hive Clients',
   'dashboard.services.hive.client':'Hive Client',
+  'dashboard.services.hive.metastore':'Hive Metastore',
 
   'dashboard.services.oozie.clients':'Oozie Clients',
   'dashboard.services.oozie.client':'Oozie Client',

@@ -27,4 +27,8 @@
   <br />
   <div class='alert'>{{view deleteZkServerMsg}}</div>
 {{/if}}
+{{#if isHiveMetastore}}
+  <br />
+  <div class='alert'>{{view deleteHiveMetastoreMsg}}</div>
+{{/if}}
 <div class='alert'>{{view restartNagiosMsg}}</div>

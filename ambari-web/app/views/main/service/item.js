@@ -153,6 +153,13 @@ App.MainServiceItemView = Em.View.extend({
         component: 'HBASE_MASTER'
       },
       {
+       cssClass: 'icon-plus',
+       'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.hive.metastore')),
+       service: 'HIVE',
+       component: 'HIVE_METASTORE',
+       isHidden: !App.get('isHadoop22Stack')
+      },
+      {
         cssClass: 'icon-plus',
         'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.zookeeper.server')),
         service: 'ZOOKEEPER',

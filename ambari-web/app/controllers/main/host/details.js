@@ -209,6 +209,12 @@ App.MainHostDetailsController = Em.Controller.extend({
       bodyClass: Em.View.extend({
         templateName: require('templates/main/host/details/deleteComponentPopup')
       }),
+      isHiveMetastore: function () {
+        return componentName == 'HIVE_METASTORE';
+      }.property(),
+      deleteHiveMetastoreMsg: Em.View.extend({
+        template: Em.Handlebars.compile(Em.I18n.t('hosts.host.deleteComponent.popup.deleteHiveMetastore'))
+      }),
       isChecked: false,
       disablePrimary: function () {
         return !this.get('isChecked');
@@ -305,6 +311,9 @@ App.MainHostDetailsController = Em.Controller.extend({
     if (data.componentName == 'ZOOKEEPER_SERVER') {
       this.set('fromDeleteZkServer', true);
       this.loadConfigs();
+    } else if (data.componentName == 'HIVE_METASTORE') {
+      this.set('deleteHiveMetaStore', true);
+      this.loadConfigs('loadHiveConfigs');
     }
   },
 
@@ -424,12 +433,11 @@ App.MainHostDetailsController = Em.Controller.extend({
         })));
       return App.showAlertPopup(Em.I18n.t('host.host.addComponent.popup.dependedComponents.header'), popupMessage);
     }
-    if (componentName === 'ZOOKEEPER_SERVER') {
+    if (componentName === 'ZOOKEEPER_SERVER' || componentName === 'HIVE_METASTORE') {
       return App.showConfirmationPopup(function () {
         self.primary(component);
-      }, Em.I18n.t('hosts.host.addComponent.addZooKeeper'));
-    }
-    else {
+      }, Em.I18n.t('hosts.host.addComponent.' + componentName ));
+    } else {
       if (this.get('securityEnabled') && componentName !== 'CLIENTS') {
         return App.showConfirmationPopup(function () {
           self.primary(component);
@@ -507,7 +515,6 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @method primary
    */
   primary: function (component) {
-
     var self = this;
     componentsUtils.installHostComponent(self.get('content.hostName'), component);
   },
@@ -535,9 +542,68 @@ App.MainHostDetailsController = Em.Controller.extend({
         self.set('zkRequestId', data.Requests.id);
         self.addObserver('App.router.backgroundOperationsController.serviceTimestamp', self, self.checkZkConfigs);
         self.checkZkConfigs();
+      }else if (params.componentName === 'HIVE_METASTORE'){
+       self.loadConfigs('loadHiveConfigs');
       }
     });
     return true;
+  },
+
+  /**
+   * Success callback for load configs request
+   * @param {object} data
+   * @method loadHiveConfigs
+   */
+  loadHiveConfigs: function (data) {
+    App.ajax.send({
+      name: 'admin.get.all_configurations',
+      sender: this,
+      data: {
+        urlParams: '(type=hive-site&tag=' + data.Clusters.desired_configs['hive-site'].tag + ')'
+      },
+      success: 'onLoadHiveConfigs'
+    });
+  },
+
+  /**
+   * update and save Hive hive.metastore.uris config to server
+   * @param {object} data
+   * @method onLoadHiveConfigs
+   */
+  onLoadHiveConfigs: function (data) {
+    var hiveMSHosts = this.getHiveHosts();
+
+    for (var i = 0; i < hiveMSHosts.length; i++) {
+      hiveMSHosts[i] = hiveMSHosts[i] + ":9083";
+    }
+    data.items[0].properties['hive.metastore.uris'] = hiveMSHosts.join(',');
+    App.ajax.send({
+      name: 'reassign.save_configs',
+      sender: this,
+      data: {
+        siteName: 'hive-site',
+        properties: data.items[0].properties,
+        service_config_version_note: Em.I18n.t('hosts.host.hive.configs.save.note')
+      }
+    });
+  },
+
+  /**
+   * Delete Hive Metastore is performed
+   * @type {bool}
+   */
+  deleteHiveMetaStore: false,
+
+  getHiveHosts: function () {
+    var hiveHosts = App.HostComponent.find().filterProperty('componentName', 'HIVE_METASTORE').mapProperty('hostName');
+    if (this.get('fromDeleteHost') || this.get('deleteHiveMetaStore')) {
+      this.set('deleteHiveMetaStore', false);
+      this.set('fromDeleteHost', false);
+      hiveHosts = hiveHosts.without(this.get('content.hostName'));
+    } else if (!hiveHosts.contains(this.get('content.hostName'))) {
+      hiveHosts.push(this.get('content.hostName'));
+    }
+    return hiveHosts;
   },
 
   /**
@@ -607,11 +673,11 @@ App.MainHostDetailsController = Em.Controller.extend({
    * Load configs
    * @method loadConfigs
    */
-  loadConfigs: function () {
+  loadConfigs: function (callback) {
     App.ajax.send({
       name: 'config.tags',
       sender: this,
-      success: 'loadConfigsSuccessCallback'
+      success: callback ? callback : 'loadConfigsSuccessCallback'
     });
   },
 
@@ -1648,6 +1714,7 @@ App.MainHostDetailsController = Em.Controller.extend({
   deleteHostSuccessCallback: function (data) {
     var self = this;
     App.router.get('updateController').updateHost(function () {
+      self.loadConfigs('loadHiveConfigs');
       self.loadConfigs();
       App.router.transitionTo('hosts.index');
     });

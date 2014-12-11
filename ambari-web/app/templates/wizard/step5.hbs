@@ -61,6 +61,12 @@
                       <div class="hostName">
                         {{selectedHost}}<i class="icon-asterisks">&#10037;</i>
                       </div>
+                      {{#if showAddControl}}
+                        {{view App.AddControlView componentNameBinding="component_name"}}
+                      {{/if}}
+                      {{#if showRemoveControl}}
+                        {{view App.RemoveControlView componentNameBinding="component_name" serviceComponentIdBinding="serviceComponentId"}}
+                      {{/if}}
                     {{else}}
                       <div {{bindAttr class="errorMessage:error: warnMessage:warning: :control-group"}}>
                         {{#if view.shouldUseInputs}}

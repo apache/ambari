@@ -435,10 +435,6 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'hivemetastore_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName);
         break;
-      case 'hive.metastore.uris':
-        var hiveHost = masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName;
-        this.setDefaultValue(hostWithPrefix,'://' + hiveHost);
-        break;
       case 'hive_ambari_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName);
         break;
@@ -481,6 +477,20 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'hive_existing_mssql_server_2_host':
         var hiveServerHost = masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName;
         this.set('value', hiveServerHost).set('defaultValue', hiveServerHost);
+        break;
+      case 'hive.metastore.uris':
+        var hiveMSHosts = masterComponentHostsInDB.filterProperty('component', 'HIVE_METASTORE').mapProperty('hostName'),
+            hiveMSHostPort = hiveMSHosts,
+            regex = "\\w*:(\\d+)",
+            portValue = this.get('defaultValue').match(new RegExp(regex));
+
+        if (!portValue) return;
+        if (portValue[1]) {
+          for (var i = 0; i < hiveMSHosts.length; i++) {
+            hiveMSHostPort[i] = hiveMSHosts[i] + ":" + portValue[1];
+          }
+        }
+        this.setDefaultValue("(.*)", hiveMSHostPort);
         break;
       case 'oozie_existing_mysql_host':
       case 'oozie_existing_postgresql_host':
