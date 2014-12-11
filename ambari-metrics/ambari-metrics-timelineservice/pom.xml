@@ -35,15 +35,9 @@
     <!--<yarn.basedir>${project.parent.parent.basedir}</yarn.basedir>-->
     <protobuf.version>2.5.0</protobuf.version>
     <hadoop.version>2.4.0</hadoop.version>
+    <phoenix.version>4.2.0.2.2.0.0-2041</phoenix.version>
   </properties>
 
-  <repositories>
-    <repository>
-      <id>phoenix-core-tests</id>
-      <name>Phoenix Unit tests</name>
-      <url>file://${project.basedir}/src/test/resources/lib</url>
-    </repository>
-  </repositories>
   <build>
     <plugins>
       <plugin>
@@ -82,24 +76,28 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>com.github.goldin</groupId>
-        <artifactId>copy-maven-plugin</artifactId>
-        <version>0.2.5</version>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.7</version>
         <executions>
           <execution>
-            <id>create-archive</id>
-            <phase>package</phase>
+            <phase>generate-resources</phase>
             <goals>
-              <goal>copy</goal>
+              <goal>run</goal>
             </goals>
             <configuration>
-              <resources>
-                <resource>
-                  <targetPath>${project.build.directory}/embedded</targetPath>
-                  <file>${hbase.tar}</file>
-                  <unpack>true</unpack>
-                </resource>
-              </resources>
+              <target name="Download HBase">
+                <mkdir dir="${project.build.directory}/embedded" />
+                <get
+                  src="${hbase.tar}"
+                  dest="${project.build.directory}/embedded/hbase.tar.gz"
+                  />
+                <untar
+                  src="${project.build.directory}/embedded/hbase.tar.gz"
+                  dest="${project.build.directory}/embedded"
+                  compression="gzip"
+                  />
+              </target>
             </configuration>
           </execution>
         </executions>
@@ -251,7 +249,7 @@
     <dependency>
       <groupId>org.apache.phoenix</groupId>
       <artifactId>phoenix-core</artifactId>
-      <version>4.2.0.2.2.0.0-2041</version>
+      <version>${phoenix.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.apache.hadoop</groupId>
@@ -490,7 +488,7 @@
       <groupId>org.apache.phoenix</groupId>
       <artifactId>phoenix-core</artifactId>
       <type>test-jar</type>
-      <version>4.2.0.2.2.0.0-2041</version>
+      <version>${phoenix.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
