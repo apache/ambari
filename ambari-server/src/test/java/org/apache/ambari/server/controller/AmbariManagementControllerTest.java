@@ -8087,7 +8087,7 @@ public class AmbariManagementControllerTest {
     assertEquals(original, repo.getDefaultBaseUrl());
 
     // verify change with new meta info
-    AmbariMetaInfo ami = new AmbariMetaInfo(new File("src/test/resources/stacks"), new File("target/version"));
+    AmbariMetaInfo ami = new AmbariMetaInfo(new File("src/test/resources/stacks"), null, new File("target/version"));
     injector.injectMembers(ami);
     ami.init();
 

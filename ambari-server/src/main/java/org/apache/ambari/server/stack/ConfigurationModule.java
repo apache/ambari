@@ -61,7 +61,7 @@ public class ConfigurationModule extends BaseModule<ConfigurationModule, Configu
   }
 
   @Override
-  public void resolve(ConfigurationModule parent, Map<String, StackModule> allStacks) throws AmbariException {
+  public void resolve(ConfigurationModule parent, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices) throws AmbariException {
     // merge properties also removes deleted props so should be called even if extension is disabled
     mergeProperties(parent);
 

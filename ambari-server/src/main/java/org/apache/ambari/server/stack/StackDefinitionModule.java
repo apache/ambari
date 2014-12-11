@@ -34,12 +34,13 @@ public interface StackDefinitionModule <T, I> {
   /**
    * Resolve the module state with the specified parent.
    *
-   * @param parent     the parent that this module will be merged with
-   * @param allStacks  collection of all stack modules in the tree
+   * @param parent          the parent that this module will be merged with
+   * @param allStacks       collection of all stack modules in the tree
+   * @param commonServices  collection of all common service modules in the tree
    *
    * @throws AmbariException if resolution fails
    */
-  public void resolve(T parent, Map<String, StackModule> allStacks) throws AmbariException;
+  public void resolve(T parent, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices) throws AmbariException;
 
   /**
    * Obtain the associated module information.
@@ -66,4 +67,14 @@ public interface StackDefinitionModule <T, I> {
    * Lifecycle even which is called when the associated stack has been fully resolved.
    */
   public void finalizeModule();
+
+  /**
+   * Module state.
+   * Initial state is INIT.
+   * When resolve is called state is set to VISITED.
+   * When resolve completes, state is set to RESOLVED.
+   *
+   * @return the module state
+   */
+  public ModuleState getModuleState();
 }

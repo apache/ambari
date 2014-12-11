@@ -217,7 +217,7 @@ public class KerberosServiceMetaInfoTest {
     OsFamily osFamily;
 
     public TestAmbariMetaInfo(File stackRoot, File serverVersionFile) throws Exception {
-      super(stackRoot, serverVersionFile);
+      super(stackRoot, null, serverVersionFile);
       // MetainfoDAO
       metaInfoDAO = createNiceMock(MetainfoDAO.class);
       Class<?> c = getClass().getSuperclass();

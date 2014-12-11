@@ -21,7 +21,9 @@ package org.apache.ambari.server.stack;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +39,20 @@ import java.util.Map;
  * stack information.
  */
 public class StackManager {
+
+  /**
+   * Delimiter used for parent path string
+   * Example:
+   *  HDP/2.0.6/HDFS
+   *  common-services/HDFS/2.1.0.2.0
+   */
+  public static String PATH_DELIMITER = "/";
+
+  /**
+   * Prefix used for common services parent path string
+   */
+  public static final String COMMON_SERVICES = "common-services";
+
   /**
    * Provides access to non-stack server functionality
    */
@@ -48,48 +64,32 @@ public class StackManager {
   private final static Logger LOG = LoggerFactory.getLogger(StackManager.class);
 
   /**
-   * Map of stack name to stack info
+   * Map of stack id to stack info
    */
   private Map<String, StackInfo> stackMap = new HashMap<String, StackInfo>();
 
-
   /**
    * Constructor.
+   * Initialize stack manager.
    *
-   * @param stackRoot     stack root directory
-   * @param stackContext  context which provides external functionality
+   * @param stackRoot           stack root directory
+   * @param commonServicesRoot  common services root directory
+   * @param stackContext        context which provides external functionality
    *
    * @throws AmbariException if an exception occurs while processing the stacks
    */
-  public StackManager(File stackRoot, StackContext stackContext) throws AmbariException {
+  public StackManager(File stackRoot, File commonServicesRoot, StackContext stackContext) throws AmbariException {
     validateStackDirectory(stackRoot);
+    validateCommonServicesDirectory(commonServicesRoot);
 
+    this.stackMap = new HashMap<String, StackInfo>();
     this.stackContext = stackContext;
-    Map<String, StackModule> stackModules = new HashMap<String, StackModule>();
-    File[] stackFiles = stackRoot.listFiles(AmbariMetaInfo.FILENAME_FILTER);
-    for (File stack : stackFiles) {
-      if (stack.isFile()) {
-        continue;
-      }
-      for (File stackFolder : stack.listFiles(AmbariMetaInfo.FILENAME_FILTER)) {
-        if (stackFolder.isFile()) {
-          continue;
-        }
-        String stackName = stackFolder.getParentFile().getName();
-        String stackVersion = stackFolder.getName();
 
-        StackModule stackModule = new StackModule(new StackDirectory(stackFolder.getPath()),stackContext);
-        stackModules.put(stackName + stackVersion, stackModule);
-        stackMap.put(stackName + stackVersion, stackModule.getModuleInfo());
-      }
-    }
+    Map<String, ServiceModule> commonServiceModules = parseCommonServicesDirectory(commonServicesRoot);
+    Map<String, StackModule> stackModules = parseStackDirectory(stackRoot);
 
-    if (stackMap.isEmpty()) {
-      throw new AmbariException("Unable to find stack definitions under " +
-          "stackRoot = " + stackRoot.getAbsolutePath());
-    }
-
-    fullyResolveStacks(stackModules);
+    fullyResolveCommonServices(stackModules, commonServiceModules);
+    fullyResolveStacks(stackModules, commonServiceModules);
   }
 
   /**
@@ -101,7 +101,7 @@ public class StackManager {
    *         If no matching stack exists, null is returned.
    */
   public StackInfo getStack(String name, String version) {
-    return stackMap.get(name + version);
+    return stackMap.get(name + StackManager.PATH_DELIMITER + version);
   }
 
   /**
@@ -142,13 +142,16 @@ public class StackManager {
   /**
    * Fully resolve all stacks.
    *
-   * @param stackModules  map of stack id which contains name and version to stack module.
+   * @param stackModules          map of stack id which contains name and version to stack module.
+   * @param commonServiceModules  map of common service id which contains name and version to stack module.
    * @throws AmbariException if unable to resolve all stacks
    */
-  private void fullyResolveStacks(Map<String, StackModule> stackModules) throws AmbariException {
+  private void fullyResolveStacks(
+      Map<String, StackModule> stackModules, Map<String, ServiceModule> commonServiceModules)
+      throws AmbariException {
     for (StackModule stack : stackModules.values()) {
-      if (stack.getResolutionState() == StackModule.State.INIT) {
-        stack.resolve(null, stackModules);
+      if (stack.getModuleState() == ModuleState.INIT) {
+        stack.resolve(null, stackModules, commonServiceModules);
       }
     }
     // execute all of the repo tasks in a single thread executor
@@ -156,7 +159,46 @@ public class StackManager {
   }
 
   /**
+   * Fully resolve common services.
+   *
+   * @param stackModules          map of stack id which contains name and version to stack module.
+   * @param commonServiceModules  map of common service id which contains name and version to common service module.
+   * @throws AmbariException if unable to resolve all common services
+   */
+  private void fullyResolveCommonServices(
+      Map<String, StackModule> stackModules, Map<String, ServiceModule> commonServiceModules)
+      throws AmbariException {
+    for(ServiceModule commonService : commonServiceModules.values()) {
+      if (commonService.getModuleState() == ModuleState.INIT) {
+        commonService.resolveCommonService(stackModules, commonServiceModules);
+      }
+    }
+  }
+
+  /**
+   * Validate that the specified common services root is a valid directory.
+   *
+   * @param commonServicesRoot the common services root directory to validate
+   * @throws AmbariException if the specified common services root directory is invalid
+   */
+  private void validateCommonServicesDirectory(File commonServicesRoot) throws AmbariException {
+    if(commonServicesRoot != null) {
+      String commonServicesRootAbsolutePath = commonServicesRoot.getAbsolutePath();
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Loading common services information"
+            + ", commonServicesRoot = " + commonServicesRootAbsolutePath);
+      }
+
+      if (!commonServicesRoot.isDirectory() && !commonServicesRoot.exists())
+        throw new AmbariException("" + Configuration.COMMON_SERVICES_DIR_PATH
+            + " should be a directory with common services"
+            + ", commonServicesRoot = " + commonServicesRootAbsolutePath);
+    }
+  }
+
+  /**
    * Validate that the specified stack root is a valid directory.
+   *
    * @param stackRoot  the stack root directory to validate
    * @throws AmbariException if the specified stack root directory is invalid
    */
@@ -171,5 +213,73 @@ public class StackManager {
       throw new AmbariException("" + Configuration.METADETA_DIR_PATH
           + " should be a directory with stack"
           + ", stackRoot = " + stackRootAbsPath);
+  }
+
+  /**
+   * Parse the specified common services root directory
+   *
+   * @param commonServicesRoot  the common services root directory to parse
+   * @return map of common service id which contains name and version to common service module.
+   * @throws AmbariException if unable to parse all common services
+   */
+  private Map<String, ServiceModule> parseCommonServicesDirectory(File commonServicesRoot) throws AmbariException {
+    Map<String, ServiceModule> commonServiceModules = new HashMap<String, ServiceModule>();
+
+    if(commonServicesRoot != null) {
+      File[] commonServiceFiles = commonServicesRoot.listFiles(AmbariMetaInfo.FILENAME_FILTER);
+      for (File commonService : commonServiceFiles) {
+        if (commonService.isFile()) {
+          continue;
+        }
+        for (File serviceFolder : commonService.listFiles(AmbariMetaInfo.FILENAME_FILTER)) {
+          String serviceName = serviceFolder.getParentFile().getName();
+          String serviceVersion = serviceFolder.getName();
+          ServiceDirectory serviceDirectory = new ServiceDirectory(serviceFolder.getPath());
+          ServiceMetainfoXml metaInfoXml = serviceDirectory.getMetaInfoFile();
+          for (ServiceInfo serviceInfo : metaInfoXml.getServices()) {
+            ServiceModule serviceModule = new ServiceModule(stackContext, serviceInfo, serviceDirectory, true);
+            String commonServiceKey = serviceName + StackManager.PATH_DELIMITER + serviceVersion;
+            commonServiceModules.put(commonServiceKey, serviceModule);
+          }
+        }
+      }
+    }
+    return commonServiceModules;
+  }
+
+  /**
+   * Parse the specified stack root directory
+   *
+   * @param stackRoot  the stack root directory to parse
+   * @return map of stack id which contains name and version to stack module.
+   * @throws AmbariException if unable to parse all stacks
+   */
+  private Map<String, StackModule> parseStackDirectory(File stackRoot) throws AmbariException {
+    Map<String, StackModule> stackModules = new HashMap<String, StackModule>();
+
+    File[] stackFiles = stackRoot.listFiles(AmbariMetaInfo.FILENAME_FILTER);
+    for (File stack : stackFiles) {
+      if (stack.isFile()) {
+        continue;
+      }
+      for (File stackFolder : stack.listFiles(AmbariMetaInfo.FILENAME_FILTER)) {
+        if (stackFolder.isFile()) {
+          continue;
+        }
+        String stackName = stackFolder.getParentFile().getName();
+        String stackVersion = stackFolder.getName();
+
+        StackModule stackModule = new StackModule(new StackDirectory(stackFolder.getPath()), stackContext);
+        String stackKey = stackName + StackManager.PATH_DELIMITER + stackVersion;
+        stackModules.put(stackKey, stackModule);
+        stackMap.put(stackKey, stackModule.getModuleInfo());
+      }
+    }
+
+    if (stackMap.isEmpty()) {
+      throw new AmbariException("Unable to find stack definitions under " +
+          "stackRoot = " + stackRoot.getAbsolutePath());
+    }
+    return stackModules;
   }
 }

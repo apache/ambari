@@ -31,28 +31,46 @@ import java.util.Set;
  * Provides functionality that is common across multiple modules.
  */
 public abstract class BaseModule<T, I> implements StackDefinitionModule<T, I> {
+
+  /**
+   * Module visitation state
+   */
+  protected ModuleState moduleState = ModuleState.INIT;
+
+  /**
+   * Module state.
+   * Initial state is INIT.
+   * When resolve is called state is set to VISITED.
+   * When resolve completes, state is set to RESOLVED.
+   *
+   * @return the module's state
+   */
+  public ModuleState getModuleState() {
+    return moduleState;
+  }
+
   /**
    * Merges child modules with the corresponding parent modules.
    *
    * @param allStacks      collection of all stack module in stack definition
+   * @param commonServices collection of all common service module in stack definition
    * @param modules        child modules of this module that are to be merged
    * @param parentModules  parent modules which the modules are to be merged with
    *
    * @return collection of the merged modules
    */
   protected <T extends StackDefinitionModule<T, ?>> Collection<T> mergeChildModules(
-      Map<String, StackModule> allStacks, Map<String, T> modules, Map<String, T> parentModules)
+      Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices, Map<String, T> modules, Map<String, T> parentModules)
         throws AmbariException {
-
     Set<String> addedModules = new HashSet<String>();
     Collection<T> mergedModules = new HashSet<T>();
 
     for (T module : modules.values()) {
       String id = module.getId();
       addedModules.add(id);
-      if (! module.isDeleted()) {
+      if (!module.isDeleted()) {
         if (parentModules.containsKey(id)) {
-          module.resolve(parentModules.get(id), allStacks);
+          module.resolve(parentModules.get(id), allStacks, commonServices);
         }
         mergedModules.add(module);
       }
@@ -61,7 +79,7 @@ public abstract class BaseModule<T, I> implements StackDefinitionModule<T, I> {
     // add non-overlapping parent modules
     for (T parentModule : parentModules.values()) {
       String id = parentModule.getId();
-      if (! addedModules.contains(id)) {
+      if (!addedModules.contains(id)) {
         mergedModules.add(parentModule);
       }
     }

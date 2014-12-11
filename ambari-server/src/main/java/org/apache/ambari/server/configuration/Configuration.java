@@ -98,6 +98,7 @@ public class Configuration {
   public static final String SRVR_DISABLED_PROTOCOLS = "security.server.disabled.protocols";
   public static final String RESOURCES_DIR_KEY = "resources.dir";
   public static final String METADETA_DIR_PATH = "metadata.path";
+  public static final String COMMON_SERVICES_DIR_PATH = "common.services.path";
   public static final String SERVER_VERSION_FILE = "server.version.file";
   public static final String SERVER_VERSION_KEY = "version";
   public static final String JAVA_HOME_KEY = "java.home";
@@ -677,6 +678,14 @@ public class Configuration {
    */
   public String getMetadataPath() {
     return properties.getProperty(METADETA_DIR_PATH);
+  }
+
+  /**
+   * Gets ambari common services path
+   * @return String
+   */
+  public String getCommonServicesPath() {
+    return properties.getProperty(COMMON_SERVICES_DIR_PATH);
   }
 
   public String getServerVersionFilePath() {

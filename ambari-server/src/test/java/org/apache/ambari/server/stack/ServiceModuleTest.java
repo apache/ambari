@@ -976,7 +976,7 @@ public class ServiceModuleTest {
   }
 
   private void resolveService(ServiceModule service, ServiceModule parent) throws AmbariException {
-    service.resolve(parent, Collections.<String, StackModule>emptyMap());
+    service.resolve(parent, Collections.<String, StackModule>emptyMap(), Collections.<String, ServiceModule>emptyMap());
     // during runtime this would be called by the Stack module when it's resolve completed
     service.finalizeModule();
     parent.finalizeModule();

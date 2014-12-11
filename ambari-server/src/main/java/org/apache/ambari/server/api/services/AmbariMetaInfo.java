@@ -124,6 +124,7 @@ public class AmbariMetaInfo {
   private StackManager stackManager;
 
   private File stackRoot;
+  private File commonServicesRoot;
   private File serverVersionFile;
   private File customActionRoot;
 
@@ -173,16 +174,21 @@ public class AmbariMetaInfo {
   @Inject
   public AmbariMetaInfo(Configuration conf) throws Exception {
     String stackPath = conf.getMetadataPath();
+    String commonServicesPath = conf.getCommonServicesPath();
     String serverVersionFilePath = conf.getServerVersionFilePath();
     stackRoot = new File(stackPath);
+    if(commonServicesPath != null && !commonServicesPath.isEmpty()) {
+      commonServicesRoot = new File(commonServicesPath);
+    }
     serverVersionFile = new File(serverVersionFilePath);
     customActionRoot = new File(conf.getCustomActionDefinitionPath());
     os_family = new OsFamily(conf);
     ALL_SUPPORTED_OS = new ArrayList<String>(os_family.os_list());
   }
 
-  public AmbariMetaInfo(File stackRoot, File serverVersionFile) throws Exception {
+  public AmbariMetaInfo(File stackRoot, File commonServicesRoot, File serverVersionFile) throws Exception {
     this.stackRoot = stackRoot;
+    this.commonServicesRoot = commonServicesRoot;
     this.serverVersionFile = serverVersionFile;
   }
 
@@ -196,7 +202,7 @@ public class AmbariMetaInfo {
     // Need to be initialized before all actions
     ALL_SUPPORTED_OS = new ArrayList<String>(os_family.os_list());
     readServerVersion();
-    stackManager = new StackManager(stackRoot,
+    stackManager = new StackManager(stackRoot,commonServicesRoot,
         new StackContext(metaInfoDAO, actionMetadata, os_family));
     getCustomActionDefinitions(customActionRoot);
   }

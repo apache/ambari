@@ -71,15 +71,6 @@ import java.util.Map;
  *
  */
 public class StackModule extends BaseModule<StackModule, StackInfo> {
-  /**
-   * Visitation state enum used for cycle detection
-   */
-  public enum State { INIT, VISITED, RESOLVED }
-
-  /**
-   * Visitation state of the stack
-   */
-  private State resolutionState = State.INIT;
 
   /**
    * Context which provides access to external functionality
@@ -136,23 +127,26 @@ public class StackModule extends BaseModule<StackModule, StackInfo> {
    * same stack hierarchy or may explicitly extend a service in a stack in a different
    * hierarchy.
    *
-   * @param parentModule  not used.  Each stack determines its own parent since stacks don't
-   *                      have containing modules
-   * @param allStacks     all stacks modules contained in the stack definition
+   * @param parentModule   not used.  Each stack determines its own parent since stacks don't
+   *                       have containing modules
+   * @param allStacks      all stacks modules contained in the stack definition
+   * @param commonServices all common services specified in the stack definition
    *
    * @throws AmbariException if an exception occurs during stack resolution
    */
   @Override
-  public void resolve(StackModule parentModule, Map<String, StackModule> allStacks) throws AmbariException {
-    resolutionState = State.VISITED;
+  public void resolve(
+      StackModule parentModule, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices)
+      throws AmbariException {
+    moduleState = ModuleState.VISITED;
     String parentVersion = stackInfo.getParentStackVersion();
     // merge with parent version of same stack definition
     if (parentVersion != null) {
-      mergeStackWithParent(allStacks, parentVersion);
+      mergeStackWithParent(parentVersion, allStacks, commonServices);
     }
-    mergeServicesWithExplicitParent(allStacks);
+    mergeServicesWithExplicitParent(allStacks, commonServices);
     processRepositories();
-    resolutionState = State.RESOLVED;
+    moduleState = ModuleState.RESOLVED;
 
     finalizeModule();
   }
@@ -188,27 +182,19 @@ public class StackModule extends BaseModule<StackModule, StackInfo> {
   }
 
   /**
-   * Stack resolution state.
-   * Initial state is INIT.
-   * When resolve is called state is set to VISITED.
-   * When resolve completes, state is set to RESOLVED.
-   *
-   * @return the stacks resolution state
-   */
-  public State getResolutionState() {
-    return resolutionState;
-  }
-
-  /**
    * Merge the stack with its parent.
    *
    * @param allStacks      all stacks in stack definition
+   * @param commonServices all common services specified in the stack definition
    * @param parentVersion  version of the stacks parent
    *
    * @throws AmbariException if an exception occurs merging with the parent
    */
-  private void mergeStackWithParent(Map<String, StackModule> allStacks, String parentVersion) throws AmbariException {
-    String parentStackKey = stackInfo.getName() + parentVersion;
+  private void mergeStackWithParent(
+      String parentVersion, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices)
+      throws AmbariException {
+
+    String parentStackKey = stackInfo.getName() + StackManager.PATH_DELIMITER + parentVersion;
     StackModule parentStack = allStacks.get(parentStackKey);
 
     if (parentStack == null) {
@@ -216,27 +202,31 @@ public class StackModule extends BaseModule<StackModule, StackInfo> {
           "' specifies a parent that doesn't exist");
     }
 
-    resolveStack(parentStack, allStacks);
-    mergeConfigurations(parentStack, allStacks);
+    resolveStack(parentStack, allStacks, commonServices);
+    mergeConfigurations(parentStack, allStacks, commonServices);
     mergeRoleCommandOrder(parentStack);
 
     if (stackInfo.getStackHooksFolder() == null) {
       stackInfo.setStackHooksFolder(parentStack.getModuleInfo().getStackHooksFolder());
     }
-    mergeServicesWithParent(allStacks, parentStack);
+    mergeServicesWithParent(parentStack, allStacks, commonServices);
   }
 
   /**
    * Merge child services with parent stack.
    *
-   * @param stacks       all stacks in stack definition
-   * @param parentStack  parent stack module
+   * @param parentStack    parent stack module
+   * @param allStacks      all stacks in stack definition
+   * @param commonServices all common services specified in the stack definition
    *
    * @throws AmbariException if an exception occurs merging the child services with the parent stack
    */
-  private void mergeServicesWithParent(Map<String, StackModule> stacks, StackModule parentStack) throws AmbariException {
+  private void mergeServicesWithParent(
+      StackModule parentStack, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices)
+      throws AmbariException {
     stackInfo.getServices().clear();
-    Collection<ServiceModule> mergedModules = mergeChildModules(stacks, serviceModules, parentStack.serviceModules);
+    Collection<ServiceModule> mergedModules = mergeChildModules(
+        allStacks, commonServices, serviceModules, parentStack.serviceModules);
     for (ServiceModule module : mergedModules) {
       serviceModules.put(module.getId(), module);
       stackInfo.getServices().add(module.getModuleInfo());
@@ -245,51 +235,128 @@ public class StackModule extends BaseModule<StackModule, StackInfo> {
 
   /**
    * Merge services with their explicitly specified parent if one has been specified.
-   *
-   * @param stacks  all stacks specified in the stack definition
+   * @param allStacks      all stacks in stack definition
+   * @param commonServices all common services specified in the stack definition
    *
    * @throws AmbariException if an exception occurs while merging child services with their explicit parents
    */
-  private void mergeServicesWithExplicitParent(Map<String, StackModule> stacks) throws AmbariException {
+  private void mergeServicesWithExplicitParent(
+      Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices) throws AmbariException {
     for (ServiceModule service : serviceModules.values()) {
       ServiceInfo serviceInfo = service.getModuleInfo();
       String parent = serviceInfo.getParent();
       if (parent != null) {
-        mergeServiceWithExplicitParent(stacks, service, parent);
+        mergeServiceWithExplicitParent(service, parent, allStacks, commonServices);
       }
     }
   }
 
   /**
    * Merge a service with its explicitly specified parent.
-   * @param stacks   all stacks specified in the stack definition
-   * @param service  the service to merge
-   * @param parent   the explicitly specified parent service
+   * @param service          the service to merge
+   * @param parent           the explicitly specified parent service
+   * @param allStacks        all stacks specified in the stack definition
+   * @param commonServices   all common services specified in the stack definition
    *
    * @throws AmbariException if an exception occurs merging a service with its explicit parent
    */
-  private void mergeServiceWithExplicitParent(Map<String, StackModule> stacks, ServiceModule service, String parent)
+  private void mergeServiceWithExplicitParent(
+      ServiceModule service, String parent, Map<String, StackModule> allStacks,
+      Map<String, ServiceModule> commonServices)
       throws AmbariException {
+    if(isCommonServiceParent(parent)) {
+      mergeServiceWithCommonServiceParent(service, parent, allStacks,commonServices);
+    } else {
+      mergeServiceWithStackServiceParent(service, parent, allStacks, commonServices);
+    }
+  }
 
+  /**
+   * Check if parent is common service
+   * @param parent  Parent string
+   * @return true: if parent is common service, false otherwise
+   */
+  private boolean isCommonServiceParent(String parent) {
+    return parent != null
+        && !parent.isEmpty()
+        && parent.split(StackManager.PATH_DELIMITER)[0].equalsIgnoreCase(StackManager.COMMON_SERVICES);
+  }
+
+  /**
+   * Merge a service with its explicitly specified common service as parent.
+   * Parent: common-services/<serviceName>/<serviceVersion>
+   * Common Services Lookup Key: <serviceName>/<serviceVersion>
+   * Example:
+   *  Parent: common-services/HDFS/2.1.0.2.0
+   *  Key: HDFS/2.1.0.2.0
+   *
+   * @param service          the service to merge
+   * @param parent           the explicitly specified common service as parent
+   * @param allStacks        all stacks specified in the stack definition
+   * @param commonServices   all common services specified in the stack definition
+   * @throws AmbariException
+   */
+  private void mergeServiceWithCommonServiceParent(
+      ServiceModule service, String parent, Map<String, StackModule> allStacks,
+      Map<String, ServiceModule> commonServices)
+      throws AmbariException {
     ServiceInfo serviceInfo = service.getModuleInfo();
-    String[] parentToks = parent.split("/");
-    String baseStackKey = parentToks[0] + parentToks[1];
-    StackModule baseStack = stacks.get(baseStackKey);
+    String[] parentToks = parent.split(StackManager.PATH_DELIMITER);
+    if(parentToks.length != 3 || !parentToks[0].equalsIgnoreCase(StackManager.COMMON_SERVICES)) {
+      throw new AmbariException("The service '" + serviceInfo.getName() + "' in stack '" + stackInfo.getName() + ":"
+          + stackInfo.getVersion() + "' extends an invalid parent: '" + parent + "'");
+    }
+
+    String baseServiceKey = parentToks[1] + StackManager.PATH_DELIMITER + parentToks[2];
+    ServiceModule baseService = commonServices.get(baseServiceKey);
+    if (baseService == null) {
+      throw new AmbariException("The service '" + serviceInfo.getName() + "' in stack '" + stackInfo.getName() + ":"
+          + stackInfo.getVersion() + "' extends a non-existent service: '" + parent + "'");
+    }
+    service.resolve(baseService, allStacks, commonServices);
+  }
+
+  /**
+   * Merge a service with its explicitly specified stack service as parent.
+   * Parent: <stackName>/<stackVersion>/<serviceName>
+   * Stack Lookup Key: <stackName>/<stackVersion>
+   * Example:
+   *  Parent: HDP/2.0.6/HDFS
+   *  Key: HDP/2.0.6
+   *
+   * @param service          the service to merge
+   * @param parent           the explicitly specified stack service as parent
+   * @param allStacks        all stacks specified in the stack definition
+   * @param commonServices   all common services specified in the stack definition
+   * @throws AmbariException
+   */
+  private void mergeServiceWithStackServiceParent(
+      ServiceModule service, String parent, Map<String, StackModule> allStacks,
+      Map<String, ServiceModule> commonServices)
+      throws AmbariException {
+    ServiceInfo serviceInfo = service.getModuleInfo();
+    String[] parentToks = parent.split(StackManager.PATH_DELIMITER);
+    if(parentToks.length != 3 || parentToks[0].equalsIgnoreCase(StackManager.COMMON_SERVICES)) {
+      throw new AmbariException("The service '" + serviceInfo.getName() + "' in stack '" + stackInfo.getName() + ":"
+          + stackInfo.getVersion() + "' extends an invalid parent: '" + parent + "'");
+    }
+
+    String baseStackKey = parentToks[0] + StackManager.PATH_DELIMITER + parentToks[1];
+    StackModule baseStack = allStacks.get(baseStackKey);
     if (baseStack == null) {
       throw new AmbariException("The service '" + serviceInfo.getName() + "' in stack '" + stackInfo.getName() + ":"
           + stackInfo.getVersion() + "' extends a service in a non-existent stack: '" + baseStackKey + "'");
     }
 
-    resolveStack(baseStack, stacks);
+    resolveStack(baseStack, allStacks, commonServices);
 
     ServiceModule baseService = baseStack.serviceModules.get(parentToks[2]);
     if (baseService == null) {
       throw new AmbariException("The service '" + serviceInfo.getName() + "' in stack '" + stackInfo.getName() + ":"
           + stackInfo.getVersion() + "' extends a non-existent service: '" + parent + "'");
     }
-    service.resolve(baseService, stacks);
+    service.resolve(baseService, allStacks, commonServices);
   }
-
 
   /**
    * Populate the stack module and info from the stack definition.
@@ -378,14 +445,17 @@ public class StackModule extends BaseModule<StackModule, StackInfo> {
    * Merge configurations with the parent configurations.
    *
    * @param parent  parent stack module
-   * @param stacks  all stack modules
+   * @param allStacks      all stacks in stack definition
+   * @param commonServices all common services specified in the stack definition
    */
-  private void mergeConfigurations(StackModule parent, Map<String, StackModule> stacks) throws AmbariException {
+  private void mergeConfigurations(
+      StackModule parent, Map<String,StackModule> allStacks, Map<String, ServiceModule> commonServices)
+      throws AmbariException {
     stackInfo.getProperties().clear();
     stackInfo.setAllConfigAttributes(new HashMap<String, Map<String, Map<String, String>>>());
 
     Collection<ConfigurationModule> mergedModules = mergeChildModules(
-        stacks, configurationModules, parent.configurationModules);
+        allStacks, commonServices, configurationModules, parent.configurationModules);
     for (ConfigurationModule module : mergedModules) {
       configurationModules.put(module.getId(), module);
       stackInfo.getProperties().addAll(module.getModuleInfo().getProperties());
@@ -397,13 +467,16 @@ public class StackModule extends BaseModule<StackModule, StackInfo> {
    * Resolve another stack module.
    *
    * @param stackToBeResolved  stack module to be resolved
-   * @param stacks             all stack modules in stack definition
+   * @param allStacks          all stack modules in stack definition
+   * @param commonServices     all common services specified in the stack definition
    * @throws AmbariException if unable to resolve the stack
    */
-  private void resolveStack(StackModule stackToBeResolved, Map<String, StackModule> stacks) throws AmbariException {
-    if (stackToBeResolved.getResolutionState() == State.INIT) {
-      stackToBeResolved.resolve(null, stacks);
-    } else if (stackToBeResolved.getResolutionState() == State.VISITED) {
+  private void resolveStack(
+      StackModule stackToBeResolved, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices)
+      throws AmbariException {
+    if (stackToBeResolved.getModuleState() == ModuleState.INIT) {
+      stackToBeResolved.resolve(null, allStacks, commonServices);
+    } else if (stackToBeResolved.getModuleState() == ModuleState.VISITED) {
       //todo: provide more information to user about cycle
       throw new AmbariException("Cycle detected while parsing stack definition");
     }
