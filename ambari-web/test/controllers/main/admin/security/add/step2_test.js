@@ -385,6 +385,66 @@ describe('App.MainAdminSecurityAddStep2Controller', function () {
      // expect(controller.get('content.services')[0].configs[0].defaultValue).to.equal('Value1');
       expect(controller.get('content.services')[0].configs[1].defaultValue).to.equal('name1Value1');
     });
+    it('stack 2.2 `storm_principal_name` config should be set to `storm`', function() {
+      sinon.stub(App, 'get').withArgs('currentStackVersionNumber').returns('2.2');
+      controller.set('content.services', [
+        {
+          serviceName: 'STORM',
+          configs: [
+            {
+              name: 'nimbus_host',
+              defaultValue: 'Value1'
+            },
+            {
+              name: 'storm_principal_name'
+            }
+          ]
+        }
+      ]);
+      controller.setHostToPrincipal('STORM', 'nimbus_host', 'storm_principal_name', 'storm');
+      App.get.restore();
+      expect(controller.get('content.services')[0].configs[1].defaultValue).to.equal('storm');
+    });
+    it('stack 2.1 `oozie_http_principal_name` value should contains OOZIE_SERVER host', function() {
+      sinon.stub(App, 'get').withArgs('currentStackVersionNumber').returns('2.1');
+      controller.set('content.services', [
+        {
+          serviceName: 'OOZIE',
+          configs: [
+            {
+              name: 'oozie_servername',
+              defaultValue: 'host1.com'
+            },
+            {
+              name: 'oozie_http_principal_name'
+            }
+          ]
+        }
+      ]);
+      controller.setHostToPrincipal('OOZIE', 'oozie_servername', 'oozie_http_principal_name', 'HTTP/');
+      App.get.restore();
+      expect(controller.get('content.services')[0].configs[1].defaultValue).to.equal('HTTP/host1.com');
+    });
+    it('stack 2.2 `oozie_http_principal_name` value should be set to HTTP/_HOST', function() {
+      sinon.stub(App, 'get').withArgs('currentStackVersionNumber').returns('2.2');
+      controller.set('content.services', [
+        {
+          serviceName: 'OOZIE',
+          configs: [
+            {
+              name: 'oozie_servername',
+              defaultValue: 'host1.com'
+            },
+            {
+              name: 'oozie_http_principal_name'
+            }
+          ]
+        }
+      ]);
+      controller.setHostToPrincipal('OOZIE', 'oozie_servername', 'oozie_http_principal_name', 'HTTP/');
+      App.get.restore();
+      expect(controller.get('content.services')[0].configs[1].defaultValue).to.equal('HTTP/_HOST');
+    });
   });
 
   describe('#loadUsers()', function () {

@@ -339,10 +339,15 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
       var host = service.configs.findProperty('name', hostConfigName);
       var principal = service.configs.findProperty('name', principalConfigName);
       var versionNumber = App.get('currentStackVersionNumber');
-      if(principalConfigName == 'storm_principal_name' && stringUtils.compareVersions(versionNumber, "2.2") >= 0){
-        principal.defaultValue = defaultPrimaryName;
+      var special22ConfigsMap = {
+        storm_principal_name: defaultPrimaryName,
+        oozie_http_principal_name: defaultPrimaryName + '_HOST'
+      };
+      if (stringUtils.compareVersions(versionNumber, "2.2") >= 0 && special22ConfigsMap[principalConfigName]) {
+        principal.defaultValue = special22ConfigsMap[principalConfigName];
         return true;
-      } else if (host && principal) {
+      }
+      if (host && principal) {
         var host_defaultValue = Array.isArray(host.defaultValue) ? host.defaultValue[0] : host.defaultValue;
         principal.defaultValue = defaultPrimaryName + host_defaultValue;
         return true;
