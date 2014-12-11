@@ -27,14 +27,12 @@
       {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
         {{view view.parentView.serviceSort class="first service-sorting"}}
         {{view view.parentView.nameSort class="name-sorting"}}
-        {{view view.parentView.lastCheckedSort class="last-checked-sorting"}}
         {{view view.parentView.statusSort class="status-sorting"}}
         {{view view.parentView.textSort class="text-sorting"}}
       {{/view}}
     <tr class="filter-row">
       <th class="first">{{view view.serviceFilterView class="service-filter"}}</th>
       <th>{{view view.nameFilterView class="name-filter"}}</th>
-      <th>{{view view.checkedFilterView class="checked-filter"}}</th>
       <th>{{view view.stateFilterView class="status-filter"}}</th>
       <th>{{view view.textView class="text-filter"}}</th>
     </tr>
@@ -43,17 +41,24 @@
     {{#if view.pageContent}}
       {{#each alertInstance in view.pageContent}}
         <tr>
-          <td class="first">{{alertInstance.serviceDisplayName}}</td>
-          <td>{{alertInstance.label}}</td>
-          <td>{{alertInstance.lastCheckedFormatted}}</td>
-          <td>{{{alertInstance.status}}} <time class="timeago" {{bindAttr data-original-title="alertInstance.lastTriggeredFormatted"}}>{{alertInstance.lastTriggeredForFormatted}}</time></td>
+          <td class="first">
+            {{#if alertInstance.isAmbariServiceName}}
+              {{alertInstance.serviceDisplayName}}
+            {{else}}
+              <a href="#" {{action routeToService alertInstance.service}}>{{alertInstance.serviceDisplayName}}</a>
+            {{/if}}
+          </td>
+          <td>
+            <a href="#" {{action routeToAlertDefinition alertInstance.definitionId target="controller"}}>{{alertInstance.label}}</a>
+          </td>
+          <td>{{{alertInstance.status}}} <time class="timeago" {{bindAttr data-original-title="alertInstance.statusChangedAndLastCheckedFormatted"}}>{{alertInstance.lastTriggeredForFormatted}}</time></td>
           <td><span class="alert-text" {{bindAttr data-original-title="alertInstance.text"}} class="alert-text">{{alertInstance.text}}</span></td>
         </tr>
       {{/each}}
     {{else}}
       <tr>
         <td class="first"></td>
-        <td colspan="4">
+        <td colspan="3">
           {{t alerts.table.noAlerts}}
         </td>
       </tr>

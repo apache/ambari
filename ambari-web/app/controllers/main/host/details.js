@@ -52,16 +52,6 @@ App.MainHostDetailsController = Em.Controller.extend({
   },
 
   /**
-   * Open summary page of the selected service
-   * @param {object} event
-   * @method routeToService
-   */
-  routeToService: function (event) {
-    var service = event.context;
-    App.router.transitionTo('main.services.service.summary', service);
-  },
-
-  /**
    * List of active (not in passive state) host components
    * @type {Ember.Enumerable}
    */

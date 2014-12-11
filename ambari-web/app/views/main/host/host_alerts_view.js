@@ -18,12 +18,12 @@
 
 var App = require('app');
 var filters = require('views/common/filter_view'),
-  sort = require('views/common/sort_view');
+    sort = require('views/common/sort_view');
 
 App.MainHostAlertsView = App.TableView.extend({
   templateName: require('templates/main/host/host_alerts'),
 
-  content: function() {
+  content: function () {
     return this.get('controller.content');
   }.property('controller.content.@each'),
 
@@ -55,7 +55,7 @@ App.MainHostAlertsView = App.TableView.extend({
   nameSort: sort.fieldView.extend({
     column: 2,
     name: 'label',
-    displayName: Em.I18n.t('common.name')
+    displayName: Em.I18n.t('alerts.definition.name')
   }),
 
   /**
@@ -81,24 +81,13 @@ App.MainHostAlertsView = App.TableView.extend({
   }),
 
   /**
-   * Sorting header for <label>alertDefinition.lastTriggeredSort</label>
-   * @type {Em.View}
-   */
-  lastCheckedSort: sort.fieldView.extend({
-    column: 3,
-    name: 'latestTimestamp',
-    displayName: Em.I18n.t('alerts.table.header.lastChecked'),
-    type: 'number'
-  }),
-
-  /**
    * Sorting header for <label>alertDefinition.label</label>
    * @type {Em.View}
    */
   textSort: sort.fieldView.extend({
     column: 5,
     name: 'text',
-    displayName: Em.I18n.t('alerts.table.header.text')
+    displayName: Em.I18n.t('alerts.table.header.check.response')
   }),
 
 
@@ -109,7 +98,7 @@ App.MainHostAlertsView = App.TableView.extend({
   nameFilterView: filters.createTextView({
     column: 2,
     fieldType: 'filter-input-width',
-    onChangeValue: function(){
+    onChangeValue: function () {
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
     }
   }),
@@ -175,51 +164,6 @@ App.MainHostAlertsView = App.TableView.extend({
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'select');
     }
   }),
-
-  /**
-   * Filtering header for <label>alertDefinition.lastTriggered</label>
-   * @type {Em.View}
-   */
-  checkedFilterView: filters.createSelectView({
-    column: 3,
-    appliedEmptyValue: ["", ""],
-    fieldType: 'filter-input-width,modified-filter',
-    content: [
-      {
-        value: 'Any',
-        label: Em.I18n.t('any')
-      },
-      {
-        value: 'Past 1 hour',
-        label: 'Past 1 hour'
-      },
-      {
-        value: 'Past 1 Day',
-        label: 'Past 1 Day'
-      },
-      {
-        value: 'Past 2 Days',
-        label: 'Past 2 Days'
-      },
-      {
-        value: 'Past 7 Days',
-        label: 'Past 7 Days'
-      },
-      {
-        value: 'Past 14 Days',
-        label: 'Past 14 Days'
-      },
-      {
-        value: 'Past 30 Days',
-        label: 'Past 30 Days'
-      }
-    ],
-    emptyValue: 'Any',
-    onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'date');
-    }
-  }),
-
 
   /**
    * Filtering header for <label>alertDefinition.service.serviceName</label>

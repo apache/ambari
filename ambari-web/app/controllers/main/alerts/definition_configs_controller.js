@@ -138,6 +138,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
     }
 
     configs.setEach('isDisabled', !this.get('canEdit'));
+    configs.setEach('allConfigs', configs);
 
     this.set('configs', configs);
   },
@@ -488,6 +489,14 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         value: property.get('value')
       }
     });
-  }
+  },
+
+  /**
+   * Define whether all configs are valid
+   * @type {Boolean}
+   */
+  hasErrors: function () {
+    return this.get('configs').someProperty('isValid', false);
+  }.property('configs.@each.isValid')
 
 });

@@ -246,6 +246,7 @@ Em.I18n.translations = {
 
   'models.alert_instance.tiggered.verbose': "Occured on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occured on {0}",
+  'models.alert_definition.triggered.checked': "Status Changed: {0}\nLast Checked: {1}",
 
   'passiveState.turnOn':'Turn On Maintenance Mode',
   'passiveState.turnOff':'Turn Off Maintenance Mode',
@@ -871,8 +872,7 @@ Em.I18n.translations = {
   'alerts.table.header.lastTriggered': 'Last Status Changed',
   'alerts.table.header.lastChecked': 'Last Checked',
   'alerts.table.header.lastTrigger': 'Last Changed',
-  'alerts.table.header.text': 'Text',
-  'alerts.table.header.triggeredOn': 'Triggered On',
+  'alerts.table.header.check.response': 'Check Response',
   'alerts.table.header.definitionName': 'Alert Definition Name',
   'alerts.table.header.notification': 'Notification',
   'alerts.table.state': 'State',
@@ -885,6 +885,7 @@ Em.I18n.translations = {
   'alerts.table.state.enabled.confirm.btn': 'Confirm Disable',
   'alerts.table.state.disabled.confirm.btn': 'Confirm Enable',
   'alerts.filters.filteredAlertsInfo': '{0} of {1} definitions showing',
+  'alerts.definition.name': 'Alert Definition name',
 
   'alerts.definition.details.enable': 'Enable',
   'alerts.definition.details.disable': 'Disable',
@@ -1420,7 +1421,7 @@ Em.I18n.translations = {
 
   'services.service.summary.alerts.noAlerts': 'No alerts',
   'services.service.summary.alerts.alertsExist': '{0} alerts',
-  'services.service.summary.alerts.popup.header': 'Critical or Warning Alerts for {0}',
+  'services.service.summary.alerts.popup.header': 'Alerts for {0}',
 
   'services.service.info.metrics.flume.channelFillPercent':'Channel Fill Percentage',
   'services.service.info.metrics.flume.channelSize':'Channel Size',
@@ -1876,7 +1877,7 @@ Em.I18n.translations = {
   'alerts.actions.manage_alert_groups_popup.duplicateButton':'Duplicate Alert Group',
   'alerts.actions.manage_alert_groups_popup.addDefinition':'Add alert definitions to selected Alert Group',
   'alerts.actions.manage_alert_groups_popup.addDefinitionDisabled':'There are no available alert definitions to add',
-  'alerts.actions.manage_alert_groups_popup.addDefinitionToDefault': 'You cannot add alert definition to a default group',
+  'alerts.actions.manage_alert_groups_popup.addDefinitionToDefault': 'Cannot modify default alert group',
   'alerts.actions.manage_alert_groups_popup.removeDefinition':'Remove alert definitions from selected Alert Group',
   'alerts.actions.manage_alert_groups_popup.removeDefinitionDisabled':'Cannot modify default alert group',
   'alerts.actions.manage_alert_groups_popup.selectDefsDialog.title': 'Select Alert Group Definitions',

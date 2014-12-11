@@ -145,6 +145,8 @@
 
   .type-icon {
     margin-right: 5px;
+    width: 10px;
+    display: inline-block;
   }
 }
 
@@ -158,13 +160,13 @@
   .col1,
   td:first-child + td,
   th:first-child + th {
-    width: 20%;
+    width: 23%;
   }
 
   .col2,
   td:first-child + td + td,
   th:first-child + th + th {
-    width: 10%
+    width: 7%
   }
 
   .col3,
@@ -317,6 +319,14 @@
       width: 30%;
     }
   }
+
+  .badge-container {
+    height: 26px;
+    .alert-threshold-badge {
+      line-height: 26px;
+      height: 26px;
+    }
+  }
 }
 
 #host-alerts-table {
@@ -329,7 +339,7 @@
   .col0,
   td:first-child,
   th:first-child {
-    width: 10%;
+    width: 15%;
     .filter-input-width {
       width: 80%;
     }
@@ -338,7 +348,7 @@
   .col1,
   td:first-child + td,
   th:first-child + th {
-    width: 25%;
+    width: 30%;
     .filter-input-width {
       width: 90%;
     }
@@ -347,23 +357,14 @@
   .col2,
   td:first-child + td + td,
   th:first-child + th + th {
-    width: 15%;
+    width: 20%;
     .filter-input-width {
-      width: 80%;
+      width: inherit;
     }
   }
   .col3,
   td:first-child + td + td + td,
   th:first-child + th + th + th {
-    width: 15%;
-    .filter-input-width {
-      width: inherit;
-    }
-  }
-
-  .col4,
-  td:first-child + td + td + td + td,
-  th:first-child + th + th + th + th {
     width: 35%;
   }
 
@@ -506,6 +507,11 @@
     }
   }
 }
+
+.service-alerts {
+  max-height: 246px;
+}
+
 .alerts-popup-wrap {
   .top-wrap {
     width: 100%;
@@ -520,9 +526,6 @@
     }
     .service-top {
       width: 31%;
-      padding-left: 10px;
-    }
-    .last-triggered-top {
       padding-left: 10px;
     }
     .status-top,.name-top,.service-top,.last-triggered-top {
@@ -547,7 +550,6 @@
         min-width: 20px;
       }
       .name-text {
-        padding-left: 5px;
         float: left;
         width: 33%;
       }

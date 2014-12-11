@@ -16,8 +16,8 @@
 * limitations under the License.
 }}
 
-<div class="control-group">
-  <div class="span3"><span {{bindAttr class="view.property.badgeCssClass :alert-state-single-host :label"}}>{{view.property.badge}}</span>&nbsp;</div>
+<div>
+  <div class="span2 badge-container"><span {{bindAttr class="view.property.badgeCssClass :alert-threshold-badge :alert-state-single-host :label"}}>{{view.property.badge}}</span>&nbsp;</div>
   {{#if view.property.showInputForValue}}
     <div {{bindAttr class=":span2 view.property.valueMetric:input-append"}}>
         {{view Em.TextField valueBinding="view.property.displayValue" disabledBinding="view.property.isDisabled" class="span11"}}
@@ -26,7 +26,7 @@
         {{/if}}
     </div>
   {{/if}}
-  <div {{bindAttr class=":alert-text-input view.property.showInputForValue:span7:span9"}}>
+  <div {{bindAttr class=":alert-text-input view.property.showInputForValue:span8:span10"}}>
     {{#if view.property.showInputForText}}
       {{view Em.TextField valueBinding="view.property.text" disabledBinding="view.property.isDisabled"}}
     {{/if}}

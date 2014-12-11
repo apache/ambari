@@ -17,7 +17,7 @@
 }}
 <form class="form-horizontal alert-configs">
   {{#each property in controller.configs}}
-    <div {{bindAttr class=":control-group property.name"}}>
+    <div {{bindAttr class=":control-group property.name property.isValid::error"}}>
       {{#if property.isPreLabeled}}
         <label {{bindAttr class=":control-label property.isShifted:shifted"}}>{{property.label}}</label>
 

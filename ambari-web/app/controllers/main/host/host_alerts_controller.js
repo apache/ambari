@@ -21,7 +21,7 @@ var App = require('app');
 App.MainHostAlertsController = Em.ArrayController.extend({
   name: 'mainHostAlertsController',
 
-  selectedHost: function() {
+  selectedHost: function () {
     return App.get('router.mainHostDetailsController.content');
   }.property('App.router.mainHostDetailsController.content'),
 
@@ -29,8 +29,19 @@ App.MainHostAlertsController = Em.ArrayController.extend({
    * List of all <code>App.AlertInstance</code> by Host
    * @type {App.AlertInstance[]}
    */
-  content: function() {
+  content: function () {
     return App.AlertInstance.find().toArray().filterProperty('host', this.get('selectedHost'));
-  }.property('App.router.mainAlertInstancesController.isLoaded', 'selectedHost')
+  }.property('App.router.mainAlertInstancesController.isLoaded', 'selectedHost'),
+
+  /**
+   * Open details page of the selected alertDefinition
+   * @param {object} event
+   * @method routeToAlertDefinition
+   */
+  routeToAlertDefinition: function (event) {
+    var alertDefinition = App.AlertDefinition.getAllDefinitions().findProperty('id', event.context);
+    App.router.transitionTo('main.alerts.alertDetails', alertDefinition);
+  }
+
 
 });

@@ -5,9 +5,9 @@
  * licenses this file to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -88,17 +88,17 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
     });
   },
 
-  gotoConfigs: function (){
+  gotoConfigs: function () {
     App.router.get('mainServiceItemController').set('routeToConfigs', true);
     App.router.transitionTo('main.services.service.configs', this.get('content'));
     App.router.get('mainServiceItemController').set('routeToConfigs', false);
   },
 
-  nagiosUrl: function(){
+  nagiosUrl: function () {
     return App.router.get('clusterController.nagiosUrl');
   }.property('App.router.clusterController.nagiosUrl'),
-  
-  isNagiosInstalled: function(){
+
+  isNagiosInstalled: function () {
     return App.router.get('clusterController.isNagiosInstalled');
   }.property('App.router.clusterController.isNagiosInstalled'),
 
@@ -106,8 +106,10 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
     var service = event.context;
     return App.ModalPopup.show({
       header: Em.I18n.t('services.service.summary.alerts.popup.header').format(service.get('displayName')),
+      autoHeight: false,
       bodyClass: Em.View.extend({
         templateName: require('templates/main/service/info/service_alert_popup'),
+        classNames: ['service-alerts'],
         controllerBinding: 'App.router.mainAlertDefinitionsController',
         didInsertElement: function () {
           Em.run.next(this, function () {
@@ -116,7 +118,20 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
         },
         alerts: function () {
           var serviceDefinitions = this.get('controller.content').filterProperty('service', service);
-          return serviceDefinitions.filterProperty('isCriticalOrWarning');
+          // definitions should be sorted in order: critical, warning, all other
+          var criticalDefinitions = [];
+          var warningDefinitions = [];
+          serviceDefinitions.forEach(function (definition) {
+            if (definition.get('isCritical')) {
+              criticalDefinitions.push(definition);
+              serviceDefinitions = serviceDefinitions.without(definition);
+            } else if (definition.get('isWarning')) {
+              warningDefinitions.push(definition);
+              serviceDefinitions = serviceDefinitions.without(definition);
+            }
+          });
+          serviceDefinitions = criticalDefinitions.concat(warningDefinitions, serviceDefinitions);
+          return serviceDefinitions;
         }.property('controller.content'),
         gotoAlertDetails: function (event) {
           if (event && event.context) {
@@ -128,7 +143,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
           this.get('parentView').hide();
         }
       }),
-      isHideBodyScroll: true,
+      isHideBodyScroll: false,
       primary: Em.I18n.t('common.close'),
       secondary: null
     });

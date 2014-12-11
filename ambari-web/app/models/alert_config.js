@@ -139,7 +139,25 @@ App.AlertConfigProperty = Ember.Object.extend({
       default:
         console.error('Unable to find viewClass for displayType ', displayType);
     }
-  }.property('displayType')
+  }.property('displayType'),
+
+  /**
+   * Define whether property is valid
+   * Computed property
+   * Should be defined in child class
+   * @type {Boolean}
+   */
+  isValid: function () {
+    return true;
+  }.property(),
+
+  /**
+   * Array of a group of configs, that current config property relates to
+   * Should be set in controller in rendering configs function
+   * Used to get access to other configs properties of one group
+   * @type {App.AlertConfigProperty[]}
+   */
+  allConfigs: []
 
 });
 
@@ -211,7 +229,13 @@ App.AlertConfigProperties = {
     displayType: 'textField',
     unit: 'Minute',
     classNames: 'alert-interval-input',
-    apiProperty: 'interval'
+    apiProperty: 'interval',
+    isValid: function () {
+      var value = this.get('value');
+      if (!value) return false;
+      value = ('' + value).trim();
+      return !isNaN(value) && value >= 1;
+    }.property('value')
   }),
 
   /**
@@ -254,7 +278,7 @@ App.AlertConfigProperties = {
 
     /**
      * Value actually displayed to the user. This value is transformed
-     * based on the limited types of 'valueMetric's. Mappings from 
+     * based on the limited types of 'valueMetric's. Mappings from
      * 'value' to 'displayValue' is handled by observers.
      */
     displayValue: '',
@@ -271,7 +295,7 @@ App.AlertConfigProperties = {
 
     apiProperty: [],
 
-    init:function () {
+    init: function () {
       this.valueWasChanged();
       this._super();
     },
@@ -316,10 +340,10 @@ App.AlertConfigProperties = {
      */
     wasChanged: function () {
       return (this.get('previousValue') !== null && this.get('value') !== this.get('previousValue')) ||
-        (this.get('previousText') !== null && this.get('text') !== this.get('previousText'));
+      (this.get('previousText') !== null && this.get('text') !== this.get('previousText'));
     }.property('value', 'text', 'previousValue', 'previousText'),
 
-    valueWasChanged : function() {
+    valueWasChanged: function () {
       var value = this.get('value');
       var valueMetric = this.get('valueMetric');
       var displayValue = this.get('displayValue');

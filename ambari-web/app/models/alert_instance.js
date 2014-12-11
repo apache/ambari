@@ -43,7 +43,8 @@ App.AlertInstance = DS.Model.extend({
    */
   status: function () {
     var state = this.get('state');
-    return '<span class="label alert-state-single-host alert-state-' + state + '">' + state + '</span>';
+    var shortState = this.get('shortState')[state];
+    return '<span class="label alert-state-single-host alert-state-' + state + '">' + shortState + '</span>';
   }.property('state'),
 
   /**
@@ -52,7 +53,7 @@ App.AlertInstance = DS.Model.extend({
    * cluster services and other services into a common display-name.
    * @see App.AlertDefinition#serviceDisplayName()
    */
-  serviceDisplayName : function() {
+  serviceDisplayName: function () {
     var serviceName = this.get('service.displayName');
     if (!serviceName) {
       serviceName = this.get('serviceName');
@@ -67,7 +68,7 @@ App.AlertInstance = DS.Model.extend({
    * Formatted timestamp for latest instance triggering
    * @type {string}
    */
-  lastCheckedFormatted: function() {
+  lastCheckedFormatted: function () {
     return dateUtils.dateFormat(this.get('latestTimestamp'));
   }.property('latestTimestamp'),
 
@@ -75,7 +76,7 @@ App.AlertInstance = DS.Model.extend({
    * Formatted timestamp for latest instance triggering
    * @type {string}
    */
-  lastTriggeredFormatted: function() {
+  lastTriggeredFormatted: function () {
     return dateUtils.dateFormat(this.get('originalTimestamp'));
   }.property('originalTimestamp'),
 
@@ -85,10 +86,10 @@ App.AlertInstance = DS.Model.extend({
    */
   lastTriggeredAgoFormatted: function () {
     var lastTriggered = this.get('originalTimestamp');
-    return lastTriggered ? $.timeago(new Date(lastTriggered)): '';
+    return lastTriggered ? $.timeago(new Date(lastTriggered)) : '';
   }.property('originalTimestamp'),
 
-  lastTriggeredVerboseDisplay : function() {
+  lastTriggeredVerboseDisplay: function () {
     var originalTimestamp = this.get('originalTimestamp');
     var latestTimestamp = this.get('latestTimestamp');
     return Em.I18n.t('models.alert_instance.tiggered.verbose').format(
@@ -106,11 +107,21 @@ App.AlertInstance = DS.Model.extend({
     var previousPrefixAgo = $.timeago.settings.strings.prefixAgo;
     $.timeago.settings.strings.suffixAgo = null;
     $.timeago.settings.strings.prefixAgo = 'for';
-    var triggeredFor = lastTriggered ? $.timeago(new Date(lastTriggered)): '';
+    var triggeredFor = lastTriggered ? $.timeago(new Date(lastTriggered)) : '';
     $.timeago.settings.strings.suffixAgo = previousSuffixAgo;
     $.timeago.settings.strings.prefixAgo = previousPrefixAgo;
     return triggeredFor;
   }.property('originalTimestamp'),
+
+  /**
+   * Formatted lastChecked and lastTriggered timestamp
+   * @returns {string}
+   */
+  statusChangedAndLastCheckedFormatted: function () {
+    var lastCheckedFormatted = this.get('lastCheckedFormatted');
+    var lastTriggeredFormatted = this.get('lastTriggeredFormatted');
+    return Em.I18n.t('models.alert_definition.triggered.checked').format(lastCheckedFormatted, lastTriggeredFormatted);
+  }.property('lastCheckedFormatted', 'lastTriggeredFormatted'),
 
   /**
    * List of css-classes for alert instance status
@@ -118,6 +129,23 @@ App.AlertInstance = DS.Model.extend({
    */
   typeIcons: {
     'DISABLED': 'icon-off'
+  },
+
+  /**
+   * Define if definition serviceName is Ambari
+   * Used in some logic in templates to distinguish definitions with Ambari serviceName
+   * @returns {boolean}
+   */
+  isAmbariServiceName: function () {
+    return this.get('serviceName') === 'AMBARI';
+  }.property('serviceName'),
+
+  shortState: {
+    'CRITICAL': 'CRIT',
+    'WARNING': 'WARN',
+    'OK': 'OK',
+    'UNKNOWN': 'UNKWN',
+    'PENDING': 'NONE'
   }
 });
 

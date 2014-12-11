@@ -60,7 +60,7 @@
           {{#isAccessible ADMIN}}
             {{#unless App.router.mainAlertDefinitionConfigsController.canEdit}}
               <a {{action editConfigs target="App.router.mainAlertDefinitionConfigsController"}} class="pull-right edit-link">
-                <strong>{{t common.edit}}</strong>
+                {{t common.edit}}
               </a>
             {{/unless}}
           {{/isAccessible}}
@@ -70,7 +70,7 @@
         {{#if App.router.mainAlertDefinitionConfigsController.canEdit}}
           <div class="edit-buttons">
             <button {{action cancelEditConfigs target="App.router.mainAlertDefinitionConfigsController"}} class="btn">{{t common.cancel}}</button>
-            <button {{bindAttr disabled="controller.editing.thresholds.isError"}} {{action saveConfigs target="App.router.mainAlertDefinitionConfigsController"}}
+            <button {{bindAttr disabled="App.router.mainAlertDefinitionConfigsController.hasErrors"}} {{action saveConfigs target="App.router.mainAlertDefinitionConfigsController"}}
                 class="btn btn-primary">{{t common.save}}
             </button>
           </div>
@@ -167,13 +167,13 @@
 
       {{#if App.router.mainAlertInstancesController.isLoaded}}
 
-      <table class="table table-bordered table-striped alerts-table" id="alert-instances-table">
+      <table class="table advanced-header-table table-bordered table-striped alerts-table" id="alert-instances-table">
         <thead>
         <tr>
           <th class="first">{{t alerts.definition.details.serviceHost}}</th>
           <th>{{t common.status}}</th>
           <th>{{t alerts.definition.details.24-hour}}</th>
-          <th>{{t alerts.table.header.text}}</th>
+          <th>{{t alerts.table.header.check.response}}</th>
         </tr>
         </thead>
         <tbody>

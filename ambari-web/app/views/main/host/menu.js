@@ -23,6 +23,19 @@ App.MainHostMenuView = Em.CollectionView.extend({
   classNames: ["nav", "nav-tabs"],
   host: null,
   content: function () {
+    //count Alerts badge text and class
+
+    var criticalWarningCount = this.get('host.criticalWarningAlertsCount');
+    var criticalCount = this.get('host.alertsSummary.CRITICAL');
+    var warningCount = this.get('host.alertsSummary.WARNING');
+    var badgeText = "" + criticalWarningCount;
+    var badgeClasses = "label ";
+    if (criticalCount > 0) {
+      badgeClasses += "label-important";
+    } else if (warningCount > 0) {
+      badgeClasses += "label-warning ";
+    }
+
     var array = [
       {
         label: Em.I18n.t('common.summary'),
@@ -31,6 +44,12 @@ App.MainHostMenuView = Em.CollectionView.extend({
       {
         label: Em.I18n.t('common.configs'),
         routing: 'configs'
+      },
+      {
+        label: Em.I18n.t('hosts.host.alerts.label'),
+        routing: 'alerts',
+        badgeText: badgeText,
+        badgeClasses: badgeClasses
       }
       /* { label:'Audit', routing:'audit'} */
     ];
@@ -40,61 +59,34 @@ App.MainHostMenuView = Em.CollectionView.extend({
         routing: 'stackVersions'
       });
     }
-    array.push({
-      label: 'Alerts',
-      routing: 'alerts',
-      badgeText: '0',
-      badgeClasses: 'label '
-    });
     return array;
-  }.property(''),
+  }.property('host.alertsSummary.CRITICAL', 'host.alertsSummary.WARNING', 'host.criticalWarningAlertsCount'),
 
-  init: function(){ this._super(); this.activateView(); },
+  init: function () {
+    this._super();
+    this.activateView();
+  },
 
   activateView: function () {
     var defaultRoute = App.router.get('currentState.name') || "summary";
     $.each(this._childViews, function () {
       this.set('active', (this.get('content.routing') == defaultRoute ? "active" : ""));
     });
-    this.hostAlertsObserver();
   },
 
-  deactivateChildViews: function() {
-    $.each(this._childViews, function(){
+  deactivateChildViews: function () {
+    $.each(this._childViews, function () {
       this.set('active', "");
     });
   },
-
-  hostAlertsObserver : function() {
-    var criticalWarningCount = this.get('host.criticalWarningAlertsCount');
-    var criticalCount = this.get('host.alertsSummary.CRITICAL');
-    var warningCount = this.get('host.alertsSummary.WARNING');
-    var badgeText = "" + criticalWarningCount;
-    var badgeClasses = "label ";
-    if (criticalCount > 0) {
-      badgeClasses += "label-important";
-    } else if (warningCount > 0){
-      badgeClasses += "label-warning ";
-    }
-    // Update content
-    var content = this.get('content');
-    if (content) {
-      content.forEach(function(item) {
-        if (item.label == 'Alerts' && (item.badgeText !== badgeText || item.badgeClasses != badgeClasses)) {
-          Ember.set(item, 'badgeText', badgeText);
-          Ember.set(item, 'badgeClasses', badgeClasses);
-        }
-      });
-    }
-  }.observes('host.alertsSummary.CRITICAL', 'host.alertsSummary.WARNING', 'host.criticalWarningAlertsCount'),
 
   itemViewClass: Em.View.extend({
     classNameBindings: ["active"],
     active: "",
     template: Ember.Handlebars.compile('<a {{action hostNavigate view.content.routing }} href="#"> {{unbound view.content.label}} ' +
-        '{{#if view.content.badgeText}} '+
-          '<span {{bindAttr class="view.content.badgeClasses"}}> '+
-            '{{view.content.badgeText}}'+
-          '</span>  {{/if}}</a>')
+    '{{#if view.content.badgeText}} ' +
+    '<span {{bindAttr class="view.content.badgeClasses"}}> ' +
+    '{{view.content.badgeText}}' +
+    '</span>  {{/if}}</a>')
   })
 });

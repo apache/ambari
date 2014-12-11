@@ -22,7 +22,7 @@
       <div class="top-wrap">
         <div class="service-top">{{t alerts.definition.details.serviceHost}}</div>
         <div class="name-top">{{t alerts.fastAccess.popup.body.name}}</div>
-        <div class="last-triggered-top">{{t alerts.table.header.triggeredOn}}</div>
+        <div class="last-triggered-top">{{t common.status}}</div>
       </div>
         <div id="alert-info">
           {{#if view.isAlertEmptyList}}
@@ -50,9 +50,6 @@
             </div>
           {{/each}}
         {{/if}}
-        <div class="show-more" {{action "showMore" target="view"}}>
-          <a href="#">{{t alerts.fastAccess.popup.body.showmore}}</a>
-        </div>
       </div>
     </div>
   {{else}}

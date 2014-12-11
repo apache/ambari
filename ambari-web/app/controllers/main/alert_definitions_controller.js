@@ -41,7 +41,7 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
    * </ul>
    * @type {App.AlertDefinition[]}
    */
-  content: function() {
+  content: function () {
     return App.AlertDefinition.getAllDefinitions();
   }.property('mapperTimestamp'),
 
@@ -51,7 +51,7 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
    * @method toggleState
    * @return {App.ModalPopup}
    */
-  toggleState: function(event) {
+  toggleState: function (event) {
     var alertDefinition = event.context;
     var self = this;
     var bodyMessage = Em.Object.create({
@@ -60,7 +60,7 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
     });
 
     return App.showConfirmationFeedBackPopup(function (query) {
-      self.toggleDefinitionState (alertDefinition);
+      self.toggleDefinitionState(alertDefinition);
     }, bodyMessage);
   },
 
@@ -70,7 +70,7 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
    * @returns {$.ajax}
    * @method toggleDefinitionState
    */
-  toggleDefinitionState: function(alertDefinition) {
+  toggleDefinitionState: function (alertDefinition) {
     var newState = !alertDefinition.get('enabled');
     alertDefinition.set('enabled', newState);
     return App.ajax.send({
@@ -90,7 +90,7 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
    * @method getCriticalAlertsCountForService
    * @return {number}
    */
-  getCriticalAlertsCountForService: function(service) {
+  getCriticalAlertsCountForService: function (service) {
     var alertsForService = this.get('content').filterProperty('service', service);
     return alertsForService.filterProperty('isCriticalOrWarning').get('length');
   },
@@ -105,12 +105,12 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
    * @type {number}
    */
   allAlertsCount: function () {
-    return this.get('unhealthyAlertInstances').get('length');
+    return this.get('unhealthyAlertInstances.length');
   }.property('unhealthyAlertInstances.length'),
 
-  unhealthyAlertInstances: function() {
+  unhealthyAlertInstances: function () {
     return App.AlertInstance.find().toArray().filterProperty('state', 'CRITICAL').concat(
-      App.AlertInstance.find().toArray().filterProperty('state', 'WARNING')
+        App.AlertInstance.find().toArray().filterProperty('state', 'WARNING')
     );
   }.property('mapperTimestamp'),
 
@@ -126,19 +126,28 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
    * @method showPopup
    * @return {App.ModalPopup}
    */
-  showPopup: function() {
+  showPopup: function () {
 
     var self = this;
 
     return App.ModalPopup.show({
 
-      header: Em.I18n.t('alerts.fastAccess.popup.header').format(self.get('allAlertsCount')),
+      header: function () {
+        return Em.I18n.t('alerts.fastAccess.popup.header').format(this.get('definitionsController.allAlertsCount'));
+      }.property('definitionsController.allAlertsCount'),
+
+      definitionsController: this,
 
       classNames: ['sixty-percent-width-modal', 'alerts-popup'],
 
-      secondary: null,
+      secondary: Em.I18n.t('alerts.fastAccess.popup.body.showmore'),
 
       isHideBodyScroll: true,
+
+      onSecondary: function () {
+        this.hide();
+        App.router.transitionTo('main.alerts.index');
+      },
 
       bodyClass: Em.View.extend({
 
@@ -196,16 +205,8 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
           Em.run.next(this, function () {
             App.tooltip($(".timeago"));
           });
-        },
-
-        /**
-         * Router transition to alert summary page
-         */
-        showMore: function () {
-          this.get('parentView').hide();
-          App.router.transitionTo('main.alerts.index');
         }
       })
-    })
+    });
   }
 });

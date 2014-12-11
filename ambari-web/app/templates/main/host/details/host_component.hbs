@@ -32,7 +32,7 @@
     {{component.displayName}}
   {{/if}}
   &nbsp;/&nbsp;
-  <a href="#" {{action routeToService component.service target="controller"}}>{{component.service.displayName}}</a>
+  <a href="#" {{action routeToService component.service}}>{{component.service.displayName}}</a>
   &nbsp;
   {{#if component.staleConfigs}}
     <span class="text-warning icon-refresh"></span>
