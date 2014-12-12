@@ -591,7 +591,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     var hiveMSHosts = this.getHiveHosts();
 
     for (var i = 0; i < hiveMSHosts.length; i++) {
-      hiveMSHosts[i] = hiveMSHosts[i] + ":9083";
+      hiveMSHosts[i] = "thrift://" + hiveMSHosts[i] + ":9083";
     }
     data.items[0].properties['hive.metastore.uris'] = hiveMSHosts.join(',');
     App.ajax.send({

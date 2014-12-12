@@ -487,7 +487,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
         if (!portValue) return;
         if (portValue[1]) {
           for (var i = 0; i < hiveMSHosts.length; i++) {
-            hiveMSHostPort[i] = hiveMSHosts[i] + ":" + portValue[1];
+            hiveMSHostPort[i] = "thrift://" + hiveMSHosts[i] + ":" + portValue[1];
           }
         }
         this.setDefaultValue("(.*)", hiveMSHostPort);
