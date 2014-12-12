@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 '''
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -39,7 +41,10 @@ def get_parent_path(base, directory_name):
     base = os.path.dirname(base)
     if base == "/":
       return None
-    done = True if os.path.split(base)[-1] == directory_name else False
+    if os.path.split(base)[-1] == directory_name:
+      done = True
+    else:
+      done = False
   return base
 
 def get_test_files(path, mask = None, recursive=True):
