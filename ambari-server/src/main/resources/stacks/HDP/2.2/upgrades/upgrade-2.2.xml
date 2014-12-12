@@ -55,6 +55,9 @@
         <component>RESOURCEMANAGER</component>
         <component>NODEMANAGER</component>
       </service>
+      <service name="HBASE">
+        <component>HBASE_MASTER</component>
+      </service>
     </group>
 
     <group name="CORE_SLAVES" title="Core Slaves" xsi:type="colocated">
@@ -63,7 +66,7 @@
       </service>
 
       <service name="HBASE">
-        <component>REGIONSERVER</component>
+        <component>HBASE_REGIONSERVER</component>
       </service>
 
       <service name="YARN">
@@ -76,6 +79,7 @@
       </batch>
     </group>
     
+    <!--
     <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize Upgrade">
       <execute-stage title="Confirm Finalize">
         <task xsi:type="manual">
@@ -88,7 +92,7 @@
         </task>
       </execute-stage>
     </group>
-    
+    -->    
   </order>
   
   
@@ -279,6 +283,24 @@
         </upgrade>
       </component>
 
+    </service>
+    <service name="HBASE">
+      <component name="HBASE_MASTER">
+        <pre-upgrade>
+          <task xsi:type="execute">
+            <command>su - {{hbase-env/hbase_user}} -c 'echo "snapshot_all" | hbase shell'</command>
+          </task>
+        </pre-upgrade>
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+
+      <component name="HBASE_REGIONSERVER">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
     </service>
   </processing>
 </upgrade>

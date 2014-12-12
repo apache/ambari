@@ -130,14 +130,16 @@ public class ColocatedGrouping extends Grouping {
       results.addAll(fromProxies(initialBatch));
 
       // !!! TODO when manual tasks are ready
-//      StageWrapper wrapper = new StageWrapper(
-//      ManualTask task = new ManualTask();
-//      task.message = batch.message;
-//      wrapper.tasks.add(new TaskWrapper(null, null, null, task));
-//      results.add(wrapper);
+      ManualTask task = new ManualTask();
+      task.message = batch.message;
+      
+      StageWrapper wrapper = new StageWrapper(
+          StageWrapper.Type.MANUAL,
+          "Validate partial upgrade",
+          new TaskWrapper(null, null, Collections.<String>emptySet(), task));
+      results.add(wrapper);
 
       results.addAll(fromProxies(finalBatches));
-
 
       return results;
     }

@@ -23,6 +23,7 @@ from resource_management import *
 
 from hbase import hbase
 from hbase_service import hbase_service
+import upgrade
 
          
 class HbaseRegionServer(Script):
@@ -35,6 +36,16 @@ class HbaseRegionServer(Script):
 
     hbase(name='regionserver')
       
+  def pre_rolling_restart(self, env):
+    import params
+    env.set_params(params)
+    upgrade.prestart(env, "hbase-regionserver")
+
+  def post_rolling_restart(self, env):
+    import params
+    env.set_params(params)
+    upgrade.post_regionserver(env)
+
   def start(self, env, rolling_restart=False):
     import params
     env.set_params(params)
@@ -43,6 +54,7 @@ class HbaseRegionServer(Script):
     hbase_service( 'regionserver',
       action = 'start'
     )
+
     
   def stop(self, env, rolling_restart=False):
     import params

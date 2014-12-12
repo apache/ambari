@@ -319,6 +319,15 @@ public class ServerActionExecutor {
   public void doWork() throws InterruptedException {
     List<HostRoleCommand> tasks = db.getTasksByHostRoleAndStatus(serverHostName,
         Role.AMBARI_SERVER_ACTION.toString(), HostRoleStatus.QUEUED);
+    
+    if (null == tasks || tasks.isEmpty()) {
+      // !!! if the server is not a part of the cluster,
+      // !!! just look for anything designated AMBARI_SERVER_ACTION.
+      // !!! do we even need to worry about servername in the first place?  We're
+      // !!! _on_ the ambari server!
+      tasks = db.getTasksByRoleAndStatus(Role.AMBARI_SERVER_ACTION.name(),
+          HostRoleStatus.QUEUED);
+    }
 
     if ((tasks != null) && !tasks.isEmpty()) {
       for (HostRoleCommand task : tasks) {

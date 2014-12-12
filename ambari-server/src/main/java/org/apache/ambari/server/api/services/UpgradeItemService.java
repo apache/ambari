@@ -72,7 +72,7 @@ public class UpgradeItemService extends BaseService {
       @Context HttpHeaders headers,
       @Context UriInfo ui,
       @PathParam("upgradeItemId") Long id) {
-    return new TaskService(m_clusterName, m_upgradeId, m_upgradeId.toString());
+    return new TaskService(m_clusterName, m_upgradeId, id.toString());
   }
 
   /**
@@ -88,6 +88,7 @@ public class UpgradeItemService extends BaseService {
 
     if (null != upgradeItemId) {
       mapIds.put(Resource.Type.UpgradeItem, upgradeItemId.toString());
+      mapIds.put(Resource.Type.Stage, upgradeItemId.toString());
     }
 
     return createResource(Resource.Type.UpgradeItem, mapIds);

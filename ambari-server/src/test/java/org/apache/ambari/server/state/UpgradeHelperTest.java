@@ -87,7 +87,7 @@ public class UpgradeHelperTest {
 
     assertEquals(6, groups.get(1).items.size());
     assertEquals(2, groups.get(2).items.size());
-    assertEquals(6, groups.get(3).items.size());
+    assertEquals(7, groups.get(3).items.size());
   }
 
   public Cluster makeCluster() throws AmbariException {

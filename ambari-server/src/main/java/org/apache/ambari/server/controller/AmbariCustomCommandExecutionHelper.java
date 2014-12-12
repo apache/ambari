@@ -410,7 +410,10 @@ public class AmbariCustomCommandExecutionHelper {
     final Cluster cluster = clusters.getCluster(clusterName);
     final String componentName = actionMetadata.getClient(resourceFilter.getServiceName());
     final String serviceName = resourceFilter.getServiceName();
-    String smokeTestRole = actionExecutionContext.getActionName();
+    String smokeTestRole = actionMetadata.getServiceCheckAction(serviceName);
+    if (null == smokeTestRole) {
+      smokeTestRole = actionExecutionContext.getActionName();
+    }
     long nowTimestamp = System.currentTimeMillis();
     Map<String, String> actionParameters = actionExecutionContext.getParameters();
     final Set<String> candidateHosts;

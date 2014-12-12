@@ -555,6 +555,11 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   }
 
   @Override
+  public List<HostRoleCommand> getTasksByRoleAndStatus(String role, HostRoleStatus status) {
+    return getTasks(hostRoleCommandDAO.findTaskIdsByRoleAndStatus(role, status));
+  }
+  
+  @Override
   public List<Stage> getStagesByHostRoleStatus(Set<HostRoleStatus> statuses) {
     List<Stage> stages = new ArrayList<Stage>();
     for (StageEntity stageEntity : stageDAO.findByCommandStatuses(statuses)) {

@@ -24,6 +24,7 @@ from resource_management import *
 from hbase import hbase
 from hbase_service import hbase_service
 from hbase_decommission import hbase_decommission
+import upgrade
 
          
 class HbaseMaster(Script):
@@ -36,6 +37,11 @@ class HbaseMaster(Script):
 
     hbase(name='master')
     
+  def pre_rolling_restart(self, env):
+    import params
+    env.set_params(params)
+    upgrade.prestart(env, "hbase-master")
+
   def start(self, env, rolling_restart=False):
     import params
     env.set_params(params)

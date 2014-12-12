@@ -40,6 +40,7 @@
   "Task": {
     "Cluster": "Tasks/cluster_name",
     "Request": "Tasks/request_id",
+    "Stage": "Tasks/stage_id",
     "Task": "Tasks/id"
   },
   "User": {

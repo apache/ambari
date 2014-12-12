@@ -310,43 +310,39 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   }
 
   /**
-   * Inject variables into the list of {@link org.apache.ambari.server.orm.entities.UpgradeItemEntity} items, whose
+   * Inject variables into the {@link org.apache.ambari.server.orm.entities.UpgradeItemEntity}, whose
    * tasks may use strings like {{configType/propertyName}} that need to be retrieved from the properties.
    * @param configHelper Configuration Helper
    * @param cluster Cluster
-   * @param items Collection of items whose tasks will be injected.
-   * @return Return the collection of items with the injected properties.
+   * @param upgradeItem the item whose tasks will be injected.
    */
-  private List<UpgradeItemEntity> injectVariables(ConfigHelper configHelper, Cluster cluster, List<UpgradeItemEntity> items) {
+  private void injectVariables(ConfigHelper configHelper, Cluster cluster, UpgradeItemEntity upgradeItem) {
     final String regexp = "(\\{\\{.*?\\}\\})";
 
-    for (UpgradeItemEntity upgradeItem : items) {
-      String task = upgradeItem.getTasks();
-      if (task != null && !task.isEmpty()) {
-        Matcher m = Pattern.compile(regexp).matcher(task);
-        while(m.find()) {
-          String origVar = m.group(1);
-          String formattedVar = origVar.substring(2, origVar.length() - 2).trim();
+    String task = upgradeItem.getTasks();
+    if (task != null && !task.isEmpty()) {
+      Matcher m = Pattern.compile(regexp).matcher(task);
+      while(m.find()) {
+        String origVar = m.group(1);
+        String formattedVar = origVar.substring(2, origVar.length() - 2).trim();
 
-          int posConfigFile = formattedVar.indexOf("/");
-          if (posConfigFile > 0) {
-            String configType = formattedVar.substring(0, posConfigFile);
-            String propertyName = formattedVar.substring(posConfigFile + 1, formattedVar.length());
-            try {
-              // TODO, some properties use 0.0.0.0 to indicate the current host.
-              // Right now, ru_execute_tasks.py is responsible for replacing 0.0.0.0 with the hostname.
+        int posConfigFile = formattedVar.indexOf("/");
+        if (posConfigFile > 0) {
+          String configType = formattedVar.substring(0, posConfigFile);
+          String propertyName = formattedVar.substring(posConfigFile + 1, formattedVar.length());
+          try {
+            // TODO, some properties use 0.0.0.0 to indicate the current host.
+            // Right now, ru_execute_tasks.py is responsible for replacing 0.0.0.0 with the hostname.
 
-              String configValue = configHelper.getPropertyValueFromStackDefinitions(cluster, configType, propertyName);
-              task = task.replace(origVar, configValue);
-            } catch (Exception err) {
-              LOG.error(String.format("Exception trying to retrieve property %s/%s. Error: %s", configType, propertyName, err.getMessage()));
-            }
+            String configValue = configHelper.getPropertyValueFromStackDefinitions(cluster, configType, propertyName);
+            task = task.replace(origVar, configValue);
+          } catch (Exception err) {
+            LOG.error(String.format("Exception trying to retrieve property %s/%s. Error: %s", configType, propertyName, err.getMessage()));
           }
         }
-        upgradeItem.setTasks(task);
       }
+      upgradeItem.setTasks(task);
     }
-    return items;
   }
 
   private UpgradeEntity createUpgrade(UpgradePack pack, Map<String, Object> requestMap)
@@ -381,12 +377,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         itemEntity.setTasks(wrapper.getTasksJson());
         itemEntity.setHosts(wrapper.getHostsJson());
         itemEntities.add(itemEntity);
+        
+        injectVariables(configHelper, cluster, itemEntity);
 
         // upgrade items match a stage
         createStage(cluster, req, version, itemEntity, wrapper);
       }
-
-      itemEntities = injectVariables(configHelper, cluster, itemEntities);
 
       groupEntity.setItems(itemEntities);
 
@@ -622,7 +618,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         RoleCommand.EXECUTE,
         cluster.getClusterName(), host,
         new ServiceComponentHostServerActionEvent(StageUtils.getHostName(), System.currentTimeMillis()),
-        Collections.<String, String>emptyMap(), 1200);
+        Collections.<String, String>emptyMap(), 15);
 
     request.addStages(Collections.singletonList(stage));
 

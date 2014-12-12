@@ -137,6 +137,16 @@ public class HostRoleCommandDAO {
     return daoUtils.selectList(query, hostname, role, status);
   }
 
+  public List<Long> findTaskIdsByRoleAndStatus(String role, HostRoleStatus status) {
+    TypedQuery<Long> query = entityManagerProvider.get().createQuery(
+        "SELECT DISTINCT task.taskId FROM HostRoleCommandEntity task " +
+            "WHERE task.role=?1 AND task.status=?2 " +
+            "ORDER BY task.taskId", Long.class);
+
+    return daoUtils.selectList(query, role, status);
+  }
+  
+  
   @RequiresSession
   public List<HostRoleCommandEntity> findSortedCommandsByStageAndHost(StageEntity stageEntity, HostEntity hostEntity) {
     TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery("SELECT hostRoleCommand " +

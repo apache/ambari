@@ -27,6 +27,8 @@ import status_params
 config = Script.get_config()
 exec_tmp_dir = Script.get_tmp_dir()
 
+version = default("/commandParams/version", None)
+
 hdp_stack_version = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(hdp_stack_version)
 
