@@ -29,9 +29,13 @@ describe('App.MainHostStackVersionsView', function() {
       sinon.stub(App.router, 'get').returns(Em.Object.create({
         id: 1
       }));
+      sinon.stub(view, 'filter').returns([Em.Object.create({
+        id: 1
+      })]);
     });
     after(function () {
       App.router.get.restore();
+      view.filter.restore();
     });
     it("", function () {
       view.propertyDidChange('host');
@@ -43,12 +47,16 @@ describe('App.MainHostStackVersionsView', function() {
 
   describe("#content", function () {
     before(function () {
-      sinon.stub(App.HostStackVersion, 'find').returns([Em.Object.create({
+      sinon.stub(view, 'get').returns([Em.Object.create({
+        id: 1
+      })]);
+      sinon.stub(view, 'filter').returns([Em.Object.create({
         id: 1
       })]);
     });
     after(function () {
-      App.HostStackVersion.find.restore();
+      view.get.restore();
+      view.filter.restore();
     });
     it("", function () {
       view.propertyDidChange('content');
