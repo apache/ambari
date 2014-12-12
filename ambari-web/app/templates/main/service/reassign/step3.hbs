@@ -21,7 +21,11 @@
 <div class="alert alert-info">
   {{t services.reassign.step3.body}}
 </div>
-
+{{#if view.jdbcSetupMessage}}
+  <div class="alert alert-warning">
+    {{{view.jdbcSetupMessage}}}
+  </div>
+{{/if}}
 <div id="step8-content" class="well pre-scrollable">
   <div id="printReview">
     <a class="btn btn-info pull-right" {{action printReview target="view"}}>{{t common.print}}</a> <br/>

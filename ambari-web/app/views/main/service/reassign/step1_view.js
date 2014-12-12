@@ -32,18 +32,6 @@ App.ReassignMasterWizardStep1View = Em.View.extend({
     return messages;
   }.property('controller.content.reassign.display_name','controller.content.hasManualSteps'),
 
-  jdbcSetupMessage: function() {
-    if(['HIVE_SERVER', 'HIVE_METASTORE', 'OOZIE_SERVER'].contains(this.get('controller.content.reassign.component_name'))) {
-      if(this.get('controller.content.reassign.component_name') === 'OOZIE_SERVER' && this.get('controller.databaseType') === 'derby') {
-        return false;
-      }
-
-      return Em.I18n.t('services.service.config.database.msg.jdbcSetup').format(this.get('controller.databaseType'), this.get('controller.databaseType'));
-    }
-
-    return false;
-  }.property('controller.content.reassign.display_name, controller.databaseType'),
-
   templateName: require('templates/main/service/reassign/step1')
 
 });

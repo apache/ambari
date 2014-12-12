@@ -22,7 +22,7 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
 
   isReassign: true,
 
-  commands: ['deleteHostComponents', 'startServices'],
+  commands: ['putHostComponentsInMaintenanceMode', 'stopMysqlService', 'deleteHostComponents', 'startServices'],
 
   clusterDeployState: 'REASSIGN_MASTER_INSTALLING',
 
@@ -48,7 +48,7 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
     }, this);
     var currentStep = App.router.get('reassignMasterController.currentStep');
     for (var i = 0; i < commands.length; i++) {
-      var title = Em.I18n.t('services.reassign.step6.task' + i + '.title').format(hostComponentsNames);
+      var title =  Em.I18n.t('services.reassign.step6.tasks.' + commands[i] + '.title').format(hostComponentsNames);
       this.get('tasks').pushObject(Ember.Object.create({
         title: title,
         status: 'PENDING',
@@ -63,6 +63,35 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
         hosts: []
       }));
     }
+
+    this.removeUnneededTasks();
+  },
+
+  removeUnneededTasks: function () {
+    if ( this.get('content.reassign.component_name') !== 'MYSQL_SERVER' ) {
+      this.removeTasks(['putHostComponentsInMaintenanceMode', 'stopServices']);
+    }
+  },
+
+  /**
+   * remove tasks by command name
+   */
+  removeTasks: function(commands) {
+    var tasks = this.get('tasks'),
+        index = null
+        cmd = null;
+
+    commands.forEach(function(command) {
+      cmd = tasks.filterProperty('command', command);
+
+      if (cmd.length === 0) {
+        return false;
+      } else {
+        index = tasks.indexOf( cmd[0] );
+      }
+
+      tasks.splice( index, 1 );
+    });
   },
 
   hideRollbackButton: function () {
@@ -119,5 +148,45 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
     } else {
       this.onTaskError();
     }
+  },
+
+  putHostComponentsInMaintenanceMode: function () {
+    this.set('multiTaskCounter', 0);
+    var hostComponents = this.get('hostComponents');
+    var hostName = this.get('content.reassignHosts.source');
+    for (var i = 0; i < hostComponents.length; i++) {
+      App.ajax.send({
+        name: 'common.host.host_component.passive',
+        sender: this,
+        data: {
+          hostName: hostName,
+          passive_state: "ON",
+          componentName: hostComponents[i]
+        },
+        success: 'onComponentsTasksSuccess',
+        error: 'onTaskError'
+      });
+    }
+  },
+
+  /**
+   * make server call to stop services
+   */
+  stopMysqlService: function () {
+    var data = {
+      "ServiceInfo": {
+        "state": "INSTALLED"
+      }
+    };
+    data.context = "Stop required services";
+    data.urlParams = "ServiceInfo/service_name.in(MYSQL_SERVER)";
+
+    App.ajax.send({
+      name: 'common.services.update',
+      sender: this,
+      data: data,
+      success: 'startPolling',
+      error: 'onTaskError'
+    });
   }
 });

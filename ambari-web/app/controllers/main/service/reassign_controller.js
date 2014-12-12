@@ -287,6 +287,11 @@ App.ReassignMasterController = App.WizardController.extend({
   loadDatabaseType: function () {
     var databaseType = this.getDBProperty('databaseType');
     this.set('content.databaseType', databaseType);
+
+    if (this.get('content.hasCheckDBStep') && databaseType !== 'derby') {
+      App.router.reassignMasterController.set('content.hasManualSteps', false);
+      App.router.reassignMasterController.get('content.componentsWithManualCommands').splice(2,1);
+    }
   },
 
   /**
@@ -301,7 +306,6 @@ App.ReassignMasterController = App.WizardController.extend({
         this.loadSecureConfigs();
         this.loadComponentDir();
       case '4':
-        this.loadServiceProperties();
         this.loadTasksStatuses();
         this.loadTasksRequestIds();
         this.loadRequestIds();
@@ -314,6 +318,7 @@ App.ReassignMasterController = App.WizardController.extend({
       case '1':
         this.loadComponentToReassign();
         this.loadDatabaseType();
+        this.loadServiceProperties();
         this.load('cluster');
     }
   },

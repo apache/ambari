@@ -151,6 +151,37 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     });
   });
 
+  describe('#testDBConnection', function() {
+    beforeEach(function() {
+      controller.set('requiredProperties', Em.A([]));
+      controller.set('content.serviceProperties', Em.Object.create({'javax.jdo.option.ConnectionDriverName': 'mysql'}));
+      controller.set('content.reassign.component_name', 'HIVE_SERVER');
+      sinon.stub(controller, 'getConnectionProperty', Em.K);
+      sinon.stub(App.router, 'get', Em.K);
+    });
+
+    afterEach(function() {
+      controller.getConnectionProperty.restore();
+      App.router.get.restore();
+    });
+
+    it('tests database connection', function() {
+      sinon.stub(controller, 'prepareDBCheckAction', Em.K);
+
+      controller.testDBConnection();
+      expect(controller.prepareDBCheckAction.calledOnce).to.be.true;
+
+      controller.prepareDBCheckAction.restore();
+    });
+
+    it('tests prepareDBCheckAction', function() {
+      controller.prepareDBCheckAction();
+
+      expect(App.ajax.send.calledOnce).to.be.true;
+    });
+
+  });
+
   describe('#removeUnneededTasks()', function () {
     var isHaEnabled = false;
 
@@ -231,7 +262,6 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       isHaEnabled = false;
 
       controller.removeUnneededTasks();
-      console.log(controller.get('tasks').mapProperty('id'))
       expect(controller.get('tasks').mapProperty('id')).to.eql([1, 2, 3, 4, 5, 6, 9, 10, 11, 12]);
     });
 
@@ -242,8 +272,28 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       isHaEnabled = false;
 
       controller.removeUnneededTasks();
-      console.log(controller.get('tasks').mapProperty('id'))
       expect(controller.get('tasks').mapProperty('id')).to.eql([1, 3, 4, 5, 6, 9, 12]);
+    });
+
+    it('reassign component is Oozie Server and db type is derby', function () {
+      controller.set('content.hasManualSteps', true);
+      controller.set('content.databaseType', 'derby');
+      controller.set('content.reassign.component_name', 'OOZIE_SERVER');
+      isHaEnabled = false;
+
+      controller.removeUnneededTasks();
+      expect(controller.get('tasks').mapProperty('id')).to.eql([1,3,4,5,6]);
+    });
+
+    it('reassign component is Oozie Server and db type is mysql', function () {
+      controller.set('content.hasManualSteps', false);
+      controller.set('content.databaseType', 'mysql');
+      controller.set('content.reassign.component_name', 'OOZIE_SERVER');
+      isHaEnabled = false;
+
+
+      controller.removeUnneededTasks();
+      expect(controller.get('tasks').mapProperty('id')).to.eql([1,2,3,4,5,6,9,10,11,12]);
     });
   });
 

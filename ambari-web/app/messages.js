@@ -1724,6 +1724,7 @@ Em.I18n.translations = {
   'services.reassign.step4.task6.title':'Start NameNode',
   'services.reassign.step4.task7.title':'Delete disabled {0}',
   'services.reassign.step4.task8.title':'Start Required Services',
+  'services.reassign.step4.tasks.startNewMySqlServer.title':'Start New MYSQL Server',
   'services.reassign.step4.status.success': 'Successfully moved <b>{0}</b> from <b>{1}</b> host to <b>{2}</b> host',
   'services.reassign.step4.status.success.withManualSteps': 'Proceed to the next step',
   'services.reassign.step4.status.failed': 'Failed to move <b>{0}</b> from <b>{1}</b> host to <b>{2}</b> host',
@@ -1775,7 +1776,10 @@ Em.I18n.translations = {
     '<ol>' +
     '<li>On <b>{1}</b> using a terminal you can export your Metastore DB (MYSQL) using:' +
     '<div class="code-snippet">mysqldump db_name > backup-file.sql</div></li>' +
-    '<li>Copy the file to the target host <b>{2}</b> hosting the MySQL DB and import' +
+    '<li>Copy the file to the target host <b>{2}</b> hosting the MySQL DB<li>' +
+    '<li>Execute this SQL inside <b>mysql<b>' +
+    '<div class="code-snippet">CREATE DATABASE db_name;</div></li>' +
+    '<li>Import the database using' +
     '<div class="code-snippet">mysql db_name < backup-file.sql</div></li>' +
     '</ol>' +
     '</div>',
@@ -1786,8 +1790,10 @@ Em.I18n.translations = {
   'services.reassign.step5.body.proceedMsg': 'Please proceed once you have completed the steps above',
   'services.reassign.step5.confirmPopup.body': 'Please confirm that you have run the manual steps before continuing.',
   'services.reassign.step6.header': 'Start and Test services',
-  'services.reassign.step6.task0.title': 'Delete disabled {0}',
-  'services.reassign.step6.task1.title': 'Start All Services',
+  'services.reassign.step6.tasks.putHostComponentsInMaintenanceMode.title':'Disable {0}',
+  'services.reassign.step6.tasks.deleteHostComponents.title': 'Delete disabled {0}',
+  'services.reassign.step6.tasks.startServices.title': 'Start All Services',
+  'services.reassign.step6.tasks.stopMysqlService.title': 'Stop Mysql Server',
   'services.reassign.step6.status.success': 'Successfully moved <b>{0}</b> from <b>{1}</b> host to <b>{2}</b> host.',
   'services.reassign.step6.status.failed': 'Failed to move <b>{0}</b> from <b>{1}</b> host to <b>{2}</b> host.',
   'services.reassign.step6.status.info': 'Reassigning {0}. \nPlease wait for all tasks to be completed.',

@@ -363,6 +363,8 @@ module.exports = App.WizardRoute.extend({
     }
   }),
 
+  gotoStep7: Em.Router.transitionTo('step7'),
+
   backToServices: function (router) {
     App.router.get('updateController').set('isWorking', true);
     router.transitionTo('services');

@@ -22,7 +22,8 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
 
   isReassign: true,
 
-  commands: ['stopServices', 'cleanMySqlServer', 'createHostComponents', 'putHostComponentsInMaintenanceMode', 'reconfigure', 'installHostComponents', 'startZooKeeperServers', 'startNameNode', 'deleteHostComponents', 'configureMySqlServer', 'startMySqlServer', 'startServices'],
+  commands: ['stopServices', 'cleanMySqlServer', 'createHostComponents', 'putHostComponentsInMaintenanceMode', 'reconfigure', 'installHostComponents', 'startZooKeeperServers', 'startNameNode', 'deleteHostComponents', 'configureMySqlServer',
+  'startMySqlServer', 'startNewMySqlServer' , 'startServices'],
   // custom commands for Components with DB Configuration and Check
   commandsForDB: ['createHostComponents', 'installHostComponents', 'configureMySqlServer', 'startMySqlServer', 'testDBConnection', 'stopServices', 'cleanMySqlServer', 'putHostComponentsInMaintenanceMode', 'reconfigure', 'deleteHostComponents', 'configureMySqlServer', 'startServices'],
 
@@ -31,8 +32,6 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   multiTaskCounter: 0,
 
   hostComponents: [],
-
-  hiveSiteConfig: null,
 
   /**
    * Map with lists of unrelated services.
@@ -263,8 +262,10 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   removeUnneededTasks: function () {
     if(this.isComponentWithDB()) {
       var db_type = this.get('content.databaseType');
+      var is_remote_db = this.get('content.serviceProperties.is_remote_db');
 
-      if (db_type !== 'mysql') {
+
+      if(is_remote_db || db_type !== 'mysql') {
         this.removeTasks(['configureMySqlServer', 'startMySqlServer', 'cleanMySqlServer', 'configureMySqlServer']);
       }
 
@@ -274,7 +275,11 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     }
 
     if ( this.get('content.reassign.component_name') !== 'MYSQL_SERVER' && !this.isComponentWithDB()) {
-      this.removeTasks(['configureMySqlServer', 'startMySqlServer', 'cleanMySqlServer', 'configureMySqlServer']);
+      this.removeTasks(['configureMySqlServer', 'startMySqlServer', 'cleanMySqlServer', 'startNewMySqlServer', 'configureMySqlServer']);
+    }
+
+    if ( this.get('content.reassign.component_name') === 'MYSQL_SERVER' ) {
+      this.removeTasks(['cleanMySqlServer']);
     }
 
     if (this.get('content.hasManualSteps')) {
@@ -787,11 +792,17 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
    * make server call to clean MYSQL
    */
   cleanMySqlServer: function () {
+    var hostname = App.HostComponent.find().filterProperty('componentName', 'MYSQL_SERVER').get('firstObject.hostName');
+
+    if (this.get('content.reassign.component_name') === 'MYSQL_SERVER') {
+      hostname = this.get('content.reassignHosts.target');
+    }
+
     App.ajax.send({
       name: 'service.mysql.clean',
       sender: this,
       data: {
-        host: App.HostComponent.find().filterProperty('componentName', 'MYSQL_SERVER').get('firstObject.hostName')
+        host: hostname
       },
       success: 'startPolling',
       error: 'onTaskError'
@@ -802,11 +813,17 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
    * make server call to configure MYSQL
    */
   configureMySqlServer : function () {
+    var hostname = App.HostComponent.find().filterProperty('componentName', 'MYSQL_SERVER').get('firstObject.hostName');
+
+    if (this.get('content.reassign.component_name') === 'MYSQL_SERVER') {
+      hostname = this.get('content.reassignHosts.target');
+    }
+
     App.ajax.send({
       name: 'service.mysql.configure',
       sender: this,
       data: {
-        host: App.HostComponent.find().filterProperty('componentName', 'MYSQL_SERVER').get('firstObject.hostName')
+        host: hostname
       },
       success: 'startPolling',
       error: 'onTaskError'
@@ -831,36 +848,31 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     });
   },
 
+  startNewMySqlServer: function() {
+    App.ajax.send({
+      name: 'common.host.host_component.update',
+      sender: this,
+      data: {
+        context: "Start MySQL Server",
+        hostName: this.get('content.reassignHosts.target'),
+        serviceName: "HIVE",
+        componentName: "MYSQL_SERVER",
+        HostRoles: {
+          state: "STARTED"
+        }
+      },
+      success: 'startPolling',
+      error: 'onTaskError'
+    });
+  },
+
   testDBConnection: function() {
-    this.loadServiceConfigsTags();
-    //this.onTaskCompleted();
+    this.prepareDBCheckAction();
+    // this.onTaskCompleted();
   },
 
   isComponentWithDB: function() {
     return ['HIVE_SERVER', 'HIVE_METASTORE', 'OOZIE_SERVER'].contains(this.get('content.reassign.component_name'));
-  },
-
-  loadServiceConfigsTags: function() {
-    App.ajax.send({
-      name: 'config.tags',
-      sender: this,
-      success: 'onLoadServiceConfigsTags',
-      error: 'onTaskError'
-    });
-  },
-
-  onLoadServiceConfigsTags: function(data) {
-    var urlParams = this.getConfigUrlParams(this.get('content.reassign.component_name'), data);
-
-    App.ajax.send({
-      name: 'reassign.load_configs',
-      sender: this,
-      data: {
-        urlParams: urlParams.join('|')
-      },
-      success: 'onLoadServiceConfigs',
-      error: 'onTaskError'
-    });
   },
 
   dbProperty: function() {
@@ -888,7 +900,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
       db_connection_url: /jdbc\.url|connectionurl/ig,
       driver_class: /ConnectionDriverName|jdbc\.driver/ig,
       schema_name: /db\.schema\.name/ig
-    }
+    };
   }.property(),
 
   /** @property {Object} connectionProperties - service specific config values mapped for custom action request **/
@@ -906,6 +918,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     })[0];
     return this.get('content.serviceProperties')[propertyName];
   },
+
   /**
    * Properties that stores in local storage used for handling
    * last success connection.
@@ -924,10 +937,10 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   /** @property {object} requiredProperties - properties that necessary for database connection **/
   requiredProperties: function() {
     var propertiesMap = {
-      HDFS: ['sink.db.schema.name','sink.dblogin','sink.dbpassword','sink.jdbc.driver','sink.jdbc.url'],
       OOZIE: ['oozie.db.schema.name','oozie.service.JPAService.jdbc.username','oozie.service.JPAService.jdbc.password','oozie.service.JPAService.jdbc.driver','oozie.service.JPAService.jdbc.url'],
       HIVE: ['ambari.hive.db.schema.name','javax.jdo.option.ConnectionUserName','javax.jdo.option.ConnectionPassword','javax.jdo.option.ConnectionDriverName','javax.jdo.option.ConnectionURL']
     };
+
     return propertiesMap[this.get('content.reassign.service_id')];
   }.property(),
 
@@ -938,15 +951,14 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     return databaseProp.match(databaseTypes)[0];
   }.property('dbProperty'),
 
-  onLoadServiceConfigs: function(data) {
-    var properties = data.items.get('firstObject.properties');
-    this.saveServiceProperties(properties);
-
+  prepareDBCheckAction: function() {
+    var ambariProperties = null;
+    var properties = this.get('content.serviceProperties');
     var params = this.get('preparedDBProperties');
+
+    ambariProperties = App.router.get('clusterController.ambariProperties');
+
     params['db_name'] = this.get('dbType');
-
-    var ambariProperties = App.router.get('clusterController.ambariProperties');
-
     params['jdk_location'] = ambariProperties['jdk_location'];
     params['jdk_name'] = ambariProperties['jdk.name'];
     params['java_home'] = ambariProperties['java.home'];
@@ -964,7 +976,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
           "action": "check_host",
           "parameters": params
         },
-        filteredHosts: [App.HostComponent.find().filterProperty('componentName', 'MYSQL_SERVER').get('firstObject.hostName')]
+        filteredHosts: [this.get('content.reassignHosts.target')]
       },
       success: 'onCreateActionSuccess',
       error: 'onTaskError'
@@ -989,10 +1001,10 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   },
 
   startDBCheckPolling: function() {
-      this.getTaskInfo();
+      this.getDBConnTaskInfo();
   },
 
-  getTaskInfo: function() {
+  getDBConnTaskInfo: function() {
     this.setTaskStatus(this.get('currentTaskId'), 'IN_PROGRESS');
     this.get('tasks').findProperty('id', this.get('currentTaskId')).set('progress', 100);
 
@@ -1004,11 +1016,11 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         requestId: this.get('checkDBRequestId'),
         taskId: this.get('checkDBTaskId')
       },
-      success: 'getTaskInfoSuccess'
+      success: 'getDBConnTaskInfoSuccess'
     });
   },
 
-  getTaskInfoSuccess: function(data) {
+  getDBConnTaskInfoSuccess: function(data) {
     var task = data.Tasks;
     if (task.status === 'COMPLETED') {
       var structuredOut = task.structured_out.db_connection_check;
@@ -1037,7 +1049,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   },
 
   testDBRetryTooltip: function() {
-    var db_host = App.HostComponent.find().filterProperty('componentName', 'MYSQL_SERVER').get('firstObject.hostName');
+    var db_host = this.get('content.serviceProperties.database_hostname');
     var db_type = this.get('dbType');
     var db_props = this.get('preparedDBProperties');
 
@@ -1045,12 +1057,6 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
       db_host, db_type, db_props['schema_name'], db_props['user_name'],
       db_props['user_passwd'], db_props['driver_class'], db_props['db_connection_url']
     );
-  }.property('dbProperties'),
+  }.property('dbProperties')
 
-  saveServiceProperties: function(properties) {
-    if(properties) {
-      this.set('content.serviceProperties', properties);
-      App.router.get(this.get('content.controllerName')).saveServiceProperties(properties);
-    }
-  }
 });
