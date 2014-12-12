@@ -121,12 +121,13 @@ limitations under the License.
           <copyright>2012, Apache Software Foundation</copyright>
           <group>Development</group>
           <description>Maven Recipe: RPM Package.</description>
+          <defaultDirmode>755</defaultDirmode>
+          <defaultFilemode>644</defaultFilemode>
+          <defaultUsername>root</defaultUsername>
+          <defaultGroupname>root</defaultGroupname>
           <mappings>
             <mapping>
               <directory>/usr/lib/storm/lib</directory>
-              <filemode>644</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
               <sources>
                 <source>
                   <location>target/${project.artifactId}-${project.version}.jar</location>

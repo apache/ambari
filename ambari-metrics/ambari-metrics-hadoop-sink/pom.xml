@@ -130,6 +130,11 @@ limitations under the License.
           <group>Development</group>
           <description>Maven Recipe: RPM Package.</description>
 
+          <defaultDirmode>755</defaultDirmode>
+          <defaultFilemode>644</defaultFilemode>
+          <defaultUsername>root</defaultUsername>
+          <defaultGroupname>root</defaultGroupname>
+
           <postinstallScriptlet>
             <scriptFile>${project.build.outputDirectory}/rpm/postinstall.sh</scriptFile>
             <fileEncoding>utf-8</fileEncoding>
@@ -138,9 +143,6 @@ limitations under the License.
           <mappings>
             <mapping>
               <directory>/usr/lib/ambari-metrics-hadoop-sink</directory>
-              <filemode>644</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
               <sources>
                 <source>
                   <location>target/${project.artifactId}-with-common-${project.version}.jar</location>

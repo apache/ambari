@@ -129,6 +129,10 @@
             <scriptFile>src/main/package/rpm/preremove.sh</scriptFile>
             <fileEncoding>utf-8</fileEncoding>
           </preremoveScriptlet>
+          <defaultDirmode>755</defaultDirmode>
+          <defaultFilemode>644</defaultFilemode>
+          <defaultUsername>root</defaultUsername>
+          <defaultGroupname>root</defaultGroupname>
           <mappings>
             <mapping>
               <directory>${resmonitor.install.dir}</directory>
