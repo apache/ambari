@@ -1279,3 +1279,21 @@ accordion .panel-group .panel{
 .popover-content {
   word-wrap: break-word;
 }
+
+.cluster-section {
+  padding-left: 19px;
+}
+
+.repo-version-inline .repo-version-label {
+  text-align: left;
+
+}
+
+.repo-version-inline .bold-dot {
+  font-weight: bold;
+}
+
+.status-current
+{
+  background-color: green;
+}

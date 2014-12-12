@@ -75,18 +75,10 @@ angular.module('ambariAdminConsole')
     },
 
     allRepos: function (filter, pagination) {
-      var stackFilter = filter.stack.current.value;
       var versionFilter = filter.version;
-      var clusterFilter = filter.cluster.current.value;
       var url = '/stacks/HDP/versions?fields=repository_versions/RepositoryVersions'; // TODO should not hard code HDP
-      if (stackFilter) {
-        url += '&repository_versions/RepositoryVersions/stack_version.matches(.*' + stackFilter + '.*)';
-      }
       if (versionFilter) {
         url += '&repository_versions/RepositoryVersions/repository_version.matches(.*' + versionFilter + '.*)';
-      }
-      if (clusterFilter) {
-        url += '';
       }
       url += '&from='+ (pagination.currentPage - 1) * pagination.itemsPerPage;
       url += '&page_size=' + pagination.itemsPerPage;

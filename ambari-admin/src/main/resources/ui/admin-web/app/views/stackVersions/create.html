@@ -27,18 +27,18 @@
       <h3 class="panel-title">Details</h3>
     </div>
     <div class="panel-body">
-      <div class="form-group">
-        <div class="col-sm-3"><label class="control-label">Stack</label></div>
-        <div class="col-sm-3">
+      <div class="form-inline repo-version-inline">
+        <label class="control-label col-sm-2 repo-version-label">Version</label>
+        <div class="form-group col-sm-3">
           <select class="form-control"
                   ng-model="upgradeStack.value"
                   ng-options="o.value as o.displayName for o in upgradeStack.options">
           </select>
+          <span class="bold-dot">.</span>
         </div>
-      </div>
-      <div class="form-group">
-        <div class="col-sm-3"><label for="" class="control-label">Version Name</label></div>
-        <div class="col-sm-3"><input type="text" ng-model="versionName" class="form-control" placeholder="Version Name"></div>
+        <div class="form-group col-sm-3">
+          <input class="form-control" type="text" ng-model="versionName" placeholder="Version Name">
+        </div>
       </div>
     </div>
   </div>

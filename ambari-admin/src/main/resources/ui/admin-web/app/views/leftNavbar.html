@@ -19,7 +19,7 @@
   <div class="panel panel-default">
     <div class="panel-heading"><span class="glyphicon glyphicon-cloud"></span> Clusters</div>
     <div class="panel-body">
-      <div ng-show="cluster">
+      <div class="cluster-section" ng-show="cluster">
         <div id="cluster-name"  ng-switch on="editCluster.editingName">
           <h5 ng-switch-when="false">{{cluster.Clusters.cluster_name}}
             <i ng-show="cluster.Clusters.provisioning_state == 'INSTALLED'" ng-click="toggleEditName()" class="glyphicon glyphicon-edit pull-right edit-cluster-name" tooltip="Rename Cluster"></i>

@@ -126,6 +126,34 @@ angular.module('ambariAdminConsole')
           }
         }
       });
+    },
+    getRepoVersionStatus: function (clusterName, repoId ) {
+      var deferred = $q.defer();
+      var url = Settings.baseUrl + '/clusters/' + clusterName +
+        '/stack_versions?fields=*&ClusterStackVersions/repository_version=' + repoId;
+      $http.get(url, {mock: 'cluster/repoVersionStatus.json'})
+      .success(function (data) {
+        data = data.items;
+        var response = {};
+        if (data.length > 0) {
+          var hostStatus = data[0].ClusterStackVersions.host_states;
+          var currentHosts = hostStatus['CURRENT'].length;
+          var totalHosts = 0;
+          angular.forEach(hostStatus, function(status) {
+            totalHosts += status.length;
+          });
+          response.status = currentHosts > 0? 'current' : '';
+          response.currentHosts = currentHosts;
+          response.totalHosts = totalHosts;
+        } else {
+          response.repoState = '';
+        }
+        deferred.resolve(response);
+      })
+      .catch(function (data) {
+        deferred.reject(data);
+      });
+      return deferred.promise;
     }
   };
 }]);

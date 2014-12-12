@@ -23,43 +23,18 @@ angular.module('ambariAdminConsole')
 
   // TODO retrieve a list of stacks having "upgrade_pack" from backend
   $scope.filter = {
-    stack: {
-      options: [
-        {label: 'All', value: ''},
-        {label: 'HDP 2.2', value: '2.2'},
-        {label: 'HDP 2.3', value: '2.3'},
-        {label: 'HDP 2.4', value: '2.4'}
-      ],
-      current: null
-    },
     version: '',
     cluster: {
-      options: [
-        {label: 'All', value: ''},
-        {label: 'MyCluster', value: 'MyCluster'},
-        {label: 'Another Cluster', value: 'anotherCluster'}
-      ],
+      options: [],
       current: null
     }
   };
-
-  $scope.filter.stack.current = $scope.filter.stack.options[0];
-  $scope.filter.cluster.current = $scope.filter.cluster.options[0];
 
   $scope.pagination = {
     totalStacks: 10,
     maxVisiblePages: 20,
     itemsPerPage: 10,
     currentPage: 1
-  };
-
-  $scope.resetPagination = function () {
-    $scope.pagination.currentPage = 1;
-    $scope.getStackVersions();
-  };
-
-  $scope.goToCluster = function() {
-    window.location.replace('/#/main/admin/versions/updates');
   };
 
   $scope.tableInfo = {
@@ -69,43 +44,82 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.stacks = [];
-  $scope.clusters = [{
-    Clusters: {
-      cluster_name: 'Install on...'
-    }
-  }];
-  $scope.selectedCluster = $scope.clusters[0];
+  $scope.dropDownClusters = [];
+  $scope.selectedCluster = $scope.dropDownClusters[0];
+
+  $scope.resetPagination = function () {
+    $scope.pagination.currentPage = 1;
+    $scope.fetchRepos();
+  };
+
+  $scope.goToCluster = function() {
+    window.location.replace('/#/main/admin/versions/updates');
+  };
 
   $scope.clearFilters = function () {
     $scope.filter.version = '';
-    $scope.filter.stack.current = $scope.filter.stack.options[0];
     $scope.filter.cluster.current = $scope.filter.cluster.options[0];
     $scope.resetPagination();
   };
 
-  $scope.getAllClusters = function () {
-    return Cluster.getAllClusters().then(function (clusters) {
-      $scope.clusters = $scope.clusters.concat(clusters);
+  $scope.fetchRepoClusterStatus = function (repos) {
+    var clusterName = $scope.clusters[0].Clusters.cluster_name; // only support one cluster at the moment
+    angular.forEach(repos, function (repo) {
+      Cluster.getRepoVersionStatus(clusterName, repo.id).then(function (response) {
+        repo.status = response.status;
+        repo.totalHosts = response.totalHosts;
+        repo.currentHosts = response.currentHosts;
+        repo.cluster = response.status == 'current'? clusterName : '';
+      });
     });
   };
-  $scope.getAllClusters();
 
-  $scope.getStackVersions = function () {
-    return Stack.allRepos($scope.filter, $scope.pagination).then(function (stacks) {
+  $scope.fetchRepos = function () {
+    Stack.allRepos($scope.filter, $scope.pagination).then(function (stacks) {
       $scope.pagination.totalStacks = stacks.items.length;
-      $scope.stacks = [];
+      var repos = [];
       angular.forEach(stacks.items, function(stack) {
         var repoVersions = stack.repository_versions;
         if (repoVersions.length > 0) {
-          $scope.stacks = $scope.stacks.concat(repoVersions);
+          repos = repos.concat(repoVersions);
         }
       });
-      $scope.stacks = $scope.stacks.map(function (stack) {
+      repos = repos.map(function (stack) {
         return stack.RepositoryVersions;
       });
+      $scope.repos = repos;
       $scope.tableInfo.total = stacks.length;
       $scope.tableInfo.showed = stacks.length;
+      $scope.fetchRepoClusterStatus($scope.repos);
     });
   };
-  $scope.getStackVersions();
+
+  $scope.fillClusters = function (clusters) {
+    $scope.dropDownClusters = [{
+      Clusters: {
+        cluster_name: 'Install on...'
+      }
+    }].concat(clusters);
+    $scope.selectedCluster = $scope.dropDownClusters[0];
+    angular.forEach(clusters, function (cluster) {
+      var options = [{label: "All", value: ''}];
+      angular.forEach(clusters, function (cluster) {
+        options.push({
+          label: cluster.Clusters.cluster_name,
+          value: cluster.Clusters.cluster_name
+        });
+      });
+      $scope.filter.cluster.options = options;
+      $scope.filter.cluster.current = options[0];
+    });
+  };
+
+  $scope.fetchClusters = function () {
+    Cluster.getAllClusters().then(function (clusters) {
+      $scope.clusters = clusters;
+      $scope.fillClusters(clusters);
+      $scope.fetchRepos();
+    });
+  };
+  $scope.fetchClusters();
 }]);

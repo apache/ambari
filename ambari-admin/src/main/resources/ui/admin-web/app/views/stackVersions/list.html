@@ -32,14 +32,6 @@
   <table class="table table-striped table-hover">
     <thead>
     <tr>
-      <th class="col-small">
-        <label>Stack</label>
-        <select class="form-control"
-                ng-change="resetPagination()"
-                ng-model="filter.stack.current"
-                ng-options="item.label for item in filter.stack.options">
-        </select>
-      </th>
       <th class="col-medium">
         <label>Version</label>
         <input type="text" class="form-control" ng-change="resetPagination()" ng-model="filter.version">
@@ -56,25 +48,24 @@
     </tr>
     </thead>
     <tbody>
-    <tr ng-repeat="stack in stacks">
-      <td class="col-small">{{stack.stack_name + '-' + stack.stack_version}}</td>
-      <td class="col-medium"><a href="#/stackVersions/{{stack.repository_version}}/edit">{{stack.repository_version}}</a></td>
+    <tr ng-repeat="repo in repos">
+      <td class="col-medium"><a href="#/stackVersions/{{repo.repository_version}}/edit">{{'HDP-' + repo.repository_version}}</a></td>
       <td class="col-small">
-        <a href ng-show="stack.cluster">
+        <a href ng-show="repo.cluster">
           <i class="glyphicon glyphicon-cloud"></i>
-          {{stack.cluster}}
+          {{repo.cluster}}
         </a>
-    <select ng-show="!stack.cluster"
-            ng-change="goToCluster()"
-            ng-model="selectedCluster"
-            ng-options="cluster.Clusters.cluster_name for cluster in clusters">
-    </select>
-    </td>
-    <td>
-      <div ng-show="stack.status !== 'INIT'">
-        <span class="label" ng-class="stack.statusClass">{{stack.statusLabel}}:&nbsp;{{stack.current_hosts.length}}/{{stack.totalHosts}}</span>
-      </div>
-    </td>
+        <select ng-show="!repo.cluster"
+                ng-change="goToCluster()"
+                ng-model="selectedCluster"
+                ng-options="cluster.Clusters.cluster_name for cluster in dropDownClusters">
+        </select>
+      </td>
+      <td>
+        <div ng-show="repo.status == 'current'">
+          <span class="label {{'status-' + repo.status}}">Current:&nbsp;{{repo.currentHosts}}/{{repo.totalHosts}}</span>
+        </div>
+      </td>
     </tr>
     </tbody>
   </table>
@@ -89,7 +80,7 @@
                   max-size="pagination.maxVisiblePages"
                   items-per-page="pagination.itemsPerPage"
                   ng-model="pagination.currentPage"
-                  ng-change="getStackVersions()"
+                  ng-change="fetchRepos()"
       ></pagination>
     </div>
     <div class="pull-right">
