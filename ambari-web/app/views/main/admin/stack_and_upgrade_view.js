@@ -49,8 +49,9 @@ App.MainAdminStackAndUpgradeView = Em.View.extend({
       case 'PENDING':
       case 'IN_PROGRESS':
         return Em.I18n.t('admin.stackUpgrade.state.inProgress');
-      case 'STOPPED':
-        return Em.I18n.t('admin.stackUpgrade.state.stopped');
+      case 'FAILED':
+      case 'HOLDING':
+        return Em.I18n.t('admin.stackUpgrade.state.paused');
       case 'COMPLETED':
         return Em.I18n.t('admin.stackUpgrade.state.completed');
       default:
@@ -77,12 +78,15 @@ App.MainAdminStackAndUpgradeView = Em.View.extend({
   },
 
   /**
-   * poll upgrade state,
+   * poll Upgrade state
    */
   doPolling: function () {
     var self = this;
     this.set('updateTimer', setTimeout(function () {
-      self.get('controller').loadUpgradeData(true);
+      //skip call if Upgrade wizard opened
+      if (App.router.get('updateController').get('isWorking')) {
+        self.get('controller').loadUpgradeData(true);
+      }
       self.doPolling();
     }, App.bgOperationsUpdateInterval));
   },
@@ -97,6 +101,9 @@ App.MainAdminStackAndUpgradeView = Em.View.extend({
       return this.get('controller.currentVersion');
     }.property('controller.currentVersion'),
     btnClass: 'btn-danger',
+    didInsertElement: function () {
+      this.buttonObserver();
+    },
 
     /**
      * method of controller called on click of source version button
@@ -187,7 +194,8 @@ App.MainAdminStackAndUpgradeView = Em.View.extend({
           label = Em.I18n.t('admin.stackUpgrade.state.upgrading');
           method = 'openUpgradeDialog';
           break;
-        case 'STOPPED':
+        case 'FAILED':
+        case 'HOLDING':
           label = Em.I18n.t('admin.stackUpgrade.state.resume');
           method = 'resumeUpgrade';
           break;

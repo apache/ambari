@@ -204,6 +204,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
           });
         })
       });
+      oldData.set('Upgrade', newData.Upgrade);
     }
   },
 
@@ -218,13 +219,13 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
 
     //wrap all entities into App.upgradeEntity
     newData.upgrade_groups.forEach(function (newGroup) {
-      var oldGroup = App.upgradeEntity.create(newGroup.UpgradeGroup);
+      var oldGroup = App.upgradeEntity.create({type: 'GROUP'}, newGroup.UpgradeGroup);
       var upgradeItems = [];
       newGroup.upgrade_items.forEach(function (item) {
-        var oldItem = App.upgradeEntity.create(item.UpgradeItem);
+        var oldItem = App.upgradeEntity.create({type: 'ITEM'}, item.UpgradeItem);
         var tasks = [];
         item.tasks.forEach(function (task) {
-          tasks.pushObject(App.upgradeEntity.create(task.Tasks));
+          tasks.pushObject(App.upgradeEntity.create({type: 'TASK'}, task.Tasks));
         });
         oldItem.set('tasks', tasks);
         upgradeItems.pushObject(oldItem);
@@ -324,13 +325,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   resumeUpgrade: function () {
     //TODO resume upgrade
-  },
-
-  /**
-   * make call to stop upgrade process
-   */
-  stopUpgrade: function () {
-    //TODO stop upgrade
+    this.openUpgradeDialog();
   },
 
   /**
@@ -365,57 +360,4 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   openUpgradeDialog: function () {
     App.router.transitionTo('admin.stackUpgrade');
   }
-});
-
-
-/**
- * @type {Ember.Object}
- * @class
- */
-App.upgradeEntity = Em.Object.extend({
-
-  /**
-   * @type {boolean}
-   */
-  errorLogOpened: false,
-
-  /**
-   * @type {boolean}
-   */
-  outputLogOpened: false,
-
-  /**
-   * @type {boolean}
-   */
-  isExpanded: false,
-
-  /**
-   * @type {boolean}
-   */
-  isRunning: function () {
-    return ['IN_PROGRESS'].contains(this.get('status'));
-  }.property('status'),
-
-  /**
-   * width style of progress bar
-   * @type {string}
-   */
-  progressWidth: function () {
-    return "width:" + Math.floor(this.get('progress')) + '%;';
-  }.property('progress'),
-
-  /**
-   * @type {number}
-   */
-  progress: function () {
-    return Math.floor(this.get('progress_percent'));
-  }.property('progress_percent'),
-
-  /**
-   * indicate whether entity has active link
-   * @type {boolean}
-   */
-  isActive: function () {
-    return this.get('status') !== 'PENDING';
-  }.property('status')
 });

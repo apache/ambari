@@ -23,7 +23,7 @@
       <span class="pull-right">{{view.hostsOnlineLabel}}</span>
     </div>
     <div class="row-fluid upgrade-flow">
-      {{#view view.sourceVersionView classNames="span2 offset3 box"}}
+      {{#view view.sourceVersionView classNames="span2 offset3 box flex-width"}}
         <div class="version-name"><strong>{{view.versionName}}</strong></div>
         <div>
           {{#if view.label}}
@@ -38,7 +38,7 @@
         <div class="go-to"></div>
         <div>{{view.upgradeStateLabel}}</div>
       </div>
-      {{#view view.targetVersionView classNames="span2 box"}}
+      {{#view view.targetVersionView classNames="span2 box flex-width"}}
         {{view Ember.Select
         classBinding="view.showSelect::hidden"
         contentBinding="view.versionsSelectContent"

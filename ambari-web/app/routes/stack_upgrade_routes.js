@@ -38,24 +38,31 @@ module.exports = App.WizardRoute.extend({
           this.fitHeight();
         },
         onClose: function() {
-          var self = this;
-          var header = Em.I18n.t('admin.stackUpgrade.state.paused');
-          var body = Em.I18n.t('admin.stackUpgrade.dialog.closePause');
-          if (['IN_PROGRESS', 'PENDING'].contains(App.get('upgradeState'))) {
+          var self = this, header, body;
+          if (['IN_PROGRESS', 'PENDING', 'FAILED'].contains(App.get('upgradeState'))) {
             header = Em.I18n.t('admin.stackUpgrade.state.inProgress');
             body = Em.I18n.t('admin.stackUpgrade.dialog.closeProgress');
+          } else if (App.get('upgradeState') === 'HOLDING') {
+            header = Em.I18n.t('admin.stackUpgrade.state.paused');
+            body = Em.I18n.t('admin.stackUpgrade.dialog.closePause');
+          } else {
+            this.closeWizard();
+            return;
           }
           App.ModalPopup.show({
             header: header,
             body: body,
             showCloseButton: false,
             onPrimary: function() {
-              App.router.get('updateController').set('isWorking', true);
-              App.router.transitionTo('main.admin.stackAndUpgrade');
-              self.hide();
+              self.closeWizard();
               this._super();
             }
           })
+        },
+        closeWizard: function () {
+          App.router.get('updateController').set('isWorking', true);
+          App.router.transitionTo('main.admin.stackAndUpgrade');
+          this.hide();
         }
       });
     });

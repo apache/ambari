@@ -60,16 +60,11 @@ App.upgradeWizardView = Em.View.extend({
       case 'PENDING':
       case 'IN_PROGRESS':
         return Em.I18n.t('admin.stackUpgrade.state.inProgress');
-        break;
       case 'COMPLETED':
         return Em.I18n.t('admin.stackUpgrade.state.completed');
-        break;
+      case 'FAILED':
       case 'HOLDING':
         return Em.I18n.t('admin.stackUpgrade.state.paused');
-        break;
-      case 'FAILED':
-        return Em.I18n.t('admin.stackUpgrade.state.paused');
-        break;
       default:
         return ""
     }

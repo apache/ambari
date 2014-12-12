@@ -59,49 +59,7 @@
       {{! List of Tasks}}
       <div class="task-list">
         {{#each task in item.tasks}}
-          <div {{bindAttr class="task.isActive::not-active-link"}}>{{statusIcon task.status}}<a href="#" {{action toggleExpanded task item.tasks target="view"}}>{{task.command_detail}}</a></div>
-          {{#if task.isExpanded}}
-            <div class="task-details task-detail-info">
-              <ul class="nav nav-tabs">
-                <li class="active"><a href="#tab1" data-toggle="tab">{{t common.stdout}}</a></li>
-                <li><a href="#tab2" data-toggle="tab">{{t common.stderr}}</a></li>
-              </ul>
-              <div class="tab-content">
-                <div class="tab-pane active" id="tab1">
-                  <p>{{task.host_name}}</p>
-                  <div class="row-fluid">
-                    <p class="pull-left">{{task.output_log}}</p>
-                    <div class="manage-controls pull-right">
-                      <a title="Click to Copy" {{action copyOutLog task target="view"}} class="task-detail-copy">
-                        <i class="icon-copy"></i> {{t common.copy}}
-                      </a>
-                      <a title="Open in New Window" {{action openLogWindow task.stdout target="view"}} class="task-detail-open-dialog">
-                        <i class="icon-external-link"></i> {{t common.open}}
-                      </a>
-                    </div>
-                  </div>
-                  <pre {{bindAttr class="task.outputLogOpened:hidden :stdout"}}>{{task.stdout}}</pre>
-                  {{view Ember.TextArea valueBinding="task.stdout" classBinding="task.outputLogOpened::hidden" readonly="readonly"}}
-                </div>
-                <div class="tab-pane" id="tab2">
-                  <p>{{task.host_name}}</p>
-                  <div class="row-fluid">
-                    <p class="pull-left">{{task.error_log}}</p>
-                    <div class="manage-controls pull-right">
-                      <a title="Click to Copy" {{action copyErrLog task target="view"}} class="task-detail-copy">
-                        <i class="icon-copy"></i> {{t common.copy}}
-                      </a>
-                      <a title="Open in New Window" {{action openLogWindow task.stderr target="view"}} class="task-detail-open-dialog">
-                        <i class="icon-external-link"></i> {{t common.open}}
-                      </a>
-                    </div>
-                  </div>
-                  <pre {{bindAttr class="task.errorLogOpened:hidden :stderr"}}>{{task.stderr}}</pre>
-                  {{view Ember.TextArea valueBinding="task.stderr" classBinding="task.errorLogOpened::hidden" readonly="readonly"}}
-                </div>
-              </div>
-            </div>
-          {{/if}}
+          {{view App.upgradeTaskView contentBinding="task" tasksBinding="item.tasks"}}
         {{/each}}
       </div>
     {{/if}}
@@ -113,18 +71,17 @@
     <div class="box details-box">
       <div>
         {{t admin.stackUpgrade.dialog.inProgress}}&nbsp;
-        <a href>{{view.runningItem.context}}</a>
+        <a href="#" {{action toggleExpanded view.content controller.upgradeData.upgradeGroups target="view"}}>{{view.runningItem.context}}</a>
       </div>
     </div>
   {{/if}}
-  {{#if view.isFailed}}
+  {{#if view.showFailedInfo}}
     <div class="box details-box">
       <div>
         {{t admin.stackUpgrade.dialog.failed}}&nbsp;
-        <a href>{{view.failedItem.name}}</a>
+        <a href="#" {{action toggleExpanded view.content controller.upgradeData.upgradeGroups target="view"}}>{{view.failedItem.context}}</a>
       </div>
       <div class="button-row">
-        <button class="btn btn-danger">{{t admin.stackUpgrade.dialog.stop}}</button>
         <button class="btn btn-warning">{{t admin.stackUpgrade.dialog.continue}}</button>
         <button class="btn">{{t common.retry}}</button>
       </div>

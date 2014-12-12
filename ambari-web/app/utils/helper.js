@@ -746,7 +746,8 @@ App.registerBoundHelper('statusIcon', Em.View.extend({
     'FAILED': 'icon-warning-sign',
     'PENDING': 'icon-cog',
     'IN_PROGRESS': 'icon-cogs',
-    'HOLDING': 'icon-pause'
+    'HOLDING': 'icon-pause',
+    'ABORTED': 'icon-minus'
   },
 
   classNameBindings: ['iconClass'],

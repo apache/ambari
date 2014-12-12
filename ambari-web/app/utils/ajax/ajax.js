@@ -1348,12 +1348,20 @@ var urls = {
     'mock': '/data/wizard/{mock}'
   },
   'admin.upgrade.data': {
-    'real': '/clusters/{clusterName}/upgrades/{id}?fields=Upgrade,upgrade_groups/UpgradeGroup,upgrade_groups/upgrade_items/*,upgrade_groups/upgrade_items/tasks/*',
+    'real': '/clusters/{clusterName}/upgrades/{id}?fields=Upgrade,upgrade_groups/UpgradeGroup,upgrade_groups/upgrade_items/*,' +
+      'upgrade_groups/upgrade_items/tasks/Tasks/id,' +
+      'upgrade_groups/upgrade_items/tasks/Tasks/command_detail,' +
+      'upgrade_groups/upgrade_items/tasks/Tasks/request_id,' +
+      'upgrade_groups/upgrade_items/tasks/Tasks/status',
     'mock': '/data/stack_versions/upgrade.json'
   },
   'admin.upgrade.state': {
     'real': '/clusters/{clusterName}/upgrades/{id}?fields=Upgrade',
-    'mock': '/data/stack_versions/upgrade_state.json'
+    'mock': '/data/stack_versions/upgrade.json'
+  },
+  'admin.upgrade.task': {
+    'real': '/clusters/{clusterName}/upgrades/{upgradeId}/upgrade_groups?upgrade_items/tasks/Tasks/id={taskId}&fields=upgrade_items/tasks/Tasks/*',
+    'mock': '/data/stack_versions/upgrade_task.json'
   },
   'admin.upgrade.start': {
     'real': '/clusters/{clusterName}/upgrades/{id}',

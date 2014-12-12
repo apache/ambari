@@ -1,0 +1,62 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+
+<div {{bindAttr class="view.content.isActive::not-active-link"}}>{{statusIcon view.content.status}}<a href="#" {{action toggleExpanded view.content view.tasks target="view.parentView"}}>{{view.content.command_detail}}</a></div>
+{{#if view.content.isExpanded}}
+  <div class="task-details task-detail-info">
+    <ul class="nav nav-tabs">
+      <li class="active"><a href="#tab1" data-toggle="tab">{{t common.stdout}}</a></li>
+      <li><a href="#tab2" data-toggle="tab">{{t common.stderr}}</a></li>
+    </ul>
+    <div class="tab-content">
+      <div class="tab-pane active" id="tab1">
+        <p>{{view.content.host_name}}</p>
+        <div class="row-fluid">
+          <p class="pull-left">{{view.content.output_log}}</p>
+          <div class="manage-controls pull-right">
+            <a title="Click to Copy" {{action copyOutLog view.content target="view"}} class="task-detail-copy">
+              <i class="icon-copy"></i> {{t common.copy}}
+            </a>
+            <a title="Open in New Window" {{action openLogWindow view.content.stdout target="view"}} class="task-detail-open-dialog">
+              <i class="icon-external-link"></i> {{t common.open}}
+            </a>
+          </div>
+        </div>
+        <pre {{bindAttr class="view.outputLogOpened:hidden :stdout"}}>{{view.content.stdout}}</pre>
+        {{view Ember.TextArea valueBinding="view.content.stdout" classBinding="view.outputLogOpened::hidden" readonly="readonly"}}
+      </div>
+      <div class="tab-pane" id="tab2">
+        <p>{{view.content.host_name}}</p>
+        <div class="row-fluid">
+          <p class="pull-left">{{view.content.error_log}}</p>
+          <div class="manage-controls pull-right">
+            <a title="Click to Copy" {{action copyErrLog view.content target="view"}} class="task-detail-copy">
+              <i class="icon-copy"></i> {{t common.copy}}
+            </a>
+            <a title="Open in New Window" {{action openLogWindow view.content.stderr target="view"}} class="task-detail-open-dialog">
+              <i class="icon-external-link"></i> {{t common.open}}
+            </a>
+          </div>
+        </div>
+        <pre {{bindAttr class="view.errorLogOpened:hidden :stderr"}}>{{view.content.stderr}}</pre>
+        {{view Ember.TextArea valueBinding="view.content.stderr" classBinding="view.errorLogOpened::hidden" readonly="readonly"}}
+      </div>
+    </div>
+  </div>
+{{/if}}

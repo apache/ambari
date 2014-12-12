@@ -45,9 +45,9 @@ App.upgradeGroupView = Em.View.extend({
   /**
    * @type {boolean}
    */
-  isFailed: function () {
-    return this.get('content.status') === 'FAILED';
-  }.property('content.status'),
+  showFailedInfo: function () {
+    return this.get('content.status') === 'FAILED' && this.get('failedItem');
+  }.property('content.status', 'failedItem'),
 
   /**
    * if upgrade group is in progress it should have currently running item
@@ -77,39 +77,29 @@ App.upgradeGroupView = Em.View.extend({
    * @param {object} event
    */
   toggleExpanded: function (event) {
-    event.contexts[1].forEach(function (item) {
-      if (item == event.context) {
-        item.set('isExpanded', !event.context.get('isExpanded'));
-      } else {
-        item.set('isExpanded', false);
+    var isExpanded = event.context.get('isExpanded');
+    event.contexts[1].filterProperty('isExpanded').forEach(function (item) {
+      this.collapseLowerLevels(item);
+      item.set('isExpanded', false);
+    }, this);
+    this.collapseLowerLevels(event.context);
+    event.context.set('isExpanded', !isExpanded);
+  },
+
+  /**
+   * collapse sub-entities of current
+   * @param {App.upgradeEntity} entity
+   */
+  collapseLowerLevels: function (entity) {
+    if (entity.get('isExpanded')) {
+      if (entity.type === 'ITEM') {
+        entity.get('tasks').setEach('isExpanded', false);
+      } else if (entity.type === 'GROUP') {
+        entity.get('upgradeItems').forEach(function (item) {
+          this.collapseLowerLevels(item);
+          item.set('isExpanded', false);
+        }, this);
       }
-    });
-  },
-
-  /**
-   *
-   * @param {object} event
-   */
-  copyErrLog: function(event) {
-    event.context.toggleProperty('errorLogOpened');
-  },
-
-  /**
-   *
-   * @param {object} event
-   */
-  openLogWindow: function(event) {
-    var newWindow = window.open();
-    var newDocument = newWindow.document;
-    newDocument.write(event.context);
-    newDocument.close();
-  },
-
-  /**
-   *
-   * @param {object} event
-   */
-  copyOutLog: function(event) {
-    event.context.toggleProperty('outputLogOpened');
+    }
   }
 });
