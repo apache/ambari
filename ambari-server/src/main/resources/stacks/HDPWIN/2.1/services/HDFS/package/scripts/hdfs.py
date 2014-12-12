@@ -25,7 +25,8 @@ import os
 def hdfs(component=None):
   import params
   if component == "namenode":
-    Directory(params.dfs_name_dir,
+    directories = params.dfs_name_dir.split(",")
+    Directory(directories,
               owner=params.hdfs_user,
               mode="(OI)(CI)F",
               recursive=True
