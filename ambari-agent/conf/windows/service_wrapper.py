@@ -28,6 +28,7 @@ from ambari_commons.ambari_service import AmbariService, ENV_PYTHON_PATH
 from ambari_commons.exceptions import *
 from ambari_commons.logging_utils import *
 from ambari_commons.os_windows import WinServiceController
+from ambari_commons.os_utils import find_in_path
 from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent.HeartbeatHandlers import HeartbeatStopHandlers
 
@@ -55,6 +56,8 @@ def parse_options():
     os.environ["AMBARI_AGENT_LOG_DIR"] = os.path.join("\\", "var", "log", "ambari-agent")
   if not os.path.exists(os.environ["AMBARI_AGENT_LOG_DIR"]):
     os.makedirs(os.environ["AMBARI_AGENT_LOG_DIR"])
+  if not os.environ.has_key("PYTHON_EXE"):
+    os.environ["PYTHON_EXE"] = find_in_path("python.exe")
 
 
 class AmbariAgentService(AmbariService):
