@@ -22,48 +22,65 @@ App.MainHostMenuView = Em.CollectionView.extend({
   tagName: 'ul',
   classNames: ["nav", "nav-tabs"],
   host: null,
-  content: function () {
-    //count Alerts badge text and class
 
+  content: [
+    Em.Object.create({
+      name: 'summary',
+      label: Em.I18n.t('common.summary'),
+      routing: 'summary'
+    }),
+    Em.Object.create({
+      name: 'configs',
+      label: Em.I18n.t('common.configs'),
+      routing: 'configs'
+    }),
+    Em.Object.create({
+      name: 'alerts',
+      label: Em.I18n.t('hosts.host.alerts.label'),
+      routing: 'alerts',
+      badgeText: '0',
+      badgeClasses: 'label'
+    })
+  ],
+
+  /**
+   * Add conditional menu options
+   */
+  setConditionalOptions: function () {
+    if (App.get('supports.stackUpgrade')) {
+      this.get('content').push(
+          Em.Object.create({
+            name: 'versions',
+            label: Em.I18n.t('hosts.host.menu.stackVersions'),
+            routing: 'stackVersions'
+          })
+      );
+    }
+  },
+
+  /**
+   * Update Alerts menu option counter text and class
+   */
+  updateAlertCounter: function () {
     var criticalWarningCount = this.get('host.criticalWarningAlertsCount');
     var criticalCount = this.get('host.alertsSummary.CRITICAL');
     var warningCount = this.get('host.alertsSummary.WARNING');
     var badgeText = "" + criticalWarningCount;
-    var badgeClasses = "label ";
+    var badgeClasses = "label";
     if (criticalCount > 0) {
-      badgeClasses += "label-important";
+      badgeClasses += " label-important";
     } else if (warningCount > 0) {
-      badgeClasses += "label-warning ";
+      badgeClasses += " label-warning";
     }
-
-    var array = [
-      {
-        label: Em.I18n.t('common.summary'),
-        routing: 'summary'
-      },
-      {
-        label: Em.I18n.t('common.configs'),
-        routing: 'configs'
-      },
-      {
-        label: Em.I18n.t('hosts.host.alerts.label'),
-        routing: 'alerts',
-        badgeText: badgeText,
-        badgeClasses: badgeClasses
-      }
-      /* { label:'Audit', routing:'audit'} */
-    ];
-    if (App.get('supports.stackUpgrade')) {
-      array.push({
-        label: Em.I18n.t('hosts.host.menu.stackVersions'),
-        routing: 'stackVersions'
-      });
-    }
-    return array;
-  }.property('host.alertsSummary.CRITICAL', 'host.alertsSummary.WARNING', 'host.criticalWarningAlertsCount'),
+    var alertOption = this.get('content').findProperty('name', 'alerts');
+    alertOption.set('badgeText', badgeText);
+    alertOption.set('badgeClasses', badgeClasses);
+  }.observes('host.alertsSummary.CRITICAL', 'host.alertsSummary.WARNING', 'host.criticalWarningAlertsCount'),
 
   init: function () {
     this._super();
+    this.setConditionalOptions();
+    this.updateAlertCounter();
     this.activateView();
   },
 
