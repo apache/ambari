@@ -203,6 +203,5 @@ App.StackServiceComponent = DS.Model.extend({
 App.StackServiceComponent.FIXTURES = [];
 
 App.StackServiceComponent.coHost = {
-  'HIVE_METASTORE': 'HIVE_SERVER',
   'WEBHCAT_SERVER': 'HIVE_SERVER'
 };

@@ -660,16 +660,6 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, {
   },
 
   /**
-   * @param {string} componentName
-   * @returns {bool}
-   * @private
-   * @method _isHiveCoHost
-   */
-  _isHiveCoHost: function (componentName) {
-    return ['HIVE_METASTORE', 'WEBHCAT_SERVER'].contains(componentName) && !this.get('isReassignWizard');
-  },
-
-  /**
    * Put master components to <code>selectedServicesMasters</code>, which will be automatically rendered in template
    * @param {Ember.Enumerable} masterComponents
    * @method renderComponents

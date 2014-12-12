@@ -222,7 +222,7 @@ var componentPropertiesValidationTests = [
       isRequiredOnAllHosts: false,
       coHostedComponents: [],
       isOtherComponentCoHosted: false,
-      isCoHostedComponent: true
+      isCoHostedComponent: false
     }
   },
   {
@@ -249,7 +249,7 @@ var componentPropertiesValidationTests = [
       isMasterAddableInstallerWizard: false,
       isHAComponentOnly: false,
       isRequiredOnAllHosts: false,
-      coHostedComponents: ['HIVE_METASTORE','WEBHCAT_SERVER'],
+      coHostedComponents: ['WEBHCAT_SERVER'],
       isOtherComponentCoHosted: true,
       isCoHostedComponent: false
     }
