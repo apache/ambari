@@ -538,15 +538,32 @@ App.MainHostDetailsController = Em.Controller.extend({
     }
 
     this.showBackgroundOperationsPopup(function () {
-      if (params.componentName === 'ZOOKEEPER_SERVER') {
-        self.set('zkRequestId', data.Requests.id);
-        self.addObserver('App.router.backgroundOperationsController.serviceTimestamp', self, self.checkZkConfigs);
-        self.checkZkConfigs();
-      }else if (params.componentName === 'HIVE_METASTORE'){
-       self.loadConfigs('loadHiveConfigs');
+      if (params.componentName === 'ZOOKEEPER_SERVER' || params.componentName === 'HIVE_METASTORE') {
+        self.set(params.componentName === 'ZOOKEEPER_SERVER' ? 'zkRequestId' : 'hiveRequestId', data.Requests.id);
+        self.addObserver(
+          'App.router.backgroundOperationsController.serviceTimestamp',
+          self,
+          (params.componentName === 'ZOOKEEPER_SERVER' ? self.checkZkConfigs : self.checkHiveDone)
+          );
+        params.componentName === 'ZOOKEEPER_SERVER' ? self.checkZkConfigs() : self.checkHiveDone();
       }
     });
     return true;
+  },
+
+  /**
+   * Call load tags
+   * @method checkHiveDone
+   */
+  checkHiveDone: function () {
+    var bg = App.router.get('backgroundOperationsController.services').findProperty('id', this.get('hiveRequestId'));
+    if (bg && !bg.get('isRunning')) {
+      var self = this;
+      this.removeObserver('App.router.backgroundOperationsController.serviceTimestamp', this, this.checkHiveDone);
+      setTimeout(function () {
+        self.loadConfigs("loadHiveConfigs");
+      }, App.get('componentsUpdateInterval'));
+    }
   },
 
   /**
@@ -599,9 +616,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     if (this.get('fromDeleteHost') || this.get('deleteHiveMetaStore')) {
       this.set('deleteHiveMetaStore', false);
       this.set('fromDeleteHost', false);
-      hiveHosts = hiveHosts.without(this.get('content.hostName'));
-    } else if (!hiveHosts.contains(this.get('content.hostName'))) {
-      hiveHosts.push(this.get('content.hostName'));
+      return hiveHosts.without(this.get('content.hostName'));
     }
     return hiveHosts;
   },
