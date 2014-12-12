@@ -76,27 +76,52 @@ describe('App.RepoVersionsController', function () {
   });
 
   describe('#installStackVersionSuccess()', function () {
-    it('success callback for install stack version', function () {
-      var repoId = "1";
-      var requestId = "2";
-      var stackVersion = {repositoryVersion: {id: repoId}};
+    var repoId = "1";
+    var requestId = "2";
+    var stackVersionObject = {repositoryVersion: {id: repoId}};
+    var stackVersion;
+    beforeEach(function() {
       sinon.stub(App.db, 'set', Em.K);
-      sinon.stub(App.get('router.mainStackVersionsController'), 'loadStackVersionsToModel', function() { return $.Deferred().resolve()});
       sinon.stub(App.router, 'transitionTo', Em.K);
       sinon.stub(App.StackVersion, 'find', function() {
         return [stackVersion];
       });
+    });
+
+    afterEach(function() {
+      App.db.set.restore();
+      App.router.transitionTo.restore();
+      App.StackVersion.find.restore();
+    });
+    it('success callback for install stack version', function () {
+      stackVersion = null;
+      sinon.stub(App.get('router.mainStackVersionsController'), 'loadStackVersionsToModel', function() {
+        stackVersion = stackVersionObject;
+        return $.Deferred().resolve()});
 
       repoVersionsController.installStackVersionSuccess({Requests: {id: requestId}}, null, {id: repoId});
       expect(App.db.set.calledWith('stackUpgrade', 'id', [requestId])).to.be.true;
       expect(App.get('router.mainStackVersionsController').loadStackVersionsToModel.calledOnce).to.be.true;
-      expect(App.StackVersion.find.calledOnce).to.be.true;
+      expect(App.StackVersion.find.called).to.be.true;
       expect(App.router.transitionTo.calledWith('main.admin.adminStackVersions.version', stackVersion)).to.be.true;
 
-      App.db.set.restore();
       App.get('router.mainStackVersionsController').loadStackVersionsToModel.restore();
-      App.router.transitionTo.restore();
-      App.StackVersion.find.restore();
+    });
+
+    it('success callback for install stack version without redirect', function () {
+      stackVersion = stackVersionObject;
+      sinon.stub(App.get('router.mainStackVersionsController'), 'loadStackVersionsToModel', function() {
+        return $.Deferred().resolve()
+      });
+
+      repoVersionsController.installStackVersionSuccess({Requests: {id: requestId}}, null, {id: repoId});
+      expect(App.db.set.calledWith('stackUpgrade', 'id', [requestId])).to.be.true;
+      expect(App.get('router.mainStackVersionsController').loadStackVersionsToModel.calledOnce).to.be.false;
+      expect(App.StackVersion.find.calledOnce).to.be.true;
+      expect(App.router.transitionTo.calledWith('main.admin.adminStackVersions.version', stackVersion)).to.be.false;
+
+      App.get('router.mainStackVersionsController').loadStackVersionsToModel.restore();
+
     });
   });
 

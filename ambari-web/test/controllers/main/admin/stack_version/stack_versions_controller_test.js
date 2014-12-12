@@ -52,4 +52,45 @@ describe('App.MainStackVersionsController', function () {
       App.HttpClient.get.restore();
     });
   });
+
+  describe('#filterHostsByStack()', function () {
+    beforeEach(function() {
+      sinon.stub(App.router.get('mainHostController'), 'filterByStack').returns({done: Em.K});
+      sinon.stub(App.router, 'transitionTo').returns({done: Em.K});
+    });
+    afterEach(function() {
+      App.router.get('mainHostController').filterByStack.restore();
+      App.router.transitionTo.restore();
+    });
+    var tests = [
+      {
+        version: "version1",
+        state: "state1",
+        m: 'go to hosts filtered by host stack version and host stack state',
+        runAll: true
+      },
+      {
+        version: null,
+        state: "state1",
+        m: 'doesn\'t do anything because version is missing'
+      },
+      {
+        version: "version1",
+        state: null,
+        m: 'doesn\'t do anything because state is missing'
+      }
+    ].forEach(function(t) {
+        it(t.m, function () {
+          controller.load(t.version, t.stack);
+          if (t.runAll) {
+            expect(App.router.get('mainHostController').filterByStack.calledWith('hosts.index')).to.be.true;
+            expect(App.router.transitionTo.calledWith('hosts.index')).to.be.true;
+          } else {
+            expect(App.router.get('mainHostController').filterByStack.calledOnce).to.be.false;
+            expect(App.router.transitionTo.calledOnce).to.be.false;
+          }
+
+        });
+      });
+  });
 });
