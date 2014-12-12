@@ -329,6 +329,7 @@ class ActionQueue(threading.Thread):
       # For custom services, responsibility to determine service status is
       # delegated to python scripts
       component_status_result = self.customServiceOrchestrator.requestComponentStatus(command)
+      component_security_status_result = self.customServiceOrchestrator.requestComponentSecurityState(command)
 
       if component_status_result['exitcode'] == 0:
         component_status = LiveStatus.LIVE_STATUS
@@ -339,6 +340,9 @@ class ActionQueue(threading.Thread):
         component_extra = component_status_result['structuredOut']
 
       result = livestatus.build(forsed_component_status= component_status)
+
+      # Add security state to the result
+      result['securityState'] = component_security_status_result
 
       if component_extra is not None and len(component_extra) != 0:
         if component_extra.has_key('alerts'):

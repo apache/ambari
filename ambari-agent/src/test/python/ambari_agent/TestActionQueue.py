@@ -520,24 +520,31 @@ class TestActionQueue(TestCase):
   @patch.object(ActionQueue, "status_update_callback")
   @patch.object(StackVersionsFileHandler, "read_stack_version")
   @patch.object(CustomServiceOrchestrator, "requestComponentStatus")
+  @patch.object(CustomServiceOrchestrator, "requestComponentSecurityState")
   @patch.object(ActionQueue, "execute_command")
   @patch.object(LiveStatus, "build")
   @patch.object(CustomServiceOrchestrator, "__init__")
   def test_execute_status_command(self, CustomServiceOrchestrator_mock,
-                                  build_mock, execute_command_mock,
+                                  build_mock, execute_command_mock, requestComponentSecurityState_mock,
                                   requestComponentStatus_mock, read_stack_version_mock,
                                   status_update_callback):
     CustomServiceOrchestrator_mock.return_value = None
     dummy_controller = MagicMock()
     actionQueue = ActionQueue(AmbariConfig().getConfig(), dummy_controller)
 
-    build_mock.return_value = "dummy report"
+    build_mock.return_value = {'dummy report': '' }
 
     requestComponentStatus_mock.reset_mock()
-    requestComponentStatus_mock.return_value = {'exitcode': 0}
+    requestComponentStatus_mock.return_value = {'exitcode': 0 }
+
+    requestComponentSecurityState_mock.reset_mock()
+    requestComponentSecurityState_mock.return_value = 'UNKNOWN'
+
     actionQueue.execute_status_command(self.status_command)
     report = actionQueue.result()
-    expected = 'dummy report'
+    expected = {'dummy report': '',
+                'securityState' : 'UNKNOWN'}
+
     self.assertEqual(len(report['componentStatus']), 1)
     self.assertEqual(report['componentStatus'][0], expected)
     self.assertTrue(requestComponentStatus_mock.called)
@@ -545,10 +552,12 @@ class TestActionQueue(TestCase):
   @patch.object(ActionQueue, "status_update_callback")
   @patch.object(StackVersionsFileHandler, "read_stack_version")
   @patch.object(CustomServiceOrchestrator, "requestComponentStatus")
+  @patch.object(CustomServiceOrchestrator, "requestComponentSecurityState")
   @patch.object(ActionQueue, "execute_command")
   @patch.object(LiveStatus, "build")
   @patch.object(CustomServiceOrchestrator, "__init__")
   def test_execute_status_command_with_alerts(self, CustomServiceOrchestrator_mock,
+                                              requestComponentSecurityState_mock,
                                   build_mock, execute_command_mock,
                                   requestComponentStatus_mock, read_stack_version_mock,
                                   status_update_callback):
