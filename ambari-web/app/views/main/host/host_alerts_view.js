@@ -31,6 +31,7 @@ App.MainHostAlertsView = App.TableView.extend({
     var hostName = this.get('parentView.controller.content.hostName');
     App.router.get('mainAlertInstancesController').loadAlertInstancesByHost(hostName);
     App.router.set('mainAlertInstancesController.isUpdating', true);
+    this._super();
   },
 
   didInsertElement: function () {
