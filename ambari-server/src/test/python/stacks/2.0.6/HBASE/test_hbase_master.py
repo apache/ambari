@@ -54,9 +54,9 @@ class TestHBaseMaster(RMFTestCase):
     )
     
     self.assertResourceCalled('Execute', '/usr/lib/hbase/bin/hbase-daemon.sh --config /etc/hbase/conf stop master',
-      user = 'hbase',
-      on_timeout = 'ls /var/run/hbase/hbase-hbase-master.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/hbase-hbase-master.pid` >/dev/null 2>&1 && kill -9 `cat /var/run/hbase/hbase-hbase-master.pid`', 
-      timeout = 30,
+        on_timeout = '! ( ls /var/run/hbase/hbase-hbase-master.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/hbase-hbase-master.pid` >/dev/null 2>&1 ) || sudo -H -E kill -9 `cat /var/run/hbase/hbase-hbase-master.pid`',
+        timeout = 30,
+        user = 'hbase',
     )
     
     self.assertResourceCalled('Execute', 'rm -f /var/run/hbase/hbase-hbase-master.pid',
@@ -141,11 +141,11 @@ class TestHBaseMaster(RMFTestCase):
     )
 
     self.assertResourceCalled('Execute', '/usr/lib/hbase/bin/hbase-daemon.sh --config /etc/hbase/conf stop master',
-      user = 'hbase',
-      on_timeout = 'ls /var/run/hbase/hbase-hbase-master.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/hbase-hbase-master.pid` >/dev/null 2>&1 && kill -9 `cat /var/run/hbase/hbase-hbase-master.pid`', 
-      timeout = 30,
+        on_timeout = '! ( ls /var/run/hbase/hbase-hbase-master.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/hbase-hbase-master.pid` >/dev/null 2>&1 ) || sudo -H -E kill -9 `cat /var/run/hbase/hbase-hbase-master.pid`',
+        timeout = 30,
+        user = 'hbase',
     )
-    
+
     self.assertResourceCalled('Execute', 'rm -f /var/run/hbase/hbase-hbase-master.pid',
     )
     self.assertNoMoreResources()

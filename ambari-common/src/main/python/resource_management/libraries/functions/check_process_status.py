@@ -23,6 +23,7 @@ Ambari Agent
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.core import shell
+from resource_management.core import sudo
 __all__ = ["check_process_status"]
 
 import os
@@ -38,17 +39,17 @@ def check_process_status(pid_file):
   """
   if not pid_file or not os.path.isfile(pid_file):
     raise ComponentIsNotRunning()
-  with open(pid_file, "r") as f:
-    try:
-      pid = int(f.read())
-    except:
-      Logger.debug("Pid file {0} does not exist".format(pid_file))
-      raise ComponentIsNotRunning()
+  
+  try:
+    pid = int(sudo.read_file(pid_file))
+  except:
+    Logger.debug("Pid file {0} does not exist".format(pid_file))
+    raise ComponentIsNotRunning()
 
-    code, out = shell.call(["ps","-p", str(pid)])
-    
-    if code:
-      Logger.debug("Process with pid {0} is not running. Stale pid file"
-                " at {1}".format(pid, pid_file))
-      raise ComponentIsNotRunning()
+  code, out = shell.call(["ps","-p", str(pid)])
+  
+  if code:
+    Logger.debug("Process with pid {0} is not running. Stale pid file"
+              " at {1}".format(pid, pid_file))
+    raise ComponentIsNotRunning()
   pass

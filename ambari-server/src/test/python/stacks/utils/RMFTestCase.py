@@ -57,6 +57,7 @@ class RMFTestCase(TestCase):
                     shell_mock_value = (0, "OK."), 
                     os_type=('Suse','11','Final'),
                     kinit_path_local="/usr/bin/kinit",
+                    os_env={'PATH':'/bin'},
                     target=TARGET_STACKS
                     ):
     norm_path = os.path.normpath(path)
@@ -116,7 +117,8 @@ class RMFTestCase(TestCase):
             with patch.object(Script, 'install_packages'):
               with patch('resource_management.libraries.functions.get_kinit_path', return_value=kinit_path_local):
                 with patch.object(platform, 'linux_distribution', return_value=os_type):
-                  method(RMFTestCase.env)
+                  with patch.object(os, "environ", new=os_env):
+                    method(RMFTestCase.env)
     sys.path.remove(scriptsdir)
   
   def getConfig(self):

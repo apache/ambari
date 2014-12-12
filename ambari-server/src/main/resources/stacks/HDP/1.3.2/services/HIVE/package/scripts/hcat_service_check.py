@@ -45,7 +45,7 @@ def hcat_service_check():
             tries=3,
             user=params.smokeuser,
             try_sleep=5,
-            path=['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
+            path=['/usr/sbin', '/usr/local/bin', '/bin', '/usr/bin'],
             logoutput=True)
 
     if params.security_enabled:
@@ -74,6 +74,6 @@ def hcat_service_check():
             tries=3,
             user=params.smokeuser,
             try_sleep=5,
-            path=['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
+            path=['/usr/sbin', '/usr/local/bin', '/bin', '/usr/bin'],
             logoutput=True
     )

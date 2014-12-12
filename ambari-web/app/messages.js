@@ -1079,9 +1079,9 @@ Em.I18n.translations = {
     '<ol>' +
       '<li>Login to the NameNode host <b>{1}</b>.</li>' +
       '<li>Put the NameNode in Safe Mode (read-only mode):' +
-      '<div class="code-snippet">sudo su -l {0} -c \'hdfs dfsadmin -safemode enter\'</div></li>' +
+      '<div class="code-snippet">sudo su {0} -l -c \'hdfs dfsadmin -safemode enter\'</div></li>' +
       '<li>Once in Safe Mode, create a Checkpoint:' +
-      '<div class="code-snippet">sudo su -l {0} -c \'hdfs dfsadmin -saveNamespace\'</div></li>' +
+      '<div class="code-snippet">sudo su {0} -l -c \'hdfs dfsadmin -saveNamespace\'</div></li>' +
       '</ol>',
 
   'admin.highAvailability.wizard.step8.body':
@@ -1089,7 +1089,7 @@ Em.I18n.translations = {
     '<ol>' +
     '<li>Login to the NameNode host <b>{1}</b>.</li>' +
     '<li>Initialize the metadata for NameNode automatic failover by running:' +
-    '<div class="code-snippet">sudo su -l {0} -c \'hdfs zkfc -formatZK\'</div></li>' +
+    '<div class="code-snippet">sudo su {0} -l -c \'hdfs zkfc -formatZK\'</div></li>' +
     '</div>' +
     '<div class="alert alert-info">' +
     '<ol start="3">' +
@@ -1097,7 +1097,7 @@ Em.I18n.translations = {
     '<div class="alert alert-warn"><strong>Important!</strong> Be sure to login to the Additional NameNode host.<br>This is a different host from the Steps 1 and 2 above.</div>' +
     '</li>' +
     '<li>Initialize the metadata for the Additional NameNode by running:' +
-    '<div class="code-snippet">sudo su -l {0} -c \'hdfs namenode -bootstrapStandby\'</div></li>' +
+    '<div class="code-snippet">sudo su {0} -l -c \'hdfs namenode -bootstrapStandby\'</div></li>' +
     '</ol>' +
     '</div>' +
     'Please proceed once you have completed the steps above.',
@@ -1105,16 +1105,16 @@ Em.I18n.translations = {
     '<ol>' +
     '<li>Login to the NameNode host <b>{1}</b>.</li>' +
     '<li>Initialize the JournalNodes by running:' +
-    '<div class="code-snippet">sudo su -l {0} -c \'hdfs namenode -initializeSharedEdits\'</div></li>' +
+    '<div class="code-snippet">sudo su {0} -l -c \'hdfs namenode -initializeSharedEdits\'</div></li>' +
     '<li>You will be able to proceed once Ambari detects that the JournalNodes have been initialized successfully.</li>' +
     '</ol>',
   'admin.highAvailability.wizard.step4.body':
     '<ol>' +
     '<li>Login to the NameNode host <b>{1}</b>.</li>' +
     '<li>Put the NameNode in Safe Mode (read-only mode):' +
-    '<div class="code-snippet">sudo su -l {0} -c \'hdfs dfsadmin -safemode enter\'</div></li>' +
+    '<div class="code-snippet">sudo su {0} -l -c \'hdfs dfsadmin -safemode enter\'</div></li>' +
     '<li>Once in Safe Mode, create a Checkpoint:' +
-    '<div class="code-snippet">sudo su -l {0} -c \'hdfs dfsadmin -saveNamespace\'</div></li>' +
+    '<div class="code-snippet">sudo su {0} -l -c \'hdfs dfsadmin -saveNamespace\'</div></li>' +
     '<li>You will be able to proceed once Ambari detects that the NameNode is in Safe Mode and the Checkpoint has been created successfully.</li>'+
     '<div class="alert alert-warn">If the <b>Next</b> button is enabled before you run the <b>"Step 3: Create a Checkpoint"</b> command, it means there is a recent Checkpoint already and you may proceed without running the <b>"Step 3: Create a Checkpoint"</b> command.</div>' +
     '</ol>',
@@ -1748,7 +1748,7 @@ Em.I18n.translations = {
       '<ol>' +
       '<li>Login to the NameNode host <b>{4}</b>.</li>' +
       '<li>Reset automatic failover information in ZooKeeper by running:' +
-      '<div class="code-snippet">sudo su -l {3} -c \'hdfs zkfc -formatZK\'</div></li>' +
+      '<div class="code-snippet">sudo su {3} -l -c \'hdfs zkfc -formatZK\'</div></li>' +
       '</ol>' +
       '</div>' +
       '<div class="alert alert-info">' +
@@ -1757,7 +1757,7 @@ Em.I18n.translations = {
       '<div class="alert alert-warn"><strong>Important!</strong> Be sure to login to the newly installed NameNode host.<br>This is a different host from the Steps 1 and 2 above.</div>' +
       '</li>' +
       '<li>Initialize the metadata by running:' +
-      "<div class='code-snippet'>sudo su -l {3} -c 'hdfs namenode -bootstrapStandby'</div></li>" +
+      "<div class='code-snippet'>sudo su {3} -l -c 'hdfs namenode -bootstrapStandby'</div></li>" +
       '</ol>' +
       '</div>',
   'services.reassign.step5.body.secondary_namenode':

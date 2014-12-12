@@ -48,7 +48,7 @@ def call(command, verbose=False, logoutput=False,
   @return: return_code, stdout
   """
   return _call(command, verbose, logoutput, False, cwd, env, preexec_fn, user, wait_for_finish, timeout, path, output_file, sudo)
-            
+
 def _call(command, verbose=False, logoutput=False, throw_on_failure=True,
          cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, path=None, output_file=None, sudo=False):
   """
@@ -62,9 +62,9 @@ def _call(command, verbose=False, logoutput=False, throw_on_failure=True,
   @return: return_code, stdout
   """
 
-  # Append current PATH to env['PATH'] and path
-  env = {} if not env else env
-  env['PATH'] = os.pathsep.join([os.environ['PATH'], env['PATH']]) if 'PATH' in env else os.environ['PATH']
+  # Append current PATH to env['PATH']
+  env = add_current_path_to_env(env)
+  # Append path to env['PATH']
   if path:
     path = os.pathsep.join(path) if isinstance(path, (list, tuple)) else path
     env['PATH'] = os.pathsep.join([env['PATH'], path])
@@ -135,18 +135,30 @@ def as_sudo(command, env=SUDO_ENVIRONMENT_PLACEHOLDER):
     err_msg = Logger.get_protected_text(("String command '%s' cannot be run as sudo. Please supply the command as a tuple of arguments") % (command))
     raise Fail(err_msg)
   
-  env = get_environment_str(env) if env != SUDO_ENVIRONMENT_PLACEHOLDER else SUDO_ENVIRONMENT_PLACEHOLDER
+  env = get_environment_str(add_current_path_to_env(env)) if env != SUDO_ENVIRONMENT_PLACEHOLDER else SUDO_ENVIRONMENT_PLACEHOLDER
   return "/usr/bin/sudo {0} -H -E {1}".format(env, command)
 
 def as_user(command, user , env=SUDO_ENVIRONMENT_PLACEHOLDER):
   if isinstance(command, (list, tuple)):
     command = string_cmd_from_args_list(command)
     
-  env = get_environment_str(env) if env != SUDO_ENVIRONMENT_PLACEHOLDER else SUDO_ENVIRONMENT_PLACEHOLDER
+  env = get_environment_str(add_current_path_to_env(env)) if env != SUDO_ENVIRONMENT_PLACEHOLDER else SUDO_ENVIRONMENT_PLACEHOLDER
   export_command = "export {0} > /dev/null ; ".format(env)
   
   return "/usr/bin/sudo su {0} -l -s /bin/bash -c {1}".format(user, quote_bash_args(export_command + command))
 
+def add_current_path_to_env(env):
+  result = {} if not env else env
+  
+  if not 'PATH' in result:
+    result['PATH'] = os.environ['PATH']
+    
+  # don't append current env if already there
+  if not set(os.environ['PATH'].split(os.pathsep)).issubset(result['PATH'].split(os.pathsep)):
+    result['PATH'] = os.pathsep.join([os.environ['PATH'], result['PATH']])
+  
+  return result
+  
 def get_environment_str(env):
   return reduce(lambda str,x: '{0} {1}={2}'.format(str,x,quote_bash_args(env[x])), env, '')
 

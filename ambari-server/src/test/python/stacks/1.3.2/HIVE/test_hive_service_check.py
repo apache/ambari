@@ -39,7 +39,7 @@ class TestServiceCheck(RMFTestCase):
     )
     self.assertResourceCalled('Execute', 'sh /tmp/hcatSmoke.sh hcatsmoke prepare',
                         logoutput = True,
-                        path = ['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
+                        path = ['/usr/sbin', '/usr/local/bin', '/bin', '/usr/bin'],
                         tries = 3,
                         user = 'ambari-qa',
                         try_sleep = 5,
@@ -54,7 +54,7 @@ class TestServiceCheck(RMFTestCase):
     )
     self.assertResourceCalled('Execute', 'sh /tmp/hcatSmoke.sh hcatsmoke cleanup',
                         logoutput = True,
-                        path = ['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
+                        path = ['/usr/sbin', '/usr/local/bin', '/bin', '/usr/bin'],
                         tries = 3,
                         user = 'ambari-qa',
                         try_sleep = 5,
@@ -94,7 +94,7 @@ class TestServiceCheck(RMFTestCase):
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; sh /tmp/hcatSmoke.sh hcatsmoke prepare',
                         logoutput = True,
-                        path = ['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
+                        path = ['/usr/sbin', '/usr/local/bin', '/bin', '/usr/bin'],
                         tries = 3,
                         user = 'ambari-qa',
                         try_sleep = 5,
@@ -110,7 +110,7 @@ class TestServiceCheck(RMFTestCase):
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; sh /tmp/hcatSmoke.sh hcatsmoke cleanup',
                         logoutput = True,
-                        path = ['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
+                        path = ['/usr/sbin', '/usr/local/bin', '/bin', '/usr/bin'],
                         tries = 3,
                         user = 'ambari-qa',
                         try_sleep = 5,

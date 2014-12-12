@@ -55,13 +55,14 @@ if [ "$?" != "0" ]; then
 fi
 
 current_user=`awk -v val=$EUID -F ":" '$3==val{print $1}' /etc/passwd`
-# setup necessary ownership
-sudo chown -R $current_user "/var/lib/ambari-agent/ambari-env.sh"
-sudo chown -R $current_user "/var/run/ambari-agent"
-sudo chown -R $current_user "/var/log/ambari-agent"
-sudo chown -R $current_user "/var/lib/ambari-agent/data"
-sudo chown -R $current_user "/var/lib/ambari-agent/cache"
-sudo chown 	  $current_user "/usr/lib/ambari-agent"
+
+change_files_permissions() {
+	sudo chown -R $current_user "/var/run/ambari-agent"
+	sudo chown -R $current_user "/var/log/ambari-agent"
+	sudo chown -R $current_user "/var/lib/ambari-agent/data"
+	sudo chown -R $current_user "/var/lib/ambari-agent/cache"
+	sudo chown 	  $current_user "/usr/lib/ambari-agent"
+}
 
 if [ -a /usr/bin/python2.7 ] && [ -z "$PYTHON" ]; then
   PYTHON=/usr/bin/python2.7
@@ -84,6 +85,7 @@ fi
 
 # Reading the environment file
 if [ -a /var/lib/ambari-agent/ambari-env.sh ]; then
+  sudo chown -R $current_user "/var/lib/ambari-agent/ambari-env.sh"
   . /var/lib/ambari-agent/ambari-env.sh
 fi
 
@@ -140,6 +142,8 @@ case "$1" in
             exit -1
           fi
         fi
+        change_files_permissions
+        
         echo "Starting ambari-agent"
         nohup $PYTHON $AMBARI_AGENT_PY_SCRIPT "$@" > $OUTFILE 2>&1 &
         sleep 2
@@ -201,6 +205,7 @@ case "$1" in
             tput sgr0
           else
             echo "Stopping $AMBARI_AGENT"
+            change_files_permissions
             $PYTHON $AGENT_SCRIPT stop
           fi
           echo "Removing PID file at $PIDFILE"
@@ -230,6 +235,7 @@ case "$1" in
             exit 1
           fi
           echo -e "Resetting $AMBARI_AGENT"
+          change_files_permissions
           $PYTHON $AGENT_SCRIPT reset $2
           retcode=$?
 

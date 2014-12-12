@@ -24,9 +24,10 @@ mysqldservice=$1
 mysqldbuser=$2
 userhost=$3
 myhostname=$(hostname -f)
+sudo_prefix = "sudo -H -E"
 
-service $mysqldservice start
+$sudo_prefix service $mysqldservice start
 echo "Removing user $mysqldbuser@$userhost"
-mysql -u root -e "DROP USER '$mysqldbuser'@'$userhost';"
-mysql -u root -e "flush privileges;"
-service $mysqldservice stop
+sudo su mysql -s /bin/bash - -c "mysql -u root -e \"DROP USER '$mysqldbuser'@'$userhost';\""
+sudo su mysql -s /bin/bash - -c "mysql -u root -e \"flush privileges;\""
+$sudo_prefix service $mysqldservice stop

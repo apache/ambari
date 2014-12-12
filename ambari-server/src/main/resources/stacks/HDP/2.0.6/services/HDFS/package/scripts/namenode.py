@@ -115,8 +115,8 @@ class NameNode(Script):
     
     
     def startRebalancingProcess(threshold):
-      rebalanceCommand = format('export PATH=$PATH:{hadoop_bin_dir} ; hdfs --config {hadoop_conf_dir} balancer -threshold {threshold}')
-      return ['su','-',params.hdfs_user,'-c', rebalanceCommand]
+      rebalanceCommand = format('hdfs --config {hadoop_conf_dir} balancer -threshold {threshold}')
+      return as_user(rebalanceCommand, params.hdfs_user, env={'PATH': params.hadoop_bin_dir})
     
     command = startRebalancingProcess(threshold)
     
@@ -130,8 +130,9 @@ class NameNode(Script):
     parser = hdfs_rebalance.HdfsParser()
     proc = subprocess.Popen(
                             command, 
-                            stdout=subprocess.PIPE, 
-                            shell=False,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            shell=True,
                             close_fds=True,
                             cwd=basedir
                            )

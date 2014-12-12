@@ -300,11 +300,11 @@ class TestNamenode(RMFTestCase):
         not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid` >/dev/null 2>&1',
     )
     self.assertResourceCalled('Execute', "hadoop dfsadmin -safemode get | grep 'Safe mode is OFF'",
-                              path = ['/usr/bin'],
-                              tries = 40,
-                              only_if = "/usr/bin/sudo su hdfs -l -s /bin/bash -c 'export  PATH=/usr/bin > /dev/null ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
-                              user = 'hdfs',
-                              try_sleep = 10,
+        path = ['/usr/bin'],
+        tries = 40,
+        only_if = "/usr/bin/sudo su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin > /dev/null ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
+        user = 'hdfs',
+        try_sleep = 10,
     )
     self.assertResourceCalled('HdfsDirectory', '/tmp',
                               security_enabled = False,
@@ -329,15 +329,15 @@ class TestNamenode(RMFTestCase):
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', None,
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              action = ['create'],
-                              bin_dir = '/usr/bin',
-                              only_if = "/usr/bin/sudo su hdfs -l -s /bin/bash -c 'export  PATH=/usr/bin > /dev/null ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
-                              )
+        security_enabled = False,
+        keytab = UnknownConfigurationMock(),
+        conf_dir = '/etc/hadoop/conf',
+        hdfs_user = 'hdfs',
+        kinit_path_local = '/usr/bin/kinit',
+        action = ['create'],
+        bin_dir = '/usr/bin',
+        only_if = "/usr/bin/sudo su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin > /dev/null ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
+    )
     self.assertNoMoreResources()
 
   def test_start_ha_secured(self):
@@ -379,7 +379,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Execute', "hadoop dfsadmin -safemode get | grep 'Safe mode is OFF'",
         path = ['/usr/bin'],
         tries = 40,
-        only_if = "/usr/bin/sudo su hdfs -l -s /bin/bash -c 'export  PATH=/usr/bin > /dev/null ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
+        only_if = "/usr/bin/sudo su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin > /dev/null ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         user = 'hdfs',
         try_sleep = 10,
     )
@@ -406,15 +406,15 @@ class TestNamenode(RMFTestCase):
                               action = ['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', None,
-                              security_enabled = True,
-                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              action = ['create'],
-                              bin_dir = '/usr/bin',
-                              only_if = "/usr/bin/sudo su hdfs -l -s /bin/bash -c 'export  PATH=/usr/bin > /dev/null ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
-                             )
+        security_enabled = True,
+        keytab = '/etc/security/keytabs/hdfs.headless.keytab',
+        conf_dir = '/etc/hadoop/conf',
+        hdfs_user = 'hdfs',
+        kinit_path_local = '/usr/bin/kinit',
+        action = ['create'],
+        bin_dir = '/usr/bin',
+        only_if = "/usr/bin/sudo su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin > /dev/null ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
+    )
     self.assertNoMoreResources()
 
   def test_decommission_default(self):

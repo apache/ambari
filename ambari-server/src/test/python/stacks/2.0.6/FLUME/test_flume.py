@@ -21,6 +21,8 @@ limitations under the License.
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 import resource_management.core.source
+import os
+
 
 class TestFlumeHandler(RMFTestCase):
 
@@ -52,7 +54,7 @@ class TestFlumeHandler(RMFTestCase):
     self.assertTrue(set_desired_mock.call_args[0][0] == 'STARTED')
 
 
-    self.assertResourceCalled('Execute', "/usr/bin/sudo su flume -l -s /bin/bash -c 'export  JAVA_HOME=/usr/jdk64/jdk1.7.0_45 > /dev/null ; /usr/bin/flume-ng agent --name a1 --conf /etc/flume/conf/a1 --conf-file /etc/flume/conf/a1/flume.conf -Dflume.monitoring.type=ganglia -Dflume.monitoring.hosts=c6401.ambari.apache.org:8655' &",
+    self.assertResourceCalled('Execute', "/usr/bin/sudo su flume -l -s /bin/bash -c 'export  PATH=/bin JAVA_HOME=/usr/jdk64/jdk1.7.0_45 > /dev/null ; /usr/bin/flume-ng agent --name a1 --conf /etc/flume/conf/a1 --conf-file /etc/flume/conf/a1/flume.conf -Dflume.monitoring.type=ganglia -Dflume.monitoring.hosts=c6401.ambari.apache.org:8655' &",
         environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         wait_for_finish = False,
     )
@@ -264,7 +266,7 @@ class TestFlumeHandler(RMFTestCase):
     self.assert_configure_many()
 
 
-    self.assertResourceCalled('Execute', "/usr/bin/sudo su flume -l -s /bin/bash -c 'export  JAVA_HOME=/usr/jdk64/jdk1.7.0_45 > /dev/null ; /usr/bin/flume-ng agent --name b1 --conf /etc/flume/conf/b1 --conf-file /etc/flume/conf/b1/flume.conf -Dflume.monitoring.type=ganglia -Dflume.monitoring.hosts=c6401.ambari.apache.org:8655' &",
+    self.assertResourceCalled('Execute', "/usr/bin/sudo su flume -l -s /bin/bash -c 'export  PATH=/bin JAVA_HOME=/usr/jdk64/jdk1.7.0_45 > /dev/null ; /usr/bin/flume-ng agent --name b1 --conf /etc/flume/conf/b1 --conf-file /etc/flume/conf/b1/flume.conf -Dflume.monitoring.type=ganglia -Dflume.monitoring.hosts=c6401.ambari.apache.org:8655' &",
         environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         wait_for_finish = False,
     )

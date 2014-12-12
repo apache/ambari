@@ -166,7 +166,7 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
         user = "root"
         
         try:
-          check_process_status()
+          check_process_status(hadoop_secure_dn_pid_file)
           
           custom_export = {
             'HADOOP_SECURE_DN_USER': params.hdfs_user
