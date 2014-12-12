@@ -36,11 +36,14 @@ class ServiceCheck(Script):
 
     Execute(cmd,
             logoutput=True,
-            path=params.storm_bin_dir
+            path=params.storm_bin_dir,
+            user=params.storm_user
     )
 
     Execute(format("env JAVA_HOME={java64_home} storm kill WordCount{unique}"),
-            path=params.storm_bin_dir)
+            path=params.storm_bin_dir,
+            user=params.storm_user
+    )
 
 if __name__ == "__main__":
   ServiceCheck().execute()
