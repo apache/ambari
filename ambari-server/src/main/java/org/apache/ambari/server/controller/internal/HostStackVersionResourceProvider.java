@@ -35,6 +35,7 @@ import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ActionExecutionContext;
 import org.apache.ambari.server.controller.AmbariActionExecutionHelper;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -58,6 +59,7 @@ import com.google.inject.Inject;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
@@ -141,6 +143,9 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
 
   @Inject
   private static Provider<AmbariActionExecutionHelper> actionExecutionHelper;
+
+  @Inject
+  private static Configuration configuration;
 
 
   /**
@@ -318,6 +323,20 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
               desiredRepoVersion, stackId));
     }
 
+    HostVersionEntity hostVersEntity = hostVersionDAO.findByClusterStackVersionAndHost(clName, stackId,
+            desiredRepoVersion, hostName);
+    if (hostVersEntity == null) {
+      throw new IllegalArgumentException(String.format(
+        "Repo version %s for stack %s is not available for host %s",
+        desiredRepoVersion, stackId, hostName));
+    }
+    if (hostVersEntity.getState() != RepositoryVersionState.INSTALLED &&
+            hostVersEntity.getState() != RepositoryVersionState.INSTALL_FAILED) {
+      throw new UnsupportedOperationException(String.format("Repo version %s for stack %s " +
+        "for host %s is in %s state. Can not transition to INSTALLING state",
+              desiredRepoVersion, stackId, hostName, hostVersEntity.getState().toString()));
+    }
+
     List<OperatingSystemEntity> operatingSystems = repoVersionEnt.getOperatingSystems();
     Map<String, List<RepositoryEntity>> perOsRepos = new HashMap<String, List<RepositoryEntity>>();
     for (OperatingSystemEntity operatingSystem : operatingSystems) {
@@ -368,7 +387,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
             cluster.getClusterName(), INSTALL_PACKAGES_ACTION,
             Collections.singletonList(filter),
             params);
-    actionContext.setTimeout((short) 600);
+    actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout()));
 
     String caption = String.format(INSTALL_PACKAGES_FULL_NAME + " on host %s", hostName);
     RequestStageContainer req = createRequest(caption);
@@ -399,6 +418,8 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     }
 
     try {
+      hostVersEntity.setState(RepositoryVersionState.INSTALLING);
+      hostVersionDAO.merge(hostVersEntity);
       req.persist();
     } catch (AmbariException e) {
       throw new SystemException("Can not persist request", e);

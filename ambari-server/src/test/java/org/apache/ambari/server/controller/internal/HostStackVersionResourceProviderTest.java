@@ -36,11 +36,14 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
@@ -77,6 +80,7 @@ public class HostStackVersionResourceProviderTest {
   private Injector injector;
   private AmbariMetaInfo ambariMetaInfo;
   private RepositoryVersionDAO repositoryVersionDAOMock;
+  private HostVersionDAO hostVersionDAOMock;
 
   private String operatingSystemsJson = "[\n" +
           "   {\n" +
@@ -100,6 +104,7 @@ public class HostStackVersionResourceProviderTest {
   public void setup() throws Exception {
     // Create instances of mocks
     repositoryVersionDAOMock = createNiceMock(RepositoryVersionDAO.class);
+    hostVersionDAOMock = createNiceMock(HostVersionDAO.class);
     // Initialize injector
     InMemoryDefaultTestModule module = new InMemoryDefaultTestModule();
     injector = Guice.createInjector(Modules.override(module).with(new MockModule()));
@@ -147,6 +152,8 @@ public class HostStackVersionResourceProviderTest {
     ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
     ResourceProvider csvResourceProvider = createNiceMock(ClusterStackVersionResourceProvider.class);
 
+    HostVersionEntity hostVersionEntityMock = createNiceMock(HostVersionEntity.class);
+
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
@@ -170,11 +177,16 @@ public class HostStackVersionResourceProviderTest {
     expect(repositoryVersionDAOMock.findByStackAndVersion(anyObject(String.class),
             anyObject(String.class))).andReturn(repoVersion);
 
+
+    expect(hostVersionDAOMock.findByClusterStackVersionAndHost(anyObject(String.class),
+            anyObject(String.class), anyObject(String.class), anyObject(String.class))).andReturn(hostVersionEntityMock);
+    expect(hostVersionEntityMock.getState()).andReturn(RepositoryVersionState.INSTALL_FAILED).anyTimes();
+
     expect(actionManager.getRequestTasks(anyLong())).andReturn(Collections.<HostRoleCommand>emptyList()).anyTimes();
 
     // replay
     replay(managementController, response, clusters, resourceProviderFactory, csvResourceProvider,
-            cluster, repositoryVersionDAOMock, sch, actionManager);
+            cluster, repositoryVersionDAOMock, sch, actionManager, hostVersionEntityMock, hostVersionDAOMock);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
@@ -211,6 +223,7 @@ public class HostStackVersionResourceProviderTest {
     @Override
     protected void configure() {
       bind(RepositoryVersionDAO.class).toInstance(repositoryVersionDAOMock);
+      bind(HostVersionDAO.class).toInstance(hostVersionDAOMock);
     }
   }
 }

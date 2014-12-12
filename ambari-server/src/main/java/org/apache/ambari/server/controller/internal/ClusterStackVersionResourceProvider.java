@@ -37,6 +37,7 @@ import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ActionExecutionContext;
 import org.apache.ambari.server.controller.AmbariActionExecutionHelper;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -145,6 +146,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
   @Inject
   private static RequestFactory requestFactory;
+
+  @Inject
+  private static Configuration configuration;
 
   /**
    * Constructor.
@@ -355,7 +359,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
               cluster.getClusterName(), INSTALL_PACKAGES_ACTION,
               Collections.singletonList(filter),
               params);
-      actionContext.setTimeout((short) 600);
+      actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout()));
 
       try {
         actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage);

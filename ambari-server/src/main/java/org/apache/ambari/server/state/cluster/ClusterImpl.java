@@ -1237,12 +1237,14 @@ public class ClusterImpl implements Cluster {
                 stackId, repositoryVersion);
 
         if (clusterVersion == null) {
-          throw new AmbariException("Repository version is null");
+          throw new AmbariException(String.format("Repository version %s not found for cluster %s",
+                  repositoryVersion, getClusterName()));
         }
 
         RepositoryVersionState worstState;
         if (clusterVersion.getState() != RepositoryVersionState.INSTALL_FAILED &&
-                clusterVersion.getState() != RepositoryVersionState.INSTALLING) {
+                clusterVersion.getState() != RepositoryVersionState.INSTALLING &&
+                clusterVersion.getState() != RepositoryVersionState.INSTALLED) {
           // anything else is not supported as of now
           return;
         }
@@ -1356,6 +1358,8 @@ public class ClusterImpl implements Cluster {
             case INSTALL_FAILED:
               allowedStates.add(RepositoryVersionState.INSTALLING);
             case INSTALLED:
+              allowedStates.add(RepositoryVersionState.INSTALLED);  // To allow reinstall
+              allowedStates.add(RepositoryVersionState.INSTALLING); // To allow reinstall
               allowedStates.add(RepositoryVersionState.UPGRADING);
             case UPGRADING:
               allowedStates.add(RepositoryVersionState.CURRENT);

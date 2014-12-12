@@ -98,7 +98,6 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.codehaus.jackson.JsonGenerationException;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1058,7 +1057,6 @@ public class TestHeartbeatHandler {
     assertTrue(registrationResponse.getStatusCommands().get(0).equals(statusCmd1));
   }
 
-  @Ignore
   @Test
   @SuppressWarnings("unchecked")
   public void testTaskInProgressHandling() throws AmbariException, InvalidStateTransitionException {
@@ -1097,6 +1095,7 @@ public class TestHeartbeatHandler {
     cr.setClusterName(DummyCluster);
     cr.setServiceName(HDFS);
     cr.setRole(DATANODE);
+    cr.setRoleCommand("INSTALL");
     cr.setStatus("IN_PROGRESS");
     cr.setStdErr("none");
     cr.setStdOut("dummy output");
@@ -1106,7 +1105,7 @@ public class TestHeartbeatHandler {
     hb.setComponentStatus(new ArrayList<ComponentStatus>());
 
     final HostRoleCommand command = new HostRoleCommand(DummyHostname1,
-            Role.DATANODE, null, null);
+            Role.DATANODE, null, RoleCommand.INSTALL);
 
     ActionManager am = getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(
@@ -1121,7 +1120,6 @@ public class TestHeartbeatHandler {
     assertEquals("Host state should still be installing", State.INSTALLING, componentState1);
   }
 
-  @Ignore
   @Test
   @SuppressWarnings("unchecked")
   public void testOPFailedEventForAbortedTask() throws AmbariException, InvalidStateTransitionException {
@@ -1173,6 +1171,7 @@ public class TestHeartbeatHandler {
     cr.setClusterName(DummyCluster);
     cr.setServiceName(HDFS);
     cr.setRole(DATANODE);
+    cr.setRoleCommand("INSTALL");
     cr.setStatus("FAILED");
     cr.setStdErr("none");
     cr.setStdOut("dummy output");
@@ -1330,7 +1329,6 @@ public class TestHeartbeatHandler {
         State.INSTALLED, serviceComponentHost1.getState());
   }
 
-  @Ignore
   @Test
   @SuppressWarnings("unchecked")
   public void testUpgradeSpecificHandling() throws AmbariException, InvalidStateTransitionException {
@@ -1365,6 +1363,7 @@ public class TestHeartbeatHandler {
     cr.setClusterName(DummyCluster);
     cr.setServiceName(HDFS);
     cr.setRole(DATANODE);
+    cr.setRoleCommand("INSTALL");
     cr.setStatus(HostRoleStatus.IN_PROGRESS.toString());
     cr.setStdErr("none");
     cr.setStdOut("dummy output");
@@ -1595,7 +1594,6 @@ public class TestHeartbeatHandler {
             stack122, serviceComponentHost2.getStackVersion());
   }
 
-  @Ignore
   @Test
   @SuppressWarnings("unchecked")
   public void testComponentUpgradeInProgressReport() throws AmbariException, InvalidStateTransitionException {
@@ -1643,6 +1641,7 @@ public class TestHeartbeatHandler {
     cr1.setClusterName(DummyCluster);
     cr1.setServiceName(HDFS);
     cr1.setRole(DATANODE);
+    cr1.setRoleCommand("INSTALL");
     cr1.setStatus(HostRoleStatus.IN_PROGRESS.toString());
     cr1.setStdErr("none");
     cr1.setStdOut("dummy output");
@@ -1654,6 +1653,7 @@ public class TestHeartbeatHandler {
     cr2.setClusterName(DummyCluster);
     cr2.setServiceName(HDFS);
     cr2.setRole(NAMENODE);
+    cr2.setRoleCommand("INSTALL");
     cr2.setStatus(HostRoleStatus.IN_PROGRESS.toString());
     cr2.setStdErr("none");
     cr2.setStdOut("dummy output");
@@ -1686,7 +1686,6 @@ public class TestHeartbeatHandler {
   }
 
 
-  @Ignore
   @Test
   @SuppressWarnings("unchecked")
   public void testComponentUpgradeFailReport() throws AmbariException, InvalidStateTransitionException {
@@ -1765,6 +1764,7 @@ public class TestHeartbeatHandler {
     cr1.setClusterName(DummyCluster);
     cr1.setServiceName(HDFS);
     cr1.setRole(DATANODE);
+    cr1.setRoleCommand("INSTALL");
     cr1.setStatus(HostRoleStatus.FAILED.toString());
     cr1.setStdErr("none");
     cr1.setStdOut("dummy output");
@@ -1776,6 +1776,7 @@ public class TestHeartbeatHandler {
     cr2.setClusterName(DummyCluster);
     cr2.setServiceName(HDFS);
     cr2.setRole(NAMENODE);
+    cr2.setRoleCommand("INSTALL");
     cr2.setStatus(HostRoleStatus.FAILED.toString());
     cr2.setStdErr("none");
     cr2.setStdOut("dummy output");
@@ -2004,7 +2005,6 @@ public class TestHeartbeatHandler {
     assertEquals(HostHealthStatus.HealthStatus.ALERT.name(), hostObject.getStatus());
   }
 
-  @Ignore
   @Test
   @SuppressWarnings("unchecked")
   public void testIgnoreCustomActionReport() throws AmbariException, InvalidStateTransitionException {
