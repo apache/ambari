@@ -123,12 +123,12 @@ describe('App.MainAlertDefinitionConfigsController', function () {
       controller.set('isWizard', true);
       var result = controller.renderPortConfigs();
 
-      expect(result.length).to.equal(10);
+      expect(result.length).to.equal(11);
 
       controller.set('isWizard', false);
       result = controller.renderPortConfigs();
 
-      expect(result.length).to.equal(4);
+      expect(result.length).to.equal(5);
     });
 
   });

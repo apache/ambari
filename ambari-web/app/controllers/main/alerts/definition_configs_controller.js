@@ -170,8 +170,14 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         text: isWizard ? '' : this.getThresholdsProperty('ok', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('ok', 'value')
       }),
+      App.AlertConfigProperties.Thresholds.WarningThreshold.create({
+        valueMetric: 'sec',
+        text: isWizard ? '' : this.getThresholdsProperty('warning', 'text'),
+        value: isWizard ? '' : this.getThresholdsProperty('warning', 'value')
+
+      }),
       App.AlertConfigProperties.Thresholds.CriticalThreshold.create({
-        showInputForValue: false,
+        valueMetric: 'sec',
         text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
       })
