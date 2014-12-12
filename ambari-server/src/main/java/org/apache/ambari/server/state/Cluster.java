@@ -77,6 +77,16 @@ public interface Cluster {
    */
   public List<ServiceComponentHost> getServiceComponentHosts(String hostname);
 
+
+  /**
+   * Get all of the hosts running the provided service and component.
+   * @param serviceName
+   * @param componentName
+   * @return
+   */
+  public Set<String> getHosts(String serviceName, String componentName);
+
+
   /**
    * Remove ServiceComponentHost from cluster
    * @param svcCompHost

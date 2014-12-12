@@ -29,6 +29,7 @@ import java.util.Set;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
+import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -65,13 +66,16 @@ public class ColocatedGrouping extends Grouping {
     }
 
     @Override
-    public void add(Set<String> hosts, String service, ProcessingComponent pc) {
+    public void add(HostsType hostsType, String service, ProcessingComponent pc) {
 
       int count = Double.valueOf(Math.ceil(
-          (double) batch.percent / 100 * hosts.size())).intValue();
+          (double) batch.percent / 100 * hostsType.hosts.size())).intValue();
 
       int i = 0;
-      for (String host : hosts) {
+      for (String host : hostsType.hosts) {
+        // This class required inserting a single host into the collection
+        HostsType singleHostsType = new HostsType();
+        singleHostsType.hosts = Collections.singleton(host);
 
         Map<String, List<TaskProxy>> targetMap = ((i++) < count) ? initialBatch : finalBatches;
         List<TaskProxy> targetList = targetMap.get(host);
@@ -85,7 +89,7 @@ public class ColocatedGrouping extends Grouping {
         if (null != pc.preTasks && pc.preTasks.size() > 0) {
           proxy = new TaskProxy();
           proxy.message = getStageText("Preparing", pc.name, Collections.singleton(host));
-          proxy.tasks.add(new TaskWrapper(service, pc.name, Collections.singleton(host), pc.preTasks));
+          proxy.tasks.addAll(TaskWrapperBuilder.getTaskList(service, pc.name, singleHostsType, pc.preTasks));
           proxy.service = service;
           proxy.component = pc.name;
           targetList.add(proxy);
@@ -110,7 +114,7 @@ public class ColocatedGrouping extends Grouping {
           proxy = new TaskProxy();
           proxy.component = pc.name;
           proxy.service = service;
-          proxy.tasks.add(new TaskWrapper(service, pc.name, Collections.singleton(host), pc.postTasks));
+          proxy.tasks.addAll(TaskWrapperBuilder.getTaskList(service, pc.name, singleHostsType, pc.postTasks));
           proxy.message = getStageText("Completing", pc.name, Collections.singleton(host));
           targetList.add(proxy);
         }

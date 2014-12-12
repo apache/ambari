@@ -62,6 +62,7 @@ import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.serveraction.upgrades.ManualStageAction;
+import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.StackId;
@@ -357,8 +358,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     Cluster cluster = getManagementController().getClusters().getCluster(clusterName);
     ConfigHelper configHelper = getManagementController().getConfigHelper();
 
+    MasterHostResolver mhr = new MasterHostResolver(cluster);
     UpgradeHelper helper = new UpgradeHelper();
-    List<UpgradeGroupHolder> groups = helper.createUpgrade(cluster, pack);
+
+    List<UpgradeGroupHolder> groups = helper.createUpgrade(cluster, mhr, pack);
     List<UpgradeGroupEntity> groupEntities = new ArrayList<UpgradeGroupEntity>();
 
     final String version = (String) requestMap.get(UPGRADE_VERSION);

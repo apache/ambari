@@ -107,7 +107,7 @@
     <service name="HDFS">
       <component name="NAMENODE">
         <pre-upgrade>
-          <task xsi:type="execute">
+          <task xsi:type="execute" hosts="master">
             <command>su - {hdfs-user} -c 'dosomething'</command>
           </task>
           <task xsi:type="configure">

@@ -40,7 +40,7 @@ public class StageWrapper {
     this(type, text, Arrays.asList(tasks));
   }
 
-  private StageWrapper(Type type, String text, List<TaskWrapper> tasks) {
+  public StageWrapper(Type type, String text, List<TaskWrapper> tasks) {
     this.type = type;
     this.text = text;
     this.tasks = tasks;

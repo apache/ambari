@@ -74,8 +74,5 @@ public abstract class Task {
     public boolean isCommand() {
       return this == RESTART;
     }
-
-
-
   }
 }

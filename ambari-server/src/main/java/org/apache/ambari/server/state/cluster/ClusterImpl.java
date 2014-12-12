@@ -2311,6 +2311,30 @@ public class ClusterImpl implements Cluster {
     return failedEvents;
   }
 
+  /**
+   * @param serviceName name of the service
+   * @param componentName name of the component
+   * @return the set of hosts for the provided service and component
+   */
+  @Override
+  public Set<String> getHosts(String serviceName, String componentName) {
+    Map<String, Service> services = this.getServices();
+
+    if (!services.containsKey(serviceName)) {
+      return Collections.emptySet();
+    }
+
+    Service service = services.get(serviceName);
+    Map<String, ServiceComponent> components = service.getServiceComponents();
+
+    if (!components.containsKey(componentName) ||
+        components.get(componentName).getServiceComponentHosts().size() == 0) {
+      return Collections.emptySet();
+    }
+
+    return components.get(componentName).getServiceComponentHosts().keySet();
+  }
+
   private ClusterHealthReport getClusterHealthReport() throws AmbariException {
 
     int staleConfigsHosts = 0;

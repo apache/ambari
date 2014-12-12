@@ -27,6 +27,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
+import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.commons.lang.StringUtils;
@@ -62,17 +63,20 @@ public class Grouping {
     /**
      * Add stages where the restart stages are ordered
      * E.g., preupgrade, restart hosts(0), ..., restart hosts(n-1), postupgrade
-     * @param hosts the hosts
+     * @param hostsType the order collection of hosts, which may have a master and secondary
      * @param service the service name
      * @param pc the ProcessingComponent derived from the upgrade pack.
      */
     @Override
-    public void add(Set<String> hosts, String service, ProcessingComponent pc) {
+    public void add(HostsType hostsType, String service, ProcessingComponent pc) {
       if (null != pc.preTasks && pc.preTasks.size() > 0) {
+        List<TaskWrapper> preTasks = TaskWrapperBuilder.getTaskList(service, pc.name, hostsType, pc.preTasks);
+        Set<String> preTasksEffectiveHosts = TaskWrapperBuilder.getEffectiveHosts(preTasks);
         StageWrapper stage = new StageWrapper(
             StageWrapper.Type.RU_TASKS,
-            getStageText("Preparing", pc.name, hosts),
-            new TaskWrapper(service, pc.name, hosts, pc.preTasks));
+            getStageText("Preparing", pc.name, preTasksEffectiveHosts),
+            preTasks
+            );
         stages.add(stage);
       }
 
@@ -80,7 +84,7 @@ public class Grouping {
       if (null != pc.tasks && 1 == pc.tasks.size()) {
         Task t = pc.tasks.get(0);
         if (RestartTask.class.isInstance(t)) {
-          for (String hostName : hosts) {
+          for (String hostName : hostsType.hosts) {
             StageWrapper stage = new StageWrapper(
                 StageWrapper.Type.RESTART,
                 getStageText("Restarting", pc.name, Collections.singleton(hostName)),
@@ -91,15 +95,16 @@ public class Grouping {
       }
 
       if (null != pc.postTasks && pc.postTasks.size() > 0) {
+        List<TaskWrapper> postTasks = TaskWrapperBuilder.getTaskList(service, pc.name, hostsType, pc.postTasks);
+        Set<String> postTasksEffectiveHosts = TaskWrapperBuilder.getEffectiveHosts(postTasks);
         StageWrapper stage = new StageWrapper(
             StageWrapper.Type.RU_TASKS,
-            getStageText("Completing", pc.name, hosts),
-            new TaskWrapper(service, pc.name, hosts, pc.postTasks));
+            getStageText("Completing", pc.name, postTasksEffectiveHosts),
+            postTasks);
         stages.add(stage);
       }
 
       serviceChecks.add(service);
-
     }
 
     @Override

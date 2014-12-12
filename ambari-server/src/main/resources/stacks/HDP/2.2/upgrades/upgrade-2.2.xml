@@ -53,7 +53,6 @@
       <service name="YARN">
         <component>APP_TIMELINE_SERVER</component>
         <component>RESOURCEMANAGER</component>
-        <component>NODEMANAGER</component>
       </service>
       <service name="HBASE">
         <component>HBASE_MASTER</component>
@@ -159,27 +158,19 @@
           FINALIZE rolling upgrade ...
           There is no rolling upgrade in progress or rolling upgrade has already been finalized.
           -->
-          <task xsi:type="execute">
-            <command>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -safemode enter'</command>
+          <task xsi:type="execute" hosts="master">
+            <first>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -safemode get | grep "Safe mode is ON in {{host_name}}"'</first>
+            <command>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -safemode leave'</command>
             <upto>10</upto>
             <every>6</every>
           </task>
 
-          <task xsi:type="execute">
+          <task xsi:type="execute" hosts="master">
             <command>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -rollingUpgrade prepare'</command>
-            <onfailure>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -safemode leave'</onfailure>   <!-- TODO, stay in safemode if in HA. -->
           </task>
 
-          <task xsi:type="execute">
+          <task xsi:type="execute" hosts="master">
             <command>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -rollingUpgrade query'</command>
-            <onfailure>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -safemode leave'</onfailure>   <!-- TODO, stay in safemode if in HA. -->
-          </task>
-
-          <!-- Apparently, the HDFS Namenode restart requires safemode to be OFF when not in HA. -->
-          <task xsi:type="execute">
-            <command>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -safemode leave'</command>
-            <upto>60</upto>
-            <every>1</every>
           </task>
         </pre-upgrade>
 
@@ -189,11 +180,12 @@
 
         <!-- This step should be done once the user clicks on the "Finalize" button. So the name post-upgrade is misleading. -->
         <post-upgrade>
-          <task xsi:type="execute">
+          <task xsi:type="execute" hosts="master">
             <command>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -rollingUpgrade finalize'</command>
           </task>
-          <task xsi:type="execute">
-            <command>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -safemode leave'</command>       <!-- TODO, stay in safemode if in HA. -->
+          <task xsi:type="execute" hosts="master">
+            <first>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -safemode get | grep "Safe mode is ON in {{host_name}}"'</first>
+            <command>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -safemode leave'</command>
           </task>
         </post-upgrade>
       </component>

@@ -29,6 +29,8 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.stack.HostsType;
+import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.junit.After;
@@ -38,6 +40,10 @@ import org.junit.Test;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+import org.mockito.Mockito;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests the {@link UpgradeHelper} class
@@ -46,6 +52,7 @@ public class UpgradeHelperTest {
 
   private Injector injector;
   private AmbariMetaInfo ambariMetaInfo;
+  private MasterHostResolver m_masterHostResolver;
 
   @Before
   public void before() throws Exception {
@@ -55,6 +62,8 @@ public class UpgradeHelperTest {
 
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
     ambariMetaInfo.init();
+    
+    m_masterHostResolver = mock(MasterHostResolver.class);
   }
 
   @After
@@ -74,8 +83,14 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
+    HostsType hostsType = new HostsType();
+    hostsType.hosts = cluster.getHosts("HDFS", "NAMENODE");
+    hostsType.master = "h1";
+    hostsType.secondary = "h2";
+    when(m_masterHostResolver.getMasterAndHosts(Mockito.matches("HDFS"), Mockito.matches("NAMENODE"))).thenReturn(hostsType);
+
     UpgradeHelper helper = new UpgradeHelper();
-    List<UpgradeGroupHolder> groups = helper.createUpgrade(cluster, upgrade);
+    List<UpgradeGroupHolder> groups = helper.createUpgrade(cluster, m_masterHostResolver, upgrade);
 
     assertEquals(5, groups.size());
 
@@ -86,10 +101,14 @@ public class UpgradeHelperTest {
     assertEquals("POST_CLUSTER", groups.get(4).name);
 
     assertEquals(6, groups.get(1).items.size());
-    assertEquals(2, groups.get(2).items.size());
+    assertEquals(6, groups.get(2).items.size());
     assertEquals(7, groups.get(3).items.size());
   }
 
+  /**
+   * Create an HA cluster
+   * @throws AmbariException
+   */
   public Cluster makeCluster() throws AmbariException {
     Clusters clusters = injector.getInstance(Clusters.class);
     ServiceFactory serviceFactory = injector.getInstance(ServiceFactory.class);
@@ -123,6 +142,7 @@ public class UpgradeHelperTest {
     Service s = c.getService("HDFS");
     ServiceComponent sc = s.addServiceComponent("NAMENODE");
     sc.addServiceComponentHost("h1");
+    sc.addServiceComponentHost("h2");
     sc = s.addServiceComponent("DATANODE");
     sc.addServiceComponentHost("h2");
     sc.addServiceComponentHost("h3");

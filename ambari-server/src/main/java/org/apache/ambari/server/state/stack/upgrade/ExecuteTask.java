@@ -23,6 +23,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.XmlAttribute;
 
 /**
  * Used to represent an execution that should occur on an agent.
@@ -34,6 +35,12 @@ public class ExecuteTask extends Task {
 
   @XmlTransient
   private Task.Type type = Task.Type.EXECUTE;
+
+  /**
+   * Host to run on, if not specified, run on all. Other values include "master"
+   */
+  @XmlAttribute
+  public String hosts;
 
   /**
    * Command to run under normal conditions.

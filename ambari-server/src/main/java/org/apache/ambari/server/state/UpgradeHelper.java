@@ -17,17 +17,14 @@
  */
 package org.apache.ambari.server.state;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.LinkedHashSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.internal.RequestResourceProvider;
 import org.apache.ambari.server.controller.internal.StageResourceProvider;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
@@ -43,6 +40,9 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.stack.HostsType;
+import org.apache.ambari.server.stack.MasterHostResolver;
+import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
@@ -50,7 +50,7 @@ import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapperBuilder;
 import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
-import org.apache.ambari.server.utils.HTTPUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,67 +62,13 @@ public class UpgradeHelper {
   private static Logger LOG = LoggerFactory.getLogger(UpgradeHelper.class);
 
   /**
-   * Tuple of namenode states
-   */
-  public static class NameNodePair {
-    String activeHostName;
-    String standbyHostName;
-  }
-
-  /**
-   * Retrieve a class that represents a tuple of the active and standby namenodes. This should be called in an HA cluster.
-   * @param hosts
-   * @return
-   */
-  public static NameNodePair getNameNodePair(Set<String> hosts) {
-    if (hosts != null && hosts.size() == 2) {
-      Iterator iter = hosts.iterator();
-      HashMap<String, String> stateToHost = new HashMap<String, String>();
-      Pattern pattern = Pattern.compile("^.*org\\.apache\\.hadoop\\.hdfs\\.server\\.namenode\\.NameNode\".*?\"State\"\\s*:\\s*\"(.+?)\".*$");
-
-      while(iter.hasNext()) {
-        String hostname = (String) iter.next();
-        try {
-          // TODO Rolling Upgrade, don't hardcode jmx port number
-          // E.g.,
-          // dfs.namenode.http-address.dev.nn1 : c6401.ambari.apache.org:50070
-          // dfs.namenode.http-address.dev.nn2 : c6402.ambari.apache.org:50070
-          String endpoint = "http://" + hostname + ":50070/jmx";
-          String response = HTTPUtils.requestURL(endpoint);
-
-          if (response != null && !response.isEmpty()) {
-            Matcher matcher = pattern.matcher(response);
-            if (matcher.matches()) {
-              String state = matcher.group(1);
-              stateToHost.put(state.toLowerCase(), hostname);
-            }
-          } else {
-            throw new Exception("Response from endpoint " + endpoint + " was empty.");
-          }
-        } catch (Exception e) {
-          LOG.warn("Failed to parse namenode jmx endpoint to get state for host " + hostname + ". Error: " + e.getMessage());
-        }
-      }
-
-      if (stateToHost.containsKey("active") && stateToHost.containsKey("standby") && !stateToHost.get("active").equalsIgnoreCase(stateToHost.get("standby"))) {
-        NameNodePair pair = new NameNodePair();
-        pair.activeHostName = stateToHost.get("active");
-        pair.standbyHostName = stateToHost.get("standby");
-        return pair;
-      }
-    }
-
-    return null;
-  }
-
-  /**
    * Generates a list of UpgradeGroupHolder items that are used to execute an upgrade
    * @param cluster the cluster
+   * @param mhr Master Host Resolver needed to get master and secondary hosts of several components like NAMENODE
    * @param upgradePack the upgrade pack
    * @return the list of holders
    */
-  public List<UpgradeGroupHolder> createUpgrade(Cluster cluster, UpgradePack upgradePack) {
-
+  public List<UpgradeGroupHolder> createUpgrade(Cluster cluster, MasterHostResolver mhr, UpgradePack upgradePack) throws AmbariException {
     Map<String, Map<String, ProcessingComponent>> allTasks = upgradePack.getTasks();
 
     List<UpgradeGroupHolder> groups = new ArrayList<UpgradeGroupHolder>();
@@ -154,25 +100,38 @@ public class UpgradeHelper {
             continue;
           }
 
-          Set<String> componentHosts = getClusterHosts(cluster, service.serviceName, component);
+          Set<String> componentHosts = cluster.getHosts(service.serviceName, component);
           if (0 == componentHosts.size()) {
             continue;
           }
+          HostsType hostsType = new HostsType();
+          hostsType.hosts = componentHosts;
 
           ProcessingComponent pc = allTasks.get(service.serviceName).get(component);
 
           // Special case for NAMENODE
           if (service.serviceName.equalsIgnoreCase("HDFS") && component.equalsIgnoreCase("NAMENODE")) {
-              NameNodePair pair = getNameNodePair(componentHosts);
-              if (pair != null ) {
-                // The order is important, first do the standby, then the active namenode.
-                Set<String> order = new LinkedHashSet<String>();
-                order.add(pair.standbyHostName);
-                order.add(pair.activeHostName);
-                builder.add(order, service.serviceName, pc);
-              }
-          } else {
-            builder.add(componentHosts, service.serviceName, pc);
+            hostsType = mhr.getMasterAndHosts(service.serviceName, component);
+            if (hostsType != null && hostsType.master != null && componentHosts.contains(hostsType.master) && hostsType.secondary != null && componentHosts.contains(hostsType.secondary)) {
+              // The order is important, first do the standby, then the active namenode.
+              Set<String> order = new LinkedHashSet<String>();
+
+              // TODO Upgrade Pack, somehow, running the secondary first causes them to swap, even before the restart.
+              order.add(hostsType.master);
+              order.add(hostsType.secondary);
+
+              // Override the hosts with the ordered collection
+              hostsType.hosts = order;
+              builder.add(hostsType, service.serviceName, pc);
+            } else {
+              throw new AmbariException(MessageFormat.format("Could not find active and standby namenodes using hosts: {0}", StringUtils.join(componentHosts, ", ").toString()));
+            }
+          }
+          /*
+          TODO Rolling Upgrade, write logic for HBASE
+          */
+          else {
+            builder.add(hostsType, service.serviceName, pc);
           }
         }
       }
@@ -305,30 +264,6 @@ public class UpgradeHelper {
   }
 
   /**
-   * @param cluster the cluster
-   * @param serviceName name of the service
-   * @param componentName name of the component
-   * @return the set of hosts for the provided service and component
-   */
-  public Set<String> getClusterHosts(Cluster cluster, String serviceName, String componentName) {
-    Map<String, Service> services = cluster.getServices();
-
-    if (!services.containsKey(serviceName)) {
-      return Collections.emptySet();
-    }
-
-    Service service = services.get(serviceName);
-    Map<String, ServiceComponent> components = service.getServiceComponents();
-
-    if (!components.containsKey(componentName) ||
-        components.get(componentName).getServiceComponentHosts().size() == 0) {
-      return Collections.emptySet();
-    }
-
-    return components.get(componentName).getServiceComponentHosts().keySet();
-  }
-
-  /**
    * Special handling for ClusterGrouping.
    * @param cluster the cluster
    * @param grouping the grouping
@@ -336,7 +271,7 @@ public class UpgradeHelper {
    */
   private UpgradeGroupHolder getClusterGroupHolder(Cluster cluster, ClusterGrouping grouping) {
 
-    grouping.getBuilder().setHelpers(this, cluster);
+    grouping.getBuilder().setHelpers(cluster);
     List<StageWrapper> wrappers = grouping.getBuilder().build();
 
     if (wrappers.size() > 0) {

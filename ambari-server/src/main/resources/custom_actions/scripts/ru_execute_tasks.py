@@ -35,6 +35,7 @@ from resource_management.libraries.functions.list_ambari_managed_repos import *
 # TODO, HACK
 def replace_variables(cmd, host_name, version):
   if cmd:
+    cmd = cmd.replace("{{host_name}}", "{host_name}")
     cmd = cmd.replace("0.0.0.0", "{host_name}")
     cmd = cmd.replace("{{version}}", "{version}")
     cmd = format(cmd)

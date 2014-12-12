@@ -30,8 +30,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
+import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.UpgradeHelper;
+import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 
@@ -71,19 +73,17 @@ public class ClusterGrouping extends Grouping {
   }
 
   public class ClusterBuilder extends StageWrapperBuilder {
-    private UpgradeHelper m_helper = null;
     private Cluster m_cluster = null;
 
     /**
      * @param cluster the cluster to use with this builder
      */
-    public void setHelpers(UpgradeHelper helper, Cluster cluster) {
-      m_helper = helper;
+    public void setHelpers(Cluster cluster) {
       m_cluster = cluster;
     }
 
     @Override
-    public void add(Set<String> hosts, String service, ProcessingComponent pc) {
+    public void add(HostsType hostsType, String service, ProcessingComponent pc) {
       // !!! no-op in this case
     }
 
@@ -101,7 +101,7 @@ public class ClusterGrouping extends Grouping {
         StageWrapper wrapper = null;
 
         if (null != execution.service && null != execution.component) {
-          Set<String> hosts = m_helper.getClusterHosts(m_cluster, execution.service, execution.component);
+          Set<String> hosts = m_cluster.getHosts(execution.service, execution.component);
           // !!! FIXME other types
           if (hosts.size() > 0 && task.getType() == Task.Type.EXECUTE) {
             wrapper = new StageWrapper(

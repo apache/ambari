@@ -76,7 +76,8 @@ def failover_namenode():
     Execute(check_standby_cmd,
             user=params.hdfs_user,
             tries=30,
-            try_sleep=6)
+            try_sleep=6,
+            logoutput=True)
   else:
     Logger.info("Rolling Upgrade - Host %s is the standby namenode." % str(params.hostname))
 
@@ -97,7 +98,7 @@ def kill_zkfc(zkfc_user):
       if code == 0:
         Logger.debug("ZKFC is running and will be killed to initiate namenode failover.")
         kill_command = format("{check_process} && kill -9 `cat {zkfc_pid_file}` > /dev/null 2>&1")
-        checked_call(kill_command)
+        checked_call(kill_command, verbose=True)
 
 
 def get_service_pid_file(name, user):
