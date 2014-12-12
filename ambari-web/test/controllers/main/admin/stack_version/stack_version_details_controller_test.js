@@ -30,21 +30,14 @@ describe('App.MainStackVersionsDetailsController', function () {
   describe('#installStackVersion', function () {
     beforeEach(function() {
       sinon.stub(mainStackVersionsDetailsController, 'showProgressPopup', Em.K);
-      sinon.stub(mainStackVersionsDetailsController, 'installRepoVersion', Em.K);
     });
     afterEach(function() {
       mainStackVersionsDetailsController.showProgressPopup.restore();
-      mainStackVersionsDetailsController.installRepoVersion.restore();
     });
     it("shows installing proggress", function() {
       mainStackVersionsDetailsController.reopen({'installInProgress': true});
       mainStackVersionsDetailsController.installStackVersion({});
       expect(mainStackVersionsDetailsController.showProgressPopup.calledOnce).to.be.true;
-    });
-    it("shows senq request to install/reinstall repoVersion", function() {
-      mainStackVersionsDetailsController.reopen({'installFailed': true});
-      mainStackVersionsDetailsController.installStackVersion({context: "1"});
-      expect(mainStackVersionsDetailsController.installRepoVersion.calledWith({context: "1"})).to.be.true;
     });
   });
 

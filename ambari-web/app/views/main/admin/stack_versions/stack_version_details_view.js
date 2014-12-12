@@ -43,9 +43,6 @@ App.MainStackVersionsDetailsView = Em.View.extend({
       case 'INIT':
         return Em.I18n.t('admin.stackVersions.datails.hosts.btn.install').format(self.get('totalHostCount') - self.get('content.installedHosts.length'));
         break;
-      case 'INSTALL_FAILED':
-        return Em.I18n.t('admin.stackVersions.datails.hosts.btn.reinstall');
-        break;
       default:
         return self.get('content.state') && self.get('content.state').toCapital();
     }
@@ -63,9 +60,6 @@ App.MainStackVersionsDetailsView = Em.View.extend({
         break;
       case 'INSTALLING':
         return 'btn-primary';
-        break;
-      case 'INSTALL_FAILED':
-        return 'btn-danger';
         break;
       default:
         return 'disabled';
