@@ -341,10 +341,9 @@ public class AlertsDAO {
 
   /**
    * Retrieve the summary alert information for all hosts. This is different
-   * from {@link #findCurrentCounts(long, String, String)} since this will not
-   * return alerts that are not related to a particular host, such as aggregate
-   * alerts. In general, {@link #findCurrentCounts(long, String, String)} and
-   * this method will return very similar counts.
+   * from {@link #findCurrentCounts(long, String, String)} since this will
+   * return only alerts related to hosts and those values will be the total
+   * number of hosts affected, not the total number of alerts.
    *
    * @param clusterId
    *          the cluster id

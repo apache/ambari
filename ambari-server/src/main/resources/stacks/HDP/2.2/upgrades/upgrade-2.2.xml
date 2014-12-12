@@ -97,7 +97,6 @@
   
   
   <processing>
-  
     <service name="ZOOKEEPER">
       <component name="ZOOKEEPER_SERVER">
         <!-- TODO, optimization
@@ -130,7 +129,7 @@
 
     <service name="HDFS">
       <component name="NAMENODE">
-        
+
         <pre-upgrade>
           <!-- Backup the image,
           Enter Safemode if not already in it,
@@ -183,10 +182,10 @@
             <every>1</every>
           </task>
         </pre-upgrade>
-        
+
         <upgrade>
           <task xsi:type="restart" />
-        </upgrade>        
+        </upgrade>
 
         <!-- This step should be done once the user clicks on the "Finalize" button. So the name post-upgrade is misleading. -->
         <post-upgrade>
@@ -200,42 +199,6 @@
       </component>
 
       <component name="DATANODE">
-        <pre-upgrade>
-          <!-- Shutdown the datanode,
-
-          Will retry 50 times.
-          Property dfs.datanode.ipc.address = 0.0.0.0:8010 needs to evaluate to current host.
-          $ su hdfs -c 'hdfs dfsadmin -shutdownDatanode <DATANODE_HOST:IPC_PORT> upgrade'
-          E.g.,
-          $ su hdfs -c 'hdfs dfsadmin -shutdownDatanode c6407.ambari.apache.org:8010 upgrade'
-
-          Will retry 50 times.
-          $ su hdfs -c 'hdfs dfsadmin -getDatanodeInfo c6407.ambari.apache.org:8010'
-          Datanode unreachable.
-
-          Change the version,
-          $ hdp-select set hadoop-hdfs-datanode 2.2.0.1-885
-
-          Start the datanode,
-          $ su - hdfs -c '/usr/hdp/current/hadoop-hdfs-datanode/../hadoop/sbin/hadoop-daemon.sh start datanode'
-          starting datanode, logging to /var/log/hadoop/hdfs/hadoop-hdfs-datanode-c6407.ambari.apache.org.out
-
-          Verify it is live,
-          $ su - hdfs -c 'hdfs dfsadmin -report -live'
-          Live datanodes (1):
-          -->
-          <task xsi:type="execute">
-            <first>su {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -getDatanodeInfo {{hdfs-site/dfs.datanode.ipc.address}}'</first>
-            <command>su {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -shutdownDatanode {{hdfs-site/dfs.datanode.ipc.address}} upgrade'</command>
-          </task>
-
-          <!-- After shutting down the datanode, this command is expected to fail with 255, so ignore only that return code. -->
-          <task xsi:type="execute">
-            <command>su {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -getDatanodeInfo {{hdfs-site/dfs.datanode.ipc.address}}'</command>
-            <ignore>255</ignore>
-          </task>
-        </pre-upgrade>
-
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>

@@ -19,6 +19,7 @@ limitations under the License.
 '''
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
+from resource_management.core.exceptions import Fail
 import os
 
 origin_exists = os.path.exists
@@ -556,3 +557,63 @@ class TestNodeManager(RMFTestCase):
                               owner = 'mapred',
                               group = 'hadoop',
                               )
+
+  @patch('time.sleep')
+  @patch("subprocess.Popen")
+  def test_post_rolling_restart(self, process_mock, time_mock):
+    process_output = """
+      c6401.ambari.apache.org:45454  RUNNING  c6401.ambari.apache.org:8042  0
+    """
+
+    process = MagicMock()
+    process.communicate.return_value = [process_output]
+    process.returncode = 0
+    process_mock.return_value = process
+
+    self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
+      classname="Nodemanager", command = "post_rolling_restart", config_file="default.json")
+
+    self.assertTrue(process_mock.called)
+    self.assertEqual(process_mock.call_count,1)
+
+
+  @patch('time.sleep')
+  @patch("subprocess.Popen")
+  def test_post_rolling_restart_nodemanager_not_ready(self, process_mock, time_mock):
+    process_output = """
+      c9999.ambari.apache.org:45454  RUNNING  c9999.ambari.apache.org:8042  0
+    """
+
+    process = MagicMock()
+    process.communicate.return_value = [process_output]
+    process.returncode = 0
+    process_mock.return_value = process
+
+    try:
+      self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
+        classname="Nodemanager", command = "post_rolling_restart", config_file="default.json")
+      self.fail('Missing NodeManager should have caused a failure')
+    except Fail,fail:
+      self.assertTrue(process_mock.called)
+      self.assertEqual(process_mock.call_count,12)
+
+
+  @patch('time.sleep')
+  @patch("subprocess.Popen")
+  def test_post_rolling_restart_nodemanager_not_ready(self, process_mock, time_mock):
+    process_output = """
+      c6401.ambari.apache.org:45454  RUNNING  c6401.ambari.apache.org:8042  0
+    """
+
+    process = MagicMock()
+    process.communicate.return_value = [process_output]
+    process.returncode = 999
+    process_mock.return_value = process
+
+    try:
+      self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
+        classname="Nodemanager", command = "post_rolling_restart", config_file="default.json")
+      self.fail('Invalid return code should cause a failure')
+    except Fail,fail:
+      self.assertTrue(process_mock.called)
+      self.assertEqual(process_mock.call_count,12)

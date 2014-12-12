@@ -43,6 +43,7 @@ dfs_dn_addr = default('/configurations/hdfs-site/dfs.datanode.address', None)
 dfs_dn_http_addr = default('/configurations/hdfs-site/dfs.datanode.http.address', None)
 dfs_dn_https_addr = default('/configurations/hdfs-site/dfs.datanode.https.address', None)
 dfs_http_policy = default('/configurations/hdfs-site/dfs.http.policy', None)
+dfs_dn_ipc_address = config['configurations']['hdfs-site']['dfs.datanode.ipc.address']
 secure_dn_ports_are_in_use = False
 
 #hadoop params

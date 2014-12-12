@@ -18,9 +18,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 from stacks.utils.RMFTestCase import *
-from ambari_commons import OSCheck
 import json
 from mock.mock import MagicMock, patch
+from resource_management.core.exceptions import Fail
 
 class TestDatanode(RMFTestCase):
 
@@ -416,3 +416,75 @@ class TestDatanode(RMFTestCase):
                               recursive = True,
                               recursive_permission = True
                               )
+
+
+  @patch('time.sleep')
+  @patch("subprocess.Popen")
+  def test_post_rolling_restart(self, process_mock, time_mock):
+    process_output = """
+      Live datanodes (2):
+
+      Name: 192.168.64.102:50010 (c6401.ambari.apache.org)
+      Hostname: c6401.ambari.apache.org
+      Decommission Status : Normal
+      Configured Capacity: 524208947200 (488.21 GB)
+      DFS Used: 193069056 (184.13 MB)
+      Non DFS Used: 29264986112 (27.26 GB)
+      DFS Remaining: 494750892032 (460.77 GB)
+      DFS Used%: 0.04%
+      DFS Remaining%: 94.38%
+      Configured Cache Capacity: 0 (0 B)
+      Cache Used: 0 (0 B)
+      Cache Remaining: 0 (0 B)
+      Cache Used%: 100.00%
+      Cache Remaining%: 0.00%
+      Xceivers: 2
+      Last contact: Fri Dec 12 20:47:21 UTC 2014
+    """
+
+    process = MagicMock()
+    process.communicate.return_value = [process_output]
+    process.returncode = 0
+    process_mock.return_value = process
+
+    self.executeScript("2.0.6/services/HDFS/package/scripts/datanode.py",
+      classname = "DataNode", command = "post_rolling_restart", config_file="default.json",  )
+
+    self.assertTrue(process_mock.called)
+    self.assertEqual(process_mock.call_count,1)
+
+
+  @patch('time.sleep')
+  @patch("subprocess.Popen")
+  def test_post_rolling_restart_datanode_not_ready(self, process_mock, time_mock):
+    process = MagicMock()
+    process.communicate.return_value = ['There are no DataNodes here!']
+    process.returncode = 0
+    process_mock.return_value = process
+
+    try:
+      self.executeScript("2.0.6/services/HDFS/package/scripts/datanode.py",
+        classname = "DataNode", command = "post_rolling_restart", config_file="default.json",  )
+      self.fail('Missing DataNode should have caused a failure')
+    except Fail,fail:
+      self.assertTrue(process_mock.called)
+      self.assertEqual(process_mock.call_count,12)
+
+
+  @patch('time.sleep')
+  @patch("subprocess.Popen")
+  def test_post_rolling_restart_bad_returncode(self, process_mock, time_mock):
+    process = MagicMock()
+    process.communicate.return_value = ['some']
+    process.returncode = 999
+    process_mock.return_value = process
+
+    try:
+      self.executeScript("2.0.6/services/HDFS/package/scripts/datanode.py",
+        classname = "DataNode", command = "post_rolling_restart", config_file="default.json",  )
+      self.fail('Invalid return code should cause a failure')
+    except Fail,fail:
+      self.assertTrue(process_mock.called)
+      self.assertEqual(process_mock.call_count,12)
+
+

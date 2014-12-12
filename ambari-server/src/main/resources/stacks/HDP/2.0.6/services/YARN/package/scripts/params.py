@@ -131,11 +131,15 @@ exclude_file_path = default("/configurations/yarn-site/yarn.resourcemanager.node
 ats_host = set(default("/clusterHostInfo/app_timeline_server_hosts", []))
 has_ats = not len(ats_host) == 0
 
+# default kinit commands
+rm_kinit_cmd = ""
+yarn_timelineservice_kinit_cmd = ""
+nodemanager_kinit_cmd = ""
+
 if security_enabled:
   _rm_principal_name = config['configurations']['yarn-site']['yarn.resourcemanager.principal']
-  _rm_keytab = config['configurations']['yarn-site']['yarn.resourcemanager.keytab']
   _rm_principal_name = _rm_principal_name.replace('_HOST',hostname.lower())
-  
+  _rm_keytab = config['configurations']['yarn-site']['yarn.resourcemanager.keytab']
   rm_kinit_cmd = format("{kinit_path_local} -kt {_rm_keytab} {_rm_principal_name};")
 
   # YARN timeline security options are only available in HDP Champlain
@@ -144,9 +148,12 @@ if security_enabled:
     _yarn_timelineservice_principal_name = _yarn_timelineservice_principal_name.replace('_HOST', hostname.lower())
     _yarn_timelineservice_keytab = config['configurations']['yarn-site']['yarn.timeline-service.keytab']
     yarn_timelineservice_kinit_cmd = format("{kinit_path_local} -kt {_yarn_timelineservice_keytab} {_yarn_timelineservice_principal_name};")
-else:
-  rm_kinit_cmd = ""
-  yarn_timelineservice_kinit_cmd = ""
+
+  if 'yarn.nodemanager.principal' in config['configurations']['yarn-site']:
+    _nodemanager_principal_name = config['configurations']['yarn-site']['yarn.nodemanager.principal']
+    _nodemanager_keytab = config['configurations']['yarn-site']['yarn.nodemanager.keytab']
+    nodemanager_kinit_cmd = format("{kinit_path_local} -kt {_nodemanager_keytab} {_nodemanager_principal_name};")
+
 
 yarn_log_aggregation_enabled = config['configurations']['yarn-site']['yarn.log-aggregation-enable']
 yarn_nm_app_log_dir =  config['configurations']['yarn-site']['yarn.nodemanager.remote-app-log-dir']
@@ -155,7 +162,6 @@ mapreduce_jobhistory_done_dir = config['configurations']['mapred-site']['mapredu
 jobhistory_heapsize = default("/configurations/mapred-env/jobhistory_heapsize", "900")
 
 #for create_hdfs_directory
-hostname = config["hostname"]
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 import functools

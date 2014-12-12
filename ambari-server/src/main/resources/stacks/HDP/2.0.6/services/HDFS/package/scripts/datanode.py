@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
+import datanode_upgrade
 from hdfs_datanode import datanode
 from resource_management import *
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
@@ -30,13 +30,24 @@ class DataNode(Script):
     self.install_packages(env, params.exclude_packages)
     env.set_params(params)
 
+
   def pre_rolling_restart(self, env):
-    Logger.info("Executing Rolling Upgrade pre-restart")
+    Logger.info("Executing DataNode Rolling Upgrade pre-restart")
     import params
     env.set_params(params)
 
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       Execute(format("hdp-select set hadoop-hdfs-datanode {version}"))
+
+
+  def post_rolling_restart(self, env):
+    Logger.info("Executing DataNode Rolling Upgrade post-restart")
+    import params
+    env.set_params(params)
+
+    # ensure the DataNode has started and rejoined the cluster
+    datanode_upgrade.post_upgrade_check()
+
 
   def start(self, env, rolling_restart=False):
     import params
@@ -45,17 +56,26 @@ class DataNode(Script):
     self.configure(env)
     datanode(action="start")
 
+
   def stop(self, env, rolling_restart=False):
     import params
 
     env.set_params(params)
-    datanode(action="stop")
+
+    # pre-upgrade steps shutdown the datanode, so there's no need to call
+    # action=stop
+    if rolling_restart:
+      datanode_upgrade.pre_upgrade_shutdown()
+    else:
+      datanode(action="stop")
+
 
   def configure(self, env):
     import params
     env.set_params(params)
     hdfs()
     datanode(action="configure")
+
 
   def status(self, env):
     import status_params
