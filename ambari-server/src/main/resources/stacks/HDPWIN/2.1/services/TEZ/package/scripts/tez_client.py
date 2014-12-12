@@ -21,6 +21,7 @@ Ambari Agent
 
 import sys
 from resource_management import *
+from tez import tez
 
 class TezClient(Script):
   def install(self, env):
@@ -36,7 +37,6 @@ class TezClient(Script):
 
   def status(self, env):
     raise ClientComponentHasNoStatus()
-
 
 if __name__ == "__main__":
   TezClient().execute()
