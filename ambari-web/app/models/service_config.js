@@ -141,7 +141,7 @@ App.Group = Ember.Object.extend({
 });
 
 
-App.ServiceConfigProperty = Ember.Object.extend({
+App.ServiceConfigProperty = Em.Object.extend({
 
   id: '', //either 'puppet var' or 'site property'
   name: '',
@@ -195,6 +195,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
   isNotSaved: false, // user property was added but not saved
   hasInitialValue: false, //if true then property value is defined and saved to server
   isHiddenByFilter: false, //if true then hide this property (filtered out)
+  rowStyleClass: null, // CSS-Class to be applied on the row showing this config
   /**
    * Usage example see on <code>App.ServiceConfigRadioButtons.handleDBConnectionProperty()</code>
    *

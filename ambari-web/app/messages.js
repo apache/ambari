@@ -695,6 +695,11 @@ Em.I18n.translations = {
   'installer.step7.oozie.database.new': 'New Derby Database',
   'installer.step7.hive.database.new.mysql': 'New MySQL Database',
   'installer.step7.hive.database.new.postgres': 'New PostgreSQL Database',
+  'installer.step7.misc.notification.configure':'Configure email notifications',
+  'installer.step7.misc.notification.configure.later':'Configure email notifications later',
+  'installer.step7.misc.notification.use_tls':'Use TLS',
+  'installer.step7.misc.notification.use_ssl':'Use SSL',
+
 
   'installer.step8.header':'Review',
   'installer.step8.body':'Please review the configuration before installation',

@@ -86,7 +86,6 @@ App.ServiceConfigView = Em.View.extend({
   )
 });
 
-
 App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
 
   templateName: require('templates/common/configs/service_config_category'),
@@ -527,7 +526,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend(App.UserPref, {
         return !!matchingConfigType;
       }
 
-      var supportsFinal = shouldSupportFinal(siteFileName);
+      var supportsFinal = siteFileName ? shouldSupportFinal(siteFileName) : false;
 
       function isDuplicatedConfigKey(name) {
         return siteFileProperties.findProperty('name', name) || configsOfFile.findProperty('name', name);
@@ -802,7 +801,7 @@ App.ServiceConfigContainerView = Em.ContainerView.extend({
       }
       var categoriesToPush = [];
       this.get('controller.selectedService.configCategories').forEach(function (item) {
-        var categoryView = item.get('isCustomView') ?  null : App.ServiceConfigsByCategoryView;
+        var categoryView = item.get('isCustomView') ? item.get('customView') : App.ServiceConfigsByCategoryView;
         if (categoryView !== null) {
           categoriesToPush.pushObject(categoryView.extend({
             category: item,

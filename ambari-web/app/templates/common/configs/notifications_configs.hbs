@@ -1,0 +1,73 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="accordion-heading" {{action "onToggleBlock" category target="view"}}>
+  <i {{bindAttr class=":pull-left :accordion-toggle view.category.isCollapsed:icon-caret-right:icon-caret-down"}}></i>
+  <a class="accordion-toggle">{{view.category.displayName}}</a>
+</div>
+
+<div class="accordion-body collapse in" {{bindAttr style="view.isCategoryBodyVisible"}}>
+  <div class="accordion-inner service-config-section">
+    <form class="form-horizontal" autocomplete="off">
+
+      <div class="entry-row">
+        {{view Ember.RadioButton name="createNotification" selectionBinding="view.createNotification" value="no"}} {{t installer.step7.misc.notification.configure.later}}
+      </div>
+
+      <div class="entry-row">
+        {{view Ember.RadioButton name="createNotification" selectionBinding="view.createNotification" value="yes"}} {{t installer.step7.misc.notification.configure}}
+      </div>
+
+      {{#each view.categoryConfigs}}
+        <div {{bindAttr class=":entry-row rowStyleClass isUserProperty:indent-1"}}>
+          <span {{bindAttr class="errorMessage:error: :control-group :control-label-span"}}>
+            <label class="control-label">
+              {{formatWordBreak displayName}}
+            </label>
+          </span>
+
+          <div {{bindAttr class="showLabel:controls"}}>
+            <div {{bindAttr class="errorMessage:error: warnMessage:warning: :control-group"}}>
+              {{view viewClass serviceConfigBinding="this" categoryConfigsAllBinding="view.categoryConfigsAll" }}
+              <span class="help-inline">{{errorMessage}}</span>
+              <span class="help-inline">{{warnMessage}}</span>
+            </div>
+          </div>
+        </div>
+      {{/each}}
+
+      <div class="entry-row indent-1">
+        {{view Ember.RadioButton name="tlsOrSsl" disabledBinding="view.configsAreDisabled" selectionBinding="view.tlsOrSsl" value="tls"}} {{t installer.step7.misc.notification.use_tls}}
+      </div>
+
+      <div class="entry-row indent-1">
+        {{view Ember.RadioButton name="tlsOrSsl" disabledBinding="view.configsAreDisabled" selectionBinding="view.tlsOrSsl" value="ssl"}} {{t installer.step7.misc.notification.use_ssl}}
+      </div>
+      
+      {{#isAccessible ADMIN}}
+        {{#if view.canEdit}}
+          {{#unless view.configsAreDisabled}}
+            <div class="entry-row indent-1">
+             <a href="#" {{action "showAddPropertyWindow" this target="view" }} >{{t installer.step7.config.addProperty}}...</a>
+            </div>
+          {{/unless}}
+        {{/if}}
+      {{/isAccessible}}
+    </form>
+  </div>
+</div>

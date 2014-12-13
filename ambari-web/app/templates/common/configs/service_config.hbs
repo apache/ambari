@@ -18,63 +18,64 @@
 
 {{#if view.supportsHostOverrides}}
   {{#if selectedService.restartRequired}}
-	<div class="alert">
-	  <div class="clearfix like_pointer collapsable" {{action toggleRestartMessageView target="view"}}>
-	      {{#if view.isRestartMessageCollapsed}}
-	        <i class="icon-caret-down pull-left"></i>
-	      {{else}}
-	        <i class="icon-caret-right pull-left"></i>
-	      {{/if}}
-	      <i class="icon-refresh"></i>
-	      <strong>{{t dashboard.services.configs.popup.restartService.header}}</strong> {{selectedService.restartRequiredMessage}}
-	  </div>
-	  <div class="service-body">
-	    <ul>
-	    {{#each host in selectedService.restartRequiredHostsAndComponents}}
-	      <li>
-	        <a href="#" {{action showDetails host.hostData}}>{{host.hostData.publicHostName}}</a>
-	        <ul>
-	          {{#each component in host.components}}
-	            <li>{{component.name}}</li>
-	          {{/each}}
-	        </ul>
-	      </li>
-	    {{/each}}
-	    </ul>
-	  </div>
-	</div>
-	{{/if}}
+    <div class="alert">
+      <div class="clearfix like_pointer collapsable" {{action toggleRestartMessageView target="view"}}>
+        {{#if view.isRestartMessageCollapsed}}
+          <i class="icon-caret-down pull-left"></i>
+        {{else}}
+          <i class="icon-caret-right pull-left"></i>
+        {{/if}}
+        <i class="icon-refresh"></i>
+        <strong>{{t dashboard.services.configs.popup.restartService.header}}</strong> {{selectedService.restartRequiredMessage}}
+      </div>
+      <div class="service-body">
+        <ul>
+          {{#each host in selectedService.restartRequiredHostsAndComponents}}
+            <li>
+              <a href="#" {{action showDetails host.hostData}}>{{host.hostData.publicHostName}}</a>
+              <ul>
+                {{#each component in host.components}}
+                  <li>{{component.name}}</li>
+                {{/each}}
+              </ul>
+            </li>
+          {{/each}}
+        </ul>
+      </div>
+    </div>
+  {{/if}}
 {{/if}}
 {{#if view.supportsHostOverrides}}
-	<div class="alert alert-info">
-	  {{t common.group}}&nbsp; 
+  <div class="alert alert-info">
+    {{t common.group}}&nbsp;
 	  <span class="btn-group">
-		  <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn dropdown-toggle" data-toggle="dropdown">{{selectedConfigGroup.displayNameHosts}}</button>
+		  <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn dropdown-toggle"
+                                                                    data-toggle="dropdown">{{selectedConfigGroup.displayNameHosts}}</button>
 		  <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn dropdown-toggle" data-toggle="dropdown">
-		    <span class="caret"></span>
-		  </button>
+        <span class="caret"></span>
+      </button>
 		  <ul class="dropdown-menu">
-		    <!-- available config group menu links -->
-		    {{#each configGroup in configGroups}}
-           <li>
-             <a href="#" {{action "selectConfigGroup" configGroup target="controller"}}>
-               {{configGroup.displayNameHosts}}
-             </a>
-           </li>
+        <!-- available config group menu links -->
+        {{#each configGroup in configGroups}}
+          <li>
+            <a href="#" {{action "selectConfigGroup" configGroup target="controller"}}>
+              {{configGroup.displayNameHosts}}
+            </a>
+          </li>
         {{/each}}
-		  </ul>
+      </ul>
 		</span>
     {{#isAccessible ADMIN}}
       {{#if controller.isHostsConfigsPage}}
-          &nbsp;<a href="#" {{action "switchHostGroup" target="controller"}}>{{t common.change}}</a>
+        &nbsp;<a href="#" {{action "switchHostGroup" target="controller"}}>{{t common.change}}</a>
       {{else}}
-          <a href="#"  class="link-left-pad" {{action "manageConfigurationGroup" target="controller"}}>{{t services.service.actions.manage_configuration_groups.short}}</a>
+        <a href="#" class="link-left-pad" {{action "manageConfigurationGroup" target="controller"}}>{{t services.service.actions.manage_configuration_groups.short}}</a>
       {{/if}}
     {{/isAccessible}}
-     <div class="pull-right">
-       {{view App.FilterComboCleanableView filterBinding="view.filter" columnsBinding="view.columns" popoverDescriptionBinding="view.propertyFilterPopover"}}
-     </div>
-	</div>
+    <div class="pull-right">
+      {{view App.FilterComboCleanableView filterBinding="view.filter" columnsBinding="view.columns" popoverDescriptionBinding="view.propertyFilterPopover"}}
+    </div>
+  </div>
 {{/if}}
 
 {{#if view.showConfigHistoryFeature}}
@@ -82,13 +83,15 @@
 {{/if}}
 
 {{#if versionLoaded}}
+  {{#each category in selectedService.configCategories}}
     <div class="accordion">
-      {{#each category in selectedService.configCategories}}
-        {{#unless category.isCustomView}}
-          {{view App.ServiceConfigsByCategoryView categoryBinding="category" canEditBinding="view.canEdit" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs" supportsHostOverridesBinding="view.supportsHostOverrides"}}
-        {{/unless}}
-      {{/each}}
+      {{#if category.isCustomView}}
+        {{view category.customView categoryBinding="category" serviceBinding="selectedService" canEditBinding="view.canEdit" serviceConfigsBinding="selectedService.configs"}}
+      {{else}}
+        {{view App.ServiceConfigsByCategoryView categoryBinding="category" canEditBinding="view.canEdit" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs" supportsHostOverridesBinding="view.supportsHostOverrides"}}
+      {{/if}}
     </div>
+  {{/each}}
 {{else}}
-    <div class="spinner"></div>
+  <div class="spinner"></div>
 {{/if}}

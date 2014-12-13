@@ -974,7 +974,7 @@ App.config = Em.Object.create({
   },
   
   /**
-   * Add aditional properties to advanced property config object.
+   * Add additional properties to advanced property config object.
    * Additional logic based on `property_type`.
    *
    * @method advancedConfigIdentityData

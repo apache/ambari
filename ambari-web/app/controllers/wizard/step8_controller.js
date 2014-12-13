@@ -802,7 +802,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
 
 /**
    * Set displayed MetricsSink DB value based on DB type
-   * @param {Ember.Object} dbComponent
    * @method loadSinkDbValue
    */
   loadSinkDbValue: function () {
@@ -821,8 +820,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   },
 
   /**
-   * Set dispalyed Hive DB value based on DB type
-   * @param {Ember.Object} dbComponent
+   * Set displayed Hive DB value based on DB type
    * @method loadHiveDbValue
    */
   loadHiveDbValue: function () {
@@ -896,7 +894,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
 
   /**
    * Set displayed Oozie DB value based on DB type
-   * @param {Object} dbComponent
    * @method loadOozieDbValue
    */
   loadOozieDbValue: function () {
@@ -938,7 +935,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
 
   /**
    * Set displayed Nagion Admin value
-   * @param {Object} nagiosAdmin
    * @method loadNagiosAdminValue
    */
   loadNagiosAdminValue: function () {
@@ -1500,6 +1496,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     }
     return isChanged;
   },
+
   /**
    * Create config objects for cluster and services
    * @method createConfigurations
@@ -1544,6 +1541,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         }
       }, this);
     }, this);
+    this.createNotification();
   },
 
   /**
@@ -1688,6 +1686,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
 
   /**
    * proxyuser configs which depend on service
+   * @type {{serviceName: string, user: string}[]}
    */
   optionalCoreSiteConfigs: [
     {
@@ -1821,5 +1820,55 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       }
     }, this);
     return {type: 'storm-site', tag: tag, properties: stormProperties};
+  },
+
+  /**
+   * Create one Alert Notification (if user select this on step7)
+   * Only for Install Wizard!
+   * @method createNotification
+   */
+  createNotification: function () {
+    if (this.get('content.controllerName') !== 'installerController') return;
+    var miscConfigs = this.get('configs').filterProperty('serviceName', 'MISC'),
+      createNotification = miscConfigs.findProperty('name', 'create_notification').value;
+    if (createNotification === 'yes') {
+      var properties = {},
+        names = [
+          'ambari.dispatch.recipients',
+          'mail.smtp.host',
+          'mail.smtp.port',
+          'mail.smtp.from',
+          'mail.smtp.starttls.enable',
+          'mail.smtp.startssl.enable'
+        ];
+      if (miscConfigs.findProperty('name', 'smtp_use_auth').value == 'true') { // yes, it's not converted to boolean
+        names.pushObjects(['ambari.dispatch.credential.username', 'ambari.dispatch.credential.password']);
+      }
+      var customConfigNames = miscConfigs.filterProperty('displayType', 'advanced').filterProperty('filename', '').mapProperty('name');
+      if (customConfigNames) {
+        names.pushObjects(customConfigNames);
+      }
+      names.forEach(function (name) {
+        properties[name] = miscConfigs.findProperty('name', name).value;
+      });
+
+      //properties['mail.smtp.starttls.enable'] = miscConfigs.findProperty('').value;
+      var apiObject = {
+        AlertTarget: {
+          name: 'Initial Notification',
+          description: 'Notification created during cluster installing',
+          global: true,
+          notification_type: 'EMAIL',
+          alert_states: ['OK', 'WARNING', 'CRITICAL', 'UNKNOWN'],
+          properties: properties
+        }
+      };
+      this.addRequestToAjaxQueue({
+        name: 'alerts.create_alert_notification',
+        data: {
+          data: apiObject
+        }
+      });
+    }
   }
 });

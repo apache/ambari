@@ -720,6 +720,19 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
         });
         serviceConfigs.findProperty('serviceName', 'HDFS').configs = c;
       }
+
+      // Remove Notifications from MISC if it isn't Installer Controller
+      if (this.get('wizardController.name') !== 'installerController') {
+        var miscService = serviceConfigs.findProperty('serviceName', 'MISC');
+        if (miscService) {
+          c = miscService.configs;
+          removedConfigs = c.filterProperty('category', 'Notifications');
+          removedConfigs.map(function (config) {
+            c = c.without(config);
+          });
+          miscService.configs = c;
+        }
+      }
     }
 
     this.set('stepConfigs', serviceConfigs);
