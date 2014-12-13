@@ -25,6 +25,8 @@ import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.apache.ambari.server.serveraction.kerberos.KerberosActionDataFile.DATA_FILE_NAME;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -250,7 +252,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
           throw new AmbariException(message);
         }
         // The "index" file is expected to be in the specified data directory and named "index.dat"
-        File indexFile = new File(dataDirectory, KerberosActionDataFileBuilder.DATA_FILE_NAME);
+        File indexFile = new File(dataDirectory, DATA_FILE_NAME);
 
         if (!indexFile.canRead()) {
           String message = String.format("Failed to process the identities, cannot read the index file: %s",

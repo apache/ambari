@@ -29,6 +29,9 @@ import java.io.File;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
+import static org.apache.ambari.server.serveraction.kerberos.KerberosActionDataFile.HOSTNAME;
+import static org.apache.ambari.server.serveraction.kerberos.KerberosActionDataFile.KEYTAB_FILE_PATH;
+
 /**
  * CreateKeytabFilesServerAction is a ServerAction implementation that creates keytab files as
  * instructed.
@@ -73,9 +76,9 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
    * {@link org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandler} to generate
    * the keytab file. To help avoid filename collisions and to build a structure that is easy to
    * discover, each keytab file is stored in host-specific
-   * ({@link org.apache.ambari.server.serveraction.kerberos.KerberosActionDataFileReader#HOSTNAME})
+   * ({@link org.apache.ambari.server.serveraction.kerberos.KerberosActionDataFile#HOSTNAME})
    * directory using the SHA1 hash of its destination file path
-   * ({@link org.apache.ambari.server.serveraction.kerberos.KerberosActionDataFileReader#KEYTAB_FILE_PATH})
+   * ({@link org.apache.ambari.server.serveraction.kerberos.KerberosActionDataFile#KEYTAB_FILE_PATH})
    * <p/>
    * <pre>
    *   data_directory
@@ -114,8 +117,8 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
         Map<String, String> principalPasswordMap = getPrincipalPasswordMap(requestSharedDataContext);
 
         if (principalPasswordMap != null) {
-          String host = identityRecord.get(KerberosActionDataFileBuilder.HOSTNAME);
-          String keytabFilePath = identityRecord.get(KerberosActionDataFileBuilder.KEYTAB_FILE_PATH);
+          String host = identityRecord.get(HOSTNAME);
+          String keytabFilePath = identityRecord.get(KEYTAB_FILE_PATH);
 
           if ((host != null) && !host.isEmpty() && (keytabFilePath != null) && !keytabFilePath.isEmpty()) {
             // Look up the current evaluatedPrincipal's password.

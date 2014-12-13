@@ -19,7 +19,9 @@
 package org.apache.ambari.server.serveraction.kerberos;
 
 import junit.framework.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.util.Iterator;
@@ -31,172 +33,174 @@ import java.util.Map;
  */
 public class KerberosActionDataFileTest {
 
+  @Rule
+  public TemporaryFolder folder = new TemporaryFolder();
+
   @Test
   public void testKerberosActionDataFile() throws Exception {
-    File file = File.createTempFile("ambari_ut_", "dat");
+    File file = folder.newFile();
     Assert.assertNotNull(file);
 
-    try {
-      // Write the data
-      KerberosActionDataFileBuilder builder = new KerberosActionDataFileBuilder(file);
-      Assert.assertFalse(builder.isClosed());
+    // Write the data
+    KerberosActionDataFileBuilder builder = new KerberosActionDataFileBuilder(file);
+    Assert.assertFalse(builder.isClosed());
 
-      for (int i = 0; i < 10; i++) {
-        builder.addRecord("hostName" + i, "serviceName" + i, "serviceComponentName" + i,
-            "principal" + i, "principalConfiguration" + i, "keytabFilePath" + i,
-            "keytabFileOwnerName" + i, "keytabFileOwnerAccess" + i,
-            "keytabFileGroupName" + i, "keytabFileGroupAccess" + i,
-            "keytabFileConfiguration" + i);
-      }
-
-      // Add some odd characters
-      builder.addRecord("hostName's", "serviceName#", "serviceComponentName\"",
-          "principal", "principalConfiguration", "keytabFilePath",
-          "'keytabFileOwnerName'", "<keytabFileOwnerAccess>",
-          "\"keytabFileGroupName\"", "keytab,File,Group,Access",
-          "\"keytab,'File',Configuration\"");
-
-      builder.close();
-      Assert.assertTrue(builder.isClosed());
-
-      // Read the data...
-      KerberosActionDataFileReader reader = new KerberosActionDataFileReader(file);
-      Assert.assertFalse(reader.isClosed());
-
-      Iterator<Map<String, String>> iterator = reader.iterator();
-      Assert.assertNotNull(iterator);
-
-      // Test iterator
-      int i = 0;
-      while (iterator.hasNext()) {
-        Map<String, String> record = iterator.next();
-
-        if (i < 10) {
-          Assert.assertEquals("hostName" + i, record.get(KerberosActionDataFile.HOSTNAME));
-          Assert.assertEquals("serviceName" + i, record.get(KerberosActionDataFile.SERVICE));
-          Assert.assertEquals("serviceComponentName" + i, record.get(KerberosActionDataFile.COMPONENT));
-          Assert.assertEquals("principal" + i, record.get(KerberosActionDataFile.PRINCIPAL));
-          Assert.assertEquals("principalConfiguration" + i, record.get(KerberosActionDataFile.PRINCIPAL_CONFIGURATION));
-          Assert.assertEquals("keytabFilePath" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_PATH));
-          Assert.assertEquals("keytabFileOwnerName" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_NAME));
-          Assert.assertEquals("keytabFileOwnerAccess" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_ACCESS));
-          Assert.assertEquals("keytabFileGroupName" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_NAME));
-          Assert.assertEquals("keytabFileGroupAccess" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_ACCESS));
-          Assert.assertEquals("keytabFileConfiguration" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_CONFIGURATION));
-        } else {
-          Assert.assertEquals("hostName's", record.get(KerberosActionDataFile.HOSTNAME));
-          Assert.assertEquals("serviceName#", record.get(KerberosActionDataFile.SERVICE));
-          Assert.assertEquals("serviceComponentName\"", record.get(KerberosActionDataFile.COMPONENT));
-          Assert.assertEquals("principal", record.get(KerberosActionDataFile.PRINCIPAL));
-          Assert.assertEquals("principalConfiguration", record.get(KerberosActionDataFile.PRINCIPAL_CONFIGURATION));
-          Assert.assertEquals("keytabFilePath", record.get(KerberosActionDataFile.KEYTAB_FILE_PATH));
-          Assert.assertEquals("'keytabFileOwnerName'", record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_NAME));
-          Assert.assertEquals("<keytabFileOwnerAccess>", record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_ACCESS));
-          Assert.assertEquals("\"keytabFileGroupName\"", record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_NAME));
-          Assert.assertEquals("keytab,File,Group,Access", record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_ACCESS));
-          Assert.assertEquals("\"keytab,'File',Configuration\"", record.get(KerberosActionDataFile.KEYTAB_FILE_CONFIGURATION));
-        }
-
-        i++;
-      }
-
-      reader.close();
-      Assert.assertTrue(reader.isClosed());
-      reader.open();
-      Assert.assertFalse(reader.isClosed());
-
-      i = 0;
-      for (Map<String, String> record : reader) {
-        if (i < 10) {
-          Assert.assertEquals("hostName" + i, record.get(KerberosActionDataFile.HOSTNAME));
-          Assert.assertEquals("serviceName" + i, record.get(KerberosActionDataFile.SERVICE));
-          Assert.assertEquals("serviceComponentName" + i, record.get(KerberosActionDataFile.COMPONENT));
-          Assert.assertEquals("principal" + i, record.get(KerberosActionDataFile.PRINCIPAL));
-          Assert.assertEquals("principalConfiguration" + i, record.get(KerberosActionDataFile.PRINCIPAL_CONFIGURATION));
-          Assert.assertEquals("keytabFilePath" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_PATH));
-          Assert.assertEquals("keytabFileOwnerName" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_NAME));
-          Assert.assertEquals("keytabFileOwnerAccess" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_ACCESS));
-          Assert.assertEquals("keytabFileGroupName" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_NAME));
-          Assert.assertEquals("keytabFileGroupAccess" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_ACCESS));
-          Assert.assertEquals("keytabFileConfiguration" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_CONFIGURATION));
-        } else {
-          Assert.assertEquals("hostName's", record.get(KerberosActionDataFile.HOSTNAME));
-          Assert.assertEquals("serviceName#", record.get(KerberosActionDataFile.SERVICE));
-          Assert.assertEquals("serviceComponentName\"", record.get(KerberosActionDataFile.COMPONENT));
-          Assert.assertEquals("principal", record.get(KerberosActionDataFile.PRINCIPAL));
-          Assert.assertEquals("principalConfiguration", record.get(KerberosActionDataFile.PRINCIPAL_CONFIGURATION));
-          Assert.assertEquals("keytabFilePath", record.get(KerberosActionDataFile.KEYTAB_FILE_PATH));
-          Assert.assertEquals("'keytabFileOwnerName'", record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_NAME));
-          Assert.assertEquals("<keytabFileOwnerAccess>", record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_ACCESS));
-          Assert.assertEquals("\"keytabFileGroupName\"", record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_NAME));
-          Assert.assertEquals("keytab,File,Group,Access", record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_ACCESS));
-          Assert.assertEquals("\"keytab,'File',Configuration\"", record.get(KerberosActionDataFile.KEYTAB_FILE_CONFIGURATION));
-        }
-
-        i++;
-      }
-
-      reader.close();
-      Assert.assertTrue(reader.isClosed());
-
-      // Add an additional record
-      builder.open();
-      Assert.assertFalse(builder.isClosed());
-
-      builder.addRecord("hostName", "serviceName", "serviceComponentName",
-          "principal", "principalConfiguration", "keytabFilePath",
-          "keytabFileOwnerName", "keytabFileOwnerAccess",
-          "keytabFileGroupName", "keytabFileGroupAccess",
-          "keytabFileConfiguration");
-
-      builder.close();
-      Assert.assertTrue(builder.isClosed());
-
-      reader = new KerberosActionDataFileReader(file);
-      Assert.assertFalse(reader.isClosed());
-
-      i = 0;
-      for (Map<String, String> record : reader) {
-        i++;
-      }
-
-      Assert.assertEquals(12, i);
-
-      reader.close();
-      Assert.assertTrue(reader.isClosed());
-
-      // Add an additional record
-      builder = new KerberosActionDataFileBuilder(file);
-      Assert.assertFalse(builder.isClosed());
-
-      builder.addRecord("hostName", "serviceName", "serviceComponentName",
-          "principal", "principalConfiguration", "keytabFilePath",
-          "keytabFileOwnerName", "keytabFileOwnerAccess",
-          "keytabFileGroupName", "keytabFileGroupAccess",
-          "keytabFileConfiguration");
-
-      builder.close();
-      Assert.assertTrue(builder.isClosed());
-
-      reader.open();
-      Assert.assertFalse(reader.isClosed());
-
-      i = 0;
-      for (Map<String, String> record : reader) {
-        i++;
-      }
-
-      Assert.assertEquals(13, i);
-
-      reader.close();
-      Assert.assertTrue(reader.isClosed());
-
-
-    } finally {
-      if (!file.delete()) {
-        file.deleteOnExit();
-      }
+    for (int i = 0; i < 10; i++) {
+      builder.addRecord("hostName" + i, "serviceName" + i, "serviceComponentName" + i,
+          "principal" + i, "principalConfiguration" + i, "keytabFilePath" + i,
+          "keytabFileOwnerName" + i, "keytabFileOwnerAccess" + i,
+          "keytabFileGroupName" + i, "keytabFileGroupAccess" + i,
+          "keytabFileConfiguration" + i);
     }
-  }
 
+    // Add some odd characters
+    builder.addRecord("hostName's", "serviceName#", "serviceComponentName\"",
+        "principal", "principalConfiguration", "keytabFilePath",
+        "'keytabFileOwnerName'", "<keytabFileOwnerAccess>",
+        "\"keytabFileGroupName\"", "keytab,File,Group,Access",
+        "\"keytab,'File',Configuration\"");
+
+    builder.close();
+    Assert.assertTrue(builder.isClosed());
+
+    // Read the data...
+    KerberosActionDataFileReader reader = new KerberosActionDataFileReader(file);
+    Assert.assertFalse(reader.isClosed());
+
+    Iterator<Map<String, String>> iterator = reader.iterator();
+    Assert.assertNotNull(iterator);
+
+    // Test iterator
+    int i = 0;
+    while (iterator.hasNext()) {
+      Map<String, String> record = iterator.next();
+
+      if (i < 10) {
+        Assert.assertEquals("hostName" + i, record.get(KerberosActionDataFile.HOSTNAME));
+        Assert.assertEquals("serviceName" + i, record.get(KerberosActionDataFile.SERVICE));
+        Assert.assertEquals("serviceComponentName" + i, record.get(KerberosActionDataFile.COMPONENT));
+        Assert.assertEquals("principal" + i, record.get(KerberosActionDataFile.PRINCIPAL));
+        Assert.assertEquals("principalConfiguration" + i, record.get(KerberosActionDataFile.PRINCIPAL_CONFIGURATION));
+        Assert.assertEquals("keytabFilePath" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_PATH));
+        Assert.assertEquals("keytabFileOwnerName" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_NAME));
+        Assert.assertEquals("keytabFileOwnerAccess" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_ACCESS));
+        Assert.assertEquals("keytabFileGroupName" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_NAME));
+        Assert.assertEquals("keytabFileGroupAccess" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_ACCESS));
+        Assert.assertEquals("keytabFileConfiguration" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_CONFIGURATION));
+      } else {
+        Assert.assertEquals("hostName's", record.get(KerberosActionDataFile.HOSTNAME));
+        Assert.assertEquals("serviceName#", record.get(KerberosActionDataFile.SERVICE));
+        Assert.assertEquals("serviceComponentName\"", record.get(KerberosActionDataFile.COMPONENT));
+        Assert.assertEquals("principal", record.get(KerberosActionDataFile.PRINCIPAL));
+        Assert.assertEquals("principalConfiguration", record.get(KerberosActionDataFile.PRINCIPAL_CONFIGURATION));
+        Assert.assertEquals("keytabFilePath", record.get(KerberosActionDataFile.KEYTAB_FILE_PATH));
+        Assert.assertEquals("'keytabFileOwnerName'", record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_NAME));
+        Assert.assertEquals("<keytabFileOwnerAccess>", record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_ACCESS));
+        Assert.assertEquals("\"keytabFileGroupName\"", record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_NAME));
+        Assert.assertEquals("keytab,File,Group,Access", record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_ACCESS));
+        Assert.assertEquals("\"keytab,'File',Configuration\"", record.get(KerberosActionDataFile.KEYTAB_FILE_CONFIGURATION));
+      }
+
+      i++;
+    }
+
+    reader.close();
+    Assert.assertTrue(reader.isClosed());
+    reader.open();
+    Assert.assertFalse(reader.isClosed());
+
+    i = 0;
+    for (Map<String, String> record : reader) {
+      if (i < 10) {
+        Assert.assertEquals("hostName" + i, record.get(KerberosActionDataFile.HOSTNAME));
+        Assert.assertEquals("serviceName" + i, record.get(KerberosActionDataFile.SERVICE));
+        Assert.assertEquals("serviceComponentName" + i, record.get(KerberosActionDataFile.COMPONENT));
+        Assert.assertEquals("principal" + i, record.get(KerberosActionDataFile.PRINCIPAL));
+        Assert.assertEquals("principalConfiguration" + i, record.get(KerberosActionDataFile.PRINCIPAL_CONFIGURATION));
+        Assert.assertEquals("keytabFilePath" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_PATH));
+        Assert.assertEquals("keytabFileOwnerName" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_NAME));
+        Assert.assertEquals("keytabFileOwnerAccess" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_ACCESS));
+        Assert.assertEquals("keytabFileGroupName" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_NAME));
+        Assert.assertEquals("keytabFileGroupAccess" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_ACCESS));
+        Assert.assertEquals("keytabFileConfiguration" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_CONFIGURATION));
+      } else {
+        Assert.assertEquals("hostName's", record.get(KerberosActionDataFile.HOSTNAME));
+        Assert.assertEquals("serviceName#", record.get(KerberosActionDataFile.SERVICE));
+        Assert.assertEquals("serviceComponentName\"", record.get(KerberosActionDataFile.COMPONENT));
+        Assert.assertEquals("principal", record.get(KerberosActionDataFile.PRINCIPAL));
+        Assert.assertEquals("principalConfiguration", record.get(KerberosActionDataFile.PRINCIPAL_CONFIGURATION));
+        Assert.assertEquals("keytabFilePath", record.get(KerberosActionDataFile.KEYTAB_FILE_PATH));
+        Assert.assertEquals("'keytabFileOwnerName'", record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_NAME));
+        Assert.assertEquals("<keytabFileOwnerAccess>", record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_ACCESS));
+        Assert.assertEquals("\"keytabFileGroupName\"", record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_NAME));
+        Assert.assertEquals("keytab,File,Group,Access", record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_ACCESS));
+        Assert.assertEquals("\"keytab,'File',Configuration\"", record.get(KerberosActionDataFile.KEYTAB_FILE_CONFIGURATION));
+      }
+
+      i++;
+    }
+
+    reader.close();
+    Assert.assertTrue(reader.isClosed());
+
+    // Add an additional record
+    builder.open();
+    Assert.assertFalse(builder.isClosed());
+
+    builder.addRecord("hostName", "serviceName", "serviceComponentName",
+        "principal", "principalConfiguration", "keytabFilePath",
+        "keytabFileOwnerName", "keytabFileOwnerAccess",
+        "keytabFileGroupName", "keytabFileGroupAccess",
+        "keytabFileConfiguration");
+
+    builder.close();
+    Assert.assertTrue(builder.isClosed());
+
+    reader = new KerberosActionDataFileReader(file);
+    Assert.assertFalse(reader.isClosed());
+
+    i = 0;
+    for (Map<String, String> record : reader) {
+      i++;
+    }
+
+    Assert.assertEquals(12, i);
+
+    reader.close();
+    Assert.assertTrue(reader.isClosed());
+
+    // Add an additional record
+    builder = new KerberosActionDataFileBuilder(file);
+    Assert.assertFalse(builder.isClosed());
+
+    builder.addRecord("hostName", "serviceName", "serviceComponentName",
+        "principal", "principalConfiguration", "keytabFilePath",
+        "keytabFileOwnerName", "keytabFileOwnerAccess",
+        "keytabFileGroupName", "keytabFileGroupAccess",
+        "keytabFileConfiguration");
+
+    builder.close();
+    Assert.assertTrue(builder.isClosed());
+
+    reader.open();
+    Assert.assertFalse(reader.isClosed());
+
+    i = 0;
+    for (Map<String, String> record : reader) {
+      i++;
+    }
+
+    Assert.assertEquals(13, i);
+
+    reader.close();
+    Assert.assertTrue(reader.isClosed());
+
+    // trying to iterate over a closed reader...
+    i = 0;
+    for (Map<String, String> record : reader) {
+      i++;
+    }
+    Assert.assertEquals(0, i);
+
+  }
 }

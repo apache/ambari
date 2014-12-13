@@ -22,23 +22,23 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * KerberosActionDataFileReader is an implementation of a KerberosActionDataFile that is used to
- * read existing KerberosActionDataFiles.
+ * KerberosConfigDataFileReader is an implementation of a KerberosConfigDataFile that is used to
+ * read existing KerberosConfigDataFiles.
  * <p/>
  * This class encapsulates a {@link org.apache.commons.csv.CSVParser} to read a CSV-formatted file.
  */
-public class KerberosActionDataFileReader extends AbstractKerberosDataFileReader {
+public class KerberosConfigDataFileReader extends AbstractKerberosDataFileReader {
 
   /**
-   * Creates a new KerberosActionDataFileReader
+   * Creates a new KerberosConfigDataFileReader
    * <p/>
    * The file is opened upon creation, so there is no need to manually open it unless manually
    * closed before using.
    *
    * @param file a File declaring where to write the data
-   * @throws IOException
+   * @throws java.io.IOException
    */
-  public KerberosActionDataFileReader(File file) throws IOException {
+  public KerberosConfigDataFileReader(File file) throws IOException {
     super(file);
   }
 }

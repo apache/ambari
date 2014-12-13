@@ -18,27 +18,14 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import java.io.File;
-import java.io.IOException;
-
 /**
- * KerberosActionDataFileReader is an implementation of a KerberosActionDataFile that is used to
- * read existing KerberosActionDataFiles.
- * <p/>
- * This class encapsulates a {@link org.apache.commons.csv.CSVParser} to read a CSV-formatted file.
+ * KerberosConfigDataFile declares the default data file name and the common record column names
+ * for the Kerberos configuration data files.
  */
-public class KerberosActionDataFileReader extends AbstractKerberosDataFileReader {
+public class KerberosConfigDataFile {
+  public static final String DATA_FILE_NAME = "configs.dat";
 
-  /**
-   * Creates a new KerberosActionDataFileReader
-   * <p/>
-   * The file is opened upon creation, so there is no need to manually open it unless manually
-   * closed before using.
-   *
-   * @param file a File declaring where to write the data
-   * @throws IOException
-   */
-  public KerberosActionDataFileReader(File file) throws IOException {
-    super(file);
-  }
+  public static final String CONFIGURATION_TYPE = "config";
+  public static final String KEY = "key";
+  public static final String VALUE = "value";
 }

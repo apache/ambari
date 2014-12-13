@@ -19,9 +19,10 @@
 package org.apache.ambari.server.serveraction.kerberos;
 
 /**
- * An interface to contain common record column names for KerberosActionDataFile classes.
+ * KerberosActionDataFile declares the default data file name and the common record column names
+ * for the Kerberos action (metadata) data files.
  */
-public interface KerberosActionDataFile {
+public class KerberosActionDataFile {
   public static final String DATA_FILE_NAME = "index.dat";
 
   public static final String HOSTNAME = "hostname";

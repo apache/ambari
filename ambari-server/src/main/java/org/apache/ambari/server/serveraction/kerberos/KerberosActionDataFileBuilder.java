@@ -18,12 +18,11 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
+import static org.apache.ambari.server.serveraction.kerberos.KerberosActionDataFile.*;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * KerberosActionDataFileBuilder is an implementation of a KerberosActionDataFile that is used to
@@ -31,10 +30,7 @@ import java.io.IOException;
  * <p/>
  * This class encapsulates a {@link org.apache.commons.csv.CSVPrinter} to create a CSV-formatted file.
  */
-public class KerberosActionDataFileBuilder implements KerberosActionDataFile {
-
-  private File file;
-  private CSVPrinter csvPrinter;
+public class KerberosActionDataFileBuilder extends AbstractKerberosDataFileBuilder {
 
   /**
    * Creates a new KerberosActionDataFileBuilder
@@ -46,67 +42,9 @@ public class KerberosActionDataFileBuilder implements KerberosActionDataFile {
    * @throws IOException
    */
   public KerberosActionDataFileBuilder(File file) throws IOException {
-    this.file = file;
-    open();
+    super(file);
   }
 
-
-  /**
-   * Opens the data file for writing.
-   * <p/>
-   * This may be called multiple times and the appropriate action will occur depending on if the
-   * file has been previously opened or closed.
-   *
-   * @throws IOException
-   */
-  public void open() throws IOException {
-    if (isClosed()) {
-      if (file == null) {
-        throw new IOException("Missing file path");
-      } else {
-        // If the file is empty, write the header; else don't write the header.
-        boolean writeHeader = file.length() == 0;
-
-        csvPrinter = new CSVPrinter(new FileWriter(file, true), CSVFormat.DEFAULT);
-
-        if (writeHeader) {
-          // Write the header....
-          csvPrinter.printRecord(HOSTNAME,
-              SERVICE,
-              COMPONENT,
-              PRINCIPAL,
-              PRINCIPAL_CONFIGURATION,
-              KEYTAB_FILE_PATH,
-              KEYTAB_FILE_OWNER_NAME,
-              KEYTAB_FILE_OWNER_ACCESS,
-              KEYTAB_FILE_GROUP_NAME,
-              KEYTAB_FILE_GROUP_ACCESS,
-              KEYTAB_FILE_CONFIGURATION);
-        }
-      }
-    }
-  }
-
-  /**
-   * Tests this KerberosActionDataFileBuilder to see if the data file is closed.
-   *
-   * @return true if closed; otherwise false
-   */
-  public boolean isClosed() {
-    return csvPrinter == null;
-  }
-
-  /**
-   * Closes the data file
-   *
-   * @throws IOException
-   */
-  public void close() throws IOException {
-    if (csvPrinter != null) {
-      csvPrinter.close();
-      csvPrinter = null;
-    }
-  }
 
   /**
    * Appends a new record to the data file
@@ -138,12 +76,7 @@ public class KerberosActionDataFileBuilder implements KerberosActionDataFile {
                         String keytabFileOwnerName, String keytabFileOwnerAccess,
                         String keytabFileGroupName, String keytabFileGroupAccess,
                         String keytabFileConfiguration) throws IOException {
-
-    if (csvPrinter == null) {
-      throw new IOException("Data file is not open");
-    }
-
-    csvPrinter.printRecord(hostName,
+    super.appendRecord(hostName,
         serviceName,
         serviceComponentName,
         principal,
@@ -156,4 +89,18 @@ public class KerberosActionDataFileBuilder implements KerberosActionDataFile {
         keytabFileConfiguration);
   }
 
+  @Override
+  protected Iterable<String> getHeaderRecord() {
+    return Arrays.asList(HOSTNAME,
+        SERVICE,
+        COMPONENT,
+        PRINCIPAL,
+        PRINCIPAL_CONFIGURATION,
+        KEYTAB_FILE_PATH,
+        KEYTAB_FILE_OWNER_NAME,
+        KEYTAB_FILE_OWNER_ACCESS,
+        KEYTAB_FILE_GROUP_NAME,
+        KEYTAB_FILE_GROUP_ACCESS,
+        KEYTAB_FILE_CONFIGURATION);
+  }
 }
