@@ -391,6 +391,43 @@ public class ServiceModuleTest {
   }
 
   @Test
+  public void testResolve_KerberosDescriptorFile() throws Exception {
+    File kerberosDescriptorFile = new File("testKerberosDescriptorFile");
+
+    // specified in child only
+    ServiceInfo info = new ServiceInfo();
+    ServiceInfo parentInfo = new ServiceInfo();
+
+    ServiceModule child = createServiceModule(info);
+    ServiceModule parent = createServiceModule(parentInfo);
+
+    // set in the module constructor from a value obtained from service directory which is mocked
+    assertEquals(kerberosDescriptorFile, child.getModuleInfo().getKerberosDescriptorFile());
+    parent.getModuleInfo().setKerberosDescriptorFile(null);
+
+    resolveService(child, parent);
+    assertEquals(kerberosDescriptorFile, child.getModuleInfo().getKerberosDescriptorFile());
+
+    // specified in parent only
+    child = createServiceModule(info);
+    parent = createServiceModule(parentInfo);
+    parent.getModuleInfo().setKerberosDescriptorFile(kerberosDescriptorFile);
+    child.getModuleInfo().setKerberosDescriptorFile(null);
+
+    resolveService(child, parent);
+    assertEquals(kerberosDescriptorFile, child.getModuleInfo().getKerberosDescriptorFile());
+
+    // specified in both
+    child = createServiceModule(info);
+    parent = createServiceModule(parentInfo);
+    parent.getModuleInfo().setKerberosDescriptorFile(new File("someOtherDir"));
+    child.getModuleInfo().setKerberosDescriptorFile(kerberosDescriptorFile);
+
+    resolveService(child, parent);
+    assertEquals(kerberosDescriptorFile, child.getModuleInfo().getKerberosDescriptorFile());
+  }
+
+  @Test
   public void testResolve_CustomCommands() throws Exception {
     List<CustomCommandDefinition> customCommands = new ArrayList<CustomCommandDefinition>();
     CustomCommandDefinition cmd1 = new CustomCommandDefinition();
@@ -918,6 +955,7 @@ public class ServiceModuleTest {
     expect(serviceDirectory.getConfigurationDirectory(dir)).andReturn(configDir).anyTimes();
     expect(serviceDirectory.getMetricsFile()).andReturn(new File("testMetricsFile")).anyTimes();
     expect(serviceDirectory.getAlertsFile()).andReturn(new File("testAlertsFile")).anyTimes();
+    expect(serviceDirectory.getKerberosDescriptorFile()).andReturn(new File("testKerberosDescriptorFile")).anyTimes();
     expect(serviceDirectory.getPackageDir()).andReturn("packageDir").anyTimes();
     replay(serviceDirectory);
 

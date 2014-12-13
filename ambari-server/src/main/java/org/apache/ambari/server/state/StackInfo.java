@@ -18,10 +18,12 @@
 
 package org.apache.ambari.server.state;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -35,6 +37,7 @@ public class StackInfo implements Comparable<StackInfo>{
   private String minUpgradeVersion;
   private boolean active;
   private String rcoFileLocation;
+  private String kerberosDescriptorFileLocation;
   private List<RepositoryInfo> repositories;
   private Collection<ServiceInfo> services;
   private String parentStackVersion;
@@ -188,8 +191,28 @@ public class StackInfo implements Comparable<StackInfo>{
 
   public StackVersionResponse convertToResponse() {
 
+    // Get the stack-level Kerberos descriptor file path
+    String stackDescriptorFileFilePath = getKerberosDescriptorFileLocation();
+
+    // Collect the services' Kerberos descriptor files
+    Collection<ServiceInfo> serviceInfos = getServices();
+    // The collection of service descriptor files. A Set is being used because some Kerberos descriptor
+    // files contain multiple services, therefore the same File may be encountered more than once.
+    // For example the YARN directory may contain YARN and MAPREDUCE2 services.
+    Collection<File> serviceDescriptorFiles = new HashSet<File>();
+    if (serviceInfos != null) {
+      for (ServiceInfo serviceInfo : serviceInfos) {
+        File file = serviceInfo.getKerberosDescriptorFile();
+        if (file != null) {
+          serviceDescriptorFiles.add(file);
+        }
+      }
+    }
+
     return new StackVersionResponse(getVersion(), getMinUpgradeVersion(),
-      isActive(), getParentStackVersion(), getConfigTypeAttributes());
+        isActive(), getParentStackVersion(), getConfigTypeAttributes(),
+        (stackDescriptorFileFilePath == null) ? null : new File(stackDescriptorFileFilePath),
+        serviceDescriptorFiles);
   }
 
   public String getMinUpgradeVersion() {
@@ -230,6 +253,25 @@ public class StackInfo implements Comparable<StackInfo>{
 
   public void setRcoFileLocation(String rcoFileLocation) {
     this.rcoFileLocation = rcoFileLocation;
+  }
+
+  /**
+   * Gets the path to the stack-level Kerberos descriptor file
+   *
+   * @return a String containing the path to the stack-level Kerberos descriptor file
+   */
+  public String getKerberosDescriptorFileLocation() {
+    return kerberosDescriptorFileLocation;
+  }
+
+  /**
+   * Sets the path to the stack-level Kerberos descriptor file
+   *
+   * @param kerberosDescriptorFileLocation a String containing the path to the stack-level Kerberos
+   *                                       descriptor file
+   */
+  public void setKerberosDescriptorFileLocation(String kerberosDescriptorFileLocation) {
+    this.kerberosDescriptorFileLocation = kerberosDescriptorFileLocation;
   }
 
   public String getStackHooksFolder() {

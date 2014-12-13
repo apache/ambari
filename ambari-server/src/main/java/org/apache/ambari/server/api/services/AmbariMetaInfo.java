@@ -91,6 +91,11 @@ public class AmbariMetaInfo {
   public static final String SERVICE_ALERT_FILE_NAME = "alerts.json";
 
   /**
+   * The filename name for a Kerberos descriptor file at either the stack or service level
+   */
+  public static final String KERBEROS_DESCRIPTOR_FILE_NAME = "kerberos.json";
+
+  /**
    * This string is used in placeholder in places that are common for
    * all operating systems or in situations where os type is not important.
    */

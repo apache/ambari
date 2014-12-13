@@ -31,6 +31,7 @@ import java.io.File;
  * Encapsulates IO operations on a stack definition service directory.
  */
 public class ServiceDirectory extends StackDefinitionDirectory {
+
   /**
    * metrics file
    */
@@ -40,6 +41,11 @@ public class ServiceDirectory extends StackDefinitionDirectory {
    * alerts file
    */
   private File alertsFile;
+
+  /**
+   * kerberos descriptor file
+   */
+  private File kerberosDescriptorFile;
 
   /**
    * package directory path
@@ -94,6 +100,10 @@ public class ServiceDirectory extends StackDefinitionDirectory {
     File af = new File(directory.getAbsolutePath()
         + File.separator + AmbariMetaInfo.SERVICE_ALERT_FILE_NAME);
     alertsFile = af.exists() ? af : null;
+
+    File kdf = new File(directory.getAbsolutePath()
+        + File.separator + AmbariMetaInfo.KERBEROS_DESCRIPTOR_FILE_NAME);
+    kerberosDescriptorFile = kdf.exists() ? kdf : null;
   }
 
   /**
@@ -121,6 +131,15 @@ public class ServiceDirectory extends StackDefinitionDirectory {
    */
   public File getAlertsFile() {
     return alertsFile;
+  }
+
+  /**
+   * Obtain the Kerberos Descriptor file.
+   *
+   * @return Kerberos Descriptor file
+   */
+  public File getKerberosDescriptorFile() {
+    return kerberosDescriptorFile;
   }
 
   /**

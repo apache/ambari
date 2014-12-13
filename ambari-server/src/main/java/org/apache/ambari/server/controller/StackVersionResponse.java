@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.controller;
 
+import java.io.File;
+import java.util.Collection;
 import java.util.Map;
 
 
@@ -30,14 +32,32 @@ public class StackVersionResponse {
   private String parentVersion;
   private Map<String, Map<String, Map<String, String>>> configTypes;
 
+  /**
+   * A File pointing to the stack-level Kerberos descriptor file
+   *
+   * This may be null if a relevant file is not available.
+   */
+  private File stackKerberosDescriptorFile;
+
+  /**
+   * A Collection of Files pointing to the service-level Kerberos descriptor files
+   *
+   * This may be null or empty if no relevant files are available.
+   */
+  private Collection<File> serviceKerberosDescriptorFiles;
+
   public StackVersionResponse(String stackVersion, String minUpgradeVersion,
-                              boolean active, String parentVersion, 
-                              Map<String, Map<String, Map<String, String>>> configTypes) {
+                              boolean active, String parentVersion,
+                              Map<String, Map<String, Map<String, String>>> configTypes,
+                              File stackKerberosDescriptorFile,
+                              Collection<File> serviceKerberosDescriptorFiles) {
     setStackVersion(stackVersion);
     setMinUpgradeVersion(minUpgradeVersion);
     setActive(active);
     setParentVersion(parentVersion);
     setConfigTypes(configTypes);
+    setKerberosDescriptorFile(stackKerberosDescriptorFile);
+    setServiceKerberosDescriptorFiles(serviceKerberosDescriptorFiles);
   }
 
   public String getStackName() {
@@ -85,5 +105,45 @@ public class StackVersionResponse {
   public void setConfigTypes(
       Map<String, Map<String, Map<String, String>>> configTypes) {
     this.configTypes = configTypes;
+  }
+
+  /**
+   * Gets a File pointing to the stack-level Kerberos descriptor
+   *
+   * @return a File pointing to the stack-level Kerberos descriptor, or null if no relevant file is
+   * available
+   */
+  public File getStackKerberosDescriptorFile() {
+    return stackKerberosDescriptorFile;
+  }
+
+  /**
+   * Sets the stack-level Kerberos descriptor File
+   *
+   * @param stackKerberosDescriptorFile a File pointing to the stack-level Kerberos descriptor
+   */
+  public void setKerberosDescriptorFile(File stackKerberosDescriptorFile) {
+    this.stackKerberosDescriptorFile = stackKerberosDescriptorFile;
+  }
+
+  /**
+   * Gets the Collection of Files pointing to the stack-specific service-level Kerberos descriptor
+   * files
+   *
+   * @return a Collection of Files pointing to the stack-specific service-level Kerberos descriptor
+   * files, or null if no relevant files are available
+   */
+  public Collection<File> getServiceKerberosDescriptorFiles() {
+    return serviceKerberosDescriptorFiles;
+  }
+
+  /**
+   * Sets the Collection of stack-specific service-level Kerberos descriptor Files
+   *
+   * @param serviceKerberosDescriptorFiles a Collection of stack-specific service-level Kerberos
+   *                                       descriptor Files
+   */
+  public void setServiceKerberosDescriptorFiles(Collection<File> serviceKerberosDescriptorFiles) {
+    this.serviceKerberosDescriptorFiles = serviceKerberosDescriptorFiles;
   }
 }

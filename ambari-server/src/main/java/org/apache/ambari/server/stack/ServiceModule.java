@@ -96,6 +96,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> {
 
     serviceInfo.setMetricsFile(serviceDirectory.getMetricsFile());
     serviceInfo.setAlertsFile(serviceDirectory.getAlertsFile());
+    serviceInfo.setKerberosDescriptorFile(serviceDirectory.getKerberosDescriptorFile());
     serviceInfo.setSchemaVersion(AmbariMetaInfo.SCHEMA_VERSION_2);
     serviceInfo.setServicePackageFolder(serviceDirectory.getPackageDir());
 
@@ -151,6 +152,9 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> {
     }
     if (serviceInfo.getAlertsFile() == null) {
       serviceInfo.setAlertsFile(parent.getAlertsFile());
+    }
+    if (serviceInfo.getKerberosDescriptorFile() == null) {
+      serviceInfo.setKerberosDescriptorFile(parent.getKerberosDescriptorFile());
     }
 
     mergeCustomCommands(parent.getCustomCommands(), serviceInfo.getCustomCommands());

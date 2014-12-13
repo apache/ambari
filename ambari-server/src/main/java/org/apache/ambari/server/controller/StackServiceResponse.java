@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller;
 import org.apache.ambari.server.state.CustomCommandDefinition;
 import org.apache.ambari.server.state.ServiceInfo;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -40,6 +41,13 @@ public class StackServiceResponse {
 
   private Map<String, Map<String, Map<String, String>>> configTypes;
   private List<String> requiredServices;
+
+  /**
+   * A File pointing to the service-level Kerberos descriptor file
+   *
+   * This may be null if a relevant file is not available.
+   */
+  private File kerberosDescriptorFile;
 
   /**
    * Constructor.
@@ -67,6 +75,8 @@ public class StackServiceResponse {
         customCommands.add(command.getName());
       }
     }
+
+    kerberosDescriptorFile = service.getKerberosDescriptorFile();
   }
 
   public String getStackName() {
@@ -135,6 +145,25 @@ public class StackServiceResponse {
 
   public void setRequiredServices(List<String> requiredServices) {
     this.requiredServices = requiredServices;
+  }
+
+  /**
+   * Gets a File pointing to the service-level Kerberos descriptor
+   *
+   * @return a File pointing to the service-level Kerberos descriptor, or null if no relevant file is
+   * available
+   */
+  public File getKerberosDescriptorFile() {
+    return kerberosDescriptorFile;
+  }
+
+  /**
+   * Sets the service-level Kerberos descriptor File
+   *
+   * @param kerberosDescriptorFile a File pointing to the service-level Kerberos descriptor
+   */
+  public void setKerberosDescriptorFile(File kerberosDescriptorFile) {
+    this.kerberosDescriptorFile = kerberosDescriptorFile;
   }
 
   /**

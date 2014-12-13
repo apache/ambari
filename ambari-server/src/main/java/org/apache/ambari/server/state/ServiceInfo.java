@@ -108,6 +108,9 @@ public class ServiceInfo {
   @XmlTransient
   private File alertsFile = null;
 
+  @XmlTransient
+  private File kerberosDescriptorFile = null;
+
   /**
    * Internal list of os-specific details (loaded from xml). Added at schema ver 2
    */
@@ -533,12 +536,26 @@ public class ServiceInfo {
   public void setAlertsFile(File file) {
     alertsFile = file;
   }
-  
+
   /**
    * @return the alerts file, or <code>null</code> if none exists
    */
   public File getAlertsFile() {
     return alertsFile;
+  }
+
+  /**
+   * @param file the file containing the alert definitions
+   */
+  public void setKerberosDescriptorFile(File file) {
+    kerberosDescriptorFile = file;
+  }
+
+  /**
+   * @return the kerberos descriptor file, or <code>null</code> if none exists
+   */
+  public File getKerberosDescriptorFile() {
+    return kerberosDescriptorFile;
   }
 
   /**

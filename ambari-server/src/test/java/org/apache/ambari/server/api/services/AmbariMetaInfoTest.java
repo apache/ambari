@@ -30,6 +30,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileReader;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.HashSet;
@@ -41,6 +42,7 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 import javax.xml.bind.JAXBException;
 
+import com.google.gson.Gson;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
@@ -816,6 +818,33 @@ public class AmbariMetaInfoTest {
     // not explicitly defined, uses 2.0.5
     list = metaInfo.getMetrics(STACK_NAME_HDP, "2.0.6", "HDFS", "DATANODE", "Component");
     Assert.assertNull(list);
+  }
+
+  @Test
+  public void testKerberosJson() throws Exception {
+    ServiceInfo svc;
+
+    svc = metaInfo.getService(STACK_NAME_HDP, "2.0.8", "HDFS");
+    Assert.assertNotNull(svc);
+
+    File kerberosDescriptorFile1 = svc.getKerberosDescriptorFile();
+    Assert.assertNotNull(kerberosDescriptorFile1);
+    Assert.assertTrue(kerberosDescriptorFile1.exists());
+
+    svc = metaInfo.getService(STACK_NAME_HDP, "2.1.1", "HDFS");
+    Assert.assertNotNull(svc);
+
+    File kerberosDescriptorFile2 = svc.getKerberosDescriptorFile();
+    Assert.assertNotNull(kerberosDescriptorFile1);
+    Assert.assertTrue(kerberosDescriptorFile1.exists());
+
+    Assert.assertEquals(kerberosDescriptorFile1, kerberosDescriptorFile2);
+
+    svc = metaInfo.getService(STACK_NAME_HDP, "2.0.7", "HDFS");
+    Assert.assertNotNull(svc);
+
+    File kerberosDescriptorFile3 = svc.getKerberosDescriptorFile();
+    Assert.assertNull(kerberosDescriptorFile3);
   }
 
   @Test
@@ -1678,6 +1707,35 @@ public class AmbariMetaInfoTest {
       assertEquals(28, definition.getScheduleInterval().intValue());
     }
   }
+
+  @Test
+  public void testKerberosDescriptor() throws Exception {
+    ServiceInfo service;
+
+    // Test that kerberos descriptor file is not available when not supplied in service definition
+    service = metaInfo.getService(STACK_NAME_HDP, "2.1.1", "PIG");
+    Assert.assertNotNull(service);
+    Assert.assertNull(service.getKerberosDescriptorFile());
+
+    // Test that kerberos descriptor file is available when supplied in service definition
+    service = metaInfo.getService(STACK_NAME_HDP, "2.0.8", "HDFS");
+    Assert.assertNotNull(service);
+    Assert.assertNotNull(service.getKerberosDescriptorFile());
+
+    // Test that kerberos descriptor file is available from inherited stack version
+    service = metaInfo.getService(STACK_NAME_HDP, "2.1.1", "HDFS");
+    Assert.assertNotNull(service);
+    Assert.assertNotNull(service.getKerberosDescriptorFile());
+
+
+    // Test that kerberos.json file can be parsed into mapped data
+    Map<?,?> kerberosDescriptorData = new Gson()
+        .fromJson(new FileReader(service.getKerberosDescriptorFile()), Map.class);
+
+    Assert.assertNotNull(kerberosDescriptorData);
+    Assert.assertEquals(2, kerberosDescriptorData.size());
+  }
+
 
   private TestAmbariMetaInfo setupTempAmbariMetaInfo(String buildDir, boolean replayMocks) throws Exception {
     File stackRootTmp = new File(buildDir + "/ambari-metaInfo");

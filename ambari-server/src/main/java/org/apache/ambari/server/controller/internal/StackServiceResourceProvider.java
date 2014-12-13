@@ -19,6 +19,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import com.google.gson.Gson;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.StackServiceRequest;
@@ -26,7 +27,12 @@ import org.apache.ambari.server.controller.StackServiceResponse;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.*;
 
 public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
@@ -63,6 +69,9 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
 
   private static final String CUSTOM_COMMANDS_PROPERTY_ID = PropertyHelper.getPropertyId(
       "StackServices", "custom_commands");
+
+  private static final String KERBEROS_DESCRIPTOR_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "StackServices", "kerberos_descriptor");
 
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(new String[] { STACK_NAME_PROPERTY_ID,
@@ -135,6 +144,31 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
 
       setResourceProperty(resource, CUSTOM_COMMANDS_PROPERTY_ID,
           response.getCustomCommands(), requestedIds);
+
+      // TODO (rlevas): Convert this to an official resource
+      File kerberosDescriptorFile = response.getKerberosDescriptorFile();
+      if (kerberosDescriptorFile != null) {
+        KerberosServiceDescriptor[] descriptors;
+        try {
+          descriptors = KerberosServiceDescriptor.fromFile(kerberosDescriptorFile);
+        } catch (IOException e) {
+          throw new SystemException("Failed to parse the service's Kerberos descriptor", e);
+        }
+
+        if (descriptors != null) {
+          String serviceName = response.getServiceName();
+
+          // Iterate over the KerberosServiceDescriptors to find the one for this service since
+          // Kerberos descriptor files can contain details about more than one service
+          for(KerberosServiceDescriptor descriptor:descriptors) {
+            if(serviceName.equals(descriptor.getName())) {
+              setResourceProperty(resource, KERBEROS_DESCRIPTOR_PROPERTY_ID,
+                  descriptor.toMap(), requestedIds);
+              break; // Stop looping, this was the service we are looking for.
+            }
+          }
+        }
+      }
 
       resources.add(resource);
     }

@@ -1,0 +1,147 @@
+{
+  "name": "HDFS",
+  "components": [
+    {
+      "name": "NAMENODE",
+      "identities": [
+        {
+          "name": "namenode_nn",
+          "principal": {
+            "value": "nn/_HOST@${realm}",
+            "configuration": "hdfs-site/dfs.namenode.kerberos.principal"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/nn.service.keytab",
+            "owner": {
+              "name": "${hadoop-env/hdfs_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": ""
+            },
+            "configuration": "hdfs-site/dfs.namenode.keytab.file"
+          }
+        },
+        {
+          "name": "namenode_host",
+          "principal": {
+            "value": "host/_HOST@${realm}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/nn.service.keytab",
+            "owner": {
+              "name": "${hadoop-env/hdfs_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": ""
+            }
+          }
+        },
+        {
+          "name": "/spnego",
+          "principal": {
+            "configuration": "hdfs-site/dfs.namenode.kerberos.internal.spnego.principal"
+          }
+        }
+      ],
+      "configurations": [
+        {
+          "hdfs-site": {
+            "dfs.block.access.token.enable": "true"
+          }
+        }
+      ]
+    },
+    {
+      "name": "DATANODE",
+      "identities": [
+        {
+          "name": "datanode_dn",
+          "principal": {
+            "value": "dn/_HOST@${realm}",
+            "configuration": "hdfs-site/dfs.datanode.kerberos.principal"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/dn.service.keytab",
+            "owner": {
+              "name": "${hadoop-env/hdfs_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": ""
+            },
+            "configuration": "hdfs-site/dfs.datanode.keytab.file"
+          }
+        },
+        {
+          "name": "datanode_host",
+          "principal": {
+            "value": "host/_HOST@${realm}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/dn.service.keytab",
+            "owner": {
+              "name": "${hadoop-env/hdfs_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": ""
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "SECONDARY_NAMENODE",
+      "identities": [
+        {
+          "name": "secondary_namenode_nn",
+          "principal": {
+            "value": "nn/_HOST@${realm}",
+            "configuration": "hdfs-site/dfs.secondary.namenode.kerberos.principal"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/snn.service.keytab",
+            "owner": {
+              "name": "${hadoop-env/hdfs_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": ""
+            },
+            "configuration": "hdfs-site/dfs.secondary.namenode.kerberos.principal"
+          }
+        },
+        {
+          "name": "secondary_namenode_host",
+          "principal": {
+            "value": "host/_HOST@${realm}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/snn.service.keytab",
+            "owner": {
+              "name": "${hadoop-env/hdfs_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": ""
+            }
+          }
+        },
+        {
+          "name": "/spnego",
+          "principal": {
+            "configuration": "hdfs-site/dfs.secondary.namenode.kerberos.internal.spnego.principal"
+          }
+        }
+      ]
+    }
+  ]
+}

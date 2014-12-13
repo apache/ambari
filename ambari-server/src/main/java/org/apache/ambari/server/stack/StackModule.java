@@ -378,6 +378,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> {
       stackInfo.setParentStackVersion(smx.getExtends());
       stackInfo.setStackHooksFolder(stackDirectory.getHooksDir());
       stackInfo.setRcoFileLocation(stackDirectory.getRcoFilePath());
+      stackInfo.setKerberosDescriptorFileLocation(stackDirectory.getKerberosDescriptorFilePath());
       stackInfo.setUpgradesFolder(stackDirectory.getUpgradesDir());
       stackInfo.setUpgradePacks(stackDirectory.getUpgradePacks());
       stackInfo.setRoleCommandOrder(stackDirectory.getRoleCommandOrder());

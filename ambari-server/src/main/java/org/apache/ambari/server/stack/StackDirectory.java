@@ -63,6 +63,11 @@ public class StackDirectory extends StackDefinitionDirectory {
   private String rcoFilePath;
 
   /**
+   * kerberos descriptor file path
+   */
+  private String kerberosDescriptorFilePath;
+
+  /**
    * repository file
    */
   private RepositoryXml repoFile;
@@ -182,6 +187,15 @@ public class StackDirectory extends StackDefinitionDirectory {
   }
 
   /**
+   * Obtain the path to the (stack-level) Kerberos descriptor file
+   *
+   * @return the path to the (stack-level) Kerberos descriptor file
+   */
+  public String getKerberosDescriptorFilePath() {
+    return kerberosDescriptorFilePath;
+  }
+
+  /**
    * Obtain the repository directory path.
    *
    * @return repository directory path
@@ -255,6 +269,12 @@ public class StackDirectory extends StackDefinitionDirectory {
     if (subDirs.contains(AmbariMetaInfo.RCO_FILE_NAME)) {
       // rcoFile is expected to be absolute
       rcoFilePath = getAbsolutePath() + File.separator + AmbariMetaInfo.RCO_FILE_NAME;
+    }
+
+
+    if (subDirs.contains(AmbariMetaInfo.KERBEROS_DESCRIPTOR_FILE_NAME)) {
+      // kerberosDescriptorFilePath is expected to be absolute
+      kerberosDescriptorFilePath = getAbsolutePath() + File.separator + AmbariMetaInfo.KERBEROS_DESCRIPTOR_FILE_NAME;
     }
 
     parseUpgradePacks(subDirs);
