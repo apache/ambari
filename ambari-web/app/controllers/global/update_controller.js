@@ -166,8 +166,9 @@ App.UpdateController = Em.Controller.extend({
       App.updater.updateInterval('updateHost', App.get('contentUpdateInterval'));
     }
     else {
-      if (App.router.get('currentState.name') == 'summary' && App.router.get('currentState.parentState.name') == 'hostDetails') {
-        hostDetailsFilter = App.router.get('location.lastSetURL').match(/\/hosts\/(.*)\/summary/)[1];
+      if (App.router.get('currentState.parentState.name') == 'hostDetails' &&
+          (App.router.get('currentState.name') == 'summary' || App.router.get('currentState.name') == 'alerts' )) {
+        hostDetailsFilter = App.router.get('location.lastSetURL').match(/\/hosts\/(.*)\/(summary|alerts)/)[1];
         App.updater.updateInterval('updateHost', App.get('componentsUpdateInterval'));
       }
       else {

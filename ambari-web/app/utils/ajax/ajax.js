@@ -2044,7 +2044,7 @@ var urls = {
     }
   },
   'host.status.counters': {
-    'real': '/clusters/{clusterName}?fields=Clusters/health_report,Clusters/total_hosts,alerts_summary&minimal_response=true',
+    'real': '/clusters/{clusterName}?fields=Clusters/health_report,Clusters/total_hosts,alerts_summary_hosts&minimal_response=true',
     'mock': '/data/hosts/HDP2/host_status_counters.json'
   },
   'host.stack_versions.install': {
