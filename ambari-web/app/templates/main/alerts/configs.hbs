@@ -34,4 +34,9 @@
       {{/if}}
     </div>
   {{/each}}
+  {{#if controller.hasThresholdsError}}
+    <div class="error-message controls">
+      {{view.errorMessage}}
+    </div>
+  {{/if}}
 </form>

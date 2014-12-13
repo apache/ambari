@@ -348,7 +348,7 @@ App.AlertConfigProperties = {
       var valueMetric = this.get('valueMetric');
       var displayValue = this.get('displayValue');
       var newDisplayValue = value;
-      if ('%' == valueMetric) {
+      if (value && '%' == valueMetric && !isNaN(value)) {
         newDisplayValue = (Number(value) * 100) + '';
       }
       if (newDisplayValue != displayValue) {
@@ -361,7 +361,7 @@ App.AlertConfigProperties = {
       var valueMetric = this.get('valueMetric');
       var displayValue = this.get('displayValue');
       var newValue = displayValue;
-      if ('%' == valueMetric) {
+      if (displayValue && '%' == valueMetric && !isNaN(displayValue)) {
         newValue = (Number(displayValue) / 100) + '';
       }
       if (newValue != value) {
@@ -461,7 +461,19 @@ App.AlertConfigProperties.Thresholds = {
         ret.push('source.reporting.warning.text');
       }
       return ret;
-    }.property('showInputForValue', 'showInputForText')
+    }.property('showInputForValue', 'showInputForText'),
+    isValid: function () {
+      var value = this.get('value');
+      if (!value) return false;
+      value = ('' + value).trim();
+      if (this.get('showInputForValue') && this.get('valueMetric') == '%') {
+        return !isNaN(value) && value > 0 && value <= 1.0;
+      } else if (this.get('showInputForValue')) {
+        return !isNaN(value) && value > 0;
+      } else {
+        return true;
+      }
+    }.property('value', 'showInputForValue')
   }),
 
   CriticalThreshold: App.AlertConfigProperties.Threshold.extend({
@@ -476,7 +488,19 @@ App.AlertConfigProperties.Thresholds = {
         ret.push('source.reporting.critical.text');
       }
       return ret;
-    }.property('showInputForValue', 'showInputForText')
+    }.property('showInputForValue', 'showInputForText'),
+    isValid: function () {
+      var value = this.get('value');
+      if (!value) return false;
+      value = ('' + value).trim();
+      if (this.get('showInputForValue') && this.get('valueMetric') == '%') {
+        return !isNaN(value) && value > 0 && value <= 1.0;
+      } else if (this.get('showInputForValue')) {
+        return !isNaN(value) && value > 0;
+      } else {
+        return true;
+      }
+    }.property('value', 'showInputForValue')
   })
 
 };

@@ -44,7 +44,9 @@ App.AlertDefinitionConfigsView = Em.View.extend({
     this.set('controller.content', this.get('content'));
     this.get('controller').renderConfigs();
     this._super();
-  }
+  },
+
+  errorMessage: Em.I18n.t('alerts.definition.details.configs.thresholdsErrorMsg')
 
 });
 
