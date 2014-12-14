@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
+import com.sun.istack.NotNull;
+
 /**
  * Enumerates the supported KDC types
  */
@@ -30,5 +32,21 @@ public enum KDCType {
   /**
    * Indicates a Microsoft Active Directory
    */
-  ACTIVE_DIRECTORY
+  ACTIVE_DIRECTORY;
+
+  /**
+   * Translates a String to a KDCType.
+   * <p/>
+   * The translation logic attempts to nicely convert a String to a KDCType by replacing all '-'
+   * characters to '_' characters and converting the String to uppercase. Allowing for values like
+   * "mit_kdc" to be translated to "MIT_KDC".
+   *
+   * @param value a String value to convert to a KDCType
+   * @return A KDCType
+   * @throws java.lang.IllegalArgumentException if this enum type has no constant with the specified name
+   * @throws java.lang.NullPointerException if the value to translate is null
+   */
+  public static KDCType translate(@NotNull String value) {
+    return KDCType.valueOf(value.replace("-", "_").toUpperCase());
+  }
 }
