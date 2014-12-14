@@ -18,10 +18,12 @@
 
 package org.apache.ambari.server.serveraction;
 
+import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.state.Clusters;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
@@ -38,7 +40,7 @@ import java.util.concurrent.ConcurrentMap;
  * - Causes the action to fail by timing out (the COMMAND_TIMEOUT value must be set to a reasonable
  * value)</li>
  * </dl>
- *
+ * <p/>
  * If not instructed to fail, this implementation will attempt to increment a "data" counter in a
  * shared data context - if available.
  */
@@ -46,13 +48,18 @@ public class MockServerAction extends AbstractServerAction {
 
   public static final String PAYLOAD_FORCE_FAIL = "force_fail";
 
+  @Inject
+  private Clusters clusters;
+
   @Override
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext)
       throws AmbariException, InterruptedException {
 
     Map<String, String> commandParameters = getCommandParameters();
 
-    if (commandParameters == null) {
+    if (clusters == null) { // Ensure that the injected Clusters object exists...
+      throw new AmbariException("Missing payload");
+    } else if (commandParameters == null) {
       throw new AmbariException("Missing payload");
     } else if ("exception".equalsIgnoreCase(commandParameters.get(PAYLOAD_FORCE_FAIL))) {
       throw new AmbariException("Failing execution by request");

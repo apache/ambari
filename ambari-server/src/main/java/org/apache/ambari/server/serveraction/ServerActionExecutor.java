@@ -18,8 +18,11 @@
 
 package org.apache.ambari.server.serveraction;
 
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
+import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.*;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
@@ -39,11 +42,18 @@ import java.util.concurrent.ConcurrentMap;
  * ActionScheduler such that it is started when the ActionScheduler is started and stopped when the
  * ActionScheduler is stopped.
  */
+@StaticallyInject
 public class ServerActionExecutor {
 
   private final static Logger LOG = LoggerFactory.getLogger(ServerActionExecutor.class);
   private final static Long EXECUTION_TIMEOUT_MS = 1000L * 60 * 5;
   private final static Long POLLING_TIMEOUT_MS = 1000L * 5;
+
+  /**
+   * An injector to use to inject objects into ServerAction instances.
+   */
+  @Inject
+  private static Injector injector;
 
   /**
    * Maps request IDs to "blackboards" of shared data.
@@ -86,6 +96,17 @@ public class ServerActionExecutor {
    * A reference to the Thread handling the work for this ServerActionExecutor
    */
   private Thread executorThread = null;
+
+  /**
+   * Statically initialize the Injector
+   * <p/>
+   * This should only be used for unit tests.
+   *
+   * @param injector the Injector to (manually) statically inject
+   */
+  public static void init(Injector injector) {
+    ServerActionExecutor.injector = injector;
+  }
 
   /**
    * Creates a new ServerActionExecutor
@@ -256,7 +277,7 @@ public class ServerActionExecutor {
     commandReport.setStatus(HostRoleStatus.FAILED.toString());
     commandReport.setExitCode(1);
     commandReport.setStdOut("Server action failed");
-    commandReport.setStdErr(message);
+    commandReport.setStdErr((message == null) ? "Server action failed" : message);
     return commandReport;
   }
 
@@ -507,15 +528,11 @@ public class ServerActionExecutor {
           if (serverActionClass == null) {
             throw new AmbariException("Unable to execute server action class, invalid type: " + classname);
           } else {
-            return serverActionClass.newInstance();
+            return injector.getInstance(serverActionClass);
           }
         }
       } catch (ClassNotFoundException e) {
         throw new AmbariException("Unable to load server action class: " + classname, e);
-      } catch (InstantiationException e) {
-        throw new AmbariException("Unable to create an instance of the server action class: " + classname, e);
-      } catch (IllegalAccessException e) {
-        throw new AmbariException("Unable to create an instance of the server action class: " + classname, e);
       }
     }
 

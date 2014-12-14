@@ -28,6 +28,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.reflect.TypeToken;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.google.inject.persist.UnitOfWork;
 import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
@@ -45,6 +48,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.serveraction.MockServerAction;
+import org.apache.ambari.server.serveraction.ServerActionExecutor;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -60,6 +64,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEve
 import org.apache.ambari.server.utils.StageUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -78,10 +83,16 @@ public class TestActionScheduler {
       + " c6402.ambari.apache.org], slave_hosts=[c6401.ambari.apache.org,"
       + " c6402.ambari.apache.org]}";
 
+  private static Injector injector;
+
   private final String serverHostname = StageUtils.getHostName();
   private final String hostname = "ahost.ambari.apache.org";
   private final int MAX_CYCLE_ITERATIONS = 100;
 
+  @BeforeClass
+  public static void beforeClass() throws AmbariException {
+    injector = Guice.createInjector(new MockModule());
+  }
 
   /**
    * This test sends a new action to the action scheduler and verifies that the action
@@ -555,6 +566,7 @@ public class TestActionScheduler {
       }
     }).when(db).getTasksByHostRoleAndStatus(anyString(), anyString(), any(HostRoleStatus.class));
 
+    ServerActionExecutor.init(injector);
     ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
         new HostsMap((String) null), unitOfWork, null, conf);
 
@@ -647,7 +659,7 @@ public class TestActionScheduler {
       }
     }).when(db).getTasksByHostRoleAndStatus(anyString(), anyString(), any(HostRoleStatus.class));
 
-
+    ServerActionExecutor.init(injector);
     ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
         new HostsMap((String) null), unitOfWork, null, conf);
 
@@ -1833,6 +1845,7 @@ public class TestActionScheduler {
       }
     }).when(db).getTask(anyLong());
 
+    ServerActionExecutor.init(injector);
     ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
         new HostsMap((String) null), unitOfWork, null, conf);
 
@@ -2173,6 +2186,13 @@ public class TestActionScheduler {
     Assert.assertTrue(startedRequests.containsKey(requestId2));
     Assert.assertTrue(startedRequests.containsKey(requestId3));
 
+  }
+
+  public static class MockModule extends AbstractModule {
+    @Override
+    protected void configure() {
+      bind(Clusters.class).toInstance(mock(Clusters.class));
+    }
   }
 
 }
