@@ -25,6 +25,8 @@ var App = require('app');
  */
 App.AddSecurityConfigs = Em.Mixin.create({
 
+  kerberosDescriptor: {},
+
   secureProperties: function () {
     if (App.get('isHadoop2Stack')) {
       return require('data/HDP2/secure_properties').configProperties;
@@ -401,14 +403,15 @@ App.AddSecurityConfigs = Em.Mixin.create({
     var self = this;
     var configs = [];
     var clusterConfigs = [];
-    
+    var kerberosDescriptor = items.Versions.kerberos_descriptor;
+    this.set('kerberosDescriptor', kerberosDescriptor);
     // generate configs for root level properties object, currently realm, keytab_dir
-    clusterConfigs = clusterConfigs.concat(this.expandKerberosStackDescriptorProps(items.properties));
+    clusterConfigs = clusterConfigs.concat(this.expandKerberosStackDescriptorProps(kerberosDescriptor.properties));
     // generate configs for root level identities object, currently spnego property
-    clusterConfigs = clusterConfigs.concat(this.createConfigsByIdentities(items.identities, 'Cluster'));
+    clusterConfigs = clusterConfigs.concat(this.createConfigsByIdentities(kerberosDescriptor.identities, 'Cluster'));
     clusterConfigs.setEach('serviceName', 'Cluster');
     // generate properties for services object
-    items.services.forEach(function(service) {
+    kerberosDescriptor.services.forEach(function(service) {
       var serviceName = service.name;
       service.components.forEach(function(component) {
         var componentName = component.name;
@@ -465,8 +468,8 @@ App.AddSecurityConfigs = Em.Mixin.create({
    */
   parseIdentityObject: function(identity) {
     var result = [];
-    var keys = Em.keys(identity);
-    var name = identity[keys.shift()];
+    var name = identity.name;
+    var keys = Em.keys(identity).without('name');
     keys.forEach(function(item) {
       var configObject = {};
       var prop = identity[item];
@@ -504,6 +507,47 @@ App.AddSecurityConfigs = Em.Mixin.create({
 
     return configs;
   },
+
+  /**
+   * update the kerberos descriptor to be put on cluster resource with user customizations
+   * @param kerberosDescriptor {Object}
+   * @param configs {Object}
+   */
+  updateKerberosDescriptor: function(kerberosDescriptor, configs) {
+    configs.forEach(function(_config){
+      if (Object.keys(kerberosDescriptor.properties).contains(_config.name)) {
+        for (var key in kerberosDescriptor.properties) {
+          if (key === _config.name) {
+            kerberosDescriptor.properties[key] =  _config.value;
+          }
+        }
+      } else if (_config.name.endsWith('_principal') || _config.name.endsWith('_keytab')) {
+        var identities = kerberosDescriptor.identities;
+        identities.forEach(function(_identity){
+          if (_config.name.startsWith(_identity.name)) {
+            if (_config.name.endsWith('_principal')) {
+              _identity.principal.value =  _config.value;
+            } else if (_config.name.endsWith('_keytab')) {
+              _identity.keytab.file =  _config.value;
+            }
+          }
+        },this);
+      }  else {
+        kerberosDescriptor.services.forEach(function(_service) {
+          _service.components.forEach(function(_component){
+            _component.identities.forEach(function(_identity){
+              if (_identity.principal && _identity.principal.configuration && _identity.principal.configuration.endsWith(_config.name)) {
+                _identity.principal.value = _config.value;
+              } else if (_identity.keytab && _identity.keytab.configuration && _identity.keytab.configuration.endsWith(_config.name)) {
+                _identity.keytab.file = _config.value;
+              }
+            },this);
+          }, this);
+        },this);
+      }
+    }, this);
+  },
+
   /**
    * Make request for stack descriptor configs.
    *
@@ -512,7 +556,11 @@ App.AddSecurityConfigs = Em.Mixin.create({
   loadStackDescriptorConfigs: function() {
     return App.ajax.send({
       sender: this,
-      name: 'admin.kerberize.stack_descriptor'
+      name: 'admin.kerberize.stack_descriptor',
+      data: {
+        stackName: App.get('currentStackName'),
+        stackVersionNumber: App.get('currentStackVersionNumber')
+      }
     });
   }
 });

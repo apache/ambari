@@ -211,7 +211,16 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
         properties[_configProperty.name] = _configProperty.value;
       }
     }, this);
+    this.tweakKdcTypeValue(properties);
     return {"type": site, "tag": tag, "properties": properties};
+  },
+
+  tweakKdcTypeValue: function(properties) {
+    if (properties['kdc_type'] === Em.I18n.t('admin.kerberos.wizard.step1.option.kdc')) {
+      properties['kdc_type'] = "mit-kdc";
+    } else if (properties['kdc_type'] === Em.I18n.t('admin.kerberos.wizard.step1.option.ad')) {
+      properties['kdc_type'] = "active-directory";
+    }
   },
 
   /**

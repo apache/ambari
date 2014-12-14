@@ -55,7 +55,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
       this.initStep();
     } else {
       var runningOperations = App.router.get('backgroundOperationsController.services').filterProperty('isRunning');
-      var currentOperation = runningOperations.findProperty('name', this.request.ajaxData.context);
+      var currentOperation = runningOperations.findProperty('name', this.contextForPollingRequest);
       if (!currentOperation) {
         this.submitRequest().done(function (data) {
           if (data) {
@@ -110,8 +110,8 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
     var dfd;
     var self = this;
     dfd = App.ajax.send({
-      name: self.request.ajaxName,
-      data: self.request.ajaxData,
+      name: self.get('request.ajaxName'),
+      data: self.get('request.ajaxData'),
       sender: this
     });
     return dfd.promise();

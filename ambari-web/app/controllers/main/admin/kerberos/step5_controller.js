@@ -20,13 +20,20 @@ App.KerberosWizardStep5Controller = App.KerberosProgressPageController.extend({
   name: 'kerberosWizardStep5Controller',
   clusterDeployState: 'KERBEROS_DEPLOY',
   isSingleRequestPage: true,
-  request: {
-    name: 'KERBERIZE_CLUSTER',
-    ajaxName: 'kerberize.cluster',
-    //Placeholder for the data that needs to be send with the kerberize cluster API call
-    ajaxData: {
-      context: Em.I18n.t('requestInfo.kerberizeCluster')
+  request: function() {
+    var self = this;
+    return {
+      name: 'KERBERIZE_CLUSTER',
+      ajaxName: 'admin.kerberize.cluster',
+      ajaxData: {
+        data: {
+          kerberos_descriptor: self.get('content.kerberosDescriptorConfigs')
+        }
+      }
     }
-  },
+  }.property('content.kerberosDescriptorConfigs'),
+
+  contextForPollingRequest: Em.I18n.t('requestInfo.kerberizeCluster'),
+
   commands: []
 });

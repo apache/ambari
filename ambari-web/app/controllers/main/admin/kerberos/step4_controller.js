@@ -109,8 +109,10 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
   },
   
   saveConfigurations: function() {
+    var kerberosDescriptor = this.get('kerberosDescriptor');
     var configs = this.get('stepConfigs')[0].get('configs');
-    this.get('wizardController').setDBProperty('kerberosDescriptorConfigs', configs);
-    this.set('wizardController.content.kerberosDescriptorConfigs', configs);
+    this.updateKerberosDescriptor(kerberosDescriptor, configs);
+    this.get('wizardController').setDBProperty('kerberosDescriptorConfigs', kerberosDescriptor);
+    this.set('wizardController.content.kerberosDescriptorConfigs', kerberosDescriptor);
   }
 });

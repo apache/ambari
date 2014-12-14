@@ -1294,17 +1294,17 @@ var urls = {
     }
   },
   'admin.kerberize.cluster': {
-    'type': 'POST',
+    'type': 'PUT',
     'real': '/clusters/{clusterName}',
     'mock': '/data/wizard/kerberos/kerberize_cluster.json',
-    'format' : function () {
+    'format' : function (data) {
       return {
-        data: '{"RequestInfo": {"context" :"' + Em.I18n.t('requestInfo.kerberizeCluster') + '"}'
+        data: JSON.stringify(data.data)
       }
     }
   },
   'admin.kerberize.stack_descriptor': {
-    'real': '',
+    'real': '/stacks/{stackName}/versions/{stackVersionNumber}?fields=Versions/kerberos_descriptor',
     'mock': '/data/wizard/kerberos/stack_descriptors.json'
   },
   'admin.poll.kerberize.cluster.request': {

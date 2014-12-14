@@ -18,6 +18,7 @@
 
 var App = require('app');
 var stackDescriptorData = require('test/mock_data_setup/stack_descriptors');
+var stackDescriptor = stackDescriptorData.Versions.kerberos_descriptor;
 
 require('mixins/wizard/addSecurityConfigs');
 
@@ -359,7 +360,7 @@ describe('App.AddSecurityConfigs', function () {
   });
 
   describe('#expandKerberosStackDescriptorProps', function() {
-    var result = controller.expandKerberosStackDescriptorProps(stackDescriptorData.properties);
+    var result = controller.expandKerberosStackDescriptorProps(stackDescriptor.properties);
     var testCases = [
       {
         property: 'realm',
@@ -389,7 +390,7 @@ describe('App.AddSecurityConfigs', function () {
   });
 
   describe('#createConfigsByIdentity', function() {
-    var identitiesData = stackDescriptorData.services[0].components[0].identities;
+    var identitiesData = stackDescriptor.services[0].components[0].identities;
     var tests = [
       {
         property: 'dfs.namenode.kerberos.principal',
@@ -421,7 +422,7 @@ describe('App.AddSecurityConfigs', function () {
   describe('#parseIdentityObject', function() {
     var testCases = [
       {
-        identity: stackDescriptorData.services[0].components[0].identities[0],
+        identity: stackDescriptor.services[0].components[0].identities[0],
         tests: [
           {
             property: 'dfs.namenode.kerberos.principal',
@@ -435,10 +436,10 @@ describe('App.AddSecurityConfigs', function () {
               { key: 'value', value: '${keytab_dir}/nn.service.keytab' }
             ]
           }
-        ],
+        ]
       },
       {
-        identity: stackDescriptorData.services[0].components[0].identities[1],
+        identity: stackDescriptor.services[0].components[0].identities[1],
         tests: [
           {
             property: 'dfs.namenode.kerberos.https.principal',
@@ -446,10 +447,10 @@ describe('App.AddSecurityConfigs', function () {
               { key: 'filename', value: 'hdfs-site' }
             ]
           }
-        ],
+        ]
       },
       {
-        identity: stackDescriptorData.identities[0],
+        identity: stackDescriptor.identities[0],
         tests: [
           {
             property: 'spnego_principal',
@@ -461,7 +462,7 @@ describe('App.AddSecurityConfigs', function () {
         ]
       },
       {
-        identity: stackDescriptorData.identities[0],
+        identity: stackDescriptor.identities[0],
         tests: [
           {
             property: 'spnego_keytab',
