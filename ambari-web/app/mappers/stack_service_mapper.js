@@ -88,7 +88,11 @@ App.stackServiceMapper = App.QuickDataMapper.create({
         serviceComponent.StackServiceComponents.id = serviceComponent.StackServiceComponents.component_name;
         serviceComponent.StackServiceComponents.dependencies = dependencies;
         serviceComponents.push(serviceComponent.StackServiceComponents);
-        stackServiceComponents.push(this.parseIt(serviceComponent.StackServiceComponents, this.get('component_config')));
+        var parsedResult = this.parseIt(serviceComponent.StackServiceComponents, this.get('component_config'));
+        if (parsedResult.id == 'MYSQL_SERVER') {
+          parsedResult.custom_commands = parsedResult.custom_commands.without('CLEAN');
+        }
+        stackServiceComponents.push(parsedResult);
       }, this);
       stackService.stack_id = stackService.stack_name + '-' + stackService.stack_version;
       stackService.service_components = serviceComponents;
