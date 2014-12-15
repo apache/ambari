@@ -20,9 +20,10 @@ package org.apache.ambari.server.events.listeners.alerts;
 import java.util.Set;
 
 import org.apache.ambari.server.EagerSingleton;
+import org.apache.ambari.server.events.AlertDefinitionChangedEvent;
 import org.apache.ambari.server.events.AlertDefinitionDeleteEvent;
-import org.apache.ambari.server.events.AlertHashInvalidationEvent;
 import org.apache.ambari.server.events.AlertDefinitionRegistrationEvent;
+import org.apache.ambari.server.events.AlertHashInvalidationEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.alert.AggregateDefinitionMapping;
 import org.apache.ambari.server.state.alert.AlertDefinition;
@@ -94,6 +95,28 @@ public class AlertLifecycleListener {
     AlertDefinition definition = event.getDefinition();
 
     LOG.debug("Registering alert definition {}", definition);
+
+    if (definition.getSource().getType() == SourceType.AGGREGATE) {
+      m_aggregateMapping.registerAggregate(event.getClusterId(), definition);
+    }
+  }
+
+  /**
+   * Handles {@link AlertDefinitionChangedEvent} by performing the following
+   * tasks:
+   * <ul>
+   * <li>Updating definition with {@link AggregateDefinitionMapping}</li>
+   * </ul>
+   *
+   * @param event
+   *          the event being handled.
+   */
+  @Subscribe
+  @AllowConcurrentEvents
+  public void onAmbariEvent(AlertDefinitionChangedEvent event) {
+    AlertDefinition definition = event.getDefinition();
+
+    LOG.debug("Updating alert definition {}", definition);
 
     if (definition.getSource().getType() == SourceType.AGGREGATE) {
       m_aggregateMapping.registerAggregate(event.getClusterId(), definition);

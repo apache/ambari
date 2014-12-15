@@ -26,6 +26,8 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
+import org.apache.ambari.server.controller.internal.AlertDefinitionResourceProvider;
+import org.apache.ambari.server.events.AlertDefinitionChangedEvent;
 import org.apache.ambari.server.events.AlertDefinitionDeleteEvent;
 import org.apache.ambari.server.events.AlertDefinitionRegistrationEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
@@ -81,7 +83,9 @@ public class AlertDefinitionDAO {
    * Publishes the following events:
    * <ul>
    * <li>{@link AlertDefinitionRegistrationEvent} when new alerts are merged
-   * from the stack</li>
+   * from the stack or created from the {@link AlertDefinitionResourceProvider}</li>
+   * <li>{@link AlertDefinitionChangedEvent} when alerts are updated.</li>
+   * <li>{@link AlertDefinitionDeleteEvent} when alerts are removed</li>
    * </ul>
    */
   @Inject
@@ -279,7 +283,7 @@ public class AlertDefinitionDAO {
   /**
    * Persists a new alert definition, also creating the associated
    * {@link AlertGroupEntity} relationship for the definition's service default
-   * group.
+   * group. Fires an {@link AlertDefinitionRegistrationEvent}.
    *
    * @param alertDefinition
    *          the definition to persist (not {@code null}).
@@ -330,7 +334,7 @@ public class AlertDefinitionDAO {
 
   /**
    * Merge the speicified alert definition with the existing definition in the
-   * database.
+   * database. Fires an {@link AlertDefinitionChangedEvent}.
    *
    * @param alertDefinition
    *          the definition to merge (not {@code null}).
@@ -338,7 +342,17 @@ public class AlertDefinitionDAO {
    */
   @Transactional
   public AlertDefinitionEntity merge(AlertDefinitionEntity alertDefinition) {
-    return entityManagerProvider.get().merge(alertDefinition);
+    AlertDefinitionEntity entity = entityManagerProvider.get().merge(
+        alertDefinition);
+
+    AlertDefinition definition = alertDefinitionFactory.coerce(entity);
+
+    AlertDefinitionChangedEvent event = new AlertDefinitionChangedEvent(
+        alertDefinition.getClusterId(), definition);
+
+    eventPublisher.publish(event);
+
+    return entity;
   }
 
   /**
@@ -360,7 +374,8 @@ public class AlertDefinitionDAO {
 
   /**
    * Removes the specified alert definition and all related history and
-   * associations from the database.
+   * associations from the database. Fires an {@link AlertDefinitionDeleteEvent}
+   * .
    *
    * @param alertDefinition
    *          the definition to remove.

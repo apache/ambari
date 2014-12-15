@@ -82,8 +82,8 @@ import com.google.inject.Provider;
 
 /**
  * The {@link AlertNoticeDispatchService} is used to scan the database for
- * {@link AlertNoticeEntity} that are in the {@link NotificationState#PENDING}.
- * It will then process them through the dispatch system.
+ * {@link AlertNoticeEntity} that are in the {@link NotificationState#PENDING}
+ * state. It will then process them through the dispatch system.
  * <p/>
  * The dispatch system will then make a callback to
  * {@link AlertNoticeDispatchCallback} so that the {@link NotificationState} can

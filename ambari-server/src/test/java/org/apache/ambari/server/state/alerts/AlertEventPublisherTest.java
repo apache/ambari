@@ -18,10 +18,12 @@
 package org.apache.ambari.server.state.alerts;
 
 import java.lang.reflect.Field;
+import java.util.UUID;
 
 import junit.framework.Assert;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.events.AlertDefinitionChangedEvent;
 import org.apache.ambari.server.events.AlertDefinitionDeleteEvent;
 import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.events.listeners.alerts.AlertLifecycleListener;
@@ -43,12 +45,16 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.alert.AggregateDefinitionMapping;
 import org.apache.ambari.server.state.alert.AggregateSource;
 import org.apache.ambari.server.state.alert.AlertDefinition;
+import org.apache.ambari.server.state.alert.Reporting;
+import org.apache.ambari.server.state.alert.Reporting.ReportTemplate;
 import org.apache.ambari.server.state.alert.Scope;
+import org.apache.ambari.server.state.alert.SourceType;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.eventbus.EventBus;
+import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
@@ -157,6 +163,71 @@ public class AlertEventPublisherTest {
     Assert.assertEquals(0, definitionDao.findAll().size());
     installHdfsService();
     Assert.assertEquals(6, definitionDao.findAll().size());
+  }
+
+  /**
+   * Tests that {@link AlertDefinitionChangedEvent} instances are fired when a
+   * definition is updated.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testAlertDefinitionChanged() throws Exception {
+    installHdfsService();
+
+    int definitionCount = definitionDao.findAll().size();
+    AlertDefinitionEntity definition = ormHelper.createAlertDefinition(1L);
+    Assert.assertEquals(definitionCount + 1, definitionDao.findAll().size());
+
+    AggregateSource source = new AggregateSource();
+    Reporting reporting = new Reporting();
+    ReportTemplate okTemplate = new ReportTemplate();
+    okTemplate.setValue(50.0d);
+    okTemplate.setText("foo");
+    reporting.setOk(okTemplate);
+    source.setReporting(reporting);
+    source.setAlertName(definition.getDefinitionName());
+    source.setType(SourceType.AGGREGATE);
+
+    AlertDefinitionEntity aggregateEntity = new AlertDefinitionEntity();
+    aggregateEntity.setClusterId(1L);
+    aggregateEntity.setComponentName("DATANODE");
+    aggregateEntity.setEnabled(true);
+    aggregateEntity.setDefinitionName("datanode_aggregate");
+    aggregateEntity.setScope(Scope.ANY);
+    aggregateEntity.setServiceName("HDFS");
+    aggregateEntity.setSource(new Gson().toJson(source));
+    aggregateEntity.setHash(UUID.randomUUID().toString());
+    aggregateEntity.setScheduleInterval(1);
+    aggregateEntity.setSourceType(SourceType.AGGREGATE);
+
+    // creating the aggregate alert will register it with the mapping
+    definitionDao.create(aggregateEntity);
+
+    // pull it out of the mapping and compare fields
+    AlertDefinition aggregate = aggregateMapping.getAggregateDefinition(1L,
+        source.getAlertName());
+
+    Assert.assertNotNull(aggregate);
+    Assert.assertEquals("foo",
+        aggregate.getSource().getReporting().getOk().getText());
+
+    // change something about the aggregate's reporting
+    String sourceText = aggregateEntity.getSource();
+    sourceText = sourceText.replace("foo", "bar");
+    aggregateEntity.setSource(sourceText);
+
+    // save the aggregate; this should trigger the event,
+    // causing the updated aggregate definition to be mapped
+    definitionDao.merge(aggregateEntity);
+
+    // check the aggregate mapping for the new value
+    aggregate = aggregateMapping.getAggregateDefinition(1L,
+        source.getAlertName());
+
+    Assert.assertNotNull(aggregate);
+    Assert.assertEquals("bar",
+        aggregate.getSource().getReporting().getOk().getText());
   }
 
   /**

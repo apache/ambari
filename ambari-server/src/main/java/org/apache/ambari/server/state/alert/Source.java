@@ -40,6 +40,14 @@ public abstract class Source {
   }
 
   /**
+   * @param type
+   *          the type to set.
+   */
+  public void setType(SourceType type) {
+    this.type = type;
+  }
+
+  /**
    * @return
    */
   public Reporting getReporting() {
@@ -48,7 +56,7 @@ public abstract class Source {
 
   /**
    * Sets the OK/WARNING/CRTICAL structures.
-   * 
+   *
    * @param reporting
    *          the reporting structure or {@code null} for none.
    */

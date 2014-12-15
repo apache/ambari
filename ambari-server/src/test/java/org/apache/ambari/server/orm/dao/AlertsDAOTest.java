@@ -616,7 +616,7 @@ public class AlertsDAOTest {
 
     summary = m_dao.findAggregateCounts(m_cluster.getClusterId(),
         "many_per_cluster");
-    assertEquals(2, summary.getOkCount());
+    assertEquals(1, summary.getOkCount());
     assertEquals(0, summary.getWarningCount());
     assertEquals(1, summary.getCriticalCount());
     assertEquals(0, summary.getUnknownCount());

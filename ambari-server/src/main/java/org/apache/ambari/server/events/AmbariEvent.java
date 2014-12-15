@@ -53,6 +53,11 @@ public abstract class AmbariEvent {
     ALERT_DEFINITION_REGISTRATION,
 
     /**
+     * An alert definition was updated.
+     */
+    ALERT_DEFINITION_CHANGED,
+
+    /**
      * An alert definition is removed from the system.
      */
     ALERT_DEFINITION_REMOVAL,

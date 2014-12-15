@@ -676,7 +676,7 @@ public class AlertsDAO {
   public AlertSummaryDTO findAggregateCounts(long clusterId, String alertName) {
     StringBuilder sb = new StringBuilder();
     sb.append("SELECT NEW %s (");
-    sb.append("COUNT(history), ");
+    sb.append("SUM(CASE WHEN history.alertState = %s.%s THEN 1 ELSE 0 END), ");
     sb.append("SUM(CASE WHEN history.alertState = %s.%s THEN 1 ELSE 0 END), ");
     sb.append("SUM(CASE WHEN history.alertState = %s.%s THEN 1 ELSE 0 END), ");
     sb.append("SUM(CASE WHEN history.alertState = %s.%s THEN 1 ELSE 0 END)) ");
@@ -685,6 +685,7 @@ public class AlertsDAO {
 
     String str = String.format(sb.toString(),
         AlertSummaryDTO.class.getName(),
+        AlertState.class.getName(), AlertState.OK.name(),
         AlertState.class.getName(), AlertState.WARNING.name(),
         AlertState.class.getName(), AlertState.CRITICAL.name(),
         AlertState.class.getName(), AlertState.UNKNOWN.name());

@@ -71,41 +71,48 @@ public class AlertAggregateListener {
    */
   @Subscribe
   public void onAlertEvent(AlertReceivedEvent event) {
-    AlertDefinition def = m_aggregateMapping.getAggregateDefinition(
+    AlertDefinition aggregateDefinition = m_aggregateMapping.getAggregateDefinition(
         event.getClusterId(), event.getAlert().getName());
 
-    if (null == def || null == m_alertsDao) {
+    if (null == aggregateDefinition || null == m_alertsDao) {
       return;
     }
 
-    AggregateSource as = (AggregateSource) def.getSource();
+    AggregateSource aggregateSource = (AggregateSource) aggregateDefinition.getSource();
 
     AlertSummaryDTO summary = m_alertsDao.findAggregateCounts(
-        event.getClusterId(), as.getAlertName());
+        event.getClusterId(), aggregateSource.getAlertName());
 
-    Alert alert = new Alert(def.getName(), null, def.getServiceName(),
-        null, null, AlertState.UNKNOWN);
+    int okCount = summary.getOkCount();
+    int warningCount = summary.getWarningCount();
+    int criticalCount = summary.getCriticalCount();
+    int unknownCount = summary.getUnknownCount();
+    int totalCount = okCount + warningCount + criticalCount + unknownCount;
 
-    alert.setLabel(def.getLabel());
+    Alert alert = new Alert(aggregateDefinition.getName(), null,
+        aggregateDefinition.getServiceName(), null, null, AlertState.UNKNOWN);
+
+    alert.setLabel(aggregateDefinition.getLabel());
     alert.setTimestamp(System.currentTimeMillis());
 
-    if (0 == summary.getOkCount()) {
-      alert.setText("Cannot determine, there are no records");
+    if (0 == totalCount) {
+      alert.setText("There are no instances of the aggregated alert.");
     } else if (summary.getUnknownCount() > 0) {
-      alert.setText("There are alerts with status UNKNOWN.");
+      alert.setText("There are alerts with a state of UNKNOWN.");
     } else {
-      Reporting reporting = as.getReporting();
+      Reporting reporting = aggregateSource.getReporting();
 
       int numerator = summary.getCriticalCount() + summary.getWarningCount();
-      int denominator = summary.getOkCount();
-      double value = (double)(numerator) / denominator;
+      int denominator = totalCount;
 
-      if (value > reporting.getCritical().getValue()) {
+      double value = (double) (numerator) / denominator;
+
+      if (value >= reporting.getCritical().getValue()) {
         alert.setState(AlertState.CRITICAL);
         alert.setText(MessageFormat.format(reporting.getCritical().getText(),
             denominator, numerator));
 
-      } else if (value > reporting.getWarning().getValue()) {
+      } else if (value >= reporting.getWarning().getValue()) {
         alert.setState(AlertState.WARNING);
         alert.setText(MessageFormat.format(reporting.getWarning().getText(),
             denominator, numerator));

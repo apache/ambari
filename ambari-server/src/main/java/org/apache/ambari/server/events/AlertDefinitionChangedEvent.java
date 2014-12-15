@@ -20,15 +20,15 @@ package org.apache.ambari.server.events;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 
 /**
- * The {@link AlertDefinitionDisabledEvent} is used to represent that an
- * {@link AlertDefinition} has been disabled.
+ * The {@link AlertDefinitionChangedEvent} is used to represent that an
+ * {@link AlertDefinition} has been changed.
  */
-public class AlertDefinitionDisabledEvent extends ClusterEvent {
+public class AlertDefinitionChangedEvent extends ClusterEvent {
 
   /**
-   * The alert definition ID.
+   * The changed alert defintiion
    */
-  private final long m_definitionId;
+  private final AlertDefinition m_definition;
 
   /**
    * Constructor.
@@ -36,19 +36,20 @@ public class AlertDefinitionDisabledEvent extends ClusterEvent {
    * @param clusterId
    *          the ID of the cluster that the definition is in.
    * @param definition
-   *          the alert definition being registered.
+   *          the alert definition that was changed.
    */
-  public AlertDefinitionDisabledEvent(long clusterId, long definitionId) {
-    super(AmbariEventType.ALERT_DEFINITION_DISABLED, clusterId);
-    m_definitionId = definitionId;
+  public AlertDefinitionChangedEvent(long clusterId,
+ AlertDefinition definition) {
+    super(AmbariEventType.ALERT_DEFINITION_CHANGED, clusterId);
+    m_definition = definition;
   }
 
   /**
-   * Gets the definition ID.
+   * Get the registered alert definition.
    *
-   * @return the definitionId
+   * @return the alert definition (not {@code null}).
    */
-  public long getDefinitionId() {
-    return m_definitionId;
+  public AlertDefinition getDefinition() {
+    return m_definition;
   }
 }

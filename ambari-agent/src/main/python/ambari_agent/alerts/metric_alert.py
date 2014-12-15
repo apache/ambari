@@ -90,17 +90,17 @@ class MetricAlert(BaseAlert):
     crit_value = self.__find_threshold('critical')
     
     # critical values are higher
-    crit_direction_up = crit_value >= warn_value
+    critical_direction_up = crit_value >= warn_value
     
-    if crit_direction_up: 
-      # critcal values are higher
-      if value > crit_value:
+    if critical_direction_up:
+      # critical values are higher
+      if value >= crit_value:
         return self.RESULT_CRITICAL
-      elif value > warn_value:
+      elif value >= warn_value:
         return self.RESULT_WARNING
       else:
         if ok_value is not None:
-          if value > ok_value and value <= warn_value:
+          if value >= ok_value and value < warn_value:
             return self.RESULT_OK
           else:
             return self.RESULT_UNKNOWN
@@ -108,13 +108,13 @@ class MetricAlert(BaseAlert):
           return self.RESULT_OK
     else:
       # critical values are lower
-      if value < crit_value:
+      if value <= crit_value:
         return self.RESULT_CRITICAL
-      elif value < warn_value:
+      elif value <= warn_value:
         return self.RESULT_WARNING
       else:
         if ok_value is not None:
-          if value < ok_value and value >= warn_value:
+          if value <= ok_value and value > warn_value:
             return self.RESULT_OK
           else:
             return self.RESULT_UNKNOWN
