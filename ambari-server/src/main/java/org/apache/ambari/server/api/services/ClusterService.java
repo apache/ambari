@@ -447,6 +447,20 @@ public class ClusterService extends BaseService {
     return new UpgradeService(clusterName);
   }
 
+  /**
+   * Gets the pre-upgrade checks service.
+   *
+   * @param request the request
+   * @param clusterName the cluster name
+   *
+   * @return the pre-upgrade checks service.
+   */
+  @Path("{clusterName}/rolling_upgrades_check")
+  public PreUpgradeCheckService getPreUpgradeCheckService(@Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
+    hasPermission(Request.Type.valueOf(request.getMethod()), clusterName);
+    return new PreUpgradeCheckService(clusterName);
+  }
+
   // ----- helper methods ----------------------------------------------------
 
   /**

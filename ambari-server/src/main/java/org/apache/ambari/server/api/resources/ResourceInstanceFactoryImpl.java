@@ -334,6 +334,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
             Resource.Type.UpgradeItem, "upgrade_item", "upgrade_items", Resource.Type.Task);
         break;
 
+      case PreUpgradeCheck:
+        resourceDefinition = new SimpleResourceDefinition(Resource.Type.PreUpgradeCheck, "rolling_upgrade_check", "rolling_upgrade_checks");
+        break;
+
       case Stage:
         resourceDefinition = new SimpleResourceDefinition(Resource.Type.Stage, "stage", "stages", Resource.Type.Task);
         break;

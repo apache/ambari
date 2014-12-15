@@ -134,6 +134,7 @@ public interface Resource {
     Upgrade,
     UpgradeGroup,
     UpgradeItem,
+    PreUpgradeCheck,
     Stage;
 
     /**
@@ -229,6 +230,7 @@ public interface Resource {
     public static final Type Upgrade = InternalType.Upgrade.getType();
     public static final Type UpgradeGroup = InternalType.UpgradeGroup.getType();
     public static final Type UpgradeItem = InternalType.UpgradeItem.getType();
+    public static final Type PreUpgradeCheck = InternalType.PreUpgradeCheck.getType();
     public static final Type Stage = InternalType.Stage.getType();
 
     /**

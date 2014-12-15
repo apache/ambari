@@ -33,21 +33,25 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-
 /**
  * Unit tests for ClusterService.
  */
 public class ClusterServiceTest extends BaseServiceTest {
 
 
+  @Override
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
     List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
     Clusters clusters = new TestClusters();
 
+    ClusterService clusterService;
+    Method m;
+    Object[] args;
+
     //getCluster
-    ClusterService clusterService = new TestClusterService(clusters, "clusterName");
-    Method m = clusterService.getClass().getMethod("getCluster", String.class, HttpHeaders.class, UriInfo.class, String.class);
-    Object[] args = new Object[] {null, getHttpHeaders(), getUriInfo(), "clusterName"};
+    clusterService = new TestClusterService(clusters, "clusterName");
+    m = clusterService.getClass().getMethod("getCluster", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "clusterName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, clusterService, m, args, null));
 
     //getClusters

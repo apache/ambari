@@ -104,6 +104,8 @@ public class DefaultProviderModule extends AbstractProviderModule {
         return new UpgradeItemResourceProvider(managementController);
       case ClusterStackVersion:
         return new ClusterStackVersionResourceProvider(managementController);
+      case PreUpgradeCheck:
+        return new PreUpgradeCheckResourceProvider(managementController);
       case HostStackVersion:
         return new HostStackVersionResourceProvider(managementController);
       case Stage:
