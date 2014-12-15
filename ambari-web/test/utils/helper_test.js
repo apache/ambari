@@ -179,6 +179,7 @@ describe('utils/helper', function() {
         var ignored = "DECOMMISSION, NAMENODE";
         var removeString = "SERVICE/HDFS STOP";
         var nagiosState = "nagios_update_ignore ACTIONEXECUTE";
+        var installPepo = ' Install Packages Actionexecute';
         it('should convert command to readable info', function() {
           expect(App.format.commandDetail(command)).to.eql(' Ganglia Monitor Stop');
         });
@@ -190,6 +191,9 @@ describe('utils/helper', function() {
         });
         it('should return maintenance message', function() {
           expect(App.format.commandDetail(nagiosState)).to.eql(' Toggle Maintenance Mode');
+        });
+        it('should return install repo message', function() {
+          expect(App.format.commandDetail(installPepo)).to.eql(Em.I18n.t('common.installRepo.task'));
         });
       });
       describe('#taskStatus()', function(){
