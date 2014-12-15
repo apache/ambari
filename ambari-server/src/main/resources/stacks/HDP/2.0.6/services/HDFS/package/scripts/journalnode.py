@@ -71,6 +71,7 @@ class JournalNode(Script):
 
     Directory(params.jn_edits_dir,
               recursive=True,
+              recursive_permission=True,
               owner=params.hdfs_user,
               group=params.user_group
     )

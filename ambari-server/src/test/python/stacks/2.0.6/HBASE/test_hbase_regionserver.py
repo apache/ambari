@@ -117,6 +117,7 @@ class TestHbaseRegionServer(RMFTestCase):
       owner = 'hbase',
       mode=0775,
       recursive = True,
+      recursive_permission = True
     )
     self.assertResourceCalled('Directory', '/hadoop/hbase/local',
       owner = 'hbase',
@@ -226,6 +227,7 @@ class TestHbaseRegionServer(RMFTestCase):
       owner = 'hbase',
       mode=0775,
       recursive = True,
+      recursive_permission = True
     )
     self.assertResourceCalled('Directory', '/hadoop/hbase/local',
       owner = 'hbase',

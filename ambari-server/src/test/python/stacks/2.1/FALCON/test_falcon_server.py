@@ -123,6 +123,7 @@ class TestFalconServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/falcon',
                               owner = 'falcon',
                               recursive = True,
+                              recursive_permission = True
                               )
     self.assertResourceCalled('Directory', '/hadoop/falcon/embeddedmq',
                               owner = 'falcon'

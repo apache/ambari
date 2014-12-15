@@ -83,6 +83,12 @@ def setup_users():
   set_uid(params.smoke_user, params.smoke_user_dirs)
 
   if params.has_hbase_masters:
+    Directory (params.hbase_tmp_dir,
+               owner = params.hbase_user,
+               mode=0775,
+               recursive = True,
+               recursive_permission = True
+    )
     set_uid(params.hbase_user, params.hbase_user_dirs)
     
 def set_uid(user, user_dirs):
@@ -106,15 +112,8 @@ def setup_hadoop_env():
     else:
       tc_owner = params.hdfs_user
 
-    Directory(params.hadoop_root_dir,
-              mode=0755
-    )
     Directory(params.hadoop_dir,
               mode=0755
-    )
-    Directory(params.hadoop_data_dir,
-              owner=params.hdfs_user,
-              group=params.user_group
     )
     if stackversion.find('Gluster') >= 0:
         Directory(params.hadoop_conf_empty_dir,

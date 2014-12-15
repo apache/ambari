@@ -221,6 +221,7 @@ class TestSNamenode(RMFTestCase):
                               group = 'hadoop',
                               mode = 0755,
                               recursive = True,
+                              recursive_permission = True
                               )
 
   def assert_configure_secured(self):
@@ -259,4 +260,5 @@ class TestSNamenode(RMFTestCase):
                               group = 'hadoop',
                               mode = 0755,
                               recursive = True,
+                              recursive_permission = True
                               )

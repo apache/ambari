@@ -39,7 +39,8 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
   Directory (params.tmp_dir,
              owner = params.hbase_user,
              mode=0775,
-             recursive = True
+             recursive = True,
+             recursive_permission = True
   )
 
   Directory (params.local_dir,

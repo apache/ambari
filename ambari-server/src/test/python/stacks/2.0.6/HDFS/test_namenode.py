@@ -528,6 +528,7 @@ class TestNamenode(RMFTestCase):
                               group = 'hadoop',
                               recursive = True,
                               mode = 0755,
+                              recursive_permission = True
                               )
 
   def assert_configure_secured(self):
@@ -566,6 +567,7 @@ class TestNamenode(RMFTestCase):
                               group = 'hadoop',
                               recursive = True,
                               mode = 0755,
+                              recursive_permission = True
                               )
 
   @patch("resource_management.libraries.script.Script.put_structured_out")

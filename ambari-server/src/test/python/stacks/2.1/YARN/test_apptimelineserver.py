@@ -115,10 +115,6 @@ class TestAppTimelineServer(RMFTestCase):
                               recursive = True,
                               ignore_failures = True,
                               )
-    self.assertResourceCalled('Directory', '/hadoop/yarn',
-                              owner = 'yarn',
-                              group = 'hadoop'
-                              )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
                               owner = 'hdfs',
                               group = 'hadoop',
@@ -154,7 +150,8 @@ class TestAppTimelineServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn/timeline',
                               owner = 'yarn',
                               group = 'hadoop',
-                              recursive = True
+                              recursive = True,
+                              recursive_permission = True
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
                               owner = 'yarn',

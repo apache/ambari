@@ -29,6 +29,7 @@ def create_dirs(data_dir, params):
   """
   Directory(data_dir,
             recursive=True,
+            recursive_permission=True,
             mode=0755,
             owner=params.hdfs_user,
             group=params.user_group,

@@ -37,16 +37,19 @@ class TestStormBase(RMFTestCase):
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
+      recursive_permission = True
     )
     self.assertResourceCalled('Directory', '/hadoop/storm',
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
+      recursive_permission = True
     )
     self.assertResourceCalled('Directory', '/etc/storm/conf',
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
+      recursive_permission = True
     )
     self.assertResourceCalled('File', '/etc/storm/conf/config.yaml',
       owner = 'storm',
@@ -76,16 +79,19 @@ class TestStormBase(RMFTestCase):
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
+      recursive_permission = True
     )
     self.assertResourceCalled('Directory', '/hadoop/storm',
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
+      recursive_permission = True
     )
     self.assertResourceCalled('Directory', '/etc/storm/conf',
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
+      recursive_permission = True
     )
     self.assertResourceCalled('File', '/etc/storm/conf/config.yaml',
       owner = 'storm',

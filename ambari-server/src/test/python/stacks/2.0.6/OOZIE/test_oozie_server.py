@@ -187,60 +187,63 @@ class TestOozieServer(RMFTestCase):
         group = 'hadoop',
         recursive = True,
         mode = 0755,
+        recursive_permission = True
     )
     self.assertResourceCalled('Directory', '/var/run/oozie',
                               owner = 'oozie',
                               group = 'hadoop',
                               recursive = True,
                               mode = 0755,
+                              recursive_permission = True
                               )
     self.assertResourceCalled('Directory', '/var/log/oozie',
                               owner = 'oozie',
                               group = 'hadoop',
                               recursive = True,
                               mode = 0755,
+                              recursive_permission = True
                               )
     self.assertResourceCalled('Directory', '/var/tmp/oozie',
                               owner = 'oozie',
                               group = 'hadoop',
                               recursive = True,
                               mode = 0755,
-                              )
-    self.assertResourceCalled('Directory', '/hadoop/oozie',
-                              owner = 'oozie',
-                              group = 'hadoop',
-                              recursive = True,
-                              mode = 0755,
+                              recursive_permission = True
                               )
     self.assertResourceCalled('Directory', '/hadoop/oozie/data',
                               owner = 'oozie',
                               group = 'hadoop',
                               recursive = True,
                               mode = 0755,
+                              recursive_permission = True
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/',
                               owner = 'oozie',
                               group = 'hadoop',
                               recursive = True,
                               mode = 0755,
+                              recursive_permission = True
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server/webapps/',
                               owner = 'oozie',
                               group = 'hadoop',
                               recursive = True,
                               mode = 0755,
+                              recursive_permission = True
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server/conf',
                               owner = 'oozie',
                               group = 'hadoop',
                               recursive = True,
                               mode = 0755,
+                              recursive_permission = True
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server',
                               owner = 'oozie',
                               group = 'hadoop',
                               recursive = True,
                               mode = 0755,
+                              recursive_permission = True
                               )
     self.assertResourceCalled('Directory', '/usr/lib/oozie/libext',
         recursive = True,
@@ -337,60 +340,63 @@ class TestOozieServer(RMFTestCase):
         group = 'hadoop',
         recursive = True,
         mode = 0755,
+        recursive_permission = True
     )
     self.assertResourceCalled('Directory', '/var/run/oozie',
                               owner = 'oozie',
                               group = 'hadoop',
                               recursive = True,
                               mode = 0755,
+                              recursive_permission = True
                               )
     self.assertResourceCalled('Directory', '/var/log/oozie',
                               owner = 'oozie',
                               group = 'hadoop',
                               recursive = True,
                               mode = 0755,
+                              recursive_permission = True
                               )
     self.assertResourceCalled('Directory', '/var/tmp/oozie',
                               owner = 'oozie',
                               group = 'hadoop',
                               recursive = True,
                               mode = 0755,
-                              )
-    self.assertResourceCalled('Directory', '/hadoop/oozie',
-                              owner = 'oozie',
-                              group = 'hadoop',
-                              recursive = True,
-                              mode = 0755,
+                              recursive_permission = True
                               )
     self.assertResourceCalled('Directory', '/hadoop/oozie/data',
                               owner = 'oozie',
                               group = 'hadoop',
                               recursive = True,
                               mode = 0755,
+                              recursive_permission = True
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/',
                               owner = 'oozie',
                               group = 'hadoop',
                               recursive = True,
                               mode = 0755,
+                              recursive_permission = True
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server/webapps/',
                               owner = 'oozie',
                               group = 'hadoop',
                               recursive = True,
                               mode = 0755,
+                              recursive_permission = True
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server/conf',
                               owner = 'oozie',
                               group = 'hadoop',
                               recursive = True,
                               mode = 0755,
+                              recursive_permission = True
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server',
                               owner = 'oozie',
                               group = 'hadoop',
                               recursive = True,
                               mode = 0755,
+                              recursive_permission = True
                               )
     self.assertResourceCalled('Directory', '/usr/lib/oozie/libext',
         recursive = True,

@@ -149,7 +149,11 @@ class DirectoryProvider(Provider):
     if not os.path.exists(path):
       Logger.info("Creating directory %s" % self.resource)
       if self.resource.recursive:
-        sudo.makedirs(path, self.resource.mode or 0755)
+        if self.resource.recursive_permission:
+          DirectoryProvider.makedirs_and_set_permission_recursively(path, self.resource.owner,
+                                                                    self.resource.group, self.resource.mode)
+        else:
+          sudo.makedirs(path, self.resource.mode or 0755)
       else:
         dirname = os.path.dirname(path)
         if not os.path.isdir(dirname):
@@ -162,6 +166,23 @@ class DirectoryProvider(Provider):
     
     _ensure_metadata(path, self.resource.owner, self.resource.group,
                         mode=self.resource.mode)
+
+  @staticmethod
+  def makedirs_and_set_permission_recursively(path, owner, group, mode):
+    folders=[]
+    path,folder=os.path.split(path)
+    while folder!="":
+      folders.append(folder)
+      path,folder=os.path.split(path)
+    if path!="":
+      folders.append(path)
+    folders.reverse()
+    dir_prefix=""
+    for folder in folders:
+      dir_prefix=os.path.join(dir_prefix, folder)
+      if not os.path.exists(dir_prefix):
+        sudo.makedir(dir_prefix, mode or 0755)
+        _ensure_metadata(dir_prefix, None, None, mode)
 
   def action_delete(self):
     path = self.resource.path

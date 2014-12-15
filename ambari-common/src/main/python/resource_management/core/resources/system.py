@@ -47,6 +47,7 @@ class Directory(Resource):
   owner = ResourceArgument()
   group = ResourceArgument()
   recursive = BooleanArgument(default=False) # this work for 'create', 'delete' is anyway recursive
+  recursive_permission = BooleanArgument(default=False) # sets given perms to all non-existent folders which are created recursively
 
   actions = Resource.actions + ["create", "delete"]
 

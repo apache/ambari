@@ -68,7 +68,8 @@ def falcon(type, action = None):
                 owner=params.falcon_user,
                 group=params.user_group,
                 mode=0775,
-                recursive=True
+                recursive=True,
+                recursive_permission=True
       )
 
     if params.falcon_graph_serialize_path:
@@ -76,7 +77,8 @@ def falcon(type, action = None):
                 owner=params.falcon_user,
                 group=params.user_group,
                 mode=0775,
-                recursive=True
+                recursive=True,
+                recursive_permission=True
       )
 
   if type == 'server':
@@ -95,7 +97,8 @@ def falcon(type, action = None):
       params.HdfsDirectory(None, action="create")
       Directory(params.falcon_local_dir,
                 owner=params.falcon_user,
-                recursive=True
+                recursive=True,
+                recursive_permission=True
       )
       if params.falcon_embeddedmq_enabled == True:
         Directory(os.path.abspath(os.path.join(params.falcon_embeddedmq_data, "..")),

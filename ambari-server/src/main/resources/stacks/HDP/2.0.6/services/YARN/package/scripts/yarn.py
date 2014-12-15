@@ -65,6 +65,7 @@ def yarn(name = None):
               owner=params.yarn_user,
               group=params.user_group,
               recursive=True,
+              recursive_permission=True,
               ignore_failures=True,
               mode=0775
               )
@@ -84,10 +85,6 @@ def yarn(name = None):
             owner=params.yarn_user,
             recursive=True,
             ignore_failures=True,
-  )
-  Directory(params.yarn_data_dir,
-            owner=params.yarn_user,
-            group=params.user_group
   )
 
   XmlConfig("core-site.xml",
@@ -142,7 +139,8 @@ def yarn(name = None):
     Directory(params.ats_leveldb_dir,
        owner=params.yarn_user,
        group=params.user_group,
-       recursive=True
+       recursive=True,
+       recursive_permission=True
     )
 
   File(params.rm_nodes_exclude_path,

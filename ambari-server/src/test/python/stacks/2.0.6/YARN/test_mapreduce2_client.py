@@ -74,10 +74,6 @@ class TestMapReduce2Client(RMFTestCase):
       recursive = True,
       ignore_failures = True,
     )
-    self.assertResourceCalled('Directory', '/hadoop/yarn',
-      owner = 'yarn',
-      group = 'hadoop'
-    )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',
       group = 'hadoop',
@@ -210,10 +206,6 @@ class TestMapReduce2Client(RMFTestCase):
       owner = 'yarn',
       recursive = True,
       ignore_failures = True,
-    )
-    self.assertResourceCalled('Directory', '/hadoop/yarn',
-      owner = 'yarn',
-      group = 'hadoop'
     )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',

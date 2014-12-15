@@ -95,8 +95,6 @@ else:
   hadoop_home = "/usr/lib/hadoop"
   hadoop_secure_dn_user = hdfs_user
 
-hadoop_root_dir = "/hadoop"
-hadoop_data_dir = "/hadoop/hdfs"
 hadoop_dir = "/etc/hadoop"
 hadoop_conf_dir = "/etc/hadoop/conf"
 hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
