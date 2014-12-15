@@ -30,7 +30,7 @@ angular.module('ambariAdminConsole')
       var parameters = viewVersion.ViewVersionInfo.parameters;
 
       angular.forEach(parameters, function (item) {
-        item.value = item.default;
+        item.value = item['defaultValue'];
       });
 
       $scope.instance = {

@@ -37,7 +37,7 @@ describe('#CreateViewInstanceCtrl', function () {
       "versions": [{"ViewVersionInfo": {}}]
     });
     $httpBackend.whenGET(/\/api\/v1\/views\/TestView\/versions\/1\.0\.0/).respond(200, {
-      "ViewVersionInfo": {"parameters": [{"name": "n", "default": "d"}]}
+      "ViewVersionInfo": {"parameters": [{"name": "n", "defaultValue": "d"}]}
     });
     $httpBackend.whenGET('template/modal/backdrop.html').respond(200, '<div></div>');
     $httpBackend.whenGET('template/modal/window.html').respond(200, '<div></div>');
