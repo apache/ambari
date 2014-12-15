@@ -17,25 +17,27 @@
 }}
 
 <div id="stack-upgrade-dialog">
-  {{#if view.isLoaded}}
-    <div class="row-fluid">
-      <div class="span2">{{statusIcon controller.upgradeData.Upgrade.request_status}}&nbsp;{{view.upgradeStatusLabel}}</div>
-      <div class="span9">
-        <div class="progress progress-striped active">
-          <div class="bar" {{bindAttr style="view.progressWidth"}}></div>
-        </div>
-      </div>
-      <div class="span1">
-        {{view.overallProgress}}%
+  <div {{bindAttr class="view.isLoaded::hidden :row-fluid"}}>
+    <div class="span2">{{statusIcon controller.upgradeData.Upgrade.request_status}}
+      &nbsp;{{view.upgradeStatusLabel}}</div>
+    <div class="span9">
+      <div class="progress progress-striped active">
+        <div class="bar" {{bindAttr style="view.progressWidth"}}></div>
       </div>
     </div>
+    <div class="span1">
+      {{view.overallProgress}}%
+    </div>
+  </div>
 
-    <div class="task-list limited-height-2">
+  <div class="task-list scrollable-block">
+    {{#if view.isLoaded}}
       {{#each group in controller.upgradeData.upgradeGroups}}
         {{view App.upgradeGroupView contentBinding="group"}}
       {{/each}}
-    </div>
-  {{else}}
+    {{/if}}
+  </div>
+  {{#unless view.isLoaded}}
     <div class="spinner"></div>
-  {{/if}}
+  {{/unless}}
 </div>
