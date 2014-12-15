@@ -98,35 +98,6 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   },
 
   /**
-   * Check if the stack definition has any monitoring service (alerting, metrics services) that has not been selected
-   * @return {bool}
-   * @method isMonitoringServiceNotSelected
-   */
-  isMonitoringServiceNotSelected: function () {
-    var stackMonitoringServices = this.filterProperty('isMonitoringService',true);
-    return stackMonitoringServices.length && stackMonitoringServices.someProperty('isSelected',false);
-  },
-
-  /**
-   * Check whether user turned on monitoring service and go to next step
-   * @method validateMonitoring
-   */
-  serviceMonitoringValidation: function () {
-    var monitoringServices =  this.filterProperty('isMonitoringService', true);
-    var notSelectedService = monitoringServices.filterProperty('isSelected', false);
-    if (!!notSelectedService.length) {
-      notSelectedService = stringUtils.getFormattedStringFromArray(notSelectedService.mapProperty('displayNameOnSelectServicePage'));
-      monitoringServices = stringUtils.getFormattedStringFromArray(monitoringServices.mapProperty('displayNameOnSelectServicePage'));
-      this.addValidationError({
-        id: 'monitoringCheck',
-        type: 'WARNING',
-        callback: this.monitoringCheckPopup,
-        callbackParams: [notSelectedService, monitoringServices]
-      });
-    }
-  },
-
-  /**
    * Onclick handler for <code>Next</code> button.
    * @method submit
    */
@@ -152,7 +123,6 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   validate: function() {
     this.serviceDependencyValidation();
     this.fileSystemServiceValidation();
-    this.serviceMonitoringValidation();
     if (!!this.get('errorStack').filterProperty('isShown', false).length) {
       this.showError(this.get('errorStack').findProperty('isShown', false));
       return false;
@@ -364,22 +334,6 @@ App.WizardStep4Controller = Em.ArrayController.extend({
         this.hide();
       }
     });
-  },
-
-  /**
-   * Show popup with info about not selected (but should be selected) services
-   * @return {App.ModalPopup}
-   * @method monitoringCheckPopup
-   */
-  monitoringCheckPopup: function (notSelectedServiceNames,monitoringServicesNames) {
-    var self = this;
-    return App.ModalPopup.show({
-      header: Em.I18n.t('installer.step4.monitoringCheck.popup.header'),
-      body: Em.I18n.t('installer.step4.monitoringCheck.popup.body').format(notSelectedServiceNames,monitoringServicesNames),
-      onPrimary: function () {
-        self.onPrimaryPopupCallback();
-        this.hide();
-      }
-    });
   }
+
 });

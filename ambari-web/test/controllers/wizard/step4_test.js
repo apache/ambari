@@ -258,23 +258,23 @@ describe('App.WizardStep4Controller', function () {
     var tests = [
       {
         services: ['HDFS','ZOOKEEPER'],
-        errorsExpected: ['monitoringCheck']
+        errorsExpected: []
       },
       {
         services: ['ZOOKEEPER'],
-        errorsExpected: ['monitoringCheck']
+        errorsExpected: []
       },
       {
         services: ['HDFS'],
-        errorsExpected: ['serviceCheck_ZOOKEEPER', 'monitoringCheck']
+        errorsExpected: ['serviceCheck_ZOOKEEPER']
       },
       {
         services: ['HDFS', 'TEZ', 'ZOOKEEPER'],
-        errorsExpected: ['serviceCheck_YARN', 'monitoringCheck']
+        errorsExpected: ['serviceCheck_YARN']
       },
       {
         services: ['HDFS', 'ZOOKEEPER', 'FALCON', 'NAGIOS'],
-        errorsExpected: ['serviceCheck_OOZIE', 'monitoringCheck']
+        errorsExpected: ['serviceCheck_OOZIE']
       },
       {
         services: ['HDFS', 'ZOOKEEPER', 'GANGLIA', 'NAGIOS', 'HIVE'],
@@ -282,7 +282,7 @@ describe('App.WizardStep4Controller', function () {
       },
       {
         services: ['HDFS', 'GLUSTERFS', 'ZOOKEEPER', 'HIVE'],
-        errorsExpected: ['serviceCheck_YARN', 'multipleDFS', 'monitoringCheck']
+        errorsExpected: ['serviceCheck_YARN', 'multipleDFS']
       },
       {
         services: ['HDFS','ZOOKEEPER', 'NAGIOS', 'GANGLIA'],
@@ -307,18 +307,18 @@ describe('App.WizardStep4Controller', function () {
     var tests = [
       {
         services: ['HDFS','ZOOKEEPER'],
-        confirmPopupCount: 1,
-        errorsExpected: ['monitoringCheck']
+        confirmPopupCount: 0,
+        errorsExpected: []
       },
       {
         services: ['ZOOKEEPER'],
-        confirmPopupCount: 1,
-        errorsExpected: ['monitoringCheck']
+        confirmPopupCount: 0,
+        errorsExpected: []
       },
       {
         services: ['HDFS', 'GLUSTERFS', 'ZOOKEEPER', 'HIVE'],
-        confirmPopupCount: 3,
-        errorsExpected: ['serviceCheck_YARN', 'serviceCheck_TEZ', 'multipleDFS', 'monitoringCheck']
+        confirmPopupCount: 2,
+        errorsExpected: ['serviceCheck_YARN', 'serviceCheck_TEZ', 'multipleDFS']
       },
       {
         services: ['HDFS','ZOOKEEPER', 'NAGIOS', 'GANGLIA'],
@@ -349,8 +349,7 @@ describe('App.WizardStep4Controller', function () {
         var runValidations = function() {
           c.serviceDependencyValidation();
           c.fileSystemServiceValidation();
-          c.serviceMonitoringValidation();
-        }
+        };
 
         c.set('content', generateSelectedServicesContent(test.services));
         runValidations();

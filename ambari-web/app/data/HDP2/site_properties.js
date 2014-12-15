@@ -4563,6 +4563,205 @@ module.exports =
       "serviceName": "MISC",
       "category": "Notifications",
       "rowStyleClass": "indent-1"
+    },
+  /************************************************AMS******************************************/
+    {
+      "id": "site property",
+      "name": "timeline.metrics.service.operation.mode",
+      "displayName": "timeline.metrics.service.operation.mode",
+      "description":  "\n      Service Operation modes:\n      1) embedded: Metrics stored on local FS, HBase in Standalone mode\n      2) distributed: HBase daemons writing to HDFS\n      3) external: External HBase storage backend\n    ",
+      "defaultValue": "embedded",
+      "displayType": "string",
+      "serviceName": "AMS",
+      "filename": "ams-site.xml",
+      "category": "General"
+    },
+    {
+      "id": "site property",
+      "name" : "timeline.metrics.aggregator.checkpoint.dir",
+      "displayName": "timeline.metrics.aggregator.checkpoint.dir",
+      "description":  "\n      Directory to store aggregator checkpoints. Change to a permanent\n      location so that checkpoint ar not lost.\n    ",
+      "defaultValue": "/tmp",
+      "displayType": "directory",
+      "serviceName": "AMS",
+      "filename": "ams-site.xml",
+      "category": "MetricCollector"
+    },
+    {
+      "id": "site property",
+      "name": "timeline.metrics.cluster.aggregator.hourly.checkpointCutOffMultiplier",
+      "displayName": "timeline.metrics.cluster.aggregator.hourly.checkpointCutOffMultiplier",
+      "description":  "\n      Multiplier value * interval = Max allowed checkpoint lag. Effectively\n      if aggregator checkpoint is greater than max allowed checkpoint delay,\n      the checkpoint will be discarded by the aggregator.\n    ",
+      "defaultValue": "2",
+      "displayType": "int",
+      "serviceName": "AMS",
+      "filename": "ams-site.xml",
+      "category": "MetricCollector"
+    },
+    {
+      "id": "site property",
+      "name": "timeline.metrics.cluster.aggregator.hourly.disabled",
+      "displayName": "timeline.metrics.cluster.aggregator.hourly.disabled",
+      "description":  "\n      Disable cluster based hourly aggregations.\n    ",
+      "defaultValue": "false",
+      "displayType": "string",
+      "serviceName": "AMS",
+      "filename": "ams-site.xml",
+      "category": "MetricCollector"
+    },
+    {
+      "id": "site property",
+      "name": "timeline.metrics.cluster.aggregator.hourly.interval",
+      "displayName": "timeline.metrics.cluster.aggregator.hourly.interval",
+      "description":  "\n      Time in seconds to sleep for the hourly resolution cluster wide\n      aggregator. Default is 1 hour.\n    ",
+      "defaultValue": "3600",
+      "displayType": "int",
+      "serviceName": "AMS",
+      "filename": "ams-site.xml",
+      "category": "MetricCollector"
+    },
+    {
+      "id": "site property",
+      "name": "timeline.metrics.cluster.aggregator.minute.checkpointCutOffMultiplier",
+      "displayName": "timeline.metrics.cluster.aggregator.minute.checkpointCutOffMultiplier",
+      "description":  "\n      Multiplier value * interval = Max allowed checkpoint lag. Effectively\n      if aggregator checkpoint is greater than max allowed checkpoint delay,\n      the checkpoint will be discarded by the aggregator.\n    ",
+      "defaultValue": "2",
+      "displayType": "int",
+      "serviceName": "AMS",
+      "filename": "ams-site.xml",
+      "category": "MetricCollector"
+    },
+    {
+      "id": "site property",
+      "name": "timeline.metrics.cluster.aggregator.minute.disabled",
+      "displayName": "timeline.metrics.cluster.aggregator.minute.disabled",
+      "description":  "\n      Disable cluster based minute aggregations.\n    ",
+      "defaultValue": "false",
+      "displayType": "string",
+      "serviceName": "AMS",
+      "filename": "ams-site.xml",
+      "category": "MetricCollector"
+    },
+    {
+      "id": "site property",
+      "name": "timeline.metrics.cluster.aggregator.minute.interval",
+      "displayName": "timeline.metrics.cluster.aggregator.minute.interval",
+      "description":  "\n      Time in seconds to sleep for the minute resolution cluster wide\n      aggregator. Default resolution is 2 minutes.\n    ",
+      "defaultValue": "120",
+      "displayType": "int",
+      "serviceName": "AMS",
+      "filename": "ams-site.xml",
+      "category": "MetricCollector"
+    },
+    {
+      "id": "site property",
+      "name": "timeline.metrics.cluster.aggregator.minute.timeslice.interval",
+      "displayName": "timeline.metrics.cluster.aggregator.minute.timeslice.interval",
+      "description":  "\n      Lowest resolution of desired data for cluster level minute aggregates.\n    ",
+      "defaultValue": "15",
+      "displayType": "int",
+      "serviceName": "AMS",
+      "filename": "ams-site.xml",
+      "category": "MetricCollector"
+    },
+    {
+      "id": "site property",
+      "name": "timeline.metrics.host.aggregator.hourly.checkpointCutOffMultiplier",
+      "displayName": "timeline.metrics.host.aggregator.hourly.checkpointCutOffMultiplier",
+      "description":  "\n      Multiplier value * interval = Max allowed checkpoint lag. Effectively\n      if aggregator checkpoint is greater than max allowed checkpoint delay,\n      the checkpoint will be discarded by the aggregator.\n    ",
+      "defaultValue": "2",
+      "displayType": "int",
+      "serviceName": "AMS",
+      "filename": "ams-site.xml",
+      "category": "MetricCollector"
+    },
+    {
+      "id": "site property",
+      "name": "timeline.metrics.host.aggregator.hourly.disabled",
+      "displayName": "timeline.metrics.host.aggregator.hourly.disabled",
+      "description":  "\n      Disable host based hourly aggregations.\n    ",
+      "defaultValue": "false",
+      "displayType": "string",
+      "serviceName": "AMS",
+      "filename": "ams-site.xml",
+      "category": "MetricCollector"
+    },
+    {
+      "id": "site property",
+      "name": "timeline.metrics.host.aggregator.hourly.interval",
+      "displayName": "timeline.metrics.host.aggregator.hourly.interval",
+      "description":  "\n      Time in seconds to sleep for the hourly resolution host based\n      aggregator. Default resolution is 1 hour.\n    ",
+      "defaultValue": "3600",
+      "displayType": "int",
+      "serviceName": "AMS",
+      "filename": "ams-site.xml",
+      "category": "MetricCollector"
+    },
+    {
+      "id": "site property",
+      "name": "timeline.metrics.host.aggregator.minute.checkpointCutOffMultiplier",
+      "displayName": "timeline.metrics.host.aggregator.minute.checkpointCutOffMultiplier",
+      "description":  "\n      Multiplier value * interval = Max allowed checkpoint lag. Effectively\n      if aggregator checkpoint is greater than max allowed checkpoint delay,\n      the checkpoint will be discarded by the aggregator.\n    ",
+      "defaultValue": "2",
+      "displayType": "int",
+      "serviceName": "AMS",
+      "filename": "ams-site.xml",
+      "category": "MetricCollector"
+    },
+    {
+      "id": "site property",
+      "name": "timeline.metrics.host.aggregator.minute.disabled",
+      "displayName": "timeline.metrics.host.aggregator.minute.disabled",
+      "description":  "\n      Disable host based minute aggregations.\n    ",
+      "defaultValue": "false",
+      "displayType": "string",
+      "serviceName": "AMS",
+      "filename": "ams-site.xml",
+      "category": "MetricCollector"
+    },
+    {
+      "id": "site property",
+      "name": "timeline.metrics.host.aggregator.minute.interval",
+      "displayName": "timeline.metrics.host.aggregator.minute.interval",
+      "description":  "\n      Time in seconds to sleep for the minute resolution host based\n      aggregator. Default resolution is 5 minutes.\n    ",
+      "defaultValue": "300",
+      "displayType": "int",
+      "serviceName": "AMS",
+      "filename": "ams-site.xml",
+      "category": "MetricCollector"
+    },
+    {
+      "id": "site property",
+      "name": "timeline.metrics.service.checkpointDelay",
+      "displayName": "timeline.metrics.service.checkpointDelay",
+      "description":  "\n      Time in seconds to sleep on the first run or when the checkpoint is\n      too old.\n    ",
+      "defaultValue": "120",
+      "displayType": "int",
+      "serviceName": "AMS",
+      "filename": "ams-site.xml",
+      "category": "MetricCollector"
+    },
+    {
+      "id": "site property",
+      "name": "timeline.metrics.service.default.result.limit",
+      "displayName": "timeline.metrics.service.default.result.limit",
+      "description":  "\n      Max result limit on number of rows returned. Calculated as follows:\n      4 aggregate metrics/min * 60 * 24: Retrieve aggregate data for 1 day.\n    ",
+      "defaultValue": "5760",
+      "displayType": "int",
+      "serviceName": "AMS",
+      "filename": "ams-site.xml",
+      "category": "MetricCollector"
+    },
+    {
+      "id": "site property",
+      "name": "timeline.metrics.service.resultset.fetchSize",
+      "displayName": "timeline.metrics.service.resultset.fetchSize",
+      "description":  "\n      JDBC resultset prefect size for aggregator queries.\n    ",
+      "defaultValue": "2000",
+      "displayType": "int",
+      "serviceName": "AMS",
+      "filename": "ams-site.xml",
+      "category": "MetricCollector"
     }
   ]
 };
