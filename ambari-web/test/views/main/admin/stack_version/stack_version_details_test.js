@@ -40,6 +40,10 @@ describe('App.MainStackVersionsDetailsView', function () {
       {
         state: "INSTALLING",
         buttonClass: 'btn-primary'
+      },
+      {
+        state: "INSTALL_FAILED",
+        buttonClass: "btn-danger"
       }
     ].forEach(function(t) {
       it("status is " + t.status + " class is " + t.buttonClass, function() {

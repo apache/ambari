@@ -126,10 +126,12 @@ App.RepoVersionsController = Em.ArrayController.extend({
    * @method installStackVersionSuccess
    */
   installStackVersionSuccess: function (data, opt, params) {
-    App.db.set('stackUpgrade', 'id', [data.Requests.id]);
-    App.get('router.mainStackVersionsController').loadStackVersionsToModel().done(function() {
-      var stackVersion = App.StackVersion.find().findProperty('repositoryVersion.id', params.id);
-      App.router.transitionTo('main.admin.adminStackVersions.version', stackVersion);
-    });
+    App.db.set('repoVersion', 'id', [data.Requests.id]);
+    if(!App.StackVersion.find().findProperty('repositoryVersion.id', params.id)) {
+      App.get('router.mainStackVersionsController').loadStackVersionsToModel().done(function() {
+        var stackVersion = App.StackVersion.find().findProperty('repositoryVersion.id', params.id);
+        App.router.transitionTo('main.admin.adminStackVersions.version', stackVersion);
+      });
+    }
   }
 });

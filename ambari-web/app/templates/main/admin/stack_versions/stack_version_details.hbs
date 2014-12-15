@@ -71,7 +71,7 @@
           </div>
         </div>
         <div class="span4 align-center">
-          <a id="repo-version-action-button" {{bindAttr class="view.statusClass :btn :stack-status-button"}} {{action installStackVersion content target="controller"}}>
+          <a id="repo-version-action-button" {{bindAttr class="view.statusClass :btn :stack-status-button"}} {{action installStackVersion content.repositoryVersion target="controller"}}>
             <i {{bindAttr class="installInProgress:icon-cog"}}>&nbsp;</i>{{view.stackTextStatus}}
           </a>
           <a href="#/main/admin/stack" {{bindAttr class="installedNotUpgraded::hidden"}} >{{t admin.stackVersions.datails.hosts.btn.goto.upgrade}}</a>

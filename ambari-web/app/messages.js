@@ -1287,6 +1287,7 @@ Em.I18n.translations = {
   'admin.stackVersions.datails.not.installed.on': "Not installed on",
   'admin.stackVersions.datails.base.url': "Base Url",
 
+  'admin.stackVersions.datails.hosts.btn.reinstall': "Reinstall on failed hosts",
   'admin.stackVersions.datails.hosts.btn.install': "Install to {0} hosts",
   'admin.stackVersions.datails.hosts.btn.installing': "Installing...",
   'admin.stackVersions.datails.hosts.btn.nothing': "Installed on all hosts",

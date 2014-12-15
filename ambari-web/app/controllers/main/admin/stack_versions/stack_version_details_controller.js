@@ -35,6 +35,13 @@ App.MainStackVersionsDetailsController = Em.Controller.extend({
    * true if stack version install is in progress
    * @type {Boolean}
    */
+  installFailed: function() {
+    return this.get('content.state') == "INSTALL_FAILED";
+  }.property('content.state'),
+  /**
+   * true if stack version install is in progress
+   * @type {Boolean}
+   */
   installInProgress: function() {
     return this.get('content.state') == "INSTALLING";
   }.property('content.state'),
@@ -51,12 +58,25 @@ App.MainStackVersionsDetailsController = Em.Controller.extend({
   /**
    * depending on state run or install repo request
    * or show the installation process popup
+   * @param event
    * @method installStackVersion
    */
-  installStackVersion: function() {
+  installStackVersion: function(event) {
     if (this.get('installInProgress')) {
       this.showProgressPopup();
+    } else if (this.get('installFailed')) {
+      this.installRepoVersion(event);
     }
+  },
+
+  /**
+   * install repoVersion using <code>installRepoVersion()<code> method
+   * of <code>repoVersionsController<code> controller
+   * @param event
+   * @method installRepoVersion
+   */
+  installRepoVersion: function(event) {
+    App.get('router.repoVersionsController').installRepoVersion(event);
   },
 
   /**
@@ -65,7 +85,7 @@ App.MainStackVersionsDetailsController = Em.Controller.extend({
    */
   showProgressPopup: function() {
     var popupTitle = Em.I18n.t('admin.stackVersions.datails.install.hosts.popup.title').format(this.get('content.repositoryVersion.displayName'));
-    var requestIds = App.get('testMode') ? [1] : App.db.get('stackUpgrade', 'id');
+    var requestIds = App.get('testMode') ? [1] : App.db.get('repoVersion', 'id');
     var hostProgressPopupController = App.router.get('highAvailabilityProgressPopupController');
     hostProgressPopupController.initPopup(popupTitle, requestIds, this);
   }
