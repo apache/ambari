@@ -121,7 +121,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
 
     return ((kdcType == null) || kdcType.isEmpty())
         ? KDCType.MIT_KDC
-        : KDCType.translate(kdcType);
+        : KDCType.valueOf(kdcType.toUpperCase().replace("-", "_"));
   }
 
   /**
