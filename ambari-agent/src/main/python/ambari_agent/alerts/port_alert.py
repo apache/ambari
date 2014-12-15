@@ -26,6 +26,10 @@ from resource_management.libraries.functions.get_port_from_url import get_port_f
 
 logger = logging.getLogger()
 
+# default timeouts
+DEFAULT_WARNING_TIMEOUT = 1.5
+DEFAULT_CRITICAL_TIMEOUT = 5.0
+
 class PortAlert(BaseAlert):
 
   def __init__(self, alert_meta, alert_source_meta):
@@ -33,6 +37,8 @@ class PortAlert(BaseAlert):
 
     self.uri = None
     self.default_port = None
+    self.warning_timeout = DEFAULT_WARNING_TIMEOUT
+    self.critical_timeout = DEFAULT_CRITICAL_TIMEOUT
 
     # can be parameterized or static
     if 'uri' in alert_source_meta:
@@ -41,7 +47,37 @@ class PortAlert(BaseAlert):
     # always static
     if 'default_port' in alert_source_meta:
       self.default_port = alert_source_meta['default_port']
-    
+
+    if 'reporting' in alert_source_meta:
+      reporting = alert_source_meta['reporting']
+      reporting_state_warning = self.RESULT_WARNING.lower()
+      reporting_state_critical = self.RESULT_CRITICAL.lower()
+
+      if reporting_state_warning in reporting and \
+        'value' in reporting[reporting_state_warning]:
+        self.warning_timeout = reporting[reporting_state_warning]['value']
+
+      if reporting_state_critical in reporting and \
+        'value' in reporting[reporting_state_critical]:
+        self.critical_timeout = reporting[reporting_state_critical]['value']
+
+
+    # check warning threshold for sanity
+    if self.warning_timeout >= 30:
+      logger.warn("The alert warning threshold of {0}s is too large, resetting to {1}s".format(
+        str(self.warning_timeout), str(DEFAULT_WARNING_TIMEOUT)))
+
+      self.warning_timeout = DEFAULT_WARNING_TIMEOUT
+
+
+    # check critical threshold for sanity
+    if self.critical_timeout >= 30:
+      logger.warn("The alert critical threshold of {0}s is too large, resetting to {1}s".format(
+        str(self.critical_timeout), str(DEFAULT_CRITICAL_TIMEOUT)))
+
+      self.critical_timeout = DEFAULT_CRITICAL_TIMEOUT
+
+
   def _collect(self):
     # if not parameterized, this will return the static value
     uri_value = self._lookup_property_value(self.uri)
@@ -75,13 +111,23 @@ class PortAlert(BaseAlert):
     
     try:
       s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-      s.settimeout(1.5)
+      s.settimeout(self.critical_timeout)
 
       t = time.time()
       s.connect((host, port))
-      millis = time.time() - t
+      milliseconds = time.time() - t
+      seconds = milliseconds/1000.0
 
-      return (self.RESULT_OK, [millis/1000, port])
+      # not sure why this happens sometimes, but we don't always get a
+      # socket exception if the connect() is > than the critical threshold
+      if seconds >= self.critical_timeout:
+        return (self.RESULT_CRITICAL, ['Socket Timeout', host, port])
+
+      result = self.RESULT_OK
+      if seconds >= self.warning_timeout:
+        result = self.RESULT_WARNING
+
+      return (result, [seconds, port])
     except Exception as e:
       return (self.RESULT_CRITICAL, [str(e), host, port])
     finally:
@@ -99,7 +145,7 @@ class PortAlert(BaseAlert):
     :param state: the state of the alert in uppercase (such as OK, WARNING, etc)
     :return:  the parameterized text
     '''
-    if state == self.RESULT_OK:
+    if state == self.RESULT_OK or state == self.RESULT_WARNING:
       return 'TCP OK - {0:.4f} response on port {1}'
 
     return 'Connection failed: {0} to {1}:{2}'

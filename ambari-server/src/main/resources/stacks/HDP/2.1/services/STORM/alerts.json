@@ -39,10 +39,15 @@
           "default_port": 8744,
           "reporting": {
             "ok": {
-              "text": "TCP OK - {0:.4f} response on port {1}"
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
             },
             "critical": {
-              "text": "Connection failed: {0} to {1}:{2}"
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
             }
           }
         }
@@ -85,10 +90,15 @@
           "default_port": 6627,
           "reporting": {
             "ok": {
-              "text": "TCP OK - {0:.4f} response on port {1}"
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
             },
             "critical": {
-              "text": "Connection failed: {0} to {1}:{2}"
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
             }
           }
         }
@@ -107,10 +117,15 @@
           "default_port": 3772,
           "reporting": {
             "ok": {
-              "text": "TCP OK - {0:.4f} response on port {1}"
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
             },
             "critical": {
-              "text": "Connection failed: {0} to {1}:{2}"
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
             }
           }
         }
@@ -129,10 +144,15 @@
           "default_port": 8745,
           "reporting": {
             "ok": {
-              "text": "TCP OK - {0:.4f} response on port {1}"
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
             },
             "critical": {
-              "text": "Connection failed: {0} to {1}:{2}"
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
             }
           }
         }
@@ -151,10 +171,15 @@
           "default_port": 56431,
           "reporting": {
             "ok": {
-              "text": "TCP OK - {0:.4f} response on port {1}"
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
             },
             "critical": {
-              "text": "Connection failed: {0} to {1}:{2}"
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
             }
           }
         }

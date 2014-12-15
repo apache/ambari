@@ -57,8 +57,15 @@ class TestAlerts(TestCase):
     self.assertTrue(aps_add_interval_job_mock.called)
     self.assertTrue(aps_start_mock.called)
 
+  @patch('time.time')
+  @patch.object(socket.socket,"connect")
+  def test_port_alert(self, socket_connect_mock, time_mock):
+    # called 3x with 3 calls per alert
+    # - 900ms and then a time.time() for the date from base_alert
+    # - 2000ms and then a time.time() for the date from base_alert
+    # - socket.timeout to simulate a timeout and then a time.time() for the date from base_alert
+    time_mock.side_effect = [0,900,336283200000,0,2000,336283200000,socket.timeout,336283200000]
 
-  def test_port_alert(self):
     json = { "name": "namenode_process",
       "service": "HDFS",
       "component": "NAMENODE",
@@ -75,8 +82,13 @@ class TestAlerts(TestCase):
           "ok": {
             "text": "(Unit Tests) TCP OK - {0:.4f} response time on port {1}"
           },
+          "warning": {
+            "text": "(Unit Tests) TCP WARN - {0:.4f} response time on port {1}",
+            "value": 1.5
+          },
           "critical": {
-            "text": "(Unit Tests) Could not load process info: {0}"
+            "text": "(Unit Tests) Could not load process info: {0}",
+            "value": 5.0
           }
         }
       }
@@ -87,7 +99,24 @@ class TestAlerts(TestCase):
     pa = PortAlert(json, json['source'])
     pa.set_helpers(collector, {'hdfs-site/my-key': 'value1'})
     self.assertEquals(6, pa.interval())
+
+    # 900ms is OK
     pa.collect()
+    alerts = collector.alerts()
+    self.assertEquals(0, len(collector.alerts()))
+    self.assertEquals('OK', alerts[0]['state'])
+
+    # 2000ms is WARNING
+    pa.collect()
+    alerts = collector.alerts()
+    self.assertEquals(0, len(collector.alerts()))
+    self.assertEquals('WARNING', alerts[0]['state'])
+
+    # throws a socket.timeout exception, causes a CRITICAL
+    pa.collect()
+    alerts = collector.alerts()
+    self.assertEquals(0, len(collector.alerts()))
+    self.assertEquals('CRITICAL', alerts[0]['state'])
 
 
   @patch.object(socket.socket,"connect")
@@ -657,7 +686,7 @@ class TestAlerts(TestCase):
     json['source']['type'] = 'PORT'
     alert = PortAlert(json, json['source'])
     self.assertEquals(alert._get_reporting_text(alert.RESULT_OK), 'TCP OK - {0:.4f} response on port {1}')
-    self.assertEquals(alert._get_reporting_text(alert.RESULT_WARNING), 'Connection failed: {0} to {1}:{2}')
+    self.assertEquals(alert._get_reporting_text(alert.RESULT_WARNING), 'TCP OK - {0:.4f} response on port {1}')
     self.assertEquals(alert._get_reporting_text(alert.RESULT_CRITICAL), 'Connection failed: {0} to {1}:{2}')
 
     json['source']['type'] = 'WEB'
