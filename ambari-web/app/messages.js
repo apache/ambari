@@ -221,7 +221,6 @@ Em.I18n.translations = {
   'common.hostLog.popup.outputLog.value': 'output-{0}.txt',
   'common.hostLog.popup.errorLog.value': 'errors-{0}.txt',
   'common.maintenance.task': ' Toggle Maintenance Mode',
-  'common.installRepo.task': ' Install Packages',
   'common.used': 'used',
   'common.free': 'free',
   'common.type.string': 'string',
