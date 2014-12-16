@@ -17,11 +17,15 @@
  */
 package org.apache.ambari.server.state;
 
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -34,17 +38,16 @@ import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
 import org.apache.ambari.server.state.stack.UpgradePack;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
-import org.mockito.Mockito;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Tests the {@link UpgradeHelper} class
@@ -65,8 +68,8 @@ public class UpgradeHelperTest {
     helper = injector.getInstance(OrmTestHelper.class);
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
     ambariMetaInfo.init();
-
-    m_masterHostResolver = mock(MasterHostResolver.class);
+    
+    m_masterHostResolver = EasyMock.createMock(MasterHostResolver.class);
   }
 
   @After
@@ -86,15 +89,12 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
-    HostsType hostsType = new HostsType();
-    hostsType.hosts = cluster.getHosts("HDFS", "NAMENODE");
-    hostsType.master = "h1";
-    hostsType.secondary = "h2";
-    when(m_masterHostResolver.getMasterAndHosts(Mockito.matches("HDFS"), Mockito.matches("NAMENODE"))).thenReturn(hostsType);
-
+    
     UpgradeHelper helper = new UpgradeHelper();
     List<UpgradeGroupHolder> groups = helper.createUpgrade(cluster, m_masterHostResolver, upgrade);
 
+    
+    
     assertEquals(5, groups.size());
 
     assertEquals("PRE_CLUSTER", groups.get(0).name);
@@ -167,8 +167,39 @@ public class UpgradeHelperTest {
     sc.addServiceComponentHost("h1");
     sc.addServiceComponentHost("h3");
 
-    return c;
+    HostsType type = new HostsType();
+    type.hosts = new HashSet<String>(Arrays.asList("h1", "h2", "h3"));
+    expect(m_masterHostResolver.getMasterAndHosts("ZOOKEEPER", "ZOOKEEPER_SERVER")).andReturn(type).anyTimes();
+    
+    type = new HostsType();
+    type.hosts = new HashSet<String>(Arrays.asList("h1", "h2"));
+    type.master = "h1";
+    type.secondary = "h2";
+    expect(m_masterHostResolver.getMasterAndHosts("HDFS", "NAMENODE")).andReturn(type).anyTimes();
+    
+    type = new HostsType();
+    type.hosts = new HashSet<String>(Arrays.asList("h2", "h3"));
+    expect(m_masterHostResolver.getMasterAndHosts("HDFS", "DATANODE")).andReturn(type).anyTimes();
+    
+    type = new HostsType();
+    type.hosts = new HashSet<String>(Arrays.asList("h2"));
+    expect(m_masterHostResolver.getMasterAndHosts("YARN", "RESOURCEMANAGER")).andReturn(type).anyTimes();
 
+    type = new HostsType();
+    type.hosts = new HashSet<String>(Arrays.asList("h1", "h3"));
+    expect(m_masterHostResolver.getMasterAndHosts("YARN", "NODEMANAGER")).andReturn(type).anyTimes();
+    
+    
+    replay(m_masterHostResolver);
+
+    return c;
+  }
+  
+  
+  private static class MockModule extends AbstractModule {
+    protected void configure() {
+      
+    }
   }
 
 }

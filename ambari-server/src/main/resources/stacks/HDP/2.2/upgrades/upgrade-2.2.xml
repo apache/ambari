@@ -31,8 +31,8 @@
 
 <upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <target>2.2.*.*</target>
-  <order>
 
+  <order>
     <group name="ZOOKEEPER" title="Zookeeper">
       <service name="ZOOKEEPER">
         <component>ZOOKEEPER_SERVER</component>
@@ -54,6 +54,7 @@
         <component>APP_TIMELINE_SERVER</component>
         <component>RESOURCEMANAGER</component>
       </service>
+
       <service name="HBASE">
         <component>HBASE_MASTER</component>
       </service>
@@ -63,7 +64,7 @@
       <service name="HDFS">
         <component>DATANODE</component>
       </service>
-
+      
       <service name="HBASE">
         <component>HBASE_REGIONSERVER</component>
       </service>
@@ -78,20 +79,22 @@
       </batch>
     </group>
     
-    <!--
     <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize Upgrade">
+      <!-- 
       <execute-stage title="Confirm Finalize">
         <task xsi:type="manual">
           <message>Please confirm you are ready to finalize</message>
         </task>
       </execute-stage>
+      -->      
       <execute-stage service="HDFS" component="NAMENODE" title="Execute HDFS Finalize">
-        <task xsi:type="execute">
-          <command>ls</command>
+        <task xsi:type="execute" hosts="master">
+          <first>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -rollingUpgrade finalize'</first>
+          <command>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -safemode leave'</command>
         </task>
       </execute-stage>
     </group>
-    -->    
+   
   </order>
   
   
@@ -242,7 +245,7 @@
     <service name="HBASE">
       <component name="HBASE_MASTER">
         <pre-upgrade>
-          <task xsi:type="execute">
+          <task xsi:type="execute" hosts="master">
             <command>su - {{hbase-env/hbase_user}} -c 'echo "snapshot_all" | hbase shell'</command>
           </task>
         </pre-upgrade>

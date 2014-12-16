@@ -19,6 +19,7 @@ package org.apache.ambari.server.state.stack.upgrade;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -31,10 +32,8 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 import org.apache.ambari.server.stack.HostsType;
+import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.UpgradeHelper;
-import org.apache.ambari.server.state.cluster.ClusterImpl;
-import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 
 /**
@@ -73,13 +72,13 @@ public class ClusterGrouping extends Grouping {
   }
 
   public class ClusterBuilder extends StageWrapperBuilder {
-    private Cluster m_cluster = null;
+    private MasterHostResolver m_resolver = null;
 
     /**
      * @param cluster the cluster to use with this builder
      */
     public void setHelpers(Cluster cluster) {
-      m_cluster = cluster;
+      m_resolver = new MasterHostResolver(cluster);
     }
 
     @Override
@@ -101,15 +100,28 @@ public class ClusterGrouping extends Grouping {
         StageWrapper wrapper = null;
 
         if (null != execution.service && null != execution.component) {
-          Set<String> hosts = m_cluster.getHosts(execution.service, execution.component);
+
+          HostsType hosts = m_resolver.getMasterAndHosts(execution.service, execution.component);
+
+          if (null == hosts) {
+            continue;
+          }
+
+          Set<String> realHosts = new LinkedHashSet<String>(hosts.hosts);
+
           // !!! FIXME other types
-          if (hosts.size() > 0 && task.getType() == Task.Type.EXECUTE) {
+          if (task.getType() == Task.Type.EXECUTE) {
+            ExecuteTask et = (ExecuteTask) task;
+
+            if (null != et.hosts && "master".equals(et.hosts) && null != hosts.master) {
+              realHosts = Collections.singleton(hosts.master);
+            }
+
             wrapper = new StageWrapper(
                 StageWrapper.Type.RU_TASKS,
                 execution.title,
-                new TaskWrapper(execution.service, execution.component, hosts, task));
+                new TaskWrapper(execution.service, execution.component, realHosts, task));
           }
-
         } else {
           switch (task.getType()) {
             case MANUAL:

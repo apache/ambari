@@ -130,7 +130,7 @@ public class ColocatedGrouping extends Grouping {
         LOG.debug("RU initial: {}", initialBatch);
         LOG.debug("RU final: {}", finalBatches);
       }
-
+      
       results.addAll(fromProxies(initialBatch));
 
       // !!! TODO when manual tasks are ready
@@ -157,7 +157,7 @@ public class ColocatedGrouping extends Grouping {
 
         // !!! stage per host, per type
         StageWrapper wrapper = null;
-        StageWrapper execwrapper = null;
+        List<StageWrapper> execwrappers = new ArrayList<StageWrapper>();
 
         for (TaskProxy t : entry.getValue()) {
           serviceChecks.add(t.service);
@@ -167,19 +167,18 @@ public class ColocatedGrouping extends Grouping {
               wrapper = new StageWrapper(StageWrapper.Type.RU_TASKS, t.message, t.getTasksArray());
             }
           } else {
-            if (null == execwrapper) {
-              execwrapper = new StageWrapper(StageWrapper.Type.RESTART, t.message, t.getTasksArray());
-            }
+            execwrappers.add(new StageWrapper(StageWrapper.Type.RESTART, t.message, t.getTasksArray()));
           }
         }
 
         if (null != wrapper) {
           results.add(wrapper);
         }
-
-        if (null != execwrapper) {
-          results.add(execwrapper);
+        
+        if (execwrappers.size() > 0) {
+          results.addAll(execwrappers);
         }
+
       }
 
       if (serviceChecks.size() > 0) {

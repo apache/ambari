@@ -100,19 +100,17 @@ public class UpgradeHelper {
             continue;
           }
 
-          Set<String> componentHosts = cluster.getHosts(service.serviceName, component);
-          if (0 == componentHosts.size()) {
+          HostsType hostsType = mhr.getMasterAndHosts(service.serviceName, component);
+          if (null == hostsType) {
             continue;
           }
-          HostsType hostsType = new HostsType();
-          hostsType.hosts = componentHosts;
-
+          
           ProcessingComponent pc = allTasks.get(service.serviceName).get(component);
-
+          
           // Special case for NAMENODE
           if (service.serviceName.equalsIgnoreCase("HDFS") && component.equalsIgnoreCase("NAMENODE")) {
-            hostsType = mhr.getMasterAndHosts(service.serviceName, component);
-            if (hostsType != null && hostsType.master != null && componentHosts.contains(hostsType.master) && hostsType.secondary != null && componentHosts.contains(hostsType.secondary)) {
+            // !!! revisit if needed
+            if (hostsType.master != null && hostsType.secondary != null) {
               // The order is important, first do the standby, then the active namenode.
               Set<String> order = new LinkedHashSet<String>();
 
@@ -122,15 +120,14 @@ public class UpgradeHelper {
 
               // Override the hosts with the ordered collection
               hostsType.hosts = order;
-              builder.add(hostsType, service.serviceName, pc);
+              
             } else {
-              throw new AmbariException(MessageFormat.format("Could not find active and standby namenodes using hosts: {0}", StringUtils.join(componentHosts, ", ").toString()));
+//              throw new AmbariException(MessageFormat.format("Could not find active and standby namenodes using hosts: {0}", StringUtils.join(hostsType.hosts, ", ").toString()));
             }
-          }
-          /*
-          TODO Rolling Upgrade, write logic for HBASE
-          */
-          else {
+            
+            builder.add(hostsType, service.serviceName, pc);
+            
+          } else {
             builder.add(hostsType, service.serviceName, pc);
           }
         }
