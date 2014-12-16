@@ -485,6 +485,9 @@ App.format = {
     if (result === ' Nagios Update Ignore Actionexecute') {
        result = Em.I18n.t('common.maintenance.task');
     }
+    if (result.indexOf('Install Packages Actionexecute') != -1) {
+      result = Em.I18n.t('common.installRepo.task');
+    }
     if (result === ' Rebalancehdfs NameNode') {
        result = Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes.title');
     }
