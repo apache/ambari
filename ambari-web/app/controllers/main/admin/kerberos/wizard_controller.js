@@ -67,6 +67,35 @@ App.KerberosWizardController = App.WizardController.extend({
   },
 
   /**
+   *  Gets the
+   * @returns {*} jquery promise
+   */
+  getClusterEnvData: function () {
+    var dfd = $.Deferred();
+    var self = this;
+    var siteName = 'cluster-env';
+    var tags = [{siteName: siteName}];
+    App.router.get('configurationController').getConfigsByTags(tags).done(function (data) {
+      var properties = self.updateClusterEnvData(data[0].properties);
+      var clusterConfig = {"type": siteName, "tag": 'version' + (new Date).getTime(), "properties": properties};
+      var clusterConfigData = {
+        Clusters: {
+          desired_config: clusterConfig
+        }
+      };
+      dfd.resolve(clusterConfigData);
+    });
+    return dfd;
+  },
+
+  updateClusterEnvData: function (configs) {
+    var kerberosDescriptor = this.get('content.kerberosDescriptorConfigs');
+    configs['security_enabled'] = true;
+    configs['kerberos_domain'] = kerberosDescriptor.properties.realm;
+    return configs;
+  },
+
+  /**
    * save status of the cluster.
    * @param clusterStatus object with status,requestId fields.
    */
