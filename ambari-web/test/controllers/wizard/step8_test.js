@@ -1308,14 +1308,25 @@ describe('App.WizardStep8Controller', function () {
         installerStep8Controller.registerHostsToComponent.restore();
       });
 
-      it('should add GANGLIA MONITOR (1)', function() {
+      it('should add components with isRequiredOnAllHosts == true (1)', function() {
         installerStep8Controller.reopen({
           getRegisteredHosts: function() {
             return [{hostName: 'h1'}, {hostName: 'h2'}];
           },
           content: {
             services: [
-              Em.Object.create({serviceName: 'GANGLIA', isSelected: true, isInstalled: false})
+              Em.Object.create({
+                serviceName: 'GANGLIA', isSelected: true, isInstalled: false, serviceComponents: [
+                  Em.Object.create({
+                    componentName: 'GANGLIA_MONITOR',
+                    isRequiredOnAllHosts: true
+                  }),
+                  Em.Object.create({
+                    componentName: 'GANGLIA_SERVER',
+                    isRequiredOnAllHosts: false
+                  })
+                ]
+              })
             ]
           }
         });
@@ -1325,14 +1336,25 @@ describe('App.WizardStep8Controller', function () {
         expect(installerStep8Controller.registerHostsToComponent.args[0][1]).to.equal('GANGLIA_MONITOR');
       });
 
-      it('should add GANGLIA MONITOR (2)', function() {
+      it('should add components with isRequiredOnAllHosts == true (2)', function() {
         installerStep8Controller.reopen({
           getRegisteredHosts: function() {
             return [{hostName: 'h1', isInstalled: true}, {hostName: 'h2', isInstalled: false}];
           },
           content: {
             services: [
-              Em.Object.create({serviceName: 'GANGLIA', isSelected: true, isInstalled: true})
+              Em.Object.create({
+                serviceName: 'GANGLIA', isSelected: true, isInstalled: true, serviceComponents: [
+                  Em.Object.create({
+                    componentName: 'GANGLIA_MONITOR',
+                    isRequiredOnAllHosts: true
+                  }),
+                  Em.Object.create({
+                    componentName: 'GANGLIA_SERVER',
+                    isRequiredOnAllHosts: false
+                  })
+                ]
+              })
             ]
           }
         });
@@ -1348,7 +1370,7 @@ describe('App.WizardStep8Controller', function () {
         },
         {name: 'New PostgreSQL Database',
           component: 'POSTGRESQL_SERVER'
-        },
+        }
       ];
 
       newDatabases.forEach(function (db) {
@@ -1363,7 +1385,7 @@ describe('App.WizardStep8Controller', function () {
                 {component: 'HIVE_SERVER', hostName: 'h2'}
               ],
               services: [
-                Em.Object.create({serviceName: 'HIVE', isSelected: true, isInstalled: false})
+                Em.Object.create({serviceName: 'HIVE', isSelected: true, isInstalled: false, serviceComponents: []})
               ],
               serviceConfigProperties: [
                 {name: 'hive_database', value: db.name}

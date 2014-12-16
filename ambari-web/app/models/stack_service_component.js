@@ -116,9 +116,9 @@ App.StackServiceComponent = DS.Model.extend({
   /** @property {Boolean} isShownOnInstallerSlaveClientPage - component visible on "Assign Slaves and Clients" step of Install Wizard**/
   isShownOnInstallerSlaveClientPage: function() {
     var component = this.get('componentName');
-    var slavesNotShown = ['JOURNALNODE','ZKFC','APP_TIMELINE_SERVER','GANGLIA_MONITOR'];
-    return this.get('isSlave') && !slavesNotShown.contains(component);
-  }.property('isSlave','componentName'),
+    var slavesNotShown = ['JOURNALNODE','ZKFC','APP_TIMELINE_SERVER'];
+    return this.get('isSlave') && !this.get('isRequiredOnAllHosts') && !slavesNotShown.contains(component);
+  }.property('isSlave','componentName', 'isRequiredOnAllHosts'),
 
   /** @property {Boolean} isShownOnAddServiceAssignMasterPage - component visible on "Assign Masters" step of Add Service Wizard **/
   isShownOnAddServiceAssignMasterPage: function() {
@@ -145,16 +145,6 @@ App.StackServiceComponent = DS.Model.extend({
    **/
   isMasterAddableInstallerWizard: function() {
     return this.get('isMaster') && this.get('isMultipleAllowed') && this.get('maxToInstall') > 2;
-  }.property('componentName'),
-
-
-  /** @property {Boolean} isClientBehavior - Some non client components can be assigned as clients.
-   *
-   * Used for ignoring such components as Ganglia Monitor on Installer "Review" step.
-   **/
-  isClientBehavior: function() {
-    var componentName = ['GANGLIA_MONITOR'];
-    return componentName.contains(this.get('componentName'));
   }.property('componentName'),
 
   /** @property {Boolean} isHAComponentOnly - Components that can be installed only if HA enabled **/

@@ -734,7 +734,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       });
       service.get('serviceComponents').forEach(function (component) {
         // show clients for services that have only clients components
-        if ((component.get('isClient') || component.get('isClientBehavior')) && !service.get('isClientOnlyService')) return;
+        if ((component.get('isClient') || component.get('isRequiredOnAllHosts')) && !service.get('isClientOnlyService')) return;
         // skip components that was hide on assign master page
         if (component.get('isMaster') && !component.get('isShownOnInstallerAssignMasterPage')) return;
         // no HA component
@@ -1409,18 +1409,21 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    */
   createAdditionalHostComponents: function () {
     var masterHosts = this.get('content.masterComponentHosts');
+
+    // add all components with cardinality == ALL of selected services
+    var registeredHosts = this.getRegisteredHosts();
+    var notInstalledHosts = registeredHosts.filterProperty('isInstalled', false);
+    this.get('content.services').filterProperty('isSelected').forEach(function (service) {
+      service.get('serviceComponents').filterProperty('isRequiredOnAllHosts').forEach(function (component) {
+        if (service.get('isInstalled') && notInstalledHosts.length) {
+          this.registerHostsToComponent(notInstalledHosts.mapProperty('hostName'), component.get('componentName'));
+        } else if (!service.get('isInstalled') && registeredHosts.length) {
+          this.registerHostsToComponent(registeredHosts.mapProperty('hostName'), component.get('componentName'));
+        }
+      }, this);
+    }, this);
+
     // add MySQL Server if Hive is selected
-    // add Ganglia Monitor (Slave) to all hosts if Ganglia service is selected
-    var gangliaService = this.get('content.services').filterProperty('isSelected').findProperty('serviceName', 'GANGLIA');
-    if (gangliaService) {
-      var hosts = this.getRegisteredHosts();
-      if (gangliaService.get('isInstalled')) {
-        hosts = hosts.filterProperty('isInstalled', false);
-      }
-      if (hosts.length) {
-        this.registerHostsToComponent(hosts.mapProperty('hostName'), 'GANGLIA_MONITOR');
-      }
-    }
     var hiveService = this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false).findProperty('serviceName', 'HIVE');
     if (hiveService) {
       var hiveDb = this.get('content.serviceConfigProperties').findProperty('name', 'hive_database');
