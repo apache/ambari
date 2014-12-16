@@ -77,6 +77,7 @@ import org.apache.ambari.server.state.alert.MetricSource;
 import org.apache.ambari.server.state.alert.PortSource;
 import org.apache.ambari.server.state.alert.Reporting;
 import org.apache.ambari.server.state.alert.Source;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.commons.io.FileUtils;
@@ -1727,13 +1728,35 @@ public class AmbariMetaInfoTest {
     Assert.assertNotNull(service);
     Assert.assertNotNull(service.getKerberosDescriptorFile());
 
-
     // Test that kerberos.json file can be parsed into mapped data
     Map<?,?> kerberosDescriptorData = new Gson()
         .fromJson(new FileReader(service.getKerberosDescriptorFile()), Map.class);
 
     Assert.assertNotNull(kerberosDescriptorData);
-    Assert.assertEquals(2, kerberosDescriptorData.size());
+    Assert.assertEquals(1, kerberosDescriptorData.size());
+  }
+
+  @Test
+  public void testGetKerberosDescriptor() throws AmbariException {
+    KerberosDescriptor descriptor = metaInfo.getKerberosDescriptor(STACK_NAME_HDP, "2.0.8");
+
+    Assert.assertNotNull(descriptor);
+    Assert.assertNotNull(descriptor.getProperties());
+    Assert.assertEquals(2, descriptor.getProperties().size());
+
+    Assert.assertNotNull(descriptor.getIdentities());
+    Assert.assertEquals(1, descriptor.getIdentities().size());
+    Assert.assertEquals("spnego", descriptor.getIdentities().get(0).getName());
+
+    Assert.assertNotNull(descriptor.getConfigurations());
+    Assert.assertEquals(1, descriptor.getConfigurations().size());
+    Assert.assertNotNull(descriptor.getConfigurations().get("core-site"));
+    Assert.assertNotNull(descriptor.getConfiguration("core-site"));
+
+    Assert.assertNotNull(descriptor.getServices());
+    Assert.assertEquals(1, descriptor.getServices().size());
+    Assert.assertNotNull(descriptor.getServices().get("HDFS"));
+    Assert.assertNotNull(descriptor.getService("HDFS"));
   }
 
 

@@ -21,6 +21,7 @@ package org.apache.ambari.server.api.services;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -65,6 +66,8 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.UpgradePack;
@@ -1003,5 +1006,91 @@ public class AmbariMetaInfo {
     }
 
     return Collections.emptyMap();
+  }
+
+  /**
+   * Gets the fully compiled Kerberos descriptor for the relevant stack and version.
+   * <p/>
+   * All of the kerberos.json files from the specified stack (and version) are read, parsed and
+   * complied into a complete Kerberos descriptor hierarchy.
+   *
+   * @param stackName    a String declaring the stack name
+   * @param stackVersion a String declaring the stack version
+   * @return a new complete KerberosDescriptor, or null if no Kerberos descriptor information is available
+   * @throws AmbariException if an error occurs reading or parsing the stack's kerberos.json files
+   */
+  public KerberosDescriptor getKerberosDescriptor(String stackName, String stackVersion) throws AmbariException {
+    StackInfo stackInfo = getStack(stackName, stackVersion);
+
+    String kerberosDescriptorFileLocation = stackInfo.getKerberosDescriptorFileLocation();
+
+    KerberosDescriptor kerberosDescriptor = null;
+
+    // Read in the stack-level Kerberos descriptor
+    if (kerberosDescriptorFileLocation != null) {
+      File file = new File(kerberosDescriptorFileLocation);
+
+      if (file.canRead()) {
+        try {
+          kerberosDescriptor = KerberosDescriptor.fromFile(file);
+        } catch (IOException e) {
+          throw new AmbariException(String.format("Failed to parse kerberos descriptor file %s",
+              file.getAbsolutePath()), e);
+        }
+      }
+      else
+        throw new AmbariException(String.format("Unable to read kerberos descriptor file %s",
+            file.getAbsolutePath()));
+    }
+
+    if (kerberosDescriptor == null) {
+      kerberosDescriptor = new KerberosDescriptor();
+    }
+
+    // Read in the service-level Kerberos descriptors
+    Map<String, ServiceInfo> services = getServices(stackName, stackVersion);
+
+    if (services != null) {
+      for (ServiceInfo service : services.values()) {
+        KerberosServiceDescriptor[] serviceDescriptors = getKerberosDescriptor(service);
+
+        if (serviceDescriptors != null) {
+          for (KerberosServiceDescriptor serviceDescriptor : serviceDescriptors) {
+            kerberosDescriptor.putService(serviceDescriptor);
+          }
+        }
+      }
+    }
+
+    return kerberosDescriptor;
+  }
+
+  /**
+   * Gets the requested service-level Kerberos descriptor(s)
+   * <p/>
+   * An array of descriptors are returned since the kerberos.json in a service directory may contain
+   * descriptor details for one or more services.
+   *
+   * @param serviceInfo a ServiceInfo declaring the stack name, version, a service (directory) name
+   *                    details
+   * @return an array of KerberosServiceDescriptors, or null if the relevant service (directory)
+   * does not contain Kerberos descriptor details
+   * @throws AmbariException if an error occurs reading or parsing the service's kerberos.json files
+   */
+  public KerberosServiceDescriptor[] getKerberosDescriptor(ServiceInfo serviceInfo) throws AmbariException {
+
+    KerberosServiceDescriptor[] kerberosServiceDescriptors = null;
+    File kerberosFile = (serviceInfo == null) ? null : serviceInfo.getKerberosDescriptorFile();
+
+    if (kerberosFile != null) {
+      try {
+        kerberosServiceDescriptors = KerberosServiceDescriptor.fromFile(kerberosFile);
+      } catch (Exception e) {
+        LOG.error("Could not read the kerberos descriptor file", e);
+        throw new AmbariException("Could not read kerberos descriptor file", e);
+      }
+    }
+
+    return kerberosServiceDescriptors;
   }
 }
