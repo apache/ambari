@@ -275,6 +275,18 @@
             </organization>
         </developer>
         <developer>
+            <id>fbarca</id>
+            <name>Florian Barca</name>
+            <email>fbarca@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>hitesh</id>
             <name>Hitesh Shah</name>
             <email>hitesh@apache.org</email>
@@ -333,6 +345,18 @@
             <organization>
                 Hortonworks                
             </organization>            
+        </developer>
+        <developer>
+            <id>jluniya</id>
+            <name>Jayush Luniya</name>
+            <email>jluniya@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
         </developer>
         <developer>
             <id>jonathanhurley</id>
@@ -520,7 +544,7 @@
             <email>sposetti@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
