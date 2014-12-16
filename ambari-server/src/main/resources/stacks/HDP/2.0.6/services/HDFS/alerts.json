@@ -109,7 +109,7 @@
       {
         "name": "namenode_cpu",
         "label": "NameNode Host CPU Utilization",
-        "description": "This host-level alert is triggered if CPU utilization of the NameNode exceeds certain warning and critical thresholds. It checks the NameNode JMX Servlet for the SystemCPULoad property.",
+        "description": "This host-level alert is triggered if CPU utilization of the NameNode exceeds certain warning and critical thresholds. It checks the NameNode JMX Servlet for the SystemCPULoad property. The threshold values are in percent.",
         "interval": 5,
         "scope": "ANY",
         "enabled": true,
@@ -132,7 +132,8 @@
             "critical": {
               "text": "{1} CPU, load {0:.1%}",
               "value": 250
-            }
+            },
+            "units" : "%"
           },
           "jmx": {
             "property_list": [
@@ -146,7 +147,7 @@
       {
         "name": "namenode_hdfs_blocks_health",
         "label": "NameNode Blocks Health",
-        "description": "This service-level alert is triggered if the number of corrupt or missing blocks exceeds the configured critical threshold.",
+        "description": "This service-level alert is triggered if the number of corrupt or missing blocks exceeds the configured critical threshold. The threshold values are in blocks.",
         "interval": 2,
         "scope": "ANY",
         "enabled": true,
@@ -169,7 +170,8 @@
             "critical": {
               "text": "Total Blocks:[{1}], Missing Blocks:[{0}]",
               "value": 1
-            }
+            },
+            "units" : "Blocks"
           },
           "jmx": {
             "property_list": [
@@ -183,7 +185,7 @@
       {
         "name": "namenode_hdfs_capacity_utilization",
         "label": "HDFS Capacity Utilization",
-        "description": "This service-level alert is triggered if the HDFS capacity utilization exceeds the configured warning and critical thresholds. It checks the NameNode JMX Servlet for the CapacityUsed and CapacityRemaining properties.",
+        "description": "This service-level alert is triggered if the HDFS capacity utilization exceeds the configured warning and critical thresholds. It checks the NameNode JMX Servlet for the CapacityUsed and CapacityRemaining properties. The threshold values are in percent.",
         "interval": 2,
         "scope": "ANY",
         "enabled": true,
@@ -206,7 +208,8 @@
             "critical": {
               "text": "Capacity Used:[{2:d}%, {0}], Capacity Remaining:[{1}]",
               "value": 90
-            }
+            },
+            "units" : "%"
           },
           "jmx": {
             "property_list": [
@@ -220,7 +223,7 @@
       {
         "name": "namenode_rpc_latency",
         "label": "NameNode RPC Latency",
-        "description": "This host-level alert is triggered if the NameNode RPC latency exceeds the configured critical threshold. Typically an increase in the RPC processing time increases the RPC queue length, causing the average queue wait time to increase for NameNode operations.",
+        "description": "This host-level alert is triggered if the NameNode RPC latency exceeds the configured critical threshold. Typically an increase in the RPC processing time increases the RPC queue length, causing the average queue wait time to increase for NameNode operations. The threshold values are in milliseconds.",
         "interval": 2,
         "scope": "ANY",
         "enabled": true,
@@ -243,7 +246,8 @@
             "critical": {
               "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]",
               "value": 5000
-            }
+            },
+            "units" : "ms"
           },
           "jmx": {
             "property_list": [
@@ -257,7 +261,7 @@
       {
         "name": "namenode_directory_status",
         "label": "NameNode Directory Status",
-        "description": "This host-level alert is triggered if any of the the NameNode's NameDirStatuses metric reports a failed directory.",
+        "description": "This host-level alert is triggered if any of the the NameNode's NameDirStatuses metric reports a failed directory. The threshold values are in the number of directories that are not healthy",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,
@@ -280,7 +284,8 @@
             "critical": {
               "text": "Failed directory count: {1}",
               "value": 1
-            }
+            },
+            "units" : "Dirs"
           },
           "jmx": {
             "property_list": [
@@ -456,7 +461,7 @@
       {
         "name": "datanode_storage",
         "label": "DataNode Storage",
-        "description": "This host-level alert is triggered if storage capacity if full on the DataNode. It checks the DataNode JMX Servlet for the Capacity and Remaining properties.",
+        "description": "This host-level alert is triggered if storage capacity if full on the DataNode. It checks the DataNode JMX Servlet for the Capacity and Remaining properties. The threshold values are in percent.",
         "interval": 2,
         "scope": "HOST",
         "enabled": true,
@@ -479,7 +484,8 @@
             "critical": {
               "text": "Remaining Capacity:[{0}], Total Capacity:[{2:d}% Used, {1}]",
               "value": 90
-            }
+            },
+            "units" : "%"
           },
           "jmx": {
             "property_list": [

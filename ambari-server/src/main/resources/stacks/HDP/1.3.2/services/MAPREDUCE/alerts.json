@@ -56,7 +56,7 @@
       {
         "name": "mapreduce_jobtracker_cpu",
         "label": "JobTracker Host CPU Utilization",
-        "description": "This host-level alert is triggered if the percent of CPU utilization on the JobTracker exceeds the configured critical threshold.",
+        "description": "This host-level alert is triggered if the percent of CPU utilization on the JobTracker exceeds the configured critical threshold. The threshold values are in percent.",
         "interval": 5,
         "scope": "ANY",
         "enabled": true,
@@ -76,7 +76,8 @@
             "critical": {
               "text": "{1} CPU, load {0:.1%}",
               "value": 250
-            }
+            },
+            "units" : "%"
           },
           "jmx": {
             "property_list": [
@@ -90,7 +91,7 @@
       {
         "name": "mapreduce_jobtracker_rpc_latency",
         "label": "JobTracker RPC Latency",
-        "description": "This host-level alert is triggered if the JobTracker operations RPC latency exceeds the configured critical threshold. Typically an increase in the RPC processing time increases the RPC queue length, causing the average queue wait time to increase for operations.",
+        "description": "This host-level alert is triggered if the JobTracker operations RPC latency exceeds the configured critical threshold. Typically an increase in the RPC processing time increases the RPC queue length, causing the average queue wait time to increase for operations. The threshold values are in milliseconds.",
         "interval": 2,
         "scope": "ANY",
         "enabled": true,
@@ -110,7 +111,8 @@
             "critical": {
               "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]",
               "value": 5000
-            }
+            },
+            "units" : "ms"
           },
           "jmx": {
             "property_list": [

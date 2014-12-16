@@ -102,7 +102,8 @@
             "critical": {
               "text": "{1} CPU, load {0:.1%}",
               "value": 250
-            }
+            },
+            "units" : "%"
           },
           "jmx": {
             "property_list": [

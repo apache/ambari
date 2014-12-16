@@ -32,7 +32,7 @@
       {
         "name": "mapreduce_history_server_cpu",
         "label": "History Server CPU Utilization",
-        "description": "This host-level alert is triggered if the percent of CPU utilization on the History Server exceeds the configured critical threshold.",
+        "description": "This host-level alert is triggered if the percent of CPU utilization on the History Server exceeds the configured critical threshold. The threshold values are in percent.",
         "interval": 5,
         "scope": "ANY",
         "enabled": true,
@@ -55,7 +55,8 @@
             "critical": {
               "text": "{1} CPU, load {0:.1%}",
               "value": 250
-            }
+            },
+            "units" : "%"
           },
           "jmx": {
             "property_list": [
@@ -69,7 +70,7 @@
       {
         "name": "mapreduce_history_server_rpc_latency",
         "label": "History Server RPC Latency",
-        "description": "This host-level alert is triggered if the History Server operations RPC latency exceeds the configured critical threshold. Typically an increase in the RPC processing time increases the RPC queue length, causing the average queue wait time to increase for operations.",
+        "description": "This host-level alert is triggered if the History Server operations RPC latency exceeds the configured critical threshold. Typically an increase in the RPC processing time increases the RPC queue length, causing the average queue wait time to increase for operations. The threshold values are in milliseconds.",
         "interval": 5,
         "scope": "ANY",
         "enabled": true,
@@ -92,7 +93,8 @@
             "critical": {
               "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]",
               "value": 5000
-            }
+            },
+            "units" : "ms"
           },
           "jmx": {
             "property_list": [
@@ -232,7 +234,7 @@
       {
         "name": "yarn_resourcemanager_cpu",
         "label": "ResourceManager CPU Utilization",
-        "description": "This host-level alert is triggered if CPU utilization of the ResourceManager exceeds certain warning and critical thresholds. It checks the ResourceManager JMX Servlet for the SystemCPULoad property.",
+        "description": "This host-level alert is triggered if CPU utilization of the ResourceManager exceeds certain warning and critical thresholds. It checks the ResourceManager JMX Servlet for the SystemCPULoad property. The threshold values are in percent.",
         "interval": 5,
         "scope": "ANY",
         "enabled": true,
@@ -255,7 +257,8 @@
             "critical": {
               "text": "{1} CPU, load {0:.1%}",
               "value": 250
-            }
+            },
+            "units" : "%"
           },
           "jmx": {
             "property_list": [
@@ -269,7 +272,7 @@
       {
         "name": "yarn_resourcemanager_rpc_latency",
         "label": "ResourceManager RPC Latency",
-        "description": "This host-level alert is triggered if the ResourceManager operations RPC latency exceeds the configured critical threshold. Typically an increase in the RPC processing time increases the RPC queue length, causing the average queue wait time to increase for ResourceManager operations.",
+        "description": "This host-level alert is triggered if the ResourceManager operations RPC latency exceeds the configured critical threshold. Typically an increase in the RPC processing time increases the RPC queue length, causing the average queue wait time to increase for ResourceManager operations. The threshold values are in milliseconds.",
         "interval": 5,
         "scope": "ANY",
         "enabled": true,
@@ -292,7 +295,8 @@
             "critical": {
               "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]",
               "value": 5000
-            }
+            },
+            "units" : "ms"
           },
           "jmx": {
             "property_list": [

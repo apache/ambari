@@ -47,6 +47,13 @@ public class Reporting {
   private ReportTemplate m_critical;
 
   /**
+   * A label that identifies what units the value is in. For example, this could
+   * be "s" for seconds or GB for "Gigabytes".
+   */
+  @SerializedName("units")
+  private String m_units;
+
+  /**
    * @return the WARNING structure or {@code null} if none.
    */
   public ReportTemplate getWarning() {
@@ -89,6 +96,27 @@ public class Reporting {
    */
   public void setOk(ReportTemplate ok) {
     m_ok = ok;
+  }
+
+  /**
+   * Gets a label identifying the units that the values are in. For example,
+   * this could be "s" for seconds or GB for "Gigabytes".
+   *
+   * @return the units, or {@code null} for none.
+   */
+  public String getUnits() {
+    return m_units;
+  }
+
+  /**
+   * Sets the label that identifies the units that the threshold values are in.
+   * For example, this could be "s" for seconds or GB for "Gigabytes".
+   *
+   * @param units
+   *          the units, or {@code null} for none.
+   */
+  public void setUnits(String units) {
+    m_units = units;
   }
 
   /**

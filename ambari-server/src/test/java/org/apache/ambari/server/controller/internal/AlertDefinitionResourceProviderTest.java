@@ -350,7 +350,7 @@ public class AlertDefinitionResourceProviderTest {
         source.getReporting().getWarning().getText());
     requestProps.put("AlertDefinition/source/reporting/warning/value",
         source.getReporting().getWarning().getValue());
-
+    requestProps.put("AlertDefinition/source/reporting/units", "Gigabytes");
 
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
     provider.createResources(request);
@@ -387,6 +387,8 @@ public class AlertDefinitionResourceProviderTest {
 
     assertEquals(source.getReporting().getCritical().getText(),
         actualSource.getReporting().getCritical().getText());
+
+    assertEquals("Gigabytes", actualSource.getReporting().getUnits());
 
     Assert.assertNotNull(source.getUri().getHttpUri());
     Assert.assertNotNull(source.getUri().getHttpsUri());
