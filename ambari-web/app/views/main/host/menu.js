@@ -40,23 +40,16 @@ App.MainHostMenuView = Em.CollectionView.extend({
       routing: 'alerts',
       badgeText: '0',
       badgeClasses: 'label'
+    }),
+    Em.Object.create({
+      name: 'versions',
+      label: Em.I18n.t('hosts.host.menu.stackVersions'),
+      routing: 'stackVersions',
+      hidden: function() {
+        return !App.get('supports.stackUpgrade')
+      }.property('App.get.supports.stackUpgrade')
     })
   ],
-
-  /**
-   * Add conditional menu options
-   */
-  setConditionalOptions: function () {
-    if (App.get('supports.stackUpgrade')) {
-      this.get('content').push(
-          Em.Object.create({
-            name: 'versions',
-            label: Em.I18n.t('hosts.host.menu.stackVersions'),
-            routing: 'stackVersions'
-          })
-      );
-    }
-  },
 
   /**
    * Update Alerts menu option counter text and class
@@ -79,7 +72,6 @@ App.MainHostMenuView = Em.CollectionView.extend({
 
   init: function () {
     this._super();
-    this.setConditionalOptions();
     this.updateAlertCounter();
     this.activateView();
   },
@@ -100,10 +92,10 @@ App.MainHostMenuView = Em.CollectionView.extend({
   itemViewClass: Em.View.extend({
     classNameBindings: ["active"],
     active: "",
-    template: Ember.Handlebars.compile('<a {{action hostNavigate view.content.routing }} href="#"> {{unbound view.content.label}} ' +
+    template: Ember.Handlebars.compile('{{#unless view.content.hidden}}<a {{action hostNavigate view.content.routing }} href="#"> {{unbound view.content.label}} ' +
     '{{#if view.content.badgeText}} ' +
     '<span {{bindAttr class="view.content.badgeClasses"}}> ' +
     '{{view.content.badgeText}}' +
-    '</span>  {{/if}}</a>')
+    '</span>  {{/if}}</a>{{/unless}}')
   })
 });
