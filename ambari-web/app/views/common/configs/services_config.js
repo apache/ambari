@@ -801,6 +801,10 @@ App.ServiceConfigContainerView = Em.ContainerView.extend({
       }
       var categoriesToPush = [];
       this.get('controller.selectedService.configCategories').forEach(function (item) {
+
+        // stack 1.3 doesn't need customView
+        if (!App.get('isHadoop2Stack') && item.get('isCustomView')) return;
+
         var categoryView = item.get('isCustomView') ? item.get('customView') : App.ServiceConfigsByCategoryView;
         if (categoryView !== null) {
           categoriesToPush.pushObject(categoryView.extend({

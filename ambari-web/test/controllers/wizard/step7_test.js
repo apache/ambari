@@ -1107,6 +1107,7 @@ describe('App.InstallerStep7Controller', function () {
       });
     });
   });
+
   describe('#_updateValueForCheckBoxConfig', function () {
     Em.A([
         {

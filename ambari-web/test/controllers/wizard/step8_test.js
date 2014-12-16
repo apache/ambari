@@ -905,7 +905,6 @@ describe('App.WizardStep8Controller', function () {
     });
   });
 
-
   describe('#createStormSiteObj', function() {
     it('should replace quote \'"\' to "\'" for some properties', function() {
       var configs = [
@@ -1056,10 +1055,6 @@ describe('App.WizardStep8Controller', function () {
       installerStep8Controller.addDynamicProperties(configs);
       expect(configs.length).to.equal(1);
     });
-  });
-
-  describe('#formatProperties', function() {
-
   });
 
   describe('#applyInstalledServicesConfigurationGroup', function() {
@@ -1297,7 +1292,6 @@ describe('App.WizardStep8Controller', function () {
 
     });
 
-
     describe('#createAdditionalHostComponents', function() {
 
       beforeEach(function() {
@@ -1402,6 +1396,39 @@ describe('App.WizardStep8Controller', function () {
 
     });
 
+    describe('#createNotification', function () {
+
+      beforeEach(function () {
+        installerStep8Controller.set('content', {controllerName: 'installerController'});
+        installerStep8Controller.set('ajaxRequestsQueue', App.ajaxQueue.create());
+        installerStep8Controller.set('configs', [
+          {name: 'create_notification', value: 'yes', serviceName: 'MISC'},
+          {name: 'ambari.dispatch.recipients', value: 'to@f.c', serviceName: 'MISC'},
+          {name: 'mail.smtp.host', value: 'h', serviceName: 'MISC'},
+          {name: 'mail.smtp.port', value: '25', serviceName: 'MISC'},
+          {name: 'mail.smtp.from', value: 'from@f.c', serviceName: 'MISC'},
+          {name: 'mail.smtp.starttls.enable', value: true, serviceName: 'MISC'},
+          {name: 'mail.smtp.startssl.enable', value: false, serviceName: 'MISC'},
+          {name: 'smtp_use_auth', value: 'false', serviceName: 'MISC'},
+        ]);
+        sinon.stub(App, 'get', function (k) {
+          if ('isHadoop2Stack' === k) return true;
+          return Em.get(App, k);
+        });
+      });
+
+      afterEach(function () {
+        App.get.restore();
+      });
+
+      it('should add request to queue', function () {
+
+        installerStep8Controller.createNotification();
+        expect(installerStep8Controller.get('ajaxRequestsQueue.queue.length')).to.equal(1);
+
+      });
+
+    });
 
   });
 

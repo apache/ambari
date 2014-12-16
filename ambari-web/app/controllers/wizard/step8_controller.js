@@ -1827,11 +1827,11 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
 
   /**
    * Create one Alert Notification (if user select this on step7)
-   * Only for Install Wizard!
+   * Only for Install Wizard and stack >= 2!
    * @method createNotification
    */
   createNotification: function () {
-    if (this.get('content.controllerName') !== 'installerController') return;
+    if (this.get('content.controllerName') !== 'installerController' || !App.get('isHadoop2Stack')) return;
     var miscConfigs = this.get('configs').filterProperty('serviceName', 'MISC'),
       createNotification = miscConfigs.findProperty('name', 'create_notification').value;
     if (createNotification === 'yes') {
