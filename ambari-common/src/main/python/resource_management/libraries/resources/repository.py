@@ -31,6 +31,7 @@ class Repository(Resource):
   mirror_list = ResourceArgument()
   repo_file_name = ResourceArgument()
   repo_template = ResourceArgument()
+  append_to_file = ResourceArgument(default=False)
   components = ForcedListArgument(default=[]) # ubuntu specific
 
   actions = Resource.actions + ["create","remove"]

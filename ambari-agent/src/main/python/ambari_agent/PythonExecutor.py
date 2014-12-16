@@ -29,7 +29,8 @@ import time
 from BackgroundCommandExecutionHandle import BackgroundCommandExecutionHandle
 from ambari_commons.os_check import OSConst, OSCheck
 from Grep import Grep
-import shell, sys
+import sys
+from ambari_commons import shell
 
 
 logger = logging.getLogger()

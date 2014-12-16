@@ -22,7 +22,7 @@ import logging
 import os
 import json
 import sys
-import shell
+from ambari_commons import shell
 import threading
 
 from FileCache import FileCache

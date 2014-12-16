@@ -24,8 +24,8 @@ import unittest
 import tempfile
 from mock.mock import patch, MagicMock, call
 from ambari_agent.AmbariConfig import AmbariConfig
-from ambari_agent import shell
-from shell import shellRunner
+from ambari_commons import shell
+from ambari_commons.shell import shellRunner
 from sys import platform as _platform
 from only_for_platform import only_for_platform, PLATFORM_LINUX
 import subprocess, time

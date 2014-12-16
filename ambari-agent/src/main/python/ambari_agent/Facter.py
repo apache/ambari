@@ -27,7 +27,7 @@ import shlex
 import socket
 import multiprocessing
 import subprocess
-from shell import shellRunner
+from ambari_commons.shell import shellRunner
 import time
 import uuid
 from ambari_commons import OSCheck, OSConst

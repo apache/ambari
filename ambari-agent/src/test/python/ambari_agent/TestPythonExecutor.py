@@ -30,10 +30,9 @@ from PythonExecutor import PythonExecutor
 from AmbariConfig import AmbariConfig
 from mock.mock import MagicMock, patch
 
-
 class TestPythonExecutor(TestCase):
 
-  @patch("shell.kill_process_with_children")
+  @patch("ambari_commons.shell.kill_process_with_children")
   def test_watchdog_1(self, kill_process_with_children_mock):
     """
     Tests whether watchdog works

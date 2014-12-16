@@ -138,10 +138,10 @@ class TestRepositoryResource(TestCase):
                      repo_template = "dummy.j2",
                      components = ['a','b','c']
           )
-      
-      template_item = file_mock.call_args_list[0]
-      template_name = template_item[0][0]
-      template_content = template_item[1]['content'].get_content()
+
+      call_content = file_mock.call_args_list[0]
+      template_name = call_content[0][0]
+      template_content = call_content[1]['content']
       
       self.assertEquals(template_name, '/tmp/1.txt')
       self.assertEquals(template_content, 'deb http://download.base_url.org/rpm/ a b c\n')
@@ -173,10 +173,10 @@ class TestRepositoryResource(TestCase):
                      repo_template = "dummy.j2",
                      components = ['a','b','c']
           )
-      
-      template_item = file_mock.call_args_list[0]
-      template_name = template_item[0][0]
-      template_content = template_item[1]['content'].get_content()
+
+      call_content = file_mock.call_args_list[0]
+      template_name = call_content[0][0]
+      template_content = call_content[1]['content']
       
       self.assertEquals(template_name, '/tmp/1.txt')
       self.assertEquals(template_content, 'deb http://download.base_url.org/rpm/ a b c\n')

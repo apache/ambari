@@ -40,26 +40,22 @@ else:
 
 with patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value)):
   from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
-  from ambari_agent.PackagesAnalyzer import PackagesAnalyzer
   from ambari_agent.HostInfo import HostInfo, HostInfoLinux
   from ambari_agent.Hardware import Hardware
   from ambari_agent.AmbariConfig import AmbariConfig
   from resource_management.core.system import System
-  from ambari_commons import OSCheck, Firewall, FirewallChecks ,OSConst
+  from ambari_commons import OSCheck, Firewall, FirewallChecks, OSConst
+  from resource_management.libraries.functions import packages_analyzer
   import ambari_commons
-
-
-
 
 @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
 class TestHostInfo(TestCase):
 
   @only_for_platform(PLATFORM_LINUX)
   @patch.object(OSCheck, 'get_os_family')
-  @patch.object(PackagesAnalyzer, 'subprocessWithTimeout')
+  @patch('resource_management.libraries.functions.packages_analyzer.subprocessWithTimeout')
   def test_analyze_zypper_out(self, spwt_mock, get_os_family_mock):
     get_os_family_mock.return_value = 'suse'
-    packageAnalyzer = PackagesAnalyzer()
     stringToRead = """Refreshing service 'susecloud'.
            Loading repository data...
            Reading installed packages...
@@ -80,7 +76,7 @@ class TestHostInfo(TestCase):
 
     spwt_mock.return_value = result
     installedPackages = []
-    packageAnalyzer.allInstalledPackages(installedPackages)
+    packages_analyzer.allInstalledPackages(installedPackages)
     self.assertEqual(7, len(installedPackages))
     self.assertTrue(installedPackages[1][0], "gweb")
     self.assertTrue(installedPackages[3][2], "HDP")
@@ -102,7 +98,6 @@ class TestHostInfo(TestCase):
 
   @only_for_platform(PLATFORM_LINUX)
   def test_perform_package_analysis(self):
-    packageAnalyzer = PackagesAnalyzer()
     installedPackages = [
       ["hadoop-a", "2.3", "HDP"], ["zk", "3.1", "HDP"], ["webhcat", "3.1", "HDP"],
       ["hadoop-b", "2.3", "HDP-epel"], ["epel", "3.1", "HDP-epel"], ["epel-2", "3.1", "HDP-epel"],
@@ -123,19 +118,19 @@ class TestHostInfo(TestCase):
     additionalPackages = ["ganglia", "rrd"]
 
     repos = []
-    packageAnalyzer.getInstalledRepos(packagesToLook, installedPackages + availablePackages, reposToIgnore, repos)
+    packages_analyzer.getInstalledRepos(packagesToLook, installedPackages + availablePackages, reposToIgnore, repos)
     self.assertEqual(3, len(repos))
     expected = ["HDP", "HDP-epel", "DEF.3"]
     for repo in expected:
       self.assertTrue(repo in repos)
 
-    packagesInstalled = packageAnalyzer.getInstalledPkgsByRepo(repos, ["epel"], installedPackages)
+    packagesInstalled = packages_analyzer.getInstalledPkgsByRepo(repos, ["epel"], installedPackages)
     self.assertEqual(5, len(packagesInstalled))
     expected = ["hadoop-a", "zk", "webhcat", "hadoop-b", "def-def.x86"]
     for repo in expected:
       self.assertTrue(repo in packagesInstalled)
 
-    additionalPkgsInstalled = packageAnalyzer.getInstalledPkgsByNames(
+    additionalPkgsInstalled = packages_analyzer.getInstalledPkgsByNames(
         additionalPackages, installedPackages)
     self.assertEqual(2, len(additionalPkgsInstalled))
     expected = ["ganglia", "rrd"]
@@ -150,10 +145,9 @@ class TestHostInfo(TestCase):
 
   @only_for_platform(PLATFORM_LINUX)
   @patch.object(OSCheck, 'get_os_family')
-  @patch.object(PackagesAnalyzer, 'subprocessWithTimeout')
+  @patch('resource_management.libraries.functions.packages_analyzer.subprocessWithTimeout')
   def test_analyze_yum_output(self, subprocessWithTimeout_mock, get_os_family_mock):
     get_os_family_mock.return_value = 'redhat'
-    packageAnalyzer = PackagesAnalyzer()
     stringToRead = """Loaded plugins: amazon-id, product-id, rhui-lb, security, subscription-manager
                       Updating certificate-based repositories.
                       Installed Packages
@@ -177,7 +171,7 @@ class TestHostInfo(TestCase):
 
     subprocessWithTimeout_mock.return_value = result
     installedPackages = []
-    packageAnalyzer.allInstalledPackages(installedPackages)
+    packages_analyzer.allInstalledPackages(installedPackages)
     self.assertEqual(9, len(installedPackages))
     for package in installedPackages:
       self.assertTrue(package[0] in ["AMBARI.dev.noarch", "PyXML.x86_64", "oracle-server-db.x86",
@@ -188,7 +182,7 @@ class TestHostInfo(TestCase):
       self.assertTrue(package[2] in ["installed", "koji-override-0", "HDP-1.3.0",
                                  "koji-override-0/$releasever", "AMBARI.dev-1.x", "Oracle-11g", "HDP-epel"])
 
-    packages = packageAnalyzer.getInstalledPkgsByNames(["AMBARI", "Red_Hat_Enterprise", "hesiod", "hive"],
+    packages = packages_analyzer.getInstalledPkgsByNames(["AMBARI", "Red_Hat_Enterprise", "hesiod", "hive"],
                                                        installedPackages)
     self.assertEqual(4, len(packages))
     expected = ["AMBARI.dev.noarch", "Red_Hat_Enterprise_Linux-Release_Notes-6-en-US.noarch",
@@ -196,7 +190,7 @@ class TestHostInfo(TestCase):
     for package in expected:
       self.assertTrue(package in packages)
 
-    detailedPackages = packageAnalyzer.getPackageDetails(installedPackages, packages)
+    detailedPackages = packages_analyzer.getPackageDetails(installedPackages, packages)
     self.assertEqual(4, len(detailedPackages))
     for package in detailedPackages:
       self.assertTrue(package['version'] in ["1.x-1.el6", "3-7.el6", "3.1.0-19.el6",
@@ -207,11 +201,9 @@ class TestHostInfo(TestCase):
 
   @only_for_platform(PLATFORM_LINUX)
   @patch.object(OSCheck, 'get_os_family')
-  @patch.object(PackagesAnalyzer, 'subprocessWithTimeout')
+  @patch('resource_management.libraries.functions.packages_analyzer.subprocessWithTimeout')
   def test_analyze_yum_output_err(self, subprocessWithTimeout_mock, get_os_family_mock):
     get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
-
-    packageAnalyzer = PackagesAnalyzer()
 
     result = {}
     result['out'] = ""
@@ -220,7 +212,7 @@ class TestHostInfo(TestCase):
 
     subprocessWithTimeout_mock.return_value = result
     installedPackages = []
-    packageAnalyzer.allInstalledPackages(installedPackages)
+    packages_analyzer.allInstalledPackages(installedPackages)
     self.assertEqual(installedPackages, [])
 
 
@@ -265,12 +257,12 @@ class TestHostInfo(TestCase):
   @patch.object(OSCheck, "get_os_type")
   @patch('os.umask')
   @patch.object(HostCheckReportFileHandler, 'writeHostCheckFile')
-  @patch.object(PackagesAnalyzer, 'allAvailablePackages')
-  @patch.object(PackagesAnalyzer, 'allInstalledPackages')
-  @patch.object(PackagesAnalyzer, 'getPackageDetails')
-  @patch.object(PackagesAnalyzer, 'getInstalledPkgsByNames')
-  @patch.object(PackagesAnalyzer, 'getInstalledPkgsByRepo')
-  @patch.object(PackagesAnalyzer, 'getInstalledRepos')
+  @patch('resource_management.libraries.functions.packages_analyzer.allAvailablePackages')
+  @patch('resource_management.libraries.functions.packages_analyzer.allInstalledPackages')
+  @patch('resource_management.libraries.functions.packages_analyzer.getPackageDetails')
+  @patch('resource_management.libraries.functions.packages_analyzer.getInstalledPkgsByNames')
+  @patch('resource_management.libraries.functions.packages_analyzer.getInstalledPkgsByRepo')
+  @patch('resource_management.libraries.functions.packages_analyzer.getInstalledRepos')
   @patch.object(HostInfoLinux, 'checkUsers')
   @patch.object(HostInfoLinux, 'checkLiveServices')
   @patch.object(HostInfoLinux, 'javaProcs')
@@ -308,12 +300,12 @@ class TestHostInfo(TestCase):
   @patch.object(OSCheck, "get_os_type")
   @patch('os.umask')
   @patch.object(HostCheckReportFileHandler, 'writeHostCheckFile')
-  @patch.object(PackagesAnalyzer, 'allAvailablePackages')
-  @patch.object(PackagesAnalyzer, 'allInstalledPackages')
-  @patch.object(PackagesAnalyzer, 'getPackageDetails')
-  @patch.object(PackagesAnalyzer, 'getInstalledPkgsByNames')
-  @patch.object(PackagesAnalyzer, 'getInstalledPkgsByRepo')
-  @patch.object(PackagesAnalyzer, 'getInstalledRepos')
+  @patch('resource_management.libraries.functions.packages_analyzer.allAvailablePackages')
+  @patch('resource_management.libraries.functions.packages_analyzer.allInstalledPackages')
+  @patch('resource_management.libraries.functions.packages_analyzer.getPackageDetails')
+  @patch('resource_management.libraries.functions.packages_analyzer.getInstalledPkgsByNames')
+  @patch('resource_management.libraries.functions.packages_analyzer.getInstalledPkgsByRepo')
+  @patch('resource_management.libraries.functions.packages_analyzer.getInstalledRepos')
   @patch.object(HostInfoLinux, 'checkUsers')
   @patch.object(HostInfoLinux, 'checkLiveServices')
   @patch.object(HostInfoLinux, 'javaProcs')

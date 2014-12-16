@@ -26,6 +26,7 @@ import traceback
 from resource_management import *
 from resource_management.libraries.functions.list_ambari_managed_repos import *
 from ambari_commons.os_check import OSCheck, OSConst
+from resource_management.libraries.functions import packages_analyzer
 
 
 class InstallPackages(Script):
@@ -37,6 +38,7 @@ class InstallPackages(Script):
   """
 
   UBUNTU_REPO_COMPONENTS_POSTFIX = ["main"]
+  REPO_FILE_NAME_PREFIX = 'HDP-'
 
   def actionexecute(self, env):
     delayed_fail = False
@@ -59,10 +61,14 @@ class InstallPackages(Script):
     # Install/update repositories
     installed_repositories = []
     current_repositories = ['base']  # Some our packages are installed from the base repo
+    current_repo_files = set(['base'])
     try:
+      append_to_file = False
       for url_info in base_urls:
-        repo_name = self.install_repository(url_info, repository_version)
+        repo_name, repo_file = self.install_repository(url_info, repository_version, append_to_file)
         current_repositories.append(repo_name)
+        current_repo_files.add(repo_file)
+        append_to_file = True
 
       installed_repositories = list_ambari_managed_repos()
     except Exception, err:
@@ -72,15 +78,29 @@ class InstallPackages(Script):
 
     # Install packages
     if not delayed_fail:
+      packages_were_checked = False
       try:
+        packages_installed_before = []
+        packages_analyzer.allInstalledPackages(packages_installed_before)
+        packages_installed_before = [package[0] for package in packages_installed_before]
+        packages_were_checked = True
         for package in package_list:
-          Package(package['name'], use_repos=current_repositories)
+          Package(package['name'], use_repos=list(current_repo_files) if OSCheck.is_ubuntu_family() else current_repositories)
         package_install_result = True
       except Exception, err:
         print "Can not install packages."
         print traceback.format_exc()
         delayed_fail = True
-        # TODO : remove already installed packages in case of fail
+
+        # Remove already installed packages in case of fail
+        if packages_were_checked and packages_installed_before:
+          packages_installed_after = []
+          packages_analyzer.allInstalledPackages(packages_installed_after)
+          packages_installed_after = [package[0] for package in packages_installed_after]
+          packages_installed_before = set(packages_installed_before)
+          new_packages_installed = [package for package in packages_installed_after if package not in packages_installed_before]
+          for package in new_packages_installed:
+            Package(package, action="remove")
 
     # Build structured output
     structured_output = {
@@ -94,8 +114,7 @@ class InstallPackages(Script):
     if delayed_fail:
       raise Fail("Failed to distribute repositories/install packages")
 
-
-  def install_repository(self, url_info, repository_version):
+  def install_repository(self, url_info, repository_version, append_to_file):
     template = "repo_suse_rhel.j2" if OSCheck.is_redhat_family() or OSCheck.is_suse_family() else "repo_ubuntu.j2"
 
     repo = {
@@ -113,16 +132,18 @@ class InstallPackages(Script):
       repo['mirrorsList'] = url_info['mirrorsList']
 
     ubuntu_components = [url_info['repositoryId']] + self.UBUNTU_REPO_COMPONENTS_POSTFIX
+    file_name = self.REPO_FILE_NAME_PREFIX + repository_version
 
     Repository(repo['repoName'],
       action = "create",
       base_url = repo['baseurl'],
       mirror_list = repo['mirrorsList'],
-      repo_file_name = repo['repoName'],
+      repo_file_name = file_name,
       repo_template = template,
+      append_to_file = append_to_file,
       components = ubuntu_components,  # ubuntu specific
     )
-    return repo['repoName']
+    return repo['repoName'], file_name
 
 if __name__ == "__main__":
   InstallPackages().execute()

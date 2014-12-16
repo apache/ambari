@@ -46,7 +46,7 @@ with patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_
   import ambari_agent.HeartbeatHandlers as HeartbeatHandlers
   from ambari_commons.os_check import OSConst, OSCheck
 
-  from ambari_agent.shell import shellRunner
+  from ambari_commons.shell import shellRunner
 
 class TestMain(unittest.TestCase):
 

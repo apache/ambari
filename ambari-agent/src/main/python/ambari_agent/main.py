@@ -37,8 +37,8 @@ import hostname
 from DataCleaner import DataCleaner
 import socket
 from ambari_commons import OSConst, OSCheck
-from shell import shellRunner
-from ambari_agent import shell
+from ambari_commons.shell import shellRunner
+from ambari_commons import shell
 import HeartbeatHandlers
 from HeartbeatHandlers import bind_signal_handlers
 logger = logging.getLogger()

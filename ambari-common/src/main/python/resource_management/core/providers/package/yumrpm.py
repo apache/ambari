@@ -24,6 +24,7 @@ from resource_management.core.providers.package import PackageProvider
 from resource_management.core import shell
 from resource_management.core.shell import string_cmd_from_args_list
 from resource_management.core.logger import Logger
+import os
 
 INSTALL_CMD = {
   True: ['/usr/bin/yum', '-y', 'install'],
@@ -62,5 +63,7 @@ class YumProvider(PackageProvider):
       Logger.info("Skipping removing non-existent package %s" % (name))
 
   def _check_existence(self, name):
+    if '.' in name:  # To work with names like 'zookeeper_2_2_1_0_2072.noarch'
+      name = os.path.splitext(name)[0]
     code, out = shell.call(CHECK_CMD % name)
     return not bool(code)

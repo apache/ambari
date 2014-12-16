@@ -32,9 +32,14 @@ class RhelSuseRepositoryProvider(Provider):
       repo_file_name = self.resource.repo_file_name
       repo_dir = repos_dirs[env.system.os_family]
       repo_template = self.resource.repo_template
-      File(format("{repo_dir}/{repo_file_name}.repo"),
-        content = Template(repo_template, repo_id=self.resource.repo_id, repo_file_name=self.resource.repo_file_name, base_url=self.resource.base_url, mirror_list=self.resource.mirror_list)
-      )
+      new_content = Template(repo_template, repo_id=self.resource.repo_id, repo_file_name=self.resource.repo_file_name,
+                             base_url=self.resource.base_url, mirror_list=self.resource.mirror_list)
+      repo_file_path = format("{repo_dir}/{repo_file_name}.repo")
+      if self.resource.append_to_file and os.path.isfile(repo_file_path):
+        with open(repo_file_path, 'a') as repo_file:
+          repo_file.write('\n' + new_content.get_content())
+      else:
+        File(repo_file_path, content=new_content)
   
   def action_remove(self):
     with Environment.get_instance_copy() as env:
@@ -61,14 +66,19 @@ class UbuntuRepositoryProvider(Provider):
   def action_create(self):
     with Environment.get_instance_copy() as env:
       with tempfile.NamedTemporaryFile() as tmpf:
-        File(tmpf.name,
-          content = Template(self.resource.repo_template,
-              package_type=self.package_type, base_url=self.resource.base_url, components=' '.join(self.resource.components))
-        )
-        
         repo_file_name = format("{repo_file_name}.list",repo_file_name = self.resource.repo_file_name)
         repo_file_path = format("{repo_dir}/{repo_file_name}", repo_dir = self.repo_dir)
-        
+
+        new_content = Template(self.resource.repo_template, package_type=self.package_type,
+                                      base_url=self.resource.base_url,
+                                      components=' '.join(self.resource.components)).get_content()
+        old_content = ''
+        if self.resource.append_to_file and os.path.isfile(repo_file_path):
+          with open(repo_file_path) as repo_file:
+            old_content = repo_file.read() + '\n'
+
+        File(tmpf.name, content=old_content+new_content)
+
         if not os.path.isfile(repo_file_path) or not filecmp.cmp(tmpf.name, repo_file_path):
           File(repo_file_path,
                content = StaticFile(tmpf.name)

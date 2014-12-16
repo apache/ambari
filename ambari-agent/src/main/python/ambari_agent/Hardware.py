@@ -22,7 +22,7 @@ import os.path
 import logging
 import subprocess
 import platform
-from shell import shellRunner
+from ambari_commons.shell import shellRunner
 from Facter import Facter
 from ambari_commons.os_check import OSConst, OSCheck
 logger = logging.getLogger()

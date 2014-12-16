@@ -22,7 +22,7 @@ from multiprocessing.pool import ThreadPool
 import os
 
 import pprint
-import shell
+from ambari_commons import shell
 
 from unittest import TestCase
 import threading
@@ -245,7 +245,7 @@ class TestCustomServiceOrchestrator(TestCase):
 
     pass
 
-  @patch("shell.kill_process_with_children")
+  @patch("ambari_commons.shell.kill_process_with_children")
   @patch.object(CustomServiceOrchestrator, "resolve_script_path")
   @patch.object(CustomServiceOrchestrator, "resolve_hook_script_path")
   @patch.object(FileCache, "get_host_scripts_base_dir")
@@ -325,7 +325,7 @@ class TestCustomServiceOrchestrator(TestCase):
 
   from ambari_agent.StackVersionsFileHandler import StackVersionsFileHandler
 
-  @patch("shell.kill_process_with_children")
+  @patch("ambari_commons.shell.kill_process_with_children")
   @patch.object(FileCache, "__init__")
   @patch.object(CustomServiceOrchestrator, "resolve_script_path")
   @patch.object(CustomServiceOrchestrator, "resolve_hook_script_path")

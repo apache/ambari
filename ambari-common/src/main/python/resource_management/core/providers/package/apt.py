@@ -19,6 +19,10 @@ Ambari Agent
 
 """
 
+import os
+import tempfile
+import shutil
+
 from resource_management.core.providers.package import PackageProvider
 from resource_management.core import shell
 from resource_management.core.shell import string_cmd_from_args_list
@@ -37,19 +41,39 @@ REPO_UPDATE_CMD = ['/usr/bin/apt-get', 'update','-qq']
 
 CHECK_CMD = "dpkg --get-selections | grep -v deinstall | awk '{print $1}' | grep ^%s$"
 
+EMPTY_FILE = "/dev/null"
+APT_SOURCES_LIST_DIR = "/etc/apt/sources.list.d"
+
 def replace_underscores(function_to_decorate):
   def wrapper(*args):
     self = args[0]
     name = args[1].replace("_", "-")
-    return function_to_decorate(self, name)
+    return function_to_decorate(self, name, *args[2:])
   return wrapper
 
 class AptProvider(PackageProvider):
 
   @replace_underscores
   def install_package(self, name, use_repos=[]):
-    if not self._check_existence(name):
-      cmd = INSTALL_CMD[self.get_logoutput()]  + [name]
+    if not self._check_existence(name) or use_repos:
+      cmd = INSTALL_CMD[self.get_logoutput()]
+      copied_sources_files = []
+      is_tmp_dir_created = False
+      if use_repos:
+        is_tmp_dir_created = True
+        apt_sources_list_tmp_dir = tempfile.mkdtemp(suffix="-ambari-apt-sources-d")
+        Logger.info("Temporal sources directory was created: %s" % apt_sources_list_tmp_dir)
+        if 'base' not in use_repos:
+          cmd = cmd + ['-o', 'Dir::Etc::SourceList=%s' % EMPTY_FILE]
+        for repo in use_repos:
+          if repo != 'base':
+            new_sources_file = os.path.join(apt_sources_list_tmp_dir, repo + '.list')
+            Logger.info("Temporal sources file will be copied: %s" % new_sources_file)
+            shutil.copy(os.path.join(APT_SOURCES_LIST_DIR, repo + '.list'), new_sources_file)
+            copied_sources_files.append(new_sources_file)
+        cmd = cmd + ['-o', 'Dir::Etc::SourceParts=%s' % apt_sources_list_tmp_dir]
+
+      cmd = cmd + [name]
       Logger.info("Installing package %s ('%s')" % (name, string_cmd_from_args_list(cmd)))
       code, out = shell.call(cmd, sudo=True, env=INSTALL_CMD_ENV, logoutput=self.get_logoutput())
       
@@ -64,6 +88,13 @@ class AptProvider(PackageProvider):
           
         Logger.info("Retrying to install package %s" % (name))
         shell.checked_call(cmd, sudo=True, logoutput=self.get_logoutput())
+
+      if is_tmp_dir_created:
+        for temporal_sources_file in copied_sources_files:
+          Logger.info("Removing temporal sources file: %s" % temporal_sources_file)
+          os.remove(temporal_sources_file)
+        Logger.info("Removing temporal sources directory: %s" % apt_sources_list_tmp_dir)
+        os.rmdir(apt_sources_list_tmp_dir)
     else:
       Logger.info("Skipping installing existent package %s" % (name))
 

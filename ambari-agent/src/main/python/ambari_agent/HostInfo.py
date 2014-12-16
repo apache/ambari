@@ -28,10 +28,10 @@ import threading
 import shlex
 import platform
 import hostname
-from PackagesAnalyzer import PackagesAnalyzer
 from HostCheckReportFileHandler import HostCheckReportFileHandler
 from Hardware import Hardware
 from ambari_commons import OSCheck, OSConst, Firewall
+from resource_management.libraries.functions import packages_analyzer
 import socket
 from ambari_commons.os_family_impl import OsFamilyImpl
 
@@ -176,7 +176,6 @@ class HostInfoLinux(HostInfo):
 
   def __init__(self, config=None):
     super(HostInfoLinux, self).__init__(config)
-    self.packages = PackagesAnalyzer()
 
   def osdiskAvailableSpace(self, path):
     diskInfo = {}
@@ -281,7 +280,7 @@ class HostInfoLinux(HostInfo):
     for repo in repos:
       addToRemoveList = True
       for ignoreRepo in ignoreList:
-        if self.packages.nameMatch(ignoreRepo, repo):
+        if packages_analyzer.nameMatch(ignoreRepo, repo):
           addToRemoveList = False
           continue
       if addToRemoveList:
@@ -372,17 +371,17 @@ class HostInfoLinux(HostInfo):
 
       installedPackages = []
       availablePackages = []
-      self.packages.allInstalledPackages(installedPackages)
-      self.packages.allAvailablePackages(availablePackages)
+      packages_analyzer.allInstalledPackages(installedPackages)
+      packages_analyzer.allAvailablePackages(availablePackages)
 
       repos = []
-      self.packages.getInstalledRepos(self.PACKAGES, installedPackages + availablePackages,
+      packages_analyzer.getInstalledRepos(self.PACKAGES, installedPackages + availablePackages,
                                       self.IGNORE_PACKAGES_FROM_REPOS, repos)
-      packagesInstalled = self.packages.getInstalledPkgsByRepo(repos, self.IGNORE_PACKAGES, installedPackages)
-      additionalPkgsInstalled = self.packages.getInstalledPkgsByNames(
+      packagesInstalled = packages_analyzer.getInstalledPkgsByRepo(repos, self.IGNORE_PACKAGES, installedPackages)
+      additionalPkgsInstalled = packages_analyzer.getInstalledPkgsByNames(
         self.ADDITIONAL_PACKAGES, installedPackages)
       allPackages = list(set(packagesInstalled + additionalPkgsInstalled))
-      dict['installedPackages'] = self.packages.getPackageDetails(installedPackages, allPackages)
+      dict['installedPackages'] = packages_analyzer.getPackageDetails(installedPackages, allPackages)
 
       repos = self.getReposToRemove(repos, self.IGNORE_REPOS)
       dict['existingRepos'] = repos

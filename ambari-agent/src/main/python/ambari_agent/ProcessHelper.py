@@ -22,7 +22,7 @@ import os
 import logging
 import traceback
 import sys
-from shell import getTempFiles
+from ambari_commons.shell import getTempFiles
 
 logger = logging.getLogger()
 
