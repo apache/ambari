@@ -1787,7 +1787,7 @@ Em.I18n.translations = {
     '<ol>' +
     '<li>On <b>{1}</b> using a terminal you can export your Metastore DB (MYSQL) using:' +
     '<div class="code-snippet">mysqldump db_name > backup-file.sql</div></li>' +
-    '<li>Copy the file to the target host <b>{2}</b> hosting the MySQL DB<li>' +
+    '<li>Copy the file to the target host <b>{2}</b> hosting the MySQL DB</li>' +
     '<li>Execute this SQL inside <b>mysql<b>' +
     '<div class="code-snippet">CREATE DATABASE db_name;</div></li>' +
     '<li>Import the database using' +

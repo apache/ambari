@@ -22,7 +22,7 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
 
   isReassign: true,
 
-  commands: ['putHostComponentsInMaintenanceMode', 'stopMysqlService', 'deleteHostComponents', 'startServices'],
+  commands: ['stopMysqlService', 'putHostComponentsInMaintenanceMode', 'deleteHostComponents', 'startServices'],
 
   clusterDeployState: 'REASSIGN_MASTER_INSTALLING',
 
@@ -69,7 +69,7 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
 
   removeUnneededTasks: function () {
     if ( this.get('content.reassign.component_name') !== 'MYSQL_SERVER' ) {
-      this.removeTasks(['putHostComponentsInMaintenanceMode', 'stopServices']);
+      this.removeTasks(['putHostComponentsInMaintenanceMode', 'stopMysqlService']);
     }
   },
 
@@ -173,16 +173,16 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
    * make server call to stop services
    */
   stopMysqlService: function () {
-    var data = {
-      "ServiceInfo": {
-        "state": "INSTALLED"
-      }
-    };
+    var data = {};
+
     data.context = "Stop required services";
-    data.urlParams = "ServiceInfo/service_name.in(MYSQL_SERVER)";
+    data.hostName = this.get('content.reassignHosts.source');
+    data.serviceName = 'HIVE';
+    data.HostRoles = { "state": "INSTALLED" };
+    data.componentName = "MYSQL_SERVER";
 
     App.ajax.send({
-      name: 'common.services.update',
+      name: 'common.host.host_component.update',
       sender: this,
       data: data,
       success: 'startPolling',

@@ -204,4 +204,32 @@ describe('App.ReassignMasterWizardStep6Controller', function () {
     });
   });
 
+  describe('#stopMysqlService()', function () {
+    it('stopMysqlService', function () {
+      controller.stopMysqlService();
+      expect(App.ajax.send.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#putHostComponentsInMaintenanceMode()', function () {
+    beforeEach(function(){
+      sinon.stub(controller, 'onComponentsTasksSuccess', Em.K);
+      controller.set('content.reassignHosts.source', 'source');
+    });
+    afterEach(function(){
+      controller.onComponentsTasksSuccess.restore();
+    });
+    it('No host-components', function () {
+      controller.set('hostComponents', []);
+      controller.putHostComponentsInMaintenanceMode();
+      expect(App.ajax.send.called).to.be.false;
+      expect(controller.get('multiTaskCounter')).to.equal(0);
+    });
+    it('One host-components', function () {
+      controller.set('hostComponents', [{}]);
+      controller.putHostComponentsInMaintenanceMode();
+      expect(App.ajax.send.calledOnce).to.be.true;
+      expect(controller.get('multiTaskCounter')).to.equal(0);
+    });
+  });
 });
