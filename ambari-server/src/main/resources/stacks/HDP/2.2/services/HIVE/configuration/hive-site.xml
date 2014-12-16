@@ -1007,7 +1007,15 @@ limitations under the License.
   <property>
     <name>hive.heapsize</name>
     <value>1024</value>
+    <deleted>true</deleted>
     <description>Hive Java heap size</description>
+  </property>
+
+  <property>
+    <name>hive.server2.enable.impersonation</name>
+    <value>true</value>
+    <deleted>true</deleted>
+    <description>Enable user impersonation for HiveServer2</description>
   </property>
 
   <property>
@@ -1019,12 +1027,14 @@ limitations under the License.
   <property>
     <name>hive.auto.convert.sortmerge.join.noconditionaltask</name>
     <value>true</value>
+    <deleted>true</deleted>
     <description>Required to Enable the conversion of an SMB (Sort-Merge-Bucket) to a map-join SMB.</description>
   </property>
 
   <property>
     <name>hive.optimize.mapjoin.mapreduce</name>
     <value>true</value>
+    <deleted>true</deleted>
     <description>If hive.auto.convert.join is off, this parameter does not take
       affect. If it is on, and if there are map-join jobs followed by a map-reduce
       job (for e.g a group by), each map-only job is merged with the following

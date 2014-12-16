@@ -37,7 +37,8 @@ var excludedConfigs = [
   'tez.runtime.intermediate-input.is-compressed',
   'tez.runtime.intermediate-output.compress.codec',
   'tez.runtime.intermediate-output.should-compress',
-  'dfs.datanode.data.dir'
+  'dfs.datanode.data.dir',
+  'hive.heapsize'
 ];
 var hdp22properties = hdp2properties.filter(function (item) {
   return !excludedConfigs.contains(item.name);
