@@ -212,7 +212,8 @@ public class StackInfo implements Comparable<StackInfo>{
     return new StackVersionResponse(getVersion(), getMinUpgradeVersion(),
         isActive(), getParentStackVersion(), getConfigTypeAttributes(),
         (stackDescriptorFileFilePath == null) ? null : new File(stackDescriptorFileFilePath),
-        serviceDescriptorFiles);
+        serviceDescriptorFiles,
+        null == upgradePacks ? Collections.<String>emptySet() : upgradePacks.keySet());
   }
 
   public String getMinUpgradeVersion() {

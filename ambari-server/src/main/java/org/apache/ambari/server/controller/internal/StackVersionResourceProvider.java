@@ -53,6 +53,7 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
   public static final String STACK_CONFIG_TYPES            = PropertyHelper.getPropertyId("Versions", "config_types");
   public static final String STACK_PARENT_PROPERTY_ID      = PropertyHelper.getPropertyId("Versions", "parent_stack_version");
   public static final String KERBEROS_DESCRIPTOR_PROPERTY_ID = PropertyHelper.getPropertyId("Versions", "kerberos_descriptor");
+  public static final String UPGRADE_PACKS_PROPERTY_ID = PropertyHelper.getPropertyId("Versions", "upgrade_packs");
 
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(new String[] { STACK_NAME_PROPERTY_ID, STACK_VERSION_PROPERTY_ID }));
@@ -109,6 +110,9 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
 
       setResourceProperty(resource, STACK_CONFIG_TYPES,
           response.getConfigTypes(), requestedIds);
+      
+      setResourceProperty(resource, UPGRADE_PACKS_PROPERTY_ID,
+          response.getUpgradePacks(), requestedIds);
 
       // TODO (rlevas): Convert this to an official resource
       KerberosDescriptor kerberosDescriptor;

@@ -204,6 +204,7 @@
         "Versions/parent_stack_version",
         "Versions/config_types",
         "Versions/kerberos_descriptor",
+        "Versions/upgrade_packs",
         "_"
     ],
     "StackService":[

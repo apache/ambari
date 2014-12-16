@@ -20,7 +20,9 @@ package org.apache.ambari.server.controller;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 
 public class StackVersionResponse {
@@ -45,12 +47,14 @@ public class StackVersionResponse {
    * This may be null or empty if no relevant files are available.
    */
   private Collection<File> serviceKerberosDescriptorFiles;
+  private Set<String> upgradePacks = Collections.emptySet();
 
   public StackVersionResponse(String stackVersion, String minUpgradeVersion,
                               boolean active, String parentVersion,
                               Map<String, Map<String, Map<String, String>>> configTypes,
                               File stackKerberosDescriptorFile,
-                              Collection<File> serviceKerberosDescriptorFiles) {
+                              Collection<File> serviceKerberosDescriptorFiles,
+                              Set<String> upgradePacks) {
     setStackVersion(stackVersion);
     setMinUpgradeVersion(minUpgradeVersion);
     setActive(active);
@@ -58,6 +62,7 @@ public class StackVersionResponse {
     setConfigTypes(configTypes);
     setKerberosDescriptorFile(stackKerberosDescriptorFile);
     setServiceKerberosDescriptorFiles(serviceKerberosDescriptorFiles);
+    setUpgradePacks(upgradePacks);
   }
 
   public String getStackName() {
@@ -145,5 +150,19 @@ public class StackVersionResponse {
    */
   public void setServiceKerberosDescriptorFiles(Collection<File> serviceKerberosDescriptorFiles) {
     this.serviceKerberosDescriptorFiles = serviceKerberosDescriptorFiles;
+  }
+  
+  /**
+   * @param upgradePacks the names of the upgrade packs for the stack version 
+   */
+  public void setUpgradePacks(Set<String> upgradePacks) {
+    this.upgradePacks = upgradePacks;
+  }
+  
+  /**
+   * @return the upgrade pack names for the stack version
+   */
+  public Set<String> getUpgradePacks() {
+    return upgradePacks;
   }
 }

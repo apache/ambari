@@ -6950,7 +6950,6 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(1, responsesWithParams.size());
     for (StackVersionResponse responseWithParams: responsesWithParams) {
       Assert.assertEquals(responseWithParams.getStackVersion(), STACK_VERSION);
-
     }
 
     StackVersionRequest invalidRequest = new StackVersionRequest(STACK_NAME, NON_EXT_VALUE);
@@ -6959,6 +6958,16 @@ public class AmbariManagementControllerTest {
     } catch (StackAccessException e) {
       // do nothing
     }
+    
+    // test that a stack response has upgrade packs
+    requestWithParams = new StackVersionRequest(STACK_NAME, "2.1.1");
+    responsesWithParams = controller.getStackVersions(Collections.singleton(requestWithParams));
+    
+    Assert.assertEquals(1, responsesWithParams.size());
+    StackVersionResponse resp = responsesWithParams.iterator().next();
+    assertNotNull(resp.getUpgradePacks());
+    assertEquals(1, resp.getUpgradePacks().size());
+    assertTrue(resp.getUpgradePacks().contains("upgrade_test"));
   }
 
   @Test
