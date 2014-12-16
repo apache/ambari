@@ -18,12 +18,17 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,19 +39,59 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class KerberosServerActionTest {
 
+
   Map<String, String> commandParams = new HashMap<String, String>();
   File temporaryDirectory;
+  private Injector injector;
   private KerberosServerAction action;
 
   @Before
   public void setUp() throws Exception {
+    final Cluster cluster = mock(Cluster.class);
+
+    final Clusters clusters = mock(Clusters.class);
+    when(clusters.getCluster(anyString())).thenReturn(cluster);
+
     final ExecutionCommand mockExecutionCommand = mock(ExecutionCommand.class);
     final HostRoleCommand mockHostRoleCommand = mock(HostRoleCommand.class);
+
+    injector = Guice.createInjector(new AbstractModule() {
+
+      @Override
+      protected void configure() {
+        bind(KerberosServerAction.class).toInstance(new KerberosServerAction() {
+
+          @Override
+          protected CommandReport processIdentity(Map<String, String> identityRecord, String evaluatedPrincipal,
+                                                  KerberosOperationHandler operationHandler,
+                                                  Map<String, Object> requestSharedDataContext)
+              throws AmbariException {
+            Assert.assertNotNull(requestSharedDataContext);
+
+            if (requestSharedDataContext.get("FAIL") != null) {
+              return createCommandReport(1, HostRoleStatus.FAILED, "{}", "ERROR", "ERROR");
+            } else {
+              requestSharedDataContext.put(identityRecord.get(KerberosActionDataFile.PRINCIPAL), evaluatedPrincipal);
+              return null;
+            }
+          }
+
+          @Override
+          public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext)
+              throws AmbariException, InterruptedException {
+            return processIdentities(requestSharedDataContext);
+          }
+        });
+
+        bind(Clusters.class).toInstance(clusters);
+      }
+    });
 
     temporaryDirectory = File.createTempFile("ambari_ut_", ".d");
 
@@ -65,39 +110,17 @@ public class KerberosServerActionTest {
     }
     builder.close();
 
+
     commandParams.put(KerberosServerAction.DATA_DIRECTORY, temporaryDirectory.getAbsolutePath());
     commandParams.put(KerberosServerAction.DEFAULT_REALM, "REALM.COM");
     commandParams.put(KerberosServerAction.KDC_TYPE, KDCType.MIT_KDC.toString());
-    commandParams.put(KerberosServerAction.ADMINISTRATOR_PRINCIPAL, "principal");
-    commandParams.put(KerberosServerAction.ADMINISTRATOR_PASSWORD, "password");
-    commandParams.put(KerberosServerAction.ADMINISTRATOR_KEYTAB, "keytab");
+    commandParams.put(KerberosServerAction.ADMINISTRATOR_CREDENTIAL,
+        new KerberosCredential("principal", "password", "keytab")
+            .encrypt(Integer.toHexString(cluster.hashCode()).getBytes()));
 
     when(mockExecutionCommand.getCommandParams()).thenReturn(commandParams);
 
-    action = new KerberosServerAction() {
-
-      @Override
-      protected CommandReport processIdentity(Map<String, String> identityRecord, String evaluatedPrincipal,
-                                              KerberosOperationHandler operationHandler,
-                                              Map<String, Object> requestSharedDataContext)
-          throws AmbariException {
-        Assert.assertNotNull(requestSharedDataContext);
-
-        if (requestSharedDataContext.get("FAIL") != null) {
-          return createCommandReport(1, HostRoleStatus.FAILED, "{}", "ERROR", "ERROR");
-        } else {
-          requestSharedDataContext.put(identityRecord.get(KerberosActionDataFile.PRINCIPAL), evaluatedPrincipal);
-          return null;
-        }
-      }
-
-      @Override
-      public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext)
-          throws AmbariException, InterruptedException {
-        return processIdentities(requestSharedDataContext);
-      }
-    };
-
+    action = injector.getInstance(KerberosServerAction.class);
 
     action.setExecutionCommand(mockExecutionCommand);
     action.setHostRoleCommand(mockHostRoleCommand);
@@ -131,16 +154,6 @@ public class KerberosServerActionTest {
   public void testGetDataDirectoryPathStatic() throws Exception {
     Assert.assertEquals(temporaryDirectory.getAbsolutePath(),
         KerberosServerAction.getDataDirectoryPath(commandParams));
-  }
-
-  @Test
-  public void testCreateAdministratorCredentialStatic() throws Exception {
-    KerberosCredential credential1 = new KerberosCredential("principal", "password", "keytab");
-    KerberosCredential credential2 = KerberosServerAction.getAdministratorCredential(commandParams);
-
-    Assert.assertEquals(credential1.getPrincipal(), credential2.getPrincipal());
-    Assert.assertEquals(credential1.getPassword(), credential2.getPassword());
-    Assert.assertEquals(credential1.getKeytab(), credential2.getKeytab());
   }
 
   @Test
@@ -191,5 +204,14 @@ public class KerberosServerActionTest {
     CommandReport report = action.processIdentities(sharedMap);
     Assert.assertNotNull(report);
     Assert.assertEquals(HostRoleStatus.FAILED.toString(), report.getStatus());
+  }
+
+  @Test
+  public void testGetAdministrativeCredentials() throws AmbariException {
+    KerberosCredential credentials = action.getAdministratorCredential(commandParams);
+    Assert.assertNotNull(credentials);
+    Assert.assertEquals("principal", credentials.getPrincipal());
+    Assert.assertEquals("password", credentials.getPassword());
+    Assert.assertEquals("keytab", credentials.getKeytab());
   }
 }

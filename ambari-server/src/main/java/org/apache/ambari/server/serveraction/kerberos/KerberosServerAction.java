@@ -18,10 +18,13 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
+import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,23 +52,10 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   public static final String DATA_DIRECTORY = "data_directory";
 
   /**
-   * A (command parameter) property name used to hold the KDC administrator's principal value.
-   * TODO (rlevas): For security purposes, this data should be moved to an encrypted storage facility.
+   * A (command parameter) property name used to hold encrypted data representing the KDC
+   * administrator credentials
    */
-  public static final String ADMINISTRATOR_PRINCIPAL = "admin_principal";
-
-  /**
-   * A (command parameter) property name used to hold the KDC administrator's password value.
-   * TODO (rlevas): For security purposes, this data should be moved to an encrypted storage facility.
-   */
-  public static final String ADMINISTRATOR_PASSWORD = "admin_password";
-
-  /**
-   * A (command parameter) property name used to hold the KDC administrator's (base64-encoded) keytab
-   * value.
-   * TODO (rlevas): For security purposes, this data should be moved to an encrypted storage facility.
-   */
-  public static final String ADMINISTRATOR_KEYTAB = "admin_keytab";
+  public static final String ADMINISTRATOR_CREDENTIAL = "kerberos_admin_credential";
 
   /**
    * A (command parameter) property name used to hold the default Kerberos realm value.
@@ -84,6 +74,12 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   private static final String PRINCIPAL_PASSWORD_MAP = "principal_password_map";
 
   private static final Logger LOG = LoggerFactory.getLogger(KerberosServerAction.class);
+
+  /**
+   * The Cluster that this ServerAction implementation is executing on
+   */
+  @Inject
+  private Clusters clusters = null;
 
   /**
    * Given a (command parameter) Map and a property name, attempts to safely retrieve the requested
@@ -135,25 +131,6 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   }
 
   /**
-   * Given a (command parameter) Map, attempts to safely retrieve the data needed to create a
-   * {@link org.apache.ambari.server.serveraction.kerberos.KerberosCredential} representing a KDC
-   * administrator.
-   * <p/>
-   * TODO (rlevas): For security purposes, this data should be moved to an encrypted storage facility.
-   *
-   * @param commandParameters a Map containing the dictionary of data to interrogate
-   * @return a KerberosCredential or null if commandParameters is null
-   */
-  protected static KerberosCredential getAdministratorCredential(Map<String, String> commandParameters) {
-    return (commandParameters == null)
-        ? null
-        : new KerberosCredential(
-        commandParameters.get(ADMINISTRATOR_PRINCIPAL),
-        commandParameters.get(ADMINISTRATOR_PASSWORD),
-        commandParameters.get(ADMINISTRATOR_KEYTAB));
-  }
-
-  /**
    * Sets the shared principal-to-password Map used to store principals and generated password for
    * use within the current request context.
    *
@@ -192,6 +169,23 @@ public abstract class KerberosServerAction extends AbstractServerAction {
 
       return (Map<String, String>) map;
     }
+  }
+
+  /**
+   * Given a (command parameter) Map, attempts to safely retrieve the "data_directory" property.
+   *
+   * @param commandParameters a Map containing the dictionary of data to interrogate
+   * @return a String indicating the data directory or null (if not found or set)
+   */
+  protected KerberosCredential getAdministratorCredential(Map<String, String> commandParameters) throws AmbariException {
+    Cluster cluster = clusters.getCluster(getExecutionCommand().getClusterName());
+
+    if(cluster == null)
+      throw new AmbariException("Failed get the Cluster object");
+
+    // Create the key like we did when we encrypted the data, based on the Cluster objects hashcode.
+    byte[] key = Integer.toHexString(cluster.hashCode()).getBytes();
+    return KerberosCredential.decrypt(getCommandParameterValue(commandParameters, ADMINISTRATOR_CREDENTIAL), key);
   }
 
   /**
@@ -285,6 +279,10 @@ public abstract class KerberosServerAction extends AbstractServerAction {
               break;
             }
           }
+        } catch (AmbariException e) {
+          // Catch this separately from IOException since the reason it was thrown was not the same
+          // Note: AmbariException is an IOException, so there may be some confusion
+          throw new AmbariException(e.getMessage(), e);
         } catch (IOException e) {
           String message = String.format("Failed to process the identities, cannot read the index file: %s",
               indexFile.getAbsolutePath());
