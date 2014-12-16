@@ -39,7 +39,6 @@ import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.CancelCommand;
-import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.HostsMap;
@@ -266,8 +265,11 @@ class ActionScheduler implements Runnable {
         Map<String, RoleStats> roleStats = processInProgressStage(s, commandsToSchedule);
         // Check if stage is failed
         boolean failed = false;
-        for (String role : roleStats.keySet()) {
-          RoleStats stats = roleStats.get(role);
+        for (Map.Entry<String, RoleStats>entry : roleStats.entrySet()) {
+
+          String    role  = entry.getKey();
+          RoleStats stats = entry.getValue();
+
           if (LOG.isDebugEnabled()) {
             LOG.debug("Stats for role:" + role + ", stats=" + stats);
           }
@@ -348,7 +350,7 @@ class ActionScheduler implements Runnable {
         LOG.debug("==> Adding {} tasks to queue...", commandsToUpdate.size());
         for (ExecutionCommand cmd : commandsToUpdate) {
           // Do not queue up server actions; however if we encounter one, wake up the ServerActionExecutor
-          if (Role.AMBARI_SERVER_ACTION.toString().equals(cmd.getRole())) {
+          if (Role.AMBARI_SERVER_ACTION.name().equals(cmd.getRole())) {
             serverActionExecutor.awake();
           } else {
             actionQueue.enqueue(cmd.getHostname(), cmd);
@@ -457,11 +459,11 @@ class ActionScheduler implements Runnable {
   }
 
   /**
-   * @return Stats for the roles in the stage. It is used to determine whether stage
-   * has succeeded or failed.
-   * Side effects:
    * This method processes command timeouts and retry attempts, and
    * adds new (pending) execution commands to commandsToSchedule list.
+   *
+   * @return the stats for the roles in the stage which are used to determine
+   * whether stage has succeeded or failed
    */
   private Map<String, RoleStats> processInProgressStage(Stage s,
       List<ExecutionCommand> commandsToSchedule) throws AmbariException {
@@ -674,7 +676,7 @@ class ActionScheduler implements Runnable {
     for (Role r : hostCountsForRoles.keySet()) {
       RoleStats stats = new RoleStats(hostCountsForRoles.get(r),
           s.getSuccessFactor(r));
-      roleStats.put(r.toString(), stats);
+      roleStats.put(r.name(), stats);
     }
     return roleStats;
   }
@@ -856,7 +858,7 @@ class ActionScheduler implements Runnable {
                   fsmObject.getCluster(clusterName).getClusterId() : null;
           ActionFinalReportReceivedEvent event = new ActionFinalReportReceivedEvent(
                   clusterId, hostRoleCommand.getHostName(), null,
-                  hostRoleCommand.getRole().toString());
+                  hostRoleCommand.getRole().name());
           ambariEventPublisher.publish(event);
         } catch (AmbariException e) {
           LOG.error(String.format("Can not get cluster %s", clusterName), e);
@@ -888,6 +890,11 @@ class ActionScheduler implements Runnable {
     case IN_PROGRESS:
       rs.numInProgress++;
       break;
+    case HOLDING:
+    case HOLDING_FAILED:
+    case HOLDING_TIMEDOUT:
+      rs.numHolding++;
+      break;
     default:
       LOG.error("Unknown status " + status.name());
     }
@@ -910,6 +917,7 @@ class ActionScheduler implements Runnable {
     int numTimedOut = 0;
     int numPending = 0;
     int numAborted = 0;
+    int numHolding = 0;
     final int totalHosts;
     final float successFactor;
 
@@ -923,15 +931,11 @@ class ActionScheduler implements Runnable {
      */
     boolean isSuccessFactorMet() {
       int minSuccessNeeded = (int) Math.ceil(successFactor * totalHosts);
-      if (minSuccessNeeded <= numSucceeded) {
-        return true;
-      } else {
-        return false;
-      }
+      return minSuccessNeeded <= numSucceeded;
     }
 
     private boolean isRoleInProgress() {
-      return (numPending+numQueued+numInProgress > 0);
+      return numPending + numQueued + numInProgress + numHolding > 0;
     }
 
     /**
@@ -939,24 +943,20 @@ class ActionScheduler implements Runnable {
      * not met.
      */
     boolean isRoleFailed() {
-      if (isRoleInProgress() || isSuccessFactorMet()) {
-        return false;
-      } else {
-        return true;
-      }
+      return !(isRoleInProgress() || isSuccessFactorMet());
     }
 
     public String toString() {
       StringBuilder builder = new StringBuilder();
-      builder.append("numQueued="+numQueued);
-      builder.append(", numInProgress="+numInProgress);
-      builder.append(", numSucceeded="+numSucceeded);
-      builder.append(", numFailed="+numFailed);
-      builder.append(", numTimedOut="+numTimedOut);
-      builder.append(", numPending="+numPending);
-      builder.append(", numAborted="+numAborted);
-      builder.append(", totalHosts="+totalHosts);
-      builder.append(", successFactor="+successFactor);
+      builder.append("numQueued=").append(numQueued);
+      builder.append(", numInProgress=").append(numInProgress);
+      builder.append(", numSucceeded=").append(numSucceeded);
+      builder.append(", numFailed=").append(numFailed);
+      builder.append(", numTimedOut=").append(numTimedOut);
+      builder.append(", numPending=").append(numPending);
+      builder.append(", numAborted=").append(numAborted);
+      builder.append(", totalHosts=").append(totalHosts);
+      builder.append(", successFactor=").append(successFactor);
       return builder.toString();
     }
   }

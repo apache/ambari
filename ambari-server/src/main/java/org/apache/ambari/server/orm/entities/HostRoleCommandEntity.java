@@ -131,6 +131,9 @@ public class HostRoleCommandEntity {
   @Column(name = "attempt_count", nullable = false)
   private Short attemptCount = 0;
 
+  @Column(name = "retry_allowed", nullable = false)
+  private Integer retryAllowed = Integer.valueOf(0);
+
   // This is really command type as well as name
   @Column(name = "role_command")
   @Enumerated(EnumType.STRING)
@@ -313,6 +316,24 @@ public class HostRoleCommandEntity {
 
   public void setCustomCommandName(String customCommandName) {
     this.customCommandName = customCommandName;
+  }
+
+  /**
+   * Determine whether this task should hold for retry when an error occurs.
+   *
+   * @return {@code true} if this task should hold for retry when an error occurs
+   */
+  public boolean isRetryAllowed() {
+    return retryAllowed != 0;
+  }
+
+  /**
+   * Sets whether this task should hold for retry when an error occurs.
+   *
+   * @param enabled  {@code true} if this task should hold for retry when an error occurs
+   */
+  public void setRetryAllowed(boolean enabled) {
+    this.retryAllowed = enabled ? 1 : 0;
   }
 
   @Override

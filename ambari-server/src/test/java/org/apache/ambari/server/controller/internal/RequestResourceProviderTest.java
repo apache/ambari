@@ -842,8 +842,11 @@ public class RequestResourceProviderTest {
       replay(hostRoleCommand);
       request = PropertyHelper.getUpdateRequest(properties, null);
       if (status == HostRoleStatus.IN_PROGRESS ||
-              status == HostRoleStatus.PENDING ||
-              status == HostRoleStatus.QUEUED) { // the only valid cases
+          status == HostRoleStatus.PENDING ||
+          status == HostRoleStatus.HOLDING ||
+          status == HostRoleStatus.HOLDING_FAILED ||
+          status == HostRoleStatus.HOLDING_TIMEDOUT ||
+          status == HostRoleStatus.QUEUED) { // the only valid cases
         provider.updateResources(request, predicate);
       } else {  // In other cases, should error out
         try {

@@ -27,6 +27,7 @@ import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.*;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.serveraction.upgrades.ManualStageAction;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.junit.BeforeClass;
@@ -83,6 +84,41 @@ public class ServerActionExecutorTest {
     assertEquals(HostRoleStatus.COMPLETED, getTaskStatus(s));
   }
 
+  /**
+   * Test a manual stage
+   */
+  @Test
+  public void testServerActionManualStage() throws Exception {
+    final Request request = createMockRequest();
+
+    final Stage stage = new Stage((long) 1, "/tmp", "cluster1", (long) 978, "context", CLUSTER_HOST_INFO,
+        "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
+
+    stage.addServerActionCommand(ManualStageAction.class.getName(),
+        Role.AMBARI_SERVER_ACTION,
+        RoleCommand.EXECUTE,
+        "cluster1", SERVER_HOST_NAME,
+        new ServiceComponentHostServerActionEvent(StageUtils.getHostName(), System.currentTimeMillis()),
+        Collections.<String, String>emptyMap(), 1200);
+
+    final List<Stage> stages = new ArrayList<Stage>() {
+      {
+        add(stage);
+      }
+    };
+    ActionDBAccessor db = createMockActionDBAccessor(request, stages);
+    ServerActionExecutor.init(injector);
+    ServerActionExecutor executor = new ServerActionExecutor(db, 10000);
+
+    // Force the task to be QUEUED
+    stage.getHostRoleCommand(SERVER_HOST_NAME, Role.AMBARI_SERVER_ACTION.toString()).setStatus(HostRoleStatus.QUEUED);
+
+    int cycleCount = 0;
+    while (!getTaskStatus(stage).isHoldingState() && (cycleCount++ <= MAX_CYCLE_ITERATIONS)) {
+      executor.doWork();
+    }
+    assertEquals(HostRoleStatus.HOLDING, getTaskStatus(stage));
+  }
 
   /**
    * Test a timeout server action

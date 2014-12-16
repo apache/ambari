@@ -35,6 +35,10 @@ public enum HostRoleStatus {
    */
   IN_PROGRESS,
   /**
+   * Task is holding, waiting for command to proceed to completion.
+   */
+  HOLDING,
+  /**
    * Host reported success
    */
   COMPLETED,
@@ -43,9 +47,17 @@ public enum HostRoleStatus {
    */
   FAILED,
   /**
+   * Task is holding after a failure, waiting for command to skip or retry.
+   */
+  HOLDING_FAILED,
+  /**
    * Host did not respond in time
    */
   TIMEDOUT,
+  /**
+   * Task is holding after a time-out, waiting for command to skip or retry.
+   */
+  HOLDING_TIMEDOUT,
   /**
    * Operation was abandoned
    */
@@ -53,6 +65,7 @@ public enum HostRoleStatus {
 
   private static List<HostRoleStatus> COMPLETED_STATES = Arrays.asList(FAILED, TIMEDOUT, ABORTED, COMPLETED);
   private static List<HostRoleStatus> FAILED_STATES = Arrays.asList(FAILED, TIMEDOUT, ABORTED);
+  private static List<HostRoleStatus> HOLDING_STATES = Arrays.asList(HOLDING, HOLDING_FAILED, HOLDING_TIMEDOUT);
 
 
   /**
@@ -77,6 +90,17 @@ public enum HostRoleStatus {
   }
 
   /**
+   * Indicates whether or not this is a holding state.
+   * Holding means that the associated task is waiting for
+   * a command to transition to a completion state.
+   *
+   * @return true if this is a holding state.
+   */
+  public boolean isHoldingState() {
+    return HOLDING_STATES.contains(this);
+  }
+
+  /**
    *
    * @return list of completed states
    */
@@ -91,6 +115,4 @@ public enum HostRoleStatus {
   public static List<HostRoleStatus> getFailedStates() {
     return Collections.unmodifiableList(FAILED_STATES);
   }
-
-
 }

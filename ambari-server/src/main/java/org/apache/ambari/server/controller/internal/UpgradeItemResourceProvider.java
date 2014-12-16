@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.StaticallyInject;
-import org.apache.ambari.server.actionmanager.StageStatus;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -112,8 +112,8 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
 
       if (stageStatus != null) {
 
-        StageStatus   desiredStatus = StageStatus.valueOf(stageStatus);
-        Set<Resource> resources     = getResources(PropertyHelper.getReadRequest(), predicate);
+        HostRoleStatus desiredStatus = HostRoleStatus.valueOf(stageStatus);
+        Set<Resource>  resources     = getResources(PropertyHelper.getReadRequest(), predicate);
 
         for (Resource resource : resources) {
           // Set the desired status on the underlying stage.

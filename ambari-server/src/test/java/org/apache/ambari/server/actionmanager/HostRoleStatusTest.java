@@ -34,6 +34,9 @@ public class HostRoleStatusTest {
     Assert.assertFalse(HostRoleStatus.PENDING.isFailedState());
     Assert.assertFalse(HostRoleStatus.QUEUED.isFailedState());
     Assert.assertTrue(HostRoleStatus.TIMEDOUT.isFailedState());
+    Assert.assertFalse(HostRoleStatus.HOLDING.isFailedState());
+    Assert.assertFalse(HostRoleStatus.HOLDING_FAILED.isFailedState());
+    Assert.assertFalse(HostRoleStatus.HOLDING_TIMEDOUT.isFailedState());
   }
 
   @Test
@@ -45,5 +48,22 @@ public class HostRoleStatusTest {
     Assert.assertFalse(HostRoleStatus.PENDING.isCompletedState());
     Assert.assertFalse(HostRoleStatus.QUEUED.isCompletedState());
     Assert.assertTrue(HostRoleStatus.TIMEDOUT.isCompletedState());
+    Assert.assertFalse(HostRoleStatus.HOLDING.isCompletedState());
+    Assert.assertFalse(HostRoleStatus.HOLDING_FAILED.isCompletedState());
+    Assert.assertFalse(HostRoleStatus.HOLDING_TIMEDOUT.isCompletedState());
+  }
+
+  @Test
+  public void testIsHoldingState() throws Exception {
+    Assert.assertFalse(HostRoleStatus.ABORTED.isHoldingState());
+    Assert.assertFalse(HostRoleStatus.COMPLETED.isHoldingState());
+    Assert.assertFalse(HostRoleStatus.FAILED.isHoldingState());
+    Assert.assertFalse(HostRoleStatus.IN_PROGRESS.isHoldingState());
+    Assert.assertFalse(HostRoleStatus.PENDING.isHoldingState());
+    Assert.assertFalse(HostRoleStatus.QUEUED.isHoldingState());
+    Assert.assertFalse(HostRoleStatus.TIMEDOUT.isHoldingState());
+    Assert.assertTrue(HostRoleStatus.HOLDING.isHoldingState());
+    Assert.assertTrue(HostRoleStatus.HOLDING_FAILED.isHoldingState());
+    Assert.assertTrue(HostRoleStatus.HOLDING_TIMEDOUT.isHoldingState());
   }
 }

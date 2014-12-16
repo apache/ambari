@@ -34,17 +34,19 @@ import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
@@ -55,11 +57,15 @@ import static org.junit.Assert.*;
 public class StageResourceProviderTest {
 
   private StageDAO dao = null;
+  private Clusters clusters = null;
+  private Cluster cluster = null;
   private Injector injector;
 
   @Before
   public void before() {
     dao = createStrictMock(StageDAO.class);
+    clusters = createStrictMock(Clusters.class);
+    cluster = createStrictMock(Cluster.class);
 
     // create an injector which will inject the mocks
     injector = Guice.createInjector(Modules.override(
@@ -86,15 +92,17 @@ public class StageResourceProviderTest {
   public void testUpdateResources() throws Exception {
     StageResourceProvider provider = new StageResourceProvider();
 
-    // TODO : update test to account for stage status update
-//    Request request = createNiceMock(Request.class);
-//    Predicate predicate = createNiceMock(Predicate.class);
-//    try {
-//      provider.updateResources(request, predicate);
-//      fail("Expected UnsupportedOperationException");
-//    } catch (UnsupportedOperationException e) {
-//      // expected
-//    }
+    Request request = createNiceMock(Request.class);
+    Predicate predicate = createNiceMock(Predicate.class);
+
+    expect(clusters.getClusterById(anyLong())).andReturn(cluster).anyTimes();
+    expect(request.getProperties()).andReturn(Collections.<Map<String,Object>>emptySet());
+
+    replay(clusters, cluster, request, predicate);
+
+    provider.updateResources(request, predicate);
+
+    verify(clusters, cluster);
   }
 
   @Test
@@ -121,7 +129,10 @@ public class StageResourceProviderTest {
 
     expect(dao.findAll(request, predicate)).andReturn(entities);
 
-    replay(dao, request, predicate);
+    expect(clusters.getClusterById(anyLong())).andReturn(cluster).anyTimes();
+    expect(cluster.getClusterName()).andReturn("c1").anyTimes();
+
+    replay(dao, clusters, cluster, request, predicate);
 
     Set<Resource> resources = provider.getResources(request, predicate);
 
@@ -134,7 +145,7 @@ public class StageResourceProviderTest {
     Assert.assertEquals(1000L, resource.getPropertyValue(StageResourceProvider.STAGE_START_TIME));
     Assert.assertEquals(2500L, resource.getPropertyValue(StageResourceProvider.STAGE_END_TIME));
 
-    verify(dao);
+    verify(dao, clusters, cluster);
 
   }
 
@@ -149,7 +160,10 @@ public class StageResourceProviderTest {
 
     expect(dao.findAll(request, predicate)).andReturn(entities);
 
-    replay(dao, request, predicate);
+    expect(clusters.getClusterById(anyLong())).andReturn(cluster).anyTimes();
+    expect(cluster.getClusterName()).andReturn("c1").anyTimes();
+
+    replay(dao, clusters, cluster, request, predicate);
 
     QueryResponse response =  provider.queryForResources(request, predicate);
 
@@ -161,7 +175,7 @@ public class StageResourceProviderTest {
     Assert.assertFalse(response.isPagedResponse());
     Assert.assertEquals(1, response.getTotalResourceCount());
 
-    verify(dao);
+    verify(dao, clusters, cluster);
   }
 
   private List<StageEntity> getStageEntities() {
@@ -193,10 +207,8 @@ public class StageResourceProviderTest {
     @Override
     public void configure(Binder binder) {
       binder.bind(StageDAO.class).toInstance(dao);
-      binder.bind(Clusters.class).toInstance(
-          EasyMock.createNiceMock(Clusters.class));
-      binder.bind(Cluster.class).toInstance(
-          EasyMock.createNiceMock(Cluster.class));
+      binder.bind(Clusters.class).toInstance(clusters);
+      binder.bind(Cluster.class).toInstance(cluster);
       binder.bind(ActionMetadata.class);
     }
   }

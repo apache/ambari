@@ -19,7 +19,6 @@ package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.actionmanager.StageStatus;
 import org.apache.ambari.server.controller.spi.ExtendedResourceProvider;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -33,6 +32,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
@@ -42,6 +42,7 @@ import org.apache.ambari.server.state.Clusters;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -61,6 +62,12 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
    */
   @Inject
   private static StageDAO dao = null;
+
+  /**
+   * Used for querying task resources.
+   */
+  @Inject
+  private static HostRoleCommandDAO hostRoleCommandDAO = null;
 
   /**
    * Used to get cluster information.
@@ -118,6 +125,17 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
     KEY_PROPERTY_IDS.put(Resource.Type.Request, STAGE_REQUEST_ID);
   }
 
+  /**
+   * Mapping of valid status transitions that that are driven by manual input.
+   */
+  private static Map<HostRoleStatus, EnumSet<HostRoleStatus>> manualTransitionMap = new HashMap<HostRoleStatus, EnumSet<HostRoleStatus>>();
+
+  static {
+    manualTransitionMap.put(HostRoleStatus.HOLDING, EnumSet.of(HostRoleStatus.COMPLETED));
+    manualTransitionMap.put(HostRoleStatus.HOLDING_FAILED, EnumSet.of(HostRoleStatus.PENDING, HostRoleStatus.FAILED));
+    manualTransitionMap.put(HostRoleStatus.HOLDING_TIMEDOUT, EnumSet.of(HostRoleStatus.PENDING, HostRoleStatus.TIMEDOUT));
+  }
+
 
   // ----- Constructors ------------------------------------------------------
 
@@ -162,7 +180,7 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
 
         String stageStatus = (String) updateProperties.get(STAGE_STATUS);
         if (stageStatus != null) {
-          StageStatus desiredStatus = StageStatus.valueOf(stageStatus);
+          HostRoleStatus desiredStatus = HostRoleStatus.valueOf(stageStatus);
           updateStageStatus(entity, desiredStatus);
         }
       }
@@ -217,7 +235,7 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
    * @param stageId        the stage id
    * @param desiredStatus  the desired stage status
    */
-  public static void updateStageStatus(long stageId, StageStatus desiredStatus) {
+  public static void updateStageStatus(long stageId, HostRoleStatus desiredStatus) {
     Predicate predicate =
         new PredicateBuilder().property(STAGE_STAGE_ID).equals(stageId).toPredicate();
 
@@ -239,18 +257,30 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
    * @throws java.lang.IllegalArgumentException if the transition to the desired status is not a
    *         legal transition
    */
-  private static void updateStageStatus(StageEntity entity, StageStatus desiredStatus) {
+  private static void updateStageStatus(StageEntity entity, HostRoleStatus desiredStatus) {
     Collection<HostRoleCommandEntity> tasks = entity.getHostRoleCommands();
 
     Map<HostRoleStatus, Integer> taskStatusCounts = calculateTaskStatusCounts(tasks);
 
-    StageStatus currentStatus = calculateSummaryStatus(taskStatusCounts, tasks.size());
+    HostRoleStatus currentStatus = calculateSummaryStatus(taskStatusCounts, tasks.size());
 
-    if (!currentStatus.isValidManualTransition(desiredStatus)) {
+    if (!isValidManualTransition(currentStatus, desiredStatus)) {
       throw new IllegalArgumentException("Can not transition a stage from " +
           currentStatus + " to " + desiredStatus);
     }
-    // TODO : call ActionScheduler to release holding state
+
+    for (HostRoleCommandEntity hostRoleCommand : tasks) {
+      HostRoleStatus hostRoleStatus = hostRoleCommand.getStatus();
+      if (hostRoleStatus.equals(currentStatus)) {
+        hostRoleCommand.setStatus(desiredStatus);
+
+        if (desiredStatus == HostRoleStatus.PENDING) {
+          hostRoleCommand.setStartTime(-1L);
+        }
+
+        hostRoleCommandDAO.merge(hostRoleCommand);
+      }
+    }
   }
 
   /**
@@ -331,12 +361,15 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
    *
    * @return summary request status based on statuses of tasks in different states.
    */
-  private static StageStatus calculateSummaryStatus(Map<HostRoleStatus, Integer> counters, int totalTasks) {
-    return counters.get(HostRoleStatus.FAILED) > 0 ? StageStatus.FAILED :
-        counters.get(HostRoleStatus.ABORTED) > 0 ? StageStatus.ABORTED :
-        counters.get(HostRoleStatus.TIMEDOUT) > 0 ? StageStatus.TIMEDOUT :
-        counters.get(HostRoleStatus.IN_PROGRESS) > 0 ? StageStatus.IN_PROGRESS :
-        counters.get(HostRoleStatus.COMPLETED) == totalTasks ? StageStatus.COMPLETED : StageStatus.PENDING;
+  private static HostRoleStatus calculateSummaryStatus(Map<HostRoleStatus, Integer> counters, int totalTasks) {
+    return counters.get(HostRoleStatus.HOLDING) > 0 ? HostRoleStatus.HOLDING :
+        counters.get(HostRoleStatus.HOLDING_FAILED) > 0 ? HostRoleStatus.HOLDING_FAILED :
+        counters.get(HostRoleStatus.HOLDING_TIMEDOUT) > 0 ? HostRoleStatus.HOLDING_TIMEDOUT :
+        counters.get(HostRoleStatus.FAILED) > 0 ? HostRoleStatus.FAILED :
+        counters.get(HostRoleStatus.ABORTED) > 0 ? HostRoleStatus.ABORTED :
+        counters.get(HostRoleStatus.TIMEDOUT) > 0 ? HostRoleStatus.TIMEDOUT :
+        counters.get(HostRoleStatus.IN_PROGRESS) > 0 ? HostRoleStatus.IN_PROGRESS :
+        counters.get(HostRoleStatus.COMPLETED) == totalTasks ? HostRoleStatus.COMPLETED : HostRoleStatus.PENDING;
   }
 
   /**
@@ -385,5 +418,17 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
       clusters = clustersProvider.get();
     }
     return clusters;
+  }
+
+  /**
+   * Determine whether or not it is valid to transition from this stage status to the given status.
+   *
+   * @param status  the stage status being transitioned to
+   *
+   * @return true if it is valid to transition to the given stage status
+   */
+  private static boolean isValidManualTransition(HostRoleStatus status, HostRoleStatus desiredStatus) {
+    EnumSet<HostRoleStatus> stageStatusSet = manualTransitionMap.get(status);
+    return stageStatusSet != null && stageStatusSet.contains(desiredStatus);
   }
 }

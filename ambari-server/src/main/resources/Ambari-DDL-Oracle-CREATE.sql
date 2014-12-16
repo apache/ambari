@@ -191,6 +191,7 @@ CREATE TABLE execution_command (
 CREATE TABLE host_role_command (
   task_id NUMBER(19) NOT NULL,
   attempt_count NUMBER(5) NOT NULL,
+  retry_allowed NUMBER(1) DEFAULT 0 NOT NULL,
   event CLOB NULL,
   exitcode NUMBER(10) NOT NULL,
   host_name VARCHAR2(255) NOT NULL,

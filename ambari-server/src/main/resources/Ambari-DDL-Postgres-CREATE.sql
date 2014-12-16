@@ -201,6 +201,7 @@ CREATE TABLE execution_command (
 CREATE TABLE host_role_command (
   task_id BIGINT NOT NULL,
   attempt_count SMALLINT NOT NULL,
+  retry_allowed SMALLINT DEFAULT 0 NOT NULL,
   event VARCHAR(32000) NOT NULL,
   exitcode INTEGER NOT NULL,
   host_name VARCHAR(255) NOT NULL,

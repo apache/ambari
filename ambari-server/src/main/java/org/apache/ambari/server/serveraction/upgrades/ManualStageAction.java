@@ -34,7 +34,6 @@ public class ManualStageAction extends AbstractServerAction {
       ConcurrentMap<String, Object> requestSharedDataContext)
       throws AmbariException, InterruptedException {
     // TODO Auto-generated method stub
-    return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", "", "");
+    return createCommandReport(0, HostRoleStatus.HOLDING, "{}", "", "");
   }
-
 }

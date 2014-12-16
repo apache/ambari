@@ -234,6 +234,7 @@ GRANT ALL PRIVILEGES ON TABLE ambari.execution_command TO :username;
 CREATE TABLE ambari.host_role_command (
   task_id BIGINT NOT NULL,
   attempt_count SMALLINT NOT NULL,
+  retry_allowed SMALLINT DEFAULT 0 NOT NULL,
   event VARCHAR(32000) NOT NULL,
   exitcode INTEGER NOT NULL,
   host_name VARCHAR(255) NOT NULL,

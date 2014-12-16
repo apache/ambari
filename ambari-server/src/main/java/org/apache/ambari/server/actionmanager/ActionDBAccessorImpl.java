@@ -179,7 +179,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     List<HostRoleCommandEntity> commands =
         hostRoleCommandDAO.findByHostRole(host, requestId, stageId, role);
     for (HostRoleCommandEntity command : commands) {
-      command.setStatus(HostRoleStatus.TIMEDOUT);
+      command.setStatus(command.isRetryAllowed() ? HostRoleStatus.HOLDING_TIMEDOUT : HostRoleStatus.TIMEDOUT);
       command.setEndTime(now);
     }
     hostRoleCommandDAO.mergeAll(commands);
@@ -194,7 +194,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     List<Stage> stages = new ArrayList<Stage>();
     List<HostRoleStatus> statuses =
         Arrays.asList(HostRoleStatus.QUEUED, HostRoleStatus.IN_PROGRESS,
-          HostRoleStatus.PENDING);
+          HostRoleStatus.PENDING, HostRoleStatus.HOLDING,
+          HostRoleStatus.HOLDING_FAILED, HostRoleStatus.HOLDING_TIMEDOUT);
     for (StageEntity stageEntity : stageDAO.findByCommandStatuses(statuses)) {
       stages.add(stageFactory.createExisting(stageEntity));
     }
@@ -207,7 +208,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
     RequestEntity requestEntity = request.constructNewPersistenceEntity();
 
-    Long clusterId = Long.valueOf(-1L);
+    Long clusterId = -1L;
     ClusterEntity clusterEntity = clusterDAO.findById(request.getClusterId());
     if (clusterEntity != null) {
       clusterId = clusterEntity.getClusterId();
@@ -228,11 +229,9 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       stageDAO.create(stageEntity);
 
       List<HostRoleCommand> orderedHostRoleCommands = stage.getOrderedHostRoleCommands();
-      List<HostRoleCommandEntity> hostRoleCommandEntities = new ArrayList<HostRoleCommandEntity>();
 
       for (HostRoleCommand hostRoleCommand : orderedHostRoleCommands) {
         HostRoleCommandEntity hostRoleCommandEntity = hostRoleCommand.constructNewPersistenceEntity();
-        hostRoleCommandEntities.add(hostRoleCommandEntity);
         hostRoleCommandEntity.setStage(stageEntity);
 
         HostEntity hostEntity = hostDAO.findByName(hostRoleCommandEntity.getHostName());
@@ -354,7 +353,12 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       if (commandEntity.getStatus() != HostRoleStatus.ABORTED) {
         // We don't want to overwrite statuses for ABORTED tasks with
         // statuses that have been received from the agent after aborting task
-        commandEntity.setStatus(HostRoleStatus.valueOf(report.getStatus()));
+        HostRoleStatus status = HostRoleStatus.valueOf(report.getStatus());
+        // if FAILED and marked for holding then set status = HOLDING_FAILED
+        if (status == HostRoleStatus.FAILED && commandEntity.isRetryAllowed()) {
+          status = HostRoleStatus.HOLDING_FAILED;
+        }
+        commandEntity.setStatus(status);
       } else {
         abortedCommandUpdates.add(commandEntity.getTaskId());
       }
@@ -399,7 +403,12 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findByHostRole(
       hostname, requestId, stageId, role);
     for (HostRoleCommandEntity command : commands) {
-      command.setStatus(HostRoleStatus.valueOf(report.getStatus()));
+      HostRoleStatus status = HostRoleStatus.valueOf(report.getStatus());
+      // if FAILED and marked for holding then set status = HOLDING_FAILED
+      if (status == HostRoleStatus.FAILED && command.isRetryAllowed()) {
+        status = HostRoleStatus.HOLDING_FAILED;
+      }
+      command.setStatus(status);
       command.setStdOut(report.getStdOut().getBytes());
       command.setStdError(report.getStdErr().getBytes());
       command.setStructuredOut(report.getStructuredOut() == null ? null :
@@ -476,10 +485,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
   @Override
   public List<HostRoleCommand> getRequestTasks(long requestId) {
-    List<HostRoleCommand> tasks = new ArrayList<HostRoleCommand>();
-    return getTasks(
-        hostRoleCommandDAO.findTaskIdsByRequest(requestId)
-    );
+    return getTasks(hostRoleCommandDAO.findTaskIdsByRequest(requestId));
   }
 
   @Override
@@ -500,10 +506,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
     } else if (requestIds.isEmpty()) {
       return getTasks(taskIds);
-    } else if (taskIds.isEmpty()) {
-      return getAllTasksByRequestIds(requestIds);
     } else {
-      return Collections.emptyList();
+      return getAllTasksByRequestIds(requestIds);
     }
   }
 
@@ -585,7 +589,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     Set<HostRoleStatus> statuses = new HashSet<HostRoleStatus>();
     if (status == RequestStatus.IN_PROGRESS) {
       statuses.addAll(Arrays.asList(HostRoleStatus.PENDING,
-          HostRoleStatus.IN_PROGRESS, HostRoleStatus.QUEUED));
+          HostRoleStatus.IN_PROGRESS, HostRoleStatus.QUEUED,
+          HostRoleStatus.HOLDING, HostRoleStatus.HOLDING_FAILED, HostRoleStatus.HOLDING_TIMEDOUT));
     } else if (status == RequestStatus.COMPLETED) {
       match = false;
       checkAllTasks = true;
