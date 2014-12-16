@@ -30,11 +30,14 @@ describe('App.MainStackVersionsController', function () {
   describe('#load()', function () {
     it('loads data to model by running loadStackVersionsToModel', function () {
       sinon.stub(controller, 'loadStackVersionsToModel').returns({done: Em.K});
+      sinon.stub(App.get('router.repoVersionsController'), 'loadRepoVersionsToModel').returns({done: Em.K});
 
       controller.load();
       expect(controller.loadStackVersionsToModel.calledOnce).to.be.true;
+      expect(App.get('router.repoVersionsController').loadRepoVersionsToModel.calledOnce).to.be.true;
 
       controller.loadConfigVersionsToModel.restore();
+      App.get('router.repoVersionsController').loadRepoVersionsToModel.restore();
     });
   });
 

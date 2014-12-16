@@ -72,8 +72,11 @@ App.MainStackVersionsController = Em.ArrayController.extend({
     var dfd = $.Deferred();
     var self = this;
     this.loadStackVersionsToModel().done(function () {
-      self.set('dataIsLoaded', true);
-      dfd.resolve();
+      App.get('router.repoVersionsController').loadRepoVersionsToModel().done(function() {
+        self.set('dataIsLoaded', true);
+        dfd.resolve();
+      });
+
     });
     return dfd.promise();
   },

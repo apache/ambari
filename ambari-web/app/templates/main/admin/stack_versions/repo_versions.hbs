@@ -44,14 +44,7 @@
               <span>{{view.content.displayName}}</span>
             </td>
             <td class="os-types">
-              <a href="#" class="os-expander" {{action toggleOs target="view"}}>
-                <span {{bindAttr class="view.isOsCollapsed:icon-caret-right:icon-caret-down"}}></span>
-                {{view.content.operatingSystems.length}} {{pluralize view.content.operatingSystems.length singular="t:common.os" plural="t:common.oss"}}
-              </a>
-
-              <div id="stack-{{view.content.repositoryVersion}}" class="operating-systems">
-                {{{view.labels}}}
-              </div>
+              {{view App.OperatingSystemsView contentBinding="view.content"}}
             </td>
             <td class="repo-version-install">
               <a href="#" class="btn btn-success" {{action installRepoVersion view.content target="controller"}}>{{t common.install}}</a>

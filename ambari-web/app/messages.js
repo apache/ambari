@@ -1299,6 +1299,9 @@ Em.I18n.translations = {
   'admin.stackVersions.hosts.popup.title': "{0} Version is {1} on {2} hosts:",
   'admin.stackVersions.hosts.popup.primary': "Go to Hosts",
 
+  'admin.stackVersions.updateTab.title.available': "Updates Available ({0})",
+  'admin.stackVersions.updateTab.title.not.available': "No Updates Available",
+
   'admin.stackUpgrade.title': "Stack and upgrade",
   'admin.stackUpgrade.hostsOnline': "{0}/{1} hosts online",
   'admin.stackUpgrade.state.available': "Upgrade Available",

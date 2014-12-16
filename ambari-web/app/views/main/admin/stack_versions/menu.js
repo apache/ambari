@@ -23,8 +23,8 @@ App.StackVersionMenuView = Em.CollectionView.extend({
   classNames: ["nav", "nav-tabs"],
   content:function(){
     var menuItems = [
-      { label: 'Installed', routing:'versions', url:"versions", active:"active"},
-      { label: 'Updates', routing:'updates', url:"versions/updates"}
+      { label: Em.I18n.t('common.installed'), routing:'versions', url:"versions", active:"active"},
+      { label: Em.I18n.t('admin.stackVersions.updateTab.title.not.available'), routing:'updates', url:"versions/updates"}
     ];
     return menuItems;
   }.property(),
@@ -46,6 +46,21 @@ App.StackVersionMenuView = Em.CollectionView.extend({
   itemViewClass: Em.View.extend({
     classNameBindings: ["active"],
     active: "",
-    template: Ember.Handlebars.compile('<a href="#/main/admin/{{unbound view.content.url}}"> {{unbound view.content.label}}</a>')
+    newRepoCount: function() {
+      return App.RepositoryVersion.find().filterProperty('stackVersion', null).get('length');
+    }.property('controller.dataIsLoaded'),
+    label: function() {
+      if (this.get('content.routing') == 'updates') {
+        if (this.get('newRepoCount') > 0) {
+          this.set("active", "");
+          return  Em.I18n.t('admin.stackVersions.updateTab.title.available').format(this.get('newRepoCount'))
+        } else {
+          this.set("active", 'not-active-link');
+        }
+      }
+      return this.get('content.label')
+    }.property('view.content.label', 'newRepoCount'),
+
+    template: Ember.Handlebars.compile('<a href="#/main/admin/{{unbound view.content.url}}"> {{view.label}}</a>')
   })
 });

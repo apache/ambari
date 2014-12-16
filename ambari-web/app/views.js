@@ -110,6 +110,7 @@ require('views/main/admin/stack_upgrade/upgrade_group_view');
 require('views/main/admin/stack_upgrade/upgrade_task_view');
 require('views/main/admin/stack_and_upgrade_view');
 require('views/main/admin/stack_versions/menu');
+require('views/main/admin/stack_versions/operating_systems');
 require('views/main/admin/stack_versions/repo_version_view');
 require('views/main/admin/stack_versions/stack_version_view');
 require('views/main/admin/stack_versions/stack_version_details_view');

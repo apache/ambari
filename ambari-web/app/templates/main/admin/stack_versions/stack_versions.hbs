@@ -46,14 +46,7 @@
               <a href="#/main/admin/versions/{{unbound view.content.id}}">{{view.content.repositoryVersion.displayName}}</a>
             </td>
             <td class="os-types">
-              <a href="#" class="os-expander" {{action toggleOs target="view"}}>
-                <span {{bindAttr class="view.isOsCollapsed:icon-caret-right:icon-caret-down"}}></span>
-                {{view.content.repositoryVersion.operatingSystems.length}} {{pluralize view.content.repositoryVersion.operatingSystems.length singular="t:common.os" plural="t:common.oss"}}
-              </a>
-
-              <div id="stack-{{view.content.name}}" class="operating-systems">
-                {{{view.labels}}}
-              </div>
+              {{view App.OperatingSystemsView contentBinding="view.content.repositoryVersion"}}
             </td>
             <td class="installed-hosts-count">
               <span  {{bindAttr class="view.content.noInstalledHosts:not-active-link"}}>

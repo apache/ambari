@@ -54,9 +54,12 @@ App.RepoVersionsController = Em.ArrayController.extend({
     this.set('dataIsLoaded', false);
     var dfd = $.Deferred();
     var self = this;
-    this.loadRepoVersionsToModel().done(function () {
-      self.set('dataIsLoaded', true);
-      dfd.resolve();
+
+    App.get('router.mainStackVersionsController').loadStackVersionsToModel().done(function () {
+      self.loadRepoVersionsToModel().done(function () {
+        self.set('dataIsLoaded', true);
+        dfd.resolve();
+      });
     });
     return dfd.promise();
   },
@@ -69,15 +72,11 @@ App.RepoVersionsController = Em.ArrayController.extend({
    */
   loadRepoVersionsToModel: function () {
     var dfd = $.Deferred();
-    var self = this;
-    App.get('router.mainStackVersionsController').loadStackVersionsToModel().done(function () {
-      App.HttpClient.get(self.getUrl(), App.repoVersionMapper, {
-        complete: function () {
-          dfd.resolve();
-        }
-      });
+    App.HttpClient.get(this.getUrl(), App.repoVersionMapper, {
+      complete: function () {
+        dfd.resolve();
+      }
     });
-
     return dfd.promise();
   },
 

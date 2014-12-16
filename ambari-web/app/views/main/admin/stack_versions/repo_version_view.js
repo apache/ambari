@@ -127,18 +127,7 @@ App.RepoVersionsView = App.TableView.extend({
     tagName: 'tr',
     didInsertElement: function () {
       App.tooltip(this.$("[rel='Tooltip']"));
-      this.set('isOsCollapsed', true);
-    },
-
-    toggleOs: function(event) {
-      this.set('isOsCollapsed', !this.get('isOsCollapsed'));
-      this.$('.operating-systems').toggle();
-    },
-
-    labels: function() {
-      return this.get('content.operatingSystems') &&
-        this.get('content.operatingSystems').getEach('osType').join("<br/>");
-    }.property('content.operatingSystems.length')
+    }
   })
 
 });

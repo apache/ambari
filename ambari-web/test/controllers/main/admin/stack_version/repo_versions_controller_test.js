@@ -52,24 +52,23 @@ describe('App.RepoVersionsController', function () {
   describe('#load', function () {
     it('loads data by running loadRepoVersionsToModel', function () {
       sinon.stub(repoVersionsController, 'loadRepoVersionsToModel').returns({done: Em.K});
+      sinon.stub(App.get('router.mainStackVersionsController'), 'loadStackVersionsToModel', function() { return $.Deferred().resolve()});
       repoVersionsController.load();
       expect(repoVersionsController.loadRepoVersionsToModel.calledOnce).to.be.true;
+      expect(App.get('router.mainStackVersionsController').loadStackVersionsToModel.calledOnce).to.be.true;
       repoVersionsController.loadRepoVersionsToModel.restore();
+      App.get('router.mainStackVersionsController').loadStackVersionsToModel.restore();
     });
   });
   describe('#loadRepoVersionsToModel()', function () {
     it('loads data to model', function () {
       sinon.stub(App.HttpClient, 'get', Em.K);
       sinon.stub(repoVersionsController, 'getUrl', Em.K);
-      sinon.stub(App.get('router.mainStackVersionsController'), 'loadStackVersionsToModel', function() { return $.Deferred().resolve()});
 
       repoVersionsController.loadRepoVersionsToModel();
       expect(App.HttpClient.get.calledOnce).to.be.true;
       expect(repoVersionsController.getUrl.calledOnce).to.be.true;
-      expect(App.get('router.mainStackVersionsController').loadStackVersionsToModel.calledOnce).to.be.true;
 
-
-      App.get('router.mainStackVersionsController').loadStackVersionsToModel.restore();
       repoVersionsController.getUrl.restore();
       App.HttpClient.get.restore();
     });
