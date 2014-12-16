@@ -393,6 +393,7 @@ App.config = Em.Object.create({
           serviceConfigObj.id = 'site property';
           serviceConfigObj.displayName = configsPropertyDef && configsPropertyDef.displayName ? configsPropertyDef.displayName : index;
           serviceConfigObj.options = configsPropertyDef ? configsPropertyDef.options : null;
+          serviceConfigObj.radioName = configsPropertyDef ? configsPropertyDef.radioName : null;
           serviceConfigObj.serviceName = configsPropertyDef && configsPropertyDef.serviceName ? configsPropertyDef.serviceName : serviceName;
           serviceConfigObj.belongsToService = configsPropertyDef && configsPropertyDef.belongsToService ? configsPropertyDef.belongsToService : [];
           this.calculateConfigProperties(serviceConfigObj, isAdvanced, advancedConfigs);
