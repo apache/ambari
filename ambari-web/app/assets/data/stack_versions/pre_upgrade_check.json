@@ -1,81 +1,29 @@
 {
-  "UpgradeChecks": [
+  "href" : "http://c6401.ambari.apache.org:8080/api/v1/clusters/clus/rolling_upgrades_check/",
+  "items" : [
     {
-      "check": "NameNode HA is enabled",
-      "status": "PASS",
-      "reason": "",
-      "failed_on": [],
-      "check_type": "SERVICE"
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/clusters/clus/rolling_upgrade_check/HOST_HEARTBEAT",
+      "UpgradeChecks" : {
+        "cluster_name" : "clus",
+        "id" : "HOST_HEARTBEAT",
+        "check" : "All hosts must be heartbeating with the server unless they are in Maintenance Mode",
+        "check_type" : "HOST",
+        "failed_on" : ["c6401.ambari.apache.org"],
+        "reason" : "Some hosts are not heartbeating with the server",
+        "status" : "FAIL"
+      }
     },
     {
-      "check": "Work-preserving RM/NM restart is enabled in YARN configs",
-      "status": "FAIL",
-      "reason": "X should be set to Y in yarn-site",
-      "failed_on": [ "YARN" ],
-      "check_type": "SERVICE"
-    },
-    {
-      "check": "MapReduce jobs are referencing Hadoop libraries from the distributed cache instead of the cluster",
-      "status": "PASS",
-      "reason": "",
-      "failed_on": [],
-      "check_type": "SERVICE"
-    },
-    {
-      "check": "Tez jobs are referencing Hadoop libraries from the distributed cache instead of the cluster",
-      "status": "PASS",
-      "reason": "",
-      "failed_on": [],
-      "check_type": "SERVICE"
-    },
-    {
-      "check": "Oozie jobs are referencing Hadoop libraries from the distributed cache instead of the cluster",
-      "status": "PASS",
-      "reason": "",
-      "failed_on": [],
-      "check_type": "SERVICE"
-    },
-    {
-      "check": "All services are up",
-      "status": "FAIL",
-      "reason": "Some services are down",
-      "failed_on": [ "STORM" ],
-      "check_type": "SERVICE"
-    },
-    {
-      "check": "All services must not in Maintenance Mode",
-      "status": "FAIL",
-      "reason": "Some services are in Maintenance Mode",
-      "failed_on": [ "FALCON", "OOZIE" ],
-      "check_type": "SERVICE"
-    },
-    {
-      "check": "There must not be any DataNodes in decommissioning state",
-      "status": "FAIL",
-      "reason": "Some DataNodes are in decommissioning state",
-      "failed_on": [ "host004", "host005" ],
-      "check_type": "HOST"
-    },
-    {
-      "check": "All hosts must be heartbeating with the server unless they are in Maintenance Mode",
-      "status": "FAIL",
-      "reason": "Some hosts are not heartbeating with the server",
-      "failed_on": [ "host009", "host010" ],
-      "check_type": "HOST"
-    },
-    {
-      "check": "All hosts must not have any components in Maintenance Mode",
-      "status": "FAIL",
-      "reason": "Some hosts have host components in Maintenance Mode",
-      "failed_on": [ "host001", "host002" ],
-      "check_type": "HOST"
-    },
-    {
-      "check": "All hosts must have the new version installed",
-      "status": "FAIL",
-      "reason": "Some hosts do not have HDP-2.2.1 installed",
-      "failed_on": [ "host001", "host002" ],
-      "check_type": "HOST"
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/clusters/clus/rolling_upgrade_check/SERVICES_MAINTENANCE_MODE",
+      "UpgradeChecks" : {
+        "cluster_name" : "clus",
+        "id" : "SERVICES_MAINTENANCE_MODE",
+        "check" : "All services must not in Maintenance Mode",
+        "check_type" : "SERVICE",
+        "failed_on" : [],
+        "reason" : "",
+        "status" : "PASS"
+      }
     }
   ]
 }

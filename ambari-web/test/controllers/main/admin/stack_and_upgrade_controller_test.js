@@ -248,24 +248,28 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       controller.upgrade.restore();
     });
     it("shows popup", function () {
-      var check =  {UpgradeChecks: [{
-        "check": "Work-preserving RM/NM restart is enabled in YARN configs",
-        "status": "FAIL",
-        "reason": "FAIL",
-        "failed_on": [],
-        "check_type": "SERVICE"
+      var check =  { items: [{
+        UpgradeChecks: {
+          "check": "Work-preserving RM/NM restart is enabled in YARN configs",
+          "status": "FAIL",
+          "reason": "FAIL",
+          "failed_on": [],
+          "check_type": "SERVICE"
+        }
       }]};
       controller.runPreUpgradeCheckSuccess(check,null,{label: "name"});
       expect(controller.upgrade.calledOnce).to.be.false;
       expect(App.ModalPopup.show.calledOnce).to.be.true;
     });
     it("runs upgrade popup", function () {
-      var check = {UpgradeChecks: [{
-        "check": "Work-preserving RM/NM restart is enabled in YARN configs",
-        "status": "PASS",
-        "reason": "OK",
-        "failed_on": [],
-        "check_type": "SERVICE"
+      var check = { items: [{
+        UpgradeChecks: {
+          "check": "Work-preserving RM/NM restart is enabled in YARN configs",
+          "status": "PASS",
+          "reason": "OK",
+          "failed_on": [],
+          "check_type": "SERVICE"
+        }
       }]};
       controller.runPreUpgradeCheckSuccess(check,null,{label: "name"});
       expect(controller.upgrade.calledOnce).to.be.true;

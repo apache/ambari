@@ -22,8 +22,8 @@
   </div>
   <div class="limited-height-2">
     {{#each item in view.checks}}
-        <i class="icon-remove"></i>&nbsp;<span>{{item.check}}</span>
-        <pre>{{t admin.stackUpgrade.preupgradeCheck.reason}}{{item.reason}}<br/>{{t admin.stackUpgrade.preupgradeCheck.failedOn}}{{item.failed_on}}</pre>
+        <i class="icon-remove"></i>&nbsp;<span>{{item.UpgradeChecks.check}}</span>
+        <pre>{{t admin.stackUpgrade.preupgradeCheck.reason}}{{item.UpgradeChecks.reason}}<br/>{{t admin.stackUpgrade.preupgradeCheck.failedOn}}{{item.UpgradeChecks.failed_on}}</pre>
     {{/each}}
   </div>
 </div>

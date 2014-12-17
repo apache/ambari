@@ -283,7 +283,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @param version
    */
   runPreUpgradeCheck: function(version) {
-    if (App.supports.preUpgradeCheck) {
+    if (App.get('supports.preUpgradeCheck')) {
       App.ajax.send({
         name: "admin.rolling_upgrade.pre_upgrade_check",
         sender: this,
@@ -304,16 +304,14 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @returns {App.ModalPopup|void}
    */
   runPreUpgradeCheckSuccess: function(data, opt, params) {
-    if (data.UpgradeChecks.someProperty('status',"FAIL")) {
+    if (data.items.someProperty('UpgradeChecks.status',"FAIL")) {
       return App.ModalPopup.show({
         header: Em.I18n.t('admin.stackUpgrade.preupgradeCheck.header').format(params.label),
         primary: Em.I18n.t('common.dismiss'),
         secondary: false,
         bodyClass: Em.View.extend({
           templateName: require('templates/main/admin/stack_upgrade/pre_upgrade_check_dialog'),
-          checks: function() {
-            return data.UpgradeChecks.filterProperty('status',"FAIL");
-          }.property()
+          checks: data.items.filterProperty('UpgradeChecks.status',"FAIL")
         })
       })
     } else {

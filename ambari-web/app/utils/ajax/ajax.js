@@ -1394,7 +1394,7 @@ var urls = {
     'mock': ''
   },
   'admin.rolling_upgrade.pre_upgrade_check': {
-    'real': '/clusters/{clusterName}/rolling_upgrades_check',
+    'real': '/clusters/{clusterName}/rolling_upgrades_check?fields=*',
     'mock': '/data/stack_versions/pre_upgrade_check.json'
   },
 
