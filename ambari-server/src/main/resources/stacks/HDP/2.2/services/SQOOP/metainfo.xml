@@ -20,7 +20,7 @@
   <services>
     <service>
       <name>SQOOP</name>
-      <version>1.4.5.2.2.0.0</version>
+      <version>1.4.5.2.2</version>
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>
