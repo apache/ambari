@@ -1,0 +1,83 @@
+{
+  "services": [
+    {
+      "name": "HIVE",
+      "identities": [
+        {
+          "name": "/spnego"
+        },
+        {
+          "name": "/smokeuser"
+        }
+      ],
+      "configurations": [
+        {
+          "hive-site": {
+            "hive.metastore.sasl.enabled": "true",
+            "hive.security.authorization.enabled": "true",
+            "hive.server2.authentication": "KERBEROS"
+          }
+        }
+      ],
+      "components": [
+        {
+          "name": "HIVE_METASTORE",
+          "identities": [
+            {
+              "name": "hive_metastore_hive",
+              "principal": {
+                "value": "hive/_HOST@${realm}",
+                "configuration": "hive-site/hive.metastore.kerberos.principal"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/hive.service.keytab",
+                "owner": {
+                  "name": "${hive-env/hive_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "hive-site/hive.metastore.kerberos.keytab.file"
+              }
+            }
+          ]
+        },
+        {
+          "name": "HIVE_SERVER",
+          "identities": [
+            {
+              "name": "hive_server_hive",
+              "principal": {
+                "value": "hive/_HOST@${realm}",
+                "configuration": "hive-site/hive.server2.authentication.kerberos.principal"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/hive.service.keytab",
+                "owner": {
+                  "name": "${hive-env/hive_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "hive-site/hive.server2.authentication.kerberos.keytab"
+              }
+            },
+            {
+              "name": "/spnego",
+              "principal": {
+                "configuration": "hive-site/hive.server2.authentication.spnego.principal"
+              },
+              "keytab": {
+                "configuration": "hive-site/hive.server2.authentication.spnego.keytab"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
