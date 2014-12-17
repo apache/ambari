@@ -2573,15 +2573,6 @@ width:100%;
   }
 }
 
-.go-to {
-  float: right;
-  background-position: right center;
-  background-repeat: no-repeat;
-  background-image: @arrow-right;
-  padding-right: 40px;
-  margin-top: 4px;
-}
-
 .modal-graph-line {
   width: 810px;
   margin: -250px 0 0 -405px;
@@ -6547,7 +6538,8 @@ i.icon-asterisks {
         padding: 15px 10px;
       }
       select {
-        width: 80%;
+        width: initial;
+        min-width: 80%;
         margin: 10px;
       }
     }
@@ -6561,9 +6553,11 @@ i.icon-asterisks {
     height: 100px;
   }
   .go-to {
-    margin-top: 40px;
-    background-position: left top;
-    height: 20px;
+    height: 30px;
+    font-size: 25px;
+    text-align: center;
+    margin-top: 30px;
+    color: #777;
   }
 }
 
