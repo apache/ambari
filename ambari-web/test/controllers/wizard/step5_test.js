@@ -249,9 +249,12 @@ describe('App.WizardStep5Controller', function () {
     var tests = Em.A([
       {
         componentName: 'HBASE_SERVER',
-        services: Em.A([
-          Em.Object.create({isInstalled: true, serviceName: 'HBASE'})
-        ]),
+        serviceComponents: [
+          Em.Object.create({
+            componentName: 'HBASE_SERVER',
+            stackService: Em.Object.create({isInstalled: true, serviceName: 'HBASE'})
+          })
+        ],
         selectedServicesMasters: Em.A([
           Em.Object.create({showAddControl: false, showRemoveControl: true, component_name: 'HBASE_SERVER'}),
           Em.Object.create({showAddControl: true, showRemoveControl: false, component_name: 'HBASE_SERVER'})
@@ -268,9 +271,12 @@ describe('App.WizardStep5Controller', function () {
       },
       {
         componentName: 'HBASE_SERVER',
-        services: Em.A([
-          Em.Object.create({isInstalled: false, serviceName: 'HBASE'})
-        ]),
+        serviceComponents: [
+          Em.Object.create({
+            componentName: 'HBASE_SERVER',
+            stackService: Em.Object.create({isInstalled: false, serviceName: 'HBASE'})
+          })
+        ],
         selectedServicesMasters: Em.A([
           Em.Object.create({showAddControl: true, showRemoveControl: false, component_name: 'HBASE_SERVER'})
         ]),
@@ -286,9 +292,12 @@ describe('App.WizardStep5Controller', function () {
       },
       {
         componentName: 'HBASE_SERVER',
-        services: Em.A([
-          Em.Object.create({isInstalled: false, serviceName: 'HBASE'})
-        ]),
+        serviceComponents: [
+          Em.Object.create({
+            componentName: 'HBASE_SERVER',
+            stackService: Em.Object.create({isInstalled: false, serviceName: 'HBASE'})
+          })
+        ],
         selectedServicesMasters: Em.A([
           Em.Object.create({showAddControl: false, showRemoveControl: true, component_name: 'HBASE_SERVER'})
         ]),
@@ -305,9 +314,12 @@ describe('App.WizardStep5Controller', function () {
       },
       {
         componentName: 'HBASE_SERVER',
-        services: Em.A([
-          Em.Object.create({isInstalled: false, serviceName: 'HBASE'})
-        ]),
+        serviceComponents: [
+          Em.Object.create({
+            componentName: 'HBASE_SERVER',
+            stackService:  Em.Object.create({isInstalled: false, serviceName: 'HBASE'})
+          })
+        ],
         selectedServicesMasters: Em.A([
           Em.Object.create({showAddControl: false, showRemoveControl: true, component_name: 'HBASE_SERVER'})
         ]),
@@ -326,8 +338,8 @@ describe('App.WizardStep5Controller', function () {
 
     tests.forEach(function (test) {
       it(test.m, function () {
-        sinon.stub(App.StackService, 'find', function () {
-          return test.services;
+        sinon.stub(App.StackServiceComponent, 'find', function () {
+          return test.serviceComponents;
         });
         c.reopen({
           content: Em.Object.create({
@@ -337,7 +349,7 @@ describe('App.WizardStep5Controller', function () {
           hosts: test.hosts
         });
         c.updateComponent(test.componentName);
-        App.StackService.find.restore();
+        App.StackServiceComponent.find.restore();
         Em.keys(test.e).forEach(function (k) {
           expect(c.last(test.componentName).get(k)).to.equal(test.e[k]);
         });

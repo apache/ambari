@@ -446,9 +446,8 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, {
     if (!component) {
       return;
     }
-    var services = App.StackService.find().filterProperty('isInstalled', true).mapProperty('serviceName');
-    var currentService = componentName.split('_')[0];
-    var showControl = !services.contains(currentService);
+
+    var showControl = !App.StackServiceComponent.find().findProperty('componentName', componentName).get('stackService').get('isInstalled');
 
     if (showControl) {
       var mastersLength = this.get("selectedServicesMasters").filterProperty("component_name", componentName).length;
