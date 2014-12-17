@@ -22,12 +22,16 @@ from stacks.utils.RMFTestCase import *
 
 
 class TestGangliaMonitor(RMFTestCase):
-
+  COMMON_SERVICES_PACKAGE_DIR = "GANGLIA/3.5.0/package"
+  STACK_VERSION = "2.0.6"
+  
   def test_configure_default(self):
-    self.executeScript("2.0.6/services/GANGLIA/package/scripts/ganglia_monitor.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ganglia_monitor.py",
                        classname="GangliaMonitor",
                        command="configure",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
     self.assert_gmond_master_conf_generated()
@@ -35,20 +39,24 @@ class TestGangliaMonitor(RMFTestCase):
 
 
   def test_configure_non_gmetad_node(self):
-    self.executeScript("2.0.6/services/GANGLIA/package/scripts/ganglia_monitor.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ganglia_monitor.py",
                        classname="GangliaMonitor",
                        command="configure",
                        config_file="default.non_gmetad_host.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
     self.assertNoMoreResources()
 
 
   def test_start_default(self):
-    self.executeScript("2.0.6/services/GANGLIA/package/scripts/ganglia_monitor.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ganglia_monitor.py",
                        classname="GangliaMonitor",
                        command="start",
                        config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
     self.assert_gmond_master_conf_generated()
@@ -59,10 +67,12 @@ class TestGangliaMonitor(RMFTestCase):
 
 
   def test_stop_default(self):
-    self.executeScript("2.0.6/services/GANGLIA/package/scripts/ganglia_monitor.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ganglia_monitor.py",
                        classname="GangliaMonitor",
                        command="stop",
                        config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', 'service hdp-gmond stop >> /tmp/gmond.log  2>&1 ; /bin/ps auwx | /bin/grep [g]mond  >> /tmp/gmond.log  2>&1',
                               path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
@@ -71,10 +81,12 @@ class TestGangliaMonitor(RMFTestCase):
 
 
   def test_install_default(self):
-    self.executeScript("2.0.6/services/GANGLIA/package/scripts/ganglia_monitor.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ganglia_monitor.py",
                        classname="GangliaMonitor",
                        command="install",
                        config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
     self.assert_gmond_master_conf_generated()

@@ -22,21 +22,28 @@ from stacks.utils.RMFTestCase import *
 
 @patch("os.path.exists", new = MagicMock(return_value=True))
 class TestHbaseRegionServer(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "HBASE/0.96.0.2.0/package"
+  STACK_VERSION = "2.0.6"
+
   def test_configure_default(self):
-    self.executeScript("2.0.6/services/HBASE/package/scripts/hbase_regionserver.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_regionserver.py",
                    classname = "HbaseRegionServer",
                    command = "configure",
-                   config_file="default.json"
+                   config_file="default.json",
+                   hdp_stack_version = self.STACK_VERSION,
+                   target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     
     self.assert_configure_default()
     self.assertNoMoreResources()
     
   def test_start_default(self):
-    self.executeScript("2.0.6/services/HBASE/package/scripts/hbase_regionserver.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_regionserver.py",
                    classname = "HbaseRegionServer",
                    command = "start",
-                   config_file="default.json"
+                   config_file="default.json",
+                   hdp_stack_version = self.STACK_VERSION,
+                   target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     
     self.assert_configure_default()
@@ -47,10 +54,12 @@ class TestHbaseRegionServer(RMFTestCase):
     self.assertNoMoreResources()
     
   def test_stop_default(self):
-    self.executeScript("2.0.6/services/HBASE/package/scripts/hbase_regionserver.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_regionserver.py",
                    classname = "HbaseRegionServer",
                    command = "stop",
-                   config_file="default.json"
+                   config_file="default.json",
+                   hdp_stack_version = self.STACK_VERSION,
+                   target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     
     self.assertResourceCalled('Execute', '/usr/lib/hbase/bin/hbase-daemon.sh --config /etc/hbase/conf stop regionserver',
@@ -64,20 +73,24 @@ class TestHbaseRegionServer(RMFTestCase):
     self.assertNoMoreResources()
     
   def test_configure_secured(self):
-    self.executeScript("2.0.6/services/HBASE/package/scripts/hbase_regionserver.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_regionserver.py",
                    classname = "HbaseRegionServer",
                    command = "configure",
-                   config_file="secured.json"
+                   config_file="secured.json",
+                   hdp_stack_version = self.STACK_VERSION,
+                   target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     
     self.assert_configure_secured()
     self.assertNoMoreResources()
     
   def test_start_secured(self):
-    self.executeScript("2.0.6/services/HBASE/package/scripts/hbase_regionserver.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_regionserver.py",
                    classname = "HbaseRegionServer",
                    command = "start",
-                   config_file="secured.json"
+                   config_file="secured.json",
+                   hdp_stack_version = self.STACK_VERSION,
+                   target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     
     self.assert_configure_secured()
@@ -88,10 +101,12 @@ class TestHbaseRegionServer(RMFTestCase):
     self.assertNoMoreResources()
     
   def test_stop_secured(self):
-    self.executeScript("2.0.6/services/HBASE/package/scripts/hbase_regionserver.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_regionserver.py",
                    classname = "HbaseRegionServer",
                    command = "stop",
-                   config_file="secured.json"
+                   config_file="secured.json",
+                   hdp_stack_version = self.STACK_VERSION,
+                   target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assertResourceCalled('Execute', '/usr/lib/hbase/bin/hbase-daemon.sh --config /etc/hbase/conf stop regionserver',

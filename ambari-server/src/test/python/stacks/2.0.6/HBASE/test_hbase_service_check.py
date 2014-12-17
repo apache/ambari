@@ -24,12 +24,16 @@ import  resource_management.libraries.functions
 
 @patch.object(resource_management.libraries.functions, "get_unique_id_and_date", new = MagicMock(return_value=''))
 class TestServiceCheck(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "HBASE/0.96.0.2.0/package"
+  STACK_VERSION = "2.0.6"
 
   def test_service_check_default(self):
-    self.executeScript("2.0.6/services/HBASE/package/scripts/service_check.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
                         classname="HbaseServiceCheck",
                         command="service_check",
-                        config_file="default.json"
+                        config_file="default.json",
+                        hdp_stack_version = self.STACK_VERSION,
+                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/tmp/hbaseSmokeVerify.sh',
       content = StaticFile('hbaseSmokeVerify.sh'),
@@ -55,10 +59,12 @@ class TestServiceCheck(RMFTestCase):
     
     
   def test_service_check_secured(self):
-    self.executeScript("2.0.6/services/HBASE/package/scripts/service_check.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
                         classname="HbaseServiceCheck",
                         command="service_check",
-                        config_file="secured.json"
+                        config_file="secured.json",
+                        hdp_stack_version = self.STACK_VERSION,
+                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/tmp/hbaseSmokeVerify.sh',
       content = StaticFile('hbaseSmokeVerify.sh'),

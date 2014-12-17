@@ -22,21 +22,27 @@ from stacks.utils.RMFTestCase import *
 from mock.mock import MagicMock, call, patch
 
 class TestGangliaServer(RMFTestCase):
-
+  COMMON_SERVICES_PACKAGE_DIR = "GANGLIA/3.5.0/package"
+  STACK_VERSION = "2.0.6"
+  
   def test_configure_default(self):
-    self.executeScript("2.0.6/services/GANGLIA/package/scripts/ganglia_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ganglia_server.py",
                      classname="GangliaServer",
                      command="configure",
                      config_file="default.json",
+                     hdp_stack_version = self.STACK_VERSION,
+                     target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
     self.assertNoMoreResources()
 
   def test_start_default(self):
-    self.executeScript("2.0.6/services/GANGLIA/package/scripts/ganglia_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ganglia_server.py",
                        classname="GangliaServer",
                        command="start",
                        config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
     self.assertResourceCalled('Execute', 'service hdp-gmetad start >> /tmp/gmetad.log  2>&1 ; /bin/ps auwx | /bin/grep [g]metad  >> /tmp/gmetad.log  2>&1',
@@ -47,10 +53,12 @@ class TestGangliaServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_stop_default(self):
-    self.executeScript("2.0.6/services/GANGLIA/package/scripts/ganglia_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ganglia_server.py",
                        classname="GangliaServer",
                        command="stop",
                        config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', 'service hdp-gmetad stop >> /tmp/gmetad.log  2>&1 ; /bin/ps auwx | /bin/grep [g]metad  >> /tmp/gmetad.log  2>&1',
                               path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
@@ -60,10 +68,12 @@ class TestGangliaServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_install_default(self):
-    self.executeScript("2.0.6/services/GANGLIA/package/scripts/ganglia_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ganglia_server.py",
                        classname="GangliaServer",
                        command="install",
                        config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
 

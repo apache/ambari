@@ -20,49 +20,7 @@
   <services>
     <service>
       <name>FLUME</name>
-      <displayName>Flume</displayName>
-      <comment>A distributed service for collecting, aggregating, and moving large amounts of streaming data into HDFS</comment>
-      <version>1.4.0.2.0</version>
-      <components>
-        <component>
-          <name>FLUME_HANDLER</name>
-          <displayName>Flume</displayName>
-          <category>SLAVE</category>
-          <cardinality>1+</cardinality>
-          <commandScript>
-            <script>scripts/flume_handler.py</script>
-            <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
-          </commandScript>
-        </component>
-      </components>
-
-      <osSpecifics>
-        <osSpecific>
-          <osFamily>any</osFamily>
-          <packages>
-            <package>
-              <name>flume</name>
-            </package>
-          </packages>
-        </osSpecific>
-      </osSpecifics>
-
-      <commandScript>
-        <script>scripts/flume_check.py</script>
-        <scriptType>PYTHON</scriptType>
-        <timeout>300</timeout>
-      </commandScript>
-      
-      <requiredServices>
-        <service>HDFS</service>
-      </requiredServices>
-
-      <configuration-dependencies>
-        <config-type>flume-env</config-type>
-        <config-type>flume-conf</config-type>
-      </configuration-dependencies>
-
+      <extends>common-services/FLUME/1.4.0.2.0</extends>
     </service>
   </services>
 </metainfo>

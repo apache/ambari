@@ -22,12 +22,16 @@ from stacks.utils.RMFTestCase import *
 
 @patch("os.path.exists", new = MagicMock(return_value=True))
 class TestHBaseClient(RMFTestCase):
-  
+  COMMON_SERVICES_PACKAGE_DIR = "HBASE/0.96.0.2.0/package"
+  STACK_VERSION = "2.0.6"
+
   def test_configure_secured(self):
-    self.executeScript("2.0.6/services/HBASE/package/scripts/hbase_client.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_client.py",
                    classname = "HbaseClient",
                    command = "configure",
-                   config_file="secured.json"
+                   config_file="secured.json",
+                   hdp_stack_version = self.STACK_VERSION,
+                   target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assertResourceCalled('Directory', '/etc/hbase',
@@ -107,10 +111,12 @@ class TestHBaseClient(RMFTestCase):
     self.assertNoMoreResources()
     
   def test_configure_default(self):
-    self.executeScript("2.0.6/services/HBASE/package/scripts/hbase_client.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_client.py",
                    classname = "HbaseClient",
                    command = "configure",
-                   config_file="default.json"
+                   config_file="default.json",
+                   hdp_stack_version = self.STACK_VERSION,
+                   target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/etc/hbase',
       mode = 0755
