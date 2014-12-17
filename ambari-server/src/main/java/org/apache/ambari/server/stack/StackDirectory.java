@@ -357,7 +357,7 @@ public class StackDirectory extends StackDefinitionDirectory {
         for (File d : serviceFolders) {
           if (d.isDirectory()) {
             try {
-              dirs.add(new ServiceDirectory(d.getAbsolutePath()));
+              dirs.add(new StackServiceDirectory(d.getAbsolutePath()));
             } catch (AmbariException e) {
               //todo: this seems as though we should propagate this exception
               //todo: eating it now to keep backwards compatibility

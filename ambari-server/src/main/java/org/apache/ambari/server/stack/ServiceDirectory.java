@@ -30,8 +30,7 @@ import java.io.File;
 /**
  * Encapsulates IO operations on a stack definition service directory.
  */
-public class ServiceDirectory extends StackDefinitionDirectory {
-
+public abstract class ServiceDirectory extends StackDefinitionDirectory {
   /**
    * metrics file
    */
@@ -50,7 +49,7 @@ public class ServiceDirectory extends StackDefinitionDirectory {
   /**
    * package directory path
    */
-  private String packageDir;
+  protected String packageDir;
 
   /**
    * service metainfo file object representation
@@ -65,7 +64,7 @@ public class ServiceDirectory extends StackDefinitionDirectory {
   /**
    * package directory name
    */
-  private static final String PACKAGE_FOLDER_NAME = "package";
+  protected static final String PACKAGE_FOLDER_NAME = "package";
 
   /**
    * service metainfo file name
@@ -86,7 +85,7 @@ public class ServiceDirectory extends StackDefinitionDirectory {
   /**
    * Constructor.
    *
-   * @param servicePath  path of the service directory
+   * @param servicePath     path of the service directory
    * @throws AmbariException if unable to parse the service directory
    */
   public ServiceDirectory(String servicePath) throws AmbariException {
@@ -154,29 +153,8 @@ public class ServiceDirectory extends StackDefinitionDirectory {
 
   /**
    * Parse the service directory.
-   *
-   * @throws AmbariException if unable to parse the service directory
    */
-  private void parsePath() throws AmbariException {
-
-    File serviceDir = new File(getAbsolutePath());
-    File stackVersionDir = serviceDir.getParentFile().getParentFile();
-    File stackDir = stackVersionDir.getParentFile();
-
-    String stackId = String.format("%s-%s", stackDir.getName(), stackVersionDir.getName());
-
-    File absPackageDir = new File(getAbsolutePath() + File.separator + PACKAGE_FOLDER_NAME);
-    if (absPackageDir.isDirectory()) {
-      packageDir = absPackageDir.getPath().substring(stackDir.getParentFile().getPath().length() + 1);
-      LOG.debug(String.format("Service package folder for service %s for stack %s has been resolved to %s",
-          serviceDir.getName(), stackId, packageDir));
-    } else {
-      //todo: this seems like it should be an error case
-      LOG.debug(String.format("Service package folder %s for service %s for stack %s does not exist.",
-          absPackageDir, serviceDir.getName(), stackId));
-    }
-    parseMetaInfoFile();
-  }
+  protected abstract void parsePath() throws AmbariException;
 
   /**
    * Unmarshal the metainfo file into its object representation.
@@ -184,7 +162,7 @@ public class ServiceDirectory extends StackDefinitionDirectory {
    * @throws AmbariException if the metainfo file doesn't exist or
    *                         unable to unmarshal the metainfo file
    */
-  private void parseMetaInfoFile() throws AmbariException {
+  protected void parseMetaInfoFile() throws AmbariException {
     File f = new File(getAbsolutePath() + File.separator + SERVICE_METAINFO_FILE_NAME);
     if (! f.exists()) {
       throw new AmbariException(String.format("Stack Definition Service at '%s' doesn't contain a metainfo.xml file",

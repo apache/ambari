@@ -64,7 +64,7 @@ class TestFileCache(TestCase):
     fileCache = FileCache(self.config)
     command = {
       'commandParams' : {
-        'service_package_folder' : 'HDP/2.1.1/services/ZOOKEEPER/package'
+        'service_package_folder' : 'stacks/HDP/2.1.1/services/ZOOKEEPER/package'
       }
     }
     res = fileCache.get_service_base_dir(command, "server_url_pref")

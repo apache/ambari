@@ -67,8 +67,7 @@ class FileCache():
     Returns a base directory for service
     """
     service_subpath = command['commandParams']['service_package_folder']
-    subpath = os.path.join(self.STACKS_CACHE_DIRECTORY, service_subpath)
-    return self.provide_directory(self.cache_dir, subpath,
+    return self.provide_directory(self.cache_dir, service_subpath,
                                   server_url_prefix)
 
 

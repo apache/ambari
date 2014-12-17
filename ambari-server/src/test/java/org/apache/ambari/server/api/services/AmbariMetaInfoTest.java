@@ -81,6 +81,7 @@ import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -1249,12 +1250,10 @@ public class AmbariMetaInfoTest {
 
   @Test
   public void testServicePackageDirInheritance() throws Exception {
-    String assertionTemplate07 = "HDP/2.0.7/services/%s/package";
-    String assertionTemplate08 = "HDP/2.0.8/services/%s/package";
-    if (System.getProperty("os.name").contains("Windows")) {
-      assertionTemplate07 = "HDP\\2.0.7\\services\\%s\\package";
-      assertionTemplate08 = "HDP\\2.0.8\\services\\%s\\package";
-    }
+    String assertionTemplate07 = StringUtils.join(
+        new String[]{"stacks", "HDP", "2.0.7", "services", "%s", "package"}, File.separator);
+    String assertionTemplate08 = StringUtils.join(
+        new String[]{"stacks", "HDP", "2.0.8", "services", "%s", "package"}, File.separator);
     // Test service package dir determination in parent
     ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "2.0.7", "HBASE");
     Assert.assertEquals(String.format(assertionTemplate07, "HBASE"),

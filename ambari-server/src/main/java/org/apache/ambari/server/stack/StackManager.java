@@ -245,7 +245,7 @@ public class StackManager {
         for (File serviceFolder : commonService.listFiles(AmbariMetaInfo.FILENAME_FILTER)) {
           String serviceName = serviceFolder.getParentFile().getName();
           String serviceVersion = serviceFolder.getName();
-          ServiceDirectory serviceDirectory = new ServiceDirectory(serviceFolder.getPath());
+          ServiceDirectory serviceDirectory = new CommonServiceDirectory(serviceFolder.getPath());
           ServiceMetainfoXml metaInfoXml = serviceDirectory.getMetaInfoFile();
           for (ServiceInfo serviceInfo : metaInfoXml.getServices()) {
             ServiceModule serviceModule = new ServiceModule(stackContext, serviceInfo, serviceDirectory, true);

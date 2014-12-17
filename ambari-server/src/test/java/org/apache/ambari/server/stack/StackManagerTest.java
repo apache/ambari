@@ -32,6 +32,7 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.util.*;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.metadata.ActionMetadata;
@@ -292,12 +293,10 @@ public class StackManagerTest {
     // overridden value
     assertEquals("Apache Hadoop Stream processing framework (Extended)", stormService.getComment());
     assertEquals("New version", stormService.getVersion());
-    if (System.getProperty("os.name").contains("Windows")) {
-      assertEquals("OTHER\\1.0\\services\\STORM\\package", stormService.getServicePackageFolder());
-    }
-    else {
-      assertEquals("OTHER/1.0/services/STORM/package", stormService.getServicePackageFolder());
-    }
+    String packageDir = StringUtils.join(
+        new String[]{"stacks", "OTHER", "1.0", "services", "STORM", "package"}, File.separator);
+    assertEquals(packageDir, stormService.getServicePackageFolder());
+
     // compare components
     List<ComponentInfo> stormServiceComponents = stormService.getComponents();
     List<ComponentInfo> baseStormServiceComponents = baseStormService.getComponents();

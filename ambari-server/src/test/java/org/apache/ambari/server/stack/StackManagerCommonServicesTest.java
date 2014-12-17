@@ -23,6 +23,7 @@ import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.commons.lang.StringUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -163,5 +164,30 @@ public class StackManagerCommonServicesTest {
     assertEquals("pig", pkg.getName());
 
     assertEquals(pigService.getParent(), "common-services/PIG/1.0");
+  }
+
+  @Test
+  public void testGetServicePackageFolder() {
+    StackInfo stack = stackManager.getStack("HDP", "0.1");
+    assertNotNull(stack);
+    assertEquals("HDP", stack.getName());
+    assertEquals("0.1", stack.getVersion());
+    ServiceInfo hdfsService1 = stack.getService("HDFS");
+    assertNotNull(hdfsService1);
+
+    stack = stackManager.getStack("HDP", "0.2");
+    assertNotNull(stack);
+    assertEquals("HDP", stack.getName());
+    assertEquals("0.2", stack.getVersion());
+    ServiceInfo hdfsService2 = stack.getService("HDFS");
+    assertNotNull(hdfsService2);
+
+    String packageDir1 = StringUtils.join(
+        new String[]{"common-services", "HDFS", "1.0", "package"}, File.separator);
+    String packageDir2 = StringUtils.join(
+        new String[]{"stacks_with_common_services", "HDP", "0.2", "services", "HDFS", "package"}, File.separator);
+
+    assertEquals(packageDir1, hdfsService1.getServicePackageFolder());
+    assertEquals(packageDir2, hdfsService2.getServicePackageFolder());
   }
 }
