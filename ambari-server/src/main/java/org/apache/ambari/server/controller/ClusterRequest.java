@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.controller;
 
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,6 +44,11 @@ public class ClusterRequest {
   private ServiceConfigVersionRequest serviceConfigVersionRequest = null;
 
   /**
+   * A KerberosDescriptor parsed from the request payload.
+   */
+  private KerberosDescriptor kerberosDescriptor;
+
+  /**
    * The cluster session attributes.
    */
   private final Map<String, Object> sessionAttributes;
@@ -56,12 +63,13 @@ public class ClusterRequest {
   
   public ClusterRequest(Long clusterId, String clusterName, 
       String provisioningState, String stackVersion, Set<String> hostNames) {
-    this(clusterId, clusterName, provisioningState, stackVersion, hostNames, null);
+    this(clusterId, clusterName, provisioningState, stackVersion, hostNames, null, null);
   }
 
   public ClusterRequest(Long clusterId, String clusterName,
                         String provisioningState, String stackVersion,
-                        Set<String> hostNames, Map<String, Object> sessionAttributes) {
+                        Set<String> hostNames, KerberosDescriptor kerberosDescriptor,
+                        Map<String, Object> sessionAttributes) {
     super();
     this.clusterId         = clusterId;
     this.clusterName       = clusterName;
@@ -69,6 +77,7 @@ public class ClusterRequest {
     this.stackVersion      = stackVersion;
     this.hostNames         = hostNames;
     this.sessionAttributes = sessionAttributes;
+    this.kerberosDescriptor = kerberosDescriptor;
   }
 
 
@@ -163,6 +172,24 @@ public class ClusterRequest {
    */
   public List<ConfigurationRequest> getDesiredConfig() {
     return configs;
+  }
+
+  /**
+   * Returns the KerberosDescriptor for this ClusterRequest
+   *
+   * @return a KerberosDescriptor or null if one was not specified
+   */
+  public KerberosDescriptor getKerberosDescriptor() {
+    return kerberosDescriptor;
+  }
+
+  /**
+   * Sets a KerberosDescriptor for this ClusterRequest
+   *
+   * @param kerberosDescriptor a KerberosDescriptor
+   */
+  public void setKerberosDescriptor(KerberosDescriptor kerberosDescriptor) {
+    this.kerberosDescriptor = kerberosDescriptor;
   }
 
   @Override

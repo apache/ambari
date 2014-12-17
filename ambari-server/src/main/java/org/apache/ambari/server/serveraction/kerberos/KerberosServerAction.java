@@ -68,6 +68,12 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    */
   public static final String KDC_TYPE = "kdc_type";
 
+  /**
+   * The prefix to use for the data directory name.
+   */
+  public static final String DATA_DIRECTORY_PREFIX = ".ambari_";
+
+
   /*
    * Kerberos action shared data entry names
    */
@@ -180,8 +186,9 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   protected KerberosCredential getAdministratorCredential(Map<String, String> commandParameters) throws AmbariException {
     Cluster cluster = clusters.getCluster(getExecutionCommand().getClusterName());
 
-    if(cluster == null)
+    if (cluster == null) {
       throw new AmbariException("Failed get the Cluster object");
+    }
 
     // Create the key like we did when we encrypted the data, based on the Cluster objects hashcode.
     byte[] key = Integer.toHexString(cluster.hashCode()).getBytes();
@@ -239,72 +246,78 @@ public abstract class KerberosServerAction extends AbstractServerAction {
       if (dataDirectoryPath != null) {
         File dataDirectory = new File(dataDirectoryPath);
 
-        if (!dataDirectory.exists() || !dataDirectory.isDirectory()) {
-          String message = String.format("Failed to process the identities, the data directory does not exist: %s",
-              dataDirectory.getAbsolutePath());
-          LOG.error(message);
-          throw new AmbariException(message);
-        }
-        // The "index" file is expected to be in the specified data directory and named "index.dat"
-        File indexFile = new File(dataDirectory, DATA_FILE_NAME);
-
-        if (!indexFile.canRead()) {
-          String message = String.format("Failed to process the identities, cannot read the index file: %s",
-              indexFile.getAbsolutePath());
-          LOG.error(message);
-          throw new AmbariException(message);
-        }
-        // Create the data file reader to parse and iterate through the records
-        KerberosActionDataFileReader reader = null;
-        KerberosOperationHandler handler = KerberosOperationHandlerFactory.getKerberosOperationHandler(kdcType);
-
-        if (handler == null) {
-          String message = String.format("Failed to process the identities, cannot read the index file: %s",
-              indexFile.getAbsolutePath());
-          LOG.error(message);
-          throw new AmbariException(message);
-        }
-
-        handler.open(administratorCredential, defaultRealm);
-
-        try {
-          reader = new KerberosActionDataFileReader(indexFile);
-          for (Map<String, String> record : reader) {
-            // Process the current record
-            commandReport = processRecord(record, defaultRealm, handler, requestSharedDataContext);
-
-            // If the principal processor returns a CommandReport, than it is time to stop since
-            // an error condition has probably occurred, else all is assumed to be well.
-            if (commandReport != null) {
-              break;
-            }
+        // If the data directory exists, attempt to process further, else assume there is no work to do
+        if (dataDirectory.exists()) {
+          if (!dataDirectory.isDirectory() || !dataDirectory.canRead()) {
+            String message = String.format("Failed to process the identities, the data directory is not accessible: %s",
+                dataDirectory.getAbsolutePath());
+            LOG.error(message);
+            throw new AmbariException(message);
           }
-        } catch (AmbariException e) {
-          // Catch this separately from IOException since the reason it was thrown was not the same
-          // Note: AmbariException is an IOException, so there may be some confusion
-          throw new AmbariException(e.getMessage(), e);
-        } catch (IOException e) {
-          String message = String.format("Failed to process the identities, cannot read the index file: %s",
-              indexFile.getAbsolutePath());
-          LOG.error(message, e);
-          throw new AmbariException(message, e);
-        } finally {
-          if (reader != null) {
-            // The reader needs to be closed, if it fails to close ignore the exception since
-            // there is little we can or care to do about it now.
+          // The "index" file may or may not exist in the data directory, depending on if there
+          // is work to do or not.
+          File indexFile = new File(dataDirectory, DATA_FILE_NAME);
+
+          if (indexFile.exists()) {
+            if (!indexFile.canRead()) {
+              String message = String.format("Failed to process the identities, cannot read the index file: %s",
+                  indexFile.getAbsolutePath());
+              LOG.error(message);
+              throw new AmbariException(message);
+            }
+
+            KerberosOperationHandler handler = KerberosOperationHandlerFactory.getKerberosOperationHandler(kdcType);
+            if (handler == null) {
+              String message = String.format("Failed to process the identities, a KDC operation handler was not found for the KDC type of : %s",
+                  kdcType.toString());
+              LOG.error(message);
+              throw new AmbariException(message);
+            }
+
+            // Create the data file reader to parse and iterate through the records
+            KerberosActionDataFileReader reader = null;
             try {
-              reader.close();
-            } catch (IOException e) {
-              // Ignore this...
-            }
-          }
+              handler.open(administratorCredential, defaultRealm);
 
-          // The KerberosOperationHandler needs to be closed, if it fails to close ignore the
-          // exception since there is little we can or care to do about it now.
-          try {
-            handler.close();
-          } catch (AmbariException e) {
-            // Ignore this...
+              reader = new KerberosActionDataFileReader(indexFile);
+              for (Map<String, String> record : reader) {
+                // Process the current record
+                commandReport = processRecord(record, defaultRealm, handler, requestSharedDataContext);
+
+                // If the principal processor returns a CommandReport, than it is time to stop since
+                // an error condition has probably occurred, else all is assumed to be well.
+                if (commandReport != null) {
+                  break;
+                }
+              }
+            } catch (AmbariException e) {
+              // Catch this separately from IOException since the reason it was thrown was not the same
+              // Note: AmbariException is an IOException, so there may be some confusion
+              throw new AmbariException(e.getMessage(), e);
+            } catch (IOException e) {
+              String message = String.format("Failed to process the identities, cannot read the index file: %s",
+                  indexFile.getAbsolutePath());
+              LOG.error(message, e);
+              throw new AmbariException(message, e);
+            } finally {
+              if (reader != null) {
+                // The reader needs to be closed, if it fails to close ignore the exception since
+                // there is little we can or care to do about it now.
+                try {
+                  reader.close();
+                } catch (IOException e) {
+                  // Ignore this...
+                }
+              }
+
+              // The KerberosOperationHandler needs to be closed, if it fails to close ignore the
+              // exception since there is little we can or care to do about it now.
+              try {
+                handler.close();
+              } catch (AmbariException e) {
+                // Ignore this...
+              }
+            }
           }
         }
       }

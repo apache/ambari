@@ -120,6 +120,7 @@ public class AmbariManagementControllerImplTest {
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
 
     //replay
     replay(injector);
@@ -194,6 +195,7 @@ public class AmbariManagementControllerImplTest {
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
 
     // getCluster
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
@@ -409,6 +411,7 @@ public class AmbariManagementControllerImplTest {
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
 
     // getCluster
     expect(clusters.getCluster("cluster1")).andThrow(new ClusterNotFoundException("cluster1"));
@@ -462,6 +465,7 @@ public class AmbariManagementControllerImplTest {
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
 
     // getCluster
     expect(clusters.getCluster("cluster1")).andThrow(new ClusterNotFoundException("cluster1"));
@@ -507,6 +511,7 @@ public class AmbariManagementControllerImplTest {
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
     expect(clusterRequest.getClusterName()).andReturn("clusterNew").times(4);
     expect(clusterRequest.getClusterId()).andReturn(1L).times(4);
     expect(clusters.getClusterById(1L)).andReturn(cluster);
@@ -546,6 +551,7 @@ public class AmbariManagementControllerImplTest {
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
     expect(clusterRequest.getClusterName()).andReturn("clusterNew").times(4);
     expect(clusterRequest.getClusterId()).andReturn(1L).times(4);
     expect(clusters.getClusterById(1L)).andReturn(cluster);
@@ -599,6 +605,7 @@ public class AmbariManagementControllerImplTest {
 
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper).anyTimes();
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
 
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
@@ -666,6 +673,7 @@ public class AmbariManagementControllerImplTest {
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper);
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
 
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
@@ -750,6 +758,7 @@ public class AmbariManagementControllerImplTest {
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(stateHelper).anyTimes();
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
 
 
     // getHostComponent
@@ -851,6 +860,7 @@ public class AmbariManagementControllerImplTest {
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper).anyTimes();
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
 
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andReturn(cluster).times(3);
@@ -955,6 +965,7 @@ public class AmbariManagementControllerImplTest {
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper).anyTimes();
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
 
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andReturn(cluster).times(3);
@@ -1061,6 +1072,7 @@ public class AmbariManagementControllerImplTest {
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper).anyTimes();
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
 
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andReturn(cluster).times(3);
@@ -1144,6 +1156,7 @@ public class AmbariManagementControllerImplTest {
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper);
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
 
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
@@ -1198,6 +1211,7 @@ public class AmbariManagementControllerImplTest {
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper);
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
 
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andThrow(new ClusterNotFoundException("cluster1"));
@@ -1259,6 +1273,7 @@ public class AmbariManagementControllerImplTest {
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper).anyTimes();
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
 
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
@@ -1345,6 +1360,7 @@ public class AmbariManagementControllerImplTest {
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper).anyTimes();
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
 
     // getHostComponent
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
@@ -1429,6 +1445,7 @@ public class AmbariManagementControllerImplTest {
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper).anyTimes();
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
 
     replay(maintHelper, injector, clusters, serviceInfo);
 

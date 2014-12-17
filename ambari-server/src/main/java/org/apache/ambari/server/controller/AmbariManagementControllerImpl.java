@@ -207,6 +207,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   private MaintenanceStateHelper maintenanceStateHelper;
 
+  /**
+   * The KerberosHelper to help setup for enabling for disabling Kerberos
+   */
+  private KerberosHelper kerberosHelper;
+
   final private String masterHostname;
   final private Integer masterPort;
   final private String masterProtocol;
@@ -246,7 +251,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     LOG.info("Initializing the AmbariManagementControllerImpl");
     masterHostname =  InetAddress.getLocalHost().getCanonicalHostName();
     maintenanceStateHelper = injector.getInstance(MaintenanceStateHelper.class);
-
+    kerberosHelper = injector.getInstance(KerberosHelper.class);
     if(configs != null)
     {
       if (configs.getApiSSLAuthentication()) {
@@ -1316,7 +1321,22 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       saveClusterUpdate(request, clusterResponse);
     }
 
-    return null;
+    RequestStageContainer requestStageContainer = null;
+    Map<String, Service> services = cluster.getServices();
+    if ((services != null) && services.containsKey("KERBEROS")) {
+      // Handle either adding or removing Kerberos from the cluster. This may generate multiple stages
+      // or not depending the current state of the cluster.  The main configuration used to determine
+      // whether Kerberos is to be added or removed is cluster-config/security_enabled.
+      requestStageContainer = kerberosHelper.toggleKerberos(cluster,
+          request.getKerberosDescriptor(), null);
+    }
+
+    if (requestStageContainer != null) {
+      requestStageContainer.persist();
+      return requestStageContainer.getRequestStatusResponse();
+    } else {
+      return null;
+    }
   }
 
   /**

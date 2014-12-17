@@ -45,7 +45,6 @@ import static org.mockito.Mockito.when;
 
 public class KerberosServerActionTest {
 
-
   Map<String, String> commandParams = new HashMap<String, String>();
   File temporaryDirectory;
   private Injector injector;
@@ -109,7 +108,6 @@ public class KerberosServerActionTest {
           "keytabFileConfiguration" + i);
     }
     builder.close();
-
 
     commandParams.put(KerberosServerAction.DATA_DIRECTORY, temporaryDirectory.getAbsolutePath());
     commandParams.put(KerberosServerAction.DEFAULT_REALM, "REALM.COM");

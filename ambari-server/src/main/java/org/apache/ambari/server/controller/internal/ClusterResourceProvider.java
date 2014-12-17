@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -50,6 +51,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 
 /**
  * Resource provider for cluster resources.
@@ -317,6 +319,14 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
     baseUnsupported.remove("default_password");
     baseUnsupported.remove("configurations");
 
+    // Allow property Ids that start with "kerberos_descriptor/"
+    Iterator<String> iterator = baseUnsupported.iterator();
+    while (iterator.hasNext()) {
+      if (iterator.next().startsWith("kerberos_descriptor/")) {
+        iterator.remove();
+      }
+    }
+
     return checkConfigPropertyIds(baseUnsupported, "Clusters");
   }
 
@@ -354,12 +364,15 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
    * @return the cluster request object
    */
   private ClusterRequest getRequest(Map<String, Object> properties) {
+    KerberosDescriptor kerberosDescriptor = new KerberosDescriptor(createKerberosPropertyMap(properties));
+
     ClusterRequest cr = new ClusterRequest(
         (Long) properties.get(CLUSTER_ID_PROPERTY_ID),
         (String) properties.get(CLUSTER_NAME_PROPERTY_ID),
         (String) properties.get(CLUSTER_PROVISIONING_STATE_PROPERTY_ID),
         (String) properties.get(CLUSTER_VERSION_PROPERTY_ID),
         null,
+        kerberosDescriptor,
         getSessionAttributes(properties));
 
     List<ConfigurationRequest> configRequests = getConfigurationRequests("Clusters", properties);
@@ -374,6 +387,107 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
     }
 
     return cr;
+  }
+
+  /**
+   * Recursively attempts to "normalize" a property value into either a single Object, a Map or a
+   * Collection of items depending on the type of Object that is supplied.
+   * <p/>
+   * If the supplied value is a Map, attempts to render a Map of keys to "normalized" values. This
+   * may yield a Map of Maps or a Map of Collections, or a Map of values.
+   * <p/>
+   * If the supplied value is a Collection, attempts to render a Collection of Maps, Collections, or values
+   * <p/>
+   * Else, assumes the value is a simple value
+   *
+   * @param property an Object to "normalize"
+   * @return the normalized object or the input value if it is not a Map or Collection.
+   */
+  private Object normalizeKerberosProperty(Object property) {
+    if (property instanceof Map) {
+      Map<?, ?> properties = (Map) property;
+      Map<String, Object> map = new HashMap<String, Object>(properties.size());
+
+      for (Map.Entry<?, ?> entry : properties.entrySet()) {
+        normalizeKerberosProperty(entry.getKey().toString(), entry.getValue(), map);
+      }
+
+      return map;
+    } else if (property instanceof Collection) {
+      Collection properties = (Collection) property;
+      Collection<Object> collection = new ArrayList<Object>(properties.size());
+
+      for (Object item : properties) {
+        collection.add(normalizeKerberosProperty(item));
+      }
+
+      return collection;
+    } else {
+      return property;
+    }
+  }
+
+  /**
+   * Recursively attempts to "normalize" a property value into either a single Object, a Map or a
+   * Collection of items; and places the result into the supplied Map under a specified key.
+   * <p/>
+   * See {@link #normalizeKerberosProperty(Object)} for more information "normalizing" a property value
+   *
+   * If the key (propertyName) indicates a hierarchy by separating names with a '/', the supplied map
+   * will be updated to handle the hierarchy. For example, if the propertyName value is "parent/child"
+   * then the map will be updated to contain an entry where the key is named "parent" and the value
+   * is a Map containing an entry with a name of "child" and value that is the normalized version of
+   * the specified value (propertyValue).
+   *
+   * @param propertyName a String declaring the name of the supplied property value
+   * @param propertyValue an Object containing the property value
+   * @param map a Map to store the results within
+   * @see #normalizeKerberosProperty(Object)
+   */
+  private void normalizeKerberosProperty(String propertyName, Object propertyValue, Map<String, Object> map) {
+    String[] keys = propertyName.split("/");
+    Map<String, Object> currentMap = map;
+
+    if (keys.length > 0) {
+      for (int i = 0; i < keys.length - 1; i++) {
+        String key = keys[i];
+
+        Object value = currentMap.get(key);
+
+        if (value instanceof Map) {
+          currentMap = (Map<String, Object>) value;
+        } else {
+          Map<String, Object> temp = new HashMap<String, Object>();
+          currentMap.put(key, temp);
+          currentMap = temp;
+        }
+      }
+
+      currentMap.put(keys[keys.length - 1], normalizeKerberosProperty(propertyValue));
+    }
+  }
+
+  /**
+   * Given a Map of Strings to Objects, attempts to expand all properties into a tree of Maps to
+   * effectively represent a Kerberos descriptor.
+   *
+   * @param properties a Map of properties to process
+   * @return a Map containing the expanded hierarchy of data
+   * @see #normalizeKerberosProperty(String, Object, java.util.Map)
+   */
+  private Map<String, Object> createKerberosPropertyMap(Map<String, Object> properties) {
+    Map<String, Object> kerberosPropertyMap = new HashMap<String, Object>();
+
+    if (properties != null) {
+      for (Map.Entry<String, Object> entry : properties.entrySet()) {
+        String key = entry.getKey();
+        if (key.startsWith("kerberos_descriptor/")) {
+          normalizeKerberosProperty(key.replace("kerberos_descriptor/", ""), entry.getValue(), kerberosPropertyMap);
+        }
+      }
+    }
+
+    return kerberosPropertyMap;
   }
 
   /**
