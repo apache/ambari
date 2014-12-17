@@ -50,6 +50,7 @@ import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
@@ -93,7 +94,7 @@ import com.google.inject.persist.PersistService;
 
 public class ClusterTest {
   private static final Logger LOG = LoggerFactory.getLogger(ClusterTest.class);
-  
+
   private Clusters clusters;
   private Cluster c1;
   private Injector injector;
@@ -103,6 +104,7 @@ public class ClusterTest {
   private AmbariMetaInfo metaInfo;
   private ConfigFactory configFactory;
   private ConfigGroupFactory configGroupFactory;
+  private OrmTestHelper helper;
 
   @Before
   public void setup() throws Exception {
@@ -117,6 +119,7 @@ public class ClusterTest {
         ServiceComponentHostFactory.class);
     configFactory = injector.getInstance(ConfigFactory.class);
     metaInfo = injector.getInstance(AmbariMetaInfo.class);
+    helper = injector.getInstance(OrmTestHelper.class);
     metaInfo.init();
     clusters.addCluster("c1");
     c1 = clusters.getCluster("c1");
@@ -126,15 +129,16 @@ public class ClusterTest {
     Host host = clusters.getHost("h1");
     host.setIPv4("ipv4");
     host.setIPv6("ipv6");
-    
+
     Map<String, String> hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "5.9");
     host.setHostAttributes(hostAttributes);
-    
+
     host.persist();
     StackId stackId = new StackId("HDP-0.1");
     c1.setDesiredStackVersion(stackId);
+    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     c1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
     clusters.mapHostToCluster("h1", "c1");
   }
@@ -188,7 +192,7 @@ public class ClusterTest {
     hostInfo.setMounts(mounts);
 
     AgentEnv agentEnv = new AgentEnv();
-    
+
     Directory dir1 = new Directory();
     dir1.setName("/etc/hadoop");
     dir1.setType("not_exist");
@@ -310,9 +314,9 @@ public class ClusterTest {
 
     List<ServiceComponentHost> scHosts = c1.getServiceComponentHosts("h1");
     Assert.assertEquals(1, scHosts.size());
-    
+
     Iterator<ServiceComponentHost> iterator = scHosts.iterator();
-    
+
     //Try to iterate on sch and modify it in loop
     try {
       while (iterator.hasNext()) {
@@ -330,7 +334,7 @@ public class ClusterTest {
     } catch (ConcurrentModificationException e ) {
       Assert.assertTrue("Failed to work concurrently with sch", false);
     }
-    
+
     scHosts = c1.getServiceComponentHosts("h1");
     Assert.assertEquals(2, scHosts.size());
   }
@@ -338,7 +342,7 @@ public class ClusterTest {
 
   @Test
   public void testGetAndSetConfigs() {
-    
+
     Map<String, Map<String, String>> c1PropAttributes = new HashMap<String, Map<String,String>>();
     c1PropAttributes.put("final", new HashMap<String, String>());
     c1PropAttributes.get("final").put("a", "true");
@@ -348,51 +352,51 @@ public class ClusterTest {
     Config config1 = configFactory.createNew(c1, "global",
         new HashMap<String, String>() {{ put("a", "b"); }}, c1PropAttributes);
     config1.setTag("version1");
-    
+
     Config config2 = configFactory.createNew(c1, "global",
         new HashMap<String, String>() {{ put("x", "y"); }}, c2PropAttributes);
     config2.setTag("version2");
-    
+
     Config config3 = configFactory.createNew(c1, "core-site",
         new HashMap<String, String>() {{ put("x", "y"); }}, new HashMap<String, Map<String,String>>());
     config3.setTag("version2");
-    
+
     c1.addConfig(config1);
     c1.addConfig(config2);
     c1.addConfig(config3);
-    
+
     c1.addDesiredConfig("_test", Collections.singleton(config1));
     Config res = c1.getDesiredConfigByType("global");
     Assert.assertNotNull("Expected non-null config", res);
     Assert.assertEquals("true", res.getPropertiesAttributes().get("final").get("a"));
-    
+
     res = c1.getDesiredConfigByType("core-site");
     Assert.assertNull("Expected null config", res);
-    
+
     c1.addDesiredConfig("_test", Collections.singleton(config2));
     res = c1.getDesiredConfigByType("global");
     Assert.assertEquals("Expected version tag to be 'version2'", "version2", res.getTag());
     Assert.assertEquals("true", res.getPropertiesAttributes().get("final").get("x"));
   }
-  
+
   @Test
   public void testDesiredConfigs() throws Exception {
     Config config1 = configFactory.createNew(c1, "global",
         new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<String, Map<String,String>>());
     config1.setTag("version1");
-    
+
     Config config2 = configFactory.createNew(c1, "global",
         new HashMap<String, String>() {{ put("x", "y"); }}, new HashMap<String, Map<String,String>>());
     config2.setTag("version2");
-    
+
     Config config3 = configFactory.createNew(c1, "core-site",
         new HashMap<String, String>() {{ put("x", "y"); }}, new HashMap<String, Map<String,String>>());
     config3.setTag("version2");
-    
+
     c1.addConfig(config1);
     c1.addConfig(config2);
     c1.addConfig(config3);
-    
+
     try {
       c1.addDesiredConfig(null, Collections.singleton(config1));
       fail("Cannot set a null user with config");
@@ -400,10 +404,10 @@ public class ClusterTest {
     catch (Exception e) {
       // test failure
     }
-    
+
     c1.addDesiredConfig("_test1", Collections.singleton(config1));
     c1.addDesiredConfig("_test3", Collections.singleton(config3));
-    
+
     Map<String, DesiredConfig> desiredConfigs = c1.getDesiredConfigs();
     Assert.assertFalse("Expect desired config not contain 'mapred-site'", desiredConfigs.containsKey("mapred-site"));
     Assert.assertTrue("Expect desired config contain " + config1.getType(), desiredConfigs.containsKey("global"));
@@ -415,10 +419,10 @@ public class ClusterTest {
     DesiredConfig dc = desiredConfigs.get(config1.getType());
     Assert.assertTrue("Expect no host-level overrides",
         (null == dc.getHostOverrides() || dc.getHostOverrides().size() == 0));
-    
+
     c1.addDesiredConfig("_test2", Collections.singleton(config2));
     Assert.assertEquals("_test2", c1.getDesiredConfigs().get(config2.getType()).getUser());
-    
+
     c1.addDesiredConfig("_test1", Collections.singleton(config1));
 
     // setup a host that also has a config override
@@ -427,11 +431,11 @@ public class ClusterTest {
 
     desiredConfigs = c1.getDesiredConfigs();
     dc = desiredConfigs.get(config1.getType());
-    
+
     Assert.assertNotNull("Expect host-level overrides", dc.getHostOverrides());
     Assert.assertEquals("Expect one host-level override", 1, dc.getHostOverrides().size());
   }
-  
+
   public ClusterEntity createDummyData() {
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterId(1L);
@@ -483,7 +487,7 @@ public class ClusterTest {
     clusterEntity.setClusterServiceEntities(clusterServiceEntities);
     return clusterEntity;
   }
-  
+
   @Test
   public void testClusterRecovery() throws AmbariException {
     ClusterEntity entity = createDummyData();
@@ -497,7 +501,7 @@ public class ClusterTest {
     Map<String, Service> services = cluster.getServices();
     Assert.assertNotNull(services.get("HDFS"));
   }
-  
+
 
   @Test
   public void testConvertToResponse() throws AmbariException {
@@ -599,16 +603,16 @@ public class ClusterTest {
     assertTrue(configs.containsKey("h1"));
     assertEquals(1, configs.get("h1").size());
   }
-  
+
   @Test
   public void testProvisioningState() throws AmbariException {
     c1.setProvisioningState(State.INIT);
     Assert.assertEquals(State.INIT,
         c1.getProvisioningState());
-    
+
     c1.setProvisioningState(State.INSTALLED);
     Assert.assertEquals(State.INSTALLED,
-        c1.getProvisioningState());    
+        c1.getProvisioningState());
   }
 
   @Test

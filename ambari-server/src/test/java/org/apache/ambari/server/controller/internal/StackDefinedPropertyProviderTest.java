@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+
 import org.apache.ambari.server.controller.jmx.TestStreamProvider;
 import org.apache.ambari.server.controller.metrics.JMXPropertyProviderTest;
 import org.apache.ambari.server.controller.metrics.ganglia.GangliaPropertyProviderTest.TestGangliaHostProvider;
@@ -33,6 +34,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -64,9 +66,9 @@ public class StackDefinedPropertyProviderTest {
   private static final String HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = "HostRoles/component_name";
   private static final String HOST_COMPONENT_STATE_PROPERTY_ID = "HostRoles/state";
 
-
   private Clusters clusters = null;
   private Injector injector = null;
+  private OrmTestHelper helper = null;
 
   @Before
   public void setup() throws Exception {
@@ -76,12 +78,15 @@ public class StackDefinedPropertyProviderTest {
     injector.getInstance(GuiceJpaInitializer.class);
     StackDefinedPropertyProvider.init(injector);
 
+    helper = injector.getInstance(OrmTestHelper.class);
+
     clusters = injector.getInstance(Clusters.class);
     clusters.addCluster("c1");
 
     Cluster cluster = clusters.getCluster("c1");
     StackId stackId = new StackId("HDP-2.0.5");
     cluster.setDesiredStackVersion(stackId);
+    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
 
     clusters.addHost("h1");
@@ -965,7 +970,7 @@ public class StackDefinedPropertyProviderTest {
       }
     }
 
-    // size + properties defined before "Object[][] testData ... " above 
+    // size + properties defined before "Object[][] testData ... " above
     Assert.assertEquals(properties.size() + 3, PropertyHelper.getProperties(resource).size());
 
     int i = 0;

@@ -32,6 +32,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
@@ -96,6 +97,8 @@ public class ServiceComponentHostTest {
   private ConfigGroupFactory configGroupFactory;
   @Inject
   private ConfigHelper configHelper;
+  @Inject
+  private OrmTestHelper helper;
 
   @Before
   public void setup() throws Exception {
@@ -109,6 +112,7 @@ public class ServiceComponentHostTest {
     StackId stackId = new StackId("HDP-0.1");
     Cluster c1 = clusters.getCluster("C1");
     c1.setDesiredStackVersion(stackId);
+    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     c1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
     metaInfo.init();
     clusters.mapHostToCluster("h1","C1");
@@ -716,6 +720,7 @@ public class ServiceComponentHostTest {
     Cluster c2 = clusters.getCluster(clusterName);
     StackId stackId = new StackId(stackVersion);
     c2.setDesiredStackVersion(stackId);
+    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     c2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
     metaInfo.init();
     clusters.mapHostToCluster(hostName, clusterName);
@@ -942,6 +947,7 @@ public class ServiceComponentHostTest {
     Cluster c2 = clusters.getCluster(clusterName);
     StackId stackId = new StackId(stackVersion);
     c2.setDesiredStackVersion(stackId);
+    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     c2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
 
     metaInfo.init();
@@ -1076,6 +1082,7 @@ public class ServiceComponentHostTest {
     Cluster c2 = clusters.getCluster(clusterName);
     StackId stackId = new StackId(stackVersion);
     c2.setDesiredStackVersion(stackId);
+    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     c2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
     metaInfo.init();
     clusters.mapHostToCluster(hostName, clusterName);
@@ -1119,6 +1126,7 @@ public class ServiceComponentHostTest {
     Cluster c2 = clusters.getCluster(clusterName);
     StackId stackId = new StackId(stackVersion);
     c2.setDesiredStackVersion(stackId);
+    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     c2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
     metaInfo.init();
     clusters.mapHostToCluster(hostName, clusterName);

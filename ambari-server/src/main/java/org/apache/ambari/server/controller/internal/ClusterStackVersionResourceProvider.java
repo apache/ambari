@@ -193,11 +193,12 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       for (RepositoryVersionState state: RepositoryVersionState.values()) {
         hostStates.put(state.name(), new ArrayList<String>());
       }
-      for (HostVersionEntity hostVersionEntity: hostVersionDAO.findByClusterStackAndVersion(entity.getClusterEntity().getClusterName(), entity.getStack(), entity.getVersion())) {
+      for (HostVersionEntity hostVersionEntity: hostVersionDAO.findByClusterStackAndVersion(entity.getClusterEntity().getClusterName(),
+          entity.getRepositoryVersion().getStack(), entity.getRepositoryVersion().getVersion())) {
         hostStates.get(hostVersionEntity.getState().name()).add(hostVersionEntity.getHostName());
       }
-      StackId stackId = new StackId(entity.getStack());
-      RepositoryVersionEntity repoVerEntity = repositoryVersionDAO.findByStackAndVersion(stackId.getStackId(), entity.getVersion());
+      StackId stackId = new StackId(entity.getRepositoryVersion().getStack());
+      RepositoryVersionEntity repoVerEntity = repositoryVersionDAO.findByStackAndVersion(stackId.getStackId(), entity.getRepositoryVersion().getVersion());
 
       setResourceProperty(resource, CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, entity.getClusterEntity().getClusterName(), requestedIds);
       setResourceProperty(resource, CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID, hostStates, requestedIds);

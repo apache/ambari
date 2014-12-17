@@ -43,6 +43,7 @@ import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.StageDAO;
@@ -57,6 +58,7 @@ import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
@@ -105,6 +107,9 @@ public class OrmTestHelper {
 
   @Inject
   public AlertsDAO alertsDAO;
+
+  @Inject
+  public RepositoryVersionDAO repositoryVersionDAO;
 
   public EntityManager getEntityManager() {
     return entityManagerProvider.get();
@@ -327,6 +332,7 @@ public class OrmTestHelper {
   public Cluster initializeClusterWithStack(Cluster cluster) throws Exception {
     StackId stackId = new StackId("HDP", "2.0.6");
     cluster.setDesiredStackVersion(stackId);
+    getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     cluster.createClusterVersion(stackId.getStackName(),
         stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
     return cluster;
@@ -536,6 +542,24 @@ public class OrmTestHelper {
     assertNotNull(alertDispatchDAO.findDefaultServiceGroup(clusterId, "OOZIE"));
 
     return defaultGroups;
+  }
+
+  /**
+   * Convenient method to create or to get repository version for given stack.
+   *
+   * @param stack stack name
+   * @param version stack version
+   * @return repository version
+   */
+  public RepositoryVersionEntity getOrCreateRepositoryVersion(String stack, String version) {
+    RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(stack, version);
+    if (repositoryVersion == null) {
+      try {
+        repositoryVersion = repositoryVersionDAO.create(stack, version, String.valueOf(System.currentTimeMillis()), "pack", "");
+      } catch (Exception ex) {
+      }
+    }
+    return repositoryVersion;
   }
 
 }

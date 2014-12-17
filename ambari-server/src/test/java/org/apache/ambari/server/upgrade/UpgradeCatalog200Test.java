@@ -239,8 +239,8 @@ public class UpgradeCatalog200Test {
         viewparameterDefaultValueColumnCapture);
 
     // Verify capture group sizes
-    assertEquals(8, clusterVersionCapture.getValue().size());
-    assertEquals(5, hostVersionCapture.getValue().size());
+    assertEquals(7, clusterVersionCapture.getValue().size());
+    assertEquals(4, hostVersionCapture.getValue().size());
 
     assertViewInstancePropertyColumns(valueColumnCapture);
     assertViewInstanceDataColumns(dataValueColumnCapture);

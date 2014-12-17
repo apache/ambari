@@ -27,6 +27,7 @@ import junit.framework.Assert;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -67,6 +68,7 @@ public class EventsTest {
   private ServiceComponentHostFactory m_schFactory;
   private AmbariEventPublisher m_eventPublisher;
   private MockEventListener m_listener;
+  private OrmTestHelper m_helper;
 
   /**
    *
@@ -78,6 +80,8 @@ public class EventsTest {
 
     m_eventPublisher = m_injector.getInstance(AmbariEventPublisher.class);
     EventBus synchronizedBus = new EventBus();
+
+    m_helper = m_injector.getInstance(OrmTestHelper.class);
 
     // register mock listener
     m_listener = m_injector.getInstance(MockEventListener.class);
@@ -109,6 +113,7 @@ public class EventsTest {
     Assert.assertNotNull(m_cluster);
     StackId stackId = new StackId("HDP", "2.0.6");
     m_cluster.setDesiredStackVersion(stackId);
+    m_helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     m_cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
 
     m_clusters.mapHostToCluster(HOSTNAME, m_clusterName);

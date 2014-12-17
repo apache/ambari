@@ -18,23 +18,21 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import org.apache.ambari.server.state.RepositoryVersionState;
-import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.Enumerated;
 import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.NamedQuery;
 import javax.persistence.NamedQueries;
-import javax.persistence.TableGenerator;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import javax.persistence.TableGenerator;
 
-import static org.apache.commons.lang.StringUtils.defaultString;
+import org.apache.ambari.server.state.RepositoryVersionState;
 
 @Table(name = "host_version")
 @Entity
@@ -47,7 +45,7 @@ import static org.apache.commons.lang.StringUtils.defaultString;
 @NamedQueries({
     @NamedQuery(name = "hostVersionByClusterAndStackAndVersion", query =
         "SELECT hostVersion FROM HostVersionEntity hostVersion JOIN hostVersion.hostEntity host JOIN ClusterEntity cluster " +
-            "WHERE cluster.clusterName=:clusterName AND hostVersion.stack=:stack AND hostVersion.version=:version"),
+            "WHERE cluster.clusterName=:clusterName AND hostVersion.repositoryVersion.stack=:stack AND hostVersion.repositoryVersion.version=:version"),
 
     @NamedQuery(name = "hostVersionByClusterAndHostname", query =
         "SELECT hostVersion FROM HostVersionEntity hostVersion JOIN hostVersion.hostEntity host JOIN ClusterEntity cluster " +
@@ -63,7 +61,7 @@ import static org.apache.commons.lang.StringUtils.defaultString;
 
     @NamedQuery(name = "hostVersionByClusterStackVersionAndHostname", query =
         "SELECT hostVersion FROM HostVersionEntity hostVersion JOIN hostVersion.hostEntity host JOIN ClusterEntity cluster " +
-            "WHERE cluster.clusterName=:clusterName AND hostVersion.stack=:stack AND hostVersion.version=:version AND " +
+            "WHERE cluster.clusterName=:clusterName AND hostVersion.repositoryVersion.stack=:stack AND hostVersion.repositoryVersion.version=:version AND " +
             "hostVersion.hostName=:hostName"),
 })
 public class HostVersionEntity {
@@ -77,16 +75,12 @@ public class HostVersionEntity {
   private String hostName;
 
   @ManyToOne
+  @JoinColumn(name = "repo_version_id", referencedColumnName = "repo_version_id", nullable = false)
+  private RepositoryVersionEntity repositoryVersion;
+
+  @ManyToOne
   @JoinColumn(name = "host_name", referencedColumnName = "host_name", nullable = false)
   private HostEntity hostEntity;
-
-  @Basic
-  @Column(name = "stack", nullable = false, insertable = true, updatable = true)
-  private String stack = "";
-
-  @Basic
-  @Column(name = "version", nullable = false, insertable = true, updatable = true)
-  private String version = "";
 
   @Column(name = "state", nullable = false, insertable = true, updatable = true)
   @Enumerated(value = EnumType.STRING)
@@ -98,10 +92,9 @@ public class HostVersionEntity {
   public HostVersionEntity() {
   }
 
-  public HostVersionEntity(String hostName, String stack, String version, RepositoryVersionState state) {
+  public HostVersionEntity(String hostName, RepositoryVersionEntity repositoryVersion, RepositoryVersionState state) {
     this.hostName = hostName;
-    this.stack = stack;
-    this.version = version;
+    this.repositoryVersion = repositoryVersion;
     this.state = state;
   }
 
@@ -110,8 +103,7 @@ public class HostVersionEntity {
    */
   public HostVersionEntity(HostVersionEntity other) {
     this.hostName = other.hostName;
-    this.stack = other.stack;
-    this.version = other.version;
+    this.repositoryVersion = other.repositoryVersion;
     this.state = other.state;
   }
 
@@ -139,22 +131,6 @@ public class HostVersionEntity {
     this.hostEntity = hostEntity;
   }
 
-  public String getStack() {
-    return defaultString(stack);
-  }
-
-  public void setStack(String stack) {
-    this.stack = stack;
-  }
-
-  public String getVersion() {
-    return defaultString(version);
-  }
-
-  public void setVersion(String version) {
-    this.version = version;
-  }
-
   public RepositoryVersionState getState() {
     return state;
   }
@@ -163,26 +139,47 @@ public class HostVersionEntity {
     this.state = state;
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+  public RepositoryVersionEntity getRepositoryVersion() {
+    return repositoryVersion;
+  }
 
-    HostVersionEntity that = (HostVersionEntity) o;
-
-    if (this.id != that.id || !this.hostName.equals(that.hostName) || !this.stack.equals(that.stack)
-        || !this.version.equals(that.version) || !this.state.equals(that.state)) return false;
-
-    return true;
+  public void setRepositoryVersion(RepositoryVersionEntity repositoryVersion) {
+    this.repositoryVersion = repositoryVersion;
   }
 
   @Override
   public int hashCode() {
-    int result = id !=null ? id.intValue() : 0;
-    result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
-    result = 31 * result + (stack != null ? stack.hashCode() : 0);
-    result = 31 * result + (version != null ? version.hashCode() : 0);
-    result = 31 * result + (state != null ? state.hashCode() : 0);
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((hostEntity == null) ? 0 : hostEntity.hashCode());
+    result = prime * result + ((hostName == null) ? 0 : hostName.hashCode());
+    result = prime * result + ((id == null) ? 0 : id.hashCode());
+    result = prime * result + ((repositoryVersion == null) ? 0 : repositoryVersion.hashCode());
+    result = prime * result + ((state == null) ? 0 : state.hashCode());
     return result;
   }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (getClass() != obj.getClass()) return false;
+
+    HostVersionEntity other = (HostVersionEntity) obj;
+    if (hostEntity == null) {
+      if (other.hostEntity != null) return false;
+    } else if (!hostEntity.equals(other.hostEntity)) return false;
+    if (hostName == null) {
+      if (other.hostName != null) return false;
+    } else if (!hostName.equals(other.hostName)) return false;
+    if (id == null) {
+      if (other.id != null) return false;
+    } else if (!id.equals(other.id)) return false;
+    if (repositoryVersion == null) {
+      if (other.repositoryVersion != null) return false;
+    } else if (!repositoryVersion.equals(other.repositoryVersion)) return false;
+    if (state != other.state) return false;
+    return true;
+  }
+
 }

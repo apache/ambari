@@ -29,6 +29,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
@@ -52,6 +53,7 @@ public class UpgradeHelperTest {
 
   private Injector injector;
   private AmbariMetaInfo ambariMetaInfo;
+  private OrmTestHelper helper;
   private MasterHostResolver m_masterHostResolver;
 
   @Before
@@ -60,9 +62,10 @@ public class UpgradeHelperTest {
 
     injector.getInstance(GuiceJpaInitializer.class);
 
+    helper = injector.getInstance(OrmTestHelper.class);
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
     ambariMetaInfo.init();
-    
+
     m_masterHostResolver = mock(MasterHostResolver.class);
   }
 
@@ -117,6 +120,8 @@ public class UpgradeHelperTest {
     clusters.addCluster(clusterName);
     Cluster c = clusters.getCluster(clusterName);
     c.setDesiredStackVersion(new StackId("HDP-2.1.1"));
+    helper.getOrCreateRepositoryVersion(c.getDesiredStackVersion().getStackName(),
+        c.getDesiredStackVersion().getStackVersion());
     c.createClusterVersion(c.getDesiredStackVersion().getStackName(),
         c.getDesiredStackVersion().getStackVersion(), "admin", RepositoryVersionState.CURRENT);
     for (int i = 0; i < 3; i++) {

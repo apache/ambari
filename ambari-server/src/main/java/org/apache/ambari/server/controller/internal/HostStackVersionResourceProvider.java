@@ -204,9 +204,9 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
                                    Set<String> requestedIds,
                                    String clusterName) {
     for (HostVersionEntity entity: requestedEntities) {
-      StackId stackId = new StackId(entity.getStack());
+      StackId stackId = new StackId(entity.getRepositoryVersion().getStack());
 
-      RepositoryVersionEntity repoVerEntity = repositoryVersionDAO.findByStackAndVersion(stackId.getStackId(), entity.getVersion());
+      RepositoryVersionEntity repoVerEntity = repositoryVersionDAO.findByStackAndVersion(stackId.getStackId(), entity.getRepositoryVersion().getVersion());
 
       final Resource resource = new ResourceImpl(Resource.Type.HostStackVersion);
 

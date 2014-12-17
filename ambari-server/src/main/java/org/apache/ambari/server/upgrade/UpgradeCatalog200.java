@@ -116,8 +116,6 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
         String.class, 2000, null, true));
     dbAccessor.alterColumn("viewinstancedata", new DBColumnInfo("value",
         String.class, 2000, null, true));
-
-    ddlUpdateRepositoryVersion();
   }
 
   /**
@@ -154,13 +152,13 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
   }
 
   /**
-   * Creates repoversion table and all its constraints and dependencies.
-   *
-   * @throws SQLException if SQL error happens
+   * Add any columns, tables, and keys needed for Rolling Upgrades.
+   * @throws SQLException
    */
-  private void ddlUpdateRepositoryVersion() throws SQLException {
-    final List<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
-    columns.add(new DBColumnInfo("repoversion_id",  Long.class,    null,  null, false));
+  private void prepareRollingUpgradesDDL() throws SQLException {
+    List<DBAccessor.DBColumnInfo> columns = new ArrayList<DBAccessor.DBColumnInfo>();
+
+    columns.add(new DBColumnInfo("repo_version_id", Long.class,    null,  null, false));
     columns.add(new DBColumnInfo("stack",           String.class,  255,   null, false));
     columns.add(new DBColumnInfo("version",         String.class,  255,   null, false));
     columns.add(new DBColumnInfo("display_name",    String.class,  128,   null, false));
@@ -170,14 +168,6 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('repo_version_id_seq', 0)", false);
     dbAccessor.executeQuery("ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_display_name UNIQUE (display_name)");
     dbAccessor.executeQuery("ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_stack_version UNIQUE (stack, version)");
-  }
-
-  /**
-   * Add any columns, tables, and keys needed for Rolling Upgrades.
-   * @throws SQLException
-   */
-  private void prepareRollingUpgradesDDL() throws SQLException {
-    List<DBAccessor.DBColumnInfo> columns = new ArrayList<DBAccessor.DBColumnInfo>();
 
     // New columns
     dbAccessor.addColumn("hostcomponentstate", new DBAccessor.DBColumnInfo("upgrade_state",
@@ -187,10 +177,10 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
         Integer.class, 1, 0, false));
 
     // New tables
+    columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBAccessor.DBColumnInfo("id", Long.class, null, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("repo_version_id", Long.class, null, null, false));
     columns.add(new DBAccessor.DBColumnInfo("cluster_id", Long.class, null, null, false));
-    columns.add(new DBAccessor.DBColumnInfo("stack", String.class, 255, null, false));
-    columns.add(new DBAccessor.DBColumnInfo("version", String.class, 255, null, false));
     columns.add(new DBAccessor.DBColumnInfo("state", String.class, 32, null, false));
     columns.add(new DBAccessor.DBColumnInfo("start_time", Long.class, null, null, false));
     columns.add(new DBAccessor.DBColumnInfo("end_time", Long.class, null, null, true));
@@ -199,15 +189,16 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
 
     columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBAccessor.DBColumnInfo("id", Long.class, null, null, false));
+    columns.add(new DBAccessor.DBColumnInfo("repo_version_id", Long.class, null, null, false));
     columns.add(new DBAccessor.DBColumnInfo("host_name", String.class, 255, null, false));
-    columns.add(new DBAccessor.DBColumnInfo("stack", String.class, 255, null, false));
-    columns.add(new DBAccessor.DBColumnInfo("version", String.class, 255, null, false));
     columns.add(new DBAccessor.DBColumnInfo("state", String.class, 32, null, false));
     dbAccessor.createTable("host_version", columns, "id");
 
     // Foreign Key Constraints
     dbAccessor.addFKConstraint("cluster_version", "FK_cluster_version_cluster_id", "cluster_id", "clusters", "cluster_id", false);
+    dbAccessor.addFKConstraint("cluster_version", "FK_cluster_version_repovers_id", "repo_version_id", "repo_version", "repo_version_id", false);
     dbAccessor.addFKConstraint("host_version", "FK_host_version_host_name", "host_name", "hosts", "host_name", false);
+    dbAccessor.addFKConstraint("host_version", "FK_host_version_repovers_id", "repo_version_id", "repo_version", "repo_version_id", false);
 
     // New sequences
     dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('cluster_version_id_seq', 0)", false);

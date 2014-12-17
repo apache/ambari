@@ -94,7 +94,7 @@ public class UpgradePack {
   }
 
   /**
-   * A service definition that holds a list of componenents in the 'order' element.
+   * A service definition that holds a list of components in the 'order' element.
    */
   public static class OrderService {
 

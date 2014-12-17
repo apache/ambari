@@ -18,13 +18,13 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import org.apache.ambari.server.state.RepositoryVersionState;
+import static org.apache.commons.lang.StringUtils.defaultString;
 
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.Enumerated;
 import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -32,10 +32,10 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.TableGenerator;
 import javax.persistence.Table;
+import javax.persistence.TableGenerator;
 
-import static org.apache.commons.lang.StringUtils.defaultString;
+import org.apache.ambari.server.state.RepositoryVersionState;
 
 @Table(name = "cluster_version")
 @Entity
@@ -48,7 +48,7 @@ import static org.apache.commons.lang.StringUtils.defaultString;
 @NamedQueries({
     @NamedQuery(name = "clusterVersionByClusterAndStackAndVersion", query =
         "SELECT clusterVersion FROM ClusterVersionEntity clusterVersion JOIN clusterVersion.clusterEntity cluster " +
-        "WHERE cluster.clusterName=:clusterName AND clusterVersion.stack=:stack AND clusterVersion.version=:version"),
+        "WHERE cluster.clusterName=:clusterName AND clusterVersion.repositoryVersion.stack=:stack AND clusterVersion.repositoryVersion.version=:version"),
     @NamedQuery(name = "clusterVersionByClusterAndState", query =
         "SELECT clusterVersion FROM ClusterVersionEntity clusterVersion JOIN clusterVersion.clusterEntity cluster " +
         "WHERE cluster.clusterName=:clusterName AND clusterVersion.state=:state"),
@@ -56,7 +56,7 @@ import static org.apache.commons.lang.StringUtils.defaultString;
         "SELECT clusterVersion FROM ClusterVersionEntity clusterVersion JOIN clusterVersion.clusterEntity cluster " +
         "WHERE cluster.clusterName=:clusterName"),
     @NamedQuery(name = "clusterVersionByStackVersion",
-        query = "SELECT clusterVersion FROM ClusterVersionEntity clusterVersion WHERE clusterVersion.stack=:stack AND clusterVersion.version=:version"),
+        query = "SELECT clusterVersion FROM ClusterVersionEntity clusterVersion WHERE clusterVersion.repositoryVersion.stack=:stack AND clusterVersion.repositoryVersion.version=:version"),
 })
 public class ClusterVersionEntity {
 
@@ -72,13 +72,9 @@ public class ClusterVersionEntity {
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
   private ClusterEntity clusterEntity;
 
-  @Basic
-  @Column(name = "stack", nullable = false, insertable = true, updatable = true)
-  private String stack = "";
-
-  @Basic
-  @Column(name = "version", nullable = false, insertable = true, updatable = true)
-  private String version = "";
+  @ManyToOne
+  @JoinColumn(name = "repo_version_id", referencedColumnName = "repo_version_id", nullable = false)
+  private RepositoryVersionEntity repositoryVersion;
 
   @Column(name = "state", nullable = false, insertable = true, updatable = true)
   @Enumerated(value = EnumType.STRING)
@@ -105,17 +101,15 @@ public class ClusterVersionEntity {
   /**
    * Full constructor that doesn't have the endTime
    * @param cluster Cluster entity
-   * @param stack Stack name (e.g., HDP)
-   * @param version Stack version (e.g., 2.2.0.0-995)
+   * @param repositoryVersion repository version
    * @param state Cluster version state
    * @param startTime Time the cluster version reached its first state
    * @param userName User who performed the action
    */
-  public ClusterVersionEntity(ClusterEntity cluster, String stack, String version, RepositoryVersionState state, long startTime, String userName) {
+  public ClusterVersionEntity(ClusterEntity cluster, RepositoryVersionEntity repositoryVersion, RepositoryVersionState state, long startTime, String userName) {
     this.clusterId = cluster.getClusterId();
+    this.repositoryVersion = repositoryVersion;
     this.clusterEntity = cluster;
-    this.stack = stack;
-    this.version = version;
     this.state = state;
     this.startTime = startTime;
     this.userName = userName;
@@ -124,15 +118,14 @@ public class ClusterVersionEntity {
   /**
    * Full constructor that does have the endTime
    * @param cluster Cluster entity
-   * @param stack Stack name (e.g., HDP)
-   * @param version Stack version (e.g., 2.2.0.0-995)
+   * @param repositoryVersion repository version
    * @param state Cluster version state
    * @param startTime Time the cluster version reached its first state
    * @param endTime Time the cluster version finalized its state
    * @param userName User who performed the action
    */
-  public ClusterVersionEntity(ClusterEntity cluster, String stack, String version, RepositoryVersionState state, long startTime, long endTime, String userName) {
-    this(cluster, stack, version, state, startTime, userName);
+  public ClusterVersionEntity(ClusterEntity cluster, RepositoryVersionEntity repositoryVersion, RepositoryVersionState state, long startTime, long endTime, String userName) {
+    this(cluster, repositoryVersion, state, startTime, userName);
     this.endTime = endTime;
   }
 
@@ -160,22 +153,6 @@ public class ClusterVersionEntity {
     this.clusterEntity = clusterEntity;
   }
 
-  public String getStack() {
-    return defaultString(stack);
-  }
-
-  public void setStack(String stack) {
-    this.stack = stack;
-  }
-
-  public String getVersion() {
-    return defaultString(version);
-  }
-
-  public void setVersion(String version) {
-    this.version = version;
-  }
-
   public RepositoryVersionState getState() {
     return state;
   }
@@ -196,17 +173,34 @@ public class ClusterVersionEntity {
 
   public void setUserName(String userName) { this.userName = userName; }
 
+  public void setRepositoryVersion(RepositoryVersionEntity repositoryVersion) {
+    this.repositoryVersion = repositoryVersion;
+  }
+
+  public RepositoryVersionEntity getRepositoryVersion() {
+    return repositoryVersion;
+  }
+
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     ClusterVersionEntity that = (ClusterVersionEntity) o;
 
-    if (this.id != that.id || this.clusterId != that.clusterId || !this.stack.equals(that.stack)
-        || !this.version.equals(that.version) || !this.state.equals(that.state)
-        || !this.startTime.equals(that.startTime) || !this.endTime.equals(that.endTime)
-        || !this.userName.equals(that.userName)) return false;
+    if (this.id != that.id
+        || this.clusterId != that.clusterId
+        || !this.repositoryVersion.equals(that.repositoryVersion)
+        || !this.state.equals(that.state)
+        || !this.startTime.equals(that.startTime)
+        || !this.endTime.equals(that.endTime)
+        || !this.userName.equals(that.userName)) {
+      return false;
+    }
 
     return true;
   }
@@ -215,11 +209,10 @@ public class ClusterVersionEntity {
   public int hashCode() {
     int result = id !=null ? id.intValue() : 0;
     result = 31 * result + (clusterId != null ? clusterId.hashCode() : 0);
-    result = 31 * result + (stack != null ? stack.hashCode() : 0);
-    result = 31 * result + (version != null ? version.hashCode() : 0);
+    result = 31 * result + (repositoryVersion != null ? repositoryVersion.hashCode() : 0);
     result = 31 * result + (state != null ? state.hashCode() : 0);
     result = 31 * result + (startTime != null ? startTime.hashCode() : 0);
-    result = 31 * result + (endTime != null ? stack.hashCode() : 0);
+    result = 31 * result + (endTime != null ? endTime.hashCode() : 0);
     result = 31 * result + (userName != null ? userName.hashCode() : 0);
     return result;
   }

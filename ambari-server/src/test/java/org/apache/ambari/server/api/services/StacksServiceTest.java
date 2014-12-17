@@ -134,13 +134,6 @@ public class StacksServiceTest extends BaseServiceTest {
     }
 
     @Override
-    ResourceInstance createRepositoryResource(String stackName,
-        String stackVersion, String repositoryVersion, String osType,
-        String repoId) {
-      return getTestResource();
-    }
-
-    @Override
     ResourceInstance createStackServiceResource(String stackName,
         String stackVersion, String serviceName) {
       return getTestResource();
@@ -155,12 +148,6 @@ public class StacksServiceTest extends BaseServiceTest {
         String stackVersion, String serviceName, String componentName) {
       return getTestResource();
     }
-
-    ResourceInstance createOperatingSystemResource(String stackName,
-        String stackVersion, String osType) {
-      return getTestResource();
-    }
-
 
     @Override
     RequestFactory getRequestFactory() {

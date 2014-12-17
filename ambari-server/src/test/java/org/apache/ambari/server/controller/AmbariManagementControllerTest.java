@@ -33,6 +33,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.hamcrest.CoreMatchers.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
@@ -89,6 +90,7 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
@@ -189,6 +191,7 @@ public class AmbariManagementControllerTest {
   private Configuration configuration;
   private ConfigHelper configHelper;
   private ConfigGroupFactory configGroupFactory;
+  private OrmTestHelper helper;
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
@@ -214,6 +217,7 @@ public class AmbariManagementControllerTest {
     configuration = injector.getInstance(Configuration.class);
     configHelper = injector.getInstance(ConfigHelper.class);
     configGroupFactory = injector.getInstance(ConfigGroupFactory.class);
+    helper = injector.getInstance(OrmTestHelper.class);
   }
 
   @After
@@ -911,6 +915,7 @@ public class AmbariManagementControllerTest {
     Cluster c1 = clusters.getCluster("c1");
     StackId stackId = new StackId("HDP-0.1");
     c1.setDesiredStackVersion(stackId);
+    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     c1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
     Service s1 = serviceFactory.createNew(c1, "HDFS");
     Service s2 = serviceFactory.createNew(c1, "MAPREDUCE");
@@ -993,6 +998,7 @@ public class AmbariManagementControllerTest {
     Cluster c1 = clusters.getCluster("c1");
     StackId stackId = new StackId("HDP-0.2");
     c1.setDesiredStackVersion(stackId);
+    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     c1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
 
     Service s1 = serviceFactory.createNew(c1, "HDFS");
@@ -1260,6 +1266,8 @@ public class AmbariManagementControllerTest {
     Cluster c2 = clusters.getCluster("c2");
 
     StackId stackId = new StackId("HDP-0.2");
+    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
+
     foo.setDesiredStackVersion(stackId);
     foo.setCurrentStackVersion(stackId);
     foo.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
@@ -1479,6 +1487,7 @@ public class AmbariManagementControllerTest {
     Cluster c = clusters.getCluster("foo");
     StackId stackId = new StackId("HDP-0.1");
     c.setDesiredStackVersion(stackId);
+    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     c.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
 
     HostResourceProviderTest.createHosts(controller, requests);
@@ -1500,6 +1509,7 @@ public class AmbariManagementControllerTest {
     Cluster c = clusters.getCluster("c1");
     StackId stackID = new StackId("HDP-0.1");
     c.setDesiredStackVersion(stackID);
+    helper.getOrCreateRepositoryVersion(stackID.getStackName(), stackID.getStackVersion());
     c.createClusterVersion(stackID.getStackName(), stackID.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
 
     setOsFamily(clusters.getHost("h1"), "redhat", "5.9");
@@ -1845,6 +1855,7 @@ public class AmbariManagementControllerTest {
 
     StackId stackId = new StackId("HDP-0.1");
     c1.setDesiredStackVersion(stackId);
+    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     c1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
 
     ClusterRequest r = new ClusterRequest(null, null, null, null);
@@ -7769,6 +7780,7 @@ public class AmbariManagementControllerTest {
     Cluster c = clusters.getCluster(clusterName);
     StackId stackID = new StackId("HDP-0.1");
     c.setDesiredStackVersion(stackID);
+    helper.getOrCreateRepositoryVersion(stackID.getStackName(), stackID.getStackVersion());
     c.createClusterVersion(stackID.getStackName(), stackID.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
     clusters.addHost(hostName1);
     setOsFamily(clusters.getHost("h1"), "redhat", "5.9");

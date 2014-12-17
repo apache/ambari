@@ -39,6 +39,7 @@ import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.ClusterStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
@@ -73,6 +74,8 @@ public class ClustersTest {
   private Injector injector;
   @Inject
   private AmbariMetaInfo metaInfo;
+  @Inject
+  private OrmTestHelper helper;
 
   @Before
   public void setup() throws Exception {
@@ -87,13 +90,13 @@ public class ClustersTest {
   public void teardown() {
     injector.getInstance(PersistService.class).stop();
   }
-  
+
   private void setOsFamily(Host host, String osFamily, String osVersion) {
-	    Map<String, String> hostAttributes = new HashMap<String, String>();
-	    hostAttributes.put("os_family", osFamily);
-	    hostAttributes.put("os_release_version", osVersion);
-	    
-	    host.setHostAttributes(hostAttributes);
+	  Map<String, String> hostAttributes = new HashMap<String, String>();
+	  hostAttributes.put("os_family", osFamily);
+	  hostAttributes.put("os_release_version", osVersion);
+
+	  host.setHostAttributes(hostAttributes);
   }
 
   @Test
@@ -222,6 +225,7 @@ public class ClustersTest {
     Assert.assertNotNull(clusters.getCluster(c2));
     StackId stackId = new StackId("HDP-0.1");
     cluster1.setDesiredStackVersion(stackId);
+    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     cluster1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
     cluster2.setDesiredStackVersion(stackId);
     cluster2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
@@ -256,19 +260,19 @@ public class ClustersTest {
 
     clusters.mapHostToCluster(h1, c1);
     clusters.mapHostToCluster(h2, c1);
-    
+
     try {
       clusters.mapHostToCluster(h1, c1);
       fail("Expected exception for duplicate");
     } catch (DuplicateResourceException e) {
       // expected
     }
-    
+
     /* make sure 2 host mapping to same cluster are the same cluster objects */
-    
+
     Cluster c3 = (Cluster) clusters.getClustersForHost(h1).toArray()[0];
     Cluster c4 = (Cluster) clusters.getClustersForHost(h2).toArray()[0];
-    
+
     Assert.assertEquals(c3, c4);
     Set<String> hostnames = new HashSet<String>();
     hostnames.add(h1);
@@ -278,7 +282,7 @@ public class ClustersTest {
 
     c = clusters.getClustersForHost(h1);
     Assert.assertEquals(2, c.size());
-    
+
     c = clusters.getClustersForHost(h2);
     Assert.assertEquals(2, c.size());
 
@@ -307,6 +311,7 @@ public class ClustersTest {
     Assert.assertNotNull(clusters.getCluster(c2));
     StackId stackId = new StackId("HDP-0.1");
     cluster1.setDesiredStackVersion(stackId);
+    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     cluster1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
     cluster2.setDesiredStackVersion(stackId);
     cluster2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
@@ -339,6 +344,7 @@ public class ClustersTest {
     StackId stackId = new StackId("HDP-0.1");
     cluster.setDesiredStackVersion(stackId);
     cluster.setCurrentStackVersion(stackId);
+    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
 
     final Config config1 = injector.getInstance(ConfigFactory.class).createNew(cluster, "t1",
@@ -347,14 +353,14 @@ public class ClustersTest {
         }}, new HashMap<String, Map<String,String>>());
     config1.setTag("1");
     config1.persist();
-    
+
     Config config2 = injector.getInstance(ConfigFactory.class).createNew(cluster, "t1",
         new HashMap<String, String>() {{
           put("prop2", "val2");
         }}, new HashMap<String, Map<String,String>>());
     config2.setTag("2");
     config2.persist();
-    
+
     // cluster desired config
     cluster.addDesiredConfig("_test", Collections.singleton(config1));
 
@@ -380,14 +386,14 @@ public class ClustersTest {
 
     Service hdfs = cluster.addService("HDFS");
     hdfs.persist();
-    
+
     Assert.assertNotNull(injector.getInstance(ClusterServiceDAO.class).findByClusterAndServiceNames(c1, "HDFS"));
 
     ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
     nameNode.persist();
     ServiceComponent dataNode = hdfs.addServiceComponent("DATANODE");
     dataNode.persist();
-    
+
     ServiceComponent serviceCheckNode = hdfs.addServiceComponent("HDFS_CLIENT");
     serviceCheckNode.persist();
 
@@ -396,7 +402,7 @@ public class ClustersTest {
 
     ServiceComponentHost dataNodeHost = dataNode.addServiceComponentHost(h2);
     dataNodeHost.persist();
-    
+
     ServiceComponentHost serviceCheckNodeHost = serviceCheckNode.addServiceComponentHost(h2);
     serviceCheckNodeHost.persist();
     serviceCheckNodeHost.setState(State.UNKNOWN);
@@ -419,7 +425,7 @@ public class ClustersTest {
     Assert.assertEquals(2, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config").getResultList().size());
     Assert.assertEquals(1, injector.getProvider(EntityManager.class).get().createQuery("SELECT state FROM ClusterStateEntity state").getResultList().size());
     Assert.assertEquals(1, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigMappingEntity config").getResultList().size());
-    
+
     clusters.deleteCluster(c1);
 
     Assert.assertEquals(2, injector.getInstance(HostDAO.class).findAll().size());

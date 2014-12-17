@@ -140,7 +140,7 @@ public class DistributeRepositoriesActionListener {
     }
     List<HostVersionEntity> hostVersions = hostVersionDAO.get().findByHost(event.getHostname());
     for (HostVersionEntity hostVersion : hostVersions) {
-      if (repositoryVersion != null && ! hostVersion.getVersion().equals(repositoryVersion)) {
+      if (repositoryVersion != null && ! hostVersion.getRepositoryVersion().getVersion().equals(repositoryVersion)) {
         // Are we going to update state of a concrete host stack version?
         continue;
       }
@@ -151,7 +151,7 @@ public class DistributeRepositoriesActionListener {
         if (clusterId != null) { // Update state of a cluster stack version
           try {
             Cluster cluster = clusters.get().getClusterById(clusterId);
-            cluster.recalculateClusterVersionState(hostVersion.getVersion());
+            cluster.recalculateClusterVersionState(hostVersion.getRepositoryVersion().getVersion());
           } catch (AmbariException e) {
             LOG.error("Can not get cluster with Id " + clusterId, e);
           }
@@ -161,7 +161,7 @@ public class DistributeRepositoriesActionListener {
           try {
             Set<Cluster> clustersForHost = clusters.get().getClustersForHost(event.getHostname());
             for (Cluster cluster : clustersForHost) {
-              cluster.recalculateClusterVersionState(hostVersion.getVersion());
+              cluster.recalculateClusterVersionState(hostVersion.getRepositoryVersion().getVersion());
             }
           } catch (AmbariException e) {
             LOG.error("Can not update state of clusters", e);

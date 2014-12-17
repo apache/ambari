@@ -78,6 +78,7 @@ import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -122,6 +123,8 @@ public class TestHeartbeatHandler {
   Configuration config;
   @Inject
   ActionDBAccessor actionDBAccessor;
+  @Inject
+  OrmTestHelper helper;
 
   private UnitOfWork unitOfWork;
 
@@ -2174,6 +2177,7 @@ public class TestHeartbeatHandler {
     StackId stackId = new StackId(DummyStackId);
     cluster.setDesiredStackVersion(stackId);
     cluster.setCurrentStackVersion(stackId);
+    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
     return cluster;
   }

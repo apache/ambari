@@ -38,6 +38,7 @@ import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
@@ -70,6 +71,7 @@ public class HostTest {
   private Injector injector;
   private Clusters clusters;
   private HostDAO hostDAO;
+  private OrmTestHelper helper;
   private static Log LOG = LogFactory.getLog(HostTest.class);
 
   @Before
@@ -78,6 +80,7 @@ public class HostTest {
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
     hostDAO = injector.getInstance(HostDAO.class);
+    helper = injector.getInstance(OrmTestHelper.class);
   }
 
   @After
@@ -120,7 +123,7 @@ public class HostTest {
   private void registerHost(Host host) throws Exception {
     registerHost(host, true);
   }
-  
+
   @Test
   public void testHostOs() throws Exception {
     Clusters clusters = mock(Clusters.class);
@@ -135,7 +138,7 @@ public class HostTest {
     Assert.assertEquals("redhat6", os);
     os = handler.getOsType("RedHat6","");
     Assert.assertEquals("redhat6", os);
-    
+
   }
 
   private void registerHost(Host host, boolean firstReg) throws Exception {
@@ -155,7 +158,7 @@ public class HostTest {
 
     AgentVersion agentVersion = null;
     long currentTime = System.currentTimeMillis();
-    
+
     AgentEnv agentEnv = new AgentEnv();
 
     HostRegistrationRequestEvent e =
@@ -166,7 +169,7 @@ public class HostTest {
     }
     host.handleEvent(e);
     Assert.assertEquals(currentTime, host.getLastRegistrationTime());
-    
+
     Assert.assertNotNull(host.getLastAgentEnv());
 
     HostEntity entity = hostDAO.findByName(host.getHostName());
@@ -351,15 +354,16 @@ public class HostTest {
     registerHost(host, false);
 
   }
-  
+
   @Test
   public void testHostDesiredConfig() throws Exception {
     AmbariMetaInfo metaInfo = injector.getInstance(AmbariMetaInfo.class);
     metaInfo.init();
-    
+
     clusters.addCluster("c1");
     Cluster c1 = clusters.getCluster("c1");
     StackId stackId = new StackId("HDP-0.1");
+    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     c1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
     Assert.assertEquals("c1", c1.getClusterName());
     Assert.assertEquals(1, c1.getClusterId());
@@ -367,20 +371,20 @@ public class HostTest {
     Host host = clusters.getHost("h1");
     host.setIPv4("ipv4");
     host.setIPv6("ipv6");
-    
+
     Map<String, String> hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     host.setHostAttributes(hostAttributes);
-    
+
     host.persist();
     c1.setDesiredStackVersion(stackId);
     clusters.mapHostToCluster("h1", "c1");
-    
+
     ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
     Config config = configFactory.createNew(c1, "global",
         new HashMap<String,String>() {{ put("a", "b"); put("x", "y"); }}, new HashMap<String, Map<String,String>>());
-    
+
     try {
       host.addDesiredConfig(c1.getClusterId(), true, null, config);
       Assert.fail("Expect failure when user is not specified.");
@@ -388,36 +392,36 @@ public class HostTest {
     catch (Exception e) {
       // testing exception
     }
-    
-    
+
+
     config.setTag("v1");
     host.addDesiredConfig(c1.getClusterId(), true, "_test", config);
-    
+
     Map<String, DesiredConfig> map = host.getDesiredConfigs(c1.getClusterId());
     Assert.assertTrue("Expect desired config to contain global", map.containsKey("global"));
     Assert.assertEquals("Expect global user to be '_test'", "_test", map.get("global").getUser());
-    
+
     config = configFactory.createNew(c1, "global",
         new HashMap<String,String>() {{ put("c", "d"); }}, new HashMap<String, Map<String,String>>());
     config.setTag("v2");
     host.addDesiredConfig(c1.getClusterId(), true, "_test1", config);
-    
+
     map = host.getDesiredConfigs(c1.getClusterId());
     Assert.assertTrue("Expect desired config to contain global", map.containsKey("global"));
     Assert.assertEquals("Expect version to be 'v2'", "v2", map.get("global").getTag());
     Assert.assertEquals("Expect user to be '_test1'", "_test1", map.get("global").getUser());
-    
+
     host.addDesiredConfig(c1.getClusterId(), false, "_test2", config);
     map = host.getDesiredConfigs(c1.getClusterId());
     Assert.assertEquals("Expect no mapping configs", 0, map.size());
-    
+
   }
-  
+
   @Test
   public void testHostMaintenance() throws Exception {
     AmbariMetaInfo metaInfo = injector.getInstance(AmbariMetaInfo.class);
     metaInfo.init();
-    
+
     clusters.addCluster("c1");
     Cluster c1 = clusters.getCluster("c1");
     Assert.assertEquals("c1", c1.getClusterName());
@@ -426,14 +430,15 @@ public class HostTest {
     Host host = clusters.getHost("h1");
     host.setIPv4("ipv4");
     host.setIPv6("ipv6");
-    
+
     Map<String, String> hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     host.setHostAttributes(hostAttributes);
-    
+
     host.persist();
     StackId stackId = new StackId("HDP-0.1");
+    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     c1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
     c1.setDesiredStackVersion(stackId);
     clusters.mapHostToCluster("h1", "c1");
@@ -442,7 +447,7 @@ public class HostTest {
     HostStateEntity stateEntity = entity.getHostStateEntity();
     Assert.assertNull(stateEntity.getMaintenanceState());
     Assert.assertEquals(MaintenanceState.OFF, host.getMaintenanceState(c1.getClusterId()));
-    
+
     host.setMaintenanceState(c1.getClusterId(), MaintenanceState.ON);
 
     entity = hostDAO.findByName("h1");

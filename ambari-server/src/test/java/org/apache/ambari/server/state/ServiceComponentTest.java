@@ -30,6 +30,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
@@ -60,6 +61,7 @@ public class ServiceComponentTest {
   private ServiceComponentFactory serviceComponentFactory;
   private ServiceComponentHostFactory serviceComponentHostFactory;
   private AmbariMetaInfo metaInfo;
+  private OrmTestHelper helper;
 
   @Before
   public void setup() throws Exception {
@@ -71,6 +73,7 @@ public class ServiceComponentTest {
         ServiceComponentFactory.class);
     serviceComponentHostFactory = injector.getInstance(
         ServiceComponentHostFactory.class);
+    helper = injector.getInstance(OrmTestHelper.class);
     metaInfo = injector.getInstance(AmbariMetaInfo.class);
     metaInfo.init();
 
@@ -81,6 +84,7 @@ public class ServiceComponentTest {
     StackId stackId = new StackId("HDP-0.1");
     cluster.setDesiredStackVersion(stackId);
     Assert.assertNotNull(cluster);
+    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
 
     Service s = serviceFactory.createNew(cluster, serviceName);
@@ -172,13 +176,13 @@ public class ServiceComponentTest {
     Host h = clusters.getHost(hostname);
     h.setIPv4(hostname + "ipv4");
     h.setIPv6(hostname + "ipv6");
-    
+
     Map<String, String> hostAttributes = new HashMap<String, String>();
 	hostAttributes.put("os_family", "redhat");
 	hostAttributes.put("os_release_version", "6.3");
 	h.setHostAttributes(hostAttributes);
 
-    
+
     h.persist();
     clusters.mapHostToCluster(hostname, clusterName);
   }

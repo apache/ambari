@@ -76,7 +76,7 @@ public class ClusterVersionDAOTest {
       clusterId = helper.createCluster();
       cluster = clusterDAO.findById(clusterId);
 
-      cvA = new ClusterVersionEntity(cluster, "HDP", "2.2.0.0-995", RepositoryVersionState.CURRENT, System.currentTimeMillis(), System.currentTimeMillis(), "admin");
+      cvA = new ClusterVersionEntity(cluster, helper.getOrCreateRepositoryVersion("HDP-2.2", "2.2.0.0-995"), RepositoryVersionState.CURRENT, System.currentTimeMillis(), System.currentTimeMillis(), "admin");
       clusterVersionDAO.create(cvA);
       cvAId = cvA.getId();
     } else {
@@ -87,7 +87,7 @@ public class ClusterVersionDAOTest {
     // Install B
     if (currStep >= 2) {
       if (lastStep <= 1) {
-        cvB = new ClusterVersionEntity(cluster, "HDP", "2.2.0.1-998", RepositoryVersionState.INSTALLED, System.currentTimeMillis(), System.currentTimeMillis(), "admin");
+        cvB = new ClusterVersionEntity(cluster, helper.getOrCreateRepositoryVersion("HDP-2.2", "2.2.0.1-998"), RepositoryVersionState.INSTALLED, System.currentTimeMillis(), System.currentTimeMillis(), "admin");
         clusterVersionDAO.create(cvB);
         cvBId = cvB.getId();
       } else {
@@ -106,7 +106,7 @@ public class ClusterVersionDAOTest {
     // Start upgrading C
     if (currStep >= 4) {
       if (lastStep <= 3) {
-        cvC = new ClusterVersionEntity(cluster, "HDP", "2.2.1.0-100", RepositoryVersionState.UPGRADING, System.currentTimeMillis(), "admin");
+        cvC = new ClusterVersionEntity(cluster, helper.getOrCreateRepositoryVersion("HDP-2.2", "2.2.1.0-100"), RepositoryVersionState.UPGRADING, System.currentTimeMillis(), "admin");
         clusterVersionDAO.create(cvC);
         cvCId = cvC.getId();
       } else {
@@ -147,23 +147,23 @@ public class ClusterVersionDAOTest {
   public void testFindByStackAndVersion() {
     createRecordsUntilStep(1);
     Assert.assertEquals(0, clusterVersionDAO.findByStackAndVersion("non existing", "non existing").size());
-    Assert.assertEquals(1, clusterVersionDAO.findByStackAndVersion("HDP", "2.2.0.0-995").size());
+    Assert.assertEquals(1, clusterVersionDAO.findByStackAndVersion("HDP-2.2", "2.2.0.0-995").size());
   }
-  
+
   @Test
   public void testFindByCluster() {
     createRecordsUntilStep(1);
     Assert.assertEquals(0, clusterVersionDAO.findByCluster("non existing").size());
     Assert.assertEquals(1, clusterVersionDAO.findByCluster(cluster.getClusterName()).size());
   }
-  
+
   @Test
   public void testFindByClusterAndStackAndVersion() {
     createRecordsUntilStep(1);
     Assert.assertNull(clusterVersionDAO.findByClusterAndStackAndVersion(cluster.getClusterName(), "non existing", "non existing"));
-    Assert.assertNotNull(clusterVersionDAO.findByClusterAndStackAndVersion(cluster.getClusterName(), "HDP", "2.2.0.0-995"));
+    Assert.assertNotNull(clusterVersionDAO.findByClusterAndStackAndVersion(cluster.getClusterName(), "HDP-2.2", "2.2.0.0-995"));
   }
-  
+
   /**
    * At all times the cluster should have a cluster version whose state is {@link org.apache.ambari.server.state.RepositoryVersionState#CURRENT}
    */

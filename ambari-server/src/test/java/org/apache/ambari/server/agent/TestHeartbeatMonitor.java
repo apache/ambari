@@ -38,6 +38,7 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.RepositoryVersionState;
@@ -76,6 +77,7 @@ public class TestHeartbeatMonitor {
   private String serviceName = "HDFS";
   private int heartbeatMonitorWakeupIntervalMS = 30;
   private AmbariMetaInfo ambariMetaInfo;
+  private OrmTestHelper helper;
 
   private static final Logger LOG =
           LoggerFactory.getLogger(TestHeartbeatMonitor.class);
@@ -84,7 +86,7 @@ public class TestHeartbeatMonitor {
   public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
-    //injector.getInstance(OrmTestHelper.class).createDefaultData();
+    helper = injector.getInstance(OrmTestHelper.class);
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
     ambariMetaInfo.init();
   }
@@ -116,6 +118,7 @@ public class TestHeartbeatMonitor {
     Cluster cluster = clusters.getCluster(clusterName);
     StackId stackId = new StackId("HDP-0.1");
     cluster.setDesiredStackVersion(stackId);
+    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
     Set<String> hostNames = new HashSet<String>(){{
       add(hostname1);
@@ -201,6 +204,7 @@ public class TestHeartbeatMonitor {
     Cluster cluster = clusters.getCluster(clusterName);
     StackId stackId = new StackId("HDP-0.1");
     cluster.setDesiredStackVersion(stackId);
+    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
     Set<String> hostNames = new HashSet<String>() {{
       add(hostname1);
@@ -306,6 +310,7 @@ public class TestHeartbeatMonitor {
     Cluster cluster = clusters.getCluster(clusterName);
     StackId stackId = new StackId("HDP-0.1");
     cluster.setDesiredStackVersion(stackId);
+    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
 
     Set<String> hostNames = new HashSet<String>(){{
@@ -416,6 +421,7 @@ public class TestHeartbeatMonitor {
     Cluster cluster = clusters.getCluster(clusterName);
     StackId stackId = new StackId("HDP-0.1");
     cluster.setDesiredStackVersion(stackId);
+    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
 
     Set<String> hostNames = new HashSet<String>(){{
@@ -534,6 +540,7 @@ public class TestHeartbeatMonitor {
     Cluster cluster = clusters.getCluster(clusterName);
     StackId stackId = new StackId("HDP-2.0.7");
     cluster.setDesiredStackVersion(stackId);
+    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
 
     Set<String> hostNames = new HashSet<String>(){{
