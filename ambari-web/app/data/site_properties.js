@@ -1863,7 +1863,6 @@ module.exports =
       "name": "hive_database_type",
       "displayName": "hive_database_type",
       "defaultValue": "",
-      "isReconfigurable": false,
       "isOverridable": false,
       "isVisible": false,
       "serviceName": "HIVE",

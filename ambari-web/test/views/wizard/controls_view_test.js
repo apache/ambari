@@ -326,6 +326,216 @@ describe('App.ServiceConfigRadioButtons', function () {
 
   });
 
+  describe('#onOptionsChange', function () {
+
+    var view = App.ServiceConfigRadioButtons.create({
+        hostName: null,
+        databaseName: null,
+        connectionUrl: Em.Object.create(),
+        dbClass: Em.Object.create(),
+        serviceConfig: Em.Object.create(),
+        categoryConfigsAll: [
+          Em.Object.create({
+            name: 'javax.jdo.option.ConnectionUserName'
+          }),
+          Em.Object.create({
+            name: 'javax.jdo.option.ConnectionPassword'
+          }),
+          Em.Object.create({
+            name: 'oozie.service.JPAService.jdbc.username'
+          }),
+          Em.Object.create({
+            name: 'oozie.service.JPAService.jdbc.password'
+          }),
+          Em.Object.create({
+            name: 'sink.dblogin'
+          }),
+          Em.Object.create({
+            name: 'sink.dbpassword'
+          })
+        ],
+        parentView: Em.Object.create({
+          serviceConfigs: [
+            {
+              name: 'hive_database_type',
+              value: null
+            }
+          ]
+        }),
+        configs: [{}]
+      }),
+      cases = [
+        {
+          serviceName: 'HIVE',
+          serviceConfigValue: 'New MySQL Database',
+          databaseName: 'db0',
+          hostName: 'h0',
+          connectionUrlValue: 'jdbc:mysql://h0/db0?createDatabaseIfNotExist=true',
+          dbClassValue: 'com.mysql.jdbc.Driver',
+          isAuthVisibleAndRequired: true,
+          hiveDbTypeValue: 'mysql'
+        },
+        {
+          serviceName: 'HIVE',
+          serviceConfigValue: Em.I18n.t('services.service.config.hive.oozie.postgresql'),
+          databaseName: 'db1',
+          hostName: 'h1',
+          connectionUrlValue: 'jdbc:postgresql://h1:5432/db1',
+          dbClassValue: 'org.postgresql.Driver',
+          isAuthVisibleAndRequired: true,
+          hiveDbTypeValue: 'postgres'
+        },
+        {
+          serviceName: 'HIVE',
+          serviceConfigValue: 'Existing MySQL Database',
+          databaseName: 'db2',
+          hostName: 'h2',
+          connectionUrlValue: 'jdbc:mysql://h2/db2?createDatabaseIfNotExist=true',
+          dbClassValue: 'com.mysql.jdbc.Driver',
+          isAuthVisibleAndRequired: true,
+          hiveDbTypeValue: 'mysql'
+        },
+        {
+          serviceName: 'HIVE',
+          serviceConfigValue: 'Existing MSSQL Server database with sql auth',
+          databaseName: 'db3',
+          hostName: 'h3',
+          connectionUrlValue: 'jdbc:sqlserver://h3;databaseName=db3',
+          dbClassValue: 'com.microsoft.sqlserver.jdbc.SQLServerDriver',
+          isAuthVisibleAndRequired: true,
+          hiveDbTypeValue: 'mssql'
+        },
+        {
+          serviceName: 'HIVE',
+          serviceConfigValue: 'Existing Oracle Database',
+          databaseName: 'db4',
+          hostName: 'h4',
+          connectionUrlValue: 'jdbc:oracle:thin:@//h4:1521/db4',
+          dbClassValue: 'oracle.jdbc.driver.OracleDriver',
+          isAuthVisibleAndRequired: true,
+          hiveDbTypeValue: 'oracle'
+        },
+        {
+          serviceName: 'HIVE',
+          serviceConfigValue: 'Existing MSSQL Server database with integrated authentication',
+          databaseName: 'db5',
+          hostName: 'h5',
+          connectionUrlValue: 'jdbc:sqlserver://h5;databaseName=db5;integratedSecurity=true',
+          dbClassValue: 'com.microsoft.sqlserver.jdbc.SQLServerDriver',
+          isAuthVisibleAndRequired: false,
+          hiveDbTypeValue: 'mssql'
+        },
+        {
+          serviceName: 'OOZIE',
+          serviceConfigValue: 'New Derby Database',
+          databaseName: 'db6',
+          hostName: 'h6',
+          connectionUrlValue: 'jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true',
+          dbClassValue: 'org.apache.derby.jdbc.EmbeddedDriver',
+          isAuthVisibleAndRequired: true
+        },
+        {
+          serviceName: 'OOZIE',
+          serviceConfigValue: 'Existing MySQL Database',
+          databaseName: 'db7',
+          hostName: 'h7',
+          connectionUrlValue: 'jdbc:mysql://h7/db7',
+          dbClassValue: 'com.mysql.jdbc.Driver',
+          isAuthVisibleAndRequired: true
+        },
+        {
+          serviceName: 'OOZIE',
+          serviceConfigValue: Em.I18n.t('services.service.config.hive.oozie.postgresql'),
+          databaseName: 'db8',
+          hostName: 'h8',
+          connectionUrlValue: 'jdbc:postgresql://h8:5432/db8',
+          dbClassValue: 'org.postgresql.Driver',
+          isAuthVisibleAndRequired: true
+        },
+        {
+          serviceName: 'OOZIE',
+          serviceConfigValue: 'Existing MSSQL Server database with sql auth',
+          databaseName: 'db9',
+          hostName: 'h9',
+          connectionUrlValue: 'jdbc:sqlserver://h9;databaseName=db9',
+          dbClassValue: 'com.microsoft.sqlserver.jdbc.SQLServerDriver',
+          isAuthVisibleAndRequired: true
+        },
+        {
+          serviceName: 'OOZIE',
+          serviceConfigValue: 'Existing Oracle Database',
+          databaseName: 'db10',
+          hostName: 'h10',
+          connectionUrlValue: 'jdbc:oracle:thin:@//h10:1521/db10',
+          dbClassValue: 'oracle.jdbc.driver.OracleDriver',
+          isAuthVisibleAndRequired: true
+        },
+        {
+          serviceName: 'OOZIE',
+          serviceConfigValue: 'Existing MSSQL Server database with integrated authentication',
+          databaseName: 'db11',
+          hostName: 'h11',
+          connectionUrlValue: 'jdbc:sqlserver://h11;databaseName=db11;integratedSecurity=true',
+          dbClassValue: 'com.microsoft.sqlserver.jdbc.SQLServerDriver',
+          isAuthVisibleAndRequired: false
+        },
+        {
+          serviceName: 'HDFS',
+          serviceConfigValue: 'Existing MSSQL Server database with sql auth',
+          databaseName: 'db12',
+          hostName: 'h12',
+          connectionUrlValue: 'jdbc:sqlserver://h12;databaseName=db12',
+          dbClassValue: 'com.microsoft.sqlserver.jdbc.SQLServerDriver',
+          isAuthVisibleAndRequired: true
+        },
+        {
+          serviceName: 'HDFS',
+          serviceConfigValue: 'Existing MSSQL Server database with integrated authentication',
+          databaseName: 'db13',
+          hostName: 'h13',
+          connectionUrlValue: 'jdbc:sqlserver://h13;databaseName=db13;integratedSecurity=true',
+          dbClassValue: 'com.microsoft.sqlserver.jdbc.SQLServerDriver',
+          isAuthVisibleAndRequired: false
+        }
+      ],
+      serviceAuthPropsMap = {
+        HIVE: ['javax.jdo.option.ConnectionUserName', 'javax.jdo.option.ConnectionPassword'],
+        OOZIE: ['oozie.service.JPAService.jdbc.username', 'oozie.service.JPAService.jdbc.password'],
+        HDFS: ['sink.dblogin', 'sink.dbpassword']
+      };
+
+    before(function () {
+      sinon.stub(view, 'handleDBConnectionProperty', Em.K);
+    });
+
+    after(function () {
+      view.handleDBConnectionProperty.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.serviceName + ', ' + item.serviceConfigValue, function () {
+        view.get('serviceConfig').setProperties({
+          serviceName: item.serviceName,
+          value: item.serviceConfigValue
+        });
+        view.setProperties({
+          databaseName: item.databaseName,
+          hostName: item.hostName
+        });
+        expect(view.get('connectionUrl.value')).to.equal(item.connectionUrlValue);
+        expect(view.get('dbClass.value')).to.equal(item.dbClassValue);
+        serviceAuthPropsMap[item.serviceName].forEach(function (propName) {
+          expect(view.get('categoryConfigsAll').findProperty('name', propName).get('isVisible')).to.equal(item.isAuthVisibleAndRequired);
+          expect(view.get('categoryConfigsAll').findProperty('name', propName).get('isRequired')).to.equal(item.isAuthVisibleAndRequired);
+        });
+        if (item.serviceName == 'HIVE') {
+          expect(view.get('parentView.serviceConfigs').findProperty('name', 'hive_database_type').value).to.equal(item.hiveDbTypeValue);
+        }
+      });
+    });
+
+  });
+
 });
 
 describe('App.ServiceConfigRadioButton', function () {
@@ -391,7 +601,7 @@ describe('App.ServiceConfigRadioButton', function () {
     });
 
     it('parent view is disabled', function () {
-      var view = view = App.ServiceConfigRadioButton.create({
+      var view = App.ServiceConfigRadioButton.create({
         parentView: Em.Object.create({
           serviceConfig: Em.Object.create()
         })

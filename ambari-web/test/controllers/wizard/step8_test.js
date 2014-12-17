@@ -295,7 +295,6 @@ describe('App.WizardStep8Controller', function () {
           ],
           removed: Em.A(['hive_existing_mysql_host', 'hive_existing_mysql_database', 'hive_existing_oracle_host',
             'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database']),
-          hive_database_type: 'mysql',
           m: 'hive_database: New MySQL Database',
           host: 'h1'
         },
@@ -308,7 +307,6 @@ describe('App.WizardStep8Controller', function () {
           ],
           removed: Em.A(['hive_ambari_host', 'hive_ambari_database', 'hive_existing_oracle_host',
             'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database']),
-          hive_database_type: 'mysql',
           m: 'hive_database: Existing MySQL Database',
           host: 'h1'
         },
@@ -321,7 +319,6 @@ describe('App.WizardStep8Controller', function () {
           ],
           removed: Em.A(['hive_ambari_host', 'hive_ambari_database', 'hive_existing_oracle_host',
             'hive_existing_oracle_database', 'hive_existing_mysql_host', 'hive_existing_mysql_database']),
-          hive_database_type: 'postgres',
           m: 'hive_database: Existing PostgreSQL Database',
           host: 'h1'
         },
@@ -334,7 +331,6 @@ describe('App.WizardStep8Controller', function () {
           ],
           removed: Em.A(['hive_ambari_host', 'hive_ambari_database', 'hive_existing_mysql_host',
             'hive_existing_mysql_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database']),
-          hive_database_type: 'oracle',
           m: 'hive_database: Existing Oracle Database',
           host: 'h1'
         }
@@ -347,7 +343,6 @@ describe('App.WizardStep8Controller', function () {
           test.removed.forEach(function(name) {
             expect(Em.isNone(configs.findProperty('name', name))).to.equal(true);
           });
-          expect(configs.findProperty('name', 'hive_database_type').value).to.equal(test.hive_database_type);
           expect(configs.findProperty('name', 'hive_hostname').value).to.equal(test.host);
         });
       });

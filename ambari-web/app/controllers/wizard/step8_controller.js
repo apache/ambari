@@ -268,7 +268,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         case 'New MySQL Database':
           if (configs.someProperty('name', 'hive_ambari_host')) {
             configs.findProperty('name', 'hive_hostname').value = configs.findProperty('name', 'hive_ambari_host').value;
-            hiveDbType.value = 'mysql';
           }
           hive_properties = Em.A(['hive_existing_mysql_host', 'hive_existing_mysql_database', 'hive_existing_oracle_host',
             'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database',
@@ -278,14 +277,12 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         case 'New PostgreSQL Database':
           if (configs.someProperty('name', 'hive_ambari_host')) {
             configs.findProperty('name', 'hive_hostname').value = configs.findProperty('name', 'hive_ambari_host').value;
-            hiveDbType.value = 'postgres';
           }
           hive_properties = Em.A(['hive_existing_mysql_host', 'hive_existing_mysql_database', 'hive_existing_oracle_host',
             'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database']);
           break;
         case 'Existing MySQL Database':
           configs.findProperty('name', 'hive_hostname').value = configs.findProperty('name', 'hive_existing_mysql_host').value;
-          hiveDbType.value = 'mysql';
           hive_properties = Em.A(['hive_ambari_host', 'hive_ambari_database', 'hive_existing_oracle_host',
             'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database',
             'hive_existing_mssql_server_database', 'hive_existing_mssql_server_host',
@@ -293,7 +290,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
           break;
         case Em.I18n.t('services.service.config.hive.oozie.postgresql'):
           configs.findProperty('name', 'hive_hostname').value = configs.findProperty('name', 'hive_existing_postgresql_host').value;
-          hiveDbType.value = 'postgres';
           hive_properties = Em.A(['hive_ambari_host', 'hive_ambari_database', 'hive_existing_oracle_host',
             'hive_existing_oracle_database', 'hive_existing_mysql_host', 'hive_existing_mysql_database',
             'hive_existing_mssql_server_database', 'hive_existing_mssql_server_host',
@@ -301,7 +297,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
           break;
         case 'Existing MSSQL Server database with integrated authentication':
           configs.findProperty('name', 'hive_hostname').value = configs.findProperty('name', 'hive_existing_mssql_server_2_host').value;
-          hiveDbType.value = 'mssql';
           hive_properties = Em.A(['hive_ambari_host', 'hive_ambari_database', 'hive_existing_oracle_host',
             'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database',
             'hive_existing_mysql_host', 'hive_existing_mysql_database', 'hive_existing_mssql_server_database',
@@ -309,7 +304,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
           break;
         case 'Existing MSSQL Server database with sql auth':
           configs.findProperty('name', 'hive_hostname').value = configs.findProperty('name', 'hive_existing_mssql_server_host').value;
-          hiveDbType.value = 'mssql';
           hive_properties = Em.A(['hive_ambari_host', 'hive_ambari_database', 'hive_existing_oracle_host',
             'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database',
             'hive_existing_mysql_host', 'hive_existing_mysql_database', 'hive_existing_mssql_server_database',
@@ -317,7 +311,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
           break;
         default:
           configs.findProperty('name', 'hive_hostname').value = configs.findProperty('name', 'hive_existing_oracle_host').value;
-          hiveDbType.value = 'oracle';
           hive_properties = Em.A(['hive_ambari_host', 'hive_ambari_database', 'hive_existing_mysql_host',
             'hive_existing_mysql_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database',
             'hive_existing_mssql_server_database', 'hive_existing_mssql_server_host',

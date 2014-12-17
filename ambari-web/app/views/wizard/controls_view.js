@@ -225,27 +225,33 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
       var dbClass = this.get('dbClass');
       if (connectionUrl) {
         if (this.get('serviceConfig.serviceName') === 'HIVE') {
+          var hiveDbType = this.get('parentView.serviceConfigs').findProperty('name', 'hive_database_type');
           switch (this.get('serviceConfig.value')) {
             case 'New MySQL Database':
             case 'Existing MySQL Database':
               connectionUrl.set('value', "jdbc:mysql://" + this.get('hostName') + "/" + this.get('databaseName') + "?createDatabaseIfNotExist=true");
               dbClass.set('value', "com.mysql.jdbc.Driver");
+              Em.set(hiveDbType, 'value', 'mysql');
               break;
             case Em.I18n.t('services.service.config.hive.oozie.postgresql'):
               connectionUrl.set('value', "jdbc:postgresql://" + this.get('hostName') + ":5432/" + this.get('databaseName'));
               dbClass.set('value', "org.postgresql.Driver");
+              Em.set(hiveDbType, 'value', 'postgres');
               break;
             case 'Existing Oracle Database':
               connectionUrl.set('value', "jdbc:oracle:thin:@//" + this.get('hostName') + ":1521/" + this.get('databaseName'));
               dbClass.set('value', "oracle.jdbc.driver.OracleDriver");
+              Em.set(hiveDbType, 'value', 'oracle');
               break;
             case 'Existing MSSQL Server database with integrated authentication':
               connectionUrl.set('value', "jdbc:sqlserver://" + this.get('hostName') + ";databaseName=" + this.get('databaseName') + ";integratedSecurity=true");
               dbClass.set('value', "com.microsoft.sqlserver.jdbc.SQLServerDriver");
+              Em.set(hiveDbType, 'value', 'mssql');
               break;
             case 'Existing MSSQL Server database with sql auth':
               connectionUrl.set('value', "jdbc:sqlserver://" + this.get('hostName') + ";databaseName=" + this.get('databaseName'));
               dbClass.set('value', "com.microsoft.sqlserver.jdbc.SQLServerDriver");
+              Em.set(hiveDbType, 'value', 'mssql');
               break;
           }
           var isNotExistingMySQLServer = this.get('serviceConfig.value') !== 'Existing MSSQL Server database with integrated authentication';
