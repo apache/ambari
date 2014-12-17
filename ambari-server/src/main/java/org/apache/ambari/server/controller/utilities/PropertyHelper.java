@@ -430,8 +430,10 @@ public class PropertyHelper {
           for (Map.Entry<String, Metric> metricEntry : componentEntry.getValue().entrySet()) {
             String property = metricEntry.getKey();
             Metric metric   = metricEntry.getValue();
-
-            metrics.put(property, new PropertyInfo(metric.getMetric(), metric.isTemporal(), metric.isPointInTime()));
+            PropertyInfo propertyInfo = new PropertyInfo(metric.getMetric(),
+              metric.isTemporal(), metric.isPointInTime());
+            propertyInfo.setAmsId(metric.getAmsId());
+            metrics.put(property, propertyInfo);
           }
           componentMetrics.put(componentEntry.getKey(), metrics);
         }
@@ -484,6 +486,7 @@ public class PropertyHelper {
     private String metric;
     private boolean pointInTime;
     private boolean temporal;
+    private String amsId;
 
     private Metric() {
     }
@@ -516,6 +519,14 @@ public class PropertyHelper {
 
     public void setTemporal(boolean temporal) {
       this.temporal = temporal;
+    }
+
+    public String getAmsId() {
+      return amsId;
+    }
+
+    public void setAmsId(String amsId) {
+      this.amsId = amsId;
     }
   }
 }

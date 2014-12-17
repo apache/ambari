@@ -17,27 +17,17 @@
  */
 package org.apache.ambari.server.controller.metrics.timeline;
 
-import com.google.inject.Injector;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.MaintenanceStateHelper;
-import org.apache.ambari.server.controller.internal.AbstractProviderModule;
-import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
-import org.apache.ambari.server.controller.internal.ConfigurationResourceProvider;
-import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
-import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
 import org.apache.ambari.server.controller.metrics.ganglia.TestStreamProvider;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.state.Clusters;
 import org.apache.http.client.utils.URIBuilder;
 import org.junit.Assert;
 import org.junit.Test;
@@ -51,8 +41,6 @@ import java.util.Set;
 
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService;
 import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
 import static org.mockito.Mockito.mock;
 
 public class AMSPropertyProviderTest {
@@ -97,7 +85,7 @@ public class AMSPropertyProviderTest {
     Resource res = resources.iterator().next();
     Map<String, Object> properties = PropertyHelper.getProperties(resources.iterator().next());
     Assert.assertNotNull(properties);
-    URIBuilder uriBuilder = AMSPropertyProvider.getUriBuilder("localhost", 8188);
+    URIBuilder uriBuilder = AMSPropertyProvider.getAMSUriBuilder("localhost", 8188);
     uriBuilder.addParameter("metricNames", "cpu_user");
     uriBuilder.addParameter("hostname", "h1");
     uriBuilder.addParameter("appId", "HOST");
@@ -137,14 +125,14 @@ public class AMSPropertyProviderTest {
     Resource res = resources.iterator().next();
     Map<String, Object> properties = PropertyHelper.getProperties(resources.iterator().next());
     Assert.assertNotNull(properties);
-    URIBuilder uriBuilder = AMSPropertyProvider.getUriBuilder("localhost", 8188);
+    URIBuilder uriBuilder = AMSPropertyProvider.getAMSUriBuilder("localhost", 8188);
     uriBuilder.addParameter("metricNames", "cpu_user,mem_free");
     uriBuilder.addParameter("hostname", "h1");
     uriBuilder.addParameter("appId", "HOST");
     uriBuilder.addParameter("startTime", "1416445244701");
     uriBuilder.addParameter("endTime", "1416445244901");
 
-    URIBuilder uriBuilder2 = AMSPropertyProvider.getUriBuilder("localhost", 8188);
+    URIBuilder uriBuilder2 = AMSPropertyProvider.getAMSUriBuilder("localhost", 8188);
     uriBuilder2.addParameter("metricNames", "mem_free,cpu_user");
     uriBuilder2.addParameter("hostname", "h1");
     uriBuilder2.addParameter("appId", "HOST");
@@ -196,7 +184,7 @@ public class AMSPropertyProviderTest {
     Resource res = resources.iterator().next();
     Map<String, Object> properties = PropertyHelper.getProperties(resources.iterator().next());
     Assert.assertNotNull(properties);
-    URIBuilder uriBuilder = AMSPropertyProvider.getUriBuilder("localhost", 8188);
+    URIBuilder uriBuilder = AMSPropertyProvider.getAMSUriBuilder("localhost", 8188);
     uriBuilder.addParameter("metricNames", "yarn.QueueMetrics.%.AvailableMB");
     uriBuilder.addParameter("appId", "RESOURCEMANAGER");
     uriBuilder.addParameter("startTime", "1416528819369");
@@ -238,7 +226,7 @@ public class AMSPropertyProviderTest {
     Resource res = resources.iterator().next();
     Map<String, Object> properties = PropertyHelper.getProperties(resources.iterator().next());
     Assert.assertNotNull(properties);
-    URIBuilder uriBuilder = AMSPropertyProvider.getUriBuilder("localhost", 8188);
+    URIBuilder uriBuilder = AMSPropertyProvider.getAMSUriBuilder("localhost", 8188);
     uriBuilder.addParameter("metricNames", "rpc.rpc.RpcQueueTimeAvgTime");
     uriBuilder.addParameter("appId", "NAMENODE");
     uriBuilder.addParameter("startTime", "1416528819369");
@@ -248,7 +236,7 @@ public class AMSPropertyProviderTest {
     Assert.assertEquals(238, val.length);
   }
 
-  public class TestMetricHostProvider implements MetricHostProvider {
+  public static class TestMetricHostProvider implements MetricHostProvider {
 
     @Override
     public String getCollectorHostName(String clusterName, MetricsService service)

@@ -53,11 +53,7 @@ import static org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
   static final Map<String, String> TIMELINE_APPID_MAP = new HashMap<String, String>();
   private static ObjectMapper mapper;
-  //private final HttpClient httpClient = new HttpClient();
   private final static ObjectReader timelineObjectReader;
-  private static final DecimalFormat decimalFormat = new DecimalFormat("#.00");
-
-  private static final Set<String> PERCENTAGE_METRIC;
   private static final String METRIC_REGEXP_PATTERN = "\\([^)]*\\)";
 
   static {
@@ -71,15 +67,6 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
     //noinspection deprecation
     mapper.getSerializationConfig().setSerializationInclusion(Inclusion.NON_NULL);
     timelineObjectReader = mapper.reader(TimelineMetrics.class);
-
-    Set<String> temp = new HashSet<String>();
-    temp.add("cpu_wio");
-    temp.add("cpu_idle");
-    temp.add("cpu_nice");
-    temp.add("cpu_aidle");
-    temp.add("cpu_system");
-    temp.add("cpu_user");
-    PERCENTAGE_METRIC = Collections.unmodifiableSet(temp);
   }
 
   public AMSPropertyProvider(Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
@@ -324,59 +311,6 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
     }
   }
 
-  // Normalize percent values: Copied over from Ganglia Metric
-  private static Number[][] getGangliaLikeDatapoints(TimelineMetric metric) {
-    Number[][] datapointsArray = new Number[metric.getMetricValues().size()][2];
-    int cnt = 0;
-
-    for (Map.Entry<Long, Double> metricEntry : metric.getMetricValues().entrySet()) {
-      Double value = metricEntry.getValue();
-      Long time = metricEntry.getKey();
-      if (time > 9999999999l) {
-        time = time / 1000;
-      }
-
-      if (PERCENTAGE_METRIC.contains(metric.getMetricName())) {
-        value = new Double(decimalFormat.format(value / 100));
-      }
-
-      datapointsArray[cnt][0] = value;
-      datapointsArray[cnt][1] = time;
-      cnt++;
-    }
-
-    return datapointsArray;
-  }
-
-  /**
-   * Get value from the given metric.
-   *
-   * @param metric      the metric
-   * @param isTemporal  indicates whether or not this a temporal metric
-   *
-   * @return a range of temporal data or a point in time value if not temporal
-   */
-  private static Object getValue(TimelineMetric metric, boolean isTemporal) {
-    Number[][] dataPoints = getGangliaLikeDatapoints(metric);
-
-    int length = dataPoints.length;
-    if (isTemporal) {
-      return length > 0 ? dataPoints : null;
-    } else {
-      // return the value of the last data point
-      return length > 0 ? dataPoints[length - 1][0] : 0;
-    }
-  }
-
-  protected static URIBuilder getUriBuilder(String hostname, int port) {
-    URIBuilder uriBuilder = new URIBuilder();
-    uriBuilder.setScheme("http");
-    uriBuilder.setHost(hostname);
-    uriBuilder.setPort(port);
-    uriBuilder.setPath("/ws/v1/timeline/metrics");
-    return uriBuilder;
-  }
-
   @Override
   public Set<Resource> populateResourcesWithProperties(Set<Resource> resources,
                Request request, Set<String> propertyIds) throws SystemException {
@@ -447,7 +381,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
             MetricsRequest metricsRequest = requests.get(temporalInfo);
             if (metricsRequest == null) {
               metricsRequest = new MetricsRequest(temporalInfo,
-                getUriBuilder(collectorHostName,
+                getAMSUriBuilder(collectorHostName,
                   collectorPort != null ? Integer.parseInt(collectorPort) : 8188));
               requests.put(temporalInfo, metricsRequest);
             }
@@ -459,5 +393,14 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
     }
 
     return requestMap;
+  }
+
+  static URIBuilder getAMSUriBuilder(String hostname, int port) {
+    URIBuilder uriBuilder = new URIBuilder();
+    uriBuilder.setScheme("http");
+    uriBuilder.setHost(hostname);
+    uriBuilder.setPort(port);
+    uriBuilder.setPath("/ws/v1/timeline/metrics");
+    return uriBuilder;
   }
 }

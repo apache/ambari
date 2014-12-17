@@ -25,6 +25,7 @@ public class PropertyInfo {
   private final String propertyId;
   private final boolean temporal;
   private final boolean pointInTime;
+  private String amsId;
 
   public PropertyInfo(String propertyId, boolean temporal, boolean pointInTime) {
     this.propertyId = propertyId;
@@ -42,5 +43,13 @@ public class PropertyInfo {
 
   public boolean isPointInTime() {
     return pointInTime;
+  }
+
+  public String getAmsId() {
+    return amsId;
+  }
+
+  public void setAmsId(String amsId) {
+    this.amsId = amsId;
   }
 }

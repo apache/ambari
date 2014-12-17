@@ -227,4 +227,19 @@
       hbase.server.thread.wakefrequency.
     </description>
   </property>
+  <property>
+    <name>hbase.snapshot.enabled</name>
+    <value>false</value>
+    <description>Enable/Disable HBase snapshots.</description>
+  </property>
+  <property>
+    <name>hbase.replication</name>
+    <value>false</value>
+    <description>Enable/Disable HBase replication.</description>
+  </property>
+  <property>
+    <name>zookeeper.session.timeout</name>
+    <value>120000</value>
+    <description>ZooKeeper session timeout in milliseconds.</description>
+  </property>
 </configuration>

@@ -38,9 +38,10 @@ pass
 
 class HostInfo():
   def __init__(self):
-    self.__last_network_io_time = 0;
+    self.__last_network_io_time = 0
     self.__last_network_data = {}
     self.__last_network_lock = threading.Lock()
+    self.__host_static_info = self.get_host_static_info()
 
   def get_cpu_times(self):
     """
@@ -48,10 +49,13 @@ class HostInfo():
     """
     cpu_times = psutil.cpu_times_percent()
     load_avg = os.getloadavg()
+    cpu_count = self.__host_static_info.get('cpu_num', 1)
 
-    number2percents = lambda x: x * 100
+    # Divide by number of cpu's on the system
+    number2percents = lambda x: ((x / int(cpu_count)) * 100)
 
     return {
+      'cpu_num': int(cpu_count),
       'cpu_user': number2percents(cpu_times.user) if hasattr(cpu_times, 'user') else '',
       'cpu_system': number2percents(cpu_times.system) if hasattr(cpu_times, 'system') else '',
       'cpu_idle': number2percents(cpu_times.idle) if hasattr(cpu_times, 'idle') else '',
@@ -96,10 +100,13 @@ class HostInfo():
     mem_stats = psutil.virtual_memory()
     swap_stats = psutil.swap_memory()
     disk_usage = self.get_combined_disk_usage()
+    mem_total = self.__host_static_info.get('mem_total')
 
     bytes2kilobytes = lambda x: x / 1024
 
     return {
+      'mem_total': bytes2kilobytes(mem_total) if mem_total else '',
+      'mem_used': bytes2kilobytes(mem_stats.used) if hasattr(mem_stats, 'used') else '',
       'mem_free': bytes2kilobytes(mem_stats.free) if hasattr(mem_stats, 'free') else '',
       'mem_shared': bytes2kilobytes(mem_stats.shared) if hasattr(mem_stats, 'shared') else '',
       'mem_buffered': bytes2kilobytes(mem_stats.buffers) if hasattr(mem_stats, 'buffers') else '',

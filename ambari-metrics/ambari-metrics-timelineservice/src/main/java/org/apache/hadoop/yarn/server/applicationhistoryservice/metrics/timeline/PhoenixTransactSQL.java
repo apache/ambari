@@ -256,15 +256,9 @@ public class PhoenixTransactSQL {
       LOG.debug("Setting pos: " + pos + ", value: " + condition.getHostname());
       stmt.setString(pos++, condition.getHostname());
     }
-    // TODO: Upper case all strings on POST
     if (condition.getAppId() != null) {
-      // TODO: fix case of appId coming from host metrics
-      String appId = condition.getAppId();
-      if (!condition.getAppId().equals("HOST")) {
-        appId = appId.toLowerCase();
-      }
-      LOG.debug("Setting pos: " + pos + ", value: " + appId);
-      stmt.setString(pos++, appId);
+      LOG.debug("Setting pos: " + pos + ", value: " + condition.getAppId());
+      stmt.setString(pos++, condition.getAppId());
     }
     if (condition.getInstanceId() != null) {
       LOG.debug("Setting pos: " + pos + ", value: " + condition.getInstanceId());
@@ -301,11 +295,12 @@ public class PhoenixTransactSQL {
       sb.append(" LIMIT ").append(condition.getLimit());
     }
 
-    LOG.debug("SQL => " + sb.toString() + ", condition => " + condition);
     String query = String.format(sb.toString(),
       PhoenixTransactSQL.getNaiveTimeRangeHint(condition.getStartTime(),
         NATIVE_TIME_RANGE_DELTA));
-    PreparedStatement stmt = connection.prepareStatement(query);    int pos = 1;
+    LOG.debug("SQL => " + query + ", condition => " + condition);
+    PreparedStatement stmt = connection.prepareStatement(query);
+    int pos = 1;
     if (condition.getMetricNames() != null) {
       for (; pos <= condition.getMetricNames().size(); pos++) {
         stmt.setString(pos, condition.getMetricNames().get(pos - 1));
@@ -313,7 +308,7 @@ public class PhoenixTransactSQL {
     }
     // TODO: Upper case all strings on POST
     if (condition.getAppId() != null) {
-      stmt.setString(pos++, condition.getAppId().toLowerCase());
+      stmt.setString(pos++, condition.getAppId());
     }
     if (condition.getInstanceId() != null) {
       stmt.setString(pos++, condition.getInstanceId());
@@ -438,7 +433,14 @@ public class PhoenixTransactSQL {
     }
 
     String getAppId() {
-      return appId == null || appId.isEmpty() ? null : appId;
+      if (appId != null && !appId.isEmpty()) {
+        if (!appId.equals("HOST")) {
+          return appId.toLowerCase();
+        } else {
+          return appId;
+        }
+      }
+      return null;
     }
 
     String getInstanceId() {

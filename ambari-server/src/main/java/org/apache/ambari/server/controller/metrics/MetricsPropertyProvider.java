@@ -25,6 +25,7 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
+import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.Map;
@@ -148,7 +149,7 @@ public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
    *
    * @return a comma delimited string of strings
    */
-  protected static String getSetString(Set<String> set, int limit) {
+  public static String getSetString(Set<String> set, int limit) {
     StringBuilder sb = new StringBuilder();
 
     if (limit == -1 || set.size() <= limit) {
@@ -161,4 +162,5 @@ public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
     }
     return sb.toString();
   }
+
 }

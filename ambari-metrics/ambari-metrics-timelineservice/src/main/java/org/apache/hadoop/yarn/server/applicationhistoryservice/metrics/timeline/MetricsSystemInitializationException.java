@@ -23,19 +23,19 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
  * since this is a not recoverable situation, and should be handled by main or
  * service method followed by shutdown.
  */
-public class MetricsInitializationException extends RuntimeException {
-  public MetricsInitializationException() {
+public class MetricsSystemInitializationException extends RuntimeException {
+  public MetricsSystemInitializationException() {
   }
 
-  public MetricsInitializationException(String msg) {
+  public MetricsSystemInitializationException(String msg) {
     super(msg);
   }
 
-  public MetricsInitializationException(Throwable t) {
+  public MetricsSystemInitializationException(Throwable t) {
     super(t);
   }
 
-  public MetricsInitializationException(String msg, Throwable t) {
+  public MetricsSystemInitializationException(String msg, Throwable t) {
     super(msg, t);
   }
 

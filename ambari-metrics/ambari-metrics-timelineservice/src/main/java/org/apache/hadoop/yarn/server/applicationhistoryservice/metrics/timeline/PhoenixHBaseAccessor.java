@@ -272,12 +272,12 @@ public class PhoenixHBaseAccessor {
         LOG.warn("Cannot update TTL on tables. " + sql.getMessage());
       } else {
         LOG.error("Error creating Metrics Schema in HBase using Phoenix.", sql);
-        throw new MetricsInitializationException(
+        throw new MetricsSystemInitializationException(
           "Error creating Metrics Schema in HBase using Phoenix.", sql);
       }
     } catch (InterruptedException e) {
       LOG.error("Error creating Metrics Schema in HBase using Phoenix.", e);
-      throw new MetricsInitializationException(
+      throw new MetricsSystemInitializationException(
         "Error creating Metrics Schema in HBase using Phoenix.", e);
     } finally {
       if (stmt != null) {
@@ -651,7 +651,13 @@ public class PhoenixHBaseAccessor {
     }
   }
 
-
+  /**
+   * Get metrics aggregated across hosts.
+   *
+   * @param condition @Condition
+   * @return @TimelineMetrics
+   * @throws SQLException
+   */
   public TimelineMetrics getAggregateMetricRecords(final Condition condition)
     throws SQLException {
 

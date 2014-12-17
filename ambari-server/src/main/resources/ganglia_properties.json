@@ -4,87 +4,104 @@
       "metrics/cpu/Idle":{
         "metric":"cpu_report.Idle\\g",
         "pointInTime":false,
-        "temporal":true
+        "temporal":true,
+        "amsId":"cpu_idle"
       },
       "metrics/cpu/Nice":{
         "metric":"cpu_report.Nice\\g",
         "pointInTime":false,
-        "temporal":true
+        "temporal":true,
+        "amsId":"cpu_nice"
       },
       "metrics/cpu/System":{
         "metric":"cpu_report.System\\g",
         "pointInTime":false,
-        "temporal":true
+        "temporal":true,
+        "amsId":"cpu_system"
       },
       "metrics/cpu/User":{
         "metric":"cpu_report.User\\g",
         "pointInTime":false,
-        "temporal":true
+        "temporal":true,
+        "amsId":"cpu_user"
       },
       "metrics/cpu/Wait":{
         "metric":"cpu_report.Wait\\g",
         "pointInTime":false,
-        "temporal":true
+        "temporal":true,
+        "amsId":"cpu_wait"
       },
       "metrics/load/1-min":{
         "metric":"load_report.1-min",
         "pointInTime":false,
-        "temporal":true
+        "temporal":true,
+        "amsId":"load_one"
       },
       "metrics/load/CPUs":{
         "metric":"load_report.CPUs ",
         "pointInTime":false,
-        "temporal":true
+        "temporal":true,
+        "amsId":"cpu_num"
       },
       "metrics/load/Nodes":{
         "metric":"load_report.Nodes",
         "pointInTime":false,
-        "temporal":true
+        "temporal":true,
+        "amsId":"cpu_num"
       },
       "metrics/load/Procs":{
         "metric":"load_report.Procs",
         "pointInTime":false,
-        "temporal":true
+        "temporal":true,
+        "amsId":"proc_run"
       },
       "metrics/memory/Buffer":{
         "metric":"mem_report.Buffer\\g",
         "pointInTime":false,
-        "temporal":true
+        "temporal":true,
+        "amsId":"mem_buffered"
       },
       "metrics/memory/Cache":{
         "metric":"mem_report.Cache\\g",
         "pointInTime":false,
-        "temporal":true
+        "temporal":true,
+        "amsId":"mem_cached"
       },
       "metrics/memory/Share":{
         "metric":"mem_report.Share\\g",
         "pointInTime":false,
-        "temporal":true
+        "temporal":true,
+        "amsId":"mem_shared"
       },
       "metrics/memory/Swap":{
         "metric":"mem_report.Swap\\g",
         "pointInTime":false,
-        "temporal":true
+        "temporal":true,
+        "amsId":"swap_free"
       },
       "metrics/memory/Total":{
         "metric":"mem_report.Total\\g",
         "pointInTime":false,
-        "temporal":true
+        "temporal":true,
+        "amsId":"mem_total"
       },
       "metrics/memory/Use":{
         "metric":"mem_report.Use\\g",
         "pointInTime":false,
-        "temporal":true
+        "temporal":true,
+        "amsId":"mem_used"
       },
       "metrics/network/In":{
         "metric":"network_report.In ",
         "pointInTime":false,
-        "temporal":true
+        "temporal":true,
+        "amsId":"bytes_in"
       },
       "metrics/network/Out":{
         "metric":"network_report.Out",
         "pointInTime":false,
-        "temporal":true
+        "temporal":true,
+        "amsId":"bytes_out"
       }
     }
   },

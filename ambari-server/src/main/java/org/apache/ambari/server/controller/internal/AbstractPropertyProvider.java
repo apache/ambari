@@ -20,7 +20,10 @@ package org.apache.ambari.server.controller.internal;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.text.DecimalFormat;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +33,8 @@ import java.util.regex.Pattern;
 
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import org.apache.http.client.utils.URIBuilder;
 
 /**
  *  Abstract property provider implementation.
@@ -63,6 +68,20 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
    * Supported any regex inside ()
    */
   private static final String FIND_REGEX_IN_METRIC_REGEX = "\\([^)]+\\)";
+
+  private static final Set<String> PERCENTAGE_METRIC;
+  private static final DecimalFormat decimalFormat = new DecimalFormat("#.00");
+
+  static {
+    Set<String> temp = new HashSet<String>();
+    temp.add("cpu_wio");
+    temp.add("cpu_idle");
+    temp.add("cpu_nice");
+    temp.add("cpu_aidle");
+    temp.add("cpu_system");
+    temp.add("cpu_user");
+    PERCENTAGE_METRIC = Collections.unmodifiableSet(temp);
+  }
 
   // ----- Constructors ------------------------------------------------------
 
@@ -347,4 +366,49 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
     }
     return false;
   }
+
+  // Normalize percent values: Copied over from Ganglia Metric
+  private static Number[][] getGangliaLikeDatapoints(TimelineMetric metric) {
+    Number[][] datapointsArray = new Number[metric.getMetricValues().size()][2];
+    int cnt = 0;
+
+    for (Map.Entry<Long, Double> metricEntry : metric.getMetricValues().entrySet()) {
+      Double value = metricEntry.getValue();
+      Long time = metricEntry.getKey();
+      if (time > 9999999999l) {
+        time = time / 1000;
+      }
+
+      if (PERCENTAGE_METRIC.contains(metric.getMetricName())) {
+        value = new Double(decimalFormat.format(value / 100));
+      }
+
+      datapointsArray[cnt][0] = value;
+      datapointsArray[cnt][1] = time;
+      cnt++;
+    }
+
+    return datapointsArray;
+  }
+
+  /**
+   * Get value from the given metric.
+   *
+   * @param metric      the metric
+   * @param isTemporal  indicates whether or not this a temporal metric
+   *
+   * @return a range of temporal data or a point in time value if not temporal
+   */
+  protected static Object getValue(TimelineMetric metric, boolean isTemporal) {
+    Number[][] dataPoints = getGangliaLikeDatapoints(metric);
+
+    int length = dataPoints.length;
+    if (isTemporal) {
+      return length > 0 ? dataPoints : null;
+    } else {
+      // return the value of the last data point
+      return length > 0 ? dataPoints[length - 1][0] : 0;
+    }
+  }
+
 }
