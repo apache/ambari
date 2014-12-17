@@ -105,16 +105,38 @@ public abstract class KerberosOperationHandler {
   }
 
   /**
-   * Prepares and creates resources to be used by this KerberosOperationHandler
-   * <p/>
-   * It is expected that this KerberosOperationHandler will not be used before this call.
-   *
-   * @param administratorCredentials a KerberosCredential containing the administrative credentials
-   *                                 for the relevant KDC
-   * @param defaultRealm             a String declaring the default Kerberos realm (or domain)
-   */
-  public abstract void open(KerberosCredential administratorCredentials, String defaultRealm)
-      throws AmbariException;
+     * Prepares and creates resources to be used by this KerberosOperationHandler
+     * <p/>
+     * It is expected that this KerberosOperationHandler will not be used before this call.
+     *
+     * @param administratorCredentials a KerberosCredential containing the administrative credentials
+     *                                 for the relevant KDC
+     * @param defaultRealm             a String declaring the default Kerberos realm (or domain)
+     */
+    public abstract void open(KerberosCredential administratorCredentials, String defaultRealm)
+            throws AmbariException;
+
+    /**
+     * Prepares and creates resources to be used by this KerberosOperationHandler.
+     * Implementation in this class is ignoring parameters ldapUrl and principalContainerDn and delegate to
+     * <code>open(KerberosCredential administratorCredentials, String defaultRealm)</code>
+     * Subclasses that want to use these parameters need to override this method.
+     *
+     * <p/>
+     * It is expected that this KerberosOperationHandler will not be used before this call.
+     *
+     * @param administratorCredentials a KerberosCredential containing the administrative credentials
+     *                                 for the relevant KDC
+     * @param defaultRealm             a String declaring the default Kerberos realm (or domain)
+     * @param ldapUrl  ldapUrl of ldap back end where principals would be created
+     * @param principalContainerDn DN of the container in ldap back end where principals would be created
+     *
+     */
+    public void open(KerberosCredential administratorCredentials, String defaultRealm,
+                              String ldapUrl, String principalContainerDn)
+            throws AmbariException {
+       open(administratorCredentials, defaultRealm);
+    }
 
   /**
    * Closes and cleans up any resources used by this KerberosOperationHandler
