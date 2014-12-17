@@ -37,6 +37,8 @@ with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
 PATH_TO_STACKS = "main/resources/stacks/HDP"
 PATH_TO_STACK_TESTS = "test/python/stacks/"
 
+PATH_TO_COMMON_SERVICES = "main/resources/common-services"
+
 PATH_TO_CUSTOM_ACTIONS = "main/resources/custom_actions"
 PATH_TO_CUSTOM_ACTION_TESTS = "test/python/custom_actions"
 MAX_SHOWN_DICT_LEN = 10
@@ -50,10 +52,14 @@ class RMFTestCase(TestCase):
   # (default) build all paths to test custom action scripts
   TARGET_CUSTOM_ACTIONS = 'TARGET_CUSTOM_ACTIONS'
 
+  # build all paths to test common services scripts
+  TARGET_COMMON_SERVICES = 'TARGET_COMMON_SERVICES'
+
   def executeScript(self, path, classname=None, command=None, config_file=None,
                     config_dict=None,
                     # common mocks for all the scripts
                     config_overrides = None,
+                    hdp_stack_version = None,
                     shell_mock_value = (0, "OK."), 
                     os_type=('Suse','11','Final'),
                     kinit_path_local="/usr/bin/kinit",
@@ -64,14 +70,17 @@ class RMFTestCase(TestCase):
     src_dir = RMFTestCase._getSrcFolder()
     if target == self.TARGET_STACKS:
       stack_version = norm_path.split(os.sep)[0]
-      stacks_path = os.path.join(src_dir, PATH_TO_STACKS)
+      base_path = os.path.join(src_dir, PATH_TO_STACKS)
       configs_path = os.path.join(src_dir, PATH_TO_STACK_TESTS, stack_version, "configs")
     elif target == self.TARGET_CUSTOM_ACTIONS:
-      stacks_path = os.path.join(src_dir, PATH_TO_CUSTOM_ACTIONS)
+      base_path = os.path.join(src_dir, PATH_TO_CUSTOM_ACTIONS)
       configs_path = os.path.join(src_dir, PATH_TO_CUSTOM_ACTION_TESTS, "configs")
+    elif target == self.TARGET_COMMON_SERVICES:
+      base_path = os.path.join(src_dir, PATH_TO_COMMON_SERVICES)
+      configs_path = os.path.join(src_dir, PATH_TO_STACK_TESTS, hdp_stack_version, "configs")
     else:
       raise RuntimeError("Wrong target value %s", target)
-    script_path = os.path.join(stacks_path, norm_path)
+    script_path = os.path.join(base_path, norm_path)
     if config_file is not None and config_dict is None:
       config_file_path = os.path.join(configs_path, config_file)
       try:

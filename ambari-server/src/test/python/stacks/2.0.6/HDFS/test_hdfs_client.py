@@ -30,12 +30,16 @@ from stacks.utils.RMFTestCase import *
 @patch.object(contextlib,"closing", new = MagicMock())
 @patch("os.path.exists", new = MagicMock(return_value=True))
 class Test(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "HDFS/2.1.0.2.0/package"
+  STACK_VERSION = "2.0.6"
 
   def test_generate_configs_default(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/hdfs_client.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hdfs_client.py",
                        classname = "HdfsClient",
                        command = "generate_configs",
-                       config_file="default.json"
+                       config_file = "default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/tmp',
                               recursive = True,

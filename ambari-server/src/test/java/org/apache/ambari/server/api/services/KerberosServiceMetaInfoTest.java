@@ -139,9 +139,11 @@ public class KerberosServiceMetaInfoTest {
   @Before
   public void before() throws Exception {
     File stackRoot = new File("src/main/resources/stacks");
+    File commonServicesRoot = new File("src/main/resources/common-services");
     LOG.info("Stacks file " + stackRoot.getAbsolutePath());
+    LOG.info("Common Services file " + commonServicesRoot.getAbsolutePath());
 
-    AmbariMetaInfo metaInfo = createAmbariMetaInfo(stackRoot, new File("target/version"), true);
+    AmbariMetaInfo metaInfo = createAmbariMetaInfo(stackRoot, commonServicesRoot, new File("target/version"), true);
     metaInfo.init();
 
     serviceInfo = metaInfo.getService("HDP", "2.2", "KERBEROS");
@@ -178,8 +180,8 @@ public class KerberosServiceMetaInfoTest {
     });
   }
 
-  private TestAmbariMetaInfo createAmbariMetaInfo(File stackRoot, File versionFile, boolean replayMocks) throws Exception {
-    TestAmbariMetaInfo metaInfo = new TestAmbariMetaInfo(stackRoot, versionFile);
+  private TestAmbariMetaInfo createAmbariMetaInfo(File stackRoot, File commonServicesRoot, File versionFile, boolean replayMocks) throws Exception {
+    TestAmbariMetaInfo metaInfo = new TestAmbariMetaInfo(stackRoot, commonServicesRoot, versionFile);
     if (replayMocks) {
       metaInfo.replayAllMocks();
 
@@ -216,8 +218,8 @@ public class KerberosServiceMetaInfoTest {
     AlertDefinitionFactory alertDefinitionFactory;
     OsFamily osFamily;
 
-    public TestAmbariMetaInfo(File stackRoot, File serverVersionFile) throws Exception {
-      super(stackRoot, null, serverVersionFile);
+    public TestAmbariMetaInfo(File stackRoot, File commonServicesRoot, File serverVersionFile) throws Exception {
+      super(stackRoot, commonServicesRoot, serverVersionFile);
       // MetainfoDAO
       metaInfoDAO = createNiceMock(MetainfoDAO.class);
       Class<?> c = getClass().getSuperclass();

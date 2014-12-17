@@ -21,13 +21,16 @@ from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 
 class TestServiceCheck(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "ZOOKEEPER/3.4.5.2.0/package"
+  STACK_VERSION = "2.0.6"
 
   def test_service_check_default(self):
-
-    self.executeScript("2.0.6/services/ZOOKEEPER/package/scripts/service_check.py",
-                       classname="ZookeeperServiceCheck",
-                       command="service_check",
-                       config_file="default.json"
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
+                       classname = "ZookeeperServiceCheck",
+                       command = "service_check",
+                       config_file = "default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/tmp/zkSmoke.sh',
                        content = StaticFile('zkSmoke.sh'),
@@ -42,11 +45,12 @@ class TestServiceCheck(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_service_check_secured(self):
-
-    self.executeScript("2.0.6/services/ZOOKEEPER/package/scripts/service_check.py",
-                       classname="ZookeeperServiceCheck",
-                       command="service_check",
-                       config_file="secured.json"
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
+                       classname = "ZookeeperServiceCheck",
+                       command = "service_check",
+                       config_file = "secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/tmp/zkSmoke.sh',
                        content = StaticFile('zkSmoke.sh'),

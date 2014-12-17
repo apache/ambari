@@ -93,6 +93,7 @@
       <directory>src/main/resources</directory>
       <outputDirectory>/ambari-server-${project.version}/var/lib/ambari-server/resources/</outputDirectory>
       <includes>
+        <include>common-services/**</include>
         <include>stacks/stack_advisor.py</include>
         <include>stacks/${stack.distribution}/**</include>
       </includes>

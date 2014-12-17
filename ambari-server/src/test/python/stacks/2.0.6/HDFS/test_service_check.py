@@ -23,26 +23,33 @@ from mock.mock import MagicMock, call, patch
 
 @patch.object(resource_management.libraries.functions, "get_unique_id_and_date", new = MagicMock(return_value=''))
 class TestServiceCheck(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "HDFS/2.1.0.2.0/package"
+  STACK_VERSION = "2.0.6"
+
   def test_service_check_default(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/service_check.py",
-                        classname="HdfsServiceCheck",
-                        command="service_check",
-                        config_file="default.json"
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
+                       classname = "HdfsServiceCheck",
+                       command = "service_check",
+                       config_file = "default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    
+
     self.assert_service_check()
     self.assertNoMoreResources()
-    
+
   def test_service_check_secured(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/service_check.py",
-                        classname="HdfsServiceCheck",
-                        command="service_check",
-                        config_file="default.json"
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
+                       classname = "HdfsServiceCheck",
+                       command = "service_check",
+                       config_file = "default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    
+
     self.assert_service_check()
     self.assertNoMoreResources()
-        
+
   def assert_service_check(self):
     self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -safemode get | grep OFF',
         logoutput = True,

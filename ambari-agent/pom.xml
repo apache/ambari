@@ -613,6 +613,7 @@
                 <resource>
                   <directory>${ambari.server.module}/src/main/resources</directory>
                   <includes>
+                    <include>common-services/**</include>
                     <include>stacks/stack_advisor.py</include>
                     <include>stacks/${stack.distribution}/**/*</include>
                     <include>custom_actions/**/*</include>

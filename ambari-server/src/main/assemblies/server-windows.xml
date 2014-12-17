@@ -169,6 +169,7 @@
         <include>host_scripts/**</include>
         <include>stacks/stack_advisor.py</include>
         <include>scripts/**</include>
+        <include>common-services/**</include>
         <include>stacks/HDPWIN/**</include>
         <include>upgrade/**</include>
       </includes>

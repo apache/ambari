@@ -22,12 +22,16 @@ from ambari_commons import OSCheck
 from mock.mock import MagicMock, patch
 
 class TestZkfc(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "HDFS/2.1.0.2.0/package"
+  STACK_VERSION = "2.0.6"
 
   def test_start_default(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/zkfc_slave.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/zkfc_slave.py",
                        classname = "ZkfcSlave",
                        command = "start",
-                       config_file="ha_default.json"
+                       config_file = "ha_default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
@@ -84,10 +88,12 @@ class TestZkfc(RMFTestCase):
 
 
   def test_stop_default(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/zkfc_slave.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/zkfc_slave.py",
                        classname = "ZkfcSlave",
                        command = "stop",
-                       config_file="ha_default.json"
+                       config_file = "ha_default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
@@ -111,10 +117,12 @@ class TestZkfc(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_start_secured(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/zkfc_slave.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/zkfc_slave.py",
                        classname = "ZkfcSlave",
                        command = "start",
-                       config_file="ha_secured.json"
+                       config_file = "ha_secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
@@ -170,10 +178,12 @@ class TestZkfc(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_stop_secured(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/zkfc_slave.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/zkfc_slave.py",
                        classname = "ZkfcSlave",
                        command = "stop",
-                       config_file="ha_secured.json"
+                       config_file = "ha_secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',

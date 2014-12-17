@@ -23,21 +23,27 @@ from mock.mock import MagicMock, patch
 from resource_management.core.exceptions import Fail
 
 class TestDatanode(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "HDFS/2.1.0.2.0/package"
+  STACK_VERSION = "2.0.6"
 
   def test_configure_default(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/datanode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                        classname = "DataNode",
                        command = "configure",
-                       config_file="default.json"
+                       config_file = "default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
     self.assertNoMoreResources()
 
   def test_start_default(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/datanode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                        classname = "DataNode",
                        command = "start",
-                       config_file="default.json"
+                       config_file = "default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
     self.assertResourceCalled('Directory', '/var/run/hadoop',
@@ -65,10 +71,12 @@ class TestDatanode(RMFTestCase):
 
   @patch("os.path.exists", new = MagicMock(return_value=False))
   def test_stop_default(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/datanode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                        classname = "DataNode",
                        command = "stop",
-                       config_file="default.json"
+                       config_file = "default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop',
                               owner = 'hdfs',
@@ -97,19 +105,23 @@ class TestDatanode(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_configure_secured(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/datanode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                        classname = "DataNode",
                        command = "configure",
-                       config_file="secured.json"
+                       config_file = "secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
     self.assertNoMoreResources()
 
   def test_start_secured(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/datanode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                        classname = "DataNode",
                        command = "start",
-                       config_file="secured.json"
+                       config_file = "secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
     self.assertResourceCalled('Directory', '/var/run/hadoop',
@@ -142,10 +154,12 @@ class TestDatanode(RMFTestCase):
 
     secured_json['hostLevelParams']['stack_version']= '2.2'
 
-    self.executeScript("2.0.6/services/HDFS/package/scripts/datanode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                        classname = "DataNode",
                        command = "start",
-                       config_dict = secured_json
+                       config_dict = secured_json,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
     self.assertResourceCalled('Directory', '/var/run/hadoop',
@@ -181,10 +195,12 @@ class TestDatanode(RMFTestCase):
     secured_json['configurations']['hdfs-site']['dfs.datanode.address']= '0.0.0.0:10000'
     secured_json['configurations']['hdfs-site']['dfs.datanode.https.address']= '0.0.0.0:50000'
 
-    self.executeScript("2.0.6/services/HDFS/package/scripts/datanode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                        classname = "DataNode",
                        command = "start",
-                       config_dict = secured_json
+                       config_dict = secured_json,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
     self.assertResourceCalled('Directory', '/var/run/hadoop',
@@ -212,10 +228,12 @@ class TestDatanode(RMFTestCase):
 
   @patch("os.path.exists", new = MagicMock(return_value=False))
   def test_stop_secured(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/datanode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                        classname = "DataNode",
                        command = "stop",
-                       config_file="secured.json"
+                       config_file = "secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop',
                               owner = 'hdfs',
@@ -252,10 +270,12 @@ class TestDatanode(RMFTestCase):
 
     secured_json['hostLevelParams']['stack_version']= '2.2'
 
-    self.executeScript("2.0.6/services/HDFS/package/scripts/datanode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                        classname = "DataNode",
                        command = "stop",
-                       config_dict = secured_json
+                       config_dict = secured_json,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop',
                               owner = 'hdfs',
@@ -294,10 +314,12 @@ class TestDatanode(RMFTestCase):
     secured_json['configurations']['hdfs-site']['dfs.datanode.address']= '0.0.0.0:10000'
     secured_json['configurations']['hdfs-site']['dfs.datanode.https.address']= '0.0.0.0:50000'
 
-    self.executeScript("2.0.6/services/HDFS/package/scripts/datanode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                        classname = "DataNode",
                        command = "stop",
-                       config_dict = secured_json
+                       config_dict = secured_json,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop',
                               owner = 'hdfs',
@@ -447,8 +469,13 @@ class TestDatanode(RMFTestCase):
     process.returncode = 0
     process_mock.return_value = process
 
-    self.executeScript("2.0.6/services/HDFS/package/scripts/datanode.py",
-      classname = "DataNode", command = "post_rolling_restart", config_file="default.json",  )
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
+                       classname = "DataNode",
+                       command = "post_rolling_restart",
+                       config_file = "default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
 
     self.assertTrue(process_mock.called)
     self.assertEqual(process_mock.call_count,1)
@@ -463,8 +490,13 @@ class TestDatanode(RMFTestCase):
     process_mock.return_value = process
 
     try:
-      self.executeScript("2.0.6/services/HDFS/package/scripts/datanode.py",
-        classname = "DataNode", command = "post_rolling_restart", config_file="default.json",  )
+      self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
+                         classname = "DataNode",
+                         command = "post_rolling_restart",
+                         config_file = "default.json",
+                         hdp_stack_version = self.STACK_VERSION,
+                         target = RMFTestCase.TARGET_COMMON_SERVICES
+      )
       self.fail('Missing DataNode should have caused a failure')
     except Fail,fail:
       self.assertTrue(process_mock.called)
@@ -480,8 +512,13 @@ class TestDatanode(RMFTestCase):
     process_mock.return_value = process
 
     try:
-      self.executeScript("2.0.6/services/HDFS/package/scripts/datanode.py",
-        classname = "DataNode", command = "post_rolling_restart", config_file="default.json",  )
+      self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
+                         classname = "DataNode",
+                         command = "post_rolling_restart",
+                         config_file = "default.json",
+                         hdp_stack_version = self.STACK_VERSION,
+                         target = RMFTestCase.TARGET_COMMON_SERVICES
+      )
       self.fail('Invalid return code should cause a failure')
     except Fail,fail:
       self.assertTrue(process_mock.called)

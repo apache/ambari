@@ -22,21 +22,27 @@ from ambari_commons import OSCheck
 from mock.mock import MagicMock, patch
 
 class TestJournalnode(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "HDFS/2.1.0.2.0/package"
+  STACK_VERSION = "2.0.6"
 
   def test_configure_default(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/journalnode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/journalnode.py",
                        classname = "JournalNode",
                        command = "configure",
-                       config_file="default.json"
+                       config_file = "default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
     self.assertNoMoreResources()
 
   def test_start_default(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/journalnode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/journalnode.py",
                        classname = "JournalNode",
                        command = "start",
-                       config_file="default.json"
+                       config_file = "default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
     self.assertResourceCalled('Directory', '/var/run/hadoop',
@@ -63,10 +69,12 @@ class TestJournalnode(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_stop_default(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/journalnode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/journalnode.py",
                        classname = "JournalNode",
                        command = "stop",
-                       config_file="default.json"
+                       config_file = "default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
@@ -90,19 +98,23 @@ class TestJournalnode(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_configure_secured(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/journalnode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/journalnode.py",
                        classname = "JournalNode",
                        command = "configure",
-                       config_file="secured.json"
+                       config_file = "secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
     self.assertNoMoreResources()
 
   def test_start_secured(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/journalnode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/journalnode.py",
                        classname = "JournalNode",
                        command = "start",
-                       config_file="secured.json"
+                       config_file = "secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
     self.assertResourceCalled('Directory', '/var/run/hadoop',
@@ -129,10 +141,12 @@ class TestJournalnode(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_stop_secured(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/journalnode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/journalnode.py",
                        classname = "JournalNode",
                        command = "stop",
-                       config_file="secured.json"
+                       config_file = "secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',

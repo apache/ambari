@@ -28,21 +28,27 @@ import subprocess
 
 @patch.object(shell, "call", new=MagicMock(return_value=(1,"")))
 class TestNamenode(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "HDFS/2.1.0.2.0/package"
+  STACK_VERSION = "2.0.6"
 
   def test_configure_default(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/namenode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                        classname = "NameNode",
                        command = "configure",
-                       config_file="default.json"
+                       config_file = "default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
     self.assertNoMoreResources()
 
   def test_start_default(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/namenode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                        classname = "NameNode",
                        command = "start",
-                       config_file="default.json"
+                       config_file = "default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
     self.assertResourceCalled('File', '/tmp/checkForFormat.sh',
@@ -128,10 +134,12 @@ class TestNamenode(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_stop_default(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/namenode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                        classname = "NameNode",
                        command = "stop",
-                       config_file="default.json"
+                       config_file = "default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid',
                               action = ['delete'],
@@ -147,19 +155,23 @@ class TestNamenode(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_configure_secured(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/namenode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                        classname = "NameNode",
                        command = "configure",
-                       config_file="secured.json"
+                       config_file = "secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
     self.assertNoMoreResources()
 
   def test_start_secured(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/namenode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                        classname = "NameNode",
                        command = "start",
-                       config_file="secured.json"
+                       config_file = "secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
     self.assertResourceCalled('File', '/tmp/checkForFormat.sh',
@@ -248,10 +260,12 @@ class TestNamenode(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_stop_secured(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/namenode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                        classname = "NameNode",
                        command = "stop",
-                       config_file="secured.json"
+                       config_file = "secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid',
                               action = ['delete'],
@@ -267,10 +281,12 @@ class TestNamenode(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_start_ha_default(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/namenode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                        classname = "NameNode",
                        command = "start",
-                       config_file="ha_default.json"
+                       config_file = "ha_default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
@@ -341,10 +357,12 @@ class TestNamenode(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_start_ha_secured(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/namenode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                        classname = "NameNode",
                        command = "start",
-                       config_file="ha_secured.json"
+                       config_file = "ha_secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
@@ -418,10 +436,12 @@ class TestNamenode(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_decommission_default(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/namenode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                        classname = "NameNode",
                        command = "decommission",
-                       config_file="default.json"
+                       config_file = "default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
                               owner = 'hdfs',
@@ -437,10 +457,12 @@ class TestNamenode(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_decommission_update_exclude_file_only(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/namenode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                        classname = "NameNode",
                        command = "decommission",
-                       config_file="default_update_exclude_file_only.json"
+                       config_file = "default_update_exclude_file_only.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
                               owner = 'hdfs',
@@ -451,10 +473,12 @@ class TestNamenode(RMFTestCase):
 
 
   def test_decommission_ha_default(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/namenode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                        classname = "NameNode",
                        command = "decommission",
-                       config_file="ha_default.json"
+                       config_file = "ha_default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
                               owner = 'hdfs',
@@ -462,19 +486,21 @@ class TestNamenode(RMFTestCase):
                               group = 'hadoop',
                               )
     self.assertResourceCalled('Execute', '', user = 'hdfs')
-    self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -refreshNodes', 
-                              user = 'hdfs', 
+    self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -refreshNodes',
+                              user = 'hdfs',
                               conf_dir = '/etc/hadoop/conf',
                               bin_dir = '/usr/bin',
                               kinit_override = True)
-    self.assertNoMoreResources()    
+    self.assertNoMoreResources()
 
 
   def test_decommission_secured(self):
-    self.executeScript("2.0.6/services/HDFS/package/scripts/namenode.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                        classname = "NameNode",
                        command = "decommission",
-                       config_file="secured.json"
+                       config_file = "secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
         owner = 'hdfs',
@@ -577,10 +603,12 @@ class TestNamenode(RMFTestCase):
       ll = subprocess.Popen()
       self.assertTrue(isinstance(ll.stdout.readline(),str))
       try:
-        self.executeScript("2.0.6/services/HDFS/package/scripts/namenode.py",
+        self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                            classname = "NameNode",
                            command = "rebalancehdfs",
-                           config_file="rebalancehdfs_default.json"
+                           config_file = "rebalancehdfs_default.json",
+                           hdp_stack_version = self.STACK_VERSION,
+                           target = RMFTestCase.TARGET_COMMON_SERVICES
         )
         self.fail("Exception was not thrown")
       except  resource_management.core.exceptions.Fail:
@@ -590,10 +618,12 @@ class TestNamenode(RMFTestCase):
       Popen_Mock.return_value = 0
       ll = subprocess.Popen()
       self.assertTrue(isinstance(ll.stdout.readline(),str))
-      self.executeScript("2.0.6/services/HDFS/package/scripts/namenode.py",
+      self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                          classname = "NameNode",
                          command = "rebalancehdfs",
-                         config_file="rebalancehdfs_default.json"
+                         config_file = "rebalancehdfs_default.json",
+                         hdp_stack_version = self.STACK_VERSION,
+                         target = RMFTestCase.TARGET_COMMON_SERVICES
       )
       self.assertEqual(pso.call_count, 2, "Output was not parsed properly")
 
