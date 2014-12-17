@@ -144,7 +144,8 @@ App.StackServiceComponent = DS.Model.extend({
    * @property {Boolean} isMasterAddableInstallerWizard
    **/
   isMasterAddableInstallerWizard: function() {
-    return this.get('isMaster') && this.get('isMultipleAllowed') && this.get('maxToInstall') > 2;
+    var ignored = ['HIVE_METASTORE'];
+    return this.get('isMaster') && this.get('isMultipleAllowed') && this.get('maxToInstall') > 2 && !ignored.contains(this.get('componentName'));
   }.property('componentName'),
 
   /** @property {Boolean} isHAComponentOnly - Components that can be installed only if HA enabled **/
