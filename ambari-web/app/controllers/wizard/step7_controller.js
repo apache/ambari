@@ -721,8 +721,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
         serviceConfigs.findProperty('serviceName', 'HDFS').configs = c;
       }
 
-      // Remove Notifications from MISC if it isn't Installer Controller or stack is < 2.0
-      if (this.get('wizardController.name') !== 'installerController' || !App.get('isHadoop2Stack')) {
+      // Remove Notifications from MISC if it isn't Installer Controller
+      if (this.get('wizardController.name') !== 'installerController') {
         var miscService = serviceConfigs.findProperty('serviceName', 'MISC');
         if (miscService) {
           c = miscService.configs;

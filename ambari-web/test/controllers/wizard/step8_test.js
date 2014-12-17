@@ -1404,16 +1404,8 @@ describe('App.WizardStep8Controller', function () {
           {name: 'mail.smtp.from', value: 'from@f.c', serviceName: 'MISC'},
           {name: 'mail.smtp.starttls.enable', value: true, serviceName: 'MISC'},
           {name: 'mail.smtp.startssl.enable', value: false, serviceName: 'MISC'},
-          {name: 'smtp_use_auth', value: 'false', serviceName: 'MISC'},
+          {name: 'smtp_use_auth', value: 'false', serviceName: 'MISC'}
         ]);
-        sinon.stub(App, 'get', function (k) {
-          if ('isHadoop2Stack' === k) return true;
-          return Em.get(App, k);
-        });
-      });
-
-      afterEach(function () {
-        App.get.restore();
       });
 
       it('should add request to queue', function () {

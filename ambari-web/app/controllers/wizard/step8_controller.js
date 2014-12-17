@@ -1824,7 +1824,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method createNotification
    */
   createNotification: function () {
-    if (this.get('content.controllerName') !== 'installerController' || !App.get('isHadoop2Stack')) return;
+    if (this.get('content.controllerName') !== 'installerController') return;
     var miscConfigs = this.get('configs').filterProperty('serviceName', 'MISC'),
       createNotification = miscConfigs.findProperty('name', 'create_notification').value;
     if (createNotification === 'yes') {
