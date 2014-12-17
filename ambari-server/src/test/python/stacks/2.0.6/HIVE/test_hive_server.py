@@ -27,12 +27,16 @@ from stacks.utils.RMFTestCase import *
 import socket
 
 class TestHiveServer(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "HIVE/0.12.0.2.0/package"
+  STACK_VERSION = "2.0.6"
 
   def test_configure_default(self):
-    self.executeScript("2.0.6/services/HIVE/package/scripts/hive_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
                        command = "configure",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
     self.assertNoMoreResources()
@@ -43,10 +47,12 @@ class TestHiveServer(RMFTestCase):
   def test_start_default(self, socket_mock, popen_mock):
     s = socket_mock.return_value
     
-    self.executeScript("2.0.6/services/HIVE/package/scripts/hive_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                          classname = "HiveServer",
                          command = "start",
-                         config_file="default.json"
+                         config_file="default.json",
+                         hdp_stack_version = self.STACK_VERSION,
+                         target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assert_configure_default()
@@ -71,10 +77,12 @@ class TestHiveServer(RMFTestCase):
 
   @patch("socket.socket")
   def test_stop_default(self, socket_mock):
-    self.executeScript("2.0.6/services/HIVE/package/scripts/hive_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
                        command = "stop",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assertResourceCalled('Execute', 'sudo kill `cat /var/run/hive/hive-server.pid`',
@@ -89,10 +97,12 @@ class TestHiveServer(RMFTestCase):
 
     
   def test_configure_secured(self):
-    self.executeScript("2.0.6/services/HIVE/package/scripts/hive_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
                        command = "configure",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
     self.assertNoMoreResources()
@@ -102,10 +112,12 @@ class TestHiveServer(RMFTestCase):
   def test_start_secured(self, socket_mock, check_fs_root_mock):
     s = socket_mock.return_value
 
-    self.executeScript("2.0.6/services/HIVE/package/scripts/hive_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
                        command = "start",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assert_configure_secured()
@@ -132,10 +144,12 @@ class TestHiveServer(RMFTestCase):
 
   @patch("socket.socket")
   def test_stop_secured(self, socket_mock):
-    self.executeScript("2.0.6/services/HIVE/package/scripts/hive_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
                        command = "stop",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assertResourceCalled('Execute', 'sudo kill `cat /var/run/hive/hive-server.pid`',
@@ -516,10 +530,12 @@ class TestHiveServer(RMFTestCase):
     time_mock.side_effect = [0, 1000, 2000, 3000, 4000]
     
     try:
-      self.executeScript("2.0.6/services/HIVE/package/scripts/hive_server.py",
+      self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                            classname = "HiveServer",
                            command = "start",
-                           config_file="default.json"
+                           config_file="default.json",
+                           hdp_stack_version = self.STACK_VERSION,
+                           target = RMFTestCase.TARGET_COMMON_SERVICES
       )
       
       self.fail("Script failure due to socket error was expected")

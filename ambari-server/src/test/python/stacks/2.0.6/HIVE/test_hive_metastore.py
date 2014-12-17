@@ -22,20 +22,26 @@ from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 
 class TestHiveMetastore(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "HIVE/0.12.0.2.0/package"
+  STACK_VERSION = "2.0.6"
 
   def test_configure_default(self):
-    self.executeScript("2.0.6/services/HIVE/package/scripts/hive_metastore.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_metastore.py",
                        classname = "HiveMetastore",
                        command = "configure",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
 
   def test_start_default(self):
-    self.executeScript("2.0.6/services/HIVE/package/scripts/hive_metastore.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_metastore.py",
                        classname = "HiveMetastore",
                        command = "start",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assert_configure_default()
@@ -53,10 +59,12 @@ class TestHiveMetastore(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_stop_default(self):
-    self.executeScript("2.0.6/services/HIVE/package/scripts/hive_metastore.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_metastore.py",
                        classname = "HiveMetastore",
                        command = "stop",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assertResourceCalled('Execute', 'sudo kill `cat /var/run/hive/hive.pid`',
@@ -68,19 +76,23 @@ class TestHiveMetastore(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_configure_secured(self):
-    self.executeScript("2.0.6/services/HIVE/package/scripts/hive_metastore.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_metastore.py",
                        classname = "HiveMetastore",
                        command = "configure",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
     self.assertNoMoreResources()
 
   def test_start_secured(self):
-    self.executeScript("2.0.6/services/HIVE/package/scripts/hive_metastore.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_metastore.py",
                        classname = "HiveMetastore",
                        command = "start",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assert_configure_secured()
@@ -98,10 +110,12 @@ class TestHiveMetastore(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_stop_secured(self):
-    self.executeScript("2.0.6/services/HIVE/package/scripts/hive_metastore.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_metastore.py",
                        classname = "HiveMetastore",
                        command = "stop",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assertResourceCalled('Execute', 'sudo kill `cat /var/run/hive/hive.pid`',

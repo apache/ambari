@@ -21,11 +21,16 @@ from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 
 class TestOozieServer(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "OOZIE/4.0.0.2.0/package"
+  STACK_VERSION = "2.0.6"
+
   def test_configure_default(self):
-    self.executeScript("2.0.6/services/OOZIE/package/scripts/oozie_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
                        classname = "OozieServer",
                        command = "configure",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
     self.assertNoMoreResources()
@@ -34,10 +39,12 @@ class TestOozieServer(RMFTestCase):
   @patch("os.path.isfile")
   def test_start_default(self, isfile_mock):
     isfile_mock.return_value = True
-    self.executeScript("2.0.6/services/OOZIE/package/scripts/oozie_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
                          classname = "OozieServer",
                          command = "start",
-                         config_file="default.json"
+                         config_file="default.json",
+                         hdp_stack_version = self.STACK_VERSION,
+                         target = RMFTestCase.TARGET_COMMON_SERVICES
         )
     self.assert_configure_default()
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/ooziedb.sh create -sqlfile oozie.sql -run',
@@ -58,10 +65,12 @@ class TestOozieServer(RMFTestCase):
 
 
   def test_stop_default(self):
-    self.executeScript("2.0.6/services/OOZIE/package/scripts/oozie_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
                          classname = "OozieServer",
                          command = "stop",
-                         config_file="default.json"
+                         config_file="default.json",
+                         hdp_stack_version = self.STACK_VERSION,
+                         target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-stop.sh',
         only_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
@@ -74,10 +83,12 @@ class TestOozieServer(RMFTestCase):
 
 
   def test_configure_secured(self):
-    self.executeScript("2.0.6/services/OOZIE/package/scripts/oozie_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
                        classname = "OozieServer",
                        command = "configure",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
     self.assertNoMoreResources()
@@ -85,10 +96,12 @@ class TestOozieServer(RMFTestCase):
   @patch("os.path.isfile")
   def test_start_secured(self, isfile_mock):
     isfile_mock.return_value = True
-    self.executeScript("2.0.6/services/OOZIE/package/scripts/oozie_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
                          classname = "OozieServer",
                          command = "start",
-                         config_file="secured.json"
+                         config_file="secured.json",
+                         hdp_stack_version = self.STACK_VERSION,
+                         target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/ooziedb.sh create -sqlfile oozie.sql -run',
@@ -108,10 +121,12 @@ class TestOozieServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_stop_secured(self):
-    self.executeScript("2.0.6/services/OOZIE/package/scripts/oozie_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
                          classname = "OozieServer",
                          command = "stop",
-                         config_file="secured.json"
+                         config_file="secured.json",
+                         hdp_stack_version = self.STACK_VERSION,
+                         target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-stop.sh',
         only_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
@@ -434,10 +449,12 @@ class TestOozieServer(RMFTestCase):
         default_json = json.load(f)
 
       default_json['hostLevelParams']['stack_version']= '2.2'
-      self.executeScript("2.0.6/services/OOZIE/package/scripts/oozie_server.py",
+      self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
                        classname = "OozieServer",
                        command = "configure",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
       )
       self.assert_configure_default()
       self.assertResourceCalled('Directory', '/etc/oozie/conf/action-conf/hive',

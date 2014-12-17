@@ -23,21 +23,27 @@ from stacks.utils.RMFTestCase import *
 @patch("os.path.isfile", new = MagicMock(return_value=True))
 @patch("glob.glob", new = MagicMock(return_value=["one", "two"]))
 class TestWebHCatServer(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "HIVE/0.12.0.2.0/package"
+  STACK_VERSION = "2.0.6"
 
   def test_configure_default(self):
-    self.executeScript("2.0.6/services/HIVE/package/scripts/webhcat_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/webhcat_server.py",
                        classname = "WebHCatServer",
                        command = "configure",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
     self.assertNoMoreResources()
 
   def test_start_default(self):
-    self.executeScript("2.0.6/services/HIVE/package/scripts/webhcat_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/webhcat_server.py",
                        classname = "WebHCatServer",
                        command = "start",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assert_configure_default()
@@ -48,10 +54,12 @@ class TestWebHCatServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_stop_default(self):
-    self.executeScript("2.0.6/services/HIVE/package/scripts/webhcat_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/webhcat_server.py",
                        classname = "WebHCatServer",
                        command = "stop",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr /usr/lib/hcatalog/sbin/webhcat_server.sh stop',
@@ -63,20 +71,24 @@ class TestWebHCatServer(RMFTestCase):
     self.assertNoMoreResources()
 
     def test_configure_secured(self):
-      self.executeScript("2.0.6/services/HIVE/package/scripts/webhcat_server.py",
+      self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/webhcat_server.py",
                          classname = "WebHCatServer",
                          command = "configure",
-                         config_file="secured.json"
+                         config_file="secured.json",
+                         hdp_stack_version = self.STACK_VERSION,
+                         target = RMFTestCase.TARGET_COMMON_SERVICES
       )
 
       self.assert_configure_secured()
       self.assertNoMoreResources()
 
   def test_start_secured(self):
-    self.executeScript("2.0.6/services/HIVE/package/scripts/webhcat_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/webhcat_server.py",
                        classname = "WebHCatServer",
                        command = "start",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assert_configure_secured()
@@ -87,10 +99,12 @@ class TestWebHCatServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_stop_secured(self):
-    self.executeScript("2.0.6/services/HIVE/package/scripts/webhcat_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/webhcat_server.py",
                        classname = "WebHCatServer",
                        command = "stop",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr /usr/lib/hcatalog/sbin/webhcat_server.sh stop',

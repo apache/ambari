@@ -21,12 +21,16 @@ from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 
 class TestHcatClient(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "HIVE/0.12.0.2.0/package"
+  STACK_VERSION = "2.0.6"
 
   def test_configure_default(self):
-    self.executeScript("2.0.6/services/HIVE/package/scripts/hcat_client.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hcat_client.py",
                        classname = "HCatClient",
                        command = "configure",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/etc/hive/conf',
                               owner = 'hcat',
@@ -60,10 +64,12 @@ class TestHcatClient(RMFTestCase):
 
 
   def test_configure_secured(self):
-    self.executeScript("2.0.6/services/HIVE/package/scripts/hcat_client.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hcat_client.py",
                          classname = "HCatClient",
                          command = "configure",
-                         config_file="secured.json"
+                         config_file="secured.json",
+                         hdp_stack_version = self.STACK_VERSION,
+                         target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/etc/hive/conf',
                               recursive = True,

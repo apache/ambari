@@ -21,21 +21,27 @@ from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 
 class TestMySqlServer(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "HIVE/0.12.0.2.0/package"
+  STACK_VERSION = "2.0.6"
 
   def test_configure_default(self):
-    self.executeScript("2.0.6/services/HIVE/package/scripts/mysql_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mysql_server.py",
                        classname = "MysqlServer",
                        command = "configure",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
     self.assertNoMoreResources()
 
   def test_start_default(self):
-    self.executeScript("2.0.6/services/HIVE/package/scripts/mysql_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mysql_server.py",
                        classname = "MysqlServer",
                        command = "start",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assertResourceCalled('Execute', ('sed',
@@ -52,10 +58,12 @@ class TestMySqlServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_stop_default(self):
-    self.executeScript("2.0.6/services/HIVE/package/scripts/mysql_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mysql_server.py",
                        classname = "MysqlServer",
                        command = "stop",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', ('service','mysql','stop'),
                               logoutput = True,
@@ -66,19 +74,23 @@ class TestMySqlServer(RMFTestCase):
 
 
   def test_configure_secured(self):
-    self.executeScript("2.0.6/services/HIVE/package/scripts/mysql_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mysql_server.py",
                        classname = "MysqlServer",
                        command = "configure",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
     self.assertNoMoreResources()
 
   def test_start_secured(self):
-    self.executeScript("2.0.6/services/HIVE/package/scripts/mysql_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mysql_server.py",
                        classname = "MysqlServer",
                        command = "start",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assertResourceCalled('Execute', ('sed',
@@ -95,10 +107,12 @@ class TestMySqlServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_stop_secured(self):
-    self.executeScript("2.0.6/services/HIVE/package/scripts/mysql_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mysql_server.py",
                        classname = "MysqlServer",
                        command = "stop",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     
     self.assertResourceCalled('Execute', ('service','mysql','stop'),
@@ -109,19 +123,23 @@ class TestMySqlServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_clean_default(self):
-    self.executeScript("2.0.6/services/HIVE/package/scripts/mysql_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mysql_server.py",
                        classname = "MysqlServer",
                        command = "clean",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_clean_default()
     self.assertNoMoreResources()
 
   def test_clean_secured(self):
-    self.executeScript("2.0.6/services/HIVE/package/scripts/mysql_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mysql_server.py",
                        classname = "MysqlServer",
                        command = "clean",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_clean_secured()
     self.assertNoMoreResources()

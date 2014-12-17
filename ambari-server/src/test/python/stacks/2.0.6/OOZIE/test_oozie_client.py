@@ -22,12 +22,16 @@ from stacks.utils.RMFTestCase import *
 import json
 
 class TestOozieClient(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "OOZIE/4.0.0.2.0/package"
+  STACK_VERSION = "2.0.6"
 
   def test_configure_default(self):
-    self.executeScript("2.0.6/services/OOZIE/package/scripts/oozie_client.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_client.py",
                        classname = "OozieClient",
                        command = "configure",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/etc/oozie/conf',
                               owner = 'oozie',
@@ -76,10 +80,12 @@ class TestOozieClient(RMFTestCase):
 
 
   def test_configure_secured(self):
-    self.executeScript("2.0.6/services/OOZIE/package/scripts/oozie_client.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_client.py",
                        classname = "OozieClient",
                        command = "configure",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/etc/oozie/conf',
                               owner = 'oozie',
@@ -134,10 +140,12 @@ class TestOozieClient(RMFTestCase):
 
 
     default_json['hostLevelParams']['stack_version']= '2.2'
-    self.executeScript("2.0.6/services/OOZIE/package/scripts/oozie_client.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_client.py",
                        classname = "OozieClient",
                        command = "configure",
-                       config_dict=default_json
+                       config_dict=default_json,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/etc/oozie/conf',
                               owner = 'oozie',
