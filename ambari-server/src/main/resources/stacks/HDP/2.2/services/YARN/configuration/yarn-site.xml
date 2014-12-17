@@ -47,7 +47,7 @@
   </property>
   <property>
     <name>yarn.nodemanager.recovery.dir</name>
-    <value>/var/log/hadoop-yarn/nodemanager/recovery-state</value>
+    <value>{{yarn_log_dir_prefix}}/nodemanager/recovery-state</value>
     <description>
       The local filesystem directory in which the node manager will store
       state when recovery is enabled.

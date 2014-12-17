@@ -22,6 +22,7 @@ Ambari Agent
 
 import time
 import os
+import resource_management
 from resource_management import *
 
 class XmlConfigProvider(Provider):
@@ -35,7 +36,7 @@ class XmlConfigProvider(Provider):
     {% for key, value in configurations_dict|dictsort %}
     <property>
       <name>{{ key|e }}</name>
-      <value>{{ value|e }}</value>
+      <value>{{ resource_management.core.source.InlineTemplate(value).get_content().strip() |e }}</value>
       {%- if not configuration_attrs is none -%}
       {%- for attrib_name, attrib_occurances in  configuration_attrs.items() -%}
       {%- for property_name, attrib_value in  attrib_occurances.items() -%}
@@ -47,7 +48,7 @@ class XmlConfigProvider(Provider):
       {%- endif %}
     </property>
     {% endfor %}
-  </configuration>''', extra_imports=[time], configurations_dict=self.resource.configurations,
+  </configuration>''', extra_imports=[time, resource_management, resource_management.core, resource_management.core.source], configurations_dict=self.resource.configurations,
                                     configuration_attrs=self.resource.configuration_attributes)
 
     xml_config_dest_file_path = os.path.join(xml_config_provider_config_dir, filename)
