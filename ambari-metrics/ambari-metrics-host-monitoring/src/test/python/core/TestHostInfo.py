@@ -27,11 +27,13 @@ from mock.mock import patch
 logger = logging.getLogger()
 
 class TestHostInfo(TestCase):
-  
+
+  @patch("psutil.cpu_count")
   @patch("os.getloadavg")
   @patch("psutil.cpu_times_percent")
-  def testCpuTimes(self, cp_mock, avg_mock):
-    
+  def testCpuTimes(self, cp_mock, avg_mock, count_mock):
+    count_mock.return_value = 1
+
     cp = cp_mock.return_value
     cp.user = 0.1
     cp.system = 0.1
