@@ -41,7 +41,14 @@
                 <config-type>hive-site</config-type>
             </configuration-dependencies>
         </component>
+        <component>
+          <name>HIVE_SERVER</name>
+          <configuration-dependencies>
+              <config-type>hiveserver2-site</config-type>
+          </configuration-dependencies>
+        </component>
       </components>
+      
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>

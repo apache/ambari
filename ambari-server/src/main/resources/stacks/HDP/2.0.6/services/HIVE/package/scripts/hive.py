@@ -56,7 +56,16 @@ def hive(name=None):
             owner=params.hive_user,
             group=params.user_group,
             mode=0644)
-
+  
+  if params.hive_specific_configs_supported and name == 'hiveserver2':
+    XmlConfig("hiveserver2-site.xml",
+              conf_dir=params.hive_server_conf_dir,
+              configurations=params.config['configurations']['hiveserver2-site'],
+              configuration_attributes=params.config['configuration_attributes']['hiveserver2-site'],
+              owner=params.hive_user,
+              group=params.user_group,
+              mode=0644)
+  
   File(format("{hive_config_dir}/hive-env.sh"),
        owner=params.hive_user,
        group=params.user_group,

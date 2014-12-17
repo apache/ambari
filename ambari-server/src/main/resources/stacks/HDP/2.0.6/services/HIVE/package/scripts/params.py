@@ -42,7 +42,8 @@ if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >=0:
 
   hcat_lib = '/usr/hdp/current/hive-webhcat/share/hcatalog'
   webhcat_bin_dir = '/usr/hdp/current/hive-webhcat/sbin'
-
+  
+  hive_specific_configs_supported = True
 else:
   hadoop_bin_dir = "/usr/bin"
   hadoop_home = '/usr'
@@ -60,6 +61,8 @@ else:
   else:
     hcat_lib = '/usr/lib/hive-hcatalog/share/hcatalog'
     webhcat_bin_dir = '/usr/lib/hive-hcatalog/sbin'
+    
+  hive_specific_configs_supported = False
 
 hadoop_conf_dir = "/etc/hadoop/conf"
 hive_conf_dir_prefix = "/etc/hive"
