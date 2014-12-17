@@ -20,6 +20,7 @@ limitations under the License.
 
 import shutil
 import string
+import os
 
 from os_check import *
 
@@ -100,3 +101,11 @@ def set_open_files_limit(maxOpenFiles):
 
 def get_password(prompt):
   return os_getpass(prompt)
+
+def find_in_path(file):
+  dirs = os.environ["PATH"].split(os.pathsep)
+  for dir in dirs:
+    full_path = os.path.join(dir, file)
+    if os.path.exists(full_path):
+      return full_path
+  raise Exception("File {} not found in PATH".format(file))
