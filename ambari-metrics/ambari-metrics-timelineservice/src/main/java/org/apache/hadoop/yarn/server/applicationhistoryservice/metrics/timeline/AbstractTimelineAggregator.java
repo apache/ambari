@@ -21,6 +21,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.yarn.util.Clock;
+import org.apache.hadoop.yarn.util.SystemClock;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,18 +39,26 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 public abstract class AbstractTimelineAggregator implements Runnable {
   protected final PhoenixHBaseAccessor hBaseAccessor;
   private final Log LOG;
+
+  private Clock clock;
   protected final long checkpointDelayMillis;
   protected final Integer resultsetFetchSize;
   protected Configuration metricsConf;
 
   public AbstractTimelineAggregator(PhoenixHBaseAccessor hBaseAccessor,
                                     Configuration metricsConf) {
+    this(hBaseAccessor, metricsConf, new SystemClock());
+  }
+
+  public AbstractTimelineAggregator(PhoenixHBaseAccessor hBaseAccessor,
+                                    Configuration metricsConf, Clock clk) {
     this.hBaseAccessor = hBaseAccessor;
     this.metricsConf = metricsConf;
     this.checkpointDelayMillis = SECONDS.toMillis(
       metricsConf.getInt(AGGREGATOR_CHECKPOINT_DELAY, 120));
     this.resultsetFetchSize = metricsConf.getInt(RESULTSET_FETCH_SIZE, 2000);
     this.LOG = LogFactory.getLog(this.getClass());
+    this.clock = clk;
   }
 
   @Override
@@ -57,59 +67,7 @@ public abstract class AbstractTimelineAggregator implements Runnable {
     Long SLEEP_INTERVAL = getSleepIntervalMillis();
 
     while (true) {
-      long currentTime = System.currentTimeMillis();
-      long lastCheckPointTime = -1;
-
-      try {
-        lastCheckPointTime = readCheckPoint();
-        if (isLastCheckPointTooOld(lastCheckPointTime)) {
-          LOG.warn("Last Checkpoint is too old, discarding last checkpoint. " +
-            "lastCheckPointTime = " + lastCheckPointTime);
-          lastCheckPointTime = -1;
-        }
-        if (lastCheckPointTime == -1) {
-          // Assuming first run, save checkpoint and sleep.
-          // Set checkpoint to 2 minutes in the past to allow the
-          // agents/collectors to catch up
-          saveCheckPoint(currentTime - checkpointDelayMillis);
-        }
-      } catch (IOException io) {
-        LOG.warn("Unable to write last checkpoint time. Resuming sleep.", io);
-      }
-      long sleepTime = SLEEP_INTERVAL;
-
-      if (lastCheckPointTime != -1) {
-        LOG.info("Last check point time: " + lastCheckPointTime + ", lagBy: "
-          + ((System.currentTimeMillis() - lastCheckPointTime) / 1000)
-          + " seconds.");
-
-        long startTime = System.currentTimeMillis();
-        boolean success = doWork(lastCheckPointTime,
-          lastCheckPointTime + SLEEP_INTERVAL);
-        long executionTime = System.currentTimeMillis() - startTime;
-        long delta = SLEEP_INTERVAL - executionTime;
-
-        if (delta > 0) {
-          // Sleep for (configured sleep - time to execute task)
-          sleepTime = delta;
-        } else {
-          // No sleep because last run took too long to execute
-          LOG.info("Aggregator execution took too long, " +
-            "cancelling sleep. executionTime = " + executionTime);
-          sleepTime = 1;
-        }
-
-        LOG.debug("Aggregator sleep interval = " + sleepTime);
-
-        if (success) {
-          try {
-            saveCheckPoint(lastCheckPointTime + SLEEP_INTERVAL);
-          } catch (IOException io) {
-            LOG.warn("Error saving checkpoint, restarting aggregation at " +
-              "previous checkpoint.");
-          }
-        }
-      }
+      long sleepTime = runOnce(SLEEP_INTERVAL);
 
       try {
         Thread.sleep(sleepTime);
@@ -119,13 +77,83 @@ public abstract class AbstractTimelineAggregator implements Runnable {
     }
   }
 
+  /**
+   * Access relaxed for tests
+   */
+  protected long runOnce(Long SLEEP_INTERVAL) {
+    long currentTime = clock.getTime();
+    long lastCheckPointTime = readLastCheckpointSavingOnFirstRun(currentTime);
+    long sleepTime = SLEEP_INTERVAL;
+
+    if (lastCheckPointTime != -1) {
+      LOG.info("Last check point time: " + lastCheckPointTime + ", lagBy: "
+        + ((clock.getTime() - lastCheckPointTime) / 1000)
+        + " seconds.");
+
+      long startTime = clock.getTime();
+      boolean success = doWork(lastCheckPointTime,
+        lastCheckPointTime + SLEEP_INTERVAL);
+      long executionTime = clock.getTime() - startTime;
+      long delta = SLEEP_INTERVAL - executionTime;
+
+      if (delta > 0) {
+        // Sleep for (configured sleep - time to execute task)
+        sleepTime = delta;
+      } else {
+        // No sleep because last run took too long to execute
+        LOG.info("Aggregator execution took too long, " +
+          "cancelling sleep. executionTime = " + executionTime);
+        sleepTime = 1;
+      }
+
+      LOG.debug("Aggregator sleep interval = " + sleepTime);
+
+      if (success) {
+        try {
+          saveCheckPoint(lastCheckPointTime + SLEEP_INTERVAL);
+        } catch (IOException io) {
+          LOG.warn("Error saving checkpoint, restarting aggregation at " +
+            "previous checkpoint.");
+        }
+      }
+    }
+
+    return sleepTime;
+  }
+
+  private long readLastCheckpointSavingOnFirstRun(long currentTime) {
+    long lastCheckPointTime = -1;
+
+    try {
+      lastCheckPointTime = readCheckPoint();
+      if (isLastCheckPointTooOld(lastCheckPointTime)) {
+        LOG.warn("Last Checkpoint is too old, discarding last checkpoint. " +
+          "lastCheckPointTime = " + lastCheckPointTime);
+        lastCheckPointTime = -1;
+      }
+      if (lastCheckPointTime == -1) {
+        // Assuming first run, save checkpoint and sleep.
+        // Set checkpoint to 2 minutes in the past to allow the
+        // agents/collectors to catch up
+        LOG.info("Saving checkpoint time on first run." +
+          (currentTime - checkpointDelayMillis));
+        saveCheckPoint(currentTime - checkpointDelayMillis);
+      }
+    } catch (IOException io) {
+      LOG.warn("Unable to write last checkpoint time. Resuming sleep.", io);
+    }
+    return lastCheckPointTime;
+  }
+
   private boolean isLastCheckPointTooOld(long checkpoint) {
+    // first checkpoint is saved checkpointDelayMillis in the past,
+    // so here we also need to take it into account
     return checkpoint != -1 &&
-      ((System.currentTimeMillis() - checkpoint) >
+      ((clock.getTime() - checkpoint - checkpointDelayMillis) >
         getCheckpointCutOffIntervalMillis());
   }
 
-  private long readCheckPoint() {
+  protected long readCheckPoint() {
     try {
       File checkpoint = new File(getCheckpointLocation());
       if (checkpoint.exists()) {
@@ -140,7 +168,7 @@ public abstract class AbstractTimelineAggregator implements Runnable {
     return -1;
   }
 
-  private void saveCheckPoint(long checkpointTime) throws IOException {
+  protected void saveCheckPoint(long checkpointTime) throws IOException {
     File checkpoint = new File(getCheckpointLocation());
     if (!checkpoint.exists()) {
       boolean done = checkpoint.createNewFile();
@@ -225,5 +253,4 @@ public abstract class AbstractTimelineAggregator implements Runnable {
   protected abstract boolean isDisabled();
 
   protected abstract String getCheckpointLocation();
-
 }
