@@ -76,20 +76,21 @@ App.TableView = Em.View.extend(App.UserPref, {
   /**
    * Do filtering, using saved in the local storage filter conditions
    */
-  willInsertElement:function () {
+  willInsertElement: function () {
     var self = this;
     var name = this.get('controller.name');
     if (!this.get('displayLength')) {
       if (App.db.getDisplayLength(name)) {
-        this.set('displayLength', App.db.getDisplayLength(name));
-      } else {
-        this.getUserPref(this.displayLengthKey()).complete(function(){
+        Em.run.next(function () {
+          self.set('displayLength', App.db.getDisplayLength(name));
           self.initFilters();
         });
-        return;
+      } else {
+        this.getUserPref(this.displayLengthKey()).complete(function () {
+          self.initFilters();
+        });
       }
     }
-    this.initFilters();
   },
 
   /**
