@@ -54,7 +54,7 @@
           <link-to route="groups.edit" class="link-to-group" id="{{group.group_name}}">{{group.group_name}}</link-to>
         </td>
         <td class="col-sm-2">{{group.ldap_group ? 'LDAP' : 'Local'}}</td>
-        <td class="col-sm-2">{{group.members.length}} {{group.members.length === 1 ? 'member' : 'members'}}</td>
+        <td class="col-sm-2">{{group.members ? group.members.length : 0}} {{group.members.length === 1 ? 'member' : 'members'}}</td>
       </tr>
     </tbody>
   </table>
