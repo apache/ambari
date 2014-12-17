@@ -21,12 +21,16 @@ limitations under the License.
 from stacks.utils.RMFTestCase import *
 
 class TestPigServiceCheck(RMFTestCase):
-
+  COMMON_SERVICES_PACKAGE_DIR = "PIG/0.12.0.2.0/package"
+  STACK_VERSION = "2.0.6"
+  
   def test_configure_default(self):
-    self.executeScript("2.0.6/services/PIG/package/scripts/service_check.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
                        classname = "PigServiceCheck",
                        command = "service_check",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('ExecuteHadoop', 'dfs -rmr pigsmoke.out passwd; hadoop --config /etc/hadoop/conf dfs -put /etc/passwd passwd ',
       try_sleep = 5,
@@ -59,10 +63,12 @@ class TestPigServiceCheck(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_configure_secured(self):
-    self.executeScript("2.0.6/services/PIG/package/scripts/service_check.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
                        classname = "PigServiceCheck",
                        command = "service_check",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     
     self.assertResourceCalled('ExecuteHadoop', 'dfs -rmr pigsmoke.out passwd; hadoop --config /etc/hadoop/conf dfs -put /etc/passwd passwd ',

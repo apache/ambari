@@ -21,12 +21,16 @@ from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 
 class TestSqoopServiceCheck(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "SQOOP/1.4.4.2.0/package"
+  STACK_VERSION = "2.0.6"
 
   def test_service_check_secured(self):
-    self.executeScript("2.0.6/services/SQOOP/package/scripts/service_check.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
                        classname = "SqoopServiceCheck",
                        command = "service_check",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit  -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa',
                               user = 'ambari-qa'
@@ -38,10 +42,12 @@ class TestSqoopServiceCheck(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_service_check_default(self):
-    self.executeScript("2.0.6/services/SQOOP/package/scripts/service_check.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
                        classname = "SqoopServiceCheck",
                        command = "service_check",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', 'sqoop version',
                               logoutput = True,

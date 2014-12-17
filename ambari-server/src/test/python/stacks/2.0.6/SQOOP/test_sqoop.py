@@ -21,12 +21,16 @@ from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 
 class TestSqoop(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "SQOOP/1.4.4.2.0/package"
+  STACK_VERSION = "2.0.6"
 
   def test_configure_default(self):
-    self.executeScript("2.0.6/services/SQOOP/package/scripts/sqoop_client.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/sqoop_client.py",
                        classname = "SqoopClient",
                        command = "configure",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Link', '/usr/lib/sqoop/lib/mysql-connector-java.jar',
                               to = '/usr/share/java/mysql-connector-java.jar',)
