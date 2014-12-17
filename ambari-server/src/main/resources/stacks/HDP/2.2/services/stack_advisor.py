@@ -47,7 +47,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     taskResourceMemory = clusterData['mapMemory'] if clusterData['mapMemory'] > 2048 else int(clusterData['reduceMemory'])
     taskResourceMemory = min(clusterData['containers'] * clusterData['ramPerContainer'], taskResourceMemory)
     putTezProperty("tez.task.resource.memory.mb", taskResourceMemory)
-    putTezProperty("tez.runtime.io.sort.mb", int(taskResourceMemory * 0.4) if int(taskResourceMemory * 0.4) <= 2147483644 else 2147483644)
+    putTezProperty("tez.runtime.io.sort.mb", min(int(taskResourceMemory * 0.4), 2047))
     putTezProperty("tez.runtime.unordered.output.buffer.size-mb", int(taskResourceMemory * 0.075))
 
   def recommendAmsConfigurations(self, configurations, clusterData, services, hosts):
