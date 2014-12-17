@@ -50,6 +50,11 @@ App.upgradeTaskView = Em.View.extend({
   timer: null,
 
   /**
+   * @type {Array}
+   */
+  taskDetailsProperties: ['status', 'stdout', 'stderr', 'error_log', 'host_name', 'output_log'],
+
+  /**
    * poll for task details when task is expanded
    */
   doPolling: function () {
@@ -87,7 +92,7 @@ App.upgradeTaskView = Em.View.extend({
   getTaskDetailsSuccessCallback: function (data) {
     //TODO change request to get only one task when API ready
     var task = data.items[0].upgrade_items[0].tasks[0].Tasks;
-    ['status', 'stdout', 'stderr', 'error_log', 'host_name', 'output_log'].forEach(function (property) {
+    this.get('taskDetailsProperties').forEach(function (property) {
       this.set('content.' + property, task[property]);
     }, this);
   },
@@ -101,21 +106,35 @@ App.upgradeTaskView = Em.View.extend({
   },
 
   /**
-   * open logs in new window
-   * @param {object} event
-   */
-  openLogWindow: function(event) {
-    var newWindow = window.open();
-    var newDocument = newWindow.document;
-    newDocument.write(event.context);
-    newDocument.close();
-  },
-
-  /**
    * open stdout log in textarea to give ability to cope content
    * @param {object} event
    */
   copyOutLog: function(event) {
     this.toggleProperty('outputLogOpened');
+  },
+
+  /**
+   * open error log in new window
+   */
+  openErrorLog: function () {
+    this.openLogWindow(this.get('content.stderr'));
+  },
+
+  /**
+   * open stdout log in new window
+   */
+  openOutLog: function () {
+    this.openLogWindow(this.get('content.stdout'));
+  },
+
+  /**
+   * open logs in new window
+   * @param {string} log
+   */
+  openLogWindow: function(log) {
+    var newWindow = window.open();
+    var newDocument = newWindow.document;
+    newDocument.write(log);
+    newDocument.close();
   }
 });

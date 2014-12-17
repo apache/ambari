@@ -28,11 +28,16 @@ App.upgradeGroupView = Em.View.extend({
   isManualDone: false,
 
   /**
+   * @type {Array}
+   */
+  failedStatuses: ['HOLDING_FAILED', 'HOLDING_TIMED_OUT', 'FAILED', 'TIMED_OUT'],
+
+  /**
    * progress info is a box that show running UpgradeItem
    * @type {boolean}
    */
   showProgressInfo: function () {
-    return this.get('content.isRunning') && this.get('runningItem');
+    return Boolean(this.get('content.isRunning') && this.get('runningItem'));
   }.property('content.isRunning', 'runningItem'),
 
   /**
@@ -46,7 +51,7 @@ App.upgradeGroupView = Em.View.extend({
    * @type {boolean}
    */
   showFailedInfo: function () {
-    return this.get('content.status') === 'FAILED' && this.get('failedItem');
+    return Boolean(this.get('failedStatuses').contains(this.get('content.status')) && this.get('failedItem'));
   }.property('content.status', 'failedItem'),
 
   /**
@@ -62,15 +67,76 @@ App.upgradeGroupView = Em.View.extend({
    * @type {object|undefined}
    */
   failedItem: function () {
-    return this.get('content.upgradeItems').findProperty('status', 'FAILED');
+    return this.get('content.upgradeItems').find(function (item) {
+      return this.get('failedStatuses').contains(item.get('status'));
+    }, this);
+  }.property('content.upgradeItems.@each.status'),
+
+  /**
+   * if upgrade group is manual it should have manual item
+   * @type {object|undefined}
+   */
+  manualItem: function () {
+    return this.get('content.upgradeItems').findProperty('status', 'HOLDING');
   }.property('content.upgradeItems.@each.status'),
 
   /**
    * @type {boolean}
    */
   isManualOpened: function () {
-    return this.get('content.status') === 'HOLDING';
+    return Boolean(this.get('manualItem'));
   }.property('content.status'),
+
+  /**
+   * indicate whether failed item can be skipped in order to continue Upgrade
+   * @type {boolean}
+   */
+  ignoreAvailable: function () {
+    return Boolean(this.get('failedItem') && ['HOLDING_FAILED', 'HOLDING_TIMED_OUT'].contains(this.get('failedItem.status')));
+  }.property('failedItem'),
+
+  /**
+   * set status to Upgrade item
+   * @param item
+   * @param status
+   */
+  setUpgradeItemStatus: function(item, status) {
+    App.ajax.send({
+      name: 'admin.upgrade.upgradeItem.setState',
+      sender: this,
+      data: {
+        upgradeId: item.get('request_id'),
+        itemId: item.get('stage_id'),
+        groupId: item.get('group_id'),
+        status: status
+      }
+    });
+  },
+
+  /**
+   * set current upgrade item state to FAILED (for HOLDING_FAILED) or TIMED_OUT (for HOLDING_TIMED_OUT)
+   * in order to ignore fail and continue Upgrade
+   * @param {object} event
+   */
+  continue: function (event) {
+    this.setUpgradeItemStatus(event.context, event.context.get('status').slice(8));
+  },
+
+  /**
+   * set current upgrade item state to PENDING in order to retry Upgrade
+   * @param {object} event
+   */
+  retry: function (event) {
+    this.setUpgradeItemStatus(event.context, 'PENDING');
+  },
+
+  /**
+   * set current upgrade item state to COMPLETED in order to proceed
+   * @param {object} event
+   */
+  complete: function (event) {
+    this.setUpgradeItemStatus(event.context, 'COMPLETED');
+  },
 
   /**
    * Only one UpgradeGroup or UpgradeItem could be expanded at a time

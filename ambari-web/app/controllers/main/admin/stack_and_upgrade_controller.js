@@ -58,10 +58,15 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   targetVersions: [],
 
   /**
+   * properties that stored to localStorage to resume wizard progress
+   */
+  wizardStorageProperties: ['upgradeId', 'upgradeVersion'],
+
+  /**
    * restore data from localStorage
    */
   init: function () {
-    ['upgradeId', 'upgradeVersion'].forEach(function (property) {
+    this.get('wizardStorageProperties').forEach(function (property) {
       if (this.getDBProperty(property)) {
         this.set(property, this.getDBProperty(property));
       }

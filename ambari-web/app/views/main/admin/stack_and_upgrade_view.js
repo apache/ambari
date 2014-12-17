@@ -46,10 +46,14 @@ App.MainAdminStackAndUpgradeView = Em.View.extend({
     switch (App.get('upgradeState')) {
       case 'INIT':
         return (this.get('controller.targetVersions.length') > 0) ? Em.I18n.t('admin.stackUpgrade.state.available') : "";
+      case 'QUEUED':
       case 'PENDING':
       case 'IN_PROGRESS':
         return Em.I18n.t('admin.stackUpgrade.state.inProgress');
+      case 'TIMED_OUT':
       case 'FAILED':
+      case 'HOLDING_FAILED':
+      case 'HOLDING_TIMED_OUT':
       case 'HOLDING':
         return Em.I18n.t('admin.stackUpgrade.state.paused');
       case 'COMPLETED':
@@ -189,12 +193,16 @@ App.MainAdminStackAndUpgradeView = Em.View.extend({
             method = 'runPreUpgradeCheck';
           }
           break;
+        case 'QUEUED':
         case 'PENDING':
         case 'IN_PROGRESS':
           label = Em.I18n.t('admin.stackUpgrade.state.upgrading');
           method = 'openUpgradeDialog';
           break;
+        case 'TIMED_OUT':
         case 'FAILED':
+        case 'HOLDING_FAILED':
+        case 'HOLDING_TIMED_OUT':
         case 'HOLDING':
           label = Em.I18n.t('admin.stackUpgrade.state.resume');
           method = 'resumeUpgrade';

@@ -33,7 +33,7 @@
             <a title="Click to Copy" {{action copyOutLog view.content target="view"}} class="task-detail-copy">
               <i class="icon-copy"></i> {{t common.copy}}
             </a>
-            <a title="Open in New Window" {{action openLogWindow view.content.stdout target="view"}} class="task-detail-open-dialog">
+            <a title="Open in New Window" {{action openErrorLog target="view"}} class="task-detail-open-dialog">
               <i class="icon-external-link"></i> {{t common.open}}
             </a>
           </div>
@@ -49,7 +49,7 @@
             <a title="Click to Copy" {{action copyErrLog view.content target="view"}} class="task-detail-copy">
               <i class="icon-copy"></i> {{t common.copy}}
             </a>
-            <a title="Open in New Window" {{action openLogWindow view.content.stderr target="view"}} class="task-detail-open-dialog">
+            <a title="Open in New Window" {{action openOutLog target="view"}} class="task-detail-open-dialog">
               <i class="icon-external-link"></i> {{t common.open}}
             </a>
           </div>

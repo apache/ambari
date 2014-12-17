@@ -1377,6 +1377,20 @@ var urls = {
       }
     }
   },
+  'admin.upgrade.upgradeItem.setState': {
+    'real': '/clusters/{clusterName}/upgrades/{upgradeId}/upgrade_groups/{groupId}/upgrade_items/{itemId}',
+    'mock': '',
+    type: 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          "UpgradeItem" : {
+            "status" : data.status
+          }
+        })
+      };
+    }
+  },
   'admin.stack_versions.all': {
     'real': '/clusters/{clusterName}/stack_versions?fields=ClusterStackVersions/*,repository_versions/RepositoryVersions/*&minimal_response=true',
     'mock': '/data/stack_versions/stack_version_all.json'

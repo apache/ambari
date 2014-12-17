@@ -57,12 +57,16 @@ App.upgradeWizardView = Em.View.extend({
    */
   upgradeStatusLabel: function() {
     switch (this.get('controller.upgradeData.Upgrade.request_status')) {
+      case 'QUEUED':
       case 'PENDING':
       case 'IN_PROGRESS':
         return Em.I18n.t('admin.stackUpgrade.state.inProgress');
       case 'COMPLETED':
         return Em.I18n.t('admin.stackUpgrade.state.completed');
+      case 'TIMED_OUT':
       case 'FAILED':
+      case 'HOLDING_FAILED':
+      case 'HOLDING_TIMED_OUT':
       case 'HOLDING':
         return Em.I18n.t('admin.stackUpgrade.state.paused');
       default:
