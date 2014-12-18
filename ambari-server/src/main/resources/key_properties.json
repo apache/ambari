@@ -40,7 +40,9 @@
   "Task": {
     "Cluster": "Tasks/cluster_name",
     "Request": "Tasks/request_id",
+    "Upgrade": "Tasks/request_id",
     "Stage": "Tasks/stage_id",
+    "UpgradeItem": "Tasks/stage_id",
     "Task": "Tasks/id"
   },
   "User": {

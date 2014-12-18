@@ -232,12 +232,14 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
   /**
    * Update the stage identified by the given stage id with the desired status.
    *
+   * @param requestId      the request id
    * @param stageId        the stage id
    * @param desiredStatus  the desired stage status
    */
-  public static void updateStageStatus(long stageId, HostRoleStatus desiredStatus) {
+  public static void updateStageStatus(long requestId, long stageId, HostRoleStatus desiredStatus) {
     Predicate predicate =
-        new PredicateBuilder().property(STAGE_STAGE_ID).equals(stageId).toPredicate();
+        new PredicateBuilder().property(STAGE_STAGE_ID).equals(stageId).
+            and().property(STAGE_REQUEST_ID).equals(requestId).toPredicate();
 
     List<StageEntity> entityList = dao.findAll(PropertyHelper.getReadRequest(), predicate);
     for (StageEntity stageEntity : entityList) {
