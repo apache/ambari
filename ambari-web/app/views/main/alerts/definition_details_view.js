@@ -75,9 +75,9 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
    */
   tooltipsUpdater: function () {
     Em.run.next(function () {
-      App.tooltip($(".timeago, .alert-text, .enable-disable-button"));
+      App.tooltip($(".enable-disable-button"));
     });
-  }.observes('pageContent.@each.text', 'controller.content.enabled'),
+  }.observes('controller.content.enabled'),
 
   /**
    * View calculates and represents count of alerts on appropriate host during last day
@@ -88,6 +88,16 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
       var lastDayAlertsCount = this.get('parentView.controller.lastDayAlertsCount');
       return lastDayAlertsCount ? lastDayAlertsCount[this.get('host.hostName')] || 0 : Em.I18n.t('app.loadingPlaceholder');
     }.property('parentView.controller.lastDayAlertsCount', 'host')
+  }),
+
+  /**
+   * View represents each row of instances table
+   */
+  instanceTableRow: Em.View.extend({
+    tagName: 'tr',
+    didInsertElement: function () {
+      App.tooltip($("[rel=tooltip]"));
+    }
   })
 
 });

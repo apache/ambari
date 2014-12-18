@@ -177,7 +177,7 @@
         <tbody>
         {{#if view.pageContent}}
           {{#each instance in view.pageContent}}
-            <tr>
+            {{#view view.instanceTableRow}}
               <td class="first">
                 <a {{action goToService instance.service target="controller"}} href="#">{{instance.service.displayName}}</a>
                 {{#if instance.host.hostName}}
@@ -187,10 +187,10 @@
                   <a {{action goToHostAlerts instance.host target="controller"}} href="#">{{instance.host.hostName}}</a>
                 {{/if}}
               </td>
-              <td>{{{instance.status}}}  <time class="timeago" {{bindAttr data-original-title="instance.lastTriggeredFormatted"}}>{{instance.lastTriggeredForFormatted}}</time></td>
-              <td>{{view view.lastDayCount hostBinding="instance.host"}}</td>
-              <td><span class="alert-text" {{bindAttr data-original-title="instance.text"}} class="alert-text">{{instance.text}}</span></td>
-            </tr>
+              <td>{{{instance.status}}}  <time class="timeago" rel="tooltip"  {{bindAttr data-original-title="instance.statusChangedAndLastCheckedFormatted"}}>{{instance.lastTriggeredForFormatted}}</time></td>
+              <td>{{view view.parentView.lastDayCount hostBinding="instance.host"}}</td>
+              <td><span class="alert-text" rel="tooltip" {{bindAttr data-original-title="instance.text"}} class="alert-text">{{instance.text}}</span></td>
+            {{/view}}
           {{/each}}
         {{else}}
           <tr>
