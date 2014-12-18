@@ -1144,18 +1144,22 @@ public class ClusterImpl implements Cluster {
     try {
       readWriteLock.writeLock().lock();
       try {
-        Set<String> existingHostsWithClusterStackAndVersion = new HashSet<String>();
+        Map<String, HostVersionEntity> existingHostToHostVersionEntity = new HashMap<String, HostVersionEntity>();
         List<HostVersionEntity> existingHostVersionEntities = hostVersionDAO.findByClusterStackAndVersion(this.getClusterName(),
             currentClusterVersion.getRepositoryVersion().getStack(), currentClusterVersion.getRepositoryVersion().getVersion());
+
         if (existingHostVersionEntities != null) {
           for (HostVersionEntity entity : existingHostVersionEntities) {
-            existingHostsWithClusterStackAndVersion.add(entity.getHostName());
+            existingHostToHostVersionEntity.put(entity.getHostName(), entity);
           }
         }
 
-        Sets.SetView<String> intersection = Sets.intersection(existingHostsWithClusterStackAndVersion, hostNames);
+        Sets.SetView<String> intersection = Sets.intersection(existingHostToHostVersionEntity.keySet(), hostNames);
 
         for (String hostname : hostNames) {
+          List<HostVersionEntity> currentHostVersions = hostVersionDAO.findByClusterHostAndState(this.getClusterName(), hostname, RepositoryVersionState.CURRENT);
+          HostVersionEntity currentHostVersionEntity = (currentHostVersions != null &&  currentHostVersions.size() == 1) ? currentHostVersions.get(0) : null;
+
           // Notice that if any hosts already have the desired stack and version, regardless of the state, we try
           // to be robust and only insert records for the missing hosts.
           if (!intersection.contains(hostname)) {
@@ -1163,6 +1167,18 @@ public class ClusterImpl implements Cluster {
             HostVersionEntity hostVersionEntity = new HostVersionEntity(hostname, currentClusterVersion.getRepositoryVersion(), desiredState);
             hostVersionEntity.setHostEntity(hostEntity);
             hostVersionDAO.create(hostVersionEntity);
+          } else {
+            HostVersionEntity hostVersionEntity = existingHostToHostVersionEntity.get(hostname);
+            if (hostVersionEntity.getState() != desiredState) {
+              hostVersionEntity.setState(desiredState);
+              hostVersionDAO.merge(hostVersionEntity);
+            }
+
+            // Maintain the invariant that only one HostVersionEntity is allowed to have a state of CURRENT.
+            if (currentHostVersionEntity != null && !currentHostVersionEntity.getRepositoryVersion().equals(hostVersionEntity.getRepositoryVersion()) && desiredState == RepositoryVersionState.CURRENT && currentHostVersionEntity.getState() == RepositoryVersionState.CURRENT) {
+              currentHostVersionEntity.setState(RepositoryVersionState.INSTALLED);
+              hostVersionDAO.merge(currentHostVersionEntity);
+            }
           }
         }
       } finally {
@@ -1368,12 +1384,13 @@ public class ClusterImpl implements Cluster {
             case INSTALL_FAILED:
               allowedStates.add(RepositoryVersionState.INSTALLING);
             case INSTALLED:
-              allowedStates.add(RepositoryVersionState.INSTALLED);  // To allow reinstall
-              allowedStates.add(RepositoryVersionState.INSTALLING); // To allow reinstall
+              allowedStates.add(RepositoryVersionState.INSTALLING);
               allowedStates.add(RepositoryVersionState.UPGRADING);
             case UPGRADING:
-              allowedStates.add(RepositoryVersionState.CURRENT);
+              allowedStates.add(RepositoryVersionState.UPGRADED);
               allowedStates.add(RepositoryVersionState.UPGRADE_FAILED);
+            case UPGRADED:
+              allowedStates.add(RepositoryVersionState.CURRENT);
             case UPGRADE_FAILED:
               allowedStates.add(RepositoryVersionState.UPGRADING);
           }

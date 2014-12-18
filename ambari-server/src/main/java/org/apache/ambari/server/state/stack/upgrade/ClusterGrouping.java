@@ -44,7 +44,9 @@ import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 @XmlType(name="cluster")
 public class ClusterGrouping extends Grouping {
 
-
+  /**
+   * Stages against a Service and Component, or the Server
+   */
   @XmlElement(name="execute-stage")
   private List<ExecuteStage> executionStages;
 
@@ -61,9 +63,15 @@ public class ClusterGrouping extends Grouping {
     @XmlAttribute(name="title")
     public String title;
 
+    /**
+     * Optional service name, can be ""
+     */
     @XmlAttribute(name="service")
     public String service;
 
+    /**
+     * Optional component name, can be ""
+     */
     @XmlAttribute(name="component")
     public String component;
 
@@ -94,49 +102,52 @@ public class ClusterGrouping extends Grouping {
 
       List<StageWrapper> results = new ArrayList<StageWrapper>();
 
-      for (ExecuteStage execution : executionStages) {
-        Task task = execution.task;
+      if (executionStages != null) {
+        for (ExecuteStage execution : executionStages) {
+          Task task = execution.task;
 
-        StageWrapper wrapper = null;
+          StageWrapper wrapper = null;
 
-        if (null != execution.service && null != execution.component) {
+          if (null != execution.service && !execution.service.isEmpty() && null != execution.component && !execution.component.isEmpty()) {
 
-          HostsType hosts = m_resolver.getMasterAndHosts(execution.service, execution.component);
+            HostsType hosts = m_resolver.getMasterAndHosts(execution.service, execution.component);
 
-          if (null == hosts) {
-            continue;
-          }
-
-          Set<String> realHosts = new LinkedHashSet<String>(hosts.hosts);
-
-          // !!! FIXME other types
-          if (task.getType() == Task.Type.EXECUTE) {
-            ExecuteTask et = (ExecuteTask) task;
-
-            if (null != et.hosts && "master".equals(et.hosts) && null != hosts.master) {
-              realHosts = Collections.singleton(hosts.master);
+            if (null == hosts) {
+              continue;
             }
 
-            wrapper = new StageWrapper(
-                StageWrapper.Type.RU_TASKS,
-                execution.title,
-                new TaskWrapper(execution.service, execution.component, realHosts, task));
-          }
-        } else {
-          switch (task.getType()) {
-            case MANUAL:
-              wrapper = new StageWrapper(
-                  StageWrapper.Type.SERVER_SIDE_ACTION,
-                  execution.title,
-                  new TaskWrapper(null, null, Collections.<String>emptySet(), task));
-              break;
-            default:
-              break;
-          }
-        }
+            Set<String> realHosts = new LinkedHashSet<String>(hosts.hosts);
 
-        if (null != wrapper) {
-          results.add(wrapper);
+            // !!! FIXME other types
+            if (task.getType() == Task.Type.EXECUTE) {
+              ExecuteTask et = (ExecuteTask) task;
+
+              if (null != et.hosts && "master".equals(et.hosts) && null != hosts.master) {
+                realHosts = Collections.singleton(hosts.master);
+              }
+
+              wrapper = new StageWrapper(
+                  StageWrapper.Type.RU_TASKS,
+                  execution.title,
+                  new TaskWrapper(execution.service, execution.component, realHosts, task));
+            }
+          } else {
+            switch (task.getType()) {
+              case MANUAL:
+              case SERVER_ACTION:
+                wrapper = new StageWrapper(
+                    StageWrapper.Type.SERVER_SIDE_ACTION,
+                    execution.title,
+                    new TaskWrapper(null, null, Collections.<String>emptySet(), task));
+                break;
+              default:
+                break;
+            }
+          }
+
+          if (null != wrapper) {
+            results.add(wrapper);
+          }
         }
       }
 

@@ -21,6 +21,7 @@
   <target>2.2.*.*</target>
 
   <order>
+
     <group name="ZOOKEEPER" title="Zookeeper">
       <service name="ZOOKEEPER">
         <component>ZOOKEEPER_SERVER</component>
@@ -99,17 +100,21 @@
     </group>
 
     <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize Upgrade">
-    <!--
+      <!--
       <execute-stage title="Confirm Finalize">
         <task xsi:type="manual">
           <message>Please confirm you are ready to finalize</message>
         </task>
       </execute-stage>
-    -->  
+      -->
       <execute-stage service="HDFS" component="NAMENODE" title="Execute HDFS Finalize">
         <task xsi:type="execute" hosts="master">
           <first>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -rollingUpgrade finalize'</first>
           <command>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -safemode leave'</command>
+        </task>
+      </execute-stage>
+      <execute-stage title="Save Cluster State" service="" component="">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction">
         </task>
       </execute-stage>
     </group>
@@ -198,17 +203,6 @@
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
-
-        <!-- This step should be done once the user clicks on the "Finalize" button. So the name post-upgrade is misleading. -->
-        <post-upgrade>
-          <task xsi:type="execute" hosts="master">
-            <command>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -rollingUpgrade finalize'</command>
-          </task>
-          <task xsi:type="execute" hosts="master">
-            <first>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -safemode get | grep "Safe mode is ON in {{host_name}}"'</first>
-            <command>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -safemode leave'</command>
-          </task>
-        </post-upgrade>
       </component>
 
       <component name="DATANODE">

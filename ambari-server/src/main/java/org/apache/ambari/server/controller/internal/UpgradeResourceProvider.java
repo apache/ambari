@@ -619,6 +619,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     Map<String, String> commandParams = new HashMap<String, String>();
     commandParams.put("clusterName", cluster.getClusterName());
+    commandParams.put("version", version);
 
     String itemText = entity.getText();
     switch (task.getType()) {
@@ -640,13 +641,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     entity.setText(itemText);
 
-    Map<String, String> restartCommandParams = new HashMap<String, String>();
-    restartCommandParams.put("version", version);
-
     ActionExecutionContext actionContext = new ActionExecutionContext(
         cluster.getClusterName(), Role.AMBARI_SERVER_ACTION.toString(),
         Collections.<RequestResourceFilter>emptyList(),
-        restartCommandParams);
+        commandParams);
     actionContext.setTimeout(Short.valueOf((short)-1));
 
     ExecuteCommandJson jsons = commandExecutionHelper.get().getCommandJson(
@@ -679,8 +677,5 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         commandParams, 1200);
 
     request.addStages(Collections.singletonList(stage));
-
   }
-
-
 }

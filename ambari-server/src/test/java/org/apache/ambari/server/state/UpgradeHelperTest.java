@@ -38,6 +38,7 @@ import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
 import org.apache.ambari.server.state.stack.UpgradePack;
+import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
@@ -99,7 +100,15 @@ public class UpgradeHelperTest {
     assertEquals("ZOOKEEPER", groups.get(1).name);
     assertEquals("CORE_MASTER", groups.get(2).name);
     assertEquals("CORE_SLAVES", groups.get(3).name);
-    assertEquals("POST_CLUSTER", groups.get(4).name);
+
+    UpgradeGroupHolder postGroup = groups.get(4);
+    assertEquals(postGroup.name, "POST_CLUSTER");
+    assertEquals(postGroup.title, "Finalize Upgrade");
+    assertEquals(postGroup.items.size(), 3);
+    assertEquals(postGroup.items.get(0).getText(), "Confirm Finalize");
+    assertEquals(postGroup.items.get(1).getText(), "Execute HDFS Finalize");
+    assertEquals(postGroup.items.get(2).getText(), "Save Cluster State");
+    assertEquals(postGroup.items.get(2).getType(), StageWrapper.Type.SERVER_SIDE_ACTION);
 
     assertEquals(6, groups.get(1).items.size());
     assertEquals(8, groups.get(2).items.size());

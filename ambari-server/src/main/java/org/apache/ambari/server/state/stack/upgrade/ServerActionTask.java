@@ -17,17 +17,28 @@
  */
 package org.apache.ambari.server.state.stack.upgrade;
 
-import javax.xml.bind.annotation.XmlAttribute;
+import org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlType;
 
 /**
- *
+ * Identifies that an upgrade step that requires confirmation before continuing.
  */
-public abstract class ServerSideActionTask extends Task {
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(name="server_action")
+public class ServerActionTask extends ServerSideActionTask {
 
-  @XmlAttribute(name="class")
-  protected String implClass;
+  @XmlTransient
+  private Type type = Type.SERVER_ACTION;
 
-  public String getImplementationClass() {
-    return implClass;
+  @Override
+  public Type getType() {
+    return type;
   }
+
 }

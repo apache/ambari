@@ -80,6 +80,10 @@
           <command>ls</command>
         </task>
       </execute-stage>
+      <execute-stage title="Save Cluster State" service="" component="">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction">
+        </task>
+      </execute-stage>
     </group>
         
   </order>

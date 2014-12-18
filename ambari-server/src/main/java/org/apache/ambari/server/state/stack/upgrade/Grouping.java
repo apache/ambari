@@ -98,12 +98,12 @@ public class Grouping {
 
       buckets = buckets(pc.postTasks);
       for (TaskBucket bucket : buckets) {
-        List<TaskWrapper> preTasks = TaskWrapperBuilder.getTaskList(service, pc.name, hostsType, bucket.tasks);
-        Set<String> preTasksEffectiveHosts = TaskWrapperBuilder.getEffectiveHosts(preTasks);
+        List<TaskWrapper> postTasks = TaskWrapperBuilder.getTaskList(service, pc.name, hostsType, bucket.tasks);
+        Set<String> postTasksEffectiveHosts = TaskWrapperBuilder.getEffectiveHosts(postTasks);
         StageWrapper stage = new StageWrapper(
             bucket.type,
-            getStageText("Completing", pc.name, preTasksEffectiveHosts),
-            preTasks
+            getStageText("Completing", pc.name, postTasksEffectiveHosts),
+            postTasks
             );
         stages.add(stage);
       }
@@ -172,6 +172,7 @@ public class Grouping {
     private TaskBucket(Task initial) {
       switch (initial.getType()) {
         case CONFIGURE:
+        case SERVER_ACTION:
         case MANUAL:
           type = StageWrapper.Type.SERVER_SIDE_ACTION;
           break;
@@ -187,6 +188,5 @@ public class Grouping {
       }
       tasks.add(initial);
     }
-
   }
 }

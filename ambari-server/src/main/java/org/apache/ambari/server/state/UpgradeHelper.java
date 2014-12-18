@@ -119,7 +119,8 @@ public class UpgradeHelper {
               hostsType.hosts = order;
 
             } else {
-//              throw new AmbariException(MessageFormat.format("Could not find active and standby namenodes using hosts: {0}", StringUtils.join(hostsType.hosts, ", ").toString()));
+                // TODO Rolling Upgrade, enable once Namenode HA is a pre-check requirement.
+                // throw new AmbariException(MessageFormat.format("Could not find active and standby namenodes using hosts: {0}", StringUtils.join(hostsType.hosts, ", ").toString()));
             }
 
             builder.add(hostsType, service.serviceName, svc.isClientOnlyService(), pc);
