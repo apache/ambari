@@ -6,6 +6,7 @@
       {
         "name": "ambari_agent_disk_usage",
         "label": "Ambari Agent Disk Usage",
+        "description": "This host-level alert is triggered if the amount of disk space used on a host goes above specific thresholds. The default values are 50% for WARNING and 80% for CRITICAL.",
         "interval": 1,
         "scope": "HOST",
         "enabled": true,
