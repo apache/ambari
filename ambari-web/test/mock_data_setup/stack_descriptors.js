@@ -17,7 +17,6 @@
  */
 
 module.exports = {
-  "href": "http://162.216.148.139:8080/api/v1/stacks/HDP/versions/2.2?fields=Versions/kerberos_descriptor",
   "Versions": {
     "stack_name": "HDP",
     "stack_version": "2.2",
@@ -28,19 +27,78 @@ module.exports = {
       },
       "identities": [
         {
-          "name": "spnego",
-          "principal": {
-            "value": "HTTP/_HOST@${realm}"
+          "principal" : {
+            "value" : "HTTP/_HOST@${realm}",
+            "configuration" : null
           },
-          "keytab": {
-            "file": "${keytab_dir}/spnego.service.keytab",
-            "owner": {
-              "name": "root",
-              "access": "r"
+          "name" : "spnego",
+          "keytab" : {
+            "file" : "${keytab_dir}/spnego.service.keytab",
+            "owner" : {
+              "name" : "root",
+              "access" : "r"
             },
-            "group": {
-              "name": "${cluster-env/user_group}",
-              "access": "r"
+            "configuration" : null,
+            "group" : {
+              "name" : "${hadoop-env/user_group}",
+              "access" : "r"
+            }
+          }
+        },
+        {
+          "principal" : {
+            "value" : "hdfs@${realm}",
+            "configuration" : "cluster-env/hdfs_principal_name"
+          },
+          "name" : "hdfs",
+          "keytab" : {
+            "file" : "${keytab_dir}/hdfs.headless.keytab",
+            "owner" : {
+              "name" : "root",
+              "access" : "r"
+            },
+            "configuration" : "hadoop-env/hdfs_user_keytab",
+            "group" : {
+              "name" : "${cluster-env/user_group}",
+              "access" : "r"
+            }
+          }
+        },
+        {
+          "principal" : {
+            "value" : "hbase@${realm}",
+            "configuration" : "hbase-env/hbase_principal_name"
+          },
+          "name" : "hbase",
+          "keytab" : {
+            "file" : "${keytab_dir}/hbase.headless.keytab",
+            "owner" : {
+              "name" : "root",
+              "access" : "r"
+            },
+            "configuration" : "hbase-env/hbase_user_keytab",
+            "group" : {
+              "name" : "${cluster-env/user_group}",
+              "access" : "r"
+            }
+          }
+        },
+        {
+          "principal" : {
+            "value" : "ambari-qa@${realm}",
+            "configuration" : "cluster-env/smokeuser_principal_name"
+          },
+          "name" : "smokeuser",
+          "keytab" : {
+            "file" : "${keytab_dir}/smokeuser.headless.keytab",
+            "owner" : {
+              "name" : "root",
+              "access" : "r"
+            },
+            "configuration" : "cluster-env/smokeuser_keytab",
+            "group" : {
+              "name" : "${cluster-env/user_group}",
+              "access" : "r"
             }
           }
         }
@@ -201,6 +259,74 @@ module.exports = {
                   },
                   "keytab": {
                     "configuration": "hdfs/dfs.web.authentication.kerberos.keytab"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name" : "FALCON",
+          "identities" : [
+            {
+              "name" : "/spnego"
+            },
+            {
+              "name" : "/smokeuser"
+            },
+            {
+              "name" : "/hdfs"
+            }
+          ],
+          "configurations" : [
+            {
+              "falcon-startup.properties" : {
+                "*.falcon.http.authentication.type" : "kerberos",
+                "*.falcon.authentication.type" : "kerberos",
+                "*.dfs.namenode.kerberos.principal" : "nn/_HOST@${realm}"
+              }
+            }
+          ],
+          "components" : [
+            {
+              "name" : "FALCON_SERVER",
+              "identities" : [
+                {
+                  "principal" : {
+                    "value" : "falcon/${host}@${realm}",
+                    "configuration" : "falcon-startup.properties/*.falcon.service.authentication.kerberos.principal"
+                  },
+                  "name" : "falcon_server",
+                  "keytab" : {
+                    "file" : "${keytab_dir}/falcon.service.keytab",
+                    "owner" : {
+                      "name" : "${falcon-env/falcon_user}",
+                      "access" : "r"
+                    },
+                    "configuration" : "falcon-startup.properties/*.falcon.service.authentication.kerberos.keytab",
+                    "group" : {
+                      "name" : "${cluster-env/user_group}",
+                      "access" : ""
+                    }
+                  }
+                },
+                {
+                  "principal" : {
+                    "value" : "HTTP/${host}@${realm}",
+                    "configuration" : "falcon-startup.properties/oozie.authentication.kerberos.principal"
+                  },
+                  "name" : "/spnego",
+                  "keytab" : {
+                    "file" : null,
+                    "owner" : {
+                      "name" : null,
+                      "access" : null
+                    },
+                    "configuration" : "falcon-startup.properties/oozie.authentication.kerberos.keytab",
+                    "group" : {
+                      "name" : null,
+                      "access" : null
+                    }
                   }
                 }
               ]

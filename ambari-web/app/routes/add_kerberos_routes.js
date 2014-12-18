@@ -171,9 +171,10 @@ module.exports = App.WizardRoute.extend({
       console.log('in kerberosWizardController.step4:connectOutlets');
       var controller = router.get('kerberosWizardController');
       var step4Controller = router.get('kerberosWizardStep4Controller');
+      controller.setCurrentStep(4);
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
-        controller.setCurrentStep(4);
+        controller.setLowerStepsDisable(4);
         step4Controller.set('wizardController', controller);
         controller.connectOutlet('kerberosWizardStep4', controller.get('content'));
       });

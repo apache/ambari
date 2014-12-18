@@ -340,6 +340,24 @@ describe('App.AddSecurityConfigs', function () {
           { key: 'value', value: '${keytab_dir}/spnego.service.keytab' },
           { key: 'serviceName', value: 'Cluster' },
         ]
+      },
+      // principal name inherited from /spnego with predefined value
+      {
+        property: 'oozie.authentication.kerberos.principal',
+        e: [
+          { key: 'value', value: 'HTTP/${host}@${realm}' },
+          { key: 'isEditable', value: true },
+        ]
+      },
+      // keytab inherited from /spnego without predefined file value
+      {
+        property: 'oozie.authentication.kerberos.keytab',
+        e: [
+          { key: 'value', value: null },
+          { key: 'isEditable', value: false },
+          { key: 'referenceProperty', value: 'spnego:keytab' },
+          { key: 'observesValueFrom', value: 'spnego_keytab' }
+        ]
       }
     ];
 
@@ -401,7 +419,7 @@ describe('App.AddSecurityConfigs', function () {
       {
         property: 'dfs.web.authentication.kerberos.principal',
         e: [
-          { key: 'observesValueFrom', value: 'spnego_principal' },
+          { key: 'referenceProperty', value: 'spnego:principal' },
           { key: 'isEditable', value: false }
         ]
       }     
@@ -489,5 +507,77 @@ describe('App.AddSecurityConfigs', function () {
       });
     });
   });
-  
+
+  describe('#processConfigReferences', function() {
+    var generateProperty = function(name, reference) {
+      return Em.Object.create({ name: name, referenceProperty: reference});
+    };
+    var descriptor = {
+      identities: [
+        { name: 'spnego', principal: { value: 'spnego_value' }, keytab: { file: 'spnego_file'} },
+        { name: 'hdfs',
+          principal: { value: 'hdfs_value', configuration: "hadoop-env/hdfs_user_principal_name" },
+          keytab: { file: 'hdfs_file', configuration: "hadoop-env/hdfs_user_keytab"} }
+      ],
+      services: [
+        {
+          name: 'SERVICE',
+          identities: [
+            { name: '/spnego' },
+            { name: '/hdfs' }
+          ]
+        },
+        {
+          name: 'SERVICE2',
+          components: [
+            {
+              name: 'COMPONENT',
+              identities: [
+                {
+                  name: 'component_prop1',
+                  keytab: { configuration: 'service2-site/component.keytab' },
+                  principal: { configuration: null }
+                },
+                {
+                  name: 'component_prop2',
+                  keytab: { configuration: 'service2-site/component2.keytab' },
+                  principal: { configuration: 'service2-site/component2.principal' }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    };
+    var configs = Em.A([
+      generateProperty('spnego_inherited_keytab', 'spnego:keytab'),
+      generateProperty('spnego_inherited_principal', 'spnego:principal'),
+      generateProperty('hdfs_inherited_keytab', 'hdfs:keytab'),
+      generateProperty('hdfs_inherited_principal', 'hdfs:principal'),
+      generateProperty('component_prop1_inherited_principal', 'component_prop1:principal'),
+      generateProperty('component_prop1_inherited_keytab', 'component_prop1:keytab'),
+      generateProperty('component_prop2_inherited_keytab', 'component_prop2:keytab'),
+      generateProperty('component_prop2_inherited_principal', 'component_prop2:principal'),
+    ]);
+    var tests = [
+      { name: 'spnego_inherited_keytab', e: 'spnego_keytab' },
+      { name: 'spnego_inherited_principal', e: 'spnego_principal' },
+      { name: 'hdfs_inherited_keytab', e: 'hdfs_user_keytab' },
+      { name: 'hdfs_inherited_principal', e: 'hdfs_user_principal_name' },
+      { name: 'component_prop1_inherited_keytab', e: 'component.keytab' },
+      { name: 'component_prop1_inherited_principal', e: 'component_prop1_principal' },
+      { name: 'component_prop2_inherited_keytab', e: 'component2.keytab' },
+      { name: 'component_prop2_inherited_principal', e: 'component2.principal' }
+    ];
+    before(function() {
+      controller.processConfigReferences(descriptor, configs);
+    });
+    
+    tests.forEach(function(test) {
+      it('`{0}` should observe value from `{1}` property'.format(test.name, test.e), function() {
+        expect(configs.findProperty('name', test.name).get('observesValueFrom')).to.be.eql(test.e); 
+      });
+    });
+  });
+
 });

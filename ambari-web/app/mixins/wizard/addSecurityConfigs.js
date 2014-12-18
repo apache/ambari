@@ -422,6 +422,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
     });    
     // unite cluster and service configs
     configs = configs.concat(clusterConfigs);
+    self.processConfigReferences(kerberosDescriptor, configs);
     // return configs with uniq names
     return configs.reduce(function(p,c) {
       if (!p.findProperty('name', c.get('name'))) p.push(c);
@@ -448,9 +449,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
         componentName: componentName,
         name: identity.name
       };
-      if (identity.name == '/spnego') {
-        defaultObject.isEditable = false;
-      }
+
       self.parseIdentityObject(identity).forEach(function(item) {
         configs.push(App.ServiceConfigProperty.create($.extend({}, defaultObject, item)));
       });
@@ -473,8 +472,15 @@ App.AddSecurityConfigs = Em.Mixin.create({
     keys.forEach(function(item) {
       var configObject = {};
       var prop = identity[item];
-      if (name == '/spnego') configObject.observesValueFrom = 'spnego_' + item;
-      configObject.defaultValue = configObject.value = item == 'principal' ? prop.value : prop.file;
+      var itemValue = prop[{keytab: 'file', principal: 'value'}[item]];
+      // skip inherited property without `configuration` and `keytab` or `file` values
+      if (!prop.configuration && !itemValue) return;
+      // inherited property with value should not observe value from reference
+      if (name.startsWith('/') && !itemValue) {
+        configObject.referenceProperty = name.substring(1) + ':' + item;
+        configObject.isEditable = false;
+      }
+      configObject.defaultValue = configObject.value = itemValue;
       configObject.filename = prop.configuration ? prop.configuration.split('/')[0] : 'cluster-env';
       configObject.name = configObject.displayName = prop.configuration ? prop.configuration.split('/')[1] : name + '_' + item;
       result.push(configObject);
@@ -506,6 +512,42 @@ App.AddSecurityConfigs = Em.Mixin.create({
     }
 
     return configs;
+  },
+
+
+  /**
+   * Take care about configs that should observe value from referenced configs.
+   * Reference is set with `referenceProperty` key.
+   * 
+   * @param {object[]} kerberosDescriptor
+   * @param {App.ServiceConfigProperty[]} configs
+   */
+  processConfigReferences: function(kerberosDescriptor, configs) {
+    var identities = kerberosDescriptor.identities;
+    identities = identities.concat(kerberosDescriptor.services.map(function(service) {
+      var _identities = service.identities || [];
+      if (service.components && !!service.components.length) {
+        identities = identities.concat(service.components.mapProperty('identities').reduce(function(p, c) {
+          return p.concat(c);
+        }, []));
+        return identities;
+      }
+    }).reduce(function(p, c) {
+      return p.concat(c);
+    }, []));
+    // clean up array
+    identities = identities.compact().without(undefined);
+    configs.forEach(function(item) {
+      var reference = item.get('referenceProperty');
+      if (!!reference) {
+        var identity = identities.findProperty('name', reference.split(':')[0])[reference.split(':')[1]];
+        if (identity && !!identity.configuration) {
+          item.set('observesValueFrom', identity.configuration.split('/')[1]);
+        } else {
+          item.set('observesValueFrom', reference.replace(':', '_'));
+        }
+      }
+    });
   },
 
   /**
