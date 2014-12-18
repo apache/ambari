@@ -49,6 +49,10 @@ def namenode(action=None, do_format=True, rolling_restart=False, env=None):
 
     options = "-rollingUpgrade started" if rolling_restart else ""
 
+    if rolling_restart:    
+      # Must start Zookeeper Failover Controller if it exists on this host because it could have been killed in order to initiate the failover.
+      safe_zkfc_op(action, env)
+
     service(
       action="start",
       name="namenode",
@@ -58,9 +62,6 @@ def namenode(action=None, do_format=True, rolling_restart=False, env=None):
       create_log_dir=True
     )
 
-    if rolling_restart:    
-      # Must start Zookeeper Failover Controller if it exists on this host because it could have been killed in order to initiate the failover.
-      safe_zkfc_op(action, env)
 
     if params.security_enabled:
       Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
