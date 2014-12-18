@@ -35,7 +35,7 @@
     <!--<yarn.basedir>${project.parent.parent.basedir}</yarn.basedir>-->
     <protobuf.version>2.5.0</protobuf.version>
     <hadoop.version>2.4.0</hadoop.version>
-    <phoenix.version>4.2.0.2.2.0.0-2041</phoenix.version>
+    <phoenix.version>4.2.0.2.2.1.0-2114</phoenix.version>
   </properties>
 
   <build>
@@ -57,25 +57,6 @@
         </executions>
       </plugin>
       <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <executions>
-          <execution>
-            <configuration>
-              <descriptors>
-                <descriptor>src/main/assemblies/ats.xml</descriptor>
-              </descriptors>
-              <tarLongFileMode>gnu</tarLongFileMode>
-            </configuration>
-            <id>build-tarball</id>
-            <phase>none</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
         <version>1.7</version>
@@ -91,6 +72,7 @@
                 <get
                   src="${hbase.tar}"
                   dest="${project.build.directory}/embedded/hbase.tar.gz"
+                  usetimestamp="true"
                   />
                 <untar
                   src="${project.build.directory}/embedded/hbase.tar.gz"

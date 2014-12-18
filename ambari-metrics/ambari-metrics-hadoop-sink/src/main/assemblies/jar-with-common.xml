@@ -19,7 +19,7 @@
   -->
 
 <assembly>
-  <id>hadoop-sink-jar</id>
+  <id>jar-with-common</id>
   <formats>
     <format>jar</format>
   </formats>

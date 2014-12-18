@@ -16,19 +16,19 @@
    limitations under the License.
 -->
 <assembly>
-  <!--This 'all' id is not appended to the produced bundle because we do this:
-    http://maven.apache.org/plugins/maven-assembly-plugin/faq.html#required-classifiers
-  -->
-  <id>dist</id>
+  <id>jar-with-common</id>
   <formats>
-    <format>dir</format>
-    <format>tar.gz</format>
+    <format>jar</format>
   </formats>
   <includeBaseDirectory>false</includeBaseDirectory>
-  <files>
-    <file>
-      <source>${project.build.directory}/${artifact.artifactId}-${artifact.version}.jar</source>
-      <outputDirectory>ambari-metrics-${project.version}/lib/ambari-metrics</outputDirectory>
-    </file>
-  </files>
+  <dependencySets>
+    <dependencySet>
+      <outputDirectory>/</outputDirectory>
+      <unpack>true</unpack>
+      <includes>
+        <include>org.apache.ambari:ambari-metrics-common</include>
+        <include>org.apache.ambari:ambari-metrics-flume-sink</include>
+      </includes>
+    </dependencySet>
+  </dependencySets>
 </assembly>

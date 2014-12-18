@@ -32,6 +32,7 @@
     <module>ambari-metrics-storm-sink</module>
     <module>ambari-metrics-timelineservice</module>
     <module>ambari-metrics-host-monitoring</module>
+    <module>ambari-metrics-assembly</module>
   </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -40,6 +41,9 @@
     <!--TODO change to HDP URL-->
     <hbase.tar>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/GA/2.2.0.0/tars/hbase-0.98.4.2.2.0.0-2041-hadoop2.tar.gz</hbase.tar>
     <hbase.folder>hbase-0.98.4.2.2.0.0-2041-hadoop2</hbase.folder>
+    <resmonitor.install.dir>
+      /usr/lib/python2.6/site-packages/resource_monitoring
+    </resmonitor.install.dir>
   </properties>
   <repositories>
     <repository>
@@ -119,38 +123,11 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>rpm-maven-plugin</artifactId>
-        <version>2.0.1</version>
-        <executions>
-          <execution>
-            <!-- unbinds rpm creation from maven lifecycle -->
-            <phase>none</phase>
-            <goals>
-              <goal>attached-rpm</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <copyright>2012, Apache Software Foundation</copyright>
-          <group>Development</group>
-          <description>Maven Recipe: RPM Package.</description>
-          <version>${package-version}</version>
-          <release>${package-release}</release>
-          <mappings/>
-        </configuration>
-      </plugin>
     </plugins>
   </build>
 
   <dependencies>
   </dependencies>
-  <profiles>
-    <profile>
-      <id>metrics2-standalone</id>
-    </profile>
-  </profiles>
 
 
 </project>

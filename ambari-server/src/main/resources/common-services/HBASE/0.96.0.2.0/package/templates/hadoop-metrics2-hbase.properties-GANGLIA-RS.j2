@@ -48,6 +48,7 @@ hbase.extendedperiod = 3600
 
 {% if has_metric_collector %}
 
+*.timline.plugin.urls=file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar
 hbase.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 hbase.period=10
 hbase.collector={{metric_collector_host}}:8188

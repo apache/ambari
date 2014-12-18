@@ -42,22 +42,9 @@ limitations under the License.
           <execution>
             <configuration>
               <descriptors>
-                <descriptor>src/main/assemblies/sink.xml</descriptor>
+                <descriptor>src/main/assemblies/jar-with-common.xml</descriptor>
               </descriptors>
-              <tarLongFileMode>gnu</tarLongFileMode>
-            </configuration>
-            <id>build-tarball</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-
-          <execution>
-            <configuration>
-              <descriptors>
-                <descriptor>src/main/assemblies/sink-jar.xml</descriptor>
-              </descriptors>
+              <attach>false</attach>
               <tarLongFileMode>gnu</tarLongFileMode>
               <appendAssemblyId>false</appendAssemblyId>
               <finalName>${project.artifactId}-with-common-${project.version}</finalName>
@@ -112,48 +99,48 @@ limitations under the License.
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>rpm-maven-plugin</artifactId>
-        <version>2.0.1</version>
-        <executions>
-          <execution>
-            <phase>none</phase>
-            <goals>
-              <goal>rpm</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <name>ambari-metrics-hadoop-sink</name>
-          <copyright>2012, Apache Software Foundation</copyright>
-          <group>Development</group>
-          <description>Maven Recipe: RPM Package.</description>
+      <!--<plugin>-->
+        <!--<groupId>org.codehaus.mojo</groupId>-->
+        <!--<artifactId>rpm-maven-plugin</artifactId>-->
+        <!--<version>2.0.1</version>-->
+        <!--<executions>-->
+          <!--<execution>-->
+            <!--<phase>none</phase>-->
+            <!--<goals>-->
+              <!--<goal>rpm</goal>-->
+            <!--</goals>-->
+          <!--</execution>-->
+        <!--</executions>-->
+        <!--<configuration>-->
+          <!--<name>ambari-metrics-hadoop-sink</name>-->
+          <!--<copyright>2012, Apache Software Foundation</copyright>-->
+          <!--<group>Development</group>-->
+          <!--<description>Maven Recipe: RPM Package.</description>-->
 
-          <defaultDirmode>755</defaultDirmode>
-          <defaultFilemode>644</defaultFilemode>
-          <defaultUsername>root</defaultUsername>
-          <defaultGroupname>root</defaultGroupname>
+          <!--<defaultDirmode>755</defaultDirmode>-->
+          <!--<defaultFilemode>644</defaultFilemode>-->
+          <!--<defaultUsername>root</defaultUsername>-->
+          <!--<defaultGroupname>root</defaultGroupname>-->
 
-          <postinstallScriptlet>
-            <scriptFile>${project.build.outputDirectory}/rpm/postinstall.sh</scriptFile>
-            <fileEncoding>utf-8</fileEncoding>
-          </postinstallScriptlet>
+          <!--<postinstallScriptlet>-->
+            <!--<scriptFile>${project.build.outputDirectory}/rpm/postinstall.sh</scriptFile>-->
+            <!--<fileEncoding>utf-8</fileEncoding>-->
+          <!--</postinstallScriptlet>-->
 
-          <mappings>
-            <mapping>
-              <directory>/usr/lib/ambari-metrics-hadoop-sink</directory>
-              <sources>
-                <source>
-                  <location>target/${project.artifactId}-with-common-${project.version}.jar</location>
-                </source>
-              </sources>
+          <!--<mappings>-->
+            <!--<mapping>-->
+              <!--<directory>/usr/lib/ambari-metrics-hadoop-sink</directory>-->
+              <!--<sources>-->
+                <!--<source>-->
+                  <!--<location>target/${project.artifactId}-with-common-${project.version}.jar</location>-->
+                <!--</source>-->
+              <!--</sources>-->
 
-            </mapping>
+            <!--</mapping>-->
 
-          </mappings>
-        </configuration>
-      </plugin>
+          <!--</mappings>-->
+        <!--</configuration>-->
+      <!--</plugin>-->
     </plugins>
 
     <resources>

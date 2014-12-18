@@ -46,15 +46,18 @@ limitations under the License.
       </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
-        <configuration>
-          <descriptors>
-            <descriptor>src/main/assemblies/sink.xml</descriptor>
-          </descriptors>
-          <tarLongFileMode>gnu</tarLongFileMode>
-        </configuration>
         <executions>
           <execution>
-            <id>build-tarball</id>
+            <configuration>
+              <descriptors>
+                <descriptor>src/main/assemblies/jar-with-common.xml</descriptor>
+              </descriptors>
+              <attach>false</attach>
+              <tarLongFileMode>gnu</tarLongFileMode>
+              <appendAssemblyId>false</appendAssemblyId>
+              <finalName>${project.artifactId}-with-common-${project.version}</finalName>
+            </configuration>
+            <id>build-jar</id>
             <phase>package</phase>
             <goals>
               <goal>single</goal>
@@ -103,42 +106,6 @@ limitations under the License.
             <phase>none</phase>
           </execution>
         </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>rpm-maven-plugin</artifactId>
-        <version>2.0.1</version>
-        <executions>
-          <execution>
-            <phase>none</phase>
-            <goals>
-              <goal>rpm</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <name>ambari-metrics-storm-sink</name>
-          <copyright>2012, Apache Software Foundation</copyright>
-          <group>Development</group>
-          <description>Maven Recipe: RPM Package.</description>
-          <defaultDirmode>755</defaultDirmode>
-          <defaultFilemode>644</defaultFilemode>
-          <defaultUsername>root</defaultUsername>
-          <defaultGroupname>root</defaultGroupname>
-          <mappings>
-            <mapping>
-              <directory>/usr/lib/storm/lib</directory>
-              <sources>
-                <source>
-                  <location>target/${project.artifactId}-${project.version}.jar</location>
-                </source>
-                <source>
-                  <location>target/lib</location>
-                </source>
-              </sources>
-            </mapping>
-          </mappings>
-        </configuration>
       </plugin>
     </plugins>
   </build>
