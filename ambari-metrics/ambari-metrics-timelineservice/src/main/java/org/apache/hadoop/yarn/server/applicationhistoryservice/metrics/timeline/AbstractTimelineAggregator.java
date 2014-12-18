@@ -110,7 +110,13 @@ public abstract class AbstractTimelineAggregator implements Runnable {
 
       if (success) {
         try {
-          saveCheckPoint(lastCheckPointTime + SLEEP_INTERVAL);
+          // Comment to bug fix:
+          // cannot just save lastCheckPointTime + SLEEP_INTERVAL,
+          // it has to be verified so it is not a time in the future
+          // checkpoint says what was aggregated, and there is no way
+          // the future metrics were aggregated!
+          saveCheckPoint(Math.min(currentTime, lastCheckPointTime +
+            SLEEP_INTERVAL));
         } catch (IOException io) {
           LOG.warn("Error saving checkpoint, restarting aggregation at " +
             "previous checkpoint.");
