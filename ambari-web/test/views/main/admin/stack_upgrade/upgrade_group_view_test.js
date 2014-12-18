@@ -67,6 +67,19 @@ describe('App.upgradeGroupView', function () {
     });
   });
 
+  describe("#isManualOpened", function () {
+    it("manual item null", function () {
+      view.reopen({manualItem: null});
+      view.propertyDidChange('isManualOpened');
+      expect(view.get('isManualOpened')).to.be.false;
+    });
+    it("manual item correct", function () {
+      view.reopen({manualItem: {}});
+      view.propertyDidChange('isManualOpened');
+      expect(view.get('isManualOpened')).to.be.true;
+    });
+  });
+
   describe("#showProgressInfo", function () {
     var testCases = [
       {

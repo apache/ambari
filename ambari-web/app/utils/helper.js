@@ -744,13 +744,15 @@ App.registerBoundHelper('statusIcon', Em.View.extend({
    * @type {object}
    */
   statusIconMap: {
-    'COMPLETED': 'icon-ok',
+    'COMPLETED': 'icon-ok completed',
     'WARNING': 'icon-warning-sign',
-    'FAILED': 'icon-warning-sign',
-    'PENDING': 'icon-cog',
-    'IN_PROGRESS': 'icon-cogs',
+    'FAILED': 'icon-exclamation-sign failed',
+    'PENDING': 'icon-cog pending',
+    'QUEUED': 'icon-cog queued',
+    'IN_PROGRESS': 'icon-cogs in_progress',
     'HOLDING': 'icon-pause',
-    'ABORTED': 'icon-minus'
+    'ABORTED': 'icon-minus aborted',
+    'TIMED_OUT': 'icon-time timedout'
   },
 
   classNameBindings: ['iconClass'],

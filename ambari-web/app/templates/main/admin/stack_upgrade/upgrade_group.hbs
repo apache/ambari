@@ -24,9 +24,10 @@
   </div>
   {{#if view.content.isRunning}}
     <div class="span3">
-      <div class="progress progress-striped active">
-        <div class="bar" {{bindAttr style="view.content.progressWidth"}}></div>
-      </div>
+      {{view App.ProgressBarView
+        progressBinding="view.content.progress"
+        statusBinding="view.content.status"
+      }}
     </div>
     <div class="span1">
       <div>{{view.content.progress}}%</div>
@@ -45,9 +46,10 @@
       </div>
       {{#if item.isRunning}}
         <div class="span3">
-          <div class="progress progress-striped active">
-            <div class="bar" {{bindAttr style="item.progressWidth"}}></div>
-          </div>
+          {{view App.ProgressBarView
+            progressBinding="item.progress"
+            statusBinding="item.status"
+          }}
         </div>
         <div class="span1">
           <div>{{item.progress}}%</div>

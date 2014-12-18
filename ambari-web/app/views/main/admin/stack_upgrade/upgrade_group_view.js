@@ -85,7 +85,7 @@ App.upgradeGroupView = Em.View.extend({
    */
   isManualOpened: function () {
     return Boolean(this.get('manualItem'));
-  }.property('content.status'),
+  }.property('manualItem'),
 
   /**
    * indicate whether failed item can be skipped in order to continue Upgrade

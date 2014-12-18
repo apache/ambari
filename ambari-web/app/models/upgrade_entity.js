@@ -35,19 +35,17 @@ App.upgradeEntity = Em.Object.extend({
   isExpanded: false,
 
   /**
+   * status of tasks/items/groups which should be grayed out and disabled
+   * @type {Array}
+   */
+  nonActiveStates: ['PENDING', 'ABORTED'],
+
+  /**
    * @type {boolean}
    */
   isRunning: function () {
     return ['IN_PROGRESS'].contains(this.get('status'));
   }.property('status'),
-
-  /**
-   * width style of progress bar
-   * @type {string}
-   */
-  progressWidth: function () {
-    return "width:" + Math.floor(this.get('progress')) + '%;';
-  }.property('progress'),
 
   /**
    * @type {number}
@@ -61,6 +59,6 @@ App.upgradeEntity = Em.Object.extend({
    * @type {boolean}
    */
   isActive: function () {
-    return this.get('status') !== 'PENDING';
+    return !this.get('nonActiveStates').contains(this.get('status'));
   }.property('status')
 });

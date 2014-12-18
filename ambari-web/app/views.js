@@ -40,6 +40,7 @@ require('views/common/configs/custom_category_views/notification_configs_view');
 require('views/common/filter_combobox');
 require('views/common/filter_combo_cleanable');
 require('views/common/table_view');
+require('views/common/progress_bar_view');
 require('views/login');
 require('views/main');
 require('views/main/menu');

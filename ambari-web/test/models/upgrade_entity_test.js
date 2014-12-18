@@ -1,0 +1,63 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var App = require('app');
+require('models/upgrade_entity');
+
+describe('App.upgradeEntity', function () {
+  var model = App.upgradeEntity.create();
+
+  describe("#isRunning", function() {
+    it("status IN_PROGRESS", function() {
+      model.set('status', 'IN_PROGRESS');
+      model.propertyDidChange('isRunning');
+      expect(model.get('isRunning')).to.be.true;
+    });
+    it("status PENDING", function() {
+      model.set('status', 'PENDING');
+      model.propertyDidChange('isRunning');
+      expect(model.get('isRunning')).to.be.false;
+    });
+  });
+
+  describe("#progress", function() {
+    it("progress_percent = 1.9", function() {
+      model.set('progress_percent', 1.9);
+      model.propertyDidChange('progress');
+      expect(model.get('progress')).to.equal(1);
+    });
+    it("progress_percent = 1", function() {
+      model.set('progress_percent', 1);
+      model.propertyDidChange('progress');
+      expect(model.get('progress')).to.equal(1);
+    });
+  });
+
+  describe("#isActive", function() {
+    it("status IN_PROGRESS", function() {
+      model.set('status', 'IN_PROGRESS');
+      model.propertyDidChange('isActive');
+      expect(model.get('isActive')).to.be.true;
+    });
+    it("status PENDING", function() {
+      model.set('status', 'PENDING');
+      model.propertyDidChange('isActive');
+      expect(model.get('isActive')).to.be.false;
+    });
+  });
+});

@@ -21,7 +21,7 @@ var App = require('app');
 
 App.upgradeWizardView = Em.View.extend({
   controllerBinding: 'App.router.mainAdminStackAndUpgradeController',
-  templateName: require('templates/main/admin/stack_upgrade/stack_upgrade_dialog'),
+  templateName: require('templates/main/admin/stack_upgrade/stack_upgrade_wizard'),
 
   /**
    * update timer
@@ -34,14 +34,6 @@ App.upgradeWizardView = Em.View.extend({
    * @type {boolean}
    */
   isLoaded: false,
-
-  /**
-   * string format: width:<number>%;
-   * @type {string}
-   */
-  progressWidth: function () {
-    return "width:" + this.get('overallProgress') + "%;";
-  }.property('overallProgress'),
 
   /**
    * progress value is rounded to floor
@@ -63,6 +55,7 @@ App.upgradeWizardView = Em.View.extend({
         return Em.I18n.t('admin.stackUpgrade.state.inProgress');
       case 'COMPLETED':
         return Em.I18n.t('admin.stackUpgrade.state.completed');
+      case 'ABORTED':
       case 'TIMED_OUT':
       case 'FAILED':
       case 'HOLDING_FAILED':
