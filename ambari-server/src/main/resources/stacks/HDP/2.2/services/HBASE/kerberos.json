@@ -10,6 +10,9 @@
           "name": "/hdfs"
         },
         {
+          "name": "/hbase"
+        },
+        {
           "name": "/smokeuser"
         }
       ],

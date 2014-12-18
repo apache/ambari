@@ -1,0 +1,63 @@
+{
+  "services": [
+    {
+      "name": "FALCON",
+      "identities": [
+        {
+          "name": "/spnego"
+        },
+        {
+          "name": "/smokeuser"
+        },
+        {
+          "name": "/hdfs"
+        }
+      ],
+      "configurations": [
+        {
+          "falcon-startup.properties": {
+            "*.falcon.authentication.type": "kerberos",
+            "*.falcon.http.authentication.type": "kerberos",
+            "*.dfs.namenode.kerberos.principal": "nn/_HOST@${realm}"
+          }
+        }
+      ],
+      "components": [
+        {
+          "name": "FALCON_SERVER",
+          "identities": [
+            {
+              "name": "falcon_server",
+              "principal": {
+                "value": "falcon/${host}@${realm}",
+                "configuration": "falcon-startup.properties/*.falcon.service.authentication.kerberos.principal"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/falcon.service.keytab",
+                "owner": {
+                  "name": "${falcon-env/falcon_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "falcon-startup.properties/*.falcon.service.authentication.kerberos.keytab"
+              }
+            },
+            {
+              "name": "/spnego",
+              "principal": {
+                "value": "HTTP/${host}@${realm}",
+                "configuration": "falcon-startup.properties/oozie.authentication.kerberos.principal"
+              },
+              "keytab": {
+                "configuration": "falcon-startup.properties/oozie.authentication.kerberos.keytab"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

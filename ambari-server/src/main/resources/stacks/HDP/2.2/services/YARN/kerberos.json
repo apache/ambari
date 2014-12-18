@@ -65,10 +65,10 @@
             {
               "name": "/spnego",
               "principal": {
-                "configuration": "yarn.nodemanager.webapp.spnego-principal"
+                "configuration": "yarn-site/yarn.nodemanager.webapp.spnego-principal"
               },
               "keytab": {
-                "configuration": "yarn.nodemanager.webapp.spnego-keytab-file"
+                "configuration": "yarn-site/yarn.nodemanager.webapp.spnego-keytab-file"
               }
             }
           ],
@@ -120,10 +120,10 @@
             {
               "name": "/spnego",
               "principal": {
-                "configuration": "yarn.resourcemanager.webapp.spnego-principal"
+                "configuration": "yarn-site/yarn.resourcemanager.webapp.spnego-principal"
               },
               "keytab": {
-                "configuration": "yarn.resourcemanager.webapp.spnego-keytab-file"
+                "configuration": "yarn-site/yarn.resourcemanager.webapp.spnego-keytab-file"
               }
             }
           ]
@@ -170,10 +170,10 @@
             {
               "name": "/spnego",
               "principal": {
-                "configuration": "yarn.timeline-service.http-authentication.kerberos.principal"
+                "configuration": "yarn-site/yarn.timeline-service.http-authentication.kerberos.principal"
               },
               "keytab": {
-                "configuration": "yarn.timeline-service.http-authentication.kerberos.keytab"
+                "configuration": "yarn-site/yarn.timeline-service.http-authentication.kerberos.keytab"
               }
             }
           ]

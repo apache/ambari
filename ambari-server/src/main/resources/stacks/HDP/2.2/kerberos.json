@@ -43,7 +43,7 @@
     {
       "name": "hbase",
       "principal": {
-        "value": "hdfs@${realm}",
+        "value": "hbase@${realm}",
         "configuration": "hbase-env/hbase_principal_name"
       },
       "keytab": {

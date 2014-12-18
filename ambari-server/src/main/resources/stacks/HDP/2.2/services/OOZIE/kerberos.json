@@ -1,0 +1,64 @@
+{
+  "services": [
+    {
+      "name": "OOZIE",
+      "identities": [
+        {
+          "name": "/spnego"
+        },
+        {
+          "name": "/smokeuser"
+        },
+        {
+          "name": "/hdfs"
+        }
+      ],
+      "configurations": [
+        {
+          "oozie-site": {
+            "oozie.authentication.type": "kerberos",
+            "oozie.service.AuthorizationService.authorization.enabled": "true",
+            "oozie.service.HadoopAccessorService.kerberos.enabled": "true",
+            "local.realm": "${realm}",
+            "oozie.authentication.kerberos.name.rules": "RULE:[2:$1@$0]([jt]t@.*${realm})s/.*/mapred/\nRULE:[2:$1@$0]([nd]n@.*${realm})s/.*/hdfs/\nRULE:[2:$1@$0](hm@.*${realm})s/.*/hbase/\nRULE:[2:$1@$0](rs@.*${realm})s/.*/hbase/\nDEFAULT"
+          }
+        }
+      ],
+      "components": [
+        {
+          "name": "OOZIE_SERVER",
+          "identities": [
+            {
+              "name": "oozie_server",
+              "principal": {
+                "value": "oozie/_HOST@${realm}",
+                "configuration": "oozie-site/oozie.service.HadoopAccessorService.kerberos.principal"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/oozie.service.keytab",
+                "owner": {
+                  "name": "${oozie-env/oozie_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "oozie-site/oozie.service.HadoopAccessorService.keytab.file"
+              }
+            },
+            {
+              "name": "/spnego",
+              "principal": {
+                "configuration": "oozie-site/oozie.authentication.kerberos.principal"
+              },
+              "keytab": {
+                "configuration": "oozie-site/oozie.authentication.kerberos.keytab"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
