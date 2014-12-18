@@ -500,7 +500,7 @@
                   <location>src/main/resources/scripts</location>
                 </source>
                 <source>
-                  <location>src/main/python/UpgradeHelper_HDP2.py</location>
+                  <location>src/main/python/upgradeHelper.py</location>
                 </source>
               </sources>
             </mapping>
@@ -540,6 +540,14 @@
               <sources>
                 <source>
                   <location>target/classes/common-services</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/var/lib/ambari-server/resources/upgrade/catalog</directory>
+              <sources>
+                <source>
+                  <location>src/main/resources/upgrade/catalog</location>
                 </source>
               </sources>
             </mapping>
@@ -894,7 +902,7 @@
               </mapper>
             </data>
             <data>
-              <src>src/main/python/UpgradeHelper_HDP2.py</src>
+              <src>src/main/python/upgradeHelper.py</src>
               <type>file</type>
               <mapper>
                 <type>perm</type>
@@ -916,6 +924,14 @@
               <mapper>
                 <type>perm</type>
                 <prefix>/var/lib/ambari-server/resources/upgrade/dml</prefix>
+              </mapper>
+            </data>
+            <data>
+              <src>src/main/resources/upgrade/catalog</src>
+              <type>directory</type>
+              <mapper>
+                <type>perm</type>
+                <prefix>/var/lib/ambari-server/resources/upgrade/catalog</prefix>
               </mapper>
             </data>
             <data>
