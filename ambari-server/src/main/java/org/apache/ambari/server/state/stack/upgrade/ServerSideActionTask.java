@@ -17,36 +17,19 @@
  */
 package org.apache.ambari.server.state.stack.upgrade;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.XmlType;
-
-import org.apache.ambari.server.serveraction.upgrades.ManualStageAction;
+import javax.xml.bind.annotation.XmlAttribute;
 
 /**
- * Identifies that an upgrade step that requires confirmation before continuing.
+ *
  */
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name="manual")
-public class ManualTask extends ServerSideActionTask {
+public abstract class ServerSideActionTask extends Task {
 
-  public ManualTask() {
-    implClass = ManualStageAction.class.getName();
-  }
+  @XmlAttribute(name="class")
+  protected String implClass;
 
-  @XmlTransient
-  private Task.Type type = Task.Type.MANUAL;
 
-  @XmlElement(name="message")
-  public String message;
-
-  @Override
-  public Task.Type getType() {
-    return type;
+  public String getImplementationClass() {
+    return implClass;
   }
 
 }

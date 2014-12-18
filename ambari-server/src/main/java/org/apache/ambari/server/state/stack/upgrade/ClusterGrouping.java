@@ -126,7 +126,7 @@ public class ClusterGrouping extends Grouping {
           switch (task.getType()) {
             case MANUAL:
               wrapper = new StageWrapper(
-                  StageWrapper.Type.MANUAL,
+                  StageWrapper.Type.SERVER_SIDE_ACTION,
                   execution.title,
                   new TaskWrapper(null, null, Collections.<String>emptySet(), task));
               break;

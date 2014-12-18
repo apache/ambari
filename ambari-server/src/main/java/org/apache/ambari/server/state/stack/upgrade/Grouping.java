@@ -69,11 +69,13 @@ public class Grouping {
      */
     @Override
     public void add(HostsType hostsType, String service, boolean clientOnly, ProcessingComponent pc) {
-      if (null != pc.preTasks && pc.preTasks.size() > 0) {
-        List<TaskWrapper> preTasks = TaskWrapperBuilder.getTaskList(service, pc.name, hostsType, pc.preTasks);
+
+      List<TaskBucket> buckets = buckets(pc.preTasks);
+      for (TaskBucket bucket : buckets) {
+        List<TaskWrapper> preTasks = TaskWrapperBuilder.getTaskList(service, pc.name, hostsType, bucket.tasks);
         Set<String> preTasksEffectiveHosts = TaskWrapperBuilder.getEffectiveHosts(preTasks);
         StageWrapper stage = new StageWrapper(
-            StageWrapper.Type.RU_TASKS,
+            bucket.type,
             getStageText("Preparing", pc.name, preTasksEffectiveHosts),
             preTasks
             );
@@ -94,13 +96,15 @@ public class Grouping {
         }
       }
 
-      if (null != pc.postTasks && pc.postTasks.size() > 0) {
-        List<TaskWrapper> postTasks = TaskWrapperBuilder.getTaskList(service, pc.name, hostsType, pc.postTasks);
-        Set<String> postTasksEffectiveHosts = TaskWrapperBuilder.getEffectiveHosts(postTasks);
+      buckets = buckets(pc.postTasks);
+      for (TaskBucket bucket : buckets) {
+        List<TaskWrapper> preTasks = TaskWrapperBuilder.getTaskList(service, pc.name, hostsType, bucket.tasks);
+        Set<String> preTasksEffectiveHosts = TaskWrapperBuilder.getEffectiveHosts(preTasks);
         StageWrapper stage = new StageWrapper(
-            StageWrapper.Type.RU_TASKS,
-            getStageText("Completing", pc.name, postTasksEffectiveHosts),
-            postTasks);
+            bucket.type,
+            getStageText("Completing", pc.name, preTasksEffectiveHosts),
+            preTasks
+            );
         stages.add(stage);
       }
 
@@ -130,5 +134,59 @@ public class Grouping {
 
       return stages;
     }
+  }
+
+  /**
+   * Group all like-typed tasks together.  When they change, create a new type.
+   */
+  private static List<TaskBucket> buckets(List<Task> tasks) {
+    if (null == tasks || tasks.isEmpty())
+      return Collections.emptyList();
+
+    List<TaskBucket> holders = new ArrayList<TaskBucket>();
+
+    TaskBucket current = null;
+
+    int i = 0;
+    for (Task t : tasks) {
+      if (i == 0) {
+        current = new TaskBucket(t);
+        holders.add(current);
+      } else if (i > 0 && t.getType() != tasks.get(i-1).getType()) {
+        current = new TaskBucket(t);
+        holders.add(current);
+      } else {
+        current.tasks.add(t);
+      }
+
+      i++;
+    }
+
+    return holders;
+
+  }
+
+  private static class TaskBucket {
+    private StageWrapper.Type type;
+    private List<Task> tasks = new ArrayList<Task>();
+    private TaskBucket(Task initial) {
+      switch (initial.getType()) {
+        case CONFIGURE:
+        case MANUAL:
+          type = StageWrapper.Type.SERVER_SIDE_ACTION;
+          break;
+        case EXECUTE:
+          type = StageWrapper.Type.RU_TASKS;
+          break;
+        case RESTART:
+          type = StageWrapper.Type.RESTART;
+          break;
+        case SERVICE_CHECK:
+          type = StageWrapper.Type.SERVICE_CHECK;
+          break;
+      }
+      tasks.add(initial);
+    }
+
   }
 }

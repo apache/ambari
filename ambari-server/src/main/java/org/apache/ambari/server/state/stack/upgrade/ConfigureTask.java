@@ -24,13 +24,19 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
+import org.apache.ambari.server.serveraction.upgrades.ConfigureAction;
+
 /**
  * Upgrade task that represents a configuration should change.
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name="configure")
-public class ConfigureTask extends Task {
+public class ConfigureTask extends ServerSideActionTask {
+
+  public ConfigureTask() {
+    implClass = ConfigureAction.class.getName();
+  }
 
   @XmlTransient
   private Task.Type type = Task.Type.CONFIGURE;

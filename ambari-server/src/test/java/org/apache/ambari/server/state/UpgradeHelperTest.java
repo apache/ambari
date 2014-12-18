@@ -42,9 +42,7 @@ import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
@@ -68,7 +66,7 @@ public class UpgradeHelperTest {
     helper = injector.getInstance(OrmTestHelper.class);
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
     ambariMetaInfo.init();
-    
+
     m_masterHostResolver = EasyMock.createMock(MasterHostResolver.class);
   }
 
@@ -89,12 +87,12 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
-    
+
     UpgradeHelper helper = new UpgradeHelper();
     List<UpgradeGroupHolder> groups = helper.createUpgrade(cluster, m_masterHostResolver, upgrade);
 
-    
-    
+
+
     assertEquals(5, groups.size());
 
     assertEquals("PRE_CLUSTER", groups.get(0).name);
@@ -104,9 +102,32 @@ public class UpgradeHelperTest {
     assertEquals("POST_CLUSTER", groups.get(4).name);
 
     assertEquals(6, groups.get(1).items.size());
-    assertEquals(6, groups.get(2).items.size());
+    assertEquals(8, groups.get(2).items.size());
     assertEquals(7, groups.get(3).items.size());
   }
+
+  @Test
+  public void testBuckets() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("foo", "bar");
+    assertTrue(upgrades.isEmpty());
+
+    upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    assertTrue(upgrades.containsKey("upgrade_bucket_test"));
+    UpgradePack upgrade = upgrades.get("upgrade_bucket_test");
+    assertNotNull(upgrade);
+
+    Cluster cluster = makeCluster();
+
+    UpgradeHelper helper = new UpgradeHelper();
+    List<UpgradeGroupHolder> groups = helper.createUpgrade(cluster, m_masterHostResolver, upgrade);
+
+    assertEquals(1, groups.size());
+    UpgradeGroupHolder group = groups.iterator().next();
+
+    assertEquals(7, group.items.size());
+
+  }
+
 
   /**
    * Create an HA cluster
@@ -170,17 +191,17 @@ public class UpgradeHelperTest {
     HostsType type = new HostsType();
     type.hosts = new HashSet<String>(Arrays.asList("h1", "h2", "h3"));
     expect(m_masterHostResolver.getMasterAndHosts("ZOOKEEPER", "ZOOKEEPER_SERVER")).andReturn(type).anyTimes();
-    
+
     type = new HostsType();
     type.hosts = new HashSet<String>(Arrays.asList("h1", "h2"));
     type.master = "h1";
     type.secondary = "h2";
     expect(m_masterHostResolver.getMasterAndHosts("HDFS", "NAMENODE")).andReturn(type).anyTimes();
-    
+
     type = new HostsType();
     type.hosts = new HashSet<String>(Arrays.asList("h2", "h3"));
     expect(m_masterHostResolver.getMasterAndHosts("HDFS", "DATANODE")).andReturn(type).anyTimes();
-    
+
     type = new HostsType();
     type.hosts = new HashSet<String>(Arrays.asList("h2"));
     expect(m_masterHostResolver.getMasterAndHosts("YARN", "RESOURCEMANAGER")).andReturn(type).anyTimes();
@@ -188,18 +209,12 @@ public class UpgradeHelperTest {
     type = new HostsType();
     type.hosts = new HashSet<String>(Arrays.asList("h1", "h3"));
     expect(m_masterHostResolver.getMasterAndHosts("YARN", "NODEMANAGER")).andReturn(type).anyTimes();
-    
-    
+
+
     replay(m_masterHostResolver);
 
     return c;
   }
-  
-  
-  private static class MockModule extends AbstractModule {
-    protected void configure() {
-      
-    }
-  }
+
 
 }

@@ -103,7 +103,7 @@ public class StageWrapper {
    * Indicates the type of wrapper.
    */
   public enum Type {
-    MANUAL,
+    SERVER_SIDE_ACTION,
     RESTART,
     RU_TASKS,
     SERVICE_CHECK

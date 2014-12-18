@@ -91,7 +91,7 @@
       <component name="ZOOKEEPER_SERVER">
         <pre-upgrade>
           <task xsi:type="manual">
-            <message>this is pre</message>
+            <message>Preparing with a manual</message>
           </task>
         </pre-upgrade>
         <upgrade>

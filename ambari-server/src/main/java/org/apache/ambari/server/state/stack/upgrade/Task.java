@@ -64,15 +64,15 @@ public abstract class Task {
     /**
      * @return {@code true} if the task is manual or automated.
      */
-    public boolean isManual() {
-      return this == MANUAL;
+    public boolean isServerAction() {
+      return this == MANUAL || this == CONFIGURE;
     }
 
     /**
      * @return {@code true} if the task is a command type (as opposed to an action)
      */
     public boolean isCommand() {
-      return this == RESTART;
+      return this == RESTART || this == SERVICE_CHECK;
     }
   }
 }

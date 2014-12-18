@@ -141,7 +141,7 @@ public class ColocatedGrouping extends Grouping {
       task.message = batch.message;
 
       StageWrapper wrapper = new StageWrapper(
-          StageWrapper.Type.MANUAL,
+          StageWrapper.Type.SERVER_SIDE_ACTION,
           "Validate partial upgrade",
           new TaskWrapper(null, null, Collections.<String>emptySet(), task));
       results.add(wrapper);
