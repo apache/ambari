@@ -372,7 +372,7 @@
                   <defaultGroupname>root</defaultGroupname>
 
                   <postinstallScriptlet>
-                    <scriptFile>${hadoop-sink.dir}/target/rpm/postinstall.sh</scriptFile>
+                    <scriptFile>${hadoop-sink.dir}/target/classes/rpm/postinstall.sh</scriptFile>
                     <fileEncoding>utf-8</fileEncoding>
                   </postinstallScriptlet>
 
