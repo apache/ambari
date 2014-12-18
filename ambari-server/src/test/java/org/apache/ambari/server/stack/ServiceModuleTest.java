@@ -32,8 +32,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -870,6 +873,46 @@ public class ServiceModuleTest {
     Map<String, Map<String, Map<String, String>>> parentAttributes = parentService.getModuleInfo().getConfigTypeAttributes();
     assertEquals(1, parentAttributes.size());
     assertTrue(parentAttributes.containsKey("BAR"));
+  }
+
+  @Test
+  public void testMerge_Configuration__ExcludedTypes() throws Exception {
+    // child
+    ServiceInfo info = new ServiceInfo();
+    Set<String> childExcludedConfigTypes = new HashSet<String>();
+    childExcludedConfigTypes.add("FOO");
+    info.setExcludedConfigTypes(childExcludedConfigTypes);
+
+    //FOO
+    Collection<PropertyInfo> fooProperties = new ArrayList<PropertyInfo>();
+
+    ConfigurationModule childConfigModule = createConfigurationModule("FOO", fooProperties);
+    Collection<ConfigurationModule> childConfigModules = new ArrayList<ConfigurationModule>();
+    childConfigModules.add(childConfigModule);
+
+    // parent
+    ServiceInfo parentInfo = new ServiceInfo();
+    Set<String> parentExcludedConfigTypes = new HashSet<String>();
+    childExcludedConfigTypes.add("BAR");
+    info.setExcludedConfigTypes(childExcludedConfigTypes);
+    parentInfo.setExcludedConfigTypes(parentExcludedConfigTypes);
+    //BAR
+    Collection<PropertyInfo> barProperties = new ArrayList<PropertyInfo>();
+
+
+    ConfigurationModule parentConfigModule = createConfigurationModule("BAR", barProperties);
+    Collection<ConfigurationModule> parentConfigModules = new ArrayList<ConfigurationModule>();
+    parentConfigModules.add(parentConfigModule);
+
+    // create service modules
+    ServiceModule service = createServiceModule(info, childConfigModules);
+    ServiceModule parentService = createServiceModule(parentInfo, parentConfigModules);
+    // resolve child with parent
+
+    resolveService(service, parentService);
+
+    //resolveService(service, parentService);
+    assertEquals(2, service.getModuleInfo().getExcludedConfigTypes().size());
   }
 
   @Test

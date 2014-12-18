@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -161,6 +163,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> {
     mergeConfigDependencies(parent);
     mergeComponents(parentModule, allStacks, commonServices);
     mergeConfigurations(parentModule, allStacks, commonServices);
+    mergeExcludedConfigTypes(parent);
   }
 
   /**
@@ -256,6 +259,27 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> {
         }
       }
     }
+  }
+
+  /**
+   * Merge excluded configs types with parent.  Child values override parent values.
+   *
+   * @param parent parent service module
+   */
+
+  private void mergeExcludedConfigTypes(ServiceInfo parent){
+    if (serviceInfo.getExcludedConfigTypes() == null){
+      serviceInfo.setExcludedConfigTypes(parent.getExcludedConfigTypes());
+    } else if (parent.getExcludedConfigTypes() != null){
+      Set<String> resultExcludedConfigTypes = serviceInfo.getExcludedConfigTypes();
+      for (String excludedType : parent.getExcludedConfigTypes()) {
+        if (!resultExcludedConfigTypes.contains(excludedType)){
+          resultExcludedConfigTypes.add(excludedType);
+        }
+      }
+      serviceInfo.setExcludedConfigTypes(resultExcludedConfigTypes);
+    }
+
   }
 
   /**
