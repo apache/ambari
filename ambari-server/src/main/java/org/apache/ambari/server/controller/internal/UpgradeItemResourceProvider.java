@@ -182,27 +182,27 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
         resultMap.put(entity.getStageId(), r);
       }
 
-      if (null != clusterName) {
-        UpgradeHelper helper = new UpgradeHelper();
+      if (!resultMap.isEmpty()) {
+        if (null != clusterName) {
+          UpgradeHelper helper = new UpgradeHelper();
 
-        Set<Resource> stages = helper.getStageResources(clusterName, requestId,
-            new ArrayList<Long>(resultMap.keySet()));
+          Set<Resource> stages = helper.getStageResources(clusterName, requestId,
+              new ArrayList<Long>(resultMap.keySet()));
 
-        for (Resource stage : stages) {
-          Long l = (Long) stage.getPropertyValue(StageResourceProvider.STAGE_STAGE_ID);
+          for (Resource stage : stages) {
+            Long l = (Long) stage.getPropertyValue(StageResourceProvider.STAGE_STAGE_ID);
 
-          Resource r = resultMap.get(l);
-          if (null != r) {
-            for (String propertyId : StageResourceProvider.PROPERTY_IDS) {
-              setResourceProperty(r, STAGE_MAPPED_IDS.get(propertyId),
-                stage.getPropertyValue(propertyId), requestPropertyIds);
+            Resource r = resultMap.get(l);
+            if (null != r) {
+              for (String propertyId : StageResourceProvider.PROPERTY_IDS) {
+                setResourceProperty(r, STAGE_MAPPED_IDS.get(propertyId),
+                  stage.getPropertyValue(propertyId), requestPropertyIds);
+              }
             }
           }
         }
+        results.addAll(resultMap.values());
       }
-
-      results.addAll(resultMap.values());
-
     }
     return results;
   }
