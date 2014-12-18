@@ -10,10 +10,34 @@
           "name": "/hdfs"
         },
         {
-          "name": "/hbase"
+          "name": "hbase",
+          "principal": {
+            "value": "hbase@${realm}",
+            "configuration": "hbase-env/hbase_principal_name"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/hbase.headless.keytab",
+            "owner": {
+              "name": "${hbase-env/hbase_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": "r"
+            },
+            "configuration": "hbase-env/hbase_user_keytab"
+          }
         },
         {
           "name": "/smokeuser"
+        }
+      ],
+      "configurations": [
+        {
+          "hbase-site": {
+            "hbase.security.authentication": "kerberos",
+            "hbase.security.authorization": "true"
+          }
         }
       ],
       "components": [
@@ -66,51 +90,7 @@
           ]
         },
         {
-          "name": "HBASE_CLIENT",
-          "identities": [
-            {
-              "name": "secondary_namenode_nn",
-              "principal": {
-                "value": "nn/_HOST@${realm}",
-                "configuration": "hdfs-site/dfs.secondary.namenode.kerberos.principal"
-              },
-              "keytab": {
-                "file": "${keytab_dir}/snn.service.keytab",
-                "owner": {
-                  "name": "${hadoop-env/hdfs_user}",
-                  "access": "r"
-                },
-                "group": {
-                  "name": "${cluster-env/user_group}",
-                  "access": ""
-                },
-                "configuration": "hdfs-site/dfs.secondary.namenode.keytab.file"
-              }
-            },
-            {
-              "name": "secondary_namenode_host",
-              "principal": {
-                "value": "host/_HOST@${realm}"
-              },
-              "keytab": {
-                "file": "${keytab_dir}/snn.service.keytab",
-                "owner": {
-                  "name": "${hadoop-env/hdfs_user}",
-                  "access": "r"
-                },
-                "group": {
-                  "name": "${cluster-env/user_group}",
-                  "access": ""
-                }
-              }
-            },
-            {
-              "name": "/spnego",
-              "principal": {
-                "configuration": "hdfs-site/dfs.secondary.namenode.kerberos.internal.spnego.principal"
-              }
-            }
-          ]
+          "name": "HBASE_CLIENT"
         }
       ]
     }

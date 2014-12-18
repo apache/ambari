@@ -41,25 +41,6 @@
       }
     },
     {
-      "name": "hbase",
-      "principal": {
-        "value": "hbase@${realm}",
-        "configuration": "hbase-env/hbase_principal_name"
-      },
-      "keytab": {
-        "file": "${keytab_dir}/hbase.headless.keytab",
-        "owner": {
-          "name": "root",
-          "access": "r"
-        },
-        "group": {
-          "name": "${cluster-env/user_group}",
-          "access": "r"
-        },
-        "configuration": "hbase-env/hbase_user_keytab"
-      }
-    },
-    {
       "name": "smokeuser",
       "principal": {
         "value": "ambari-qa@${realm}",
