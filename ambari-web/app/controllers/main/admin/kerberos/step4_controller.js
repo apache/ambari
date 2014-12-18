@@ -61,18 +61,25 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
   setStepConfigs: function(configs) {
     var selectedService = App.StackService.find().findProperty('serviceName', 'KERBEROS');
     var configCategories = selectedService.get('configCategories');
-    this.prepareConfigProperties(configs);
-    this.get('stepConfigs').pushObject(this.createServiceConfig(configCategories, configs));
+    this.get('stepConfigs').pushObject(this.createServiceConfig(configCategories, this.prepareConfigProperties(configs)));
     this.set('selectedService', this.get('stepConfigs')[0]);
   },
 
   /**
-   * 
-   * @param {} configs
+   * Filter configs by installed services. Set property value observer.
+   * Set realm property with value from previous configuration step.
+   * Set appropriate category for all configs.
+   *
+   * @param {App.ServiceCofigProperty[]} configs
+   * @returns {App.ServiceConfigProperty[]}
    */
   prepareConfigProperties: function(configs) {
     var self = this;
     var realmValue = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'realm').value;
+    var installedServiceNames = ['Cluster'].concat(App.Service.find().mapProperty('serviceName'));
+    configs = configs.filter(function(item) {
+      return installedServiceNames.contains(item.get('serviceName'));
+    });
     configs.findProperty('name', 'realm').set('value', realmValue);
     configs.findProperty('name', 'realm').set('defaultValue', realmValue);
     
@@ -89,8 +96,15 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
       if (property.get('serviceName') == 'Cluster') property.set('category', 'General');
       else property.set('category', 'Advanced');
     });
+
+    return configs;
   },
 
+  /**
+   * Sync up values between inherited property and its reference.
+   * 
+   * @param {App.ServiceConfigProperty} configProperty
+   */
   spnegoPropertiesObserver: function(configProperty) {
     var self = this;
     this.get('stepConfigs')[0].get('configs').forEach(function(config) {

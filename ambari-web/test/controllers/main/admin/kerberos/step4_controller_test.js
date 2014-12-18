@@ -49,5 +49,89 @@ describe('App.KerberosWizardStep4Controller', function() {
       expect(controller.createServiceConfig([], [])).be.instanceof(App.ServiceConfig);
     });
   });
+
+  describe('#prepareConfigProperties', function() {
+    
+    before(function() {
+      var controller = App.KerberosWizardStep4Controller.create({
+        wizardController: {
+          getDBProperty: function() {
+            return Em.A([
+              Em.Object.create({ name: 'realm', value: 'realm_value' })
+            ]);
+          }
+        }
+      });
+      sinon.stub(App.Service, 'find').returns(Em.A([
+        { serviceName: 'HDFS' }
+      ]));
+      this.result = controller.prepareConfigProperties(properties);
+    });
+
+    after(function() {
+      App.Service.find.restore();
+    });
+
+    var properties = Em.A([
+      Em.Object.create({ name: 'realm', value: '', serviceName: 'Cluster' }),
+      Em.Object.create({ name: 'spnego_keytab', value: 'spnego_keytab_value', serviceName: 'Cluster' }),
+      Em.Object.create({ name: 'hdfs_keytab', value: '', serviceName: 'HDFS', observesValueFrom: 'spnego_keytab' }),
+      Em.Object.create({ name: 'falcon_keytab', value: 'falcon_keytab_value', serviceName: 'FALCON' }),
+      Em.Object.create({ name: 'mapreduce_keytab', value: 'mapreduce_keytab_value', serviceName: 'MAPREDUCE2' }),
+      Em.Object.create({ name: 'hdfs_principal', value: 'hdfs_principal_value', serviceName: 'HDFS' })
+    ]);
+    
+    var propertyValidationCases = [
+      {
+        property: 'spnego_keytab',
+        e: [
+          { key: 'category', value: 'General' },
+          { key: 'observesValueFrom', absent: true },
+        ]
+      },
+      {
+        property: 'realm',
+        e: [
+          { key: 'category', value: 'General' },
+          { key: 'value', value: 'realm_value' },
+        ]
+      },
+      {
+        property: 'hdfs_keytab',
+        e: [
+          { key: 'value', value: 'spnego_keytab_value' },
+          { key: 'observesValueFrom', value: 'spnego_keytab' },
+        ]
+      }
+    ];
+    
+    var absentPropertiesTest = ['falcon_keytab', 'mapreduce_keytab'];
+    
+    it('should contains properties only for installed services', function() {
+      expect(this.result.mapProperty('serviceName').uniq()).to.be.eql(['Cluster', 'HDFS']);
+    });
+
+    absentPropertiesTest.forEach(function(item) {
+      it('property `{0}` should be absent'.format(item), function() {
+        expect(this.result.findProperty('name', item)).to.be.undefined;
+      });
+    }, this);
+    
+    propertyValidationCases.forEach(function(test) {
+      it('property {0} should be created'.format(test.property), function() {
+        expect(this.result.findProperty('name', test.property)).to.be.ok;
+      });
+      test.e.forEach(function(expected) {
+        it('property `{0}` should have `{1}` with value `{2}`'.format(test.property, expected.key, expected.value), function() {
+          if (!!expected.absent) {
+            expect(this.result.findProperty('name', test.property)).to.not.have.deep.property(expected.key);
+          } else {
+            expect(this.result.findProperty('name', test.property)).to.have.deep.property(expected.key, expected.value);
+          }
+        }, this);
+      }, this);
+    });
+    
+  });
 });
 
