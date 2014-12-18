@@ -25,6 +25,14 @@ from hbase import hbase
 
          
 class HbaseClient(Script):
+
+  def pre_rolling_restart(self, env):
+    import params
+    env.set_params(params)
+
+    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      Execute(format("hdp-select set hbase-client {version}"))
+
   def install(self, env):
     self.install_packages(env)
     self.configure(env)

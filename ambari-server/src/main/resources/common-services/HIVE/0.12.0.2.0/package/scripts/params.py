@@ -32,6 +32,9 @@ hdp_stack_version = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(hdp_stack_version)
 stack_is_hdp21 = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.1') >= 0 and compare_versions(hdp_stack_version, '2.2') < 0
 
+# New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
+version = default("/commandParams/version", None)
+
 # Hadoop params
 # TODO, this logic should initialize these parameters in a file inside the HDP 2.2 stack.
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >=0:

@@ -23,6 +23,14 @@ from resource_management import *
 from hive import hive
 
 class HiveClient(Script):
+
+  def pre_rolling_restart(self, env):
+    import params
+    env.set_params(params)
+
+    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      Execute(format("hdp-select set hadoop-client {version}"))
+
   def install(self, env):
     import params
     self.install_packages(env, exclude_packages=params.hive_exclude_packages)

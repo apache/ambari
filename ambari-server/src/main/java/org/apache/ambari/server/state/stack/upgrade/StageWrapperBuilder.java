@@ -31,11 +31,12 @@ public abstract class StageWrapperBuilder {
   /**
    * Adds a processing component that will be built into stage wrappers.
    *
-   * @param hostsType the hosts, along with their type
-   * @param service the service name
-   * @param pc the ProcessingComponent derived from the upgrade pack.
+   * @param hostsType   the hosts, along with their type
+   * @param service     the service name
+   * @param clientOnly  whether the service is client only, no service checks
+   * @param pc          the ProcessingComponent derived from the upgrade pack
    */
-  public abstract void add(HostsType hostsType, String service, ProcessingComponent pc);
+  public abstract void add(HostsType hostsType, String service, boolean clientOnly, ProcessingComponent pc);
 
   /**
    * Builds the stage wrappers.

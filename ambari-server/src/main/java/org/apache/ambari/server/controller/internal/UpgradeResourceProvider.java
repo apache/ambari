@@ -362,6 +362,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     UpgradeHelper helper = new UpgradeHelper();
 
     List<UpgradeGroupHolder> groups = helper.createUpgrade(cluster, mhr, pack);
+    if (groups.isEmpty()) {
+      throw new AmbariException("There are no upgrade groupings available");
+    }
+
     List<UpgradeGroupEntity> groupEntities = new ArrayList<UpgradeGroupEntity>();
 
     final String version = (String) requestMap.get(UPGRADE_VERSION);
@@ -380,7 +384,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         itemEntity.setTasks(wrapper.getTasksJson());
         itemEntity.setHosts(wrapper.getHostsJson());
         itemEntities.add(itemEntity);
-        
+
         injectVariables(configHelper, cluster, itemEntity);
 
         // upgrade items match a stage

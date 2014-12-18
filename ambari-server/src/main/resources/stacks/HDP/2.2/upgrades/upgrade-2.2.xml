@@ -16,18 +16,6 @@
    limitations under the License.
 -->
 
-<!-- Sample Usage of tasks.
-<task xsi:type="execute">
-  <command>echo 'Hello World'</command>
-</task>
-<task xsi:type="configure">
-  <key>prop1</key>
-  <value>value1</value>
-</task>
-<task xsi:type="manual">
-  <message>Please perform the following manual step</message>
-</task>
--->
 
 <upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <target>2.2.*.*</target>
@@ -78,15 +66,46 @@
         <message>Please run additional tests</message>
       </batch>
     </group>
-    
+
+    <group name="CLIENTS" title="Client Components">
+      <service name="HDFS">
+        <component>HDFS_CLIENT</component>
+      </service>
+
+      <service name="YARN">
+        <component>YARN_CLIENT</component>
+      </service>
+
+      <service name="MAPREDUCE2">
+        <component>MAPREDUCE2_CLIENT</component>
+       </service>
+
+       <service name="TEZ">
+         <component>TEZ_CLIENT</component>
+       </service>
+
+       <service name="HBASE">
+         <component>HBASE_CLIENT</component>
+       </service>
+
+       <service name="PIG">
+         <component name="PIG" />
+       </service>
+
+       <service name="HIVE">
+         <component>HIVE_CLIENT</component>
+         <component>HCAT</component>
+       </service>
+    </group>
+
     <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize Upgrade">
-      <!-- 
+    <!--
       <execute-stage title="Confirm Finalize">
         <task xsi:type="manual">
           <message>Please confirm you are ready to finalize</message>
         </task>
       </execute-stage>
-      -->      
+    -->  
       <execute-stage service="HDFS" component="NAMENODE" title="Execute HDFS Finalize">
         <task xsi:type="execute" hosts="master">
           <first>su - {{hadoop-env/hdfs_user}} -c 'hdfs dfsadmin -rollingUpgrade finalize'</first>
@@ -131,7 +150,6 @@
 
     <service name="HDFS">
       <component name="NAMENODE">
-
         <pre-upgrade>
           <!-- Backup the image,
           Enter Safemode if not already in it,
@@ -198,6 +216,12 @@
           <task xsi:type="restart" />
         </upgrade>
       </component>
+      
+      <component name="HDFS_CLIENT">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
 
       <component name="JOURNALNODE">
         <upgrade>
@@ -209,6 +233,12 @@
 
     <service name="MAPREDUCE2">
       <component name="HISTORYSERVER">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+      
+      <component name="MAPREDUCE2_CLIENT">
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
@@ -241,7 +271,13 @@
         </upgrade>
       </component>
 
+      <component name="YARN_CLIENT">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
     </service>
+    
     <service name="HBASE">
       <component name="HBASE_MASTER">
         <pre-upgrade>
@@ -255,6 +291,36 @@
       </component>
 
       <component name="HBASE_REGIONSERVER">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+      
+      <component name="HBASE_CLIENT">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+    </service>
+    
+    <service name="TEZ">
+      <component name="TEZ_CLIENT">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+    </service>
+    
+    <service name="PIG">
+      <component name="PIG">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+    </service>
+    
+    <service name="HIVE">
+      <component name="HIVE_CLIENT">
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>

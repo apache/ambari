@@ -17,12 +17,11 @@
  */
 package org.apache.ambari.server.state;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.LinkedHashSet;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.internal.RequestResourceProvider;
@@ -42,7 +41,6 @@ import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stack.MasterHostResolver;
-import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
@@ -50,7 +48,6 @@ import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapperBuilder;
 import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,7 +82,6 @@ public class UpgradeHelper {
       UpgradeGroupHolder groupHolder = new UpgradeGroupHolder();
       groupHolder.name = group.name;
       groupHolder.title = group.title;
-      groups.add(groupHolder);
 
       StageWrapperBuilder builder = group.getBuilder();
 
@@ -104,9 +100,10 @@ public class UpgradeHelper {
           if (null == hostsType) {
             continue;
           }
-          
+
+          Service svc = cluster.getService(service.serviceName);
           ProcessingComponent pc = allTasks.get(service.serviceName).get(component);
-          
+
           // Special case for NAMENODE
           if (service.serviceName.equalsIgnoreCase("HDFS") && component.equalsIgnoreCase("NAMENODE")) {
             // !!! revisit if needed
@@ -120,22 +117,25 @@ public class UpgradeHelper {
 
               // Override the hosts with the ordered collection
               hostsType.hosts = order;
-              
+
             } else {
 //              throw new AmbariException(MessageFormat.format("Could not find active and standby namenodes using hosts: {0}", StringUtils.join(hostsType.hosts, ", ").toString()));
             }
-            
-            builder.add(hostsType, service.serviceName, pc);
-            
+
+            builder.add(hostsType, service.serviceName, svc.isClientOnlyService(), pc);
+
           } else {
-            builder.add(hostsType, service.serviceName, pc);
+            builder.add(hostsType, service.serviceName, svc.isClientOnlyService(), pc);
           }
         }
       }
 
       List<StageWrapper> proxies = builder.build();
 
-      groupHolder.items = proxies;
+      if (!proxies.isEmpty()) {
+        groupHolder.items = proxies;
+        groups.add(groupHolder);
+      }
     }
 
     if (LOG.isDebugEnabled()) {

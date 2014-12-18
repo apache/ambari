@@ -275,19 +275,22 @@ class Script(object):
     except KeyError:
       pass
 
+    restart_type = ""
+    if config is not None:
+      command_params = config["commandParams"] if "commandParams" in config else None
+      if command_params is not None:
+        restart_type = command_params["restart_type"] if "restart_type" in command_params else ""
+        if restart_type:
+          restart_type = restart_type.encode('ascii', 'ignore')
+
+    rolling_restart = restart_type.lower().startswith("rolling")
+
     if componentCategory and componentCategory.strip().lower() == 'CLIENT'.lower():
+      if rolling_restart:
+        self.pre_rolling_restart(env)
+
       self.install(env)
     else:
-      restart_type = ""
-      if config is not None:
-        command_params = config["commandParams"] if "commandParams" in config else None
-        if command_params is not None:
-          restart_type = command_params["restart_type"] if "restart_type" in command_params else ""
-          if restart_type:
-            restart_type = restart_type.encode('ascii', 'ignore')
-
-      rolling_restart = restart_type.lower().startswith("rolling")
-
       # To remain backward compatible with older stacks, only pass rolling_restart if True.
       if rolling_restart:
         self.stop(env, rolling_restart=rolling_restart)

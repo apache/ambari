@@ -189,7 +189,16 @@ class TestHBaseClient(RMFTestCase):
                               content='log4jproperties\nline2'
     )
     self.assertNoMoreResources()
-    
 
-    
 
+  def test_upgrade(self):
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_client.py",
+                   classname = "HbaseClient",
+                   command = "restart",
+                   config_file="client-upgrade.json",
+                   hdp_stack_version = self.STACK_VERSION,
+                   target = RMFTestCase.TARGET_COMMON_SERVICES)
+
+    self.assertResourceCalled("Execute", "hdp-select set hbase-client 2.2.1.0-2067")
+
+    # for now, it's enough that hdp-select is confirmed

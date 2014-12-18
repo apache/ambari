@@ -49,10 +49,10 @@ public class ColocatedGrouping extends Grouping {
 
   @Override
   public StageWrapperBuilder getBuilder() {
-    return new MultiHomedHolder(batch);
+    return new MultiHomedBuilder(batch);
   }
 
-  private static class MultiHomedHolder extends StageWrapperBuilder {
+  private static class MultiHomedBuilder extends StageWrapperBuilder {
 
     private Batch batch;
 
@@ -61,12 +61,12 @@ public class ColocatedGrouping extends Grouping {
     private Map<String, List<TaskProxy>> finalBatches = new LinkedHashMap<String, List<TaskProxy>>();
 
 
-    private MultiHomedHolder(Batch batch) {
+    private MultiHomedBuilder(Batch batch) {
       this.batch = batch;
     }
 
     @Override
-    public void add(HostsType hostsType, String service, ProcessingComponent pc) {
+    public void add(HostsType hostsType, String service, boolean clientOnly, ProcessingComponent pc) {
 
       int count = Double.valueOf(Math.ceil(
           (double) batch.percent / 100 * hostsType.hosts.size())).intValue();
@@ -88,6 +88,7 @@ public class ColocatedGrouping extends Grouping {
 
         if (null != pc.preTasks && pc.preTasks.size() > 0) {
           proxy = new TaskProxy();
+          proxy.clientOnly = clientOnly;
           proxy.message = getStageText("Preparing", pc.name, Collections.singleton(host));
           proxy.tasks.addAll(TaskWrapperBuilder.getTaskList(service, pc.name, singleHostsType, pc.preTasks));
           proxy.service = service;
@@ -100,6 +101,7 @@ public class ColocatedGrouping extends Grouping {
           Task t = pc.tasks.get(0);
           if (RestartTask.class.isInstance(t)) {
             proxy = new TaskProxy();
+            proxy.clientOnly = clientOnly;
             proxy.tasks.add(new TaskWrapper(service, pc.name, Collections.singleton(host), t));
             proxy.restart = true;
             proxy.service = service;
@@ -112,6 +114,7 @@ public class ColocatedGrouping extends Grouping {
 
         if (null != pc.postTasks && pc.postTasks.size() > 0) {
           proxy = new TaskProxy();
+          proxy.clientOnly = clientOnly;
           proxy.component = pc.name;
           proxy.service = service;
           proxy.tasks.addAll(TaskWrapperBuilder.getTaskList(service, pc.name, singleHostsType, pc.postTasks));
@@ -130,13 +133,13 @@ public class ColocatedGrouping extends Grouping {
         LOG.debug("RU initial: {}", initialBatch);
         LOG.debug("RU final: {}", finalBatches);
       }
-      
+
       results.addAll(fromProxies(initialBatch));
 
       // !!! TODO when manual tasks are ready
       ManualTask task = new ManualTask();
       task.message = batch.message;
-      
+
       StageWrapper wrapper = new StageWrapper(
           StageWrapper.Type.MANUAL,
           "Validate partial upgrade",
@@ -160,7 +163,9 @@ public class ColocatedGrouping extends Grouping {
         List<StageWrapper> execwrappers = new ArrayList<StageWrapper>();
 
         for (TaskProxy t : entry.getValue()) {
-          serviceChecks.add(t.service);
+          if (!t.clientOnly) {
+            serviceChecks.add(t.service);
+          }
 
           if (!t.restart) {
             if (null == wrapper) {
@@ -174,7 +179,7 @@ public class ColocatedGrouping extends Grouping {
         if (null != wrapper) {
           results.add(wrapper);
         }
-        
+
         if (execwrappers.size() > 0) {
           results.addAll(execwrappers);
         }
@@ -209,6 +214,7 @@ public class ColocatedGrouping extends Grouping {
     private String service;
     private String component;
     private String message;
+    private boolean clientOnly = false;
     private List<TaskWrapper> tasks = new ArrayList<TaskWrapper>();
 
     @Override

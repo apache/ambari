@@ -445,3 +445,12 @@ class TestYarnClient(RMFTestCase):
     self.assertNoMoreResources()
 
 
+  def test_upgrade(self):
+    self.executeScript("2.0.6/services/YARN/package/scripts/yarn_client.py",
+                   classname = "YarnClient",
+                   command = "restart",
+                   config_file="client-upgrade.json")
+
+    self.assertResourceCalled("Execute", "hdp-select set hadoop-client 2.2.1.0-2067")
+
+    # for now, it's enough that hdp-select is confirmed

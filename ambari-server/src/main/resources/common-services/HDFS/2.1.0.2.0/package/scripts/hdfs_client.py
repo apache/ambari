@@ -30,6 +30,12 @@ class HdfsClient(Script):
     env.set_params(params)
     self.config(env)
 
+  def pre_rolling_restart(self, env):
+    import params
+    env.set_params(params)
+    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      Execute(format("hdp-select set hadoop-client {version}"))
+
   def start(self, env, rolling_restart=False):
     import params
 

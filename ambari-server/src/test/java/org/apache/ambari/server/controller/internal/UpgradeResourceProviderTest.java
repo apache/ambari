@@ -166,7 +166,7 @@ public class UpgradeResourceProviderTest {
     UpgradeEntity entity = upgrades.get(0);
     assertEquals(cluster.getClusterId(), entity.getClusterId().longValue());
 
-    assertEquals(5, entity.getUpgradeGroups().size());
+    assertEquals(4, entity.getUpgradeGroups().size());
 
     UpgradeGroupEntity group = entity.getUpgradeGroups().get(1);
     assertEquals(4, group.getItems().size());
@@ -236,7 +236,7 @@ public class UpgradeResourceProviderTest {
     ResourceProvider upgradeGroupResourceProvider = new UpgradeGroupResourceProvider(amc);
     resources = upgradeGroupResourceProvider.getResources(request, predicate);
 
-    assertEquals(5, resources.size());
+    assertEquals(4, resources.size());
     res = resources.iterator().next();
     assertNotNull(res.getPropertyValue("UpgradeGroup/status"));
     assertNotNull(res.getPropertyValue("UpgradeGroup/group_id"));

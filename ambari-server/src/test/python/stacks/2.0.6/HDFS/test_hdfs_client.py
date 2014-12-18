@@ -66,3 +66,15 @@ class Test(RMFTestCase):
                               action = ['delete'],
                               )
     self.assertNoMoreResources()
+
+  def test_upgrade(self):
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hdfs_client.py",
+                   classname = "HdfsClient",
+                   command = "restart",
+                   config_file="client-upgrade.json",
+                   hdp_stack_version = self.STACK_VERSION,
+                   target = RMFTestCase.TARGET_COMMON_SERVICES)
+
+    self.assertResourceCalled("Execute", "hdp-select set hadoop-client 2.2.1.0-2067")
+
+    # for now, it's enough that hdp-select is confirmed

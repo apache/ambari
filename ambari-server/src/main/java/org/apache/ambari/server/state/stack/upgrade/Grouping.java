@@ -68,7 +68,7 @@ public class Grouping {
      * @param pc the ProcessingComponent derived from the upgrade pack.
      */
     @Override
-    public void add(HostsType hostsType, String service, ProcessingComponent pc) {
+    public void add(HostsType hostsType, String service, boolean clientOnly, ProcessingComponent pc) {
       if (null != pc.preTasks && pc.preTasks.size() > 0) {
         List<TaskWrapper> preTasks = TaskWrapperBuilder.getTaskList(service, pc.name, hostsType, pc.preTasks);
         Set<String> preTasksEffectiveHosts = TaskWrapperBuilder.getEffectiveHosts(preTasks);
@@ -104,7 +104,9 @@ public class Grouping {
         stages.add(stage);
       }
 
-      serviceChecks.add(service);
+      if (!clientOnly) {
+        serviceChecks.add(service);
+      }
     }
 
     @Override

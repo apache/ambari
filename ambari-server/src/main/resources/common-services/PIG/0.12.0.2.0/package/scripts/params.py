@@ -29,6 +29,9 @@ tmp_dir = Script.get_tmp_dir()
 hdp_stack_version = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(hdp_stack_version)
 
+# New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
+version = default("/commandParams/version", None)
+
 #hadoop params
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
