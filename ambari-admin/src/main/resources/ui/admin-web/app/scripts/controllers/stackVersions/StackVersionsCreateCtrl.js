@@ -21,7 +21,7 @@ angular.module('ambariAdminConsole')
 .controller('StackVersionsCreateCtrl', ['$scope', 'Stack', '$routeParams', '$location', 'Alert', function($scope, Stack, $routeParams, $location, Alert) {
   $scope.clusterName = $routeParams.clusterName;
   $scope.upgradeStack = {
-    value: null,
+    selected: null,
     options: []
   };
   $scope.fetchStackVersionFilterList = function () {
@@ -34,14 +34,13 @@ angular.module('ambariAdminConsole')
         }
       });
       $scope.upgradeStack.options = versions;
-      $scope.upgradeStack.value = versions[versions.length - 1].value;
+      $scope.upgradeStack.selected = versions[versions.length - 1];
     })
     .catch(function (data) {
       Alert.error('Fetch stack version filter list error', data.message);
     });
   };
   $scope.fetchStackVersionFilterList();
-  $scope.upgradeStack.value = $scope.upgradeStack.options[0];
 
   // TODO retrieve operating systems and repo names from stack definition
   $scope.repositories = [
@@ -85,10 +84,14 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.create = function () {
-    Stack.addRepo($scope.upgradeStack.value, $scope.versionName, $scope.repositories)
+    Stack.addRepo($scope.upgradeStack.selected, $scope.repoSubversion, $scope.repositories)
     .success(function () {
-      var versionName = $scope.upgradeStack.value + '.' + $scope.versionName;
-      Alert.success('Created version <a href="#/stackVersions/' + versionName + '/edit">' + versionName + '</a>');
+      var versionName = $scope.upgradeStack.selected.stack_version + '.' + $scope.repoSubversion;
+      var stackName = $scope.upgradeStack.selected.stack_name;
+      Alert.success('Created version ' +
+      '<a href="#/stackVersions/' + stackName + '/' + versionName + '/edit">'
+        + stackName + versionName +
+      '</a>');
       $location.path('/stackVersions');
     })
     .error(function (data) {

@@ -31,15 +31,15 @@
         <label class="control-label col-sm-2 repo-version-label">Version</label>
         <div class="form-group col-sm-3 repo-version-left">
           <select class="form-control repo-version-select"
-                  ng-model="upgradeStack.value"
-                  ng-options="o.value as o.displayName for o in upgradeStack.options">
+                  ng-model="upgradeStack.selected"
+                  ng-options="o as o.displayName for o in upgradeStack.options">
           </select>
           <span class="bold-dot">.</span>
         </div>
         <div class="form-group col-sm-6" ng-class="{'has-error' : repoRegForm.version.$error.pattern}">
-          <input class="form-control" name="version" type="text" ng-model="versionName" ng-pattern="/^\d(\.\d)?(\-\d*)?$/"
+          <input class="form-control" name="version" type="text" ng-model="repoSubversion" ng-pattern="/^\d(\.\d)?(\-\d*)?$/"
                  placeholder="Version Name" required/>
-          <span class="text-primary" ng-show="!repoRegForm.version.$error.pattern">&nbsp;{{upgradeStack.value + '.' + versionName}}</span>
+          <span class="text-primary" ng-show="!repoRegForm.version.$error.pattern">&nbsp;{{upgradeStack.selected.displayName + '.' + repoSubversion}}</span>
           <span class="text-danger" ng-show="repoRegForm.version.$error.pattern">Invalid subversion. eg: 1.0-123</span>
         </div>
       </div>

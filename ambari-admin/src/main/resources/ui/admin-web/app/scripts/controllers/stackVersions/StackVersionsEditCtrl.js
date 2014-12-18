@@ -20,9 +20,10 @@
 angular.module('ambariAdminConsole')
 .controller('StackVersionsEditCtrl', ['$scope', '$location', 'Stack', '$routeParams', 'ConfirmationModal', 'Alert', function($scope, $location, Stack, $routeParams, ConfirmationModal, Alert) {
   function loadStackVersionInfo () {
-    return Stack.getRepo($routeParams.versionId).then(function (response) {
+    return Stack.getRepo($routeParams.versionId, $routeParams.stackName).then(function (response) {
       $scope.id = response.id;
       $scope.stack = response.stack;
+      $scope.stackName = response.stackName;
       $scope.versionName = response.versionName;
       $scope.stackVersion = response.stackVersion;
       $scope.updateObj = response.updateObj;
@@ -41,8 +42,8 @@ angular.module('ambariAdminConsole')
     $scope.editVersionDisabled = true;
 
     delete $scope.updateObj.href;
-    Stack.updateRepo($scope.stackVersion, $scope.id, $scope.updateObj).then(function () {
-      Alert.success('Edited version <a href="#/stackVersions/' + $scope.versionName + '/edit">' + $scope.repoVersionFullName + '</a>');
+    Stack.updateRepo($scope.stackName, $scope.stackVersion, $scope.id, $scope.updateObj).then(function () {
+      Alert.success('Edited version <a href="#/stackVersions/' + $scope.stackName + '/' + $scope.versionName + '/edit">' + $scope.repoVersionFullName + '</a>');
       $location.path('/stackVersions');
     }).catch(function (data) {
       Alert.error('Version update error', data.message);
@@ -56,7 +57,7 @@ angular.module('ambariAdminConsole')
 
   $scope.delete = function () {
     ConfirmationModal.show('Delete Version', 'Are you sure you want to delete version "'+ $scope.versionName +'"?').then(function() {
-      Stack.deleteRepo($scope.stackVersion, $scope.id).then( function () {
+      Stack.deleteRepo($scope.stackName, $scope.stackVersion, $scope.id).then( function () {
         $location.path('/stackVersions');
       }).catch(function (data) {
         Alert.error('Version delete error', data.message);

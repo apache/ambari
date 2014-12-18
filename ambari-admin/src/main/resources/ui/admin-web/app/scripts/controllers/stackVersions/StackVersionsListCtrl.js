@@ -20,8 +20,6 @@
 angular.module('ambariAdminConsole')
   .controller('StackVersionsListCtrl', ['$scope', 'Cluster', 'Stack', '$routeParams', function ($scope, Cluster, Stack, $routeParams) {
   $scope.clusterName = $routeParams.clusterName;
-
-  // TODO retrieve a list of stacks having "upgrade_pack" from backend
   $scope.filter = {
     version: '',
     cluster: {
@@ -79,10 +77,12 @@ angular.module('ambariAdminConsole')
       $scope.pagination.totalStacks = stacks.items.length;
       var repos = [];
       angular.forEach(stacks.items, function(stack) {
-        var repoVersions = stack.repository_versions;
-        if (repoVersions.length > 0) {
-          repos = repos.concat(repoVersions);
-        }
+        angular.forEach(stack.versions, function (version) {
+          var repoVersions = version.repository_versions;
+          if (repoVersions.length > 0) {
+            repos = repos.concat(repoVersions);
+          }
+        });
       });
       repos = repos.map(function (stack) {
         return stack.RepositoryVersions;
@@ -97,7 +97,7 @@ angular.module('ambariAdminConsole')
   $scope.fillClusters = function (clusters) {
     $scope.dropDownClusters = [{
       Clusters: {
-        cluster_name: 'Install on...'
+        cluster_name: 'Configure on...'
       }
     }].concat(clusters);
     $scope.selectedCluster = $scope.dropDownClusters[0];

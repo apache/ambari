@@ -51,7 +51,7 @@ angular.module('ambariAdminConsole')
 
   return {
     allStackVersions: function () {
-      var url = Settings.baseUrl + '/stacks?fields=versions/Versions';
+      var url = Settings.baseUrl + '/stacks?fields=versions/*';
       var deferred = $q.defer();
       $http.get(url, {mock: 'stack/allStackVersions.json'})
       .success(function (data) {
@@ -62,8 +62,9 @@ angular.module('ambariAdminConsole')
             var stack_version = version.Versions.stack_version;
             var upgrade_packs = version.Versions.upgrade_packs;
             allStackVersions.push({
+              stack_name: stack_name,
+              stack_version: stack_version,
               displayName: stack_name + '-' + stack_version,
-              value: stack_version,
               upgrade_packs: upgrade_packs
             });
           });
@@ -78,9 +79,9 @@ angular.module('ambariAdminConsole')
 
     allRepos: function (filter, pagination) {
       var versionFilter = filter.version;
-      var url = '/stacks/HDP/versions?fields=repository_versions/RepositoryVersions'; // TODO should not hard code HDP
+      var url = '/stacks?fields=versions/repository_versions/RepositoryVersions';
       if (versionFilter) {
-        url += '&repository_versions/RepositoryVersions/repository_version.matches(.*' + versionFilter + '.*)';
+        url += '&versions/repository_versions/RepositoryVersions/repository_version.matches(.*' + versionFilter + '.*)';
       }
       url += '&from='+ (pagination.currentPage - 1) * pagination.itemsPerPage;
       url += '&page_size=' + pagination.itemsPerPage;
@@ -95,13 +96,12 @@ angular.module('ambariAdminConsole')
       return deferred.promise;
     },
 
-    addRepo: function (stack, version, osList) {
-      var url = '/stacks/HDP/versions/2.2/repository_versions/';
+    addRepo: function (stack, repoSubversion, osList) {
+      var url = '/stacks/' + stack.stack_name + '/versions/' + stack.stack_version + '/repository_versions/';
       var payload = {};
       var payloadWrap = { RepositoryVersions : payload };
-      payload.repository_version = stack + '.' + version;
-      payload.display_name = 'HDP-' + payload.repository_version;
-      payload.upgrade_pack = "upgrade-2.2"; // TODO get this value from backend
+      payload.repository_version = stack.stack_version + '.' + repoSubversion;
+      payload.display_name = stack.stack_name + '-' + payload.repository_version;
       payloadWrap.operating_systems = [];
       angular.forEach(osList, function (osItem) {
         if (osItem.selected)
@@ -125,9 +125,8 @@ angular.module('ambariAdminConsole')
       return $http.post(Settings.baseUrl + url, payloadWrap);
     },
 
-    getRepo: function (repoVersion) {
-      // TODO do not hard code HDP
-      var url = Settings.baseUrl + '/stacks/HDP/versions?' +
+    getRepo: function (repoVersion, stack_name) {
+      var url = Settings.baseUrl + '/stacks/' + stack_name + '/versions?' +
                 'fields=repository_versions/operating_systems/repositories/*' +
                 '&repository_versions/RepositoryVersions/repository_version=' + repoVersion;
       var deferred = $q.defer();
@@ -138,6 +137,7 @@ angular.module('ambariAdminConsole')
           id : data.repository_versions[0].RepositoryVersions.id,
           stackVersion : data.Versions.stack_version,
           stack: data.Versions.stack_name + '-' + data.Versions.stack_version,
+          stackName: data.Versions.stack_name,
           versionName: data.repository_versions[0].RepositoryVersions.repository_version,
           repoVersionFullName : data.Versions.stack_name + '-' + data.repository_versions[0].RepositoryVersions.repository_version,
           osList: data.repository_versions[0].operating_systems,
@@ -151,8 +151,8 @@ angular.module('ambariAdminConsole')
       return deferred.promise;
     },
 
-    updateRepo: function (stackVersion, id, payload) {
-      var url = Settings.baseUrl + '/stacks/HDP/versions/' + stackVersion + '/repository_versions/' + id;
+    updateRepo: function (stackName, stackVersion, id, payload) {
+      var url = Settings.baseUrl + '/stacks/' + stackName + '/versions/' + stackVersion + '/repository_versions/' + id;
       var deferred = $q.defer();
       $http.put(url, payload)
       .success(function (data) {
@@ -164,8 +164,8 @@ angular.module('ambariAdminConsole')
       return deferred.promise;
     },
 
-    deleteRepo: function (stackVersion, id) {
-      var url = Settings.baseUrl + '/stacks/HDP/versions/' + stackVersion + '/repository_versions/' + id;
+    deleteRepo: function (stackName, stackVersion, id) {
+      var url = Settings.baseUrl + '/stacks/' + stackName + '/versions/' + stackVersion + '/repository_versions/' + id;
       var deferred = $q.defer();
       $http.delete(url)
       .success(function (data) {

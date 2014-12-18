@@ -92,7 +92,7 @@ angular.module('ambariAdminConsole')
       controller: 'StackVersionsCreateCtrl'
     },
     edit: {
-      url: '/stackVersions/:versionId/edit',
+      url: '/stackVersions/:stackName/:versionId/edit',
       templateUrl: 'views/stackVersions/edit.html',
       controller: 'StackVersionsEditCtrl'
     }

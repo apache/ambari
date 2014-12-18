@@ -49,7 +49,9 @@
     </thead>
     <tbody>
     <tr ng-repeat="repo in repos">
-      <td class="col-medium"><a href="#/stackVersions/{{repo.repository_version}}/edit">{{'HDP-' + repo.repository_version}}</a></td>
+      <td class="col-medium">
+        <a href="#/stackVersions/{{repo.stack_name}}/{{repo.repository_version}}/edit">{{repo.stack_name + '-' + repo.repository_version}}</a>
+      </td>
       <td class="col-small">
         <a href ng-show="repo.cluster">
           <i class="glyphicon glyphicon-cloud"></i>
