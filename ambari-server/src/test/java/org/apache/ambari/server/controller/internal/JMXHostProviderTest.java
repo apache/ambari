@@ -133,7 +133,8 @@ public class JMXHostProviderTest {
     String clusterName = "c1";
     ClusterRequest r = new ClusterRequest(null, clusterName, "HDP-0.1", null);
     controller.createCluster(r);
-    clusters.getCluster(clusterName).setDesiredStackVersion(new StackId("HDP-0.1"));
+    Cluster cluster = clusters.getCluster(clusterName);
+    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
     String serviceName = "HDFS";
     createService(clusterName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -187,7 +188,7 @@ public class JMXHostProviderTest {
       
       ConfigurationRequest cr = new ConfigurationRequest(clusterName,
         "hdfs-site", "version1", configs, null);
-      ClusterRequest crequest = new ClusterRequest(null, clusterName, null, null);
+      ClusterRequest crequest = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
       crequest.setDesiredConfig(Collections.singletonList(cr));
       controller.updateClusters(Collections.singleton(crequest), new HashMap<String,String>());
       
@@ -199,7 +200,7 @@ public class JMXHostProviderTest {
       ConfigurationRequest cr = new ConfigurationRequest(clusterName,
         "hdfs-site", "version2", configs, null);
       
-      ClusterRequest crequest = new ClusterRequest(null, clusterName, null, null);
+      ClusterRequest crequest = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
       crequest.setDesiredConfig(Collections.singletonList(cr));
       controller.updateClusters(Collections.singleton(crequest), new HashMap<String,String>());
     }
@@ -209,7 +210,8 @@ public class JMXHostProviderTest {
     String clusterName = "c1";
     ClusterRequest r = new ClusterRequest(null, clusterName, "HDP-2.0.6", null);
     controller.createCluster(r);
-    clusters.getCluster(clusterName).setDesiredStackVersion(new StackId("HDP-2.0.6"));
+    Cluster cluster = clusters.getCluster(clusterName);
+    cluster.setDesiredStackVersion(new StackId("HDP-2.0.6"));
     String serviceName = "HDFS";
     String serviceName2 = "YARN";
     createService(clusterName, serviceName, null);
@@ -271,10 +273,10 @@ public class JMXHostProviderTest {
     ConfigurationRequest cr1 = new ConfigurationRequest(clusterName,
       "hdfs-site", "versionN", configs, null);
 
-    ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
+    ClusterRequest crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
-    Cluster cluster = clusters.getCluster(clusterName);
+    cluster = clusters.getCluster(clusterName);
     Assert.assertEquals("versionN", cluster.getDesiredConfigByType("hdfs-site")
       .getTag());
 
@@ -399,7 +401,7 @@ public class JMXHostProviderTest {
     ConfigurationRequest cr2 = new ConfigurationRequest("c1",
       "yarn-site", "versionN+1", yarnConfigs, null);
 
-    ClusterRequest crReq = new ClusterRequest(null, "c1", null, null);
+    ClusterRequest crReq = new ClusterRequest(1L, "c1", null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr2));
     controller.updateClusters(Collections.singleton(crReq), null);
     Assert.assertEquals("50030", providerModule.getPort("c1", "RESOURCEMANAGER"));

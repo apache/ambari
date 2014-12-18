@@ -2238,6 +2238,7 @@ public class AmbariManagementControllerTest {
 
     final String host1 = "h1";
     final String host2 = "h2";
+    Long clusterId = 1L;
     String clusterName = "foo1";
     setupClusterWithHosts(clusterName, "HDP-2.0.5",
         new ArrayList<String>() {{
@@ -2279,7 +2280,7 @@ public class AmbariManagementControllerTest {
     ConfigurationRequest cr1;
     cr1 = new ConfigurationRequest(clusterName, "hdfs-site", "version1",
         configs, null);
-    ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
+    ClusterRequest crReq = new ClusterRequest(clusterId, clusterName, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
 
@@ -4531,8 +4532,8 @@ public class AmbariManagementControllerTest {
   public void testRcaOnJobtrackerHost() throws AmbariException {
     String clusterName = "foo1";
     createCluster(clusterName);
-    clusters.getCluster(clusterName)
-        .setDesiredStackVersion(new StackId("HDP-0.1"));
+    Cluster cluster = clusters.getCluster(clusterName);
+    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
     String serviceName = "MAPREDUCE";
     createService(clusterName, serviceName, null);
     String componentName1 = "JOBTRACKER";
@@ -4572,7 +4573,7 @@ public class AmbariManagementControllerTest {
     configs.put("rca_enabled", "true");
 
 
-    ClusterRequest cr = new ClusterRequest(null, clusterName, null, null);
+    ClusterRequest cr = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
     cr.setDesiredConfig(Collections.singletonList(new ConfigurationRequest(clusterName, "global",
         "v1", configs, null)));
     controller.updateClusters(Collections.singleton(cr), Collections.<String, String>emptyMap());
@@ -5110,8 +5111,8 @@ public class AmbariManagementControllerTest {
   public void testReConfigureServiceClient() throws AmbariException {
     String clusterName = "foo1";
     createCluster(clusterName);
-    clusters.getCluster(clusterName)
-      .setDesiredStackVersion(new StackId("HDP-0.1"));
+    Cluster cluster = clusters.getCluster(clusterName);
+    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
     String serviceName1 = "HDFS";
     String serviceName2 = "MAPREDUCE";
     String componentName1 = "NAMENODE";
@@ -5174,10 +5175,10 @@ public class AmbariManagementControllerTest {
     cr2 = new ConfigurationRequest(clusterName, "hdfs-site","version1",
       configs, null);
 
-    ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
+    ClusterRequest crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
-    crReq = new ClusterRequest(null, clusterName, null, null);
+    crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr2));
     controller.updateClusters(Collections.singleton(crReq), null);
 
@@ -5200,7 +5201,7 @@ public class AmbariManagementControllerTest {
     configs.put("c", "d");
     cr3 = new ConfigurationRequest(clusterName, "core-site","version122",
       configs, null);
-    crReq = new ClusterRequest(null, clusterName, null, null);
+    crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr3));
     controller.updateClusters(Collections.singleton(crReq), null);
 
@@ -5290,8 +5291,8 @@ public class AmbariManagementControllerTest {
   public void testReconfigureClientWithServiceStarted() throws Exception {
     String clusterName = "foo1";
     createCluster(clusterName);
-    clusters.getCluster(clusterName)
-      .setDesiredStackVersion(new StackId("HDP-0.1"));
+    Cluster cluster = clusters.getCluster(clusterName);
+    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
     String serviceName = "HDFS";
     createService(clusterName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -5330,10 +5331,10 @@ public class AmbariManagementControllerTest {
     cr2 = new ConfigurationRequest(clusterName, "hdfs-site","version1",
       configs, null);
 
-    ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
+    ClusterRequest crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
-    crReq = new ClusterRequest(null, clusterName, null, null);
+    crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr2));
     controller.updateClusters(Collections.singleton(crReq), null);
 
@@ -5356,7 +5357,7 @@ public class AmbariManagementControllerTest {
     configs.put("c", "d");
     cr3 = new ConfigurationRequest(clusterName, "core-site","version122",
       configs, null);
-    crReq = new ClusterRequest(null, clusterName, null, null);
+    crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr3));
     controller.updateClusters(Collections.singleton(crReq), null);
 
@@ -5896,8 +5897,8 @@ public class AmbariManagementControllerTest {
     String clusterName = "c1";
     String serviceName = "HIVE";
     createCluster(clusterName);
-    clusters.getCluster(clusterName)
-      .setDesiredStackVersion(new StackId("HDP-1.2.0"));
+    Cluster cluster = clusters.getCluster(clusterName);
+    cluster.setDesiredStackVersion(new StackId("HDP-1.2.0"));
     createService(clusterName, serviceName, null);
 
     String componentName1 = "HIVE_METASTORE";
@@ -5932,7 +5933,7 @@ public class AmbariManagementControllerTest {
     ConfigurationRequest cr1;
     cr1 = new ConfigurationRequest(clusterName, "hive-site","version1",
       configs, null);
-    ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
+    ClusterRequest crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
 
@@ -5965,8 +5966,8 @@ public class AmbariManagementControllerTest {
   public void testDecommissonDatanodeAction() throws Exception {
     String clusterName = "foo1";
     createCluster(clusterName);
-    clusters.getCluster(clusterName)
-      .setDesiredStackVersion(new StackId("HDP-2.0.7"));
+    Cluster cluster = clusters.getCluster(clusterName);
+    cluster.setDesiredStackVersion(new StackId("HDP-2.0.7"));
     String serviceName = "HDFS";
     createService(clusterName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -6010,14 +6011,14 @@ public class AmbariManagementControllerTest {
     ConfigurationRequest cr1;
     cr1 = new ConfigurationRequest(clusterName, "hdfs-site","version1",
       configs, null);
-    ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
+    ClusterRequest crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
 
     // Start
     startService(clusterName, serviceName, false, false);
 
-    Cluster cluster = clusters.getCluster(clusterName);
+    cluster = clusters.getCluster(clusterName);
     Service s = cluster.getService(serviceName);
     Assert.assertEquals(State.STARTED, s.getDesiredState());
     ServiceComponentHost scHost = s.getServiceComponent("DATANODE").getServiceComponentHost("h2");
@@ -6352,8 +6353,8 @@ public class AmbariManagementControllerTest {
   public void testConfigsAttachedToServiceChecks() throws AmbariException {
     String clusterName = "foo1";
     createCluster(clusterName);
-    clusters.getCluster(clusterName)
-      .setDesiredStackVersion(new StackId("HDP-0.1"));
+    Cluster cluster = clusters.getCluster(clusterName);
+    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
     String serviceName = "HDFS";
     createService(clusterName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -6396,10 +6397,10 @@ public class AmbariManagementControllerTest {
     cr2 = new ConfigurationRequest(clusterName, "hdfs-site","version1",
       configs, null);
 
-    ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
+    ClusterRequest crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
-    crReq = new ClusterRequest(null, clusterName, null, null);
+    crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr2));
     controller.updateClusters(Collections.singleton(crReq), null);
 
@@ -6572,7 +6573,8 @@ public class AmbariManagementControllerTest {
   public void testConfigGroupOverridesWithHostActions() throws AmbariException {
     String clusterName = "foo1";
     createCluster(clusterName);
-    clusters.getCluster(clusterName).setDesiredStackVersion(new StackId("HDP-2.0.6"));
+    Cluster cluster = clusters.getCluster(clusterName);
+    cluster.setDesiredStackVersion(new StackId("HDP-2.0.6"));
     String serviceName1 = "HDFS";
     String serviceName2 = "MAPREDUCE2";
     createService(clusterName, serviceName1, null);
@@ -6622,20 +6624,20 @@ public class AmbariManagementControllerTest {
     cr3 = new ConfigurationRequest(clusterName, "mapred-site","version1",
       configs, null);
 
-    ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
+    ClusterRequest crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
-    crReq = new ClusterRequest(null, clusterName, null, null);
+    crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr2));
     controller.updateClusters(Collections.singleton(crReq), null);
-    crReq = new ClusterRequest(null, clusterName, null, null);
+    crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr3));
     controller.updateClusters(Collections.singleton(crReq), null);
 
     // Create Config group for core-site
     configs = new HashMap<String, String>();
     configs.put("a", "c");
-    Cluster cluster = clusters.getCluster(clusterName);
+    cluster = clusters.getCluster(clusterName);
     final Config config = new ConfigImpl("core-site");
     config.setProperties(configs);
     config.setTag("version122");
@@ -6738,8 +6740,8 @@ public class AmbariManagementControllerTest {
   public void testConfigGroupOverridesWithDecommissionDatanode() throws AmbariException {
     String clusterName = "foo1";
     createCluster(clusterName);
-    clusters.getCluster(clusterName)
-        .setDesiredStackVersion(new StackId("HDP-2.0.7"));
+    Cluster cluster = clusters.getCluster(clusterName);
+    cluster.setDesiredStackVersion(new StackId("HDP-2.0.7"));
     String serviceName = "HDFS";
     createService(clusterName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -6780,7 +6782,7 @@ public class AmbariManagementControllerTest {
     ConfigurationRequest cr1, cr2;
     cr1 = new ConfigurationRequest(clusterName, "hdfs-site", "version1",
         configs, null);
-    ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
+    ClusterRequest crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
 
@@ -6806,7 +6808,7 @@ public class AmbariManagementControllerTest {
 
     Assert.assertNotNull(groupId);
 
-    Cluster cluster = clusters.getCluster(clusterName);
+    cluster = clusters.getCluster(clusterName);
     Service s = cluster.getService(serviceName);
     Assert.assertEquals(State.STARTED, s.getDesiredState());
 
@@ -6840,8 +6842,8 @@ public class AmbariManagementControllerTest {
   public void testConfigGroupOverridesWithServiceCheckActions() throws AmbariException {
     String clusterName = "foo1";
     createCluster(clusterName);
-    clusters.getCluster(clusterName)
-      .setDesiredStackVersion(new StackId("HDP-0.1"));
+    Cluster cluster = clusters.getCluster(clusterName);
+    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
     String serviceName = "HDFS";
     createService(clusterName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -6883,10 +6885,10 @@ public class AmbariManagementControllerTest {
     cr2 = new ConfigurationRequest(clusterName, "hdfs-site","version1",
       configs, null);
 
-    ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
+    ClusterRequest crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr1));
     controller.updateClusters(Collections.singleton(crReq), null);
-    crReq = new ClusterRequest(null, clusterName, null, null);
+    crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr2));
     controller.updateClusters(Collections.singleton(crReq), null);
 
@@ -8793,6 +8795,7 @@ public class AmbariManagementControllerTest {
 
 
     String STACK_ID = "HDP-2.0.1";
+    Long CLUSTER_ID = 1L;
     String CLUSTER_NAME = "c1";
     String HOST1 = "h1";
     String HOST2 = "h2";
@@ -8818,6 +8821,7 @@ public class AmbariManagementControllerTest {
       ConfigurationRequest configRequest = new ConfigurationRequest(CLUSTER_NAME, "global", "version1",
           new HashMap<String, String>() {{ put("a", "b"); }}, null);
       cr.setDesiredConfig(Collections.singletonList(configRequest));
+      cr.setClusterId(CLUSTER_ID);
       amc.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
 
       // add some hosts
@@ -10060,7 +10064,7 @@ public class AmbariManagementControllerTest {
     Cluster cluster =  clusters.getCluster(clusterName);
     cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
 
-    ClusterRequest cr = new ClusterRequest(null, cluster.getClusterName(), null, null);
+    ClusterRequest cr = new ClusterRequest(cluster.getClusterId(), cluster.getClusterName(), null, null);
 
     // test null map with no prior
     cr.setDesiredConfig(Collections.singletonList(
@@ -10215,6 +10219,7 @@ public class AmbariManagementControllerTest {
 
     final String host1 = "h1";
     final String host2 = "h2";
+    Long clusterId = 1L;
     String clusterName = "foo1";
     setupClusterWithHosts(clusterName, "HDP-2.0.5", new ArrayList<String>() {
       {
@@ -10252,7 +10257,7 @@ public class AmbariManagementControllerTest {
     };
 
     ConfigurationRequest cr1 = new ConfigurationRequest(clusterName, "hdfs-site", "version1", hdfsConfigs, hdfsConfigAttributes);
-    ClusterRequest crReq1 = new ClusterRequest(null, clusterName, null, null);
+    ClusterRequest crReq1 = new ClusterRequest(clusterId, clusterName, null, null);
     crReq1.setDesiredConfig(Collections.singletonList(cr1));
 
     controller.updateClusters(Collections.singleton(crReq1), null);
@@ -10312,7 +10317,7 @@ public class AmbariManagementControllerTest {
   public void testTargetedProcessCommand() throws Exception {
     final String host1 = "h1";
     String clusterName = "c1";
-    setupClusterWithHosts(clusterName, "HDP-2.0.5", Arrays.asList(host1), "centos5");
+    Cluster cluster = setupClusterWithHosts(clusterName, "HDP-2.0.5", Arrays.asList(host1), "centos5");
     String serviceName = "HDFS";
     createService(clusterName, serviceName, null);
     String componentName1 = "NAMENODE";
@@ -10335,7 +10340,7 @@ public class AmbariManagementControllerTest {
     };
 
     ConfigurationRequest cr1 = new ConfigurationRequest(clusterName, "hdfs-site", "version1", hdfsConfigs, hdfsConfigAttributes);
-    ClusterRequest crReq1 = new ClusterRequest(null, clusterName, null, null);
+    ClusterRequest crReq1 = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
     crReq1.setDesiredConfig(Collections.singletonList(cr1));
 
     controller.updateClusters(Collections.singleton(crReq1), null);

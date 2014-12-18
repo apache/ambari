@@ -513,9 +513,13 @@ public class AmbariManagementControllerImplTest {
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
     expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
     expect(clusterRequest.getClusterName()).andReturn("clusterNew").times(4);
-    expect(clusterRequest.getClusterId()).andReturn(1L).times(4);
-    expect(clusters.getClusterById(1L)).andReturn(cluster);
+    expect(clusterRequest.getClusterId()).andReturn(1L).times(6);
+    expect(clusters.getClusterById(1L)).andReturn(cluster).times(2);
     expect(cluster.getClusterName()).andReturn("clusterOld").times(2);
+
+    cluster.addSessionAttributes(anyObject(Map.class));
+    expectLastCall().once();
+
     cluster.setClusterName("clusterNew");
     expectLastCall();
 
@@ -553,8 +557,8 @@ public class AmbariManagementControllerImplTest {
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
     expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
     expect(clusterRequest.getClusterName()).andReturn("clusterNew").times(4);
-    expect(clusterRequest.getClusterId()).andReturn(1L).times(4);
-    expect(clusters.getClusterById(1L)).andReturn(cluster);
+    expect(clusterRequest.getClusterId()).andReturn(1L).times(6);
+    expect(clusters.getClusterById(1L)).andReturn(cluster).times(2);
     expect(cluster.getClusterName()).andReturn("clusterOld").times(2);
     cluster.setClusterName("clusterNew");
     expectLastCall().andThrow(new RollbackException());

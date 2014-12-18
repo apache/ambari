@@ -1146,9 +1146,24 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // configuration updates (create multiple configuration resources)...
     for (ClusterRequest request : requests) {
       // TODO : Is there ever a real world case where we could have multiple non-null responses?
-      response = updateCluster(request);
+
+      // ***************************************************
       // set any session attributes for this cluster request
-      clusters.addSessionAttributes(request.getClusterName(), request.getSessionAttributes());
+      Long requestedClusterId = request.getClusterId();
+      if (requestedClusterId == null) {
+        throw new AmbariException("The cluster ID may not be null");
+      }
+
+      Cluster cluster = clusters.getClusterById(request.getClusterId());
+      if (cluster == null) {
+        throw new AmbariException("The cluster may not be null");
+      }
+
+      cluster.addSessionAttributes(request.getSessionAttributes());
+      //
+      // ***************************************************
+
+      response = updateCluster(request);
     }
     return response;
   }
