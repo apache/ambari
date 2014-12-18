@@ -295,18 +295,29 @@ public class KerberosHelper {
                 // variables within the Kerberos descriptor data
                 Map<String, Map<String, String>> configurations = calculateConfigurations(cluster, hostname);
 
+                // A map to hold un-categorized properties.  This may come from the KerberosDescriptor
+                // and will also contain a value for the current host
+                Map<String, String> generalProperties = new HashMap<String, String>();
+
+                // Make sure the configurations exist.
+                if (configurations == null) {
+                  configurations = new HashMap<String, Map<String, String>>();
+                }
+
                 // If any properties are set in the calculated KerberosDescriptor, add them into the
                 // Map of configurations as an un-categorized type (using an empty string)
                 if (kerberosDescriptorProperties != null) {
-                  if (configurations == null) {
-                    configurations = new HashMap<String, Map<String, String>>();
-                  }
+                  generalProperties.putAll(kerberosDescriptorProperties);
+                }
 
-                  if (configurations.get("") == null) {
-                    configurations.put("", kerberosDescriptorProperties);
-                  } else {
-                    configurations.get("").putAll(kerberosDescriptorProperties);
-                  }
+                // Add the current hostname under "host" and "hostname"
+                generalProperties.put("host", hostname);
+                generalProperties.put("hostname", hostname);
+
+                if (configurations.get("") == null) {
+                  configurations.put("", generalProperties);
+                } else {
+                  configurations.get("").putAll(generalProperties);
                 }
 
                 // Iterate over the components installed on the current host to get the service and

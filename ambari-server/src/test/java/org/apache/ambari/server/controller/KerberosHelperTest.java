@@ -251,11 +251,11 @@ public class KerberosHelperTest extends EasyMockSupport {
         .once();
 
     final KerberosPrincipalDescriptor principalDescriptor1 = createNiceMock(KerberosPrincipalDescriptor.class);
-    expect(principalDescriptor1.getValue()).andReturn("component1/_HOST@${realm").once();
+    expect(principalDescriptor1.getValue()).andReturn("component1/_HOST@${realm}").once();
     expect(principalDescriptor1.getConfiguration()).andReturn("service1-site/component1.kerberos.principal").once();
 
     final KerberosPrincipalDescriptor principalDescriptor2 = createNiceMock(KerberosPrincipalDescriptor.class);
-    expect(principalDescriptor2.getValue()).andReturn("component2/_HOST@${realm").once();
+    expect(principalDescriptor2.getValue()).andReturn("component2/${host}@${realm}").once();
     expect(principalDescriptor2.getConfiguration()).andReturn("service2-site/component2.kerberos.principal").once();
 
     final KerberosKeytabDescriptor keytabDescriptor1 = createNiceMock(KerberosKeytabDescriptor.class);
