@@ -183,11 +183,11 @@ public class UpgradeResourceProviderTest {
 
     List<Stage> stages = am.getRequestStatus(requests.get(0).longValue());
 
-    assertEquals(8, stages.size());
+    assertEquals(9, stages.size());
 
     List<HostRoleCommand> tasks = am.getRequestTasks(requests.get(0).longValue());
     // same number of tasks as stages here
-    assertEquals(8, tasks.size());
+    assertEquals(9, tasks.size());
 
     return status;
   }
