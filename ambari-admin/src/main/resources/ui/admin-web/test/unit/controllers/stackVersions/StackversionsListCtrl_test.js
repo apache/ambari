@@ -31,7 +31,7 @@ describe('#Cluster', function () {
 
     it('saves list of stacks', function() {
       scope.fetchRepos().then(function() {
-        expect(Array.isArray(scope.stacks)).toBe(true);
+        expect(Array.isArray(scope.repos)).toBe(true);
       });
     });
   });

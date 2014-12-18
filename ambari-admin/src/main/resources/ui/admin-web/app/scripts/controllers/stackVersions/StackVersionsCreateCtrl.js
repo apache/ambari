@@ -27,8 +27,14 @@ angular.module('ambariAdminConsole')
   $scope.fetchStackVersionFilterList = function () {
     Stack.allStackVersions()
     .then(function (allStackVersions) {
-      $scope.upgradeStack.options = allStackVersions;
-      $scope.upgradeStack.value = allStackVersions[allStackVersions.length - 1].value;
+      var versions = [];
+      angular.forEach(allStackVersions, function (version) {
+        if (version.upgrade_packs.length > 0) {
+          versions.push(version);
+        }
+      });
+      $scope.upgradeStack.options = versions;
+      $scope.upgradeStack.value = versions[versions.length - 1].value;
     })
     .catch(function (data) {
       Alert.error('Fetch stack version filter list error', data.message);
@@ -72,6 +78,11 @@ angular.module('ambariAdminConsole')
       selected: false
     }
   ];
+
+  $scope.selectedOS = 0;
+  $scope.toggleOSSelect = function () {
+    this.repository.selected? $scope.selectedOS++ : $scope.selectedOS--;
+  };
 
   $scope.create = function () {
     Stack.addRepo($scope.upgradeStack.value, $scope.versionName, $scope.repositories)

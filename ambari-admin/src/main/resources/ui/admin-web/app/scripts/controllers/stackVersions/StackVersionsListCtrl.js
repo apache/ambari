@@ -75,7 +75,7 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.fetchRepos = function () {
-    Stack.allRepos($scope.filter, $scope.pagination).then(function (stacks) {
+    return Stack.allRepos($scope.filter, $scope.pagination).then(function (stacks) {
       $scope.pagination.totalStacks = stacks.items.length;
       var repos = [];
       angular.forEach(stacks.items, function(stack) {

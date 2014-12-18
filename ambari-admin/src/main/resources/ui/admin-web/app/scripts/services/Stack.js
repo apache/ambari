@@ -51,7 +51,7 @@ angular.module('ambariAdminConsole')
 
   return {
     allStackVersions: function () {
-      var url = Settings.baseUrl + '/stacks?fields=*';
+      var url = Settings.baseUrl + '/stacks?fields=versions/Versions';
       var deferred = $q.defer();
       $http.get(url, {mock: 'stack/allStackVersions.json'})
       .success(function (data) {
@@ -60,9 +60,11 @@ angular.module('ambariAdminConsole')
           angular.forEach(stack.versions, function (version) {
             var stack_name = version.Versions.stack_name;
             var stack_version = version.Versions.stack_version;
+            var upgrade_packs = version.Versions.upgrade_packs;
             allStackVersions.push({
               displayName: stack_name + '-' + stack_version,
-              value: stack_version
+              value: stack_version,
+              upgrade_packs: upgrade_packs
             });
           });
         });

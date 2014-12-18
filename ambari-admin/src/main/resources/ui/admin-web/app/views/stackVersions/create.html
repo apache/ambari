@@ -21,7 +21,7 @@
   <li class="active">Register Version</li>
 </ol>
 <hr>
-<form class="form-horizontal register-version-form" role="form" name="form-registerVersionForm" novalidate>
+<form class="form-horizontal register-version-form" role="form" name="repoRegForm" novalidate>
   <div class="panel panel-default">
     <div class="panel-heading">
       <h3 class="panel-title">Details</h3>
@@ -29,15 +29,18 @@
     <div class="panel-body">
       <div class="form-inline repo-version-inline">
         <label class="control-label col-sm-2 repo-version-label">Version</label>
-        <div class="form-group col-sm-3">
-          <select class="form-control"
+        <div class="form-group col-sm-3 repo-version-left">
+          <select class="form-control repo-version-select"
                   ng-model="upgradeStack.value"
                   ng-options="o.value as o.displayName for o in upgradeStack.options">
           </select>
           <span class="bold-dot">.</span>
         </div>
-        <div class="form-group col-sm-3">
-          <input class="form-control" type="text" ng-model="versionName" placeholder="Version Name">
+        <div class="form-group col-sm-6" ng-class="{'has-error' : repoRegForm.version.$error.pattern}">
+          <input class="form-control" name="version" type="text" ng-model="versionName" ng-pattern="/^\d(\.\d)?(\-\d*)?$/"
+                 placeholder="Version Name" required/>
+          <span class="text-primary" ng-show="!repoRegForm.version.$error.pattern">&nbsp;{{upgradeStack.value + '.' + versionName}}</span>
+          <span class="text-danger" ng-show="repoRegForm.version.$error.pattern">Invalid subversion. eg: 1.0-123</span>
         </div>
       </div>
     </div>
@@ -59,7 +62,7 @@
         <div class="col-sm-3">
           <div class="checkbox">
             <label>
-              <input type="checkbox" ng-model="repository.selected"> {{repository.os}}
+              <input type="checkbox" ng-model="repository.selected" ng-change="toggleOSSelect()"> {{repository.os}}
             </label>
           </div>
         </div>
@@ -82,7 +85,8 @@
     </div>
   </div>
   <div class="col-sm-12">
-    <button class="btn btn-primary pull-right left-margin" ng-click="create()">Save</button>
+    <button class="btn btn-primary pull-right left-margin" ng-click="create()"
+            ng-disabled="repoRegForm.version.$invalid || selectedOS === 0">Save</button>
     <button class="btn btn-default pull-right">Cancel</button>
   </div>
 </form>
