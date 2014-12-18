@@ -171,10 +171,16 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     return value;
   },
 
+  /**
+   * Sort by host_name by default
+   * @method getSortProps
+   * @returns {{value: 'asc|desc', name: string, type: 'SORT'}[]}
+   */
   getSortProps: function () {
-    // sort by host_name by default
-    if (App.db.getSortingStatuses(this.get('name')) && App.db.getSortingStatuses(this.get('name')).length === 0) {
-      App.db.setSortingStatuses(this.get('name'), {
+    var controllerName = this.get('name'),
+      db = App.db.getSortingStatuses(controllerName);
+    if (db && db.everyProperty('status', 'sorting')) {
+      App.db.setSortingStatuses(controllerName, {
         name: 'hostName',
         status: 'sorting_asc'
       });
@@ -184,6 +190,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
 
   /**
    * get query parameters computed from filter properties, sort properties and custom properties of view
+   * @param {boolean} [skipNonFilterProperties]
    * @return {Array}
    * @method getQueryParameters
    */

@@ -496,7 +496,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
   sortView: sort.serverWrapperView,
   nameSort: sort.fieldView.extend({
     column: 1,
-    name:'publicHostName',
+    name:'hostName',
     displayName: Em.I18n.t('common.name')
   }),
   ipSort: sort.fieldView.extend({

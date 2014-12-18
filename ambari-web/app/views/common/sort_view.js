@@ -219,13 +219,13 @@ var serverWrapperView = Em.View.extend({
   },
 
   /**
-   * Initialize and save sorting statuses: publicHostName sorting_asc
+   * Initialize and save sorting statuses: hostName sorting_asc
    */
   loadSortStatuses: function () {
     var statuses = [];
     var childViews = this.get('childViews');
     childViews.forEach(function (childView) {
-      var sortStatus = (childView.get('name') == 'publicHostName' && childView.get('status') == 'sorting') ? 'sorting_asc' : childView.get('status');
+      var sortStatus = (childView.get('name') == 'hostName' && childView.get('status') == 'sorting') ? 'sorting_asc' : childView.get('status');
       statuses.push({
         name: childView.get('name'),
         status: sortStatus
@@ -233,7 +233,7 @@ var serverWrapperView = Em.View.extend({
       childView.set('status', sortStatus);
     });
     App.db.setSortingStatuses(this.get('controller.name'), statuses);
-    this.get('controller').set('sortingColumn', childViews.findProperty('name', 'publicHostName'));
+    this.get('controller').set('sortingColumn', childViews.findProperty('name', 'hostName'));
   },
 
   /**

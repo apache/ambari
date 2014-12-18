@@ -24,7 +24,7 @@ require('mappers/server_data_mapper');
 
 describe('MainHostController', function () {
 
-  var hostController;
+  var hostController, db;
 
   // @todo add unit tests after bulk ops reimplementing
   describe('#bulkOperation', function() {
@@ -213,5 +213,32 @@ describe('MainHostController', function () {
       expect(hostController.getQueryParameters().findProperty('key', 'Hosts/host_name').value).to.equal('.*someval.*');
     });
   });
-  
+
+  describe('#getSortProps', function () {
+
+    beforeEach(function () {
+      db = {mainHostController: [
+        {name: 'hostName', status: 'sorting'}
+      ]};
+      hostController = App.MainHostController.create({});
+      sinon.stub(App.db, 'getSortingStatuses', function (k) {
+        return db[k];
+      });
+      sinon.stub(App.db, 'setSortingStatuses', function (k, v) {
+        db[k] = Em.typeOf(v) === 'array' ? v : [v];
+      });
+    });
+
+    afterEach(function () {
+      App.db.getSortingStatuses.restore();
+      App.db.setSortingStatuses.restore();
+    });
+
+    it('should set default sorting condition', function () {
+      hostController.getSortProps();
+      expect(db.mainHostController).to.eql([{name: 'hostName', status: 'sorting_asc'}]);
+    });
+
+  });
+
 });
