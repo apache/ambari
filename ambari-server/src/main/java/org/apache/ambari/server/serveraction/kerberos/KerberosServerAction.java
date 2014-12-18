@@ -79,6 +79,11 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    */
   private static final String PRINCIPAL_PASSWORD_MAP = "principal_password_map";
 
+  /*
+  * Key used in kerberosCommandParams in ExecutionCommand for base64 encoded keytab content
+  */
+  public static final String KEYTAB_CONTENT_BASE64 = "keytab_content_base64";
+
   private static final Logger LOG = LoggerFactory.getLogger(KerberosServerAction.class);
 
   /**

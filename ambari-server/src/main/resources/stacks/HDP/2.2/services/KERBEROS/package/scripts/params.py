@@ -65,6 +65,8 @@ if config is not None:
   if command_params is not None:
     keytab_details = get_unstructured_data(command_params, 'keytab')
 
+  kerberos_command_params = get_property_value(config, 'kerberosCommandParams')
+
   configurations = get_property_value(config, 'configurations')
   if configurations is not None:
     cluster_env = get_property_value(configurations, 'cluster-env')

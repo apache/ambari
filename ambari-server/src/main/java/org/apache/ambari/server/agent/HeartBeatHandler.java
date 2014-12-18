@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.agent;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -45,6 +49,9 @@ import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
+import org.apache.ambari.server.serveraction.kerberos.KerberosActionDataFile;
+import org.apache.ambari.server.serveraction.kerberos.KerberosActionDataFileReader;
+import org.apache.ambari.server.serveraction.kerberos.KerberosServerAction;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.Cluster;
@@ -77,6 +84,10 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartedEve
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStoppedEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.VersionUtils;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -629,6 +640,16 @@ public class HeartBeatHandler {
         switch (ac.getCommandType()) {
           case BACKGROUND_EXECUTION_COMMAND:
           case EXECUTION_COMMAND: {
+            ExecutionCommand ec = (ExecutionCommand)ac;
+            Map<String, String> hlp = ec.getHostLevelParams();
+            if ((hlp != null) && "SET_KEYTAB".equals(hlp.get("custom_command")))   {
+              LOG.info("SET_KEYTAB called") ;
+              try {
+                injectKeytab(ec, hostname);
+              } catch (IOException e) {
+                throw new AmbariException("Could not inject keytab into command", e);
+              }
+            }
             response.addExecutionCommand((ExecutionCommand) ac);
             break;
           }
@@ -866,4 +887,62 @@ public class HeartBeatHandler {
 
     return commands;
   }
+
+  static void injectKeytab(ExecutionCommand ec, String targetHost) throws AmbariException {
+    Map<String, String> hlp = ec.getHostLevelParams();
+    if ((hlp == null) || !"SET_KEYTAB".equals(hlp.get("custom_command"))) {
+      return;
+    }
+    List<Map<String, String>> kcp = ec.getKerberosCommandParams();
+    String dataDir = ec.getCommandParams().get(KerberosServerAction.DATA_DIRECTORY);
+    File file = new File(dataDir + File.separator + "index.dat");
+    CSVParser csvParser = null;
+    try {
+      KerberosActionDataFileReader reader = new KerberosActionDataFileReader(file);
+      Iterator<Map<String, String>> iterator = reader.iterator();
+      while (iterator.hasNext())    {
+        Map<String, String> record = iterator.next();
+        String hostName = record.get(KerberosActionDataFile.HOSTNAME);
+        if (!targetHost.equalsIgnoreCase(hostName))    {
+          continue;
+        }
+        Map<String, String> keytabMap = new HashMap<String, String>();
+        keytabMap.put(KerberosActionDataFile.HOSTNAME, hostName);
+        keytabMap.put(KerberosActionDataFile.SERVICE, record.get(KerberosActionDataFile.SERVICE));
+        keytabMap.put(KerberosActionDataFile.COMPONENT, record.get(KerberosActionDataFile.COMPONENT));
+        keytabMap.put(KerberosActionDataFile.PRINCIPAL, record.get(KerberosActionDataFile.PRINCIPAL));
+        keytabMap.put(KerberosActionDataFile.PRINCIPAL_CONFIGURATION, record.get(KerberosActionDataFile.PRINCIPAL_CONFIGURATION));
+        keytabMap.put(KerberosActionDataFile.KEYTAB_FILE_PATH, record.get(KerberosActionDataFile.KEYTAB_FILE_PATH));
+        keytabMap.put(KerberosActionDataFile.KEYTAB_FILE_OWNER_NAME, record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_NAME));
+        keytabMap.put(KerberosActionDataFile.KEYTAB_FILE_OWNER_ACCESS, record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_ACCESS));
+        keytabMap.put(KerberosActionDataFile.KEYTAB_FILE_GROUP_NAME, record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_NAME));
+        keytabMap.put(KerberosActionDataFile.KEYTAB_FILE_GROUP_ACCESS, record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_ACCESS));
+        keytabMap.put(KerberosActionDataFile.KEYTAB_FILE_CONFIGURATION, record.get(KerberosActionDataFile.KEYTAB_FILE_CONFIGURATION));
+
+        String sha1Keytab =  DigestUtils.sha1Hex(record.get(KerberosActionDataFile.KEYTAB_FILE_PATH));
+
+        BufferedInputStream bufferedIn = new BufferedInputStream(
+          new FileInputStream(dataDir + File.separator +
+            hostName + File.separator + sha1Keytab));
+        byte[] keytabContent = IOUtils.toByteArray(bufferedIn);
+        String keytabContentBase64 = Base64.encodeBase64String(keytabContent);
+        keytabMap.put(KerberosServerAction.KEYTAB_CONTENT_BASE64, keytabContentBase64);
+        kcp.add(keytabMap);
+      }
+    } catch (IOException e) {
+      throw new AmbariException("Could not inject keytabs to enable kerberos");
+    }  finally {
+      if (csvParser != null && !csvParser.isClosed())  {
+        try {
+          csvParser.close();
+        }  catch (Throwable t)  {
+          // ignored
+        }
+      }
+    }
+
+    ec.setKerberosCommandParams(kcp);
+  }
+
+
 }

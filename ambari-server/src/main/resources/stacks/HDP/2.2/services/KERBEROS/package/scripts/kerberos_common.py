@@ -351,30 +351,30 @@ class KerberosScript(Script):
   def write_keytab_file():
     import params
 
-    if params.keytab_details is not None:
-      data = get_property_value(params.keytab_details, 'data')
-
-      if (data is not None) and (len(data) > 0):
-        file_path = get_property_value(params.keytab_details, 'file-path')
-
-        if (file_path is not None) and (len(file_path) > 0):
-          with open(file_path, 'w') as f:
-            f.write(base64.b64decode(data))
-
-          KerberosScript._set_file_access(file_path, params.keytab_details, params.default_group)
+    if params.kerberos_command_params is not None:
+      for item  in params.kerberos_command_params:
+        keytab_content_base64 = get_property_value(item, 'keytab_content_base64')
+        if (keytab_content_base64 is not None) and (len(keytab_content_base64) > 0):
+          keytab_file_path = get_property_value(item, 'keytab_file_path')
+          if (keytab_file_path is not None) and (len(keytab_file_path) > 0):
+            head, tail = os.path.split(keytab_file_path)
+            if head and not os.path.isdir(head):
+              os.makedirs(head)
+            with open(keytab_file_path, 'w') as f:
+              f.write(base64.b64decode(keytab_content_base64))
+            owner = get_property_value(item, 'keytab_file_owner')
+            owner_access = get_property_value(item, 'keytab_file_owner_access')
+            group = get_property_value(item, 'keytab_file_group')
+            group_access = get_property_value(item, 'keytab_file_group_access')
+            KerberosScript._set_file_access(keytab_file_path, owner, owner_access, group, group_access)
 
 
   @staticmethod
-  def _set_file_access(file_path, access_details, default_group=None):
-    if (file_path is not None) and os.path.isfile(file_path) and (access_details is not None):
+  def _set_file_access(file_path, owner, owner_access='rw', group=None, group_access=''):
+    if (file_path is not None) and os.path.isfile(file_path) and (owner is not None):
       import stat
       import pwd
       import grp
-
-      owner = get_property_value(access_details, 'owner/name')
-      owner_access = get_property_value(access_details, 'owner/access', 'rw')
-      group = get_property_value(access_details, 'group/name', default_group)
-      group_access = get_property_value(access_details, 'group/access', '')
 
       pwnam = pwd.getpwnam(owner) if (owner is not None) and (len(owner) > 0) else None
       uid = pwnam.pw_uid if pwnam is not None else os.geteuid()

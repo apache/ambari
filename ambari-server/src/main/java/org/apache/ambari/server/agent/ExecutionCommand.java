@@ -17,10 +17,7 @@
  */
 package org.apache.ambari.server.agent;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.utils.StageUtils;
@@ -90,6 +87,9 @@ public class ExecutionCommand extends AgentCommand {
 
   @SerializedName("componentName")
   private String componentName;
+
+  @SerializedName("kerberosCommandParams")
+  private List<Map<String, String>> kerberosCommandParams = new ArrayList<Map<String, String>>();
 
   public String getCommandId() {
     return commandId;
@@ -252,6 +252,22 @@ public class ExecutionCommand extends AgentCommand {
    */
   public Map<String, Map<String, String>> getConfigurationTags() {
     return configurationTags;
+  }
+
+  /**
+   * Returns  parameters for kerberos commands
+   * @return  parameters for kerberos commands
+   */
+  public List<Map<String, String>> getKerberosCommandParams() {
+    return kerberosCommandParams;
+  }
+
+  /**
+   * Sets parameters for kerberos commands
+   * @params  parameters for kerberos commands
+   */
+  public void setKerberosCommandParams(List<Map<String, String>> params) {
+    this.kerberosCommandParams =  params;
   }
 
   /**
