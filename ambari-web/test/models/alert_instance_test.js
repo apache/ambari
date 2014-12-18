@@ -38,5 +38,23 @@ describe('App.AlertInstance', function () {
     });
 
   });
+
+  describe('#statusChangedAndLastCheckedFormatted', function () {
+
+    it('should Status Changed before Last Checked', function () {
+
+      var lastCheckedFormatted = '123',
+        lastTriggeredFormatted = '321';
+
+      model.reopen({
+        lastCheckedFormatted: lastCheckedFormatted,
+        lastTriggeredFormatted: lastTriggeredFormatted
+      });
+      var status = model.get('statusChangedAndLastCheckedFormatted');
+      expect(status.indexOf(lastCheckedFormatted) > status.indexOf(lastTriggeredFormatted)).to.be.true;
+
+    });
+
+  });
   
 });
