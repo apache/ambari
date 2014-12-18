@@ -25,7 +25,7 @@
             "hadoop.security.authentication": "kerberos",
             "hadoop.rpc.protection": "authentication",
             "hadoop.security.authorization": "true",
-            "hadoop.security.auth_to_local": "RULE:[2:$1@$0]([jt]t@.*${realm})s/.*/mapred/\nRULE:[2:$1@$0]([nd]n@.*${realm})s/.*/hdfs/\nRULE:[2:$1@$0](hm@.*${realm})s/.*/hbase/\nRULE:[2:$1@$0](rs@.*${realm})s/.*/hbase/\nDEFAULT"
+            "hadoop.security.auth_to_local": "RULE:[2:$1@$0]([nd]n@.*${realm})s/.*/hdfs/\nRULE:[2:$1@$0]([rn]m@.*${realm})s/.*/yarn/\nRULE:[2:$1@$0](hs@.*${realm})s/.*/mapred/\nRULE:[2:$1@$0](hm@.*${realm})s/.*/hbase/\nRULE:[2:$1@$0](rs@.*${realm})s/.*/hbase/\nDEFAULT"
           }
         }
       ],

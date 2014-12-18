@@ -12,7 +12,7 @@
         {
           "name": "hbase",
           "principal": {
-            "value": "hbase@${realm}",
+            "value": "${hbase-env/hbase_user}@${realm}",
             "configuration": "hbase-env/hbase_principal_name"
           },
           "keytab": {

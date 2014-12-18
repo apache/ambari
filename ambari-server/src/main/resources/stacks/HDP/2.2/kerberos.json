@@ -24,13 +24,13 @@
     {
       "name": "hdfs",
       "principal": {
-        "value": "hdfs@${realm}",
-        "configuration": "cluster-env/hdfs_principal_name"
+        "value": "${hadoop-env/hdfs_user}@${realm}",
+        "configuration": "hadoop-env/hdfs_principal_name"
       },
       "keytab": {
         "file": "${keytab_dir}/hdfs.headless.keytab",
         "owner": {
-          "name": "root",
+          "name": "${hadoop-env/hdfs_user}",
           "access": "r"
         },
         "group": {
@@ -43,13 +43,13 @@
     {
       "name": "smokeuser",
       "principal": {
-        "value": "ambari-qa@${realm}",
+        "value": "${cluster-env/smokeuser}@${realm}",
         "configuration": "cluster-env/smokeuser_principal_name"
       },
       "keytab": {
         "file": "${keytab_dir}/smokeuser.headless.keytab",
         "owner": {
-          "name": "root",
+          "name": "${cluster-env/smokeuser}",
           "access": "r"
         },
         "group": {
