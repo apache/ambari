@@ -21,7 +21,9 @@ limitations under the License.
 from resource_management import *
 
 # Used to add hive access to the needed components
-def mysql_adduser(params):
+def mysql_adduser():
+  import params
+  
   File(params.mysql_adduser_path,
        mode=0755,
        content=StaticFile('addMysqlUser.sh')
@@ -38,11 +40,14 @@ def mysql_adduser(params):
   Execute(cmd,
           tries=3,
           try_sleep=5,
-          path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
+          path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+          logoutput=True,
   )
 
 # Removes hive access from components
-def mysql_deluser(params):
+def mysql_deluser():
+  import params
+  
   File(params.mysql_deluser_path,
        mode=0755,
        content=StaticFile('removeMysqlUser.sh')
@@ -60,6 +65,7 @@ def mysql_deluser(params):
   Execute(cmd,
           tries=3,
           try_sleep=5,
-          path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
+          path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+          logoutput=True,
   )
 

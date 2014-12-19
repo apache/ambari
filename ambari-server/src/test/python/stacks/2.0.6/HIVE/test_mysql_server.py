@@ -44,12 +44,6 @@ class TestMySqlServer(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
-    self.assertResourceCalled('Execute', ('sed',
-     '-i',
-     's|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|',
-     '/etc/my.cnf'),
-        sudo = True,
-    )
     self.assertResourceCalled('Execute', ('service','mysql','start'),
                        logoutput = True,
                        not_if = 'service mysql status | grep running',
@@ -93,12 +87,6 @@ class TestMySqlServer(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
-    self.assertResourceCalled('Execute', ('sed',
-     '-i',
-     's|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|',
-     '/etc/my.cnf'),
-        sudo = True,
-    )
     self.assertResourceCalled('Execute', ('service','mysql','start'),
                               logoutput = True,
                               not_if = 'service mysql status | grep running',
@@ -145,6 +133,12 @@ class TestMySqlServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
+    self.assertResourceCalled('Execute', ('sed',
+     '-i',
+     's|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|',
+     '/etc/my.cnf'),
+        sudo = True,
+    )
     self.assertResourceCalled('File', '/tmp/addMysqlUser.sh',
       content = StaticFile('addMysqlUser.sh'),
       mode = 0755,
@@ -153,9 +147,16 @@ class TestMySqlServer(RMFTestCase):
       path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
       tries = 3,
       try_sleep = 5,
+      logoutput = True,
     )
-
+    
   def assert_configure_secured(self):
+    self.assertResourceCalled('Execute', ('sed',
+     '-i',
+     's|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|',
+     '/etc/my.cnf'),
+        sudo = True,
+    )
     self.assertResourceCalled('File', '/tmp/addMysqlUser.sh',
       content = StaticFile('addMysqlUser.sh'),
       mode = 0755,
@@ -164,6 +165,7 @@ class TestMySqlServer(RMFTestCase):
       path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
       tries = 3,
       try_sleep = 5,
+      logoutput = True,
     )
 
   def assert_clean_default(self):
@@ -175,6 +177,7 @@ class TestMySqlServer(RMFTestCase):
                               path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                               tries = 3,
                               try_sleep = 5,
+                              logoutput = True,
                               )
 
   def assert_clean_secured(self):
@@ -186,4 +189,5 @@ class TestMySqlServer(RMFTestCase):
                               path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                               tries = 3,
                               try_sleep = 5,
+                              logoutput = True,
                               )

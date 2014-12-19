@@ -19,9 +19,11 @@ limitations under the License.
 """
 
 import sys
+import mysql_users
 from resource_management import *
 
 from mysql_service import mysql_service
+from mysql import mysql_configure
 
 
 class MysqlServer(Script):
@@ -31,14 +33,14 @@ class MysqlServer(Script):
     self.configure(env)
 
   def clean(self, env):
-    import params, mysql_users
+    import params
     env.set_params(params)
-    mysql_users.mysql_deluser(params)
+    mysql_users.mysql_deluser()
 
   def configure(self, env):
-    import params, mysql_users
+    import params
     env.set_params(params)
-    mysql_users.mysql_adduser(params)
+    mysql_configure()
 
   def start(self, env, rolling_restart=False):
     import params

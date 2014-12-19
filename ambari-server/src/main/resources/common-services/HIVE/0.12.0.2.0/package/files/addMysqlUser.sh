@@ -25,7 +25,10 @@ mysqldbuser=$2
 mysqldbpasswd=$3
 userhost=$4
 
-sudo service $mysqldservice start
+# The restart (not start) is required to pick up mysql configuration changes made by sed
+# during install, in case mysql is already started. The changes are required by Hive later on.
+sudo service $mysqldservice restart
+  
 echo "Adding user $mysqldbuser@% and removing users with empty name"
 sudo su mysql -s /bin/bash - -c "mysql -u root -e \"CREATE USER '$mysqldbuser'@'%' IDENTIFIED BY '$mysqldbpasswd';\""
 sudo su mysql -s /bin/bash - -c "mysql -u root -e \"GRANT ALL PRIVILEGES ON *.* TO '$mysqldbuser'@'%';\""
