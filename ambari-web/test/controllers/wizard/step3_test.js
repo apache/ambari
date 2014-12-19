@@ -582,7 +582,7 @@ describe('App.WizardStep3Controller', function () {
 
   describe('#setRegistrationInProgressOnce', function() {
     before(function(){
-      sinon.spy(Em.run, 'once');
+      sinon.stub(Em.run, 'once', Em.K);
     });
     after(function(){
       Em.run.once.restore();
@@ -1667,17 +1667,18 @@ describe('App.WizardStep3Controller', function () {
     });
 
     beforeEach(function () {
-      sinon.spy(App.router.get('installerController'), 'launchBootstrap');
+      sinon.stub(App.router.get('installerController'), 'launchBootstrap', Em.K);
+      this.mock = sinon.stub(App, 'get');
     });
 
     afterEach(function () {
-      App.router.get('installerController.launchBootstrap').restore();
-      App.get.restore();
+      App.router.get('installerController').launchBootstrap.restore();
+      this.mock.restore();
     });
 
     cases.forEach(function (item) {
       it(item.title, function () {
-        sinon.stub(App, 'get').withArgs('supports.customizeAgentUserAccount').returns(item.customizeAgentUserAccount);
+        this.mock.withArgs('supports.customizeAgentUserAccount').returns(item.customizeAgentUserAccount);
         controller.setupBootStrap();
         expect(App.router.get('installerController.launchBootstrap').firstCall.args[0]).to.equal(JSON.stringify({
           verbose: true,

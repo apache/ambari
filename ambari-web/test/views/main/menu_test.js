@@ -28,25 +28,25 @@ describe('App.MainMenuView', function () {
     beforeEach(function () {
       supportsMirroring = Em.get('App.supports.mirroring');
       Em.set('App.supports.mirroring', false);
-      sinon.stub(App, 'get').returns(false);
+      this.mock = sinon.stub(App, 'get');
       sinon.stub(App.router, 'get')
         .withArgs('clusterController.isLoaded').returns(true)
         .withArgs('loggedIn').returns(true);
     });
     afterEach(function () {
       Em.set('App.supports.mirroring', supportsMirroring);
-      App.get.restore();
+      this.mock.restore();
       App.router.get.restore();
     });
 
     it('menu should be populated if cluster installation is completed', function () {
-      App.get.withArgs('router.clusterInstallCompleted').returns(true);
+      this.mock.withArgs('router.clusterInstallCompleted').returns(true);
       App.router.notifyPropertyChange('clusterInstallCompleted');
       expect(mainMenuView.get('content').length > 1).to.be.true;
     });
 
     it('menu should not be populated if cluster installation is not completed', function () {
-      App.get.withArgs('router.clusterInstallCompleted').returns(false);
+      this.mock.withArgs('router.clusterInstallCompleted').returns(false);
       App.router.notifyPropertyChange('clusterInstallCompleted');
       expect(mainMenuView.get('content').length > 1).to.be.false;
     });
