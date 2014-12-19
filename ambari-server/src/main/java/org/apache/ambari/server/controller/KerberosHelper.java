@@ -29,19 +29,11 @@ import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.serveraction.ServerAction;
-import org.apache.ambari.server.serveraction.kerberos.CreateKeytabFilesServerAction;
-import org.apache.ambari.server.serveraction.kerberos.CreatePrincipalsServerAction;
-import org.apache.ambari.server.serveraction.kerberos.FinalizeKerberosServerAction;
-import org.apache.ambari.server.serveraction.kerberos.KDCType;
-import org.apache.ambari.server.serveraction.kerberos.KerberosActionDataFile;
-import org.apache.ambari.server.serveraction.kerberos.KerberosActionDataFileBuilder;
-import org.apache.ambari.server.serveraction.kerberos.KerberosConfigDataFile;
-import org.apache.ambari.server.serveraction.kerberos.KerberosConfigDataFileBuilder;
-import org.apache.ambari.server.serveraction.kerberos.KerberosCredential;
-import org.apache.ambari.server.serveraction.kerberos.KerberosServerAction;
+import org.apache.ambari.server.serveraction.kerberos.*;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -277,6 +269,9 @@ public class KerberosHelper {
         // Create the file used to store details about principals and keytabs to create
         indexFile = new File(dataDirectory, KerberosActionDataFile.DATA_FILE_NAME);
 
+        // host names that would be passed in request resource filters while creating stage for pushing keytabs
+        List<String>  updateHosts = new ArrayList<String>();
+
         try {
           // Iterate over the hosts in the cluster to find the components installed in each.  For each
           // component (aka service component host - sch) determine the configuration updates and
@@ -352,6 +347,9 @@ public class KerberosHelper {
                         identitiesAdded += addIdentities(kerberosActionDataFileBuilder,
                             componentDescriptor.getIdentities(true), sch, configurations);
 
+                        // add host to updateHosts that would be passed in request resource filters 
+                        updateHosts.add(sch.getHostName());
+
                         if (identitiesAdded > 0) {
                           serviceComponentHostsToProcess.add(sch);
                         }
@@ -417,7 +415,7 @@ public class KerberosHelper {
         // Use the handler implementation to setup the relevant stages.
         int lastStageId = handler.createStages(cluster, hosts, kerberosConfigurations,
             clusterHostInfoJson, hostParamsJson, event, roleCommandOrder, realm, kdcType.toString(),
-            dataDirectory, requestStageContainer);
+            dataDirectory, requestStageContainer, updateHosts);
 
         // Add the cleanup stage...
 
@@ -859,6 +857,7 @@ public class KerberosHelper {
      * @param dataDirectory          a File pointing to the (temporary) data directory
      * @param requestStageContainer  a RequestStageContainer to store the new stages in, if null a
      *                               new RequestStageContainer will be created
+     * @param updateHosts  host names that would be passed in request resource filters while creating stage for pushing keytabs
      * @return the last stage id generated, or -1 if no stages were created
      * @throws AmbariException if an error occurs while creating the relevant stages
      */
@@ -868,7 +867,8 @@ public class KerberosHelper {
                      ServiceComponentHostServerActionEvent event,
                      RoleCommandOrder roleCommandOrder,
                      String realm, String kdcType, File dataDirectory,
-                     RequestStageContainer requestStageContainer)
+                     RequestStageContainer requestStageContainer,
+                     List<String> updateHosts)
         throws AmbariException;
 
   }
@@ -923,7 +923,8 @@ public class KerberosHelper {
                             String clusterHostInfoJson, String hostParamsJson,
                             ServiceComponentHostServerActionEvent event,
                             RoleCommandOrder roleCommandOrder, String realm, String kdcType,
-                            File dataDirectory, RequestStageContainer requestStageContainer) throws AmbariException {
+                            File dataDirectory, RequestStageContainer requestStageContainer,
+                            List<String> updateHosts) throws AmbariException {
       // If there are principals, keytabs, and configurations to process, setup the following sages:
       //  1) generate principals
       //  2) generate keytab files
@@ -1021,51 +1022,58 @@ public class KerberosHelper {
       roleGraph.build(stage);
       requestStageContainer.addStages(roleGraph.getStages());
 
-      // *****************************************************************
       // Create stage to distribute keytabs
-      // TODO (dilli): Implement this
-        /*
-        stage = createServerActionStage(++stageId,
-            cluster,
-            requestStageContainer.getId(),
-            "Distribute Kerberos keytabs to services",
-            clusterHostInfoJson,
-            "{}",
-            hostParamsJson,
-          DISTRIBUTE_KEYTABS.class,
-          event,
-          commandParameters,
-          1200);
 
-        roleGraph = new RoleGraph(roleCommandOrder);
-        roleGraph.build(stage);
-        requestStageContainer.addStages(roleGraph.getStages());
-        */
+      List<RequestResourceFilter> requestResourceFilters = new ArrayList<RequestResourceFilter>();
+      RequestResourceFilter reqResFilter = new RequestResourceFilter("KERBEROS", "KERBEROS_CLIENT", updateHosts);
+      requestResourceFilters.add(reqResFilter);
 
-      // *****************************************************************
-      // Create stage to update configurations
-      // TODO: (dilli): implement this
-        /*
-        stage = createServerActionStage(++stageId,
-            cluster,
-            requestStageContainer.getId(),
-            "Distribute Kerberos keytabs to services",
-            clusterHostInfoJson,
-            "{}",
-            hostParamsJson,
-            UPDATE_SERVICE_CONFIGURATIONS.class
-            event,
-            commandParameters,
-            1200);
+      stage = createNewStage(++stageId,
+        cluster,
+        requestStageContainer.getId(),
+        "Distribute Keytabs",
+        clusterHostInfoJson,
+        StageUtils.getGson().toJson(commandParameters),
+        hostParamsJson);
 
-        roleGraph = new RoleGraph(roleCommandOrder);
-        roleGraph.build(stage);
-        requestStageContainer.addStages(roleGraph.getStages());
-        */
+      Map<String, String> requestParams =   new HashMap<String, String>();
+
+      ActionExecutionContext actionExecContext = new ActionExecutionContext(
+        cluster.getClusterName(),
+        "SET_KEYTAB",
+        requestResourceFilters,
+        requestParams);
+      if (!updateHosts.isEmpty())  {
+        customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, requestParams);
+      }
+
+      roleGraph = new RoleGraph(roleCommandOrder);
+      roleGraph.build(stage);
+      requestStageContainer.addStages(roleGraph.getStages());
+
+      // Create stage to update configurations of services
+
+      stage = createServerActionStage(++stageId,
+        cluster,
+        requestStageContainer.getId(),
+        "Update Service Configurations",
+        clusterHostInfoJson,
+        "{}",
+        hostParamsJson,
+        UpdateKerberosConfigsServerAction.class,
+        event,
+        commandParameters,
+        1200);
+
+      roleGraph = new RoleGraph(roleCommandOrder);
+      roleGraph.build(stage);
+      requestStageContainer.addStages(roleGraph.getStages());
 
       return stageId;
     }
+
   }
+
 
   /**
    * DisableKerberosHandler is an implementation of the Handler interface used to disable Kerberos
@@ -1116,7 +1124,8 @@ public class KerberosHelper {
                             String clusterHostInfoJson, String hostParamsJson,
                             ServiceComponentHostServerActionEvent event,
                             RoleCommandOrder roleCommandOrder, String realm, String kdcType,
-                            File dataDirectory, RequestStageContainer requestStageContainer) {
+                            File dataDirectory, RequestStageContainer requestStageContainer,
+                            List<String> updateHosts) {
       // TODO (rlevas): If there are principals, keytabs, and configurations to process, setup the following sages:
       //  1) remove principals
       //  2) remove keytab files
