@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.ipc.Server;
+import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.service.AbstractService;
 import org.apache.hadoop.yarn.api.ApplicationHistoryProtocol;
 import org.apache.hadoop.yarn.api.protocolrecords.CancelDelegationTokenRequest;
@@ -57,6 +58,7 @@ import org.apache.hadoop.yarn.exceptions.ApplicationNotFoundException;
 import org.apache.hadoop.yarn.exceptions.ContainerNotFoundException;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.ipc.YarnRPC;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration;
 
 public class ApplicationHistoryClientService extends AbstractService {
   private static final Log LOG = LogFactory
@@ -65,6 +67,7 @@ public class ApplicationHistoryClientService extends AbstractService {
   private ApplicationHistoryProtocol protocolHandler;
   private Server server;
   private InetSocketAddress bindAddress;
+  private TimelineMetricConfiguration metricConfiguration;
 
   public ApplicationHistoryClientService(ApplicationHistoryManager history) {
     super("ApplicationHistoryClientService");
@@ -72,13 +75,18 @@ public class ApplicationHistoryClientService extends AbstractService {
     this.protocolHandler = new ApplicationHSClientProtocolHandler();
   }
 
+  public ApplicationHistoryClientService(ApplicationHistoryManager history,
+                           TimelineMetricConfiguration metricConfiguration) {
+    this(history);
+    this.metricConfiguration = metricConfiguration;
+  }
+
   protected void serviceStart() throws Exception {
     Configuration conf = getConfig();
     YarnRPC rpc = YarnRPC.create(conf);
     InetSocketAddress address =
-        conf.getSocketAddr(YarnConfiguration.TIMELINE_SERVICE_ADDRESS,
-          YarnConfiguration.DEFAULT_TIMELINE_SERVICE_ADDRESS,
-          YarnConfiguration.DEFAULT_TIMELINE_SERVICE_PORT);
+      NetUtils.createSocketAddr(metricConfiguration.getTimelineServiceRpcAddress(),
+        YarnConfiguration.DEFAULT_TIMELINE_SERVICE_PORT);
 
     server =
         rpc.getServer(ApplicationHistoryProtocol.class, protocolHandler,

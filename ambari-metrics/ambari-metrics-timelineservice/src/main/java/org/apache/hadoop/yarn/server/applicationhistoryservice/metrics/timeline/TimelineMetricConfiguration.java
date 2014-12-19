@@ -125,6 +125,9 @@ public class TimelineMetricConfiguration {
   public static final String WEBAPP_HTTP_ADDRESS =
     "timeline.metrics.service.webapp.address";
 
+  public static final String TIMELINE_SERVICE_RPC_ADDRESS =
+    "timeline.metrics.service.rpc.address";
+
   private Configuration hbaseConf;
   private Configuration metricsConf;
   private volatile boolean isInitialized = false;
@@ -174,6 +177,14 @@ public class TimelineMetricConfiguration {
     String defaultHttpAddress = "0.0.0.0:8188";
     if (metricsConf != null) {
       return metricsConf.get(WEBAPP_HTTP_ADDRESS, defaultHttpAddress);
+    }
+    return defaultHttpAddress;
+  }
+
+  public String getTimelineServiceRpcAddress() {
+    String defaultHttpAddress = "0.0.0.0:60200";
+    if (metricsConf != null) {
+      return metricsConf.get(TIMELINE_SERVICE_RPC_ADDRESS, defaultHttpAddress);
     }
     return defaultHttpAddress;
   }

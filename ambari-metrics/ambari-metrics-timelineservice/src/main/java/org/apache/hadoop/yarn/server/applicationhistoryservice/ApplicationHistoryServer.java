@@ -109,10 +109,9 @@ public class ApplicationHistoryServer extends CompositeService {
     return this.ahsClientService;
   }
 
-  protected ApplicationHistoryClientService
-      createApplicationHistoryClientService(
+  protected ApplicationHistoryClientService createApplicationHistoryClientService(
           ApplicationHistoryManager historyManager) {
-    return new ApplicationHistoryClientService(historyManager);
+    return new ApplicationHistoryClientService(historyManager, metricConfiguration);
   }
 
   protected ApplicationHistoryManager createApplicationHistory() {

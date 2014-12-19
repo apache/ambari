@@ -39,6 +39,13 @@
     </description>
   </property>
   <property>
+    <name>timeline.metrics.service.rpc.address</name>
+    <value>0.0.0.0:60200</value>
+    <description>
+      The address of the metrics service rpc listeners.
+    </description>
+  </property>
+  <property>
     <name>timeline.metrics.aggregator.checkpoint.dir</name>
     <value>/tmp</value>
     <description>

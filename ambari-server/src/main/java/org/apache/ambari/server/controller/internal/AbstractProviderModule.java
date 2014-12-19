@@ -98,7 +98,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
   private static final Map<String, Map<String, String[]>> jmxDesiredProperties = new HashMap<String, Map<String, String[]>>();
   private volatile Map<String, String> clusterCoreSiteConfigVersionMap = new HashMap<String, String>();
   private volatile Map<String, String> clusterJmxProtocolMap = new HashMap<String, String>();
-  private volatile String clusterMetricServerPort = "80";
+  private volatile String clusterMetricServerPort = null;
 
   static {
     serviceConfigTypes.put(Service.Type.HDFS, "hdfs-site");
@@ -335,7 +335,6 @@ public abstract class AbstractProviderModule implements ProviderModule,
     if (service.equals(GANGLIA)) {
       return "80"; // Not called by the provider
     } else if (service.equals(TIMELINE_METRICS)) {
-      String collectorPort = null;
       try {
         String configType = serviceConfigTypes.get(Service.Type.AMS);
         String currentConfigVersion = getDesiredConfigVersion(clusterName, configType);
@@ -347,10 +346,12 @@ public abstract class AbstractProviderModule implements ProviderModule,
           Map<String, String> configProperties = getDesiredConfigMap
             (clusterName, currentConfigVersion, configType,
               Collections.singletonMap("METRIC_COLLECTOR",
-                new String[]{"timeline.metrics.service.webapp.address"}));
+                new String[] { "timeline.metrics.service.webapp.address" }));
 
           if (!configProperties.isEmpty()) {
-            collectorPort = getPortString(configProperties.get("METRIC_COLLECTOR"));
+            clusterMetricServerPort = getPortString(configProperties.get("METRIC_COLLECTOR"));
+          } else {
+            clusterMetricServerPort = "8188";
           }
         }
 
@@ -358,11 +359,6 @@ public abstract class AbstractProviderModule implements ProviderModule,
         LOG.warn("Failed to retrieve collector port.", e);
       } catch (UnsupportedPropertyException e) {
         LOG.warn("Failed to retrieve collector port.", e);
-      }
-      if (collectorPort == null) {
-        return "8188";
-      } else {
-        clusterMetricServerPort = collectorPort;
       }
     }
     return clusterMetricServerPort;
