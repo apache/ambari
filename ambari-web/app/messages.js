@@ -876,6 +876,11 @@ Em.I18n.translations = {
   'alerts.actions.manageNotifications': 'Manage Notifications',
   'alerts.actions.manageNotifications.info': 'You can manage notification methods and recipients.',
 
+  'alerts.groups.successPopup.header': 'Alert Groups processing results',
+  'alerts.groups.successPopup.body.created': 'New Alert Groups',
+  'alerts.groups.successPopup.body.updated': 'Updated Alert Groups',
+  'alerts.groups.successPopup.body.deleted': 'Removed Alert Groups',
+
   'alerts.table.noAlerts': 'No Alerts to display',
   'alerts.table.header.lastTriggered': 'Last Status Changed',
   'alerts.table.header.lastChecked': 'Last Checked',

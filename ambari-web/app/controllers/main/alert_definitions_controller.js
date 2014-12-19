@@ -151,7 +151,7 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
 
       bodyClass: Em.View.extend({
 
-        templateName: require('templates/common/alerts_popup'),
+        templateName: require('templates/common/modal_popups/alerts_popup'),
 
         controller: self,
 

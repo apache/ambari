@@ -70,4 +70,23 @@ describe('App.MainAlertDefinitionActionsController', function () {
 
   });
 
+  describe('#createNewAlertDefinition', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.router, 'transitionTo', Em.K);
+    });
+
+    afterEach(function () {
+      App.router.transitionTo.restore();
+    });
+
+    it('should navigate to wizard', function () {
+
+      controller.createNewAlertDefinition();
+      expect(App.router.transitionTo.calledWith('alertAdd')).to.be.true;
+
+    });
+
+  });
+
 });

@@ -90,6 +90,12 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
 
       onPrimary: function () {
         var modifiedAlertGroups = this.get('subViewController.defsModifiedAlertGroups');
+        var dataForSuccessPopup = {
+          created: modifiedAlertGroups.toCreate.length,
+          deleted: modifiedAlertGroups.toDelete.length,
+          updated: modifiedAlertGroups.toSet.length
+        };
+        var showSuccessPopup = dataForSuccessPopup.created + dataForSuccessPopup.deleted + dataForSuccessPopup.updated > 0;
         // Save modified Alert-groups
         console.log("manageAlertGroups(): Saving modified Alert groups: ", modifiedAlertGroups);
         var self = this;
@@ -137,6 +143,16 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
             }
             else {
               self.hide();
+              if (showSuccessPopup) {
+                App.ModalPopup.show({
+                  secondary: null,
+                  header: Em.I18n.t('alerts.groups.successPopup.header'),
+                  bodyClass: Em.View.extend({
+                    dataForSuccessPopup: dataForSuccessPopup,
+                    templateName: require('templates/main/alerts/alert_groups/success_popup_body')
+                  })
+                });
+              }
               App.router.get('updateController').updateAlertGroups(function () {
                 App.router.get('updateController').updateAlertDefinitions(function() {
                   App.router.get('updateController').updateAlertNotifications(Em.K);
