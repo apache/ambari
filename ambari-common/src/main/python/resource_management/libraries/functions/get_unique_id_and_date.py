@@ -23,17 +23,30 @@ Ambari Agent
 __all__ = ["get_unique_id_and_date"]
 import datetime
 from resource_management.core import shell
-from ambari_commons import os_check
+from ambari_commons import os_check, OSConst
+from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
+
+
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def get_volume_serial_number():
+  from ambari_commons.os_windows import os_run_os_command
+
+  id = ""
+  code, out, err = os_run_os_command("cmd /c vol C:")
+  for line in out.splitlines():
+    if line.startswith(" Volume Serial Number is"):
+      id = line[25:]
+
+  return id
+
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
+def get_volume_serial_number():
+  out = shell.checked_call("hostid")[1].split('\n')[-1] # bugfix: take the lastline (stdin is not tty part cut)
+  id = out.strip()
+  return id
+
 def get_unique_id_and_date():
-  if os_check.OSCheck.is_windows_family():
-    from ambari_commons.os_windows import run_os_command
-    code, out, err = run_os_command("cmd /c vol C:")
-    for line in out.splitlines():
-      if line.startswith(" Volume Serial Number is"):
-        id = line[25:]
-  else:
-    out = shell.checked_call("hostid")[1].split('\n')[-1] # bugfix: take the lastline (stdin is not tty part cut)
-    id = out.strip()
+  id = get_volume_serial_number()
 
   now = datetime.datetime.now()
   date = now.strftime("%M%d%y")

@@ -21,6 +21,8 @@ limitations under the License.
 import subprocess
 import shlex
 from ambari_commons import OSCheck, OSConst
+from ambari_commons.logging_utils import print_warning_msg
+from ambari_commons.os_family_impl import OsFamilyImpl
 
 
 class Firewall(object):
@@ -30,6 +32,16 @@ class Firewall(object):
     self.OS_TYPE = OSCheck.get_os_type()
     self.OS_FAMILY = OSCheck.get_os_family()
 
+  def getFirewallObject(self):
+    pass
+
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class FirewallWindows(Firewall):
+  def getFirewallObject(self):
+    return WindowsFirewallChecks()
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class FirewallLinux(Firewall):
   def getFirewallObject(self):
     if self.OS_TYPE == OSConst.OS_UBUNTU:
       return UbuntuFirewallChecks()
@@ -49,23 +61,31 @@ class FirewallChecks(object):
     self.returncode = None
     self.stdoutdata = None
     self.stderrdata = None
+    # stdout message
+    self.MESSAGE_CHECK_FIREWALL = 'Checking iptables...'
 
   def get_command(self):
     return "%s %s %s" % (self.SERVICE_CMD, self.FIREWALL_SERVICE_NAME, self.SERVICE_SUBCMD)
 
-  def check_result(self, retcode, out, err):
+  def check_result(self):
     result = False
-    if retcode == 3:
+    if self.returncode == 3:
       result = False
-    elif retcode == 0:
-      if "Table: filter" in out:
+    elif self.returncode == 0:
+      if "Table: filter" in self.stdoutdata:
         result = True
     return result
 
+  def run_command(self):
+    retcode, out, err = self.run_os_command(self.get_command())
+    self.returncode = retcode
+    self.stdoutdata = out
+    self.stderrdata = err
+
   def check_iptables(self):
     try:
-      retcode, out, err = self.run_os_command(self.get_command())
-      return self.check_result(retcode, out, err)
+      self.run_command()
+      return self.check_result()
     except OSError:
       return False
 
@@ -76,11 +96,7 @@ class FirewallChecks(object):
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE,
                                stderr=subprocess.PIPE)
     (stdoutdata, stderrdata) = process.communicate()
-    self.returncode = process.returncode
-    self.stdoutdata = stdoutdata
-    self.stderrdata = stderrdata
-    return self.returncode, self.stdoutdata, self.stderrdata
-
+    return process.returncode, stdoutdata, stderrdata
 
 
 class UbuntuFirewallChecks(FirewallChecks):
@@ -91,13 +107,13 @@ class UbuntuFirewallChecks(FirewallChecks):
   def get_command(self):
     return "%s %s" % (self.FIREWALL_SERVICE_NAME, self.SERVICE_SUBCMD)
 
-  def check_result(self, retcode, out, err):
+  def check_result(self):
     # On ubuntu, the status command returns 0 whether running or not
     result = False
-    if retcode == 0:
-      if "Status: inactive" in out:
+    if self.returncode == 0:
+      if "Status: inactive" in self.stdoutdata:
         result = False
-      elif "Status: active" in out:
+      elif "Status: active" in self.stdoutdata:
         result = True
     return result
 
@@ -108,10 +124,10 @@ class Fedora18FirewallChecks(FirewallChecks):
   def get_command(self):
     return "systemctl is-active %s" % (self.FIREWALL_SERVICE_NAME)
 
-  def check_result(self, retcode, out, err):
+  def check_result(self):
     result = False
-    if retcode == 0:
-      if "active" in out:
+    if self.returncode == 0:
+      if "active" in self.stdoutdata:
         result = True
     return result
 
@@ -123,11 +139,44 @@ class SuseFirewallChecks(FirewallChecks):
   def get_command(self):
     return "%s %s" % (self.FIREWALL_SERVICE_NAME, self.SERVICE_SUBCMD)
 
-  def check_result(self, retcode, out, err):
+  def check_result(self):
     result = False
-    if retcode == 0:
-      if "SuSEfirewall2 not active" in out:
+    if self.returncode == 0:
+      if "SuSEfirewall2 not active" in self.stdoutdata:
         result = False
-      elif "### iptables" in out:
+      elif "### iptables" in self.stdoutdata:
         result = True
     return result
+
+
+class WindowsFirewallChecks(FirewallChecks):
+  def __init__(self):
+    super(WindowsFirewallChecks, self).__init__()
+    self.MESSAGE_CHECK_FIREWALL = 'Checking firewall status...'
+
+  def run_command(self):
+    from ambari_commons.os_windows import run_powershell_script, CHECK_FIREWALL_SCRIPT
+
+    retcode, out, err = run_powershell_script(CHECK_FIREWALL_SCRIPT)
+    self.returncode = retcode
+    self.stdoutdata = out
+    self.stderrdata = err
+
+  def check_result(self):
+    if self.returncode != 0:
+      print_warning_msg("Unable to check firewall status:{0}".format(self.stderrdata))
+      return False
+    profiles_status = [i for i in self.stdoutdata.split("\n") if not i == ""]
+    if "1" in profiles_status:
+      enabled_profiles = []
+      if profiles_status[0] == "1":
+        enabled_profiles.append("DomainProfile")
+      if profiles_status[1] == "1":
+        enabled_profiles.append("StandardProfile")
+      if profiles_status[2] == "1":
+        enabled_profiles.append("PublicProfile")
+      print_warning_msg(
+        "Following firewall profiles are enabled:{0}. Make sure that the firewall is properly configured.".format(
+          ",".join(enabled_profiles)))
+      return False
+    return True

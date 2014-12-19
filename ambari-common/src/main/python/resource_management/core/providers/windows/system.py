@@ -140,7 +140,7 @@ def QueryPrivilegeState(hToken, priv):
   for (id, attr) in privList:
     if id == privId:
       privState = attr
-  Logger.debug('Privilege state: {}={} ({}) Enabled={}'.format(privId, priv, LookupPrivilegeDisplayName(None, priv), privState))
+  Logger.debug('Privilege state: {0}={1} ({2}) Enabled={3}'.format(privId, priv, LookupPrivilegeDisplayName(None, priv), privState))
   return privState
 
 # Execute command. As windows hdp stack heavily relies on proper environment it is better to reload fresh environment
@@ -182,7 +182,7 @@ def _call_command(command, logoutput=False, cwd=None, env=None, wait_for_finish=
     if not ok:
       raise Exception("Unable to create StdErr for child process")
 
-    Logger.debug("Redirecting stdout to '{}', stderr to '{}'".format(out_file.name, err_file.name))
+    Logger.debug("Redirecting stdout to '{0}', stderr to '{1}'".format(out_file.name, err_file.name))
 
     si.dwFlags = win32con.STARTF_USESTDHANDLES
     si.lpDesktop = ""

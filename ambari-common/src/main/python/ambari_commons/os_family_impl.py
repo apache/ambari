@@ -17,15 +17,15 @@ limitations under the License.
 '''
 
 import types
-from os_check import OSCheck
+from ambari_commons import OSCheck
 
 
 class OsFamilyImpl(object):
   """
-  Base class for os depended factory. Usage::
+  Base class for os dependent factory. Usage::
 
       class BaseFoo(object): pass
-      @Factory("windows")
+      @OsFamilyImpl("windows")
       class OsFoo(object):pass
       print BaseFoo()# OsFoo
 
@@ -62,3 +62,32 @@ class OsFamilyImpl(object):
     base_cls.__new__ = types.MethodType(new, base_cls)
 
     return cls
+
+class OsFamilyFuncImpl(object):
+  """
+  Base class for os dependent function. Usage::
+
+      @OSFamilyFuncImpl("windows")
+      def os_foo(...):pass
+
+  """
+  _func_impls = {}
+
+  def _createFunctionInstance(self, func):
+    self._func_impls[func.__module__ + "." + func.__name__ + "." + self.os_const] = func
+
+    def thunk(*args, **kwargs):
+      fn_id_base = func.__module__ + "." + func.__name__
+      fn_id = fn_id_base + "." + OSCheck.get_os_family()
+      if fn_id not in self._func_impls:
+        fn_id = fn_id_base + "." + OsFamilyImpl.DEFAULT
+
+      fn = self._func_impls[fn_id]
+      return fn(*args, **kwargs)
+    return thunk
+
+  def __init__(self, os_family):
+    self.os_const = os_family
+
+  def __call__(self, func):
+    return self._createFunctionInstance(func)

@@ -19,16 +19,32 @@ limitations under the License.
 '''
 import datetime
 import fileinput
+import os
 import random
+import re
+import shutil
 import socket
 import stat
+import string
 import sys
+import tempfile
+import time
 import urllib2
 
-from ambari_commons.exceptions import *
-from serverConfiguration import *
-from setupActions import *
-from userInput import *
+from ambari_commons.exceptions import FatalException, NonFatalException
+from ambari_commons.logging_utils import print_error_msg, print_info_msg, print_warning_msg, SILENT
+from ambari_commons.os_utils import copy_file, remove_file, search_file, set_file_permissions, is_valid_filepath, \
+  is_root, run_os_command
+from ambari_server.serverConfiguration import find_properties_file, get_ambari_properties, get_value_from_properties, \
+  get_conf_dir, get_full_ambari_classpath, read_ambari_user, find_jdk, get_prompt_default, update_properties_2, \
+  configDefaults, \
+  BOOTSTRAP_DIR_PROPERTY, GET_FQDN_SERVICE_URL, \
+  JDBC_USE_INTEGRATED_AUTH_PROPERTY, JDBC_PASSWORD_PROPERTY, JDBC_PASSWORD_FILENAME, \
+  JDBC_RCA_PASSWORD_ALIAS, JDBC_RCA_PASSWORD_FILE_PROPERTY, \
+  JDBC_METRICS_USE_INTEGRATED_AUTH_PROPERTY, JDBC_METRICS_PASSWORD_PROPERTY, \
+  JDBC_METRICS_PASSWORD_ALIAS, JDBC_METRICS_PASSWORD_FILENAME, BLIND_PASSWORD
+from ambari_server.setupActions import SETUP_ACTION, LDAP_SETUP_ACTION
+from ambari_server.userInput import get_validated_filepath_input, get_validated_string_input, get_YN_input
 
 
 SSL_PASSWORD_FILE = "pass.txt"
@@ -40,36 +56,25 @@ EXPRT_KSTR_CMD = "openssl pkcs12 -export -in '{0}' -inkey '{1}' -certfile '{0}' 
 CHANGE_KEY_PWD_CND = 'openssl rsa -in {0} -des3 -out {0}.secured -passout pass:{1}'
 GET_CRT_INFO_CMD = 'openssl x509 -dates -subject -in {0}'
 
-#keytool commands
-keytool_bin = "keytool"
-if OSCheck.is_windows_family():
-  keytool_bin = "keytool.exe"
-
-KEYTOOL_IMPORT_CERT_CMD = "{0}" + os.sep + "bin" + os.sep + keytool_bin + " -import -alias '{1}' -storetype '{2}' -file '{3}' -storepass '{4}' -noprompt"
-KEYTOOL_DELETE_CERT_CMD = "{0}" + os.sep + "bin" + os.sep + keytool_bin + " -delete -alias '{1}' -storepass '{2}' -noprompt"
+#keytool command
+KEYTOOL_IMPORT_CERT_CMD = "{0}" + os.sep + "bin" + os.sep + configDefaults.keytool_bin + " -import -alias '{1}' -storetype '{2}' -file '{3}' -storepass '{4}' -noprompt"
+KEYTOOL_DELETE_CERT_CMD = "{0}" + os.sep + "bin" + os.sep + configDefaults.keytool_bin + " -delete -alias '{1}' -storepass '{2}' -noprompt"
 KEYTOOL_KEYSTORE = " -keystore '{0}'"
 
-java_bin = "java"
-if OSCheck.is_windows_family():
-  java_bin = "java.exe"
-
-SECURITY_PROVIDER_GET_CMD = "{0}" + os.sep + "bin" + os.sep + java_bin + " -cp {1}" +\
-                          os.pathsep + "{2} " +\
+SECURITY_PROVIDER_GET_CMD = "{0}" + os.sep + configDefaults.JAVA_EXE_SUBPATH + " -cp {1} " +\
                           "org.apache.ambari.server.security.encryption" +\
-                          ".CredentialProvider GET {3} {4} {5} " +\
-                          "> " + SERVER_OUT_FILE + " 2>&1"
+                          ".CredentialProvider GET {2} {3} {4} " +\
+                          "> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
 
-SECURITY_PROVIDER_PUT_CMD = "{0}" + os.sep + "bin" + os.sep + java_bin + " -cp {1}" +\
-                          os.pathsep + "{2} " +\
+SECURITY_PROVIDER_PUT_CMD = "{0}" + os.sep + configDefaults.JAVA_EXE_SUBPATH + " -cp {1} " +\
                           "org.apache.ambari.server.security.encryption" +\
-                          ".CredentialProvider PUT {3} {4} {5} " +\
-                          "> " + SERVER_OUT_FILE + " 2>&1"
+                          ".CredentialProvider PUT {2} {3} {4} " +\
+                          "> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
 
-SECURITY_PROVIDER_KEY_CMD = "{0}" + os.sep + "bin" + os.sep + java_bin + " -cp {1}" +\
-                          os.pathsep + "{2} " +\
+SECURITY_PROVIDER_KEY_CMD = "{0}" + os.sep + configDefaults.JAVA_EXE_SUBPATH + " -cp {1}" +\
                           "org.apache.ambari.server.security.encryption" +\
-                          ".MasterKeyServiceImpl {3} {4} {5} " +\
-                          "> " + SERVER_OUT_FILE + " 2>&1"
+                          ".MasterKeyServiceImpl {2} {3} {4} " +\
+                          "> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
 
 SSL_KEY_DIR = 'security.server.keys_dir'
 SSL_API_PORT = 'client.api.ssl.port'
@@ -521,7 +526,7 @@ def read_passwd_for_alias(alias, masterKey=""):
     if jdk_path is None:
       print_error_msg("No JDK found, please run the \"setup\" "
                       "command to install a JDK automatically or install any "
-                      "JDK manually to " + JDK_INSTALL_DIR)
+                      "JDK manually to " + configDefaults.JDK_INSTALL_DIR)
       return 1
 
     tempFileName = "ambari.passwd"
@@ -536,8 +541,7 @@ def read_passwd_for_alias(alias, masterKey=""):
     if masterKey is None or masterKey == "":
       masterKey = "None"
 
-    command = SECURITY_PROVIDER_GET_CMD.format(jdk_path,
-      get_conf_dir(), get_ambari_classpath(), alias, tempFilePath, masterKey)
+    command = SECURITY_PROVIDER_GET_CMD.format(jdk_path, get_full_ambari_classpath(), alias, tempFilePath, masterKey)
     (retcode, stdout, stderr) = run_os_command(command)
     print_info_msg("Return code from credential provider get passwd: " +
                    str(retcode))
@@ -574,14 +578,13 @@ def save_passwd_for_alias(alias, passwd, masterKey=""):
     if jdk_path is None:
       print_error_msg("No JDK found, please run the \"setup\" "
                       "command to install a JDK automatically or install any "
-                      "JDK manually to " + JDK_INSTALL_DIR)
+                      "JDK manually to " + configDefaults.JDK_INSTALL_DIR)
       return 1
 
     if masterKey is None or masterKey == "":
       masterKey = "None"
 
-    command = SECURITY_PROVIDER_PUT_CMD.format(jdk_path, get_conf_dir(),
-      get_ambari_classpath(), alias, passwd, masterKey)
+    command = SECURITY_PROVIDER_PUT_CMD.format(jdk_path, get_full_ambari_classpath(), alias, passwd, masterKey)
     (retcode, stdout, stderr) = run_os_command(command)
     print_info_msg("Return code from credential provider save passwd: " +
                    str(retcode))
@@ -597,7 +600,7 @@ def get_is_persisted(properties):
   return (isPersisted, masterKeyFile)
 
 def get_credential_store_location(properties):
-  store_loc = properties[SECURITY_KEYS_DIR]
+  store_loc = get_value_from_properties(properties, SECURITY_KEYS_DIR, "")
   if store_loc is None or store_loc == "":
     store_loc = "/var/lib/ambari-server/keys/credentials.jceks"
   else:
@@ -605,9 +608,9 @@ def get_credential_store_location(properties):
   return store_loc
 
 def get_master_key_location(properties):
-  keyLocation = properties[SECURITY_MASTER_KEY_LOCATION]
+  keyLocation = get_value_from_properties(properties, SECURITY_MASTER_KEY_LOCATION, "")
   if keyLocation is None or keyLocation == "":
-    keyLocation = properties[SECURITY_KEYS_DIR]
+    keyLocation = get_value_from_properties(properties, SECURITY_KEYS_DIR, "")
   return keyLocation
 
 def get_original_master_key(properties):
@@ -679,10 +682,9 @@ def save_master_key(master_key, key_location, persist=True):
     if jdk_path is None:
       print_error_msg("No JDK found, please run the \"setup\" "
                       "command to install a JDK automatically or install any "
-                      "JDK manually to " + JDK_INSTALL_DIR)
+                      "JDK manually to " + configDefaults.JDK_INSTALL_DIR)
       return 1
-    command = SECURITY_PROVIDER_KEY_CMD.format(jdk_path,
-      get_ambari_classpath(), get_conf_dir(), master_key, key_location, persist)
+    command = SECURITY_PROVIDER_KEY_CMD.format(jdk_path, get_full_ambari_classpath(), master_key, key_location, persist)
     (retcode, stdout, stderr) = run_os_command(command)
     print_info_msg("Return code from credential provider save KEY: " +
                    str(retcode))
@@ -722,20 +724,35 @@ def adjust_directory_permissions(ambari_user):
   bootstrap_dir = get_value_from_properties(properties, BOOTSTRAP_DIR_PROPERTY)
   print_info_msg("Cleaning bootstrap directory ({0}) contents...".format(bootstrap_dir))
   shutil.rmtree(bootstrap_dir, True) #Ignore the non-existent dir error
-  os.makedirs(bootstrap_dir)
+
+  #makedirs may fail with "Access denied" if executed right after rmtree. The only known good solution is a delayed retry.
+  retry_makedirs = 0
+  while True:
+    try:
+      os.makedirs(bootstrap_dir)
+    except OSError as e:
+      time.sleep(0.01)  #Unnoticeable at this scale
+      retry_makedirs += 1
+      if retry_makedirs == 3:
+        raise
+      continue
+    break
+
+  ownership_list = configDefaults.NR_ADJUST_OWNERSHIP_LIST
+
   # Add master key and credential store if exists
   keyLocation = get_master_key_location(properties)
   masterKeyFile = search_file(SECURITY_MASTER_KEY_FILENAME, keyLocation)
   if masterKeyFile:
-    NR_ADJUST_OWNERSHIP_LIST.append((masterKeyFile, MASTER_KEY_FILE_PERMISSIONS, "{0}", "{0}", False))
+    ownership_list.append((masterKeyFile, configDefaults.MASTER_KEY_FILE_PERMISSIONS, "{0}", "{0}", False))
   credStoreFile = get_credential_store_location(properties)
   if os.path.exists(credStoreFile):
-    NR_ADJUST_OWNERSHIP_LIST.append((credStoreFile, CREDENTIALS_STORE_FILE_PERMISSIONS, "{0}", "{0}", False))
-  trust_store_location = properties[SSL_TRUSTSTORE_PATH_PROPERTY]
+    ownership_list.append((credStoreFile, configDefaults.CREDENTIALS_STORE_FILE_PERMISSIONS, "{0}", "{0}", False))
+  trust_store_location = get_value_from_properties(properties, SSL_TRUSTSTORE_PATH_PROPERTY, None)
   if trust_store_location:
-    NR_ADJUST_OWNERSHIP_LIST.append((trust_store_location, TRUST_STORE_LOCATION_PERMISSIONS, "{0}", "{0}", False))
+    ownership_list.append((trust_store_location, configDefaults.TRUST_STORE_LOCATION_PERMISSIONS, "{0}", "{0}", False))
   print "Adjusting ambari-server permissions and ownership..."
-  for pack in NR_ADJUST_OWNERSHIP_LIST:
+  for pack in ownership_list:
     file = pack[0]
     mod = pack[1]
     user = pack[2].format(ambari_user)
@@ -829,7 +846,7 @@ def setup_component_https(component, command, property, alias):
     if jdk_path is None:
       err = "No JDK found, please run the \"ambari-server setup\" " \
                       "command to install a JDK automatically or install any " \
-                      "JDK manually to " + JDK_INSTALL_DIR
+                      "JDK manually to " + configDefaults.JDK_INSTALL_DIR
       raise FatalException(1, err)
 
     properties = get_ambari_properties()
@@ -979,7 +996,7 @@ def setup_master_key():
         print_info_msg("Deleting master key file at location: " + str(
           masterKeyFile))
       except Exception, e:
-        print 'ERROR: Could not remove master key file. %s' % e
+        print 'ERROR: Could not remove master key file. %s' % str(e)
     # Blow up the credential store made with previous key, if any
     store_file = get_credential_store_location(properties)
     if os.path.exists(store_file):

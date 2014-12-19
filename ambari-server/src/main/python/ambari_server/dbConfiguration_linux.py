@@ -17,204 +17,177 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-
+import fileinput
+import glob
+import os
+import re
 import shutil
+import socket
+import subprocess
+import sys
+import time
 
-from ambari_commons import OSConst
-from ambari_commons.logging_utils import *
-from exceptions import *
-from dbConfiguration import *
-from utils import *
+from ambari_commons import OSCheck, OSConst
+from ambari_commons.logging_utils import print_error_msg, print_info_msg, print_warning_msg, VERBOSE
+from ambari_commons.exceptions import NonFatalException, FatalException
+from ambari_commons.os_utils import copy_files, remove_file, run_os_command
+from ambari_server.dbConfiguration import DBMSConfig, USERNAME_PATTERN, SETUP_DB_CONNECT_ATTEMPTS, \
+  SETUP_DB_CONNECT_TIMEOUT
+from ambari_server.serverConfiguration import get_ambari_properties, get_value_from_properties, configDefaults, \
+  OS_TYPE, AMBARI_PROPERTIES_FILE, BLIND_PASSWORD, RESOURCES_DIR_PROPERTY, \
+  JDBC_DATABASE_PROPERTY, JDBC_DATABASE_NAME_PROPERTY, JDBC_POSTGRES_SCHEMA_PROPERTY, \
+  JDBC_HOSTNAME_PROPERTY, JDBC_PORT_PROPERTY, \
+  JDBC_USER_NAME_PROPERTY, JDBC_PASSWORD_PROPERTY, JDBC_PASSWORD_FILENAME, \
+  JDBC_DRIVER_PROPERTY, JDBC_URL_PROPERTY, \
+  JDBC_RCA_USER_NAME_PROPERTY, JDBC_RCA_PASSWORD_ALIAS, JDBC_RCA_PASSWORD_FILE_PROPERTY, \
+  JDBC_RCA_DRIVER_PROPERTY, JDBC_RCA_URL_PROPERTY, \
+  PERSISTENCE_TYPE_PROPERTY
+from ambari_server.setupSecurity import read_password, store_password_file, encrypt_password
+from ambari_server.userInput import get_YN_input, get_validated_string_input
+from ambari_server.utils import get_postgre_hba_dir, get_postgre_running_status
 
-import utils
+_DEFAULT_PASSWORD = "bigdata"
 
-# PostgreSQL settings
-PG_JDBC_CONNECTION_STRING = "jdbc:postgresql://{0}:{1}/{2}"
-PG_JDBC_CONNECTION_STRING_ALT = "jdbc:postgresql://{0}:{1}/{2}"
+ORACLE_DB_ID_TYPES = ["Service Name", "SID"]
 
-UBUNTU_PG_HBA_ROOT = "/etc/postgresql"
-PG_HBA_ROOT_DEFAULT = "/var/lib/pgsql/data"
+JDBC_PROPERTIES_PREFIX = "server.jdbc.properties."
 
-SETUP_DB_CMD = ['su', '-', 'postgres',
-        '--command=psql -f {0} -v username=\'"{1}"\' -v password="\'{2}\'" -v dbname="{3}"']
-UPGRADE_STACK_CMD = ['su', 'postgres',
-        '--command=psql -f {0} -v stack_name="\'{1}\'"  -v stack_version="\'{2}\'" -v dbname="{3}"']
+class LinuxDBMSConfig(DBMSConfig):
+  def __init__(self, options, properties, storage_type):
+    super(LinuxDBMSConfig, self).__init__(options, properties, storage_type)
 
-CHANGE_OWNER_COMMAND = ['su', '-', 'postgres',
-                        '--command=/var/lib/ambari-server/resources/scripts/change_owner.sh -d {0} -s {1} -o {2}']
+    #Init the database configuration data here, if any
+    self.dbms_full_name = ""
+    self.driver_file_name = ""
 
-PG_ERROR_BLOCKED = "is being accessed by other users"
-PG_STATUS_RUNNING = get_running_status()
-PG_DEFAULT_PASSWORD = "bigdata"
-SERVICE_CMD = "/usr/bin/env service"
-PG_SERVICE_NAME = "postgresql"
-PG_HBA_DIR = utils.get_postgre_hba_dir()
+    # The values from options supersede the values from properties
+    self.database_host = DBMSConfig._init_member_with_prop_default(options, "database_host",
+        properties, JDBC_HOSTNAME_PROPERTY, "localhost")
+    #self.database_port is set in the subclasses
+    self.database_name = DBMSConfig._init_member_with_prop_default(options, "database_name",
+        properties, JDBC_DATABASE_NAME_PROPERTY, configDefaults.DEFAULT_DB_NAME)
 
-PG_ST_CMD = "%s %s status" % (SERVICE_CMD, PG_SERVICE_NAME)
-if os.path.isfile("/usr/bin/postgresql-setup"):
-    PG_INITDB_CMD = "/usr/bin/postgresql-setup initdb"
-else:
-    PG_INITDB_CMD = "%s %s initdb" % (SERVICE_CMD, PG_SERVICE_NAME)
+    self.database_username = DBMSConfig._init_member_with_prop_default(options, "database_username",
+        properties, JDBC_USER_NAME_PROPERTY, "ambari")
+    self.database_password = DBMSConfig._init_member_with_default(options, "database_password", _DEFAULT_PASSWORD)
+    self.password_file = get_value_from_properties(properties, JDBC_PASSWORD_PROPERTY, None)
 
-PG_START_CMD = "%s %s start" % (SERVICE_CMD, PG_SERVICE_NAME)
-PG_RESTART_CMD = "%s %s restart" % (SERVICE_CMD, PG_SERVICE_NAME)
-PG_HBA_RELOAD_CMD = "%s %s reload" % (SERVICE_CMD, PG_SERVICE_NAME)
+    self.database_url_pattern = ""
+    self.database_url_pattern_alt = ""
 
-PG_HBA_CONF_FILE = os.path.join(PG_HBA_DIR, "pg_hba.conf")
-PG_HBA_CONF_FILE_BACKUP = os.path.join(PG_HBA_DIR, "pg_hba_bak.conf.old")
-POSTGRESQL_CONF_FILE = os.path.join(PG_HBA_DIR, "postgresql.conf")
+    self.database_storage_name = ""
+    self.sid_or_sname = "sname"
 
+    self.init_script_file = ""
+    self.drop_tables_script_file = ""
+    self.client_tool_usage_pattern = ""
 
-# Set database properties to default values
-def load_default_db_properties(args):
-  args.persistence_type = 'local'
-  args.dbms = DATABASE_NAMES[DATABASE_INDEX]
-  args.database_host = "localhost"
-  args.database_port = DATABASE_PORTS[DATABASE_INDEX]
-  args.database_name = DEFAULT_DB_NAME
-  args.database_username = "ambari"
-  args.database_password = "bigdata"
-  args.sid_or_sname = "sname"
-  pass
+    self.jdbc_extra_params = []
 
-def configure_database_password(showDefault=True):
-  passwordDefault = PG_DEFAULT_PASSWORD
-  if showDefault:
-    passwordPrompt = 'Enter Database Password (' + passwordDefault + '): '
-  else:
-    passwordPrompt = 'Enter Database Password: '
-  passwordPattern = "^[a-zA-Z0-9_-]*$"
-  passwordDescr = "Invalid characters in password. Use only alphanumeric or "\
-                  "_ or - characters"
-
-  password = read_password(passwordDefault, passwordPattern, passwordPrompt,
-    passwordDescr)
-
-  return password
-
-# Ask user for database connection properties
-def prompt_linux_db_properties(args):
-  global DATABASE_INDEX
-
-  if args.must_set_database_options:
-    load_default_db_properties(args)
-    ok = get_YN_input("Enter advanced database configuration [y/n] (n)? ", False)
-    if ok:
-
-      print "=============================================================================="
-      print "Choose one of the following options:"
-
-      database_num = str(DATABASE_INDEX + 1)
-      database_num = get_validated_string_input(
-        "[1] - PostgreSQL (Embedded)\n[2] - Oracle\n[3] - MySQL\n[4] - PostgreSQL\n"
-        "==============================================================================\n"
-        "Enter choice (" + database_num + "): ",
-        database_num,
-        "^[1234]$",
-        "Invalid number.",
-        False
-      )
-
-      if int(database_num) == 1:
-        args.persistence_type = 'local'
-        args.database_index = 0
-      else:
-        args.persistence_type = 'remote'
-        selected_db_option = int(database_num)
-
-        if selected_db_option == 2:
-          args.database_index = 1
-        elif selected_db_option == 3:
-          args.database_index = 2
-        elif selected_db_option == 4:
-          args.database_index = 0
-        else:
-          print_info_msg('Unknown db option, default to embbeded postgres.')
-          args.database_index = 0
-        pass
-      pass
-
-      DATABASE_INDEX = args.database_index
-      args.dbms = DATABASE_NAMES[args.database_index]
-
-      if args.persistence_type != 'local':
-        args.database_host = get_validated_string_input(
-          "Hostname (" + args.database_host + "): ",
-          args.database_host,
+  def _prompt_db_properties(self):
+    if not self.silent == True:
+      if self.persistence_type != 'local':
+        self.database_host = get_validated_string_input(
+          "Hostname (" + self.database_host + "): ",
+          self.database_host,
           "^[a-zA-Z0-9.\-]*$",
           "Invalid hostname.",
           False
         )
 
-        args.database_port = DATABASE_PORTS[DATABASE_INDEX]
-        args.database_port = get_validated_string_input(
-          "Port (" + args.database_port + "): ",
-          args.database_port,
+        self.database_port = get_validated_string_input(
+          "Port (" + self.database_port + "): ",
+          self.database_port,
           "^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$",
           "Invalid port.",
           False
         )
 
-        if args.dbms == "oracle":
-          # Oracle uses service name or service id
-          idType = "1"
-          idType = get_validated_string_input(
-            "Select Oracle identifier type:\n1 - " + ORACLE_DB_ID_TYPES[0] +
-            "\n2 - " + ORACLE_DB_ID_TYPES[1] + "\n(" + idType + "): ",
-            idType,
-            "^[12]$",
-            "Invalid number.",
-            False
-          )
-
-          if idType == "2":
-            args.sid_or_sname = "sid"
-
-          IDTYPE_INDEX = int(idType) - 1
-          args.database_name = get_validated_service_name(args.database_name,
-                                                          IDTYPE_INDEX)
-        elif args.dbms in ["mysql", "postgres"]:
-          args.database_name = get_validated_db_name(args.database_name)
-
-        else:
-          # other DB types
-          pass
-        pass
-      else:
-        args.database_host = "localhost"
-        args.database_port = DATABASE_PORTS[DATABASE_INDEX]
-
-        args.database_name = get_validated_db_name(args.database_name)
-        pass
+      if not self._configure_database_name():
+        return False
 
       # Username is common for Oracle/MySQL/Postgres
-      args.database_username = get_validated_string_input(
-        'Username (' + args.database_username + '): ',
-        args.database_username,
+      self.database_username = get_validated_string_input(
+        'Username (' + self.database_username + '): ',
+        self.database_username,
         USERNAME_PATTERN,
         "Invalid characters in username. Start with _ or alpha "
         "followed by alphanumeric or _ or - characters",
         False
       )
-      args.database_password = configure_database_password(True)
+      self.database_password = LinuxDBMSConfig._configure_database_password(True)
 
-    print_info_msg('Using database options: {database},{host},{port},{schema},{user},{password}'.format(
-      database=args.dbms,
-      host=args.database_host,
-      port=args.database_port,
-      schema=args.database_name,
-      user=args.database_username,
-      password=args.database_password
-    ))
+    self._display_db_properties()
+    return True
 
-# PostgreSQL configuration and setup
-class PGConfig(DBMSConfig):
-  def __init__(self):
-    #Init the database configuration data here, if any
-    pass
+  # Supporting remote server for all the DB types. Supporting local server only for PostgreSQL.
+  def _setup_remote_server(self, args):
+    self._store_remote_properties(args)
 
-  def configure_database_password(showDefault=True):
-    passwordDefault = PG_DEFAULT_PASSWORD
+  def _setup_remote_database(self):
+    properties = get_ambari_properties()
+    if properties == -1:
+      err = 'Error getting ambari properties'
+      print_error_msg(err)
+      raise FatalException(-1, err)
+
+    if self.ensure_jdbc_driver_installed(properties):
+      print 'Configuring remote database connection properties...'
+      retcode = self._setup_remote_db()
+      if retcode == -1:
+        err = "Remote database setup aborted."
+        raise NonFatalException(err)
+      if not retcode == 0:
+        err = 'Error while configuring connection properties. Exiting'
+        raise FatalException(retcode, err)
+
+  def _reset_remote_database(self):
+    client_usage_cmd_drop = self.client_tool_usage_pattern.format(self.drop_tables_script_file, self.database_username,
+                                                                            BLIND_PASSWORD, self.database_name)
+    client_usage_cmd_init = self.client_tool_usage_pattern.format(self.init_script_file, self.database_username,
+                                                                            BLIND_PASSWORD, self.database_name)
+
+    print_warning_msg('To reset Ambari Server schema ' +
+                      'you must run the following DDL against the database to '
+                      + 'drop the schema:' + os.linesep + client_usage_cmd_drop
+                      + os.linesep + 'Then you must run the following DDL ' +
+                      'against the database to create the schema: ' + os.linesep +
+                      client_usage_cmd_init + os.linesep)
+
+  def _install_jdbc_driver(self, properties, files_list):
+    if type(files_list) is not int:
+      print 'Copying JDBC drivers to server resources...'
+      try:
+        resources_dir = properties[RESOURCES_DIR_PROPERTY]
+      except KeyError:
+        print_error_msg("There is no value for " + RESOURCES_DIR_PROPERTY + "in " + AMBARI_PROPERTIES_FILE)
+        return False
+
+      db_name = self.dbms_full_name.lower()
+      jdbc_symlink = os.path.join(resources_dir, db_name + "-jdbc-driver.jar")
+      db_default_driver_path = os.path.join(configDefaults.JAVA_SHARE_PATH, self.driver_file_name)
+
+      if os.path.lexists(jdbc_symlink):
+        os.remove(jdbc_symlink)
+
+      copy_status = copy_files(files_list, resources_dir)
+
+      if not copy_status == 0:
+        raise FatalException(-1, "Failed to copy JDBC drivers to server resources")
+
+      if db_default_driver_path in files_list:
+        os.symlink(os.path.join(resources_dir, self.driver_file_name), jdbc_symlink)
+    else:
+      if files_list != -1:
+        return False
+    return True
+
+  def _configure_database_name(self):
+    return True
+
+  @staticmethod
+  def _configure_database_password(showDefault=True):
+    passwordDefault = _DEFAULT_PASSWORD
     if showDefault:
       passwordPrompt = 'Enter Database Password (' + passwordDefault + '): '
     else:
@@ -228,229 +201,334 @@ class PGConfig(DBMSConfig):
 
     return password
 
-  #
-  # Private implementation
-  #
-  def _change_db_files_owner(args):
-    print 'Fixing database objects owner'
-    database_name = args.database_name
-    new_owner = args.database_username
-    if '"' not in new_owner:
-      #wrap to allow old username "ambari-server", postgres only
-      new_owner = '\'"{0}"\''.format(new_owner)
-      pass
+  @staticmethod
+  def _get_validated_db_name(database_storage_name, database_name):
+    return get_validated_string_input(
+      database_storage_name + " Name ("
+      + database_name + "): ",
+      database_name,
+      ".*",
+      "Invalid " + database_storage_name + " name.",
+      False
+    )
 
-    command = CHANGE_OWNER_COMMAND[:]
-    command[-1] = command[-1].format(database_name, 'ambari', new_owner)
-    return run_os_command(command)
+  def _display_db_properties(self):
+    print_info_msg('Using database options: {database},{host},{port},{schema},{user},{password}'.format(
+      database=self.dbms,
+      host=self.database_host,
+      port=self.database_port,
+      schema=self.database_name,
+      user=self.database_username,
+      password=self.database_password
+    ))
 
-  def _configure_pg_hba_ambaridb_users(self):
-    args = optparse.Values()
-    configure_database_username_password(args)
+  #Check if required jdbc drivers present
+  @staticmethod
+  def _find_jdbc_driver(jdbc_pattern):
+    drivers = []
+    drivers.extend(glob.glob(configDefaults.JAVA_SHARE_PATH + os.sep + jdbc_pattern))
+    if drivers:
+      return drivers
+    return -1
 
-    with open(PG_HBA_CONF_FILE, "a") as pgHbaConf:
-      pgHbaConf.write("\n")
-      pgHbaConf.write("local  all  " + args.database_username +
-                      ",mapred md5")
-      pgHbaConf.write("\n")
-      pgHbaConf.write("host  all   " + args.database_username +
-                      ",mapred 0.0.0.0/0  md5")
-      pgHbaConf.write("\n")
-      pgHbaConf.write("host  all   " + args.database_username +
-                      ",mapred ::/0 md5")
-      pgHbaConf.write("\n")
-    retcode, out, err = run_os_command(PG_HBA_RELOAD_CMD)
-    if not retcode == 0:
-      raise FatalException(retcode, err)
+  # Let the console user initialize the remote database schema
+  def _setup_remote_db(self):
+    setup_msg = "Before starting Ambari Server, you must run the following DDL " \
+                "against the database to create the schema: {0}".format(self.init_script_file)
 
-  def _configure_pg_hba_postgres_user(self):
-    postgresString = "all   postgres"
-    for line in fileinput.input(PG_HBA_CONF_FILE, inplace=1):
-      print re.sub('all\s*all', postgresString, line),
-    os.chmod(PG_HBA_CONF_FILE, 0644)
+    print_warning_msg(setup_msg)
 
-  def _configure_postgresql_conf(self):
-    listenAddress = "listen_addresses = '*'        #"
-    for line in fileinput.input(POSTGRESQL_CONF_FILE, inplace=1):
-      print re.sub('#+listen_addresses.*?(#|$)', listenAddress, line),
-    os.chmod(POSTGRESQL_CONF_FILE, 0644)
+    proceed = get_YN_input("Proceed with configuring remote database connection properties [y/n] (y)? ", True)
+    retCode = 0 if proceed else -1
+
+    return retCode
 
   # Store set of properties for remote database connection
-  def _store_remote_properties(args):
-    properties = get_ambari_properties()
-    if properties == -1:
-      print_error_msg("Error getting ambari properties")
-      return -1
+  def _store_remote_properties(self, properties):
+    properties.process_pair(PERSISTENCE_TYPE_PROPERTY, self.persistence_type)
 
-    isSecure = get_is_secure(properties)
+    properties.process_pair(JDBC_DATABASE_PROPERTY, self.dbms)
+    properties.process_pair(JDBC_HOSTNAME_PROPERTY, self.database_host)
+    properties.process_pair(JDBC_PORT_PROPERTY, self.database_port)
+    properties.process_pair(JDBC_DATABASE_NAME_PROPERTY, self.database_name)
 
-    properties.process_pair(PERSISTENCE_TYPE_PROPERTY, "remote")
-
-    properties.process_pair(JDBC_DATABASE_PROPERTY, args.dbms)
-    properties.process_pair(JDBC_HOSTNAME_PROPERTY, args.database_host)
-    properties.process_pair(JDBC_PORT_PROPERTY, args.database_port)
-    properties.process_pair(JDBC_SCHEMA_PROPERTY, args.database_name)
-
-    properties.process_pair(JDBC_DRIVER_PROPERTY, DBCN.get_driver_name())
+    properties.process_pair(JDBC_DRIVER_PROPERTY, self.driver_class_name)
     # fully qualify the hostname to make sure all the other hosts can connect
     # to the jdbc hostname since its passed onto the agents for RCA
-    jdbc_hostname = args.database_host
-    if (args.database_host == "localhost"):
+    jdbc_hostname = self.database_host
+    if (self.database_host == "localhost"):
       jdbc_hostname = socket.getfqdn()
 
-    #TODO: Implement the DBCN connection string generation
-    #connectionStringFormat = DATABASE_CONNECTION_STRINGS
-    #if args.sid_or_sname == "sid":
-    #  connectionStringFormat = DATABASE_CONNECTION_STRINGS_ALT
-    #properties.process_pair(JDBC_URL_PROPERTY, connectionStringFormat[DATABASE_INDEX].format(jdbc_hostname, args.database_port, args.database_name))
-    properties.process_pair(JDBC_URL_PROPERTY, DBCN.get_connection_string())
-    properties.process_pair(JDBC_USER_NAME_PROPERTY, args.database_username)
+    connectionStringFormat = self.database_url_pattern
+    if self.sid_or_sname == "sid":
+      connectionStringFormat = self.database_url_pattern_alt
+    properties.process_pair(JDBC_URL_PROPERTY, connectionStringFormat.format(jdbc_hostname, self.database_port, self.database_name))
+    properties.process_pair(JDBC_USER_NAME_PROPERTY, self.database_username)
     properties.process_pair(JDBC_PASSWORD_PROPERTY,
-        store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
+                            store_password_file(self.database_password, JDBC_PASSWORD_FILENAME))
 
     # save any other defined properties to pass to JDBC
-    if DATABASE_INDEX < len(DATABASE_JDBC_PROPERTIES):
-      for pair in DATABASE_JDBC_PROPERTIES[DATABASE_INDEX]:
-        properties.process_pair(JDBC_PROPERTIES_PREFIX + pair[0], pair[1])
+    for pair in self.jdbc_extra_params:
+      properties.process_pair(JDBC_PROPERTIES_PREFIX + pair[0], pair[1])
 
-    if isSecure:
-      encrypted_password = encrypt_password(JDBC_RCA_PASSWORD_ALIAS, args.database_password)
-      if encrypted_password != args.database_password:
+    if self.isSecure:
+      encrypted_password = encrypt_password(JDBC_RCA_PASSWORD_ALIAS, self.database_password)
+      if encrypted_password != self.database_password:
         properties.process_pair(JDBC_PASSWORD_PROPERTY, encrypted_password)
     pass
 
-    properties.process_pair(JDBC_RCA_DRIVER_PROPERTY, DBCN.get_driver_name())
-    properties.process_pair(JDBC_RCA_URL_PROPERTY, DBCN.get_connection_string())
-    properties.process_pair(JDBC_RCA_USER_NAME_PROPERTY, args.database_username)
+    properties.process_pair(JDBC_RCA_DRIVER_PROPERTY, self.driver_class_name)
+    properties.process_pair(JDBC_RCA_URL_PROPERTY, self.database_url_pattern.format(jdbc_hostname, self.database_port, self.database_name))
+    properties.process_pair(JDBC_RCA_USER_NAME_PROPERTY, self.database_username)
     properties.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY,
-        store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
-    if isSecure:
-      encrypted_password = encrypt_password(JDBC_RCA_PASSWORD_ALIAS, args.database_password)
-      if encrypted_password != args.database_password:
+                            store_password_file(self.database_password, JDBC_PASSWORD_FILENAME))
+    if self.isSecure:
+      encrypted_password = encrypt_password(JDBC_RCA_PASSWORD_ALIAS, self.database_password)
+      if encrypted_password != self.database_password:
         properties.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY, encrypted_password)
-    pass
 
-    conf_file = properties.fileName
 
-    try:
-      properties.store(open(conf_file, "w"))
-    except Exception, e:
-      print 'Could not write ambari config file "%s": %s' % (conf_file, e)
-      return -1
+# PostgreSQL configuration and setup
+class PGConfig(LinuxDBMSConfig):
+  # PostgreSQL settings
+  SETUP_DB_CMD = ['su', '-', 'postgres',
+                  '--command=psql -f {0} -v username=\'"{1}"\' -v password="\'{2}\'" -v dbname="{3}"']
+  UPGRADE_STACK_CMD = ['su', 'postgres',
+                       '--command=psql -f {0} -v stack_name="\'{1}\'"  -v stack_version="\'{2}\'" -v dbname="{3}"']
 
-    return 0
+  CHANGE_OWNER_COMMAND = ['su', '-', 'postgres',
+                          '--command=/var/lib/ambari-server/resources/scripts/change_owner.sh -d {0} -s {1} -o {2}']
+
+  PG_ERROR_BLOCKED = "is being accessed by other users"
+  PG_STATUS_RUNNING = get_postgre_running_status(OS_TYPE)
+  SERVICE_CMD = "/usr/bin/env service"
+  PG_SERVICE_NAME = "postgresql"
+  PG_HBA_DIR = get_postgre_hba_dir(OSCheck.get_os_family())
+
+  PG_ST_CMD = "%s %s status" % (SERVICE_CMD, PG_SERVICE_NAME)
+  if os.path.isfile("/usr/bin/postgresql-setup"):
+    PG_INITDB_CMD = "/usr/bin/postgresql-setup initdb"
+  else:
+    PG_INITDB_CMD = "%s %s initdb" % (SERVICE_CMD, PG_SERVICE_NAME)
+
+  PG_START_CMD = "%s %s start" % (SERVICE_CMD, PG_SERVICE_NAME)
+  PG_RESTART_CMD = "%s %s restart" % (SERVICE_CMD, PG_SERVICE_NAME)
+  PG_HBA_RELOAD_CMD = "%s %s reload" % (SERVICE_CMD, PG_SERVICE_NAME)
+
+  PG_HBA_CONF_FILE = os.path.join(PG_HBA_DIR, "pg_hba.conf")
+  PG_HBA_CONF_FILE_BACKUP = os.path.join(PG_HBA_DIR, "pg_hba_bak.conf.old")
+  POSTGRESQL_CONF_FILE = os.path.join(PG_HBA_DIR, "postgresql.conf")
+  def __init__(self, options, properties, storage_type):
+    super(PGConfig, self).__init__(options, properties, storage_type)
+
+    #Init the database configuration data here, if any
+    self.dbms = "postgres"
+    self.dbms_full_name = "PostgreSQL"
+    self.driver_class_name = "org.postgresql.Driver"
+    self.driver_file_name = "postgresql-jdbc.jar"
+
+    self.database_storage_name = "Database"
+
+    # PostgreSQL seems to require additional schema coordinates
+    self.postgres_schema = get_value_from_properties(properties, JDBC_POSTGRES_SCHEMA_PROPERTY, self.database_name)
+    self.database_port = DBMSConfig._init_member_with_prop_default(options, "database_port",
+        properties, JDBC_PORT_PROPERTY, "5432")
+
+    self.database_url_pattern = "jdbc:postgresql://{0}:{1}/{2}"
+    self.database_url_pattern_alt = "jdbc:postgresql://{0}:{1}/{2}"
+
+    self.JDBC_DRIVER_INSTALL_MSG = 'Before starting Ambari Server, ' \
+                                   'you must copy the {0} JDBC driver JAR file to {1}.'.format(
+      self.dbms_full_name, configDefaults.JAVA_SHARE_PATH)
+
+    self._is_user_changed = False
+
+    self.init_script_file = "/var/lib/ambari-server/resources/Ambari-DDL-Postgres-CREATE.sql"
+    self.drop_tables_script_file = "/var/lib/ambari-server/resources/Ambari-DDL-Postgres-DROP.sql"
+    self.client_tool_usage_pattern = 'su -postgres --command=psql -f {0} -v username=\'"{1}"\' -v password="\'{2}\'"'
 
   #
   # Public methods
   #
-  def configure_postgres(self):
-    if os.path.isfile(PG_HBA_CONF_FILE):
-      if not os.path.isfile(PG_HBA_CONF_FILE_BACKUP):
-        shutil.copyfile(PG_HBA_CONF_FILE, PG_HBA_CONF_FILE_BACKUP)
+
+  #
+  # Private implementation
+  #
+  # Supporting remote server for all the DB types. Supporting local server only for PostgreSQL.
+  def _setup_local_server(self, properties):
+    # check if jdbc user is changed
+    self._is_user_changed = PGConfig._is_jdbc_user_changed(self.database_username)
+    print 'Default properties detected. Using built-in database.'
+    self._store_local_properties(properties)
+
+  def _setup_local_database(self):
+    print 'Checking PostgreSQL...'
+    (pg_status, retcode, out, err) = self._check_postgre_up()
+    if not retcode == 0:
+      err = 'Unable to start PostgreSQL server. Exiting'
+      raise FatalException(retcode, err)
+    print 'Configuring local database...'
+    retcode, out, err = self._setup_db()
+    if not retcode == 0:
+      err = 'Running database init script was failed. Exiting.'
+      raise FatalException(retcode, err)
+    if self._is_user_changed:
+      #remove backup for pg_hba in order to reconfigure postgres
+      remove_file(PGConfig.PG_HBA_CONF_FILE_BACKUP)
+    print 'Configuring PostgreSQL...'
+    retcode, out, err = self._configure_postgres()
+    if not retcode == 0:
+      err = 'Unable to configure PostgreSQL server. Exiting'
+      raise FatalException(retcode, err)
+
+  def _reset_local_database(self):
+    dbname = self.database_name
+    filename = self.drop_script_file
+    username = self.database_username
+    password = self.database_password
+    command = PGConfig.SETUP_DB_CMD[:]
+    command[-1] = command[-1].format(filename, username, password, dbname)
+    drop_retcode, drop_outdata, drop_errdata = run_os_command(command)
+    if not drop_retcode == 0:
+      raise FatalException(1, drop_errdata)
+    if drop_errdata and PGConfig.PG_ERROR_BLOCKED in drop_errdata:
+      raise FatalException(1, "Database is in use. Please, make sure all connections to the database are closed")
+    if drop_errdata and VERBOSE:
+      print_warning_msg(drop_errdata)
+    print_info_msg("About to run database setup")
+    retcode, outdata, errdata = self._setup_db()
+    if errdata and VERBOSE:
+      print_warning_msg(errdata)
+    if (errdata and 'ERROR' in errdata.upper()) or (drop_errdata and 'ERROR' in drop_errdata.upper()):
+      if not VERBOSE:
+        raise NonFatalException("Non critical error in DDL, use --verbose for more information")
       else:
-        #Postgres has been configured before, must not override backup
-        print "Backup for pg_hba found, reconfiguration not required"
-        return 0
-    self._configure_pg_hba_postgres_user()
-    self._configure_pg_hba_ambaridb_users()
-    os.chmod(PG_HBA_CONF_FILE, 0644)
-    self._configure_postgresql_conf()
-    #restart postgresql if already running
-    pg_status = get_postgre_status()
-    if pg_status == PG_STATUS_RUNNING:
-      retcode = restart_postgres()
-      return retcode
+        raise NonFatalException("Non critical error in DDL")
+
+  def _is_jdbc_driver_installed(self, properties):
     return 0
 
-  def configure_database(self, args):
-    prompt_db_properties(args)
+  def _configure_database_name(self):
+    self.database_name = LinuxDBMSConfig._get_validated_db_name(self.database_storage_name, self.database_name)
+    self.postgres_schema = self._get_validated_db_schema(self.postgres_schema)
+    return True
 
-    #DB setup should be done last after doing any setup.
+  def _get_validated_db_schema(self, postgres_schema):
+    return get_validated_string_input(
+      "Postgres schema (" + postgres_schema + "): ",
+      postgres_schema,
+      "^[a-zA-Z0-9_\-]*$",
+      "Invalid schema name.",
+      False, allowEmpty=True
+    )
 
-    if is_local_database(args):
-      #check if jdbc user is changed
-      is_user_changed = is_jdbc_user_changed(args)
-
-      print 'Default properties detected. Using built-in database.'
-      store_local_properties(args)
-
-      print 'Checking PostgreSQL...'
-      retcode = check_postgre_up()
-      if not retcode == 0:
-        err = 'Unable to start PostgreSQL server. Exiting'
-        raise FatalException(retcode, err)
-
-      print 'Configuring local database...'
-      retcode, outdata, errdata = setup_db(args)
-      if not retcode == 0:
-        err = 'Running database init script was failed. Exiting.'
-        raise FatalException(retcode, err)
-
-      if is_user_changed:
-        #remove backup for pg_hba in order to reconfigure postgres
-        remove_file(PG_HBA_CONF_FILE_BACKUP)
-
-      print 'Configuring PostgreSQL...'
-      retcode = configure_postgres()
-      if not retcode == 0:
-        err = 'Unable to configure PostgreSQL server. Exiting'
-        raise FatalException(retcode, err)
-
-    else:
-      retcode = self._store_remote_properties(args)
-      if retcode != 0:
-        err = 'Unable to save config file'
-        raise FatalException(retcode, err)
-
-      check_jdbc_drivers(args)
-
-      print 'Configuring remote database connection properties...'
-      retcode = setup_remote_db(args)
-      if retcode == -1:
-        err = "Remote database setup aborted."
-        raise NonFatalException(err)
-
-      if not retcode == 0:
-        err = 'Error while configuring connection properties. Exiting'
-        raise FatalException(retcode, err)
-      check_jdbc_drivers(args)
-
-
-  def configure_database_username_password(self, args):
+  # Check if jdbc user is changed
+  @staticmethod
+  def _is_jdbc_user_changed(database_username):
     properties = get_ambari_properties()
     if properties == -1:
       print_error_msg("Error getting ambari properties")
-      return -1
+      return None
 
-    username = properties[JDBC_USER_NAME_PROPERTY]
-    passwordProp = properties[JDBC_PASSWORD_PROPERTY]
-    dbname = properties[JDBC_DATABASE_PROPERTY]
+    previos_user = get_value_from_properties(properties, JDBC_USER_NAME_PROPERTY, "")
+    new_user = database_username
 
-    if username and passwordProp and dbname:
-      print_info_msg("Database username + password already configured")
-      args.database_username = username
-      args.database_name = dbname
-      if is_alias_string(passwordProp):
-        args.database_password = decrypt_password_for_alias(JDBC_RCA_PASSWORD_ALIAS)
+    if previos_user and new_user:
+      if previos_user != new_user:
+        return True
       else:
-        if os.path.exists(passwordProp):
-          with open(passwordProp, 'r') as file:
-            args.database_password = file.read()
+        return False
 
-      return 1
+    return None
+
+  # Store local database connection properties
+  def _store_local_properties(self, properties):
+    properties.removeOldProp(JDBC_DATABASE_PROPERTY)
+    properties.removeOldProp(JDBC_DATABASE_NAME_PROPERTY)
+    properties.removeOldProp(JDBC_POSTGRES_SCHEMA_PROPERTY)
+    properties.removeOldProp(JDBC_HOSTNAME_PROPERTY)
+    properties.removeOldProp(JDBC_RCA_DRIVER_PROPERTY)
+    properties.removeOldProp(JDBC_RCA_URL_PROPERTY)
+    properties.removeOldProp(JDBC_PORT_PROPERTY)
+    properties.removeOldProp(JDBC_DRIVER_PROPERTY)
+    properties.removeOldProp(JDBC_URL_PROPERTY)
+
+    # Store the properties
+    properties.process_pair(PERSISTENCE_TYPE_PROPERTY, self.persistence_type)
+    properties.process_pair(JDBC_DATABASE_PROPERTY, self.dbms)
+    properties.process_pair(JDBC_DATABASE_NAME_PROPERTY, self.database_name)
+    properties.process_pair(JDBC_POSTGRES_SCHEMA_PROPERTY, self.postgres_schema)
+    properties.process_pair(JDBC_USER_NAME_PROPERTY, self.database_username)
+
+    if self.isSecure:
+      encrypted_password = encrypt_password(JDBC_RCA_PASSWORD_ALIAS, self.database_password)
+      if self.database_password != encrypted_password:
+        properties.process_pair(JDBC_PASSWORD_PROPERTY, encrypted_password)
+
+    password_file = store_password_file(self.database_password, JDBC_PASSWORD_FILENAME)
+    properties.process_pair(JDBC_PASSWORD_PROPERTY, password_file)
+
+  @staticmethod
+  def _get_postgre_status():
+    retcode, out, err = run_os_command(PGConfig.PG_ST_CMD)
+    try:
+      pg_status = re.search('(stopped|running)', out, re.IGNORECASE).group(0).lower()
+    except AttributeError:
+      pg_status = None
+    return pg_status, retcode, out, err
+
+  def _check_postgre_up(self):
+    pg_status, retcode, out, err = PGConfig._get_postgre_status()
+    if pg_status == PGConfig.PG_STATUS_RUNNING:
+      print_info_msg("PostgreSQL is running")
+      return pg_status, 0, out, err
     else:
-      print_error_msg("Connection properties not set in config file.")
+      # run initdb only on non ubuntu systems as ubuntu does not have initdb cmd.
+      if OS_TYPE != OSConst.OS_UBUNTU:
+        print "Running initdb: This may take upto a minute."
+        retcode, out, err = run_os_command(PGConfig.PG_INITDB_CMD)
+        if retcode == 0:
+          print out
+      print "About to start PostgreSQL"
+      try:
+        process = subprocess.Popen(PGConfig.PG_START_CMD.split(' '),
+                                   stdout=subprocess.PIPE,
+                                   stdin=subprocess.PIPE,
+                                   stderr=subprocess.PIPE
+        )
+        if OS_TYPE == OSConst.OS_SUSE:
+          time.sleep(20)
+          result = process.poll()
+          print_info_msg("Result of postgres start cmd: " + str(result))
+          if result is None:
+            process.kill()
+            pg_status, retcode, out, err = PGConfig._get_postgre_status()
+          else:
+            retcode = result
+        else:
+          out, err = process.communicate()
+          retcode = process.returncode
+          pg_status, retcode, out, err = PGConfig._get_postgre_status()
+        if pg_status == PGConfig.PG_STATUS_RUNNING:
+          print_info_msg("Postgres process is running. Returning...")
+          return pg_status, 0, out, err
+      except (Exception), e:
+        pg_status, retcode, out, err = PGConfig._get_postgre_status()
+        if pg_status == PGConfig.PG_STATUS_RUNNING:
+          return pg_status, 0, out, err
+        else:
+          print_error_msg("Postgres start failed. " + str(e))
+      return pg_status, retcode, out, err
 
-  def setup_db(self, args):
-    self.configure_database_username_password(args)
-
-    dbname = args.database_name
-    scriptFile = args.init_script_file
-    username = args.database_username
-    password = args.database_password
+  def _setup_db(self):
+    #password access to ambari-server and mapred
+    dbname = self.database_name
+    scriptFile = self.init_script_file
+    username = self.database_username
+    password = self.database_password
 
     #setup DB
-    command = SETUP_DB_CMD[:]
+    command = PGConfig.SETUP_DB_CMD[:]
     command[-1] = command[-1].format(scriptFile, username, password, dbname)
 
     for i in range(SETUP_DB_CONNECT_ATTEMPTS):
@@ -466,21 +544,99 @@ class PGConfig(DBMSConfig):
         time.sleep(SETUP_DB_CONNECT_TIMEOUT)
 
     print 'unable to connect to database'
-    utils.print_error_msg(errdata)
+    print_error_msg(errdata)
     return retcode, outdata, errdata
 
-  # Initialize remote database schema
-  def setup_remote_db(args):
+  @staticmethod
+  def _configure_pg_hba_ambaridb_users(conf_file, database_username):
+    with open(conf_file, "a") as pgHbaConf:
+      pgHbaConf.write("\n")
+      pgHbaConf.write("local  all  " + database_username +
+                      ",mapred md5")
+      pgHbaConf.write("\n")
+      pgHbaConf.write("host  all   " + database_username +
+                      ",mapred 0.0.0.0/0  md5")
+      pgHbaConf.write("\n")
+      pgHbaConf.write("host  all   " + database_username +
+                      ",mapred ::/0 md5")
+      pgHbaConf.write("\n")
+    retcode, out, err = run_os_command(PGConfig.PG_HBA_RELOAD_CMD)
+    if not retcode == 0:
+      raise FatalException(retcode, err)
 
-    setup_msg = "Before starting Ambari Server, you must run the following DDL " \
-                "against the database to create the schema: {0}".format(DATABASE_INIT_SCRIPTS[DATABASE_INDEX])
+  @staticmethod
+  def _configure_pg_hba_postgres_user():
+    postgresString = "all   postgres"
+    for line in fileinput.input(PGConfig.PG_HBA_CONF_FILE, inplace=1):
+      print re.sub('all\s*all', postgresString, line),
+    os.chmod(PGConfig.PG_HBA_CONF_FILE, 0644)
 
-    print_warning_msg(setup_msg)
+  @staticmethod
+  def _configure_postgresql_conf():
+    listenAddress = "listen_addresses = '*'        #"
+    for line in fileinput.input(PGConfig.POSTGRESQL_CONF_FILE, inplace=1):
+      print re.sub('#+listen_addresses.*?(#|$)', listenAddress, line),
+    os.chmod(PGConfig.POSTGRESQL_CONF_FILE, 0644)
 
-    proceed = get_YN_input("Proceed with configuring remote database connection properties [y/n] (y)? ", True)
-    retCode = 0 if proceed else -1
+  def _configure_postgres(self):
+    if os.path.isfile(PGConfig.PG_HBA_CONF_FILE):
+      if not os.path.isfile(PGConfig.PG_HBA_CONF_FILE_BACKUP):
+        shutil.copyfile(PGConfig.PG_HBA_CONF_FILE, PGConfig.PG_HBA_CONF_FILE_BACKUP)
+      else:
+        #Postgres has been configured before, must not override backup
+        print "Backup for pg_hba found, reconfiguration not required"
+        return 0, "", ""
+    PGConfig._configure_pg_hba_postgres_user()
+    PGConfig._configure_pg_hba_ambaridb_users(PGConfig.PG_HBA_CONF_FILE, self.database_username)
+    os.chmod(PGConfig.PG_HBA_CONF_FILE, 0644)
+    PGConfig._configure_postgresql_conf()
+    #restart postgresql if already running
+    pg_status, retcode, out, err = PGConfig._get_postgre_status()
+    if pg_status == PGConfig.PG_STATUS_RUNNING:
+      retcode, out, err = PGConfig._restart_postgres()
+      return retcode, out, err
+    return 0, "", ""
 
-    return retCode
+  @staticmethod
+  def _restart_postgres():
+    print "Restarting PostgreSQL"
+    process = subprocess.Popen(PGConfig.PG_RESTART_CMD.split(' '),
+                               stdout=subprocess.PIPE,
+                               stdin=subprocess.PIPE,
+                               stderr=subprocess.PIPE
+    )
+    time.sleep(5)
+    result = process.poll()
+    if result is None:
+      print_info_msg("Killing restart PostgresSQL process")
+      process.kill()
+      pg_status, retcode, out, err = PGConfig._get_postgre_status()
+      # SUSE linux set status of stopped postgresql proc to unused
+      if pg_status == "unused" or pg_status == "stopped":
+        print_info_msg("PostgreSQL is stopped. Restarting ...")
+        retcode, out, err = run_os_command(PGConfig.PG_START_CMD)
+        return retcode, out, err
+    return 0, "", ""
+
+  def _store_remote_properties(self, properties):
+    super(PGConfig, self)._store_remote_properties(properties)
+
+    properties.process_pair(JDBC_POSTGRES_SCHEMA_PROPERTY, self.postgres_schema)
+
+
+  def _change_db_files_owner(args):
+    print 'Fixing database objects owner'
+    database_name = args.database_name
+    new_owner = args.database_username
+    if '"' not in new_owner:
+      #wrap to allow old username "ambari-server", postgres only
+      new_owner = '\'"{0}"\''.format(new_owner)
+      pass
+
+    command = PGConfig.CHANGE_OWNER_COMMAND[:]
+    command[-1] = command[-1].format(database_name, 'ambari', new_owner)
+    return run_os_command(command)
+
 
   def change_db_files_owner(self, args):
     if args.persistence_type == 'local':
@@ -488,253 +644,120 @@ class PGConfig(DBMSConfig):
       if not retcode == 0:
         raise FatalException(20, 'Unable to change owner of database objects')
 
-  def reset_remote_db(self, args):
-    client_usage_cmd_drop = DATABASE_CLI_TOOLS_USAGE[DATABASE_INDEX].format(DATABASE_DROP_SCRIPTS[DATABASE_INDEX], args.database_username,
-                                                     BLIND_PASSWORD, args.database_name)
-    client_usage_cmd_init = DATABASE_CLI_TOOLS_USAGE[DATABASE_INDEX].format(DATABASE_INIT_SCRIPTS[DATABASE_INDEX], args.database_username,
-                                                     BLIND_PASSWORD, args.database_name)
+def createPGConfig(options, properties, storage_type, dbId):
+  return PGConfig(options, properties, storage_type)
 
-    print_warning_msg('To reset Ambari Server schema ' +
-                      'you must run the following DDL against the database to '
-                      + 'drop the schema:' + os.linesep + client_usage_cmd_drop
-                      + os.linesep + 'Then you must run the following DDL ' +
-                      'against the database to create the schema: ' + os.linesep +
-                      client_usage_cmd_init + os.linesep)
 
-  def reset_local_db(args):
-    dbname = args.database_name
-    filename = args.drop_script_file
-    username = args.database_username
-    password = args.database_password
-    command = SETUP_DB_CMD[:]
-    command[-1] = command[-1].format(filename, username, password, dbname)
-    drop_retcode, drop_outdata, drop_errdata = run_os_command(command)
-    if not drop_retcode == 0:
-      raise FatalException(1, drop_errdata)
-    if drop_errdata and PG_ERROR_BLOCKED in drop_errdata:
-      raise FatalException(1, "Database is in use. Please, make sure all connections to the database are closed")
-    if drop_errdata and VERBOSE:
-      print_warning_msg(drop_errdata)
-    print_info_msg("About to run database setup")
-    retcode, outdata, errdata = setup_db(args)
-    if errdata and VERBOSE:
-      print_warning_msg(errdata)
-    if (errdata and 'ERROR' in errdata.upper()) or (drop_errdata and 'ERROR' in drop_errdata.upper()):
-      if not VERBOSE:
-        raise NonFatalException("Non critical error in DDL, use --verbose for more information")
-      else:
-        raise NonFatalException("Non critical error in DDL")
+class OracleConfig(LinuxDBMSConfig):
+  def __init__(self, options, properties, storage_type):
+    super(OracleConfig, self).__init__(options, properties, storage_type)
 
-# PostgreSQL database
-class PGDatabase:
-  _driverName = ''
-  _connectionString = ''
+    #Init the database configuration data here, if any
+    self.dbms = "oracle"
+    self.dbms_full_name = "Oracle"
+    self.driver_class_name = "oracle.jdbc.driver.OracleDriver"
+    self.driver_file_name = "ojdbc6.jar"
 
-  def __init__(self):
-    #Init the database connection here, if any
-    pass
+    self.database_storage_name = "Service"
+
+    self.database_port = DBMSConfig._init_member_with_prop_default(options, "database_port",
+                                                              properties, JDBC_PORT_PROPERTY, "1521")
+
+    self.database_url_pattern = "jdbc:oracle:thin:@{0}:{1}/{2}"
+    self.database_url_pattern_alt = "jdbc:oracle:thin:@{0}:{1}:{2}"
+
+    self.JDBC_DRIVER_INSTALL_MSG = 'Before starting Ambari Server, ' \
+                                   'you must copy the {0} JDBC driver JAR file to {1}.'.format(
+      self.dbms_full_name, configDefaults.JAVA_SHARE_PATH)
+
+    self.init_script_file = "/var/lib/ambari-server/resources/Ambari-DDL-Oracle-CREATE.sql'"
+    self.drop_tables_script_file = "/var/lib/ambari-server/resources/Ambari-DDL-Oracle-DROP.sql"
+    self.client_tool_usage_pattern = 'sqlplus {1}/{2} < {0}'
+
+    self.jdbc_extra_params = [
+                                ["oracle.net.CONNECT_TIMEOUT", "2000"], # socket level timeout
+                                ["oracle.net.READ_TIMEOUT", "2000"], # socket level timeout
+                                ["oracle.jdbc.ReadTimeout", "8000"] # query fetch timeout
+                              ]
 
   #
   # Private implementation
   #
+  def _is_jdbc_driver_installed(self, properties):
+    return LinuxDBMSConfig._find_jdbc_driver("*ojdbc*.jar")
 
-  # Get database client executable path
-  def get_db_cli_tool(self, args):
-    for tool in DATABASE_CLI_TOOLS[DATABASE_INDEX]:
-      cmd = CHECK_COMMAND_EXIST_CMD.format(tool)
-      ret, out, err = run_in_shell(cmd)
-      if ret == 0:
-        return get_exec_path(tool)
+  def _configure_database_name(self):
+    if self.persistence_type != 'local':
+      # Oracle uses service name or service id
+      idType = "1"
+      idType = get_validated_string_input(
+        "Select Oracle identifier type:\n1 - " + ORACLE_DB_ID_TYPES[0] +
+        "\n2 - " + ORACLE_DB_ID_TYPES[1] + "\n(" + idType + "): ",
+        idType,
+        "^[12]$",
+        "Invalid number.",
+        False
+      )
 
-    return None
+      if idType == "2":
+        self.sid_or_sname = "sid"
 
-  #
-  # Public interface
-  #
-  def get_driver_name(self):
-    return self._driverName
-
-  def get_connection_string(self):
-    return self._connectionString
-
-  def connect(self, args):
-    if args.persistence_type == "local":
-      return self.check_postgre_up()
+      IDTYPE_INDEX = int(idType) - 1
+      self.database_name = OracleConfig._get_validated_service_name(self.database_name,
+                                                      IDTYPE_INDEX)
     else:
-      return 0
+      self.database_name = LinuxDBMSConfig._get_validated_db_name(self.database_storage_name, self.database_name)
 
-  def get_running_status(self):
-    """Return postgre running status indicator"""
-    if OS_TYPE == OSConst.OS_UBUNTU:
-      return "%s/main" % PGDatabase.get_ubuntu_db_version()
-    else:
-      return DB_STATUS_RUNNING_DEFAULT
+    return True
 
   @staticmethod
-  def get_hba_dir():
-    """Return postgre hba dir location depends on OS"""
-    if OS_TYPE == OSConst.OS_UBUNTU:
-      return "%s/%s/main" % (UBUNTU_PG_HBA_ROOT, PGDatabase.get_ubuntu_db_version())
-    else:
-      return PG_HBA_ROOT_DEFAULT
-
-  @staticmethod
-  def get_ubuntu_db_version():
-    """Return installed version of postgre server. In case of several
-    installed versions will be returned a more new one.
-    """
-    postgre_ver = ""
-
-    if os.path.isdir(UBUNTU_PG_HBA_ROOT):  # detect actual installed versions of PG and select a more new one
-      postgre_ver = sorted(
-      [fld for fld in os.listdir(UBUNTU_PG_HBA_ROOT) if os.path.isdir(os.path.join(UBUNTU_PG_HBA_ROOT, fld))], reverse=True)
-      if len(postgre_ver) > 0:
-        return postgre_ver[0]
-    return postgre_ver
-
-
-  def restart_postgres():
-    print "Restarting PostgreSQL"
-    process = subprocess.Popen(PG_RESTART_CMD.split(' '),
-                              stdout=subprocess.PIPE,
-                              stdin=subprocess.PIPE,
-                              stderr=subprocess.PIPE
-                               )
-    time.sleep(5)
-    result = process.poll()
-    if result is None:
-      print_info_msg("Killing restart PostgresSQL process")
-      process.kill()
-      pg_status = get_postgre_status()
-      # SUSE linux set status of stopped postgresql proc to unused
-      if pg_status == "unused" or pg_status == "stopped":
-        print_info_msg("PostgreSQL is stopped. Restarting ...")
-        retcode, out, err = run_os_command(PG_START_CMD)
-        return retcode
-    return 0
-
-  def execute_db_script(self, args, file):
-    #password access to ambari-server and mapred
-    configure_database_username_password(args)
-    dbname = args.database_name
-    username = args.database_username
-    password = args.database_password
-    command = SETUP_DB_CMD[:]
-    command[-1] = command[-1].format(file, username, password, dbname)
-    retcode, outdata, errdata = run_os_command(command)
-    if not retcode == 0:
-      print errdata
-    return retcode
-
-  def execute_remote_script(self, args, scriptPath):
-    print_warning_msg("Deprecated method called.")
-    tool = get_db_cli_tool(args)
-    if not tool:
-      # args.warnings.append('{0} not found. Please, run DDL script manually'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
-      if VERBOSE:
-        print_warning_msg('{0} not found'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
-      return -1, "Client wasn't found", "Client wasn't found"
-
-    os.environ["PGPASSWORD"] = args.database_password
-    retcode, out, err = run_in_shell('{0} {1}'.format(tool, POSTGRES_EXEC_ARGS.format(
-      args.database_host,
-      args.database_port,
-      args.database_name,
-      args.database_username,
-      scriptPath
-    )))
-    return retcode, out, err
-
-  def check_db_consistency(args, file):
-    #password access to ambari-server and mapred
-    configure_database_username_password(args)
-    dbname = args.database_name
-    username = args.database_username
-    password = args.database_password
-    command = SETUP_DB_CMD[:]
-    command[-1] = command[-1].format(file, username, password, dbname)
-    retcode, outdata, errdata = run_os_command(command)
-    if not retcode == 0:
-      print errdata
-      return retcode
-    else:
-      # Assumes that the output is of the form ...\n<count>
-      print_info_msg("Parsing output: " + outdata)
-      lines = outdata.splitlines()
-      if (lines[-1] == '3' or lines[-1] == '0'):
-        return 0
-    return -1
-
-
-  def get_postgre_status():
-    retcode, out, err = run_os_command(PG_ST_CMD)
-    try:
-      pg_status = re.search('(stopped|running)', out, re.IGNORECASE).group(0).lower()
-    except AttributeError:
-      pg_status = None
-    return pg_status
-
-
-  def check_postgre_up():
-    pg_status = get_postgre_status()
-    if pg_status == PG_STATUS_RUNNING:
-      print_info_msg("PostgreSQL is running")
-      return 0
-    else:
-      # run initdb only on non ubuntu systems as ubuntu does not have initdb cmd.
-      if OS_TYPE != OSConst.OS_UBUNTU:
-        print "Running initdb: This may take upto a minute."
-        retcode, out, err = run_os_command(PG_INITDB_CMD)
-        if retcode == 0:
-          print out
-      print "About to start PostgreSQL"
-      try:
-        process = subprocess.Popen(PG_START_CMD.split(' '),
-                                   stdout=subprocess.PIPE,
-                                   stdin=subprocess.PIPE,
-                                   stderr=subprocess.PIPE
-                                   )
-        if OS_TYPE == OSConst.OS_SUSE:
-          time.sleep(20)
-          result = process.poll()
-          print_info_msg("Result of postgres start cmd: " + str(result))
-          if result is None:
-            process.kill()
-            pg_status = get_postgre_status()
-          else:
-            retcode = result
-        else:
-          out, err = process.communicate()
-          retcode = process.returncode
-        if pg_status == PG_STATUS_RUNNING:
-          print_info_msg("Postgres process is running. Returning...")
-          return 0
-      except (Exception), e:
-        pg_status = get_postgre_status()
-        if pg_status == PG_STATUS_RUNNING:
-          return 0
-        else:
-          print_error_msg("Postgres start failed. " + str(e))
-          return 1
-      return retcode
-
-
-  def get_validated_db_name(database_name):
+  def _get_validated_service_name(service_name, index):
     return get_validated_string_input(
-          DATABASE_STORAGE_NAMES[DATABASE_INDEX] + " Name ("
-          + database_name + "): ",
-          database_name,
-          ".*",
-          "Invalid " + DATABASE_STORAGE_NAMES[DATABASE_INDEX] + " name.",
-          False
-          )
+      ORACLE_DB_ID_TYPES[index] + " (" + service_name + "): ",
+      service_name,
+      ".*",
+      "Invalid " + ORACLE_DB_ID_TYPES[index] + ".",
+      False
+    )
+
+def createOracleConfig(options, properties, storage_type, dbId):
+  return OracleConfig(options, properties, storage_type)
 
 
-  def get_validated_service_name(service_name, index):
-    return get_validated_string_input(
-              ORACLE_DB_ID_TYPES[index] + " (" + service_name + "): ",
-              service_name,
-              ".*",
-              "Invalid " + ORACLE_DB_ID_TYPES[index] + ".",
-              False
-              )
+class MySQLConfig(LinuxDBMSConfig):
+  def __init__(self, options, properties, storage_type):
+    super(MySQLConfig, self).__init__(options, properties, storage_type)
+
+    #Init the database configuration data here, if any
+    self.dbms = "mysql"
+    self.dbms_full_name = "MySQL"
+    self.driver_class_name = "com.mysql.jdbc.Driver"
+    self.driver_file_name = "mysql-connector-java.jar"
+
+    self.database_storage_name = "Database"
+    self.database_port = DBMSConfig._init_member_with_prop_default(options, "database_port",
+                                                              properties, JDBC_PORT_PROPERTY, "3306")
+
+    self.database_url_pattern = "jdbc:mysql://{0}:{1}/{2}"
+    self.database_url_pattern_alt = "jdbc:mysql://{0}:{1}/{2}"
+
+    self.JDBC_DRIVER_INSTALL_MSG = 'Before starting Ambari Server, ' \
+                                   'you must copy the {0} JDBC driver JAR file to {1}.'.format(
+      self.dbms_full_name, configDefaults.JAVA_SHARE_PATH)
+
+    self.init_script_file = "/var/lib/ambari-server/resources/Ambari-DDL-MySQL-CREATE.sql"
+    self.drop_tables_script_file = "/var/lib/ambari-server/resources/Ambari-DDL-MySQL-DROP.sql"
+    self.client_tool_usage_pattern = 'mysql --user={1} --password={2} {3}<{0}'
+
+  #
+  # Private implementation
+  #
+  def _is_jdbc_driver_installed(self, properties):
+    return LinuxDBMSConfig._find_jdbc_driver("*mysql*.jar")
+
+  def _configure_database_name(self):
+    self.database_name = LinuxDBMSConfig._get_validated_db_name(self.database_storage_name, self.database_name)
+    return True
+
+def createMySQLConfig(options, properties, storage_type, dbId):
+  return MySQLConfig(options, properties, storage_type)

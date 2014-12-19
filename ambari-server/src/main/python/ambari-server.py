@@ -39,7 +39,11 @@ import datetime
 import tempfile
 import random
 import pwd
+from ambari_commons.exceptions import NonFatalException, FatalException
+from ambari_commons.os_utils import is_root
+from ambari_server.properties import Properties
 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
+from ambari_server.serverSetup import setup
 import json
 import base64
 from threading import Thread
@@ -97,11 +101,6 @@ ambari_provider_module = os.environ.get('AMBARI_PROVIDER_MODULE')
 
 # Non-root user setup commands
 NR_USER_PROPERTY = "ambari-server.user"
-NR_USER_COMMENT = "Ambari user"
-NR_GET_OWNER_CMD = 'stat -c "%U" {0}'
-NR_USERADD_CMD = 'useradd -M --comment "{1}" ' \
-                 '--shell %s -d /var/lib/ambari-server/keys/ {0}' % utils.locate_file('nologin', '/sbin')
-NR_SET_USER_COMMENT_CMD = 'usermod -c "{0}" {1}'
 NR_CHMOD_CMD = 'chmod {0} {1} {2}'
 NR_CHOWN_CMD = 'chown {0} {1} {2}'
 
@@ -203,11 +202,6 @@ STACK_UPGRADE_HELPER_CMD = "{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
                           " {3} {4} > " + SERVER_OUT_FILE + " 2>&1"
 
 
-VIEW_EXTRACT_CMD = "{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
-                          os.pathsep + "{2} " +\
-                          "org.apache.ambari.server.view.ViewRegistry extract {3} " +\
-                          "> " + SERVER_OUT_FILE + " 2>&1"
-
 
 ULIMIT_CMD = "ulimit -n"
 SERVER_INIT_TIMEOUT = 5
@@ -265,8 +259,6 @@ SETUP_DB_CONNECT_TIMEOUT = 5
 SETUP_DB_CONNECT_ATTEMPTS = 3
 SETUP_DB_CMD = ['su', '-', 'postgres',
         '--command=psql -f {0} -v username=\'"{1}"\' -v password="\'{2}\'" -v dbname="{3}"']
-UPGRADE_STACK_CMD = ['su', 'postgres',
-        '--command=psql -f {0} -v stack_name="\'{1}\'"  -v stack_version="\'{2}\'" -v dbname="{3}"']
 
 CHANGE_OWNER_COMMAND = ['su', '-', 'postgres',
                         '--command=/var/lib/ambari-server/resources/scripts/change_owner.sh -d {0} -s {1} -o {2}']
@@ -276,7 +268,6 @@ PG_STATUS_RUNNING = utils.get_postgre_running_status(OS_TYPE)
 PG_DEFAULT_PASSWORD = "bigdata"
 SERVICE_CMD = "/usr/bin/env service"
 PG_SERVICE_NAME = "postgresql"
-PG_HBA_DIR = utils.get_postgre_hba_dir(OS_FAMILY)
 
 PG_ST_CMD = "%s %s status" % (SERVICE_CMD, PG_SERVICE_NAME)
 if os.path.isfile("/usr/bin/postgresql-setup"):
@@ -285,12 +276,6 @@ else:
     PG_INITDB_CMD = "%s %s initdb" % (SERVICE_CMD, PG_SERVICE_NAME)
 
 PG_START_CMD = "%s %s start" % (SERVICE_CMD, PG_SERVICE_NAME)
-PG_RESTART_CMD = "%s %s restart" % (SERVICE_CMD, PG_SERVICE_NAME)
-PG_HBA_RELOAD_CMD = "%s %s reload" % (SERVICE_CMD, PG_SERVICE_NAME)
-
-PG_HBA_CONF_FILE = os.path.join(PG_HBA_DIR, "pg_hba.conf")
-PG_HBA_CONF_FILE_BACKUP = os.path.join(PG_HBA_DIR, "pg_hba_bak.conf.old")
-POSTGRESQL_CONF_FILE = os.path.join(PG_HBA_DIR, "postgresql.conf")
 
 SERVER_VERSION_FILE_PATH = "server.version.file"
 
@@ -299,9 +284,6 @@ JDBC_DATABASE_NAME_PROPERTY = "server.jdbc.database_name"   # E.g., ambari
 JDBC_HOSTNAME_PROPERTY = "server.jdbc.hostname"
 JDBC_PORT_PROPERTY = "server.jdbc.port"
 JDBC_POSTGRES_SCHEMA_PROPERTY = "server.jdbc.postgres.schema"   # Only for postgres, defaults to same value as DB name
-
-VIEWS_DIR_PROPERTY = "views.dir"
-DEFAULT_VIEWS_DIR = "/var/lib/ambari-server/resources/views"
 
 JDBC_USER_NAME_PROPERTY = "server.jdbc.user.name"
 JDBC_PASSWORD_PROPERTY = "server.jdbc.user.passwd"
@@ -333,9 +315,6 @@ PROMPT_DATABASE_OPTIONS = False
 USERNAME_PATTERN = "^[a-zA-Z_][a-zA-Z0-9_\-]*$"
 PASSWORD_PATTERN = "^[a-zA-Z0-9_-]*$"
 DATABASE_TYPES = ["postgres", "oracle", "mysql"]
-DATABASE_STORAGE_NAMES = ["Database", "Service", "Database"]
-DATABASE_PORTS = ["5432", "1521", "3306"]
-DATABASE_DRIVER_NAMES = ["org.postgresql.Driver", "oracle.jdbc.driver.OracleDriver", "com.mysql.jdbc.Driver"]
 DATABASE_CONNECTION_STRINGS = [
                   "jdbc:postgresql://{0}:{1}/{2}",
                   "jdbc:oracle:thin:@{0}:{1}/{2}",
@@ -361,16 +340,6 @@ DATABASE_DROP_SCRIPTS = ['/var/lib/ambari-server/resources/Ambari-DDL-Postgres-D
                          '/var/lib/ambari-server/resources/Ambari-DDL-Oracle-DROP.sql',
                          '/var/lib/ambari-server/resources/Ambari-DDL-MySQL-DROP.sql']
 
-JDBC_PROPERTIES_PREFIX = "server.jdbc.properties."
-DATABASE_JDBC_PROPERTIES = [
-                         [ ],
-                         [
-                           ["oracle.net.CONNECT_TIMEOUT", "2000"], # socket level timeout
-                           ["oracle.net.READ_TIMEOUT", "2000"], # socket level timeout
-                           ["oracle.jdbc.ReadTimeout", "8000"] # query fetch timeout
-                         ],
-                         [ ]
-                        ]
 
 REGEX_IP_ADDRESS = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
 REGEX_HOSTNAME = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
@@ -402,7 +371,6 @@ JDK_URL_PROPERTIES = ["jdk1.7.url", "jdk1.6.url"]
 JCE_URL_PROPERTIES = ["jce_policy1.7.url", "jce_policy1.6.url"]
 DEFAULT_JDK16_LOCATION = "/usr/jdk64/jdk1.6.0_31"
 JDK_INDEX = 0
-JDK_VERSION_REs = ["(jdk.*)/jre", "Creating (jdk.*)/jre"]
 CUSTOM_JDK_NUMBER = "3"
 JDK_MIN_FILESIZE = 5000
 JDK_INSTALL_DIR = "/usr/jdk64"
@@ -415,16 +383,8 @@ OS_TYPE_PROPERTY = "server.os_type"
 OS_FAMILY_PROPERTY = "server.os_family"
 GET_FQDN_SERVICE_URL = "server.fqdn.service.url"
 
-JDK_DOWNLOAD_CMD = "curl --create-dirs -o {0} {1}"
-JDK_DOWNLOAD_SIZE_CMD = "curl -I {0}"
-
-# use --no-same-owner when running as root to prevent uucp as the user (AMBARI-6478)
-UNTAR_JDK_ARCHIVE = "tar --no-same-owner -xvf {0}"
-
 #JCE Policy files
 JCE_POLICY_FILENAMES = ["UnlimitedJCEPolicyJDK7.zip", "jce_policy-6.zip"]
-JCE_DOWNLOAD_CMD = "curl -o {0} {1}"
-JCE_MIN_FILESIZE = 5000
 
 DEFAULT_DB_NAME = "ambari"
 
@@ -575,30 +535,6 @@ NR_ADJUST_OWNERSHIP_LIST = [
 ### System interaction ###
 
 
-class FatalException(Exception):
-    def __init__(self, code, reason):
-      self.code = code
-      self.reason = reason
-
-    def __str__(self):
-        return repr("Fatal exception: %s, exit code %s" % (self.reason, self.code))
-
-class NonFatalException(Exception):
-  def __init__(self, reason):
-    self.reason = reason
-
-  def __str__(self):
-    return repr("NonFatal exception: %s" % self.reason)
-
-
-def is_root():
-  '''
-  Checks effective UUID
-  Returns True if a program is running under root-level privileges.
-  '''
-  return os.geteuid() == 0
-
-
 def get_exec_path(cmd):
   cmd = 'which {0}'.format(cmd)
   ret, out, err = run_in_shell(cmd)
@@ -631,37 +567,6 @@ def run_os_command(cmd):
                              )
   (stdoutdata, stderrdata) = process.communicate()
   return process.returncode, stdoutdata, stderrdata
-
-
-#
-# Checks SELinux
-#
-def check_selinux():
-  try:
-    retcode, out, err = run_os_command(GET_SE_LINUX_ST_CMD)
-    se_status = re.search('(disabled|enabled)', out).group(0)
-    print "SELinux status is '" + se_status + "'"
-    if se_status == SE_STATUS_DISABLED:
-      return 0
-    else:
-      try:
-        se_mode = re.search('(enforcing|permissive)', out).group(0)
-      except AttributeError:
-        err = "Error determining SELinux mode. Exiting."
-        raise FatalException(1, err)
-      print "SELinux mode is '" + se_mode + "'"
-      if se_mode == SE_MODE_ENFORCING:
-        print "Temporarily disabling SELinux"
-        run_os_command(SE_SETENFORCE_CMD)
-      print_warning_msg(
-        "SELinux is set to 'permissive' mode and temporarily disabled.")
-      ok = get_YN_input("OK to continue [y/n] (y)? ", True)
-      if not ok:
-        raise FatalException(1, None)
-      return 0
-  except OSError:
-    print_warning_msg("Could not run {0}: OK".format(GET_SE_LINUX_ST_CMD))
-  return 0
 
 
 def read_ambari_user():
@@ -729,30 +634,6 @@ def set_file_permissions(file, mod, user, recursive):
     print_info_msg("File %s does not exist" % file)
 
 
-def create_custom_user():
-  user = get_validated_string_input(
-    "Enter user account for ambari-server daemon (root):",
-    "root",
-    "^[a-z_][a-z0-9_-]{1,31}$",
-    "Invalid username.",
-    False
-  )
-
-  print_info_msg("Trying to create user {0}".format(user))
-  command = NR_USERADD_CMD.format(user, NR_USER_COMMENT)
-  retcode, out, err = run_os_command(command)
-  if retcode == 9:  # 9 = username already in use
-    print_info_msg("User {0} already exists, "
-                      "skipping user creation".format(user))
-
-  elif retcode != 0:  # fail
-    print_warning_msg("Can't create user {0}. Command {1} "
-                      "finished with {2}: \n{3}".format(user, command, retcode, err))
-    return retcode, None
-
-  print_info_msg("User configuration is done.")
-  return 0, user
-
 def check_reverse_lookup():
   """
   Check if host fqdn resolves to current host ip
@@ -767,115 +648,6 @@ def check_reverse_lookup():
     pass
   return False
 
-def check_ambari_user():
-  try:
-    user = read_ambari_user()
-    create_user = False
-    update_user_setting = False
-    if user is not None:
-      create_user = get_YN_input("Ambari-server daemon is configured to run under user '{0}'."
-                        " Change this setting [y/n] (n)? ".format(user), False)
-      update_user_setting = create_user  # Only if we will create another user
-    else:  # user is not configured yet
-      update_user_setting = True  # Write configuration anyway
-      create_user = get_YN_input("Customize user account for ambari-server "
-                   "daemon [y/n] (n)? ", False)
-      if not create_user:
-        user = "root"
-
-    if create_user:
-      (retcode, user) = create_custom_user()
-      if retcode != 0:
-        return retcode
-
-    if update_user_setting:
-      write_property(NR_USER_PROPERTY, user)
-
-    adjust_directory_permissions(user)
-  except OSError as e:
-    print_error_msg("Failed: %s" % e.strerror)
-    return 4
-  except Exception as e:
-    print_error_msg("Unexpected error %s" % e)
-    return 1
-  return 0
-
-### Postgres ###
-
-
-def configure_pg_hba_ambaridb_users():
-  args = optparse.Values()
-  configure_database_username_password(args)
-
-  with open(PG_HBA_CONF_FILE, "a") as pgHbaConf:
-    pgHbaConf.write("\n")
-    pgHbaConf.write("local  all  " + args.database_username +
-                    ",mapred md5")
-    pgHbaConf.write("\n")
-    pgHbaConf.write("host  all   " + args.database_username +
-                    ",mapred 0.0.0.0/0  md5")
-    pgHbaConf.write("\n")
-    pgHbaConf.write("host  all   " + args.database_username +
-                    ",mapred ::/0 md5")
-    pgHbaConf.write("\n")
-  retcode, out, err = run_os_command(PG_HBA_RELOAD_CMD)
-  if not retcode == 0:
-    raise FatalException(retcode, err)
-
-
-def configure_pg_hba_postgres_user():
-  postgresString = "all   postgres"
-  for line in fileinput.input(PG_HBA_CONF_FILE, inplace=1):
-    print re.sub('all\s*all', postgresString, line),
-  os.chmod(PG_HBA_CONF_FILE, 0644)
-
-
-def configure_postgresql_conf():
-  listenAddress = "listen_addresses = '*'        #"
-  for line in fileinput.input(POSTGRESQL_CONF_FILE, inplace=1):
-    print re.sub('#+listen_addresses.*?(#|$)', listenAddress, line),
-  os.chmod(POSTGRESQL_CONF_FILE, 0644)
-
-
-def configure_postgres():
-  if os.path.isfile(PG_HBA_CONF_FILE):
-    if not os.path.isfile(PG_HBA_CONF_FILE_BACKUP):
-      shutil.copyfile(PG_HBA_CONF_FILE, PG_HBA_CONF_FILE_BACKUP)
-    else:
-      #Postgres has been configured before, must not override backup
-      print "Backup for pg_hba found, reconfiguration not required"
-      return 0, "", ""
-  configure_pg_hba_postgres_user()
-  configure_pg_hba_ambaridb_users()
-  os.chmod(PG_HBA_CONF_FILE, 0644)
-  configure_postgresql_conf()
-  #restart postgresql if already running
-  pg_status, retcode, out, err = get_postgre_status()
-  if pg_status == PG_STATUS_RUNNING:
-    retcode, out, err = restart_postgres()
-    return retcode, out, err
-  return 0, "", ""
-
-
-def restart_postgres():
-  print "Restarting PostgreSQL"
-  process = subprocess.Popen(PG_RESTART_CMD.split(' '),
-                            stdout=subprocess.PIPE,
-                            stdin=subprocess.PIPE,
-                            stderr=subprocess.PIPE
-                             )
-  time.sleep(5)
-  result = process.poll()
-  if result is None:
-    print_info_msg("Killing restart PostgresSQL process")
-    process.kill()
-    pg_status, retcode, out, err = get_postgre_status()
-    # SUSE linux set status of stopped postgresql proc to unused
-    if pg_status == "unused" or pg_status == "stopped":
-      print_info_msg("PostgreSQL is stopped. Restarting ...")
-      retcode, out, err = run_os_command(PG_START_CMD)
-      return retcode, out, err
-  return 0, "", ""
 
 
 def write_property(key, value):
@@ -1057,35 +829,6 @@ def check_postgre_up():
     return pg_status, retcode, out, err
 
 
-def get_validated_db_name(database_name):
-  return get_validated_string_input(
-        DATABASE_STORAGE_NAMES[DATABASE_INDEX] + " Name ("
-        + database_name + "): ",
-        database_name,
-        ".*",
-        "Invalid " + DATABASE_STORAGE_NAMES[DATABASE_INDEX] + " name.",
-        False
-        )
-
-def get_validated_db_schema(postgres_schema):
-    return get_validated_string_input(
-        "Postgres schema (" + postgres_schema + "): ",
-        postgres_schema,
-        "^[a-zA-Z0-9_\-]*$",
-        "Invalid schema name.",
-        False, allowEmpty=True
-    )
-
-def get_validated_service_name(service_name, index):
-  return get_validated_string_input(
-            ORACLE_DB_ID_TYPES[index] + " (" + service_name + "): ",
-            service_name,
-            ".*",
-            "Invalid " + ORACLE_DB_ID_TYPES[index] + ".",
-            False
-            )
-
-
 def read_password(passwordDefault=PG_DEFAULT_PASSWORD,
                   passwordPattern=PASSWORD_PATTERN,
                   passwordPrompt=None,
@@ -1120,244 +863,6 @@ def read_password(passwordDefault=PG_DEFAULT_PASSWORD,
 def get_pass_file_path(conf_file):
   return os.path.join(os.path.dirname(conf_file),
                       JDBC_PASSWORD_FILENAME)
-
-
-# Set database properties to default values
-def load_default_db_properties(args):
-  args.persistence_type = 'local'
-  args.dbms = DATABASE_TYPES[DATABASE_INDEX]
-  args.database_host = "localhost"
-  args.database_port = DATABASE_PORTS[DATABASE_INDEX]
-  args.database_name = DEFAULT_DB_NAME
-  args.postgres_schema = DEFAULT_DB_NAME
-  args.database_username = "ambari"
-  args.database_password = "bigdata"
-  args.sid_or_sname = "sname"
-  pass
-
-
-# Ask user for database conenction properties
-def prompt_db_properties(args):
-  global DATABASE_INDEX
-
-  if PROMPT_DATABASE_OPTIONS:
-    load_default_db_properties(args)
-    ok = get_YN_input("Enter advanced database configuration [y/n] (n)? ", False)
-    if ok:
-
-      print "=============================================================================="
-      print "Choose one of the following options:"
-
-      database_num = str(DATABASE_INDEX + 1)
-      database_num = get_validated_string_input(
-        "[1] - PostgreSQL (Embedded)\n[2] - Oracle\n[3] - MySQL\n[4] - PostgreSQL\n"
-        "==============================================================================\n"
-        "Enter choice (" + database_num + "): ",
-        database_num,
-        "^[1234]$",
-        "Invalid number.",
-        False
-      )
-
-      if int(database_num) == 1:
-        args.persistence_type = 'local'
-        args.database_index = 0
-      else:
-        args.persistence_type = 'remote'
-        selected_db_option = int(database_num)
-
-        if selected_db_option == 2:
-          args.database_index = 1
-        elif selected_db_option == 3:
-          args.database_index = 2
-        elif selected_db_option == 4:
-          args.database_index = 0
-        else:
-          print_info_msg('Unknown db option, default to embbeded postgres.')
-          args.database_index = 0
-        pass
-      pass
-
-      DATABASE_INDEX = args.database_index
-      args.dbms = DATABASE_TYPES[args.database_index]
-
-      if args.persistence_type != 'local':
-        args.database_host = get_validated_string_input(
-          "Hostname (" + args.database_host + "): ",
-          args.database_host,
-          "^[a-zA-Z0-9.\-]*$",
-          "Invalid hostname.",
-          False
-        )
-
-        args.database_port = DATABASE_PORTS[DATABASE_INDEX]
-        args.database_port = get_validated_string_input(
-          "Port (" + args.database_port + "): ",
-          args.database_port,
-          "^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$",
-          "Invalid port.",
-          False
-        )
-
-        if args.dbms == "oracle":
-          # Oracle uses service name or service id
-          idType = "1"
-          idType = get_validated_string_input(
-            "Select Oracle identifier type:\n1 - " + ORACLE_DB_ID_TYPES[0] +
-            "\n2 - " + ORACLE_DB_ID_TYPES[1] + "\n(" + idType + "): ",
-            idType,
-            "^[12]$",
-            "Invalid number.",
-            False
-          )
-
-          if idType == "2":
-            args.sid_or_sname = "sid"
-
-          IDTYPE_INDEX = int(idType) - 1
-          args.database_name = get_validated_service_name(args.database_name,
-                                                          IDTYPE_INDEX)
-        elif args.dbms in ["mysql", "postgres"]:
-          args.database_name = get_validated_db_name(args.database_name)
-
-          if args.dbms in ["postgres", ]:
-              args.postgres_schema = get_validated_db_schema(args.postgres_schema)
-        else:
-          # other DB types
-          pass
-        pass
-      else:
-        args.database_host = "localhost"
-        args.database_port = DATABASE_PORTS[DATABASE_INDEX]
-
-        args.database_name = get_validated_db_name(args.database_name)
-        if args.dbms in ["postgres", ]:
-            args.postgres_schema = get_validated_db_schema(args.postgres_schema)
-
-      # Username is common for Oracle/MySQL/Postgres
-      args.database_username = get_validated_string_input(
-        'Username (' + args.database_username + '): ',
-        args.database_username,
-        USERNAME_PATTERN,
-        "Invalid characters in username. Start with _ or alpha "
-        "followed by alphanumeric or _ or - characters",
-        False
-      )
-      args.database_password = configure_database_password(True)
-
-  print_info_msg('Using database options: {database},{host},{port},{name},{schema},{user},{password}'.format(
-    database=args.dbms,
-    host=args.database_host,
-    port=args.database_port,
-    name=args.database_name,
-    schema=args.postgres_schema,
-    user=args.database_username,
-    password=args.database_password
-  ))
-
-# extract the system views
-def extract_views():
-  jdk_path = find_jdk()
-  if jdk_path is None:
-    print_error_msg("No JDK found, please run the \"setup\" "
-                    "command to install a JDK automatically or install any "
-                    "JDK manually to " + JDK_INSTALL_DIR)
-    return 1
-
-  properties = get_ambari_properties()
-  if properties == -1:
-    print_error_msg("Error getting ambari properties")
-    return -1
-
-  if not VIEWS_DIR_PROPERTY in properties.keys():
-    vdir = DEFAULT_VIEWS_DIR
-  else:
-    vdir = properties.get_property(VIEWS_DIR_PROPERTY)
-
-  files = [f for f in os.listdir(vdir) if os.path.isfile(os.path.join(vdir,f))]
-  for f in files:
-
-    command = VIEW_EXTRACT_CMD.format(jdk_path, get_conf_dir(),
-      get_ambari_classpath(), os.path.join(vdir,f))
-
-    retcode, stdout, stderr = run_os_command(command)
-    if retcode == 0:
-      sys.stdout.write(f + "\n")
-    elif retcode == 2:
-      sys.stdout.write("Error extracting " + f + "\n")
-    else:
-      sys.stdout.write(".")
-      sys.stdout.flush()
-
-    print_info_msg("Return code from extraction of view archive " + f + ": " +
-                   str(retcode))
-
-  sys.stdout.write("\n")
-  return 0
-
-# Store set of properties for remote database connection
-def store_remote_properties(args):
-  properties = get_ambari_properties()
-  if properties == -1:
-    print_error_msg("Error getting ambari properties")
-    return -1
-
-  isSecure = get_is_secure(properties)
-
-  properties.process_pair(PERSISTENCE_TYPE_PROPERTY, "remote")
-
-  properties.process_pair(JDBC_DATABASE_PROPERTY, args.dbms)
-  properties.process_pair(JDBC_HOSTNAME_PROPERTY, args.database_host)
-  properties.process_pair(JDBC_PORT_PROPERTY, args.database_port)
-  properties.process_pair(JDBC_DATABASE_NAME_PROPERTY, args.database_name)
-  if args.dbms == "postgres":
-    properties.process_pair(JDBC_POSTGRES_SCHEMA_PROPERTY, args.postgres_schema)
-  properties.process_pair(JDBC_DRIVER_PROPERTY, DATABASE_DRIVER_NAMES[DATABASE_INDEX])
-  # fully qualify the hostname to make sure all the other hosts can connect
-  # to the jdbc hostname since its passed onto the agents for RCA
-  jdbc_hostname = args.database_host
-  if (args.database_host == "localhost"):
-    jdbc_hostname = socket.getfqdn().lower()
-
-  connectionStringFormat = DATABASE_CONNECTION_STRINGS
-  if args.sid_or_sname == "sid":
-    connectionStringFormat = DATABASE_CONNECTION_STRINGS_ALT
-  properties.process_pair(JDBC_URL_PROPERTY, connectionStringFormat[DATABASE_INDEX].format(jdbc_hostname, args.database_port, args.database_name))
-  properties.process_pair(JDBC_USER_NAME_PROPERTY, args.database_username)
-  properties.process_pair(JDBC_PASSWORD_PROPERTY,
-      store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
-
-  # save any other defined properties to pass to JDBC
-  if DATABASE_INDEX < len(DATABASE_JDBC_PROPERTIES):
-    for pair in DATABASE_JDBC_PROPERTIES[DATABASE_INDEX]:
-      properties.process_pair(JDBC_PROPERTIES_PREFIX + pair[0], pair[1])
-
-  if isSecure:
-    encrypted_password = encrypt_password(JDBC_RCA_PASSWORD_ALIAS, args.database_password)
-    if encrypted_password != args.database_password:
-      properties.process_pair(JDBC_PASSWORD_PROPERTY, encrypted_password)
-  pass
-
-  properties.process_pair(JDBC_RCA_DRIVER_PROPERTY, DATABASE_DRIVER_NAMES[DATABASE_INDEX])
-  properties.process_pair(JDBC_RCA_URL_PROPERTY, connectionStringFormat[DATABASE_INDEX].format(jdbc_hostname, args.database_port, args.database_name))
-  properties.process_pair(JDBC_RCA_USER_NAME_PROPERTY, args.database_username)
-  properties.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY,
-      store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
-  if isSecure:
-    encrypted_password = encrypt_password(JDBC_RCA_PASSWORD_ALIAS, args.database_password)
-    if encrypted_password != args.database_password:
-      properties.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY, encrypted_password)
-  pass
-
-  conf_file = properties.fileName
-
-  try:
-    properties.store(open(conf_file, "w"))
-  except Exception, e:
-    print 'Could not write ambari config file "%s": %s' % (conf_file, e)
-    return -1
-
-  return 0
 
 
 # Initialize remote database schema
@@ -1445,22 +950,6 @@ def get_remote_script_line(args, scriptPath, forPrint=True):
     ))
 
   return None
-
-
-def configure_database_password(showDefault=True):
-  passwordDefault = PG_DEFAULT_PASSWORD
-  if showDefault:
-    passwordPrompt = 'Enter Database Password (' + passwordDefault + '): '
-  else:
-    passwordPrompt = 'Enter Database Password: '
-  passwordPattern = "^[a-zA-Z0-9_-]*$"
-  passwordDescr = "Invalid characters in password. Use only alphanumeric or "\
-                  "_ or - characters"
-
-  password = read_password(passwordDefault, passwordPattern, passwordPrompt,
-    passwordDescr)
-
-  return password
 
 
 def get_ambari_version(properties):
@@ -1564,71 +1053,6 @@ def configure_database_username_password(args):
     print_error_msg("Connection properties not set in config file.")
 
 
-# Check if jdbc user is changed
-def is_jdbc_user_changed(args):
-  properties = get_ambari_properties()
-  if properties == -1:
-    print_error_msg("Error getting ambari properties")
-    return None
-
-  previos_user = properties[JDBC_USER_NAME_PROPERTY]
-  new_user = args.database_username
-
-  if previos_user and new_user:
-    if previos_user != new_user:
-      return True
-    else:
-      return False
-
-  return None
-
-
-# Store local database connection properties
-def store_local_properties(args):
-  properties = get_ambari_properties()
-  if properties == -1:
-    print_error_msg("Error getting ambari properties")
-    return -1
-
-  isSecure = get_is_secure(properties)
-
-  properties.removeOldProp(JDBC_DATABASE_PROPERTY)
-  properties.removeOldProp(JDBC_DATABASE_NAME_PROPERTY)
-  properties.removeOldProp(JDBC_POSTGRES_SCHEMA_PROPERTY)
-  properties.removeOldProp(JDBC_HOSTNAME_PROPERTY)
-  properties.removeOldProp(JDBC_RCA_DRIVER_PROPERTY)
-  properties.removeOldProp(JDBC_RCA_URL_PROPERTY)
-  properties.removeOldProp(JDBC_PORT_PROPERTY)
-  properties.removeOldProp(JDBC_DRIVER_PROPERTY)
-  properties.removeOldProp(JDBC_URL_PROPERTY)
-
-  # Store the properties
-  properties.process_pair(PERSISTENCE_TYPE_PROPERTY, "local")
-  properties.process_pair(JDBC_DATABASE_PROPERTY, args.dbms)
-  properties.process_pair(JDBC_DATABASE_NAME_PROPERTY, args.database_name)
-  if args.dbms == "postgres":
-    properties.process_pair(JDBC_POSTGRES_SCHEMA_PROPERTY, args.postgres_schema)
-  properties.process_pair(JDBC_USER_NAME_PROPERTY, args.database_username)
-  properties.process_pair(JDBC_PASSWORD_PROPERTY,
-      store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
-
-  if isSecure:
-    encrypted_password = encrypt_password(JDBC_RCA_PASSWORD_ALIAS, args.database_password)
-    if args.database_password != encrypted_password:
-      properties.process_pair(JDBC_PASSWORD_PROPERTY, encrypted_password)
-    pass
-  pass
-
-  conf_file = properties.fileName
-
-  try:
-    properties.store(open(conf_file, "w"))
-  except Exception, e:
-    print 'Unable to write ambari.properties configuration file "%s": %s' % (conf_file, e)
-    return -1
-  return 0
-
-
 # Load ambari properties and return dict with values
 def get_ambari_properties():
   conf_file = find_properties_file()
@@ -1722,40 +1146,6 @@ def search_file(filename, search_path, pathsep=os.pathsep):
   return None
 
 
-def dlprogress(base_name, count, blockSize, totalSize):
-  percent = int(count * blockSize * 100 / totalSize)
-
-  if (totalSize < blockSize):
-    sys.stdout.write("\r" + base_name + "... %d%%" % (100))
-  else:
-    sys.stdout.write("\r" + base_name + "... %d%% (%.1f MB of %.1f MB)" % (
-      percent, count * blockSize / 1024 / 1024.0, totalSize / 1024 / 1024.0))
-
-  if (percent == 100 or totalSize < blockSize):
-    sys.stdout.write("\n")
-  sys.stdout.flush()
-
-
-def track_jdk(base_name, url, local_name):
-  u = urllib2.urlopen(url)
-  h = u.info()
-  totalSize = int(h["Content-Length"])
-  fp = open(local_name, "wb")
-  blockSize = 8192
-  count = 0
-  while True:
-    chunk = u.read(blockSize)
-    if not chunk:
-      break
-    fp.write(chunk)
-    count += 1
-
-    dlprogress(base_name, count, blockSize, totalSize)
-
-  fp.flush()
-  fp.close()
-
-
 def install_jce_manualy(args):
   properties = get_ambari_properties()
   if properties == -1:
@@ -1782,277 +1172,8 @@ def install_jce_manualy(args):
     return 1
 
 
-#
-# Downloads the JDK
-#
-def download_jdk(args):
-  global JDK_INDEX
-  properties = get_ambari_properties()
-  if properties == -1:
-    err = "Error getting ambari properties"
-    raise FatalException(-1, err)
-  conf_file = properties.fileName
-  ok = False
-  jcePolicyWarn = "JCE Policy files are required for configuring Kerberos security. If you plan to use Kerberos," \
-         "please make sure JCE Unlimited Strength Jurisdiction Policy Files are valid on all hosts."
-  if args.java_home:
-    if not os.path.exists(args.java_home) or not os.path.isfile(os.path.join(args.java_home, "bin", "java")):
-      err = "Path to java home " + args.java_home + " or java binary file does not exists"
-      raise FatalException(1, err)
-
-    print_warning_msg("JAVA_HOME " + args.java_home + " must be valid on ALL hosts")
-    print_warning_msg(jcePolicyWarn)
-    write_property(JAVA_HOME_PROPERTY, args.java_home)
-    remove_property(JDK_NAME_PROPERTY)
-    remove_property(JCE_NAME_PROPERTY)
-    return 0
-  else:
-    if get_JAVA_HOME():
-      change_jdk = get_YN_input("Do you want to change Oracle JDK [y/n] (n)? ", False)
-      if not change_jdk:
-        return 0
-
-    try:
-      resources_dir = properties[RESOURCES_DIR_PROPERTY]
-    except (KeyError), e:
-      err = 'Property ' + str(e) + ' is not defined at ' + conf_file
-      raise FatalException(1, err)
-    jdk_num = str(JDK_INDEX + 1)
-    jdk_num = get_validated_string_input(
-"""[1] - Oracle JDK 1.7 + Java Cryptography Extension (JCE) Policy Files 7
-[2] - Oracle JDK 1.6 + Java Cryptography Extension (JCE) Policy Files 6
-[3] - Custom JDK
-==============================================================================
-Enter choice (""" + jdk_num + "):",
-      jdk_num,
-      "^[123]$",
-      "Invalid number.",
-      False
-    )
-
-    if jdk_num == CUSTOM_JDK_NUMBER:
-      print_warning_msg("JDK must be installed on all hosts and JAVA_HOME must be valid on all hosts.")
-      print_warning_msg(jcePolicyWarn)
-      args.java_home = get_validated_string_input("Path to JAVA_HOME: ", None, None, None, False, False)
-      if not os.path.exists(args.java_home) or not os.path.isfile(os.path.join(args.java_home, "bin", "java")):
-        err = "Java home path or java binary file is unavailable. Please put correct path to java home."
-        raise FatalException(1, err)
-      print "Validating JDK on Ambari Server...done."
-      write_property(JAVA_HOME_PROPERTY, args.java_home)
-      remove_property(JDK_NAME_PROPERTY)
-      remove_property(JCE_NAME_PROPERTY)
-      return 0
-
-    JDK_INDEX = int(jdk_num) - 1
-    JDK_FILENAME = JDK_NAMES[JDK_INDEX]
-    JDK_URL_PROPERTY = JDK_URL_PROPERTIES[JDK_INDEX]
-
-    try:
-      jdk_url = properties[JDK_URL_PROPERTY]
-    except (KeyError), e:
-      err = 'Property ' + str(e) + ' is not defined at ' + conf_file
-      raise FatalException(1, err)
-    dest_file = resources_dir + os.sep + JDK_FILENAME
-    if os.path.exists(dest_file):
-      print "JDK already exists, using " + dest_file
-    else:
-      ok = get_YN_input("To download the Oracle JDK and the Java Cryptography Extension (JCE) "
-                        "Policy Files you must accept the "
-                        "license terms found at "
-                        "http://www.oracle.com/technetwork/java/javase/"
-                        "terms/license/index.html and not accepting will "
-                        "cancel the Ambari Server setup and you must install the JDK and JCE "
-                        "files manually.\nDo you accept the "
-                        "Oracle Binary Code License Agreement [y/n] (y)? ", True)
-      if not ok:
-        print 'Exiting...'
-        sys.exit(1)
-
-      print 'Downloading JDK from ' + jdk_url + ' to ' + dest_file
-      jdk_download_fail_msg = " Failed to download JDK: {0}. Please check that Oracle " \
-        "JDK is available at {1}. Also you may specify JDK file " \
-        "location in local filesystem using --jdk-location command " \
-        "line argument.".format("{0}", jdk_url)
-      try:
-        size_command = JDK_DOWNLOAD_SIZE_CMD.format(jdk_url)
-        #Get Header from url,to get file size then
-        retcode, out, err = run_os_command(size_command)
-        if out.find("Content-Length") == -1:
-          err = jdk_download_fail_msg.format("Request header doesn't contain Content-Length")
-          raise FatalException(1, err)
-        start_with = int(out.find("Content-Length") + len("Content-Length") + 2)
-        end_with = out.find("\r\n", start_with)
-        src_size = int(out[start_with:end_with])
-        print 'JDK distribution size is ' + str(src_size) + ' bytes'
-        file_exists = os.path.isfile(dest_file)
-        file_size = -1
-        if file_exists:
-          file_size = os.stat(dest_file).st_size
-        if file_exists and file_size == src_size:
-          print_info_msg("File already exists")
-        else:
-          track_jdk(JDK_FILENAME, jdk_url, dest_file)
-          print 'Successfully downloaded JDK distribution to ' + dest_file
-      except FatalException:
-        raise
-      except Exception, e:
-        err = jdk_download_fail_msg.format(str(e))
-        raise FatalException(1, err)
-      downloaded_size = os.stat(dest_file).st_size
-      if downloaded_size != src_size or downloaded_size < JDK_MIN_FILESIZE:
-        err = 'Size of downloaded JDK distribution file is ' \
-                      + str(downloaded_size) + ' bytes, it is probably \
-                      damaged or incomplete'
-        raise FatalException(1, err)
-
-    try:
-       out = install_jdk(dest_file)
-       jdk_version = re.search(JDK_VERSION_REs[JDK_INDEX], out).group(1)
-       write_property(JDK_NAME_PROPERTY, JDK_FILENAME)
-    except Exception, e:
-       print "Installation of JDK has failed: %s\n" % e
-       file_exists = os.path.isfile(dest_file)
-       if file_exists:
-          ok = get_YN_input("JDK found at "+dest_file+". "
-                      "Would you like to re-download the JDK [y/n] (y)? ", True)
-          if not ok:
-             err = "Unable to install JDK. Please remove JDK file found at " + \
-                   dest_file + " and re-run Ambari Server setup"
-             raise FatalException(1, err)
-          else:
-             track_jdk(JDK_FILENAME, jdk_url, dest_file)
-             print 'Successfully re-downloaded JDK distribution to ' + dest_file
-             try:
-                 out = install_jdk(dest_file)
-                 jdk_version = re.search(JDK_VERSION_REs[JDK_INDEX], out).group(1)
-                 write_property(JDK_NAME_PROPERTY, JDK_FILENAME)
-             except Exception, e:
-               print "Installation of JDK was failed: %s\n" % e
-               err = "Unable to install JDK. Please remove JDK, file found at " + \
-                     dest_file + " and re-run Ambari Server setup"
-               raise FatalException(1, err)
-
-       else:
-           err = "Unable to install JDK. File " + dest_file + " does not exist, " \
-                                        "please re-run Ambari Server setup"
-           raise FatalException(1, err)
-
-    print "Successfully installed JDK to {0}/{1}".\
-        format(JDK_INSTALL_DIR, jdk_version)
-    write_property(JAVA_HOME_PROPERTY, "{0}/{1}".
-        format(JDK_INSTALL_DIR, jdk_version))
-
-  try:
-    download_jce_policy(properties, ok)
-  except FatalException as e:
-    print "JCE Policy files are required for secure HDP setup. Please ensure " \
-            " all hosts have the JCE unlimited strength policy 6, files."
-    print_error_msg("Failed to download JCE policy files:")
-    if e.reason is not None:
-      print_error_msg("\nREASON: {0}".format(e.reason))
-    # TODO: We don't fail installation if download_jce_policy fails. Is it OK?
-  return 0
-
-
-def download_jce_policy(properties, accpeted_bcl):
-  JCE_URL_PROPERTY = JCE_URL_PROPERTIES[JDK_INDEX]
-  JCE_POLICY_FILENAME = JCE_POLICY_FILENAMES[JDK_INDEX]
-  try:
-    jce_url = properties[JCE_URL_PROPERTY]
-    resources_dir = properties[RESOURCES_DIR_PROPERTY]
-  except KeyError, e:
-    err = 'Property ' + str(e) + ' is not defined in properties file'
-    raise FatalException(1, err)
-  dest_file = resources_dir + os.sep + JCE_POLICY_FILENAME
-  if not os.path.exists(dest_file):
-    print 'Downloading JCE Policy archive from ' + jce_url + ' to ' + dest_file
-    jce_download_fail_msg = " Failed to download JCE Policy archive : {0}. " \
-        "Please check that JCE Policy archive is available at {1} . "
-    try:
-      size_command = JDK_DOWNLOAD_SIZE_CMD.format(jce_url)
-      #Get Header from url,to get file size then
-      retcode, out, err = run_os_command(size_command)
-      if out.find("Content-Length") == -1:
-        err = jce_download_fail_msg.format(
-            "Request header doesn't contain Content-Length")
-        raise FatalException(1, err)
-      start_with = int(out.find("Content-Length") + len("Content-Length") + 2)
-      end_with = out.find("\r\n", start_with)
-      src_size = int(out[start_with:end_with])
-      print_info_msg('JCE zip distribution size is ' + str(src_size) + ' bytes')
-      file_exists = os.path.isfile(dest_file)
-      file_size = -1
-      if file_exists:
-        file_size = os.stat(dest_file).st_size
-      if file_exists and file_size == src_size:
-        print_info_msg("File already exists")
-      else:
-        #BCL license before download
-        jce_download_cmd = JCE_DOWNLOAD_CMD.format(dest_file, jce_url)
-        print_info_msg("JCE download cmd: " + jce_download_cmd)
-        if accpeted_bcl:
-          retcode, out, err = run_os_command(jce_download_cmd)
-          if retcode == 0:
-            write_property(JCE_NAME_PROPERTY, JCE_POLICY_FILENAME)
-            print 'Successfully downloaded JCE Policy archive to ' + dest_file
-          else:
-            raise FatalException(1, err)
-        else:
-          ok = get_YN_input("To download the JCE Policy files you must "
-                            "accept the license terms found at "
-                            "http://www.oracle.com/technetwork/java/javase"
-                            "/terms/license/index.html"
-                            "Not accepting will result in errors when "
-                            "configuring Kerberos security. \nDo you accept the "
-                            "Oracle Binary Code License Agreement [y/n] (y)? ", True)
-          if ok:
-            retcode, out, err = run_os_command(jce_download_cmd)
-            if retcode == 0:
-              write_property(JCE_NAME_PROPERTY, JCE_POLICY_FILENAME)
-              print 'Successfully downloaded JCE Policy archive to ' + dest_file
-          else:
-            raise FatalException(1, None)
-    except FatalException:
-        raise
-    except Exception, e:
-      err = 'Failed to download JCE Policy archive: ' + str(e)
-      raise FatalException(1, err)
-    downloaded_size = os.stat(dest_file).st_size
-    if downloaded_size != src_size or downloaded_size < JCE_MIN_FILESIZE:
-      err = 'Size of downloaded JCE Policy archive is ' \
-                      + str(downloaded_size) + ' bytes, it is probably \
-                    damaged or incomplete'
-      raise FatalException(1, err)
-  else:
-    write_property(JCE_NAME_PROPERTY, JCE_POLICY_FILENAME)
-    print "JCE Policy archive already exists, using " + dest_file
-
-
 class RetCodeException(Exception):
   pass
-
-
-def install_jdk(dest_file):
-  print "Installing JDK to {0}".format(JDK_INSTALL_DIR)
-  retcode, out, err = run_os_command(CREATE_JDK_DIR_CMD)
-  retcode, out, err = run_os_command(MAKE_FILE_EXECUTABLE_CMD.format(JDK_INSTALL_DIR))
-  savedPath = os.getcwd()
-  os.chdir(JDK_INSTALL_DIR)
-
-  if dest_file.endswith(".bin"):
-    retcode, out, err = run_os_command(MAKE_FILE_EXECUTABLE_CMD.format(dest_file))
-    retcode, out, err = run_os_command(dest_file + ' -noregister')
-  elif dest_file.endswith(".gz"):
-    retcode, out, err = run_os_command(UNTAR_JDK_ARCHIVE.format(dest_file))
-  else:
-    err = "JDK installation failed.Unknown file mask."
-    raise FatalException(1, err)
-
-  os.chdir(savedPath)
-  if retcode != 0:
-    err = "Installation of JDK returned exit code %s" % retcode
-    raise FatalException(retcode, err)
-  return out
 
 
 #
@@ -2190,241 +1311,6 @@ def wait_popen(popen, timeout=0):
   while popen.poll() is None and not time.time() - begin > timeout:
     time.sleep(1)
   return popen.poll()
-
-def check_jdbc_drivers(args):
-  properties = get_ambari_properties()
-  if properties == -1:
-    print_error_msg("Error getting ambari properties")
-    return -1
-
-  result = find_jdbc_driver(args)
-
-  msg = 'Before starting Ambari Server, ' \
-        'you must copy the {0} JDBC driver JAR file to {1}.'.format(
-        DATABASE_FULL_NAMES[args.dbms],
-        JAVA_SHARE_PATH)
-
-  if result == -1:
-    if SILENT:
-      print_error_msg(msg)
-      raise FatalException(-1, msg)
-    else:
-      print_warning_msg(msg)
-      raw_input(PRESS_ENTER_MSG)
-      result = find_jdbc_driver(args)
-      if result == -1:
-        print_error_msg(msg)
-        raise FatalException(-1, msg)
-
-  # Check if selected RDBMS requires drivers to copy
-  if type(result) is not int:
-    print 'Copying JDBC drivers to server resources...'
-    try:
-      resources_dir = properties[RESOURCES_DIR_PROPERTY]
-    except KeyError:
-      print_error_msg("There is no value for " + RESOURCES_DIR_PROPERTY + "in " + AMBARI_PROPERTIES_FILE)
-      return -1
-
-    db_name = DATABASE_FULL_NAMES[args.dbms].lower()
-    jdbc_symlink = os.path.join(resources_dir, db_name + "-jdbc-driver.jar")
-    db_default_driver_path = os.path.join(JAVA_SHARE_PATH, JDBC_DB_DEFAULT_DRIVER[db_name])
-
-    if os.path.lexists(jdbc_symlink):
-      os.remove(jdbc_symlink)
-
-    copy_status = copy_files(result, resources_dir)
-
-    if not copy_status == 0:
-      raise FatalException(-1, "Failed to copy JDBC drivers to server resources")
-
-    if db_default_driver_path in result:
-      os.symlink(os.path.join(resources_dir, JDBC_DB_DEFAULT_DRIVER[db_name]), jdbc_symlink)
-
-  return 0
-
-
-def verify_setup_allowed():
-  properties = get_ambari_properties()
-  if properties == -1:
-    print_error_msg("Error getting ambari properties")
-    return -1
-
-  isSecure = get_is_secure(properties)
-  (isPersisted, masterKeyFile) = get_is_persisted(properties)
-  if isSecure and not isPersisted and SILENT:
-    print "ERROR: Cannot run silent 'setup' with password encryption enabled " \
-          "and Master Key not persisted."
-    print "Ambari Server 'setup' exiting."
-    return 1
-  return 0
-
-
-#
-# Setup the Ambari Server.
-#
-def setup(args):
-  retcode = verify_setup_allowed()
-  if not retcode == 0:
-    raise FatalException(1, None)
-
-  if not is_root():
-    err = 'Ambari-server setup should be run with '\
-                     'root-level privileges'
-    raise FatalException(4, err)
-
-  # proceed jdbc properties if they were set
-  if args.jdbc_driver is not None and args.jdbc_db is not None:
-    proceedJDBCProperties(args)
-    return
-
-  print 'Checking SELinux...'
-  retcode = check_selinux()
-  if not retcode == 0:
-    err = 'Failed to disable SELinux. Exiting.'
-    raise FatalException(retcode, err)
-
-  # Create ambari user, if needed
-  retcode = check_ambari_user()
-  
-  if not retcode == 0:
-    err = 'Failed to create user. Exiting.'
-    raise FatalException(retcode, err)
-
-  print 'Checking firewall...'
-  firewall_obj = Firewall().getFirewallObject()
-  firewall_on = firewall_obj.check_iptables()
-  if firewall_obj.stderrdata and len(firewall_obj.stderrdata) > 0:
-    print firewall_obj.stderrdata
-  if firewall_on:
-    print_warning_msg("%s is running. Confirm the necessary Ambari ports are accessible. " %
-                      firewall_obj.FIREWALL_SERVICE_NAME +
-                      "Refer to the Ambari documentation for more details on ports.")
-    ok = get_YN_input("OK to continue [y/n] (y)? ", True)
-    if not ok:
-      raise FatalException(1, None)
-
-
-
-
-  # proceed jdbc properties if they were set
-  if args.jdbc_driver is not None and args.jdbc_db is not None:
-    proceedJDBCProperties(args)
-
-  print 'Checking JDK...'
-  try:
-    download_jdk(args)
-  except FatalException as e:
-    err = 'Downloading or installing JDK failed: {0}. Exiting.'.format(e)
-    raise FatalException(e.code, err)
-
-  print 'Completing setup...'
-  retcode = configure_os_settings()
-  if not retcode == 0:
-    err = 'Configure of OS settings in ambari.properties failed. Exiting.'
-    raise FatalException(retcode, err)
-
-  print 'Configuring database...'
-  prompt_db_properties(args)
-
-  #DB setup should be done last after doing any setup.
-
-  if is_local_database(args):
-    #check if jdbc user is changed
-    is_user_changed = is_jdbc_user_changed(args)
-
-    print 'Default properties detected. Using built-in database.'
-    store_local_properties(args)
-
-    print 'Checking PostgreSQL...'
-    pg_status, retcode, out, err = check_postgre_up()
-    if not retcode == 0:
-      err = 'Unable to start PostgreSQL server. Status {0}. {1}.' \
-            ' Exiting'.format(pg_status, err)
-      raise FatalException(retcode, err)
-
-    print 'Configuring local database...'
-    retcode, outdata, errdata = setup_db(args)
-    if not retcode == 0:
-      err = 'Running database init script was failed. {0}. Exiting.'.format(errdata)
-      raise FatalException(retcode, err)
-
-    if is_user_changed:
-      #remove backup for pg_hba in order to reconfigure postgres
-      remove_file(PG_HBA_CONF_FILE_BACKUP)
-
-    print 'Configuring PostgreSQL...'
-    retcode, out, err = configure_postgres()
-    if not retcode == 0:
-      err = 'Unable to configure PostgreSQL server. {0} Exiting'.format(err)
-      raise FatalException(retcode, err)
-
-  else:
-    retcode = store_remote_properties(args)
-    if retcode != 0:
-      err = 'Unable to save config file'
-      raise FatalException(retcode, err)
-
-    check_jdbc_drivers(args)
-
-    print 'Configuring remote database connection properties...'
-    retcode = setup_remote_db(args)
-    if retcode == -1:
-      err = "Remote database setup aborted."
-      raise NonFatalException(err)
-
-    if not retcode == 0:
-      err = 'Error while configuring connection properties. Exiting'
-      raise FatalException(retcode, err)
-    check_jdbc_drivers(args)
-
-  print 'Extracting system views...'
-  retcode = extract_views()
-  if not retcode == 0:
-    err = 'Error while extracting system views. Exiting'
-    raise FatalException(retcode, err)
-  
-  # we've already done this, but new files were created so run it one time.
-  adjust_directory_permissions(read_ambari_user())
-
-
-def proceedJDBCProperties(args):
-  if not os.path.isfile(args.jdbc_driver):
-    err = "File {0} does not exist!".format(args.jdbc_driver)
-    raise FatalException(1, err)
-
-  if args.jdbc_db not in JDBC_DB_OPTION_VALUES:
-    err = "Unsupported database name {0}. Please see help for more information.".format(args.jdbc_db)
-    raise FatalException(1, err)
-
-  properties = get_ambari_properties()
-  if properties == -1:
-    err = "Error getting ambari properties"
-    raise FatalException(-1, err)
-  conf_file = properties.fileName
-
-  try:
-    resources_dir = properties[RESOURCES_DIR_PROPERTY]
-  except (KeyError), e:
-    err = 'Property ' + str(e) + ' is not defined at ' + conf_file
-    raise FatalException(1, err)
-
-  symlink_name = args.jdbc_db + "-jdbc-driver.jar"
-  jdbc_symlink = os.path.join(resources_dir, symlink_name)
-  path, jdbc_name = os.path.split(args.jdbc_driver)
-
-  if os.path.lexists(jdbc_symlink):
-    os.remove(jdbc_symlink)
-
-  if not os.path.isfile(os.path.join(resources_dir, jdbc_name)):
-    try:
-      shutil.copy(args.jdbc_driver, resources_dir)
-    except Exception, e:
-      err = "Can not copy file {0} to {1} due to: {2} . Please check file " \
-            "permissions and free disk space.".format(args.jdbc_driver, resources_dir, e)
-      raise FatalException(1, err)
-
-  os.symlink(os.path.join(resources_dir,jdbc_name), jdbc_symlink)
-  print "JDBC driver was successfully initialized ."
 
 
 #
@@ -4511,6 +3397,8 @@ def main():
     and options.database_password is not None):
     parser.error('All database options should be set. Please see help for the options.')
 
+  options.must_set_database_options = PROMPT_DATABASE_OPTIONS
+
   #correct database
   if options.dbms == 'embedded':
     print "WARNING: HostName for postgres server " + options.database_host + \
@@ -4649,154 +3537,6 @@ def main():
 
   if options.exit_message is not None:
     print options.exit_message
-
-
-# A Python replacement for java.util.Properties
-# Based on http://code.activestate.com/recipes
-# /496795-a-python-replacement-for-javautilproperties/
-class Properties(object):
-  def __init__(self, props=None):
-    self._props = {}
-    self._origprops = {}
-    self._keymap = {}
-
-    self.othercharre = re.compile(r'(?<!\\)(\s*\=)|(?<!\\)(\s*\:)')
-    self.othercharre2 = re.compile(r'(\s*\=)|(\s*\:)')
-    self.bspacere = re.compile(r'\\(?!\s$)')
-
-  def __parse(self, lines):
-    lineno = 0
-    i = iter(lines)
-    for line in i:
-      lineno += 1
-      line = line.strip()
-      if not line:
-        continue
-      if line[0] == '#':
-        continue
-      escaped = False
-      sepidx = -1
-      flag = 0
-      m = self.othercharre.search(line)
-      if m:
-        first, last = m.span()
-        start, end = 0, first
-        flag = 1
-        wspacere = re.compile(r'(?<![\\\=\:])(\s)')
-      else:
-        if self.othercharre2.search(line):
-          wspacere = re.compile(r'(?<![\\])(\s)')
-        start, end = 0, len(line)
-      m2 = wspacere.search(line, start, end)
-      if m2:
-        first, last = m2.span()
-        sepidx = first
-      elif m:
-        first, last = m.span()
-        sepidx = last - 1
-      while line[-1] == '\\':
-        nextline = i.next()
-        nextline = nextline.strip()
-        lineno += 1
-        line = line[:-1] + nextline
-      if sepidx != -1:
-        key, value = line[:sepidx], line[sepidx + 1:]
-      else:
-        key, value = line, ''
-      self.process_pair(key, value)
-
-  def process_pair(self, key, value):
-    """
-    Adds or overrides the property with the given key.
-    """
-    oldkey = key
-    oldvalue = value
-    keyparts = self.bspacere.split(key)
-    strippable = False
-    lastpart = keyparts[-1]
-    if lastpart.find('\\ ') != -1:
-      keyparts[-1] = lastpart.replace('\\', '')
-    elif lastpart and lastpart[-1] == ' ':
-      strippable = True
-    key = ''.join(keyparts)
-    if strippable:
-      key = key.strip()
-      oldkey = oldkey.strip()
-    oldvalue = self.unescape(oldvalue)
-    value = self.unescape(value)
-    self._props[key] = None if value is None else value.strip()
-    if self._keymap.has_key(key):
-      oldkey = self._keymap.get(key)
-      self._origprops[oldkey] = None if oldvalue is None else oldvalue.strip()
-    else:
-      self._origprops[oldkey] = None if oldvalue is None else oldvalue.strip()
-      self._keymap[key] = oldkey
-
-  def unescape(self, value):
-    newvalue = value
-    if not value is None:
-     newvalue = value.replace('\:', ':')
-     newvalue = newvalue.replace('\=', '=')
-    return newvalue
-
-  def removeOldProp(self, key):
-    if self._origprops.has_key(key):
-      del self._origprops[key]
-    pass
-
-  def load(self, stream):
-    if type(stream) is not file:
-      raise TypeError, 'Argument should be a file object!'
-    if stream.mode != 'r':
-      raise ValueError, 'Stream should be opened in read-only mode!'
-    try:
-      self.fileName = os.path.abspath(stream.name)
-      lines = stream.readlines()
-      self.__parse(lines)
-    except IOError:
-      raise
-
-  def get_property(self, key):
-    return self._props.get(key, '')
-
-  def propertyNames(self):
-    return self._props.keys()
-
-  def getPropertyDict(self):
-    return self._props
-
-  def __getitem__(self, name):
-    return self.get_property(name)
-
-  def __getattr__(self, name):
-    try:
-      return self.__dict__[name]
-    except KeyError:
-      if hasattr(self._props, name):
-        return getattr(self._props, name)
-
-  def store(self, out, header=""):
-    """ Write the properties list to the stream 'out' along
-    with the optional 'header'
-    This function will attempt to close the file handler once it's done.
-    """
-    if out.mode[0] != 'w':
-      raise ValueError, 'Steam should be opened in write mode!'
-    try:
-      out.write(''.join(('#', ASF_LICENSE_HEADER, '\n')))
-      out.write(''.join(('#', header, '\n')))
-      # Write timestamp
-      tstamp = time.strftime('%a %b %d %H:%M:%S %Z %Y', time.localtime())
-      out.write(''.join(('#', tstamp, '\n')))
-      # Write properties from the pristine dictionary
-      for prop, val in self._origprops.items():
-        if val is not None:
-          out.write(''.join((prop, '=', val, '\n')))
-    except IOError:
-      raise
-    finally:
-      if out:
-        out.close()
 
 if __name__ == "__main__":
   try:

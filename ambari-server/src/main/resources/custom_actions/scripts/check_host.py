@@ -24,9 +24,10 @@ import os
 import subprocess
 import socket
 
-from ambari_commons import os_utils
 from ambari_commons.os_check import OSCheck, OSConst
+from ambari_commons.os_utils import quote_path
 from ambari_commons.inet_utils import download_file
+from ambari_server.serverConfiguration import configDefaults
 from resource_management import Script, Execute, format
 from ambari_agent.HostInfo import HostInfo
 
@@ -102,11 +103,8 @@ class CheckHost(Script):
     java64_home = config['commandParams']['java_home']
 
     print "Java home to check: " + java64_home
-    java_bin = "java"
-    if OSCheck.is_windows_family():
-      java_bin = "java.exe"
-  
-    if not os.path.isfile(os.path.join(java64_home, "bin", java_bin)):
+
+    if not os.path.isfile(os.path.join(java64_home, configDefaults.JAVA_EXE_SUBPATH)):
       print "Java home doesn't exist!"
       java_home_check_structured_output = {"exit_code" : 1, "message": "Java home doesn't exist!"}
     else:
@@ -152,13 +150,9 @@ class CheckHost(Script):
     jdbc_path = os.path.join(agent_cache_dir, jdbc_name)
     check_db_connection_path = os.path.join(agent_cache_dir, check_db_connection_jar_name)
 
-    java_bin = "java"
-    class_path_delimiter = ":"
-    if OSCheck.is_windows_family():
-      java_bin = "java.exe"
-      class_path_delimiter = ";"
+    class_path_delimiter = os.pathsep
 
-    java_exec = os.path.join(java64_home, "bin",java_bin)
+    java_exec = os.path.join(java64_home, configDefaults.JAVA_EXE_SUBPATH)
 
     if ('jdk_name' not in config['commandParams'] or config['commandParams']['jdk_name'] == None \
         or config['commandParams']['jdk_name'] == '') and not os.path.isfile(java_exec):
@@ -172,7 +166,7 @@ class CheckHost(Script):
     # download and install java if it doesn't exists
     if not os.path.isfile(java_exec):
       jdk_name = config['commandParams']['jdk_name']
-      jdk_url = "{}/{}".format(jdk_location, jdk_name)
+      jdk_url = "{0}/{1}".format(jdk_location, jdk_name)
       jdk_download_target = os.path.join(agent_cache_dir, jdk_name)
       java_dir = os.path.dirname(java64_home)
       try:
@@ -192,8 +186,8 @@ class CheckHost(Script):
         install_cmd = format("mkdir -p {java_dir} ; cd {java_dir} ; tar -xf {jdk_download_target} > /dev/null 2>&1")
         install_path = ["/bin","/usr/bin/"]
       elif jdk_name.endswith(".exe"):
-        install_cmd = "{} /s INSTALLDIR={} STATIC=1 WEB_JAVA=0 /L \\var\\log\\ambari-agent".format(
-          os_utils.quote_path(jdk_download_target), os_utils.quote_path(java64_home),
+        install_cmd = "{0} /s INSTALLDIR={1} STATIC=1 WEB_JAVA=0 /L \\var\\log\\ambari-agent".format(
+          quote_path(jdk_download_target), quote_path(java64_home),
         )
         install_path = [java_dir]
 
