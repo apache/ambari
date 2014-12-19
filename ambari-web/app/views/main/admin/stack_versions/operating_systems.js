@@ -25,7 +25,7 @@ App.OperatingSystemsView = Em.View.extend({
     this.set('isOsCollapsed', true);
   },
 
-  toggleOs: function(event) {
+  toggleOs: function() {
     if (this.get('hasMoreOs')) {
       this.set('isOsCollapsed', !this.get('isOsCollapsed'));
       this.$('.operating-systems').toggle();
@@ -36,10 +36,14 @@ App.OperatingSystemsView = Em.View.extend({
     return this.get('content.operatingSystems.length') > 1;
   }.property('content.operatingSystems.length'),
 
+  /**
+   * shows OS in different way depending on amount
+   * @type {String}
+   */
   osText: function() {
     switch (this.get('content.operatingSystems.length')) {
       case 0:
-        return Em.I18n.t("none");
+        return Em.I18n.t("none").toCapital();
         break;
       case 1:
         return this.get('content.operatingSystems').getEach('osType');

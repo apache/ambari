@@ -19,37 +19,98 @@
 
 var App = require('app');
 require('views/main/admin/stack_versions/stack_version_view');
-var mainStackVersionsDetailsView;
+var view;
 
 describe('App.MainStackVersionsDetailsView', function () {
 
   beforeEach(function () {
-    mainStackVersionsDetailsView = App.MainStackVersionsDetailsView.create();
+    view = App.MainStackVersionsDetailsView.create({
+      "controller": {
+        "hostsToInstall" : 0,
+        "progress": 0,
+        "doPolling": Em.K
+      },
+      "content": {
+        "stackVersion":
+          {
+            "state" : "ANY"
+          }
+      }
+    });
   });
 
-  describe('#statusClass', function () {
-    var tests = [
-      {
-        state: "ANY",
-        buttonClass: 'disabled'
-      },
-      {
-        state: "INSTALL",
-        buttonClass: 'btn-success'
-      },
-      {
-        state: "INSTALLING",
-        buttonClass: 'btn-primary'
-      },
-      {
-        state: "INSTALL_FAILED",
-        buttonClass: "btn-danger"
-      }
-    ].forEach(function(t) {
-      it("status is " + t.status + " class is " + t.buttonClass, function() {
-        mainStackVersionsDetailsView.reopen({ content: {'state': t.state}});
-        expect(mainStackVersionsDetailsView.get('statusClass')).to.equal(t.buttonClass);
-      });
+  describe('#installButtonMsg', function () {
+    it("install button msg for init state" , function() {
+      view.set("controller.hostsToInstall", 2);
+      view.set("content.stackVersion.state", "ANY");
+      expect(view.get('installButtonMsg')).to.equal(Em.I18n.t('admin.stackVersions.datails.hosts.btn.install').format(2))
+    });
+
+    it("install button msg for install failed state" , function() {
+      view.set("content.stackVersion.state", "INSTALL_FAILED");
+      expect(view.get('installButtonMsg')).to.equal(Em.I18n.t('admin.stackVersions.datails.hosts.btn.reinstall'))
+    });
+  });
+
+  describe('#installButtonClass', function () {
+    it("install button class for init state" , function() {
+      view.set("content.stackVersion.state", "ANY");
+      expect(view.get('installButtonClass')).to.equal('btn-success')
+    });
+
+    it("install button class install failed state" , function() {
+      view.set("content.stackVersion.state", "INSTALL_FAILED");
+      expect(view.get('installButtonClass')).to.equal('btn-danger')
+    });
+  });
+
+  describe('#progress', function () {
+    it("this that is used as width of progress bar" , function() {
+      view.set("controller.progress", 20);
+      expect(view.get('progress')).to.equal('width:20%');
+    });
+  });
+
+  describe('#showCounters', function () {
+    it("true when repo version has cluster stack version" , function() {
+      view.set("content.stackVersion", Em.Object.create({}));
+      expect(view.get('showCounters')).to.be.true;
+    });
+    it("false when repo version has no cluster stack version" , function() {
+      view.set("content.stackVersion", null);
+      expect(view.get('showCounters')).to.be.false;
+    });
+  });
+
+  describe('#didInsertElement', function () {
+    beforeEach(function() {
+      sinon.stub(App.get('router.mainStackVersionsController'), 'set', Em.K);
+      sinon.stub(App.get('router.mainStackVersionsController'), 'doPolling', Em.K);
+      sinon.stub(view.get('controller'), 'doPolling', Em.K);
+    });
+    afterEach(function() {
+      App.get('router.mainStackVersionsController').set.restore();
+      App.get('router.mainStackVersionsController').doPolling.restore();
+      view.get('controller').doPolling.restore();
+    });
+    it("runs polling when view is in dom" , function() {
+      view.didInsertElement();
+      expect(App.get('router.mainStackVersionsController').set.calledWith('isPolling', true)).to.be.true;
+      expect(App.get('router.mainStackVersionsController').doPolling.calledOnce).to.be.true;
+      expect(view.get('controller').doPolling.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#willDestroyElement', function () {
+    beforeEach(function() {
+      sinon.stub(App.get('router.mainStackVersionsController'), 'set', Em.K);
+    });
+    afterEach(function() {
+      App.get('router.mainStackVersionsController').set.restore();
+    });
+    it("runs polling when view is in dom" , function() {
+      view.willDestroyElement();
+      expect(App.get('router.mainStackVersionsController').set.calledWith('isPolling', false)).to.be.true;
     });
   });
 });

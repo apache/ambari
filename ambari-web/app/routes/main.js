@@ -531,7 +531,7 @@ module.exports = Em.Route.extend({
         }
       }),
       version: Em.Route.extend({
-        route: '/:stack_version_id',
+        route: '/:repository_version_id',
         connectOutlets: function (router, stackVersion) {
           router.get('mainAdminController').connectOutlet('mainStackVersionsDetails', stackVersion);
         }

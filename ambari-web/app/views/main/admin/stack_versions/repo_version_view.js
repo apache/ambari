@@ -40,57 +40,28 @@ App.RepoVersionsView = App.TableView.extend({
    */
   colPropAssoc: function () {
     var associations = [];
-    associations[1] = 'repositoryVersion';
-    associations[2] = 'displayName';
-    associations[3] = 'operatingSystems';
+    associations[1] = 'displayName';
+    associations[2] = 'operatingSystems';
     return associations;
   }.property(),
 
   sortView: sort.wrapperView,
-  repoNameSort: sort.fieldView.extend({
+  repoVersionSort: sort.fieldView.extend({
     column: 1,
-    name: 'repositoryVersion',
-    displayName: Em.I18n.t('admin.stackVersions.table.header.stack'),
+    name: 'displayName',
+    displayName: Em.I18n.t('admin.stackVersions.table.header.version'),
     type: 'version',
     classNames: ['first']
   }),
-  repoVersionSort: sort.fieldView.extend({
-    column: 2,
-    name: 'displayName',
-    displayName: Em.I18n.t('admin.stackVersions.table.header.version'),
-    type: 'version'
-  }),
   osSort: sort.fieldView.extend({
-    column: 3,
+    column: 2,
     name: 'operatingSystems.length',
     displayName: Em.I18n.t('admin.stackVersions.table.header.os'),
     type: 'number'
   }),
 
-  repoNameFilterView: filters.createSelectView({
-    column: 1,
-    fieldType: 'filter-input-width',
-    content: function () {
-      var names = this.get('parentView.content').mapProperty('repositoryVersion').uniq();
-      return [
-        {
-          value: '',
-          label: Em.I18n.t('common.all')
-        }
-      ].concat(names.map(function (name) {
-        return {
-          value: name,
-          label: name
-        }
-      }));
-    }.property('App.router.repoVersionsController.dataIsLoaded'),
-    onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'select');
-    }
-  }),
-
   repoVersionFilterView: filters.createTextView({
-    column: 2,
+    column: 1,
     fieldType: 'filter-input-width',
     onChangeValue: function () {
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
@@ -98,7 +69,7 @@ App.RepoVersionsView = App.TableView.extend({
   }),
 
   osFilterView: filters.createSelectView({
-    column: 3,
+    column: 2,
     fieldType: 'filter-input-width',
     content: function () {
       var names = App.OS.find().mapProperty('osType').uniq();

@@ -17,23 +17,7 @@
 }}
 
 <div id="stack-version-details">
-  <a class="breadcrumbs" href="#/main/admin/versions">{{t common.versions}}</a><span>&nbsp; > &nbsp;{{content.repositoryVersion.displayName}}</span>
-
-  <div class="box">
-    <div class="box-header">
-      <h4>{{t common.details}}</h4>
-    </div>
-    <div class="version-content">
-      <div class="row-fluid">
-        <div class="span3">{{t common.stack}}</div>
-        <div class="span6">{{content.name}}</div>
-      </div>
-      <div class="row-fluid">
-        <div class="span3">{{t admin.stackVersions.datails.versionName}}</div>
-        <div class="span6">{{content.repositoryVersion.displayName}}</div>
-      </div>
-    </div>
-  </div>
+  <a class="breadcrumbs" href="#/main/admin/versions">{{t common.versions}}</a><span>&nbsp; > &nbsp;{{content.displayName}}</span>
 
   <div class="box">
     <div class="box-header">
@@ -41,40 +25,67 @@
     </div>
     <div class="version-content">
       <div class="row-fluid">
-        <div class="span8">
-          <div class="row-fluid">
-            <div class="span3">{{t admin.stackVersions.datails.not.installed.on}}</div>
-            <div {{bindAttr class="noInitHosts:not-active-link :span6"}}>
-              <a href="#" title='current' class="not-installed-hosts-count"
-                {{action showHosts content.repositoryVersion.displayName content.noInstallFailedHosts target="App.router.mainStackVersionsController"}}>
-                {{content.installFailedHosts.length}}/{{totalHostCount}}
-              </a>
+        <div class="span7">
+          <div {{bindAttr class="view.showCounters::hide"}}>
+          {{#unless installComplete}}
+            <div class="row-fluid">
+              <div class="span3">{{t admin.stackVersions.datails.not.installed.on}}</div>
+              <div {{bindAttr class="content.stackVersion.noInitHosts:not-active-link :span6"}}>
+                <a href="#" title='current' class="not-installed-hosts-count"
+                  {{action showHosts content.displayName content.stackVersion.initHosts target="App.router.mainStackVersionsController"}}>
+                  {{content.stackVersion.initHosts.length}}&nbsp;{{pluralize content.stackVersion.initHosts.length singular="t:common.host" plural="t:common.hosts"}}
+                </a>
+              </div>
             </div>
-          </div>
+          {{/unless}}
           <div class="row-fluid">
             <div class="span3">{{t admin.stackVersions.datails.installed.on}}</div>
-            <div {{bindAttr class="content.noInstalledHosts:not-active-link :span6"}}>
+            <div {{bindAttr class="content.stackVersion.noInstalledHosts:not-active-link :span6"}}>
               <a href="#" title='installed' class="installed-hosts-count"
-                {{action showHosts content.repositoryVersion.displayName content.installedHosts target="App.router.mainStackVersionsController"}}>
-                {{content.installedHosts.length}}/{{totalHostCount}}
+                {{action showHosts content.displayName content.stackVersion.installedHosts target="App.router.mainStackVersionsController"}}>
+                {{content.stackVersion.installedHosts.length}}&nbsp;{{pluralize content.stackVersion.installedHosts.length singular="t:common.host" plural="t:common.hosts"}}
               </a>
             </div>
           </div>
           <div class="row-fluid">
             <div class="span3">{{t admin.stackVersions.datails.current.on}}</div>
-            <div {{bindAttr class="content.noCurrentHosts:not-active-link :span6"}}>
+            <div {{bindAttr class="content.stackVersion.noCurrentHosts:not-active-link :span6"}}>
               <a href="#" title='current' class="current-hosts-count"
-                {{action showHosts content.repositoryVersion.displayName content.currentHosts target="App.router.mainStackVersionsController"}}>
-                {{content.currentHosts.length}}/{{totalHostCount}}
+                {{action showHosts content.displayName content.stackVersion.currentHosts target="App.router.mainStackVersionsController"}}>
+                {{content.stackVersion.currentHosts.length}}&nbsp;{{pluralize content.stackVersion.currentHosts.length singular="t:common.host" plural="t:common.hosts"}}
               </a>
             </div>
           </div>
+          </div>
         </div>
-        <div class="span4 align-center">
-          <a id="repo-version-action-button" {{bindAttr class="view.statusClass :btn :stack-status-button"}} {{action installStackVersion content.repositoryVersion target="controller"}}>
-            <i {{bindAttr class="installInProgress:icon-cog"}}>&nbsp;</i>{{view.stackTextStatus}}
-          </a>
-          <a href="#/main/admin/stack" {{bindAttr class="installedNotUpgraded::hidden"}} >{{t admin.stackVersions.datails.hosts.btn.goto.upgrade}}</a>
+        <div class="span5 align-center">
+          {{!show progress when install repo is in progress}}
+          {{#if installInProgress}}
+            <div class="repo-installing-info">
+            <i class="icon-cog">&nbsp;</i>
+            <a href="javascript:void(null);" id="repo-installing-link" {{action showProgressPopup target="controller"}}>
+              {{t admin.stackVersions.datails.hosts.btn.installing}}
+            </a>
+            </div>
+            <div class="progress-striped active progress-info progress repo-installing-progress"><div class="bar" {{bindAttr style="view.progress"}}></div></div>
+          {{/if}}
+          {{!show install/reinstall button}}
+          {{#if notInstalled}}
+            <a {{bindAttr class="view.installButtonClass :btn :stack-status-button"}}
+              {{action installRepoVersion content target="controller"}}>
+              {{view.installButtonMsg}}
+            </a>
+          {{/if}}
+          {{!show success mesasge when install complete}}
+          {{#if installComplete}}
+            <i class="icon-ok">&nbsp;</i>
+            <span>{{t admin.stackVersions.datails.hosts.btn.nothing}}</span>&nbsp;
+            {{#if controller.current}}
+              <span class="label label-success">{{t common.current}}</span>
+            {{else}}
+              <a href="#/main/admin/stack">{{t admin.stackVersions.datails.hosts.btn.goto.upgrade}}</a>
+            {{/if}}
+          {{/if}}
         </div>
       </div>
     </div>
@@ -100,7 +111,7 @@
         </tr>
         </thead>
         <tbody>
-        {{#each os in content.repositoryVersion.operatingSystems}}
+        {{#each os in content.operatingSystems}}
           {{#each repo in os.repositories}}
             <tr>
               <td>

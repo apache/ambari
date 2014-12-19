@@ -41,71 +41,42 @@ App.MainStackVersionsView = App.TableView.extend({
    */
   colPropAssoc: function () {
     var associations = [];
-    associations[1] = 'name';
-    associations[2] = 'repositoryVersion.displayName';
-    associations[3] = 'repositoryVersion.operatingSystems';
-    associations[4] = 'installedHosts.length';
-    associations[5] = 'currentHosts.length';
+    associations[1] = 'repositoryVersion.displayName';
+    associations[2] = 'repositoryVersion.operatingSystems';
+    associations[3] = 'installedHosts.length';
+    associations[4] = 'currentHosts.length';
     return associations;
   }.property(),
 
   sortView: sort.wrapperView,
-  stackNameSort: sort.fieldView.extend({
+  stackVersionSort: sort.fieldView.extend({
     column: 1,
-    name: 'name',
-    displayName: Em.I18n.t('admin.stackVersions.table.header.stack'),
+    name: 'repositoryVersion.displayName',
+    displayName: Em.I18n.t('admin.stackVersions.table.header.version'),
     type: 'version',
     classNames: ['first']
   }),
-  stackVersionSort: sort.fieldView.extend({
-    column: 2,
-    name: 'repositoryVersion.displayName',
-    displayName: Em.I18n.t('admin.stackVersions.table.header.version'),
-    type: 'version'
-  }),
   osSort: sort.fieldView.extend({
-    column: 3,
+    column: 2,
     name: 'repositoryVersion.operatingSystems.length',
     displayName: Em.I18n.t('admin.stackVersions.table.header.os'),
     type: 'number'
   }),
   installedSort: sort.fieldView.extend({
-    column: 4,
+    column: 3,
     name: 'installedHosts.length',
     displayName: Em.I18n.t('admin.stackVersions.table.header.installed'),
     type: "number"
   }),
   currentSort: sort.fieldView.extend({
-    column: 5,
+    column: 4,
     name: 'currentHosts.length',
     displayName: Em.I18n.t('admin.stackVersions.table.header.current'),
     type: "number"
   }),
 
-  stackNameFilterView: filters.createSelectView({
-    column: 1,
-    fieldType: 'filter-input-width',
-    content: function () {
-      var names = this.get('parentView.content').mapProperty('name').uniq();
-      return [
-        {
-          value: '',
-          label: Em.I18n.t('common.all')
-        }
-      ].concat(names.map(function (name) {
-        return {
-          value: name,
-          label: name
-        }
-      }));
-    }.property('App.router.mainStackVersionsController.dataIsLoaded'),
-    onChangeValue: function () {
-      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'select');
-    }
-  }),
-
   stackVersionFilterView: filters.createTextView({
-    column: 2,
+    column: 1,
     fieldType: 'filter-input-width',
     onChangeValue: function () {
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
@@ -113,7 +84,7 @@ App.MainStackVersionsView = App.TableView.extend({
   }),
 
   osFilterView: filters.createSelectView({
-    column: 3,
+    column: 2,
     fieldType: 'filter-input-width',
     content: function () {
       var names = App.OS.find().mapProperty('osType').uniq();
@@ -135,7 +106,7 @@ App.MainStackVersionsView = App.TableView.extend({
   }),
 
   installedFilterView: filters.createTextView({
-    column: 4,
+    column: 3,
     fieldType: 'filter-input-width',
     onChangeValue: function () {
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
@@ -143,7 +114,7 @@ App.MainStackVersionsView = App.TableView.extend({
   }),
 
   currentFilterView: filters.createTextView({
-    column: 5,
+    column: 4,
     fieldType: 'filter-input-width',
     onChangeValue: function () {
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');

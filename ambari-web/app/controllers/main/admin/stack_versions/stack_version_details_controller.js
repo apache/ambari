@@ -24,6 +24,12 @@ App.MainStackVersionsDetailsController = Em.Controller.extend({
   content: null,
 
   /**
+   * timeOut function to load updated progress
+   * when install repo wersion is running
+   */
+  timeoutRef: null,
+
+  /**
    * amount of all hosts installed on cluster
    * @type {Number}
    */
@@ -36,57 +42,159 @@ App.MainStackVersionsDetailsController = Em.Controller.extend({
    * @type {Boolean}
    */
   installFailed: function() {
-    return this.get('content.state') == "INSTALL_FAILED";
-  }.property('content.state'),
+    return this.get('content.stackVersion.state') == "INSTALL_FAILED";
+  }.property('content.stackVersion.state'),
   /**
    * true if stack version install is in progress
    * @type {Boolean}
    */
   installInProgress: function() {
-    return this.get('content.state') == "INSTALLING";
-  }.property('content.state'),
+    return this.get('content.stackVersion.state') == "INSTALLING";
+  }.property('content.stackVersion.state'),
 
   /**
    * true if repo version is installed on all hosts but not upgraded
    * @type {Boolean}
    */
-  installedNotUpgraded: function() {
-    return this.get('content.state') == "INSTALLED";
-  }.property('content.state'),
-
-
-  /**
-   * depending on state run or install repo request
-   * or show the installation process popup
-   * @param event
-   * @method installStackVersion
-   */
-  installStackVersion: function(event) {
-    if (this.get('installInProgress')) {
-      this.showProgressPopup();
-    } else if (this.get('installFailed')) {
-      this.installRepoVersion(event);
-    }
-  },
+  installComplete: function() {
+    return this.get('content.stackVersion.state')
+      && this.get('content.stackVersion.state') != "INSTALLING"
+      && this.get('content.stackVersion.state') != "INSTALL_FAILED";
+  }.property('content.stackVersion.state'),
 
   /**
-   * install repoVersion using <code>installRepoVersion()<code> method
-   * of <code>repoVersionsController<code> controller
-   * @param event
-   * @method installRepoVersion
+   * true if repo version is not installed
+   * this flag is used for install/reinstall button
+   * we should show this button when there is no stackVersion (instead init state)
+   * or when <code>INSTALL_FAILED<code> state
+   * @type {Boolean}
    */
-  installRepoVersion: function(event) {
-    App.get('router.repoVersionsController').installRepoVersion(event);
-  },
+  notInstalled: function() {
+    return !this.get('content.stackVersion.state') || this.get('content.stackVersion.state') == "INSTALL_FAILED";
+  }.property('content.stackVersion.state'),
+
+  /**
+   * true if repo version is current
+   * @type {Boolean}
+   */
+  current: function() {
+    return this.get('content.stackVersion.state') == "CURRENT";
+  }.property('content.stackVersion.state'),
+
+  /**
+   * counter that is shown on install button
+   * @type {Number}
+   */
+  hostsToInstall: function() {
+    return this.get('content.stackVersion') ? this.get('content.stackVersion.initHosts.length') : this.get('totalHostCount');
+  }.property('content.stackVersion.initHosts.length'),
+
+  /**
+   * persentage of install progress
+   * @type {Number}
+   */
+  progress: 0,
 
   /**
    * opens a popup with installations state per host
    * @method showProgressPopup
    */
   showProgressPopup: function() {
-    var popupTitle = Em.I18n.t('admin.stackVersions.datails.install.hosts.popup.title').format(this.get('content.repositoryVersion.displayName'));
+    var popupTitle = Em.I18n.t('admin.stackVersions.datails.install.hosts.popup.title').format(this.get('content.displayName'));
     var requestIds = App.get('testMode') ? [1] : App.db.get('repoVersion', 'id');
     var hostProgressPopupController = App.router.get('highAvailabilityProgressPopupController');
     hostProgressPopupController.initPopup(popupTitle, requestIds, this);
+  },
+
+  /**
+   * runs <code>updateProgress<code> method
+   * to keep information up-to-date
+   * @method doPolling
+   */
+  doPolling: function () {
+    var self = this;
+    self.updateProgress();
+    this.set('timeoutRef', setTimeout(function () {
+      if (self.get('installInProgress')) {
+        self.doPolling();
+      } else {
+        clearTimeout(self.get('timeoutRef'));
+      }
+    }, App.componentsUpdateInterval));
+  },
+
+  /**
+   * runs ajax request to get current progress of
+   * installing repo version to cluster
+   * @returns {$.ajax}
+   * @method updateProgress
+   */
+  updateProgress: function() {
+    return App.ajax.send({
+      'name': 'admin.stack_versions.progress.request',
+      'sender': this,
+      'data': {
+        requestId: App.db.get('repoVersion', 'id')
+      },
+      'success': 'updateProgressSuccess'
+    });
+  },
+
+  /**
+   * success calback for updateProgress
+   * @param data
+   * @method updateProgressSuccess
+   */
+  updateProgressSuccess: function(data) {
+    if (Em.get(data, 'Requests.progress_percent')) {
+      this.set('progress', parseInt(Em.get(data, 'Requests.progress_percent')));
+    }
+  },
+
+  /**
+   * sends request to install repoVersion to the cluster
+   * and create clusterStackVersion resourse
+   * @param event
+   * @return {$.ajax}
+   * @method installRepoVersion
+   */
+  installRepoVersion: function (event) {
+    var repo = event.context;
+    var data = {
+      ClusterStackVersions: {
+        stack: repo.get('stackVersionType'),
+        version: repo.get('stackVersionNumber'),
+        repository_version: repo.get('repositoryVersion')
+      },
+      id: repo.get('id')
+    };
+    return App.ajax.send({
+      name: 'admin.stack_version.install.repo_version',
+      sender: this,
+      data: data,
+      success: 'installStackVersionSuccess'
+    });
+  },
+
+  /**
+   * success callback for <code>installRepoVersion()<code>
+   * saves request id to the db, and redirect user to the just
+   * created clusterStackVersion.
+   * @param data
+   * @param opt
+   * @param params
+   * @method installStackVersionSuccess
+   */
+  installStackVersionSuccess: function (data, opt, params) {
+    var self = this;
+    App.db.set('repoVersion', 'id', [data.Requests.id]);
+    App.get('router.repoVersionsManagementController').loadStackVersionsToModel(true).done(function() {
+      var repoVersion = App.RepositoryVersion.find(params.id);
+      if (App.get('router.currentState.name') == "update") {
+        App.router.transitionTo('main.admin.adminStackVersions.version', repoVersion);
+      } else {
+        self.set('content', repoVersion);
+      }
+    });
   }
 });

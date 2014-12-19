@@ -36,6 +36,10 @@ App.StackVersion = DS.Model.extend({
   upgradeFailedHosts: DS.attr('array'),
   currentHosts: DS.attr('array'),
 
+  initHosts:  function() {
+    return this.get('installingHosts') && this.get('installingHosts').concat(this.get('installFailedHosts'));
+  }.property('installFailedHosts', 'installingHosts'),
+
   noInstalledHosts:  function() {
     return this.get('installedHosts.length') == 0;
   }.property('installedHosts.length'),
@@ -44,9 +48,9 @@ App.StackVersion = DS.Model.extend({
     return this.get('currentHosts.length') == 0;
   }.property('currentHosts.length'),
 
-  noInstallFailedHosts: function() {
-    return this.get('installFailedHosts.length') == 0;
-  }.property('currentHosts.length')
+  noInitHosts: function() {
+    return this.get('initHosts.length') == 0;
+  }.property('initHosts.length')
 });
 
 App.StackVersion.FIXTURES = [];

@@ -32,7 +32,7 @@ App.MainAdminView = Em.View.extend({
       items.push({
         name: 'stackVersions',
         url: 'adminStackVersions.index',
-        label: Em.I18n.t('common.stack.versions')
+        label: Em.I18n.t('common.versions')
       });
     }
     items.push({

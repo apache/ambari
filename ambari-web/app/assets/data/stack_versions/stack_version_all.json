@@ -112,14 +112,12 @@
         "id": 3,
         "repository_version": 3,
         "stack": "HDP",
-        "state": "INSTALLED",
+        "state": "INSTALLING",
         "version": "2.2",
         "host_states": {
           "CURRENT": [],
-          "INSTALLED": [
-            "ab3test-4.c.pramod-thangali.internal"
-          ],
-          "INSTALLING": [],
+          "INSTALLED": [],
+          "INSTALLING": ["ab3test-4.c.pramod-thangali.internal"],
           "INSTALL_FAILED": [],
           "UPGRADED": [],
           "UPGRADE_FAILED": [],
@@ -180,15 +178,13 @@
         "id": 4,
         "repository_version": 4,
         "stack": "HDP",
-        "state": "INSTALLED",
+        "state": "INSTALL_FAILED",
         "version": "2.2",
         "host_states": {
           "CURRENT": [],
-          "INSTALLED": [
-            "ab3test-4.c.pramod-thangali.internal"
-          ],
+          "INSTALLED": [],
           "INSTALLING": [],
-          "INSTALL_FAILED": [],
+          "INSTALL_FAILED": ["ab3test-4.c.pramod-thangali.internal"],
           "UPGRADED": [],
           "UPGRADE_FAILED": [],
           "UPGRADING": []

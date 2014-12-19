@@ -20,7 +20,6 @@
   <table class="table advanced-header-table table-bordered table-striped">
     <thead>
     {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
-      {{view view.parentView.stackNameSort}}
       {{view view.parentView.stackVersionSort}}
       {{view view.parentView.osSort}}
       {{view view.parentView.installedSort}}
@@ -28,8 +27,7 @@
     {{/view}}
 
     <tr class="filter-row">
-      <th class="first stack-name-filter">{{view view.stackNameFilterView}}</th>
-      <th class="repo-version-filter">{{view view.stackVersionFilterView}}</th>
+      <th class="first repo-version-filter">{{view view.stackVersionFilterView}}</th>
       <th class="os-type-filter">{{view view.osFilterView}}</th>
       <th class="installed-hosts-filter">{{view view.installedFilterView}}</th>
       <th class="current-hosts-filter">{{view view.currentFilterView}}</th>
@@ -39,11 +37,8 @@
       {{#if view.pageContent}}
         {{#each item in view.pageContent}}
           {{#view view.StackVersionView contentBinding="item"}}
-            <td class="first stack-name">
-               <span class="stack-name">{{view.content.name}}</span>
-            </td>
-            <td class="repo-version">
-              <a href="#/main/admin/versions/{{unbound view.content.id}}">{{view.content.repositoryVersion.displayName}}</a>
+            <td class="first repo-version">
+              <a href="#/main/admin/versions/{{unbound view.content.repositoryVersion.id}}">{{view.content.repositoryVersion.displayName}}</a>
             </td>
             <td class="os-types">
               {{view App.OperatingSystemsView contentBinding="view.content.repositoryVersion"}}
@@ -68,7 +63,7 @@
         {{/each}}
       {{else}}
         <tr>
-          <td class="first empty-table" colspan="5">
+          <td class="first empty-table" colspan="4">
             {{t admin.stackVersions.table.empty}}
           </td>
         </tr>

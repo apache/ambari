@@ -75,7 +75,7 @@ App.repoVersionMapper = App.QuickDataMapper.create({
 
     if (json && json.items) {
       json.items.forEach(function (item) {
-        if (loadAll || !App.StackVersion.find().someProperty('repositoryVersion.id', item.RepositoryVersions.id.toString())) {
+        if (loadAll || (item.RepositoryVersions && !App.StackVersion.find().someProperty('repositoryVersion.id', item.RepositoryVersions.id.toString()))) {
           var repo = item;
           var osArray = [];
           //TODO leave onr property name after api will be fixed

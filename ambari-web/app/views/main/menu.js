@@ -130,7 +130,7 @@ App.MainMenuView = Em.CollectionView.extend({
           categories.push({
             name: 'adminStackVersions.index',
             url: 'versions',
-            label: Em.I18n.t('common.stack.versions')
+            label: Em.I18n.t('common.versions')
           });
         }
         categories.push({

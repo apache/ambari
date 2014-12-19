@@ -25,61 +25,53 @@ App.MainStackVersionsDetailsView = Em.View.extend({
   content: function() {
     return this.get('controller.content')
   }.property('controller.content'),
-  /**
-   * text on install buttons
-   * @type {String}
-   */
-  stackTextStatus: function() {
-    var self = this;
-    switch(this.get('content.state')) {
-      case 'UPGRADING':
-      case 'INSTALLING':
-        return self.get('content.state').toCapital().concat("...");
-        break;
-      case 'INSTALLED':
-        return Em.I18n.t('admin.stackVersions.datails.hosts.btn.nothing');
-        break;
-      //TODO remove INIT case if it would not be user
-      case 'INIT':
-        return Em.I18n.t('admin.stackVersions.datails.hosts.btn.install').format(self.get('totalHostCount') - self.get('content.installedHosts.length'));
-        break;
-      case 'INSTALL_FAILED':
-        return Em.I18n.t('admin.stackVersions.datails.hosts.btn.reinstall');
-        break;
-      default:
-        return self.get('content.state') && self.get('content.state').toCapital();
-    }
-  }.property('content.state'),
 
   /**
-   * class on install buttons
+   * message on install button depending on status
+   * <code>INSTALL_FAILED<code>/INIT
    * @type {String}
    */
-  statusClass: function() {
-    switch (this.get('content.state')) {
-      //TODO remove INSTALL case if it would not be user
-      case 'INSTALL':
-        return 'btn-success';
-        break;
-      case 'INSTALLING':
-        return 'btn-primary';
-        break;
-      case 'INSTALL_FAILED':
-        return 'btn-danger';
-        break;
-      default:
-        return 'disabled';
-    }
-  }.property('content.state'),
+  installButtonMsg: function() {
+    return this.get('content.stackVersion.state') == 'INSTALL_FAILED'
+      ? Em.I18n.t('admin.stackVersions.datails.hosts.btn.reinstall')
+      : Em.I18n.t('admin.stackVersions.datails.hosts.btn.install').format(this.get('controller.hostsToInstall'))
+  }.property('content.stackVersion.state', 'parentView.content.stackVersion.initHosts.length'),
+
+  /**
+   * class on install button depending on status
+   * <code>INSTALL_FAILED<code>/INIT
+   * @type {String}
+   */
+  installButtonClass: function() {
+    return this.get('content.stackVersion.state') == 'INSTALL_FAILED' ? 'btn-danger' : 'btn-success';
+  }.property('content.stackVersion.state'),
+
+  /**
+   * property is used as width for progres bar
+   * @type {String}
+   */
+  progress: function() {
+    return "width:" + this.get('controller.progress') + "%";
+  }.property('controller.progress'),
+
+  /**
+   * true if repoVersion has ClusterStackVersion
+   * defines show host counters on repoversionDetails page
+   * @type {Boolean}
+   */
+  showCounters: function() {
+    return this.get('content.stackVersion') != null;
+  }.property('content.stackVersion'),
 
   didInsertElement: function() {
     App.get('router.mainStackVersionsController').set('isPolling', true);
-    App.get('router.mainStackVersionsController').load();
     App.get('router.mainStackVersionsController').doPolling();
+    this.get('controller').doPolling();
   },
 
   willDestroyElement: function () {
     App.get('router.mainStackVersionsController').set('isPolling', false);
     clearTimeout(App.get('router.mainStackVersionsController.timeoutRef'));
+    clearTimeout(this.get('controller.timeoutRef'));
   }
 });

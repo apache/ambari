@@ -20,15 +20,13 @@
   <table class="table advanced-header-table table-bordered table-striped">
     <thead>
     {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
-      {{view view.parentView.repoNameSort}}
       {{view view.parentView.repoVersionSort}}
       {{view view.parentView.osSort}}
       <th class="action-col">Actions</th>
     {{/view}}
 
     <tr class="filter-row">
-      <th class="first repo-name-filter">{{view view.repoNameFilterView}}</th>
-      <th class="repo-version-filter">{{view view.repoVersionFilterView}}</th>
+      <th class="first repo-version-filter">{{view view.repoVersionFilterView}}</th>
       <th class="os-type-filter">{{view view.osFilterView}}</th>
       <th></th>
     </tr>
@@ -37,11 +35,8 @@
       {{#if view.pageContent}}
         {{#each item in view.pageContent}}
           {{#view view.RepositoryVersionView contentBinding="item"}}
-            <td class="first repo-name">
-               <span>{{view.content.repositoryVersion}}</span>
-            </td>
-            <td class="repo-display-name">
-              <span>{{view.content.displayName}}</span>
+            <td class="first repo-display-name">
+              <a href="#/main/admin/versions/{{unbound view.content.id}}">{{view.content.displayName}}</a>
             </td>
             <td class="os-types">
               {{view App.OperatingSystemsView contentBinding="view.content"}}
@@ -53,7 +48,7 @@
         {{/each}}
       {{else}}
         <tr>
-          <td class="first empty-table" colspan="4">
+          <td class="first empty-table" colspan="3">
             {{t admin.repoVersions.table.empty}}
           </td>
         </tr>
