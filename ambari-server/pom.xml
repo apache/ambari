@@ -927,6 +927,14 @@
               </mapper>
             </data>
             <data>
+              <src>target/classes/common-services</src>
+              <type>directory</type>
+              <mapper>
+                <type>perm</type>
+                <prefix>/var/lib/ambari-server/resources/common-services</prefix>
+              </mapper>
+            </data>
+            <data>
               <src>src/main/resources/upgrade/catalog</src>
               <type>directory</type>
               <mapper>
