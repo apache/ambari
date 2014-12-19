@@ -99,7 +99,7 @@
     </div>
     <div class="panel-body property-form">
       <div class="form-group" ng-repeat="parameter in instance.properties"
-        ng-class="{'has-error' : (form.instanceCreateForm[parameter.name].$error.required && form.instanceCreateForm.submitted)}" >
+        ng-class="{'has-error' : ((form.instanceCreateForm[parameter.name].$error.required && form.instanceCreateForm.submitted) || form.instanceCreateForm[parameter.name].validationError)}" >
         <label for="" class="col-sm-3 control-label" ng-class="{'not-required': !parameter.required}">{{parameter.label || parameter.name}}{{parameter.required ? '*' : ''}}</label>
         <div ng-switch="parameter.type">
           <div class="col-sm-9 checkbox" ng-switch-when="boolean">
@@ -109,6 +109,9 @@
             <input type="{{parameter.masked ? 'password' : 'text'}}" class="form-control viewproperty-input" name="{{parameter.name}}" ng-required="parameter.required" ng-model="parameter.value" autocomplete="off" popover="{{parameter.description}}" popover-title="{{parameter.name}}" popover-trigger="mouseenter" placeholder="{{parameter.placeholder}}">
             <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.instanceCreateForm[parameter.name].$error.required && form.instanceCreateForm.submitted'>
               This field is required.
+            </div>
+            <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.instanceCreateForm[parameter.name].validationError'>
+              {{form.instanceCreateForm[parameter.name].validationMessage}}
             </div>
           </div>
         </div>
@@ -121,7 +124,7 @@
   
   <div class="col-sm-12 ">
     <button class="btn btn-primary pull-right left-margin save-button"
-            ng-class="{'disabled' : (form.instanceCreateForm.submitted)}" ng-click="save()" type="submit">Save</button>
+            ng-class="{'disabled' : (form.instanceCreateForm.isSaving)}" ng-click="save()" type="submit">Save</button>
     <a href ng-click="cancel()" class="btn btn-default pull-right cancel-button">Cancel</a>
   </div>
     

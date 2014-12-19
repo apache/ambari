@@ -140,7 +140,22 @@ angular.module('ambariAdminConsole')
         $scope.propertiesForm.$setPristine();
       })
       .catch(function(data) {
-        Alert.error('Cannot save properties', data.data.message);
+        var errorMessage = data.statusText;
+        if (data.status === 500) {
+          try {
+            var errorObject = JSON.parse(errorMessage);
+            errorMessage = errorObject.detail;
+            angular.forEach(errorObject.propertyResults, function (item, key) {
+              $scope.propertiesForm[key].validationError = !item.valid;
+              if (!item.valid) {
+                $scope.propertiesForm[key].validationMessage = item.detail;
+              }
+            });
+          } catch (e) {
+            console.error('Unable to parse error message:', data.message);
+          }
+        }
+        Alert.error('Cannot save properties', errorMessage);
       });
     }
   };

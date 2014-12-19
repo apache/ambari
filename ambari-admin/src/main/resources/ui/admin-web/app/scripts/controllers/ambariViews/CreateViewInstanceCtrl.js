@@ -72,9 +72,10 @@ angular.module('ambariAdminConsole')
   $scope.nameValidationPattern = /^\s*\w*\s*$/;
 
   $scope.save = function() {
-  if (!$scope.form.instanceCreateForm.submitted) {
+  if (!$scope.form.instanceCreateForm.isSaving) {
     $scope.form.instanceCreateForm.submitted = true;
     if($scope.form.instanceCreateForm.$valid){
+      $scope.form.instanceCreateForm.isSaving = true;
       View.createInstance($scope.instance)
         .then(function(data) {
           Alert.success('Created View Instance ' + $scope.instance.instance_name);
@@ -84,11 +85,26 @@ angular.module('ambariAdminConsole')
           } else {
             $location.path('/views/' + $scope.instance.view_name + '/versions/' + $scope.instance.version + '/instances/' + $scope.instance.instance_name + '/edit');
           }
-          $scope.form.instanceCreateForm.submitted = false;
+            $scope.form.instanceCreateForm.isSaving = false;
         })
-        .catch(function(data) {
-          Alert.error('Cannot create instance', data.message);
-         $scope.form.instanceCreateForm.submitted = false;
+        .catch(function (data) {
+          var errorMessage = data.message;
+          if (data.status === 500) {
+            try {
+              var errorObject = JSON.parse(errorMessage);
+              errorMessage = errorObject.detail;
+              angular.forEach(errorObject.propertyResults, function (item, key) {
+                $scope.form.instanceCreateForm[key].validationError = !item.valid;
+                if (!item.valid) {
+                  $scope.form.instanceCreateForm[key].validationMessage = item.detail;
+                }
+              });
+            } catch (e) {
+              console.error('Unable to parse error message:', data.message);
+            }
+          }
+          Alert.error('Cannot create instance', errorMessage);
+          $scope.form.instanceCreateForm.isSaving = false;
         });
       }
     }
