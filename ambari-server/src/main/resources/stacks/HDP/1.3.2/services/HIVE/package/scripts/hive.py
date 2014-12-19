@@ -161,34 +161,20 @@ def crt_file(name):
 def jdbc_connector():
   import params
 
-  if params.hive_jdbc_driver == "com.mysql.jdbc.Driver":
-    cmd = ('cp', format('/usr/share/java/{jdbc_jar_name}'), params.target)
-
-    Execute(cmd,
-            not_if=format("test -f {target}"),
-            creates=params.target,
-            path=["/bin", "/usr/bin/"],
-            sudo=True
-    )
-
-  elif params.hive_jdbc_driver == "org.postgresql.Driver":
-    cmd = format("mkdir -p {artifact_dir} ; cp /usr/share/java/{jdbc_jar_name} {target}")
-
-    Execute(cmd,
-            not_if=format("test -f {target}"),
-            creates=params.target,
-            path=["/bin", "usr/bin/"])
-
-  elif params.hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
+  if params.hive_jdbc_driver in params.hive_jdbc_drivers_list:
     environment = {
       "no_proxy": format("{ambari_server_hostname}")
     }
 
-    cmd = format(
-      "mkdir -p {artifact_dir} ; curl -kf -x \"\" --retry 10 {driver_curl_source} -o {driver_curl_target} &&  "
-      "cp {driver_curl_target} {target}")
-
-    Execute(cmd,
+    Execute(('curl', '-kf', '-x', "", '--retry', '10', params.driver_curl_source, '-o', params.driver_curl_target),
             not_if=format("test -f {target}"),
             path=["/bin", "/usr/bin/"],
-            environment=environment)
+            environment=environment,
+            sudo = True)
+
+
+    Execute(('cp', params.driver_curl_target, params.target),
+            not_if=format("test -f {target}"),
+            creates=params.target,
+            path=["/bin", "/usr/bin/"],
+            sudo = True)

@@ -24,7 +24,8 @@ from hcat import hcat
 
 class HCatClient(Script):
   def install(self, env):
-    self.install_packages(env)
+    import params
+    self.install_packages(env, exclude_packages=params.hive_exclude_packages)
     self.configure(env)
 
   def configure(self, env):

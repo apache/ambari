@@ -75,6 +75,7 @@ oozie_hdfs_user_dir = format("/user/{oozie_user}")
 oozie_pid_dir = status_params.oozie_pid_dir
 pid_file = status_params.pid_file
 hadoop_jar_location = "/usr/lib/hadoop/"
+java_share_dir = "/usr/share/java"
 # for HDP1 it's "/usr/share/HDP-oozie/ext.zip"
 ext_js_file = "ext-2.2.zip"
 ext_js_path = format("/usr/share/HDP-oozie/{ext_js_file}")
@@ -110,13 +111,24 @@ else:
 jdbc_driver_name = default("/configurations/oozie-site/oozie.service.JPAService.jdbc.driver", "")
 
 if jdbc_driver_name == "com.mysql.jdbc.Driver":
-  jdbc_driver_jar = "/usr/share/java/mysql-connector-java.jar"
+  jdbc_driver_jar = "mysql-connector-java.jar"
+  jdbc_symlink_name = "mysql-jdbc-driver.jar"
 elif jdbc_driver_name == "org.postgresql.Driver":
-  jdbc_driver_jar = format("{oozie_home}/libserver/postgresql-9.0-801.jdbc4.jar")
+  jdbc_driver_jar = format("{oozie_home}/libserver/postgresql-9.0-801.jdbc4.jar")  #oozie using it's own postgres jdbc
+  jdbc_symlink_name = "postgres-jdbc-driver.jar"
 elif jdbc_driver_name == "oracle.jdbc.driver.OracleDriver":
-  jdbc_driver_jar = "/usr/share/java/ojdbc6.jar"
+  jdbc_driver_jar = "ojdbc.jar"
+  jdbc_symlink_name = "oracle-jdbc-driver.jar"
 else:
   jdbc_driver_jar = ""
+  jdbc_symlink_name = ""
+
+driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
+driver_curl_target = format("{java_share_dir}/{jdbc_driver_jar}")
+if jdbc_driver_name == "org.postgresql.Driver":
+  target = jdbc_driver_jar
+else:
+  target = format("{oozie_libext_dir}/{jdbc_driver_jar}")
 
 hostname = config["hostname"]
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]

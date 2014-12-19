@@ -329,17 +329,18 @@ class TestHiveServer(RMFTestCase):
                               owner = 'hive',
                               group = 'hadoop',
                               )
-    self.assertResourceCalled('File', '/usr/lib/hive/lib//mysql-connector-java.jar',
-        action = ['delete'],
-    )
-    self.assertResourceCalled('Execute', ('cp',
-     '/usr/share/java/mysql-connector-java.jar',
-     '/usr/lib/hive/lib//mysql-connector-java.jar'),
-        creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
-        path = ['/bin', '/usr/bin/'],
-        sudo = True,
-        not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
-    )
+    self.assertResourceCalled('Execute', ('curl', '-kf', '-x', "", '--retry', '10', u'http://c6401.ambari.apache.org:8080/resources//mysql-jdbc-driver.jar', '-o', '/usr/share/java/mysql-connector-java.jar'),
+                              environment = {'no_proxy': 'c6401.ambari.apache.org'},
+                              path = ['/bin', '/usr/bin/'],
+                              sudo = True,
+                              not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
+                              )
+    self.assertResourceCalled('Execute', ('cp', '/usr/share/java/mysql-connector-java.jar', '/usr/lib/hive/lib//mysql-connector-java.jar'),
+                              creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
+                              path = ['/bin', '/usr/bin/'],
+                              sudo = True,
+                              not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
+                              )
     self.assertResourceCalled('Execute', '/bin/sh -c \'cd /usr/lib/ambari-agent/ && curl -kf -x "" --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar\'',
         environment = {'no_proxy': 'c6401.ambari.apache.org'},
         not_if = '[ -f /usr/lib/ambari-agent/DBConnectionVerification.jar ]',
@@ -481,17 +482,18 @@ class TestHiveServer(RMFTestCase):
                               owner = 'hive',
                               group = 'hadoop',
                               )
-    self.assertResourceCalled('File', '/usr/lib/hive/lib//mysql-connector-java.jar',
-        action = ['delete'],
-    )
-    self.assertResourceCalled('Execute', ('cp',
-     '/usr/share/java/mysql-connector-java.jar',
-     '/usr/lib/hive/lib//mysql-connector-java.jar'),
-        creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
-        path = ['/bin', '/usr/bin/'],
-        sudo = True,
-        not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
-    )
+    self.assertResourceCalled('Execute', ('curl', '-kf', '-x', "", '--retry', '10', u'http://c6401.ambari.apache.org:8080/resources//mysql-jdbc-driver.jar', '-o', '/usr/share/java/mysql-connector-java.jar'),
+                              environment = {'no_proxy': 'c6401.ambari.apache.org'},
+                              path = ['/bin', '/usr/bin/'],
+                              sudo = True,
+                              not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
+                              )
+    self.assertResourceCalled('Execute', ('cp', '/usr/share/java/mysql-connector-java.jar', '/usr/lib/hive/lib//mysql-connector-java.jar'),
+                              creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
+                              path = ['/bin', '/usr/bin/'],
+                              sudo = True,
+                              not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
+                              )
     self.assertResourceCalled('Execute', '/bin/sh -c \'cd /usr/lib/ambari-agent/ && curl -kf -x "" --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar\'',
         environment = {'no_proxy': 'c6401.ambari.apache.org'},
         not_if = '[ -f /usr/lib/ambari-agent/DBConnectionVerification.jar ]',

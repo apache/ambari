@@ -99,11 +99,12 @@ elif hive_jdbc_driver == "org.postgresql.Driver":
   jdbc_jar_name = "postgresql-jdbc.jar"
   jdbc_symlink_name = "postgres-jdbc-driver.jar"
 elif hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
-  jdbc_jar_name = "ojdbc6.jar"
+  jdbc_jar_name = "ojdbc.jar"
   jdbc_symlink_name = "oracle-jdbc-driver.jar"
 
 check_db_connection_jar_name = "DBConnectionVerification.jar"
 check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar_name}")
+hive_jdbc_drivers_list = ["com.mysql.jdbc.Driver","org.postgresql.Driver","oracle.jdbc.driver.OracleDriver"]
 
 #common
 hive_metastore_host = config['clusterHostInfo']['hive_metastore_host'][0]
@@ -142,6 +143,7 @@ else:
 
 #hive-site
 hive_database_name = config['configurations']['hive-env']['hive_database_name']
+hive_database = config['configurations']['hive-env']['hive_database']
 
 #Starting hiveserver2
 start_hiveserver2_script = 'startHiveserver2.sh.j2'
@@ -242,10 +244,13 @@ mysql_jdbc_driver_jar = "/usr/share/java/mysql-connector-java.jar"
 
 # There are other packages that contain /usr/share/java/mysql-connector-java.jar (like libmysql-java),
 # trying to install mysql-connector-java upon them can cause packages to conflict.
-if os.path.exists(mysql_jdbc_driver_jar):
-  hive_exclude_packages = ['mysql-connector-java']
-else:  
-  hive_exclude_packages = []
+if hive_database.startswith('Existing'):
+  hive_exclude_packages = ['mysql-connector-java','mysql','mysql-server']
+else:
+  if 'role' in config and config['role'] != "MYSQL_SERVER":
+    hive_exclude_packages = ['mysql','mysql-server']
+  else:
+    hive_exclude_packages = []
 
 ########################################################
 ########### WebHCat related params #####################

@@ -139,13 +139,27 @@ def oozie_server_specific(
     not_if  = no_op_test,
     sudo = True
   )
-  
+
   if params.jdbc_driver_name=="com.mysql.jdbc.Driver" or params.jdbc_driver_name=="oracle.jdbc.driver.OracleDriver":
-    Execute(('cp', params.jdbc_driver_jar, params.oozie_libext_dir),
-      not_if  = no_op_test,
-      sudo = True
-    )
-  
+
+    environment = {
+      "no_proxy": format("{ambari_server_hostname}")
+    }
+
+    Execute(('curl', '-kf', '-x', "", '--retry', '10', params.driver_curl_source, '-o', params.driver_curl_target),
+            not_if=format("test -f {target}"),
+            path=["/bin", "/usr/bin/"],
+            environment=environment,
+            sudo = True)
+
+
+    Execute(('cp', params.driver_curl_target, params.target),
+            not_if=format("test -f {target}"),
+            creates=params.target,
+            path=["/bin", "/usr/bin/"],
+            sudo = True)
+
+
   oozie_setup_cmd = format("cd {oozie_tmp_dir} && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 {hadoop_jar_location} -extjs {ext_js_path} {jar_option} {jar_path}")
   Execute( oozie_setup_cmd,
     user = params.oozie_user,

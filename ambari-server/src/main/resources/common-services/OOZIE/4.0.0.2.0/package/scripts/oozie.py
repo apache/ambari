@@ -154,10 +154,25 @@ def oozie_server_specific():
   )
 
   if params.jdbc_driver_name=="com.mysql.jdbc.Driver" or params.jdbc_driver_name=="oracle.jdbc.driver.OracleDriver":
-    Execute(('cp', params.jdbc_driver_jar, params.oozie_libext_dir),
-      not_if  = no_op_test,
-      sudo = True,
-    )
+
+    environment = {
+      "no_proxy": format("{ambari_server_hostname}")
+    }
+
+    Execute(('curl', '-kf', '-x', "", '--retry', '10', params.driver_curl_source, '-o', params.driver_curl_target),
+            not_if=format("test -f {target}"),
+            path=["/bin", "/usr/bin/"],
+            environment=environment,
+            sudo = True)
+
+
+    Execute(('cp', params.driver_curl_target, params.target),
+            not_if=format("test -f {target}"),
+            creates=params.target,
+            path=["/bin", "/usr/bin/"],
+            sudo = True)
+
+
   #falcon el extension
   if params.has_falcon_host:
     Execute(format('sudo cp {falcon_home}/oozie/ext/falcon-oozie-el-extension-*.jar {oozie_libext_dir}'),

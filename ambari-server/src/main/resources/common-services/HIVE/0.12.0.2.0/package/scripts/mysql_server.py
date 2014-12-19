@@ -19,6 +19,7 @@ limitations under the License.
 """
 
 import sys
+import os
 import mysql_users
 from resource_management import *
 
@@ -29,6 +30,9 @@ from mysql import mysql_configure
 class MysqlServer(Script):
   def install(self, env):
     import params
+    Package('mysql-connector-java', action = "remove")
+    if os.path.exists(params.mysql_jdbc_driver_jar):
+      File(params.mysql_jdbc_driver_jar, action = "delete")
     self.install_packages(env, exclude_packages=params.hive_exclude_packages)
     self.configure(env)
 
