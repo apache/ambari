@@ -54,7 +54,7 @@ repos_dirs = {
 class UbuntuRepositoryProvider(Provider):
   package_type = "deb"
   repo_dir = "/etc/apt/sources.list.d"
-  update_cmd = 'apt-get update -qq -o Dir::Etc::sourcelist="sources.list.d/{repo_file_name}" -o APT::Get::List-Cleanup="0"'
+  update_cmd = ['apt-get', 'update', '-qq', '-o', 'Dir::Etc::sourcelist=sources.list.d/{repo_file_name}', '-o', 'APT::Get::List-Cleanup=0']
   missing_pkey_regex = "The following signatures couldn't be verified because the public key is not available: NO_PUBKEY (.+)"
   add_pkey_cmd = "apt-key adv --recv-keys --keyserver keyserver.ubuntu.com {pkey}"
 
@@ -74,8 +74,9 @@ class UbuntuRepositoryProvider(Provider):
                content = StaticFile(tmpf.name)
           )
           
+          update_cmd_formatted = [format(x) for x in self.update_cmd]
           # this is time expensive
-          retcode, out = checked_call(format(self.update_cmd))
+          retcode, out = checked_call(update_cmd_formatted, sudo=True)
           
           # add public keys for new repos
           missing_pkeys = set(re.findall(self.missing_pkey_regex, out))
@@ -95,4 +96,5 @@ class UbuntuRepositoryProvider(Provider):
              action = "delete")
         
         # this is time expensive
-        Execute(format(self.update_cmd))
+        update_cmd_formatted = [format(x) for x in self.update_cmd]
+        Execute(update_cmd_formatted)
