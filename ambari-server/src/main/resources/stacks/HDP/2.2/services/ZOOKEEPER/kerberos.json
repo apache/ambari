@@ -14,7 +14,7 @@
             {
               "name": "zookeeper_zk",
               "principal": {
-                "value": "zk/_HOST@${realm}",
+                "value": "zookeeper/_HOST@${realm}",
                 "configuration": "zookeeper-env/zookeeper_principal_name"
               },
               "keytab": {
