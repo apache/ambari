@@ -145,3 +145,13 @@ HdfsDirectory = functools.partial(
   kinit_path_local = kinit_path_local,
   bin_dir = hadoop_bin_dir
 )
+
+if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
+  command_role = default("/role", "")
+  if command_role == "HBASE_MASTER" or command_role == "HBASE_REGIONSERVER":
+    role_root = "master" if command_role == "HBASE_MASTER" else "regionserver"
+
+    daemon_script=format("/usr/hdp/current/hbase-{role_root}/bin/hbase-daemon.sh")
+    region_mover = format("/usr/hdp/current/hbase-{role_root}/bin/region_mover.rb")
+    region_drainer = format("/usr/hdp/current/hbase-{role_root}/bin/draining_servers.rb")
+    hbase_cmd = format("/usr/hdp/current/hbase-{role_root}/bin/hbase")
