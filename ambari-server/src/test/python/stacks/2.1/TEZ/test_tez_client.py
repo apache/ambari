@@ -22,11 +22,16 @@ from stacks.utils.RMFTestCase import *
 
 class TestTezClient(RMFTestCase):
 
+  COMMON_SERVICES_PACKAGE_DIR = "TEZ/0.4.0.2.1/package"
+  STACK_VERSION = "2.1"
+
   def test_configure_default(self):
-    self.executeScript("2.1/services/TEZ/package/scripts/tez_client.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/tez_client.py",
                        classname = "TezClient",
                        command = "configure",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assertResourceCalled('Directory', '/etc/tez',
@@ -57,10 +62,12 @@ class TestTezClient(RMFTestCase):
 
 
   def test_upgrade(self):
-    self.executeScript("2.1/services/TEZ/package/scripts/tez_client.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/tez_client.py",
                        classname = "TezClient",
                        command = "restart",
-                       config_file="client-upgrade.json")
+                       config_file="client-upgrade.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertResourceCalled("Execute", "hdp-select set hadoop-client 2.2.1.0-2067")
 
