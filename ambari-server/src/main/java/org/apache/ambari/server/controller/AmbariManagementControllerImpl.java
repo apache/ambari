@@ -1149,12 +1149,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       // ***************************************************
       // set any session attributes for this cluster request
-      Long requestedClusterId = request.getClusterId();
-      if (requestedClusterId == null) {
-        throw new AmbariException("The cluster ID may not be null");
+      Cluster cluster;
+      if (request.getClusterId() == null) {
+        cluster = clusters.getCluster(request.getClusterName());
+      } else {
+        cluster = clusters.getClusterById(request.getClusterId());
       }
 
-      Cluster cluster = clusters.getClusterById(request.getClusterId());
       if (cluster == null) {
         throw new AmbariException("The cluster may not be null");
       }
