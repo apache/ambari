@@ -90,6 +90,10 @@ if has_ganglia_server:
   ganglia_server_host = ganglia_server_hosts[0]
 if has_metric_collector:
   metric_collector_host = ams_collector_hosts[0]
+  metric_collector_port = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:8188")
+  if metric_collector_port and metric_collector_port.find(':') != -1:
+    metric_collector_port = metric_collector_port.split(':')[1]
+  pass
 
 #hadoop params
 

@@ -63,6 +63,7 @@ public class ApplicationHistoryServer extends CompositeService {
   TimelineStore timelineStore;
   TimelineMetricStore timelineMetricStore;
   private WebApp webApp;
+  private TimelineMetricConfiguration metricConfiguration;
 
   public ApplicationHistoryServer() {
     super(ApplicationHistoryServer.class.getName());
@@ -70,6 +71,8 @@ public class ApplicationHistoryServer extends CompositeService {
 
   @Override
   protected void serviceInit(Configuration conf) throws Exception {
+    metricConfiguration = new TimelineMetricConfiguration();
+    metricConfiguration.initialize();
     historyManager = createApplicationHistory();
     ahsClientService = createApplicationHistoryClientService(historyManager);
     addService(ahsClientService);
@@ -162,11 +165,11 @@ public class ApplicationHistoryServer extends CompositeService {
 
   protected TimelineMetricStore createTimelineMetricStore(Configuration conf) {
     LOG.info("Creating metrics store.");
-    return ReflectionUtils.newInstance(HBaseTimelineMetricStore.class, conf);
+    return new HBaseTimelineMetricStore(metricConfiguration);
   }
 
   protected void startWebApp() {
-    String bindAddress = WebAppUtils.getAHSWebAppURLWithoutScheme(getConfig());
+    String bindAddress = metricConfiguration.getWebappAddress();
     LOG.info("Instantiating AHSWebApp at " + bindAddress);
     try {
       webApp =
@@ -186,6 +189,7 @@ public class ApplicationHistoryServer extends CompositeService {
       throw new YarnRuntimeException(msg, e);
     }
   }
+
   /**
    * @return ApplicationTimelineStore
    */

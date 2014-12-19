@@ -35,7 +35,10 @@ ams_collector_conf_dir = "/etc/ambari-metrics-collector/conf"
 ams_collector_pid_dir = status_params.ams_collector_pid_dir
 ams_collector_hosts = default("/clusterHostInfo/metric_collector_hosts", [])
 ams_collector_host_single = ams_collector_hosts[0] #TODO cardinality is 1+ so we can have more than one host
-ams_collector_port = 8188
+metric_collector_port = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:8188")
+if metric_collector_port and metric_collector_port.find(':') != -1:
+  metric_collector_port = metric_collector_port.split(':')[1]
+pass
 
 
 ams_monitor_conf_dir = "/etc/ambari-metrics-monitor/conf/"

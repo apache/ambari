@@ -98,6 +98,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
   private static final Map<String, Map<String, String[]>> jmxDesiredProperties = new HashMap<String, Map<String, String[]>>();
   private volatile Map<String, String> clusterCoreSiteConfigVersionMap = new HashMap<String, String>();
   private volatile Map<String, String> clusterJmxProtocolMap = new HashMap<String, String>();
+  private volatile String clusterMetricServerPort = "80";
 
   static {
     serviceConfigTypes.put(Service.Type.HDFS, "hdfs-site");
@@ -334,6 +335,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
     if (service.equals(GANGLIA)) {
       return "80"; // Not called by the provider
     } else if (service.equals(TIMELINE_METRICS)) {
+      String collectorPort = null;
       try {
         String configType = serviceConfigTypes.get(Service.Type.AMS);
         String currentConfigVersion = getDesiredConfigVersion(clusterName, configType);
@@ -348,7 +350,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
                 new String[]{"timeline.metrics.service.webapp.address"}));
 
           if (!configProperties.isEmpty()) {
-            return getPortString(configProperties.get("METRIC_COLLECTOR"));
+            collectorPort = getPortString(configProperties.get("METRIC_COLLECTOR"));
           }
         }
 
@@ -357,9 +359,13 @@ public abstract class AbstractProviderModule implements ProviderModule,
       } catch (UnsupportedPropertyException e) {
         LOG.warn("Failed to retrieve collector port.", e);
       }
-      return "8188";
+      if (collectorPort == null) {
+        return "8188";
+      } else {
+        clusterMetricServerPort = collectorPort;
+      }
     }
-    return null;
+    return clusterMetricServerPort;
   }
 
   @Override

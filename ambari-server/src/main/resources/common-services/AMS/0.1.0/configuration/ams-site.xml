@@ -32,6 +32,13 @@
     </description>
   </property>
   <property>
+    <name>timeline.metrics.service.webapp.address</name>
+    <value>0.0.0.0:6188</value>
+    <description>
+      The address of the metrics service web application.
+    </description>
+  </property>
+  <property>
     <name>timeline.metrics.aggregator.checkpoint.dir</name>
     <value>/tmp</value>
     <description>

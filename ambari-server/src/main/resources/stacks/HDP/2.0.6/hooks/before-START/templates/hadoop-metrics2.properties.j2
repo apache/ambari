@@ -70,16 +70,17 @@ resourcemanager.sink.ganglia.tagsForPrefix.yarn=Queue
 *.sink.timeline.plugin.urls=file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar
 *.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 *.sink.timeline.period=10
-datanode.sink.timeline.collector={{metric_collector_host}}:8188
-namenode.sink.timeline.collector={{metric_collector_host}}:8188
-resourcemanager.sink.timeline.collector={{metric_collector_host}}:8188
-nodemanager.sink.timeline.collector={{metric_collector_host}}:8188
-historyserver.sink.timeline.collector={{metric_collector_host}}:8188
-journalnode.sink.timeline.collector={{metric_collector_host}}:8188
-nimbus.sink.timeline.collector={{metric_collector_host}}:8188
-supervisor.sink.timeline.collector={{metric_collector_host}}:8188
-maptask.sink.timeline.collector={{metric_collector_host}}:8188
-reducetask.sink.timeline.collector={{metric_collector_host}}:8188
+
+datanode.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
+namenode.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
+resourcemanager.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
+nodemanager.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
+historyserver.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
+journalnode.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
+nimbus.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
+supervisor.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
+maptask.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
+reducetask.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
 
 resourcemanager.sink.timeline.tagsForPrefix.yarn=Queue
 

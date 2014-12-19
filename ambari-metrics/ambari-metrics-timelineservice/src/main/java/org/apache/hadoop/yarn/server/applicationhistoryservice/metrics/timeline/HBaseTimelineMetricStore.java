@@ -47,43 +47,22 @@ public class HBaseTimelineMetricStore extends AbstractService
     implements TimelineMetricStore {
 
   static final Log LOG = LogFactory.getLog(HBaseTimelineMetricStore.class);
+  private final TimelineMetricConfiguration configuration;
   private PhoenixHBaseAccessor hBaseAccessor;
 
   /**
    * Construct the service.
    *
    */
-  public HBaseTimelineMetricStore() {
+  public HBaseTimelineMetricStore(TimelineMetricConfiguration configuration) {
     super(HBaseTimelineMetricStore.class.getName());
+    this.configuration = configuration;
   }
 
   @Override
   protected void serviceInit(Configuration conf) throws Exception {
-    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    if (classLoader == null) {
-      classLoader = getClass().getClassLoader();
-    }
-    URL hbaseResUrl = classLoader.getResource(HBASE_SITE_CONFIGURATION_FILE);
-    URL amsResUrl = classLoader.getResource(METRICS_SITE_CONFIGURATION_FILE);
-    LOG.info("Found hbase site configuration: " + hbaseResUrl);
-    LOG.info("Found metric service configuration: " + amsResUrl);
-
-    if (hbaseResUrl == null) {
-      throw new IllegalStateException("Unable to initialize the metrics " +
-        "subsystem. No hbase-site present in the classpath.");
-    }
-
-    if (amsResUrl == null) {
-      throw new IllegalStateException("Unable to initialize the metrics " +
-        "subsystem. No ams-site present in the classpath.");
-    }
-
-    Configuration hbaseConf = new Configuration(true);
-    hbaseConf.addResource(hbaseResUrl.toURI().toURL());
-    Configuration metricsConf = new Configuration(true);
-    metricsConf.addResource(amsResUrl.toURI().toURL());
-
-    initializeSubsystem(hbaseConf, metricsConf);
+    super.serviceInit(conf);
+    initializeSubsystem(configuration.getHbaseConf(), configuration.getMetricsConf());
   }
 
   private void initializeSubsystem(Configuration hbaseConf,
@@ -131,7 +110,6 @@ public class HBaseTimelineMetricStore extends AbstractService
     super.serviceStop();
   }
 
-  //TODO: update to work with HOSTS_COUNT and METRIC_COUNT
   @Override
   public TimelineMetrics getTimelineMetrics(List<String> metricNames,
       String hostname, String applicationId, String instanceId,

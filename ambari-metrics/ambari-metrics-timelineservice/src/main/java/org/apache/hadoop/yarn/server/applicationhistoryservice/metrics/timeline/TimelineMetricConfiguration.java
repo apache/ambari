@@ -17,8 +17,15 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.conf.Configuration;
+
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 /**
  * Configuration class that reads properties from ams-site.xml. All values
@@ -26,7 +33,9 @@ import org.apache.hadoop.classification.InterfaceStability;
  */
 @InterfaceAudience.Public
 @InterfaceStability.Evolving
-public interface TimelineMetricConfiguration {
+public class TimelineMetricConfiguration {
+  private static final Log LOG = LogFactory.getLog(TimelineMetricConfiguration.class);
+
   public static final String HBASE_SITE_CONFIGURATION_FILE = "hbase-site.xml";
   public static final String METRICS_SITE_CONFIGURATION_FILE = "ams-site.xml";
 
@@ -112,4 +121,60 @@ public interface TimelineMetricConfiguration {
 
   public static final String DISABLE_APPLICATION_TIMELINE_STORE =
     "timeline.service.disable.application.timeline.store";
+
+  public static final String WEBAPP_HTTP_ADDRESS =
+    "timeline.metrics.service.webapp.address";
+
+  private Configuration hbaseConf;
+  private Configuration metricsConf;
+  private volatile boolean isInitialized = false;
+
+  public void initialize() throws URISyntaxException, MalformedURLException {
+    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    if (classLoader == null) {
+      classLoader = getClass().getClassLoader();
+    }
+    URL hbaseResUrl = classLoader.getResource(HBASE_SITE_CONFIGURATION_FILE);
+    URL amsResUrl = classLoader.getResource(METRICS_SITE_CONFIGURATION_FILE);
+    LOG.info("Found hbase site configuration: " + hbaseResUrl);
+    LOG.info("Found metric service configuration: " + amsResUrl);
+
+    if (hbaseResUrl == null) {
+      throw new IllegalStateException("Unable to initialize the metrics " +
+        "subsystem. No hbase-site present in the classpath.");
+    }
+
+    if (amsResUrl == null) {
+      throw new IllegalStateException("Unable to initialize the metrics " +
+        "subsystem. No ams-site present in the classpath.");
+    }
+
+    hbaseConf = new Configuration(true);
+    hbaseConf.addResource(hbaseResUrl.toURI().toURL());
+    metricsConf = new Configuration(true);
+    metricsConf.addResource(amsResUrl.toURI().toURL());
+    isInitialized = true;
+  }
+
+  public Configuration getHbaseConf() throws URISyntaxException, MalformedURLException {
+    if (!isInitialized) {
+      initialize();
+    }
+    return hbaseConf;
+  }
+
+  public Configuration getMetricsConf() throws URISyntaxException, MalformedURLException {
+    if (!isInitialized) {
+      initialize();
+    }
+    return metricsConf;
+  }
+
+  public String getWebappAddress() {
+    String defaultHttpAddress = "0.0.0.0:8188";
+    if (metricsConf != null) {
+      return metricsConf.get(WEBAPP_HTTP_ADDRESS, defaultHttpAddress);
+    }
+    return defaultHttpAddress;
+  }
 }
