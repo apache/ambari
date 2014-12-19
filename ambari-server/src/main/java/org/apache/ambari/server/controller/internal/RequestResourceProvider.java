@@ -44,6 +44,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -162,8 +163,6 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     Integer maxResults = (maxResultsRaw == null ? null : Integer.parseInt(maxResultsRaw));
     Boolean ascOrder = (ascOrderRaw == null ? null : Boolean.parseBoolean(ascOrderRaw));
 
-    Set<Map<String, Object>> propertyMaps = new HashSet<Map<String,Object>>();
-
     if (null == predicate) {
       resources.addAll(
           getRequestResources(null, null, null, maxResults, ascOrder, requestedIds));
@@ -215,15 +214,16 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       }
       // There should be only one request with this id (or no request at all)
       org.apache.ambari.server.actionmanager.Request internalRequest = internalRequests.get(0);
-      // Validate update request (check constraints on state value and presense of abort reason)
+      // Validate update request (check constraints on state value and presence of abort reason)
       if (updateRequest.getAbortReason() == null || updateRequest.getAbortReason().isEmpty()) {
         throw new IllegalArgumentException("Abort reason can not be empty.");
       }
 
-      HostRoleStatus internalRequestStatus = calculateSummaryStatus(
-              calculateRequestStatusCounters(internalRequest),
-              internalRequest.getCommands().size()
-      );
+      List<HostRoleCommand> commands = internalRequest.getCommands();
+      HostRoleStatus internalRequestStatus =
+          StageResourceProvider.calculateSummaryStatus(
+              StageResourceProvider.calculateTaskStatusCounts(getHostRoleStatuses(commands)), commands.size());
+
       if (updateRequest.getStatus() != HostRoleStatus.ABORTED) {
         throw new IllegalArgumentException(
                 String.format("%s is wrong value. The only allowed value " +
@@ -240,8 +240,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     }
     // Perform update
     Iterator<RequestRequest> reqIterator = requests.iterator();
-    for (int i = 0; i < targets.size(); i++) {
-      org.apache.ambari.server.actionmanager.Request target = targets.get(i);
+    for (org.apache.ambari.server.actionmanager.Request target : targets) {
       String reason = reqIterator.next().getAbortReason();
       amc.getActionManager().cancelRequest(target.getRequestId(), reason);
     }
@@ -307,7 +306,8 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     }
 
     List<RequestResourceFilter> resourceFilterList = null;
-    Set<Map<String, Object>> resourceFilters = null;
+    Set<Map<String, Object>> resourceFilters;
+
     Object resourceFilterObj = propertyMap.get(REQUEST_RESOURCE_FILTER_ID);
     if (resourceFilterObj != null && resourceFilterObj instanceof HashSet) {
       resourceFilters = (HashSet<Map<String, Object>>) resourceFilterObj;
@@ -463,15 +463,17 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     } else {
       setResourceProperty(resource, REQUEST_SOURCE_SCHEDULE, null, requestedPropertyIds);
     }
-    int taskCount = request.getCommands().size();
 
-    Map<HostRoleStatus, Integer> hostRoleStatusCounters = calculateRequestStatusCounters(request);
-    HostRoleStatus requestStatus = calculateSummaryStatus(hostRoleStatusCounters, taskCount);
+    Collection<HostRoleCommand> commands = request.getCommands();
 
-    double progressPercent =
-            ((hostRoleStatusCounters.get(HostRoleStatus.QUEUED) * 0.09 +
-                    hostRoleStatusCounters.get(HostRoleStatus.IN_PROGRESS) * 0.35 +
-                    hostRoleStatusCounters.get(HostRoleStatus.COMPLETED)) / taskCount) * 100.0;
+    int taskCount = commands.size();
+
+    Map<HostRoleStatus, Integer> hostRoleStatusCounters =
+        StageResourceProvider.calculateTaskStatusCounts(getHostRoleStatuses(commands));
+
+    HostRoleStatus requestStatus   = StageResourceProvider.calculateSummaryStatus(hostRoleStatusCounters, taskCount);
+
+    double progressPercent = StageResourceProvider.calculateProgressPercent(hostRoleStatusCounters, taskCount);
 
     setResourceProperty(resource, REQUEST_STATUS_PROPERTY_ID, requestStatus.toString(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_TASK_CNT_ID, taskCount, requestedPropertyIds);
@@ -491,48 +493,18 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   }
 
   /**
-   * Returns counts of tasks that are in various states.
+   * Get a collection of statuses from the given collection of tasks.
+   *
+   * @param tasks  the tasks
+   *
+   * @return a collection of statuses
    */
-  private Map<HostRoleStatus, Integer> calculateRequestStatusCounters(org.apache.ambari.server.actionmanager.Request request) {
-    List<HostRoleCommand> commands = request.getCommands();
-    Map<HostRoleStatus, Integer> counters = new HashMap<HostRoleStatus, Integer>();
-    int totalTasks = commands.size();
-    // initialize
-    for (HostRoleStatus hostRoleStatus : HostRoleStatus.values()) {
-      counters.put(hostRoleStatus, 0);
-    }
-    // calculate counts
-    for (HostRoleCommand hostRoleCommand : commands) {
-      HostRoleStatus status = hostRoleCommand.getStatus();
-      if (status.isCompletedState() &&
-            status != HostRoleStatus.COMPLETED ) { // we don't want to count twice
-        // Increase total number of completed tasks;
-        counters.put(HostRoleStatus.COMPLETED, counters.get(HostRoleStatus.COMPLETED) + 1);
-      }
-      // Increment counter for particular status
-      counters.put(status, counters.get(status) + 1);
-    }
-    // We overwrite the value to have the sum converged
-    counters.put(HostRoleStatus.IN_PROGRESS,
-            totalTasks - counters.get(HostRoleStatus.COMPLETED)-
-                    counters.get(HostRoleStatus.QUEUED)-
-                    counters.get(HostRoleStatus.PENDING));
-    return counters;
-  }
+  private static Collection<HostRoleStatus> getHostRoleStatuses(Collection<HostRoleCommand> tasks) {
+    Collection<HostRoleStatus> hostRoleStatuses = new LinkedList<HostRoleStatus>();
 
-  /**
-   * @param counters counts of tasks that are in various states.
-   * @param totalTasks total number of tasks in request
-   * @return summary request status based on statuses of tasks in different
-   * states.
-   */
-  static HostRoleStatus calculateSummaryStatus(Map<HostRoleStatus, Integer> counters, int totalTasks) {
-    return counters.get(HostRoleStatus.FAILED) > 0 ? HostRoleStatus.FAILED :
-            // TODO (dlysnichenko): maybe change order of FAILED and ABORTED?
-            counters.get(HostRoleStatus.ABORTED) > 0 ? HostRoleStatus.ABORTED :
-                    counters.get(HostRoleStatus.TIMEDOUT) > 0 ? HostRoleStatus.TIMEDOUT :
-                            counters.get(HostRoleStatus.IN_PROGRESS) > 0 ? HostRoleStatus.IN_PROGRESS :
-                                    counters.get(HostRoleStatus.COMPLETED) == totalTasks ? HostRoleStatus.COMPLETED :
-                                            HostRoleStatus.PENDING;
+    for (HostRoleCommand hostRoleCommand : tasks) {
+      hostRoleStatuses.add(hostRoleCommand.getStatus());
+    }
+    return hostRoleStatuses;
   }
 }

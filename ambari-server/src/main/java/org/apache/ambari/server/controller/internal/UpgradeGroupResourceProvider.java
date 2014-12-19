@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -86,7 +87,7 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
   /**
    * Constructor.
    *
-   * @param controller
+   * @param controller the controller
    */
   UpgradeGroupResourceProvider(AmbariManagementController controller) {
     super(PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
@@ -176,47 +177,55 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
     return resource;
   }
 
-
   /**
    * Aggregates status and percent complete for stages and puts the results on the upgrade group
    *
-   * @param upgradeGroup the resource representing an upgrade group
-   * @param stages the collection of resources representing stages
-   * @param requestedIds the ids for the request
+   * @param upgradeGroup  the resource representing an upgrade group
+   * @param stages        the collection of resources representing stages
+   * @param requestedIds  the ids for the request
    */
   private void aggregate(Resource upgradeGroup, Collection<Resource> stages, Set<String> requestedIds) {
 
-    Double total = new Double(0d);
-    Integer count = new Integer(0);
+    Map<HostRoleStatus, Integer> counters =
+        StageResourceProvider.calculateTaskStatusCounts(getHostRoleStatuses(stages));
 
-    Map<HostRoleStatus, Integer> counters = new HashMap<HostRoleStatus, Integer>();
-    for (HostRoleStatus hostRoleStatus : HostRoleStatus.values()) {
-      counters.put(hostRoleStatus, new Integer(0));
-    }
+    setResourceProperty(upgradeGroup, UPGRADE_GROUP_STATUS,
+        StageResourceProvider.calculateSummaryStatus(counters, stages.size()), requestedIds);
 
-
-    for (Resource stage : stages) {
-      String status = (String) stage.getPropertyValue(StageResourceProvider.STAGE_STATUS);
-      Double percent = (Double) stage.getPropertyValue(StageResourceProvider.STAGE_PROGRESS_PERCENT);
-
-      if (null != percent) {
-        total += percent;
-        count++;
-      }
-
-      if (null != status) {
-        HostRoleStatus hrs = HostRoleStatus.valueOf(status);
-        counters.put(hrs, counters.get(hrs) + 1);
-      }
-    }
-
-    if (count > 0) {
-      setResourceProperty(upgradeGroup, UPGRADE_GROUP_PROGRESS_PERCENT, total/count, requestedIds);
-    }
-
-    HostRoleStatus summary = RequestResourceProvider.calculateSummaryStatus(counters, counters.size());
-    setResourceProperty(upgradeGroup, UPGRADE_GROUP_STATUS, summary, requestedIds);
-
+    setResourceProperty(upgradeGroup, UPGRADE_GROUP_PROGRESS_PERCENT,
+        StageResourceProvider.calculateProgressPercent(counters, stages.size()), requestedIds);
   }
 
+  /**
+   * Get a collection of statuses from the given collection of stage resources.
+   *
+   * @param stageResources  the stage resources
+   *
+   * @return a collection of statuses
+   */
+  private static Collection<HostRoleStatus> getHostRoleStatuses(Collection<Resource> stageResources) {
+    Collection<HostRoleStatus> hostRoleStatuses = new LinkedList<HostRoleStatus>();
+
+    for (Resource stage : stageResources) {
+      HostRoleStatus status = getStatus(stage);
+
+      if (status != null) {
+        hostRoleStatuses.add(status);
+      }
+    }
+    return hostRoleStatuses;
+  }
+
+  /**
+   * Get the status of the given stage resource.
+   *
+   * @param stageResource  the resource
+   *
+   * @return  the stage status
+   */
+  private static HostRoleStatus getStatus(Resource stageResource) {
+    String status = (String) stageResource.getPropertyValue(StageResourceProvider.STAGE_STATUS);
+
+    return status == null ? null : HostRoleStatus.valueOf(status);
+  }
 }

@@ -178,6 +178,63 @@ public class StageResourceProviderTest {
     verify(dao, clusters, cluster);
   }
 
+  @Test
+  public void testCalculateTaskStatusCounts() {
+
+    Collection<HostRoleStatus> hostRoleStatuses = new LinkedList<HostRoleStatus>();
+
+    hostRoleStatuses.add(HostRoleStatus.PENDING);
+    hostRoleStatuses.add(HostRoleStatus.QUEUED);
+    hostRoleStatuses.add(HostRoleStatus.HOLDING);
+    hostRoleStatuses.add(HostRoleStatus.HOLDING_FAILED);
+    hostRoleStatuses.add(HostRoleStatus.HOLDING_TIMEDOUT);
+    hostRoleStatuses.add(HostRoleStatus.IN_PROGRESS);
+    hostRoleStatuses.add(HostRoleStatus.IN_PROGRESS);
+    hostRoleStatuses.add(HostRoleStatus.COMPLETED);
+    hostRoleStatuses.add(HostRoleStatus.COMPLETED);
+    hostRoleStatuses.add(HostRoleStatus.COMPLETED);
+    hostRoleStatuses.add(HostRoleStatus.COMPLETED);
+    hostRoleStatuses.add(HostRoleStatus.FAILED);
+    hostRoleStatuses.add(HostRoleStatus.TIMEDOUT);
+    hostRoleStatuses.add(HostRoleStatus.ABORTED);
+
+    Map<HostRoleStatus, Integer> counts = StageResourceProvider.calculateTaskStatusCounts(hostRoleStatuses);
+
+    assertEquals(1L, (long) counts.get(HostRoleStatus.PENDING));
+    assertEquals(1L, (long) counts.get(HostRoleStatus.QUEUED));
+    assertEquals(1L, (long) counts.get(HostRoleStatus.HOLDING));
+    assertEquals(1L, (long) counts.get(HostRoleStatus.HOLDING_FAILED));
+    assertEquals(1L, (long) counts.get(HostRoleStatus.HOLDING_TIMEDOUT));
+    assertEquals(5L, (long) counts.get(HostRoleStatus.IN_PROGRESS));
+    assertEquals(7L, (long) counts.get(HostRoleStatus.COMPLETED));
+    assertEquals(1L, (long) counts.get(HostRoleStatus.FAILED));
+    assertEquals(1L, (long) counts.get(HostRoleStatus.TIMEDOUT));
+    assertEquals(1L, (long) counts.get(HostRoleStatus.ABORTED));
+  }
+
+  @Test
+  public void testCalculateProgressPercent() {
+
+    Collection<HostRoleStatus> hostRoleStatuses = new LinkedList<HostRoleStatus>();
+
+    hostRoleStatuses.add(HostRoleStatus.PENDING);
+    hostRoleStatuses.add(HostRoleStatus.QUEUED);
+    hostRoleStatuses.add(HostRoleStatus.HOLDING);
+    hostRoleStatuses.add(HostRoleStatus.IN_PROGRESS);
+    hostRoleStatuses.add(HostRoleStatus.IN_PROGRESS);
+    hostRoleStatuses.add(HostRoleStatus.COMPLETED);
+    hostRoleStatuses.add(HostRoleStatus.COMPLETED);
+    hostRoleStatuses.add(HostRoleStatus.FAILED);
+    hostRoleStatuses.add(HostRoleStatus.TIMEDOUT);
+    hostRoleStatuses.add(HostRoleStatus.ABORTED);
+
+    Map<HostRoleStatus, Integer> counts = StageResourceProvider.calculateTaskStatusCounts(hostRoleStatuses);
+
+    Double percent = StageResourceProvider.calculateProgressPercent(counts, counts.size());
+
+    assertEquals(Double.valueOf(64.9), percent);
+  }
+
   private List<StageEntity> getStageEntities() {
     StageEntity stage = new StageEntity();
 
