@@ -22,12 +22,16 @@ from stacks.utils.RMFTestCase import *
 
 
 class TestFalconServer(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "FALCON/0.5.0.2.1/package"
+  STACK_VERSION = "2.1"
 
   def test_service_check(self):
-    self.executeScript("2.1/services/FALCON/package/scripts/service_check.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
                        classname="FalconServiceCheck",
                        command="service_check",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', '/usr/lib/falcon/bin/falcon admin -version',
                               logoutput = True,
@@ -36,10 +40,12 @@ class TestFalconServer(RMFTestCase):
                               try_sleep = 20,)
     self.assertNoMoreResources()
   def test_service_check_secured(self):
-    self.executeScript("2.1/services/FALCON/package/scripts/service_check.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
                        classname="FalconServiceCheck",
                        command="service_check",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute','/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa',
                               user='ambari-qa'
