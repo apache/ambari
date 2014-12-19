@@ -17,19 +17,19 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+
 from stacks.utils.RMFTestCase import *
 import json
 import os
 import socket
 import subprocess
+from ambari_commons import inet_utils
+from resource_management import Script, ConfigDictionary
 from mock.mock import patch
 from mock.mock import MagicMock
+from unittest import TestCase
 
-with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
-  from resource_management import Script,ConfigDictionary
-  from unittest import TestCase
-
-  from check_host import CheckHost
+from check_host import CheckHost
 
 
 class TestCheckHost(TestCase):
@@ -231,7 +231,7 @@ class TestCheckHost(TestCase):
     self.assertTrue(structured_out_mock.called)
     structured_out_mock.assert_called_with({})
 
-  @patch("platform.linux_distribution", return_value = ('Suse','11','Final'))
+
   @patch.object(Script, 'get_config')
   @patch.object(Script, 'get_tmp_dir')
   @patch('resource_management.libraries.script.Script.put_structured_out')
@@ -244,7 +244,7 @@ class TestCheckHost(TestCase):
   @patch('time.time')
   def testLastAgentEnv(self, time_mock, checkReverseLookup_mock, checkIptables_mock, getTransparentHugePage_mock,
                        getUMask_mock, checkLiveServices_mock, javaProcs_mock, put_structured_out_mock,
-                       get_tmp_dir_mock, get_config_mock, platform_linux_distribution_mock):
+                       get_tmp_dir_mock, get_config_mock):
     jsonFilePath = os.path.join("../resources/custom_actions", "check_last_agent_env.json")
     with open(jsonFilePath, "r") as jsonFile:
       jsonPayload = json.load(jsonFile)

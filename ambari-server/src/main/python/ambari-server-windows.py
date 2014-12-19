@@ -19,27 +19,20 @@ limitations under the License.
 '''
 
 import optparse
-import os
-import subprocess
-import sys
 
-from ambari_commons.ambari_service import AmbariService
-from ambari_commons.exceptions import NonFatalException, FatalException
-from ambari_commons.logging_utils import print_error_msg, print_info_msg, print_warning_msg
-from ambari_commons.os_utils import remove_file, set_open_files_limit
+from ambari_commons.ambari_service import AmbariService, ENV_PYTHON_PATH
+from ambari_commons.logging_utils import *
+from ambari_commons.os_utils import remove_file
 from ambari_commons.os_windows import SvcStatusCallback
 
-from ambari_server.dbConfiguration import DBMSConfigFactory
+from ambari_server import utils
+from ambari_server.dbConfiguration import DBMSConfig
 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
-from ambari_server.serverConfiguration import find_jdk, get_ambari_properties, get_value_from_properties, \
-  get_full_ambari_classpath, configDefaults, VERBOSE_OUTPUT_KEY, DEBUG_MODE_KEY, SUSPEND_START_MODE_KEY, \
-  SERVER_OUT_FILE_KEY, RESOURCES_DIR_PROPERTY, RESOURCES_DIR_DEFAULT, STACK_LOCATION_KEY, STACK_LOCATION_DEFAULT
-from ambari_server.serverSetup import setup, reset, is_server_running, upgrade, SERVICE_PASSWORD_KEY, SERVICE_USERNAME_KEY
-from ambari_server.setupActions import SETUP_ACTION, START_ACTION, PSTART_ACTION, STOP_ACTION, RESET_ACTION, \
-  STATUS_ACTION, UPGRADE_ACTION, UPGRADE_STACK_ACTION, LDAP_SETUP_ACTION, SETUP_SECURITY_ACTION, ACTION_REQUIRE_RESTART
-from ambari_server.setupSecurity import setup_ambari_krb5_jaas, setup_https, setup_ldap, setup_master_key
-from ambari_server.userInput import get_validated_string_input
-from ambari_server.utils import check_reverse_lookup, save_pid
+from ambari_server.serverConfiguration import *
+from ambari_server.serverSetup import setup, reset, is_server_running, upgrade
+from ambari_server.setupActions import *
+from ambari_server.setupSecurity import *
+from ambari_server.serverSetup_windows import SERVICE_PASSWORD_KEY, SERVICE_USERNAME_KEY
 
 # debug settings
 SERVER_START_DEBUG = False
@@ -48,6 +41,11 @@ SUSPEND_START_MODE = False
 # server commands
 ambari_provider_module_option = ""
 ambari_provider_module = os.environ.get('AMBARI_PROVIDER_MODULE')
+
+#Common setup or upgrade message
+SETUP_OR_UPGRADE_MSG = "- If this is a new setup, then run the \"ambari-server setup\" command to create the user\n" \
+"- If this is an upgrade of an existing setup, run the \"ambari-server upgrade\" command.\n" \
+"Refer to the Ambari documentation for more information on setup and upgrade."
 
 AMBARI_SERVER_DIE_MSG = "Ambari Server java process died with exitcode {0}. Check {1} for more information."
 
@@ -112,7 +110,7 @@ class AmbariServerService(AmbariService):
     if not self._StopOrWaitForChildProcessToFinish(childProc):
       return
 
-    pid_file_path = os.path.join(configDefaults.PID_DIR, PID_NAME)
+    pid_file_path = PID_DIR + os.sep + PID_NAME
     remove_file(pid_file_path)
     pass
 
@@ -124,7 +122,7 @@ class AmbariServerService(AmbariService):
 
     outFilePath = properties[SERVER_OUT_FILE_KEY]
     if (outFilePath is None or outFilePath == ""):
-      outFilePath = configDefaults.SERVER_OUT_FILE
+      outFilePath = SERVER_OUT_FILE
 
     self._RedirectOutputStreamsToFile(outFilePath)
     pass
@@ -159,7 +157,7 @@ def start(options):
 
   childProc.wait()
 
-  pid_file_path = os.path.join(configDefaults.PID_DIR, PID_NAME)
+  pid_file_path = PID_DIR + os.sep + PID_NAME
   remove_file(pid_file_path)
 
 #
@@ -201,7 +199,7 @@ def server_process_main(options, scmStatus=None):
   except AttributeError:
     pass
 
-  if not check_reverse_lookup():
+  if not utils.check_reverse_lookup():
     print_warning_msg("The hostname was not found in the reverse DNS lookup. "
                       "This may result in incorrect behavior. "
                       "Please check the DNS setup and fix the issue.")
@@ -210,11 +208,12 @@ def server_process_main(options, scmStatus=None):
 
   print_info_msg("Ambari Server is not running...")
 
+  conf_dir = get_conf_dir()
   jdk_path = find_jdk()
   if jdk_path is None:
     err = "No JDK found, please run the \"ambari-server setup\" " \
                     "command to install a JDK automatically or install any " \
-                    "JDK manually to " + configDefaults.JDK_INSTALL_DIR
+                    "JDK manually to " + JDK_INSTALL_DIR
     raise FatalException(1, err)
 
   # Preparations
@@ -237,15 +236,17 @@ def server_process_main(options, scmStatus=None):
   if scmStatus is not None:
     scmStatus.reportStartPending()
 
-  conf_dir = get_full_ambari_classpath()
+  conf_dir = os.path.abspath(conf_dir) + os.pathsep + get_ambari_classpath()
+  if conf_dir.find(' ') != -1:
+    conf_dir = '"' + conf_dir + '"'
 
-  java_exe = os.path.join(jdk_path, configDefaults.JAVA_EXE_SUBPATH)
-  pidfile = os.path.join(configDefaults.PID_DIR, PID_NAME)
+  java_exe = jdk_path + os.sep + JAVA_EXE_SUBPATH
+  pidfile = PID_DIR + os.sep + PID_NAME
   command_base = SERVER_START_CMD_DEBUG if (DEBUG_MODE or SERVER_START_DEBUG) else SERVER_START_CMD
   suspend_mode = 'y' if SUSPEND_START_MODE else 'n'
   command = command_base.format(conf_dir, suspend_mode)
-  if not os.path.exists(configDefaults.PID_DIR):
-    os.makedirs(configDefaults.PID_DIR, 0755)
+  if not os.path.exists(PID_DIR):
+    os.makedirs(PID_DIR, 0755)
 
   set_open_files_limit(get_ulimit_open_files());
 
@@ -263,18 +264,18 @@ def server_process_main(options, scmStatus=None):
   if pidJava <= 0:
     procJava.terminate()
     exitcode = procJava.returncode
-    exitfile = os.path.join(configDefaults.PID_DIR, EXITCODE_NAME)
-    save_pid(exitcode, exitfile)
+    exitfile = os.path.join(PID_DIR, EXITCODE_NAME)
+    utils.save_pid(exitcode, exitfile)
 
     if scmStatus is not None:
       scmStatus.reportStopPending()
 
-    raise FatalException(-1, AMBARI_SERVER_DIE_MSG.format(exitcode, configDefaults.SERVER_OUT_FILE))
+    raise FatalException(-1, AMBARI_SERVER_DIE_MSG.format(exitcode, SERVER_OUT_FILE))
   else:
-    save_pid(pidJava, pidfile)
-    print "Server PID at: "+ pidfile
-    print "Server out at: "+ configDefaults.SERVER_OUT_FILE
-    print "Server log at: "+ configDefaults.SERVER_LOG_FILE
+    utils.save_pid(pidJava, pidfile)
+    print "Server PID at: "+pidfile
+    print "Server out at: "+SERVER_OUT_FILE
+    print "Server log at: "+SERVER_LOG_FILE
 
   if scmStatus is not None:
     scmStatus.reportStarted()
@@ -288,15 +289,13 @@ def server_process_main(options, scmStatus=None):
 #Wait until the status is 'started' or a configured timeout elapses
 #If the timeout has been reached, bail out with exception
 def ensure_dbms_is_running(options, properties, scmStatus):
-  factory = DBMSConfigFactory()
-
-  dbms = factory.create(options, properties, "Ambari")
+  dbms = DBMSConfig.create(options, properties, "Ambari")
   if not dbms._is_jdbc_driver_installed(properties):
     raise FatalException(-1, "JDBC driver is not installed. Run ambari-server setup and try again.")
 
   dbms.ensure_dbms_is_running(options, properties, scmStatus)
 
-  dbms2 = factory.create(options, properties, "Metrics")
+  dbms2 = DBMSConfig.create(options, properties, "Metrics")
   if dbms2.database_host.lower() != dbms.database_host.lower():
     dbms2.ensure_dbms_is_running(options, properties, scmStatus)
   pass
@@ -500,7 +499,6 @@ def main():
 
   #perform checks
   options.warnings = []
-  options.exit_message = None
   options.must_set_database_options = False
 
   if are_cmd_line_db_args_blank(options):

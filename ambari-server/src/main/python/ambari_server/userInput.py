@@ -22,7 +22,7 @@ import os
 import getpass
 import re
 
-from ambari_commons.logging_utils import SILENT
+from ambari_commons.logging_utils import *
 
 
 #

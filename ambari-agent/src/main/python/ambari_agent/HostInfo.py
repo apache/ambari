@@ -113,48 +113,6 @@ class HostInfo(object):
       pass
     return False
 
-  def getTransparentHugePage(self):
-    """
-    Base declaration. The derived classes are supposed to override it and provide OS-specific implementations.
-    :return:
-    """
-    pass
-
-  def checkUsers(self, users, results):
-    """
-    Base declaration. The derived classes are supposed to override it and provide OS-specific implementations.
-    :return:
-    """
-    pass
-
-  def checkIptables(self):
-    """
-    Base declaration. The derived classes are supposed to override it and provide OS-specific implementations.
-    :return:
-    """
-    pass
-
-  def javaProcs(self, list):
-    """
-    Base declaration. The derived classes are supposed to override it and provide OS-specific implementations.
-    :return:
-    """
-    pass
-
-  def getServiceStatus(self, serivce_name):
-    """
-    Base declaration. The derived classes are supposed to override it and provide OS-specific implementations.
-    :return:
-    """
-    pass
-
-  def register(self, dict, componentsMapped=True, commandsInProgress=True):
-    """
-    Base declaration. The derived classes are supposed to override it and provide OS-specific implementations.
-    :return:
-    """
-    pass
-
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HostInfoLinux(HostInfo):

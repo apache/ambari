@@ -98,9 +98,6 @@ class Properties(object):
       self.process_pair(key, value)
 
   def process_pair(self, key, value):
-    """
-    Adds or overrides the property with the given key.
-    """
     oldkey = key
     oldvalue = value
     keyparts = self.bspacere.split(key)
@@ -188,9 +185,7 @@ class Properties(object):
 
   def store(self, out, header=""):
     """ Write the properties list to the stream 'out' along
-    with the optional 'header'
-    This function will attempt to close the file handler once it's done.
-    """
+    with the optional 'header' """
     if out.mode[0] != 'w':
       raise ValueError, 'Steam should be opened in write mode!'
     try:
@@ -203,11 +198,9 @@ class Properties(object):
       for prop, val in self._origprops.items():
         if val is not None:
           out.write(''.join((prop, '=', val, '\n')))
+      out.close()
     except IOError:
       raise
-    finally:
-      if out:
-        out.close()
 
   def store_ordered(self, out, header=""):
     """ Write the properties list to the stream 'out' along
@@ -225,8 +218,6 @@ class Properties(object):
         val = self._origprops[key]
         if val is not None:
           out.write(''.join((key, '=', val, '\n')))
+      out.close()
     except IOError:
       raise
-    finally:
-      if out:
-        out.close()
