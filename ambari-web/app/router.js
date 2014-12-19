@@ -367,6 +367,9 @@ App.Router = Em.Router.extend({
           } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('rollbackHighAvailabilityWizardController.name')) {
             // if wizardControllerName == "highAvailabilityRollbackController", then it means someone closed the browser or the browser was crashed when we were last in NameNode High Availability Rollback wizard
             route = 'main.services.rollbackHighAvailability';
+          } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('mainAdminStackAndUpgradeController.name')) {
+            // if wizardControllerName == "mainAdminStackAndUpgradeController", then it means someone closed the browser or the browser was crashed when we were last in Rolling Upgrade wizard
+            route = 'main.admin.stackAndUpgrade';
           }
           callback(route);
         });

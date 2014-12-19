@@ -44,6 +44,7 @@ var InitialData =  {
   'HighAvailabilityWizard': {},
   'RMHighAvailabilityWizard': {},
   'RollbackHighAvailabilityWizard': {},
+  'MainAdminStackAndUpgrade': {},
   'tmp': {}
 
 };

@@ -62,10 +62,14 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   wizardStorageProperties: ['upgradeId', 'upgradeVersion'],
 
+  init: function () {
+    this.initDBProperties();
+  },
+
   /**
    * restore data from localStorage
    */
-  init: function () {
+  initDBProperties: function () {
     this.get('wizardStorageProperties').forEach(function (property) {
       if (this.getDBProperty(property)) {
         this.set(property, this.getDBProperty(property));
@@ -168,6 +172,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   loadUpgradeDataSuccessCallback: function (data) {
     App.set('upgradeState', data.Upgrade.request_status);
+    this.setDBProperty('upgradeState', data.Upgrade.request_status);
     if (data.upgrade_groups) {
       this.updateUpgradeData(data);
     }
@@ -275,9 +280,10 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   upgradeSuccessCallback: function (data) {
     this.set('upgradeId', data.resources[0].Upgrade.request_id);
     this.setDBProperty('upgradeId', data.resources[0].Upgrade.request_id);
+    this.setDBProperty('upgradeState', 'PENDING');
+    App.set('upgradeState', 'PENDING');
     App.clusterStatus.setClusterStatus({
-      clusterName: App.get('clusterName'),
-      clusterState: 'DEFAULT',
+      wizardControllerName: this.get('name'),
       localdb: App.db.data
     });
     this.openUpgradeDialog();
@@ -306,17 +312,17 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @param data {object}
    * @param opt {object}
    * @param params {object}
-   * @returns {App.ModalPopup|void}
+   * @returns {App.ModalPopup|undefined}
    */
-  runPreUpgradeCheckSuccess: function(data, opt, params) {
-    if (data.items.someProperty('UpgradeChecks.status',"FAIL")) {
+  runPreUpgradeCheckSuccess: function (data, opt, params) {
+    if (data.items.someProperty('UpgradeChecks.status', "FAIL")) {
       return App.ModalPopup.show({
         header: Em.I18n.t('admin.stackUpgrade.preupgradeCheck.header').format(params.label),
         primary: Em.I18n.t('common.dismiss'),
         secondary: false,
         bodyClass: Em.View.extend({
           templateName: require('templates/main/admin/stack_upgrade/pre_upgrade_check_dialog'),
-          checks: data.items.filterProperty('UpgradeChecks.status',"FAIL")
+          checks: data.items.filterProperty('UpgradeChecks.status', "FAIL")
         })
       })
     } else {
@@ -346,12 +352,11 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   finish: function () {
     this.set('upgradeId', null);
     this.setDBProperty('upgradeId', undefined);
+    this.setDBProperty('upgradeState', 'INIT');
     App.set('upgradeState', 'INIT');
     this.set('upgradeVersion', null);
     this.setDBProperty('upgradeVersion', undefined);
     App.clusterStatus.setClusterStatus({
-      clusterName: App.get('clusterName'),
-      clusterState: 'DEFAULT',
       localdb: App.db.data
     });
   },

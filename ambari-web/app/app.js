@@ -41,7 +41,7 @@ module.exports = Em.Application.create({
    *  - INIT
    *  - PENDING
    *  - IN_PROGRESS
-   *  - STOPPED
+   *  - HOLDING
    *  - COMPLETED
    * @type {String}
    */

@@ -268,10 +268,6 @@ App.ClusterController = Em.Controller.extend({
       return;
     }
 
-    if (App.get('supports.stackUpgrade')) {
-      App.router.get('mainAdminStackAndUpgradeController').loadUpgradeData(true);
-    }
-
     var clusterUrl = this.getUrl('/data/clusters/cluster.json', '?fields=Clusters');
     var racksUrl = "/data/racks/racks.json";
 
@@ -302,6 +298,9 @@ App.ClusterController = Em.Controller.extend({
     } else {
       App.clusterStatus.updateFromServer().complete(function () {
         self.updateLoadStatus('clusterStatus');
+        if (App.get('supports.stackUpgrade')) {
+          self.restoreUpgradeState();
+        }
       });
     }
 
@@ -365,6 +364,19 @@ App.ClusterController = Em.Controller.extend({
         self.updateLoadStatus('rootService');
       });
     });
+  },
+
+  /**
+   * restore upgrade status from local storage
+   * and make call to get latest status from server
+   */
+  restoreUpgradeState: function () {
+    var dbUpgradeState = App.db.get('MainAdminStackAndUpgrade', 'upgradeState');
+    if (!Em.isNone(dbUpgradeState)) {
+      App.set('upgradeState', dbUpgradeState);
+    }
+    App.router.get('mainAdminStackAndUpgradeController').initDBProperties();
+    App.router.get('mainAdminStackAndUpgradeController').loadUpgradeData(true);
   },
 
   loadRootService: function () {

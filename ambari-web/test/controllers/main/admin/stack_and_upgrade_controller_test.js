@@ -282,7 +282,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
   });
 
-  describe("#init()", function() {
+  describe("#initDBProperties()", function() {
     before(function () {
       sinon.stub(controller, 'getDBProperty', function (prop) {
         return prop;
@@ -293,8 +293,21 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
     it("set properties", function () {
       controller.set('wizardStorageProperties', ['prop1']);
-      controller.init();
+      controller.initDBProperties();
       expect(controller.get('prop1')).to.equal('prop1');
+    });
+  });
+
+  describe("#init()", function() {
+    before(function () {
+      sinon.stub(controller, 'initDBProperties', Em.K);
+    });
+    after(function () {
+      controller.initDBProperties.restore();
+    });
+    it("call initDBProperties", function () {
+      controller.init();
+      expect(controller.initDBProperties.calledOnce).to.be.true;
     });
   });
 

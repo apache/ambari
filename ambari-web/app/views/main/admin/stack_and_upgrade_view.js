@@ -152,9 +152,9 @@ App.MainAdminStackAndUpgradeView = Em.View.extend({
     }.property('controller.targetVersions'),
     btnClass: 'btn-success',
     versionName: function () {
-      if (this.get('versions.length') === 0) return Em.I18n.t('admin.stackUpgrade.state.notAvailable');
+      if (this.get('versions.length') === 0 && App.get('upgradeState') === 'INIT') return Em.I18n.t('admin.stackUpgrade.state.notAvailable');
       return this.get('controller.upgradeVersion');
-    }.property('controller.upgradeVersion', 'showSelect'),
+    }.property('controller.upgradeVersion', 'versions.length', 'App.upgradeState'),
     showSelect: function () {
       return this.get('versions.length') > 0 && App.get('upgradeState') === 'INIT';
     }.property('versions.length', 'App.upgradeState'),
