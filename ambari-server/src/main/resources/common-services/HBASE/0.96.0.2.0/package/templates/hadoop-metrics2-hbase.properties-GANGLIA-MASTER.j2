@@ -52,19 +52,19 @@ hbase.extendedperiod = 3600
 *.timline.plugin.urls=file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar
 hbase.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 hbase.period=10
-hbase.collector={{metric_collector_host}}:8188
+hbase.collector={{metric_collector_host}}:{{metric_collector_port}}
 
 jvm.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 jvm.period=10
-jvm.collector={{metric_collector_host}}:8188
+jvm.collector={{metric_collector_host}}:{{metric_collector_port}}
 
 rpc.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 rpc.period=10
-rpc.collector={{metric_collector_host}}:8188
+rpc.collector={{metric_collector_host}}:{{metric_collector_port}}
 
 hbase.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 hbase.sink.timeline.period=10
-hbase.sink.timeline.collector={{metric_collector_host}}:8188
+hbase.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
 
 {% else %}
 
