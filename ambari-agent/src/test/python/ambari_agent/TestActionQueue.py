@@ -36,7 +36,7 @@ from ambari_agent.PythonExecutor import PythonExecutor
 from ambari_agent.CommandStatusDict import CommandStatusDict
 from ambari_agent.ActualConfigHandler import ActualConfigHandler
 from FileCache import FileCache
-import ambari_commons.os_check
+from ambari_commons import OSCheck
 
 class TestActionQueue(TestCase):
   def setUp(self):
@@ -275,7 +275,7 @@ class TestActionQueue(TestCase):
     actionQueue.process_command(execution_command)
     self.assertTrue(print_exc_mock.called)
 
-  @patch.object(ambari_commons.os_check,"os_distribution", new=lambda: ('Suse','11','Final'))
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = ('Suse','11','Final')))
   @patch("__builtin__.open")
   @patch.object(ActionQueue, "status_update_callback")
   def test_execute_command(self, status_update_callback_mock, open_mock):

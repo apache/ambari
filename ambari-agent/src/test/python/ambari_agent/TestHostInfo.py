@@ -40,6 +40,7 @@ with patch("platform.linux_distribution", return_value = ('redhat','11','Final')
   import ambari_commons
 
 @patch.object(System, "os_family", new = 'redhat')
+@patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = ('redhat','11','Final')))
 class TestHostInfo(TestCase):
 
   @patch.object(OSCheck, 'get_os_family')
@@ -219,7 +220,6 @@ class TestHostInfo(TestCase):
     for item in ['/etc/conf/a1', '/var/lib/a1', '/etc/conf/b1', '/var/lib/b1']:
       self.assertTrue(item in names)
 
-  @patch("ambari_commons.os_check.os_distribution", new=MagicMock(return_value=('redhat','11','Final')))
   @patch('os.path.exists')
   @patch('__builtin__.open')
   def test_checkUsers(self, builtins_open_mock, path_mock):
@@ -416,7 +416,6 @@ class TestHostInfo(TestCase):
     result = hostInfo.hadoopVarLogCount()
     self.assertEquals(result, 0)
 
-  @patch("ambari_commons.os_check.os_distribution", new=MagicMock(return_value=('redhat','11','Final')))
   @patch("os.listdir", create=True, autospec=True)
   @patch("__builtin__.open", create=True, autospec=True)
   @patch("pwd.getpwuid", create=True, autospec=True)
@@ -499,7 +498,6 @@ class TestHostInfo(TestCase):
     self.assertEquals(result[0]['name'], 'service1')
     self.assertTrue(len(result[0]['desc']) > 0)
 
-  @patch("ambari_commons.os_check.os_distribution", new=MagicMock(return_value=('redhat','11','Final')))
   @patch("os.path.exists")
   @patch("os.listdir", create=True, autospec=True)
   @patch("os.path.islink")
@@ -567,7 +565,6 @@ class TestHostInfo(TestCase):
     run_os_command_mock.return_value = 3, "", ""
     self.assertFalse(Firewall().getFirewallObject().check_iptables())
 
-  @patch("ambari_commons.os_check.os_distribution", new=MagicMock(return_value=('redhat','11','Final')))
   @patch("os.path.isfile")
   @patch('__builtin__.open')
   def test_transparent_huge_page(self, open_mock, os_path_isfile_mock):

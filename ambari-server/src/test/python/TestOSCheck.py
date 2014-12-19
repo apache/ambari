@@ -26,6 +26,7 @@ import tempfile
 import sys
 from unittest import TestCase
 from mock.mock import patch
+from mock.mock import MagicMock
 
 from ambari_commons import OSCheck
 import os_check_type
@@ -33,12 +34,13 @@ import os_check_type
 utils = __import__('ambari_server.utils').utils
 # We have to use this import HACK because the filename contains a dash
 with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
-  with patch.object(utils, "get_postgre_hba_dir"):
-    ambari_server = __import__('ambari-server')
+  with patch.object(OSCheck, "os_distribution", return_value = ('Suse','11','Final')):
+    with patch.object(utils, "get_postgre_hba_dir"):
+      ambari_server = __import__('ambari-server')
 
 
 class TestOSCheck(TestCase):
-  @patch("platform.linux_distribution")
+  @patch.object(OSCheck, "os_distribution")
   @patch("os.path.exists")
   def test_get_os_type(self, mock_exists, mock_linux_distribution):
 
@@ -87,7 +89,7 @@ class TestOSCheck(TestCase):
     result = OSCheck.get_os_type()
     self.assertEquals(result, 'redhat')
 
-  @patch("platform.linux_distribution")
+  @patch.object(OSCheck, "os_distribution")
   @patch("os.path.exists")
   def test_get_os_family(self, mock_exists, mock_linux_distribution):
 
@@ -131,7 +133,7 @@ class TestOSCheck(TestCase):
       self.assertEquals("Cannot detect os type. Exiting...", str(e))
       pass
 
-  @patch("platform.linux_distribution")
+  @patch.object(OSCheck, "os_distribution")
   def test_get_os_version(self, mock_linux_distribution):
 
     # 1 - Any system
@@ -149,7 +151,7 @@ class TestOSCheck(TestCase):
       self.assertEquals("Cannot detect os version. Exiting...", str(e))
       pass
 
-  @patch("platform.linux_distribution")
+  @patch.object(OSCheck, "os_distribution")
   def test_get_os_major_version(self, mock_linux_distribution):
 
     # 1
@@ -162,7 +164,7 @@ class TestOSCheck(TestCase):
     result = OSCheck.get_os_major_version()
     self.assertEquals(result, '11')
 
-  @patch("platform.linux_distribution")
+  @patch.object(OSCheck, "os_distribution")
   def test_get_os_release_name(self, mock_linux_distribution):
 
     # 1 - Any system
@@ -226,7 +228,7 @@ class TestOSCheck(TestCase):
     result = ambari_server.update_ambari_properties()
     self.assertEquals(result, 0)
 
-  @patch("platform.linux_distribution")
+  @patch.object(OSCheck, "os_distribution")
   def test_os_type_check(self, mock_linux_distribution):
 
     # 1 - server and agent os compatible
