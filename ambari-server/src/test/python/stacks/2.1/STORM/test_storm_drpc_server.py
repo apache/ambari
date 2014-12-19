@@ -26,12 +26,10 @@ from test_storm_base import TestStormBase
 class TestStormDrpcServer(TestStormBase):
 
   def test_configure_default(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/drpc_server.py",
+    self.executeScript("2.1/services/STORM/package/scripts/drpc_server.py",
                        classname = "DrpcServer",
                        command = "configure",
-                       config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       config_file="default.json"
     )
 
     self.assert_configure_default()
@@ -39,12 +37,10 @@ class TestStormDrpcServer(TestStormBase):
 
   def test_start_default(self):
 
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/drpc_server.py",
+    self.executeScript("2.1/services/STORM/package/scripts/drpc_server.py",
                        classname = "DrpcServer",
                        command = "start",
-                       config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       config_file="default.json"
     )
     self.assert_configure_default()
 
@@ -65,12 +61,10 @@ class TestStormDrpcServer(TestStormBase):
     self.assertNoMoreResources()
 
   def test_stop_default(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/drpc_server.py",
+    self.executeScript("2.1/services/STORM/package/scripts/drpc_server.py",
                        classname = "DrpcServer",
                        command = "stop",
-                       config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       config_file="default.json"
     )
     self.assertResourceCalled('Execute', 'sudo kill `cat /var/run/storm/drpc.pid`',
         not_if = '! (ls /var/run/storm/drpc.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/drpc.pid` >/dev/null 2>&1)',
@@ -85,23 +79,19 @@ class TestStormDrpcServer(TestStormBase):
     self.assertNoMoreResources()
 
   def test_configure_secured(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/drpc_server.py",
+    self.executeScript("2.1/services/STORM/package/scripts/drpc_server.py",
                        classname = "DrpcServer",
                        command = "configure",
-                       config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       config_file="secured.json"
     )
     self.assert_configure_secured()
     self.assertNoMoreResources()
 
   def test_start_secured(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/drpc_server.py",
+    self.executeScript("2.1/services/STORM/package/scripts/drpc_server.py",
                        classname = "DrpcServer",
                        command = "start",
-                       config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       config_file="secured.json"
     )
 
     self.assert_configure_secured()
@@ -122,12 +112,10 @@ class TestStormDrpcServer(TestStormBase):
     self.assertNoMoreResources()
 
   def test_stop_secured(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/drpc_server.py",
+    self.executeScript("2.1/services/STORM/package/scripts/drpc_server.py",
                        classname = "DrpcServer",
                        command = "stop",
-                       config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       config_file="secured.json"
     )
     self.assertResourceCalled('Execute', 'sudo kill `cat /var/run/storm/drpc.pid`',
         not_if = '! (ls /var/run/storm/drpc.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/drpc.pid` >/dev/null 2>&1)',

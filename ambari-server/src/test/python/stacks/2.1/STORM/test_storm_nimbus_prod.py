@@ -26,23 +26,19 @@ from test_storm_base import TestStormBase
 class TestStormNimbus(TestStormBase):
 
   def test_configure_default(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nimbus_prod.py",
+    self.executeScript("2.1/services/STORM/package/scripts/nimbus_prod.py",
                        classname = "Nimbus",
                        command = "configure",
-                       config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       config_file="default.json"
     )
     self.assert_configure_default()
     self.assertNoMoreResources()
 
   def test_start_default(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nimbus_prod.py",
+    self.executeScript("2.1/services/STORM/package/scripts/nimbus_prod.py",
                        classname = "Nimbus",
                        command = "start",
-                       config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       config_file="default.json"
     )
 
     self.assert_configure_default()
@@ -53,12 +49,10 @@ class TestStormNimbus(TestStormBase):
     self.assertNoMoreResources()
 
   def test_stop_default(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nimbus_prod.py",
+    self.executeScript("2.1/services/STORM/package/scripts/nimbus_prod.py",
                        classname = "Nimbus",
                        command = "stop",
-                       config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       config_file="default.json"
     )
     self.assertResourceCalled('Execute', 'supervisorctl stop storm-nimbus',
                               wait_for_finish = False,
@@ -66,23 +60,19 @@ class TestStormNimbus(TestStormBase):
     self.assertNoMoreResources()
 
   def test_configure_secured(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nimbus_prod.py",
+    self.executeScript("2.1/services/STORM/package/scripts/nimbus_prod.py",
                        classname = "Nimbus",
                        command = "configure",
-                       config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       config_file="secured.json"
     )
     self.assert_configure_secured()
     self.assertNoMoreResources()
 
   def test_start_secured(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nimbus_prod.py",
+    self.executeScript("2.1/services/STORM/package/scripts/nimbus_prod.py",
                        classname = "Nimbus",
                        command = "start",
-                       config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       config_file="secured.json"
     )
 
     self.assert_configure_secured()
@@ -93,12 +83,10 @@ class TestStormNimbus(TestStormBase):
     self.assertNoMoreResources()
 
   def test_stop_secured(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nimbus_prod.py",
+    self.executeScript("2.1/services/STORM/package/scripts/nimbus_prod.py",
                        classname = "Nimbus",
                        command = "stop",
-                       config_file="secured.json",
-                       hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       config_file="secured.json"
     )
     self.assertResourceCalled('Execute', 'supervisorctl stop storm-nimbus',
                               wait_for_finish = False,

@@ -26,22 +26,18 @@ from test_storm_base import TestStormBase
 class TestStormJaasConfiguration(TestStormBase):
 
   def test_configure_default(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nimbus.py",
+    self.executeScript("2.1/services/STORM/package/scripts/nimbus.py",
                        classname = "Nimbus",
                        command = "configure",
-                       config_file = "default-storm-start.json",
-                       hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       config_file = "default-storm-start.json"
     )
     self.assert_configure_default()
   def test_start_default(self):
 
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nimbus.py",
+    self.executeScript("2.1/services/STORM/package/scripts/nimbus.py",
                        classname = "Nimbus",
                        command = "start",
-                       config_file = "default-storm-start.json",
-                       hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       config_file = "default-storm-start.json"
     )
     self.assert_configure_default()
 
@@ -49,23 +45,19 @@ class TestStormJaasConfiguration(TestStormBase):
   @patch("storm._find_real_user_min_uid")
   def test_configure_secured(self, find_real_user_max_pid):
     find_real_user_max_pid.return_value = 500
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nimbus.py",
+    self.executeScript("2.1/services/STORM/package/scripts/nimbus.py",
                        classname = "Nimbus",
                        command = "configure",
-                       config_file = "secured-storm-start.json",
-                       hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       config_file = "secured-storm-start.json"
     )
     self.assert_configure_secured()
   @patch("storm._find_real_user_min_uid")
   def test_start_secured(self, find_real_user_max_pid):
     find_real_user_max_pid.return_value = 500
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nimbus.py",
+    self.executeScript("2.1/services/STORM/package/scripts/nimbus.py",
                        classname = "Nimbus",
                        command = "start",
-                       config_file = "secured-storm-start.json",
-                       hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       config_file = "secured-storm-start.json"
     )
     self.assert_configure_secured()
 

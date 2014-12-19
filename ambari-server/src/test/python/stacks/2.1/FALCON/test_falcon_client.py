@@ -22,16 +22,11 @@ from stacks.utils.RMFTestCase import *
 
 
 class TestFalconClient(RMFTestCase):
-  COMMON_SERVICES_PACKAGE_DIR = "FALCON/0.5.0.2.1/package"
-  STACK_VERSION = "2.1"
-
   def test_configure_default(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/falcon_client.py",
+    self.executeScript("2.1/services/FALCON/package/scripts/falcon_client.py",
                        classname="FalconClient",
                        command="configure",
-                       config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       config_file="default.json"
     )
     self.assertResourceCalled('Directory', '/var/run/falcon',
                               owner = 'falcon',

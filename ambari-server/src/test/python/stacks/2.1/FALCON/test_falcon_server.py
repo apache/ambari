@@ -22,16 +22,12 @@ from stacks.utils.RMFTestCase import *
 
 
 class TestFalconServer(RMFTestCase):
-  COMMON_SERVICES_PACKAGE_DIR = "FALCON/0.5.0.2.1/package"
-  STACK_VERSION = "2.1"
 
   def test_start_default(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/falcon_server.py",
+    self.executeScript("2.1/services/FALCON/package/scripts/falcon_server.py",
                        classname="FalconServer",
                        command="start",
-                       config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       config_file="default.json"
     )
     self.assert_configure_default()
     self.assertResourceCalled('Execute', '/usr/lib/falcon/bin/falcon-start -port 15000',
@@ -41,12 +37,10 @@ class TestFalconServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_stop_default(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/falcon_server.py",
+    self.executeScript("2.1/services/FALCON/package/scripts/falcon_server.py",
                        classname="FalconServer",
                        command="stop",
-                       config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       config_file="default.json"
     )
     self.assertResourceCalled('Execute', '/usr/lib/falcon/bin/falcon-stop',
                               path = ['/usr/bin'],
@@ -58,12 +52,10 @@ class TestFalconServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_configure_default(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/falcon_server.py",
+    self.executeScript("2.1/services/FALCON/package/scripts/falcon_server.py",
                        classname="FalconServer",
                        command="configure",
-                       config_file="default.json",
-                       hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       config_file="default.json"
     )
     self.assert_configure_default()
     self.assertNoMoreResources()
