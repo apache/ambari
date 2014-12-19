@@ -112,7 +112,7 @@
             </goals>
             <configuration>
               <target name="psutils-compile">
-                <exec dir="${basedir}/src/main/python/psutil" executable="python" failonerror="true">
+                <exec dir="${basedir}/src/main/python/psutil" executable="${project.basedir}/../../ambari-common/src/main/unix/ambari-python-wrap" failonerror="true">
                   <arg value="setup.py" />
                   <arg value="build" />
                   <arg value="--build-platlib" />
@@ -130,7 +130,7 @@
         <executions>
           <execution>
             <configuration>
-              <executable>python</executable>
+              <executable>${project.basedir}/../../ambari-common/src/main/unix/ambari-python-wrap</executable>
               <workingDirectory>src/test/python</workingDirectory>
               <arguments>
                 <argument>unitTests.py</argument>
