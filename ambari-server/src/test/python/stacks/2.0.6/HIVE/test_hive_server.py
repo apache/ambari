@@ -17,18 +17,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import os
-import subprocess
-from mock.mock import MagicMock, call, patch
-from resource_management.core import shell
-from resource_management.libraries.functions import hive_check
-from stacks.utils.RMFTestCase import *
-
 import socket
+import subprocess
+
+from mock.mock import MagicMock, patch
+from resource_management.core import shell
+from stacks.utils.RMFTestCase import *
 
 class TestHiveServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HIVE/0.12.0.2.0/package"
   STACK_VERSION = "2.0.6"
+  UPGRADE_STACK_VERSION = "2.2"
 
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
@@ -545,3 +544,57 @@ class TestHiveServer(RMFTestCase):
       self.assert_configure_default()
       self.assertFalse(socket_mock.called)
       self.assertFalse(s.close.called)
+
+
+  @patch("hive_server.HiveServer.pre_rolling_restart")
+  @patch("hive_server.HiveServer.start")
+  @patch("subprocess.Popen")
+  def test_stop_during_upgrade(self, process_mock, hive_server_start_mock,
+    hive_server_pre_rolling_mock):
+
+    process_output = 'hive-server2 - 2.2.0.0-2041'
+
+    process = MagicMock()
+    process.communicate.return_value = [process_output]
+    process.returncode = 0
+    process_mock.return_value = process
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
+     classname = "HiveServer", command = "restart", config_file = "hive-upgrade.json",
+     hdp_stack_version = self.UPGRADE_STACK_VERSION,
+     target = RMFTestCase.TARGET_COMMON_SERVICES )
+
+    self.assertTrue(process_mock.called)
+    self.assertEqual(process_mock.call_count,2)
+
+    self.assertResourceCalled('Execute', 'hive --service hiveserver2 --deregister 2.2.0.0-2041',
+      path=['/bin:/usr/hdp/current/hive-server2/bin:/usr/hdp/current/hadoop-client/bin'],
+      tries=1, user='hive')
+
+    self.assertResourceCalled('Execute', 'hdp-select set hive-server2 2.2.1.0-2065',)
+
+
+  @patch("hive_server.HiveServer.pre_rolling_restart")
+  @patch("hive_server.HiveServer.start")
+  @patch("subprocess.Popen")
+  def test_stop_during_upgrade_bad_hive_version(self, process_mock, hive_server_start_mock,
+    hive_server_pre_rolling_mock):
+
+    process_output = 'BAD VERSION'
+
+    process = MagicMock()
+    process.communicate.return_value = [process_output]
+    process.returncode = 0
+    process_mock.return_value = process
+
+    try:
+      self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
+       classname = "HiveServer", command = "restart", config_file = "hive-upgrade.json",
+       hdp_stack_version = self.UPGRADE_STACK_VERSION,
+       target = RMFTestCase.TARGET_COMMON_SERVICES )
+
+      self.fail("Invalid hive version should have caused an exception")
+    except:
+      pass
+
+    self.assertNoMoreResources()

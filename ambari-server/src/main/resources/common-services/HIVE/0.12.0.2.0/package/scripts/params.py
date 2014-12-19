@@ -38,14 +38,27 @@ version = default("/commandParams/version", None)
 # Hadoop params
 # TODO, this logic should initialize these parameters in a file inside the HDP 2.2 stack.
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >=0:
+  # start out with client libraries
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
   hadoop_home = '/usr/hdp/current/hadoop-client'
   hive_bin = '/usr/hdp/current/hive-client/bin'
   hive_lib = '/usr/hdp/current/hive-client/lib'
 
+  # if this is a server action, then use the server binaries; smoke tests
+  # use the client binaries
+  command_role = default("/role", "")
+  server_role_dir_mapping = { 'HIVE_SERVER' : 'hive-server2',
+    'HIVE_METASTORE' : 'hive-metastore' }
+
+  if command_role in server_role_dir_mapping:
+    hive_server_root = server_role_dir_mapping[command_role]
+    hive_bin = format('/usr/hdp/current/{hive_server_root}/bin')
+    hive_lib = format('/usr/hdp/current/{hive_server_root}/lib')
+
+  # there are no client versions of these, use server versions directly
   hcat_lib = '/usr/hdp/current/hive-webhcat/share/hcatalog'
   webhcat_bin_dir = '/usr/hdp/current/hive-webhcat/sbin'
-  
+
   hive_specific_configs_supported = True
 else:
   hadoop_bin_dir = "/usr/bin"

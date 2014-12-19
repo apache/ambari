@@ -18,9 +18,30 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.common.reflect.TypeToken;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import java.lang.reflect.Type;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -70,35 +91,16 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import java.lang.reflect.Type;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
+import com.google.common.reflect.TypeToken;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 /**
  * Upgrade catalog for version 1.7.0.
@@ -1110,11 +1112,12 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
         Config oldConfig = cluster.getDesiredConfigByType(PIG_PROPERTIES_CONFIG_TYPE);
         if (oldConfig != null) {
           Map<String, String> properties = oldConfig.getProperties();
-          
+
           if(!properties.containsKey(CONTENT_FIELD_NAME)) {
             String value = properties.remove(PIG_CONTENT_FIELD_NAME);
             properties.put(CONTENT_FIELD_NAME, value);
-            configHelper.createConfigType(cluster, ambariManagementController, PIG_PROPERTIES_CONFIG_TYPE, properties, "ambari-upgrade");
+            configHelper.createConfigType(cluster, ambariManagementController,
+                PIG_PROPERTIES_CONFIG_TYPE, properties, "ambari-upgrade", null);
           }
         }
       }
@@ -1212,7 +1215,9 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
         // if have some custom properties, for own services etc., leave that as it was
         if(unmappedGlobalProperties.size() != 0) {
           LOG.info("Not deleting globals because have custom properties");
-          configHelper.createConfigType(cluster, ambariManagementController, Configuration.GLOBAL_CONFIG_TAG, unmappedGlobalProperties, "ambari-upgrade");
+          configHelper.createConfigType(cluster, ambariManagementController,
+              Configuration.GLOBAL_CONFIG_TAG, unmappedGlobalProperties,
+              "ambari-upgrade", null);
         } else {
           configHelper.removeConfigsByType(cluster, Configuration.GLOBAL_CONFIG_TAG);
         }

@@ -21,7 +21,6 @@
   <target>2.2.*.*</target>
 
   <order>
-
     <group name="ZOOKEEPER" title="Zookeeper">
       <service name="ZOOKEEPER">
         <component>ZOOKEEPER_SERVER</component>
@@ -66,6 +65,14 @@
         <percent>33</percent>
         <message>Please run additional tests</message>
       </batch>
+    </group>
+
+    <group name="HIVE" title="Hive">
+      <service name="HIVE">
+        <component>HIVE_METASTORE</component>
+        <component>HIVE_SERVER</component>
+        <component>WEBHCAT_SERVER</component>
+      </service>
     </group>
 
     <group name="CLIENTS" title="Client Components">
@@ -118,7 +125,7 @@
         </task>
       </execute-stage>
     </group>
-   
+
   </order>
   
   
@@ -312,8 +319,46 @@
         </upgrade>
       </component>
     </service>
-    
+
     <service name="HIVE">
+      <component name="HIVE_METASTORE">
+        <pre-upgrade>
+          <task xsi:type="manual">
+            <message>Backup the Hive Metastore database.</message>
+          </task>
+          <task xsi:type="manual">
+            <message>Run the SQL file at /usr/hdp/$version/hive/scripts/metastore/upgrade to update the Hive Metastore schema.</message>
+          </task>
+        </pre-upgrade>
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+
+      <component name="HIVE_SERVER">
+        <pre-upgrade>
+          <task xsi:type="manual">
+            <message>The HiveServer port will now change to 10010. Ensure that this port is available on each HiveServer instance.</message>
+          </task>
+
+          <task xsi:type="configure">
+            <type>hive-site</type>
+            <key>hive.server2.thrift.port</key>
+            <value>10010</value>
+          </task>
+        </pre-upgrade>
+
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+
+      <component name="WEBHCAT_SERVER">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+
       <component name="HIVE_CLIENT">
         <upgrade>
           <task xsi:type="restart" />

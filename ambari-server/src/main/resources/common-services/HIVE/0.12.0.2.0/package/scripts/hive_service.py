@@ -23,9 +23,7 @@ import sys
 import time
 from resource_management.core import shell
 
-def hive_service(
-    name,
-    action='start'):
+def hive_service(name, action='start', rolling_restart=False):
 
   import params
 
@@ -38,20 +36,23 @@ def hive_service(
     cmd = format(
       "env JAVA_HOME={java64_home} {start_hiveserver2_path} {hive_log_dir}/hive-server2.out {hive_log_dir}/hive-server2.log {pid_file} {hive_server_conf_dir} {hive_log_dir}")
 
-  process_id_exists = format("ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1")
-  
+  process_id_exists_command = format("ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1")
+
   if action == 'start':
     if name == 'hiveserver2':
       check_fs_root()
 
     demon_cmd = format("{cmd}")
-    
-    Execute(demon_cmd,
-            user=params.hive_user,
-            environment={'HADOOP_HOME': params.hadoop_home},
-            path=params.execute_path,
-            not_if=process_id_exists
-    )
+
+    # upgrading hiveserver2 (rolling_restart) means that there is an existing,
+    # de-registering hiveserver2; the pid will still exist, but the new
+    # hiveserver is spinning up on a new port, so the pid will be re-written
+    if rolling_restart:
+      process_id_exists_command = None
+
+    Execute(demon_cmd, user=params.hive_user,
+      environment={'HADOOP_HOME': params.hadoop_home}, path=params.execute_path,
+      not_if=process_id_exists_command )
 
     if params.hive_jdbc_driver == "com.mysql.jdbc.Driver" or \
        params.hive_jdbc_driver == "org.postgresql.Driver" or \
@@ -96,12 +97,9 @@ def hive_service(
             
   elif action == 'stop':
     demon_cmd = format("sudo kill `cat {pid_file}`")
-    Execute(demon_cmd,
-         not_if = format("! ({process_id_exists})")
-    )
-    File(pid_file,
-         action = "delete",
-    )
+    Execute(demon_cmd, not_if = format("! ({process_id_exists_command})"))
+
+    File(pid_file, action = "delete",)
 
 def check_fs_root():
   import params  

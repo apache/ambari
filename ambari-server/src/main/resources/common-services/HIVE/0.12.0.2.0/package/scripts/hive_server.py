@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import hive_server_upgrade
 
 from resource_management import *
 from hive import hive
@@ -30,12 +31,15 @@ class HiveServer(Script):
     import params
     self.install_packages(env, exclude_packages=params.hive_exclude_packages)
 
+
   def configure(self, env):
     import params
     env.set_params(params)
     if not (params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2') >=0):
       install_tez_jars()
+
     hive(name='hiveserver2')
+
 
   def start(self, env, rolling_restart=False):
     import params
@@ -46,24 +50,36 @@ class HiveServer(Script):
     copy_tarballs_to_hdfs('mapreduce', params.tez_user, params.hdfs_user, params.user_group)
     copy_tarballs_to_hdfs('tez', params.tez_user, params.hdfs_user, params.user_group)
 
-    hive_service( 'hiveserver2',
-                  action = 'start'
-    )
+    hive_service( 'hiveserver2', action = 'start',
+      rolling_restart=rolling_restart )
+
 
   def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
 
-    hive_service( 'hiveserver2',
-                  action = 'stop'
-    )
+    if rolling_restart:
+      hive_server_upgrade.pre_upgrade_deregister()
+    else:
+      hive_service( 'hiveserver2', action = 'stop' )
+
 
   def status(self, env):
     import status_params
     env.set_params(status_params)
     pid_file = format("{hive_pid_dir}/{hive_pid}")
+
     # Recursively check all existing gmetad pid files
     check_process_status(pid_file)
+
+
+  def pre_rolling_restart(self, env):
+    Logger.info("Executing HiveServer2 Rolling Upgrade pre-restart")
+    import params
+    env.set_params(params)
+
+    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      Execute(format("hdp-select set hive-server2 {version}"))
 
 
 if __name__ == "__main__":

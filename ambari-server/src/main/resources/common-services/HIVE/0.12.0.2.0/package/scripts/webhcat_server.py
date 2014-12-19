@@ -18,7 +18,6 @@ limitations under the License.
 Ambari Agent
 
 """
-import sys
 from resource_management import *
 
 from webhcat import webhcat
@@ -27,10 +26,13 @@ from webhcat_service import webhcat_service
 class WebHCatServer(Script):
   def install(self, env):
     self.install_packages(env)
+
+
   def configure(self, env):
     import params
     env.set_params(params)
     webhcat()
+
 
   def start(self, env, rolling_restart=False):
     import params
@@ -38,16 +40,27 @@ class WebHCatServer(Script):
     self.configure(env) # FOR SECURITY
     webhcat_service(action = 'start')
 
+
   def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
 
     webhcat_service(action = 'stop')
 
+
   def status(self, env):
     import status_params
     env.set_params(status_params)
     check_process_status(status_params.webhcat_pid_file)
+
+
+  def pre_rolling_restart(self, env):
+    Logger.info("Executing WebHCat Rolling Upgrade pre-restart")
+    import params
+    env.set_params(params)
+
+    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      Execute(format("hdp-select set hive-webhcat {version}"))
 
 if __name__ == "__main__":
   WebHCatServer().execute()
