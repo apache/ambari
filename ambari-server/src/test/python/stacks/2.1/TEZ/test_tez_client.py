@@ -62,10 +62,12 @@ class TestTezClient(RMFTestCase):
 
 
   def test_upgrade(self):
-    self.executeScript("2.1/services/TEZ/package/scripts/tez_client.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/tez_client.py",
                        classname = "TezClient",
                        command = "restart",
-                       config_file="client-upgrade.json")
+                       config_file="client-upgrade.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertResourceCalled("Execute", "hdp-select set hadoop-client 2.2.1.0-2067")
 
