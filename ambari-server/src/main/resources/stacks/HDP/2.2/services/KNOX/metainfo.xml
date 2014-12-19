@@ -20,68 +20,7 @@
   <services>
     <service>
       <name>KNOX</name>
-      <displayName>Knox</displayName>
-      <comment>Provides a single point of authentication and access for Apache Hadoop services in a cluster</comment>
-      <version>0.5.0.2.2</version>
-      <components>
-        <component>
-          <name>KNOX_GATEWAY</name>
-          <displayName>Knox Gateway</displayName>
-          <category>MASTER</category>
-          <cardinality>1+</cardinality>
-          <commandScript>
-            <script>scripts/knox_gateway.py</script>
-            <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
-          </commandScript>
-            <customCommands>
-                <customCommand>
-                    <name>STARTDEMOLDAP</name>
-                    <commandScript>
-                        <script>scripts/demo_ldap.py</script>
-                        <scriptType>PYTHON</scriptType>
-                        <timeout>600</timeout>
-                    </commandScript>
-                </customCommand>
-                <customCommand>
-                    <name>STOPDEMOLDAP</name>
-                    <commandScript>
-                        <script>scripts/demo_ldap.py</script>
-                        <scriptType>PYTHON</scriptType>
-                        <timeout>600</timeout>
-                    </commandScript>
-                </customCommand>
-            </customCommands>
-        </component>
-      </components>
-      <osSpecifics>
-        <osSpecific>
-          <osFamily>redhat5,redhat6,suse11</osFamily>
-          <packages>
-            <package>
-              <name>knox_2_2_*</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>ubuntu12</osFamily>
-          <packages>
-            <package>
-              <name>knox-2-2-.*</name>
-            </package>
-          </packages>
-        </osSpecific>
-      </osSpecifics>
-      <commandScript>
-        <script>scripts/service_check.py</script>
-        <scriptType>PYTHON</scriptType>
-        <timeout>300</timeout>
-      </commandScript>
-      <configuration-dependencies>
-        <config-type>gateway-site</config-type>
-        <config-type>gateway-log4j</config-type>
-        <config-type>topology</config-type>
-      </configuration-dependencies>
+      <extends>common-services/KNOX/0.5.0.2.2</extends>
     </service>
   </services>
 </metainfo>

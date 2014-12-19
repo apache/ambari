@@ -21,12 +21,16 @@ from stacks.utils.RMFTestCase import *
 
 
 class TestKafkaBroker(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "KAFKA/0.8.1.2.2/package"
+  STACK_VERSION = "2.2"
 
   def test_configure_default(self):
-    self.executeScript("2.2/services/KAFKA/package/scripts/kafka_broker.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/kafka_broker.py",
                          classname = "KafkaBroker",
                          command = "configure",
-                         config_file="default.json"
+                         config_file="default.json",
+                         hdp_stack_version = self.STACK_VERSION,
+                         target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assertResourceCalled('Directory', '/var/log/kafka',

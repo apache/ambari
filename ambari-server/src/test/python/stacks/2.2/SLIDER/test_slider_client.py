@@ -21,12 +21,17 @@ from stacks.utils.RMFTestCase import *
 
 
 class TestSliderClient(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "SLIDER/0.60.0.2.2/package"
+  STACK_VERSION = "2.2"
+
   def test_configure_default(self):
     self.maxDiff = None
-    self.executeScript("2.2/services/SLIDER/package/scripts/slider_client.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/slider_client.py",
                        classname="SliderClient",
                        command="configure",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assertResourceCalled('Directory',
@@ -66,10 +71,12 @@ class TestSliderClient(RMFTestCase):
 
   def test_svc_check_secured(self):
     self.maxDiff = None
-    self.executeScript("2.2/services/SLIDER/package/scripts/service_check.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
                        classname="SliderServiceCheck",
                        command="service_check",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assertResourceCalled('Execute',
@@ -83,10 +90,12 @@ class TestSliderClient(RMFTestCase):
 
   def test_svc_check_default(self):
     self.maxDiff = None
-    self.executeScript("2.2/services/SLIDER/package/scripts/service_check.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
                        classname="SliderServiceCheck",
                        command="service_check",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assertResourceCalled('Execute', ' /usr/lib/slider/bin/slider list',

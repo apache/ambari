@@ -20,12 +20,16 @@ limitations under the License.
 from stacks.utils.RMFTestCase import *
 
 class TestKnoxGateway(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "KNOX/0.5.0.2.2/package"
+  STACK_VERSION = "2.2"
 
   def test_configure_default(self):
-    self.executeScript("2.2/services/KNOX/package/scripts/knox_gateway.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/knox_gateway.py",
                        classname = "KnoxGateway",
                        command = "configure",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assertResourceCalled('Directory', '/etc/knox/conf',

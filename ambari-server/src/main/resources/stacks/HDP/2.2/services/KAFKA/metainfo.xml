@@ -20,63 +20,7 @@
   <services>
     <service>
       <name>KAFKA</name>
-      <displayName>Kafka</displayName>
-      <comment>A high-throughput distributed messaging system</comment>
-      <version>0.8.1.2.2</version>
-      <components>
-        <component>
-          <name>KAFKA_BROKER</name>
-          <displayName>Kafka Broker</displayName>
-          <category>MASTER</category>
-          <cardinality>1+</cardinality>
-          <dependencies>
-            <dependency>
-              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
-              <scope>cluster</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
-          </dependencies>
-          <commandScript>
-            <script>scripts/kafka_broker.py</script>
-            <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
-          </commandScript>
-        </component>
-      </components>
-      <osSpecifics>
-        <osSpecific>
-          <osFamily>redhat5,redhat6,suse11</osFamily>
-          <packages>
-            <package>
-              <name>kafka_2_2_*</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>ubuntu12</osFamily>
-          <packages>
-            <package>
-              <name>kafka-2-2-.*</name>
-            </package>
-          </packages>
-        </osSpecific>
-      </osSpecifics>
-      <commandScript>
-        <script>scripts/service_check.py</script>
-        <scriptType>PYTHON</scriptType>
-        <timeout>300</timeout>
-      </commandScript>
-      <requiredServices>
-        <service>ZOOKEEPER</service>
-      </requiredServices>
-      <configuration-dependencies>
-        <config-type>kafka-broker</config-type>
-        <config-type>kafka-env</config-type>
-        <config-type>kafka-log4j</config-type>
-      </configuration-dependencies>
-      <restartRequiredAfterChange>true</restartRequiredAfterChange>
+      <extends>common-services/KAFKA/0.8.1.2.2</extends>
     </service>
   </services>
 </metainfo>
