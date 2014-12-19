@@ -39,14 +39,33 @@ hostname = config['hostname']
 
 #hadoop params
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
-  hadoop_libexec_dir = "/usr/hdp/current/hadoop-client/libexec"
-  hadoop_bin = "/usr/hdp/current/hadoop-client/sbin"
-  hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
-  hadoop_yarn_home = '/usr/hdp/current/hadoop-yarn-client'
-  hadoop_mapred2_jar_location = '/usr/hdp/current/hadoop-mapreduce-client'
-  mapred_bin = '/usr/hdp/current/hadoop-mapreduce-client/sbin'
-  yarn_bin = '/usr/hdp/current/hadoop-yarn-client/sbin'
-  yarn_container_bin = '/usr/hdp/current/hadoop-yarn-client/bin'
+  yarn_role_root = "hadoop-yarn-client"
+  mapred_role_root = "hadoop-mapreduce-client"
+
+  command_role = default("/role", "")
+  if command_role == "APP_TIMELINE_SERVER":
+    yarn_role_root = "hadoop-yarn-timelineserver"
+  elif command_role == "HISTORYSERVER":
+    mapred_role_root = "hadoop-mapreduce-historyserver"
+  elif command_role == "MAPREDUCE2_CLIENT":
+    mapred_role_root = "hadoop-mapreduce-client"
+  elif command_role == "NODEMANAGER":
+    yarn_role_root = "hadoop-yarn-nodemanager"
+  elif command_role == "RESOURCEMANAGER":
+    yarn_role_root = "hadoop-yarn-resourcemanager"
+  elif command_role == "YARN_CLIENT":
+    yarn_role_root = "hadoop-yarn-client"
+
+  hadoop_libexec_dir          = "/usr/hdp/current/hadoop-client/libexec"
+  hadoop_bin                  = "/usr/hdp/current/hadoop-client/sbin"
+  hadoop_bin_dir              = "/usr/hdp/current/hadoop-client/bin"
+
+  hadoop_mapred2_jar_location = format("/usr/hdp/current/{mapred_role_root}")
+  mapred_bin                  = format("/usr/hdp/current/{mapred_role_root}/sbin")
+
+  hadoop_yarn_home            = format("/usr/hdp/current/{yarn_role_root}")
+  yarn_bin                    = format("/usr/hdp/current/{yarn_role_root}/sbin")
+  yarn_container_bin          = format("/usr/hdp/current/{yarn_role_root}/bin")
 else:
   hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
   hadoop_bin = "/usr/lib/hadoop/sbin"

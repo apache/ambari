@@ -50,7 +50,7 @@ secure_dn_ports_are_in_use = False
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
   mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
   hadoop_libexec_dir = "/usr/hdp/current/hadoop-client/libexec"
-  hadoop_bin = "/usr/hdp/current/hadoop-client/sbin"    # TODO Rolling Upgrade, switch from hadoop-client to server when starting daemon.
+  hadoop_bin = "/usr/hdp/current/hadoop-client/sbin"
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
   hadoop_home = "/usr/hdp/current/hadoop-client"
   if not security_enabled:

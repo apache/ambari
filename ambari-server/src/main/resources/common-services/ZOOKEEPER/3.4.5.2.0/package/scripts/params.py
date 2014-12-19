@@ -36,13 +36,21 @@ version = default("/commandParams/version", None)
 
 #hadoop params
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
-  zk_home = '/usr/hdp/current/zookeeper-client'
-  zk_bin = '/usr/hdp/current/zookeeper-client/bin'    # TODO Rolling Upgrade, needs to be server binary when starting server daemon...
-  zk_cli_shell = '/usr/hdp/current/zookeeper-client/bin/zkCli.sh'
+  role_root = ""
+  command_role = default("/role", "")
+  if command_role == "ZOOKEEPER_SERVER":
+    role_root = "zookeeper-server"
+  elif command_role == "ZOOKEEPER_CLIENT":
+    role_root = "zookeeper-client"
+
+  zk_home = format("/usr/hdp/current/{role_root}")
+  zk_bin = format("/usr/hdp/current/{role_root}/bin")
+  zk_cli_shell = format("/usr/hdp/current/{role_root}/bin/zkCli.sh")
 else:
-  zk_home = '/usr'
-  zk_bin = '/usr/lib/zookeeper/bin'
+  zk_home = "/usr"
+  zk_bin = "/usr/lib/zookeeper/bin"
   zk_cli_shell = "/usr/lib/zookeeper/bin/zkCli.sh"
+
 
 config_dir = "/etc/zookeeper/conf"
 zk_user =  config['configurations']['zookeeper-env']['zk_user']
