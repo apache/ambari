@@ -53,9 +53,10 @@ class AlertSchedulerHandler():
   }
 
 
-  def __init__(self, cachedir, stacks_dir, host_scripts_dir, in_minutes=True):
+  def __init__(self, cachedir, stacks_dir, common_services_dir, host_scripts_dir, in_minutes=True):
     self.cachedir = cachedir
     self.stacks_dir = stacks_dir
+    self.common_services_dir = common_services_dir
     self.host_scripts_dir = host_scripts_dir
     
     if not os.path.exists(cachedir) and AlertSchedulerHandler.make_cachedir:
@@ -224,6 +225,7 @@ class AlertSchedulerHandler():
       alert = PortAlert(json_definition, source)
     elif source_type == AlertSchedulerHandler.TYPE_SCRIPT:
       source['stacks_directory'] = self.stacks_dir
+      source['common_services_directory'] = self.common_services_dir
       source['host_scripts_directory'] = self.host_scripts_dir
       alert = ScriptAlert(json_definition, source)
     elif source_type == AlertSchedulerHandler.TYPE_WEB:
@@ -360,7 +362,7 @@ def main():
   ch.setLevel(logger.level)
   logger.addHandler(ch)
     
-  ash = AlertSchedulerHandler(args[0], args[1], False)
+  ash = AlertSchedulerHandler(args[0], args[1], args[2], False)
   ash.start()
   
   i = 0

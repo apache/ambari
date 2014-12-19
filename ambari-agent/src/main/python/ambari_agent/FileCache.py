@@ -39,6 +39,7 @@ class FileCache():
   """
 
   STACKS_CACHE_DIRECTORY="stacks"
+  COMMON_SERVICES_DIRECTORY="common-services"
   CUSTOM_ACTIONS_CACHE_DIRECTORY="custom_actions"
   HOST_SCRIPTS_CACHE_DIRECTORY="host_scripts"
   HASH_SUM_FILE=".hash"

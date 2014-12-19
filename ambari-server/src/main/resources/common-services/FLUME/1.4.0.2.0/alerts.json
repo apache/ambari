@@ -10,7 +10,7 @@
         "scope": "ANY",
         "source": {
           "type": "SCRIPT",
-          "path": "HDP/2.0.6/services/FLUME/package/files/alert_flume_agent_status.py"
+          "path": "FLUME/1.4.0.2.0/package/files/alert_flume_agent_status.py"
         }
       }
     ]

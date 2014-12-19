@@ -41,14 +41,18 @@ class ScriptAlert(BaseAlert):
     
     self.path = None
     self.stacks_dir = None
+    self.common_services_dir = None
     self.host_scripts_dir = None
     
     if 'path' in alert_source_meta:
       self.path = alert_source_meta['path']
       
+    if 'common_services_directory' in alert_source_meta:
+      self.common_services_dir = alert_source_meta['common_services_directory']
+
     if 'stacks_directory' in alert_source_meta:
       self.stacks_dir = alert_source_meta['stacks_directory']
-      
+
     if 'host_scripts_directory' in alert_source_meta:
       self.host_scripts_dir = alert_source_meta['host_scripts_directory']
       
@@ -93,6 +97,10 @@ class ScriptAlert(BaseAlert):
     # if the path doesn't exist and stacks dir is defined, try that
     if not os.path.exists(path_to_script) and self.stacks_dir is not None:      
       path_to_script = os.path.join(self.stacks_dir, *paths)
+
+    # if the path doesn't exist and common services dir is defined, try that
+    if not os.path.exists(path_to_script) and self.common_services_dir is not None:
+      path_to_script = os.path.join(self.common_services_dir, *paths)
 
     # if the path doesn't exist and the host script dir is defined, try that
     if not os.path.exists(path_to_script) and self.host_scripts_dir is not None:
