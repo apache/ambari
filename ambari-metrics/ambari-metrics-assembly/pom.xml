@@ -46,6 +46,39 @@
   <build>
     <plugins>
       <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.7</version>
+
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/deb/control</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${project.basedir}/src/main/package/deb/control</directory>
+                  <excludes>
+                    <exclude>postinst</exclude>
+                  </excludes>
+                  <filtering>false</filtering>
+                </resource>
+                <resource>
+                  <directory>${project.basedir}/src/main/package/deb/control</directory>
+                  <includes>
+                    <include>postinst</include>
+                  </includes>
+                  <filtering>true</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <executions>
           <execution>
@@ -489,7 +522,7 @@
               </execution>
             </executions>
             <configuration>
-              <controlDir>${basedir}/src/main/package/deb/control</controlDir>
+              <controlDir>${project.build.directory}/deb/control</controlDir>
               <deb>${basedir}/target/${artifactId}_${package-version}-${package-release}.deb</deb>
               <dataSet>
                 <data>
