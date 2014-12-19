@@ -144,8 +144,7 @@ App.StackServiceComponent = DS.Model.extend({
    * @property {Boolean} isMasterAddableInstallerWizard
    **/
   isMasterAddableInstallerWizard: function() {
-    var ignored = ['HIVE_METASTORE'];
-    return this.get('isMaster') && this.get('isMultipleAllowed') && this.get('maxToInstall') > 2 && !ignored.contains(this.get('componentName'));
+    return this.get('isMaster') && this.get('isMultipleAllowed') && this.get('maxToInstall') > 2;
   }.property('componentName'),
 
   /** @property {Boolean} isHAComponentOnly - Components that can be installed only if HA enabled **/
@@ -187,6 +186,12 @@ App.StackServiceComponent = DS.Model.extend({
   isCoHostedComponent: function() {
     var componentName = this.get('componentName');
     return !!App.StackServiceComponent.coHost[componentName];
+  }.property('componentName'),
+
+  /** @property {Boolean} showAddBtnInInstall - show add button for this component on Assign Masters  **/
+  showAddBtnInInstall: function() {
+    var doNotShowList = ['HIVE_METASTORE'];
+    return !doNotShowList.contains(this.get('componentName'));
   }.property('componentName')
 
 });

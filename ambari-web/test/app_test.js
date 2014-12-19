@@ -407,7 +407,8 @@ describe('App', function () {
           data: [
             Em.Object.create({
               componentName: 'C9',
-              isMasterAddableInstallerWizard: true
+              isMasterAddableInstallerWizard: true,
+              showAddBtnInInstall: true
             })
           ],
           result: ['C9']

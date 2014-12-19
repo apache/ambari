@@ -576,7 +576,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       name: 'admin.get.all_configurations',
       sender: this,
       data: {
-        urlParams: '(type=hive-site&tag=' + data.Clusters.desired_configs['hive-site'].tag + ')'
+        urlParams: '(type=hive-site&tag='+data.Clusters.desired_configs['hive-site'].tag+')|(type=webhcat-site&tag=' + data.Clusters.desired_configs['webhcat-site'].tag + ')'
       },
       success: 'onLoadHiveConfigs'
     });
@@ -589,20 +589,34 @@ App.MainHostDetailsController = Em.Controller.extend({
    */
   onLoadHiveConfigs: function (data) {
     var hiveMSHosts = this.getHiveHosts();
+    var configs = {};
+    var port = "";
+
+    data.items.forEach(function (item) {
+      configs[item.type] = item.properties;
+    }, this);
+
+    port = configs['hive-site']['hive.metastore.uris'].match(/:[0-9]{2,4}/);
+    port = port ? port[0].slice(1) : "9083";
 
     for (var i = 0; i < hiveMSHosts.length; i++) {
-      hiveMSHosts[i] = "thrift://" + hiveMSHosts[i] + ":9083";
+      hiveMSHosts[i] = "thrift://" + hiveMSHosts[i] + ":" + port;
     }
-    data.items[0].properties['hive.metastore.uris'] = hiveMSHosts.join(',');
-    App.ajax.send({
-      name: 'reassign.save_configs',
-      sender: this,
-      data: {
-        siteName: 'hive-site',
-        properties: data.items[0].properties,
-        service_config_version_note: Em.I18n.t('hosts.host.hive.configs.save.note')
-      }
-    });
+    configs['hive-site']['hive.metastore.uris'] = hiveMSHosts.join(',');
+    configs['webhcat-site']['templeton.hive.properties'] = configs['webhcat-site']['templeton.hive.properties'].replace(/thrift.+[0-9]{2,},/i, hiveMSHosts.join('\\,') + ",");
+
+    for (var site in configs) {
+      if (!configs.hasOwnProperty(site)) continue;
+      App.ajax.send({
+        name: 'reassign.save_configs',
+        sender: this,
+        data: {
+          siteName: site,
+          properties: configs[site],
+          service_config_version_note: Em.I18n.t('hosts.host.hive.configs.save.note')
+        }
+      });
+    }
   },
 
   /**
