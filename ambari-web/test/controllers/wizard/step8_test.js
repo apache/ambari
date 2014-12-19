@@ -1145,7 +1145,8 @@ describe('App.WizardStep8Controller', function () {
   describe('Queued requests', function() {
 
     beforeEach(function() {
-      sinon.stub(installerStep8Controller, 'addRequestToAjaxQueue', Em.K);
+      installerStep8Controller.clearStep();
+      sinon.spy(installerStep8Controller, 'addRequestToAjaxQueue');
     });
 
     afterEach(function() {
@@ -1153,11 +1154,13 @@ describe('App.WizardStep8Controller', function () {
     });
 
     describe('#createCluster', function() {
+
       it('shouldn\'t add request to queue if not installerController used', function() {
         installerStep8Controller.reopen({content: {controllerName: 'addServiceController'}});
         installerStep8Controller.createCluster();
         expect(installerStep8Controller.addRequestToAjaxQueue.called).to.equal(false);
       });
+
       it('App.currentStackVersion should be changed if localRepo selected', function() {
         App.set('currentStackVersion', 'HDP-1.1.1');
         installerStep8Controller.reopen({content: {controllerName: 'installerController', installOptions: {localRepo: true}}});
@@ -1165,8 +1168,9 @@ describe('App.WizardStep8Controller', function () {
           data: JSON.stringify({ "Clusters": {"version": 'HDPLocal-1.1.1' }})
         };
         installerStep8Controller.createCluster();
-        expect(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data).to.eql(data);
+        expect(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data.data).to.equal(data.data);
       });
+
       it('App.currentStackVersion shouldn\'t be changed if localRepo ins\'t selected', function() {
         App.set('currentStackVersion', 'HDP-1.1.1');
         installerStep8Controller.reopen({content: {controllerName: 'installerController', installOptions: {localRepo: false}}});
@@ -1174,17 +1178,20 @@ describe('App.WizardStep8Controller', function () {
           data: JSON.stringify({ "Clusters": {"version": 'HDP-1.1.1' }})
         };
         installerStep8Controller.createCluster();
-        expect(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data).to.eql(data);
+        expect(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data.data).to.eql(data.data);
       });
+
     });
 
     describe('#createSelectedServices', function() {
+
       it('shouldn\'t do nothing if no data', function() {
         sinon.stub(installerStep8Controller, 'createSelectedServicesData', function() {return [];});
         installerStep8Controller.createSelectedServices();
         expect(installerStep8Controller.addRequestToAjaxQueue.called).to.equal(false);
         installerStep8Controller.createSelectedServicesData.restore();
       });
+
       it('should call addRequestToAjaxQueue with computed data', function() {
         var data = [
           {"ServiceInfo": { "service_name": 's1' }},
@@ -1193,9 +1200,10 @@ describe('App.WizardStep8Controller', function () {
         ];
         sinon.stub(installerStep8Controller, 'createSelectedServicesData', function() {return data;});
         installerStep8Controller.createSelectedServices();
-        expect(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data).to.eql({data: JSON.stringify(data)});
+        expect(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data.data).to.equal(JSON.stringify(data));
         installerStep8Controller.createSelectedServicesData.restore();
       });
+
     });
 
     describe('#registerHostsToCluster', function() {
@@ -1212,7 +1220,7 @@ describe('App.WizardStep8Controller', function () {
         ];
         sinon.stub(installerStep8Controller, 'createRegisterHostData', function() {return data;});
         installerStep8Controller.registerHostsToCluster();
-        expect(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data).to.eql({data: JSON.stringify(data)});
+        expect(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data.data).to.equal(JSON.stringify(data));
         installerStep8Controller.createRegisterHostData.restore();
       });
     });
@@ -1262,7 +1270,7 @@ describe('App.WizardStep8Controller', function () {
             ], selectedServices: []
         });
         installerStep8Controller.applyConfigurationsToCluster(serviceConfigTags);
-        expect(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data).to.eql({data: data});
+        expect(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data.data).to.equal(data);
       });
     });
 
@@ -1270,7 +1278,7 @@ describe('App.WizardStep8Controller', function () {
       it('should call addRequestToAjaxQueue', function() {
         var data = [{}, {}];
         installerStep8Controller.applyConfigurationGroups(data);
-        expect(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data).to.eql({data: JSON.stringify(data)});
+        expect(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data.data).to.equal(JSON.stringify(data));
       });
     });
 
@@ -1394,8 +1402,12 @@ describe('App.WizardStep8Controller', function () {
     describe('#createNotification', function () {
 
       beforeEach(function () {
+        sinon.stub(App, 'get', function (k) {
+          if ('testMode' === k) return false;
+          return Em.get(App, k);
+        });
+        installerStep8Controller.clearStep();
         installerStep8Controller.set('content', {controllerName: 'installerController'});
-        installerStep8Controller.set('ajaxRequestsQueue', App.ajaxQueue.create());
         installerStep8Controller.set('configs', [
           {name: 'create_notification', value: 'yes', serviceName: 'MISC'},
           {name: 'ambari.dispatch.recipients', value: 'to@f.c', serviceName: 'MISC'},
@@ -1404,14 +1416,38 @@ describe('App.WizardStep8Controller', function () {
           {name: 'mail.smtp.from', value: 'from@f.c', serviceName: 'MISC'},
           {name: 'mail.smtp.starttls.enable', value: true, serviceName: 'MISC'},
           {name: 'mail.smtp.startssl.enable', value: false, serviceName: 'MISC'},
-          {name: 'smtp_use_auth', value: 'false', serviceName: 'MISC'}
+          {name: 'smtp_use_auth', value: 'true', serviceName: 'MISC'},
+          {name: 'ambari.dispatch.credential.username', value: 'usr', serviceName: 'MISC'},
+          {name: 'ambari.dispatch.credential.password', value: 'pwd', serviceName: 'MISC'}
         ]);
+        installerStep8Controller.get('ajaxRequestsQueue').clear();
+      });
+
+      afterEach(function () {
+        App.get.restore();
       });
 
       it('should add request to queue', function () {
-
         installerStep8Controller.createNotification();
         expect(installerStep8Controller.get('ajaxRequestsQueue.queue.length')).to.equal(1);
+
+      });
+
+      it('sent data should be valid', function () {
+
+        installerStep8Controller.createNotification();
+        var data = installerStep8Controller.get('ajaxRequestsQueue.queue')[0].data.data.AlertTarget;
+        expect(data.global).to.be.true;
+        expect(data.notification_type).to.equal('EMAIL');
+        expect(data.alert_states).to.eql(['OK', 'WARNING', 'CRITICAL', 'UNKNOWN']);
+        expect(data.properties['ambari.dispatch.recipients']).to.eql(['to@f.c']);
+        expect(data.properties['mail.smtp.host']).to.equal('h');
+        expect(data.properties['mail.smtp.port']).to.equal('25');
+        expect(data.properties['mail.smtp.from']).to.equal('from@f.c');
+        expect(data.properties['mail.smtp.starttls.enable']).to.equal(true);
+        expect(data.properties['mail.smtp.startssl.enable']).to.equal(false);
+        expect(data.properties['ambari.dispatch.credential.username']).to.equal('usr');
+        expect(data.properties['ambari.dispatch.credential.password']).to.equal('pwd');
 
       });
 

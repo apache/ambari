@@ -1848,7 +1848,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         properties[name] = miscConfigs.findProperty('name', name).value;
       });
 
-      //properties['mail.smtp.starttls.enable'] = miscConfigs.findProperty('').value;
+      properties['ambari.dispatch.recipients'] = properties['ambari.dispatch.recipients'].replace(/\s/g, '').split(',');
+
       var apiObject = {
         AlertTarget: {
           name: 'Initial Notification',
