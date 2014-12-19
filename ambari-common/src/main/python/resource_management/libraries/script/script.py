@@ -223,7 +223,8 @@ class Script(object):
       config = self.get_config()
 
       install_windows_msi(os.path.join(config['hostLevelParams']['jdk_location'], "hdp.msi"),
-                          config["hostLevelParams"]["agentCacheDir"], "hdp.msi", self.get_password("hadoop"))
+                          config["hostLevelParams"]["agentCacheDir"], "hdp.msi", self.get_password("hadoop"),
+                          str(config['hostLevelParams']['stack_version']))
       pass
 
   def fail_with_error(self, message):

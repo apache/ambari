@@ -24,7 +24,8 @@ import service_mapping
 
 class HiveClient(Script):
   def install(self, env):
-    if not check_windows_service_exists(service_mapping.hive_client_win_service_name):
+    import params
+    if params.hive_home is None:
       self.install_packages(env)
       self.configure(env)
 

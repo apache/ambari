@@ -28,6 +28,7 @@ from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.reload_windows_env import reload_windows_env
 from resource_management.libraries.functions.windows_service_utils import check_windows_service_exists
+from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 import socket
 import os
 import glob
@@ -40,11 +41,19 @@ hdp_log_dir = "c:\\hadoop\\logs"
 hdp_data_dir = "c:\\hadoopDefaultData"
 local_host = socket.getfqdn()
 db_flavor = "DERBY"
+hdp_22 = """#Namenode Data directory
+HDFS_NAMENODE_DATA_DIR={hdp_data_dir}\\hdpdatann
+
+#Datanode Data directory
+HDFS_DATANODE_DATA_DIR={hdp_data_dir}\\hdpdatadn
+"""
 cluster_properties = """#Log directory
 HDP_LOG_DIR={hdp_log_dir}
 
 #Data directory
 HDP_DATA_DIR={hdp_data_dir}
+
+{hdp_22_specific_props}
 
 #hosts
 NAMENODE_HOST={local_host}
@@ -82,7 +91,7 @@ OOZIE_DB_PASSWORD=oozie
 
 INSTALL_MSI_CMD = 'cmd /C start /wait msiexec /qn /i  {hdp_msi_path} /lv {hdp_log_path} MSIUSEREALADMINDETECTION=1 ' \
                   'HDP_LAYOUT={hdp_layout_path} DESTROY_DATA=yes HDP_USER_PASSWORD={hadoop_password_arg} HDP=yes ' \
-                  'KNOX=yes KNOX_MASTER_SECRET="AmbariHDP2Windows" FALCON=yes STORM=yes HBase=yes STORM=yes FLUME=yes'
+                  'KNOX=yes KNOX_MASTER_SECRET="AmbariHDP2Windows" FALCON=yes STORM=yes HBase=yes STORM=yes FLUME=yes RANGER=no'
 CREATE_SERVICE_SCRIPT = os.path.abspath("sbin\createservice.ps1")
 CREATE_SERVICE_CMD = 'cmd /C powershell -File "{script}" -username hadoop -password "{password}" -servicename ' \
                      '{servicename} -hdpresourcesdir "{resourcedir}" -servicecmdpath "{servicecmd}"'
@@ -140,7 +149,7 @@ def _write_marker():
     open(os.path.join(_working_dir, INSTALL_MARKER_FAILED), "w").close()
 
 
-def install_windows_msi(msi_url, save_dir, save_file, hadoop_password):
+def install_windows_msi(msi_url, save_dir, save_file, hadoop_password, stack_version):
   global _working_dir
   _working_dir = save_dir
   save_dir = os.path.abspath(save_dir)
@@ -157,12 +166,18 @@ def install_windows_msi(msi_url, save_dir, save_file, hadoop_password):
       Logger.info("hdp.msi already installed")
       return
 
+    hdp_stack_version = format_hdp_stack_version(stack_version)
+    hdp_22_specific_props = ''
+    if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
+      hdp_22_specific_props = hdp_22
+
     # install msi
     download_file(msi_url, os.path.join(msi_save_dir, save_file))
     File(os.path.join(msi_save_dir, "properties.txt"), content=cluster_properties.format(hdp_log_dir=hdp_log_dir,
                                                                                          hdp_data_dir=hdp_data_dir,
                                                                                          local_host=local_host,
-                                                                                         db_flavor=db_flavor))
+                                                                                         db_flavor=db_flavor,
+                                                                                         hdp_22_specific_props=hdp_22_specific_props))
     hdp_msi_path = os_utils.quote_path(os.path.join(save_dir, "hdp.msi"))
     hdp_log_path = os_utils.quote_path(os.path.join(save_dir, "hdp.log"))
     hdp_layout_path = os_utils.quote_path(os.path.join(save_dir, "properties.txt"))
