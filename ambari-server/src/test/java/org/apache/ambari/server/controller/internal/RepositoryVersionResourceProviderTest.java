@@ -18,10 +18,12 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -40,6 +42,7 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.OperatingSystemInfo;
+import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.junit.After;
@@ -70,6 +73,7 @@ public class RepositoryVersionResourceProviderTest {
     final Set<String> validVersions = Sets.newHashSet("1.1", "1.1-17", "1.1.1.1", "1.1.343432.2", "1.1.343432.2-234234324");
     final AmbariMetaInfo ambariMetaInfo = Mockito.mock(AmbariMetaInfo.class);
     final InMemoryDefaultTestModule injectorModule = new InMemoryDefaultTestModule() {
+      @Override
       protected void configure() {
         super.configure();
         bind(AmbariMetaInfo.class).toInstance(ambariMetaInfo);
@@ -307,6 +311,19 @@ public class RepositoryVersionResourceProviderTest {
     provider.updateResources(updateRequest, new AndPredicate(predicateStackName, predicateStackVersion));
 
     Assert.assertEquals("name2", provider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion)).iterator().next().getPropertyValue(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID));
+  }
+
+  @Test
+  public void testSerializeOperatingSystems() throws Exception {
+    final List<RepositoryInfo> repositories = new ArrayList<RepositoryInfo>();
+    final RepositoryInfo repository = new RepositoryInfo();
+    repository.setBaseUrl("baseurl");
+    repository.setOsType("os");
+    repository.setRepoId("repoId");
+    repositories.add(repository);
+
+    final String serialized = RepositoryVersionResourceProvider.serializeOperatingSystems(repositories);
+    Assert.assertEquals("[{\"repositories\":[{\"Repositories/base_url\":\"baseurl\",\"Repositories/repo_id\":\"repoId\"}],\"OperatingSystems/os_type\":\"os\"}]", serialized);
   }
 
   @After

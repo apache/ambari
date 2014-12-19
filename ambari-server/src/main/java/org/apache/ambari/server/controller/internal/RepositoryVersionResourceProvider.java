@@ -18,6 +18,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -28,7 +29,6 @@ import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
-import org.apache.ambari.server.api.resources.OperatingSystemResourceDefinition;
 import org.apache.ambari.server.api.resources.RepositoryResourceDefinition;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -49,14 +49,18 @@ import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.OperatingSystemInfo;
+import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.commons.lang.StringUtils;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.inject.Inject;
 
@@ -73,7 +77,7 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
   public static final String REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("RepositoryVersions", "repository_version");
   public static final String REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID       = PropertyHelper.getPropertyId("RepositoryVersions", "display_name");
   public static final String REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID       = PropertyHelper.getPropertyId("RepositoryVersions", "upgrade_pack");
-  public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID         = "operating_systems"; //TODO should be replaced with resource definition when we get rid of Stacks2Service 
+  public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID         = "operating_systems"; //TODO should be replaced with resource definition when we get rid of Stacks2Service
   public static final String SUBRESOURCE_REPOSITORIES_PROPERTY_ID              = new RepositoryResourceDefinition().getPluralName();
 
   @SuppressWarnings("serial")
@@ -450,6 +454,36 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
       operatingSystems.add(operatingSystemEntity);
     }
     return operatingSystems;
+  }
+
+  /**
+   * Serializes repository info to json for storing to DB.
+   * Produces json like:
+   *
+   * @param repositories list of repository infos
+   * @return serialized list of operating systems
+   */
+  public static String serializeOperatingSystems(List<RepositoryInfo> repositories) {
+    final JsonArray rootJson = new JsonArray();
+    final Multimap<String, RepositoryInfo> operatingSystems = ArrayListMultimap.create();
+    for (RepositoryInfo repository: repositories) {
+      operatingSystems.put(repository.getOsType(), repository);
+    }
+    for (Entry<String, Collection<RepositoryInfo>> operatingSystem : operatingSystems.asMap().entrySet()) {
+      final JsonObject operatingSystemJson = new JsonObject();
+      final JsonArray repositoriesJson = new JsonArray();
+      for (RepositoryInfo repository : operatingSystem.getValue()) {
+        final JsonObject repositoryJson = new JsonObject();
+        repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID, repository.getBaseUrl());
+        repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID, repository.getRepoName());
+        repositoryJson.addProperty(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID, repository.getRepoId());
+        repositoriesJson.add(repositoryJson);
+      }
+      operatingSystemJson.add(SUBRESOURCE_REPOSITORIES_PROPERTY_ID, repositoriesJson);
+      operatingSystemJson.addProperty(OperatingSystemResourceProvider.OPERATING_SYSTEM_OS_TYPE_PROPERTY_ID, operatingSystem.getKey());
+      rootJson.add(operatingSystemJson);
+    }
+    return gson.toJson(rootJson);
   }
 
   protected StackId getStackInformationFromUrl(Map<String, Object> propertyMap) {

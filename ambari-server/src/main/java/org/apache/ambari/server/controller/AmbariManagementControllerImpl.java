@@ -75,6 +75,7 @@ import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.RepositoryVersionResourceProvider;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
@@ -144,6 +145,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.state.HostComponentAdminState;
 
@@ -361,13 +363,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       StackId newStackId = new StackId(request.getStackVersion());
       c.setDesiredStackVersion(newStackId);
       clusters.setCurrentStackVersion(request.getClusterName(), newStackId);
-      
+
       try {
         // Because Ambari may eventually support multiple clusters, it may be possible that a previously installed cluster
         // already inserted the Repository Version for this stack and version.
-        RepositoryVersionEntity existingRepositoryVersion = repositoryVersionDAO.findByStackAndVersion(newStackId.getStackId(),  newStackId.getStackVersion());
+        RepositoryVersionEntity existingRepositoryVersion = repositoryVersionDAO.findByStackAndVersion(newStackId.getStackId(), newStackId.getStackVersion());
         if (existingRepositoryVersion == null) {
-          repositoryVersionDAO.create(newStackId.getStackId(), newStackId.getStackVersion(), newStackId.getStackId(), "", "");
+          repositoryVersionDAO.create(newStackId.getStackId(), newStackId.getStackVersion(), newStackId.getStackId(),
+              "", RepositoryVersionResourceProvider.serializeOperatingSystems(stackInfo.getRepositories()));
         }
         c.createClusterVersion(stackId.getStackId(), stackId.getStackVersion(), getAuthName(), RepositoryVersionState.CURRENT);
       } catch (Exception e) {

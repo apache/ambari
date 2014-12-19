@@ -25,6 +25,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
@@ -76,6 +77,7 @@ public class RepositoryVersionEntity {
   @Column(name = "upgrade_package")
   private String upgradePackage;
 
+  @Lob
   @Column(name = "repositories")
   private String operatingSystems;
 
@@ -141,6 +143,11 @@ public class RepositoryVersionEntity {
     this.operatingSystems = repositories;
   }
 
+  /**
+   * Getter which hides json nature of operating systems and returns them as entities.
+   *
+   * @return empty list if stored json is invalid
+   */
   public List<OperatingSystemEntity> getOperatingSystems() {
     if (StringUtils.isNotBlank(operatingSystems)) {
       try {
@@ -148,7 +155,7 @@ public class RepositoryVersionEntity {
       } catch (Exception ex) {
         // Should never happen as we validate json before storing it to DB
         LOG.error("Could not parse operating systems json stored in database:" + operatingSystems, ex);
-      }  
+      }
     }
     return Collections.emptyList();
   }

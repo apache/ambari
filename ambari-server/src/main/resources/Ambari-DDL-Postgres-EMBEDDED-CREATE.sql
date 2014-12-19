@@ -573,7 +573,7 @@ CREATE TABLE ambari.repo_version (
   version VARCHAR(255) NOT NULL,
   display_name VARCHAR(128) NOT NULL,
   upgrade_package VARCHAR(255) NOT NULL,
-  repositories VARCHAR NOT NULL,
+  repositories TEXT NOT NULL,
   PRIMARY KEY(repo_version_id)
 );
 GRANT ALL PRIVILEGES ON TABLE ambari.repo_version TO :username;
