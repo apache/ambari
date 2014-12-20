@@ -264,5 +264,11 @@
     <value>120000</value>
     <description>ZooKeeper session timeout in milliseconds.</description>
   </property>
-
+  <property>
+    <name>phoenix.sequence.saltBuckets</name>
+    <value>2</value>
+    <description>
+      Controls the number of pre-allocated regions for SYSTEM.SEQUENCE table.
+    </description>
+  </property>
 </configuration>

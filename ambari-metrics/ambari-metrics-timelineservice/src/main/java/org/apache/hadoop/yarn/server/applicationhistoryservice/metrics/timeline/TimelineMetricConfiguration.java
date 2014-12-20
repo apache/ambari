@@ -182,10 +182,10 @@ public class TimelineMetricConfiguration {
   }
 
   public String getTimelineServiceRpcAddress() {
-    String defaultHttpAddress = "0.0.0.0:60200";
+    String defaultRpcAddress = "0.0.0.0:60200";
     if (metricsConf != null) {
-      return metricsConf.get(TIMELINE_SERVICE_RPC_ADDRESS, defaultHttpAddress);
+      return metricsConf.get(TIMELINE_SERVICE_RPC_ADDRESS, defaultRpcAddress);
     }
-    return defaultHttpAddress;
+    return defaultRpcAddress;
   }
 }
