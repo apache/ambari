@@ -37,6 +37,7 @@ class ResourceFilesKeeper():
   HOOKS_DIR="hooks"
   PACKAGE_DIR="package"
   STACKS_DIR="stacks"
+  COMMON_SERVICES_DIR="common-services"
   CUSTOM_ACTIONS_DIR="custom_actions"
   HOST_SCRIPTS_DIR="host_scripts"
 
@@ -87,6 +88,19 @@ class ResourceFilesKeeper():
             full_path = os.path.abspath(os.path.join(root, d))
             self.update_directory_archive(full_path)
 
+    # archive common services
+    common_services_root = os.path.join(self.resources_dir, self.COMMON_SERVICES_DIR)
+    self.dbg_out("Updating archives for common services dirs at {0}...".format(common_services_root))
+    valid_common_services = self.list_common_services(common_services_root)
+    self.dbg_out("Common Services: {0}".format(pprint.pformat(valid_common_services)))
+    # Iterate over common services directories
+    for common_service_dir in valid_common_services:
+      for root, dirs, _ in os.walk(common_service_dir):
+        for d in dirs:
+          if d in self.ARCHIVABLE_DIRS:
+            full_path = os.path.abspath(os.path.join(root, d))
+            self.update_directory_archive(full_path)
+
 
     # custom actions
     custom_actions_root = os.path.join(self.resources_dir,self.CUSTOM_ACTIONS_DIR)        
@@ -118,6 +132,22 @@ class ResourceFilesKeeper():
       return valid_stacks
     except Exception, err:
       raise KeeperException("Can not list stacks: {0}".format(str(err)))
+
+  def list_common_services(self, common_services_root):
+    """
+    Builds a list of common services directories
+    """
+    valid_common_services = []
+    glob_pattern = "{0}/*/*".format(common_services_root)
+    try:
+      common_services_dirs = glob.glob(glob_pattern)
+      for directory in common_services_dirs:
+        metainfo_file = os.path.join(directory, self.METAINFO_XML)
+        if os.path.exists(metainfo_file):
+          valid_common_services.append(directory)
+      return valid_common_services
+    except Exception, err:
+      raise KeeperException("Can not list common services: {0}".format(str(err)))
 
 
   def update_directory_archive(self, directory):

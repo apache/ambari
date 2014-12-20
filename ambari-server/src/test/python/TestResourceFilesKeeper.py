@@ -54,6 +54,12 @@ class TestResourceFilesKeeper(TestCase):
   YA_HASH="yet_another_hash"
   SOME_PATH="some-path"
 
+  DUMMY_UNCHANGEABLE_COMMON_SERVICES="../resources/TestAmbaryServer.samples/" \
+                                     "dummy_common_services/HIVE/0.11.0.2.0.5.0"
+
+  DUMMY_UNCHANGEABLE_COMMON_SERVICES_PACKAGE=os.path.join(DUMMY_UNCHANGEABLE_COMMON_SERVICES,
+                                                          ResourceFilesKeeper.PACKAGE_DIR)
+
   def setUp(self):
     logging.basicConfig(level=logging.ERROR)
 
@@ -66,14 +72,18 @@ class TestResourceFilesKeeper(TestCase):
 
 
   @patch.object(ResourceFilesKeeper, "update_directory_archive")
+  @patch.object(ResourceFilesKeeper, "list_common_services")
   @patch.object(ResourceFilesKeeper, "list_stacks")
   @patch("os.path.abspath")
   def test_update_directory_archieves(self, abspath_mock,
                                       list_active_stacks_mock,
+                                      list_common_services_mock,
                                       update_directory_archive_mock):
     list_active_stacks_mock.return_value = [self.DUMMY_UNCHANGEABLE_STACK,
                                             self.DUMMY_UNCHANGEABLE_STACK,
                                             self.DUMMY_UNCHANGEABLE_STACK]
+    list_common_services_mock.return_value = [self.DUMMY_UNCHANGEABLE_COMMON_SERVICES,
+                                              self.DUMMY_UNCHANGEABLE_COMMON_SERVICES]
     abspath_mock.side_effect = lambda s : s
     resource_files_keeper = ResourceFilesKeeper(self.TEST_STACKS_DIR)
     resource_files_keeper.update_directory_archieves()
@@ -85,9 +95,12 @@ class TestResourceFilesKeeper(TestCase):
             "dummy_stack/HIVE/package'),\n "
             "call('../resources/TestAmbaryServer.samples/"
             "dummy_stack/HIVE/package'),\n "
+            "call('../resources/TestAmbaryServer.samples/"
+            "dummy_common_services/HIVE/0.11.0.2.0.5.0/package'),\n "
+            "call('../resources/TestAmbaryServer.samples/"
+            "dummy_common_services/HIVE/0.11.0.2.0.5.0/package'),\n "
             "call('../resources/stacks/custom_actions'),\n "
             "call('../resources/stacks/host_scripts')]")
-
 
 
   @patch("glob.glob")
@@ -110,6 +123,26 @@ class TestResourceFilesKeeper(TestCase):
     except Exception, e:
       self.fail('Unexpected exception thrown:' + str(e))
 
+
+  @patch("glob.glob")
+  @patch("os.path.exists")
+  def test_list_common_services(self, exists_mock, glob_mock):
+    resource_files_keeper = ResourceFilesKeeper(self.SOME_PATH)
+    # Test normal execution flow
+    glob_mock.return_value = ["common_service1", "common_service2", "common_service3"]
+    exists_mock.side_effect = [True, False, True]
+    res = resource_files_keeper.list_common_services(self.SOME_PATH)
+    self.assertEquals(pprint.pformat(res), "['common_service1', 'common_service3']")
+
+    # Test exception handling
+    glob_mock.side_effect = self.keeper_exc_side_effect
+    try:
+      resource_files_keeper.list_common_services(self.SOME_PATH)
+      self.fail('KeeperException not thrown')
+    except KeeperException:
+      pass # Expected
+    except Exception, e:
+      self.fail('Unexpected exception thrown:' + str(e))
 
   @patch.object(ResourceFilesKeeper, "count_hash_sum")
   @patch.object(ResourceFilesKeeper, "read_hash_sum")
