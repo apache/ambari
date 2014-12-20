@@ -29,8 +29,8 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 # This is expected to be of the form #.#.#.#
-hdp_stack_version = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(hdp_stack_version)
+stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)

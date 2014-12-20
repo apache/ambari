@@ -29,6 +29,7 @@ tmp_dir = Script.get_tmp_dir()
 #RPM versioning support
 rpm_version = default("/configurations/cluster-env/rpm_version", None)
 
+stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = config['hostLevelParams']['stack_version']
 
 #hadoop params

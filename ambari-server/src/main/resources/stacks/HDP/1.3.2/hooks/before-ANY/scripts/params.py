@@ -46,7 +46,8 @@ hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefi
 hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']
 hadoop_root_logger = config['configurations']['hadoop-env']['hadoop_root_logger']
 
-hdp_stack_version = format_hdp_stack_version(str(config['hostLevelParams']['stack_version']))
+stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.0') >= 0 and compare_versions(hdp_stack_version, '2.1') < 0 and System.get_instance().os_family != "suse":
   # deprecated rhel jsvc_path
   jsvc_path = "/usr/libexec/bigtop-utils"

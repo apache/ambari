@@ -105,7 +105,7 @@ def set_uid(user, user_dirs):
     
 def setup_hadoop_env():
   import params
-  stackversion = params.hdp_full_stack_version
+  stackversion = params.stack_version_unformatted
   if params.has_namenode or stackversion.find('Gluster') >= 0:
     if params.security_enabled:
       tc_owner = "root"

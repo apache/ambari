@@ -29,8 +29,8 @@ exec_tmp_dir = Script.get_tmp_dir()
 
 version = default("/commandParams/version", None)
 
-hdp_stack_version = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(hdp_stack_version)
+stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
 #hadoop params
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
