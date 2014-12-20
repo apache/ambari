@@ -20,10 +20,6 @@ var App = require('app');
 
 App.DashboardWidgetView = Em.View.extend({
 
-  /**
-   * @type {string}
-   * @default null
-   */
   title: null,
   templateName: null, // each has specific template
 
@@ -31,209 +27,120 @@ App.DashboardWidgetView = Em.View.extend({
    * Setup model for widget by `model_type`. Usually `model_type` is a lowercase service name,
    * for example `hdfs`, `yarn`, etc. You need to set `model_type` in extended object View, for example
    * look App.DataNodeUpView.
-   * @type {object} - model that set up in App.MainDashboardView.setWidgetsDataModel()
+   * @return {Object} - model that set up in App.MainDashboardView.setWidgetsDataModel()
    */
   model : function () {
     if (!this.get('model_type')) return {};
     return this.get('parentView').get(this.get('model_type') + '_model');
-  }.property(),
+  }.property(), //data bind from parent view
 
-  /**
-   * id 1-10 used to identify
-   * @type {number}
-   * @default null
-   */
-  id: null,
-
-  /**
-   * html id bind to view-class: widget-(1)
-   * used by re-sort
-   * @type {string}
-   */
-  viewID: function () {
+  id: null, // id 1-10 used to identify
+  viewID: function(){ // used by re-sort
     return 'widget-' + this.get('id');
-  }.property('id'),
+  }.property('id'),  //html id bind to view-class: widget-(1)
   attributeBindings: ['viewID'],
 
-  /**
-   * @type {boolean}
-   */
   isPieChart: false,
-
-  /**
-   * @type {boolean}
-   */
   isText: false,
-
-  /**
-   * @type {boolean}
-   */
   isProgressBar: false,
-
-  /**
-   * @type {boolean}
-   */
   isLinks: false,
-
-  /**
-   * widget content pieChart/ text/ progress bar/links/ metrics. etc
-   * @type {Array}
-   * @default null
-   */
-  content: null,
-
-  /**
-   * more info details
-   * @type {Array}
-   */
-  hiddenInfo: [],
-
-  /**
-   * @type {string}
-   */
+  content: null, // widget content pieChart/ text/ progress bar/links/ metrics. etc
+  hiddenInfo: null, // more info details
   hiddenInfoClass: "hidden-info-two-line",
 
-  /**
-   * @type {number}
-   * @default null
-   */
-  thresh1: null,
-
-  /**
-   * @type {number}
-   * @default null
-   */
-  thresh2: null,
-
-  /**
-   * @type {Em.Object}
-   * @class
-   */
-  widgetConfig: Ember.Object.extend({
-    thresh1: '',
-    thresh2: '',
-    hintInfo: function () {
-      return Em.I18n.t('dashboard.widgets.hintInfo.common').format(this.get('maxValue'));
-    }.property('maxValue'),
-    isThresh1Error: false,
-    isThresh2Error: false,
-    errorMessage1: "",
-    errorMessage2: "",
-    maxValue: 0,
-    observeThresh1Value: function () {
-      var thresh1 = this.get('thresh1');
-      var thresh2 = this.get('thresh2');
-      var maxValue = this.get('maxValue');
-
-      if (thresh1.trim() != "") {
-        if (isNaN(thresh1) || thresh1 > maxValue || thresh1 < 0) {
-          this.set('isThresh1Error', true);
-          this.set('errorMessage1', Em.I18n.t('dashboard.widgets.error.invalid').format(maxValue));
-        } else if (this.get('isThresh2Error') === false && parseFloat(thresh2) <= parseFloat(thresh1)) {
-          this.set('isThresh1Error', true);
-          this.set('errorMessage1', Em.I18n.t('dashboard.widgets.error.smaller'));
-        } else {
-          this.set('isThresh1Error', false);
-          this.set('errorMessage1', '');
-        }
-      } else {
-        this.set('isThresh1Error', true);
-        this.set('errorMessage1', Em.I18n.t('admin.users.editError.requiredField'));
-      }
-      this.updateSlider();
-    }.observes('thresh1', 'maxValue'),
-    observeThresh2Value: function () {
-      var thresh2 = this.get('thresh2');
-      var maxValue = this.get('maxValue');
-
-      if (thresh2.trim() != "") {
-        if (isNaN(thresh2) || thresh2 > maxValue || thresh2 < 0) {
-          this.set('isThresh2Error', true);
-          this.set('errorMessage2', Em.I18n.t('dashboard.widgets.error.invalid').format(maxValue));
-        } else {
-          this.set('isThresh2Error', false);
-          this.set('errorMessage2', '');
-        }
-      } else {
-        this.set('isThresh2Error', true);
-        this.set('errorMessage2', Em.I18n.t('admin.users.editError.requiredField'));
-      }
-      this.updateSlider();
-    }.observes('thresh2', 'maxValue'),
-    updateSlider: function () {
-      var thresh1 = this.get('thresh1');
-      var thresh2 = this.get('thresh2');
-      // update the slider handles and color
-      if (this.get('isThresh1Error') === false && this.get('isThresh2Error') === false) {
-        $("#slider-range").slider('values', 0, parseFloat(thresh1));
-        $("#slider-range").slider('values', 1, parseFloat(thresh2));
-      }
-    }
-  }),
+  thresh1: null, //@type {Number}
+  thresh2: null, //@type {Number}
 
   didInsertElement: function () {
     App.tooltip(this.$("[rel='ZoomInTooltip']"), {placement : 'left'});
   },
 
-  /**
-   * delete widget
-   * @param {object} event
-   */
   deleteWidget: function (event) {
     var parent = this.get('parentView');
-
+    var self = this;
     if (App.get('testMode')) {
       //update view on dashboard
-      var objClass = parent.widgetsMapper(this.get('id'));
+      var objClass = parent.widgetsMapper(this.id);
       parent.get('visibleWidgets').removeObject(objClass);
       parent.get('hiddenWidgets').pushObject(Em.Object.create({displayName: this.get('title'), id: this.get('id'), checked: false}));
     } else {
       //reconstruct new persist value then post in persist
-      parent.getUserPref(parent.get('persistKey')).complete(this.deleteWidgetComplete);
+      parent.getUserPref(parent.get('persistKey')).complete(function(){
+        var oldValue = parent.get('currentPrefObject');
+        var deletedId = self.get('id');
+        var newValue = Em.Object.create({
+          dashboardVersion: oldValue.dashboardVersion,
+          visible: [],
+          hidden: oldValue.hidden,
+          threshold: oldValue.threshold
+        });
+        for (var i = 0; i <= oldValue.visible.length - 1; i++) {
+          if (oldValue.visible[i] != deletedId) {
+            newValue.visible.push(oldValue.visible[i]);
+          }
+        }
+        newValue.hidden.push([deletedId, self.get('title')]);
+        parent.postUserPref(parent.get('persistKey'), newValue);
+        parent.translateToReal(newValue);
+      });
     }
   },
 
-  /**
-   * delete widget complete callback
-   */
-  deleteWidgetComplete: function () {
-    var parent = this.get('parentView');
-    var oldValue = parent.get('currentPrefObject');
-    var deletedId = this.get('id');
-    var newValue = Em.Object.create({
-      dashboardVersion: oldValue.dashboardVersion,
-      visible: oldValue.visible.slice(0).without(deletedId),
-      hidden: oldValue.hidden,
-      threshold: oldValue.threshold
-    });
-    newValue.hidden.push([deletedId, this.get('title')]);
-    parent.postUserPref(parent.get('persistKey'), newValue);
-    parent.translateToReal(newValue);
-  },
-
-  /**
-   * edit widget
-   * @param {object} event
-   */
   editWidget: function (event) {
-    var configObj = this.get('widgetConfig').create({
-      thresh1: this.get('thresh1') + '',
-      thresh2: this.get('thresh2') + '',
-      maxValue: parseFloat(this.get('maxValue'))
-    });
-    this.showEditDialog(configObj)
-  },
-
-  /**
-   *  show edit dialog
-   * @param {Em.Object} configObj
-   * @returns {App.ModalPopup}
-   */
-  showEditDialog: function (configObj) {
     var self = this;
-    var maxValue = this.get('maxValue');
+    var max_tmp =  parseFloat(self.get('maxValue'));
+    var configObj = Ember.Object.create({
+      thresh1: self.get('thresh1') + '',
+      thresh2: self.get('thresh2') + '',
+      hintInfo: Em.I18n.t('dashboard.widgets.hintInfo.common').format(max_tmp),
+      isThresh1Error: false,
+      isThresh2Error: false,
+      errorMessage1: "",
+      errorMessage2: "",
+      maxValue: max_tmp,
+      observeNewThresholdValue: function () {
+        var thresh1 = this.get('thresh1');
+        var thresh2 = this.get('thresh2');
+        if (thresh1.trim() != "") {
+          if (isNaN(thresh1) || thresh1 > max_tmp || thresh1 < 0) {
+            this.set('isThresh1Error', true);
+            this.set('errorMessage1', 'Invalid! Enter a number between 0 - ' + max_tmp);
+          } else if (this.get('isThresh2Error') === false && parseFloat(thresh2)<= parseFloat(thresh1)) {
+            this.set('isThresh1Error', true);
+            this.set('errorMessage1', 'Threshold 1 should be smaller than threshold 2 !');
+          } else {
+            this.set('isThresh1Error', false);
+            this.set('errorMessage1', '');
+          }
+        } else {
+          this.set('isThresh1Error', true);
+          this.set('errorMessage1', 'This is required');
+        }
 
-    return App.ModalPopup.show({
+        if (thresh2.trim() != "") {
+          if (isNaN(thresh2) || thresh2 > max_tmp || thresh2 < 0) {
+            this.set('isThresh2Error', true);
+            this.set('errorMessage2', 'Invalid! Enter a number between 0 - ' + max_tmp);
+          } else {
+            this.set('isThresh2Error', false);
+            this.set('errorMessage2', '');
+          }
+        } else {
+          this.set('isThresh2Error', true);
+          this.set('errorMessage2', 'This is required');
+        }
+
+        // update the slider handles and color
+        if (this.get('isThresh1Error') === false && this.get('isThresh2Error') === false) {
+          $("#slider-range").slider('values', 0 , parseFloat(thresh1));
+          $("#slider-range").slider('values', 1 , parseFloat(thresh2));
+        }
+      }.observes('thresh1', 'thresh2')
+
+    });
+
+    var browserVersion = this.getInternetExplorerVersion();
+    App.ModalPopup.show({
       header: Em.I18n.t('dashboard.widgets.popupHeader'),
       classNames: [ 'sixty-percent-width-modal-edit-widget' ],
       bodyClass: Ember.View.extend({
@@ -241,11 +148,11 @@ App.DashboardWidgetView = Em.View.extend({
         configPropertyObj: configObj
       }),
       primary: Em.I18n.t('common.apply'),
-      onPrimary: function () {
+      onPrimary: function() {
         configObj.observeNewThresholdValue();
         if (!configObj.isThresh1Error && !configObj.isThresh2Error) {
-          self.set('thresh1', parseFloat(configObj.get('thresh1')));
-          self.set('thresh2', parseFloat(configObj.get('thresh2')));
+          self.set('thresh1', parseFloat(configObj.get('thresh1')) );
+          self.set('thresh2', parseFloat(configObj.get('thresh2')) );
 
           if (!App.get('testMode')) {
             // save to persist
@@ -262,7 +169,6 @@ App.DashboardWidgetView = Em.View.extend({
       },
 
       didInsertElement: function () {
-        var browserVersion = this.getInternetExplorerVersion();
         var handlers = [configObj.get('thresh1'), configObj.get('thresh2')];
         var colors = ['#95A800', '#FF8E00', '#B80000']; //color green, orange ,red
 
@@ -272,7 +178,7 @@ App.DashboardWidgetView = Em.View.extend({
           $("#slider-range").slider({
             range: true,
             min: 0,
-            max: maxValue,
+            max: max_tmp,
             values: handlers,
             create: function (event, ui) {
               updateColors(handlers);
@@ -290,8 +196,8 @@ App.DashboardWidgetView = Em.View.extend({
           function updateColors(handlers) {
             var colorstops = colors[0] + ", "; // start with the first color
             for (var i = 0; i < handlers.length; i++) {
-              colorstops += colors[i] + " " + handlers[i] * 100 / maxValue + "%,";
-              colorstops += colors[i + 1] + " " + handlers[i] * 100 / maxValue + "%,";
+              colorstops += colors[i] + " " + handlers[i]*100/max_tmp + "%,";
+              colorstops += colors[i+1] + " " + handlers[i]*100/max_tmp + "%,";
             }
             colorstops += colors[colors.length - 1];
             var sliderElement = $('#slider-range');
@@ -313,21 +219,18 @@ App.DashboardWidgetView = Em.View.extend({
     });
   },
 
-  /**
-   * @returns {number}
-   */
-  getInternetExplorerVersion: function () {
+  getInternetExplorerVersion: function (){
     var rv = -1; //return -1 for other browsers
     if (navigator.appName == 'Microsoft Internet Explorer') {
       var ua = navigator.userAgent;
-      var re = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
+      var re  = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
       if (re.exec(ua) != null)
-        rv = parseFloat(RegExp.$1); // IE version 1-10
+        rv = parseFloat( RegExp.$1 ); // IE version 1-10
     }
     var isFirefox = typeof InstallTrigger !== 'undefined';   // Firefox 1.0+
     if (isFirefox) {
       return -2;
-    } else {
+    }else{
       return rv;
     }
   },
@@ -336,7 +239,6 @@ App.DashboardWidgetView = Em.View.extend({
    * for widgets has hidden info(hover info),
    * calculate the hover content top number
    * based on how long the hiddenInfo is
-   * @returns {string}
    */
   hoverContentTopClass: function () {
     var lineNum = this.get('hiddenInfo.length');

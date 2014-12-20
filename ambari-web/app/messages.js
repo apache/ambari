@@ -2223,8 +2223,6 @@ Em.I18n.translations = {
   'dashboard.widgets.NodeManagersLive': 'NodeManagers Live',
   'dashboard.widgets.YARNMemory': 'YARN Memory',
   'dashboard.widgets.YARNLinks': 'YARN Links',
-  'dashboard.widgets.error.invalid': 'Invalid! Enter a number between 0 - {0}',
-  'dashboard.widgets.error.smaller': 'Threshold 1 should be smaller than threshold 2!',
 
   'dashboard': {
     'widgets': {

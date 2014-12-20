@@ -23,13 +23,13 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
 
   name: 'mainDashboardWidgetsView',
 
-  templateName: require('templates/main/dashboard/widgets'),
+  templateName:require('templates/main/dashboard/widgets'),
 
-  didInsertElement: function () {
+  didInsertElement:function () {
     this.setWidgetsDataModel();
     this.setInitPrefObject();
     this.setOnLoadVisibleWidgets();
-    this.set('isDataLoaded', true);
+    this.set('isDataLoaded',true);
     Em.run.next(this, 'makeSortable');
   },
 
@@ -37,16 +37,16 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
    * List of services
    * @type {Ember.Enumerable}
    */
-  content: [],
+  content:[],
 
   /**
-   * @type {boolean}
+   * @type {bool}
    */
   isDataLoaded: false,
 
   /**
    * Define if some widget is currently moving
-   * @type {boolean}
+   * @type {bool}
    */
   isMoving: false,
 
@@ -55,7 +55,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
    */
   makeSortable: function () {
     var self = this;
-    $("#sortable").sortable({
+    $( "#sortable" ).sortable({
       items: "> div",
       //placeholder: "sortable-placeholder",
       cursor: "move",
@@ -85,10 +85,10 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
           });
         }
       },
-      activate: function (event, ui) {
+      activate: function(event, ui) {
         self.set('isMoving', true);
       },
-      deactivate: function (event, ui) {
+      deactivate: function(event, ui) {
         self.set('isMoving', false);
       }
     }).disableSelection();
@@ -98,16 +98,31 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
    * Set Service model values
    */
   setWidgetsDataModel: function () {
-    if (App.get('services.hostMetrics').length > 0) {
-      this.set('host_metrics_model', App.get('services.hostMetrics'));
+    var services = App.Service.find();
+    var self = this;
+    if(App.get('services.hostMetrics').length > 0) {
+      self.set('host_metrics_model', App.get('services.hostMetrics'));
     }
-    App.Service.find().forEach(function (item) {
-      var extendedModel = App.Service.extendedModel[item.get('serviceName')];
-      var key = item.get('serviceName').toLowerCase() + '_model';
-      if (extendedModel && App[extendedModel].find(item.get('id'))) {
-        this.set(key, App[extendedModel].find(item.get('id')));
-      } else {
-        this.set(key, item);
+    services.forEach(function (item) {
+      switch (item.get('serviceName')) {
+        case "HDFS":
+          self.set('hdfs_model',  App.HDFSService.find(item.get('id')) || item);
+          break;
+        case "YARN":
+          self.set('yarn_model', App.YARNService.find(item.get('id')) || item);
+          break;
+        case "MAPREDUCE":
+          self.set('mapreduce_model', App.MapReduceService.find(item.get('id')) || item);
+          break;
+        case "HBASE":
+          self.set('hbase_model', App.HBaseService.find(item.get('id')) || item);
+          break;
+        case "STORM":
+          self.set('storm_model', item);
+          break;
+        case "FLUME":
+          self.set('flume_model', item);
+          break;
       }
     }, this);
   },
@@ -115,7 +130,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
   /**
    * Load widget statuses to <code>initPrefObject</code>
    */
-  setInitPrefObject: function () {
+  setInitPrefObject: function() {
     //in case of some service not installed
     var visibleFull = [
       '2', '4', '8', '10',
@@ -123,56 +138,54 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
       '18', '1', '6', '5', '9',
       '3', '7', '15', '16', '20',
       '19', '21', '23',
-      '24', '25', '26', '27', '30', // all yarn
+      '24', '25', '26', '27', '30',// all yarn
       '28', // storm
       '29' // flume
     ]; // all in order
-    var hiddenFull = [
-      ['22', 'Region In Transition']
-    ];
+    var hiddenFull = [['22','Region In Transition']];
 
     // Display widgets for host metrics if the stack definition has a host metrics service to display it.
     if (this.get('host_metrics_model') == null) {
       var hostMetrics = ['11', '12', '13', '14'];
-      hostMetrics.forEach(function (item) {
+      hostMetrics.forEach ( function (item) {
         visibleFull = visibleFull.without(item);
       }, this);
     }
 
     if (this.get('hdfs_model') == null) {
-      var hdfs = ['1', '2', '3', '4', '5', '15', '17'];
-      hdfs.forEach(function (item) {
+      var hdfs= ['1', '2', '3', '4', '5', '15', '17'];
+      hdfs.forEach ( function (item) {
         visibleFull = visibleFull.without(item);
       }, this);
     }
     if (this.get('mapreduce_model') == null) {
       var map = ['6', '7', '8', '9', '10', '16', '18'];
-      map.forEach(function (item) {
+      map.forEach ( function (item) {
         visibleFull = visibleFull.without(item);
       }, this);
     }
     if (this.get('hbase_model') == null) {
       var hbase = ['19', '20', '21', '23'];
-      hbase.forEach(function (item) {
+      hbase.forEach ( function (item) {
         visibleFull = visibleFull.without(item);
       }, this);
       hiddenFull = [];
     }
     if (this.get('yarn_model') == null) {
       var yarn = ['24', '25', '26', '27', '30'];
-      yarn.forEach(function (item) {
+      yarn.forEach ( function (item) {
         visibleFull = visibleFull.without(item);
       }, this);
     }
     if (this.get('storm_model') == null) {
       var storm = ['28'];
-      storm.forEach(function (item) {
+      storm.forEach(function(item) {
         visibleFull = visibleFull.without(item);
       }, this);
     }
     if (this.get('flume_model') == null) {
       var flume = ['29'];
-      flume.forEach(function (item) {
+      flume.forEach(function(item) {
         visibleFull = visibleFull.without(item);
       }, this);
     }
@@ -212,58 +225,57 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
   /**
    * Submenu view for New Dashboard style
    * @type {Ember.View}
-   * @class
    */
   plusButtonFilterView: Ember.View.extend({
-    templateName: require('templates/main/dashboard/plus_button_filter'),
-    hiddenWidgetsBinding: 'parentView.hiddenWidgets',
-    visibleWidgetsBinding: 'parentView.visibleWidgets',
-    valueBinding: '',
-    widgetCheckbox: Em.Checkbox.extend({
-      didInsertElement: function () {
-        $('.checkbox').click(function (event) {
-          event.stopPropagation();
-        });
-      }
-    }),
-    closeFilter: Em.K,
-    applyFilter: function () {
-      var parent = this.get('parentView');
-      var hiddenWidgets = this.get('hiddenWidgets');
-      var checkedWidgets = hiddenWidgets.filterProperty('checked', true);
+      templateName: require('templates/main/dashboard/plus_button_filter'),
+      hiddenWidgetsBinding: 'parentView.hiddenWidgets',
+      visibleWidgetsBinding: 'parentView.visibleWidgets',
+      valueBinding: '',
+      widgetCheckbox: Em.Checkbox.extend({
+        didInsertElement: function() {
+          $('.checkbox').click(function(event) {
+            event.stopPropagation();
+          });
+        }
+      }),
+      closeFilter:function () {
+      },
+      applyFilter:function() {
+        this.closeFilter();
+        var parent = this.get('parentView');
+        var hiddenWidgets = this.get('hiddenWidgets');
+        var checkedWidgets = hiddenWidgets.filterProperty('checked', true);
 
-      if (App.get('testMode')) {
-        var visibleWidgets = this.get('visibleWidgets');
-        checkedWidgets.forEach(function (item) {
-          var newObj = parent.widgetsMapper(item.id);
-          visibleWidgets.pushObject(newObj);
-          hiddenWidgets.removeObject(item);
-        }, this);
-      } else {
-        //save in persist
-        parent.getUserPref(parent.get('persistKey')).complete(this.applyFilterComplete);
+        if (App.get('testMode')) {
+          var visibleWidgets = this.get('visibleWidgets');
+          checkedWidgets.forEach(function(item){
+            var newObj = parent.widgetsMapper(item.id);
+            visibleWidgets.pushObject(newObj);
+            hiddenWidgets.removeObject(item);
+          }, this);
+        } else {
+          //save in persist
+          parent.getUserPref(parent.get('persistKey')).complete(function () {
+            var oldValue = parent.get('currentPrefObject') || parent.getDbProperty(parent.get('persistKey'));
+            var newValue = Em.Object.create({
+              dashboardVersion: oldValue.dashboardVersion,
+              visible: oldValue.visible,
+              hidden: [],
+              threshold: oldValue.threshold
+            });
+            checkedWidgets.forEach(function (item) {
+              newValue.visible.push(item.id);
+              hiddenWidgets.removeObject(item);
+            }, this);
+            hiddenWidgets.forEach(function (item) {
+              newValue.hidden.push([item.id, item.displayName]);
+            }, this);
+            parent.postUserPref(parent.get('persistKey'), newValue);
+            parent.setDBProperty(parent.get('persistKey'), newValue);
+            parent.translateToReal(newValue);
+          });
+        }
       }
-    },
-    applyFilterComplete: function () {
-      var parent = this.get('parentView'),
-        hiddenWidgets = this.get('hiddenWidgets'),
-        oldValue = parent.get('currentPrefObject'),
-        newValue = Em.Object.create({
-          dashboardVersion: oldValue.dashboardVersion,
-          visible: oldValue.visible,
-          hidden: [],
-          threshold: oldValue.threshold
-        });
-      hiddenWidgets.filterProperty('checked').forEach(function (item) {
-        newValue.visible.push(item.id);
-        hiddenWidgets.removeObject(item);
-      }, this);
-      hiddenWidgets.forEach(function (item) {
-        newValue.hidden.push([item.id, item.displayName]);
-      }, this);
-      parent.postUserPref(parent.get('persistKey'), newValue);
-      parent.translateToReal(newValue);
-    }
   }),
 
   /**
@@ -275,12 +287,15 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
     var hidden = value.hidden;
     var threshold = value.threshold;
 
-    if (version == 'new') {
+    if (version == 'classic') {
+      this.set('isClassicDashboard', true);
+    } else if (version == 'new') {
+      this.set('isClassicDashboard', false);
       var visibleWidgets = [];
       var hiddenWidgets = [];
       // re-construct visibleWidgets and hiddenWidgets
-      for (var i = 0; i < visible.length; i++) {
-        var id = visible[i];
+      for (var j = 0; j <= visible.length -1; j++) {
+        var id = visible[j];
         var widgetClass = this.widgetsMapper(id);
         //override with new threshold
         if (threshold[id].length > 0) {
@@ -291,9 +306,10 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
         }
         visibleWidgets.pushObject(widgetClass);
       }
-      for (var j = 0; j < hidden.length; j++) {
+      for (var j = 0; j <= hidden.length -1; j++) {
+        var id = hidden[j][0];
         var title = hidden[j][1];
-        hiddenWidgets.pushObject(Em.Object.create({displayName: title, id: hidden[j][0], checked: false}));
+        hiddenWidgets.pushObject(Em.Object.create({displayName:title , id: id, checked: false}));
       }
       this.set('visibleWidgets', visibleWidgets);
       this.set('hiddenWidgets', hiddenWidgets);
@@ -304,33 +320,29 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
    * Set visibility-status for widgets
    */
   setOnLoadVisibleWidgets: function () {
+    var self = this;
     if (App.get('testMode')) {
       this.translateToReal(this.get('initPrefObject'));
     } else {
       // called when first load/refresh/jump back page
-      this.getUserPref(this.get('persistKey')).complete(this.setOnLoadVisibleWidgetsComplete);
-    }
-  },
-
-  /**
-   * complete load of visible widgets
-   */
-  setOnLoadVisibleWidgetsComplete: function () {
-    var currentPrefObject = this.get('currentPrefObject') || this.getDBProperty(this.get('persistKey'));
-    if (currentPrefObject) { // fit for no dashboard version
-      if (!currentPrefObject.dashboardVersion) {
-        currentPrefObject.dashboardVersion = 'new';
-        this.postUserPref(this.get('persistKey'), currentPrefObject);
-        this.setDBProperty(this.get('persistKey'), currentPrefObject);
-      }
-      this.set('currentPrefObject', this.checkServicesChange(currentPrefObject));
-      this.translateToReal(this.get('currentPrefObject'));
-    }
-    else {
-      // post persist then translate init object
-      this.postUserPref(this.get('persistKey'), this.get('initPrefObject'));
-      this.setDBProperty(this.get('persistKey'), this.get('initPrefObject'));
-      this.translateToReal(this.get('initPrefObject'));
+      self.getUserPref(this.get('persistKey')).complete(function () {
+        var currentPrefObject = self.get('currentPrefObject') || self.getDBProperty(self.get('persistKey'));
+        if (currentPrefObject) { // fit for no dashboard version
+          if (!currentPrefObject.dashboardVersion) {
+            currentPrefObject.dashboardVersion = 'new';
+            self.postUserPref(self.get('persistKey'), currentPrefObject);
+            self.setDBProperty(self.get('persistKey'), currentPrefObject);
+          }
+          self.set('currentPrefObject', self.checkServicesChange(currentPrefObject));
+          self.translateToReal(self.get('currentPrefObject'));
+        }
+        else {
+          // post persist then translate init object
+          self.postUserPref(self.get('persistKey'), self.get('initPrefObject'));
+          self.setDBProperty(self.get('persistKey'), self.get('initPrefObject'));
+          self.translateToReal(self.get('initPrefObject'));
+        }
+      });
     }
   },
 
@@ -342,7 +354,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
    */
   removeWidget: function (value, widget) {
     value.visible = value.visible.without(widget);
-    for (var j = 0; j < value.hidden.length; j++) {
+    for (var j = 0; j <= value.hidden.length -1; j++) {
       if (value.hidden[j][0] == widget) {
         value.hidden.splice(j, 1);
       }
@@ -357,9 +369,9 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
    * @returns {bool}
    */
   containsWidget: function (value, widget) {
-    var flag = value.visible.contains(widget);
-    for (var j = 0; j < value.hidden.length; j++) {
-      if (!flag && value.hidden[j][0] == widget) {
+    var flag = value.visible.contains (widget);
+    for (var j = 0; j <= value.hidden.length -1; j++) {
+      if ( !flag && value.hidden[j][0] == widget) {
         flag = true;
         break;
       }
@@ -381,7 +393,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
     // check each service, find out the newly added service and already deleted service
     if (this.get('hdfs_model') != null) {
       var hdfs = ['1', '2', '3', '4', '5', '15', '17'];
-      hdfs.forEach(function (item) {
+      hdfs.forEach ( function (item) {
         toDelete = self.removeWidget(toDelete, item);
       }, this);
     }
@@ -391,7 +403,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
       var hostMetrics = ['11', '12', '13', '14'];
       var flag = self.containsWidget(toDelete, hostMetrics[0]);
       if (flag) {
-        hostMetrics.forEach(function (item) {
+        hostMetrics.forEach ( function (item) {
           toDelete = self.removeWidget(toDelete, item);
         }, this);
       } else {
@@ -403,7 +415,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
       var map = ['6', '7', '8', '9', '10', '16', '18'];
       var flag = self.containsWidget(toDelete, map[0]);
       if (flag) {
-        map.forEach(function (item) {
+        map.forEach ( function (item) {
           toDelete = self.removeWidget(toDelete, item);
         }, this);
       } else {
@@ -414,7 +426,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
       var hbase = ['19', '20', '21', '22', '23'];
       var flag = self.containsWidget(toDelete, hbase[0]);
       if (flag) {
-        hbase.forEach(function (item) {
+        hbase.forEach ( function (item) {
           toDelete = self.removeWidget(toDelete, item);
         }, this);
       } else {
@@ -425,7 +437,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
       var yarn = ['24', '25', '26', '27', '30'];
       var flag = self.containsWidget(toDelete, yarn[0]);
       if (flag) {
-        yarn.forEach(function (item) {
+        yarn.forEach ( function (item) {
           toDelete = self.removeWidget(toDelete, item);
         }, this);
       } else {
@@ -436,7 +448,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
       var storm = ['28'];
       var flag = self.containsWidget(toDelete, storm[0]);
       if (flag) {
-        storm.forEach(function (item) {
+        storm.forEach ( function (item) {
           toDelete = self.removeWidget(toDelete, item);
         }, this);
       } else {
@@ -447,7 +459,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
       var flume = ['29'];
       var flag = self.containsWidget(toDelete, flume[0]);
       if (flag) {
-        flume.forEach(function (item) {
+        flume.forEach ( function (item) {
           toDelete = self.removeWidget(toDelete, item);
         }, this);
       } else {
@@ -456,10 +468,10 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
     }
     var value = currentPrefObject;
     if (toDelete.visible.length || toDelete.hidden.length) {
-      toDelete.visible.forEach(function (item) {
+      toDelete.visible.forEach ( function (item) {
         value = self.removeWidget(value, item);
       }, this);
-      toDelete.hidden.forEach(function (item) {
+      toDelete.hidden.forEach ( function (item) {
         value = self.removeWidget(value, item[0]);
       }, this);
     }
@@ -467,7 +479,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
       value.visible = value.visible.concat(toAdd);
       var allThreshold = this.get('initPrefObject').threshold;
       // add new threshold OR override with default value
-      toAdd.forEach(function (item) {
+      toAdd.forEach ( function (item) {
         value.threshold[item] = allThreshold[item];
       }, this);
     }
@@ -528,7 +540,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
     hidden: [],
     threshold: {1: [80, 90], 2: [85, 95], 3: [90, 95], 4: [80, 90], 5: [1000, 3000], 6: [70, 90], 7: [90, 95], 8: [50, 75], 9: [30000, 120000],
       10: [], 11: [], 12: [], 13: [], 14: [], 15: [], 16: [], 17: [], 18: [], 19: [], 20: [70, 90], 21: [10, 19.2], 22: [3, 10], 23: [],
-      24: [70, 90], 25: [], 26: [50, 75], 27: [50, 75], 28: [85, 95], 29: [85, 95], 30: []} // id:[thresh1, thresh2]
+      24: [70, 90], 25: [], 26: [50, 75], 27: [50, 75], 28: [85, 95], 29: [85, 95], 30:[]} // id:[thresh1, thresh2]
   }),
 
   /**
@@ -556,10 +568,10 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
   /**
    * Reset widgets visibility-status
    */
-  resetAllWidgets: function () {
+  resetAllWidgets: function() {
     var self = this;
-    App.showConfirmationPopup(function () {
-      if (!App.get('testMode')) {
+    App.showConfirmationPopup(function() {
+      if(!App.get('testMode')) {
         self.postUserPref(self.get('persistKey'), self.get('initPrefObject'));
         self.setDBProperty(self.get('persistKey'), self.get('initPrefObject'));
       }
@@ -574,7 +586,8 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
     return App.router.get('clusterController.gangliaUrl') + "/?r=hour&cs=&ce=&m=&s=by+name&c=HDPSlaves&tab=m&vn=";
   }.property('App.router.clusterController.gangliaUrl'),
 
-  showAlertsPopup: Em.K
+  showAlertsPopup: function (event) {
+  }
 
 });
 
