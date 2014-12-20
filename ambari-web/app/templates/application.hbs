@@ -56,16 +56,16 @@
                   <i class="icon-user"></i>&nbsp;{{App.router.loginName}}&nbsp;<span class="caret"></span>
               </button>
               <ul class="dropdown-menu">
-                  <li><a href="" {{action showAboutPopup target="controller"}}>{{t app.aboutAmbari}}</a></li>
+                  <li><a href="" id="about" {{action showAboutPopup target="controller"}}>{{t app.aboutAmbari}}</a></li>
                 {{#if App.router.clusterInstallCompleted}}
                   {{#if isClusterDataLoaded}}
                     {{#isAccessible upgrade_ONLY_ADMIN}}
-                      <li><a href="" {{action goToAdminView target="controller"}}>{{t app.manageAmbari}}</a></li>
+                      <li><a href="" id="manage-ambari" {{action goToAdminView target="controller"}}>{{t app.manageAmbari}}</a></li>
                     {{/isAccessible}}
                   {{/if}}
                 {{else}}
                   {{#isAccessible upgrade_ONLY_ADMIN}}
-                    <li><a href="" {{action goToAdminView target="controller"}}>{{t app.manageAmbari}}</a></li>
+                    <li><a href="" id="manage-ambari" {{action goToAdminView target="controller"}}>{{t app.manageAmbari}}</a></li>
                   {{/isAccessible}}
                 {{/if}}
                 {{#if isClusterDataLoaded}}
@@ -74,7 +74,7 @@
                   {{/isAccessible}}
                 {{/if}}
                   <li class="break"></li>
-                  <li><a href="" {{action logoff}}>{{t app.signout}}</a></li>
+                  <li><a href="" id="sign-out" {{action logoff}}>{{t app.signout}}</a></li>
               </ul>
             </div>
           {{/if}}

@@ -15,28 +15,27 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
+<div id="get-started">
+  <h2>{{t installer.step0.body.header}}</h2>
+  <p class="alert alert-info">
+    {{t installer.step0.body}}
+  </p>
+  <div {{bindAttr class="view.onError:error :control-group"}}>
+    <label class="control-label" for="cluster-name">{{t installer.step0.clusterName}}
+      <a href="javascript:void(null)"
+         rel="popover"
+        {{translateAttr title="installer.step0.clusterName.tooltip.title"
+        data-content="installer.step0.clusterName.tooltip.content"}}>{{t common.learnMore}}</a>
+    </label>
 
-<h2>{{t installer.step0.body.header}}</h2>
-<p class="alert alert-info">
-  {{t installer.step0.body}}
-</p>
-<div {{bindAttr class="view.onError:error :control-group"}}>
-  <label class="control-label" for="cluster-name">{{t installer.step0.clusterName}}
-    <a href="javascript:void(null)"
-       rel="popover"
-      {{translateAttr title="installer.step0.clusterName.tooltip.title"
-      data-content="installer.step0.clusterName.tooltip.content"}}>{{t common.learnMore}}</a>
-  </label>
+    <div class="controls">
+      {{view App.WizardStep0ViewClusterNameInput id="cluster-name" valueBinding="content.cluster.name" placeholder="cluster name" target="controller"}}
+      <p class="help-inline">{{clusterNameError}}</p>
+    </div>
+  </div>
 
-  <div class="controls">
-    {{view App.WizardStep0ViewClusterNameInput valueBinding="content.cluster.name" placeholder="cluster name" target="controller"}}
-    <p class="help-inline">{{clusterNameError}}</p>
+  <div class="btn-area">
+    <a class="btn btn-success pull-right" {{bindAttr disabled="invalidClusterName"}} {{action "submit" target="controller"}}>{{t common.next}} &rarr;</a>
   </div>
 </div>
-
-<div class="btn-area">
-  <a class="btn btn-success pull-right" {{bindAttr disabled="invalidClusterName"}} {{action "submit" target="controller"}}>{{t common.next}} &rarr;</a>
-</div>
-
-
 

@@ -15,65 +15,66 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
+<div id="deploy-review">
+  <h2>{{t installer.step8.header}}</h2>
 
-<h2>{{t installer.step8.header}}</h2>
-
-<div class="alert alert-info">
-  {{t installer.step8.body}}
-</div>
-
-{{#if controller.securityEnabled}}
-  <div class="alert alert-error">
-    {{t installer.step8.securityWarning}}
+  <div class="alert alert-info">
+    {{t installer.step8.body}}
   </div>
-{{/if}}
 
-<div id="step8-content" class="well pre-scrollable">
-  <div id="printReview">
-    <a class="btn btn-info pull-right" {{action printReview target="view"}}>{{t common.print}}</a> <br/>
-  </div>
-  <div id="step8-info">
-    {{#each item in controller.clusterInfo}}
-      <p>
-        <b>{{item.display_name}}</b> : {{item.config_value}}
-      </p>
-    {{/each}}
-
-    <p><b>{{controller.clusterInfo.repoInfo.display_name}}</b>:</p>
-
-    <div>
-      <ul>
-        {{#each item in controller.clusterInfo.repoInfo}}
-          <li>
-            <p><span class="text text-info">{{item.os_type}} ({{item.repo_id}}): <br/></span>{{item.base_url}}</p>
-          </li>
-        {{/each}}
-      </ul>
+  {{#if controller.securityEnabled}}
+    <div class="alert alert-error">
+      {{t installer.step8.securityWarning}}
     </div>
+  {{/if}}
 
-    <div>
-      {{#if controller.services.length}}
-        <p><b>{{t menu.item.services}}:</b></p>
+  <div id="step8-content" class="well pre-scrollable">
+    <div id="printReview">
+      <a class="btn btn-info pull-right" {{action printReview target="view"}}>{{t common.print}}</a> <br/>
+    </div>
+    <div id="step8-info">
+      {{#each item in controller.clusterInfo}}
+        <p>
+          <b>{{item.display_name}}</b> : {{item.config_value}}
+        </p>
+      {{/each}}
+
+      <p><b>{{controller.clusterInfo.repoInfo.display_name}}</b>:</p>
+
+      <div>
         <ul>
-          {{#each controller.services}}
+          {{#each item in controller.clusterInfo.repoInfo}}
             <li>
-              <em><b>{{display_name}}</b></em>
-              <ul>
-                {{#each component in this.service_components}}
-                  <li>
-                    <span class="text text-info">{{component.display_name }} : </span>{{component.component_value}}
-                  </li>
-                {{/each}}
-              </ul>
+              <p><span class="text text-info">{{item.os_type}} ({{item.repo_id}}): <br/></span>{{item.base_url}}</p>
             </li>
           {{/each}}
         </ul>
-      {{/if}}
+      </div>
+
+      <div>
+        {{#if controller.services.length}}
+          <p><b>{{t menu.item.services}}:</b></p>
+          <ul>
+            {{#each controller.services}}
+              <li>
+                <em><b>{{display_name}}</b></em>
+                <ul>
+                  {{#each component in this.service_components}}
+                    <li>
+                      <span class="text text-info">{{component.display_name }} : </span>{{component.component_value}}
+                    </li>
+                  {{/each}}
+                </ul>
+              </li>
+            {{/each}}
+          </ul>
+        {{/if}}
+      </div>
     </div>
   </div>
-</div>
-<div class="btn-area">
-  <a class="btn pull-left" {{bindAttr disabled="controller.isBackBtnDisabled"}} {{action back}}>&larr; {{t common.back}}</a>
-  <a class="btn btn-success pull-right"
-     id="spinner" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.deploy}} &rarr;</a>
+  <div class="btn-area">
+    <a class="btn pull-left" {{bindAttr disabled="controller.isBackBtnDisabled"}} {{action back}}>&larr; {{t common.back}}</a>
+    <a class="btn btn-success pull-right"
+       id="spinner" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.deploy}} &rarr;</a>
+  </div>
 </div>

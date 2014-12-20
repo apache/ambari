@@ -27,9 +27,11 @@
     <tr>
       <th class="span3">{{t common.service}}
         <span style="margin-left:10px">
-          <a href="#" {{action selectAll target="controller"}} {{bindAttr class="isAll:selected:deselected"}}>{{t all}}</a>
+          <a href="#" id="all" {{action selectAll target="controller"}} {{bindAttr
+          class="isAll:selected:deselected"}}>{{t all}}</a>
            |
-          <a href="#" {{action selectMinimum target="controller"}} {{bindAttr class="isMinimum:selected:deselected"}}>{{t none}}</a>
+          <a href="#" id="none" {{action selectMinimum target="controller"}} {{bindAttr
+          class="isMinimum:selected:deselected"}}>{{t none}}</a>
         </span>
       </th>
       <th>{{t common.version}}</th>
@@ -40,7 +42,9 @@
     {{#each controller}}
       {{#unless isHiddenOnSelectServicePage}}
         <tr {{bindAttr class="isSelected:success:"}}>
-          <td><label class="checkbox">{{view Ember.Checkbox disabledBinding="isInstalled" checkedBinding="isSelected"}}{{displayNameOnSelectServicePage}}</label>
+          <td><label class="checkbox">{{view Ember.Checkbox elementIdBinding="serviceName"
+          disabledBinding="isInstalled"
+          checkedBinding="isSelected"}}{{displayNameOnSelectServicePage}}</label>
           </td>
           <td>{{serviceVersion}}</td>
           <td>{{{comments}}}</td>

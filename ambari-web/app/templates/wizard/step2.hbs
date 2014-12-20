@@ -34,7 +34,8 @@
       </p>
 
       <div class="controls">
-        {{view Ember.TextArea class="span6" valueBinding="content.installOptions.hostNames" rows="5" placeholder="host names"}}
+        {{view Ember.TextArea id="host-names" class="span6" valueBinding="content.installOptions.hostNames" rows="5"
+        placeholder="host names"}}
         {{#if hostsError}}
           <p class="help-inline">{{hostsError}}</p>
         {{/if}}
