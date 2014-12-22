@@ -187,15 +187,9 @@ class TestHiveMetastore(RMFTestCase):
                               owner = 'hive',
                               group = 'hadoop',
                               )
-    self.assertResourceCalled('Execute', ('curl', '-kf', '-x', "", '--retry', '10', u'http://c6401.ambari.apache.org:8080/resources//mysql-jdbc-driver.jar', '-o', '/usr/share/java/mysql-connector-java.jar'),
-                              environment = {'no_proxy': 'c6401.ambari.apache.org'},
-                              path = ['/bin', '/usr/bin/'],
-                              sudo = True,
-                              not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
-                              )
     self.assertResourceCalled('Execute', ('cp', '/usr/share/java/mysql-connector-java.jar', '/usr/lib/hive/lib//mysql-connector-java.jar'),
-                              creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
                               path = ['/bin', '/usr/bin/'],
+                              creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
                               sudo = True,
                               not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
                               )
@@ -288,15 +282,9 @@ class TestHiveMetastore(RMFTestCase):
                               owner = 'hive',
                               group = 'hadoop',
                               )
-    self.assertResourceCalled('Execute', ('curl', '-kf', '-x', "", '--retry', '10', u'http://c6401.ambari.apache.org:8080/resources//mysql-jdbc-driver.jar', '-o', '/usr/share/java/mysql-connector-java.jar'),
-        environment = {'no_proxy': 'c6401.ambari.apache.org'},
-        path = ['/bin', '/usr/bin/'],
-        sudo = True,
-        not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
-    )
     self.assertResourceCalled('Execute', ('cp', '/usr/share/java/mysql-connector-java.jar', '/usr/lib/hive/lib//mysql-connector-java.jar'),
-        creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
         path = ['/bin', '/usr/bin/'],
+        creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
         sudo = True,
         not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
     )

@@ -83,11 +83,12 @@ if 'role' in config and config['role'] in ["HIVE_SERVER", "HIVE_METASTORE"]:
 #hive-site
 hive_database_name = config['configurations']['hive-env']['hive_database_name']
 hive_database = config['configurations']['hive-env']['hive_database']
+hive_use_existing_db = hive_database.startswith('Existing')
 
 
 mysql_jdbc_driver_jar = "/usr/share/java/mysql-connector-java.jar"
 
-if hive_database.startswith('Existing'):
+if hive_use_existing_db:
   hive_exclude_packages = ['mysql-connector-java','mysql','mysql-server']
 else:
   if 'role' in config and config['role'] != "MYSQL_SERVER":

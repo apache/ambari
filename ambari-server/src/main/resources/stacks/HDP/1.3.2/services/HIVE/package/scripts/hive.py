@@ -161,7 +161,7 @@ def crt_file(name):
 def jdbc_connector():
   import params
 
-  if params.hive_jdbc_driver in params.hive_jdbc_drivers_list:
+  if params.hive_jdbc_driver in params.hive_jdbc_drivers_list and params.hive_use_existing_db:
     environment = {
       "no_proxy": format("{ambari_server_hostname}")
     }
@@ -178,3 +178,12 @@ def jdbc_connector():
             creates=params.target,
             path=["/bin", "/usr/bin/"],
             sudo = True)
+
+  else:
+    #for default hive db (Mysql)
+    Execute(('cp', format('/usr/share/java/{jdbc_jar_name}'), params.target),
+            not_if=format("test -f {target}"),
+            creates=params.target,
+            path=["/bin", "/usr/bin/"],
+            sudo=True
+    )
