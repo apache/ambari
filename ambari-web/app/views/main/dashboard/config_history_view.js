@@ -190,7 +190,9 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
   refresh: function () {
     var self = this;
     this.set('filteringComplete', false);
-    this.get('controller').load().done(this.refreshDone);
+    this.get('controller').load().done(function () {
+      self.refreshDone.apply(self);
+    });
   },
 
   /**

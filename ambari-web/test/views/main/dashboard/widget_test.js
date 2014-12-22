@@ -140,24 +140,28 @@ describe('App.DashboardWidgetView', function () {
 
   describe("#showEditDialog()", function () {
     var obj = Em.Object.create({
-      observeNewThresholdValue: Em.K,
+      observeThresh1Value: Em.K,
+      observeThresh2Value: Em.K,
       thresh1: '1',
       thresh2: '2'
     });
     before(function () {
-      sinon.spy(obj, 'observeNewThresholdValue');
+      sinon.spy(obj, 'observeThresh1Value');
+      sinon.spy(obj, 'observeThresh2Value');
       sinon.stub(dashboardWidgetView.get('parentView'), 'getUserPref').returns({
         complete: Em.K
       });
     });
     after(function () {
-      obj.observeNewThresholdValue.restore();
+      obj.observeThresh1Value.restore();
+      obj.observeThresh2Value.restore();
       dashboardWidgetView.get('parentView').getUserPref.restore();
     });
     it("open popup", function () {
       var popup = dashboardWidgetView.showEditDialog(obj);
       popup.onPrimary();
-      expect(obj.observeNewThresholdValue.calledOnce).to.be.true;
+      expect(obj.observeThresh1Value.calledOnce).to.be.true;
+      expect(obj.observeThresh2Value.calledOnce).to.be.true;
       expect(dashboardWidgetView.get('thresh1')).to.equal(1);
       expect(dashboardWidgetView.get('thresh2')).to.equal(2);
       expect(dashboardWidgetView.get('parentView').getUserPref.calledOnce).to.be.true;
