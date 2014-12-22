@@ -36,12 +36,11 @@ version = default("/commandParams/version", None)
 
 #hadoop params
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
-  role_root = ""
+  role_root = "zookeeper-client"
   command_role = default("/role", "")
+
   if command_role == "ZOOKEEPER_SERVER":
     role_root = "zookeeper-server"
-  elif command_role == "ZOOKEEPER_CLIENT":
-    role_root = "zookeeper-client"
 
   zk_home = format("/usr/hdp/current/{role_root}")
   zk_bin = format("/usr/hdp/current/{role_root}/bin")

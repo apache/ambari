@@ -1,0 +1,97 @@
+{
+    "commandParams": {
+        "command_timeout": "300", 
+        "script": "scripts/service_check.py", 
+        "script_type": "PYTHON", 
+        "service_package_folder": "common-services/ZOOKEEPER/3.4.5.2.0/package", 
+        "hooks_folder": "HDP/2.0.6/hooks"
+    }, 
+    "roleCommand": "SERVICE_CHECK", 
+    "kerberosCommandParams": [], 
+    "clusterName": "c1", 
+    "hostname": "c6403.ambari.apache.org", 
+    "hostLevelParams": {
+        "jdk_location": "http://192.168.64.1:8080/resources/", 
+        "ambari_db_rca_password": "mapred", 
+        "java_home": "/usr/jdk64/jdk1.7.0_45", 
+        "ambari_db_rca_url": "jdbc:postgresql://192.168.64.1/ambarirca", 
+        "jce_name": "UnlimitedJCEPolicyJDK7.zip", 
+        "oracle_jdbc_url": "http://192.168.64.1:8080/resources//ojdbc6.jar", 
+        "stack_version": "2.2", 
+        "stack_name": "HDP", 
+        "db_name": "ambari", 
+        "ambari_db_rca_driver": "org.postgresql.Driver", 
+        "jdk_name": "jdk-7u45-linux-x64.tar.gz", 
+        "ambari_db_rca_username": "mapred", 
+        "db_driver_filename": "mysql-connector-java.jar", 
+        "agentCacheDir": "/var/lib/ambari-agent/cache", 
+        "mysql_jdbc_url": "http://192.168.64.1:8080/resources//mysql-connector-java.jar"
+    }, 
+    "commandType": "EXECUTION_COMMAND", 
+    "roleParams": {}, 
+    "serviceName": "ZOOKEEPER", 
+    "role": "ZOOKEEPER_QUORUM_SERVICE_CHECK", 
+    "forceRefreshConfigTags": [], 
+    "taskId": 215, 
+    "public_hostname": "c6403.ambari.apache.org", 
+    "configurations": {
+        "zoo.cfg": {
+            "clientPort": "2181", 
+            "autopurge.purgeInterval": "24", 
+            "syncLimit": "5", 
+            "dataDir": "/hadoop/zookeeper", 
+            "initLimit": "10", 
+            "tickTime": "2000", 
+            "autopurge.snapRetainCount": "30"
+        }, 
+        "zookeeper-env": {
+            "content": "\nexport JAVA_HOME={{java64_home}}\nexport ZOOKEEPER_HOME={{zk_home}}\nexport ZOO_LOG_DIR={{zk_log_dir}}\nexport ZOOPIDFILE={{zk_pid_file}}\nexport SERVER_JVMFLAGS={{zk_server_heapsize}}\nexport JAVA=$JAVA_HOME/bin/java\nexport CLASSPATH=$CLASSPATH:/usr/share/zookeeper/*\n\n{% if security_enabled %}\nexport SERVER_JVMFLAGS=\"$SERVER_JVMFLAGS -Djava.security.auth.login.config={{zk_server_jaas_file}}\"\nexport CLIENT_JVMFLAGS=\"$CLIENT_JVMFLAGS -Djava.security.auth.login.config={{zk_client_jaas_file}}\"\n{% endif %}", 
+            "zk_log_dir": "/var/log/zookeeper", 
+            "zk_pid_dir": "/var/run/zookeeper", 
+            "zk_user": "zookeeper"
+        }, 
+        "cluster-env": {
+            "security_enabled": "false", 
+            "sink_existing_mssql_server_2_database": "MSSQL", 
+            "pig_tar_source": "/usr/hdp/current/pig-client/pig.tar.gz", 
+            "hadoop-streaming_tar_source": "/usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar", 
+            "sink_existing_mssql_server_database": "MSSQL", 
+            "sqoop_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/sqoop/", 
+            "hadoop-streaming_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/mapreduce/", 
+            "sink.dbservername": "", 
+            "ignore_groupsusers_create": "false", 
+            "kerberos_domain": "EXAMPLE.COM", 
+            "sink.dblogin": "", 
+            "hive_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/hive/", 
+            "tez_tar_source": "/usr/hdp/current/tez-client/lib/tez.tar.gz", 
+            "mapreduce_tar_source": "/usr/hdp/current/hadoop-client/mapreduce.tar.gz", 
+            "hadoop.user.name": "hadoop", 
+            "hive_tar_source": "/usr/hdp/current/hive-client/hive.tar.gz", 
+            "sink.db.schema.name": "", 
+            "sink.jdbc.url": "", 
+            "tez_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/tez/", 
+            "user_group": "hadoop", 
+            "sqoop_tar_source": "/usr/hdp/current/sqoop-client/sqoop.tar.gz", 
+            "hadoop.user.password": "", 
+            "sink.jdbc.driver": "", 
+            "smokeuser": "ambari-qa", 
+            "mapreduce_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/mapreduce/", 
+            "pig_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/pig/", 
+            "sink.dbpassword": "", 
+            "sink_database": "Existing MSSQL Server database with sql auth"
+        }
+    }, 
+    "commandId": "25-1", 
+    "clusterHostInfo": {
+        "all_hosts": [
+            "c6403.ambari.apache.org", 
+            "c6401.ambari.apache.org", 
+            "c6402.ambari.apache.org"
+        ], 
+        "zookeeper_hosts": [
+            "c6403.ambari.apache.org", 
+            "c6401.ambari.apache.org", 
+            "c6402.ambari.apache.org"
+        ]
+    }
+}
