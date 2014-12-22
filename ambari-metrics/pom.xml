@@ -39,7 +39,9 @@
     <python.ver>python &gt;= 2.6</python.ver>
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
     <!--TODO change to HDP URL-->
-    <hbase.tar>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/GA/2.2.0.0/tars/hbase-0.98.4.2.2.0.0-2041-hadoop2.tar.gz</hbase.tar>
+    <hbase.tar>
+      http://public-repo-1.hortonworks.com/HDP/centos6/2.x/GA/2.2.0.0/tars/hbase-0.98.4.2.2.0.0-2041-hadoop2.tar.gz
+    </hbase.tar>
     <hbase.folder>hbase-0.98.4.2.2.0.0-2041-hadoop2</hbase.folder>
     <resmonitor.install.dir>
       /usr/lib/python2.6/site-packages/resource_monitoring
@@ -116,7 +118,9 @@
             <configuration>
               <name>package-release</name>
               <value>${project.version}</value>
-              <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-)(([0-9]+)|(SNAPSHOT)).*</regex>
+              <regex>
+                ^([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-)(([0-9]+)|(SNAPSHOT)).*
+              </regex>
               <replacement>$5</replacement>
               <failIfNoMatch>true</failIfNoMatch>
             </configuration>

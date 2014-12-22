@@ -73,7 +73,7 @@ if [ ! "$(ls -A ${RESOURCE_MONITORING_DIR}/psutil/build)" ]; then
   echo "Building psutil..."
   dir=$(pwd)
   cd "${RESOURCE_MONITORING_DIR}/psutil"
-  ${PYTHON} "build.py"
+  ${PYTHON} "setup.py" "install"
   cd "${dir}"
 else
   echo "psutil build directory is not empty, continuing..."

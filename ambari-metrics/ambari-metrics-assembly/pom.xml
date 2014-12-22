@@ -36,6 +36,10 @@
     <hadoop-sink.dir>${project.basedir}/../ambari-metrics-hadoop-sink</hadoop-sink.dir>
     <storm-sink.dir>${project.basedir}/../ambari-metrics-storm-sink</storm-sink.dir>
     <flume-sink.dir>${project.basedir}/../ambari-metrics-flume-sink</flume-sink.dir>
+    <python.ver>python &gt;= 2.6</python.ver>
+    <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
+    <deb.architecture>amd64</deb.architecture>
+    <deb.dependency.list>${deb.python.ver},python-dev,gcc</deb.dependency.list>
   </properties>
 
   <build>
@@ -95,7 +99,6 @@
       </plugin>
     </plugins>
   </build>
-
 
   <profiles>
     <profile>
@@ -455,12 +458,287 @@
                   </mappings>
                 </configuration>
               </execution>
-
-
-
             </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>deb</id>
 
+      <activation>
+        <property>
+          <name>build-deb</name>
+        </property>
+      </activation>
 
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>jdeb</artifactId>
+            <groupId>org.vafer</groupId>
+            <version>1.0.1</version>
+            <executions>
+              <execution>
+                <!-- unbinds rpm creation from maven lifecycle -->
+                <phase>package</phase>
+                <goals>
+                  <goal>jdeb</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <controlDir>${basedir}/src/main/package/deb/control</controlDir>
+              <deb>${basedir}/target/${artifactId}_${package-version}-${package-release}.deb</deb>
+              <dataSet>
+                <data>
+                  <type>file</type>
+                  <src>${monitor.dir}/src/main/python/__init__.py</src>
+                  <mapper>
+                    <type>perm</type>
+                    <prefix>${resmonitor.install.dir}</prefix>
+                    <!-- TODO: Figure out if file perms should be set -->
+                    <!--user>root</user>
+                    <group>root</group-->
+                    <filemode>755</filemode>
+                  </mapper>
+                </data>
+                <data>
+                  <type>file</type>
+                  <src>${monitor.dir}/src/main/python/main.py</src>
+                  <mapper>
+                    <type>perm</type>
+                    <prefix>${resmonitor.install.dir}</prefix>
+                    <filemode>755</filemode>
+                  </mapper>
+                </data>
+                <data>
+                  <type>directory</type>
+                  <src>${monitor.dir}/src/main/python/core</src>
+                  <mapper>
+                    <type>perm</type>
+                    <prefix>${resmonitor.install.dir}/core</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <type>directory</type>
+                  <src>${monitor.dir}/src/main/python/psutil</src>
+                  <excludes>build/**</excludes>
+                  <mapper>
+                    <type>perm</type>
+                    <prefix>${resmonitor.install.dir}/psutil</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <type>template</type>
+                  <paths>
+                    <path>/var/run/ambari-metrics-monitor</path>
+                    <path>/var/log/ambari-metrics-monitor</path>
+                    <path>/etc/ambari-metrics-monitor/conf</path>
+                    <path>/usr/lib/ambari-metrics-collector</path>
+                    <path>/etc/ambari-metrics-collector/conf</path>
+                    <path>/etc/ams-hbase/conf</path>
+                    <path>/var/run/ambari-metrics-collector</path>
+                    <path>/var/run/ams-hbase</path>
+                    <path>/var/log/ambari-metrics-collector</path>
+                    <path>/var/lib/ambari-metrics-collector</path>
+                    <path>/usr/lib/ambari-metrics-hadoop-sink</path>
+                    <path>/usr/lib/flume/lib</path>
+                    <path>/usr/lib/storm/lib</path>
+                  </paths>
+                </data>
+                <data>
+                  <src>${monitor.dir}/conf/unix/metric_groups.conf</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <prefix>/etc/ambari-metrics-monitor/conf</prefix>
+                    <filemode>644</filemode>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${monitor.dir}/conf/unix/metric_monitor.ini</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <prefix>/etc/ambari-metrics-monitor/conf</prefix>
+                    <filemode>644</filemode>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${monitor.dir}/conf/unix/ambari-metrics-monitor</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <prefix>/usr/sbin</prefix>
+                    <filemode>755</filemode>
+                  </mapper>
+                </data>
+
+                <!-- Metric collector -->
+
+                <data>
+                  <src>${collector.dir}/target/ambari-metrics-timelineservice-${project.version}.jar</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <dirmode>644</dirmode>
+                    <prefix>/usr/lib/ambari-metrics-collector</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${collector.dir}/target/lib</src>
+                  <type>directory</type>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>644</filemode>
+                    <prefix>/usr/lib/ambari-metrics-collector</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${collector.dir}/target/embedded/${hbase.folder}</src>
+                  <type>directory</type>
+                  <excludes>bin/**,bin/*</excludes>
+                  <mapper>
+                    <type>perm</type>
+                    <prefix>/usr/lib/ams-hbase</prefix>
+                    <filemode>644</filemode>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${collector.dir}/target/embedded/${hbase.folder}/bin</src>
+                  <type>directory</type>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>755</filemode>
+                    <prefix>/usr/lib/ams-hbase/bin</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${collector.dir}/target/lib</src>
+                  <type>directory</type>
+                  <includes>phoenix*.jar,antlr*.jar</includes>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>644</filemode>
+                    <prefix>/usr/lib/ams-hbase/lib</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${collector.dir}/conf/unix/ambari-metrics-collector</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>755</filemode>
+                    <prefix>/usr/sbin</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${collector.dir}/conf/unix/ams-env.sh</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>755</filemode>
+                    <prefix>/etc/ambari-metrics-collector/conf</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${collector.dir}/conf/unix/ams-site.xml</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>644</filemode>
+                    <prefix>/etc/ambari-metrics-collector/conf</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${collector.dir}/conf/unix/log4j.properties</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>644</filemode>
+                    <prefix>/etc/ambari-metrics-collector/conf</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${collector.dir}/target/embedded/${hbase.folder}/conf/hbase-site.xml</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>644</filemode>
+                    <prefix>/etc/ambari-metrics-collector/conf</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <type>directory</type>
+                  <src>${collector.dir}/target/embedded/${hbase.folder}/conf</src>
+                  <mapper>
+                    <type>perm</type>
+                    <dirmode>755</dirmode>
+                    <filemode>644</filemode>
+                    <prefix>/etc/ams-hbase/conf</prefix>
+                  </mapper>
+                </data>
+
+                <!-- hadoop sink -->
+
+                <data>
+                  <src>${hadoop-sink.dir}/target/ambari-metrics-hadoop-sink-with-common-${project.version}.jar</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>644</filemode>
+                    <dirmode>755</dirmode>
+                    <prefix>/usr/lib/ambari-metrics-hadoop-sink</prefix>
+                  </mapper>
+                </data>
+
+                <!-- flume sink -->
+
+                <data>
+                  <src>${flume-sink.dir}/target/ambari-metrics-flume-sink-${project.version}.jar</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>644</filemode>
+                    <dirmode>755</dirmode>
+                    <prefix>/usr/lib/flume/lib</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${flume-sink.dir}/target/lib</src>
+                  <type>directory</type>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>644</filemode>
+                    <prefix>/usr/lib/flume/lib</prefix>
+                  </mapper>
+                </data>
+
+                <!-- storm sink -->
+
+                <data>
+                  <src>${storm-sink.dir}/target/ambari-metrics-storm-sink-${project.version}.jar</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>644</filemode>
+                    <dirmode>755</dirmode>
+                    <prefix>/usr/lib/storm/lib</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${storm-sink.dir}/target/lib</src>
+                  <type>directory</type>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>644</filemode>
+                    <prefix>/usr/lib/storm/lib</prefix>
+                  </mapper>
+                </data>
+
+              </dataSet>
+            </configuration>
           </plugin>
         </plugins>
       </build>

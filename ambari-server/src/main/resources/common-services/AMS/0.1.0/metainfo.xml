@@ -65,7 +65,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>any</osFamily>
+          <osFamily>redhat5,redhat6,suse11</osFamily>
           <packages>
             <package>
               <name>ambari-metrics-collector</name>
@@ -75,6 +75,17 @@
             </package>
             <package>
               <name>hadoop_2_2_*</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>ubuntu12</osFamily>
+          <packages>
+            <package>
+              <name>ambari-metrics-assembly</name>
+            </package>
+            <package>
+              <name>hadoop-2-2-.*</name>
             </package>
           </packages>
         </osSpecific>

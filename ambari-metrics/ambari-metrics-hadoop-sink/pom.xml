@@ -99,48 +99,6 @@ limitations under the License.
           </execution>
         </executions>
       </plugin>
-      <!--<plugin>-->
-        <!--<groupId>org.codehaus.mojo</groupId>-->
-        <!--<artifactId>rpm-maven-plugin</artifactId>-->
-        <!--<version>2.0.1</version>-->
-        <!--<executions>-->
-          <!--<execution>-->
-            <!--<phase>none</phase>-->
-            <!--<goals>-->
-              <!--<goal>rpm</goal>-->
-            <!--</goals>-->
-          <!--</execution>-->
-        <!--</executions>-->
-        <!--<configuration>-->
-          <!--<name>ambari-metrics-hadoop-sink</name>-->
-          <!--<copyright>2012, Apache Software Foundation</copyright>-->
-          <!--<group>Development</group>-->
-          <!--<description>Maven Recipe: RPM Package.</description>-->
-
-          <!--<defaultDirmode>755</defaultDirmode>-->
-          <!--<defaultFilemode>644</defaultFilemode>-->
-          <!--<defaultUsername>root</defaultUsername>-->
-          <!--<defaultGroupname>root</defaultGroupname>-->
-
-          <!--<postinstallScriptlet>-->
-            <!--<scriptFile>${project.build.outputDirectory}/rpm/postinstall.sh</scriptFile>-->
-            <!--<fileEncoding>utf-8</fileEncoding>-->
-          <!--</postinstallScriptlet>-->
-
-          <!--<mappings>-->
-            <!--<mapping>-->
-              <!--<directory>/usr/lib/ambari-metrics-hadoop-sink</directory>-->
-              <!--<sources>-->
-                <!--<source>-->
-                  <!--<location>target/${project.artifactId}-with-common-${project.version}.jar</location>-->
-                <!--</source>-->
-              <!--</sources>-->
-
-            <!--</mapping>-->
-
-          <!--</mappings>-->
-        <!--</configuration>-->
-      <!--</plugin>-->
     </plugins>
 
     <resources>
