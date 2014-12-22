@@ -21,7 +21,7 @@ var App = require('app');
 /**
  * Custom view for Notification section for MISC tab
  * Used only in the Install Wizard
- * Show configs for creating Init Notification (@see 'data/HDP2/site_properties' for list of the configs used here)
+ * Show configs for creating Init Notification (@see 'data/site_properties' for list of the configs used here)
  *
  * @type {App.NotificationsConfigsView}
  */
@@ -53,8 +53,13 @@ App.NotificationsConfigsView = App.ServiceConfigsByCategoryView.extend({
     return this.get('categoryConfigs').findProperty('name', 'smtp_use_auth');
   }.property(),
 
-  willInsertElement: function () {
+  /**
+   * Empty categoryConfigsAll means that user isn't at Installer, so manage notification view shouldn't be processed
+   * @method didInsertElement
+   */
+  didInsertElement: function () {
     this._super();
+    if (!this.get('categoryConfigsAll.length')) return;
     this.set('createNotification', this.get('categoryConfigsAll').findProperty('name', 'create_notification').get('value'));
     this.set('tlsOrSsl', this.get('categoryConfigsAll').findProperty('name', 'mail.smtp.starttls.enable').get('value') ? 'tls' : 'ssl');
     var smtp_use_auth = this.get('categoryConfigsAll').findProperty('name', 'smtp_use_auth');
