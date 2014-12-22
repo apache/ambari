@@ -24,6 +24,11 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
   templateName: require('templates/main/dashboard/config_history'),
 
   controllerBinding: 'App.router.mainConfigHistoryController',
+
+  /**
+   * @type {boolean}
+   * @default false
+   */
   filteringComplete: false,
   isInitialRendering: true,
 
@@ -172,7 +177,7 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
     tagName: 'tr',
     showLessNotes: true,
     toggleShowLessStatus: function () {
-      this.set('showLessNotes', !this.get('showLessNotes'));
+      this.toggleProperty('showLessNotes');
     },
     didInsertElement: function () {
       App.tooltip(this.$("[rel='Tooltip']"));
@@ -185,12 +190,18 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
   refresh: function () {
     var self = this;
     this.set('filteringComplete', false);
-    this.get('controller').load().done(function () {
-      self.set('isInitialRendering', false);
-      self.set('filteringComplete', true);
-      self.propertyDidChange('pageContent');
-      self.set('controller.resetStartIndex', false);
-    });
+    this.get('controller').load().done(this.refreshDone);
+  },
+
+  /**
+   * callback executed after refresh call done
+   * @method refreshDone
+   */
+  refreshDone: function () {
+    this.set('isInitialRendering', false);
+    this.set('filteringComplete', true);
+    this.propertyDidChange('pageContent');
+    this.set('controller.resetStartIndex', false);
   },
 
   /**
