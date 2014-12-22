@@ -44,6 +44,19 @@
           <div {{bindAttr class="showLabel:controls"}}>
             <div {{bindAttr class="errorMessage:error: warnMessage:warning: :control-group"}}>
               {{view viewClass serviceConfigBinding="this" categoryConfigsAllBinding="view.categoryConfigsAll" }}
+
+              {{#if isRemovable}}
+                {{#isAccessible ADMIN}}
+                  {{#unless this.isComparison}}
+                    <a class="btn btn-small" href="#" data-toggle="tooltip"
+                      {{action "removeProperty" this target="view"}}
+                      {{translateAttr data-original-title="common.remove"}}>
+                      <i class="icon-minus-sign"></i>
+                    </a>
+                  {{/unless}}
+                {{/isAccessible}}
+              {{/if}}
+
               <span class="help-inline">{{errorMessage}}</span>
               <span class="help-inline">{{warnMessage}}</span>
             </div>

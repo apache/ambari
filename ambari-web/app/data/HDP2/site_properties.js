@@ -4447,7 +4447,8 @@ module.exports =
       "isVisible": false,
       "serviceName": "MISC",
       "category": "Notifications",
-      "defaultValue": "no"
+      "defaultValue": "no",
+      "filename": "alert_notification"
     },
     {
       "id": "puppet var",
@@ -4460,7 +4461,8 @@ module.exports =
       "isVisible": true,
       "serviceName": "MISC",
       "category": "Notifications",
-      "rowStyleClass": "indent-1"
+      "rowStyleClass": "indent-1",
+      "filename": "alert_notification"
     },
     {
       "id": "puppet var",
@@ -4473,7 +4475,8 @@ module.exports =
       "isVisible": true,
       "serviceName": "MISC",
       "category": "Notifications",
-      "rowStyleClass": "indent-1"
+      "rowStyleClass": "indent-1",
+      "filename": "alert_notification"
     },
     {
       "id": "puppet var",
@@ -4486,7 +4489,8 @@ module.exports =
       "isVisible": true,
       "serviceName": "MISC",
       "category": "Notifications",
-      "rowStyleClass": "indent-1"
+      "rowStyleClass": "indent-1",
+      "filename": "alert_notification"
     },
     {
       "id": "puppet var",
@@ -4499,7 +4503,8 @@ module.exports =
       "isVisible": true,
       "serviceName": "MISC",
       "category": "Notifications",
-      "rowStyleClass": "indent-1"
+      "rowStyleClass": "indent-1",
+      "filename": "alert_notification"
     },
     {
       "id": "puppet var",
@@ -4513,7 +4518,8 @@ module.exports =
       "isVisible": true,
       "serviceName": "MISC",
       "category": "Notifications",
-      "rowStyleClass": "indent-1"
+      "rowStyleClass": "indent-1",
+      "filename": "alert_notification"
     },
     {
       "id": "puppet var",
@@ -4526,7 +4532,8 @@ module.exports =
       "isVisible": true,
       "serviceName": "MISC",
       "category": "Notifications",
-      "rowStyleClass": "indent-2"
+      "rowStyleClass": "indent-2",
+      "filename": "alert_notification"
     },
     {
       "id": "puppet var",
@@ -4539,7 +4546,8 @@ module.exports =
       "isVisible": true,
       "serviceName": "MISC",
       "category": "Notifications",
-      "rowStyleClass": "indent-2"
+      "rowStyleClass": "indent-2",
+      "filename": "alert_notification"
     },
     {
       "id": "puppet var",
@@ -4550,7 +4558,8 @@ module.exports =
       "isVisible": false,
       "serviceName": "MISC",
       "category": "Notifications",
-      "rowStyleClass": "indent-1"
+      "rowStyleClass": "indent-1",
+      "filename": "alert_notification"
     },
     {
       "id": "puppet var",
@@ -4561,7 +4570,8 @@ module.exports =
       "isVisible": false,
       "serviceName": "MISC",
       "category": "Notifications",
-      "rowStyleClass": "indent-1"
+      "rowStyleClass": "indent-1",
+      "filename": "alert_notification"
     },
   /************************************************AMS******************************************/
     {

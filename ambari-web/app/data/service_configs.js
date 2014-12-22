@@ -28,9 +28,8 @@ module.exports = [
     serviceName: 'MISC',
     displayName: 'Misc',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
       App.ServiceConfigCategory.create({ name: 'Users and Groups', displayName : 'Users and Groups'}),
-      App.ServiceConfigCategory.create({ name: 'Notifications', displayName : 'Notifications', isCustomView: true, customView: App.NotificationsConfigsView})
+      App.ServiceConfigCategory.create({ name: 'Notifications', displayName : 'Notifications', isCustomView: true, customView: App.NotificationsConfigsView, siteFileName: 'alert_notification'})
     ],
     configTypes: {
       "cluster-env": {supports: {final: false}}

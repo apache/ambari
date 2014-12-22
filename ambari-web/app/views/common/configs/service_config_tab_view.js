@@ -18,12 +18,16 @@
 
 var App = require('app');
 
-App.ServicesConfigView = Em.View.extend({
+App.ServiceConfigTab = Em.View.extend({
 
-  templateName: require('templates/common/configs/services_config'),
+  tagName: 'li',
+
+  selectService: function (event) {
+    this.set('controller.selectedService', event.context);
+  },
 
   didInsertElement: function () {
-    this.get('controller').loadStep();
+    var serviceName = this.get('controller.selectedService.serviceName');
+    this.$('a[href="#' + serviceName + '"]').tab('show');
   }
-
 });
