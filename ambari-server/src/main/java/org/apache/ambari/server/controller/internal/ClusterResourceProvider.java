@@ -815,17 +815,23 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
     // create a list of config requests on a per-service basis, in order
     // to properly support the new service configuration versioning mechanism
     // in Ambari
+    Collection<String> encounteredConfigTypes = new HashSet<String>();
     for (String service : getServicesToDeploy(stack, blueprintHostGroups)) {
       BlueprintServiceConfigRequest blueprintConfigRequest =
         new BlueprintServiceConfigRequest(service);
 
       for (String serviceConfigType : stack.getConfigurationTypes(service)) {
-        // skip handling of cluster-env here
-        if (!serviceConfigType.equals("cluster-env")) {
-          if (mapClusterConfigurations.containsKey(serviceConfigType)) {
-            blueprintConfigRequest.addConfigElement(serviceConfigType,
-              mapClusterConfigurations.get(serviceConfigType),
-              mapClusterAttributes.get(serviceConfigType));
+        //todo: This is a temporary fix to ensure that we don't try to add the same
+        //todo: config type multiple times.
+        //todo: This is to unblock BUG-28939 and will be correctly fixed as part of BUG-29145.
+        if (encounteredConfigTypes.add(serviceConfigType)) {
+          // skip handling of cluster-env here
+          if (!serviceConfigType.equals("cluster-env")) {
+            if (mapClusterConfigurations.containsKey(serviceConfigType)) {
+              blueprintConfigRequest.addConfigElement(serviceConfigType,
+                mapClusterConfigurations.get(serviceConfigType),
+                mapClusterAttributes.get(serviceConfigType));
+            }
           }
         }
       }
