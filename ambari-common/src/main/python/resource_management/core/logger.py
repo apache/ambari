@@ -24,6 +24,8 @@ __all__ = ["Logger"]
 import logging
 from resource_management.libraries.script.config_dictionary import UnknownConfiguration
 
+MESSAGE_MAX_LEN = 256
+
 class Logger:
   logger = logging.getLogger("resource_management")
 
@@ -32,49 +34,53 @@ class Logger:
 
   @staticmethod
   def error(text):
-    Logger.logger.error(Logger.get_protected_text(text))
+    Logger.logger.error(Logger.filter_text(text))
 
   @staticmethod
   def warning(text):
-    Logger.logger.warning(Logger.get_protected_text(text))
+    Logger.logger.warning(Logger.filter_text(text))
 
   @staticmethod
   def info(text):
-    Logger.logger.info(Logger.get_protected_text(text))
+    Logger.logger.info(Logger.filter_text(text))
 
   @staticmethod
   def debug(text):
-    Logger.logger.debug(Logger.get_protected_text(text))
+    Logger.logger.debug(Logger.filter_text(text))
 
   @staticmethod
   def error_resource(resource):
-    Logger.error(Logger.get_protected_text(Logger._get_resource_repr(resource)))
+    Logger.error(Logger.filter_text(Logger._get_resource_repr(resource)))
 
   @staticmethod
   def warning_resource(resource):
-    Logger.warning(Logger.get_protected_text(Logger._get_resource_repr(resource)))
+    Logger.warning(Logger.filter_text(Logger._get_resource_repr(resource)))
 
   @staticmethod
   def info_resource(resource):
-    Logger.info(Logger.get_protected_text(Logger._get_resource_repr(resource)))
+    Logger.info(Logger.filter_text(Logger._get_resource_repr(resource)))
 
   @staticmethod
   def debug_resource(resource):
-    Logger.debug(Logger.get_protected_text(Logger._get_resource_repr(resource)))
-
-  @staticmethod
-  def get_protected_text(text):
+    Logger.debug(Logger.filter_text(Logger._get_resource_repr(resource)))
+    
+  @staticmethod    
+  def filter_text(text):
     """
-    Replace passwords with [PROTECTED]
+    Replace passwords with [PROTECTED] and remove shell.py placeholders
     """
+    from resource_management.core.shell import PLACEHOLDERS_TO_STR
+    
     for unprotected_string, protected_string in Logger.sensitive_strings.iteritems():
       text = text.replace(unprotected_string, protected_string)
+
+    for placeholder in PLACEHOLDERS_TO_STR.keys():
+      text = text.replace(placeholder, '')
 
     return text
 
   @staticmethod
   def _get_resource_repr(resource):
-    MESSAGE_MAX_LEN = 256
     logger_level = logging._levelNames[Logger.logger.level]
 
     arguments_str = ""

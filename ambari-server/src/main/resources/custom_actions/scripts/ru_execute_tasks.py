@@ -119,7 +119,7 @@ class ExecuteUpgradeTasks(Script):
               break
 
             if i == effective_times:
-              err_msg = Logger.get_protected_text("Execution of '%s' returned %d. %s" % (command, code, out))
+              err_msg = Logger.filter_text("Execution of '%s' returned %d. %s" % (command, code, out))
               try:
                 if on_failure:
                   on_failure = replace_variables(on_failure, host_name, version)

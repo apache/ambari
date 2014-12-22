@@ -337,7 +337,7 @@ class KerberosScript(Script):
         process = subprocess.Popen(['kinit', principal], stdin=subprocess.PIPE)
         stdout, stderr = process.communicate(password)
         if process.returncode:
-          err_msg = Logger.get_protected_text("Execution of kinit returned %d. %s" % (process.returncode, stderr))
+          err_msg = Logger.filter_text("Execution of kinit returned %d. %s" % (process.returncode, stderr))
           raise Fail(err_msg)
         else:
           return shell.checked_call('kdestroy')
