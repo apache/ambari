@@ -674,7 +674,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         RoleCommand.EXECUTE,
         cluster.getClusterName(), host,
         new ServiceComponentHostServerActionEvent(StageUtils.getHostName(), System.currentTimeMillis()),
-        commandParams, 1200);
+        commandParams, null, 1200);
 
     request.addStages(Collections.singletonList(stage));
   }

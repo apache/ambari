@@ -315,23 +315,25 @@ public class Stage {
    * @param event         a ServiceComponentHostServerActionEvent
    * @param commandParams a Map of String to String data used to pass to the action - this may be
    *                      empty or null if no data is relevant
+   * @param commandDetail a String declaring a descriptive name to pass to the action - null or an
+   *                      empty string indicates no value is to be set
    * @param timeout       an Integer declaring the timeout for this action - if null, a default
-   *                      timeout will be used
    */
   public synchronized void addServerActionCommand(String actionName, Role role, RoleCommand command,
-      String clusterName, ServiceComponentHostServerActionEvent event,
-      @Nullable Map<String, String> commandParams,
-      @Nullable Integer timeout) {
+                                                  String clusterName, ServiceComponentHostServerActionEvent event,
+                                                  @Nullable Map<String, String> commandParams,
+                                                  @Nullable String commandDetail,
+                                                  @Nullable Integer timeout) {
 
     addServerActionCommand(actionName, role, command,
-        clusterName, StageUtils.getHostName(), event, commandParams, timeout);
+        clusterName, StageUtils.getHostName(), event, commandParams, commandDetail, timeout);
   }
 
   /**
    * THIS METHOD IS TO WORKAROUND A BUG!  The assumption of the framework
    * is that the Ambari Server is installed on a host WITHIN the cluster, which
    * is not always true.  This method adds a host parameter.
-   *
+   * <p/>
    * Creates server-side execution command.
    * <p/>
    * The action name for this command is expected to be the classname of a
@@ -346,12 +348,15 @@ public class Stage {
    * @param event         a ServiceComponentHostServerActionEvent
    * @param commandParams a Map of String to String data used to pass to the action - this may be
    *                      empty or null if no data is relevant
+   * @param commandDetail a String declaring a descriptive name to pass to the action - null or an
+   *                      empty string indicates no value is to be set
    * @param timeout       an Integer declaring the timeout for this action - if null, a default
-   *                      timeout will be used
    */
   public synchronized void addServerActionCommand(String actionName, Role role, RoleCommand command,
-                                                  String clusterName, String hostName, ServiceComponentHostServerActionEvent event,
+                                                  String clusterName, String hostName,
+                                                  ServiceComponentHostServerActionEvent event,
                                                   @Nullable Map<String, String> commandParams,
+                                                  @Nullable String commandDetail,
                                                   @Nullable Integer timeout) {
     ExecutionCommandWrapper commandWrapper = addGenericExecutionCommand(clusterName, hostName, role, command, event);
     ExecutionCommand cmd = commandWrapper.getExecutionCommand();
@@ -368,6 +373,14 @@ public class Stage {
     Map<String, String> roleParams = new HashMap<String, String>();
     roleParams.put(ServerAction.ACTION_NAME, actionName);
     cmd.setRoleParams(roleParams);
+
+    if(commandDetail != null) {
+      HostRoleCommand hostRoleCommand = getHostRoleCommand(hostName, role.toString());
+      if (hostRoleCommand != null) {
+        hostRoleCommand.setCommandDetail(commandDetail);
+        hostRoleCommand.setCustomCommandName(actionName);
+      }
+    }
   }
 
   /**

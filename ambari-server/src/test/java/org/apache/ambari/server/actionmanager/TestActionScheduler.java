@@ -65,7 +65,6 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
@@ -770,7 +769,7 @@ public class TestActionScheduler {
         RoleCommand.EXECUTE, "cluster1",
         new ServiceComponentHostServerActionEvent(serverHostname, System.currentTimeMillis()),
         payload,
-        timeout);
+        null, timeout);
 
     return stage;
   }

@@ -425,14 +425,14 @@ public class KerberosHelper {
         Stage stage = createServerActionStage(++lastStageId,
             cluster,
             requestStageContainer.getId(),
-            "Finalize Operations",
+            "Process Kerberos Operations",
             clusterHostInfoJson,
             "{}",
             hostParamsJson,
             FinalizeKerberosServerAction.class,
             event,
             commandParameters,
-            300);
+            "Finalize Operations", 300);
 
         RoleGraph roleGraph = new RoleGraph(roleCommandOrder);
         roleGraph.build(stage);
@@ -741,15 +741,17 @@ public class KerberosHelper {
    * @param event             The relevant ServiceComponentHostServerActionEvent
    * @param commandParameters a Map of command parameters to attach to the task added to the new
    *                          stage
-   * @param timeout           the timeout for the task/action
-   * @return a newly created Stage
+   * @param commandDetail     a String declaring a descriptive name to pass to the action - null or an
+   *                          empty string indicates no value is to be set
+   * @param timeout           the timeout for the task/action  @return a newly created Stage
    */
   private Stage createServerActionStage(long id, Cluster cluster, long requestId,
                                         String requestContext, String clusterHostInfo,
                                         String commandParams, String hostParams,
                                         Class<? extends ServerAction> actionClass,
                                         ServiceComponentHostServerActionEvent event,
-                                        Map<String, String> commandParameters, Integer timeout) {
+                                        Map<String, String> commandParameters, String commandDetail,
+                                        Integer timeout) {
 
     Stage stage = createNewStage(id, cluster, requestId, requestContext, clusterHostInfo, commandParams, hostParams);
     stage.addServerActionCommand(actionClass.getName(),
@@ -758,6 +760,7 @@ public class KerberosHelper {
         cluster.getClusterName(),
         event,
         commandParameters,
+        commandDetail,
         timeout);
 
     return stage;
@@ -991,13 +994,14 @@ public class KerberosHelper {
       stage = createServerActionStage(++stageId,
           cluster,
           requestStageContainer.getId(),
-          "Create Principals",
+          "Process Kerberos Operations",
           clusterHostInfoJson,
           "{}",
           hostParamsJson,
           CreatePrincipalsServerAction.class,
           event,
           commandParameters,
+          "Create Principals",
           1200);
 
       roleGraph = new RoleGraph(roleCommandOrder);
@@ -1009,13 +1013,14 @@ public class KerberosHelper {
       stage = createServerActionStage(++stageId,
           cluster,
           requestStageContainer.getId(),
-          "Create Keytabs",
+          "Process Kerberos Operations",
           clusterHostInfoJson,
           "{}",
           hostParamsJson,
           CreateKeytabFilesServerAction.class,
           event,
           commandParameters,
+          "Create Keytabs",
           1200);
 
       roleGraph = new RoleGraph(roleCommandOrder);
@@ -1023,27 +1028,25 @@ public class KerberosHelper {
       requestStageContainer.addStages(roleGraph.getStages());
 
       // Create stage to distribute keytabs
-
-      List<RequestResourceFilter> requestResourceFilters = new ArrayList<RequestResourceFilter>();
-      RequestResourceFilter reqResFilter = new RequestResourceFilter("KERBEROS", "KERBEROS_CLIENT", updateHosts);
-      requestResourceFilters.add(reqResFilter);
-
       stage = createNewStage(++stageId,
-        cluster,
-        requestStageContainer.getId(),
-        "Distribute Keytabs",
-        clusterHostInfoJson,
-        StageUtils.getGson().toJson(commandParameters),
-        hostParamsJson);
+          cluster,
+          requestStageContainer.getId(),
+          "Process Kerberos Operations",
+          clusterHostInfoJson,
+          StageUtils.getGson().toJson(commandParameters),
+          hostParamsJson);
 
-      Map<String, String> requestParams =   new HashMap<String, String>();
+      if (!updateHosts.isEmpty()) {
+        Map<String, String> requestParams = new HashMap<String, String>();
+        List<RequestResourceFilter> requestResourceFilters = new ArrayList<RequestResourceFilter>();
+        RequestResourceFilter reqResFilter = new RequestResourceFilter("KERBEROS", "KERBEROS_CLIENT", updateHosts);
+        requestResourceFilters.add(reqResFilter);
 
-      ActionExecutionContext actionExecContext = new ActionExecutionContext(
-        cluster.getClusterName(),
-        "SET_KEYTAB",
-        requestResourceFilters,
-        requestParams);
-      if (!updateHosts.isEmpty())  {
+        ActionExecutionContext actionExecContext = new ActionExecutionContext(
+            cluster.getClusterName(),
+            "SET_KEYTAB",
+            requestResourceFilters,
+            requestParams);
         customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, requestParams);
       }
 
@@ -1052,18 +1055,18 @@ public class KerberosHelper {
       requestStageContainer.addStages(roleGraph.getStages());
 
       // Create stage to update configurations of services
-
       stage = createServerActionStage(++stageId,
-        cluster,
-        requestStageContainer.getId(),
-        "Update Service Configurations",
-        clusterHostInfoJson,
-        "{}",
-        hostParamsJson,
-        UpdateKerberosConfigsServerAction.class,
-        event,
-        commandParameters,
-        1200);
+          cluster,
+          requestStageContainer.getId(),
+          "Process Kerberos Operations",
+          clusterHostInfoJson,
+          "{}",
+          hostParamsJson,
+          UpdateKerberosConfigsServerAction.class,
+          event,
+          commandParameters,
+          "Update Service Configurations",
+          1200);
 
       roleGraph = new RoleGraph(roleCommandOrder);
       roleGraph.build(stage);
