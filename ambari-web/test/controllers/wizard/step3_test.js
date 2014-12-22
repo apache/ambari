@@ -559,7 +559,7 @@ describe('App.WizardStep3Controller', function () {
     });
   });
 
-  describe('#startBootstrap', function() {
+  describe.skip('#startBootstrap', function() {
     beforeEach(function(){
       sinon.stub(c, 'doBootstrap', Em.K);
     });
