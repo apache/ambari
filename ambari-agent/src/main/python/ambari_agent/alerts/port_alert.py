@@ -89,7 +89,7 @@ class PortAlert(BaseAlert):
     uri_value_array = uri_value.split(',')
     if len(uri_value_array) > 1:
       for item in uri_value_array:
-        if item.startswith(self.host_name):
+        if self.host_name in item:
           uri_value = item
 
     host = BaseAlert.get_host_from_url(uri_value)
