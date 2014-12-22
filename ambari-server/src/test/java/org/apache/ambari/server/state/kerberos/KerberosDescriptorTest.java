@@ -303,6 +303,7 @@ public class KerberosDescriptorTest {
         put("config-type2", new HashMap<String, String>() {{
           put("variable.name", "Replacement2");
           put("self_reference", "${config-type2/self_reference}");  // This essentially references itself.
+          put("${config-type/variable.name}_reference", "Replacement in the key");
         }});
       }
     };
@@ -324,6 +325,9 @@ public class KerberosDescriptorTest {
 
     Assert.assertEquals("Replacement2|Replacement2",
         KerberosDescriptor.replaceVariables("${config-type/variable.name1}|${config-type2/variable.name}", configurations));
+
+    Assert.assertEquals("Replacement1_reference",
+        KerberosDescriptor.replaceVariables("${config-type/variable.name}_reference", configurations));
 
     // Replacement yields an empty string
     Assert.assertEquals("",

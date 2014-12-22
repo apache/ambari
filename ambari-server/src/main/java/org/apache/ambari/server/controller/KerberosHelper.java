@@ -557,8 +557,10 @@ public class KerberosHelper {
             }
 
             for (Map.Entry<String, String> property : updatedProperties.entrySet()) {
-              existingProperties.put(property.getKey(),
-                  KerberosDescriptor.replaceVariables(property.getValue(), replacements));
+              existingProperties.put(
+                  KerberosDescriptor.replaceVariables(property.getKey(), replacements),
+                  KerberosDescriptor.replaceVariables(property.getValue(), replacements)
+              );
             }
           }
         }
