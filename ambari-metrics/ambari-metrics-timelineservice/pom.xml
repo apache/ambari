@@ -52,6 +52,7 @@
               <outputDirectory>${project.build.directory}/lib</outputDirectory>
               <includeScope>compile</includeScope>
               <excludeScope>test</excludeScope>
+              <excludeArtifactIds>jasper-runtime,jasper-compiler</excludeArtifactIds>
             </configuration>
           </execution>
         </executions>
@@ -240,6 +241,14 @@
         <exclusion>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-annotations</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.hbase</groupId>
+          <artifactId>hbase-client</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.hbase</groupId>
+          <artifactId>hbase-server</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
