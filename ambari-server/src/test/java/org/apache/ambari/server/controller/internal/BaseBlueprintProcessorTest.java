@@ -3,6 +3,7 @@ package org.apache.ambari.server.controller.internal;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.isA;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -10,9 +11,28 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.StackConfigurationResponse;
+import org.apache.ambari.server.controller.StackServiceComponentResponse;
 import org.apache.ambari.server.controller.StackServiceResponse;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
+import org.apache.ambari.server.orm.entities.BlueprintEntity;
+import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
+import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
+import org.apache.ambari.server.orm.entities.HostGroupEntity;
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.easymock.EasyMockSupport;
 import org.junit.Before;
 import org.junit.Test;
@@ -605,6 +625,226 @@ public class BaseBlueprintProcessorTest {
         "MAPREDUCE2",
         testStack.getDependencyConditionalServiceMap().get(
             mapReduceTwoClientDependency));
+
+    mockSupport.verifyAll();
+  }
+
+
+  @Test
+  public void testValidationOverrideForSecondaryNameNodeWithHA() throws Exception {
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    AmbariManagementController mockController =
+      mockSupport.createMock(AmbariManagementController.class);
+
+    AmbariMetaInfo mockMetaInfo =
+      mockSupport.createMock(AmbariMetaInfo.class);
+
+    BaseBlueprintProcessor.stackInfo = mockMetaInfo;
+
+    ServiceInfo serviceInfo = new ServiceInfo();
+    serviceInfo.setName("HDFS");
+
+    StackServiceResponse stackServiceResponse =
+      new StackServiceResponse(serviceInfo);
+
+    ComponentInfo componentInfo = new ComponentInfo();
+    componentInfo.setName("SECONDARY_NAMENODE");
+    // simulate the stack requirements that there
+    // always be one SECONDARY_NAMENODE per cluster
+    componentInfo.setCardinality("1");
+
+    StackServiceComponentResponse stackComponentResponse =
+      new StackServiceComponentResponse(componentInfo);
+
+    ComponentInfo componentInfoNameNode = new ComponentInfo();
+    componentInfoNameNode.setName("NAMENODE");
+    componentInfo.setCardinality("1-2");
+    StackServiceComponentResponse stackServiceComponentResponseTwo =
+      new StackServiceComponentResponse(componentInfoNameNode);
+
+    Set<StackServiceComponentResponse> responses =
+      new HashSet<StackServiceComponentResponse>();
+    responses.add(stackComponentResponse);
+    responses.add(stackServiceComponentResponseTwo);
+
+    expect(mockController.getStackServices(isA(Set.class))).andReturn(
+      Collections.singleton(stackServiceResponse));
+    expect(mockController.getStackComponents(isA(Set.class))).andReturn(
+      responses);
+    expect(mockController.getStackConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
+    expect(mockController.getStackLevelConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
+
+    expect(mockMetaInfo.getComponentDependencies("HDP", "2.0.6", "HDFS", "SECONDARY_NAMENODE")).andReturn(Collections.<DependencyInfo>emptyList());
+    expect(mockMetaInfo.getComponentDependencies("HDP", "2.0.6", "HDFS", "NAMENODE")).andReturn(Collections.<DependencyInfo>emptyList());
+
+
+    mockSupport.replayAll();
+
+    BaseBlueprintProcessor baseBlueprintProcessor =
+      new BaseBlueprintProcessor(Collections.<String>emptySet(), Collections.<Resource.Type, String>emptyMap(), mockController) {
+        @Override
+        protected Set<String> getPKPropertyIds() {
+          return null;
+        }
+
+        @Override
+        public RequestStatus createResources(Request request) throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException, NoSuchParentResourceException {
+          return null;
+        }
+
+        @Override
+        public Set<Resource> getResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+          return null;
+        }
+
+        @Override
+        public RequestStatus updateResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+          return null;
+        }
+
+        @Override
+        public RequestStatus deleteResources(Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+          return null;
+        }
+      };
+
+    HostGroupComponentEntity hostGroupComponentEntity =
+      new HostGroupComponentEntity();
+    // don't include the SECONDARY_NAMENODE in this entity
+    hostGroupComponentEntity.setName("NAMENODE");
+
+    HostGroupEntity hostGroupEntity =
+      new HostGroupEntity();
+    hostGroupEntity.setName("host-group-one");
+    hostGroupEntity.setComponents(Collections.singleton(hostGroupComponentEntity));
+    hostGroupEntity.setConfigurations(Collections.<HostGroupConfigEntity>emptyList());
+
+    // setup config entity to simulate the case of NameNode HA being enabled
+    BlueprintConfigEntity configEntity =
+      new BlueprintConfigEntity();
+    configEntity.setConfigData("{\"dfs.nameservices\":\"mycluster\",\"key4\":\"value4\"}");
+    configEntity.setType("hdfs-site");
+
+    BlueprintEntity testEntity =
+      new BlueprintEntity();
+    testEntity.setBlueprintName("test-blueprint");
+    testEntity.setStackName("HDP");
+    testEntity.setStackVersion("2.0.6");
+    testEntity.setHostGroups(Collections.singleton(hostGroupEntity));
+    testEntity.setConfigurations(Collections.singleton(configEntity));
+
+    baseBlueprintProcessor.validateTopology(testEntity);
+
+    mockSupport.verifyAll();
+  }
+
+  @Test
+  public void testValidationOverrideForSecondaryNameNodeWithoutHA() throws Exception {
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    AmbariManagementController mockController =
+      mockSupport.createMock(AmbariManagementController.class);
+
+    AmbariMetaInfo mockMetaInfo =
+      mockSupport.createMock(AmbariMetaInfo.class);
+
+    BaseBlueprintProcessor.stackInfo = mockMetaInfo;
+
+    ServiceInfo serviceInfo = new ServiceInfo();
+    serviceInfo.setName("HDFS");
+
+    StackServiceResponse stackServiceResponse =
+      new StackServiceResponse(serviceInfo);
+
+    ComponentInfo componentInfo = new ComponentInfo();
+    componentInfo.setName("SECONDARY_NAMENODE");
+    // simulate the stack requirements that there
+    // always be one SECONDARY_NAMENODE per cluster
+    componentInfo.setCardinality("1");
+
+    StackServiceComponentResponse stackComponentResponse =
+      new StackServiceComponentResponse(componentInfo);
+
+    ComponentInfo componentInfoNameNode = new ComponentInfo();
+    componentInfoNameNode.setName("NAMENODE");
+    componentInfo.setCardinality("1-2");
+    StackServiceComponentResponse stackServiceComponentResponseTwo =
+      new StackServiceComponentResponse(componentInfoNameNode);
+
+    Set<StackServiceComponentResponse> responses =
+      new HashSet<StackServiceComponentResponse>();
+    responses.add(stackComponentResponse);
+    responses.add(stackServiceComponentResponseTwo);
+
+    expect(mockController.getStackServices(isA(Set.class))).andReturn(
+      Collections.singleton(stackServiceResponse));
+    expect(mockController.getStackComponents(isA(Set.class))).andReturn(
+      responses);
+    expect(mockController.getStackConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
+    expect(mockController.getStackLevelConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
+
+    expect(mockMetaInfo.getComponentDependencies("HDP", "2.0.6", "HDFS", "SECONDARY_NAMENODE")).andReturn(Collections.<DependencyInfo>emptyList());
+    expect(mockMetaInfo.getComponentDependencies("HDP", "2.0.6", "HDFS", "NAMENODE")).andReturn(Collections.<DependencyInfo>emptyList());
+
+
+    mockSupport.replayAll();
+
+    BaseBlueprintProcessor baseBlueprintProcessor =
+      new BaseBlueprintProcessor(Collections.<String>emptySet(), Collections.<Resource.Type, String>emptyMap(), mockController) {
+        @Override
+        protected Set<String> getPKPropertyIds() {
+          return null;
+        }
+
+        @Override
+        public RequestStatus createResources(Request request) throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException, NoSuchParentResourceException {
+          return null;
+        }
+
+        @Override
+        public Set<Resource> getResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+          return null;
+        }
+
+        @Override
+        public RequestStatus updateResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+          return null;
+        }
+
+        @Override
+        public RequestStatus deleteResources(Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+          return null;
+        }
+      };
+
+    HostGroupComponentEntity hostGroupComponentEntity =
+      new HostGroupComponentEntity();
+    // don't include the SECONDARY_NAMENODE in this entity
+    hostGroupComponentEntity.setName("NAMENODE");
+
+    HostGroupEntity hostGroupEntity =
+      new HostGroupEntity();
+    hostGroupEntity.setName("host-group-one");
+    hostGroupEntity.setComponents(Collections.singleton(hostGroupComponentEntity));
+    hostGroupEntity.setConfigurations(Collections.<HostGroupConfigEntity>emptyList());
+
+
+
+    BlueprintEntity testEntity =
+      new BlueprintEntity();
+    testEntity.setBlueprintName("test-blueprint");
+    testEntity.setStackName("HDP");
+    testEntity.setStackVersion("2.0.6");
+    testEntity.setHostGroups(Collections.singleton(hostGroupEntity));
+    testEntity.setConfigurations(Collections.<BlueprintConfigEntity>emptyList());
+
+    try {
+      baseBlueprintProcessor.validateTopology(testEntity);
+      fail("IllegalArgumentException should have been thrown");
+    } catch (IllegalArgumentException expectedException) {
+      // expected exception
+    }
 
     mockSupport.verifyAll();
   }

@@ -366,6 +366,13 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
 
     Collection<String> cardinalityFailures = new HashSet<String>();
 
+    if (BlueprintConfigurationProcessor.isNameNodeHAEnabled(clusterConfig) &&
+      (component.equals("SECONDARY_NAMENODE"))) {
+      // override the cardinality for this component in an HA deployment,
+      // since the SECONDARY_NAMENODE should not be started in this scenario
+      cardinality = new Cardinality("0");
+    }
+
     int actualCount = getHostGroupsForComponent(component, hostGroups).size();
     if (! cardinality.isValidCount(actualCount)) {
       boolean validated = ! isDependencyManaged(stack, component, clusterConfig);

@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -134,6 +135,36 @@ public class BlueprintConfigurationProcessor {
         }
       }
     }
+
+    if (isNameNodeHAEnabled()) {
+      // if the active/stanbdy namenodes are not specified, assign them automatically
+      if (! isNameNodeHAInitialActiveNodeSet(properties) && ! isNameNodeHAInitialStandbyNodeSet(properties)) {
+        Collection<HostGroup> listOfHostGroups = new LinkedList<HostGroup>();
+        for (String key : hostGroups.keySet()) {
+          listOfHostGroups.add(hostGroups.get(key));
+        }
+
+        Collection<HostGroup> hostGroupsContainingNameNode =
+          getHostGroupsForComponent("NAMENODE", listOfHostGroups);
+        // set the properties that configure which namenode is active,
+        // and which is a standby node in this HA deployment
+        Map<String, String> hadoopEnv = properties.get("hadoop-env");
+        if (hostGroupsContainingNameNode.size() == 2) {
+          List<HostGroup> listOfGroups = new LinkedList<HostGroup>(hostGroupsContainingNameNode);
+          hadoopEnv.put("dfs_ha_initial_namenode_active", listOfGroups.get(0).getHostInfo().iterator().next());
+          hadoopEnv.put("dfs_ha_initial_namenode_standby", listOfGroups.get(1).getHostInfo().iterator().next());
+        } else {
+          // handle the case where multiple hosts are mapped to an HA host group
+          if (hostGroupsContainingNameNode.size() == 1) {
+            List<String> listOfInfo = new LinkedList<String>(hostGroupsContainingNameNode.iterator().next().getHostInfo());
+            // there should only be two host names that can include a NameNode install/deployment
+            hadoopEnv.put("dfs_ha_initial_namenode_active", listOfInfo.get(0));
+            hadoopEnv.put("dfs_ha_initial_namenode_standby", listOfInfo.get(1));
+          }
+        }
+      }
+    }
+
     return properties;
   }
 
@@ -275,7 +306,45 @@ public class BlueprintConfigurationProcessor {
    *         false if NameNode HA is not enabled
    */
   boolean isNameNodeHAEnabled() {
-    return properties.containsKey("hdfs-site") && properties.get("hdfs-site").containsKey("dfs.nameservices");
+    return isNameNodeHAEnabled(properties);
+  }
+
+  /**
+   * Static convenience function to determine if NameNode HA is enabled
+   * @param configProperties configuration properties for this cluster
+   * @return true if NameNode HA is enabled
+   *         false if NameNode HA is not enabled
+   */
+  static boolean isNameNodeHAEnabled(Map<String, Map<String, String>> configProperties) {
+    return configProperties.containsKey("hdfs-site") && configProperties.get("hdfs-site").containsKey("dfs.nameservices");
+  }
+
+
+  /**
+   * Convenience method to examine the current configuration, to determine
+   * if the hostname of the initial active namenode in an HA deployment has
+   * been included.
+   *
+   * @param configProperties the configuration for this cluster
+   * @return true if the initial active namenode property has been configured
+   *         false if the initial active namenode property has not been configured
+   */
+  static boolean isNameNodeHAInitialActiveNodeSet(Map<String, Map<String, String>> configProperties) {
+    return configProperties.containsKey("hadoop-env") && configProperties.get("hadoop-env").containsKey("dfs_ha_initial_namenode_active");
+  }
+
+
+  /**
+   * Convenience method to examine the current configuration, to determine
+   * if the hostname of the initial standby namenode in an HA deployment has
+   * been included.
+   *
+   * @param configProperties the configuration for this cluster
+   * @return true if the initial standby namenode property has been configured
+   *         false if the initial standby namenode property has not been configured
+   */
+  static boolean isNameNodeHAInitialStandbyNodeSet(Map<String, Map<String, String>> configProperties) {
+    return configProperties.containsKey("hadoop-env") && configProperties.get("hadoop-env").containsKey("dfs_ha_initial_namenode_standby");
   }
 
 
@@ -456,7 +525,7 @@ public class BlueprintConfigurationProcessor {
   private static Collection<HostGroup> getHostGroupsForComponent(String component,
                                                                  Collection<? extends HostGroup> hostGroups) {
 
-    Collection<HostGroup> resultGroups = new HashSet<HostGroup>();
+    Collection<HostGroup> resultGroups = new LinkedHashSet<HostGroup>();
     for (HostGroup group : hostGroups ) {
       if (group.getComponents().contains(component)) {
         resultGroups.add(group);
@@ -476,7 +545,7 @@ public class BlueprintConfigurationProcessor {
   private static Collection<String> getHostStrings(Map<String, ? extends HostGroup> hostGroups,
                                                    String val) {
 
-    Collection<String> hosts = new HashSet<String>();
+    Collection<String> hosts = new LinkedHashSet<String>();
     Matcher m = HOSTGROUP_PORT_REGEX.matcher(val);
     while (m.find()) {
       String groupName = m.group(1);
@@ -593,11 +662,31 @@ public class BlueprintConfigurationProcessor {
           if (matchingGroups.isEmpty() && cardinality.isValidCount(0)) {
             return origValue;
           } else {
+            if (isNameNodeHAEnabled(properties) && isComponentNameNode() && (matchingGroups.size() == 2)) {
+              // if this is the defaultFS property, it should reflect the nameservice name,
+              // rather than a hostname (used in non-HA scenarios)
+              if (properties.get("core-site").get("fs.defaultFS").equals(origValue)) {
+                return origValue;
+              }
+
+            }
+
             throw new IllegalArgumentException("Unable to update configuration property with topology information. " +
               "Component '" + component + "' is not mapped to any host group or is mapped to multiple groups.");
           }
         }
       }
+    }
+
+    /**
+     * Utility method to determine if the component associated with this updater
+     * instance is an HDFS NameNode
+     *
+     * @return true if the component associated is a NameNode
+     *         false if the component is not a NameNode
+     */
+    private boolean isComponentNameNode() {
+      return component.equals("NAMENODE");
     }
 
     /**
@@ -684,15 +773,19 @@ public class BlueprintConfigurationProcessor {
    * value with the host names which runs the associated component in the new cluster.
    */
   private static class MultipleHostTopologyUpdater implements PropertyUpdater {
+
+
+    private static final Character DEFAULT_SEPARATOR = ',';
+
     /**
      * Component name
      */
-    private String component;
+    private final String component;
 
     /**
      * Separator for multiple property values
      */
-    private Character separator = ',';
+    private final Character separator;
 
     /**
      * Constructor.
@@ -700,7 +793,19 @@ public class BlueprintConfigurationProcessor {
      * @param component  component name associated with the property
      */
     public MultipleHostTopologyUpdater(String component) {
+      this(component, DEFAULT_SEPARATOR);
+    }
+
+    /**
+     * Constructor
+     *
+     * @param component component name associated with this property
+     * @param separator the separator character to use when multiple hosts
+     *                  are specified in a property or URL
+     */
+    public MultipleHostTopologyUpdater(String component, Character separator) {
       this.component = component;
+      this.separator = separator;
     }
 
     /**
@@ -741,6 +846,30 @@ public class BlueprintConfigurationProcessor {
       }
 
       StringBuilder sb = new StringBuilder();
+      String suffix = null;
+      // parse out prefix if one exists
+      Matcher matcher = HOSTGROUP_PORT_REGEX.matcher(origValue);
+      if (matcher.find()) {
+        int indexOfStart = matcher.start();
+        // handle the case of a YAML config property
+        if ((indexOfStart > 0) && (!origValue.substring(0, indexOfStart).equals("['"))) {
+          // append prefix before adding host names
+          sb.append(origValue.substring(0, indexOfStart));
+        }
+
+        // parse out suffix if one exists
+        int indexOfEnd = -1;
+        while (matcher.find()) {
+          indexOfEnd = matcher.end();
+        }
+
+        if (indexOfEnd < (origValue.length() - 1)) {
+          suffix = origValue.substring(indexOfEnd);
+        }
+
+      }
+
+      // add hosts to property, using the specified separator
       boolean firstHost = true;
       for (String host : hostStrings) {
         if (!firstHost) {
@@ -750,6 +879,11 @@ public class BlueprintConfigurationProcessor {
         }
         sb.append(host);
       }
+
+      if ((suffix != null) && (!suffix.equals("']"))) {
+        sb.append(suffix);
+      }
+
 
       return sb.toString();
     }
@@ -961,7 +1095,8 @@ public class BlueprintConfigurationProcessor {
     hdfsSiteMap.put("dfs.namenode.https-address", new SingleHostTopologyUpdater("NAMENODE"));
     coreSiteMap.put("fs.defaultFS", new SingleHostTopologyUpdater("NAMENODE"));
     hbaseSiteMap.put("hbase.rootdir", new SingleHostTopologyUpdater("NAMENODE"));
-    multiHdfsSiteMap.put("dfs.namenode.shared.edits.dir", new MultipleHostTopologyUpdater("JOURNALNODE"));
+    // HDFS shared.edits JournalNode Quorum URL uses semi-colons as separators
+    multiHdfsSiteMap.put("dfs.namenode.shared.edits.dir", new MultipleHostTopologyUpdater("JOURNALNODE", ';'));
 
     // SECONDARY_NAMENODE
     hdfsSiteMap.put("dfs.secondary.http.address", new SingleHostTopologyUpdater("SECONDARY_NAMENODE"));

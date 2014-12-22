@@ -41,6 +41,14 @@ class ZkfcSlave(Script):
               owner=params.hdfs_user,
               group=params.user_group
     )
+
+    # format the znode for this HA setup
+    # only run this format command if the active namenode hostname is set
+    # The Ambari UI HA Wizard prompts the user to run this command
+    # manually, so this guarantees it is only run in the Blueprints case
+    if params.dfs_ha_enabled and params.dfs_ha_namenode_active is not None:
+        Execute("hdfs zkfc -formatZK -force -nonInteractive", user=params.hdfs_user)
+
     utils.service(
       action="start", name="zkfc", user=params.hdfs_user, create_pid_dir=True,
       create_log_dir=True

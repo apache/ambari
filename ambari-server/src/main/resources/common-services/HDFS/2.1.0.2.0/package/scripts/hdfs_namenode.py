@@ -47,6 +47,15 @@ def namenode(action=None, do_format=True, rolling_restart=False, env=None):
               group=params.user_group
     )
 
+    if params.dfs_ha_enabled:
+      # if the current host is the standby NameNode in an HA deployment
+      if params.hostname == params.dfs_ha_namenode_standby:
+        # run the bootstrap command, to start the NameNode in standby mode
+        # this requires that the active NameNode is already up and running,
+        # so this execute should be re-tried upon failure, up to a timeout
+        Execute("hdfs namenode -bootstrapStandby",
+          user = params.hdfs_user, tries=50)
+
     options = "-rollingUpgrade started" if rolling_restart else ""
 
     if rolling_restart:    
@@ -169,6 +178,23 @@ def format_namenode(force=None):
       Directory(mark_dir,
         recursive = True
       )
+  else:
+    if params.dfs_ha_namenode_active is not None:
+      if params.hostname == params.dfs_ha_namenode_active:
+        # check and run the format command in the HA deployment scenario
+        # only format the "active" namenode in an HA deployment
+        File(format("{tmp_dir}/checkForFormat.sh"),
+             content=StaticFile("checkForFormat.sh"),
+             mode=0755)
+        Execute(format(
+          "{tmp_dir}/checkForFormat.sh {hdfs_user} {hadoop_conf_dir} "
+          "{hadoop_bin_dir} {old_mark_dir} {mark_dir} {dfs_name_dir}"),
+                not_if=format("test -d {old_mark_dir} || test -d {mark_dir}"),
+                path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin"
+        )
+        Directory(mark_dir,
+                  recursive=True
+        )
 
 
 def decommission():

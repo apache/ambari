@@ -185,6 +185,11 @@ dfs_ha_nameservices = default("/configurations/hdfs-site/dfs.nameservices", None
 dfs_ha_namenode_ids = default(format("/configurations/hdfs-site/dfs.ha.namenodes.{dfs_ha_nameservices}"), None)
 dfs_ha_automatic_failover_enabled = default("/configurations/hdfs-site/dfs.ha.automatic-failover.enabled", False)
 
+# hostname of the active HDFS HA Namenode (only used when HA is enabled)
+dfs_ha_namenode_active = default("/configurations/hadoop-env/dfs_ha_initial_namenode_active", None)
+# hostname of the standby HDFS HA Namenode (only used when HA is enabled)
+dfs_ha_namenode_standby = default("/configurations/hadoop-env/dfs_ha_initial_namenode_standby", None)
+
 namenode_id = None
 namenode_rpc = None
 

@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -1225,6 +1226,7 @@ public class BlueprintConfigurationProcessorTest {
   public void testDoUpdateForClusterWithNameNodeHAEnabled() throws Exception {
     final String expectedNameService = "mynameservice";
     final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostNameTwo = "serverTwo";
     final String expectedPortNum = "808080";
     final String expectedNodeOne = "nn1";
     final String expectedNodeTwo = "nn2";
@@ -1233,8 +1235,15 @@ public class BlueprintConfigurationProcessorTest {
     EasyMockSupport mockSupport = new EasyMockSupport();
 
     HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+    HostGroup mockHostGroupTwo = mockSupport.createMock(HostGroup.class);
 
-    expect(mockHostGroupOne.getHostInfo()).andReturn(Arrays.asList(expectedHostName, "serverTwo")).atLeastOnce();
+    Stack mockStack = mockSupport.createMock(Stack.class);
+
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Arrays.asList(expectedHostName)).atLeastOnce();
+    expect(mockHostGroupTwo.getHostInfo()).andReturn(Arrays.asList(expectedHostNameTwo)).atLeastOnce();
+    expect(mockHostGroupOne.getComponents()).andReturn(Collections.singleton("NAMENODE")).atLeastOnce();
+    expect(mockHostGroupTwo.getComponents()).andReturn(Collections.singleton("NAMENODE")).atLeastOnce();
+    expect(mockStack.getCardinality("NAMENODE")).andReturn(new Cardinality("1-2")).atLeastOnce();
 
     mockSupport.replayAll();
 
@@ -1243,8 +1252,15 @@ public class BlueprintConfigurationProcessorTest {
 
     Map<String, String> hdfsSiteProperties =
       new HashMap<String, String>();
+    Map<String, String> hadoopEnvProperties =
+      new HashMap<String, String>();
+    Map<String, String> coreSiteProperties =
+      new HashMap<String, String>();
+
 
     configProperties.put("hdfs-site", hdfsSiteProperties);
+    configProperties.put("hadoop-env", hadoopEnvProperties);
+    configProperties.put("core-site", coreSiteProperties);
 
     // setup hdfs HA config for test
     hdfsSiteProperties.put("dfs.nameservices", expectedNameService);
@@ -1259,6 +1275,94 @@ public class BlueprintConfigurationProcessorTest {
     hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
     hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupName));
 
+    // configure the defaultFS to use the nameservice URL
+    coreSiteProperties.put("fs.defaultFS", "hdfs://" + expectedNameService);
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    Map<String, HostGroup> mapOfHostGroups = new LinkedHashMap<String, HostGroup>();
+    mapOfHostGroups.put(expectedHostGroupName, mockHostGroupOne);
+    mapOfHostGroups.put("host-group-2", mockHostGroupTwo);
+
+    configProcessor.doUpdateForClusterCreate(mapOfHostGroups, mockStack);
+
+    // verify that the expected hostname was substituted for the host group name in the config
+    assertEquals("HTTPS address HA property not properly exported",
+      expectedHostName + ":" + expectedPortNum, hdfsSiteProperties.get("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeOne));
+    assertEquals("HTTPS address HA property not properly exported",
+      expectedHostName + ":" + expectedPortNum, hdfsSiteProperties.get("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeTwo));
+
+    assertEquals("HTTPS address HA property not properly exported",
+      expectedHostName + ":" + expectedPortNum, hdfsSiteProperties.get("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeOne));
+    assertEquals("HTTPS address HA property not properly exported",
+      expectedHostName + ":" + expectedPortNum, hdfsSiteProperties.get("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeTwo));
+
+    assertEquals("HTTPS address HA property not properly exported",
+      expectedHostName + ":" + expectedPortNum, hdfsSiteProperties.get("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeOne));
+    assertEquals("HTTPS address HA property not properly exported",
+      expectedHostName + ":" + expectedPortNum, hdfsSiteProperties.get("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeTwo));
+
+    // verify that the Blueprint config processor has set the internal required properties
+    // that determine the active and standby node hostnames for this HA setup
+    assertEquals("Active Namenode hostname was not set correctly",
+      expectedHostName, hadoopEnvProperties.get("dfs_ha_initial_namenode_active"));
+
+    assertEquals("Standby Namenode hostname was not set correctly",
+      expectedHostNameTwo, hadoopEnvProperties.get("dfs_ha_initial_namenode_standby"));
+
+    assertEquals("fs.defaultFS should not be modified by cluster update when NameNode HA is enabled.",
+                 "hdfs://" + expectedNameService, coreSiteProperties.get("fs.defaultFS"));
+
+    mockSupport.verifyAll();
+  }
+
+  @Test
+  public void testDoUpdateForClusterWithNameNodeHAEnabledAndActiveNodeSet() throws Exception {
+    final String expectedNameService = "mynameservice";
+    final String expectedHostName = "serverThree";
+    final String expectedHostNameTwo = "serverFour";
+    final String expectedPortNum = "808080";
+    final String expectedNodeOne = "nn1";
+    final String expectedNodeTwo = "nn2";
+    final String expectedHostGroupName = "host_group_1";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Arrays.asList(expectedHostName, expectedHostNameTwo)).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> hdfsSiteProperties =
+      new HashMap<String, String>();
+
+    Map<String, String> hadoopEnvProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("hdfs-site", hdfsSiteProperties);
+    configProperties.put("hadoop-env", hadoopEnvProperties);
+
+    // setup hdfs HA config for test
+    hdfsSiteProperties.put("dfs.nameservices", expectedNameService);
+    hdfsSiteProperties.put("dfs.ha.namenodes.mynameservice", expectedNodeOne + ", " + expectedNodeTwo);
+
+    // setup properties that include exported host group information
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupName));
+
+    // set hadoop-env properties to explicitly configure the initial
+    // active and stanbdy namenodes
+    hadoopEnvProperties.put("dfs_ha_initial_namenode_active", expectedHostName);
+    hadoopEnvProperties.put("dfs_ha_initial_namenode_standby", expectedHostNameTwo);
 
     BlueprintConfigurationProcessor configProcessor =
       new BlueprintConfigurationProcessor(configProperties);
@@ -1283,6 +1387,15 @@ public class BlueprintConfigurationProcessorTest {
       expectedHostName + ":" + expectedPortNum, hdfsSiteProperties.get("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeOne));
     assertEquals("HTTPS address HA property not properly exported",
       expectedHostName + ":" + expectedPortNum, hdfsSiteProperties.get("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeTwo));
+
+    // verify that the Blueprint config processor has not overridden
+    // the user's configuration to determine the active and
+    // standby nodes in this NameNode HA cluster
+    assertEquals("Active Namenode hostname was not set correctly",
+      expectedHostName, hadoopEnvProperties.get("dfs_ha_initial_namenode_active"));
+
+    assertEquals("Standby Namenode hostname was not set correctly",
+      expectedHostNameTwo, hadoopEnvProperties.get("dfs_ha_initial_namenode_standby"));
 
     mockSupport.verifyAll();
   }
@@ -1835,6 +1948,56 @@ public class BlueprintConfigurationProcessorTest {
 
     assertEquals("hdfs config in hbase-site not exported properly",
       "hdfs://" + createExportedAddress(expectedPortNum, expectedHostGroupName) + "/apps/hbase/data", hbaseSiteProperties.get("hbase.rootdir"));
+
+    mockSupport.verifyAll();
+
+  }
+
+  @Test
+  public void testHDFSConfigClusterUpdateQuorumJournalURL() throws Exception {
+    final String expectedHostNameOne = "c6401.apache.ambari.org";
+    final String expectedHostNameTwo = "c6402.apache.ambari.org";
+    final String expectedPortNum = "808080";
+    final String expectedHostGroupName = "host_group_1";
+    final String expectedHostGroupNameTwo = "host_group_2";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+    HostGroup mockHostGroupTwo = mockSupport.createMock(HostGroup.class);
+
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Arrays.asList(expectedHostNameOne)).atLeastOnce();
+    expect(mockHostGroupTwo.getHostInfo()).andReturn(Arrays.asList(expectedHostNameTwo)).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> hdfsSiteProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("hdfs-site", hdfsSiteProperties);
+
+    // setup properties that include host information
+    // setup shared edit property, that includes a qjournal URL scheme
+    hdfsSiteProperties.put("dfs.namenode.shared.edits.dir", "qjournal://" + createExportedAddress(expectedPortNum, expectedHostGroupName) + ";" + createExportedAddress(expectedPortNum, expectedHostGroupNameTwo) + "/mycluster");
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    Map<String, HostGroup> mapOfHostGroups =
+      new HashMap<String, HostGroup>();
+    mapOfHostGroups.put(expectedHostGroupName, mockHostGroupOne);
+    mapOfHostGroups.put(expectedHostGroupNameTwo, mockHostGroupTwo);
+
+    // call top-level export method
+    configProcessor.doUpdateForClusterCreate(mapOfHostGroups, null);
+
+    // expect that all servers are included in the updated config, and that the qjournal URL format is preserved
+    assertEquals("HDFS HA shared edits directory property not properly updated for cluster create.",
+      "qjournal://" + createHostAddress(expectedHostNameOne, expectedPortNum) + ";" + createHostAddress(expectedHostNameTwo, expectedPortNum) + "/mycluster",
+      hdfsSiteProperties.get("dfs.namenode.shared.edits.dir"));
 
     mockSupport.verifyAll();
 
