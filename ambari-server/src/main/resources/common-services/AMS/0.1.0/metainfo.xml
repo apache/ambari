@@ -44,7 +44,7 @@
           <commandScript>
             <script>scripts/metric_collector.py</script>
             <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
+            <timeout>1200</timeout>
           </commandScript>
         </component>
         <component>
@@ -58,7 +58,7 @@
           <commandScript>
             <script>scripts/metric_monitor.py</script>
             <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
+            <timeout>1200</timeout>
           </commandScript>
         </component>
       </components>

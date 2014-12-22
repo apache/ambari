@@ -33,7 +33,7 @@
           <commandScript>
             <script>scripts/application_timeline_server.py</script>
             <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
+            <timeout>1200</timeout>
           </commandScript>
         </component>
         
@@ -45,7 +45,6 @@
             <config-type>capacity-scheduler</config-type>
           </configuration-dependencies>
         </component>
-
 
       </components>
 

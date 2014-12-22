@@ -32,7 +32,7 @@
           <commandScript>
             <script>scripts/falcon_client.py</script>
             <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
+            <timeout>1200</timeout>
           </commandScript>
           <configFiles>
             <configFile>
@@ -76,7 +76,7 @@
           <commandScript>
             <script>scripts/falcon_server.py</script>
             <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
+            <timeout>1200</timeout>
           </commandScript>
         </component>
       </components>

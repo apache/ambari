@@ -32,7 +32,7 @@
           <commandScript>
             <script>scripts/tez_client.py</script>
             <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
+            <timeout>1200</timeout>
           </commandScript>
           <configFiles>
             <configFile>

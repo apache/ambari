@@ -41,7 +41,7 @@
           <commandScript>
             <script>scripts/kafka_broker.py</script>
             <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
+            <timeout>1200</timeout>
           </commandScript>
         </component>
       </components>

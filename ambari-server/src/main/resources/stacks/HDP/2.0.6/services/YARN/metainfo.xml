@@ -34,7 +34,7 @@
           <commandScript>
             <script>scripts/resourcemanager.py</script>
             <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
+            <timeout>1200</timeout>
           </commandScript>
           <customCommands>
             <customCommand>
@@ -67,7 +67,7 @@
           <commandScript>
             <script>scripts/nodemanager.py</script>
             <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
+            <timeout>1200</timeout>
           </commandScript>
         </component>
 
@@ -79,7 +79,7 @@
           <commandScript>
             <script>scripts/yarn_client.py</script>
             <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
+            <timeout>1200</timeout>
           </commandScript>
           <configFiles>
             <configFile>
@@ -174,7 +174,7 @@
           <commandScript>
             <script>scripts/historyserver.py</script>
             <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
+            <timeout>1200</timeout>
           </commandScript>
         </component>
 
@@ -186,7 +186,7 @@
           <commandScript>
             <script>scripts/mapreduce2_client.py</script>
             <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
+            <timeout>1200</timeout>
           </commandScript>
           <configFiles>
             <configFile>

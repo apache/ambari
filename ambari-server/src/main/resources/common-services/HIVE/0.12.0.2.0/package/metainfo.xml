@@ -38,7 +38,7 @@
           <commandScript>
             <script>scripts/hive_metastore.py</script>
             <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
+            <timeout>1200</timeout>
           </commandScript>
           <configuration-dependencies>
             <config-type>hive-site</config-type>
@@ -139,7 +139,7 @@
           <commandScript>
             <script>scripts/webhcat_server.py</script>
             <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
+            <timeout>1200</timeout>
           </commandScript>
           <configuration-dependencies>
             <config-type>hive-site</config-type>

@@ -40,7 +40,7 @@
           <commandScript>
             <script>scripts/kerberos_client.py</script>
             <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
+            <timeout>1200</timeout>
           </commandScript>
           <customCommands>
             <customCommand>
