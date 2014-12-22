@@ -21,6 +21,42 @@
     <service>
       <name>OOZIE</name>
       <version>4.1.0.2.2</version>
+      <components>
+        <component>
+            <name>OOZIE_SERVER</name>
+            <displayName>Oozie Server</displayName>
+            <category>MASTER</category>
+            <cardinality>1+</cardinality>
+            <dependencies>
+                <dependency>
+                    <name>HDFS/HDFS_CLIENT</name>
+                    <scope>host</scope>
+                    <auto-deploy>
+                        <enabled>true</enabled>
+                    </auto-deploy>
+                </dependency>
+                <dependency>
+                    <name>MAPREDUCE2/MAPREDUCE2_CLIENT</name>
+                    <scope>host</scope>
+                    <auto-deploy>
+                        <enabled>true</enabled>
+                    </auto-deploy>
+                </dependency>
+                <dependency>
+                    <name>YARN/YARN_CLIENT</name>
+                    <scope>host</scope>
+                    <auto-deploy>
+                        <enabled>true</enabled>
+                    </auto-deploy>
+                </dependency>
+            </dependencies>
+            <commandScript>
+                <script>scripts/oozie_server.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+            </commandScript>
+        </component>
+      </components>
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>
