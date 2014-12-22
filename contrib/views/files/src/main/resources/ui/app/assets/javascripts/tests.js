@@ -16,27 +16,14 @@
  * limitations under the License.
  */
 
-var App = require('app');
+var folderOrder = [
+  'test'
+];
 
-App.ContextMenuComponent = Em.Component.extend({
-  layoutName:'components/contextMenu',
-
-  onTargetChange:function () {
-    this.$().off('hidden.bs.context');
-    this.$().on('hidden.bs.context', Em.run.bind(this, this.resetConfirmations));
-  }.observes('target'),
-
-  resetConfirmations:function () {
-    this.triggerRecursively('resetConfirm');
-  },
-
-  actions:{
-    removeFile:function () {
-      this.get('target').send('deleteFile',true);
-    },
-    moveToTrash:function () {
-      this.get('target').send('deleteFile');
-    }
-  }
-
+folderOrder.forEach(function(folder) {
+  window.require.list().filter(function(module) {
+    return new RegExp('^' + folder + '/').test(module);
+  }).forEach(function(module) {
+      require(module);
+    });
 });

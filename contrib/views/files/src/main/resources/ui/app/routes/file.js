@@ -28,12 +28,17 @@ App.FilesRoute = Em.Route.extend({
     refreshDir:function () {
       this.refresh();
     },
+    loading:function  (argument) {
+      var target = this.controllerFor('files');
+      target.showSpinner();
+      this.router.one('didTransition', target, 'hideSpinner');
+    },
     error:function (error,transition,e) {
       if (this.router._lookupActiveView('files')) {
         this.send('showAlert',error);
       } else {
         return true;
-      };
+      }
     },
     dirUp: function () {
       var currentPath = this.controllerFor('files').get('path');
@@ -42,7 +47,27 @@ App.FilesRoute = Em.Route.extend({
       return this.transitionTo('files',{queryParams: {path: target}});
     },
     willTransition:function (argument) {
-      this.send('removeAlert');
+      var hasModal = this.router._lookupActiveView('modal.chmod'),
+          hasAlert = this.router._lookupActiveView('files.alert');
+
+      Em.run.next(function(){
+        if (hasAlert) this.send('removeAlert');
+        if (hasModal) this.send('removeChmodModal');
+      }.bind(this));
+    },
+    showChmodModal:function (content) {
+      this.controllerFor('chmodModal').set('content',content);
+      this.render('modal.chmod',{
+        into:'files',
+        outlet:'modal',
+        controller:'chmodModal'
+      });
+    },
+    removeChmodModal:function () {
+      this.disconnectOutlet({
+        outlet: 'modal',
+        parentView: 'files'
+      });
     },
     showAlert:function (error) {
       this.controllerFor('filesAlert').set('content',error);
@@ -64,16 +89,14 @@ App.FilesRoute = Em.Route.extend({
     return this.store.listdir(path);
   },
   afterModel:function (model) {
-    var self = this;
-    var model = model;
     this.store.filter('file',function(file) {
       if (!model.contains(file)) {
         return true;
-      };
+      }
     }).then(function (files) {
       files.forEach(function (file) {
         file.store.unloadRecord(file);
-      })
+      });
     });
   }
 });

@@ -45,7 +45,7 @@ App.File = DS.Model.extend({
     return splitpath.get(splitpath.length-1);
   }.property('path'),
   date:function () {
-    return parseInt(moment(this.get('modificationTime')).format('X'))
+    return parseInt(moment(this.get('modificationTime')).format('X'));
   }.property('modificationTime'),
   size: Em.computed.alias('len')
 });

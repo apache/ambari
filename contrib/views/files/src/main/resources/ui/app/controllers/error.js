@@ -21,7 +21,7 @@ App.ErrorController = Ember.ObjectController.extend({
     toggleStackTrace:function () {
       var value = this.get('isExpanded');
       this.set('isExpanded', !value);
-    },
+    }
   },
 
   isExpanded: false,
@@ -45,5 +45,5 @@ App.ErrorController = Ember.ObjectController.extend({
       trace = json.trace;
     }
     return trace;
-  }.property('content'),
+  }.property('content')
 });

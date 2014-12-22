@@ -31,16 +31,16 @@ App.RenameInputComponent = Ember.Component.extend({
         case 'cancel': this.set('isRenaming',false); break;
         case 'confirm':
           tmpName = this.get('tmpName');
-          if (tmpName.length==0) {
+          if (tmpName.length ===0) {
             break;
-          };
+          }
           this.sendAction('confirm',this.get('filePath'),tmpName);
           this.set('isRenaming',false);
           break;
 
         default: this.toggleProperty('isRenaming');
       }
-    },
+    }
   },
 
   /**
@@ -51,23 +51,13 @@ App.RenameInputComponent = Ember.Component.extend({
   isRenaming:false,
 
   fileName:function () {
-    var name, file = this.get('file');
-    if (file instanceof DS.Model) {
-      name = this.get('file.name');
-    } else {
-      name = file.substr(file.lastIndexOf('/')+1);
-    };
-    return name;
+    var file = this.get('file');
+    return (file instanceof DS.Model)?file.get('name'):file.substr(file.lastIndexOf('/')+1);
   }.property('file'),
 
   filePath:function () {
-    var path, file = this.get('file');
-    if (file instanceof DS.Model) {
-      path = this.get('file.path');
-    } else {
-      path = file;
-    };
-    return path;
+    var file = this.get('file');
+    return (file instanceof DS.Model)?file.get('path'):file;
   }.property('file'),
 
   setTmpName:function () {
@@ -75,7 +65,7 @@ App.RenameInputComponent = Ember.Component.extend({
       this.set('tmpName',this.get('fileName'));
     } else {
       this.set('tmpName','');
-    };
+    }
   }.observes('isRenaming'),
 
   onFileChange:function () {
@@ -86,17 +76,17 @@ App.RenameInputComponent = Ember.Component.extend({
     controller:null,
     didInsertElement:function () {
       var element = $(this.get('element'));
-      element.focus().val(this.value)
+      element.focus().val(this.value);
     },
     keyUp: function(e) {
       var target = this.get('targetObject');
       if (e.keyCode==13) {
         return target.send('rename', 'confirm');
-      };
+      }
 
       if (e.keyCode==27) {
         return target.send('rename', 'cancel');
-      };
+      }
     }
   })
 });

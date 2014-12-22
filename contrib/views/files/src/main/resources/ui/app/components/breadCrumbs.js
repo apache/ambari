@@ -29,7 +29,7 @@ App.BreadCrumbsComponent = Ember.CollectionView.extend({
       return crumbs.push({name:cur,path:'/'+array.slice(0,i+1).join('/')});
     });
     crumbs.unshift({name:'/',path:'/'});
-    crumbs.get('lastObject').last = 'true';
+    crumbs.set('lastObject.last','true');
     return crumbs;
   }.property('path'),
   itemViewClass: Ember.View.extend({

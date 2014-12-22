@@ -19,10 +19,6 @@
 var App = require('app');
 
 App.FileController = Ember.ObjectController.extend({
-  init:function () {
-    this.set('content.selected', false);
-    this._super();
-  },
   actions:{
     download:function (option) {
       if (this.get('content.readAccess')) {
@@ -32,7 +28,7 @@ App.FileController = Ember.ObjectController.extend({
       }
     },
     showChmod:function () {
-      this.toggleProperty('chmodVisible',true);
+      this.send('showChmodModal',this.get('content'));
     },
     rename:function (opt,name) {
       var file = this.get('content'),
@@ -50,12 +46,6 @@ App.FileController = Ember.ObjectController.extend({
     },
     editName:function () {
       this.set('isRenaming',true);
-    },
-    chmod:function (r) {
-      var record = this.get('content');
-      this.store
-        .chmod(record)
-        .then(null,Em.run.bind(this,this.chmodErrorCallback,record));
     },
     open:function (file) {
       if (!this.get('content.readAccess')) {
@@ -88,9 +78,9 @@ App.FileController = Ember.ObjectController.extend({
     var thisFile = this.get('content.id');
     return movingFile === thisFile;
   }.property('parentController.movingFile'),
-  
+
   setSelected:function (controller,observer) {
-    this.set('selected',this.get(observer))
+    this.set('selected',this.get(observer));
   }.observes('content.selected'),
 
   renameSuccessCallback:function (record,error) {
@@ -98,13 +88,8 @@ App.FileController = Ember.ObjectController.extend({
     this.sendAlert(error);
   },
 
-  chmodErrorCallback:function (record,error) {
-    record.rollback();
-    this.sendAlert({message:'Permissions change failed'});
-  },
-
   deleteErrorCallback:function (record,error) {
-    this.parentController.model.pushRecord(record);
+    this.get('parentController.model').pushRecord(record);
     this.send('showAlert',error);
   },
 

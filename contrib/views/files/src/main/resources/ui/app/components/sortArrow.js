@@ -19,7 +19,7 @@
 var App = require('app');
 
 App.SortArrowComponent = Em.Component.extend({
-  layout:Ember.Handlebars.compile('<i {{bind-attr class=":fa view.asc:fa-chevron-down:fa-chevron-up view.cur::fa-gr view.cur::fa-rotate-270" }} ></i>'),
+  layout:Ember.Handlebars.compile('<i {{bind-attr class=":fa asc:fa-chevron-down:fa-chevron-up cur::fa-gr view.cur::fa-rotate-270" }} ></i>'),
   classNames:['pull-right'],
   tagName:'span',
   sPs:[],
@@ -28,12 +28,7 @@ App.SortArrowComponent = Em.Component.extend({
   asc:true,
   cur:false,
   sorting:function () {
-    if (this.get('sPs.firstObject') == this.get('sP')) {
-      this.set('asc',this.get('sA'));
-      this.set('cur',true);
-    } else{
-      this.set('asc',true);
-      this.set('cur',false);
-    };
-  }.observes('sPs','sA').on('init'),
+    var isSp = this.get('sPs.firstObject') == this.get('sP');
+    this.setProperties({'asc':(isSp)?this.get('sA'):true,'cur':isSp});
+  }.observes('sPs','sA').on('didInsertElement')
 });

@@ -30,6 +30,7 @@ require('templates/application');
 require('templates/index');
 require('templates/files');
 require('templates/error');
+require('templates/modal/chmod');
 require('templates/util/errorRow');
 require('templates/util/fileRow');
 
@@ -39,7 +40,6 @@ require('templates/components/deletePopover');
 require('templates/components/mkdirInput');
 require('templates/components/contextMenu');
 require('templates/components/deleteBulk');
-require('templates/components/chmodInput');
 
 //////////////////////////////////
 // Models
@@ -55,6 +55,7 @@ require('controllers/files');
 require('controllers/file');
 require('controllers/error');
 require('controllers/filesAlert');
+require('controllers/chmodModal');
 
 /////////////////////////////////
 // Components
@@ -71,7 +72,6 @@ require('components/popoverDelete');
 require('components/bulkCheckbox');
 require('components/mkdirInput');
 require('components/toggleContext');
-require('components/chmodInput');
 
 /////////////////////////////////
 // Views
@@ -79,6 +79,7 @@ require('components/chmodInput');
 
 require('views/file');
 require('views/filesAlert');
+require('views/modalChmod');
 
 /////////////////////////////////
 // Routes

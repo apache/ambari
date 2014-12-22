@@ -19,22 +19,11 @@
 var App = require('app');
 
 App.BulkCheckboxComponent = Em.Checkbox.extend({
-  changeBinding:'selectAll',
-  checkedBinding:'selectedAll',
-  selectedAll:false,
+  selectedAll:Em.computed.alias('checked'),
   selectAll:function () {
-    var checked = this.get('checked');
-    var items = this.get('content');
-    return items.forEach(function (item) {
-      item.set('selected',checked);
-    });
-  },
+    this.get('content').setEach('selected',this.get('selectedAll'));
+  }.on('change'),
   selection:function () {
-    var selected = this.get('content').filterBy('selected',true);
-    if (selected.length == this.get('content.length') && selected.length > 0) {
-      this.set('selectedAll',true);
-    } else {
-      this.set('selectedAll',false);
-    }
-  }.observes('content.@each.selected'),
+    this.set('selectedAll', !!(this.get('content.length') && this.get('content').isEvery('selected',true)));
+  }.observes('content.@each.selected')
 });

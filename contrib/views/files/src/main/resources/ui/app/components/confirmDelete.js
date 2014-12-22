@@ -27,7 +27,7 @@ App.DropdownWrapComponent = Em.Component.extend({
   }.on('resetConfirm'),
   didInsertElement:function(){
     this.$().on('hidden.bs.dropdown',Em.run.bind(this,this.onResetConfirm));
-  },
+  }
 });
 
 App.ConfirmDeleteComponent = Em.Component.extend({
@@ -41,13 +41,13 @@ App.ConfirmDeleteComponent = Em.Component.extend({
   click:function  (e) {
     if (!$(e.target).hasClass('delete')) {
       e.stopPropagation();
-    };
+    }
   },
   actions:{
     ask:function () {
       this.get('parentView').trigger('resetConfirm');
       this.set('isRemoving',true);
-      return false; 
+      return false;
     },
     cancel:function () {
       this.cancelRemoving();

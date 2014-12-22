@@ -40,8 +40,8 @@ App.FileUploaderComponent = Ember.Component.extend({
         var label = this.get('value').replace(/\\/g, '/').replace(/.*\//, '');
         var log = numFiles > 1 ? numFiles + ' files selected' : label;
 
-        this.set('parentView.controlInput.value',log)
-        this.set('parentView.files',files)
+        this.set('parentView.controlInput.value',log);
+        this.set('parentView.files',files);
 
       }.observes('files')
     });
@@ -61,10 +61,10 @@ App.FileUploaderComponent = Ember.Component.extend({
           uploadBtn.start();
           uploader.on('progress',function (e) {
             uploadBtn.setProgress(e.percent/100);
-          })
+          });
           uploader.upload(file,{path:path}).finally(Em.run.bind(this,reset));
         }
-      };
+      }
     },
     clear:function () {
       this.set('fileInput.files',null);
@@ -99,7 +99,7 @@ App.FileUploaderComponent = Ember.Component.extend({
       if (!Ember.isEmpty(input.files)) {
         this.set('files', input.files);
       }
-    },
+    }
   }),
   controlInput:Ember.TextField.create({
     readonly:true,

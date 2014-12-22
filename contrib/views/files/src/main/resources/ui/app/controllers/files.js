@@ -21,10 +21,11 @@ var bind = Ember.run.bind;
 
 App.FilesController = Ember.ArrayController.extend({
   actions:{
-    moveFile:function (opt,file) {
-      var src,
+    moveFile:function (opt,fileArg) {
+      var src, title,
+          file = fileArg || this.get('selectedFiles.firstObject'),
           moving = this.get('movingFile');
-      file = file || this.get('selectedFiles.firstObject');
+
       if (opt == 'cut') {
         src = file.toJSON({includeId: true});
         src = Em.merge(src,{name:file.get('name'),path:file.get('path')});
@@ -45,7 +46,7 @@ App.FilesController = Ember.ArrayController.extend({
     },
     renameDir:function (path,newName) {
       var _this = this,
-          basedir = path.substring(0,path.lastIndexOf('/')+1),
+          basedir = path.substring(0,path.lastIndexOf('/')+1);
           newPath = basedir + newName;
 
       if (path === newPath) {
@@ -108,11 +109,19 @@ App.FilesController = Ember.ArrayController.extend({
         this.set('sortAscending',true);
       }
     },
+    confirmChmod:function (file) {
+      this.store
+        .chmod(file)
+        .then(null,Em.run.bind(this,this.chmodErrorCallback,file));
+    },
     clearSearchField:function () {
       this.set('searchString','');
     }
   },
   init:function () {
+    if (App.testing) {
+      return this._super();
+    }
     var controller = this;
     var adapter = controller.store.adapterFor('file');
     var url = adapter.buildURL('upload');
@@ -148,7 +157,7 @@ App.FilesController = Ember.ArrayController.extend({
     return this.get('content').filterBy('selected', true);
   }.property('content.@each.selected'),
   canConcat:function () {
-    return this.get('selectedFiles').filterProperty('isDirectory').get('length')==0;
+    return this.get('selectedFiles').filterProperty('isDirectory').get('length')===0;
   }.property('selectedFiles.length'),
 
   searchString:'',
@@ -173,11 +182,24 @@ App.FilesController = Ember.ArrayController.extend({
 
   deleteErrorCallback:function (record,error) {
     this.model.pushRecord(record);
-    this.send('showAlert',error);
+    this.throwAlert(error);
+  },
+
+  chmodErrorCallback:function (record,error) {
+    record.rollback();
+    this.throwAlert({message:'Permissions change failed'});
   },
 
   throwAlert:function (error) {
     this.send('showAlert',error);
+  },
+
+  showSpinner:function () {
+    this.set('isLoadingFiles',true);
+  },
+
+  hideSpinner:function () {
+    this.set('isLoadingFiles',false);
   }
 });
 

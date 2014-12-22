@@ -23,16 +23,15 @@ var _permissionsProp = function(n, l) {
     if (arguments.length > 1) {
       this.set('permissions', this.replaceAt(n,(val)?l:'-'));
       return val;
-    };
+    }
     return this.get('permissions')[n]===l;
-  }
-}
+  };
+};
 
-App.ChmodInputComponent = Em.Component.extend({
-  layoutName:'components/chmodInput',
-  tagName:'tr',
-  classNames:"chmod-row",
-  file:null,
+App.ChmodModalController = Em.ObjectController.extend({
+  needs:['files'],
+  classNames:'chmod-row',
+  file:Em.computed.alias('content'),
   permissions:Em.computed.alias('file.permission'),
   usrR:_permissionsProp(1, 'r').property('permissions'),
   usrW:_permissionsProp(2, 'w').property('permissions'),
@@ -44,36 +43,6 @@ App.ChmodInputComponent = Em.Component.extend({
   otrW:_permissionsProp(8, 'w').property('permissions'),
   otrE:_permissionsProp(9, 'x').property('permissions'),
   replaceAt:function (index,p) {
-    var perm = this.get('permissions');
-    var newPerm = perm.substr(0, index) + p + perm.substr(index + p.length);
-    return newPerm;
-  },
-  markActive:function () {
-    if (this.get('isVisible')) {
-      this.$('.btn-chmod').each(function () {
-        if ($(this).children('input').is(':checked')) {
-          $(this).addClass('active');
-        } else {
-          $(this).removeClass('active');
-        }
-      });
-    }
-  }.observes('chVisible'),
-  showModal:function () {
-    this.$('.chmodal').modal('toggle');
-  }.observes('chVisible'),
-  actions:{
-    confirm:function (r) {
-      this.sendAction('confirm',r);
-      this.set('chVisible',false);
-    },
-    close:function () {
-      var file = this.get('file');
-      var diff = file.changedAttributes();
-      if (diff.permission) {
-        file.set('permission',diff.permission[0]);
-      };
-      this.set('chVisible',false);
-    }
+    return this.get('permissions').substr(0, index) + p + perm.substr(index + p.length);;
   }
 });

@@ -18,11 +18,11 @@
 
 <div class="panel-default panel-files">
   <div class="panel-heading">
-    {{!-- BREADCRUMBS --}}  
+    {{!-- BREADCRUMBS --}}
     {{bread-crumbs path=path}}
-      
+
     <div class="um-section">
-    {{!-- UPLOADER --}}  
+    {{!-- UPLOADER --}}
     <div {{bind-attr class="isUploading::hide :pull-right" }}>
       <button {{action 'upload' 'close'}} type="button" class="close" aria-hidden="true">&times;</button>
       {{file-uploader path=path uploader=uploader class=" upload-area pull-right" alert='showAlert'}}
@@ -34,7 +34,7 @@
       </button>
     </div>
 
-    {{!-- MKDIR --}} 
+    {{!-- MKDIR --}}
     {{mkdir-input create="mkdir" path=path}}
 
     </div>
@@ -88,7 +88,7 @@
             </ul>
           </div>
         </th>
-        <th class="check"> 
+        <th class="check">
         {{#dropdown-wrap}}
           <div id="bulkDropdown" class="btn-group">
             <span class="input-group-addon">
@@ -167,7 +167,7 @@
           <td >
             <ul class="list-inline file-actions text-right">
               <li>
-                <a href="#" {{action 'moveFile' 'move'}} data-toggle="tooltip" data-placement="bottom" title="Paste"><i class="fa fa-clipboard fa-lg"></i></a>  
+                <a href="#" {{action 'moveFile' 'move'}} data-toggle="tooltip" data-placement="bottom" title="Paste"><i class="fa fa-clipboard fa-lg"></i></a>
               </li>
             </ul>
           </td>
@@ -177,17 +177,30 @@
         </tr>
       {{/if}}
       {{/unless}}
-      {{#each fileList itemController="file"}}
-        {{partial 'util/fileRow'}}
-      {{/each}}
+    </tbody>
+    {{#unless isLoadingFiles}}
+      {{cloaked-collection
+          cloakView="file"
+          content=fileList
+          itemController="file"
+          loadingHTML='<td colspan="8" class="text-center"><i class="fa fa-refresh"></i></td>'
+          tagName='tbody'
+          defaultHeight='47'}}
+    {{else}}
+      <tbody>
+        <td colspan="8" class="text-center"><i class="fa fa-refresh fa-spin"></i></td>
+      </tbody>
+    {{/unless}}
+    <tbody>
       {{#unless fileList}}
-      <tr>
-        <td colspan="8">
-          No files
-        </td>
-      </tr>
+        <tr {{bind-attr class="isLoadingFiles:hide"}} >
+          <td colspan="8">
+            No files
+          </td>
+        </tr>
       {{/unless}}
     </tbody>
   </table>
   {{context-menu target=targetContextMenu}}
+  {{outlet modal}}
 </div>

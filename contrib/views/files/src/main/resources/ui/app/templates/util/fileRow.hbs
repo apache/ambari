@@ -28,17 +28,11 @@
     {{#rename-input fileBinding='content' confirm='rename' isRenaming=isRenaming}}
       <div class="file-name allow-open">
         <span>
-        {{#if content.readAccess}}
           <a {{action 'open'}}>
             <strong>
               {{content.name}}
             </strong>
           </a>
-          {{else}}
-            <strong>
-              {{content.name}}
-            </strong>
-          {{/if}}
         </span>
         <span class="help-block mod-time allow-open">
           <small class='allow-open'>
@@ -63,18 +57,15 @@
         <li>
         {{#if content.readAccess}}
           {{#if content.isDirectory}}
-            <a href="#" {{action 'download' 'zip'}} data-toggle="tooltip" data-placement="bottom" title="Download ZIP"><i class="fa fa-archive fa-fw fa-lg"></i></a>
+            <a href="#" {{action 'download' 'zip'}} data-toggle="tooltip" data-placement="bottom" title="Download zip"><i class="fa fa-archive fa-fw fa-lg"></i></a>
           {{else}}
-            <a href="#" {{action 'download' 'browse'}} data-toggle="tooltip" data-placement="bottom" title="Download File"><i class="fa fa-download fa-fw fa-lg"></i></a>
+            <a href="#" {{action 'download' 'browse'}} data-toggle="tooltip" data-placement="bottom" title="Download"><i class="fa fa-download fa-fw fa-lg"></i></a>
           {{/if}}
         {{/if}}
         </li>
         <li>
-          <a href="#" {{action 'moveFile' 'cut' this.content}} data-toggle="tooltip" data-placement="bottom" title="Move"><i class="fa fa-level-down fa-rotate-270 fa-fw fa-lg"></i></span></a>  
+          <a href="#" {{action 'moveFile' 'cut' this.content}} data-toggle="tooltip" data-placement="bottom" title="Move"><i class="fa fa-level-down fa-rotate-270 fa-fw fa-lg"></i></a>
         </li>
-        {{!-- <li>
-          <a {{action 'rename' 'edit'}} data-toggle="tooltip" data-placement="bottom" title="Rename"><i class="fa fa-edit fa-lg"></i></a>
-        </li> --}}
         <li>{{popover-delete confirm="deleteFile"}}</li>
       </ul>
     {{/unless}}
@@ -88,5 +79,3 @@
   {{toggle-context}}
   </td>
 </tr>
-{{chmod-input chVisible=chmodVisible file=content confirm="chmod"}}
-        

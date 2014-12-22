@@ -200,12 +200,7 @@ App.ApplicationStore = DS.Store.extend({
     return promiseArray(_listdir(adapter, this, type, query, array));
   },
   move:function (record, path) {
-    var oldpath;
-    if (typeof record === 'string') {
-      oldpath = record;
-    } else {
-      oldpath = record.get('id');
-    }
+    var oldpath = (typeof record === 'string')?record:record.get('id');
     var query = {
       "src":oldpath,
       "dst":path
@@ -243,7 +238,7 @@ App.ApplicationStore = DS.Store.extend({
     var promiseLabel = "DS: Model#remove " + this;
     var resolver = Ember.RSVP.defer(promiseLabel);
     var adapter = this.adapterFor(type);
-    
+
     record.deleteRecord();
     resolver.resolve(_remove(adapter, this, record, query, toTrash));
 
@@ -253,15 +248,14 @@ App.ApplicationStore = DS.Store.extend({
    * get dowload link
    * @param  {Array} files     records for download
    * @param  {String} option            browse, zip or concat
-   * @param  {Boolean} download
+   * @param  {Boolean} downloadArg
    * @return {Promise}
    */
-  linkFor:function (files, option, download) {
-    var resolver = Ember.RSVP.defer('promiseLabel'),
-    adapter = this.adapterFor(this.modelFor('file')),
-    query = {},
-    download = download || true;
-    option = option || "browse";
+  linkFor:function (files, option, downloadArg) {
+    var resolver = Ember.RSVP.defer('promiseLabel');
+    var query, adapter = this.adapterFor(this.modelFor('file')),
+        download = downloadArg || true;
+        option = option || "browse";
 
     if (option == 'browse') {
       query = { "path": files.get('firstObject.path'), "download": download };
@@ -313,7 +307,7 @@ App.Uploader = Ember.Uploader.create({
     var self = this;
 
     this.set('isUploading', true);
-    
+
     return this.ajax(url, data, type)
       .then(Em.run.bind(this,this.uploadSuccess),Em.run.bind(this,this.uploadFailed));
   },
@@ -351,7 +345,7 @@ App.Uploader = Ember.Uploader.create({
   }
 });
 
-App.IsodateTransform = DS.Transform.extend({  
+App.IsodateTransform = DS.Transform.extend({
   deserialize: function (serialized) {
     if (serialized) {
       return moment.utc(serialized).toDate();
@@ -367,11 +361,11 @@ App.IsodateTransform = DS.Transform.extend({
 });
 
 Ember.Handlebars.registerBoundHelper('showDate', function(date,format) {
-  return moment(date).format(format)
+  return moment(date).format(format);
 });
 
 Ember.Handlebars.registerBoundHelper('showDateUnix', function(date,format) {
-  return moment.unix(date).format(format)
+  return moment.unix(date).format(format);
 });
 
 Ember.Handlebars.registerBoundHelper('capitalize', function(string) {

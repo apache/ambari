@@ -18,31 +18,33 @@
 
 var App = require('app');
 
-App.PopoverDeleteComponent = Em.Component.extend({
-  popover:Em.computed.alias('childViews.firstObject'),
-  layoutName:'components/deletePopover',
-  deleteForever:false,
+App.ModalChmodView = Em.View.extend({
   actions:{
-    confirm:function (deleteForever) {
-      this.sendAction('confirm',this.get('deleteForever'));
+    confirm:function (file) {
+      this.get('controller.controllers.files').send('confirmChmod',this.get('controller.file'));
+      this.$('.chmodal').modal('hide');
     },
     close:function () {
-      this.set('popover.isVisible',false);
+      var file = this.get('controller.file');
+      var diff = file.changedAttributes();
+      if (diff.permission) {
+        file.set('permission',diff.permission[0]);
+      }
+      this.$('.chmodal').modal('hide');
     }
   },
-  didInsertElement:function () {
-    $('body').on('click.popover', Em.run.bind(this,this.hideMultiply));
+  didInsertElement:function (argument) {
+    this.$('.btn-chmod').each(function () {
+      $(this).toggleClass('active',$(this).children('input').is(':checked'));
+    });
+
+    this.$('.chmodal').modal();
+    this.$('.chmodal').on('hidden.bs.modal',function  () {
+      this.get('controller.controllers.files').send('removeChmodModal');
+    }.bind(this));
   },
-  hideMultiply:function (e) {
-    if (!this.$()) {
-      return;
-    }
-    if (!this.$().is(e.target) && this.$().has(e.target).length === 0 && $('.popover').has(e.target).length === 0) {
-          this.set('popover.isVisible',false);
-    }
-  },
-  willClearRender:function () {
-    this.get('popover').$element.off('click');
-    $('body').off('click.popover');
+  willClearRender:function  () {
+    this.$('.chmodal').off('hidden.bs.modal');
+    this.$('.chmodal').modal('hide');
   }
 });

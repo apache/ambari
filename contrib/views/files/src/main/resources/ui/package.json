@@ -12,6 +12,7 @@
     "node": "~0.6.10 || 0.8 || 0.9"
   },
   "scripts": {
+    "test": "node_modules/phantomjs/bin/phantomjs runner.js public/tests.html",
     "start": "brunch watch --server",
     "preinstall": "chmod +x node/npm/bin/node-gyp-bin/node-gyp",
     "postinstall" : "bash node/with_new_path.sh node node_modules/.bin/bower --allow-root install"
@@ -27,12 +28,15 @@
     "ember-precompiler-brunch": ">= 1.5.0",
     "less-brunch": "^1.7.2"
   },
-  "devDependencies": {},
+ "devDependencies": {
+    "phantomjs": "^1.9.2",
+    "karma": "*",
+    "karma-qunit": "*",
+    "karma-phantomjs-launcher": "~0.1.2"
+  },
   "ignore": [
     "**/.*",
     "node_modules",
-    "bower_components",
-    "test",
-    "tests"
+    "bower_components"
   ]
 }

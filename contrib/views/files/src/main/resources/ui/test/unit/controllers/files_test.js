@@ -16,27 +16,17 @@
  * limitations under the License.
  */
 
-var App = require('app');
 
-App.ContextMenuComponent = Em.Component.extend({
-  layoutName:'components/contextMenu',
+moduleFor('controller:files', 'App.FilesController', {
+  needs:['controller:file']
+});
 
-  onTargetChange:function () {
-    this.$().off('hidden.bs.context');
-    this.$().on('hidden.bs.context', Em.run.bind(this, this.resetConfirmations));
-  }.observes('target'),
+test('Property "isRootDir" is true when in root directory', function () {
 
-  resetConfirmations:function () {
-    this.triggerRecursively('resetConfirm');
-  },
+  var cntr = this.subject();
+  Ember.run(function() {
+    equal(cntr.get('path')==='/', cntr.get('isRootDir') , 'isRootDir is set right');
+  });
 
-  actions:{
-    removeFile:function () {
-      this.get('target').send('deleteFile',true);
-    },
-    moveToTrash:function () {
-      this.get('target').send('deleteFile');
-    }
-  }
 
 });

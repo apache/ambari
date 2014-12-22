@@ -18,25 +18,15 @@
 
 var App = require('app');
 
-App.ContextMenuComponent = Em.Component.extend({
-  layoutName:'components/contextMenu',
-
-  onTargetChange:function () {
-    this.$().off('hidden.bs.context');
-    this.$().on('hidden.bs.context', Em.run.bind(this, this.resetConfirmations));
-  }.observes('target'),
-
-  resetConfirmations:function () {
-    this.triggerRecursively('resetConfirm');
-  },
-
-  actions:{
-    removeFile:function () {
-      this.get('target').send('deleteFile',true);
+App.FilesView = Em.View.extend({
+    templateName: 'files',
+    didInsertElement:function () {
+      this.scheduleRebind();
     },
-    moveToTrash:function () {
-      this.get('target').send('deleteFile');
+    scheduleRebind:function () {
+      Em.run.scheduleOnce('render', this, this.get('reBindTooltips'));
+    },
+    reBindTooltips:function () {
+      this.$().tooltip({selector:'[data-toggle=tooltip]'});
     }
-  }
-
 });

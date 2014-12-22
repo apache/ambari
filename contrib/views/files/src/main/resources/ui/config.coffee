@@ -27,7 +27,8 @@ exports.config =
       defaultExtension: 'js'
       joinTo: 
         'javascripts/app.js': /^app/
-        'javascripts/vendor.js': /^bower_components|vendor/
+        'javascripts/vendor.js': /^bower_components|vendor/,
+        'javascripts/test.js': /^test(\/|\\)(?!vendor)/
 
     stylesheets:
       defaultExtension: 'css'

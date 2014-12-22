@@ -20,7 +20,7 @@ var App = require('app');
 
 App.ToggleContextComponent = Em.Component.extend({
   didInsertElement:function () {
-    var fileRow = this.$().parents('.file-row'),
+    var fileRow = this.$().parents('tr'),
         beforeHandler = Ember.run.bind(this, this.setContext),
         itemHandler = Ember.run.bind(this, this.itemHandler);
 
@@ -35,14 +35,14 @@ App.ToggleContextComponent = Em.Component.extend({
   setContext:function(e) {
     if (this.get('targetObject.isMoving')) {
       return false;
-    };
+    }
     this.set('targetObject.parentController.targetContextMenu',this.get('targetObject'));
     return true;
   },
   itemHandler:function (t,e) {
     if (e.target.dataset.disabled) {
       return false;
-    };
+    }
   },
   openOnClick:function (e) {
     if($(e.target).is('td') || $(e.target).hasClass('allow-open')){
