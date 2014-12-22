@@ -356,8 +356,10 @@ public class AlertsDAO {
     sb.append("FROM AlertCurrentEntity alert JOIN alert.alertHistory history ");
     sb.append("WHERE history.clusterId = :clusterId AND history.hostName IS NOT NULL GROUP BY history.hostName");
 
-    TypedQuery<Integer> query = entityManagerProvider.get().createQuery(
-        sb.toString(), Integer.class);
+    // use Number here since some databases like MySQL return Long and some
+    // return Integer and we don't want a class cast exception
+    TypedQuery<Number> query = entityManagerProvider.get().createQuery(
+        sb.toString(), Number.class);
 
     query.setParameter("clusterId", Long.valueOf(clusterId));
     query.setParameter("criticalState", AlertState.CRITICAL);
@@ -369,13 +371,15 @@ public class AlertsDAO {
     int criticalCount = 0;
     int unknownCount = 0;
 
-    List<Integer> hostStateValues = daoUtils.selectList(query);
-    for (Integer hostStateValue : hostStateValues) {
+    List<Number> hostStateValues = daoUtils.selectList(query);
+    for (Number hostStateValue : hostStateValues) {
       if (null == hostStateValue) {
         continue;
       }
 
-      switch (hostStateValue) {
+      int integerValue = hostStateValue.intValue();
+
+      switch (integerValue) {
         case 0:
           okCount++;
           break;
