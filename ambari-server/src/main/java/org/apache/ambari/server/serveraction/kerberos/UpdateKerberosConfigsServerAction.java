@@ -36,7 +36,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
@@ -49,7 +48,7 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
   private final static Logger LOG =
     LoggerFactory.getLogger(UpdateKerberosConfigsServerAction.class);
 
-  private HashMap<String, Map<String, String>> configtypesPropsVal = new HashMap();
+  private HashMap<String, Map<String, String>> configurations = new HashMap<String, Map<String, String>>();
 
   @Inject
   private AmbariManagementController controller;
@@ -78,82 +77,93 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
     Clusters clusters = controller.getClusters();
     Cluster cluster = clusters.getCluster(clusterName);
 
-    String dataDir = getCommandParameterValue(getCommandParameters(), KerberosServerAction.DATA_DIRECTORY);
-    File indexFile = new File(dataDir + File.separator + KerberosActionDataFile.DATA_FILE_NAME);
-    File configFile = new File(dataDir + File.separator + KerberosConfigDataFile.DATA_FILE_NAME);
+    String dataDirectoryPath = getCommandParameterValue(getCommandParameters(), KerberosServerAction.DATA_DIRECTORY);
 
-    KerberosActionDataFileReader indexReader = null;
-    KerberosConfigDataFileReader configReader = null;
+    // If the data directory path is set, attempt to process further, else assume there is no work to do
+    if (dataDirectoryPath != null) {
+      File dataDirectory = new File(dataDirectoryPath);
 
-    try {
-      indexReader = new KerberosActionDataFileReader(indexFile);
-      Iterator<Map<String, String>> indexRecords = indexReader.iterator();
-      while (indexRecords.hasNext()) {
-        Map<String, String> record = indexRecords.next();
-        String hostName = record.get(KerberosActionDataFile.HOSTNAME);
-        String principal = record.get(KerberosActionDataFile.PRINCIPAL);
-        String principalConfig = record.get(KerberosActionDataFile.PRINCIPAL_CONFIGURATION);
-        String[] principalTokens = principalConfig.split("/");
-        if (principalTokens.length == 2)  {
-          String principalConfigType = principalTokens[0];
-          String principalConfigProp = principalTokens[1];
-          addConfigTypePropVal(principalConfigType, principalConfigProp, principal);
-        }
+      // If the data directory exists, attempt to process further, else assume there is no work to do
+      if (dataDirectory.exists()) {
+        KerberosActionDataFileReader indexReader = null;
+        KerberosConfigDataFileReader configReader = null;
 
-        String keytabPath = record.get(KerberosActionDataFile.KEYTAB_FILE_PATH);
-        String keytabConfig = record.get(KerberosActionDataFile.KEYTAB_FILE_CONFIGURATION);
-        String[] keytabTokens = keytabConfig.split("/");
-        if (keytabTokens.length == 2)  {
-          String keytabConfigType = keytabTokens[0];
-          String keytabConfigProp = keytabTokens[1];
-          addConfigTypePropVal(keytabConfigType, keytabConfigProp, keytabPath);
-        }
-      }
-
-      configReader = new KerberosConfigDataFileReader(configFile);
-      Iterator<Map<String, String>> configRecords = configReader.iterator();
-      while (configRecords.hasNext()) {
-        Map<String, String> record  = configRecords.next();
-        String configType = record.get(KerberosConfigDataFile.CONFIGURATION_TYPE);
-        String configKey = record.get(KerberosConfigDataFile.KEY);
-        String configVal = record.get(KerberosConfigDataFile.VALUE);
-        addConfigTypePropVal(configType, configKey, configVal);
-      }
-
-      for(Map.Entry<String, Map<String,String>> entry : configtypesPropsVal.entrySet()) {
-        Map<String, String> properties = entry.getValue();
-        updateConfigurationPropertiesForCluster(
-          cluster,
-          entry.getKey(),  // configType
-          properties,
-          true,    // updateIfExists
-          true,    // createNew
-          "update services configs to enable kerberos");
-      }
-
-    } catch (IOException e) {
-      String message = "Could not update services configs to enable kerberos";
-      LOG.error(message, e);
-      commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", "", message);
-    } finally {
-      if (indexReader != null && !indexReader.isClosed()) {
         try {
-          indexReader.close();
-        } catch (Throwable t) {
-          // ignored
-        }
-      }
-      if (configReader != null && !configReader.isClosed()) {
-        try {
-          configReader.close();
-        } catch (Throwable t) {
-          // ignored
+          // If the action data file exists, iterate over the records to find the identity-specific
+          // configuration settings to update
+          File indexFile = new File(dataDirectory, KerberosActionDataFile.DATA_FILE_NAME);
+          if (indexFile.exists()) {
+            indexReader = new KerberosActionDataFileReader(indexFile);
+
+            for (Map<String, String> record : indexReader) {
+              String principal = record.get(KerberosActionDataFile.PRINCIPAL);
+              String principalConfig = record.get(KerberosActionDataFile.PRINCIPAL_CONFIGURATION);
+              String[] principalTokens = principalConfig.split("/");
+              if (principalTokens.length == 2) {
+                String principalConfigType = principalTokens[0];
+                String principalConfigProp = principalTokens[1];
+                addConfigTypePropVal(principalConfigType, principalConfigProp, principal);
+              }
+
+              String keytabPath = record.get(KerberosActionDataFile.KEYTAB_FILE_PATH);
+              String keytabConfig = record.get(KerberosActionDataFile.KEYTAB_FILE_CONFIGURATION);
+              String[] keytabTokens = keytabConfig.split("/");
+              if (keytabTokens.length == 2) {
+                String keytabConfigType = keytabTokens[0];
+                String keytabConfigProp = keytabTokens[1];
+                addConfigTypePropVal(keytabConfigType, keytabConfigProp, keytabPath);
+              }
+            }
+          }
+
+          // If the config data file exists, iterate over the records to find the (explicit)
+          // configuration settings to update
+          File configFile = new File(dataDirectory, KerberosConfigDataFile.DATA_FILE_NAME);
+          if (configFile.exists()) {
+            configReader = new KerberosConfigDataFileReader(configFile);
+            for (Map<String, String> record : configReader) {
+              String configType = record.get(KerberosConfigDataFile.CONFIGURATION_TYPE);
+              String configKey = record.get(KerberosConfigDataFile.KEY);
+              String configVal = record.get(KerberosConfigDataFile.VALUE);
+              addConfigTypePropVal(configType, configKey, configVal);
+            }
+          }
+
+          for (Map.Entry<String, Map<String, String>> entry : configurations.entrySet()) {
+            updateConfigurationPropertiesForCluster(
+                cluster,
+                entry.getKey(),     // configType
+                entry.getValue(),   // properties
+                true,               // updateIfExists
+                true,               // createNew
+                "update services configs to enable kerberos");
+          }
+        } catch (IOException e) {
+          String message = "Could not update services configs to enable kerberos";
+          LOG.error(message, e);
+          commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", "", message);
+        } finally {
+          if (indexReader != null && !indexReader.isClosed()) {
+            try {
+              indexReader.close();
+            } catch (Throwable t) {
+              // ignored
+            }
+          }
+          if (configReader != null && !configReader.isClosed()) {
+            try {
+              configReader.close();
+            } catch (Throwable t) {
+              // ignored
+            }
+          }
         }
       }
     }
+
     return (commandReport == null)
-      ? createCommandReport(0, HostRoleStatus.COMPLETED, "{}", null, null)
-      : commandReport;
+        ? createCommandReport(0, HostRoleStatus.COMPLETED, "{}", null, null)
+        : commandReport;
   }
 
 
@@ -271,10 +281,10 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
    * @param val   value for the proeprty
    */
   private void addConfigTypePropVal(String configtype, String prop, String val) {
-    Map<String, String> configtypePropsVal = configtypesPropsVal.get(configtype);
+    Map<String, String> configtypePropsVal = configurations.get(configtype);
     if (configtypePropsVal == null) {
       configtypePropsVal = new HashMap<String, String>();
-      configtypesPropsVal.put(configtype, configtypePropsVal);
+      configurations.put(configtype, configtypePropsVal);
     }
     configtypePropsVal.put(prop, val);
   }

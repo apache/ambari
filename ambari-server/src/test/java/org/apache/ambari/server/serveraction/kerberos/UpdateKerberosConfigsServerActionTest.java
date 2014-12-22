@@ -83,20 +83,12 @@ public class UpdateKerberosConfigsServerActionTest {
     action = injector.getInstance(UpdateKerberosConfigsServerAction.class);
   }
 
-  @After
-  public void verifyCalls() throws Exception {
-    verify(controller);
-    verify(clusters);
-    verify(cluster);
-  }
-
   private void setupIndexDat() throws Exception {
 
     File indexFile;
     KerberosActionDataFileBuilder kerberosActionDataFileBuilder = null;
 
     dataDir = testFolder.getRoot().getAbsolutePath();
-    System.out.println("dataDir: " + dataDir);
 
     indexFile = new File(dataDir, KerberosActionDataFile.DATA_FILE_NAME);
     kerberosActionDataFileBuilder = new KerberosActionDataFileBuilder(indexFile);
@@ -145,7 +137,29 @@ public class UpdateKerberosConfigsServerActionTest {
 
     action.execute(requestSharedDataContext);
 
+    verify(controller);
+    verify(clusters);
+    verify(cluster);
   }
 
+  @Test
+  public void testUpdateConfigMissingDataDirectory() throws Exception {
+    ExecutionCommand executionCommand = new ExecutionCommand();
+    Map<String, String> commandParams = new HashMap<String, String>();
+    executionCommand.setCommandParams(commandParams);
 
+    action.setExecutionCommand(executionCommand);
+    action.execute(null);
+  }
+
+  @Test
+  public void testUpdateConfigEmptyDataDirectory() throws Exception {
+    ExecutionCommand executionCommand = new ExecutionCommand();
+    Map<String, String> commandParams = new HashMap<String, String>();
+    commandParams.put(KerberosServerAction.DATA_DIRECTORY, testFolder.newFolder().getAbsolutePath());
+    executionCommand.setCommandParams(commandParams);
+
+    action.setExecutionCommand(executionCommand);
+    action.execute(null);
+  }
 }

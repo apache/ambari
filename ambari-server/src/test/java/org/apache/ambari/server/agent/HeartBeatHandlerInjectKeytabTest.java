@@ -63,7 +63,6 @@ public class HeartBeatHandlerInjectKeytabTest  {
       }
 
       dataDir = temporaryDirectory.getAbsolutePath();
-      System.out.println("dataDir: " + dataDir);
 
       indexFile = new File(temporaryDirectory, KerberosActionDataFile.DATA_FILE_NAME);
       kerberosActionDataFileBuilder = new KerberosActionDataFileBuilder(indexFile);
