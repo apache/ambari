@@ -38,6 +38,7 @@ import java.util.Map;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.Condition;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.DefaultCondition;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.GET_CLUSTER_AGGREGATE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.LOG;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.NATIVE_TIME_RANGE_DELTA;
@@ -95,7 +96,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     boolean success = agg.doWork(startTime, endTime);
 
     //THEN
-    Condition condition = new Condition(null, null, null, null, startTime,
+    Condition condition = new DefaultCondition(null, null, null, null, startTime,
       endTime, null, true);
     condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_SQL,
       PhoenixTransactSQL.getNaiveTimeRangeHint(startTime, NATIVE_TIME_RANGE_DELTA)));
@@ -155,7 +156,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     boolean success = agg.doWork(startTime, endTime);
 
     //THEN
-    Condition condition = new Condition(null, null, null, null, startTime,
+    Condition condition = new DefaultCondition(null, null, null, null, startTime,
       endTime, null, true);
     condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_SQL,
       PhoenixTransactSQL.getNaiveTimeRangeHint(startTime, NATIVE_TIME_RANGE_DELTA)));

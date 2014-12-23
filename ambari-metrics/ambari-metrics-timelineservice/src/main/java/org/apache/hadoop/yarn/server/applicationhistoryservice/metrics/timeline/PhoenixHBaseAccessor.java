@@ -17,7 +17,6 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -35,6 +34,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +48,7 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.CREATE_METRICS_CLUSTER_AGGREGATE_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.CREATE_METRICS_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.Condition;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.SplitByMetricNamesCondition;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.DEFAULT_ENCODING;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.DEFAULT_TABLE_COMPRESSION;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.METRICS_AGGREGATE_HOURLY_TABLE_NAME;
@@ -134,7 +135,6 @@ public class PhoenixHBaseAccessor {
     }
   }
 
-
   /**
    * Get JDBC connection to HBase store. Assumption is that the hbase
    * configuration is present on the classpath and loaded by the caller into
@@ -148,13 +148,28 @@ public class PhoenixHBaseAccessor {
     return dataSource.getConnection();
   }
 
-  public static Map readMetricFromJSON(String json) throws IOException {
-    return mapper.readValue(json, metricValuesTypeRef);
+  private static TimelineMetric getLastTimelineMetricFromResultSet(ResultSet rs)
+    throws SQLException, IOException {
+    TimelineMetric metric = getTimelineMetricCommonsFromResultSet(rs);
+    metric.setMetricValues(readLastMetricValueFromJSON(rs.getString("METRICS")));
+
+    return metric;
   }
 
-  @SuppressWarnings("unchecked")
   static TimelineMetric getTimelineMetricFromResultSet(ResultSet rs)
     throws SQLException, IOException {
+    TimelineMetric metric = getTimelineMetricCommonsFromResultSet(rs);
+    Map<Long, Double> sortedByTimeMetrics =
+      new TreeMap<Long, Double>(readMetricFromJSON(rs.getString("METRICS")));
+    metric.setMetricValues(sortedByTimeMetrics);
+    return metric;
+  }
+
+  /**
+   * Returns common part of timeline metrics record without the values.
+   */
+  private static TimelineMetric getTimelineMetricCommonsFromResultSet(ResultSet rs) 
+    throws SQLException {
     TimelineMetric metric = new TimelineMetric();
     metric.setMetricName(rs.getString("METRIC_NAME"));
     metric.setAppId(rs.getString("APP_ID"));
@@ -163,10 +178,21 @@ public class PhoenixHBaseAccessor {
     metric.setTimestamp(rs.getLong("SERVER_TIME"));
     metric.setStartTime(rs.getLong("START_TIME"));
     metric.setType(rs.getString("UNITS"));
-    Map<Long, Double> sortedByTimeMetrics =
-        new TreeMap<Long, Double>((Map<Long, Double>) readMetricFromJSON(rs.getString("METRICS")));
-    metric.setMetricValues(sortedByTimeMetrics);
     return metric;
+  }
+
+  private static Map<Long, Double> readLastMetricValueFromJSON(String json)
+    throws IOException {
+    Map<Long, Double> values = readMetricFromJSON(json);
+    Long lastTimeStamp = Collections.max(values.keySet());
+
+    return Collections.singletonMap(lastTimeStamp, values.get(lastTimeStamp));
+  }
+
+  @SuppressWarnings("unchecked")
+  public static Map<Long, Double>  readMetricFromJSON(String json)
+    throws IOException {
+    return (Map<Long, Double>) mapper.readValue(json, metricValuesTypeRef);
   }
 
   static TimelineMetric getTimelineMetricKeyFromResultSet(ResultSet rs)
@@ -317,9 +343,11 @@ public class PhoenixHBaseAccessor {
       for (TimelineMetric metric : timelineMetrics) {
         metricRecordStmt.clearParameters();
 
-        LOG.trace("host: " + metric.getHostName() + ", " +
-          "metricName = " + metric.getMetricName() + ", " +
-          "values: " + metric.getMetricValues());
+        if (LOG.isTraceEnabled()) {
+          LOG.trace("host: " + metric.getHostName() + ", " +
+            "metricName = " + metric.getMetricName() + ", " +
+            "values: " + metric.getMetricValues());
+        }
         Aggregator agg = new Aggregator();
         double[] aggregates =  agg.calculateAggregates(
           metric.getMetricValues());
@@ -366,31 +394,32 @@ public class PhoenixHBaseAccessor {
     }
   }
 
-
   @SuppressWarnings("unchecked")
   public TimelineMetrics getMetricRecords(final Condition condition)
     throws SQLException, IOException {
 
-    if (condition.isEmpty()) {
-      throw new SQLException("No filter criteria specified.");
-    }
+    verifyCondition(condition);
 
     Connection conn = getConnection();
     PreparedStatement stmt = null;
     TimelineMetrics metrics = new TimelineMetrics();
 
     try {
-      stmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
+      //get latest
+      if(condition.isPointInTime()){
+        stmt = getLatestMetricRecords(condition, conn, metrics);
+      } else {
+        stmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
 
-      ResultSet rs = stmt.executeQuery();
+        ResultSet rs = stmt.executeQuery();
+        while (rs.next()) {
+          TimelineMetric metric = getTimelineMetricFromResultSet(rs);
 
-      while (rs.next()) {
-        TimelineMetric metric = getTimelineMetricFromResultSet(rs);
-
-        if (condition.isGrouped()) {
-          metrics.addOrMergeTimelineMetric(metric);
-        } else {
-          metrics.getMetrics().add(metric);
+          if (condition.isGrouped()) {
+            metrics.addOrMergeTimelineMetric(metric);
+          } else {
+            metrics.getMetrics().add(metric);
+          }
         }
       }
 
@@ -410,82 +439,209 @@ public class PhoenixHBaseAccessor {
         }
       }
     }
+
+    LOG.info("Metrics records size: " + metrics.getMetrics().size());
     return metrics;
+  }
+
+  private PreparedStatement getLatestMetricRecords(
+    Condition condition, Connection conn, TimelineMetrics metrics)
+    throws SQLException, IOException {
+    PreparedStatement stmt = null;
+    SplitByMetricNamesCondition splitCondition =
+      new SplitByMetricNamesCondition(condition);
+
+    for (String metricName: splitCondition.getOriginalMetricNames()) {
+      splitCondition.setCurrentMetric(metricName);
+      stmt = PhoenixTransactSQL.prepareGetLatestMetricSqlStmt(conn,
+        splitCondition);
+
+      ResultSet rs = stmt.executeQuery();
+      while (rs.next()) {
+        TimelineMetric metric = getLastTimelineMetricFromResultSet(rs);
+        metrics.getMetrics().add(metric);
+      }
+    }
+
+    return stmt;
+  }
+
+  /**
+   * Get metrics aggregated across hosts.
+   *
+   * @param condition @Condition
+   * @return @TimelineMetrics
+   * @throws SQLException
+   */
+  public TimelineMetrics getAggregateMetricRecords(final Condition condition)
+    throws SQLException {
+
+    verifyCondition(condition);
+
+    Connection conn = getConnection();
+    PreparedStatement stmt = null;
+    TimelineMetrics metrics = new TimelineMetrics();
+
+    try {
+      //get latest
+      if(condition.isPointInTime()) {
+        stmt = getLatestAggregateMetricRecords(condition, conn, metrics);
+      } else {
+        stmt = PhoenixTransactSQL.prepareGetAggregateSqlStmt(conn, condition);
+
+        ResultSet rs = stmt.executeQuery();
+        while (rs.next()) {
+          TimelineMetric metric = getAggregateTimelineMetricFromResultSet(rs);
+
+          if (condition.isGrouped()) {
+            metrics.addOrMergeTimelineMetric(metric);
+          } else {
+            metrics.getMetrics().add(metric);
+          }
+        }
+      }
+    } finally {
+      if (stmt != null) {
+        try {
+          stmt.close();
+        } catch (SQLException e) {
+          // Ignore
+        }
+      }
+      if (conn != null) {
+        try {
+          conn.close();
+        } catch (SQLException sql) {
+          // Ignore
+        }
+      }
+    }
+
+    LOG.info("Aggregate records size: " + metrics.getMetrics().size());
+    return metrics;
+  }
+
+  private PreparedStatement getLatestAggregateMetricRecords(
+    Condition condition, Connection conn, TimelineMetrics metrics)
+    throws SQLException {
+
+    PreparedStatement stmt = null;
+    SplitByMetricNamesCondition splitCondition =
+      new SplitByMetricNamesCondition(condition);
+
+    for (String metricName: splitCondition.getOriginalMetricNames()) {
+
+      splitCondition.setCurrentMetric(metricName);
+      stmt = PhoenixTransactSQL.prepareGetLatestAggregateMetricSqlStmt(conn,
+        splitCondition);
+
+      ResultSet rs = stmt.executeQuery();
+      while (rs.next()) {
+        TimelineMetric metric = getAggregateTimelineMetricFromResultSet(rs);
+        metrics.getMetrics().add(metric);
+      }
+    }
+
+    return stmt;
+  }
+
+  private TimelineMetric getAggregateTimelineMetricFromResultSet(
+    ResultSet rs) throws SQLException {
+    TimelineMetric metric = new TimelineMetric();
+    metric.setMetricName(rs.getString("METRIC_NAME"));
+    metric.setAppId(rs.getString("APP_ID"));
+    metric.setInstanceId(rs.getString("INSTANCE_ID"));
+    metric.setTimestamp(rs.getLong("SERVER_TIME"));
+    metric.setStartTime(rs.getLong("SERVER_TIME"));
+    Map<Long, Double> valueMap = Collections.singletonMap(
+      rs.getLong("SERVER_TIME"),
+      rs.getDouble("METRIC_SUM") / rs.getInt("HOSTS_COUNT"));
+    metric.setMetricValues(valueMap);
+
+    return metric;
+  }
+
+  private void verifyCondition(Condition condition) throws SQLException {
+    if (condition.isEmpty()) {
+      throw new SQLException("No filter criteria specified.");
+    }
   }
 
   public void saveHostAggregateRecords(Map<TimelineMetric,
     MetricHostAggregate> hostAggregateMap, String phoenixTableName)
     throws SQLException {
 
-    if (hostAggregateMap != null && !hostAggregateMap.isEmpty()) {
-      Connection conn = getConnection();
-      PreparedStatement stmt = null;
+    if (hostAggregateMap == null || hostAggregateMap.isEmpty()) {
+      LOG.debug("Empty aggregate records.");
+      return;
+    }
 
-      long start = System.currentTimeMillis();
-      int rowCount = 0;
+    Connection conn = getConnection();
+    PreparedStatement stmt = null;
 
-      try {
-        stmt = conn.prepareStatement(
-          String.format(UPSERT_AGGREGATE_RECORD_SQL, phoenixTableName));
+    long start = System.currentTimeMillis();
+    int rowCount = 0;
 
-        for (Map.Entry<TimelineMetric, MetricHostAggregate> metricAggregate :
-          hostAggregateMap.entrySet()) {
+    try {
+      stmt = conn.prepareStatement(
+        String.format(UPSERT_AGGREGATE_RECORD_SQL, phoenixTableName));
 
-          TimelineMetric metric = metricAggregate.getKey();
-          MetricHostAggregate hostAggregate = metricAggregate.getValue();
+      for (Map.Entry<TimelineMetric, MetricHostAggregate> metricAggregate :
+        hostAggregateMap.entrySet()) {
 
-          rowCount++;
-          stmt.clearParameters();
-          stmt.setString(1, metric.getMetricName());
-          stmt.setString(2, metric.getHostName());
-          stmt.setString(3, metric.getAppId());
-          stmt.setString(4, metric.getInstanceId());
-          stmt.setLong(5, metric.getTimestamp());
-          stmt.setString(6, metric.getType());
-          stmt.setDouble(7, hostAggregate.getSum());
-          stmt.setDouble(8, hostAggregate.getMax());
-          stmt.setDouble(9, hostAggregate.getMin());
-          stmt.setDouble(10, hostAggregate.getNumberOfSamples());
+        TimelineMetric metric = metricAggregate.getKey();
+        MetricHostAggregate hostAggregate = metricAggregate.getValue();
 
-          try {
-            // TODO: Why this exception is swallowed
-            stmt.executeUpdate();
-          } catch (SQLException sql) {
-            LOG.error(sql);
-          }
+        rowCount++;
+        stmt.clearParameters();
+        stmt.setString(1, metric.getMetricName());
+        stmt.setString(2, metric.getHostName());
+        stmt.setString(3, metric.getAppId());
+        stmt.setString(4, metric.getInstanceId());
+        stmt.setLong(5, metric.getTimestamp());
+        stmt.setString(6, metric.getType());
+        stmt.setDouble(7, hostAggregate.getSum());
+        stmt.setDouble(8, hostAggregate.getMax());
+        stmt.setDouble(9, hostAggregate.getMin());
+        stmt.setDouble(10, hostAggregate.getNumberOfSamples());
 
-          if (rowCount >= PHOENIX_MAX_MUTATION_STATE_SIZE - 1) {
-            conn.commit();
-            rowCount = 0;
-          }
-
+        try {
+          stmt.executeUpdate();
+        } catch (SQLException sql) {
+          LOG.error(sql);
         }
 
-        conn.commit();
+        if (rowCount >= PHOENIX_MAX_MUTATION_STATE_SIZE - 1) {
+          conn.commit();
+          rowCount = 0;
+        }
 
-      } finally {
-        if (stmt != null) {
-          try {
-            stmt.close();
-          } catch (SQLException e) {
-            // Ignore
-          }
-        }
-        if (conn != null) {
-          try {
-            conn.close();
-          } catch (SQLException sql) {
-            // Ignore
-          }
-        }
       }
 
-      long end = System.currentTimeMillis();
+      conn.commit();
 
-      if ((end - start) > 60000l) {
-        LOG.info("Time to save map: " + (end - start) + ", " +
-          "thread = " + Thread.currentThread().getClass());
+    } finally {
+      if (stmt != null) {
+        try {
+          stmt.close();
+        } catch (SQLException e) {
+          // Ignore
+        }
       }
+      if (conn != null) {
+        try {
+          conn.close();
+        } catch (SQLException sql) {
+          // Ignore
+        }
+      }
+    }
+
+    long end = System.currentTimeMillis();
+
+    if ((end - start) > 60000l) {
+      LOG.info("Time to save map: " + (end - start) + ", " +
+        "thread = " + Thread.currentThread().getClass());
     }
   }
 
@@ -498,76 +654,79 @@ public class PhoenixHBaseAccessor {
     Map<TimelineClusterMetric, MetricClusterAggregate> records)
     throws SQLException {
 
-      if (records == null || records.isEmpty()) {
-        LOG.debug("Empty aggregate records.");
-        return;
-      }
+    if (records == null || records.isEmpty()) {
+      LOG.debug("Empty aggregate records.");
+      return;
+    }
 
-      long start = System.currentTimeMillis();
+    long start = System.currentTimeMillis();
 
-      Connection conn = getConnection();
-      PreparedStatement stmt = null;
-      try {
-        stmt = conn.prepareStatement(UPSERT_CLUSTER_AGGREGATE_SQL);
-        int rowCount = 0;
+    Connection conn = getConnection();
+    PreparedStatement stmt = null;
+    try {
+      stmt = conn.prepareStatement(UPSERT_CLUSTER_AGGREGATE_SQL);
+      int rowCount = 0;
 
-        for (Map.Entry<TimelineClusterMetric, MetricClusterAggregate>
-          aggregateEntry : records.entrySet()) {
-          TimelineClusterMetric clusterMetric = aggregateEntry.getKey();
-          MetricClusterAggregate aggregate = aggregateEntry.getValue();
+      for (Map.Entry<TimelineClusterMetric, MetricClusterAggregate>
+        aggregateEntry : records.entrySet()) {
+        TimelineClusterMetric clusterMetric = aggregateEntry.getKey();
+        MetricClusterAggregate aggregate = aggregateEntry.getValue();
 
+        if (LOG.isTraceEnabled()) {
           LOG.trace("clusterMetric = " + clusterMetric + ", " +
             "aggregate = " + aggregate);
-
-          rowCount++;
-          stmt.clearParameters();
-          stmt.setString(1, clusterMetric.getMetricName());
-          stmt.setString(2, clusterMetric.getAppId());
-          stmt.setString(3, clusterMetric.getInstanceId());
-          stmt.setLong(4, clusterMetric.getTimestamp());
-          stmt.setString(5, clusterMetric.getType());
-          stmt.setDouble(6, aggregate.getSum());
-          stmt.setInt(7, aggregate.getNumberOfHosts());
-          stmt.setDouble(8, aggregate.getMax());
-          stmt.setDouble(9, aggregate.getMin());
-
-          try {
-            stmt.executeUpdate();
-          } catch (SQLException sql) {
-            // TODO: Why this exception is swallowed
-            LOG.error(sql);
-          }
-
-          if (rowCount >= PHOENIX_MAX_MUTATION_STATE_SIZE - 1) {
-            conn.commit();
-            rowCount = 0;
-          }
         }
 
-        conn.commit();
+        rowCount++;
+        stmt.clearParameters();
+        stmt.setString(1, clusterMetric.getMetricName());
+        stmt.setString(2, clusterMetric.getAppId());
+        stmt.setString(3, clusterMetric.getInstanceId());
+        stmt.setLong(4, clusterMetric.getTimestamp());
+        stmt.setString(5, clusterMetric.getType());
+        stmt.setDouble(6, aggregate.getSum());
+        stmt.setInt(7, aggregate.getNumberOfHosts());
+        stmt.setDouble(8, aggregate.getMax());
+        stmt.setDouble(9, aggregate.getMin());
 
-      } finally {
-        if (stmt != null) {
-          try {
-            stmt.close();
-          } catch (SQLException e) {
-            // Ignore
-          }
+        try {
+          stmt.executeUpdate();
+        } catch (SQLException sql) {
+          // we have no way to verify it works!!!
+          LOG.error(sql);
         }
-        if (conn != null) {
-          try {
-            conn.close();
-          } catch (SQLException sql) {
-            // Ignore
-          }
+
+        if (rowCount >= PHOENIX_MAX_MUTATION_STATE_SIZE - 1) {
+          conn.commit();
+          rowCount = 0;
         }
       }
-      long end = System.currentTimeMillis();
-      if ((end - start) > 60000l) {
-        LOG.info("Time to save: " + (end - start) + ", " +
-          "thread = " + Thread.currentThread().getName());
+
+      conn.commit();
+
+    } finally {
+      if (stmt != null) {
+        try {
+          stmt.close();
+        } catch (SQLException e) {
+          // Ignore
+        }
+      }
+      if (conn != null) {
+        try {
+          conn.close();
+        } catch (SQLException sql) {
+          // Ignore
+        }
       }
     }
+    long end = System.currentTimeMillis();
+    if ((end - start) > 60000l) {
+      LOG.info("Time to save: " + (end - start) + ", " +
+        "thread = " + Thread.currentThread().getName());
+    }
+  }
+
 
   /**
    * Save Metric aggregate records.
@@ -597,8 +756,10 @@ public class PhoenixHBaseAccessor {
         TimelineClusterMetric clusterMetric = aggregateEntry.getKey();
         MetricHostAggregate aggregate = aggregateEntry.getValue();
 
-        LOG.trace("clusterMetric = " + clusterMetric + ", " +
-          "aggregate = " + aggregate);
+        if (LOG.isTraceEnabled()) {
+          LOG.trace("clusterMetric = " + clusterMetric + ", " +
+            "aggregate = " + aggregate);
+        }
 
         rowCount++;
         stmt.clearParameters();
@@ -649,67 +810,5 @@ public class PhoenixHBaseAccessor {
       LOG.info("Time to save: " + (end - start) + ", " +
         "thread = " + Thread.currentThread().getName());
     }
-  }
-
-  /**
-   * Get metrics aggregated across hosts.
-   *
-   * @param condition @Condition
-   * @return @TimelineMetrics
-   * @throws SQLException
-   */
-  public TimelineMetrics getAggregateMetricRecords(final Condition condition)
-    throws SQLException {
-
-    if (condition.isEmpty()) {
-      throw new SQLException("No filter criteria specified.");
-    }
-
-    Connection conn = getConnection();
-    PreparedStatement stmt = null;
-    TimelineMetrics metrics = new TimelineMetrics();
-
-    try {
-      stmt = PhoenixTransactSQL.prepareGetAggregateSqlStmt(conn, condition);
-
-      ResultSet rs = stmt.executeQuery();
-
-      while (rs.next()) {
-        TimelineMetric metric = new TimelineMetric();
-        metric.setMetricName(rs.getString("METRIC_NAME"));
-        metric.setAppId(rs.getString("APP_ID"));
-        metric.setInstanceId(rs.getString("INSTANCE_ID"));
-        metric.setTimestamp(rs.getLong("SERVER_TIME"));
-        metric.setStartTime(rs.getLong("SERVER_TIME"));
-        Map<Long, Double> valueMap = new HashMap<Long, Double>();
-        valueMap.put(rs.getLong("SERVER_TIME"),
-          rs.getDouble("METRIC_SUM") / rs.getInt("HOSTS_COUNT"));
-        metric.setMetricValues(valueMap);
-
-        if (condition.isGrouped()) {
-          metrics.addOrMergeTimelineMetric(metric);
-        } else {
-          metrics.getMetrics().add(metric);
-        }
-      }
-
-    } finally {
-      if (stmt != null) {
-        try {
-          stmt.close();
-        } catch (SQLException e) {
-          // Ignore
-        }
-      }
-      if (conn != null) {
-        try {
-          conn.close();
-        } catch (SQLException sql) {
-          // Ignore
-        }
-      }
-    }
-    LOG.info("Aggregate records size: " + metrics.getMetrics().size());
-    return metrics;
   }
 }
