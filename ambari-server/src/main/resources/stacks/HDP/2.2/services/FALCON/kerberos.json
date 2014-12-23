@@ -49,10 +49,10 @@
               "name": "/spnego",
               "principal": {
                 "value": "HTTP/${host}@${realm}",
-                "configuration": "falcon-startup.properties/oozie.authentication.kerberos.principal"
+                "configuration": "falcon-startup.properties/*.falcon.http.authentication.kerberos.principal"
               },
               "keytab": {
-                "configuration": "falcon-startup.properties/oozie.authentication.kerberos.keytab"
+                "configuration": "falcon-startup.properties/*.falcon.http.authentication.kerberos.keytab"
               }
             }
           ]
