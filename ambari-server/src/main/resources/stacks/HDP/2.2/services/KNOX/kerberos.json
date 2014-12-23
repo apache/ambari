@@ -30,19 +30,25 @@
             {
               "gateway-site": {
                 "gateway.hadoop.kerberos.secured": "true",
-                "java.security.krb5.conf": "/etc/krb5.conf" 
-              },
+                "java.security.krb5.conf": "/etc/krb5.conf"
+              }
+            },
+            {
               "core-site": {
-                "hadoop.proxyuser.knox.groups":  "${hadoop-env/proxyuser_group}",
+                "hadoop.proxyuser.knox.groups": "${hadoop-env/proxyuser_group}",
                 "hadoop.proxyuser.knox.hosts": "${host}"
-              },
+              }
+            },
+            {
               "webhcat-site": {
-                "webhcat.proxyuser.knox.groups":  "${hadoop-env/proxyuser_group}",
+                "webhcat.proxyuser.knox.groups": "${hadoop-env/proxyuser_group}",
                 "webhcat.proxyuser.knox.hosts": "${host}"
-              },
+              }
+            },
+            {
               "oozie-site": {
-                "oozie.service.ProxyUserService.proxyuser.knox.groups":   "${hadoop-env/proxyuser_group}",
-                "oozie.service.ProxyUserService.proxyuser.knox.hosts":  "${host}"
+                "oozie.service.ProxyUserService.proxyuser.knox.groups": "${hadoop-env/proxyuser_group}",
+                "oozie.service.ProxyUserService.proxyuser.knox.hosts": "${host}"
               }
             }
           ]
