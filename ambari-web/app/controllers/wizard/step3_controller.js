@@ -1467,7 +1467,7 @@ App.WizardStep3Controller = Em.Controller.extend({
 
       //parse misc warnings for host
       var umask = _host.Hosts.last_agent_env.umask;
-      if (umask && umask !== 18) {
+      if (umask && umask > 23) {
         warning = warnings.filterProperty('category', 'misc').findProperty('name', umask);
         if (warning) {
           warning.hosts.push(_host.Hosts.host_name);
