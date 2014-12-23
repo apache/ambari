@@ -27,7 +27,6 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.Condition;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.DefaultCondition;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.GET_METRIC_AGGREGATE_ONLY_SQL;
 
 public class TimelineMetricAggregator extends AbstractTimelineAggregator {
@@ -79,7 +78,7 @@ public class TimelineMetricAggregator extends AbstractTimelineAggregator {
 
   @Override
   protected Condition prepareMetricQueryCondition(long startTime, long endTime) {
-    Condition condition = new DefaultCondition(null, null, null, null, startTime,
+    Condition condition = new Condition(null, null, null, null, startTime,
       endTime, null, true);
     condition.setNoLimit();
     condition.setFetchSize(resultsetFetchSize);

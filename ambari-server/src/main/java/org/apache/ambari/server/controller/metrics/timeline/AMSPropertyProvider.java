@@ -137,8 +137,8 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
      */
     public Collection<Resource> populateResources() throws SystemException {
       // No open ended query support.
-      if (temporalInfo != null && (temporalInfo.getStartTime() == null
-        || temporalInfo.getEndTime() == null)) {
+      if (temporalInfo == null || temporalInfo.getStartTime() == null ||
+          temporalInfo.getEndTime() == null) {
         return Collections.emptySet();
       }
 
@@ -163,9 +163,38 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
             return Collections.emptySet();
           }
 
-          String spec = getSpec(hostname, resource);
+          String metricsParam = getSetString(processRegexps(metrics.keySet()), -1);
+          // Reuse uriBuilder
+          uriBuilder.removeQuery();
+
+          if (metricsParam.length() > 0) {
+            uriBuilder.setParameter("metricNames", metricsParam);
+          }
+
+          if (hostname != null && !hostname.isEmpty() && !hostname.equals(dummyHostName)) {
+            uriBuilder.setParameter("hostname", hostname);
+          }
+
+          String componentName = getComponentName(resource);
+          if (componentName != null && !componentName.isEmpty()) {
+            if (TIMELINE_APPID_MAP.containsKey(componentName)) {
+              componentName = TIMELINE_APPID_MAP.get(componentName);
+            }
+            uriBuilder.setParameter("appId", componentName);
+          }
+
+          long startTime = temporalInfo.getStartTime();
+          if (startTime != -1) {
+            uriBuilder.setParameter("startTime", String.valueOf(startTime));
+          }
+
+          long endTime = temporalInfo.getEndTime();
+          if (endTime != -1) {
+            uriBuilder.setParameter("endTime", String.valueOf(endTime));
+          }
 
           BufferedReader reader = null;
+          String spec = uriBuilder.toString();
           try {
             LOG.debug("Metrics request url =" + spec);
             reader = new BufferedReader(new InputStreamReader(streamProvider.readFrom(spec)));
@@ -176,9 +205,8 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
             Set<String> patterns = createPatterns(metrics.keySet());
 
             for (TimelineMetric metric : timelineMetrics.getMetrics()) {
-              if (metric.getMetricName() != null
-                && metric.getMetricValues() != null
-                && checkMetricName(patterns, metric.getMetricName())) {
+              if (metric.getMetricName() != null && metric.getMetricValues() != null
+                  && checkMetricName(patterns, metric.getMetricName())) {
                 populateResource(resource, metric);
               }
             }
@@ -200,42 +228,6 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
       }
 
       return Collections.emptySet();
-    }
-
-    private String getSpec(String hostname, Resource resource) {
-      String metricsParam = getSetString(processRegexps(metrics.keySet()), -1);
-      // Reuse uriBuilder
-      uriBuilder.removeQuery();
-
-      if (metricsParam.length() > 0) {
-        uriBuilder.setParameter("metricNames", metricsParam);
-      }
-
-      if (hostname != null && !hostname.isEmpty() && !hostname.equals(dummyHostName)) {
-        uriBuilder.setParameter("hostname", hostname);
-      }
-
-      String componentName = getComponentName(resource);
-      if (componentName != null && !componentName.isEmpty()) {
-        if (TIMELINE_APPID_MAP.containsKey(componentName)) {
-          componentName = TIMELINE_APPID_MAP.get(componentName);
-        }
-        uriBuilder.setParameter("appId", componentName);
-      }
-
-      if (temporalInfo != null) {
-        long startTime = temporalInfo.getStartTime();
-        if (startTime != -1) {
-          uriBuilder.setParameter("startTime", String.valueOf(startTime));
-        }
-
-        long endTime = temporalInfo.getEndTime();
-        if (endTime != -1) {
-          uriBuilder.setParameter("endTime", String.valueOf(endTime));
-        }
-      }
-
-      return uriBuilder.toString();
     }
 
     private Set<String> createPatterns(Set<String> rawNames) {

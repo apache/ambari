@@ -97,95 +97,6 @@ public class AMSPropertyProviderTest {
   }
 
   @Test
-  public void testPopulateResourcesForSingleHostMetricPointInTime() throws
-    Exception {
-
-    // given
-    TestStreamProvider streamProvider = new TestStreamProvider(SINGLE_HOST_METRICS_FILE_PATH);
-    TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
-    ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
-    Map<String, Map<String, PropertyInfo>> propertyIds = PropertyHelper.getMetricPropertyIds(Resource.Type.Host);
-    AMSPropertyProvider propertyProvider = new AMSHostPropertyProvider(
-      propertyIds,
-      streamProvider,
-      sslConfiguration,
-      metricHostProvider,
-      CLUSTER_NAME_PROPERTY_ID,
-      HOST_NAME_PROPERTY_ID
-    );
-
-    Resource resource = new ResourceImpl(Resource.Type.Host);
-    resource.setProperty(HOST_NAME_PROPERTY_ID, "h1");
-    Map<String, TemporalInfo> temporalInfoMap = Collections.emptyMap();
-    Request request = PropertyHelper.getReadRequest(Collections.singleton
-      (PROPERTY_ID1), temporalInfoMap);
-    System.out.println(request);
-
-    // when
-    Set<Resource> resources =
-      propertyProvider.populateResources(Collections.singleton(resource), request, null);
-
-    // then
-    Assert.assertEquals(1, resources.size());
-    Resource res = resources.iterator().next();
-    Map<String, Object> properties = PropertyHelper.getProperties(res);
-    Assert.assertNotNull(properties);
-    URIBuilder uriBuilder = AMSPropertyProvider.getAMSUriBuilder("localhost", 8188);
-    uriBuilder.addParameter("metricNames", "cpu_user");
-    uriBuilder.addParameter("hostname", "h1");
-    uriBuilder.addParameter("appId", "HOST");
-    Assert.assertEquals(uriBuilder.toString(), streamProvider.getLastSpec());
-    Double val = (Double) res.getPropertyValue(PROPERTY_ID1);
-    Assert.assertEquals(40.45, val, 0.001);
-  }
-
-  @Test
-  public void testPopulateResourcesForMultipleHostMetricscPointInTime() throws Exception {
-    TestStreamProvider streamProvider = new TestStreamProvider(MULTIPLE_HOST_METRICS_FILE_PATH);
-    TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
-    ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
-
-    Map<String, Map<String, PropertyInfo>> propertyIds = PropertyHelper.getMetricPropertyIds(Resource.Type.Host);
-    AMSPropertyProvider propertyProvider = new AMSHostPropertyProvider(
-      propertyIds,
-      streamProvider,
-      sslConfiguration,
-      metricHostProvider,
-      CLUSTER_NAME_PROPERTY_ID,
-      HOST_NAME_PROPERTY_ID
-    );
-
-    Resource resource = new ResourceImpl(Resource.Type.Host);
-    resource.setProperty(HOST_NAME_PROPERTY_ID, "h1");
-    Map<String, TemporalInfo> temporalInfoMap = Collections.emptyMap();
-    Request request = PropertyHelper.getReadRequest(
-      new HashSet<String>() {{ add(PROPERTY_ID1); add(PROPERTY_ID2); }}, temporalInfoMap);
-    Set<Resource> resources =
-      propertyProvider.populateResources(Collections.singleton(resource), request, null);
-    Assert.assertEquals(1, resources.size());
-    Resource res = resources.iterator().next();
-    Map<String, Object> properties = PropertyHelper.getProperties(resources.iterator().next());
-    Assert.assertNotNull(properties);
-    URIBuilder uriBuilder = AMSPropertyProvider.getAMSUriBuilder("localhost", 8188);
-    uriBuilder.addParameter("metricNames", "cpu_user,mem_free");
-    uriBuilder.addParameter("hostname", "h1");
-    uriBuilder.addParameter("appId", "HOST");
-
-    URIBuilder uriBuilder2 = AMSPropertyProvider.getAMSUriBuilder("localhost", 8188);
-    uriBuilder2.addParameter("metricNames", "mem_free,cpu_user");
-    uriBuilder2.addParameter("hostname", "h1");
-    uriBuilder2.addParameter("appId", "HOST");
-    System.out.println(streamProvider.getLastSpec());
-    Assert.assertTrue(uriBuilder.toString().equals(streamProvider.getLastSpec())
-        || uriBuilder2.toString().equals(streamProvider.getLastSpec()));
-    Double val1 = (Double) res.getPropertyValue(PROPERTY_ID1);
-    Assert.assertEquals(40.45, val1, 0.001);
-    Double val2 = (Double)res.getPropertyValue(PROPERTY_ID2);
-    Assert.assertEquals(2.47025664E8, val2, 0.1);
-  }
-
-
-  @Test
   public void testPopulateResourcesForMultipleHostMetrics() throws Exception {
     TestStreamProvider streamProvider = new TestStreamProvider(MULTIPLE_HOST_METRICS_FILE_PATH);
     TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
@@ -228,13 +139,12 @@ public class AMSPropertyProviderTest {
     uriBuilder2.addParameter("startTime", "1416445244701");
     uriBuilder2.addParameter("endTime", "1416445244901");
     Assert.assertTrue(uriBuilder.toString().equals(streamProvider.getLastSpec())
-      || uriBuilder2.toString().equals(streamProvider.getLastSpec()));
+        || uriBuilder2.toString().equals(streamProvider.getLastSpec()));
     Number[][] val = (Number[][]) res.getPropertyValue(PROPERTY_ID1);
     Assert.assertEquals(111, val.length);
     val = (Number[][]) res.getPropertyValue(PROPERTY_ID2);
     Assert.assertEquals(86, val.length);
   }
-
 
   @Test
   public void testPopulateResourcesForRegexpMetrics() throws Exception {

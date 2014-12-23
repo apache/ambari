@@ -39,7 +39,6 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.Condition;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.DefaultCondition;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.GET_METRIC_AGGREGATE_ONLY_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.LOG;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.METRICS_AGGREGATE_HOURLY_TABLE_NAME;
@@ -85,7 +84,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     TimelineMetrics metricsSent = prepareTimelineMetrics(startTime, "local");
     hdb.insertMetricRecords(metricsSent);
 
-    Condition queryCondition = new DefaultCondition(null, "local", null, null,
+    Condition queryCondition = new Condition(null, "local", null, null,
       startTime, startTime + (15 * 60 * 1000), null, false);
     TimelineMetrics recordRead = hdb.getMetricRecords(queryCondition);
 
@@ -121,7 +120,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     boolean success = aggregatorMinute.doWork(startTime, endTime);
 
     //THEN
-    Condition condition = new DefaultCondition(null, null, null, null, startTime,
+    Condition condition = new Condition(null, null, null, null, startTime,
       endTime, null, true);
     condition.setStatement(String.format(GET_METRIC_AGGREGATE_ONLY_SQL,
       PhoenixTransactSQL.getNaiveTimeRangeHint(startTime, NATIVE_TIME_RANGE_DELTA),
@@ -200,7 +199,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     assertTrue(success);
 
     //THEN
-    Condition condition = new DefaultCondition(null, null, null, null, startTime,
+    Condition condition = new Condition(null, null, null, null, startTime,
       endTime, null, true);
     condition.setStatement(String.format(GET_METRIC_AGGREGATE_ONLY_SQL,
       PhoenixTransactSQL.getNaiveTimeRangeHint(startTime, NATIVE_TIME_RANGE_DELTA),

@@ -17,13 +17,11 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
-import com.sun.xml.bind.v2.util.QNameMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -34,6 +32,7 @@ import java.util.Set;
 public class PhoenixTransactSQL {
 
   static final Log LOG = LogFactory.getLog(PhoenixTransactSQL.class);
+  // TODO: Configurable TTL values
   /**
    * Create table to store individual metric records.
    */
@@ -207,10 +206,8 @@ public class PhoenixTransactSQL {
   public static final String DEFAULT_ENCODING = "FAST_DIFF";
   public static final long NATIVE_TIME_RANGE_DELTA = 120000; // 2 minutes
 
-  /**
-   * Filter to optimize HBase scan by using file timestamps. This prevents
+  /** Filter to optimize HBase scan by using file timestamps. This prevents
    * a full table scan of metric records.
-   *
    * @return Phoenix Hint String
    */
   public static String getNaiveTimeRangeHint(Long startTime, Long delta) {
@@ -246,47 +243,33 @@ public class PhoenixTransactSQL {
       sb.append(" LIMIT ").append(condition.getLimit());
     }
 
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("SQL: " + sb.toString() + ", condition: " + condition);
-    }
+    LOG.debug("SQL: " + sb.toString() + ", condition: " + condition);
     PreparedStatement stmt = connection.prepareStatement(sb.toString());
     int pos = 1;
     if (condition.getMetricNames() != null) {
       for (; pos <= condition.getMetricNames().size(); pos++) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Setting pos: " + pos + ", value = " + condition.getMetricNames().get(pos - 1));
-        }
+        LOG.debug("Setting pos: " + pos + ", value = " + condition.getMetricNames().get(pos - 1));
         stmt.setString(pos, condition.getMetricNames().get(pos - 1));
       }
     }
     if (condition.getHostname() != null) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Setting pos: " + pos + ", value: " + condition.getHostname());
-      }
+      LOG.debug("Setting pos: " + pos + ", value: " + condition.getHostname());
       stmt.setString(pos++, condition.getHostname());
     }
     if (condition.getAppId() != null) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Setting pos: " + pos + ", value: " + condition.getAppId());
-      }
+      LOG.debug("Setting pos: " + pos + ", value: " + condition.getAppId());
       stmt.setString(pos++, condition.getAppId());
     }
     if (condition.getInstanceId() != null) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Setting pos: " + pos + ", value: " + condition.getInstanceId());
-      }
+      LOG.debug("Setting pos: " + pos + ", value: " + condition.getInstanceId());
       stmt.setString(pos++, condition.getInstanceId());
     }
     if (condition.getStartTime() != null) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Setting pos: " + pos + ", value: " + condition.getStartTime());
-      }
+      LOG.debug("Setting pos: " + pos + ", value: " + condition.getStartTime());
       stmt.setLong(pos++, condition.getStartTime());
     }
     if (condition.getEndTime() != null) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Setting pos: " + pos + ", value: " + condition.getEndTime());
-      }
+      LOG.debug("Setting pos: " + pos + ", value: " + condition.getEndTime());
       stmt.setLong(pos, condition.getEndTime());
     }
     if (condition.getFetchSize() != null) {
@@ -296,80 +279,6 @@ public class PhoenixTransactSQL {
     return stmt;
   }
 
-
-  public static PreparedStatement prepareGetLatestMetricSqlStmt(
-    Connection connection, Condition condition) throws SQLException {
-
-    if (condition.isEmpty()) {
-      throw new IllegalArgumentException("Condition is empty.");
-    }
-
-    if (condition.getMetricNames() == null
-      || condition.getMetricNames().size() == 0) {
-      throw new IllegalArgumentException("Point in time query without " +
-        "metric names not supported ");
-    }
-
-    String stmtStr;
-    if (condition.getStatement() != null) {
-      stmtStr = condition.getStatement();
-    } else {
-      stmtStr = String.format(GET_METRIC_SQL,
-        "",
-        METRICS_RECORD_TABLE_NAME);
-    }
-
-    StringBuilder sb = new StringBuilder(stmtStr);
-    sb.append(" WHERE ");
-    sb.append(condition.getConditionClause());
-    String orderByClause = condition.getOrderByClause();
-    if (orderByClause != null) {
-      sb.append(orderByClause);
-    } else {
-      sb.append(" ORDER BY SERVER_TIME DESC, METRIC_NAME  ");
-    }
-
-    sb.append(" LIMIT ").append(condition.getMetricNames().size());
-
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("SQL: " + sb.toString() + ", condition: " + condition);
-    }
-    PreparedStatement stmt = connection.prepareStatement(sb.toString());
-    int pos = 1;
-    if (condition.getMetricNames() != null) {
-      //IGNORE condition limit, set one based on number of metric names
-      for (; pos <= condition.getMetricNames().size(); pos++) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Setting pos: " + pos + ", value = " + condition.getMetricNames().get(pos - 1));
-        }
-        stmt.setString(pos, condition.getMetricNames().get(pos - 1));
-      }
-    }
-    if (condition.getHostname() != null) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Setting pos: " + pos + ", value: " + condition.getHostname());
-      }
-      stmt.setString(pos++, condition.getHostname());
-    }
-    if (condition.getAppId() != null) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Setting pos: " + pos + ", value: " + condition.getAppId());
-      }
-      stmt.setString(pos++, condition.getAppId());
-    }
-    if (condition.getInstanceId() != null) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Setting pos: " + pos + ", value: " + condition.getInstanceId());
-      }
-      stmt.setString(pos++, condition.getInstanceId());
-    }
-
-    if (condition.getFetchSize() != null) {
-      stmt.setFetchSize(condition.getFetchSize());
-    }
-
-    return stmt;
-  }
 
   public static PreparedStatement prepareGetAggregateSqlStmt(
     Connection connection, Condition condition) throws SQLException {
@@ -389,9 +298,7 @@ public class PhoenixTransactSQL {
     String query = String.format(sb.toString(),
       PhoenixTransactSQL.getNaiveTimeRangeHint(condition.getStartTime(),
         NATIVE_TIME_RANGE_DELTA));
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("SQL => " + query + ", condition => " + condition);
-    }
+    LOG.debug("SQL => " + query + ", condition => " + condition);
     PreparedStatement stmt = connection.prepareStatement(query);
     int pos = 1;
     if (condition.getMetricNames() != null) {
@@ -416,87 +323,7 @@ public class PhoenixTransactSQL {
     return stmt;
   }
 
-  public static PreparedStatement prepareGetLatestAggregateMetricSqlStmt(
-    Connection connection, Condition condition) throws SQLException {
-
-    if (condition.isEmpty()) {
-      throw new IllegalArgumentException("Condition is empty.");
-    }
-
-    if (condition.getMetricNames() == null
-      || condition.getMetricNames().size() == 0) {
-      throw new IllegalArgumentException("Point in time query without " +
-        "metric names not supported ");
-    }
-
-    String stmtStr;
-    if (condition.getStatement() != null) {
-      stmtStr = condition.getStatement();
-    } else {
-      stmtStr = String.format(GET_CLUSTER_AGGREGATE_SQL, "");
-    }
-
-    StringBuilder sb = new StringBuilder(stmtStr);
-    sb.append(" WHERE ");
-    sb.append(condition.getConditionClause());
-    String orderByClause = condition.getOrderByClause();
-    if (orderByClause != null) {
-      sb.append(orderByClause);
-    } else {
-      sb.append(" ORDER BY SERVER_TIME DESC, METRIC_NAME  ");
-    }
-
-    sb.append(" LIMIT ").append(condition.getMetricNames().size());
-
-    String query = sb.toString();
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("SQL: " + query + ", condition: " + condition);
-    }
-
-    PreparedStatement stmt = connection.prepareStatement(query);
-    int pos = 1;
-    if (condition.getMetricNames() != null) {
-      for (; pos <= condition.getMetricNames().size(); pos++) {
-        stmt.setString(pos, condition.getMetricNames().get(pos - 1));
-      }
-    }
-    if (condition.getAppId() != null) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Setting pos: " + pos + ", value: " + condition.getAppId());
-      }
-      stmt.setString(pos++, condition.getAppId());
-    }
-    if (condition.getInstanceId() != null) {
-      stmt.setString(pos++, condition.getInstanceId());
-    }
-
-    return stmt;
-  }
-
-  static interface Condition {
-
-    boolean isEmpty();
-
-    List<String> getMetricNames();
-    boolean isPointInTime();
-    boolean isGrouped();
-    void setStatement(String statement);
-    String getHostname();
-    String getAppId();
-    String getInstanceId();
-    String getConditionClause();
-    String getOrderByClause();
-    String getStatement();
-    Long getStartTime();
-    Long getEndTime();
-    Integer getLimit();
-    Integer getFetchSize();
-    void setFetchSize(Integer fetchSize);
-    void addOrderByColumn(String column);
-    void setNoLimit();
-  }
-
-  static class DefaultCondition implements Condition {
+  static class Condition {
     List<String> metricNames;
     String hostname;
     String appId;
@@ -510,7 +337,7 @@ public class PhoenixTransactSQL {
     String statement;
     Set<String> orderByColumns = new LinkedHashSet<String>();
 
-    DefaultCondition(List<String> metricNames, String hostname, String appId,
+    Condition(List<String> metricNames, String hostname, String appId,
               String instanceId, Long startTime, Long endTime, Integer limit,
               boolean grouped) {
       this.metricNames = metricNames;
@@ -523,22 +350,22 @@ public class PhoenixTransactSQL {
       this.grouped = grouped;
     }
 
-    public String getStatement() {
+    String getStatement() {
       return statement;
     }
 
-    public void setStatement(String statement) {
+    void setStatement(String statement) {
       this.statement = statement;
     }
 
-    public List<String> getMetricNames() {
+    List<String> getMetricNames() {
       return metricNames == null || metricNames.isEmpty() ? null : metricNames;
     }
 
     String getMetricsClause() {
       StringBuilder sb = new StringBuilder("(");
       if (metricNames != null) {
-        for (String name : getMetricNames()) {
+        for (String name : metricNames) {
           if (sb.length() != 1) {
             sb.append(", ");
           }
@@ -551,48 +378,61 @@ public class PhoenixTransactSQL {
       }
     }
 
-    public String getConditionClause() {
+    String getConditionClause() {
       StringBuilder sb = new StringBuilder();
       boolean appendConjunction = false;
 
       if (getMetricNames() != null) {
-        if (appendConjunction) {
-          sb.append(" AND");
-        }
-
         sb.append("METRIC_NAME IN ");
         sb.append(getMetricsClause());
         appendConjunction = true;
       }
-
-      appendConjunction = append(sb, appendConjunction, getHostname(), " HOSTNAME = ?");
-      appendConjunction = append(sb, appendConjunction, getAppId(), " APP_ID = ?");
-      appendConjunction = append(sb, appendConjunction, getInstanceId(), " INSTANCE_ID = ?");
-      appendConjunction = append(sb, appendConjunction, getStartTime(), " SERVER_TIME >= ?");
-      append(sb, appendConjunction, getEndTime(), " SERVER_TIME < ?");
-
+      if (appendConjunction) {
+        sb.append(" AND");
+      }
+      appendConjunction = false;
+      if (getHostname() != null) {
+        sb.append(" HOSTNAME = ?");
+        appendConjunction = true;
+      }
+      if (appendConjunction) {
+        sb.append(" AND");
+      }
+      appendConjunction = false;
+      if (getAppId() != null) {
+        sb.append(" APP_ID = ?");
+        appendConjunction = true;
+      }
+      if (appendConjunction) {
+        sb.append(" AND");
+      }
+      appendConjunction = false;
+      if (getInstanceId() != null) {
+        sb.append(" INSTANCE_ID = ?");
+        appendConjunction = true;
+      }
+      if (appendConjunction) {
+        sb.append(" AND");
+      }
+      appendConjunction = false;
+      if (getStartTime() != null) {
+        sb.append(" SERVER_TIME >= ?");
+        appendConjunction = true;
+      }
+      if (appendConjunction) {
+        sb.append(" AND");
+      }
+      if (getEndTime() != null) {
+        sb.append(" SERVER_TIME < ?");
+      }
       return sb.toString();
     }
 
-    protected static boolean append(StringBuilder sb,
-                                     boolean appendConjunction,
-                             Object value, String str) {
-      if (value != null) {
-        if (appendConjunction) {
-          sb.append(" AND");
-        }
-
-        sb.append(str);
-        appendConjunction = true;
-      }
-      return appendConjunction;
-    }
-
-    public String getHostname() {
+    String getHostname() {
       return hostname == null || hostname.isEmpty() ? null : hostname;
     }
 
-    public String getAppId() {
+    String getAppId() {
       if (appId != null && !appId.isEmpty()) {
         if (!appId.equals("HOST")) {
           return appId.toLowerCase();
@@ -603,27 +443,22 @@ public class PhoenixTransactSQL {
       return null;
     }
 
-    public String getInstanceId() {
+    String getInstanceId() {
       return instanceId == null || instanceId.isEmpty() ? null : instanceId;
     }
 
     /**
      * Convert to millis.
      */
-    public Long getStartTime() {
-      if (startTime == null) {
-        return null;
-      } else if (startTime < 9999999999l) {
+    Long getStartTime() {
+      if (startTime < 9999999999l) {
         return startTime * 1000;
       } else {
         return startTime;
       }
     }
 
-    public Long getEndTime() {
-      if (endTime == null) {
-        return null;
-      }
+    Long getEndTime() {
       if (endTime < 9999999999l) {
         return endTime * 1000;
       } else {
@@ -631,26 +466,22 @@ public class PhoenixTransactSQL {
       }
     }
 
-    public void setNoLimit() {
+    void setNoLimit() {
       this.noLimit = true;
     }
 
-    public Integer getLimit() {
+    Integer getLimit() {
       if (noLimit) {
         return null;
       }
       return limit == null ? PhoenixHBaseAccessor.RESULTSET_LIMIT : limit;
     }
 
-    public boolean isGrouped() {
+    boolean isGrouped() {
       return grouped;
     }
 
-    public boolean isPointInTime() {
-      return getStartTime() == null && getEndTime() == null;
-    }
-
-    public boolean isEmpty() {
+    boolean isEmpty() {
       return (metricNames == null || metricNames.isEmpty())
         && (hostname == null || hostname.isEmpty())
         && (appId == null || appId.isEmpty())
@@ -659,19 +490,19 @@ public class PhoenixTransactSQL {
         && endTime == null;
     }
 
-    public Integer getFetchSize() {
+    Integer getFetchSize() {
       return fetchSize;
     }
 
-    public void setFetchSize(Integer fetchSize) {
+    void setFetchSize(Integer fetchSize) {
       this.fetchSize = fetchSize;
     }
 
-    public void addOrderByColumn(String column) {
+    void addOrderByColumn(String column) {
       orderByColumns.add(column);
     }
 
-    public String getOrderByClause() {
+    String getOrderByClause() {
       String orderByStr = " ORDER BY ";
       if (!orderByColumns.isEmpty()) {
         StringBuilder sb = new StringBuilder(orderByStr);
@@ -704,172 +535,70 @@ public class PhoenixTransactSQL {
     }
   }
 
-  static class LikeCondition extends DefaultCondition {
+  static class LikeCondition extends Condition {
 
     LikeCondition(List<String> metricNames, String hostname,
-                  String appId, String instanceId, Long startTime,
-                  Long endTime, Integer limit, boolean grouped) {
+                         String appId, String instanceId, Long startTime,
+                         Long endTime, Integer limit, boolean grouped) {
       super(metricNames, hostname, appId, instanceId, startTime, endTime,
-        limit, grouped);
+          limit, grouped);
     }
 
     @Override
-    public String getConditionClause() {
+    String getConditionClause() {
       StringBuilder sb = new StringBuilder();
       boolean appendConjunction = false;
 
       if (getMetricNames() != null) {
         sb.append("(");
-        for (String name : getMetricNames()) {
+        for (String name : metricNames) {
           if (sb.length() > 1) {
             sb.append(" OR ");
           }
           sb.append("METRIC_NAME LIKE ?");
         }
-
         sb.append(")");
         appendConjunction = true;
       }
-
-      appendConjunction = append(sb, appendConjunction, getHostname(), " HOSTNAME = ?");
-      appendConjunction = append(sb, appendConjunction, getAppId(), " APP_ID = ?");
-      appendConjunction = append(sb, appendConjunction, getInstanceId(), " INSTANCE_ID = ?");
-      appendConjunction = append(sb, appendConjunction, getStartTime(), " SERVER_TIME >= ?");
-      append(sb, appendConjunction, getEndTime(), " SERVER_TIME < ?");
-
-      return sb.toString();
-    }
-  }
-
-  static class SplitByMetricNamesCondition implements Condition {
-    private final Condition adaptee;
-    private String currentMetric;
-
-    SplitByMetricNamesCondition(Condition condition){
-      this.adaptee = condition;
-    }
-
-    @Override
-    public boolean isEmpty() {
-      return adaptee.isEmpty();
-    }
-
-    @Override
-    public List<String> getMetricNames() {
-      return Collections.singletonList(currentMetric);
-    }
-
-    @Override
-    public boolean isPointInTime() {
-      return adaptee.isPointInTime();
-    }
-
-    @Override
-    public boolean isGrouped() {
-      return adaptee.isGrouped();
-    }
-
-    @Override
-    public void setStatement(String statement) {
-      adaptee.setStatement(statement);
-    }
-
-    @Override
-    public String getHostname() {
-      return adaptee.getHostname();
-    }
-
-    @Override
-    public String getAppId() {
-      return adaptee.getAppId();
-    }
-
-    @Override
-    public String getInstanceId() {
-      return adaptee.getInstanceId();
-    }
-
-    @Override
-    public String getConditionClause() {
-      StringBuilder sb = new StringBuilder();
-      boolean appendConjunction = false;
-
-      if (getMetricNames() != null) {
-        for (String name : getMetricNames()) {
-          if (sb.length() > 1) {
-            sb.append(" OR ");
-          }
-          sb.append("METRIC_NAME = ?");
-        }
-
+      if (appendConjunction) {
+        sb.append(" AND");
+      }
+      appendConjunction = false;
+      if (getHostname() != null) {
+        sb.append(" HOSTNAME = ?");
         appendConjunction = true;
       }
-
-      appendConjunction = DefaultCondition.append(sb, appendConjunction,
-        getHostname(), " HOSTNAME = ?");
-      appendConjunction = DefaultCondition.append(sb, appendConjunction,
-        getAppId(), " APP_ID = ?");
-      appendConjunction = DefaultCondition.append(sb, appendConjunction,
-        getInstanceId(), " INSTANCE_ID = ?");
-      appendConjunction = DefaultCondition.append(sb, appendConjunction,
-        getStartTime(), " SERVER_TIME >= ?");
-      DefaultCondition.append(sb, appendConjunction, getEndTime(),
-        " SERVER_TIME < ?");
-
+      if (appendConjunction) {
+        sb.append(" AND");
+      }
+      appendConjunction = false;
+      if (getAppId() != null) {
+        sb.append(" APP_ID = ?");
+        appendConjunction = true;
+      }
+      if (appendConjunction) {
+        sb.append(" AND");
+      }
+      appendConjunction = false;
+      if (getInstanceId() != null) {
+        sb.append(" INSTANCE_ID = ?");
+        appendConjunction = true;
+      }
+      if (appendConjunction) {
+        sb.append(" AND");
+      }
+      appendConjunction = false;
+      if (getStartTime() != null) {
+        sb.append(" SERVER_TIME >= ?");
+        appendConjunction = true;
+      }
+      if (appendConjunction) {
+        sb.append(" AND");
+      }
+      if (getEndTime() != null) {
+        sb.append(" SERVER_TIME < ?");
+      }
       return sb.toString();
-    }
-
-    @Override
-    public String getOrderByClause() {
-      return adaptee.getOrderByClause();
-    }
-
-    @Override
-    public String getStatement() {
-      return adaptee.getStatement();
-    }
-
-    @Override
-    public Long getStartTime() {
-      return adaptee.getStartTime();
-    }
-
-    @Override
-    public Long getEndTime() {
-      return adaptee.getEndTime();
-    }
-
-    @Override
-    public Integer getLimit() {
-      return adaptee.getLimit();
-    }
-
-    @Override
-    public Integer getFetchSize() {
-      return adaptee.getFetchSize();
-    }
-
-    @Override
-    public void setFetchSize(Integer fetchSize) {
-      adaptee.setFetchSize(fetchSize);
-    }
-
-    @Override
-    public void addOrderByColumn(String column) {
-      adaptee.addOrderByColumn(column);
-    }
-
-    @Override
-    public void setNoLimit() {
-      adaptee.setNoLimit();
-    }
-
-    public List<String> getOriginalMetricNames() {
-      return adaptee.getMetricNames();
-    }
-
-    public void setCurrentMetric(String currentMetric) {
-      this.currentMetric = currentMetric;
     }
   }
 }
