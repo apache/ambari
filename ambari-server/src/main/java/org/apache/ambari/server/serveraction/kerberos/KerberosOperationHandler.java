@@ -37,8 +37,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * KerberosOperationHandler is an abstract class providing basic implementations of common Kerberos
@@ -60,6 +63,19 @@ public abstract class KerberosOperationHandler {
    */
   private final static char[] SECURE_PASSWORD_CHARS =
       "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890?.!$%^*()-_+=~".toCharArray();
+
+
+  /**
+   * The default set of ciphers to use for creating keytab entries
+   */
+  private static final Set<EncryptionType> DEFAULT_CIPHERS = Collections.unmodifiableSet(
+      new HashSet<EncryptionType>() {{
+        add(EncryptionType.DES_CBC_MD5);
+        add(EncryptionType.DES3_CBC_SHA1_KD);
+        add(EncryptionType.RC4_HMAC);
+        add(EncryptionType.AES128_CTS_HMAC_SHA1_96);
+        add(EncryptionType.AES256_CTS_HMAC_SHA1_96);
+      }});
 
   private KerberosCredential administratorCredentials;
   private String defaultRealm;
@@ -165,10 +181,10 @@ public abstract class KerberosOperationHandler {
    *
    * @param principal a String containing the principal to add
    * @param password  a String containing the password to use when creating the principal
-   * @return true if the principal was successfully created; otherwise false
+   * @return an Integer declaring the generated key number
    * @throws AmbariException
    */
-  public abstract boolean createServicePrincipal(String principal, String password)
+  public abstract Integer createServicePrincipal(String principal, String password)
       throws AmbariException;
 
   /**
@@ -178,10 +194,10 @@ public abstract class KerberosOperationHandler {
    *
    * @param principal a String containing the principal to update
    * @param password  a String containing the password to set
-   * @return true if the password was successfully updated; otherwise false
+   * @return an Integer declaring the new key number
    * @throws AmbariException
    */
-  public abstract boolean setPrincipalPassword(String principal, String password)
+  public abstract Integer setPrincipalPassword(String principal, String password)
       throws AmbariException;
 
   /**
@@ -205,7 +221,7 @@ public abstract class KerberosOperationHandler {
    * @return true if the keytab file was successfully created; false otherwise
    * @throws AmbariException
    */
-  public boolean createKeytabFile(String principal, String password, File keytabFile)
+  public boolean createKeytabFile(String principal, String password, Integer keyNumber, File keytabFile)
       throws AmbariException {
     boolean success = false;
 
@@ -216,119 +232,70 @@ public abstract class KerberosOperationHandler {
     } else if (keytabFile == null) {
       throw new AmbariException(String.format("Failed to create keytab file for %s, missing file path", principal));
     } else {
-      // Create a set of keys and relevant keytab entries
-      Map<EncryptionType, EncryptionKey> keys = KerberosKeyFactory.getKerberosKeys(principal, password);
+      Keytab keytab;
+      Set<EncryptionType> ciphers = new HashSet<EncryptionType>(DEFAULT_CIPHERS);
+      List<KeytabEntry> keytabEntries = new ArrayList<KeytabEntry>();
 
-      if (keys != null) {
-        KerberosTime timestamp = new KerberosTime();
-        List<KeytabEntry> keytabEntries = new ArrayList<KeytabEntry>();
-
-        Keytab keytab;
-
-        if (keytabFile.exists() && keytabFile.canRead() && (keytabFile.length() > 0)) {
-          // If the keytab file already exists, read it in and append the new keytabs to it so that
-          // potentially important data is not lost
-          try {
-            keytab = Keytab.read(keytabFile);
-          } catch (IOException e) {
-            // There was an issue reading in the existing keytab file... we might loose some keytabs
-            // but that is unlikely...
-            keytab = new Keytab();
-          }
-
-          // In case there were any existing keytab entries, add them to the new entries list do
-          // they are not lost
-          List<KeytabEntry> existingEntries = keytab.getEntries();
-          if ((existingEntries != null) && !existingEntries.isEmpty()) {
-            keytabEntries.addAll(existingEntries);
-          }
-        } else {
+      if (keytabFile.exists() && keytabFile.canRead() && (keytabFile.length() > 0)) {
+        // If the keytab file already exists, read it in and append the new keytabs to it so that
+        // potentially important data is not lost
+        try {
+          keytab = Keytab.read(keytabFile);
+        } catch (IOException e) {
+          // There was an issue reading in the existing keytab file... we might loose some keytabs
+          // but that is unlikely...
           keytab = new Keytab();
         }
 
-        for (EncryptionKey encryptionKey : keys.values()) {
-          keytabEntries.add(new KeytabEntry(principal, 1, timestamp, (byte) 0, encryptionKey));
-        }
+        // In case there were any existing keytab entries, add them to the new entries list so
+        // they are not lost.  While at it, remove ciphers that already exist for the given principal
+        // so duplicate entries aren't added to the file.
+        List<KeytabEntry> existingEntries = keytab.getEntries();
+        if ((existingEntries != null) && !existingEntries.isEmpty()) {
 
-        keytab.setEntries(keytabEntries);
+          for (KeytabEntry entry : existingEntries) {
+            // Remove ciphers that will cause duplicate entries
+            if (principal.equals(entry.getPrincipalName())) {
+              ciphers.remove(entry.getKey().getKeyType());
+            }
 
-        try {
-          keytab.write(keytabFile);
-          success = true;
-        } catch (IOException e) {
-          String message = String.format("Failed to export keytab file for %s", principal);
-          LOG.error(message, e);
-
-          if (!keytabFile.delete()) {
-            keytabFile.deleteOnExit();
+            keytabEntries.add(entry);
           }
-
-          throw new AmbariException(message, e);
         }
+      } else {
+        keytab = new Keytab();
       }
-    }
 
-    return success;
-  }
+      if (ciphers.isEmpty()) {
+        // There are no new keys to create
+        success = true;
+      } else {
+        // Create a set of keys and relevant keytab entries
+        Map<EncryptionType, EncryptionKey> keys = KerberosKeyFactory.getKerberosKeys(principal, password, ciphers);
 
-  /**
-   * Create a keytab file using the set of supplied principal-to-password map.
-   * <p/>
-   * If a file exists where filePath points to, it will be overwritten.
-   *
-   * @param credentials a Map of principals to password, each entry will be placed in the specified file
-   * @param keytabFile  a File containing the absolute path to the keytab file
-   * @return true if the keytab file was successfully created; false otherwise
-   * @throws AmbariException
-   */
-  public boolean createKeytabFile(Map<String, String> credentials, File keytabFile)
-      throws AmbariException {
-    boolean success = false;
-
-    if (credentials == null) {
-      throw new AmbariException("Failed to create keytab file, missing credentials");
-    } else if (keytabFile == null) {
-      throw new AmbariException("Failed to create keytab file, missing file path");
-    } else {
-      List<KeytabEntry> keytabEntries = new ArrayList<KeytabEntry>();
-      KerberosTime timestamp = new KerberosTime();
-
-      // For each set of credentials in the map, create a set of keys and relevant keytab entries
-      for (Map.Entry<String, String> entry : credentials.entrySet()) {
-        String principal = entry.getKey();
-        String password = entry.getValue();
-
-        if (principal == null) {
-          LOG.warn("Missing principal, skipping entry");
-        } else if (password == null) {
-          LOG.warn("Missing password, skipping entry");
-        } else {
-          Map<EncryptionType, EncryptionKey> keys = KerberosKeyFactory.getKerberosKeys(principal, password);
+        if (keys != null) {
+          byte keyVersion = (keyNumber == null) ? 0 : keyNumber.byteValue();
+          KerberosTime timestamp = new KerberosTime();
 
           for (EncryptionKey encryptionKey : keys.values()) {
-            keytabEntries.add(new KeytabEntry(principal, 1, timestamp, (byte) 0, encryptionKey));
-          }
-        }
-      }
-
-      // If there are keytab entries, create and write the keytab file
-      if (!keytabEntries.isEmpty()) {
-        Keytab keytab = new Keytab();
-
-        keytab.setEntries(keytabEntries);
-
-        try {
-          keytab.write(keytabFile);
-          success = true;
-        } catch (IOException e) {
-          String message = String.format("Failed to export keytab file");
-          LOG.error(message, e);
-
-          if (!keytabFile.delete()) {
-            keytabFile.deleteOnExit();
+            keytabEntries.add(new KeytabEntry(principal, 1, timestamp, keyVersion, encryptionKey));
           }
 
-          throw new AmbariException(message, e);
+          keytab.setEntries(keytabEntries);
+
+          try {
+            keytab.write(keytabFile);
+            success = true;
+          } catch (IOException e) {
+            String message = String.format("Failed to export keytab file for %s", principal);
+            LOG.error(message, e);
+
+            if (!keytabFile.delete()) {
+              keytabFile.deleteOnExit();
+            }
+
+            throw new AmbariException(message, e);
+          }
         }
       }
     }

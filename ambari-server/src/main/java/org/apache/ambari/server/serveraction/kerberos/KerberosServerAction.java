@@ -73,11 +73,15 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    */
   public static final String DATA_DIRECTORY_PREFIX = ".ambari_";
 
-
   /*
-   * Kerberos action shared data entry names
+   * Kerberos action shared data entry name for the principal-to-password map
    */
   private static final String PRINCIPAL_PASSWORD_MAP = "principal_password_map";
+
+  /*
+   * Kerberos action shared data entry name for the principal-to-key_number map
+   */
+  private static final String PRINCIPAL_KEY_NUMBER_MAP = "principal_key_number_map";
 
   /*
   * Key used in kerberosCommandParams in ExecutionCommand for base64 encoded keytab content
@@ -179,6 +183,32 @@ public abstract class KerberosServerAction extends AbstractServerAction {
       }
 
       return (Map<String, String>) map;
+    }
+  }
+
+  /**
+   * Gets the shared principal-to-key_number Map used to store principals and key numbers for
+   * use within the current request context.
+   * <p/>
+   * If the requested Map is not found in requestSharedDataContext, one will be created and stored,
+   * ensuring that a Map will always be returned, assuming requestSharedDataContext is not null.
+   *
+   * @param requestSharedDataContext a Map to be used a shared data among all ServerActions related
+   *                                 to a given request
+   * @return A Map of principals-to-key_numbers
+   */
+  protected static Map<String, Integer> getPrincipalKeyNumberMap(Map<String, Object> requestSharedDataContext) {
+    if (requestSharedDataContext == null) {
+      return null;
+    } else {
+      Object map = requestSharedDataContext.get(PRINCIPAL_KEY_NUMBER_MAP);
+
+      if (map == null) {
+        map = new HashMap<String, String>();
+        requestSharedDataContext.put(PRINCIPAL_KEY_NUMBER_MAP, map);
+      }
+
+      return (Map<String, Integer>) map;
     }
   }
 

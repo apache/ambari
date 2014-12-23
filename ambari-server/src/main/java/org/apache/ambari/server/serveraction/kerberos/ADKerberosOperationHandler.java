@@ -20,7 +20,6 @@ package org.apache.ambari.server.serveraction.kerberos;
 
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.serveraction.kerberos.KerberosCredential;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -32,7 +31,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
-import java.util.StringTokenizer;
 
 /**
  * Implementation of <code>KerberosOperationHandler</code> to created principal in Active Directory
@@ -222,11 +220,11 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
    *
    * @param principal a String containing the principal to add
    * @param password  a String containing the password to use when creating the principal
-   * @return true if the principal was successfully created; otherwise false
+   * @return an Integer declaring the generated key number
    * @throws AmbariException
    */
   @Override
-  public boolean createServicePrincipal(String principal, String password)
+  public Integer createServicePrincipal(String principal, String password)
     throws AmbariException {
     if (principal == null) {
       throw new AmbariException("principal is null");
@@ -275,7 +273,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     } catch (NamingException ne) {
       throw new AmbariException("Can not created principal : " + principal, ne);
     }
-    return true;
+    return 0;
   }
 
   /**
@@ -285,11 +283,11 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
    *
    * @param principal a String containing the principal to update
    * @param password  a String containing the password to set
-   * @return true if the password was successfully updated; otherwise false
+   * @return an Integer declaring the new key number
    * @throws AmbariException
    */
   @Override
-  public boolean setPrincipalPassword(String principal, String password) throws AmbariException {
+  public Integer setPrincipalPassword(String principal, String password) throws AmbariException {
     if (principal == null) {
       throw new AmbariException("principal is null");
     }
@@ -316,7 +314,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     } catch (UnsupportedEncodingException ue) {
       throw new AmbariException("Unsupported encoding UTF-16LE", ue);
     }
-    return true;
+    return 0;
   }
 
   /**

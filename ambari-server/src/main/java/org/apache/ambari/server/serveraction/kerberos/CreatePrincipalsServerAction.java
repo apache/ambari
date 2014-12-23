@@ -66,8 +66,9 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
    * If a password has not been previously created the current evaluatedPrincipal, create a "secure"
    * password using {@link KerberosOperationHandler#createSecurePassword()}.  Then if the principal
    * does not exist in the KDC, create it using the generated password; else if it does exist update
-   * its password.  Finally store the generated password in the shared principal-to-password map so
-   * that subsequent process may use it if necessary.
+   * its password.  Finally store the generated password in the shared principal-to-password map and
+   * store the new key numbers in the shared principal-to-key_number map so that subsequent process
+   * may use the data if necessary.
    *
    * @param identityRecord           a Map containing the data for the current identity record
    * @param evaluatedPrincipal       a String indicating the relevant principal
@@ -87,6 +88,7 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
     CommandReport commandReport = null;
 
     Map<String, String> principalPasswordMap = getPrincipalPasswordMap(requestSharedDataContext);
+    Map<String, Integer> principalKeyNumberMap = getPrincipalKeyNumberMap(requestSharedDataContext);
 
     String password = principalPasswordMap.get(evaluatedPrincipal);
 
@@ -98,8 +100,11 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
         // A new password/key would have been generated after exporting the keytab anyways.
         LOG.warn("Principal already exists, setting new password - {}", evaluatedPrincipal);
 
-        if (operationHandler.setPrincipalPassword(evaluatedPrincipal, password)) {
+        Integer keyNumber = operationHandler.setPrincipalPassword(evaluatedPrincipal, password);
+
+        if (keyNumber != null) {
           principalPasswordMap.put(evaluatedPrincipal, password);
+          principalKeyNumberMap.put(evaluatedPrincipal, keyNumber);
           LOG.debug("Successfully set password for principal {}", evaluatedPrincipal);
         } else {
           String message = String.format("Failed to set password for principal %s, unknown reason", evaluatedPrincipal);
@@ -108,9 +113,11 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
         }
       } else {
         LOG.debug("Creating new principal - {}", evaluatedPrincipal);
+        Integer keyNumber = operationHandler.createServicePrincipal(evaluatedPrincipal, password);
 
-        if (operationHandler.createServicePrincipal(evaluatedPrincipal, password)) {
+        if (keyNumber != null) {
           principalPasswordMap.put(evaluatedPrincipal, password);
+          principalKeyNumberMap.put(evaluatedPrincipal, keyNumber);
           LOG.debug("Successfully created new principal {}", evaluatedPrincipal);
         } else {
           String message = String.format("Failed to create principal %s, unknown reason", evaluatedPrincipal);

@@ -24,8 +24,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * MITKerberosOperationHandler is an implementation of a KerberosOperationHandler providing
@@ -35,6 +39,13 @@ import java.util.List;
  * available
  */
 public class MITKerberosOperationHandler extends KerberosOperationHandler {
+
+  /**
+   * A regular expression pattern to use to parse the key number from the text captured from the
+   * get_principal kadmin command
+   */
+  private final static Pattern PATTERN_GET_KEY_NUMBER = Pattern.compile("^.*?Key: vno (\\d+).*$", Pattern.DOTALL);
+
   private final static Logger LOG = LoggerFactory.getLogger(MITKerberosOperationHandler.class);
 
 
@@ -105,11 +116,11 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
    *
    * @param principal a String containing the principal add
    * @param password  a String containing the password to use when creating the principal
-   * @return true if the principal was successfully created; otherwise false
+   * @return an Integer declaring the generated key number
    * @throws AmbariException
    */
   @Override
-  public boolean createServicePrincipal(String principal, String password)
+  public Integer createServicePrincipal(String principal, String password)
       throws AmbariException {
 
     if ((principal == null) || principal.isEmpty()) {
@@ -141,7 +152,11 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
 
             // If there is data from STDOUT, see if the following string exists:
             //    Principal "<principal>" created
-            return (stdOut != null) && stdOut.contains(String.format("Principal \"%s\" created", principal));
+            if ((stdOut != null) && stdOut.contains(String.format("Principal \"%s\" created", principal))) {
+              return getKeyNumber(principal);
+            } else {
+              throw new AmbariException(String.format("Failed to create service principal for %s", principal));
+            }
           } else {
             LOG.warn("Failed to create service principal for {}:\n\tExitCode: {}\n\tSTDOUT: {}\n\tSTDERR: {}",
                 principal, result.getExitCode(), result.getStdout(), result.getStderr());
@@ -167,11 +182,11 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
    *
    * @param principal a String containing the principal to update
    * @param password  a String containing the password to set
-   * @return true if the password was successfully updated; otherwise false
+   * @return an Integer declaring the new key number
    * @throws AmbariException
    */
   @Override
-  public boolean setPrincipalPassword(String principal, String password) throws AmbariException {
+  public Integer setPrincipalPassword(String principal, String password) throws AmbariException {
     if ((principal == null) || principal.isEmpty()) {
       throw new AmbariException("Failed to set password - no principal specified");
     } else {
@@ -197,7 +212,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
 
         if (result != null) {
           if (result.isSuccessful()) {
-            return true;
+            return getKeyNumber(principal);
           } else {
             LOG.warn("Failed to set password for {}:\n\tExitCode: {}\n\tSTDOUT: {}\n\tSTDERR: {}",
                 principal, result.getExitCode(), result.getStdout(), result.getStderr());
@@ -251,6 +266,70 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
         }
       } catch (AmbariException e) {
         LOG.error(String.format("Failed to remove new principal for %s", principal), e);
+        throw e;
+      }
+    }
+  }
+
+  /**
+   * Retrieves the current key number assigned to the identity identified by the specified principal
+   *
+   * @param principal a String declaring the principal to look up
+   * @return an Integer declaring the current key number
+   * @throws AmbariException if an error occurs while looking up the relevant key number
+   */
+  private Integer getKeyNumber(String principal) throws AmbariException {
+    if ((principal == null) || principal.isEmpty()) {
+      throw new AmbariException("Failed to get key number for principal  - no principal specified");
+    } else {
+      // Create the kdamin query:  get_principal <principal>
+      String query = String.format("get_principal %s", principal);
+
+      try {
+        ShellCommandUtil.Result result = invokeKAdmin(query);
+
+        if (result != null) {
+          if (result.isSuccessful()) {
+            String stdOut = result.getStdout();
+
+            if (stdOut == null) {
+              LOG.warn("Failed to get key number for {}:\n\tExitCode: {}\n\tSTDOUT: NULL\n\tSTDERR: {}",
+                  principal, result.getExitCode(), result.getStderr());
+              throw new AmbariException(String.format("Failed to get key number for %s", principal));
+            }
+
+            Matcher matcher = PATTERN_GET_KEY_NUMBER.matcher(stdOut);
+
+            if (matcher.matches()) {
+              NumberFormat numberFormat = NumberFormat.getIntegerInstance();
+              String keyNumber = matcher.group(1);
+
+              numberFormat.setGroupingUsed(false);
+              try {
+                Number number = numberFormat.parse(keyNumber);
+                return (number == null) ? 0 : number.intValue();
+              } catch (ParseException e) {
+                LOG.warn("Failed to get key number for {} - invalid key number value ({}):\n\tExitCode: {}\n\tSTDOUT: NULL\n\tSTDERR: {}",
+                    principal, keyNumber, result.getExitCode(), result.getStderr());
+                throw new AmbariException(String.format("Failed to get key number for %s", principal));
+              }
+            } else {
+              LOG.warn("Failed to get key number for {} - unexpected STDOUT data:\n\tExitCode: {}\n\tSTDOUT: NULL\n\tSTDERR: {}",
+                  principal, result.getExitCode(), result.getStderr());
+              throw new AmbariException(String.format("Failed to get key number for %s", principal));
+            }
+          } else {
+            LOG.warn("Failed to get key number for {}:\n\tExitCode: {}\n\tSTDOUT: {}\n\tSTDERR: {}",
+                principal, result.getExitCode(), result.getStdout(), result.getStderr());
+            throw new AmbariException(String.format("Failed to get key number for %s", principal));
+          }
+        } else {
+          String message = String.format("Failed to get key number for %s - Unknown reason", principal);
+          LOG.warn(message);
+          throw new AmbariException(message);
+        }
+      } catch (AmbariException e) {
+        LOG.error(String.format("Failed to get key number for %s", principal), e);
         throw e;
       }
     }

@@ -41,13 +41,13 @@ public class KerberosOperationHandlerTest extends AbstractKerberosOperationHandl
       }
 
       @Override
-      public boolean createServicePrincipal(String principal, String password) throws AmbariException {
-        return false;
+      public Integer createServicePrincipal(String principal, String password) throws AmbariException {
+        return 0;
       }
 
       @Override
-      public boolean setPrincipalPassword(String principal, String password) throws AmbariException {
-        return false;
+      public Integer setPrincipalPassword(String principal, String password) throws AmbariException {
+        return 0;
       }
 
       @Override

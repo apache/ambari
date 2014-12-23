@@ -24,15 +24,21 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.directory.server.kerberos.shared.keytab.Keytab;
 import org.apache.directory.server.kerberos.shared.keytab.KeytabEntry;
 import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.Before;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public abstract class AbstractKerberosOperationHandlerTest {
+
+  @Rule
+  public TemporaryFolder folder = new TemporaryFolder();
 
   protected final KerberosOperationHandler handler;
 
@@ -71,13 +77,13 @@ public abstract class AbstractKerberosOperationHandlerTest {
       }
 
       @Override
-      public boolean createServicePrincipal(String principal, String password) throws AmbariException {
-        return false;
+      public Integer createServicePrincipal(String principal, String password) throws AmbariException {
+        return 0;
       }
 
       @Override
-      public boolean setPrincipalPassword(String principal, String password) throws AmbariException {
-        return false;
+      public Integer setPrincipalPassword(String principal, String password) throws AmbariException {
+        return 0;
       }
 
       @Override
@@ -117,158 +123,122 @@ public abstract class AbstractKerberosOperationHandlerTest {
   }
 
   @Test
-  public void testCreateKeytabFileAllAtOnce() throws Exception {
-
-    File file = File.createTempFile("ambari_ut_", ".dat");
-    final String principal1 = "principal1@REALM.COM";
-    final String principal2 = "principal2@REALM.COM";
-
-    try {
-      Assert.assertTrue(handler.createKeytabFile(new HashMap<String, String>() {
-        {
-          put(principal1, handler.createSecurePassword());
-        }
-      }, file));
-
-      Keytab keytab = Keytab.read(file);
-      Assert.assertNotNull(keytab);
-
-      List<KeytabEntry> entries = keytab.getEntries();
-      Assert.assertNotNull(entries);
-      Assert.assertFalse(entries.isEmpty());
-
-      for (KeytabEntry entry : entries) {
-        Assert.assertEquals(principal1, entry.getPrincipalName());
-      }
-
-      Assert.assertTrue(handler.createKeytabFile(new HashMap<String, String>() {
-        {
-          put(principal1, handler.createSecurePassword());
-          put(principal2, handler.createSecurePassword());
-        }
-      }, file));
-
-      keytab = Keytab.read(file);
-      Assert.assertNotNull(keytab);
-
-      entries = keytab.getEntries();
-      Assert.assertNotNull(entries);
-      Assert.assertFalse(entries.isEmpty());
-    } finally {
-      if (!file.delete()) {
-        file.deleteOnExit();
-      }
-    }
-  }
-
-  @Test
   public void testCreateKeytabFileOneAtATime() throws Exception {
-    File file = File.createTempFile("ambari_ut_", ".dat");
+    File file = folder.newFile();
     final String principal1 = "principal1@REALM.COM";
     final String principal2 = "principal2@REALM.COM";
     int count;
 
-    try {
-      Assert.assertTrue(handler.createKeytabFile(principal1, handler.createSecurePassword(), file));
+    Assert.assertTrue(handler.createKeytabFile(principal1, handler.createSecurePassword(), 0, file));
 
-      Keytab keytab = Keytab.read(file);
-      Assert.assertNotNull(keytab);
+    Keytab keytab = Keytab.read(file);
+    Assert.assertNotNull(keytab);
 
-      List<KeytabEntry> entries = keytab.getEntries();
-      Assert.assertNotNull(entries);
-      Assert.assertFalse(entries.isEmpty());
+    List<KeytabEntry> entries = keytab.getEntries();
+    Assert.assertNotNull(entries);
+    Assert.assertFalse(entries.isEmpty());
 
-      count = entries.size();
+    count = entries.size();
 
-      for (KeytabEntry entry : entries) {
-        Assert.assertEquals(principal1, entry.getPrincipalName());
-      }
+    for (KeytabEntry entry : entries) {
+      Assert.assertEquals(principal1, entry.getPrincipalName());
+    }
 
-      Assert.assertTrue(handler.createKeytabFile(principal2, handler.createSecurePassword(), file));
+    Assert.assertTrue(handler.createKeytabFile(principal2, handler.createSecurePassword(), 0, file));
 
-      keytab = Keytab.read(file);
-      Assert.assertNotNull(keytab);
+    keytab = Keytab.read(file);
+    Assert.assertNotNull(keytab);
 
-      entries = keytab.getEntries();
-      Assert.assertNotNull(entries);
-      Assert.assertFalse(entries.isEmpty());
+    entries = keytab.getEntries();
+    Assert.assertNotNull(entries);
+    Assert.assertFalse(entries.isEmpty());
 
-      Assert.assertEquals(count * 2, entries.size());
-    } finally {
-      if (!file.delete()) {
-        file.deleteOnExit();
-      }
+    Assert.assertEquals(count * 2, entries.size());
+  }
+
+  @Test
+  public void testEnsureKeytabFileContainsNoDuplicates() throws Exception {
+    File file = folder.newFile();
+    final String principal1 = "principal1@REALM.COM";
+    final String principal2 = "principal2@REALM.COM";
+    Set<String> seenEntries = new HashSet<String>();
+
+    Assert.assertTrue(handler.createKeytabFile(principal1, handler.createSecurePassword(), 0, file));
+    Assert.assertTrue(handler.createKeytabFile(principal2, handler.createSecurePassword(), 0, file));
+
+    // Attempt to add duplicate entries
+    Assert.assertTrue(handler.createKeytabFile(principal2, handler.createSecurePassword(), 0, file));
+
+    Keytab keytab = Keytab.read(file);
+    Assert.assertNotNull(keytab);
+
+    List<KeytabEntry> entries = keytab.getEntries();
+    Assert.assertNotNull(entries);
+    Assert.assertFalse(entries.isEmpty());
+
+    for (KeytabEntry entry : entries) {
+      String seenEntry = String.format("%s|%s", entry.getPrincipalName(), entry.getKey().getKeyType().toString());
+      Assert.assertFalse(seenEntries.contains(seenEntry));
+      seenEntries.add(seenEntry);
     }
   }
 
   @Test
   public void testCreateKeytabFileExceptions() throws Exception {
-    File file = File.createTempFile("ambari_ut_", ".dat");
+    File file = folder.newFile();
     final String principal1 = "principal1@REALM.COM";
 
     try {
-      try {
-        handler.createKeytabFile(null, handler.createSecurePassword(), file);
-        Assert.fail("AmbariException not thrown with null principal");
-      } catch (Throwable t) {
-        Assert.assertEquals(AmbariException.class, t.getClass());
-      }
+      handler.createKeytabFile(null, handler.createSecurePassword(), 0, file);
+      Assert.fail("AmbariException not thrown with null principal");
+    } catch (Throwable t) {
+      Assert.assertEquals(AmbariException.class, t.getClass());
+    }
 
-      try {
-        handler.createKeytabFile(principal1, null, file);
-        Assert.fail("AmbariException not thrown with null password");
-      } catch (Throwable t) {
-        Assert.assertEquals(AmbariException.class, t.getClass());
-      }
+    try {
+      handler.createKeytabFile(principal1, null, null, file);
+      Assert.fail("AmbariException not thrown with null password");
+    } catch (Throwable t) {
+      Assert.assertEquals(AmbariException.class, t.getClass());
+    }
 
-      try {
-        handler.createKeytabFile(principal1, handler.createSecurePassword(), null);
-        Assert.fail("AmbariException not thrown with null file");
-      } catch (Throwable t) {
-        Assert.assertEquals(AmbariException.class, t.getClass());
-      }
-    } finally {
-      if (!file.delete()) {
-        file.deleteOnExit();
-      }
+    try {
+      handler.createKeytabFile(principal1, handler.createSecurePassword(), 0, null);
+      Assert.fail("AmbariException not thrown with null file");
+    } catch (Throwable t) {
+      Assert.assertEquals(AmbariException.class, t.getClass());
     }
   }
 
   @Test
   public void testCreateKeytabFileFromBase64EncodedData() throws Exception {
-    File file = File.createTempFile("ambari_ut_", ".dat");
+    File file = folder.newFile();
     final String principal = "principal@REALM.COM";
 
+    Assert.assertTrue(handler.createKeytabFile(principal, handler.createSecurePassword(), 0, file));
+
+    FileInputStream fis = new FileInputStream(file);
+    byte[] data = new byte[(int) file.length()];
+
+    Assert.assertEquals(data.length, fis.read(data));
+    fis.close();
+
+    File f = handler.createKeytabFile(Base64.encodeBase64String(data));
+
     try {
-      Assert.assertTrue(handler.createKeytabFile(principal, handler.createSecurePassword(), file));
+      Keytab keytab = Keytab.read(f);
+      Assert.assertNotNull(keytab);
 
-      FileInputStream fis = new FileInputStream(file);
-      byte[] data = new byte[(int) file.length()];
+      List<KeytabEntry> entries = keytab.getEntries();
+      Assert.assertNotNull(entries);
+      Assert.assertFalse(entries.isEmpty());
 
-      Assert.assertEquals(data.length, fis.read(data));
-      fis.close();
-
-      File f = handler.createKeytabFile(Base64.encodeBase64String(data));
-
-      try {
-        Keytab keytab = Keytab.read(f);
-        Assert.assertNotNull(keytab);
-
-        List<KeytabEntry> entries = keytab.getEntries();
-        Assert.assertNotNull(entries);
-        Assert.assertFalse(entries.isEmpty());
-
-        for (KeytabEntry entry : entries) {
-          Assert.assertEquals(principal, entry.getPrincipalName());
-        }
-      } finally {
-        if (!f.delete()) {
-          f.deleteOnExit();
-        }
+      for (KeytabEntry entry : entries) {
+        Assert.assertEquals(principal, entry.getPrincipalName());
       }
     } finally {
-      if (!file.delete()) {
-        file.deleteOnExit();
+      if (!f.delete()) {
+        f.deleteOnExit();
       }
     }
   }
