@@ -18,6 +18,8 @@
 
 App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecurityConfigs, {
   name: 'kerberosWizardStep4Controller',
+
+  adminPropertyNames: ['admin_principal', 'admin_password'],
   
   clearStep: function() {
     this.set('isRecommendedLoaded', false);
@@ -61,12 +63,24 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
   setStepConfigs: function(configs) {
     var selectedService = App.StackService.find().findProperty('serviceName', 'KERBEROS');
     var configCategories = selectedService.get('configCategories');
-    this.get('stepConfigs').pushObject(this.createServiceConfig(configCategories, this.prepareConfigProperties(configs)));
+    var configProperties = this.prepareConfigProperties(configs);
+    if (this.get('wizardController.name') == 'addServiceController') {
+      // config properties for installed services should be disabled on Add Service Wizard
+      configProperties.forEach(function(item) {
+        if (this.get('adminPropertyNames').contains(item.get('name'))) return;
+        if (this.get('installedServiceNames').contains(item.get('serviceName')) || item.get('serviceName') == 'Cluster') {
+          item.set('isEditable', false);
+        }
+      }, this);
+    }
+    this.get('stepConfigs').pushObject(this.createServiceConfig(configCategories, configProperties));
     this.set('selectedService', this.get('stepConfigs')[0]);
   },
 
   /**
-   * Filter configs by installed services. Set property value observer.
+   * Filter configs by installed services for Kerberos Wizard or by installed + selected services
+   * for Add Service Wizard.
+   * Set property value observer.
    * Set realm property with value from previous configuration step.
    * Set appropriate category for all configs.
    *
@@ -75,16 +89,31 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
    */
   prepareConfigProperties: function(configs) {
     var self = this;
-    var realmValue = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'realm').value;
+    var storedServiceConfigs = this.get('wizardController').getDBProperty('serviceConfigProperties');
+    var realmValue = storedServiceConfigs.findProperty('name', 'realm').value;
     var installedServiceNames = ['Cluster'].concat(App.Service.find().mapProperty('serviceName'));
-    configs = configs.filter(function(item) {
+    var adminProps = [];
+    var configProperties = configs.slice(0);
+    if (this.get('wizardController.name') == 'addServiceController') {
+      installedServiceNames = installedServiceNames.concat(this.get('selectedServiceNames'));
+      this.get('adminPropertyNames').forEach(function(item) {
+        var property = storedServiceConfigs.filterProperty('filename', 'krb5-conf.xml').findProperty('name', item);
+        if (!!property) {
+          var _prop = App.ServiceConfigProperty.create($.extend({}, property, { value: '', defaultValue: '', serviceName: 'Cluster', displayName: item }));
+          _prop.validate();
+          adminProps.push(_prop);
+        }
+      });
+      configProperties = adminProps.concat(configProperties);
+    }
+    configProperties = configProperties.filter(function(item) {
       return installedServiceNames.contains(item.get('serviceName'));
     });
-    configs.findProperty('name', 'realm').set('value', realmValue);
-    configs.findProperty('name', 'realm').set('defaultValue', realmValue);
+    configProperties.findProperty('name', 'realm').set('value', realmValue);
+    configProperties.findProperty('name', 'realm').set('defaultValue', realmValue);
     
-    configs.setEach('isSecureConfig', false);
-    configs.forEach(function(property, item, allConfigs) {
+    configProperties.setEach('isSecureConfig', false);
+    configProperties.forEach(function(property, item, allConfigs) {
       if (['spnego_keytab', 'spnego_principal'].contains(property.get('name'))) {
         property.addObserver('value', self, 'spnegoPropertiesObserver');
       }
@@ -97,7 +126,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
       else property.set('category', 'Advanced');
     });
 
-    return configs;
+    return configProperties;
   },
 
   /**

@@ -94,14 +94,72 @@ describe('App.AddServiceController', function() {
         "ServiceInfo": {"state": "INSTALLED"},
         "urlParams": "ServiceInfo/service_name.in(OOZIE,HDFS,YARN,MAPREDUCE,MAPREDUCE2)"
       }
-    }
-    ]
+    }];
     tests.forEach(function(t){
       it('should generate data with ' + t.selected.join(","), function () {
         expect(addServiceController.generateDataForInstallServices(t.selected)).to.be.eql(t.res);
       });
     });
+  });
 
+  describe('#saveServices', function() {
+    beforeEach(function() {
+      sinon.stub(addServiceController, 'setDBProperty', Em.K);
+    });
 
+    afterEach(function() {
+      addServiceController.setDBProperty.restore();
+    });
+
+    var tests = [
+      {
+        appService: [
+          Em.Object.create({ serviceName: 'HDFS' }),
+          Em.Object.create({ serviceName: 'KERBEROS' })
+        ],
+        stepCtrlContent: Em.Object.create({
+          content: Em.A([
+            Em.Object.create({ serviceName: 'HDFS', isInstalled: true, isSelected: true }),
+            Em.Object.create({ serviceName: 'YARN', isInstalled: false, isSelected: true })
+          ])
+        }),
+        e: {
+          selected: ['YARN'],
+          installed: ['HDFS', 'KERBEROS']
+        }
+      },
+      {
+        appService: [
+          Em.Object.create({ serviceName: 'HDFS' }),
+          Em.Object.create({ serviceName: 'STORM' })
+        ],
+        stepCtrlContent: Em.Object.create({
+          content: Em.A([
+            Em.Object.create({ serviceName: 'HDFS', isInstalled: true, isSelected: true }),
+            Em.Object.create({ serviceName: 'YARN', isInstalled: false, isSelected: true }),
+            Em.Object.create({ serviceName: 'MAPREDUCE2', isInstalled: false, isSelected: true })
+          ])
+        }),
+        e: {
+          selected: ['YARN', 'MAPREDUCE2'],
+          installed: ['HDFS', 'STORM']
+        }
+      }
+    ];
+
+    var message = '{0} installed, {1} selected. Installed list should be {2} and selected - {3}';
+    tests.forEach(function(test) {
+      var installed = test.appService.mapProperty('serviceName');
+      var selected = test.stepCtrlContent.get('content').filterProperty('isSelected', true)
+        .filterProperty('isInstalled', false).mapProperty('serviceName');
+      it(message.format(installed, selected, test.e.installed, test.e.selected), function() {
+        sinon.stub(App.Service, 'find').returns(test.appService);
+        addServiceController.saveServices(test.stepCtrlContent);
+        App.Service.find.restore();
+        var savedServices = addServiceController.setDBProperty.withArgs('services').args[0][1];
+        expect(savedServices.selectedServices).to.have.members(test.e.selected);
+        expect(savedServices.installedServices).to.have.members(test.e.installed);
+      });
+    });
   });
 });

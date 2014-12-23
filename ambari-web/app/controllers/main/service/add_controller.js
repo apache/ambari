@@ -21,8 +21,8 @@ var App = require('app');
 App.AddServiceController = App.WizardController.extend({
 
   name: 'addServiceController',
-
-  totalSteps: 7,
+  // @TODO: remove after Kerberos Automation supports
+  totalSteps: App.supports.automatedKerberos ? 8 : 7,
 
   /**
    * Used for hiding back button in wizard
@@ -120,6 +120,11 @@ App.AddServiceController = App.WizardController.extend({
     var selectedServices = stepController.get('content').filterProperty('isSelected', true).filterProperty('isInstalled', false).mapProperty('serviceName');
     services.selectedServices.pushObjects(selectedServices);
     services.installedServices.pushObjects(stepController.get('content').filterProperty('isInstalled', true).mapProperty('serviceName'));
+    // save services that already installed but ignored on choose services page
+    // these services marked by `isInstallable` flag with value `false`, for example `Kerberos` service
+    services.installedServices.pushObjects(App.Service.find().mapProperty('serviceName').filter(function(serviceName) {
+      return !services.installedServices.contains(serviceName);
+    }));
     this.setDBProperty('services', services);
     console.log('AddServiceController.saveServices: saved data', stepController.get('content'));
 
@@ -347,9 +352,11 @@ App.AddServiceController = App.WizardController.extend({
   loadAllPriorSteps: function () {
     var step = this.get('currentStep');
     switch (step) {
+      case '8':
       case '7':
       case '6':
       case '5':
+        this.checkSecurityStatus();
         this.load('cluster');
         this.set('content.additionalClients', []);
       case '4':
@@ -445,5 +452,14 @@ App.AddServiceController = App.WizardController.extend({
         });
       }
     }, this);
+  },
+
+  checkSecurityStatus: function() {
+    if (App.supports.automatedKerberos) {
+      if (!App.router.get('mainAdminSecurityController.securityEnabled')) {
+        this.get('isStepDisabled').findProperty('step', 5).set('value', true);
+      }
+    }
   }
+
 });

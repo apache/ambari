@@ -707,6 +707,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
       }, this);
       this.get('installedServiceNames').forEach(function (serviceName) {
         var serviceConfigObj = serviceConfigs.findProperty('serviceName', serviceName);
+        var isInstallableService = App.StackService.find(serviceName).get('isInstallable');
+        if (!isInstallableService) serviceConfigObj.set('showConfig', false);
         if (this.get('securityEnabled')) {
           this.setSecureConfigs(serviceConfigObj, serviceName);
         }
