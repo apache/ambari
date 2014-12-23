@@ -35,8 +35,8 @@
         "enabled": true,
         "source": {
           "type": "PORT",
-          "uri": "{{metric_collector_port}}",
-          "default_port": 8188,
+          "uri": "{{ams-site/timeline.metrics.service.webapp.address}}",
+          "default_port": 6188,
           "reporting": {
             "ok": {
               "text": "TCP OK - {0:.3f}s response on port {1}"
