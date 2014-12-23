@@ -20,6 +20,7 @@ limitations under the License.
 
 from resource_management import *
 import status_params
+import os
 
 # server configurations
 config = Script.get_config()
@@ -87,14 +88,15 @@ hive_use_existing_db = hive_database.startswith('Existing')
 
 
 mysql_jdbc_driver_jar = "/usr/share/java/mysql-connector-java.jar"
+hive_exclude_packages = []
 
 if hive_use_existing_db:
   hive_exclude_packages = ['mysql-connector-java','mysql','mysql-server']
 else:
   if 'role' in config and config['role'] != "MYSQL_SERVER":
     hive_exclude_packages = ['mysql','mysql-server']
-  else:
-    hive_exclude_packages = []
+  if os.path.exists(mysql_jdbc_driver_jar):
+    hive_exclude_packages.append('mysql-connector-java')
 
 #Starting hiveserver2
 start_hiveserver2_script = 'startHiveserver2.sh'

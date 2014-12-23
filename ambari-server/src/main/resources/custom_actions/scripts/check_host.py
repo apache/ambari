@@ -172,7 +172,7 @@ class CheckHost(Script):
     # download and install java if it doesn't exists
     if not os.path.isfile(java_exec):
       jdk_name = config['commandParams']['jdk_name']
-      jdk_url = "{}/{}".format(jdk_location, jdk_name)
+      jdk_url = "{0}/{1}".format(jdk_location, jdk_name)
       jdk_download_target = os.path.join(agent_cache_dir, jdk_name)
       java_dir = os.path.dirname(java64_home)
       try:

@@ -255,6 +255,7 @@ hive_authorization_enabled = config['configurations']['hive-site']['hive.securit
 
 mysql_jdbc_driver_jar = "/usr/share/java/mysql-connector-java.jar"
 hive_use_existing_db = hive_database.startswith('Existing')
+hive_exclude_packages = []
 
 # There are other packages that contain /usr/share/java/mysql-connector-java.jar (like libmysql-java),
 # trying to install mysql-connector-java upon them can cause packages to conflict.
@@ -263,8 +264,8 @@ if hive_use_existing_db:
 else:
   if 'role' in config and config['role'] != "MYSQL_SERVER":
     hive_exclude_packages = ['mysql','mysql-server']
-  else:
-    hive_exclude_packages = []
+  if os.path.exists(mysql_jdbc_driver_jar):
+    hive_exclude_packages.append('mysql-connector-java')
 
 ########################################################
 ########### WebHCat related params #####################
