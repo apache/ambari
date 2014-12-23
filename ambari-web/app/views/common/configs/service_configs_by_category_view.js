@@ -426,6 +426,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, {
       placement: 'top'
     });
     this.updateReadOnlyFlags();
+    this.filteredCategoryConfigs();
     Em.run.next(function () {
       self.updateReadOnlyFlags();
     });
