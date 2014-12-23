@@ -268,7 +268,7 @@ public class HostComponentResourceProviderTest {
 
     Set<ServiceComponentHostResponse> nameResponse = new HashSet<ServiceComponentHostResponse>();
     nameResponse.add(new ServiceComponentHostResponse(
-        "Cluster102", "Service100", "Component100", "Host100", "STARTED", "", "", "", null));
+        "Cluster102", "Service100", "Component100", "Host100", "INSTALLED", "", "", "", null));
 
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
@@ -323,7 +323,7 @@ public class HostComponentResourceProviderTest {
     // update the cluster named Cluster102
     Predicate predicate = new PredicateBuilder().property(
         HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID).equals("Cluster102").and().
-        property(HostComponentResourceProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID).equals("Host100").and().
+        property(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID).equals("INSTALLED").and().
         property(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID).equals("Component100").toPredicate();
     RequestStatus requestStatus = provider.updateResources(request, predicate);
     Resource responseResource = requestStatus.getRequestResource();

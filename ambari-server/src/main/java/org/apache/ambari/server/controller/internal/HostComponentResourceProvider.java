@@ -192,6 +192,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
     Set<Resource> resources = new HashSet<Resource>();
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
+    // We always need host_name for sch
+    requestedIds.add(HOST_COMPONENT_HOST_NAME_PROPERTY_ID);
 
     Set<ServiceComponentHostResponse> responses = getResources(new Command<Set<ServiceComponentHostResponse>>() {
       @Override
@@ -598,19 +600,17 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     Set<Resource> matchingResources = getResources(queryRequest, predicate);
 
     for (Resource queryResource : matchingResources) {
-      if (predicate.evaluate(queryResource)) {
-        Map<String, Object> updateRequestProperties = new HashMap<String, Object>();
+      Map<String, Object> updateRequestProperties = new HashMap<String, Object>();
 
-        // add props from query resource
-        updateRequestProperties.putAll(PropertyHelper.getProperties(queryResource));
+      // add props from query resource
+      updateRequestProperties.putAll(PropertyHelper.getProperties(queryResource));
 
-        // add properties from update request
-        //todo: should we flag value size > 1?
-        if (request.getProperties() != null && request.getProperties().size() != 0) {
-          updateRequestProperties.putAll(request.getProperties().iterator().next());
-        }
-        requests.add(getRequest(updateRequestProperties));
+      // add properties from update request
+      //todo: should we flag value size > 1?
+      if (request.getProperties() != null && request.getProperties().size() != 0) {
+        updateRequestProperties.putAll(request.getProperties().iterator().next());
       }
+      requests.add(getRequest(updateRequestProperties));
     }
 
     RequestStageContainer requestStages = modifyResources(new Command<RequestStageContainer>() {
