@@ -181,6 +181,26 @@ App.AlertDefinition = DS.Model.extend({
   }.property('summary'),
 
   /**
+   * if this definition is in state: OK
+   * @type {boolean}
+   */
+  isOK: function () {
+    var summary = this.get('summary');
+    var state = 'OK';
+    return !!summary[state];
+  }.property('summary'),
+
+  /**
+   * if this definition is in state: OK
+   * @type {boolean}
+   */
+  isUnknown: function () {
+    var summary = this.get('summary');
+    var state = 'UNKNOWN';
+    return !!summary[state];
+  }.property('summary'),
+
+  /**
    * For alerts we will have processes which are not typical
    * cluster services - like Ambari-Server. This method unifies
    * cluster services and other services into a common display-name.

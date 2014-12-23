@@ -92,11 +92,15 @@
 
     {{! alert-notification email }}
     {{#if view.isEmailMethodSelected}}
-      <div class="control-group">
+      <div {{bindAttr class=":control-group controller.inputFields.email.errorMsg:error"}}>
         <label class="control-label" for="inputEmail">{{controller.inputFields.email.label}}</label>
 
         <div class="controls">
           {{view Em.TextField valueBinding="controller.inputFields.email.value" id="inputEmail" class="input-xlarge"}}
+        </div>
+
+        <div class="controls error-msg">
+          {{controller.inputFields.email.errorMsg}}
         </div>
       </div>
 
@@ -108,12 +112,17 @@
         </div>
       </div>
 
-      <div class="control-group">
+      <div {{bindAttr class=":control-group controller.inputFields.SMTPPort.errorMsg:error"}}>
         <label class="control-label">{{controller.inputFields.SMTPPort.label}}</label>
 
         <div class="controls">
-          {{view Em.TextField valueBinding="controller.inputFields.SMTPPort.value" class="input-xlarge"}}
+          {{view Em.TextField valueBinding="controller.inputFields.SMTPPort.value"}}
         </div>
+
+        <div class="controls error-msg">
+          {{controller.inputFields.SMTPPort.errorMsg}}
+        </div>
+
       </div>
 
       <div class="control-group">
@@ -148,11 +157,15 @@
         </div>
       </div>
 
-      <div class="control-group">
+      <div {{bindAttr class=":control-group controller.inputFields.emailFrom.errorMsg:error"}}>
         <label class="control-label">{{controller.inputFields.emailFrom.label}}</label>
 
         <div class="controls">
           {{view Em.TextField valueBinding="controller.inputFields.emailFrom.value" class="input-xlarge"}}
+        </div>
+
+        <div class="controls error-msg">
+          {{controller.inputFields.emailFrom.errorMsg}}
         </div>
       </div>
     {{else}}
@@ -180,11 +193,15 @@
         </div>
       </div>
 
-      <div class="control-group">
+      <div {{bindAttr class=":control-group controller.inputFields.port.errorMsg:error"}}>
         <label class="control-label">{{controller.inputFields.port.label}}</label>
 
         <div class="controls">
           {{view Em.TextField valueBinding="controller.inputFields.port.value" class="input-xlarge"}}
+        </div>
+
+        <div class="controls error-msg">
+          {{controller.inputFields.port.errorMsg}}
         </div>
       </div>
     {{/if}}

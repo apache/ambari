@@ -73,7 +73,11 @@
                       {{#if selectedAlertNotification.global}}
                         {{t common.all}}
                       {{else}}
-                        {{view.selectedAlertNotificationGroups}}
+                        {{#if view.selectedAlertNotificationGroups}}
+                          {{view.selectedAlertNotificationGroups}}
+                        {{else}}
+                          {{t alerts.actions.manage_alert_notifications_popup.noGroup}}
+                        {{/if}}
                       {{/if}}
                     </div>
                   </div>
@@ -95,7 +99,11 @@
                   {{/if}}
                   <div class="row-fluid">
                     <div class="span3 input-label">{{t common.description}}</div>
-                    <div class="span9 notification-description">{{selectedAlertNotification.description}}</div>
+                    {{#if selectedAlertNotification.description}}
+                      <div class="span9 notification-description">{{selectedAlertNotification.description}}</div>
+                    {{else}}
+                      <div class="span9 notification-description">{{t alerts.actions.manage_alert_notifications_popup.noDescription}}</div>
+                    {{/if}}
                   </div>
                 {{/if}}
               {{else}}

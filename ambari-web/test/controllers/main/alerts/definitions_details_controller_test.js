@@ -79,19 +79,25 @@ describe('App.MainAlertDefinitionDetailsController', function () {
 
   });
 
-  describe('#toggleState()', function () {
+  describe('#toggleDefinitionState()', function () {
+    beforeEach(function() {
+      sinon.stub(App.ajax, 'send', Em.K);
+      controller.reopen({
+        content: [
+          App.AlertDefinition.createRecord({id: 1, enabled: true})
+        ]
+      });
+    });
 
-    it('should call App.ajax.send function', function () {
-
-      sinon.spy(App.ajax, 'send');
-
-      controller.toggleState();
-
-      expect(App.ajax.send.calledOnce).to.be.true;
-
+    afterEach(function() {
       App.ajax.send.restore();
     });
 
+    it('should call App.ajax.send function', function () {
+      var alertDefinition = controller.get('content')[0];
+      controller.toggleDefinitionState(alertDefinition);
+      expect(App.ajax.send.calledOnce).to.be.true;
+    });
   });
 
   describe("#goToHostAlerts()", function () {

@@ -101,7 +101,7 @@ App.TableServerMixin = Em.Mixin.create({
     savedFilterConditions.forEach(function (filter) {
       var property = filterProperties.findProperty('name', colPropAssoc[filter.iColumn]);
 
-      if (property && filter.value.length > 0 && !filter.skipFilter) {
+      if (property && filter.value && filter.value.length > 0 && !filter.skipFilter) {
         property.isFilter = true;
 
         if (filter.type === 'range') {

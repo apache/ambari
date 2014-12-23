@@ -94,12 +94,20 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
         var reporting = item.AlertDefinition.source.reporting;
         for (var report in reporting) {
           if (reporting.hasOwnProperty(report)) {
-            convertedReportDefinitions.push({
-              id: item.AlertDefinition.id + report,
-              type: report,
-              text: reporting[report].text,
-              value: reporting[report].value
-            });
+            if (report == "units") {
+              convertedReportDefinitions.push({
+                id: item.AlertDefinition.id + report,
+                type: report,
+                text: reporting[report]
+              });
+            } else {
+              convertedReportDefinitions.push({
+                id: item.AlertDefinition.id + report,
+                type: report,
+                text: reporting[report].text,
+                value: reporting[report].value
+              });
+            }
           }
         }
 

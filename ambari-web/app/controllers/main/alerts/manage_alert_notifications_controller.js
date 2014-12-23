@@ -336,6 +336,10 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
         didInsertElement: function () {
           App.tooltip($('.checkbox-tooltip'));
           this.nameValidation();
+          this.emailToValidation();
+          this.emailFromValidation();
+          this.smtpPortValidation();
+          this.portValidation();
         },
 
         isEmailMethodSelected: function () {
@@ -345,6 +349,51 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
         nameValidation: function () {
           this.set('parentView.hasErrors', !this.get('controller.inputFields.name.value').trim());
         }.observes('controller.inputFields.name.value'),
+
+        emailToValidation: function () {
+          var emailTo = this.get('controller.inputFields.email.value');
+          if (emailTo && !validator.isValidEmail(emailTo)) {
+            this.set('parentView.hasErrors', true);
+            this.set('controller.inputFields.email.errorMsg', 'Must be a valid email address');
+          } else {
+            this.set('parentView.hasErrors', false);
+            this.set('controller.inputFields.email.errorMsg', null);
+          }
+        }.observes('controller.inputFields.email.value'),
+
+        emailFromValidation: function () {
+          var emailFrom = this.get('controller.inputFields.emailFrom.value');
+          if (emailFrom && !validator.isValidEmail(emailFrom)) {
+            this.set('parentView.hasErrors', true);
+            this.set('controller.inputFields.emailFrom.errorMsg', 'Must be a valid email address');
+          } else {
+            this.set('parentView.hasErrors', false);
+            this.set('controller.inputFields.emailFrom.errorMsg', null);
+          }
+        }.observes('controller.inputFields.emailFrom.value'),
+
+        smtpPortValidation: function () {
+          var value = this.get('controller.inputFields.SMTPPort.value');
+          if (value && (!validator.isValidInt(value) || value < 0)) {
+            this.set('parentView.hasErrors', true);
+            this.set('controller.inputFields.SMTPPort.errorMsg', 'Invalid! Please enter positive integer.');
+          } else {
+            this.set('parentView.hasErrors', false);
+            this.set('controller.inputFields.SMTPPort.errorMsg', null);
+          }
+        }.observes('controller.inputFields.SMTPPort.value'),
+
+        portValidation: function () {
+          var value = this.get('controller.inputFields.port.value');
+          if (value && (!validator.isValidInt(value) || value < 0)) {
+            this.set('parentView.hasErrors', true);
+            this.set('controller.inputFields.port.errorMsg', 'Invalid! Please enter positive integer.');
+          } else {
+            this.set('parentView.hasErrors', false);
+            this.set('controller.inputFields.port.errorMsg', null);
+          }
+        }.observes('controller.inputFields.port.value'),
+
 
         groupsSelectView: Em.Select.extend({
           attributeBindings: ['disabled'],

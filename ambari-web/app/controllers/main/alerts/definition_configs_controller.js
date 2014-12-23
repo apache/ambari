@@ -171,13 +171,12 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         value: isWizard ? '' : this.getThresholdsProperty('ok', 'value')
       }),
       App.AlertConfigProperties.Thresholds.WarningThreshold.create({
-        valueMetric: 'Sec',
+        valueMetric: 'Seconds',
         text: isWizard ? '' : this.getThresholdsProperty('warning', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('warning', 'value')
-
       }),
       App.AlertConfigProperties.Thresholds.CriticalThreshold.create({
-        valueMetric: 'Sec',
+        valueMetric: 'Seconds',
         text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
       })
@@ -195,6 +194,8 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
     var result = [];
     var alertDefinition = this.get('content');
     var isWizard = this.get('isWizard');
+    var units = this.get('content.reporting').findProperty('type','units') ?
+      this.get('content.reporting').findProperty('type','units').get('text'): null;
 
     if (this.get('isWizard')) {
       result = result.concat(this.renderCommonWizardConfigs());
@@ -214,10 +215,12 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         value: isWizard ? '' : this.getThresholdsProperty('ok', 'value')
       }),
       App.AlertConfigProperties.Thresholds.WarningThreshold.create({
+        valueMetric: units,
         text: isWizard ? '' : this.getThresholdsProperty('warning', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('warning', 'value')
       }),
       App.AlertConfigProperties.Thresholds.CriticalThreshold.create({
+        valueMetric: units,
         text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
       })
@@ -288,22 +291,6 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       }),
       App.AlertConfigProperties.Interval.create({
         value: isWizard ? '' : alertDefinition.get('interval')
-      }),
-      App.AlertConfigProperties.Thresholds.OkThreshold.create({
-        label: 'Thresholds',
-        showInputForValue: false,
-        text: isWizard ? '' : this.getThresholdsProperty('ok', 'text'),
-        value: isWizard ? '' : this.getThresholdsProperty('ok', 'value')
-      }),
-      App.AlertConfigProperties.Thresholds.WarningThreshold.create({
-        showInputForValue: false,
-        text: isWizard ? '' : this.getThresholdsProperty('warning', 'text'),
-        value: isWizard ? '' : this.getThresholdsProperty('warning', 'value')
-      }),
-      App.AlertConfigProperties.Thresholds.CriticalThreshold.create({
-        showInputForValue: false,
-        text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
-        value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
       })
     ]);
 
@@ -502,10 +489,14 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
    * @type {Boolean}
    */
   hasThresholdsError: function () {
-    var smallValue = Em.get(this.get('configs').findProperty('name', 'warning_threshold'), 'value');
-    var smallValid = Em.get(this.get('configs').findProperty('name', 'warning_threshold'), 'isValid');
-    var largeValue = Em.get(this.get('configs').findProperty('name', 'critical_threshold'), 'value');
-    var largeValid = Em.get(this.get('configs').findProperty('name', 'critical_threshold'), 'isValid');
+    if (this.get('configs').findProperty('name', 'warning_threshold')) {
+      var smallValue = Em.get(this.get('configs').findProperty('name', 'warning_threshold'), 'value');
+      var smallValid = Em.get(this.get('configs').findProperty('name', 'warning_threshold'), 'isValid');
+    }
+    if (this.get('configs').findProperty('name', 'critical_threshold')) {
+      var largeValue = Em.get(this.get('configs').findProperty('name', 'critical_threshold'), 'value');
+      var largeValid = Em.get(this.get('configs').findProperty('name', 'critical_threshold'), 'isValid');
+    }
     return smallValid && largeValid ? !(smallValue <= largeValue) : false;
   }.property('configs.@each.value'),
 

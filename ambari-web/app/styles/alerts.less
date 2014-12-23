@@ -414,6 +414,9 @@
     .control-label {
       font-weight: bold;
     }
+    .error-msg {
+      color: #b94a48;
+    }
   }
   label {
     width: 115px;
@@ -452,16 +455,16 @@
 
 .service-block .summary-box-header {
   .alerts-count-label,.no-alerts-label {
-    padding: 2px 4px;
-    margin-right: 5px;
-    margin-top: 5px;
+    padding: 4px 5px;
+    margin: 4px;
+    font-size: 14px;
     cursor: pointer;
   }
   .alerts-count-label {
-    background: #953B39;
+    background: @health-status-red;
   }
   .no-alerts-label {
-    background: #006400;
+    background: @health-status-green;
   }
 }
 

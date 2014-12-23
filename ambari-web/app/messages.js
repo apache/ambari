@@ -898,7 +898,7 @@ Em.I18n.translations = {
   'alerts.table.state.enabled.confirm.btn': 'Confirm Disable',
   'alerts.table.state.disabled.confirm.btn': 'Confirm Enable',
   'alerts.filters.filteredAlertsInfo': '{0} of {1} definitions showing',
-  'alerts.definition.name': 'Alert Definition name',
+  'alerts.definition.name': 'Alert Definition Name',
 
   'alerts.definition.details.enable': 'Enable',
   'alerts.definition.details.disable': 'Disable',
@@ -1934,6 +1934,8 @@ Em.I18n.translations = {
   'alerts.actions.manage_alert_notifications_popup.community':'Community',
   'alerts.actions.manage_alert_notifications_popup.port':'Port',
   'alerts.actions.manage_alert_notifications_popup.global':'Global',
+  'alerts.actions.manage_alert_notifications_popup.noDescription':'<i>No description</i>',
+  'alerts.actions.manage_alert_notifications_popup.noGroup':'<i>None selected</i>',
   'alerts.actions.manage_alert_notifications_popup.severityFilter':'Severity',
   'alerts.actions.manage_alert_notifications_popup.clearAll':'Clear All',
   'alerts.actions.manage_alert_notifications_popup.selectAll':'Select All',

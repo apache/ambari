@@ -118,9 +118,8 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
         },
         alerts: function () {
           var serviceDefinitions = this.get('controller.content').filterProperty('service', service);
-          // definitions should be sorted in order: critical, warning, all other
-          var criticalDefinitions = [];
-          var warningDefinitions = [];
+          // definitions should be sorted in order: critical, warning, ok, unknown, other
+          var criticalDefinitions = [], warningDefinitions = [], okDefinitions = [], unknownDefinitions = [];
           serviceDefinitions.forEach(function (definition) {
             if (definition.get('isCritical')) {
               criticalDefinitions.push(definition);
@@ -128,9 +127,15 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
             } else if (definition.get('isWarning')) {
               warningDefinitions.push(definition);
               serviceDefinitions = serviceDefinitions.without(definition);
+            } else if (definition.get('isOK')) {
+              okDefinitions.push(definition);
+              serviceDefinitions = serviceDefinitions.without(definition);
+            } else if (definition.get('isUnknown')) {
+              unknownDefinitions.push(definition);
+              serviceDefinitions = serviceDefinitions.without(definition);
             }
           });
-          serviceDefinitions = criticalDefinitions.concat(warningDefinitions, serviceDefinitions);
+          serviceDefinitions = criticalDefinitions.concat(warningDefinitions, okDefinitions, unknownDefinitions, serviceDefinitions);
           return serviceDefinitions;
         }.property('controller.content'),
         gotoAlertDetails: function (event) {

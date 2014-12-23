@@ -29,6 +29,12 @@ App.MainAlertInstancesController = Em.Controller.extend({
   isLoaded: false,
 
   /**
+   * A flag to reload alert instances table every 10 seconds
+   * @type {boolean}
+   */
+  reload: false,
+
+  /**
    * Causes automatic updates of content if set to true
    * @type {boolean}
    */
@@ -153,6 +159,7 @@ App.MainAlertInstancesController = Em.Controller.extend({
   getAlertInstancesSuccessCallback: function (json) {
     App.alertInstanceMapper.map(json);
     this.set('isLoaded', true);
+    this.set('reload', !this.get('reload'));
   },
 
   /**
