@@ -34,25 +34,25 @@ describe('#wrapperView', function () {
           a: App.AlertDefinition.createRecord({summary: {OK: 1, WARNING: 1}}),
           b: App.AlertDefinition.createRecord({summary: {WARNING: 1}}),
           order: true,
-          e: -1
+          e: 1
         },
         {
           a: App.AlertDefinition.createRecord({summary: {OK: 1, WARNING: 2}}),
           b: App.AlertDefinition.createRecord({summary: {OK: 1, WARNING: 1}}),
           order: true,
-          e: -1
+          e: 1
         },
         {
           a: App.AlertDefinition.createRecord({summary: {OK: 1, WARNING: 1}}),
           b: App.AlertDefinition.createRecord({summary: {WARNING: 1}}),
           order: false,
-          e: 1
+          e: -1
         },
         {
           a: App.AlertDefinition.createRecord({summary: {OK: 1, WARNING: 2}}),
           b: App.AlertDefinition.createRecord({summary: {OK: 1, WARNING: 1}}),
           order: false,
-          e: 1
+          e: -1
         }
       ]).forEach(function(test, i) {
           it('test #' + (i + 1), function () {
@@ -72,25 +72,25 @@ describe('#wrapperView', function () {
             a: Em.Object.create({lastTriggered: 1}),
             b: Em.Object.create({lastTriggered: 0}),
             order: true,
-            e: -1
+            e: 1
           },
           {
             a: Em.Object.create({lastTriggered: 1}),
             b: Em.Object.create({lastTriggered: 0}),
             order: false,
-            e: 1
+            e: -1
           },
           {
             a: Em.Object.create({lastTriggered: null}),
             b: Em.Object.create({lastTriggered: 1}),
             order: true,
-            e: Infinity
+            e: -Infinity
           },
           {
             a: Em.Object.create({lastTriggered: null}),
             b: Em.Object.create({lastTriggered: 1}),
             order: false,
-            e: -Infinity
+            e: Infinity
           }
         ]).forEach(function (test, i) {
           it('test #' + (i + 1), function () {
@@ -110,13 +110,13 @@ describe('#wrapperView', function () {
             a: Em.Object.create({serviceName: 's1'}),
             b: Em.Object.create({serviceName: 's2'}),
             order: true,
-            e: -1
+            e: 1
           },
           {
             a: Em.Object.create({serviceName: 's1'}),
             b: Em.Object.create({serviceName: 's2'}),
             order: false,
-            e: 1
+            e: -1
           },
           {
             a: Em.Object.create({serviceName: 's1'}),
@@ -128,13 +128,13 @@ describe('#wrapperView', function () {
             a: Em.Object.create({serviceName: null}),
             b: Em.Object.create({serviceName: 's2'}),
             order: true,
-            e: -1
+            e: 1
           },
           {
             a: Em.Object.create({serviceName: null}),
             b: Em.Object.create({serviceName: 's2'}),
             order: false,
-            e: 1
+            e: -1
           }
         ]).forEach(function (test, i) {
           it('test #' + (i + 1), function () {
@@ -148,7 +148,7 @@ describe('#wrapperView', function () {
         var func = sort.wrapperView.create().getSortFunc(property, true),
         a = Em.Object.create({enabled: false}),
         b = Em.Object.create({enabled: true});
-        expect(func(a, b)).to.equal(-1);
+        expect(func(a, b)).to.equal(1);
       });
 
     });

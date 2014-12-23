@@ -141,9 +141,9 @@ var wrapperView = Em.View.extend({
           var a = misc.ipToInt(a.get(property.get('name')));
           var b = misc.ipToInt(b.get(property.get('name')));
           if (order) {
-            return b - a;
-          } else {
             return a - b;
+          } else {
+            return b - a;
           }
         };
         break;
@@ -154,9 +154,9 @@ var wrapperView = Em.View.extend({
           a_p = Em.isNone(a_p) ? -Infinity : parseFloat(a_p);
           b_p = Em.isNone(b_p) ? -Infinity : parseFloat(b_p);
           if (order) {
-            return b_p - a_p;
+            return a_p - b_p;;
           } else {
-            return a_p - b_p;
+            return b_p - a_p
           }
         };
         break;
@@ -164,9 +164,9 @@ var wrapperView = Em.View.extend({
         func = function (a, b) {
           var res = stringUtils.compareVersions(a.get(property.get('name')), b.get(property.get('name')));
           if (order) {
-            return res;
-          } else {
             return -res;
+          } else {
+            return res;
           }
         };
         break;
@@ -185,10 +185,10 @@ var wrapperView = Em.View.extend({
             }
           }
           if (order) {
-            return ret;
+            return -ret;
           }
           else {
-            return -ret;
+            return ret;
           }
         };
         break;
@@ -198,7 +198,7 @@ var wrapperView = Em.View.extend({
           var b_p = b.get(property.get('name'));
           a_p = Em.isNone(a_p) ? '' : '' + a_p;
           b_p = Em.isNone(b_p) ? '' : '' + b_p;
-          return order ? a_p.localeCompare(b_p) : b_p.localeCompare(a_p)
+          return order ? b_p.localeCompare(a_p) : a_p.localeCompare(b_p);
         };
     }
     return func;
