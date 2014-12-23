@@ -769,7 +769,7 @@ public class TestHeartbeatHandler {
     s.addHostRoleExecutionCommand(DummyHostname1, Role.HBASE_MASTER,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
-            DummyHostname1, System.currentTimeMillis()), DummyCluster, HBASE);
+            DummyHostname1, System.currentTimeMillis()), DummyCluster, HBASE, false);
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
     Request request = new Request(stages, clusters);
@@ -1154,7 +1154,7 @@ public class TestHeartbeatHandler {
     s.addHostRoleExecutionCommand(DummyHostname1, Role.DATANODE, RoleCommand.INSTALL,
       new ServiceComponentHostInstallEvent(Role.DATANODE.toString(),
         DummyHostname1, System.currentTimeMillis(), "HDP-1.3.0"),
-          DummyCluster, "HDFS");
+          DummyCluster, "HDFS", false);
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
     Request request = new Request(stages, clusters);
@@ -1731,11 +1731,11 @@ public class TestHeartbeatHandler {
     s.addHostRoleExecutionCommand(DummyHostname1, Role.DATANODE, RoleCommand.UPGRADE,
       new ServiceComponentHostUpgradeEvent(Role.DATANODE.toString(),
         DummyHostname1, System.currentTimeMillis(), "HDP-1.3.0"),
-      DummyCluster, "HDFS");
+      DummyCluster, "HDFS", false);
     s.addHostRoleExecutionCommand(DummyHostname1, Role.NAMENODE, RoleCommand.INSTALL,
       new ServiceComponentHostInstallEvent(Role.NAMENODE.toString(),
         DummyHostname1, System.currentTimeMillis(), "HDP-1.3.0"),
-          DummyCluster, "HDFS");
+          DummyCluster, "HDFS", false);
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
     Request request = new Request(stages, clusters);

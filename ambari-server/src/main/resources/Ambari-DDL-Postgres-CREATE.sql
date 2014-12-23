@@ -231,6 +231,7 @@ CREATE TABLE stage (
   stage_id BIGINT NOT NULL,
   request_id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
+  skippable SMALLINT DEFAULT 0 NOT NULL,
   log_info VARCHAR(255) NOT NULL,
   request_context VARCHAR(255),
   cluster_host_info BYTEA NOT NULL,

@@ -235,6 +235,50 @@ public class StageResourceProviderTest {
     assertEquals(Double.valueOf(64.9), percent);
   }
 
+  @Test
+  public void testCalculateSummaryStatus() {
+
+    Collection<HostRoleStatus> hostRoleStatuses = new LinkedList<HostRoleStatus>();
+
+    hostRoleStatuses.add(HostRoleStatus.PENDING);
+    hostRoleStatuses.add(HostRoleStatus.PENDING);
+    hostRoleStatuses.add(HostRoleStatus.PENDING);
+    hostRoleStatuses.add(HostRoleStatus.PENDING);
+    hostRoleStatuses.add(HostRoleStatus.PENDING);
+    hostRoleStatuses.add(HostRoleStatus.PENDING);
+
+    Map<HostRoleStatus, Integer> counts = StageResourceProvider.calculateTaskStatusCounts(hostRoleStatuses);
+
+    assertEquals(HostRoleStatus.PENDING, StageResourceProvider.calculateSummaryStatus(counts, hostRoleStatuses.size(), true));
+
+    hostRoleStatuses = new LinkedList<HostRoleStatus>();
+
+    hostRoleStatuses.add(HostRoleStatus.COMPLETED);
+    hostRoleStatuses.add(HostRoleStatus.FAILED);
+    hostRoleStatuses.add(HostRoleStatus.ABORTED);
+    hostRoleStatuses.add(HostRoleStatus.ABORTED);
+    hostRoleStatuses.add(HostRoleStatus.ABORTED);
+    hostRoleStatuses.add(HostRoleStatus.ABORTED);
+
+    counts = StageResourceProvider.calculateTaskStatusCounts(hostRoleStatuses);
+
+    assertEquals(HostRoleStatus.FAILED, StageResourceProvider.calculateSummaryStatus(counts, hostRoleStatuses.size(), true));
+
+    hostRoleStatuses = new LinkedList<HostRoleStatus>();
+
+    hostRoleStatuses.add(HostRoleStatus.COMPLETED);
+    hostRoleStatuses.add(HostRoleStatus.FAILED);
+    hostRoleStatuses.add(HostRoleStatus.COMPLETED);
+    hostRoleStatuses.add(HostRoleStatus.COMPLETED);
+    hostRoleStatuses.add(HostRoleStatus.COMPLETED);
+    hostRoleStatuses.add(HostRoleStatus.COMPLETED);
+
+    counts = StageResourceProvider.calculateTaskStatusCounts(hostRoleStatuses);
+
+    assertEquals(HostRoleStatus.COMPLETED, StageResourceProvider.calculateSummaryStatus(counts, hostRoleStatuses.size(), false));
+  }
+
+
   private List<StageEntity> getStageEntities() {
     StageEntity stage = new StageEntity();
 

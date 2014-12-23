@@ -232,11 +232,11 @@ class ActionScheduler implements Runnable {
       boolean exclusiveRequestIsGoing = false;
       // This loop greatly depends on the fact that order of stages in
       // a list does not change between invocations
-      for (Stage s : stages) {
+      for (Stage stage : stages) {
         // Check if we can process this stage in parallel with another stages
         i_stage ++;
-        long requestId = s.getRequestId();
-        LOG.debug("==> STAGE_i = " + i_stage + "(requestId=" + requestId + ",StageId=" + s.getStageId() + ")");
+        long requestId = stage.getRequestId();
+        LOG.debug("==> STAGE_i = " + i_stage + "(requestId=" + requestId + ",StageId=" + stage.getStageId() + ")");
         Request request = db.getRequest(requestId);
 
         if (request.isExclusive()) {
@@ -262,7 +262,7 @@ class ActionScheduler implements Runnable {
 
         // Commands that will be scheduled in current scheduler wakeup
         List<ExecutionCommand> commandsToSchedule = new ArrayList<ExecutionCommand>();
-        Map<String, RoleStats> roleStats = processInProgressStage(s, commandsToSchedule);
+        Map<String, RoleStats> roleStats = processInProgressStage(stage, commandsToSchedule);
         // Check if stage is failed
         boolean failed = false;
         for (Map.Entry<String, RoleStats>entry : roleStats.entrySet()) {
@@ -281,14 +281,14 @@ class ActionScheduler implements Runnable {
 
         if(!failed) {
           // Prior stage may have failed and it may need to fail the whole request
-          failed = hasPreviousStageFailed(s);
+          failed = hasPreviousStageFailed(stage);
         }
 
         if (failed) {
           LOG.warn("Operation completely failed, aborting request id:"
-              + s.getRequestId());
-          cancelHostRoleCommands(s.getOrderedHostRoleCommands(), FAILED_TASK_ABORT_REASONING);
-          abortOperationsForStage(s);
+              + stage.getRequestId());
+          cancelHostRoleCommands(stage.getOrderedHostRoleCommands(), FAILED_TASK_ABORT_REASONING);
+          abortOperationsForStage(stage);
           return;
         }
 
@@ -298,18 +298,18 @@ class ActionScheduler implements Runnable {
         //Schedule what we have so far
 
         for (ExecutionCommand cmd : commandsToSchedule) {
-            processHostRole(s, cmd, commandsToStart, commandsToUpdate);
+            processHostRole(stage, cmd, commandsToStart, commandsToUpdate);
         }
 
         LOG.debug("==> Commands to start: {}", commandsToStart.size());
         LOG.debug("==> Commands to update: {}", commandsToUpdate.size());
 
         //Multimap is analog of Map<Object, List<Object>> but allows to avoid nested loop
-        ListMultimap<String, ServiceComponentHostEvent> eventMap = formEventMap(s, commandsToStart);
+        ListMultimap<String, ServiceComponentHostEvent> eventMap = formEventMap(stage, commandsToStart);
         List<ExecutionCommand> commandsToAbort = new ArrayList<ExecutionCommand>();
         if (!eventMap.isEmpty()) {
           LOG.debug("==> processing {} serviceComponentHostEvents...", eventMap.size());
-          Cluster cluster = fsmObject.getCluster(s.getClusterName());
+          Cluster cluster = fsmObject.getCluster(stage.getClusterName());
           if (cluster != null) {
             List<ServiceComponentHostEvent> failedEvents =
               cluster.processServiceComponentHostEvents(eventMap);
@@ -327,12 +327,12 @@ class ActionScheduler implements Runnable {
               }
             }
           } else {
-            LOG.warn("There was events to process but cluster {} not found", s.getClusterName());
+            LOG.warn("There was events to process but cluster {} not found", stage.getClusterName());
           }
         }
 
         LOG.debug("==> Scheduling {} tasks...", commandsToUpdate.size());
-        db.bulkHostRoleScheduled(s, commandsToUpdate);
+        db.bulkHostRoleScheduled(stage, commandsToUpdate);
 
         if (commandsToAbort.size() > 0) { // Code branch may be a bit slow, but is extremely rarely used
           LOG.debug("==> Aborting {} tasks...", commandsToAbort.size());
@@ -344,7 +344,7 @@ class ActionScheduler implements Runnable {
           Collection<HostRoleCommand> hostRoleCommands = db.getTasks(taskIds);
 
           cancelHostRoleCommands(hostRoleCommands, FAILED_TASK_ABORT_REASONING);
-          db.bulkAbortHostRole(s, commandsToAbort);
+          db.bulkAbortHostRole(stage, commandsToAbort);
         }
 
         LOG.debug("==> Adding {} tasks to queue...", commandsToUpdate.size());
@@ -412,7 +412,9 @@ class ActionScheduler implements Runnable {
 
   private boolean hasPreviousStageFailed(Stage stage) {
     boolean failed = false;
+
     long prevStageId = stage.getStageId() - 1;
+
     if (prevStageId > 0) {
       // Find previous stage instance
       List<Stage> allStages = db.getAllStages(stage.getRequestId());
@@ -424,34 +426,36 @@ class ActionScheduler implements Runnable {
         }
       }
 
-      //It may be null for test scenarios
-      if(prevStage != null) {
-        Map<Role, Integer> hostCountsForRoles = new HashMap<Role, Integer>();
-        Map<Role, Integer> failedHostCountsForRoles = new HashMap<Role, Integer>();
+      // If the previous stage is skippable then we shouldn't automatically fail the given stage
+      if (prevStage == null || prevStage.isSkippable()) {
+        return false;
+      }
 
-        for (String host : prevStage.getHostRoleCommands().keySet()) {
-          Map<String, HostRoleCommand> roleCommandMap = prevStage.getHostRoleCommands().get(host);
-          for (String role : roleCommandMap.keySet()) {
-            HostRoleCommand c = roleCommandMap.get(role);
-            if (hostCountsForRoles.get(c.getRole()) == null) {
-              hostCountsForRoles.put(c.getRole(), 0);
-              failedHostCountsForRoles.put(c.getRole(), 0);
-            }
-            int hostCount = hostCountsForRoles.get(c.getRole());
-            hostCountsForRoles.put(c.getRole(), hostCount + 1);
-            if (c.getStatus().isFailedState()) {
-              int failedHostCount = failedHostCountsForRoles.get(c.getRole());
-              failedHostCountsForRoles.put(c.getRole(), failedHostCount + 1);
-            }
+      Map<Role, Integer> hostCountsForRoles       = new HashMap<Role, Integer>();
+      Map<Role, Integer> failedHostCountsForRoles = new HashMap<Role, Integer>();
+
+      for (String host : prevStage.getHostRoleCommands().keySet()) {
+        Map<String, HostRoleCommand> roleCommandMap = prevStage.getHostRoleCommands().get(host);
+        for (String role : roleCommandMap.keySet()) {
+          HostRoleCommand c = roleCommandMap.get(role);
+          if (hostCountsForRoles.get(c.getRole()) == null) {
+            hostCountsForRoles.put(c.getRole(), 0);
+            failedHostCountsForRoles.put(c.getRole(), 0);
+          }
+          int hostCount = hostCountsForRoles.get(c.getRole());
+          hostCountsForRoles.put(c.getRole(), hostCount + 1);
+          if (c.getStatus().isFailedState()) {
+            int failedHostCount = failedHostCountsForRoles.get(c.getRole());
+            failedHostCountsForRoles.put(c.getRole(), failedHostCount + 1);
           }
         }
+      }
 
-        for (Role role : hostCountsForRoles.keySet()) {
-          float failedHosts = failedHostCountsForRoles.get(role);
-          float totalHosts = hostCountsForRoles.get(role);
-          if (((totalHosts - failedHosts) / totalHosts) < prevStage.getSuccessFactor(role)) {
-            failed = true;
-          }
+      for (Role role : hostCountsForRoles.keySet()) {
+        float failedHosts = failedHostCountsForRoles.get(role);
+        float totalHosts = hostCountsForRoles.get(role);
+        if (((totalHosts - failedHosts) / totalHosts) < prevStage.getSuccessFactor(role)) {
+          failed = true;
         }
       }
     }

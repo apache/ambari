@@ -166,7 +166,7 @@ public class StageUtils {
     long now = System.currentTimeMillis();
     s.addHostRoleExecutionCommand(hostname, Role.NAMENODE, RoleCommand.INSTALL,
         new ServiceComponentHostInstallEvent("NAMENODE", hostname, now, "HDP-1.2.0"),
-        "cluster1", "HDFS");
+        "cluster1", "HDFS", false);
     ExecutionCommand execCmd = s.getExecutionCommandWrapper(hostname, "NAMENODE").getExecutionCommand();
     execCmd.setCommandId(s.getActionId());
     List<String> slaveHostList = new ArrayList<String>();

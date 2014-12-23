@@ -89,6 +89,7 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
   public static final String STAGE_CLUSTER_HOST_INFO = "Stage/cluster_host_info";
   public static final String STAGE_COMMAND_PARAMS = "Stage/command_params";
   public static final String STAGE_HOST_PARAMS = "Stage/host_params";
+  public static final String STAGE_SKIPPABLE = "Stage/skippable";
   public static final String STAGE_PROGRESS_PERCENT = "Stage/progress_percent";
   public static final String STAGE_STATUS = "Stage/status";
   public static final String STAGE_START_TIME = "Stage/start_time";
@@ -115,6 +116,7 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
     PROPERTY_IDS.add(STAGE_CLUSTER_HOST_INFO);
     PROPERTY_IDS.add(STAGE_COMMAND_PARAMS);
     PROPERTY_IDS.add(STAGE_HOST_PARAMS);
+    PROPERTY_IDS.add(STAGE_SKIPPABLE);
     PROPERTY_IDS.add(STAGE_PROGRESS_PERCENT);
     PROPERTY_IDS.add(STAGE_STATUS);
     PROPERTY_IDS.add(STAGE_START_TIME);
@@ -265,7 +267,7 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
 
     Map<HostRoleStatus, Integer> taskStatusCounts = calculateTaskStatusCounts(getHostRoleStatuses(tasks));
 
-    HostRoleStatus currentStatus = calculateSummaryStatus(taskStatusCounts, tasks.size());
+    HostRoleStatus currentStatus = calculateSummaryStatus(taskStatusCounts, tasks.size(), !entity.isSkippable());
 
     if (!isValidManualTransition(currentStatus, desiredStatus)) {
       throw new IllegalArgumentException("Can not transition a stage from " +
@@ -316,6 +318,7 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
     setResourceProperty(resource, STAGE_CLUSTER_HOST_INFO, entity.getClusterHostInfo(), requestedIds);
     setResourceProperty(resource, STAGE_COMMAND_PARAMS, entity.getCommandParamsStage(), requestedIds);
     setResourceProperty(resource, STAGE_HOST_PARAMS, entity.getHostParamsStage(), requestedIds);
+    setResourceProperty(resource, STAGE_SKIPPABLE, entity.isSkippable(), requestedIds);
 
     Collection<HostRoleCommandEntity> tasks = entity.getHostRoleCommands();
 
@@ -336,7 +339,8 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
 
     setResourceProperty(resource, STAGE_PROGRESS_PERCENT, calculateProgressPercent(taskStatusCounts, taskCount),
         requestedIds);
-    setResourceProperty(resource, STAGE_STATUS, calculateSummaryStatus(taskStatusCounts, taskCount).toString(),
+    setResourceProperty(resource, STAGE_STATUS,
+        calculateSummaryStatus(taskStatusCounts, taskCount, !entity.isSkippable()).toString(),
         requestedIds);
 
     return resource;
@@ -364,16 +368,18 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
    *
    * @param counters  counts of resources that are in various states
    * @param total     total number of resources in request
+   * @param failAll   true if a single failed status should result in an overall failed status return
    *
    * @return summary request status based on statuses of tasks in different states.
    */
-  protected static HostRoleStatus calculateSummaryStatus(Map<HostRoleStatus, Integer> counters, int total) {
+  protected static HostRoleStatus calculateSummaryStatus(Map<HostRoleStatus, Integer> counters, int total,
+                                                         boolean failAll) {
     return counters.get(HostRoleStatus.HOLDING) > 0 ? HostRoleStatus.HOLDING :
         counters.get(HostRoleStatus.HOLDING_FAILED) > 0 ? HostRoleStatus.HOLDING_FAILED :
         counters.get(HostRoleStatus.HOLDING_TIMEDOUT) > 0 ? HostRoleStatus.HOLDING_TIMEDOUT :
-        counters.get(HostRoleStatus.FAILED) > 0 ? HostRoleStatus.FAILED :
+        counters.get(HostRoleStatus.FAILED) > 0 && failAll ? HostRoleStatus.FAILED :
         counters.get(HostRoleStatus.ABORTED) > 0 ? HostRoleStatus.ABORTED :
-        counters.get(HostRoleStatus.TIMEDOUT) > 0 ? HostRoleStatus.TIMEDOUT :
+        counters.get(HostRoleStatus.TIMEDOUT) > 0 && failAll ? HostRoleStatus.TIMEDOUT :
         counters.get(HostRoleStatus.IN_PROGRESS) > 0 ? HostRoleStatus.IN_PROGRESS :
         counters.get(HostRoleStatus.COMPLETED) == total ? HostRoleStatus.COMPLETED : HostRoleStatus.PENDING;
   }
