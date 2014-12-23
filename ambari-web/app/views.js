@@ -57,6 +57,7 @@ require('views/main/alert_definitions_view');
 require('views/main/alerts/definition_details_view');
 require('views/main/alerts/alert_definitions_actions_view');
 require('views/main/alerts/definition_configs_view');
+require('views/main/alerts/manage_alert_groups/select_definitions_popup_body_view');
 require('views/main/alerts/add_alert_definition/add_alert_definition_view');
 require('views/main/alerts/add_alert_definition/step1_view');
 require('views/main/alerts/add_alert_definition/step2_view');

@@ -16,22 +16,38 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
+
 var validator = require('utils/validator');
 var numberUtils = require('utils/number_utils');
 
 App.ManageAlertGroupsController = Em.Controller.extend({
+
   name: 'manageAlertGroupsController',
 
+  /**
+   * @type {boolean}
+   */
   isLoaded: false,
 
+  /**
+   * @type {App.AlertGroup[]}
+   */
   alertGroups: [],
 
+  /**
+   * @type {App.AlertGroup[]}
+   */
   originalAlertGroups: [],
 
+  /**
+   * @type {App.AlertGroup}
+   */
   selectedAlertGroup: null,
 
+  /**
+   * @type {App.AlertDefinition[]}
+   */
   selectedDefinitions: [],
 
   /**
@@ -39,8 +55,8 @@ App.ManageAlertGroupsController = Em.Controller.extend({
    * @type {App.AlertNotification[]}
    */
   alertNotifications: function () {
-    return this.get('isLoaded') ? App.AlertNotification.find().map (function (target) {
-      return Em.Object.create ({
+    return this.get('isLoaded') ? App.AlertNotification.find().map(function (target) {
+      return Em.Object.create({
         name: target.get('name'),
         id: target.get('id'),
         description: target.get('description'),
@@ -59,8 +75,86 @@ App.ManageAlertGroupsController = Em.Controller.extend({
   }.property('alertNotifications'),
 
   /**
+   * @type {boolean}
+   */
+  isRemoveButtonDisabled: true,
+
+  /**
+   * @type {boolean}
+   */
+  isRenameButtonDisabled: true,
+
+  /**
+   * @type {boolean}
+   */
+  isDuplicateButtonDisabled: true,
+
+  /**
+   * @type {boolean}
+   */
+  isDeleteDefinitionsDisabled: function () {
+    var selectedGroup = this.get('selectedAlertGroup');
+    return selectedGroup ? (selectedGroup.default || this.get('selectedDefinitions').length === 0) : true;
+  }.property('selectedAlertGroup', 'selectedAlertGroup.definitions.length', 'selectedDefinitions.length'),
+
+  /**
+   * observes if any group changed including: group name, newly created group, deleted group, group with definitions/notifications changed
+   * @type {{toDelete: App.AlertGroup[], toSet: App.AlertGroup[], toCreate: App.AlertGroup[]}}
+   */
+  defsModifiedAlertGroups: function () {
+    if (!this.get('isLoaded')) {
+      return false;
+    }
+    var groupsToDelete = [];
+    var groupsToSet = [];
+    var groupsToCreate = [];
+    var groups = this.get('alertGroups'); //current alert groups
+    var originalGroups = this.get('originalAlertGroups'); // original alert groups
+    var originalGroupsIds = originalGroups.mapProperty('id');
+    groups.forEach(function (group) {
+      var originalGroup = originalGroups.findProperty('id', group.get('id'));
+      if (originalGroup) {
+        // should update definitions or notifications
+        if (!(JSON.stringify(group.get('definitions').slice().sort()) === JSON.stringify(originalGroup.get('definitions').slice().sort()))
+          || !(JSON.stringify(group.get('notifications').slice().sort()) === JSON.stringify(originalGroup.get('notifications').slice().sort()))) {
+          groupsToSet.push(group.set('id', originalGroup.get('id')));
+        } else if (group.get('name') !== originalGroup.get('name')) {
+          // should update name
+          groupsToSet.push(group.set('id', originalGroup.get('id')));
+        }
+        originalGroupsIds = originalGroupsIds.without(group.get('id'));
+      } else {
+        // should add new group
+        groupsToCreate.push(group);
+      }
+    });
+    // should delete groups
+    originalGroupsIds.forEach(function (id) {
+      groupsToDelete.push(originalGroups.findProperty('id', id));
+    }, this);
+    return {
+      toDelete: groupsToDelete,
+      toSet: groupsToSet,
+      toCreate: groupsToCreate
+    };
+  }.property('selectedAlertGroup.definitions.@each', 'selectedAlertGroup.definitions.length', 'selectedAlertGroup.notifications.@each', 'selectedAlertGroup.notifications.length', 'alertGroups', 'isLoaded'),
+
+  /**
+   * Determines if some group was edited/created/deleted
+   * @type {boolean}
+   */
+  isDefsModified: function () {
+    var modifiedGroups = this.get('defsModifiedAlertGroups');
+    if (!this.get('isLoaded')) {
+      return false;
+    }
+    return !!(modifiedGroups.toSet.length || modifiedGroups.toCreate.length || modifiedGroups.toDelete.length);
+  }.property('defsModifiedAlertGroups'),
+
+  /**
    * Load all Alert Notifications from server
-   * @returns {$.ajax|null}
+   * @returns {$.ajax}
+   * @method loadAlertNotifications
    */
   loadAlertNotifications: function () {
     this.set('isLoaded', false);
@@ -98,11 +192,12 @@ App.ManageAlertGroupsController = Em.Controller.extend({
 
   /**
    * Load all alert groups from alert group model
+   * @method loadAlertGroups
    */
   loadAlertGroups: function () {
     var alertGroups = App.AlertGroup.find().map(function (group) {
-      var definitions = group.get('definitions').map (function (def) {
-        return Em.Object.create ({
+      var definitions = group.get('definitions').map(function (def) {
+        return Em.Object.create({
           name: def.get('name'),
           serviceName: def.get('serviceName'),
           componentName: def.get('componentName'),
@@ -113,8 +208,8 @@ App.ManageAlertGroupsController = Em.Controller.extend({
         });
       });
 
-      var targets = group.get('targets').map (function (target) {
-        return Em.Object.create ({
+      var targets = group.get('targets').map(function (target) {
+        return Em.Object.create({
           name: target.get('name'),
           id: target.get('id'),
           description: target.get('description'),
@@ -150,21 +245,6 @@ App.ManageAlertGroupsController = Em.Controller.extend({
   },
 
   /**
-   * @type {boolean}
-   */
-  isRemoveButtonDisabled: true,
-
-  /**
-   * @type {boolean}
-   */
-  isRenameButtonDisabled: true,
-
-  /**
-   * @type {boolean}
-   */
-  isDuplicateButtonDisabled: true,
-
-  /**
    * Enable/disable "Remove"/"Rename"/"Duplicate" buttons basing on <code>controller.selectedAlertGroup</code>
    * @method buttonObserver
    */
@@ -176,13 +256,16 @@ App.ManageAlertGroupsController = Em.Controller.extend({
     this.set('isDuplicateButtonDisabled', false);
   }.observes('selectedAlertGroup'),
 
-  resortAlertGroup: function() {
-    var alertGroups = Ember.copy(this.get('alertGroups'));
-    if(alertGroups.length < 2){
+  /**
+   * @method resortAlertGroup
+   */
+  resortAlertGroup: function () {
+    var alertGroups = Em.copy(this.get('alertGroups'));
+    if (alertGroups.length < 2) {
       return;
     }
     var defaultGroups = alertGroups.filterProperty('default');
-    defaultGroups.forEach( function(defaultGroup) {
+    defaultGroups.forEach(function (defaultGroup) {
       alertGroups.removeObject(defaultGroup);
     });
     var sorted = defaultGroups.sortProperty('name').concat(alertGroups.sortProperty('name'));
@@ -194,6 +277,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
 
   /**
    * remove definitions from group
+   * @method deleteDefinitions
    */
   deleteDefinitions: function () {
     if (this.get('isDeleteDefinitionsDisabled')) {
@@ -206,17 +290,12 @@ App.ManageAlertGroupsController = Em.Controller.extend({
     this.set('selectedDefinitions', []);
   },
 
-  isDeleteDefinitionsDisabled: function () {
-    var selectedGroup = this.get('selectedAlertGroup');
-    if (selectedGroup) {
-      return selectedGroup.default || this.get('selectedDefinitions').length === 0;
-    }
-    return true;
-  }.property('selectedAlertGroup', 'selectedAlertGroup.definitions.length', 'selectedDefinitions.length'),
-
   /**
    * Provides alert definitions which are available for inclusion in
    * non-default alert groups.
+   * @param {App.AlertGroup} selectedAlertGroup
+   * @method getAvailableDefinitions
+   * @return {{name: string, serviceName: string, componentName: string, serviceNameDisplay: string, componentNameDisplay: string, label: string, id: number}[]}
    */
   getAvailableDefinitions: function (selectedAlertGroup) {
     if (selectedAlertGroup.get('default')) return [];
@@ -232,8 +311,8 @@ App.ManageAlertGroupsController = Em.Controller.extend({
         availableDefinitions.pushObject(shared_def);
       }
     });
-    return availableDefinitions.map (function (def) {
-      return Em.Object.create ({
+    return availableDefinitions.map(function (def) {
+      return Em.Object.create({
         name: def.get('name'),
         serviceName: def.get('serviceName'),
         componentName: def.get('componentName'),
@@ -247,9 +326,10 @@ App.ManageAlertGroupsController = Em.Controller.extend({
 
   /**
    * add alert definitions to a group
+   * @method addDefinitions
    */
   addDefinitions: function () {
-    if (this.get('selectedAlertGroup.isAddDefinitionsDisabled')){
+    if (this.get('selectedAlertGroup.isAddDefinitionsDisabled')) {
       return false;
     }
     var availableDefinitions = this.getAvailableDefinitions(this.get('selectedAlertGroup'));
@@ -271,20 +351,37 @@ App.ManageAlertGroupsController = Em.Controller.extend({
         selected: false
       });
     });
-    this.launchDefsSelectionDialog (availableDefinitions, [], validServices, validComponents, this.addDefinitionsCallback.bind(this), popupDescription);
+    this.launchDefsSelectionDialog(availableDefinitions, [], validServices, validComponents, this.addDefinitionsCallback.bind(this), popupDescription);
   },
 
   /**
    * Launch a table view of all available definitions to choose
+   * @method launchDefsSelectionDialog
+   * @return {App.ModalPopup}
    */
-  launchDefsSelectionDialog : function(initialDefs, selectedDefs, validServices, validComponents, callback, popupDescription) {
+  launchDefsSelectionDialog: function (initialDefs, selectedDefs, validServices, validComponents, callback, popupDescription) {
 
-    App.ModalPopup.show({
+    return App.ModalPopup.show({
+
       classNames: [ 'sixty-percent-width-modal' ],
+
       header: popupDescription.header,
+
+      /**
+       * @type {string}
+       */
       dialogMessage: popupDescription.dialogMessage,
+
+      /**
+       * @type {string|null}
+       */
       warningMessage: null,
+
+      /**
+       * @type {App.AlertDefinition[]}
+       */
       availableDefs: [],
+
       onPrimary: function () {
         this.set('warningMessage', null);
         var arrayOfSelectedDefs = this.get('availableDefs').filterProperty('selected', true);
@@ -296,114 +393,36 @@ App.ManageAlertGroupsController = Em.Controller.extend({
         console.debug('(new-selectedDefs)=', arrayOfSelectedDefs);
         this.hide();
       },
+
+      /**
+       * Primary button should be disabled while alert definitions are not loaded
+       * @type {boolean}
+       */
       disablePrimary: function () {
         return !this.get('isLoaded');
       }.property('isLoaded'),
+
       onSecondary: function () {
         callback(null);
         this.hide();
       },
-      bodyClass: App.TableView.extend({
-        templateName: require('templates/main/alerts/add_definition_to_group_popup'),
-        controllerBinding: 'App.router.manageAlertGroupsController',
-        isPaginate: true,
-        filteredContent: function() {
-          return this.get('parentView.availableDefs').filterProperty('filtered') || [];
-        }.property('parentView.availableDefs.@each.filtered'),
 
-        showOnlySelectedDefs: false,
+      bodyClass: App.SelectDefinitionsPopupBodyView.extend({
+
         filterComponents: validComponents,
-        filterServices: validServices,
-        filterComponent: null,
-        filterService: null,
-        isDisabled: function () {
-          return !this.get('parentView.isLoaded');
-        }.property('parentView.isLoaded'),
-        didInsertElement: function(){
-          initialDefs.setEach('filtered', true);
-          this.set('parentView.availableDefs', initialDefs);
-          this.set('parentView.isLoaded', true);
-        },
-        filterDefs: function () {
-          var showOnlySelectedDefs = this.get('showOnlySelectedDefs');
-          var filterComponent = this.get('filterComponent');
-          var filterService = this.get('filterService');
-          this.get('parentView.availableDefs').forEach(function (defObj) {
-            var componentOnObj = true;
-            var serviceOnObj = true;
-            if (filterComponent) {
-              componentOnObj = (defObj.componentName == filterComponent.get('componentName'));
-            }
-            if (defObj.serviceName && filterService) {
-              serviceOnObj = (defObj.serviceName == filterService.get('serviceName'));
-            }
-            if (showOnlySelectedDefs) {
-              defObj.set('filtered', componentOnObj && serviceOnObj && defObj.get('selected'));
-            } else {
-              defObj.set('filtered', componentOnObj && serviceOnObj);
-            }
-          }, this);
-          this.set('startIndex', 1);
-        }.observes('parentView.availableDefs', 'filterService', 'filterService.serviceName', 'filterComponent', 'filterComponent.componentName', 'showOnlySelectedDefs'),
-        defSelectMessage: function () {
-          var defs = this.get('parentView.availableDefs');
-          var selectedDefs = defs.filterProperty('selected', true);
-          return this.t('alerts.actions.manage_alert_groups_popup.selectDefsDialog.selectedDefsLink').format(selectedDefs.get('length'), defs.get('length'));
-        }.property('parentView.availableDefs.@each.selected'),
 
-        selectFilterComponent: function (event) {
-          if (event != null && event.context != null && event.context.componentName != null) {
-            var currentFilter = this.get('filterComponent');
-            if (currentFilter != null) {
-              currentFilter.set('selected', false);
-            }
-            if (currentFilter != null && currentFilter.componentName === event.context.componentName) {
-              // selecting the same filter deselects it.
-              this.set('filterComponent', null);
-            } else {
-              this.set('filterComponent', event.context);
-              event.context.set('selected', true);
-            }
-          }
-        },
-        selectFilterService: function (event) {
-          if (event != null && event.context != null && event.context.serviceName != null) {
-            var currentFilter = this.get('filterService');
-            if (currentFilter != null) {
-              currentFilter.set('selected', false);
-            }
-            if (currentFilter != null && currentFilter.serviceName === event.context.serviceName) {
-              // selecting the same filter deselects it.
-              this.set('filterService', null);
-            } else {
-              this.set('filterService', event.context);
-              event.context.set('selected', true);
-            }
-          }
-        },
-        allDefsSelected: false,
-        toggleSelectAllDefs: function (event) {
-          this.get('parentView.availableDefs').filterProperty('filtered').setEach('selected', this.get('allDefsSelected'));
-        }.observes('allDefsSelected'),
-        toggleShowSelectedDefs: function () {
-          var filter1 = this.get('filterComponent');
-          if (filter1 != null) {
-            filter1.set('selected', false);
-          }
-          var filter2 = this.get('filterService');
-          if (filter2 != null) {
-            filter2.set('selected', false);
-          }
-          this.set('filterComponent', null);
-          this.set('filterService', null);
-          this.set('showOnlySelectedDefs', !this.get('showOnlySelectedDefs'));
-        }
+        filterServices: validServices,
+
+        initialDefs: initialDefs
+
       })
+
     });
   },
 
   /**
    * add alert definitions callback
+   * @method addDefinitionsCallback
    */
   addDefinitionsCallback: function (selectedDefs) {
     var group = this.get('selectedAlertGroup');
@@ -416,76 +435,26 @@ App.ManageAlertGroupsController = Em.Controller.extend({
   },
 
   /**
-   * observes if any group changed including: group name, newly created group, deleted group, group with definitions/notifications changed
-   */
-  defsModifiedAlertGroups: function () {
-    if (!this.get('isLoaded')) {
-      return false;
-    }
-    var groupsToDelete = [];
-    var groupsToSet = [];
-    var groupsToCreate = [];
-    var groups = this.get('alertGroups'); //current alert groups
-    var originalGroups = this.get('originalAlertGroups'); // original alert groups
-    var originalGroupsIds = originalGroups.mapProperty('id');
-    groups.forEach(function (group) {
-      var originalGroup = originalGroups.findProperty('id', group.get('id'));
-      if (originalGroup) {
-        // should update definitions or nitifications
-        if (!(JSON.stringify(group.get('definitions').slice().sort()) === JSON.stringify(originalGroup.get('definitions').slice().sort()))
-         || !(JSON.stringify(group.get('notifications').slice().sort()) === JSON.stringify(originalGroup.get('notifications').slice().sort()))) {
-          groupsToSet.push(group.set('id', originalGroup.get('id')));
-        } else if (group.get('name') !== originalGroup.get('name') ) {
-          // should update name
-          groupsToSet.push(group.set('id', originalGroup.get('id')));
-        }
-        originalGroupsIds = originalGroupsIds.without(group.get('id'));
-      } else {
-        // should add new group
-        groupsToCreate.push(group);
-      }
-    });
-    // should delete groups
-    originalGroupsIds.forEach(function (id) {
-      groupsToDelete.push(originalGroups.findProperty('id', id));
-    }, this);
-    return {
-      toDelete: groupsToDelete,
-      toSet: groupsToSet,
-      toCreate: groupsToCreate
-    };
-  }.property('selectedAlertGroup.definitions.@each', 'selectedAlertGroup.definitions.length', 'selectedAlertGroup.notifications.@each', 'selectedAlertGroup.notifications.length', 'alertGroups', 'isLoaded'),
-
-  isDefsModified: function () {
-    var modifiedGroups = this.get('defsModifiedAlertGroups');
-    if (!this.get('isLoaded')) {
-      return false;
-    }
-    return !!(modifiedGroups.toSet.length || modifiedGroups.toCreate.length || modifiedGroups.toDelete.length);
-  }.property('defsModifiedAlertGroups'),
-
-  /**
    * copy alert groups for backup, to compare with current alert groups, so will know if some groups changed/added/deleted
-   * @param originGroups
-   * @return {Array}
+   * @param {App.AlertGroup[]} originGroups
+   * @return {App.AlertGroup[]}
+   * @method copyAlertGroups
    */
   copyAlertGroups: function (originGroups) {
     var alertGroups = [];
     originGroups.forEach(function (alertGroup) {
-      var copiedGroup =  Em.Object.create($.extend(true, {}, alertGroup));
+      var copiedGroup = Em.Object.create($.extend(true, {}, alertGroup));
       alertGroups.pushObject(copiedGroup);
     });
     return alertGroups;
   },
 
   /**
-   * ==============on API side: following are four functions to an alert group: create, delete, update definitions/notificationss/label of a group ===========
-   */
-  /**
    * Create a new alert group
-   * @param newAlertGroupData
-   * @param callback    Callback function for Success or Error handling
-   * @return  Returns the created alert group
+   * @param {Em.Object} newAlertGroupData
+   * @param {callback} callback Callback function for Success or Error handling
+   * @return {App.AlertGroup} Returns the created alert group
+   * @method postNewAlertGroup
    */
   postNewAlertGroup: function (newAlertGroupData, callback) {
     // create a new group with name , definition and notifications
@@ -527,6 +496,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
    * @param {App.AlertGroup} alertGroup
    * @param {Function} successCallback
    * @param {Function} errorCallback
+   * @method updateAlertGroup
    */
   updateAlertGroup: function (alertGroup, successCallback, errorCallback) {
     var sendData = {
@@ -554,6 +524,13 @@ App.ManageAlertGroupsController = Em.Controller.extend({
     App.ajax.send(sendData);
   },
 
+  /**
+   * Request for deleting alert group
+   * @param {App.AlertGroup} alertGroup
+   * @param {callback} successCallback
+   * @param {callback} errorCallback
+   * @method removeAlertGroup
+   */
   removeAlertGroup: function (alertGroup, successCallback, errorCallback) {
     var sendData = {
       name: 'alert_groups.delete',
@@ -578,22 +555,20 @@ App.ManageAlertGroupsController = Em.Controller.extend({
   },
 
   /**
-   *  =============on UI side: following are four operations to an alert group: add, remove, rename and duplicate==================
-   */
-
-  /**
    * confirm delete alert group
+   * @method confirmDelete
    */
-  confirmDelete : function () {
+  confirmDelete: function () {
     if (this.get('isRemoveButtonDisabled')) return;
     var self = this;
-    App.showConfirmationPopup(function() {
+    App.showConfirmationPopup(function () {
       self.deleteAlertGroup();
     });
   },
 
   /**
    * delete selected alert group
+   * @method deleteAlertGroup
    */
   deleteAlertGroup: function () {
     var selectedAlertGroup = this.get('selectedAlertGroup');
@@ -605,20 +580,38 @@ App.ManageAlertGroupsController = Em.Controller.extend({
   },
 
   /**
-   * rename non-default alert group
+   * Rename non-default alert group
+   * @method renameAlertGroup
    */
   renameAlertGroup: function () {
-    if(this.get('selectedAlertGroup.default')) {
+
+    if (this.get('selectedAlertGroup.default')) {
       return;
     }
     var self = this;
-    this.renameGroupPopup = App.ModalPopup.show({
+    var popup;
+    popup = App.ModalPopup.show({
+
       header: Em.I18n.t('alerts.actions.manage_alert_groups_popup.renameButton'),
+
       bodyClass: Ember.View.extend({
         templateName: require('templates/main/alerts/create_new_alert_group')
       }),
+
+      /**
+       * @type {string}
+       */
       alertGroupName: self.get('selectedAlertGroup.name'),
+
+      /**
+       * @type {string|null}
+       */
       warningMessage: null,
+
+      /**
+       * New group name should be unique and valid
+       * @method validate
+       */
       validate: function () {
         var warningMessage = '';
         var originalGroup = self.get('selectedAlertGroup');
@@ -626,57 +619,95 @@ App.ManageAlertGroupsController = Em.Controller.extend({
 
         if (originalGroup.get('name').trim() === groupName) {
           warningMessage = Em.I18n.t("alerts.actions.manage_alert_groups_popup.addGroup.exist");
-        } else {
+        }
+        else {
           if (self.get('alertGroups').mapProperty('displayName').contains(groupName)) {
             warningMessage = Em.I18n.t("alerts.actions.manage_alert_groups_popup.addGroup.exist");
           }
-          else if (groupName && !validator.isValidAlertGroupName(groupName)) {
-            warningMessage = Em.I18n.t("form.validator.alertGroupName");
+          else {
+            if (groupName && !validator.isValidAlertGroupName(groupName)) {
+              warningMessage = Em.I18n.t("form.validator.alertGroupName");
+            }
           }
         }
         this.set('warningMessage', warningMessage);
       }.observes('alertGroupName'),
+
+      /**
+       * Primary button is disabled while user doesn't input valid group name
+       * @type {boolean}
+       */
       disablePrimary: function () {
         return !(this.get('alertGroupName').trim().length > 0 && (this.get('warningMessage') !== null && !this.get('warningMessage')));
       }.property('warningMessage', 'alertGroupName'),
+
       onPrimary: function () {
         self.set('selectedAlertGroup.name', this.get('alertGroupName'));
         this.hide();
       }
+
     });
+    this.set('renameGroupPopup', popup);
   },
 
   /**
-   * create new alert group
+   * Create new alert group
+   * @param {boolean} duplicated is new group a copy of the existing group
+   * @method addAlertGroup
    */
   addAlertGroup: function (duplicated) {
     duplicated = (duplicated === true);
     var self = this;
-    this.addGroupPopup = App.ModalPopup.show({
+    var popup = App.ModalPopup.show({
+
       header: Em.I18n.t('alerts.actions.manage_alert_groups_popup.addButton'),
-      bodyClass: Ember.View.extend({
+
+      bodyClass: Em.View.extend({
         templateName: require('templates/main/alerts/create_new_alert_group')
       }),
+
+      /**
+       * Name for new alert group
+       * @type {string}
+       */
       alertGroupName: duplicated ? self.get('selectedAlertGroup.name') + ' Copy' : "",
+
+      /**
+       * @type {string}
+       */
       warningMessage: '',
-      didInsertElement: function(){
+
+      didInsertElement: function () {
+        this._super();
         this.validate();
-        this.$('input').focus();
       },
+
+      /**
+       * alert group name should be unique and valid
+       * @method validate
+       */
       validate: function () {
         var warningMessage = '';
         var groupName = this.get('alertGroupName').trim();
         if (self.get('alertGroups').mapProperty('displayName').contains(groupName)) {
           warningMessage = Em.I18n.t("alerts.actions.manage_alert_groups_popup.addGroup.exist");
         }
-        else if (groupName && !validator.isValidAlertGroupName(groupName)) {
-          warningMessage = Em.I18n.t("form.validator.alertGroupName");
+        else {
+          if (groupName && !validator.isValidAlertGroupName(groupName)) {
+            warningMessage = Em.I18n.t("form.validator.alertGroupName");
+          }
         }
         this.set('warningMessage', warningMessage);
       }.observes('alertGroupName'),
+
+      /**
+       * Primary button is disabled while user doesn't input valid group name
+       * @type {boolean}
+       */
       disablePrimary: function () {
         return !(this.get('alertGroupName').trim().length > 0 && !this.get('warningMessage'));
       }.property('warningMessage', 'alertGroupName'),
+
       onPrimary: function () {
         var newAlertGroup = Em.Object.create({
           name: this.get('alertGroupName').trim(),
@@ -700,10 +731,15 @@ App.ManageAlertGroupsController = Em.Controller.extend({
         self.set('selectedAlertGroup', newAlertGroup);
         this.hide();
       }
+
     });
+    this.set('addGroupPopup', popup);
   },
 
-  duplicateAlertGroup: function() {
+  /**
+   * @method duplicateAlertGroup
+   */
+  duplicateAlertGroup: function () {
     this.addAlertGroup(true);
   }
 

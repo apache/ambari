@@ -17,24 +17,29 @@
  */
 
 var App = require('app');
-describe('App.ManageAlertGroupsController', function() {
 
-  var manageAlertGroupsController = App.ManageAlertGroupsController.create({});
+var manageAlertGroupsController;
+describe('App.ManageAlertGroupsController', function () {
 
-  describe('#addAlertGroup', function() {
-    beforeEach(function() {
+  beforeEach(function () {
+    manageAlertGroupsController = App.ManageAlertGroupsController.create({});
+  });
+
+  describe('#addAlertGroup', function () {
+
+    beforeEach(function () {
       manageAlertGroupsController.addAlertGroup();
     });
 
-    describe("#validate", function() {
-      it("should display no warning if user inputs valid characters into group name", function() {
+    describe("#validate", function () {
+      it("should display no warning if user inputs valid characters into group name", function () {
 
         manageAlertGroupsController.addGroupPopup.set('alertGroupName', 'test');
 
         expect(manageAlertGroupsController.addGroupPopup.warningMessage).to.be.empty;
       });
 
-      it("should display warning if user inputs invalid characters into group name", function() {
+      it("should display warning if user inputs invalid characters into group name", function () {
         manageAlertGroupsController.addGroupPopup.set('alertGroupName', '/{"!@#$%');
 
         expect(manageAlertGroupsController.addGroupPopup.warningMessage).to.equal('Invalid Alert Group Name. Only alphanumerics, hyphens, spaces and underscores are allowed.');
@@ -43,9 +48,9 @@ describe('App.ManageAlertGroupsController', function() {
     });
   });
 
-  describe('#duplicateAlertGroup', function() {
-    beforeEach(function() {
-      var group = Ember.Object.create ({
+  describe('#duplicateAlertGroup', function () {
+    beforeEach(function () {
+      var group = Ember.Object.create({
         name: 'test'
       });
 
@@ -53,8 +58,8 @@ describe('App.ManageAlertGroupsController', function() {
       manageAlertGroupsController.duplicateAlertGroup();
     });
 
-    describe("#validate", function() {
-      it("should display no warning if user duplicate an existed group", function() {
+    describe("#validate", function () {
+      it("should display no warning if user duplicate an existed group", function () {
         manageAlertGroupsController.addGroupPopup.set('alertGroupName', 'test Copy');
 
         expect(manageAlertGroupsController.addGroupPopup.warningMessage).to.be.empty;
@@ -62,9 +67,9 @@ describe('App.ManageAlertGroupsController', function() {
     });
   });
 
-  describe('#renameAlertGroup', function() {
-    beforeEach(function() {
-      var group = Ember.Object.create ({
+  describe('#renameAlertGroup', function () {
+    beforeEach(function () {
+      var group = Ember.Object.create({
         name: 'test'
       });
 
@@ -72,14 +77,14 @@ describe('App.ManageAlertGroupsController', function() {
       manageAlertGroupsController.renameAlertGroup();
     });
 
-    describe("#validate", function() {
-      it("should display no warning if user inputs valid characters into group name", function() {
+    describe("#validate", function () {
+      it("should display no warning if user inputs valid characters into group name", function () {
         manageAlertGroupsController.renameGroupPopup.set('alertGroupName', 'hello');
 
         expect(manageAlertGroupsController.renameGroupPopup.warningMessage).to.be.empty;
       });
 
-      it("should display warning if user inputs invalid characters into group name", function() {
+      it("should display warning if user inputs invalid characters into group name", function () {
         manageAlertGroupsController.renameGroupPopup.set('alertGroupName', '/{"!@#$%');
 
         expect(manageAlertGroupsController.renameGroupPopup.warningMessage).to.equal('Invalid Alert Group Name. Only alphanumerics, hyphens, spaces and underscores are allowed.');
@@ -87,7 +92,7 @@ describe('App.ManageAlertGroupsController', function() {
     });
   });
 
-  describe('#deleteDefinitions', function() {
+  describe('#deleteDefinitions', function () {
     var definitions = [
       Em.Object.create({
         name: 'def1',
@@ -109,11 +114,11 @@ describe('App.ManageAlertGroupsController', function() {
       })
     ];
 
-    beforeEach(function() {
+    beforeEach(function () {
       manageAlertGroupsController = App.ManageAlertGroupsController.create({});
     });
 
-    var createAlertGroupMock = function(groupDefs) {
+    var createAlertGroupMock = function (groupDefs) {
       return Em.Object.create({
         definitions: groupDefs,
         name: 'group'
@@ -138,8 +143,8 @@ describe('App.ManageAlertGroupsController', function() {
       }
     ];
 
-    tests.forEach(function(test) {
-      it('delete definitions length {0} definitions'.format(test.selectedDefinitions.slice(0).length), function() {
+    tests.forEach(function (test) {
+      it('delete definitions length {0} definitions'.format(test.selectedDefinitions.slice(0).length), function () {
         manageAlertGroupsController.reopen({
           selectedDefinitions: test.selectedDefinitions,
           selectedAlertGroup: test.selectedAlertGroup
@@ -151,7 +156,7 @@ describe('App.ManageAlertGroupsController', function() {
 
   });
 
-  describe('#addDefinitionsCallback', function() {
+  describe('#addDefinitionsCallback', function () {
 
     var definitions = [
       Em.Object.create({
@@ -195,18 +200,18 @@ describe('App.ManageAlertGroupsController', function() {
       })
     ];
 
-    beforeEach(function() {
+    beforeEach(function () {
       manageAlertGroupsController = App.ManageAlertGroupsController.create({});
     });
 
-    var createAlertGroupMock = function(groupDefs) {
+    var createAlertGroupMock = function (groupDefs) {
       return Em.Object.create({
         definitions: groupDefs,
         name: 'group'
       });
     };
 
-    var result = function(originalDefs, addedDefs) {
+    var result = function (originalDefs, addedDefs) {
       var result = originalDefs.concat(addedDefs);
       return result;
     };
@@ -229,8 +234,8 @@ describe('App.ManageAlertGroupsController', function() {
       }
     ];
 
-    tests.forEach(function(test) {
-      it('add Definitions length {0} definitions'.format(test.selectedDefinitions.slice(0).length), function() {
+    tests.forEach(function (test) {
+      it('add Definitions length {0} definitions'.format(test.selectedDefinitions.slice(0).length), function () {
         manageAlertGroupsController.set('selectedAlertGroup', test.selectedAlertGroup);
         manageAlertGroupsController.addDefinitionsCallback(test.selectedDefinitions);
         expect(manageAlertGroupsController.get('selectedAlertGroup.definitions').toArray()).to.eql(test.e);
@@ -238,5 +243,6 @@ describe('App.ManageAlertGroupsController', function() {
     });
 
   });
+
 });
 
