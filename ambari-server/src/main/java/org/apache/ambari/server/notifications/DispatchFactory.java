@@ -25,6 +25,7 @@ import org.apache.ambari.server.notifications.dispatchers.EmailDispatcher;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
+import org.apache.ambari.server.notifications.dispatchers.SNMPDispatcher;
 
 /**
  * The {@link DispatchFactory} is used to provide singleton instances of
@@ -45,8 +46,9 @@ public class DispatchFactory {
   @Inject
   public DispatchFactory(Injector injector) {
     EmailDispatcher emailDispatcher = injector.getInstance(EmailDispatcher.class);
-
+    SNMPDispatcher snmpDispatcher = injector.getInstance(SNMPDispatcher.class);
     m_dispatchers.put(emailDispatcher.getType(), emailDispatcher);
+    m_dispatchers.put(snmpDispatcher.getType(), snmpDispatcher);
   }
 
   /**
