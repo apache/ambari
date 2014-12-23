@@ -177,9 +177,9 @@ public class ApplicationHistoryServer extends CompositeService {
               ahsClientService, "ws")
             .with(getConfig())
             .withHttpSpnegoPrincipalKey(
-              YarnConfiguration.TIMELINE_SERVICE_WEBAPP_SPNEGO_USER_NAME_KEY)
+              YarnConfiguration.TIMELINE_SERVICE_PRINCIPAL)
             .withHttpSpnegoKeytabKey(
-              YarnConfiguration.TIMELINE_SERVICE_WEBAPP_SPNEGO_KEYTAB_FILE_KEY)
+              YarnConfiguration.TIMELINE_SERVICE_KEYTAB)
             .at(bindAddress)
             .start(new AHSWebApp(historyManager, timelineStore, timelineMetricStore));
     } catch (Exception e) {

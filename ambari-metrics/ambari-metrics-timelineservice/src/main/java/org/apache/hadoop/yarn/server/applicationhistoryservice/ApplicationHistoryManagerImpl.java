@@ -171,6 +171,7 @@ public class ApplicationHistoryManagerImpl extends AbstractService implements
     return ApplicationAttemptReport.newInstance(
       appAttemptHistory.getApplicationAttemptId(), appAttemptHistory.getHost(),
       appAttemptHistory.getRPCPort(), appAttemptHistory.getTrackingURL(),
+      null,
       appAttemptHistory.getDiagnosticsInfo(),
       appAttemptHistory.getYarnApplicationAttemptState(),
       appAttemptHistory.getMasterContainerId());
