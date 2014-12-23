@@ -29,3 +29,12 @@ namenode_pid_file = format("{hdp_pid_dir}/hadoop-{hdfs_user}-namenode.pid")
 snamenode_pid_file = format("{hdp_pid_dir}/hadoop-{hdfs_user}-secondarynamenode.pid")
 journalnode_pid_file = format("{hdp_pid_dir}/hadoop-{hdfs_user}-journalnode.pid")
 zkfc_pid_file = format("{hdp_pid_dir}/hadoop-{hdfs_user}-zkfc.pid")
+
+# Security related/required params
+hostname = config['hostname']
+security_enabled = config['configurations']['cluster-env']['security_enabled']
+hdfs_user_principal = config['configurations']['hadoop-env']['hdfs_principal_name']
+hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
+hadoop_conf_dir = "/etc/hadoop/conf"
+kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+tmp_dir = Script.get_tmp_dir()
