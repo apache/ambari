@@ -36,7 +36,9 @@ with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   from ambari_agent.StackVersionsFileHandler import StackVersionsFileHandler
   from ambari_agent.HostInfo import HostInfoLinux
 
+from only_for_platform import only_for_platform, PLATFORM_LINUX
 
+@only_for_platform(PLATFORM_LINUX)
 class TestHeartbeat(TestCase):
 
   def setUp(self):

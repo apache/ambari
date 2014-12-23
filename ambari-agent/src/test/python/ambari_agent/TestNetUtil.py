@@ -22,7 +22,7 @@ from ambari_agent import NetUtil
 from mock.mock import MagicMock, patch
 import unittest
 import threading
-
+from only_for_platform import only_for_platform, PLATFORM_LINUX
 class TestNetUtil(unittest.TestCase):
 
   @patch("urlparse.urlparse")
@@ -50,7 +50,7 @@ class TestNetUtil(unittest.TestCase):
     httpsConMock.side_effect = Exception("test")
     self.assertFalse(netutil.checkURL("url")[0])
 
-
+  @only_for_platform(PLATFORM_LINUX)
   @patch("time.sleep")
   @patch.object(threading._Event, "wait")
   def test_try_to_connect(self, event_mock,

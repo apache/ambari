@@ -104,7 +104,12 @@ class TestPythonExecutor(TestCase):
     executor = PythonExecutor("/tmp", AmbariConfig().getConfig())
     _, tmpoutfile = tempfile.mkstemp()
     _, tmperrfile = tempfile.mkstemp()
-    _, tmpstroutfile = tempfile.mkstemp()
+    # PythonExecutor need only filename and will try to delete this file before execution, this will fail on windows
+    # so we will use NamedTemporaryFile only to generate temp file and close it immediately after creation
+    tmp_file = tempfile.NamedTemporaryFile(delete=False)
+    tmpstroutfile = tmp_file.name
+    tmp_file.close()
+
     PYTHON_TIMEOUT_SECONDS =  5
 
     def launch_python_subprocess_method(command, tmpout, tmperr):

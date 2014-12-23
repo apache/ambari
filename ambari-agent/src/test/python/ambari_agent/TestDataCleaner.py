@@ -23,21 +23,21 @@ import unittest
 from mock.mock import patch, MagicMock, call, Mock
 from ambari_agent import DataCleaner
 import AmbariConfig
-
+import os
 
 class TestDataCleaner(unittest.TestCase):
 
   def setUp(self):
-    self.test_dir = [('/test_path', [],
+    self.test_dir = [('test_path', [],
                       ['errors-12.txt', 'output-12.txt', 'site-12.pp', 'site-13.pp', 'site-15.pp',
                        'structured-out-13.json', 'command-13.json', 'version'])]
     self.config = MagicMock()
-    self.config.get.side_effect = [2592000, (3600 + 1), 10000, "/test_path"]
+    self.config.get.side_effect = [2592000, (3600 + 1), 10000, "test_path"]
     DataCleaner.logger = MagicMock()
 
   def test_init_success(self):
     config = MagicMock()
-    config.get.side_effect = [2592000, (3600 + 1), 10000, "/test_path"]
+    config.get.side_effect = [2592000, (3600 + 1), 10000, "test_path"]
     DataCleaner.logger.reset_mock()
     cleaner = DataCleaner.DataCleaner(config)
     self.assertFalse(DataCleaner.logger.warn.called)
@@ -59,7 +59,7 @@ class TestDataCleaner(unittest.TestCase):
 
   def test_init_warn(self):
     config = MagicMock()
-    config.get.side_effect = [1, (3600 - 1), (10000 + 1), "/test_path"]
+    config.get.side_effect = [1, (3600 - 1), (10000 + 1), "test_path"]
     DataCleaner.logger.reset_mock()
     cleaner = DataCleaner.DataCleaner(config)
     self.assertTrue(DataCleaner.logger.warn.called)
@@ -85,12 +85,12 @@ class TestDataCleaner(unittest.TestCase):
     cleaner.cleanup()
 
     self.assertTrue(len(remMock.call_args_list) == 6)
-    remMock.assert_any_call('/test_path/errors-12.txt')
-    remMock.assert_any_call('/test_path/output-12.txt')
-    remMock.assert_any_call('/test_path/site-12.pp')
-    remMock.assert_any_call('/test_path/site-15.pp')
-    remMock.assert_any_call('/test_path/structured-out-13.json')
-    remMock.assert_any_call('/test_path/command-13.json')
+    remMock.assert_any_call(os.path.join('test_path', 'errors-12.txt'))
+    remMock.assert_any_call(os.path.join('test_path', 'output-12.txt'))
+    remMock.assert_any_call(os.path.join('test_path', 'site-12.pp'))
+    remMock.assert_any_call(os.path.join('test_path', 'site-15.pp'))
+    remMock.assert_any_call(os.path.join('test_path', 'structured-out-13.json'))
+    remMock.assert_any_call(os.path.join('test_path', 'command-13.json'))
     pass
 
   @patch('os.walk')
@@ -108,11 +108,10 @@ class TestDataCleaner(unittest.TestCase):
     sizeMock.return_value = 100
 
     def side_effect(arg):
-      if arg == '/test_path/site-15.pp':
+      if arg == os.path.join('test_path', 'site-15.pp'):
         raise Exception("Can't remove file")
 
     remMock.side_effect = side_effect
-
     cleaner = DataCleaner.DataCleaner(self.config)
     cleaner.cleanup()
 

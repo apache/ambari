@@ -27,6 +27,7 @@ import tempfile
 import shutil
 import os, pprint, json,stat
 from mock.mock import patch
+from only_for_platform import only_for_platform, PLATFORM_LINUX
 
 class TestHostname(TestCase):
 
@@ -38,6 +39,7 @@ class TestHostname(TestCase):
                       "hostname should equal the socket-based hostname")
     pass
 
+  @only_for_platform(PLATFORM_LINUX)
   def test_hostname_override(self):
     hostname.cached_hostname = None
     hostname.cached_public_hostname = None
@@ -60,6 +62,7 @@ class TestHostname(TestCase):
       config.remove_option('agent', 'hostname_script')
     pass
 
+  @only_for_platform(PLATFORM_LINUX)
   def test_public_hostname_override(self):
     hostname.cached_hostname = None
     hostname.cached_public_hostname = None

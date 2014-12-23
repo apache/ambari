@@ -23,12 +23,19 @@ import doctest
 from os.path import dirname, split, isdir
 import logging.handlers
 import logging
+import platform
+from only_for_platform import get_platform, PLATFORM_WINDOWS
 #TODO Add an option to randomize the tests' execution
 #from random import shuffle
 
 LOG_FILE_NAME='tests.log'
 SELECTED_PREFIX = "_"
 PY_EXT='.py'
+
+if get_platform() == PLATFORM_WINDOWS:
+  IGNORE_FOLDERS = ["resource_management"]
+else:
+  IGNORE_FOLDERS = ["resource_management_windows"]
 
 class TestAgent(unittest.TestSuite):
   def run(self, result):
@@ -54,7 +61,7 @@ def all_tests_suite():
   src_dir = os.getcwd()
   files_list = []
   for directory in os.listdir(src_dir):
-    if os.path.isdir(directory):
+    if os.path.isdir(directory) and not (directory in IGNORE_FOLDERS):
       files_list += os.listdir(src_dir + os.sep + directory)
   #TODO Add an option to randomize the tests' execution
   #shuffle(files_list)
@@ -77,7 +84,7 @@ def all_tests_suite():
   logger.info('------------------------------------------------------------------------')
 
   suite = unittest.TestLoader().loadTestsFromNames(tests_list)
-  return TestAgent([suite])
+  return unittest.TestSuite([suite])
 
 def main():
 
@@ -93,7 +100,10 @@ def main():
     logger.error('Python unit tests failed')
     logger.error('Find detailed logs in ' + path)
     logger.error('-----------------------------------------------------------------------')
-    exit(1)
+    if get_platform() == PLATFORM_WINDOWS:
+      os._exit(1)
+    else:
+      exit(1)
   else:
     logger.info('------------------------------------------------------------------------')
     logger.info('Python unit tests finished succesfully')
@@ -102,7 +112,6 @@ def main():
 if __name__ == '__main__':
   import os
   import sys
-  import io
   sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
   sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + os.sep + 'main' + os.sep + 'python')
   sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + os.sep + 'main' + os.sep + 'python' + os.sep + 'ambari_agent')

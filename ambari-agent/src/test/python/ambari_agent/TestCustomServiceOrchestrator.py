@@ -41,6 +41,7 @@ from FileCache import FileCache
 from LiveStatus import LiveStatus
 from BackgroundCommandExecutionHandle import BackgroundCommandExecutionHandle
 from ambari_agent.ActionQueue import ActionQueue
+from only_for_platform import get_platform, PLATFORM_WINDOWS
 
 
 class TestCustomServiceOrchestrator(TestCase):
@@ -114,7 +115,8 @@ class TestCustomServiceOrchestrator(TestCase):
     json_file = orchestrator.dump_command_to_json(command)
     self.assertTrue(os.path.exists(json_file))
     self.assertTrue(os.path.getsize(json_file) > 0)
-    self.assertEqual(oct(os.stat(json_file).st_mode & 0777), '0600')
+    if get_platform() != PLATFORM_WINDOWS:
+      self.assertEqual(oct(os.stat(json_file).st_mode & 0777), '0600')
     self.assertTrue(json_file.endswith("command-3.json"))
     self.assertTrue(decompress_cluster_host_info_mock.called)
     os.unlink(json_file)
@@ -124,7 +126,8 @@ class TestCustomServiceOrchestrator(TestCase):
     json_file = orchestrator.dump_command_to_json(command)
     self.assertTrue(os.path.exists(json_file))
     self.assertTrue(os.path.getsize(json_file) > 0)
-    self.assertEqual(oct(os.stat(json_file).st_mode & 0777), '0600')
+    if get_platform() != PLATFORM_WINDOWS:
+      self.assertEqual(oct(os.stat(json_file).st_mode & 0777), '0600')
     self.assertTrue(json_file.endswith("status_command.json"))
     self.assertFalse(decompress_cluster_host_info_mock.called)
     os.unlink(json_file)
@@ -143,13 +146,13 @@ class TestCustomServiceOrchestrator(TestCase):
     # Testing existing path
     exists_mock.return_value = True
     path = orchestrator.\
-      resolve_script_path("/HBASE/package", "scripts/hbase_master.py", "PYTHON")
-    self.assertEqual("/HBASE/package/scripts/hbase_master.py", path)
+      resolve_script_path(os.path.join("HBASE", "package"), os.path.join("scripts", "hbase_master.py"), "PYTHON")
+    self.assertEqual(os.path.join("HBASE", "package", "scripts", "hbase_master.py"), path)
     # Testing not existing path
     exists_mock.return_value = False
     try:
       orchestrator.resolve_script_path("/HBASE",
-                                       "scripts/hbase_master.py", "PYTHON")
+                                       os.path.join("scripts", "hbase_master.py"), "PYTHON")
       self.fail('ExpectedException not thrown')
     except AgentException:
       pass # Expected
@@ -314,8 +317,11 @@ class TestCustomServiceOrchestrator(TestCase):
     self.assertFalse(command['taskId'] in orchestrator.commands_in_progress.keys())
     self.assertTrue(os.path.exists(out))
     self.assertTrue(os.path.exists(err))
-    os.remove(out)
-    os.remove(err)
+    try:
+      os.remove(out)
+      os.remove(err)
+    except:
+      pass
 
   from ambari_agent.StackVersionsFileHandler import StackVersionsFileHandler
 
@@ -437,13 +443,13 @@ class TestCustomServiceOrchestrator(TestCase):
     self.assertEqual(res1, None)
     # Testing existing hook script
     isfile_mock.return_value = True
-    res2 = orchestrator.resolve_hook_script_path("/hooks_dir/", "prefix", "command",
+    res2 = orchestrator.resolve_hook_script_path("hooks_dir", "prefix", "command",
                                             "script_type")
-    self.assertEqual(res2, ('/hooks_dir/prefix-command/scripts/hook.py',
-                            '/hooks_dir/prefix-command'))
+    self.assertEqual(res2, (os.path.join('hooks_dir', 'prefix-command', 'scripts', 'hook.py'),
+                            os.path.join('hooks_dir', 'prefix-command')))
     # Testing not existing hook script
     isfile_mock.return_value = False
-    res3 = orchestrator.resolve_hook_script_path("/hooks_dir/", "prefix", "command",
+    res3 = orchestrator.resolve_hook_script_path("hooks_dir", "prefix", "command",
                                                  "script_type")
     self.assertEqual(res3, None)
 

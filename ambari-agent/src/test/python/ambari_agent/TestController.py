@@ -28,14 +28,23 @@ import logging
 import platform
 from threading import Event
 import json
+from ambari_commons import OSCheck
+from only_for_platform import only_for_platform, get_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
 
-with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
+if get_platform() != PLATFORM_WINDOWS:
+  os_distro_value = ('Suse','11','Final')
+else:
+  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
+
+with patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value)):
   from ambari_agent import Controller, ActionQueue, Register
   from ambari_agent import hostname
   from ambari_agent.Controller import AGENT_AUTO_RESTART_EXIT_CODE
   from ambari_commons import OSCheck
+  import ambari_commons
 
-@patch.object(platform, "linux_distribution", new = ('Suse','11','Final'))
+@only_for_platform(PLATFORM_LINUX)
+@patch.object(OSCheck, "os_distribution", new = os_distro_value)
 class TestController(unittest.TestCase):
 
   logger = logging.getLogger()

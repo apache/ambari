@@ -175,7 +175,7 @@ class TestSecurity(unittest.TestCase):
     self.config.set('security', 'keysdir', '/dummy-keysdir')
     man = CertificateManager(self.config)
     res = man.getAgentKeyName()
-    self.assertEquals(res, "/dummy-keysdir/dummy.hostname.key")
+    self.assertEquals(res, os.path.abspath("/dummy-keysdir/dummy.hostname.key"))
 
 
   @patch("ambari_agent.hostname.hostname")
@@ -184,7 +184,7 @@ class TestSecurity(unittest.TestCase):
     self.config.set('security', 'keysdir', '/dummy-keysdir')
     man = CertificateManager(self.config)
     res = man.getAgentCrtName()
-    self.assertEquals(res, "/dummy-keysdir/dummy.hostname.crt")
+    self.assertEquals(res, os.path.abspath("/dummy-keysdir/dummy.hostname.crt"))
 
 
   @patch("ambari_agent.hostname.hostname")
@@ -193,14 +193,14 @@ class TestSecurity(unittest.TestCase):
     self.config.set('security', 'keysdir', '/dummy-keysdir')
     man = CertificateManager(self.config)
     res = man.getAgentCrtReqName()
-    self.assertEquals(res, "/dummy-keysdir/dummy.hostname.csr")
+    self.assertEquals(res, os.path.abspath("/dummy-keysdir/dummy.hostname.csr"))
 
 
   def test_getSrvrCrtName(self):
     self.config.set('security', 'keysdir', '/dummy-keysdir')
     man = CertificateManager(self.config)
     res = man.getSrvrCrtName()
-    self.assertEquals(res, "/dummy-keysdir/ca.crt")
+    self.assertEquals(res, os.path.abspath("/dummy-keysdir/ca.crt"))
 
 
   @patch("os.path.exists")
@@ -265,8 +265,10 @@ class TestSecurity(unittest.TestCase):
     # Checking file contents
     saved = open(tmpoutfile, 'r').read()
     self.assertEqual(saved, read_mock.read.return_value)
-
-    os.unlink(tmpoutfile)
+    try:
+      os.unlink(tmpoutfile)
+    except:
+      pass
 
 
   @patch("ambari_agent.hostname.hostname")

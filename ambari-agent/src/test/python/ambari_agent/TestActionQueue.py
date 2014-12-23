@@ -37,6 +37,12 @@ from ambari_agent.CommandStatusDict import CommandStatusDict
 from ambari_agent.ActualConfigHandler import ActualConfigHandler
 from FileCache import FileCache
 from ambari_commons import OSCheck
+from only_for_platform import only_for_platform, get_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
+
+if get_platform() != PLATFORM_WINDOWS:
+  os_distro_value = ('Suse','11','Final')
+else:
+  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
 
 class TestActionQueue(TestCase):
   def setUp(self):
@@ -275,7 +281,7 @@ class TestActionQueue(TestCase):
     actionQueue.process_command(execution_command)
     self.assertTrue(print_exc_mock.called)
 
-  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = ('Suse','11','Final')))
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("__builtin__.open")
   @patch.object(ActionQueue, "status_update_callback")
   def test_execute_command(self, status_update_callback_mock, open_mock):
@@ -326,9 +332,9 @@ class TestActionQueue(TestCase):
       if len(report['reports']) != 0:
         break
     expected = {'status': 'IN_PROGRESS',
-                'stderr': 'Read from {0}/errors-3.txt'.format(tempdir),
-                'stdout': 'Read from {0}/output-3.txt'.format(tempdir),
-                'structuredOut' : 'Read from {0}/structured-out-3.json'.format(tempdir),
+                'stderr': 'Read from {0}'.format(os.path.join(tempdir, "errors-3.txt")),
+                'stdout': 'Read from {0}'.format(os.path.join(tempdir, "output-3.txt")),
+                'structuredOut' : 'Read from {0}'.format(os.path.join(tempdir, "structured-out-3.json")),
                 'clusterName': u'cc',
                 'roleCommand': u'INSTALL',
                 'serviceName': u'HDFS',
@@ -648,7 +654,8 @@ class TestActionQueue(TestCase):
     
     report = actionQueue.result()
     self.assertEqual(len(report['reports']),1)
-      
+
+  @only_for_platform(PLATFORM_LINUX)
   @patch.object(CustomServiceOrchestrator, "resolve_script_path")
   @patch.object(StackVersionsFileHandler, "read_stack_version")
   def test_execute_python_executor(self, read_stack_version_mock, resolve_script_path_mock):

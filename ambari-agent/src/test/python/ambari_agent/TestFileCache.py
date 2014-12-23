@@ -64,15 +64,15 @@ class TestFileCache(TestCase):
     fileCache = FileCache(self.config)
     command = {
       'commandParams' : {
-        'service_package_folder' : 'stacks/HDP/2.1.1/services/ZOOKEEPER/package'
+        'service_package_folder' : os.path.join('stacks', 'HDP', '2.1.1', 'services', 'ZOOKEEPER', 'package')
       }
     }
     res = fileCache.get_service_base_dir(command, "server_url_pref")
     self.assertEquals(
       pprint.pformat(provide_directory_mock.call_args_list[0][0]),
       "('/var/lib/ambari-agent/cache',\n "
-      "'stacks/HDP/2.1.1/services/ZOOKEEPER/package',\n"
-      " 'server_url_pref')")
+      "{0},\n"
+      " 'server_url_pref')".format(pprint.pformat(os.path.join('stacks', 'HDP', '2.1.1', 'services', 'ZOOKEEPER', 'package'))))
     self.assertEquals(res, "dummy value")
 
 
@@ -91,7 +91,7 @@ class TestFileCache(TestCase):
     # Check existing dir case
     command = {
       'commandParams' : {
-        'hooks_folder' : 'HDP/2.1.1/hooks'
+        'hooks_folder' : os.path.join('HDP', '2.1.1', 'hooks')
       }
     }
     provide_directory_mock.return_value = "dummy value"
@@ -100,8 +100,8 @@ class TestFileCache(TestCase):
     self.assertEquals(
       pprint.pformat(provide_directory_mock.call_args_list[0][0]),
       "('/var/lib/ambari-agent/cache', "
-      "'stacks/HDP/2.1.1/hooks', "
-      "'server_url_pref')")
+      "{0}, "
+      "'server_url_pref')".format(pprint.pformat(os.path.join('stacks','HDP', '2.1.1', 'hooks'))))
     self.assertEquals(res, "dummy value")
 
 
@@ -134,7 +134,7 @@ class TestFileCache(TestCase):
 
     # Test uptodate dirs after start
     self.assertFalse(fileCache.uptodate_paths)
-
+    path = os.path.join("cache_path", "subdirectory")
     # Test initial downloading (when dir does not exist)
     fetch_url_mock.return_value = membuffer
     read_hash_sum_mock.return_value = "hash2"
@@ -144,8 +144,8 @@ class TestFileCache(TestCase):
     self.assertTrue(write_hash_sum_mock.called)
     self.assertEquals(fetch_url_mock.call_count, 2)
     self.assertEquals(pprint.pformat(fileCache.uptodate_paths),
-                     "['cache_path/subdirectory']")
-    self.assertEquals(res, 'cache_path/subdirectory')
+                      pprint.pformat([path]))
+    self.assertEquals(res, path)
 
     fetch_url_mock.reset_mock()
     write_hash_sum_mock.reset_mock()
@@ -162,9 +162,10 @@ class TestFileCache(TestCase):
     self.assertFalse(invalidate_directory_mock.called)
     self.assertFalse(write_hash_sum_mock.called)
     self.assertEquals(fetch_url_mock.call_count, 1)
+
     self.assertEquals(pprint.pformat(fileCache.uptodate_paths),
-                      "['cache_path/subdirectory']")
-    self.assertEquals(res, 'cache_path/subdirectory')
+                      pprint.pformat([path]))
+    self.assertEquals(res, path)
 
     fetch_url_mock.reset_mock()
     write_hash_sum_mock.reset_mock()
@@ -178,8 +179,8 @@ class TestFileCache(TestCase):
     self.assertFalse(write_hash_sum_mock.called)
     self.assertEquals(fetch_url_mock.call_count, 0)
     self.assertEquals(pprint.pformat(fileCache.uptodate_paths),
-                      "['cache_path/subdirectory']")
-    self.assertEquals(res, 'cache_path/subdirectory')
+                      pprint.pformat([path]))
+    self.assertEquals(res, path)
 
     # Check exception handling when tolerance is disabled
     self.config.set('agent', 'tolerate_download_failures', "false")
@@ -213,7 +214,7 @@ class TestFileCache(TestCase):
     fileCache = FileCache(self.config)
     res = fileCache.provide_directory("cache_path", "subdirectory",
                                   "server_url_prefix")
-    self.assertEquals(res, 'cache_path/subdirectory')
+    self.assertEquals(res, path)
 
 
   def test_build_download_url(self):
@@ -322,15 +323,11 @@ class TestFileCache(TestCase):
 
   def test_unpack_archive(self):
     tmpdir = tempfile.mkdtemp()
-    dummy_archive = os.path.join("ambari_agent", "dummy_files",
+    dummy_archive_name = os.path.join("ambari_agent", "dummy_files",
                                  "dummy_archive.zip")
-    # Test normal flow
-    with open(dummy_archive, "r") as f:
-      data = f.read(os.path.getsize(dummy_archive))
-      membuf = StringIO.StringIO(data)
-
+    archive_file = open(dummy_archive_name, "rb")
     fileCache = FileCache(self.config)
-    fileCache.unpack_archive(membuf, tmpdir)
+    fileCache.unpack_archive(archive_file, tmpdir)
     # Count summary size of unpacked files:
     total_size = 0
     total_files = 0
@@ -350,7 +347,7 @@ class TestFileCache(TestCase):
     with patch("os.path.isdir") as isdir_mock:
       isdir_mock.side_effect = self.exc_side_effect
       try:
-        fileCache.unpack_archive(membuf, tmpdir)
+        fileCache.unpack_archive(archive_file, tmpdir)
         self.fail('CachingException not thrown')
       except CachingException:
         pass # Expected

@@ -52,7 +52,7 @@ err: /Stage[main]//Exec[command_good]/returns: change from notrun to 0 failed: w
 debug: /Schedule[weekly]: Skipping device resources because running on a host
 debug: /Schedule[puppet]: Skipping device resources because running on a host
 debug: Finishing transaction 70171639726240
-""".strip()
+""".replace("\n", os.linesep).strip()
     self.assertEquals(fragment, desired, "Grep grep function should return only last 3 lines of file")
 
   def test_grep_no_result(self):
@@ -82,7 +82,7 @@ debug: Finishing transaction 70171639726240
 debug: Finishing transaction 70060456663980
 debug: Received report to process from ambari-dmi
 debug: Processing report from ambari-dmi with processor Puppet::Reports::Store
-""".strip()
+""".replace("\n", os.linesep).strip()
     self.assertEquals(fragment, desired, "Grep tail function should return only last 3 lines of file")
 
   def test_tail_no_lines(self):
@@ -104,7 +104,7 @@ debug: Processing report from ambari-dmi with processor Puppet::Reports::Store
 info: Applying configuration version '1352127563'
 err: /Stage[main]//Exec[command_good]/returns: change from notrun to 0 failed: wget e432423423xample.com/badurl444111 returned 4 instead of one of [0] at /root/puppet-learn/2-bad.pp:5
 notice: Finished catalog run in 0.23 seconds
-""".strip()
+""".replace("\n", os.linesep).strip()
     self.assertEquals(fragment, desired, 'Grep cleanByTemplate function should return string without debug lines.')
 
 

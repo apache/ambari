@@ -22,6 +22,7 @@ from unittest import TestCase
 from mock.mock import patch
 import unittest
 import platform
+from only_for_platform import only_for_platform, PLATFORM_LINUX
 
 with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   from ambari_agent import hostname
@@ -29,6 +30,7 @@ with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   from ambari_agent.Facter import Facter, FacterLinux
   from ambari_commons import OSCheck
 
+@only_for_platform(PLATFORM_LINUX)
 @patch.object(platform,"linux_distribution", new = ('Suse','11','Final'))
 class TestHardware(TestCase):
   @patch.object(OSCheck, "get_os_type")

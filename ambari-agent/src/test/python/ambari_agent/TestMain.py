@@ -25,19 +25,27 @@ import signal
 import os
 import socket
 import tempfile
+import platform
 import ConfigParser
-
+from ambari_commons import OSCheck
+from only_for_platform import only_for_platform, get_platform, PLATFORM_WINDOWS, PLATFORM_LINUX
 from mock.mock import MagicMock, patch, ANY, Mock
 
-with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
+if get_platform() != PLATFORM_WINDOWS:
+  os_distro_value = ('Suse','11','Final')
+else:
+  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
+
+with patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value)):
   from ambari_agent import NetUtil, security
-  from ambari_agent import ProcessHelper, main
   from ambari_agent import ProcessHelper, main
   from ambari_agent.AmbariConfig import AmbariConfig
   from ambari_agent.PingPortListener import PingPortListener
   from ambari_agent.Controller import Controller
   from ambari_agent.DataCleaner import DataCleaner
   import ambari_agent.HeartbeatHandlers as HeartbeatHandlers
+  from ambari_commons.os_check import OSConst, OSCheck
+
   from ambari_agent.shell import shellRunner
 
 class TestMain(unittest.TestCase):
@@ -52,7 +60,7 @@ class TestMain(unittest.TestCase):
     # enable stdout
     sys.stdout = sys.__stdout__
 
-
+  @only_for_platform(PLATFORM_LINUX)
   @patch("ambari_agent.HeartbeatHandlers.HeartbeatStopHandlersLinux")
   @patch("os._exit")
   @patch("os.getpid")
@@ -119,7 +127,7 @@ class TestMain(unittest.TestCase):
     main.update_log_level(config)
     setLevel_mock.assert_called_with(logging.INFO)
 
-
+  @only_for_platform(PLATFORM_LINUX)
   @patch("signal.signal")
   def test_bind_signal_handlers(self, signal_mock):
     main.bind_signal_handlers(os.getpid())
@@ -162,11 +170,12 @@ class TestMain(unittest.TestCase):
 
     exit_mock.reset_mock()
 
-    # Trying case if there is another instance running
-    isfile_mock.return_value = True
-    isdir_mock.return_value = True
-    main.perform_prestart_checks(None)
-    self.assertTrue(exit_mock.called)
+    if OSCheck.get_os_family() != OSConst.WINSRV_FAMILY:
+      # Trying case if there is another instance running, only valid for linux
+      isfile_mock.return_value = True
+      isdir_mock.return_value = True
+      main.perform_prestart_checks(None)
+      self.assertTrue(exit_mock.called)
 
     isfile_mock.reset_mock()
     isdir_mock.reset_mock()
@@ -188,7 +197,7 @@ class TestMain(unittest.TestCase):
     main.perform_prestart_checks(None)
     self.assertFalse(exit_mock.called)
 
-
+  @only_for_platform(PLATFORM_LINUX)
   @patch("time.sleep")
   @patch.object(shellRunner,"run")
   @patch("os._exit")
@@ -303,10 +312,12 @@ class TestMain(unittest.TestCase):
 
     self.assertTrue(setup_logging_mock.called)
     self.assertTrue(bind_signal_handlers_mock.called)
-    self.assertTrue(stop_mock.called)
+    if OSCheck.get_os_family() != OSConst.WINSRV_FAMILY:
+      self.assertTrue(stop_mock.called)
     #self.assertTrue(resolve_ambari_config_mock.called)
     self.assertTrue(perform_prestart_checks_mock.called)
-    self.assertTrue(daemonize_mock.called)
+    if OSCheck.get_os_family() != OSConst.WINSRV_FAMILY:
+      self.assertTrue(daemonize_mock.called)
     self.assertTrue(update_log_level_mock.called)
     try_to_connect_mock.assert_called_once_with(ANY, -1, ANY)
     self.assertTrue(start_mock.called)
