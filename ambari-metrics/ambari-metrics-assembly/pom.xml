@@ -40,6 +40,7 @@
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
     <deb.architecture>amd64</deb.architecture>
     <deb.dependency.list>${deb.python.ver},python-dev,gcc</deb.dependency.list>
+    <sinkJarName>ambari-metrics-hadoop-sink-with-common-${project.version}.jar</sinkJarName>
   </properties>
 
   <build>
