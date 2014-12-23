@@ -332,6 +332,7 @@ module.exports = Em.Route.extend({
       route: '/:alert_definition_id',
 
       connectOutlets: function (router, alertDefinition) {
+        App.router.set('mainAlertDefinitionsController.showFilterConditionsFirstLoad', true);
         router.get('mainController').connectOutlet('mainAlertDefinitionDetails', alertDefinition);
       },
 

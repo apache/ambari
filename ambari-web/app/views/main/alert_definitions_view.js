@@ -29,8 +29,19 @@ App.MainAlertDefinitionsView = App.TableView.extend({
     return this.get('controller.content');
   }.property('controller.content.@each'),
 
+  willInsertElement: function () {
+    if (!this.get('controller.showFilterConditionsFirstLoad')) {
+      this.clearFilterCondition();
+    }
+    this._super();
+  },
+
   didInsertElement: function () {
+    var self = this;
     this.tooltipsUpdater();
+    Em.run.next(function () {
+      self.set('isInitialRendering', false);
+    });
   },
 
   /**
@@ -63,6 +74,12 @@ App.MainAlertDefinitionsView = App.TableView.extend({
   disabledDisplay: Em.I18n.t('alerts.table.state.disabled'),
 
   sortView: sort.wrapperView,
+
+  /**
+   * Define whether initial view rendering has finished
+   * @type {Boolean}
+   */
+  isInitialRendering: true,
 
   /**
    * Sorting header for <label>alertDefinition.label</label>
@@ -455,6 +472,12 @@ App.MainAlertDefinitionsView = App.TableView.extend({
     Em.run.next(this, function () {
       App.tooltip($(".enable-disable-button, .timeago"));
     });
-  }.observes('pageContent.@each')
+  }.observes('pageContent.@each'),
+
+  updateFilter: function (iColumn, value, type) {
+    if (!this.get('isInitialRendering')) {
+      this._super(iColumn, value, type);
+    }
+  }
 
 });

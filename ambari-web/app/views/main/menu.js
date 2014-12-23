@@ -105,6 +105,8 @@ App.MainMenuView = Em.CollectionView.extend({
       } else if (event.context === 'views') {
         App.router.route('views');
         return;
+      } else if (event.context === 'alerts') {
+        App.router.set('mainAlertDefinitionsController.showFilterConditionsFirstLoad', false);
       }
       App.router.route('main/' + event.context);
     },

@@ -30,6 +30,12 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
   mapperTimestamp: null,
 
   /**
+   * Define whether restore filter conditions from local db
+   * @type {Boolean}
+   */
+  showFilterConditionsFirstLoad: false,
+
+  /**
    * List of all <code>App.AlertDefinition</code>
    * Consists of:
    * <ul>

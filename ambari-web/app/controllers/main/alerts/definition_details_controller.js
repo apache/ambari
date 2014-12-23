@@ -264,6 +264,7 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
    */
   goToHostAlerts: function (event) {
     if (event && event.context) {
+      App.router.get('mainHostDetailsController').set('referer', App.router.location.lastSetURL);
       App.router.transitionTo('main.hosts.hostDetails.alerts', event.context);
     }
   }

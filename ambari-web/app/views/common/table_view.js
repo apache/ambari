@@ -114,7 +114,7 @@ App.TableView = Em.View.extend(App.UserPref, {
             view.clearFilter();
             self.saveFilterConditions(condition.iColumn, view.get('appliedEmptyValue'), condition.type, false);
           } else {
-            view.set('value', condition.value);
+            view.setValue(condition.value);
           }
           Em.run.next(function () {
             view.showClearFilter();
