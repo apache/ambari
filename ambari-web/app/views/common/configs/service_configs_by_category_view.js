@@ -514,6 +514,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, {
             filename: siteFileName || '',
             isUserProperty: true,
             isNotSaved: true,
+            isRequired: false,
             group: selectedConfigGroup.get('isDefault') ? null : selectedConfigGroup,
             isOverridable: selectedConfigGroup.get('isDefault')
           }));

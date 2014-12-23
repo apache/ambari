@@ -1248,7 +1248,7 @@ App.config = Em.Object.create({
       hasInitialValue: !!stored.hasInitialValue,
       isOverridable: true,
       overrides: stored.overrides,
-      isRequired: true,
+      isRequired: false,
       isVisible: stored.isVisible,
       isFinal: stored.isFinal,
       defaultIsFinal: stored.defaultIsFinal,
