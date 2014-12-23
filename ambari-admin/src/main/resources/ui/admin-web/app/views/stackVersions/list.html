@@ -71,6 +71,9 @@
     </tr>
     </tbody>
   </table>
+  <div class="alert alert-info col-sm-12" ng-show="!repos.length">
+    No version to display.
+  </div>
   <div class="col-sm-12 table-bar">
     <div class="pull-left filtered-info">
       <span>{{tableInfo.showed}} of {{tableInfo.total}} versions showing - </span>
