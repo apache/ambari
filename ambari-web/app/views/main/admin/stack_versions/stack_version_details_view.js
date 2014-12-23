@@ -33,8 +33,8 @@ App.MainStackVersionsDetailsView = Em.View.extend({
    */
   installButtonMsg: function() {
     return this.get('content.stackVersion.state') == 'INSTALL_FAILED'
-      ? Em.I18n.t('admin.stackVersions.datails.hosts.btn.reinstall')
-      : Em.I18n.t('admin.stackVersions.datails.hosts.btn.install').format(this.get('controller.hostsToInstall'))
+      ? Em.I18n.t('admin.stackVersions.details.hosts.btn.reinstall')
+      : Em.I18n.t('admin.stackVersions.details.hosts.btn.install').format(this.get('controller.hostsToInstall'))
   }.property('content.stackVersion.state', 'parentView.content.stackVersion.initHosts.length'),
 
   /**
@@ -62,6 +62,62 @@ App.MainStackVersionsDetailsView = Em.View.extend({
   showCounters: function() {
     return this.get('content.stackVersion') != null;
   }.property('content.stackVersion'),
+
+
+  /**
+   * hosts with stack versions in not installed state
+   * when stack version for repoversion is not created returns all hosts in cluster
+   */
+  initHosts: function() {
+    if (this.get('showCounters') && this.get('content.stackVersion.installingHosts') && this.get('content.stackVersion.installFailedHosts')) {
+      return this.get('content.stackVersion.installingHosts').concat(this.get('content.stackVersion.installFailedHosts'));
+    } else {
+      return App.get('allHostNames');
+    }
+  }.property('showCounters', 'content.stackVersion.installingHosts.length', 'content.stackVersion.installFailedHosts.length', 'App.allHostNames'),
+
+  /**
+   * hosts with stack versions in installed state
+   * when stack version for repoversion is not created returns an empty array
+   */
+  installedHosts: function() {
+    return this.get('showCounters') ? this.get('content.stackVersion.installedHosts') : [];
+  }.property('showCounters', 'content.stackVersion.installedHosts.length'),
+
+  /**
+   * hosts with stack versions in current state
+   * when stack version for repoversion is not created returns an empty array
+   */
+  currentHosts: function() {
+    return this.get('showCounters') ? this.get('content.stackVersion.currentHosts') : [];
+  }.property('showCounters', 'content.stackVersion.currentHosts.length'),
+
+  noInitHosts: function() {
+    return this.get('showCounters') ? this.get('content.stackVersion.noInitHosts') : false;
+  }.property('showCounters', 'content.stackVersion.noInitHosts'),
+
+  noInstalledHosts:  function() {
+    return this.get('showCounters') ? this.get('content.stackVersion.noInstalledHosts') : true;
+  }.property('showCounters', 'content.stackVersion.noInstalledHosts'),
+
+  noCurrentHosts: function() {
+    return this.get('showCounters') ? this.get('content.stackVersion.noCurrentHosts') : true;
+  }.property('showCounters', 'content.stackVersion.noCurrentHosts'),
+
+  versionStateMap: {
+    'current': {
+      'id': 'current',
+      'label': Em.I18n.t('admin.stackVersions.hosts.popup.header.current')
+    },
+    'installed': {
+      'id': 'installed',
+      'label': Em.I18n.t('admin.stackVersions.hosts.popup.header.installed')
+    },
+    'not_installed': {
+      'id': 'installing',
+      'label': Em.I18n.t('admin.stackVersions.hosts.popup.header.not_installed')
+    }
+  },
 
   didInsertElement: function() {
     App.get('router.mainStackVersionsController').set('isPolling', true);

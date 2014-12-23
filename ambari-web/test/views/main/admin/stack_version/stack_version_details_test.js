@@ -43,12 +43,12 @@ describe('App.MainStackVersionsDetailsView', function () {
     it("install button msg for init state" , function() {
       view.set("controller.hostsToInstall", 2);
       view.set("content.stackVersion.state", "ANY");
-      expect(view.get('installButtonMsg')).to.equal(Em.I18n.t('admin.stackVersions.datails.hosts.btn.install').format(2))
+      expect(view.get('installButtonMsg')).to.equal(Em.I18n.t('admin.stackVersions.details.hosts.btn.install').format(2))
     });
 
     it("install button msg for install failed state" , function() {
       view.set("content.stackVersion.state", "INSTALL_FAILED");
-      expect(view.get('installButtonMsg')).to.equal(Em.I18n.t('admin.stackVersions.datails.hosts.btn.reinstall'))
+      expect(view.get('installButtonMsg')).to.equal(Em.I18n.t('admin.stackVersions.details.hosts.btn.reinstall'))
     });
   });
 

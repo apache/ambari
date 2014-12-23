@@ -30,14 +30,6 @@ App.MainStackVersionsDetailsController = Em.Controller.extend({
   timeoutRef: null,
 
   /**
-   * amount of all hosts installed on cluster
-   * @type {Number}
-   */
-  totalHostCount: function() {
-    return App.get('allHostNames.length');
-  }.property('App.allHostNames.length'),
-
-  /**
    * true if stack version install is in progress
    * @type {Boolean}
    */
@@ -86,7 +78,7 @@ App.MainStackVersionsDetailsController = Em.Controller.extend({
    * @type {Number}
    */
   hostsToInstall: function() {
-    return this.get('content.stackVersion') ? this.get('content.stackVersion.initHosts.length') : this.get('totalHostCount');
+    return this.get('content.stackVersion') ? this.get('content.stackVersion.initHosts.length') : App.get('allHostNames.length');
   }.property('content.stackVersion.initHosts.length'),
 
   /**
@@ -100,7 +92,7 @@ App.MainStackVersionsDetailsController = Em.Controller.extend({
    * @method showProgressPopup
    */
   showProgressPopup: function() {
-    var popupTitle = Em.I18n.t('admin.stackVersions.datails.install.hosts.popup.title').format(this.get('content.displayName'));
+    var popupTitle = Em.I18n.t('admin.stackVersions.details.install.hosts.popup.title').format(this.get('content.displayName'));
     var requestIds = App.get('testMode') ? [1] : App.db.get('repoVersion', 'id');
     var hostProgressPopupController = App.router.get('highAvailabilityProgressPopupController');
     hostProgressPopupController.initPopup(popupTitle, requestIds, this);
@@ -172,7 +164,7 @@ App.MainStackVersionsDetailsController = Em.Controller.extend({
       name: 'admin.stack_version.install.repo_version',
       sender: this,
       data: data,
-      success: 'installStackVersionSuccess'
+      success: 'installRepoVersionSuccess'
     });
   },
 
@@ -185,7 +177,7 @@ App.MainStackVersionsDetailsController = Em.Controller.extend({
    * @param params
    * @method installStackVersionSuccess
    */
-  installStackVersionSuccess: function (data, opt, params) {
+  installRepoVersionSuccess: function (data, opt, params) {
     var self = this;
     App.db.set('repoVersion', 'id', [data.Requests.id]);
     App.get('router.repoVersionsManagementController').loadStackVersionsToModel(true).done(function() {

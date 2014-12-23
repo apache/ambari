@@ -38,10 +38,60 @@ describe('App.MainStackVersionsDetailsController', function () {
     });
     it("runs initPopup", function() {
       controller.reopen({'content': { 'displayName': "v1"}});
-      var popupTitle = Em.I18n.t('admin.stackVersions.datails.install.hosts.popup.title').format("v1");
+      var popupTitle = Em.I18n.t('admin.stackVersions.details.install.hosts.popup.title').format("v1");
       var requestIds =[1];
       controller.showProgressPopup();
       expect(App.router.get('highAvailabilityProgressPopupController').initPopup.calledWith(popupTitle, requestIds, controller)).to.be.true;
+    });
+  });
+
+  describe("#doPolling()", function () {
+    beforeEach(function () {
+      sinon.stub(controller, 'updateProgress', Em.K);
+      sinon.spy(controller, 'doPolling');
+      this.clock = sinon.useFakeTimers();
+    });
+    afterEach(function () {
+      controller.updateProgress.restore();
+      controller.doPolling.restore();
+      this.clock.restore();
+    });
+    it("installInProgress false", function () {
+      controller.set('installInProgress', false);
+      controller.doPolling();
+      expect(controller.updateProgress.calledOnce).to.be.true;
+      expect(controller.doPolling.calledOnce).to.be.true;
+    });
+    it("installInProgress true", function () {
+      controller.set('installInProgress', true);
+      controller.doPolling();
+      this.clock.tick(App.componentsUpdateInterval);
+      expect(controller.doPolling.called).to.be.true;
+      expect(controller.updateProgress.called).to.be.true;
+    });
+  });
+
+  describe('#updateProgress', function () {
+    beforeEach(function () {
+      sinon.stub(App.ajax, 'send', Em.K);
+      sinon.stub(App.db, 'get').withArgs('repoVersion','id').returns(1)
+    });
+    afterEach(function () {
+      App.ajax.send.restore();
+      App.db.get.restore();
+    });
+    it("runs get request to get install progress", function () {
+      controller.updateProgress();
+      expect(App.ajax.send.getCall(0).args[0].data).to.deep.eql({
+        requestId: 1
+      });
+    });
+  });
+
+  describe('#updateProgressSuccess', function () {
+    it("saves progress state t othe controller", function () {
+      controller.updateProgressSuccess({Requests: {progress_percent: 10} });
+      expect(controller.get('progress')).to.equal(10);
     });
   });
 
@@ -67,7 +117,7 @@ describe('App.MainStackVersionsDetailsController', function () {
     });
   });
 
-  describe('#installStackVersionSuccess()', function () {
+  describe('#installRepoVersionSuccess()', function () {
     var repoId = "1";
     var requestId = "2";
     var repoVersion = {id: repoId};
@@ -91,7 +141,7 @@ describe('App.MainStackVersionsDetailsController', function () {
       App.set('router.currentState.name', route);
     });
     it('success callback for install stack version without redirect', function () {
-      controller.installStackVersionSuccess({Requests: {id: requestId}}, null, {id: repoId});
+      controller.installRepoVersionSuccess({Requests: {id: requestId}}, null, {id: repoId});
       expect(App.db.set.calledWith('repoVersion', 'id', [requestId])).to.be.true;
       expect(App.get('router.repoVersionsManagementController').loadStackVersionsToModel.calledWith(true)).to.be.true;
       expect(App.RepositoryVersion.find.calledOnce).to.be.true;
@@ -100,7 +150,7 @@ describe('App.MainStackVersionsDetailsController', function () {
 
     it('success callback for install stack version', function () {
       App.set('router.currentState.name', "update");
-      controller.installStackVersionSuccess({Requests: {id: requestId}}, null, {id: repoId});
+      controller.installRepoVersionSuccess({Requests: {id: requestId}}, null, {id: repoId});
       expect(App.db.set.calledWith('repoVersion', 'id', [requestId])).to.be.true;
       expect(App.get('router.repoVersionsManagementController').loadStackVersionsToModel.calledOnce).to.be.true;
       expect(App.RepositoryVersion.find.called).to.be.true;

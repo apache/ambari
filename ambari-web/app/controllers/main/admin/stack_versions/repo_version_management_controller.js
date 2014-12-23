@@ -52,6 +52,10 @@ App.RepoVersionsManagementController = Em.ArrayController.extend({
     return App.apiPrefix + '/clusters/' + App.get('clusterName') + '/stack_versions?fields=*,repository_versions/*,repository_versions/operatingSystems/repositories/*';
   }.property('App.clusterName'),
 
+  /**
+   * api to get ClusterStackVersions without repository_versions (use to update data)
+   * @type {String}
+   */
   realUpdateUrl: function () {
     return App.apiPrefix + '/clusters/' + App.get('clusterName') + '/stack_versions?fields=ClusterStackVersions/*';
   }.property('App.clusterName'),
@@ -106,6 +110,11 @@ App.RepoVersionsManagementController = Em.ArrayController.extend({
     return dfd.promise();
   },
 
+  /**
+   * loads all needed data
+   * @returns {$.Deferred().promise()}
+   * @method load
+   */
   load: function() {
     var dfd = $.Deferred();
     var self = this;
@@ -157,21 +166,21 @@ App.RepoVersionsManagementController = Em.ArrayController.extend({
    */
   showHosts: function(event) {
     var self = this;
-    var status = event.currentTarget.title.toCapital();
-    var version = event.contexts[0];
-    var hosts = event.contexts[1];
+    var status = event.contexts[0];
+    var version = event.contexts[1];
+    var hosts = event.contexts[2];
     if (hosts.length) {
       return App.ModalPopup.show({
         bodyClass: Ember.View.extend({
-          title: Em.I18n.t('admin.stackVersions.hosts.popup.title').format(version, status, hosts.length),
+          title: Em.I18n.t('admin.stackVersions.hosts.popup.title').format(version, status.label, hosts.length),
           template: Em.Handlebars.compile('<h4>{{view.title}}</h4><span class="limited-height-2">'+ hosts.join('<br/>') + '</span>')
         }),
-        header: Em.I18n.t('admin.stackVersions.hosts.popup.header').format(status),
+        header: Em.I18n.t('admin.stackVersions.hosts.popup.header').format(status.label),
         primary: Em.I18n.t('admin.stackVersions.hosts.popup.primary'),
         secondary: Em.I18n.t('common.close'),
         onPrimary: function() {
           this.hide();
-          self.filterHostsByStack(version, status);
+          self.filterHostsByStack(version, status.id);
         }
       });
     }

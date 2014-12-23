@@ -27,6 +27,43 @@ describe('App.RepoVersionsManagementController', function () {
     controller = App.RepoVersionsManagementController.create({});
   });
 
+  describe('#getUrl()', function () {
+    beforeEach(function() {
+      controller.reopen({
+        'mockStackUrl': 'mockStackUrl',
+        'mockRepoUrl': 'mockRepoUrl',
+        'realStackUrl': 'realStackUrl',
+        'realRepoUrl': 'realRepoUrl',
+        'realUpdateUrl': 'realUpdateUrl'
+      });
+    });
+    afterEach(function() {
+      App.set('testMode', false);
+    });
+
+    it('gets url for testMode for stackVersion', function () {
+      App.set('testMode', true);
+      expect(controller.getUrl(true)).to.be.equal('mockStackUrl');
+    });
+    it('gets url for testMode for repoVersion', function () {
+      App.set('testMode', true);
+      expect(controller.getUrl(false)).to.equal('mockRepoUrl');
+    });
+    it('gets url for stackVersion', function () {
+      App.set('testMode', false);
+      expect(controller.getUrl(true, true)).to.be.equal('realStackUrl');
+    });
+    it('gets url for repoVersion', function () {
+      App.set('testMode', false);
+      expect(controller.getUrl(false, true)).to.be.equal('realRepoUrl');
+    });
+    it('gets url to upadte stackVersion', function () {
+      App.set('testMode', false);
+      expect(controller.getUrl(true)).to.be.equal('realUpdateUrl');
+    });
+
+  });
+
   describe('#load()', function () {
     it('loads data to model by running loadStackVersionsToModel', function () {
       sinon.stub(controller, 'loadStackVersionsToModel').returns($.Deferred().resolve());
@@ -117,5 +154,16 @@ describe('App.RepoVersionsManagementController', function () {
 
         });
       });
+  });
+
+  describe('#showHosts()', function () {
+    it('show list of hosts for current version in choosen state', function () {
+      sinon.stub(controller, 'filterHostsByStack', Em.K);
+
+      controller.showHosts({ contexts: [{id: "state", label: "label"}, "version",["host"]]}).onPrimary();
+      expect(controller.filterHostsByStack.calledWith("version", "state")).to.be.true;
+
+      controller.filterHostsByStack.restore();
+    });
   });
 });

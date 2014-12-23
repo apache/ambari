@@ -46,7 +46,7 @@
             <td class="installed-hosts-count">
               <span  {{bindAttr class="view.content.noInstalledHosts:not-active-link"}}>
                 <a href="#"
-                  title='installed' {{action showHosts view.content.repositoryVersion.displayName view.content.installedHosts target="controller"}}>
+                  {{action showHosts view.versionStateMap.installed view.content.repositoryVersion.repositoryVersion view.content.installedHosts target="controller"}}>
                   <span>{{view.content.installedHosts.length}}</span>
                 </a>
               </span>
@@ -54,7 +54,7 @@
             <td class="current-hosts-count">
               <span {{bindAttr class="view.content.noCurrentHosts:not-active-link"}}>
                 <a href="#"
-                  title='current' {{action showHosts view.content.repositoryVersion.displayName view.content.currentHosts target="controller"}}>
+                  {{action showHosts view.versionStateMap.current view.content.repositoryVersion.repositoryVersion view.content.currentHosts target="controller"}}>
                   <span>{{view.content.currentHosts.length}}</span>
                 </a>
               </span>

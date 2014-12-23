@@ -95,10 +95,7 @@ App.RepoVersionsView = App.TableView.extend({
   },
 
   RepositoryVersionView: Em.View.extend({
-    tagName: 'tr',
-    didInsertElement: function () {
-      App.tooltip(this.$("[rel='Tooltip']"));
-    }
+    tagName: 'tr'
   })
 
 });

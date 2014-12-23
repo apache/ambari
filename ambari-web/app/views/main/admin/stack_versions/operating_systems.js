@@ -49,7 +49,7 @@ App.OperatingSystemsView = Em.View.extend({
         return this.get('content.operatingSystems').getEach('osType');
         break;
       default :
-        return this.get('content.operatingSystems.length') + Em.I18n.t("common.oss");
+        return this.get('content.operatingSystems.length') + " " + Em.I18n.t("common.oss");
     }
   }.property('content.operatingSystems.length'),
 

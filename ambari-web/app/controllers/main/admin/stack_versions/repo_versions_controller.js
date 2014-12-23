@@ -25,7 +25,13 @@ App.RepoVersionsController = App.RepoVersionsManagementController.extend({
     return App.RepositoryVersion.find().filterProperty('stackVersion', null);
   }.property('dataIsLoaded'),
 
+  /**
+   * installs repoversion to the cluster by running <code>installRepoVersion<code> method
+   * of <code>mainStackVersionsDetailsController<code> controller
+   * @param event
+   * @method installRepoVersion
+   */
   installRepoVersion: function(event) {
-   App.get('router.mainStackVersionsDetailsController').installRepoVersion(event);
+    App.get('router.mainStackVersionsDetailsController').installRepoVersion(event);
   }
 });

@@ -134,20 +134,21 @@ App.MainStackVersionsView = App.TableView.extend({
 
   StackVersionView: Em.View.extend({
     tagName: 'tr',
-    didInsertElement: function () {
-      App.tooltip(this.$("[rel='Tooltip']"));
-      this.set('isOsCollapsed', true);
-    },
 
-    toggleOs: function(event) {
-      this.set('isOsCollapsed', !this.get('isOsCollapsed'));
-      this.$('.operating-systems').toggle();
+    versionStateMap: {
+      'current': {
+        'id': 'current',
+        'label': Em.I18n.t('admin.stackVersions.hosts.popup.header.current')
+      },
+      'installed': {
+        'id': 'installed',
+        'label': Em.I18n.t('admin.stackVersions.hosts.popup.header.installed')
+      },
+      'not_installed': {
+        'id': 'installing',
+        'label': Em.I18n.t('admin.stackVersions.hosts.popup.header.not_installed')
+      }
     },
-
-    labels: function() {
-      return this.get('content.repositoryVersion.operatingSystems') &&
-        this.get('content.repositoryVersion.operatingSystems').getEach('osType').join("<br/>");
-    }.property('content.repositoryVersion.operatingSystems.length')
   })
 
 });
