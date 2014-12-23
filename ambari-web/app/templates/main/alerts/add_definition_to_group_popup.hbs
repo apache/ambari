@@ -97,26 +97,33 @@
           <th width="25%">{{t common.service}}</th>
           <th width="30%">{{t common.component}}</th>
         </tr>
-    </thead>
+      </thead>
     </table>
     <div class="hosts-table-container">
       <table class="table table-striped hosts-table">
-        {{#each entry in view.pageContent}}
-          <tr {{bindAttr class="entry.filtered::hidden"}}>
-            <td width="10%">
-              {{view Ember.Checkbox checkedBinding="entry.selected"}}
-            </td>
-            <td width="35%">
-              {{entry.label}}
-            </td>
-            <td>
-              {{entry.serviceNameDisplay}}
-            </td>
-            <td>
-              {{entry.componentNameDisplay}}
-            </td>
+        {{#if view.pageContent}}
+          {{#each entry in view.pageContent}}
+            <tr {{bindAttr class="entry.filtered::hidden"}}>
+              <td width="10%">
+                {{view Ember.Checkbox checkedBinding="entry.selected"}}
+              </td>
+              <td width="35%">
+                {{entry.label}}
+              </td>
+              <td>
+                {{entry.serviceNameDisplay}}
+              </td>
+              <td>
+                {{entry.componentNameDisplay}}
+              </td>
+            </tr>
+          {{/each}}
+        {{else}}
+          <tr>
+            <td width="30%"></td>
+            <td>{{t alerts.actions.manage_alert_groups_popup.addDefinition.noDefinitions}}</td>
           </tr>
-        {{/each}}
+        {{/if}}
       </table>
     </div>
 </div>

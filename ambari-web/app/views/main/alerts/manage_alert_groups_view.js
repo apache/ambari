@@ -130,15 +130,22 @@ App.MainAlertsManageAlertGroupView = Em.View.extend({
       else {
         return  Em.I18n.t('alerts.actions.manage_alert_groups_popup.addDefinition');
       }
-  }.property('controller.selectedAlertGroup.isDefault', 'controller.selectedAlertGroup.isAddDefinitionsDisabled'),
+  }.property('controller.selectedAlertGroup.default', 'controller.selectedAlertGroup.isAddDefinitionsDisabled'),
 
   /**
    * Tooltip for "Remove definition from group"-button
    * @type {string}
    */
   removeDefinitionTooltip: function () {
-    return this.get('controller.isDeleteDefinitionsDisabled') ? Em.I18n.t('alerts.actions.manage_alert_groups_popup.removeDefinitionDisabled') :
-        Em.I18n.t('alerts.actions.manage_alert_groups_popup.removeDefinition');
-  }.property('controller.isDeleteDefinitionsDisabled')
+    if (this.get('controller.selectedAlertGroup.default')) {
+      return Em.I18n.t('alerts.actions.manage_alert_groups_popup.removeDefinitionDisabled');
+    }
+    else
+      if (this.get('controller.isDeleteDefinitionsDisabled')) {
+        return 'Nothing to delete';
+      } else {
+        return Em.I18n.t('alerts.actions.manage_alert_groups_popup.removeDefinition');
+      }
+  }.property('controller.selectedAlertGroup.default', 'controller.isDeleteDefinitionsDisabled')
 
 });

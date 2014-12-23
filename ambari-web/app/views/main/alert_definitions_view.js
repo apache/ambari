@@ -171,7 +171,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
       },
       {
         value: 'PENDING',
-        label: 'PENDING'
+        label: 'NONE'
       }
     ],
     onChangeValue: function () {

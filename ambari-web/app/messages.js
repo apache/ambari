@@ -1900,6 +1900,7 @@ Em.I18n.translations = {
   'alerts.actions.manage_alert_groups_popup.removeButtonDisabled':'Cannot delete default alert group',
   'alerts.actions.manage_alert_groups_popup.renameButton':'Rename Alert Group',
   'alerts.actions.manage_alert_groups_popup.duplicateButton':'Duplicate Alert Group',
+  'alerts.actions.manage_alert_groups_popup.addDefinition.noDefinitions':'No alert definitions to display',
   'alerts.actions.manage_alert_groups_popup.addDefinition':'Add alert definitions to selected Alert Group',
   'alerts.actions.manage_alert_groups_popup.addDefinitionDisabled':'There are no available alert definitions to add',
   'alerts.actions.manage_alert_groups_popup.addDefinitionToDefault': 'Cannot modify default alert group',
