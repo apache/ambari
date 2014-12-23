@@ -71,8 +71,7 @@
             <h4>{{t services.service.metrics}}</h4>
             <div class="btn-group pull-right">
               <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                {{t graphs.timeRangeControl.label}} {{view.currentTimeRange.name}}
-                  <span class="caret"></span>
+                {{view.currentTimeRange.name}} &nbsp;<span class="caret"></span>
               </button>
               <ul class="dropdown-menu">
                 {{#each option in view.timeRangeOptions}}

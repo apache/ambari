@@ -366,6 +366,8 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
   getUserPrefErrorCallback: function (request) {
     if (request.status == 404) {
       console.log('Persist did NOT find the key');
+      this.postUserPref(this.get('persistKey'), 0);
+      this.set('currentTimeRangeIndex', 0);
     }
   },
 

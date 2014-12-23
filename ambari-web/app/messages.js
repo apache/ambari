@@ -332,7 +332,6 @@ Em.I18n.translations = {
   'graphs.timeRange.week': 'Last 1 week',
   'graphs.timeRange.month': 'Last 1 month',
   'graphs.timeRange.year': 'Last 1 year',
-  'graphs.timeRangeControl.label': 'Time range: ',
 
   'users.userName.validationFail': 'Only lowercase letters and numbers are recommended; must start with a letter',
   'host.spacesValidation': 'Cannot contain whitespace',
