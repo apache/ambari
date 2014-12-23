@@ -1097,7 +1097,7 @@ App.WizardStep9Controller = Em.Controller.extend({
           dfd.resolve();
         });
     }
-    return dfd.promise()
+    return dfd.promise();
   },
 
   /**

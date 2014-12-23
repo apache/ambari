@@ -30,6 +30,7 @@ require('utils/ajax/ajax');
 var modelSetup = require('test/init_model_test');
 var c, obj;
 describe('App.InstallerStep9Controller', function () {
+
   beforeEach(function () {
     modelSetup.setupStackServiceComponent();
     c = App.WizardStep9Controller.create({
@@ -37,6 +38,9 @@ describe('App.InstallerStep9Controller', function () {
       saveClusterStatus: Em.K,
       saveInstalledHosts: Em.K,
       togglePreviousSteps: Em.K,
+      setFinishState: Em.K,
+      changeParseHostInfo: Em.K,
+      parseHostInfoPolling: Em.K,
       wizardController: Em.Object.create({
         requestsId: [],
         cluster: {oldRequestsId: []},
@@ -58,6 +62,7 @@ describe('App.InstallerStep9Controller', function () {
       };
     });
   });
+
   afterEach(function () {
     modelSetup.cleanStackServiceComponent();
     App.ajax.send.restore();
@@ -1089,34 +1094,18 @@ describe('App.InstallerStep9Controller', function () {
     });
   });
 
-  describe('#getLogsByRequest', function () {
-    beforeEach(function () {
-      sinon.stub(c, 'togglePreviousSteps', Em.K);
-      sinon.stub(c, 'loadLogData', Em.K);
-    });
-    afterEach(function () {
-      c.togglePreviousSteps.restore();
-      c.loadLogData.restore();
-    });
-    it('should call App.ajax.send with provided data', function () {
-      var polling = 1;
-      var requestId = 2;
-      c.set('content', {cluster: {name: 3}});
-      c.set('numPolls', 4);
-      c.getLogsByRequest(polling, requestId);
-      expect(App.ajax.send.args[0][0].data).to.eql({polling: polling, requestId: requestId, cluster: 3, numPolls: 4});
-    });
-  });
-
   describe('#doPolling', function () {
+
     beforeEach(function () {
       sinon.stub(c, 'getLogsByRequest', Em.K);
       sinon.stub(c, 'togglePreviousSteps', Em.K);
     });
+
     afterEach(function () {
       c.getLogsByRequest.restore();
       c.togglePreviousSteps.restore();
     });
+
     it('should increment numPolls if testMode', function () {
       App.set('testMode', true);
       c.set('numPolls', 0);
@@ -1124,24 +1113,13 @@ describe('App.InstallerStep9Controller', function () {
       expect(c.get('numPolls')).to.equal(1);
       App.set('testMode', false);
     });
+
     it('should call getLogsByRequest', function () {
       c.set('content', {cluster: {requestId: 1}});
       c.doPolling();
       expect(c.getLogsByRequest.calledWith(true, 1)).to.equal(true);
     });
-  });
 
-  describe('#isAllComponentsInstalled', function () {
-    it('shouldn\'t call App.ajax.send', function () {
-      c.set('content', {controllerName: 'addServiceController'});
-      c.isAllComponentsInstalled();
-      expect(App.ajax.send.called).to.equal(false);
-    });
-    it('should call App.ajax.send', function () {
-      c.set('content', Ember.Object.create({cluster: {name: 'n'}, controllerName: 'installerController'}));
-      c.isAllComponentsInstalled();
-      expect(App.ajax.send.args[0][0].data).to.eql({cluster: 'n'});
-    });
   });
 
   describe('#isAllComponentsInstalledErrorCallback', function () {

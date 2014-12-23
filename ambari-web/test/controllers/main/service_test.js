@@ -272,16 +272,6 @@ describe('App.MainServiceController', function () {
 
   });
 
-  describe('#allServicesCallSuccessCallback', function() {
-
-    it('should set status to FAIL', function() {
-      var params = {query: Em.Object.create({status: ''})};
-      mainServiceController.allServicesCallSuccessCallback({Requests: {id: 1}}, {}, params);
-      expect(params.query.get('status')).to.equal('SUCCESS');
-    });
-
-  });
-
   describe('#allServicesCallErrorCallback', function() {
 
     it('should set status to FAIL', function() {

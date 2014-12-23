@@ -538,7 +538,7 @@ describe('App.ManageAlertNotificationsController', function () {
 
     it("should send ajax request", function () {
 
-      controller.createAlertNotification();
+      controller.updateAlertNotification();
       expect(App.ajax.send.calledOnce).to.be.true;
     });
 
