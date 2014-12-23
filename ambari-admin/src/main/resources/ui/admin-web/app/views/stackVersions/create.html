@@ -37,7 +37,7 @@
           <span class="bold-dot">.</span>
         </div>
         <div class="form-group col-sm-6" ng-class="{'has-error' : repoRegForm.version.$error.pattern}">
-          <input class="form-control" name="version" type="text" ng-model="repoSubversion" ng-pattern="/^\d(\.\d)?(\-\d*)?$/"
+          <input class="form-control" name="version" type="text" ng-model="repoSubversion" ng-pattern="subversionPattern"
                  placeholder="Version Name" required/>
           <span class="text-primary" ng-show="!repoRegForm.version.$error.pattern">&nbsp;{{upgradeStack.selected.displayName + '.' + repoSubversion}}</span>
           <span class="text-danger" ng-show="repoRegForm.version.$error.pattern">Invalid subversion. eg: 1.0-123</span>

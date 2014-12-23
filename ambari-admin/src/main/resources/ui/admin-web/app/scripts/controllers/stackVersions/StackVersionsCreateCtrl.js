@@ -20,12 +20,13 @@
 angular.module('ambariAdminConsole')
 .controller('StackVersionsCreateCtrl', ['$scope', 'Stack', '$routeParams', '$location', 'Alert', function($scope, Stack, $routeParams, $location, Alert) {
   $scope.clusterName = $routeParams.clusterName;
+  $scope.subversionPattern = /^\d(\.\d)?(\-\d*)?$/;
   $scope.upgradeStack = {
     selected: null,
     options: []
   };
   $scope.fetchStackVersionFilterList = function () {
-    Stack.allStackVersions()
+    return Stack.allStackVersions()
     .then(function (allStackVersions) {
       var versions = [];
       angular.forEach(allStackVersions, function (version) {
@@ -84,7 +85,7 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.create = function () {
-    Stack.addRepo($scope.upgradeStack.selected, $scope.repoSubversion, $scope.repositories)
+    return Stack.addRepo($scope.upgradeStack.selected, $scope.repoSubversion, $scope.repositories)
     .success(function () {
       var versionName = $scope.upgradeStack.selected.stack_version + '.' + $scope.repoSubversion;
       var stackName = $scope.upgradeStack.selected.stack_name;
