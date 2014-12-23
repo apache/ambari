@@ -5017,36 +5017,21 @@ ul.inline li {
     thead {
       background: none repeat scroll 0 0 #F8F8F8;
     }
-    // stack name/version
+    // all columns
     th:first-child,
     td:first-child,
     th:first-child + th,
-    td:first-child + td {
-      width: 25%;
-      select.filter-input-width{
-        width: 75%;
-      }
-      input.filter-input-width{
-        width: 75%;
-      }
-    }
-    // os
+    td:first-child + td,
     th:first-child + th + th,
-    td:first-child + td + td {
+    td:first-child + td + td,
+    th:first-child + th + th + th,
+    td:first-child + td + td + td {
       width: 20%;
       word-wrap: break-word;
-      select.filter-input-width{
+      input.filter-input-width {
         width: 75%;
       }
-    }
-    // hosts column
-    th:first-child + th + th + th,
-    td:first-child + td + td + td,
-    th:first-child + th + th + th + th,
-    td:first-child + td + td + td + td {
-      width: 15%;
-      word-wrap: break-word;
-      input.filter-input-width {
+      select.filter-input-width{
         width: 75%;
       }
     }
@@ -5082,17 +5067,16 @@ ul.inline li {
   table.stack-version-repos {
     width: 100%;
     text-align: left;
-    .table {
-      td:first-child,
-      th:first-child,
-      td:first-child + td,
-      th:first-child + th {
-        width: 20%;
-      }
-      td:first-child + td + td,
-      th:first-child + th + th{
-        width: 60%;
-      }
+
+    td:first-child,
+    th:first-child,
+    td:first-child + td,
+    th:first-child + th {
+      width: 15%;
+    }
+    td:first-child + td + td,
+    th:first-child + th + th {
+      width: 70%;
     }
     input {
       width: 100%;
@@ -5106,6 +5090,9 @@ ul.inline li {
     float: left;
     width: 140px;
     text-align: right;
+    .icon-cogs {
+      color: #0088cc;
+    }
   }
   #repo-installing-link {}
   .repo-installing-progress {

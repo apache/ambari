@@ -1425,7 +1425,7 @@ describe('App.WizardStep3Controller', function () {
 
       var items = [
         {Hosts:{host_name: 'c1', last_agent_env: {umask: 18}}},
-        {Hosts:{host_name: 'c2', last_agent_env: {umask: 1}}}
+        {Hosts:{host_name: 'c2', last_agent_env: {umask: 24}}}
       ];
 
       c.parseWarnings({items: items});
@@ -1439,8 +1439,8 @@ describe('App.WizardStep3Controller', function () {
     it('should parse umask warnings (2)', function() {
 
       var items = [
-        {Hosts:{host_name: 'c1', last_agent_env: {umask: 8}}},
-        {Hosts:{host_name: 'c2', last_agent_env: {umask: 1}}}
+        {Hosts:{host_name: 'c1', last_agent_env: {umask: 24}}},
+        {Hosts:{host_name: 'c2', last_agent_env: {umask: 25}}}
       ];
 
       c.parseWarnings({items: items});

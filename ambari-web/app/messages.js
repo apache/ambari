@@ -1297,7 +1297,7 @@ Em.I18n.translations = {
   'admin.stackVersions.details.hosts.btn.reinstall': "Reinstall on failed hosts",
   'admin.stackVersions.details.hosts.btn.install': "Install to {0} hosts",
   'admin.stackVersions.details.hosts.btn.installing': "Installing...",
-  'admin.stackVersions.details.hosts.btn.nothing': "Installed on all hosts",
+  'admin.stackVersions.details.hosts.btn.nothing': "Installed on all hosts.",
   'admin.stackVersions.details.hosts.btn.goto.upgrade': "Proceed to upgrade",
   'admin.stackVersions.details.hosts.btn.na': "Status not available",
   'admin.stackVersions.details.install.hosts.popup.title': "Install {0} version",
@@ -1338,8 +1338,7 @@ Em.I18n.translations = {
   'admin.stackUpgrade.dialog.closePause': "Upgrade is paused. \n If you dismiss this window, you can resume Upgrade later.",
   'admin.stackUpgrade.preupgradeCheck.header': "Upgrade to {0}",
   'admin.stackUpgrade.preupgradeCheck.title': "Upgrade Requirements Not Met",
-  'admin.stackUpgrade.preupgradeCheck.alert': "You have not met the following requirements for performing on upgrade.<br/>"+
-    "You must fix them before you continue",
+  'admin.stackUpgrade.preupgradeCheck.alert': "You must meet the following requirements before you can proceed with rolling upgrade.",
   'admin.stackUpgrade.preupgradeCheck.failedOn': "Failed on: ",
   'admin.stackUpgrade.preupgradeCheck.reason': "Reason: ",
   'services.service.start':'Start',

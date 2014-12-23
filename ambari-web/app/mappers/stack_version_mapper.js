@@ -44,6 +44,22 @@ App.stackVersionMapper = App.QuickDataMapper.create({
       json.items.forEach(function (item) {
         var stack = item.ClusterStackVersions;
         stack.repository_version_id = item.ClusterStackVersions.repository_version;
+        /**
+         * this property contains array of hosts on which repoversion was installed
+         * but state of repoveriosn for this hosts can be any postinstalled state
+         * possible states:
+         * <code>INSTALLED<code>
+         * <code>UPGRADING<code>
+         * <code>UPGRADED<code>
+         * <code>UPGRADE_FAILED<code>
+         * <code>CURRENT<code>
+         */
+        stack.host_states.INSTALLED = item.ClusterStackVersions.host_states.INSTALLED
+          .concat(item.ClusterStackVersions.host_states.UPGRADING)
+          .concat(item.ClusterStackVersions.host_states.UPGRADED)
+          .concat(item.ClusterStackVersions.host_states.UPGRADE_FAILED)
+          .concat(item.ClusterStackVersions.host_states.CURRENT);
+
         if (item.repository_versions && item.repository_versions[0]) {
           item.repository_versions[0].RepositoryVersions.stackVersionId = item.ClusterStackVersions.id;
           App.repoVersionMapper.map({"items": item.repository_versions }, true);

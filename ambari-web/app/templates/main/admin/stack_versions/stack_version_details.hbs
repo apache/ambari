@@ -63,7 +63,7 @@
           {{!show progress when install repo is in progress}}
           {{#if installInProgress}}
             <div class="repo-installing-info">
-            <i class="icon-cog">&nbsp;</i>
+            <i class="icon-cogs">&nbsp;</i>
             <a href="javascript:void(null);" id="repo-installing-link" {{action showProgressPopup target="controller"}}>
               {{t admin.stackVersions.details.hosts.btn.installing}}
             </a>
@@ -80,7 +80,7 @@
           {{!show success mesasge when install complete}}
           {{#if installComplete}}
             <i class="icon-ok">&nbsp;</i>
-            <span>{{t admin.stackVersions.details.hosts.btn.nothing}}</span>&nbsp;
+            <span>{{t admin.stackVersions.details.hosts.btn.nothing}}</span>&nbsp;&nbsp;
             {{#if controller.current}}
               <span class="label label-success">{{t common.current}}</span>
             {{else}}
