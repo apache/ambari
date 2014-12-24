@@ -484,9 +484,6 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
     } else {
       propertyAppendTo2.set('additionalView', null);
     }
-    if (!['addServiceController', 'installerController'].contains(this.get('controller.wizardController.name'))) {
-      propertyAppendTo2.propertyDidChange('isVisible');
-    }
   }.observes('serviceConfig.value'),
 
   optionsBinding: 'serviceConfig.options'

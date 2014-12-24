@@ -293,8 +293,7 @@ describe('App.WizardStep8Controller', function () {
             {name: 'hive_ambari_host', value: 'h1'},
             {name: 'hive_hostname', value: 'h2'}
           ],
-          removed: Em.A(['hive_existing_mysql_host', 'hive_existing_mysql_database', 'hive_existing_oracle_host',
-            'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database']),
+          removed: Em.A(['hive_existing_mysql_database', 'hive_existing_oracle_database', 'hive_existing_postgresql_database']),
           m: 'hive_database: New MySQL Database',
           host: 'h1'
         },
@@ -305,8 +304,7 @@ describe('App.WizardStep8Controller', function () {
             {name: 'hive_existing_mysql_host', value: 'h1'},
             {name: 'hive_hostname', value: 'h2'}
           ],
-          removed: Em.A(['hive_ambari_host', 'hive_ambari_database', 'hive_existing_oracle_host',
-            'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database']),
+          removed: Em.A(['hive_ambari_database', 'hive_existing_oracle_database', 'hive_existing_postgresql_database']),
           m: 'hive_database: Existing MySQL Database',
           host: 'h1'
         },
@@ -317,8 +315,7 @@ describe('App.WizardStep8Controller', function () {
             {name: 'hive_existing_postgresql_host', value: 'h1'},
             {name: 'hive_hostname', value: 'h2'}
           ],
-          removed: Em.A(['hive_ambari_host', 'hive_ambari_database', 'hive_existing_oracle_host',
-            'hive_existing_oracle_database', 'hive_existing_mysql_host', 'hive_existing_mysql_database']),
+          removed: Em.A(['hive_ambari_database', 'hive_existing_oracle_database', 'hive_existing_mysql_database']),
           m: 'hive_database: Existing PostgreSQL Database',
           host: 'h1'
         },
@@ -329,8 +326,7 @@ describe('App.WizardStep8Controller', function () {
             {name: 'hive_existing_oracle_host', value: 'h1'},
             {name: 'hive_hostname', value: 'h2'}
           ],
-          removed: Em.A(['hive_ambari_host', 'hive_ambari_database', 'hive_existing_mysql_host',
-            'hive_existing_mysql_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database']),
+          removed: Em.A(['hive_ambari_database', 'hive_existing_mysql_database', 'hive_existing_postgresql_database']),
           m: 'hive_database: Existing Oracle Database',
           host: 'h1'
         }
@@ -353,53 +349,43 @@ describe('App.WizardStep8Controller', function () {
         {
           globals: [
             {name: 'oozie_database', value: 'New Derby Database'},
-            {name: 'oozie_database_type', value: 'derby'},
             {name: 'oozie_ambari_host', value: 'h1'},
             {name: 'oozie_hostname', value: 'h2'}
           ],
-          removed: Em.A(['oozie_ambari_host', 'oozie_ambari_database', 'oozie_existing_mysql_host',
-            'oozie_existing_mysql_database', 'oozie_existing_oracle_host', 'oozie_existing_oracle_database',
-            'oozie_existing_postgresql_host', 'oozie_existing_postgresql_database']),
-          oozie_database_type: 'derby',
+          removed: Em.A(['oozie_ambari_database', 'oozie_existing_mysql_database', 'oozie_existing_oracle_database',
+            'oozie_existing_postgresql_database']),
           m: 'oozie_database: New Derby Database',
           host: 'h1'
         },
         {
           globals: [
             {name: 'oozie_database', value: 'Existing MySQL Database'},
-            {name: 'oozie_database_type', value: 'mysql'},
             {name: 'oozie_existing_mysql_host', value: 'h1'},
             {name: 'oozie_hostname', value: 'h2'}
           ],
-          removed: Em.A(['oozie_ambari_host', 'oozie_ambari_database', 'oozie_existing_oracle_host',
-            'oozie_existing_oracle_database', 'oozie_derby_database', 'oozie_existing_postgresql_host', 'oozie_existing_postgresql_database']),
-          oozie_database_type: 'mysql',
+          removed: Em.A(['oozie_ambari_database', 'oozie_existing_oracle_database', 'oozie_derby_database',
+            'oozie_existing_postgresql_database']),
           m: 'oozie_database: Existing MySQL Database',
           host: 'h1'
         },
         {
           globals: [
             {name: 'oozie_database', value: 'Existing PostgreSQL Database'},
-            {name: 'oozie_database_type', value: 'postgresql'},
             {name: 'oozie_existing_postgresql_host', value: 'h1'},
             {name: 'oozie_hostname', value: 'h2'}
           ],
-          removed: Em.A(['oozie_ambari_host', 'oozie_ambari_database', 'oozie_existing_oracle_host',
-            'oozie_existing_oracle_database', 'oozie_existing_mysql_host', 'oozie_existing_mysql_database']),
-          oozie_database_type: 'postgresql',
+          removed: Em.A(['oozie_ambari_database', 'oozie_existing_oracle_database', 'oozie_existing_mysql_database']),
           m: 'oozie_database: Existing PostgreSQL Database',
           host: 'h1'
         },
         {
           globals: [
             {name: 'oozie_database', value: 'Existing Oracle Database'},
-            {name: 'oozie_database_type', value: 'oracle'},
             {name: 'oozie_existing_oracle_host', value: 'h1'},
             {name: 'oozie_hostname', value: 'h2'}
           ],
-          removed: Em.A(['oozie_ambari_host', 'oozie_ambari_database', 'oozie_existing_mysql_host',
-            'oozie_existing_mysql_database', 'oozie_derby_database', 'oozie_existing_postgresql_host', 'oozie_existing_postgresql_database']),
-          oozie_database_type: 'oracle',
+          removed: Em.A(['oozie_ambari_database', 'oozie_existing_mysql_database', 'oozie_derby_database',
+            'oozie_existing_postgresql_database']),
           m: 'oozie_database: Existing Oracle Database',
           host: 'h1'
         }
@@ -414,7 +400,6 @@ describe('App.WizardStep8Controller', function () {
           test.removed.forEach(function(name) {
             expect(Em.isNone(configs.findProperty('name', name))).to.equal(true);
           });
-          expect(configs.findProperty('name', 'oozie_database_type').value).to.equal(test.oozie_database_type);
           expect(configs.findProperty('name', 'oozie_hostname').value).to.equal(test.host);
         });
       });
