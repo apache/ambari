@@ -2478,4 +2478,58 @@ describe('App.WizardStep3Controller', function () {
 
   });
 
+  describe('#getHostCheckTasksSuccess', function() {
+
+    beforeEach(function() {
+      sinon.stub($, 'ajax', Em.K);
+      sinon.stub(c, 'getHostInfo', Em.K);
+      sinon.stub(c, 'parseHostNameResolution', Em.K);
+      sinon.stub(c, 'getGeneralHostCheck', Em.K);
+      sinon.stub(c, 'getHostCheckTasks', Em.K);
+
+    });
+
+    afterEach(function() {
+      $.ajax.restore();
+      c.getHostInfo.restore();
+      c.parseHostNameResolution.restore();
+      c.getGeneralHostCheck.restore();
+      c.getHostCheckTasks.restore();
+    });
+
+    var dataInProgress = {
+      Requests: {
+        request_status: "IN_PROGRESS"
+      }
+    };
+    it('run getHostCheckTasks', function() {
+      c.getHostCheckTasksSuccess(dataInProgress);
+      expect(c.getHostCheckTasks.calledOnce).to.be.true;
+    });
+
+    var hostResolutionCheckComplete = {
+      Requests: {
+        request_status: "COMPLETED",
+        inputs: "host_resolution_check"
+      }
+    };
+    it('run parseHostNameResolution and getGeneralHostCheck', function() {
+      c.getHostCheckTasksSuccess(hostResolutionCheckComplete);
+      expect(c.parseHostNameResolution.calledWith(hostResolutionCheckComplete)).to.be.true;
+      expect(c.getGeneralHostCheck.calledOnce).to.be.true;
+    });
+
+    var lastAgentEnvCheckComplete = {
+      Requests: {
+        request_status: "COMPLETED",
+        inputs: "last_agent_env_check"
+      }
+    };
+    it('run getHostInfo', function() {
+      c.getHostCheckTasksSuccess(lastAgentEnvCheckComplete);
+      expect(c.get('stopChecking')).to.be.true;
+      expect(c.getHostInfo.calledOnce).to.be.true;
+    });
+
+  });
 });

@@ -1652,7 +1652,7 @@ var urls = {
   },
 
   'preinstalled.checks.tasks': {
-    'real': '/requests/{requestId}?fields=tasks/Tasks',
+    'real': '/requests/{requestId}?fields=tasks/Tasks,Requests/inputs,Requests/request_status',
     'mock': '/data/requests/host_check/1.json'
   },
 

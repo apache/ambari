@@ -203,6 +203,7 @@ App.WizardStep3Controller = Em.Controller.extend({
     this.set('isLoaded', false);
     this.set('isSubmitDisabled', true);
     this.set('isRetryDisabled', true);
+    this.set('stopChecking', false);
   },
 
   /**
@@ -848,45 +849,95 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   getHostNameResolution: function () {
-    var hosts = (!this.get('content.installOptions.manualInstall')) ? this.get('bootHosts').filterProperty('bootStatus', 'REGISTERED').getEach('name').join(",") : this.get('bootHosts').getEach('name').join(",");
-    var jdk_location = App.router.get('clusterController.ambariProperties.jdk_location');
-    var RequestInfo = {
-      "action": "check_host",
-      "context": "Check host",
-      "parameters": {
-        "check_execute_list": "last_agent_env_check",
-        "jdk_location" : jdk_location,
-        "threshold": "20"
-      }
-    };
-    var resource_filters = {
-      "hosts": hosts
-    };
     if (App.get('testMode')) {
-      this.getHostNameResolutionSuccess();
+      this.getHostCheckSuccess();
     } else {
-      return App.ajax.send({
-        name: 'preinstalled.checks',
-        sender: this,
-        data: {
-          RequestInfo: RequestInfo,
-          resource_filters: resource_filters
-        },
-        success: 'getHostNameResolutionSuccess',
-        error: 'getHostNameResolutionError'
-      });
+      var data = this.getDataForCheckRequest("host_resolution_check", true);
+      this.requestToPerformHostCheck(data);
     }
   },
 
-  getHostNameResolutionSuccess: function(response) {
+  getGeneralHostCheck: function () {
+    if (App.get('testMode')) {
+      this.getHostInfo();
+    } else {
+      var data = this.getDataForCheckRequest("last_agent_env_check", false);
+      this.requestToPerformHostCheck(data);
+    }
+  },
+
+  getHostCheckSuccess: function(response) {
     if (!App.get('testMode')) {
       this.set("requestId", response.Requests.id);
     }
     this.getHostCheckTasks();
   },
 
-  getHostNameResolutionError: function() {
-    this.getHostInfo();
+  /**
+   * generates data for reuest to perform check
+   * @param {string} checkExecuteList - for now supported:
+   *  <code>"last_agent_env_check"<code>
+   *  <code>"host_resolution_check"<code>
+   * @param {boolean} addHosts - true
+   * @method getDataForCheckRequest
+   */
+  getDataForCheckRequest: function (checkExecuteList, addHosts) {
+    var hosts = (!this.get('content.installOptions.manualInstall'))
+      ? this.get('bootHosts').filterProperty('bootStatus', 'REGISTERED').getEach('name').join(",")
+      : this.get('bootHosts').getEach('name').join(",");
+    var jdk_location = App.router.get('clusterController.ambariProperties.jdk_location');
+    var RequestInfo = {
+      "action": "check_host",
+      "context": "Check host",
+      "parameters": {
+        "check_execute_list": checkExecuteList,
+        "jdk_location" : jdk_location,
+        "threshold": "20"
+      }
+    };
+    if (addHosts) {
+      RequestInfo.parameters.hosts = hosts;
+    }
+    var resource_filters = {
+      "hosts": hosts
+    };
+    return {
+      RequestInfo: RequestInfo,
+      resource_filters: resource_filters
+    }
+  },
+
+  /**
+   * send request to ceate tasks for performing hosts checks
+   * @params {object} data
+   *    {
+   *       RequestInfo: {
+   *           "action": {string},
+   *           "context": {string},
+   *           "parameters": {
+   *             "check_execute_list": {string},
+   *             "jdk_location" : {string},
+   *             "threshold": {string}
+   *             "hosts": {string|undefined}
+   *       },
+   *       resource_filters: {
+   *         "hosts": {string}
+   *       }
+   *    }
+   * @returns {$.ajax}
+   * @method requestToPerformHostCheck
+   */
+  requestToPerformHostCheck: function(data) {
+    return App.ajax.send({
+      name: 'preinstalled.checks',
+      sender: this,
+      data: {
+        RequestInfo: data.RequestInfo,
+        resource_filters: data.resource_filters
+      },
+      success: "getHostCheckSuccess",
+      error: "getHostCheckError"
+    })
   },
 
   /**
@@ -899,7 +950,6 @@ App.WizardStep3Controller = Em.Controller.extend({
     var checker = setTimeout(function () {
       if (self.get('stopChecking') == true) {
         clearInterval(checker);
-        self.getHostInfo();
       } else {
         App.ajax.send({
           name: 'preinstalled.checks.tasks',
@@ -925,38 +975,59 @@ App.WizardStep3Controller = Em.Controller.extend({
       console.warn("Error: jsonData is null");
       return;
     }
-    this.set('stopChecking', true);
+    if (["FAILED", "COMPLETED", "TIMEDOUT"].contains(data.Requests.request_status)) {
+      if (data.Requests.inputs.indexOf("last_agent_env_check") != -1) {
+        this.set('stopChecking', true);
+         this.getHostInfo();
+      } else if (data.Requests.inputs.indexOf("host_resolution_check") != -1) {
+        this.parseHostNameResolution(data);
+        this.getGeneralHostCheck();
+       }
+    } else {
+      this.getHostCheckTasks();
+    }
+  },
+
+  /**
+   * parse warnings for host names resolution only
+   * @param {object} data
+   * @method parseHostNameResolution
+   */
+  parseHostNameResolution: function (data) {
+    if (!data) {
+      console.warn("Error: jsonData is null");
+      return;
+    }
     data.tasks.forEach(function (task) {
       var name = Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.error');
       var hostInfo = this.get("hostCheckWarnings").findProperty('name', name);
       if (["FAILED", "COMPLETED", "TIMEDOUT"].contains(task.Tasks.status)) {
-        if (task.Tasks.status == "COMPLETED") {
-          if (Em.get(task, "Tasks.structured_out.last_agent_env_check.failed_count") == 0) {
-            return;
+        if (!(task.Tasks.status == "COMPLETED" && Em.get(task, "Tasks.structured_out.host_resolution_check.failed_count") == 0)) {
+          var targetHostName = Em.get(task, "Tasks.host_name");
+          var relatedHostNames = Em.get(task, "Tasks.structured_out.host_resolution_check.failures")
+            ? Em.get(task, "Tasks.structured_out.host_resolution_check.failures").mapProperty('host') : [];
+          var contextMessage = Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.context').format(targetHostName, relatedHostNames.join(', '));
+          if (!hostInfo) {
+            hostInfo = {
+              name: name,
+              hosts: [contextMessage],
+              hostsNames: [targetHostName],
+              onSingleHost: true
+            };
+            this.get("hostCheckWarnings").push(hostInfo);
+          } else {
+            if (!hostInfo.hostsNames.contains(targetHostName)) {
+              hostInfo.hosts.push(contextMessage);
+              hostInfo.hostsNames.push(targetHostName);
+            }
           }
         }
-        var targetHostName = Em.get(task, "Tasks.host_name");
-        var relatedHostNames = Em.get(task, "Tasks.structured_out.last_agent_env_check.failures") ? Em.get(task, "Tasks.structured_out.last_agent_env_check.failures").mapProperty('host') : [];
-        var contextMessage = Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.context').format(targetHostName, relatedHostNames.join(', '));
-        if (!hostInfo) {
-          hostInfo = {
-            name: name,
-            hosts: [contextMessage],
-            hostsNames: [targetHostName],
-            onSingleHost: true
-          };
-          this.get("hostCheckWarnings").push(hostInfo);
-        } else {
-          if (!hostInfo.hostsNames.contains(targetHostName)) {
-            hostInfo.hosts.push(contextMessage);
-            hostInfo.hostsNames.push(targetHostName);
-          }
-        }
-      } else {
-        this.set('stopChecking', false);
       }
     }, this);
-    this.getHostCheckTasks();
+  },
+
+  getHostCheckError: function() {
+    this.getHostInfo();
   },
 
   stopChecking: false,
@@ -983,6 +1054,7 @@ App.WizardStep3Controller = Em.Controller.extend({
 
     // parse host checks warning
     this.parseWarnings(jsonData);
+    this.set('isHostsWarningsLoaded', true);
     hosts.forEach(function (_host) {
       var host = (App.get('testMode')) ? jsonData.items[0] : jsonData.items.findProperty('Hosts.host_name', _host.name);
       if (App.get('skipBootstrap')) {
@@ -1562,7 +1634,6 @@ App.WizardStep3Controller = Em.Controller.extend({
     });
     this.set('warnings', warnings);
     this.set('warningsByHost', hosts);
-    this.set('isHostsWarningsLoaded', true);
   },
 
   /**
