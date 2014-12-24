@@ -24,7 +24,7 @@ import mysql_users
 from resource_management import *
 
 from mysql_service import mysql_service
-from mysql import mysql_configure
+from mysql_utils import mysql_configure
 
 
 class MysqlServer(Script):
