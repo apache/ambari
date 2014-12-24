@@ -29,18 +29,18 @@ class TestSecurityCommons(TestCase):
     # Testing with correct values_checks
     params = {}
     params["config_file"] = {}
-    params["config_file"]["property1"] = {"firstCase"}
-    params["config_file"]["property2"] = {"secondCase"}
-    params["config_file"]["property3"] = {"thirdCase"}
-    params["config_file"]["property4"] = {"fourthCase"}
-    params["config_file"]["property5"] = {"fifthCase"}
-    params["config_file"]["property6"] = {"sixthCase"}
+    params["config_file"]["property1"] = ["firstCase"]
+    params["config_file"]["property2"] = ["secondCase"]
+    params["config_file"]["property3"] = ["thirdCase"]
+    params["config_file"]["property4"] = ["fourthCase"]
+    params["config_file"]["property5"] = ["fifthCase"]
+    params["config_file"]["property6"] = ["sixthCase"]
 
     configuration_rules = {}
     configuration_rules["config_file"] = {}
     configuration_rules["config_file"]["value_checks"] = {}
-    configuration_rules["config_file"]["value_checks"]["property1"] = {"firstCase"}
-    configuration_rules["config_file"]["value_checks"]["property2"] = {"secondCase"}
+    configuration_rules["config_file"]["value_checks"]["property1"] = ["firstCase"]
+    configuration_rules["config_file"]["value_checks"]["property2"] = ["secondCase"]
 
     self.assertEquals(not validate_security_config_properties(params, configuration_rules),
                       True)  # issues is empty
@@ -59,14 +59,14 @@ class TestSecurityCommons(TestCase):
                       True)  # issues is empty
 
     # Testing with wrong values_checks
-    configuration_rules["config_file"]["value_checks"]["property1"] = {"failCase"}
-    configuration_rules["config_file"]["value_checks"]["property2"] = {"failCase2"}
+    configuration_rules["config_file"]["value_checks"]["property1"] = ["failCase"]
+    configuration_rules["config_file"]["value_checks"]["property2"] = ["failCase2"]
 
     self.assertEquals(not validate_security_config_properties(params, configuration_rules),
                       False)  # Doesn't return an empty issues
 
-    configuration_rules["config_file"]["value_checks"]["property1"] = {"firstCase"}
-    configuration_rules["config_file"]["value_checks"]["property2"] = {"secondCase"}
+    configuration_rules["config_file"]["value_checks"]["property1"] = ["firstCase"]
+    configuration_rules["config_file"]["value_checks"]["property2"] = ["secondCase"]
 
     # Testing with a property which doesn't exist in params
     configuration_rules["config_file"]["empty_checks"].append("property7")
@@ -85,12 +85,12 @@ class TestSecurityCommons(TestCase):
     configuration_rules["config_file"]["read_checks"].remove("property8")
 
     #Testing empty_checks and read_checks with an empty params[config_file][property]
-    params["config_file"]["property1"] = {""}
-    params["config_file"]["property2"] = {""}
-    params["config_file"]["property3"] = {""}
-    params["config_file"]["property4"] = {""}
-    params["config_file"]["property5"] = {""}
-    params["config_file"]["property6"] = {""}
+    params["config_file"]["property1"] = [""]
+    params["config_file"]["property2"] = [""]
+    params["config_file"]["property3"] = [""]
+    params["config_file"]["property4"] = [""]
+    params["config_file"]["property5"] = [""]
+    params["config_file"]["property6"] = [""]
 
     self.assertEquals(not validate_security_config_properties(params, configuration_rules),
                       False)  # Doesn't return an empty list
@@ -101,8 +101,8 @@ class TestSecurityCommons(TestCase):
     config_file = 'config_file'
 
     value_checks = {}
-    value_checks["property1"] = {"value1"}
-    value_checks["property2"] = {"value2"}
+    value_checks["property1"] = ["value1"]
+    value_checks["property2"] = ["value2"]
 
     empty_checks = ["property3", "property4"]
 
