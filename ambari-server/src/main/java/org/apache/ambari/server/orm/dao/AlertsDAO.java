@@ -38,6 +38,7 @@ import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity_;
 import org.apache.ambari.server.state.AlertState;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.alert.Scope;
 import org.eclipse.persistence.config.HintValues;
 import org.eclipse.persistence.config.QueryHints;
@@ -54,6 +55,25 @@ import com.google.inject.persist.Transactional;
  */
 @Singleton
 public class AlertsDAO {
+  /**
+   * A template of JPQL for getting the number of hosts in various states.
+   */
+  private static final String HOST_COUNT_SQL_TEMPLATE = "SELECT MAX("
+      + "CASE "
+      + "  WHEN history.alertState = :criticalState AND alert.maintenanceState = :maintenanceStateOff THEN 3 "
+      + "  WHEN history.alertState = :warningState AND alert.maintenanceState = :maintenanceStateOff THEN 2 "
+      + "  WHEN history.alertState = :unknownState AND alert.maintenanceState = :maintenanceStateOff THEN 1 ELSE 0 END) "
+      + "FROM AlertCurrentEntity alert JOIN alert.alertHistory history "
+      + "WHERE history.clusterId = :clusterId AND history.hostName IS NOT NULL GROUP BY history.hostName";
+
+  private static final String ALERT_COUNT_SQL_TEMPLATE = "SELECT NEW %s("
+      + "SUM(CASE WHEN history.alertState = :okState AND alert.maintenanceState = :maintenanceStateOff THEN 1 ELSE 0 END), "
+      + "SUM(CASE WHEN history.alertState = :warningState AND alert.maintenanceState = :maintenanceStateOff THEN 1 ELSE 0 END), "
+      + "SUM(CASE WHEN history.alertState = :criticalState AND alert.maintenanceState = :maintenanceStateOff THEN 1 ELSE 0 END), "
+      + "SUM(CASE WHEN history.alertState = :unknownState AND alert.maintenanceState = :maintenanceStateOff THEN 1 ELSE 0 END), "
+      + "SUM(CASE WHEN alert.maintenanceState != :maintenanceStateOff THEN 1 ELSE 0 END)) "
+      + "FROM AlertCurrentEntity alert JOIN alert.alertHistory history WHERE history.clusterId = :clusterId";
+
   /**
    * JPA entity manager
    */
@@ -300,13 +320,10 @@ public class AlertsDAO {
    */
   @RequiresSession
   public AlertSummaryDTO findCurrentCounts(long clusterId, String serviceName, String hostName) {
-    StringBuilder sb = new StringBuilder();
-    sb.append("SELECT NEW %s (");
-    sb.append("SUM(CASE WHEN history.alertState = %s.%s THEN 1 ELSE 0 END), ");
-    sb.append("SUM(CASE WHEN history.alertState = %s.%s THEN 1 ELSE 0 END), ");
-    sb.append("SUM(CASE WHEN history.alertState = %s.%s THEN 1 ELSE 0 END), ");
-    sb.append("SUM(CASE WHEN history.alertState = %s.%s THEN 1 ELSE 0 END)) ");
-    sb.append("FROM AlertCurrentEntity alert JOIN alert.alertHistory history WHERE history.clusterId = :clusterId");
+    String sql = String.format(ALERT_COUNT_SQL_TEMPLATE,
+        AlertSummaryDTO.class.getName());
+
+    StringBuilder sb = new StringBuilder(sql);
 
     if (null != serviceName) {
       sb.append(" AND history.serviceName = :serviceName");
@@ -316,17 +333,15 @@ public class AlertsDAO {
       sb.append(" AND history.hostName = :hostName");
     }
 
-    String str = String.format(sb.toString(),
-        AlertSummaryDTO.class.getName(),
-        AlertState.class.getName(), AlertState.OK.name(),
-        AlertState.class.getName(), AlertState.WARNING.name(),
-        AlertState.class.getName(), AlertState.CRITICAL.name(),
-        AlertState.class.getName(), AlertState.UNKNOWN.name());
-
     TypedQuery<AlertSummaryDTO> query = entityManagerProvider.get().createQuery(
-        str, AlertSummaryDTO.class);
+        sb.toString(), AlertSummaryDTO.class);
 
     query.setParameter("clusterId", Long.valueOf(clusterId));
+    query.setParameter("okState", AlertState.OK);
+    query.setParameter("warningState", AlertState.WARNING);
+    query.setParameter("criticalState", AlertState.CRITICAL);
+    query.setParameter("unknownState", AlertState.UNKNOWN);
+    query.setParameter("maintenanceStateOff", MaintenanceState.OFF);
 
     if (null != serviceName) {
       query.setParameter("serviceName", serviceName);
@@ -351,20 +366,16 @@ public class AlertsDAO {
    */
   @RequiresSession
   public AlertHostSummaryDTO findCurrentHostCounts(long clusterId) {
-    StringBuilder sb = new StringBuilder();
-    sb.append("SELECT MAX(CASE WHEN history.alertState = :criticalState THEN 3 WHEN history.alertState = :warningState THEN 2 WHEN history.alertState = :unknownState THEN 1 ELSE 0 END) ");
-    sb.append("FROM AlertCurrentEntity alert JOIN alert.alertHistory history ");
-    sb.append("WHERE history.clusterId = :clusterId AND history.hostName IS NOT NULL GROUP BY history.hostName");
-
     // use Number here since some databases like MySQL return Long and some
     // return Integer and we don't want a class cast exception
     TypedQuery<Number> query = entityManagerProvider.get().createQuery(
-        sb.toString(), Number.class);
+        HOST_COUNT_SQL_TEMPLATE, Number.class);
 
     query.setParameter("clusterId", Long.valueOf(clusterId));
     query.setParameter("criticalState", AlertState.CRITICAL);
     query.setParameter("warningState", AlertState.WARNING);
     query.setParameter("unknownState", AlertState.UNKNOWN);
+    query.setParameter("maintenanceStateOff", MaintenanceState.OFF);
 
     int okCount = 0;
     int warningCount = 0;
@@ -678,26 +689,21 @@ public class AlertsDAO {
    */
   @RequiresSession
   public AlertSummaryDTO findAggregateCounts(long clusterId, String alertName) {
-    StringBuilder sb = new StringBuilder();
-    sb.append("SELECT NEW %s (");
-    sb.append("SUM(CASE WHEN history.alertState = %s.%s THEN 1 ELSE 0 END), ");
-    sb.append("SUM(CASE WHEN history.alertState = %s.%s THEN 1 ELSE 0 END), ");
-    sb.append("SUM(CASE WHEN history.alertState = %s.%s THEN 1 ELSE 0 END), ");
-    sb.append("SUM(CASE WHEN history.alertState = %s.%s THEN 1 ELSE 0 END)) ");
-    sb.append("FROM AlertCurrentEntity alert JOIN alert.alertHistory history WHERE history.clusterId = :clusterId");
-    sb.append(" AND history.alertDefinition.definitionName = :definitionName");
+    String sql = String.format(ALERT_COUNT_SQL_TEMPLATE,
+        AlertSummaryDTO.class.getName());
 
-    String str = String.format(sb.toString(),
-        AlertSummaryDTO.class.getName(),
-        AlertState.class.getName(), AlertState.OK.name(),
-        AlertState.class.getName(), AlertState.WARNING.name(),
-        AlertState.class.getName(), AlertState.CRITICAL.name(),
-        AlertState.class.getName(), AlertState.UNKNOWN.name());
+    StringBuilder buffer = new StringBuilder(sql);
+    buffer.append(" AND history.alertDefinition.definitionName = :definitionName");
 
     TypedQuery<AlertSummaryDTO> query = entityManagerProvider.get().createQuery(
-        str, AlertSummaryDTO.class);
+        buffer.toString(), AlertSummaryDTO.class);
 
     query.setParameter("clusterId", Long.valueOf(clusterId));
+    query.setParameter("okState", AlertState.OK);
+    query.setParameter("warningState", AlertState.WARNING);
+    query.setParameter("criticalState", AlertState.CRITICAL);
+    query.setParameter("unknownState", AlertState.UNKNOWN);
+    query.setParameter("maintenanceStateOff", MaintenanceState.OFF);
     query.setParameter("definitionName", alertName);
 
     return daoUtils.selectSingle(query);
@@ -713,7 +719,6 @@ public class AlertsDAO {
    */
   @RequiresSession
   public AlertCurrentEntity findCurrentByNameNoHost(long clusterId, String alertName) {
-
     TypedQuery<AlertCurrentEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertCurrentEntity.findByNameAndNoHost", AlertCurrentEntity.class);
 

@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.orm.dao;
 
+import org.apache.ambari.server.state.AlertState;
+
 
 /**
  * The {@link AlertHostSummaryDTO} is used to return a summary of the alerts
@@ -25,6 +27,10 @@ package org.apache.ambari.server.orm.dao;
  * <p/>
  * The sum of all of the values of this DTO should equal the total number of
  * hosts.
+ * <p/>
+ * If a host or a host's components are in maintenance mode, then any alerts
+ * triggered will not be reported here. Instead, they will be counted as
+ * {@link AlertState#OK}.
  */
 public class AlertHostSummaryDTO {
 

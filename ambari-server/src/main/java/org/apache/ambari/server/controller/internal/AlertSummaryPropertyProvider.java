@@ -122,12 +122,12 @@ public class AlertSummaryPropertyProvider extends BaseProvider implements Proper
       case Cluster:
         long clusterId = cluster.getClusterId();
 
-        // only make the calculation of asked
+        // only make the calculation if asked
         if (BaseProvider.isPropertyRequested(ALERTS_SUMMARY, requestedIds)) {
           summary = s_dao.findCurrentCounts(cluster.getClusterId(), null, null);
         }
 
-        // only make the calculation of asked
+        // only make the calculation if asked
         if (BaseProvider.isPropertyRequested(ALERTS_SUMMARY_HOSTS,
             requestedIds)) {
           hostSummary = s_dao.findCurrentHostCounts(clusterId);
@@ -146,12 +146,12 @@ public class AlertSummaryPropertyProvider extends BaseProvider implements Proper
 
     // all alerts in the cluster, in summary count form
     if (null != summary) {
-      Map<AlertState, Integer> map = new HashMap<AlertState, Integer>();
-      map.put(AlertState.OK, Integer.valueOf(summary.getOkCount()));
-      map.put(AlertState.WARNING, Integer.valueOf(summary.getWarningCount()));
-      map.put(AlertState.CRITICAL, Integer.valueOf(summary.getCriticalCount()));
-      map.put(AlertState.UNKNOWN, Integer.valueOf(summary.getUnknownCount()));
-
+      Map<String, Integer> map = new HashMap<String, Integer>();
+      map.put(AlertState.OK.name(), Integer.valueOf(summary.getOkCount()));
+      map.put(AlertState.WARNING.name(), Integer.valueOf(summary.getWarningCount()));
+      map.put(AlertState.CRITICAL.name(), Integer.valueOf(summary.getCriticalCount()));
+      map.put(AlertState.UNKNOWN.name(), Integer.valueOf(summary.getUnknownCount()));
+      map.put("MAINTENANCE", Integer.valueOf(summary.getMaintenanceCount()));
       setResourceProperty(resource, ALERTS_SUMMARY, map, requestedIds);
     }
 

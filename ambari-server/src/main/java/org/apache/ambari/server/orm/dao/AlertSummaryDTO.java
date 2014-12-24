@@ -20,7 +20,8 @@ package org.apache.ambari.server.orm.dao;
 import org.apache.ambari.server.state.AlertState;
 
 /**
- * Used to return alert summary data out of the database.
+ * Used to return alert summary data out of the database. Alerts that are in
+ * maintenance mode will be reported as such instead of their actual values.
  */
 public class AlertSummaryDTO {
 
@@ -28,43 +29,53 @@ public class AlertSummaryDTO {
   private int warningCount;
   private int criticalCount;
   private int unknownCount;
-  
+  private int maintenanceCount;
+
   /**
    * Constructor, used by JPA.  JPA invokes this constructor, even if there
    * are no records in the resultset.  In that case, all arguments are {@code null}.
    */
-  public AlertSummaryDTO(Number ok, Number warning, Number critical, Number unknown) {
+  public AlertSummaryDTO(Number ok, Number warning, Number critical,
+      Number unknown, Number maintenance) {
     okCount = null == ok ? 0 : ok.intValue();
     warningCount = null == warning ? 0 : warning.intValue();
     criticalCount = null == critical ? 0 : critical.intValue();
     unknownCount = null == unknown ? 0 : unknown.intValue();
+    maintenanceCount = null == maintenance ? 0 : maintenance.intValue();
   }
-  
+
   /**
    * @return the count of {@link AlertState#OK} states
    */
   public int getOkCount() {
     return okCount;
   }
-  
+
   /**
    * @return the count of {@link AlertState#WARNING} states
    */
   public int getWarningCount() {
     return warningCount;
-  }  
-  
+  }
+
   /**
    * @return the count of {@link AlertState#CRITICAL} states
    */
   public int getCriticalCount() {
     return criticalCount;
   }
-  
+
   /**
    * @return the count of {@link AlertState#UNKNOWN} states
    */
   public int getUnknownCount() {
     return unknownCount;
-  }  
+  }
+
+  /**
+   * @return the count of alerts that are in the maintenance state.
+   */
+  public int getMaintenanceCount() {
+    return maintenanceCount;
+  }
 }

@@ -22,6 +22,8 @@ import java.util.List;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
+import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
+import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
@@ -108,6 +110,27 @@ public class AlertMaintenanceModeListener {
       String componentName = history.getComponentName();
 
       try {
+        // although AMBARI is a service, it's not really a service and would
+        // fail in this loop; so handle it specifically
+        if (Services.AMBARI.name().equals(serviceName)
+            && Components.AMBARI_AGENT.name().equals(componentName)) {
+
+          // if this alert is an AMBARI_AGENT alert, then the only maintenance
+          // state that affects it is a host maintenance state
+          if (null == event.getHost()) {
+            continue;
+          }
+
+          MaintenanceState maintenanceState = MaintenanceState.OFF;
+          if (event.getMaintenanceState() != MaintenanceState.OFF) {
+            maintenanceState = MaintenanceState.ON;
+          }
+
+          currentAlert.setMaintenanceState(maintenanceState);
+          m_alertsDao.merge(currentAlert);
+          continue;
+        }
+
         Cluster cluster = m_clusters.get().getClusterById(clusterId);
         if (null == cluster) {
           LOG.warn("Unable to find cluster with ID {}", clusterId);

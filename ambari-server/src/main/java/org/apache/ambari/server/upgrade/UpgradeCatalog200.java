@@ -57,6 +57,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
   private static final String ALERT_DEFINITION_TABLE = "alert_definition";
   private static final String ALERT_TARGET_TABLE = "alert_target";
   private static final String ALERT_TARGET_STATES_TABLE = "alert_target_states";
+  private static final String ALERT_CURRENT_TABLE = "alert_current";
 
   /**
    * {@inheritDoc}
@@ -149,6 +150,10 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     dbAccessor.addFKConstraint(ALERT_TARGET_STATES_TABLE,
         "fk_alert_target_states_target_id", "target_id", ALERT_TARGET_TABLE,
         "target_id", false);
+
+    // update alert current maintenance mode
+    dbAccessor.alterColumn(ALERT_CURRENT_TABLE, new DBColumnInfo(
+        "maintenance_state", String.class, 255, null, false));
   }
 
   /**

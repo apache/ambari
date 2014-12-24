@@ -619,7 +619,7 @@ CREATE TABLE alert_current (
   alert_id BIGINT NOT NULL,
   definition_id BIGINT NOT NULL,
   history_id BIGINT NOT NULL UNIQUE,
-  maintenance_state VARCHAR(255),
+  maintenance_state VARCHAR(255) NOT NULL,
   original_timestamp BIGINT NOT NULL,
   latest_timestamp BIGINT NOT NULL,
   latest_text TEXT,

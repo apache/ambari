@@ -416,9 +416,16 @@ public class AlertsDAOTest {
     int warn = 0;
     int crit = 0;
     int unk = 0;
+    int maintenance = 0;
 
-    for (AlertCurrentEntity h : m_dao.findCurrentByCluster(m_cluster.getClusterId())) {
-      switch (h.getAlertHistory().getAlertState()) {
+    List<AlertCurrentEntity> currents = m_dao.findCurrentByCluster(m_cluster.getClusterId());
+    for (AlertCurrentEntity current : currents) {
+      if (current.getMaintenanceState() != MaintenanceState.OFF) {
+        maintenance++;
+        continue;
+      }
+
+      switch (current.getAlertHistory().getAlertState()) {
         case CRITICAL:
           crit++;
           break;
@@ -432,39 +439,58 @@ public class AlertsDAOTest {
           warn++;
           break;
       }
-
     }
 
     summary = m_dao.findCurrentCounts(m_cluster.getClusterId(), null, null);
+
     // !!! db-to-db compare
     assertEquals(ok, summary.getOkCount());
     assertEquals(warn, summary.getWarningCount());
     assertEquals(crit, summary.getCriticalCount());
-    assertEquals(unk, summary.getCriticalCount());
+    assertEquals(unk, summary.getUnknownCount());
+    assertEquals(maintenance, summary.getMaintenanceCount());
 
     // !!! expected
     assertEquals(2, summary.getOkCount());
     assertEquals(1, summary.getWarningCount());
     assertEquals(1, summary.getCriticalCount());
-    assertEquals(1, summary.getCriticalCount());
+    assertEquals(1, summary.getUnknownCount());
+    assertEquals(0, summary.getMaintenanceCount());
 
     summary = m_dao.findCurrentCounts(m_cluster.getClusterId(), "YARN", null);
     assertEquals(2, summary.getOkCount());
     assertEquals(1, summary.getWarningCount());
     assertEquals(1, summary.getCriticalCount());
-    assertEquals(1, summary.getCriticalCount());
+    assertEquals(1, summary.getUnknownCount());
 
     summary = m_dao.findCurrentCounts(m_cluster.getClusterId(), null, "h1");
     assertEquals(2, summary.getOkCount());
     assertEquals(1, summary.getWarningCount());
     assertEquals(1, summary.getCriticalCount());
-    assertEquals(1, summary.getCriticalCount());
+    assertEquals(1, summary.getUnknownCount());
+    assertEquals(0, summary.getMaintenanceCount());
 
     summary = m_dao.findCurrentCounts(m_cluster.getClusterId(), "foo", null);
     assertEquals(0, summary.getOkCount());
     assertEquals(0, summary.getWarningCount());
     assertEquals(0, summary.getCriticalCount());
-    assertEquals(0, summary.getCriticalCount());
+    assertEquals(0, summary.getUnknownCount());
+    assertEquals(0, summary.getMaintenanceCount());
+
+    // try out maintenance mode for all WARNINGs
+    for (AlertCurrentEntity current : currents) {
+      if (current.getAlertHistory().getAlertState() == AlertState.WARNING) {
+        current.setMaintenanceState(MaintenanceState.ON);
+        m_dao.merge(current);
+      }
+    }
+
+    summary = m_dao.findCurrentCounts(m_cluster.getClusterId(), null, null);
+    assertEquals(2, summary.getOkCount());
+    assertEquals(0, summary.getWarningCount());
+    assertEquals(1, summary.getCriticalCount());
+    assertEquals(1, summary.getUnknownCount());
+    assertEquals(1, summary.getMaintenanceCount());
   }
 
   /**
@@ -480,11 +506,11 @@ public class AlertsDAOTest {
     assertEquals(1, summary.getOkCount());
 
     // grab 1 and change it to warning
-    AlertHistoryEntity h1 = m_dao.findCurrentByCluster(m_cluster.getClusterId()).get(
+    AlertHistoryEntity history1 = m_dao.findCurrentByCluster(m_cluster.getClusterId()).get(
         1).getAlertHistory();
 
-    h1.setAlertState(AlertState.WARNING);
-    m_dao.merge(h1);
+    history1.setAlertState(AlertState.WARNING);
+    m_dao.merge(history1);
 
     // verify host changed to warning
     summary = m_dao.findCurrentHostCounts(m_cluster.getClusterId());
@@ -493,8 +519,8 @@ public class AlertsDAOTest {
     assertEquals(0, summary.getUnknownCount());
     assertEquals(0, summary.getOkCount());
 
-    h1.setAlertState(AlertState.CRITICAL);
-    m_dao.merge(h1);
+    history1.setAlertState(AlertState.CRITICAL);
+    m_dao.merge(history1);
 
     // verify host changed to critical
     summary = m_dao.findCurrentHostCounts(m_cluster.getClusterId());
@@ -504,11 +530,11 @@ public class AlertsDAOTest {
     assertEquals(0, summary.getOkCount());
 
     // grab another and change the host so that an OK shows up
-    AlertHistoryEntity h2 = m_dao.findCurrentByCluster(m_cluster.getClusterId()).get(
+    AlertHistoryEntity history2 = m_dao.findCurrentByCluster(m_cluster.getClusterId()).get(
         2).getAlertHistory();
 
-    h2.setHostName(h2.getHostName() + "-foo");
-    m_dao.merge(h2);
+    history2.setHostName(history2.getHostName() + "-foo");
+    m_dao.merge(history2);
 
     summary = m_dao.findCurrentHostCounts(m_cluster.getClusterId());
     assertEquals(0, summary.getWarningCount());
@@ -517,12 +543,12 @@ public class AlertsDAOTest {
     assertEquals(1, summary.getOkCount());
 
     // grab another and change that host name as well
-    AlertHistoryEntity h3 = m_dao.findCurrentByCluster(m_cluster.getClusterId()).get(
+    AlertHistoryEntity history3 = m_dao.findCurrentByCluster(m_cluster.getClusterId()).get(
         3).getAlertHistory();
 
     // change the name to simulate a 3rd host
-    h3.setHostName(h3.getHostName() + "-bar");
-    m_dao.merge(h3);
+    history3.setHostName(history3.getHostName() + "-bar");
+    m_dao.merge(history3);
 
     // verify 2 hosts report OK
     summary = m_dao.findCurrentHostCounts(m_cluster.getClusterId());
@@ -532,12 +558,12 @@ public class AlertsDAOTest {
     assertEquals(2, summary.getOkCount());
 
     // grab another and change that host name and the state to UNKNOWN
-    AlertHistoryEntity h4 = m_dao.findCurrentByCluster(m_cluster.getClusterId()).get(
+    AlertHistoryEntity history4 = m_dao.findCurrentByCluster(m_cluster.getClusterId()).get(
         4).getAlertHistory();
 
-    h4.setHostName(h4.getHostName() + "-baz");
-    h4.setAlertState(AlertState.UNKNOWN);
-    m_dao.merge(h3);
+    history4.setHostName(history4.getHostName() + "-baz");
+    history4.setAlertState(AlertState.UNKNOWN);
+    m_dao.merge(history3);
 
     // verify a new host shows up with UNKNOWN status hosts report OK
     summary = m_dao.findCurrentHostCounts(m_cluster.getClusterId());
@@ -545,6 +571,34 @@ public class AlertsDAOTest {
     assertEquals(1, summary.getCriticalCount());
     assertEquals(1, summary.getUnknownCount());
     assertEquals(2, summary.getOkCount());
+
+    // put 1 alert into maintenance mode
+    AlertCurrentEntity current4 = m_dao.findCurrentByCluster(
+        m_cluster.getClusterId()).get(4);
+
+    current4.setMaintenanceState(MaintenanceState.ON);
+    m_dao.merge(current4);
+
+    // verify that the UNKNOWN host has moved back to OK
+    summary = m_dao.findCurrentHostCounts(m_cluster.getClusterId());
+    assertEquals(0, summary.getWarningCount());
+    assertEquals(1, summary.getCriticalCount());
+    assertEquals(0, summary.getUnknownCount());
+    assertEquals(3, summary.getOkCount());
+
+    // put all alerts into maintenance mode
+    List<AlertCurrentEntity> currents = m_dao.findCurrentByCluster(m_cluster.getClusterId());
+    for (AlertCurrentEntity current : currents) {
+      current.setMaintenanceState(MaintenanceState.ON);
+      m_dao.merge(current);
+    }
+
+    // verify that all are OK
+    summary = m_dao.findCurrentHostCounts(m_cluster.getClusterId());
+    assertEquals(0, summary.getWarningCount());
+    assertEquals(0, summary.getCriticalCount());
+    assertEquals(0, summary.getUnknownCount());
+    assertEquals(4, summary.getOkCount());
   }
 
   @Test

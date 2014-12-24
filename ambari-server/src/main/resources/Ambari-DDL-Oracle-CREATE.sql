@@ -622,7 +622,7 @@ CREATE TABLE alert_current (
   alert_id NUMBER(19) NOT NULL,
   definition_id NUMBER(19) NOT NULL,
   history_id NUMBER(19) NOT NULL UNIQUE,
-  maintenance_state VARCHAR2(255),
+  maintenance_state VARCHAR2(255) NOT NULL,
   original_timestamp NUMBER(19) NOT NULL,
   latest_timestamp NUMBER(19) NOT NULL,
   latest_text VARCHAR2(4000),

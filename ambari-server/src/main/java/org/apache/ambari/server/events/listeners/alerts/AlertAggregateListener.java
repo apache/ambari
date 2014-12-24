@@ -83,7 +83,9 @@ public class AlertAggregateListener {
     AlertSummaryDTO summary = m_alertsDao.findAggregateCounts(
         event.getClusterId(), aggregateSource.getAlertName());
 
-    int okCount = summary.getOkCount();
+    // OK should be based off of true OKs and those in maintenance mode
+    int okCount = summary.getOkCount() + summary.getMaintenanceCount();
+
     int warningCount = summary.getWarningCount();
     int criticalCount = summary.getCriticalCount();
     int unknownCount = summary.getUnknownCount();

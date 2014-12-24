@@ -70,7 +70,7 @@ public class AlertCurrentEntity {
 
   @Column(name = "maintenance_state", length = 255)
   @Enumerated(value = EnumType.STRING)
-  private MaintenanceState maintenanceState;
+  private MaintenanceState maintenanceState = MaintenanceState.OFF;
 
   @Column(name = "original_timestamp", nullable = false)
   private Long originalTimestamp;
