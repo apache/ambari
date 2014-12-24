@@ -25,14 +25,30 @@ class FalconClient(Script):
     self.install_packages(env)
     self.configure(env)
 
+
   def configure(self, env):
     import params
 
     env.set_params(params)
     falcon('client', action='config')
 
+
   def status(self, env):
     raise ClientComponentHasNoStatus()
+
+
+  def pre_rolling_restart(self, env):
+    import params
+    env.set_params(params)
+
+    # this function should not execute if the version can't be determined or
+    # is not at least HDP 2.2.0.0
+    if not params.version or compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') < 0:
+      return
+
+    Logger.info("Executing Falcon Client Rolling Upgrade pre-restart")
+    Execute(format("hdp-select set hadoop-client {version}"))
+
 
 if __name__ == "__main__":
   FalconClient().execute()

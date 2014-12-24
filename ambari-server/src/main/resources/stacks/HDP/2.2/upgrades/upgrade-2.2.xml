@@ -75,6 +75,13 @@
       </service>
     </group>
 
+    <group name="FALCON" title="Falcon">
+      <service name="Falcon">
+        <component>FALCON_SERVER</component>
+        <component>FALCON_CLIENT</component>
+      </service>
+    </group>
+
     <group name="CLIENTS" title="Client Components">
       <service name="HDFS">
         <component>HDFS_CLIENT</component>
@@ -125,7 +132,6 @@
         </task>
       </execute-stage>
     </group>
-
   </order>
   
   
@@ -365,5 +371,19 @@
         </upgrade>
       </component>
     </service>
+
+    <service name="FALCON">
+      <component name="FALCON_SERVER">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+      <component name="FALCON_CLIENT">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+    </service>
+
   </processing>
 </upgrade>

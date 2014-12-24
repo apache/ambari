@@ -18,12 +18,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
-
 
 class TestFalconServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "FALCON/0.5.0.2.1/package"
   STACK_VERSION = "2.1"
+  UPGRADE_STACK_VERSION = "2.2"
 
   def test_start_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/falcon_server.py",
@@ -141,4 +142,34 @@ class TestFalconServer(RMFTestCase):
                               recursive = True,
                               )
 
+
+  @patch("shutil.rmtree", new = MagicMock())
+  @patch("tarfile.open")
+  @patch("os.path.isdir")
+  @patch("os.path.exists")
+  @patch("os.path.isfile")
+  def test_upgrade(self, isfile_mock, exists_mock, isdir_mock,
+      tarfile_open_mock):
+
+    isdir_mock.return_value = True
+    exists_mock.side_effect = [False,False,True]
+    isfile_mock.return_value = True
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/falcon_server.py",
+     classname = "FalconServer", command = "restart", config_file = "falcon-upgrade.json",
+     hdp_stack_version = self.UPGRADE_STACK_VERSION,
+     target = RMFTestCase.TARGET_COMMON_SERVICES )
+
+    self.assertResourceCalled('Execute',
+      '/usr/hdp/current/falcon-server/bin/falcon-stop',
+      path = ['/usr/hdp/current/hadoop-client/bin'], user='falcon')
+
+    self.assertResourceCalled('File', '/var/run/falcon/falcon.pid',
+      action = ['delete'])
+
+    self.assertResourceCalled('Execute', 'hdp-select set falcon-server 2.2.1.0-2135')
+
+    # 4 calls to tarfile.open (2 directories * read + write)
+    self.assertTrue(tarfile_open_mock.called)
+    self.assertEqual(tarfile_open_mock.call_count,4)
 
