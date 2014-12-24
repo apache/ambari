@@ -1820,52 +1820,55 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
 
   /**
    * Create one Alert Notification (if user select this on step7)
-   * Only for Install Wizard and stack >= 2!
+   * Only for Install Wizard and stack
    * @method createNotification
    */
   createNotification: function () {
     if (this.get('content.controllerName') !== 'installerController') return;
     var miscConfigs = this.get('configs').filterProperty('serviceName', 'MISC'),
       createNotification = miscConfigs.findProperty('name', 'create_notification').value;
-    if (createNotification === 'yes') {
-      var properties = {},
-        names = [
-          'ambari.dispatch.recipients',
-          'mail.smtp.host',
-          'mail.smtp.port',
-          'mail.smtp.from',
-          'mail.smtp.starttls.enable',
-          'mail.smtp.startssl.enable'
-        ];
-      if (miscConfigs.findProperty('name', 'smtp_use_auth').value == 'true') { // yes, it's not converted to boolean
-        names.pushObjects(['ambari.dispatch.credential.username', 'ambari.dispatch.credential.password']);
-      }
-      var customConfigNames = miscConfigs.filterProperty('displayType', 'advanced').filterProperty('filename', '').mapProperty('name');
-      if (customConfigNames) {
-        names.pushObjects(customConfigNames);
-      }
-      names.forEach(function (name) {
-        properties[name] = miscConfigs.findProperty('name', name).value;
-      });
-
-      properties['ambari.dispatch.recipients'] = properties['ambari.dispatch.recipients'].replace(/\s/g, '').split(',');
-
-      var apiObject = {
-        AlertTarget: {
-          name: 'Initial Notification',
-          description: 'Notification created during cluster installing',
-          global: true,
-          notification_type: 'EMAIL',
-          alert_states: ['OK', 'WARNING', 'CRITICAL', 'UNKNOWN'],
-          properties: properties
-        }
-      };
-      this.addRequestToAjaxQueue({
-        name: 'alerts.create_alert_notification',
-        data: {
-          data: apiObject
-        }
-      });
+    if (createNotification !== 'yes') return;
+      var predefinedNotificationConfigNames = require('data/site_properties').configProperties.filterProperty('filename', 'alert_notification').mapProperty('name'),
+      configsForNotification = this.get('configs').filterProperty('filename', 'alert_notification');
+    var properties = {},
+      names = [
+        'ambari.dispatch.recipients',
+        'mail.smtp.host',
+        'mail.smtp.port',
+        'mail.smtp.from',
+        'mail.smtp.starttls.enable',
+        'mail.smtp.startssl.enable'
+      ];
+    if (miscConfigs.findProperty('name', 'smtp_use_auth').value == 'true') { // yes, it's not converted to boolean
+      names.pushObjects(['ambari.dispatch.credential.username', 'ambari.dispatch.credential.password']);
     }
+
+    names.forEach(function (name) {
+      properties[name] = miscConfigs.findProperty('name', name).value;
+    });
+
+    properties['ambari.dispatch.recipients'] = properties['ambari.dispatch.recipients'].replace(/\s/g, '').split(',');
+
+    configsForNotification.forEach(function (config) {
+      if (predefinedNotificationConfigNames.contains(config.name)) return;
+      properties[config.name] = config.value;
+    });
+
+    var apiObject = {
+      AlertTarget: {
+        name: 'Initial Notification',
+        description: 'Notification created during cluster installing',
+        global: true,
+        notification_type: 'EMAIL',
+        alert_states: ['OK', 'WARNING', 'CRITICAL', 'UNKNOWN'],
+        properties: properties
+      }
+    };
+    this.addRequestToAjaxQueue({
+      name: 'alerts.create_alert_notification',
+      data: {
+        data: apiObject
+      }
+    });
   }
 });

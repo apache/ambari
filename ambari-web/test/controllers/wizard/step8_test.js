@@ -1409,16 +1409,17 @@ describe('App.WizardStep8Controller', function () {
         installerStep8Controller.clearStep();
         installerStep8Controller.set('content', {controllerName: 'installerController'});
         installerStep8Controller.set('configs', [
-          {name: 'create_notification', value: 'yes', serviceName: 'MISC'},
-          {name: 'ambari.dispatch.recipients', value: 'to@f.c', serviceName: 'MISC'},
-          {name: 'mail.smtp.host', value: 'h', serviceName: 'MISC'},
-          {name: 'mail.smtp.port', value: '25', serviceName: 'MISC'},
-          {name: 'mail.smtp.from', value: 'from@f.c', serviceName: 'MISC'},
-          {name: 'mail.smtp.starttls.enable', value: true, serviceName: 'MISC'},
-          {name: 'mail.smtp.startssl.enable', value: false, serviceName: 'MISC'},
-          {name: 'smtp_use_auth', value: 'true', serviceName: 'MISC'},
-          {name: 'ambari.dispatch.credential.username', value: 'usr', serviceName: 'MISC'},
-          {name: 'ambari.dispatch.credential.password', value: 'pwd', serviceName: 'MISC'}
+          {name: 'create_notification', value: 'yes', serviceName: 'MISC', filename: 'alert_notification'},
+          {name: 'ambari.dispatch.recipients', value: 'to@f.c', serviceName: 'MISC', filename: 'alert_notification'},
+          {name: 'mail.smtp.host', value: 'h', serviceName: 'MISC', filename: 'alert_notification'},
+          {name: 'mail.smtp.port', value: '25', serviceName: 'MISC', filename: 'alert_notification'},
+          {name: 'mail.smtp.from', value: 'from@f.c', serviceName: 'MISC', filename: 'alert_notification'},
+          {name: 'mail.smtp.starttls.enable', value: true, serviceName: 'MISC', filename: 'alert_notification'},
+          {name: 'mail.smtp.startssl.enable', value: false, serviceName: 'MISC', filename: 'alert_notification'},
+          {name: 'smtp_use_auth', value: 'true', serviceName: 'MISC', filename: 'alert_notification'},
+          {name: 'ambari.dispatch.credential.username', value: 'usr', serviceName: 'MISC', filename: 'alert_notification'},
+          {name: 'ambari.dispatch.credential.password', value: 'pwd', serviceName: 'MISC', filename: 'alert_notification'},
+          {name: 'some_p', value: 'some_v', serviceName: 'MISC', filename: 'alert_notification'}
         ]);
         installerStep8Controller.get('ajaxRequestsQueue').clear();
       });
@@ -1448,6 +1449,7 @@ describe('App.WizardStep8Controller', function () {
         expect(data.properties['mail.smtp.startssl.enable']).to.equal(false);
         expect(data.properties['ambari.dispatch.credential.username']).to.equal('usr');
         expect(data.properties['ambari.dispatch.credential.password']).to.equal('pwd');
+        expect(data.properties['some_p']).to.equal('some_v');
 
       });
 
