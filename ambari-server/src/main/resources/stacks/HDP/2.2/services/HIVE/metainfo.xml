@@ -43,6 +43,7 @@
         </component>
         <component>
           <name>HIVE_SERVER</name>
+          <cardinality>1+</cardinality>
           <configuration-dependencies>
               <config-type>hiveserver2-site</config-type>
           </configuration-dependencies>
