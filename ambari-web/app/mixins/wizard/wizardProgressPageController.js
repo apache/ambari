@@ -516,8 +516,9 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
   showHostProgressPopup: function (event) {
     var popupTitle = event.contexts[0].title;
     var requestIds = event.contexts[0].requestIds;
+    var stageId = event.contexts[0].stageId;
     var hostProgressPopupController = App.router.get('highAvailabilityProgressPopupController');
-    hostProgressPopupController.initPopup(popupTitle, requestIds, this, true);
+    hostProgressPopupController.initPopup(popupTitle, requestIds, this, true, stageId);
   },
 
   done: function () {

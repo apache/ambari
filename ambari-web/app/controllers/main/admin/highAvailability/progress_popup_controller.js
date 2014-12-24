@@ -57,6 +57,12 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
   hostsData: [],
 
   /**
+   *  StageId for the command.
+   *  @type {Number}
+   */
+  stageId: null,
+
+  /**
    * During loading and calculations show popup with spinner
    * @type {Object}
    */
@@ -68,8 +74,9 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
    * @param requestIds {Array}
    * @param progressController {App.HighAvailabilityProgressPageController}
    * @param showSpinner {Boolean}
+   * @param stageId {Number}
    */
-  initPopup: function (popupTitle, requestIds, progressController, showSpinner) {
+  initPopup: function (popupTitle, requestIds, progressController, showSpinner, stageId) {
     if(showSpinner){
       var loadingPopup = App.ModalPopup.show({
         header: Em.I18n.t('jobs.loadingTasks'),
@@ -85,6 +92,7 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
     this.set('popupTitle', popupTitle);
     this.set('requestIds', requestIds);
     this.set('hostsData', []);
+    this.set('stageId', stageId);
     this.getHosts();
   },
 
@@ -93,12 +101,18 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
    */
   getHosts: function () {
     var requestIds = this.get('requestIds');
+    var stageId = this.get('stageId');
+    var name = 'admin.high_availability.polling';
+    if (stageId) {
+      name = 'common.request.polling';
+    }
     requestIds.forEach(function (requestId) {
       App.ajax.send({
-        name: 'admin.high_availability.polling',
+        name: name,
         sender: this,
         data: {
-          requestId: requestId
+          requestId: requestId,
+          stageId: stageId
         },
         success: 'onGetHostsSuccess'
       })

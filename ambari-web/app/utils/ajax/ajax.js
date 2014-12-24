@@ -186,6 +186,11 @@ var urls = {
     }
   },
 
+  'common.request.polling': {
+    'real': '/clusters/{clusterName}/requests/{requestId}?fields=tasks/*,Requests/*&tasks/Tasks/stage_id={stageId}',
+    'mock': '/data/background_operations/host_upgrade_tasks.json'
+  },
+
   'service.ambari': {
     'real': '/services/AMBARI?fields=components/RootServiceComponents',
     'mock': '/data/services/ambari.json'
