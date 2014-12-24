@@ -239,7 +239,7 @@ class TestSecurityCommons(TestCase):
     cached_kinit_executor(kinit_path, user, keytab_file, principal, hostname, temp_dir, expiration_time)
 
     self.assertTrue(new_cached_exec_mock.called)
-    new_cached_exec_mock.assert_called_with(key, file_path + os.sep + filename, kinit_path, user, principal, keytab_file, hostname)
+    new_cached_exec_mock.assert_called_with(key, file_path + os.sep + filename, kinit_path, user, keytab_file, principal, hostname)
 
     # Test that the makedirs function is called with correct path when the directory doesn't exist
     os_path_exists_mock.return_value = False
@@ -268,4 +268,4 @@ class TestSecurityCommons(TestCase):
     cached_kinit_executor(kinit_path, user, keytab_file, principal, hostname, temp_dir, expiration_time)
 
     self.assertTrue(new_cached_exec_mock.called)
-    new_cached_exec_mock.assert_called_with(key, file_path + os.sep + filename, kinit_path, user, principal, keytab_file, hostname)
+    new_cached_exec_mock.assert_called_with(key, file_path + os.sep + filename, kinit_path, user, keytab_file, principal, hostname)
