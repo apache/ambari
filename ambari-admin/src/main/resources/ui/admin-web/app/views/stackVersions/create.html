@@ -29,10 +29,11 @@
     <div class="panel-body">
       <div class="form-inline repo-version-inline">
         <label class="control-label col-sm-2 repo-version-label">Version</label>
-        <div class="form-group col-sm-3 repo-version-left">
+        <div class="form-group col-sm-4 repo-version-left">
           <select class="form-control repo-version-select"
                   ng-model="upgradeStack.selected"
-                  ng-options="o as o.displayName for o in upgradeStack.options">
+                  ng-options="o as o.displayName for o in upgradeStack.options"
+                  ng-change="afterStackVersionChange()">
           </select>
           <span class="bold-dot">.</span>
         </div>

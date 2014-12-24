@@ -19,7 +19,7 @@
 
 angular.module('ambariAdminConsole')
 .controller('StackVersionsEditCtrl', ['$scope', '$location', 'Stack', '$routeParams', 'ConfirmationModal', 'Alert', function($scope, $location, Stack, $routeParams, ConfirmationModal, Alert) {
-  function loadStackVersionInfo () {
+  $scope.loadStackVersionInfo = function () {
     return Stack.getRepo($routeParams.versionId, $routeParams.stackName).then(function (response) {
       $scope.id = response.id;
       $scope.stack = response.stack;
@@ -32,6 +32,45 @@ angular.module('ambariAdminConsole')
         os.selected = true;
       });
       $scope.osList = response.osList;
+      $scope.addMissingOSList();
+    });
+  }
+
+  $scope.addMissingOSList = function() {
+    Stack.getSupportedOSList($scope.stackName, $scope.stackVersion)
+    .then(function (data) {
+      var existingOSHash = {};
+      angular.forEach($scope.osList, function (os) {
+        existingOSHash[os.OperatingSystems.os_type] = os;
+      });
+      var osList = data.operatingSystems.map(function (os) {
+          return existingOSHash[os.OperatingSystems.os_type] || {
+            OperatingSystems: {
+              os_type : os.OperatingSystems.os_type
+            },
+            repositories: [
+              {
+                Repositories: {
+                  base_url: '',
+                  repo_id: 'HDP-' + $routeParams.versionId,
+                  repo_name: 'HDP'
+                }
+              },
+              {
+                Repositories: {
+                  base_url: '',
+                  repo_id: 'HDP-UTILS-' + $routeParams.versionId,
+                  repo_name: 'HDP-UTILS'
+                }
+              }
+            ],
+            selected: false
+          };
+      });
+      $scope.osList = osList;
+    })
+    .catch(function (data) {
+      Alert.error('getSupportedOSList error', data.message);
     });
   }
 
@@ -40,8 +79,13 @@ angular.module('ambariAdminConsole')
 
   $scope.save = function () {
     $scope.editVersionDisabled = true;
-
     delete $scope.updateObj.href;
+    $scope.updateObj.operating_systems = [];
+    angular.forEach($scope.osList, function (os) {
+      if (os.selected) {
+        $scope.updateObj.operating_systems.push(os);
+      }
+    });
     Stack.updateRepo($scope.stackName, $scope.stackVersion, $scope.id, $scope.updateObj).then(function () {
       Alert.success('Edited version <a href="#/stackVersions/' + $scope.stackName + '/' + $scope.versionName + '/edit">' + $scope.repoVersionFullName + '</a>');
       $location.path('/stackVersions');
@@ -64,5 +108,5 @@ angular.module('ambariAdminConsole')
       });
     });
   };
-  loadStackVersionInfo();
+  $scope.loadStackVersionInfo();
 }]);

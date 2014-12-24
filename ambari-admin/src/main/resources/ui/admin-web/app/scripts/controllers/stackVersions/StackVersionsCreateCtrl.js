@@ -36,48 +36,14 @@ angular.module('ambariAdminConsole')
       });
       $scope.upgradeStack.options = versions;
       $scope.upgradeStack.selected = versions[versions.length - 1];
+      $scope.afterStackVersionChange();
     })
     .catch(function (data) {
       Alert.error('Fetch stack version filter list error', data.message);
     });
   };
   $scope.fetchStackVersionFilterList();
-
-  // TODO retrieve operating systems and repo names from stack definition
-  $scope.repositories = [
-    {
-      os: 'redhat5',
-      packages: [
-        {label:'HDP', value: null},
-        {label:'HDP-UTILS', value: null}
-      ],
-      selected: false
-    },
-    {
-      os: 'redhat6',
-      packages: [
-        {label:'HDP', value: null},
-        {label:'HDP-UTILS', value: null}
-      ],
-      selected: false
-    },
-    {
-      os: 'sles11',
-      packages: [
-        {label:'HDP', value: null},
-        {label:'HDP-UTILS', value: null}
-      ],
-      selected: false
-    },
-    {
-      os: 'ubuntu12',
-      packages: [
-        {label:'HDP', value: null},
-        {label:'HDP-UTILS', value: null}
-      ],
-      selected: false
-    }
-  ];
+  $scope.repositories = [];
 
   $scope.selectedOS = 0;
   $scope.toggleOSSelect = function () {
@@ -97,6 +63,26 @@ angular.module('ambariAdminConsole')
     })
     .error(function (data) {
         Alert.error('Version creation error', data.message);
+    });
+  };
+
+  $scope.afterStackVersionChange = function () {
+    Stack.getSupportedOSList($scope.upgradeStack.selected.stack_name, $scope.upgradeStack.selected.stack_version)
+    .then(function (data) {
+      var repositories = data.operatingSystems.map(function (os) {
+        return {
+          os: os.OperatingSystems.os_type,
+          packages: [
+            {label:'HDP', value: null},
+            {label:'HDP-UTILS', value: null}
+          ],
+          selected: false
+        };
+      });
+      $scope.repositories = repositories;
+    })
+    .catch(function (data) {
+      Alert.error('getSupportedOSList error', data.message);
     });
   };
 }]);

@@ -175,6 +175,21 @@ angular.module('ambariAdminConsole')
         deferred.reject(data);
       });
       return deferred.promise;
+    },
+
+    getSupportedOSList: function (stackName, stackVersion) {
+      //http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2?fields=operating_systems
+      var url = Settings.baseUrl + '/stacks/' + stackName + '/versions/' + stackVersion + '?fields=operating_systems'
+      var deferred = $q.defer();
+      $http.get(url, {mock: 'stacks/operatingSystems.json'})
+      .success(function (data) {
+        deferred.resolve(data);
+      })
+      .error(function (data) {
+        deferred.reject(data);
+      });
+      return deferred.promise;
     }
+
   };
 }]);
