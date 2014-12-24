@@ -118,7 +118,6 @@ public class UpgradeCatalog200Test {
     Capture<DBAccessor.DBColumnInfo> hostComponentStateSecurityStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> hostComponentDesiredStateSecurityStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> hostRoleCommandRetryColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-    Capture<DBAccessor.DBColumnInfo> stageSkippableColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
 
     Capture<DBAccessor.DBColumnInfo> viewparameterLabelColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> viewparameterPlaceholderColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
@@ -156,10 +155,6 @@ public class UpgradeCatalog200Test {
     // Host Role Command retry allowed
     dbAccessor.addColumn(eq("host_role_command"),
         capture(hostRoleCommandRetryColumnCapture));
-
-    // Stage skippable
-    dbAccessor.addColumn(eq("stage"),
-        capture(stageSkippableColumnCapture));
 
     // Host Component State: security State
     dbAccessor.addColumn(eq("hostcomponentstate"),
@@ -234,14 +229,6 @@ public class UpgradeCatalog200Test {
     assertEquals(Integer.class, upgradeRetryColumn.getType());
     assertEquals(0, upgradeRetryColumn.getDefaultValue());
     assertFalse(upgradeRetryColumn.isNullable());
-
-    // Verify added column in host_role_command table
-    DBAccessor.DBColumnInfo upgradeSkippableColumn = stageSkippableColumnCapture.getValue();
-    assertEquals("skippable", upgradeSkippableColumn.getName());
-    assertEquals(1, (int) upgradeSkippableColumn.getLength());
-    assertEquals(Integer.class, upgradeSkippableColumn.getType());
-    assertEquals(0, upgradeSkippableColumn.getDefaultValue());
-    assertFalse(upgradeSkippableColumn.isNullable());
 
     // verify security_state columns
     verifyComponentSecurityStateColumn(hostComponentStateSecurityStateColumnCapture);

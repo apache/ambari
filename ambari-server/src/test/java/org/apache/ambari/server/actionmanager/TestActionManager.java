@@ -172,7 +172,7 @@ public class TestActionManager {
     s.addHostRoleExecutionCommand(hostname, Role.HBASE_MASTER,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
-            hostname, System.currentTimeMillis()), "cluster1", "HBASE", false);
+            hostname, System.currentTimeMillis()), "cluster1", "HBASE");
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
     Request request = new Request(stages, clusters);

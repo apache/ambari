@@ -88,12 +88,6 @@ import com.google.inject.Provider;
 @StaticallyInject
 public class UpgradeResourceProvider extends AbstractControllerResourceProvider {
 
-  /**
-   * Default failure retry/skip options for upgrades.
-   */
-  private static final boolean UPGRADE_DEFAULT_ALLOW_RETRY = true;
-  private static final boolean UPGRADE_DEFAULT_SKIPPABLE = true;
-
   protected static final String UPGRADE_CLUSTER_NAME = "Upgrade/cluster_name";
   protected static final String UPGRADE_VERSION = "Upgrade/repository_version";
   protected static final String UPGRADE_REQUEST_ID = "Upgrade/request_id";
@@ -144,7 +138,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   /**
    * Constructor.
    *
-   * @param controller  the controller
+   * @param controller
    */
   UpgradeResourceProvider(AmbariManagementController controller) {
     super(PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
@@ -171,7 +165,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           UpgradePack up = validateRequest(requestMap);
 
           return createUpgrade(up, requestMap);
-        }
+        };
       });
 
     notifyCreate(Resource.Type.Upgrade, request);
@@ -196,7 +190,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         throw new IllegalArgumentException("The cluster name is required when querying for upgrades");
       }
 
-      Cluster cluster;
+      Cluster cluster = null;
       try {
         cluster = getManagementController().getClusters().getCluster(clusterName);
       } catch (AmbariException e) {
@@ -505,8 +499,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         "{}", "{}",
         StageUtils.getGson().toJson(hostLevelParams));
 
-    stage.setSkippable(UPGRADE_DEFAULT_SKIPPABLE);
-
     long stageId = request.getLastStageId() + 1;
     if (0L == stageId) {
       stageId = 1L;
@@ -516,7 +508,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     // !!! TODO verify the action is valid
 
-    actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, UPGRADE_DEFAULT_ALLOW_RETRY);
+    actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage);
 
     // need to set meaningful text on the command
     for (Map<String, HostRoleCommand> map : stage.getHostRoleCommands().values()) {
@@ -561,8 +553,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         jsons.getCommandParamsForStage(),
         jsons.getHostParamsForStage());
 
-    stage.setSkippable(UPGRADE_DEFAULT_SKIPPABLE);
-
     long stageId = request.getLastStageId() + 1;
     if (0L == stageId) {
       stageId = 1L;
@@ -575,7 +565,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     Map<String, String> requestParams = new HashMap<String, String>();
     requestParams.put("command", "RESTART");
 
-    commandExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, requestParams, UPGRADE_DEFAULT_ALLOW_RETRY);
+    commandExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, requestParams);
 
     request.addStages(Collections.singletonList(stage));
   }
@@ -610,8 +600,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         jsons.getCommandParamsForStage(),
         jsons.getHostParamsForStage());
 
-    stage.setSkippable(UPGRADE_DEFAULT_SKIPPABLE);
-
     long stageId = request.getLastStageId() + 1;
     if (0L == stageId) {
       stageId = 1L;
@@ -621,7 +609,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     Map<String, String> requestParams = new HashMap<String, String>();
 
-    commandExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, requestParams, UPGRADE_DEFAULT_ALLOW_RETRY);
+    commandExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, requestParams);
 
     request.addStages(Collections.singletonList(stage));
   }
@@ -671,8 +659,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         jsons.getCommandParamsForStage(),
         jsons.getHostParamsForStage());
 
-    stage.setSkippable(UPGRADE_DEFAULT_SKIPPABLE);
-
     long stageId = request.getLastStageId() + 1;
     if (0L == stageId) {
       stageId = 1L;
@@ -688,7 +674,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         RoleCommand.EXECUTE,
         cluster.getClusterName(), host,
         new ServiceComponentHostServerActionEvent(StageUtils.getHostName(), System.currentTimeMillis()),
-        commandParams, null, 1200, UPGRADE_DEFAULT_ALLOW_RETRY);
+        commandParams, null, 1200);
 
     request.addStages(Collections.singletonList(stage));
   }

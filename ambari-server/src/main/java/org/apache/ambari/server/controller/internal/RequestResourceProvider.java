@@ -222,7 +222,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       List<HostRoleCommand> commands = internalRequest.getCommands();
       HostRoleStatus internalRequestStatus =
           StageResourceProvider.calculateSummaryStatus(
-              StageResourceProvider.calculateTaskStatusCounts(getHostRoleStatuses(commands)), commands.size(), true);
+              StageResourceProvider.calculateTaskStatusCounts(getHostRoleStatuses(commands)), commands.size());
 
       if (updateRequest.getStatus() != HostRoleStatus.ABORTED) {
         throw new IllegalArgumentException(
@@ -471,8 +471,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     Map<HostRoleStatus, Integer> hostRoleStatusCounters =
         StageResourceProvider.calculateTaskStatusCounts(getHostRoleStatuses(commands));
 
-    HostRoleStatus requestStatus =
-        StageResourceProvider.calculateSummaryStatus(hostRoleStatusCounters, taskCount, true);
+    HostRoleStatus requestStatus   = StageResourceProvider.calculateSummaryStatus(hostRoleStatusCounters, taskCount);
 
     double progressPercent = StageResourceProvider.calculateProgressPercent(hostRoleStatusCounters, taskCount);
 

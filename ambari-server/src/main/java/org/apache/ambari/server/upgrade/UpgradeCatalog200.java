@@ -176,9 +176,6 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn("host_role_command", new DBAccessor.DBColumnInfo("retry_allowed",
         Integer.class, 1, 0, false));
 
-    dbAccessor.addColumn("stage", new DBAccessor.DBColumnInfo("skippable",
-        Integer.class, 1, 0, false));
-
     // New tables
     columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBAccessor.DBColumnInfo("id", Long.class, null, null, false));

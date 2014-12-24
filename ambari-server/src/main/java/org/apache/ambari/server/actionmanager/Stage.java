@@ -65,8 +65,6 @@ public class Stage {
   private String commandParamsStage;
   private String hostParamsStage;
 
-  private boolean skippable;
-
   private int stageTimeout = -1;
 
   private volatile boolean wrappersLoaded = false;
@@ -98,7 +96,6 @@ public class Stage {
     this.clusterHostInfo = clusterHostInfo;
     this.commandParamsStage = commandParamsStage;
     this.hostParamsStage = hostParamsStage;
-    this.skippable = false;
   }
 
   @AssistedInject
@@ -107,7 +104,6 @@ public class Stage {
 
     requestId = stageEntity.getRequestId();
     stageId = stageEntity.getStageId();
-    skippable = stageEntity.isSkippable();
     logDir = stageEntity.getLogInfo();
 
     long clusterId = stageEntity.getClusterId().longValue();
@@ -154,7 +150,6 @@ public class Stage {
     stageEntity.setRequestId(requestId);
     stageEntity.setStageId(getStageId());
     stageEntity.setLogInfo(logDir);
-    stageEntity.setSkippable(skippable);
     stageEntity.setRequestContext(requestContext);
     stageEntity.setHostRoleCommands(new ArrayList<HostRoleCommandEntity>());
     stageEntity.setRoleSuccessCriterias(new ArrayList<RoleSuccessCriteriaEntity>());
@@ -252,12 +247,9 @@ public class Stage {
     return StageUtils.getActionId(requestId, getStageId());
   }
 
-  private synchronized ExecutionCommandWrapper addGenericExecutionCommand(
-      String clusterName, String hostName, Role role,
-      RoleCommand command, ServiceComponentHostEvent event, boolean retryAllowed){
-
+  private synchronized ExecutionCommandWrapper addGenericExecutionCommand(String clusterName, String hostName, Role role, RoleCommand command, ServiceComponentHostEvent event){
     //used on stage creation only, no need to check if wrappers loaded
-    HostRoleCommand hrc = new HostRoleCommand(hostName, role, event, command, retryAllowed);
+    HostRoleCommand hrc = new HostRoleCommand(hostName, role, event, command);
     ExecutionCommand cmd = new ExecutionCommand();
     ExecutionCommandWrapper wrapper = new ExecutionCommandWrapper(cmd);
     hrc.setExecutionCommandWrapper(wrapper);
@@ -295,22 +287,19 @@ public class Stage {
     execCmdList.add(wrapper);
     return wrapper;
   }
-
   /**
    * A new host role command is created for execution.
    * Creates both ExecutionCommand and HostRoleCommand objects and
    * adds them to the Stage. This should be called only once for a host-role
    * for a given stage.
    */
-  public synchronized void addHostRoleExecutionCommand(String host, Role role, RoleCommand command,
-                                                       ServiceComponentHostEvent event, String clusterName,
-                                                       String serviceName, boolean retryAllowed) {
-
-    ExecutionCommandWrapper commandWrapper =
-        addGenericExecutionCommand(clusterName, host, role, command, event, retryAllowed);
+  public synchronized void addHostRoleExecutionCommand(String host, Role role,  RoleCommand command,
+      ServiceComponentHostEvent event, String clusterName, String serviceName) {
+    ExecutionCommandWrapper commandWrapper = addGenericExecutionCommand(clusterName, host, role, command, event);
 
     commandWrapper.getExecutionCommand().setServiceName(serviceName);
   }
+
 
   /**
    * Creates server-side execution command.
@@ -329,17 +318,15 @@ public class Stage {
    * @param commandDetail a String declaring a descriptive name to pass to the action - null or an
    *                      empty string indicates no value is to be set
    * @param timeout       an Integer declaring the timeout for this action - if null, a default
-   * @param retryAllowed   indicates whether retry after failure is allowed
    */
   public synchronized void addServerActionCommand(String actionName, Role role, RoleCommand command,
                                                   String clusterName, ServiceComponentHostServerActionEvent event,
                                                   @Nullable Map<String, String> commandParams,
                                                   @Nullable String commandDetail,
-                                                  @Nullable Integer timeout,
-                                                  boolean retryAllowed) {
+                                                  @Nullable Integer timeout) {
 
     addServerActionCommand(actionName, role, command,
-        clusterName, StageUtils.getHostName(), event, commandParams, commandDetail, timeout, retryAllowed);
+        clusterName, StageUtils.getHostName(), event, commandParams, commandDetail, timeout);
   }
 
   /**
@@ -364,17 +351,14 @@ public class Stage {
    * @param commandDetail a String declaring a descriptive name to pass to the action - null or an
    *                      empty string indicates no value is to be set
    * @param timeout       an Integer declaring the timeout for this action - if null, a default
-   * @param retryAllowed   indicates whether retry after failure is allowed
    */
   public synchronized void addServerActionCommand(String actionName, Role role, RoleCommand command,
                                                   String clusterName, String hostName,
                                                   ServiceComponentHostServerActionEvent event,
                                                   @Nullable Map<String, String> commandParams,
                                                   @Nullable String commandDetail,
-                                                  @Nullable Integer timeout, boolean retryAllowed) {
-    ExecutionCommandWrapper commandWrapper =
-        addGenericExecutionCommand(clusterName, hostName, role, command, event, retryAllowed);
-
+                                                  @Nullable Integer timeout) {
+    ExecutionCommandWrapper commandWrapper = addGenericExecutionCommand(clusterName, hostName, role, command, event);
     ExecutionCommand cmd = commandWrapper.getExecutionCommand();
 
     Map<String, String> cmdParams = new HashMap<String, String>();
@@ -400,12 +384,10 @@ public class Stage {
   }
 
   /**
-   *  Adds cancel command to stage for given cancelTargets collection of
-   *  task id's that has to be canceled in Agent layer.
+   *  Adds cancel command to stage for given cancelTargets collection of task id's that has to be canceled in Agent layer.
    */
   public synchronized void addCancelRequestCommand(List<Long> cancelTargets, String clusterName, String hostName) {
-    ExecutionCommandWrapper commandWrapper = addGenericExecutionCommand(clusterName, hostName,
-        Role.AMBARI_SERVER_ACTION, RoleCommand.ABORT, null, false);
+    ExecutionCommandWrapper commandWrapper = addGenericExecutionCommand(clusterName, hostName, Role.AMBARI_SERVER_ACTION, RoleCommand.ABORT, null);
     ExecutionCommand cmd = commandWrapper.getExecutionCommand();
     cmd.setCommandType(AgentCommandType.CANCEL_COMMAND);
 
@@ -587,7 +569,8 @@ public class Stage {
   /**
    * This method should be used only in stage planner. To add
    * a new execution command use
-   * {@link #addHostRoleExecutionCommand(String, org.apache.ambari.server.Role, org.apache.ambari.server.RoleCommand, org.apache.ambari.server.state.ServiceComponentHostEvent, String, String, boolean)}
+   * {@link #addHostRoleExecutionCommand(String, Role, RoleCommand,
+   * ServiceComponentHostEvent, String, String)}
    */
   public synchronized void addExecutionCommandWrapper(Stage origStage,
       String hostname, Role r) {
@@ -638,34 +621,6 @@ public class Stage {
       }
     }
     return stageTimeout;
-  }
-
-  /**
-   * Determine whether or not this stage is skippable.
-   *
-   * A skippable stage can be skipped on failure so that the
-   * remaining stages of the request can execute.
-   * If a stage is not skippable, a failure will cause the
-   * remaining stages of the request to be aborted.
-   *
-   * @return true if this stage is skippable
-   */
-  public boolean isSkippable() {
-    return skippable;
-  }
-
-  /**
-   * Set skippable for this stage.
-   *
-   * A skippable stage can be skipped on failure so that the
-   * remaining stages of the request can execute.
-   * If a stage is not skippable, a failure will cause the
-   * remaining stages of the request to be aborted.
-   *
-   * @param skippable  true if this stage should be skippable
-   */
-  public void setSkippable(boolean skippable) {
-    this.skippable = skippable;
   }
 
   @Override //Object

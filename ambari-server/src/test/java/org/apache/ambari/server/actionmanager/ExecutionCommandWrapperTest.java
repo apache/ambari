@@ -160,7 +160,7 @@ public class ExecutionCommandWrapperTest {
     s.addHostRoleExecutionCommand(hostName, Role.NAMENODE,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.NAMENODE.toString(),
-            hostName, System.currentTimeMillis()), clusterName, "HDFS", false);
+            hostName, System.currentTimeMillis()), clusterName, "HDFS");
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
     Request request = new Request(stages, clusters);

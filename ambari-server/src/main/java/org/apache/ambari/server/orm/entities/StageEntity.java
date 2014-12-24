@@ -40,9 +40,6 @@ public class StageEntity {
   @Id
   private Long stageId = 0L;
 
-  @Column(name = "skippable", nullable = false)
-  private Integer skippable = Integer.valueOf(0);
-
   @Column(name = "log_info")
   @Basic
   private String logInfo = "";
@@ -193,25 +190,5 @@ public class StageEntity {
 
   public void setRequest(RequestEntity request) {
     this.request = request;
-  }
-
-  /**
-   * Determine whether this stage is skippable.  If the stage is skippable then in can be skipped on
-   * error without failing the entire request.
-   *
-   * @return true if this stage is skippable
-   */
-  public boolean isSkippable() {
-    return skippable != 0;
-  }
-
-  /**
-   * Set skippable for this stage.  If the stage is skippable then in can be skipped on
-   * error without failing the entire request.
-   *
-   * @param skippable true indicates that the stage is skippable
-   */
-  public void setSkippable(boolean skippable) {
-    this.skippable = skippable ? 1 : 0;
   }
 }

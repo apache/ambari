@@ -26,6 +26,8 @@ import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class encapsulates the information for an task on a host for a
@@ -34,6 +36,7 @@ import org.apache.ambari.server.state.ServiceComponentHostEvent;
  * track the request.
  */
 public class HostRoleCommand {
+  private static final Logger log = LoggerFactory.getLogger(HostRoleCommand.class);
   private final Role role;
   private final ServiceComponentHostEventWrapper event;
   private long taskId = -1;
@@ -51,7 +54,6 @@ public class HostRoleCommand {
   private long endTime = -1;
   private long lastAttemptTime = -1;
   private short attemptCount = 0;
-  private final boolean retryAllowed;
   private RoleCommand roleCommand;
   private String commandDetail;
   private String customCommandName;
@@ -60,16 +62,10 @@ public class HostRoleCommand {
 
   public HostRoleCommand(String host, Role role,
                          ServiceComponentHostEvent event, RoleCommand command) {
-    this(host, role, event, command, false);
-  }
-
-  public HostRoleCommand(String host, Role role,
-                         ServiceComponentHostEvent event, RoleCommand command, boolean retryAllowed) {
     this.hostName = host;
     this.role = role;
     this.event = new ServiceComponentHostEventWrapper(event);
     this.roleCommand = command;
-    this.retryAllowed = retryAllowed;
   }
 
   @AssistedInject
@@ -90,7 +86,6 @@ public class HostRoleCommand {
     endTime = hostRoleCommandEntity.getEndTime() != null ? hostRoleCommandEntity.getEndTime() : -1L;
     lastAttemptTime = hostRoleCommandEntity.getLastAttemptTime();
     attemptCount = hostRoleCommandEntity.getAttemptCount();
-    retryAllowed = hostRoleCommandEntity.isRetryAllowed();
     roleCommand = hostRoleCommandEntity.getRoleCommand();
     event = new ServiceComponentHostEventWrapper(hostRoleCommandEntity.getEvent());
     commandDetail = hostRoleCommandEntity.getCommandDetail();
@@ -113,7 +108,6 @@ public class HostRoleCommand {
     hostRoleCommandEntity.setEndTime(endTime);
     hostRoleCommandEntity.setLastAttemptTime(lastAttemptTime);
     hostRoleCommandEntity.setAttemptCount(attemptCount);
-    hostRoleCommandEntity.setRetryAllowed(retryAllowed);
     hostRoleCommandEntity.setRoleCommand(roleCommand);
     hostRoleCommandEntity.setCommandDetail(commandDetail);
     hostRoleCommandEntity.setCustomCommandName(customCommandName);
@@ -239,10 +233,6 @@ public class HostRoleCommand {
     this.attemptCount++;
   }
 
-  public boolean isRetryAllowed() {
-    return retryAllowed;
-  }
-
   public String getStructuredOut() {
     return structuredOut;
   }
@@ -295,7 +285,8 @@ public class HostRoleCommand {
 
   @Override
   public int hashCode() {
-    return (hostName + role.toString() + roleCommand.toString()).hashCode();
+    return (hostName.toString() + role.toString() + roleCommand.toString())
+        .hashCode();
   }
 
   @Override
