@@ -57,52 +57,6 @@ describe('App.AddSecurityController', function () {
     });
   });
 
-  describe('#secureServices', function () {
-
-    afterEach(function () {
-      App.get.restore();
-    });
-
-    it('App.isHadoop2Stack = false', function () {
-      var result = [
-        "GENERAL",
-        "HDFS",
-        "MAPREDUCE",
-        "HIVE",
-        "HBASE",
-        "ZOOKEEPER",
-        "OOZIE",
-        "NAGIOS"
-      ];
-      sinon.stub(App, 'get', function () {
-        return false;
-      });
-      Em.propertyDidChange(App, 'isHadoop2Stack');
-      expect(controller.get('secureServices').mapProperty('serviceName')).to.eql(result);
-    });
-    it('App.isHadoop2Stack = true', function () {
-      var result = [
-        "GENERAL",
-        "HDFS",
-        "MAPREDUCE2",
-        "YARN",
-        "HIVE",
-        "HBASE",
-        "ZOOKEEPER",
-        "OOZIE",
-        "NAGIOS",
-        "STORM",
-        "FALCON",
-        "KNOX"
-      ];
-      sinon.stub(App, 'get', function () {
-        return true;
-      });
-      Em.propertyDidChange(App, 'isHadoop2Stack');
-      expect(controller.get('secureServices').mapProperty('serviceName')).to.eql(result);
-    });
-  });
-
   describe('#loadAllPriorSteps()', function () {
 
     beforeEach(function () {

@@ -656,7 +656,7 @@ describe("App.MainServiceInfoConfigsController", function () {
         mainServiceInfoConfigsController.set('content', Ember.Object.create ({ serviceName: 'HDFS' }));
       });
 
-      describe("when isHadoop2Stack is true", function() {
+      describe("for hadoop 2", function() {
 
         var tests = [
           {
@@ -716,80 +716,6 @@ describe("App.MainServiceInfoConfigsController", function () {
 
         beforeEach(function() {
           sinon.stub(App, 'get').returns(true);
-        });
-
-        afterEach(function() {
-          App.get.restore();
-        });
-
-        tests.forEach(function(test) {
-          it(test.it, function() {
-            mainServiceInfoConfigsController.set('stepConfigs', [Ember.Object.create ({ configs: [test.config], serviceName: 'HDFS' })]);
-            expect(mainServiceInfoConfigsController.isDirChanged()).to.equal(test.expect);
-          })
-        });
-      });
-
-      describe("when isHadoop2Stack is false", function() {
-
-        var tests = [
-          {
-            it: "should set dirChanged to false if none of the properties exist",
-            expect: false,
-            config: Ember.Object.create ({})
-          },
-          {
-            it: "should set dirChanged to true if dfs.name.dir is not default",
-            expect: true,
-            config: Ember.Object.create ({
-              name: 'dfs.name.dir',
-              isNotDefaultValue: true
-            })
-          },
-          {
-            it: "should set dirChanged to false if dfs.name.dir is default",
-            expect: false,
-            config: Ember.Object.create ({
-              name: 'dfs.name.dir',
-              isNotDefaultValue: false
-            })
-          },
-          {
-            it: "should set dirChanged to true if fs.checkpoint.dir is not default",
-            expect: true,
-            config: Ember.Object.create ({
-              name: 'fs.checkpoint.dir',
-              isNotDefaultValue: true
-            })
-          },
-          {
-            it: "should set dirChanged to false if fs.checkpoint.dir is default",
-            expect: false,
-            config: Ember.Object.create ({
-              name: 'fs.checkpoint.dir',
-              isNotDefaultValue: false
-            })
-          },
-          {
-            it: "should set dirChanged to true if dfs.data.dir is not default",
-            expect: true,
-            config: Ember.Object.create ({
-              name: 'dfs.data.dir',
-              isNotDefaultValue: true
-            })
-          },
-          {
-            it: "should set dirChanged to false if dfs.data.dir is default",
-            expect: false,
-            config: Ember.Object.create ({
-              name: 'dfs.data.dir',
-              isNotDefaultValue: false
-            })
-          }
-        ];
-
-        beforeEach(function() {
-          sinon.stub(App, 'get').returns(false);
         });
 
         afterEach(function() {

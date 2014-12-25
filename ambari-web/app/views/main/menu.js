@@ -42,11 +42,6 @@ App.MainMenuView = Em.CollectionView.extend({
           { label: Em.I18n.t('menu.item.hosts'), routing: 'hosts', hasAlertsLabel: true},
           { label: Em.I18n.t('menu.item.alerts'), routing: 'alerts'}
         );
-
-        if (!App.get('isHadoop2Stack')) {
-          result.push({ label: Em.I18n.t('menu.item.jobs'), routing: 'apps'});
-        }
-
         if (App.isAccessible('upgrade_ADMIN')) {
           result.push({ label: Em.I18n.t('menu.item.admin'), routing: 'admin'});
         }

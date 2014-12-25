@@ -154,19 +154,6 @@ module.exports = Em.Route.extend({
     }
   }),
 
-  apps: Em.Route.extend({
-    route: '/apps',
-    connectOutlets: function (router) {
-      if (App.get('isHadoop2Stack')) {
-        Em.run.next(function () {
-          router.transitionTo('main.dashboard.index');
-        });
-      } else {
-        router.get('mainAppsController').loadRuns();
-        router.get('mainController').connectOutlet('mainApps');
-      }
-    }
-  }),
 
   mirroring: Em.Route.extend({
     route: '/mirroring',

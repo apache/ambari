@@ -387,7 +387,7 @@ App.ClusterController = Em.Controller.extend({
   },
 
   requestHosts: function (realUrl, callback) {
-    var testHostUrl = App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hosts.json' : '/data/hosts/hosts.json';
+    var testHostUrl = '/data/hosts/HDP2/hosts.json';
     var url = this.getUrl(testHostUrl, realUrl);
     App.HttpClient.get(url, App.hostsMapper, {
       complete: callback
@@ -432,7 +432,7 @@ App.ClusterController = Em.Controller.extend({
   },
 
   updateClusterData: function () {
-    var testUrl = App.get('isHadoop2Stack') ? '/data/clusters/HDP2/cluster.json' : '/data/clusters/cluster.json';
+    var testUrl = '/data/clusters/HDP2/cluster.json';
     var clusterUrl = this.getUrl(testUrl, '?fields=Clusters');
     App.HttpClient.get(clusterUrl, App.clusterMapper, {
       complete: function () {

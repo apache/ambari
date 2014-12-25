@@ -281,7 +281,8 @@ App.QuickViewLinks = Em.View.extend({
         hosts[0] = this.findComponentHost(response.items, "STORM_UI_SERVER");
         break;
       default:
-        if (App.StackService.find().findProperty('serviceName', serviceName).get('hasMaster')) {
+        var service = App.StackService.find().findProperty('serviceName', serviceName);
+        if (service && service.get('hasMaster')) {
           hosts[0] = this.findComponentHost(response.items, this.get('content.hostComponents') && this.get('content.hostComponents').findProperty('isMaster', true).get('componentName'));
         }
         break;
@@ -308,13 +309,8 @@ App.QuickViewLinks = Em.View.extend({
   setProtocol: function (service_id, configProperties, ambariProperties) {
     var hadoopSslEnabled = false;
     if (configProperties && configProperties.length > 0) {
-      var coreSite = configProperties.findProperty('type', 'core-site');
       var hdfsSite = configProperties.findProperty('type', 'hdfs-site');
-      if (App.get('isHadoop2Stack')) {
-        hadoopSslEnabled = (Em.get(hdfsSite, 'properties') && hdfsSite.properties['dfs.http.policy'] === 'HTTPS_ONLY');
-      } else {
-        hadoopSslEnabled = (Em.get(coreSite, 'properties') && coreSite.properties['hadoop.ssl.enabled'] == true);
-      }
+      hadoopSslEnabled = (hdfsSite && Em.get(hdfsSite, 'properties') && hdfsSite.properties['dfs.http.policy'] === 'HTTPS_ONLY');
     }
     switch (service_id) {
       case "GANGLIA":
@@ -324,7 +320,7 @@ App.QuickViewLinks = Em.View.extend({
         return (ambariProperties && ambariProperties['nagios.https'] == true) ? "https" : "http";
         break;
       case "YARN":
-        var yarnProperties = configProperties.findProperty('type', 'yarn-site');
+        var yarnProperties = configProperties && configProperties.findProperty('type', 'yarn-site');
         if (yarnProperties && yarnProperties.properties) {
           if (yarnProperties.properties['yarn.http.policy'] === 'HTTPS_ONLY') {
             return "https";
@@ -335,7 +331,7 @@ App.QuickViewLinks = Em.View.extend({
         return hadoopSslEnabled ? "https" : "http";
         break;
       case "MAPREDUCE2":
-        var mapred2Properties = configProperties.findProperty('type', 'mapred-site');
+        var mapred2Properties = configProperties && configProperties.findProperty('type', 'mapred-site');
         if (mapred2Properties && mapred2Properties.properties) {
           if (mapred2Properties.properties['mapreduce.jobhistory.http.policy'] === 'HTTPS_ONLY') {
             return "https";

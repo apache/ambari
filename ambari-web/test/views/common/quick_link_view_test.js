@@ -31,43 +31,25 @@ describe('App.QuickViewLinks', function () {
       { serviceName: "NAGIOS", ambariProperties: { 'nagios.https': true }, m: "https for nagios", result: "https" },
       { serviceName: "NAGIOS", ambariProperties: { 'nagios.https': false }, m: "http for nagios", result: "http" },
       { serviceName: "YARN", configProperties: [
-        { type: 'yarn-site', properties: { 'yarn.http.policy': 'HTTPS_ONLY' }},
-        { type: 'core-site', properties: { 'hadoop.ssl.enabled': null }}
+        { type: 'yarn-site', properties: { 'yarn.http.policy': 'HTTPS_ONLY' }}
       ], m: "https for yarn", result: "https" },
       { serviceName: "YARN", configProperties: [
-        { type: 'yarn-site', properties: { 'yarn.http.policy': 'HTTP_ONLY' }},
-        { type: 'core-site', properties: { 'hadoop.ssl.enabled': null }}
+        { type: 'yarn-site', properties: { 'yarn.http.policy': 'HTTP_ONLY' }}
       ], m: "http for yarn", result: "http" },
       { serviceName: "YARN", configProperties: [
-        { type: 'yarn-site', properties: { 'yarn.http.policy': 'HTTP_ONLY' }},
-        { type: 'core-site', properties: { 'hadoop.ssl.enabled': true }}
+        { type: 'yarn-site', properties: { 'yarn.http.policy': 'HTTP_ONLY' }}
       ], m: "http for yarn (overrides hadoop.ssl.enabled)", result: "http" },
       { serviceName: "YARN", configProperties: [
-        { type: 'yarn-site', properties: { 'yarn.http.policy': 'HTTPS_ONLY' }},
-        { type: 'core-site', properties: { 'hadoop.ssl.enabled': false }}
+        { type: 'yarn-site', properties: { 'yarn.http.policy': 'HTTPS_ONLY' }}
       ], m: "https for yarn (overrides hadoop.ssl.enabled)", result: "https" },
-      { serviceName: "YARN", configProperties: [
-        { type: 'core-site', properties: { 'hadoop.ssl.enabled': true }}
-      ], m: "https for yarn by hadoop.ssl.enabled", result: "https" },
       { serviceName: "MAPREDUCE2", configProperties: [
-        { type: 'mapred-site', properties: { 'mapreduce.jobhistory.http.policy': 'HTTPS_ONLY' }},
-        { type: 'core-site', properties: { 'hadoop.ssl.enabled': null }}
+        { type: 'mapred-site', properties: { 'mapreduce.jobhistory.http.policy': 'HTTPS_ONLY' }}
       ], m: "https for mapreduce2", result: "https" },
       { serviceName: "MAPREDUCE2", configProperties: [
-        { type: 'mapred-site', properties: { 'mapreduce.jobhistory.http.policy': 'HTTP_ONLY' }},
-        { type: 'core-site', properties: { 'hadoop.ssl.enabled': null }}
+        { type: 'mapred-site', properties: { 'mapreduce.jobhistory.http.policy': 'HTTP_ONLY' }}
       ], m: "http for mapreduce2", result: "http" },
-      { serviceName: "MAPREDUCE2", configProperties: [
-        { type: 'core-site', properties: { 'hadoop.ssl.enabled': true }}
-      ], m: "https for mapreduce2 by hadoop.ssl.enabled", result: "https" },
       { serviceName: "ANYSERVICE", configProperties: [
-        { type: 'core-site', properties: { 'hadoop.ssl.enabled': true }}
-      ], m: "http for anyservice hadoop.ssl.enabled is true but doesn't support security", servicesSupportsHttps: [], result: "http" },
-      { serviceName: "ANYSERVICE", configProperties: [
-        { type: 'core-site', properties: { 'hadoop.ssl.enabled': false }}
-      ], m: "http for anyservice hadoop.ssl.enabled is false", servicesSupportsHttps: ["ANYSERVICE"], result: "http" },
-      { serviceName: "ANYSERVICE", configProperties: [
-        { type: 'core-site', properties: { 'hadoop.ssl.enabled': true }}
+        { type: 'hdfs-site', properties: { 'dfs.http.policy': 'HTTPS_ONLY' }}
       ], m: "https for anyservice", servicesSupportsHttps: ["ANYSERVICE"], result: "https" }
     ];
 

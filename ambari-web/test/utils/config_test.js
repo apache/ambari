@@ -131,47 +131,6 @@ describe('App.config', function () {
       })
     });
 
-    describe('Stack version < 2.0', function() {
-      before(function() {
-        setups.setupStackVersion(this, 'HDP-1.3');
-      });
-      var tests = [
-        {
-          config: {
-            name: 'mapred.capacity-scheduler.maximum-system-jobs'
-          },
-          e: false
-        },
-        {
-          config: {
-            name: 'yarn.scheduler.capacity.root.capacity'
-          },
-          e: false
-        },
-        {
-          config: {
-            name: 'mapred.capacity-scheduler.queue.default.capacity'
-          },
-          e: true
-        },
-        {
-          config: {
-            name: 'mapred.queue.default.acl-administer-jobs'
-          },
-          e: true
-        }
-      ];
-
-      tests.forEach(function(test){
-        it(testMessage.format( !!test.e ? '' : 'not', test.config.name), function() {
-          expect(App.config.get('capacitySchedulerFilter')(test.config)).to.eql(test.e);
-        });
-      });
-
-      after(function() {
-        setups.restoreStackVersion(this);
-      });
-    });
   });
 
   describe('#fileConfigsIntoTextarea', function () {
@@ -673,7 +632,7 @@ describe('App.config', function () {
           },
           {
             key: 'belongsToService',
-            e: ['HIVE', 'OOZIE']
+            e: ['HIVE', 'OOZIE', 'FALCON']
           }
         ]
       },

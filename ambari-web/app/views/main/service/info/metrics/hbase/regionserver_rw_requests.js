@@ -32,11 +32,7 @@ App.ChartServiceMetricsHBASE_RegionServerReadWriteRequests = App.ChartLinearTime
   ajaxIndex: 'service.metrics.hbase.regionserver_rw_requests',
   yAxisFormatter: App.ChartLinearTimeView.CreateRateFormatter('req', 
       App.ChartLinearTimeView.DefaultFormatter),
-  title: function () {
-    return App.get('isHadoop2Stack') ? 
-        Em.I18n.t('services.service.info.metrics.hbase.regionServerRequests.2') : 
-          Em.I18n.t('services.service.info.metrics.hbase.regionServerRequests');
-  }.property('App.isHadoop2Stack'),
+  title: Em.I18n.t('services.service.info.metrics.hbase.regionServerRequests.2'),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

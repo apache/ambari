@@ -136,8 +136,6 @@ require('controllers/main/charts/heatmap_metrics/heatmap_metric_hbase_compaction
 require('controllers/main/charts/heatmap_metrics/heatmap_metric_hbase_regions');
 require('controllers/main/charts/heatmap_metrics/heatmap_metric_hbase_memstoresize');
 require('controllers/main/charts/heatmap');
-require('controllers/main/apps_controller');
-require('controllers/main/apps/item_controller');
 require('controllers/main/views_controller');
 require('controllers/main/views/details_controller');
 require('controllers/wizard/slave_component_groups_controller');

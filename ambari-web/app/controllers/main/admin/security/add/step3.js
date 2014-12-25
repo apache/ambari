@@ -84,8 +84,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         componentName: 'HIVE_SERVER',
         principal: 'hive_metastore_http_principal_name',
         keytab: 'hive_metastore_http_keytab',
-        displayName: Em.I18n.t('admin.addSecurity.hive.user.httpUser'),
-        isHadoop2Stack: true
+        displayName: Em.I18n.t('admin.addSecurity.hive.user.httpUser')
       },
       {
         componentName: 'OOZIE_SERVER',
@@ -103,29 +102,25 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         componentName: 'HISTORYSERVER',
         principal: 'jobhistory_http_principal_name',
         keytab: 'jobhistory_http_keytab',
-        displayName: Em.I18n.t('admin.addSecurity.historyServer.user.httpUser'),
-        isHadoop2Stack: true
+        displayName: Em.I18n.t('admin.addSecurity.historyServer.user.httpUser')
       },
       {
         componentName: 'RESOURCEMANAGER',
         principal: 'resourcemanager_http_principal_name',
         keytab: 'resourcemanager_http_keytab',
-        displayName: Em.I18n.t('admin.addSecurity.rm.user.httpUser'),
-        isHadoop2Stack: true
+        displayName: Em.I18n.t('admin.addSecurity.rm.user.httpUser')
       },
       {
         componentName: 'NODEMANAGER',
         principal: 'nodemanager_http_principal_name',
         keytab: 'nodemanager_http_keytab',
-        displayName: Em.I18n.t('admin.addSecurity.nm.user.httpUser'),
-        isHadoop2Stack: true
+        displayName: Em.I18n.t('admin.addSecurity.nm.user.httpUser')
       },
       {
         componentName: 'APP_TIMELINE_SERVER',
         principal: 'apptimelineserver_http_principal_name',
         keytab: 'apptimelineserver_http_keytab',
-        displayName: Em.I18n.t('admin.addSecurity.user.yarn.atsHTTPUser'),
-        isHadoop2Stack: true
+        displayName: Em.I18n.t('admin.addSecurity.user.yarn.atsHTTPUser')
       },
       {
         componentName: 'STORM_UI_SERVER',
@@ -284,8 +279,6 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
 
     this.get('componentToConfigMap').forEach(function (component) {
       //add specific components that supported only in Hadoop2 stack
-      if (component.isHadoop2Stack && !App.get('isHadoop2Stack')) return;
-
       if (component.isHadoop22Stack && !App.get('isHadoop22Stack')) return;
 
       if (hostComponents.someProperty('componentName', component.componentName)) {

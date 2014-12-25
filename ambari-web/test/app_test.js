@@ -150,64 +150,6 @@ describe('App', function () {
     });
   });
 
-  describe('#isHadoop2Stack', function () {
-    before(function () {
-      App.set('defaultStackVersion', '');
-    });
-    after(function () {
-      App.set('defaultStackVersion', 'HDP-2.0.5');
-    });
-    var testCasesWithoutHDFSDefined = [
-      {
-        title: 'if currentStackVersion is empty then isHadoop2Stack should be false',
-        currentStackVersion: '',
-        result: false
-      },
-      {
-        title: 'if currentStackVersion is "HDP-1.9.9" then isHadoop2Stack should be false',
-        currentStackVersion: 'HDP-1.9.9',
-        result: false
-      },
-      {
-        title: 'if currentStackVersion is "HDP-2.0.0" then isHadoop2Stack should be true',
-        currentStackVersion: 'HDP-2.0.0',
-        result: true
-      },
-      {
-        title: 'if currentStackVersion is "HDP-2.0.1" then isHadoop2Stack should be true',
-        currentStackVersion: 'HDP-2.0.1',
-        result: true
-      }
-    ];
-
-    testCasesWithoutHDFSDefined.forEach(function (test) {
-      it(test.title, function () {
-        App.set('currentStackVersion', test.currentStackVersion);
-        expect(App.get('isHadoop2Stack')).to.equal(test.result);
-        App.set('currentStackVersion', "HDP-1.2.2");
-      });
-    });
-
-
-    it('HDFS service version should get priority when defined', function () {
-      var stackServices = [
-        Em.Object.create({
-          serviceName: 'HDFS',
-          serviceVersion: '2.1'
-        })
-      ];
-      sinon.stub(App.StackService, 'find', function () {
-        return stackServices;
-      });
-      App.set('currentStackVersion', '0.8');
-      App.set('isStackServicesLoaded', true);
-      expect(App.get('isHadoop2Stack')).to.equal(true);
-      App.set('isStackServicesLoaded', false);
-      App.set('currentStackVersion', "HDP-1.2.2");
-      App.StackService.find.restore();
-    });
-  });
-
   describe('#isHaEnabled when HDFS is installed:', function () {
 
     beforeEach(function () {
@@ -225,24 +167,17 @@ describe('App', function () {
       App.Service.find.restore();
     });
 
-    it('if hadoop stack version less than 2 then isHaEnabled should be false', function () {
-      App.set('currentStackVersion', 'HDP-1.3.1');
-      expect(App.get('isHaEnabled')).to.equal(false);
-      App.set('currentStackVersion', "HDP-1.2.2");
-    });
     it('if hadoop stack version higher than 2 then isHaEnabled should be true', function () {
-      App.set('currentStackVersion', 'HDP-2.0.1');
+      App.set('isStackServicesLoaded', true);
       expect(App.get('isHaEnabled')).to.equal(true);
-      App.set('currentStackVersion', "HDP-1.2.2");
+      App.set('isStackServicesLoaded', false);
     });
     it('if cluster has SECONDARY_NAMENODE then isHaEnabled should be false', function () {
       App.store.load(App.HostComponent, {
         id: 'SECONDARY_NAMENODE',
         component_name: 'SECONDARY_NAMENODE'
       });
-      App.set('currentStackVersion', 'HDP-2.0.1');
       expect(App.get('isHaEnabled')).to.equal(false);
-      App.set('currentStackVersion', "HDP-1.2.2");
     });
   });
 

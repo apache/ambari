@@ -160,7 +160,6 @@ describe('App.DataNodeComponentView', function () {
         title: 'No live nodes',
         data: {
           curObj: {},
-          isHadoop2Stack: true
         },
         result: {
           getDesiredAdminStateCalled: true,
@@ -177,8 +176,7 @@ describe('App.DataNodeComponentView', function () {
                 "adminState": "In Service"
               }
             }
-          },
-          isHadoop2Stack: true
+          }
         },
         result: {
           getDesiredAdminStateCalled: false,
@@ -195,8 +193,7 @@ describe('App.DataNodeComponentView', function () {
                 "adminState": "Decommission In Progress"
               }
             }
-          },
-          isHadoop2Stack: true
+          }
         },
         result: {
           getDesiredAdminStateCalled: false,
@@ -213,79 +210,17 @@ describe('App.DataNodeComponentView', function () {
                 "adminState": "Decommissioned"
               }
             }
-          },
-          isHadoop2Stack: true
+          }
         },
         result: {
           getDesiredAdminStateCalled: false,
           status: "DECOMMISSIONED",
           setStatusAsCalled: true
-        }
-      },
-      {
-        title: 'nodes DECOMMISSIONING',
-        data: {
-          "curObj": {
-            "DecomNodes": {
-              "host1": {}
-            }
-          },
-          isHadoop2Stack: false
-        },
-        result: {
-          getDesiredAdminStateCalled: false,
-          status: "DECOMMISSIONING",
-          setStatusAsCalled: true
-        }
-      },
-      {
-        title: 'nodes DECOMMISSIONED',
-        data: {
-          "curObj": {
-            "DeadNodes": {
-              "host1": {}
-            }
-          },
-          isHadoop2Stack: false
-        },
-        result: {
-          getDesiredAdminStateCalled: false,
-          status: "DECOMMISSIONED",
-          setStatusAsCalled: true
-        }
-      },
-      {
-        title: 'nodes INSERVICE',
-        data: {
-          "curObj": {
-            "LiveNodes": {
-              "host1": {}
-            }
-          },
-          isHadoop2Stack: false
-        },
-        result: {
-          getDesiredAdminStateCalled: false,
-          status: "INSERVICE",
-          setStatusAsCalled: true
-        }
-      },
-      {
-        title: 'namenode down',
-        data: {
-          "curObj": {},
-          isHadoop2Stack: false
-        },
-        result: {
-          getDesiredAdminStateCalled: true,
-          status: "",
-          setStatusAsCalled: false
         }
       }
     ];
     testCases.forEach(function (test) {
-      it(test.title + ", isHadoop2Stack:" + test.data.isHadoop2Stack, function () {
-        this.stub.withArgs('isHadoop2Stack').returns(test.data.isHadoop2Stack);
+      it(test.title, function () {
         view.computeStatus(test.data.curObj);
         expect(view.getDesiredAdminState.called).to.equal(test.result.getDesiredAdminStateCalled);
         expect(view.setStatusAs.calledWith(test.result.status)).to.equal(test.result.setStatusAsCalled);

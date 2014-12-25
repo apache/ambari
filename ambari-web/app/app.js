@@ -127,17 +127,6 @@ module.exports = Em.Application.create({
     return (this.get('currentStackVersion') || this.get('defaultStackVersion')).replace(regExp, '');
   }.property('currentStackVersion', 'defaultStackVersion', 'currentStackName'),
 
-  isHadoop2Stack: function () {
-    var result = true;
-    var hdfsService = App.StackService.find().findProperty('serviceName','HDFS');
-    if (hdfsService) {
-      result = stringUtils.compareVersions(hdfsService.get('serviceVersion'), "2.0") > -1;
-    } else {
-      result = stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.0") > -1;
-    }
-    return result;
-  }.property('router.clusterController.isLoaded', 'isStackServicesLoaded','currentStackVersionNumber'),
-
   isHadoop22Stack: function () {
     return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.2") > -1);
   }.property('currentStackVersionNumber'),
@@ -153,10 +142,9 @@ module.exports = Em.Application.create({
    * @type {bool}
    */
   isHaEnabled: function () {
-    if (!this.get('isHadoop2Stack')) return false;
     var isHDFSInstalled = App.Service.find().findProperty('serviceName','HDFS');
     return !!isHDFSInstalled && !this.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE');
-  }.property('router.clusterController.isLoaded', 'isHadoop2Stack'),
+  }.property('router.clusterController.isLoaded', 'isStackServicesLoaded'),
 
   /**
    * If ResourceManager High Availability is enabled
@@ -171,7 +159,7 @@ module.exports = Em.Application.create({
       result = this.HostComponent.find().filterProperty('componentName', 'RESOURCEMANAGER').length > 1;
     }
     return result;
-  }.property('router.clusterController.isLoaded'),
+  }.property('router.clusterController.isLoaded', 'isStackServicesLoaded'),
 
   /**
    * Object with utility functions for list of service names with similar behavior

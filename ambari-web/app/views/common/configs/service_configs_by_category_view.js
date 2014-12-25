@@ -133,7 +133,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, {
       var stepConfigs = this.get("controller.stepConfigs");
       this.affectedProperties = [];
       var curConfigs = "";
-      var affectedPropertyName = App.get('isHadoop2Stack') ? "dfs.permissions.superusergroup" : "dfs.permissions.supergroup";
+      var affectedPropertyName = "dfs.permissions.superusergroup";
       if (changedProperty.get("name") == "hdfs_user") {
         curConfigs = stepConfigs.findProperty("serviceName", "HDFS").get("configs");
         if (newValue != curConfigs.findProperty("name", affectedPropertyName).get("value")) {
@@ -157,34 +157,6 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, {
               newValue: " " + $.trim(newValue),
               curValue: curConfigs.findProperty("name", "dfs.cluster.administrators").get("value"),
               changedPropertyName: "hdfs_user"
-            }
-          );
-        }
-      }
-      else if (changedProperty.get("name") == "hbase_user" && !App.get('isHadoop2Stack')) {
-        curConfigs = stepConfigs.findProperty("serviceName", "HDFS").get("configs");
-        if (newValue != curConfigs.findProperty("name", "dfs.block.local-path-access.user").get("value")) {
-          this.affectedProperties.push(
-            {
-              serviceName: "HDFS",
-              propertyName: "dfs.block.local-path-access.user",
-              propertyDisplayName: "dfs.block.local-path-access.user",
-              newValue: newValue,
-              curValue: curConfigs.findProperty("name", "dfs.block.local-path-access.user").get("value"),
-              changedPropertyName: "hbase_user"
-            }
-          );
-        }
-        var hbaseCurConfigs = stepConfigs.findProperty("serviceName", "HBASE").get("configs");
-        if (newValue != hbaseCurConfigs.findProperty("name", "hbase.superuser").get("value")) {
-          this.affectedProperties.push(
-            {
-              serviceName: "HBASE",
-              propertyName: "hbase.superuser",
-              propertyDisplayName: "hbase.superuser",
-              newValue: newValue,
-              curValue: hbaseCurConfigs.findProperty("name", "hbase.superuser").get("value"),
-              changedPropertyName: "hbase_user"
             }
           );
         }

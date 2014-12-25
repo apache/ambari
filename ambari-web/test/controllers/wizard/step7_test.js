@@ -1255,7 +1255,7 @@ describe('App.InstallerStep7Controller', function () {
     ];
 
     sinon.stub(App, 'get', function(key) {
-      if (['isHadoop22Stack', 'isHadoop2Stack'].contains(key)) return true;
+      if (['isHadoop22Stack'].contains(key)) return true;
       else App.get(key);
     });
     var controller = App.WizardStep7Controller.create({});

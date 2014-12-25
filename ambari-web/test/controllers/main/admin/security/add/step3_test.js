@@ -159,29 +159,7 @@ describe('App.MainAdminSecurityAddStep3Controller', function () {
       controller.setComponentsConfig(result, Em.Object.create({hostName: 'c6401',hostComponents: []}), 'hadoopGroupId');
       expect(result).to.be.empty;
     });
-    it('isHadoop2Stack = false, when component from stack2', function() {
-      sinon.stub(App, 'get', function () {
-        return false;
-      });
-      controller.reopen({
-        componentToConfigMap: [{
-          componentName: 'DATANODE',
-          principal: 'principal1',
-          keytab: 'keytab1',
-          displayName: 'displayName1',
-          isHadoop2Stack: true
-        }]
-      });
-      var host = Em.Object.create({
-        hostComponents: [{componentName: 'DATANODE'}],
-        hostName: 'host1'
-      });
-      var result = [];
-      controller.setComponentsConfig(result, host, 'hadoopGroupId');
-      expect(result).to.be.empty;
-      App.get.restore();
-    });
-    it('isHadoop2Stack = true, when component from stack2', function() {
+    it('when component from stack2', function() {
       sinon.stub(App, 'get', function () {
         return true;
       });
@@ -190,8 +168,7 @@ describe('App.MainAdminSecurityAddStep3Controller', function () {
           componentName: 'DATANODE',
           principal: 'principal1',
           keytab: 'keytab1',
-          displayName: 'displayName1',
-          isHadoop2Stack: true
+          displayName: 'displayName1'
         }]
       });
       var host = Em.Object.create({

@@ -53,23 +53,15 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
   /**
    * used in services_config.js view to mark a config with security icon
    */
-  secureConfigs: function () {
-    if (App.get('isHadoop2Stack')) {
-      return require('data/HDP2/secure_mapping');
-    } else {
-      return require('data/secure_mapping');
-    }
-  }.property('isHadoop2Stack'),
+  secureConfigs: require('data/HDP2/secure_mapping'),
 
   /**
    * config categories with secure properties
    * use only for add service wizard when security is enabled;
    */
   secureServices: function () {
-    return (App.get('isHadoop2Stack')) ?
-      $.extend(true, [], require('data/HDP2/secure_configs')) :
-      $.extend(true, [], require('data/secure_configs'));
-  }.property('App.isHadoop2Stack'),
+    return $.extend(true, [], require('data/HDP2/secure_configs'));
+  }.property(),
 
   /**
    * uses for add service - find out is security is enabled

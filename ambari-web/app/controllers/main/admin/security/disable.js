@@ -118,7 +118,7 @@ App.MainAdminSecurityDisableController = App.MainAdminSecurityProgressController
    * load secure configs of installed services
    */
   loadSecureServices: function () {
-    var secureServices = App.get('isHadoop2Stack') ? require('data/HDP2/secure_configs') : require('data/secure_configs');
+    var secureServices = require('data/HDP2/secure_configs');
     var installedServices = App.Service.find().mapProperty('serviceName');
     this.get('secureServices').pushObject(secureServices.findProperty('serviceName', 'GENERAL'));
     //General (only non service tab) tab is always displayed

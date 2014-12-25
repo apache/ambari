@@ -37,17 +37,6 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
   });
 
   describe('#setAdditionalConfigs()', function () {
-    var isHadoop2Stack = false;
-
-    beforeEach(function () {
-      sinon.stub(App, 'get', function () {
-        return isHadoop2Stack;
-      });
-    });
-    afterEach(function () {
-      App.get.restore();
-    });
-
 
     it('Component is absent', function () {
       controller.set('additionalConfigsMap', []);
@@ -56,58 +45,8 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       expect(controller.setAdditionalConfigs(configs, 'COMP1', '')).to.be.false;
       expect(configs).to.eql({});
     });
-    it('Component is present', function () {
-      controller.set('additionalConfigsMap', [
-        {
-          componentName: 'COMP1',
-          configs: {
-            'test-site': {
-              'property1': '<replace-value>:1111'
-            }
-          }
-        }
-      ]);
-      var configs = {
-        'test-site': {}
-      };
 
-      expect(controller.setAdditionalConfigs(configs, 'COMP1', 'host1')).to.be.true;
-      expect(configs).to.eql({
-        'test-site': {
-          'property1': 'host1:1111'
-        }
-      });
-    });
-    it('configs_Hadoop2 is present but isHadoop2Stack = false', function () {
-      isHadoop2Stack = false;
-      controller.set('additionalConfigsMap', [
-        {
-          componentName: 'COMP1',
-          configs: {
-            'test-site': {
-              'property1': '<replace-value>:1111'
-            }
-          },
-          configs_Hadoop2: {
-            'test-site': {
-              'property2': '<replace-value>:2222'
-            }
-          }
-        }
-      ]);
-      var configs = {
-        'test-site': {}
-      };
-
-      expect(controller.setAdditionalConfigs(configs, 'COMP1', 'host1')).to.be.true;
-      expect(configs).to.eql({
-        'test-site': {
-          'property1': 'host1:1111'
-        }
-      });
-    });
-    it('configs_Hadoop2 is present but isHadoop2Stack = true', function () {
-      isHadoop2Stack = true;
+    it('configs for Hadoop 2 is present', function () {
       controller.set('additionalConfigsMap', [
         {
           componentName: 'COMP1',
@@ -934,16 +873,6 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
   });
 
   describe('#getComponentDir()', function () {
-    var isHadoop2Stack = false;
-    beforeEach(function () {
-      sinon.stub(App, 'get', function () {
-        return isHadoop2Stack;
-      });
-    });
-    afterEach(function () {
-      App.get.restore();
-    });
-
     var configs = {
       'hdfs-site': {
         'dfs.name.dir': 'case1',
@@ -958,20 +887,11 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     it('unknown component name', function () {
       expect(controller.getComponentDir(configs, 'COMP1')).to.be.empty;
     });
-    it('NAMENODE component and isHadoop2Stack is false', function () {
-      expect(controller.getComponentDir(configs, 'NAMENODE')).to.equal('case1');
-    });
-    it('NAMENODE component and isHadoop2Stack is true', function () {
-      isHadoop2Stack = true;
+    it('NAMENODE component', function () {
       expect(controller.getComponentDir(configs, 'NAMENODE')).to.equal('case2');
     });
-    it('SECONDARY_NAMENODE component and isHadoop2Stack is true', function () {
-      isHadoop2Stack = true;
+    it('SECONDARY_NAMENODE component', function () {
       expect(controller.getComponentDir(configs, 'SECONDARY_NAMENODE')).to.equal('case3');
-    });
-    it('SECONDARY_NAMENODE component and isHadoop2Stack is false', function () {
-      isHadoop2Stack = false;
-      expect(controller.getComponentDir(configs, 'SECONDARY_NAMENODE')).to.equal('case4');
     });
   });
 

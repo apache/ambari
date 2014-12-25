@@ -47,17 +47,13 @@ App.AddSecurityController = App.WizardController.extend({
    * services with security configurations
    */
   secureServices: function () {
-    if (App.get('isHadoop2Stack')) {
-      var configCategories = require('data/HDP2/secure_configs');
-      if (this.get('content.isATSInstalled') && App.get('doesATSSupportKerberos')) {
-        var yarnConfigCategories = configCategories.findProperty('serviceName', 'YARN').configCategories;
-        yarnConfigCategories.push(App.ServiceConfigCategory.create({ name: 'AppTimelineServer', displayName : 'Application Timeline Service'}));
-      }
-      return configCategories;
-    } else {
-      return require('data/secure_configs');
+    var configCategories = require('data/HDP2/secure_configs');
+    if (this.get('content.isATSInstalled') && App.get('doesATSSupportKerberos')) {
+      var yarnConfigCategories = configCategories.findProperty('serviceName', 'YARN').configCategories;
+      yarnConfigCategories.push(App.ServiceConfigCategory.create({ name: 'AppTimelineServer', displayName : 'Application Timeline Service'}));
     }
-  }.property('App.isHadoop2Stack', 'App.router.clusterController.isLoaded'),
+    return configCategories;
+  }.property('App.router.clusterController.isLoaded'),
 
   /**
    * Loads all prior steps on refresh

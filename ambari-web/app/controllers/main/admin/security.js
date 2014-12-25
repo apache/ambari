@@ -62,13 +62,8 @@ App.MainAdminSecurityController = Em.Controller.extend({
     return [];
   }.property(''),
   services: function () {
-    var secureServices;
+    var secureServices = $.extend(true, [], require('data/HDP2/secure_configs'));
     var services = [];
-    if (App.get('isHadoop2Stack')) {
-      secureServices = $.extend(true, [], require('data/HDP2/secure_configs'));
-    } else {
-      secureServices = $.extend(true, [], require('data/secure_configs'));
-    }
 
     // Typically, ATS will support Kerberos in HDP 2.2 and higher
     if (this.get('content.isATSInstalled') && App.get('doesATSSupportKerberos')) {

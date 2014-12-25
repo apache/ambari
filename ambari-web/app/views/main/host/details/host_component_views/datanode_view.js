@@ -86,36 +86,21 @@ App.DataNodeComponentView = App.HostComponentView.extend(App.Decommissionable, {
     if (curObj) {
       var liveNodesJson = App.parseJSON(curObj.LiveNodes);
       // HDP-2 stack
-      if (App.get('isHadoop2Stack')) {
-        if (liveNodesJson && liveNodesJson[hostName]) {
-          switch (liveNodesJson[hostName].adminState) {
-            case "In Service":
-              this.setStatusAs('INSERVICE');
-              break;
-            case "Decommission In Progress":
-              this.setStatusAs('DECOMMISSIONING');
-              break;
-            case "Decommissioned":
-              this.setStatusAs('DECOMMISSIONED');
-              break;
-          }
-        } else {
-          // if namenode is down, get desired_admin_state to decide if the user had issued a decommission
-          this.getDesiredAdminState();
+      if (liveNodesJson && liveNodesJson[hostName]) {
+        switch (liveNodesJson[hostName].adminState) {
+          case "In Service":
+            this.setStatusAs('INSERVICE');
+            break;
+          case "Decommission In Progress":
+            this.setStatusAs('DECOMMISSIONING');
+            break;
+          case "Decommissioned":
+            this.setStatusAs('DECOMMISSIONED');
+            break;
         }
       } else {
-        var decomNodesJson = App.parseJSON(curObj.DecomNodes);
-        var deadNodesJson = App.parseJSON(curObj.DeadNodes);
-        if (decomNodesJson && decomNodesJson[hostName]) {
-          this.setStatusAs('DECOMMISSIONING');
-        } else if (deadNodesJson && deadNodesJson[hostName]) {
-          this.setStatusAs('DECOMMISSIONED');
-        } else if (liveNodesJson && liveNodesJson[hostName]) {
-          this.setStatusAs('INSERVICE');
-        } else {
-          // if namenode is down, get desired_admin_state to decide if the user had issued a decommission
-          this.getDesiredAdminState();
-        }
+        // if namenode is down, get desired_admin_state to decide if the user had issued a decommission
+        this.getDesiredAdminState();
       }
     }
   }

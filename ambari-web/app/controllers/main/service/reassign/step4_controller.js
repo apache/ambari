@@ -210,11 +210,10 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
    * @return {Boolean}
    */
   setAdditionalConfigs: function (configs, componentName, replaceValue) {
-    var isHadoop2Stack = App.get('isHadoop2Stack');
     var component = this.get('additionalConfigsMap').findProperty('componentName', componentName);
 
     if (Em.isNone(component)) return false;
-    var additionalConfigs = (component.configs_Hadoop2 && isHadoop2Stack) ? component.configs_Hadoop2 : component.configs;
+    var additionalConfigs = (component.configs_Hadoop2) ? component.configs_Hadoop2 : component.configs;
 
     for (var site in additionalConfigs) {
       if (additionalConfigs.hasOwnProperty(site)) {
@@ -602,7 +601,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   setSpecificNamenodeConfigs: function (configs, targetHostName) {
     var sourceHostName = this.get('content.reassignHosts.source');
 
-    if (App.get('isHadoop2Stack') && App.get('isHaEnabled')) {
+    if (App.get('isHaEnabled')) {
       var nameServices = configs['hdfs-site']['dfs.nameservices'];
       var suffix = (configs['hdfs-site']['dfs.namenode.http-address.' + nameServices + '.nn1'] === sourceHostName + ':50070') ? '.nn1' : '.nn2';
       configs['hdfs-site']['dfs.namenode.http-address.' + nameServices + suffix] = targetHostName + ':50070';
@@ -622,7 +621,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   setSpecificResourceMangerConfigs: function (configs, targetHostName) {
     var sourceHostName = this.get('content.reassignHosts.source');
 
-    if (App.get('isHadoop2Stack') && App.get('isRMHaEnabled')) {
+    if (App.get('isRMHaEnabled')) {
       if (configs['yarn-site']['yarn.resourcemanager.hostname.rm1'] === sourceHostName) {
         configs['yarn-site']['yarn.resourcemanager.hostname.rm1'] = targetHostName;
       } else {
@@ -660,10 +659,9 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
    */
   getComponentDir: function (configs, componentName) {
     if (componentName === 'NAMENODE') {
-      return (App.get('isHadoop2Stack')) ? configs['hdfs-site']['dfs.namenode.name.dir'] : configs['hdfs-site']['dfs.name.dir'];
-    }
-    else if (componentName === 'SECONDARY_NAMENODE') {
-      return (App.get('isHadoop2Stack')) ? configs['hdfs-site']['dfs.namenode.checkpoint.dir'] : configs['core-site']['fs.checkpoint.dir'];
+      return configs['hdfs-site']['dfs.namenode.name.dir'];
+    } else if (componentName === 'SECONDARY_NAMENODE') {
+      return configs['hdfs-site']['dfs.namenode.checkpoint.dir'];
     }
     return '';
   },

@@ -108,12 +108,7 @@ App.config = Em.Object.create({
     this.set('preDefinedServiceConfigs', services);
   },
 
-  configMapping: function () {
-    if (App.get('isHadoop2Stack')) {
-      return require('data/HDP2/config_mapping');
-    }
-    return require('data/config_mapping');
-  }.property('App.isHadoop2Stack'),
+  configMapping: require('data/HDP2/config_mapping'),
 
   preDefinedSiteProperties: function () {
     var sitePropertiesForCurrentStack = this.preDefinedConfigFile('site_properties');
@@ -123,18 +118,11 @@ App.config = Em.Object.create({
 
     if (App.get('isHadoop22Stack')) {
       return require('data/HDP2.2/site_properties').configProperties;
-    } else if (App.get('isHadoop2Stack')) {
-      return require('data/HDP2/site_properties').configProperties;
     }
-    return require('data/site_properties').configProperties;
-  }.property('App.isHadoop2Stack', 'App.isHadoop22Stack', 'App.currentStackName'),
+    return require('data/HDP2/site_properties').configProperties;
+  }.property('App.isHadoop22Stack', 'App.currentStackName'),
 
-  preDefinedCustomConfigs: function () {
-    if (App.get('isHadoop2Stack')) {
-      return require('data/HDP2/custom_configs');
-    }
-    return require('data/custom_configs');
-  }.property('App.isHadoop2Stack'),
+  preDefinedCustomConfigs: require('data/HDP2/custom_configs'),
 
   preDefinedConfigFile: function(file) {
     try {
@@ -186,10 +174,7 @@ App.config = Em.Object.create({
   },
 
   //configs with these filenames go to appropriate category not in Advanced
-  customFileNames: function () {
-    var customFiles = ['flume-conf.xml'];
-    return customFiles;
-  }.property('App.isHadoop2Stack'),
+  customFileNames: ['flume-conf.xml'],
 
   /**
    * Function should be used post-install as precondition check should not be done only after installer wizard
@@ -301,17 +286,10 @@ App.config = Em.Object.create({
 
   capacitySchedulerFilter: function () {
     var yarnRegex = /^yarn\.scheduler\.capacity\.root\.([a-z]([\_\-a-z0-9]{0,50}))\.(acl_administer_jobs|acl_submit_jobs|state|user-limit-factor|maximum-capacity|capacity)$/i;
-    if (App.get('isHadoop2Stack')) {
-      return function (_config) {
-        return (yarnRegex.test(_config.name));
-      }
-    } else {
-      return function (_config) {
-        return (_config.name.indexOf('mapred.capacity-scheduler.queue.') !== -1) ||
-          (/^mapred\.queue\.[a-z]([\_\-a-z0-9]{0,50})\.(acl-administer-jobs|acl-submit-job)$/i.test(_config.name));
-      }
+    return function (_config) {
+      return (yarnRegex.test(_config.name));
     }
-  }.property('App.isHadoop2Stack'),
+  }.property(),
   /**
    * return:
    *   configs,
@@ -952,13 +930,12 @@ App.config = Em.Object.create({
   createAdvancedPropertyObject: function(item) {
     var serviceName = item.service_name;
     var fileName = item.type;
-    var isHDP2 = App.get('isHadoop2Stack');
     /**
      * Properties from mapred-queue-acls.xml are ignored
      * Properties from capacity-scheduler.xml are ignored unless HDP stack version is 2.x or
      * HDP stack version is 1.x
      */
-    if (fileName == 'mapred-queue-acls.xml' || (fileName == 'capacity-scheduler.xml' && !isHDP2)) return false;
+    if (fileName == 'mapred-queue-acls.xml') return false;
     item.isVisible = true;
     var property = {
       serviceName: serviceName,
@@ -984,7 +961,7 @@ App.config = Em.Object.create({
    */
   advancedConfigIdentityData: function(config) {
     var propertyData = {};
-    var proxyUserGroupServices = App.get('isHadoop2Stack') ? ['HIVE', 'OOZIE', 'FALCON'] : ['HIVE', 'OOZIE'];
+    var proxyUserGroupServices = ['HIVE', 'OOZIE', 'FALCON'];
 
     if (config.property_type.contains('USER') || config.property_type.contains('GROUP')) {
       propertyData.id = "puppet var";
