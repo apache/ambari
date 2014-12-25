@@ -199,7 +199,7 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "HDP/2.0.6/services/YARN/package/files/alert_nodemanager_health.py"
+          "path": "HDP/2.0.6/services/YARN/package/alerts/alert_nodemanager_health.py"
         }
       }
     ],

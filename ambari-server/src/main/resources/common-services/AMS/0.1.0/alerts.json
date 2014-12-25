@@ -147,7 +147,7 @@
         "scope": "ANY",
         "source": {
           "type": "SCRIPT",
-          "path": "AMS/0.1.0/package/files/alert_ambari_metrics_monitor.py"
+          "path": "AMS/0.1.0/package/alerts/alert_ambari_metrics_monitor.py"
         }
       }
     ]

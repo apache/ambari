@@ -186,7 +186,7 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "HDP/1.3.2/services/MAPREDUCE/package/files/alert_mapreduce_directory_space.py"
+          "path": "HDP/1.3.2/services/MAPREDUCE/package/alerts/alert_mapreduce_directory_space.py"
         }
       }
     ],

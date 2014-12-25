@@ -26,7 +26,6 @@ import urllib2
 from resource_management.libraries.functions import hive_check
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
-from resource_management.core.environment import Environment
 
 OK_MESSAGE = "TCP OK - %.4f response on port %s"
 CRITICAL_MESSAGE = "Connection failed on host {0}:{1}"
@@ -92,9 +91,8 @@ def execute(parameters=None, host_name=None):
     smokeuser_keytab = SMOKEUSER_KEYTAB_DEFAULT
     if SMOKEUSER_KEYTAB_KEY in parameters:
       smokeuser_keytab = parameters[SMOKEUSER_KEYTAB_KEY]
-    with Environment() as env:
-      kinit_path_local = get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
-      kinitcmd=format("{kinit_path_local} -kt {smokeuser_keytab} {smokeuser}; ")
+    kinit_path_local = get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+    kinitcmd=format("{kinit_path_local} -kt {smokeuser_keytab} {smokeuser}; ")
   else:
     hive_server_principal = None
     kinitcmd=None
@@ -105,9 +103,8 @@ def execute(parameters=None, host_name=None):
 
     start_time = time.time()
     try:
-      with Environment() as env:
-        hive_check.check_thrift_port_sasl(host_name, thrift_port, hive_server2_authentication,
-                                          hive_server_principal, kinitcmd, smokeuser)
+      hive_check.check_thrift_port_sasl(host_name, thrift_port, hive_server2_authentication,
+                                        hive_server_principal, kinitcmd, smokeuser)
       is_thrift_port_ok = True
     except:
       is_thrift_port_ok = False

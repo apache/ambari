@@ -21,6 +21,7 @@ limitations under the License.
 import os
 import socket
 import sys
+import re
 
 from ambari_agent.AlertSchedulerHandler import AlertSchedulerHandler
 from ambari_agent.alerts.collector import AlertCollector
@@ -31,7 +32,7 @@ from ambari_agent.alerts.web_alert import WebAlert
 from ambari_agent.apscheduler.scheduler import Scheduler
 
 from collections import namedtuple
-from mock.mock import patch
+from mock.mock import MagicMock, patch
 from unittest import TestCase
 
 class TestAlerts(TestCase):
@@ -195,6 +196,7 @@ class TestAlerts(TestCase):
     pa.collect()
 
 
+  @patch.object(re, 'match', new = MagicMock())
   def test_script_alert(self):
     json = {
       "name": "namenode_process",

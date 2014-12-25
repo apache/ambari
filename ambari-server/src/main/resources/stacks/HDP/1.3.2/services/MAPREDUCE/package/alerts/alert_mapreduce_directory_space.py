@@ -34,7 +34,7 @@ def get_tokens():
   to build the dictionary passed into execute
   """
   return (MAPREDUCE_LOCAL_DIR_KEY,)
-  
+
 
 def execute(parameters=None, host_name=None):
   """
@@ -47,11 +47,9 @@ def execute(parameters=None, host_name=None):
   if parameters is None:
     return (('UNKNOWN', ['There were no parameters supplied to the script.']))
 
-  mapreduce_local_directories = None
-  if MAPREDUCE_LOCAL_DIR_KEY in parameters:
+  if set([MAPREDUCE_LOCAL_DIR_KEY]).issubset(parameters):
     mapreduce_local_directories = parameters[MAPREDUCE_LOCAL_DIR_KEY]
-
-  if MAPREDUCE_LOCAL_DIR_KEY is None:
+  else:
     return (('UNKNOWN', ['The MapReduce Local Directory is required.']))
 
   directory_list = mapreduce_local_directories.split(",")
@@ -82,7 +80,7 @@ def _get_disk_usage(path):
   used = 0
   total = 0
   free = 0
-  
+
   if 'statvfs' in dir(os):
     disk_stats = os.statvfs(path)
     free = disk_stats.f_bavail * disk_stats.f_frsize
@@ -90,6 +88,6 @@ def _get_disk_usage(path):
     used = (disk_stats.f_blocks - disk_stats.f_bfree) * disk_stats.f_frsize
   else:
     raise NotImplementedError("{0} is not a supported platform for this alert".format(platform.platform()))
-  
+
   DiskInfo = collections.namedtuple('DiskInfo', 'total used free')
   return DiskInfo(total=total, used=used, free=free)

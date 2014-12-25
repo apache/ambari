@@ -38,7 +38,7 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "HDP/1.3.2/services/HIVE/package/files/alert_hive_thrift_port.py"
+          "path": "HDP/1.3.2/services/HIVE/package/alerts/alert_hive_thrift_port.py"
         }
       }
     ],
@@ -52,7 +52,7 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "HDP/1.3.2/services/HIVE/package/files/alert_webhcat_server.py"
+          "path": "HDP/1.3.2/services/HIVE/package/alerts/alert_webhcat_server.py"
         }
       }    
     ]

@@ -21,7 +21,9 @@ limitations under the License.
 import imp
 import logging
 import os
+import re
 from alerts.base_alert import BaseAlert
+from resource_management.core.environment import Environment
 from symbol import parameters
 
 logger = logging.getLogger()
@@ -43,6 +45,7 @@ class ScriptAlert(BaseAlert):
     self.stacks_dir = None
     self.common_services_dir = None
     self.host_scripts_dir = None
+    self.path_to_script = None
     
     if 'path' in alert_source_meta:
       self.path = alert_source_meta['path']
@@ -81,8 +84,16 @@ class ScriptAlert(BaseAlert):
       parameters = {}
       for key in self.config_value_dict:
         parameters['{{' + key + '}}'] = self.config_value_dict[key]
-      
-      return cmd_module.execute(parameters, self.host_name)
+
+      # try to get basedir for scripts
+      # it's needed for server side scripts to properly use resource management
+      matchObj = re.match( r'((.*)services\/(.*)\/package\/)', self.path_to_script)
+      if matchObj:
+        basedir = matchObj.group(1)
+        with Environment(basedir) as env:
+          return cmd_module.execute(parameters, self.host_name)
+      else:
+        return cmd_module.execute(parameters, self.host_name)
     else:
       return (self.RESULT_UNKNOWN, ["Unable to execute script {0}".format(self.path)])
     
@@ -92,35 +103,35 @@ class ScriptAlert(BaseAlert):
       raise Exception("The attribute 'path' must be specified")
 
     paths = self.path.split('/')
-    path_to_script = self.path
+    self.path_to_script = self.path
     
     # if the path doesn't exist and stacks dir is defined, try that
-    if not os.path.exists(path_to_script) and self.stacks_dir is not None:      
-      path_to_script = os.path.join(self.stacks_dir, *paths)
+    if not os.path.exists(self.path_to_script) and self.stacks_dir is not None:
+      self.path_to_script = os.path.join(self.stacks_dir, *paths)
 
     # if the path doesn't exist and common services dir is defined, try that
-    if not os.path.exists(path_to_script) and self.common_services_dir is not None:
-      path_to_script = os.path.join(self.common_services_dir, *paths)
+    if not os.path.exists(self.path_to_script) and self.common_services_dir is not None:
+      self.path_to_script = os.path.join(self.common_services_dir, *paths)
 
     # if the path doesn't exist and the host script dir is defined, try that
-    if not os.path.exists(path_to_script) and self.host_scripts_dir is not None:
-      path_to_script = os.path.join(self.host_scripts_dir, *paths)
+    if not os.path.exists(self.path_to_script) and self.host_scripts_dir is not None:
+      self.path_to_script = os.path.join(self.host_scripts_dir, *paths)
 
     # if the path can't be evaluated, throw exception      
-    if not os.path.exists(path_to_script) or not os.path.isfile(path_to_script):
+    if not os.path.exists(self.path_to_script) or not os.path.isfile(self.path_to_script):
       raise Exception(
         "Unable to find '{0}' as an absolute path or part of {1} or {2}".format(self.path,
           self.stacks_dir, self.host_scripts_dir))
 
     if logger.isEnabledFor(logging.DEBUG):
-      logger.debug("Executing script check {0}".format(path_to_script))
+      logger.debug("Executing script check {0}".format(self.path_to_script))
 
           
-    if (not path_to_script.endswith('.py')):
-      logger.error("Unable to execute script {0}".format(path_to_script))
+    if (not self.path_to_script.endswith('.py')):
+      logger.error("Unable to execute script {0}".format(self.path_to_script))
       return None
-    
-    return imp.load_source(self._find_value('name'), path_to_script)
+
+    return imp.load_source(self._find_value('name'), self.path_to_script)
 
 
   def _get_reporting_text(self, state):
