@@ -96,10 +96,26 @@ def hive_service(name, action='start', rolling_restart=False):
       print "Successfully connected to Hive at %s on port %s after %d seconds" % (address, port, elapsed_time)    
             
   elif action == 'stop':
-    demon_cmd = format("sudo kill `cat {pid_file}`")
-    Execute(demon_cmd, not_if = format("! ({process_id_exists_command})"))
 
-    File(pid_file, action = "delete",)
+    daemon_kill_cmd = format("sudo kill `cat {pid_file}`")
+    daemon_hard_kill_cmd = format("sudo kill -9 `cat {pid_file}`")
+
+    Execute(daemon_kill_cmd,
+      not_if = format("! ({process_id_exists_command})")
+    )
+
+    wait_time = 5
+    Execute(daemon_hard_kill_cmd,
+      not_if = format("! ({process_id_exists_command}) || ( sleep {wait_time} && ! ({process_id_exists_command}) )")
+    )
+
+    # check if stopped the process, else fail the task
+    Execute(format("! ({process_id_exists_command})")
+    )
+
+    File(pid_file,
+         action = "delete"
+    )
 
 def check_fs_root():
   import params  

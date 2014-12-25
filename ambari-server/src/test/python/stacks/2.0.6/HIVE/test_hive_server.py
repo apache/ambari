@@ -85,10 +85,14 @@ class TestHiveServer(RMFTestCase):
     )
 
     self.assertResourceCalled('Execute', 'sudo kill `cat /var/run/hive/hive-server.pid`',
-        not_if = '! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1)',
+      not_if = '! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1)',
     )
+    self.assertResourceCalled('Execute', 'sudo kill -9 `cat /var/run/hive/hive-server.pid`',
+      not_if = '! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1) || ( sleep 5 && ! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1) )',
+    )
+    self.assertResourceCalled('Execute', '! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1)',)
     self.assertResourceCalled('File', '/var/run/hive/hive-server.pid',
-        action = ['delete'],
+      action = ['delete'],
     )
     
     self.assertNoMoreResources()
@@ -152,10 +156,14 @@ class TestHiveServer(RMFTestCase):
     )
 
     self.assertResourceCalled('Execute', 'sudo kill `cat /var/run/hive/hive-server.pid`',
-        not_if = '! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1)',
+      not_if = '! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1)',
     )
+    self.assertResourceCalled('Execute', 'sudo kill -9 `cat /var/run/hive/hive-server.pid`',
+      not_if = '! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1) || ( sleep 5 && ! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1) )',
+    )
+    self.assertResourceCalled('Execute', '! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1)',)
     self.assertResourceCalled('File', '/var/run/hive/hive-server.pid',
-        action = ['delete'],
+      action = ['delete'],
     )
     
     self.assertNoMoreResources()
