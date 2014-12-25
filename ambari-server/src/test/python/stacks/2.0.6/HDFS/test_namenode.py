@@ -88,6 +88,7 @@ class TestNamenode(RMFTestCase):
         environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec'},
         not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid` >/dev/null 2>&1',
     )
+    self.printResources()
     self.assertResourceCalled('Execute', 'hdfs --config /etc/hadoop/conf dfsadmin -safemode leave',
         path = ['/usr/bin'],
         user = 'hdfs',
@@ -776,26 +777,6 @@ class TestNamenode(RMFTestCase):
 
   @patch("resource_management.libraries.script.Script.put_structured_out")
   def test_rebalance_hdfs(self, pso):
-    Popen_Mock.return_value = 1
-    with patch("subprocess.Popen", new_callable=Popen_Mock):
-      ll = subprocess.Popen()
-      self.assertTrue(isinstance(ll.stdout.readline(),str))
-      try:
-        self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
-                           classname = "NameNode",
-                           command = "rebalancehdfs",
-                           config_file = "rebalancehdfs_default.json",
-                           hdp_stack_version = self.STACK_VERSION,
-                           target = RMFTestCase.TARGET_COMMON_SERVICES
-        )
-        self.fail("Exception was not thrown")
-      except  resource_management.core.exceptions.Fail:
-        pass ##expected
-
-      pso.reset_mock()
-      Popen_Mock.return_value = 0
-      ll = subprocess.Popen()
-      self.assertTrue(isinstance(ll.stdout.readline(),str))
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                          classname = "NameNode",
                          command = "rebalancehdfs",
@@ -803,7 +784,11 @@ class TestNamenode(RMFTestCase):
                          hdp_stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
       )
-      self.assertEqual(pso.call_count, 2, "Output was not parsed properly")
+      self.assertResourceCalled('Execute', "/usr/bin/sudo su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf balancer -threshold -1'",
+          logoutput = False,
+          on_new_line = FunctionMock('handle_new_line'),
+      )
+      self.assertNoMoreResources()
 
 class Popen_Mock:
   return_value = 1

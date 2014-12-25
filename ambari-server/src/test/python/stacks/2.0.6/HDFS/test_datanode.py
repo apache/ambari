@@ -20,6 +20,7 @@ limitations under the License.
 from stacks.utils.RMFTestCase import *
 import json
 from mock.mock import MagicMock, patch
+from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 
 class TestDatanode(RMFTestCase):
@@ -441,7 +442,7 @@ class TestDatanode(RMFTestCase):
 
 
   @patch('time.sleep')
-  @patch("subprocess.Popen")
+  @patch.object(shell, "call")
   def test_post_rolling_restart(self, process_mock, time_mock):
     process_output = """
       Live datanodes (2):
@@ -464,10 +465,7 @@ class TestDatanode(RMFTestCase):
       Last contact: Fri Dec 12 20:47:21 UTC 2014
     """
 
-    process = MagicMock()
-    process.communicate.return_value = [process_output]
-    process.returncode = 0
-    process_mock.return_value = process
+    process_mock.return_value = (0, process_output)
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                        classname = "DataNode",
@@ -482,12 +480,9 @@ class TestDatanode(RMFTestCase):
 
 
   @patch('time.sleep')
-  @patch("subprocess.Popen")
+  @patch.object(shell, "call")
   def test_post_rolling_restart_datanode_not_ready(self, process_mock, time_mock):
-    process = MagicMock()
-    process.communicate.return_value = ['There are no DataNodes here!']
-    process.returncode = 0
-    process_mock.return_value = process
+    process_mock.return_value = (0, 'There are no DataNodes here!')
 
     try:
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
@@ -504,12 +499,9 @@ class TestDatanode(RMFTestCase):
 
 
   @patch('time.sleep')
-  @patch("subprocess.Popen")
+  @patch.object(shell, "call")
   def test_post_rolling_restart_bad_returncode(self, process_mock, time_mock):
-    process = MagicMock()
-    process.communicate.return_value = ['some']
-    process.returncode = 999
-    process_mock.return_value = process
+    process_mock.return_value = (0, 'some')
 
     try:
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",

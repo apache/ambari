@@ -20,6 +20,7 @@ limitations under the License.
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 from resource_management.core.exceptions import Fail
+from resource_management.core import shell
 import os
 
 origin_exists = os.path.exists
@@ -559,16 +560,13 @@ class TestNodeManager(RMFTestCase):
                               )
 
   @patch('time.sleep')
-  @patch("subprocess.Popen")
+  @patch.object(shell, "call")
   def test_post_rolling_restart(self, process_mock, time_mock):
     process_output = """
       c6401.ambari.apache.org:45454  RUNNING  c6401.ambari.apache.org:8042  0
     """
 
-    process = MagicMock()
-    process.communicate.return_value = [process_output]
-    process.returncode = 0
-    process_mock.return_value = process
+    process_mock.return_value = (0, process_output)
 
     self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
       classname="Nodemanager", command = "post_rolling_restart", config_file="default.json")
@@ -578,16 +576,13 @@ class TestNodeManager(RMFTestCase):
 
 
   @patch('time.sleep')
-  @patch("subprocess.Popen")
+  @patch.object(shell, "call")
   def test_post_rolling_restart_nodemanager_not_ready(self, process_mock, time_mock):
     process_output = """
       c9999.ambari.apache.org:45454  RUNNING  c9999.ambari.apache.org:8042  0
     """
 
-    process = MagicMock()
-    process.communicate.return_value = [process_output]
-    process.returncode = 0
-    process_mock.return_value = process
+    process_mock.return_value = (0, process_output)
 
     try:
       self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
@@ -599,16 +594,13 @@ class TestNodeManager(RMFTestCase):
 
 
   @patch('time.sleep')
-  @patch("subprocess.Popen")
+  @patch.object(shell, "call")
   def test_post_rolling_restart_nodemanager_not_ready(self, process_mock, time_mock):
     process_output = """
       c6401.ambari.apache.org:45454  RUNNING  c6401.ambari.apache.org:8042  0
     """
 
-    process = MagicMock()
-    process.communicate.return_value = [process_output]
-    process.returncode = 999
-    process_mock.return_value = process
+    process_mock.return_value = (999, process_output)
 
     try:
       self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",

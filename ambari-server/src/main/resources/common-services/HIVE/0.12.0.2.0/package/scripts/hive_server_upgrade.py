@@ -21,7 +21,7 @@ import re
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Execute
-from resource_management.core.shell import call
+from resource_management.core import shell
 from resource_management.libraries.functions import format
 
 
@@ -65,7 +65,7 @@ def _get_current_hiveserver_version():
 
   try:
     command = 'hdp-select status hive-server2'
-    return_code, hdp_output = call(command, user=params.hive_user)
+    return_code, hdp_output = shell.call(command, user=params.hive_user)
   except Exception, e:
     Logger.error(str(e))
     raise Fail('Unable to execute hdp-select command to retrieve the hiveserver2 version.')

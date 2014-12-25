@@ -38,6 +38,7 @@ class TestExecuteResource(TestCase):
   def test_attribute_logoutput(self, popen_mock, info_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
+    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     subproc_mock.communicate.side_effect = [["1"], ["2"]]
     popen_mock.return_value = subproc_mock
 
@@ -69,6 +70,7 @@ class TestExecuteResource(TestCase):
 
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
+    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     subproc_mock.communicate.side_effect = [["1"]]
     popen_mock.return_value = subproc_mock
 
@@ -83,6 +85,7 @@ class TestExecuteResource(TestCase):
   def test_attribute_path(self, popen_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
+    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     subproc_mock.communicate.side_effect = [["1"]]
     popen_mock.return_value = subproc_mock
 
@@ -100,7 +103,7 @@ class TestExecuteResource(TestCase):
 
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
-    subproc_mock.communicate.side_effect = [Fail("Fail"), ["1"]]
+    subproc_mock.stdout.readline = MagicMock(side_effect = [Fail("Fail"), "OK"])
     popen_mock.return_value = subproc_mock
 
     with Environment("/") as env:
@@ -150,6 +153,7 @@ class TestExecuteResource(TestCase):
 
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
+    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     subproc_mock.communicate.side_effect = [["1"]]
     popen_mock.return_value = subproc_mock
 
@@ -167,6 +171,7 @@ class TestExecuteResource(TestCase):
 
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
+    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     subproc_mock.communicate.side_effect = [["1"]]
     popen_mock.return_value = subproc_mock
 
@@ -188,6 +193,7 @@ class TestExecuteResource(TestCase):
 
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
+    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     subproc_mock.communicate.side_effect = [["1"]]
     popen_mock.return_value = subproc_mock
 
@@ -209,6 +215,7 @@ class TestExecuteResource(TestCase):
 
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
+    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     popen_mock.return_value = subproc_mock
 
     with Environment("/") as env:
@@ -238,6 +245,7 @@ class TestExecuteResource(TestCase):
 
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
+    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     popen_mock.return_value = subproc_mock
 
     with Environment("/") as env:

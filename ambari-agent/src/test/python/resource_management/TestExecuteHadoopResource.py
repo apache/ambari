@@ -65,7 +65,7 @@ class TestExecuteHadoopResource(TestCase):
       self.assertEqual(execute_mock.call_count, 1)
       self.assertEqual(execute_mock.call_args[0][0].command,'hadoop --config conf_dir command')
       self.assertEqual(execute_mock.call_args[0][0].arguments,
-                       {'logoutput': False,
+                       {'logoutput': None,
                         'tries': 1,
                         'user': 'user',
                         'try_sleep': 0,
@@ -122,14 +122,14 @@ class TestExecuteHadoopResource(TestCase):
       self.assertEqual(execute_mock.call_args_list[1][0][0].command,
                        'hadoop --config conf_dir command2')
       self.assertEqual(execute_mock.call_args_list[0][0][0].arguments,
-                       {'logoutput': False,
+                       {'logoutput': None,
                         'tries': 1,
                         'user': 'user',
                         'environment': {},
                         'try_sleep': 0,
                         'path': []})
       self.assertEqual(execute_mock.call_args_list[1][0][0].arguments,
-                       {'logoutput': False,
+                       {'logoutput': None,
                         'tries': 1,
                         'user': 'user',
                         'try_sleep': 0,

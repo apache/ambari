@@ -258,8 +258,8 @@ class ExecuteProvider(Provider):
                             wait_for_finish=self.resource.wait_for_finish,
                             timeout=self.resource.timeout,
                             path=self.resource.path,
-                            output_file=self.resource.output_file,
-                            sudo=self.resource.sudo)
+                            sudo=self.resource.sudo,
+                            on_new_line=self.resource.on_new_line)
         break
       except Fail as ex:
         if i == self.resource.tries-1: # last try

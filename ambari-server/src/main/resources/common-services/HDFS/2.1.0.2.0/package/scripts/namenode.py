@@ -187,16 +187,9 @@ class NameNode(Script):
     _print("Executing command %s\n" % command)
 
     parser = hdfs_rebalance.HdfsParser()
-    proc = subprocess.Popen(
-                            command,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            shell=True,
-                            close_fds=True,
-                            cwd=basedir
-                           )
-    for line in iter(proc.stdout.readline, ''):
-      _print('[balancer] %s %s' % (str(datetime.now()), line ))
+
+    def handle_new_line(line):
+      _print('[balancer] %s' % (line))
       pl = parser.parseLine(line)
       if pl:
         res = pl.toJson()
@@ -204,14 +197,14 @@ class NameNode(Script):
 
         self.put_structured_out(res)
       elif parser.state == 'PROCESS_FINISED' :
-        _print('[balancer] %s %s' % (str(datetime.now()), 'Process is finished' ))
+        _print('[balancer] %s' % ('Process is finished' ))
         self.put_structured_out({'completePercent' : 1})
-        break
+        return
 
-    proc.stdout.close()
-    proc.wait()
-    if proc.returncode != None and proc.returncode != 0:
-      raise Fail('Hdfs rebalance process exited with error. See the log output')
+    Execute(command,
+            on_new_line = handle_new_line,
+            logoutput = False,
+    )
 
 def _print(line):
   sys.stdout.write(line)

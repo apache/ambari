@@ -35,6 +35,7 @@ class TestUserResource(TestCase):
   def test_action_create_nonexistent(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
+    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     popen_mock.return_value = subproc_mock
     getpwnam_mock.return_value = None
     with Environment('/') as env:
@@ -48,6 +49,7 @@ class TestUserResource(TestCase):
   def test_action_create_existent(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
+    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     popen_mock.return_value = subproc_mock
     getpwnam_mock.return_value = 1
 
@@ -62,6 +64,7 @@ class TestUserResource(TestCase):
   def test_action_delete(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
+    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     popen_mock.return_value = subproc_mock
     getpwnam_mock.return_value = 1
 
@@ -76,6 +79,7 @@ class TestUserResource(TestCase):
   def test_attribute_comment(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
+    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     popen_mock.return_value = subproc_mock
     getpwnam_mock.return_value = 1
 
@@ -91,6 +95,7 @@ class TestUserResource(TestCase):
   def test_attribute_home(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
+    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     popen_mock.return_value = subproc_mock
     getpwnam_mock.return_value = 1
 
@@ -106,6 +111,7 @@ class TestUserResource(TestCase):
   def test_attribute_password(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
+    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     popen_mock.return_value = subproc_mock
     getpwnam_mock.return_value = 1
 
@@ -121,6 +127,7 @@ class TestUserResource(TestCase):
   def test_attribute_shell(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
+    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     popen_mock.return_value = subproc_mock
     getpwnam_mock.return_value = 1
 
@@ -135,6 +142,7 @@ class TestUserResource(TestCase):
   def test_attribute_uid(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
+    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     popen_mock.return_value = subproc_mock
     getpwnam_mock.return_value = 1
 
@@ -149,6 +157,7 @@ class TestUserResource(TestCase):
   def test_attribute_gid(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
+    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     popen_mock.return_value = subproc_mock
     getpwnam_mock.return_value = 1
 
@@ -163,6 +172,7 @@ class TestUserResource(TestCase):
   def test_attribute_groups(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
+    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     popen_mock.return_value = subproc_mock
     getpwnam_mock.return_value = 1
 
@@ -178,6 +188,7 @@ class TestUserResource(TestCase):
   def test_missing_shell_argument(self, getpwnam_mock, popen_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
+    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     popen_mock.return_value = subproc_mock
     getpwnam_mock.return_value = None
     with Environment('/') as env:

@@ -36,6 +36,7 @@ class TestGroupResource(TestCase):
   def test_action_create_nonexistent(self, popen_mock, getgrnam_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
+    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     popen_mock.return_value = subproc_mock
     getgrnam_mock.side_effect = KeyError()
 
@@ -56,6 +57,7 @@ class TestGroupResource(TestCase):
   def test_action_create_existent(self, popen_mock, getgrnam_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
+    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     popen_mock.return_value = subproc_mock
     getgrnam_mock.return_value = "mapred"
 
@@ -77,6 +79,7 @@ class TestGroupResource(TestCase):
   def test_action_create_fail(self, popen_mock, getgrnam_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 1
+    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     popen_mock.return_value = subproc_mock
     getgrnam_mock.return_value = "mapred"
 
@@ -102,6 +105,7 @@ class TestGroupResource(TestCase):
 
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
+    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     popen_mock.return_value = subproc_mock
     getgrnam_mock.return_value = "mapred"
 
@@ -122,6 +126,7 @@ class TestGroupResource(TestCase):
 
     subproc_mock = MagicMock()
     subproc_mock.returncode = 1
+    subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     popen_mock.return_value = subproc_mock
     getgrnam_mock.return_value = "mapred"
 

@@ -92,7 +92,21 @@ class Execute(Resource):
   try_sleep = ResourceArgument(default=0) # seconds
   path = ForcedListArgument(default=[])
   actions = Resource.actions + ["run"]
-  logoutput = BooleanArgument(default=False)
+  # TODO: handle how this is logged / tested?
+  """
+  A one-argument function, which will be executed,
+  once new line comes into command output.
+  
+  The only parameter of this function is a new line which comes to output.
+  """
+  on_new_line = ResourceArgument()
+  """
+  True           -  log it in INFO mode
+  False          -  never log it
+  None (default) -  log it in DEBUG mode
+  """
+  logoutput = ResourceArgument(default=None)
+
   """
   if on_timeout is not set leads to failing after x seconds,
   otherwise calls on_timeout
@@ -110,7 +124,6 @@ class Execute(Resource):
   - try_sleep
   """
   wait_for_finish = BooleanArgument(default=True)
-  output_file = ResourceArgument()
   """
   For calling more advanced commands use as_sudo(command) option.
   Example:

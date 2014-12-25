@@ -20,7 +20,7 @@ limitations under the License.
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Execute
-from resource_management.core.shell import call
+from resource_management.core import shell
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.decorator import retry
 
@@ -99,7 +99,7 @@ def _check_datanode_startup():
   try:
     # 'su - hdfs -c "hdfs dfsadmin -report -live"'
     command = 'hdfs dfsadmin -report -live'
-    return_code, hdfs_output = call(command, user=params.hdfs_user)
+    return_code, hdfs_output = shell.call(command, user=params.hdfs_user)
   except:
     raise Fail('Unable to determine if the DataNode has started after upgrade.')
 

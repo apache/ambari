@@ -98,7 +98,7 @@ def kill_zkfc(zkfc_user):
       if code == 0:
         Logger.debug("ZKFC is running and will be killed to initiate namenode failover.")
         kill_command = format("{check_process} && kill -9 `cat {zkfc_pid_file}` > /dev/null 2>&1")
-        checked_call(kill_command, verbose=True)
+        Execute(kill_command)
 
 
 def get_service_pid_file(name, user):

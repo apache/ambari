@@ -536,24 +536,14 @@ class TestHiveServer(RMFTestCase):
 
   @patch("hive_server.HiveServer.pre_rolling_restart")
   @patch("hive_server.HiveServer.start")
-  @patch("subprocess.Popen")
-  def test_stop_during_upgrade(self, process_mock, hive_server_start_mock,
+  @patch.object(shell, "call", new=MagicMock(return_value=(0,"hive-server2 - 2.2.0.0-2041")))
+  def test_stop_during_upgrade(self, hive_server_start_mock,
     hive_server_pre_rolling_mock):
-
-    process_output = 'hive-server2 - 2.2.0.0-2041'
-
-    process = MagicMock()
-    process.communicate.return_value = [process_output]
-    process.returncode = 0
-    process_mock.return_value = process
-
+    
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
      classname = "HiveServer", command = "restart", config_file = "hive-upgrade.json",
      hdp_stack_version = self.UPGRADE_STACK_VERSION,
      target = RMFTestCase.TARGET_COMMON_SERVICES )
-
-    self.assertTrue(process_mock.called)
-    self.assertEqual(process_mock.call_count,2)
 
     self.assertResourceCalled('Execute', 'hive --service hiveserver2 --deregister 2.2.0.0-2041',
       path=['/bin:/usr/hdp/current/hive-server2/bin:/usr/hdp/current/hadoop-client/bin'],
@@ -564,17 +554,9 @@ class TestHiveServer(RMFTestCase):
 
   @patch("hive_server.HiveServer.pre_rolling_restart")
   @patch("hive_server.HiveServer.start")
-  @patch("subprocess.Popen")
-  def test_stop_during_upgrade_bad_hive_version(self, process_mock, hive_server_start_mock,
+  @patch.object(shell, "call", new=MagicMock(return_value=(0,"BAD VERSION")))
+  def test_stop_during_upgrade_bad_hive_version(self, hive_server_start_mock,
     hive_server_pre_rolling_mock):
-
-    process_output = 'BAD VERSION'
-
-    process = MagicMock()
-    process.communicate.return_value = [process_output]
-    process.returncode = 0
-    process_mock.return_value = process
-
     try:
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
        classname = "HiveServer", command = "restart", config_file = "hive-upgrade.json",

@@ -22,7 +22,7 @@ import subprocess
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Execute
-from resource_management.core.shell import call
+from resource_management.core import shell
 from resource_management.libraries.functions.decorator import retry
 
 
@@ -56,7 +56,7 @@ def _check_nodemanager_startup():
 
   try:
     # 'su - yarn -c "yarn node -status c6401.ambari.apache.org:45454"'
-    return_code, yarn_output = call(command, user=params.hdfs_user)
+    return_code, yarn_output = shell.call(command, user=params.hdfs_user)
   except:
     raise Fail('Unable to determine if the NodeManager has started after upgrade.')
 

@@ -312,7 +312,7 @@ class KerberosScript(Script):
       # If a test keytab file is available, simply use it
       if (keytab_file is not None) and (os.path.isfile(keytab_file)):
         command = 'kinit -k -t %s %s' % (keytab_file, principal)
-        shell.checked_call(command)
+        Execute(command)
         return shell.checked_call('kdestroy')
 
       # If base64-encoded test keytab data is available; then decode it, write it to a temporary file
@@ -324,7 +324,7 @@ class KerberosScript(Script):
 
         try:
           command = 'kinit -k -t %s %s' % (test_keytab_file, principal)
-          shell.checked_call(command)
+          Execute(command)
           return shell.checked_call('kdestroy')
         except:
           raise

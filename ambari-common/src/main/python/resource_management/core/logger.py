@@ -105,8 +105,12 @@ class Logger:
           val = oct(y)
         except:
           val = repr(y)
+      # for functions show only function name
+      elif hasattr(y, '__call__') and hasattr(y, '__name__'):
+        val = y.__name__
       else:
         val = repr(y)
+        
 
 
       arguments_str += "'{0}': {1}, ".format(x, val)
