@@ -49,7 +49,9 @@
     <div class="box">
       <div class="box-header summary-box-header">
         <h4>{{controller.content.label}} {{t services.service.info.menu.summary}}</h4>
-        <span {{action "showServiceAlertsPopup" controller.content target="controller"}}{{bindAttr class=":pull-right view.alertsCount:alerts-count-label:no-alerts-label :label"}}>{{view.alertsCountLabel}}</span>
+        {{#if view.alertsCount}}
+          <span {{action "showServiceAlertsPopup" controller.content target="controller"}}{{bindAttr class=":pull-right view.alertsCount:alerts-count-label:no-alerts-label :label"}}>{{view.alertsCountLabel}}</span>
+        {{/if}}
       </div>
       <div class="service-content">
         <table id="summary-info" class="table no-borders table-condensed">

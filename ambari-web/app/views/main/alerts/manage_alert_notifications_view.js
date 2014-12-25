@@ -95,7 +95,7 @@ App.ManageAlertNotificationsView = Em.View.extend({
     if (this.get('controller.isLoaded')) {
       var notifications = this.get('controller.alertNotifications');
       if (notifications && notifications.length) {
-        this.set('selectedAlertNotification', notifications[0]);
+        this.set('selectedAlertNotification', this.get('controller.selectedAlertNotification') || notifications[0]);
         this.buttonObserver();
       }  else {
         this.set('selectedAlertNotification', null);

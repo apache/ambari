@@ -884,7 +884,7 @@ Em.I18n.translations = {
   'alerts.table.header.lastTriggered': 'Last Status Changed',
   'alerts.table.header.lastChecked': 'Last Checked',
   'alerts.table.header.lastTrigger': 'Last Changed',
-  'alerts.table.header.check.response': 'Check Response',
+  'alerts.table.header.check.response': 'Response',
   'alerts.table.header.definitionName': 'Alert Definition Name',
   'alerts.table.header.notification': 'Notification',
   'alerts.table.state': 'State',
@@ -909,6 +909,9 @@ Em.I18n.translations = {
   'alerts.definition.details.notification': 'Notification',
   'alerts.definition.details.noAlerts': 'No alert instances to show',
   'alerts.definition.details.configs.thresholdsErrorMsg': 'Critical threshold should be larger than warning threshold',
+
+  'alerts.notifications.error.email': 'Must be a valid email address',
+  'alerts.notifications.error.integer': 'Must be an integer',
 
   'alerts.notifications.addCustomPropertyPopup.header': 'Add Property',
   'alerts.notifications.addCustomPropertyPopup.error.propertyExists': 'Custom Property with current name already exists',
@@ -1943,7 +1946,7 @@ Em.I18n.translations = {
   'alerts.actions.manage_alert_notifications_popup.clearAll':'Clear All',
   'alerts.actions.manage_alert_notifications_popup.selectAll':'Select All',
   'alerts.actions.manage_alert_notifications_popup.confirmDeleteHeader':'Confirm Delete',
-  'alerts.actions.manage_alert_notifications_popup.confirmDeleteBody':'Are you sure you want to delete {0} group?',
+  'alerts.actions.manage_alert_notifications_popup.confirmDeleteBody':'Are you sure you want to delete {0} notification?',
 
   'hosts.host.add':'Add New Hosts',
   'hosts.table.noHosts':'No hosts to display',

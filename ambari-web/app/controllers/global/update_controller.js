@@ -464,7 +464,7 @@ App.UpdateController = Em.Controller.extend({
 
   updateUnhealthyAlertInstances: function (callback) {
     var testUrl = '/data/alerts/alert_instances.json';
-    var realUrl = '/alerts?fields=*&Alert/state.in(CRITICAL,WARNING)';
+    var realUrl = '/alerts?fields=*&Alert/state.in(CRITICAL,WARNING)&Alert/maintenance_state.in(OFF)';
     var url = this.getUrl(testUrl, realUrl);
 
     App.HttpClient.get(url, App.alertInstanceMapper, {

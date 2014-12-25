@@ -255,8 +255,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
   addAlertNotification: function () {
     var inputFields = this.get('inputFields');
     inputFields.setProperties({
-      'global.disabled': false,
-      'allGroups.disabled': false
+      'global.disabled': false
     });
     Em.keys(inputFields).forEach(function (key) {
       inputFields.set(key + '.value', inputFields.get(key + '.defaultValue'));
@@ -300,7 +299,6 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
     inputFields.set('severityFilter.value', selectedAlertNotification.get('alertStates'));
     inputFields.set('global.value', selectedAlertNotification.get('global'));
     inputFields.set('allGroups.value', selectedAlertNotification.get('global') ? 'all' : 'custom');
-    inputFields.set('allGroups.disabled', true);
     // not allow to edit global field
     inputFields.set('global.disabled', true);
     inputFields.set('description.value', selectedAlertNotification.get('description'));
@@ -354,7 +352,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
           var emailTo = this.get('controller.inputFields.email.value');
           if (emailTo && !validator.isValidEmail(emailTo)) {
             this.set('parentView.hasErrors', true);
-            this.set('controller.inputFields.email.errorMsg', 'Must be a valid email address');
+            this.set('controller.inputFields.email.errorMsg', Em.I18n.t('alerts.notifications.error.email'));
           } else {
             this.set('parentView.hasErrors', false);
             this.set('controller.inputFields.email.errorMsg', null);
@@ -365,7 +363,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
           var emailFrom = this.get('controller.inputFields.emailFrom.value');
           if (emailFrom && !validator.isValidEmail(emailFrom)) {
             this.set('parentView.hasErrors', true);
-            this.set('controller.inputFields.emailFrom.errorMsg', 'Must be a valid email address');
+            this.set('controller.inputFields.emailFrom.errorMsg', Em.I18n.t('alerts.notifications.error.email'));
           } else {
             this.set('parentView.hasErrors', false);
             this.set('controller.inputFields.emailFrom.errorMsg', null);
@@ -376,7 +374,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
           var value = this.get('controller.inputFields.SMTPPort.value');
           if (value && (!validator.isValidInt(value) || value < 0)) {
             this.set('parentView.hasErrors', true);
-            this.set('controller.inputFields.SMTPPort.errorMsg', 'Invalid! Please enter positive integer.');
+            this.set('controller.inputFields.SMTPPort.errorMsg', Em.I18n.t('alerts.notifications.error.integer'));
           } else {
             this.set('parentView.hasErrors', false);
             this.set('controller.inputFields.SMTPPort.errorMsg', null);
@@ -387,7 +385,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
           var value = this.get('controller.inputFields.port.value');
           if (value && (!validator.isValidInt(value) || value < 0)) {
             this.set('parentView.hasErrors', true);
-            this.set('controller.inputFields.port.errorMsg', 'Invalid! Please enter positive integer.');
+            this.set('controller.inputFields.port.errorMsg', Em.I18n.t('alerts.notifications.error.integer'));
           } else {
             this.set('parentView.hasErrors', false);
             this.set('controller.inputFields.port.errorMsg', null);

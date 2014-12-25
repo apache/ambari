@@ -272,8 +272,7 @@ describe('App.ManageAlertNotificationsController', function () {
           disabled: true
         },
         allGroups: {
-          value: 'all',
-          disabled: true
+          value: 'all'
         },
         method: {
           value: 'EMAIL'
