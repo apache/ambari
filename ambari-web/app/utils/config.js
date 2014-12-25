@@ -1777,5 +1777,22 @@ App.config = Em.Object.create({
       if (properties) return $.extend(baseObj, properties);
       else return baseObj;
     });
+  },
+
+  /**
+   * replace some values in config property
+   * @param {string} name
+   * @param {string} express
+   * @param {string} value
+   * @param {string} globValue
+   * @return {string}
+   * @private
+   * @method replaceConfigValues
+   */
+  replaceConfigValues: function (name, express, value, globValue) {
+    if (name == 'templeton.hive.properties') {
+      globValue = globValue.replace(/,/g, '\\,');
+    }
+    return value.replace(express, globValue);
   }
 });

@@ -1595,7 +1595,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       if (hiveDb.value === 'New MySQL Database' || hiveDb.value === 'New PostgreSQL Database') {
         var ambariHost = configs.findProperty('name', 'hive_ambari_host');
         if (ambariHost) {
-          ambariHost.name = 'hive_hostname';
+          dbHostPropertyName = 'hive_ambari_host';
         }
         configs = configs.without(configs.findProperty('name', 'hive_existing_mysql_host'));
         configs = configs.without(configs.findProperty('name', 'hive_existing_mysql_database'));
@@ -1612,7 +1612,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         if (existingMySqlHost) {
           dbHostPropertyName = 'hive_existing_mysql_host';
         }
-        configs = configs.without(configs.findProperty('name', 'hive_ambari_host'));
         configs = configs.without(configs.findProperty('name', 'hive_ambari_database'));
         configs = configs.without(configs.findProperty('name', 'hive_existing_oracle_host'));
         configs = configs.without(configs.findProperty('name', 'hive_existing_oracle_database'));
@@ -1627,7 +1626,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         if (existingPostgreSqlHost) {
           dbHostPropertyName = 'hive_existing_postgresql_host';
         }
-        configs = configs.without(configs.findProperty('name', 'hive_ambari_host'));
         configs = configs.without(configs.findProperty('name', 'hive_ambari_database'));
         configs = configs.without(configs.findProperty('name', 'hive_existing_mysql_host'));
         configs = configs.without(configs.findProperty('name', 'hive_existing_mysql_database'));
@@ -1642,7 +1640,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         if (existingOracleHost) {
           dbHostPropertyName = 'hive_existing_oracle_host';
         }
-        configs = configs.without(configs.findProperty('name', 'hive_ambari_host'));
         configs = configs.without(configs.findProperty('name', 'hive_ambari_database'));
         configs = configs.without(configs.findProperty('name', 'hive_existing_mysql_host'));
         configs = configs.without(configs.findProperty('name', 'hive_existing_mysql_database'));
@@ -1657,7 +1654,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         if (existingMSSQLServerHost) {
           dbHostPropertyName = 'hive_existing_mssql_server_host';
         }
-        configs = configs.without(configs.findProperty('name', 'hive_ambari_host'));
         configs = configs.without(configs.findProperty('name', 'hive_ambari_database'));
         configs = configs.without(configs.findProperty('name', 'hive_existing_mysql_host'));
         configs = configs.without(configs.findProperty('name', 'hive_existing_mysql_database'));
@@ -1672,7 +1668,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         if (existingMSSQL2ServerHost) {
           dbHostPropertyName = 'hive_existing_mssql_server_2_host';
         }
-        configs = configs.without(configs.findProperty('name', 'hive_ambari_host'));
         configs = configs.without(configs.findProperty('name', 'hive_ambari_database'));
         configs = configs.without(configs.findProperty('name', 'hive_existing_mysql_host'));
         configs = configs.without(configs.findProperty('name', 'hive_existing_mysql_database'));
@@ -1851,7 +1846,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     var configs = configMapping.filterProperty('foreignKey', null);
     this.addDynamicProperties(configs);
     configs.forEach(function (_config) {
-      var valueWithOverrides = this.getGlobConfigValueWithOverrides(_config.templateName, _config.value);
+      var valueWithOverrides = this.getGlobConfigValueWithOverrides(_config.templateName, _config.value, _config.name);
       if (valueWithOverrides !== null) {
         uiConfig.pushObject({
           "id": "site property",
@@ -1872,9 +1867,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     if (!templetonHiveProperty && this.get('content.serviceName') === 'HIVE') {
       configs.pushObject({
         "name": "templeton.hive.properties",
-        "templateName": ["hivemetastore_host"],
+        "templateName": ["hive.metastore.uris"],
         "foreignKey": null,
-        "value": "hive.metastore.local=false,hive.metastore.uris=thrift://<templateName[0]>:9083,hive.metastore.sasl.enabled=yes,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse",
+        "value": "hive.metastore.local=false,hive.metastore.uris=<templateName[0]>,hive.metastore.sasl.enabled=yes,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse",
         "filename": "webhcat-site.xml"
       });
     }
@@ -1884,6 +1879,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * return config value
    * @param templateName
    * @param expression
+   * @param name
    * @return {Object}
    * example: <code>{
    *   value: '...',
@@ -1893,7 +1889,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    *   }
    * }</code>
    */
-  getGlobConfigValueWithOverrides: function (templateName, expression) {
+  getGlobConfigValueWithOverrides: function (templateName, expression, name) {
     var express = expression.match(/<(.*?)>/g);
     var value = expression;
     var overrideHostToValue = {};
@@ -1907,11 +1903,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
             for (var ov in globOverride) {
               globOverride[ov].forEach(function (host) {
                 var replacedVal = (host in overrideHostToValue) ? overrideHostToValue[host] : expression;
-                overrideHostToValue[host] = replacedVal.replace(_express, ov);
+                overrideHostToValue[host] = App.config.replaceConfigValues(name, _express, replacedVal, ov);
               }, this);
             }
           }
-          value = expression.replace(_express, globalObj.value);
+          value = App.config.replaceConfigValues(name, _express, expression, globalObj.value);
         } else {
           value = null;
         }
@@ -2303,9 +2299,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     },
     {
       hostProperty: 'hivemetastore_host',
-      componentName: 'HIVE_SERVER',
+      componentName: 'HIVE_METASTORE',
       serviceName: 'HIVE',
-      serviceUseThis: ['HIVE']
+      serviceUseThis: ['HIVE'],
+      m: true
     },
     {
       hostProperty: 'oozieserver_host',

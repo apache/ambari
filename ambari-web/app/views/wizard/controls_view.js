@@ -886,7 +886,7 @@ App.CheckDBConnectionView = Ember.View.extend({
     var serviceMasterMap = {
       'OOZIE': 'oozieserver_host',
       'HDFS': 'hadoop_host',
-      'HIVE': 'hivemetastore_host'
+      'HIVE': 'hive_ambari_host'
     };
     return this.get('parentView.categoryConfigsAll').findProperty('name', serviceMasterMap[this.get('parentView.service.serviceName')]).get('value');
   }.property(),

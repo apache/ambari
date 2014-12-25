@@ -613,3 +613,54 @@ describe('App.ServiceConfigRadioButton', function () {
   });
 
 });
+
+describe('App.CheckDBConnectionView', function () {
+
+  describe('#masterHostName', function () {
+
+    var cases = [
+        {
+          serviceName: 'OOZIE',
+          value: 'h0'
+        },
+        {
+          serviceName: 'HDFS',
+          value: 'h1'
+        },
+        {
+          serviceName: 'HIVE',
+          value: 'h2'
+        }
+      ],
+      categoryConfigsAll = [
+        Em.Object.create({
+          name: 'oozieserver_host',
+          value: 'h0'
+        }),
+        Em.Object.create({
+          name: 'hadoop_host',
+          value: 'h1'
+        }),
+        Em.Object.create({
+          name: 'hive_ambari_host',
+          value: 'h2'
+        })
+      ];
+
+    cases.forEach(function (item) {
+      it(item.serviceName, function () {
+        var view = App.CheckDBConnectionView.create({
+          parentView: {
+            service: {
+              serviceName: item.serviceName
+            },
+            categoryConfigsAll: categoryConfigsAll
+          }
+        });
+        expect(view.get('masterHostName')).to.equal(item.value);
+      });
+    });
+
+  });
+
+});

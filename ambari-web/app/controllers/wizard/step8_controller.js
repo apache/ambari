@@ -440,9 +440,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     if (!templetonHiveProperty) {
       configs.pushObject({
         "name": "templeton.hive.properties",
-        "templateName": ["hivemetastore_host"],
+        "templateName": ["hive.metastore.uris"],
         "foreignKey": null,
-        "value": "hive.metastore.local=false,hive.metastore.uris=thrift://<templateName[0]>:9083,hive.metastore.sasl.enabled=yes,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse",
+        "value": "hive.metastore.local=false,hive.metastore.uris=<templateName[0]>,hive.metastore.sasl.enabled=yes,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse",
         "filename": "webhcat-site.xml"
       });
     }
@@ -507,7 +507,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         var preReplaceValue = null;
         if (value !== null) {   // if the property depends on more than one template name like <templateName[0]>/<templateName[1]> then don't proceed to the next if the prior is null or not found in the global configs
           preReplaceValue = value;
-          value = this._replaceConfigValues(name, _express, value, globValue);
+          value = App.config.replaceConfigValues(name, _express, value, globValue);
         }
         if (globalObj.overrides != null) {
           globalObj.overrides.forEach(function (override) {
@@ -515,9 +515,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
             var hostsArray = override.hosts;
             hostsArray.forEach(function (host) {
               if (!(host in overrideHostToValue)) {
-                overrideHostToValue[host] = this._replaceConfigValues(name, _express, preReplaceValue, ov);
+                overrideHostToValue[host] = App.config.replaceConfigValues(name, _express, preReplaceValue, ov);
               } else {
-                overrideHostToValue[host] = this._replaceConfigValues(name, _express, overrideHostToValue[host], ov);
+                overrideHostToValue[host] = App.config.replaceConfigValues(name, _express, overrideHostToValue[host], ov);
               }
             }, this);
           }, this);
@@ -554,20 +554,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       });
     }
     return valueWithOverrides;
-  },
-
-  /**
-   * replace some values in config property
-   * @param {string} name
-   * @param {string} express
-   * @param {string} value
-   * @param {string} globValue
-   * @return {string}
-   * @private
-   * @method _replaceConfigValues
-   */
-  _replaceConfigValues: function (name, express, value, globValue) {
-    return value.replace(express, globValue);
   },
 
   /**

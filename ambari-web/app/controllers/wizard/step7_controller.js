@@ -1173,7 +1173,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
    * @method getAmbariDatabaseSuccess
    */
   getAmbariDatabaseSuccess: function (data) {
-    var hiveDBHostname = this.get('stepConfigs').findProperty('serviceName', 'HIVE').configs.findProperty('name', 'hivemetastore_host').value;
+    var hiveDBHostname = this.get('stepConfigs').findProperty('serviceName', 'HIVE').configs.findProperty('name', 'hive_ambari_host').value;
     var ambariServiceHostComponents = data.hostComponents;
     if (!!ambariServiceHostComponents.length) {
       var ambariDBInfo = JSON.stringify(ambariServiceHostComponents[0].RootServiceHostComponents.properties);

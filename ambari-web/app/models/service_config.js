@@ -434,7 +434,7 @@ App.ServiceConfigProperty = Em.Object.extend({
         this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'HBASE_REGIONSERVER').hosts.mapProperty('hostName'));
         break;
       case 'hivemetastore_host':
-        this.set('value', masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName);
+        this.set('value', masterComponentHostsInDB.filterProperty('component', 'HIVE_METASTORE').mapProperty('hostName'));
         break;
       case 'hive_ambari_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName);

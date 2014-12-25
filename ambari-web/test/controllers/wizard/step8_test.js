@@ -1505,4 +1505,50 @@ describe('App.WizardStep8Controller', function () {
     });
   });
 
+  describe("#addDynamicProperties", function() {
+
+    var tests = [
+        {
+          content: Em.Object.create({
+            serviceConfigProperties: [
+              Em.Object.create({
+                configs: []
+              })
+            ]
+          }),
+          m: 'add dynamic property',
+          addDynamic: true
+        },
+        {
+          content: Em.Object.create({
+            serviceConfigProperties: [
+              Em.Object.create({
+                name: 'templeton.hive.properties'
+              })
+            ]
+          }),
+          m: 'don\'t add dynamic property (already included)',
+          addDynamic: false
+        }
+      ],
+      dynamicProperty = {
+        name: 'templeton.hive.properties',
+        templateName: ['hive.metastore.uris'],
+        foreignKey: null,
+        value: 'hive.metastore.local=false,hive.metastore.uris=<templateName[0]>,hive.metastore.sasl.enabled=yes,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse',
+        filename: 'webhcat-site.xml'
+      };
+
+    tests.forEach(function(t) {
+      it(t.m, function() {
+        installerStep8Controller.set('content', t.content);
+        var configs = [];
+        installerStep8Controller.addDynamicProperties(configs);
+        if (t.addDynamic){
+          expect(configs.findProperty('name', 'templeton.hive.properties')).to.deep.eql(dynamicProperty);
+        }
+      });
+    });
+  });
+
 });

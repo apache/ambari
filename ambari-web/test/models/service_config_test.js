@@ -736,7 +736,23 @@ describe('App.ServiceConfigProperty', function () {
           isUnionAllMountPointsCalled: false,
           title: 'unionAllMountPoints shouldn\'t be called'
         }
-      ]
+      ],
+      'hivemetastore_host': {
+        localDB: {
+          masterComponentHosts: [
+            {
+              component: 'HIVE_METASTORE',
+              hostName: 'h0'
+            },
+            {
+              component: 'HIVE_METASTORE',
+              hostName: 'h1'
+            }
+          ]
+        },
+        value: ['h0', 'h1'],
+        title: 'array that contains names of hosts with Hive Metastore'
+      }
     };
 
     cases['kafka.ganglia.metrics.host'].forEach(function(item){
@@ -807,6 +823,12 @@ describe('App.ServiceConfigProperty', function () {
         expect(serviceConfigProperty.unionAllMountPoints.calledWith(isOnlyFirstOneNeeded, localDB)).to.equal(item.isUnionAllMountPointsCalled);
         serviceConfigProperty.unionAllMountPoints.restore();
       });
+    });
+
+    it(cases['hivemetastore_host'].title, function () {
+      serviceConfigProperty.set('name', 'hivemetastore_host');
+      serviceConfigProperty.initialValue(cases['hivemetastore_host'].localDB);
+      expect(serviceConfigProperty.get('value')).to.eql(cases['hivemetastore_host'].value);
     });
 
   });

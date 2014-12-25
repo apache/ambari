@@ -1334,4 +1334,68 @@ describe('App.InstallerStep7Controller', function () {
 
   });
 
+  describe('#getAmbariDatabaseSuccess', function () {
+
+    var controller = App.WizardStep7Controller.create({
+        stepConfigs: [
+          {
+            serviceName: 'HIVE',
+            configs: [
+              {
+                name: 'hive_ambari_host',
+                value: 'h0'
+              }
+            ]
+          }
+        ]
+      }),
+      cases = [
+        {
+          data: {
+            hostComponents: []
+          },
+          mySQLServerConflict: false,
+          title: 'no Ambari Server host components'
+        },
+        {
+          data: {
+            hostComponents: [
+              {
+                RootServiceHostComponents: {
+                  properties: {
+                    'server.jdbc.url': 'jdbc:mysql://h0/db0?createDatabaseIfNotExist=true'
+                  }
+                }
+              }
+            ]
+          },
+          mySQLServerConflict: true,
+          title: 'Ambari MySQL Server and Hive Server are on the same host'
+        },
+        {
+          data: {
+            hostComponents: [
+              {
+                RootServiceHostComponents: {
+                  properties: {
+                    'server.jdbc.url': 'jdbc:mysql://h1/db1?createDatabaseIfNotExist=true'
+                  }
+                }
+              }
+            ]
+          },
+          mySQLServerConflict: false,
+          title: 'Ambari MySQL Server and Hive Server are on different hosts'
+        }
+      ];
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        controller.getAmbariDatabaseSuccess(item.data);
+        expect(controller.get('mySQLServerConflict')).to.equal(item.mySQLServerConflict);
+      });
+    });
+
+  });
+
 });

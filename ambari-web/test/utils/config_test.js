@@ -725,4 +725,33 @@ describe('App.config', function () {
     });
   });
 
+  describe('#replaceConfigValues', function () {
+
+    var cases = [
+      {
+        name: 'name',
+        express: '<templateName[0]>',
+        value: '<templateName[0]>',
+        globValue: 'v',
+        expected: 'v',
+        title: 'default case'
+      },
+      {
+        name: 'templeton.hive.properties',
+        express: '<templateName[0]>',
+        value: 'hive.matestore.uris=<templateName[0]>',
+        globValue: 'thrift://h0:9933,thrift://h1:9933,thrift://h2:9933',
+        expected: 'hive.matestore.uris=thrift://h0:9933\\,thrift://h1:9933\\,thrift://h2:9933',
+        title: 'should escape commas for templeton.hive.properties'
+      }
+    ];
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        expect(App.config.replaceConfigValues(item.name, item.express, item.value, item.globValue)).to.equal(item.expected);
+      });
+    });
+
+  });
+
 });

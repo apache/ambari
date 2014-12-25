@@ -828,9 +828,9 @@ describe("App.MainServiceInfoConfigsController", function () {
     ];
     var dynamicProperty = {
       "name": "templeton.hive.properties",
-      "templateName": ["hivemetastore_host"],
+      "templateName": ["hive.metastore.uris"],
       "foreignKey": null,
-      "value": "hive.metastore.local=false,hive.metastore.uris=thrift://<templateName[0]>:9083,hive.metastore.sasl.enabled=yes,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse",
+      "value": "hive.metastore.local=false,hive.metastore.uris=<templateName[0]>,hive.metastore.sasl.enabled=yes,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse",
       "filename": "webhcat-site.xml"
     };
 
@@ -913,6 +913,7 @@ describe("App.MainServiceInfoConfigsController", function () {
     it("load ui config", function() {
       expect(mainServiceInfoConfigsController.loadUiSideConfigs(t.configMapping)[0]).to.deep.equal(t.uiConfigs[0]);
       expect(mainServiceInfoConfigsController.addDynamicProperties.calledWith(t.configMappingf)).to.equal(true);
+      expect(mainServiceInfoConfigsController.getGlobConfigValueWithOverrides.calledWith(t.configMapping[0].templateName, t.configMapping[0].value, t.configMapping[0].name)).to.equal(true);
     });
   });
 
