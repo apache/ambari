@@ -18,6 +18,7 @@ limitations under the License.
 
 import socket
 from unittest import TestCase
+from mock.mock import patch, MagicMock
 
 class TestHDP206StackAdvisor(TestCase):
 
@@ -35,6 +36,32 @@ class TestHDP206StackAdvisor(TestCase):
       stack_advisor_impl = imp.load_module('stack_advisor_impl', fp, hdp206StackAdvisorPath, ('.py', 'rb', imp.PY_SOURCE))
     clazz = getattr(stack_advisor_impl, hdp206StackAdvisorClassName)
     self.stackAdvisor = clazz()
+
+    # substitute method in the instance
+    self.get_system_min_uid_real = self.stackAdvisor.get_system_min_uid
+    self.stackAdvisor.get_system_min_uid = self.get_system_min_uid_magic
+
+  @patch('__builtin__.open')
+  @patch('os.path.exists')
+  def get_system_min_uid_magic(self, exists_mock, open_mock):
+    class MagicFile(object):
+      def read(self):
+        return """
+        #test line UID_MIN 200
+        UID_MIN 500
+        """
+
+      def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+      def __enter__(self):
+        return self
+
+    exists_mock.return_value = True
+    open_mock.return_value = MagicFile()
+    return self.get_system_min_uid_real()
+
+
 
   def test_recommendationCardinalityALL(self):
     servicesInfo = [
@@ -328,6 +355,11 @@ class TestHDP206StackAdvisor(TestCase):
       "ramPerContainer": 256
     }
     expected = {
+      "yarn-env": {
+        "properties": {
+          "min_user_id": "500"
+        }
+      },
       "yarn-site": {
         "properties": {
           "yarn.nodemanager.resource.memory-mb": "1280",

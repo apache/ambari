@@ -23,6 +23,7 @@ from math import ceil
 
 from stack_advisor import DefaultStackAdvisor
 
+
 class HDP206StackAdvisor(DefaultStackAdvisor):
 
   def getComponentLayoutValidations(self, services, hosts):
@@ -93,9 +94,11 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
   def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
     putYarnProperty = self.putProperty(configurations, "yarn-site")
+    putYarnEnvProperty = self.putProperty(configurations, "yarn-env")
     putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(clusterData['containers'] * clusterData['ramPerContainer'])))
     putYarnProperty('yarn.scheduler.minimum-allocation-mb', int(clusterData['ramPerContainer']))
     putYarnProperty('yarn.scheduler.maximum-allocation-mb', int(round(clusterData['containers'] * clusterData['ramPerContainer'])))
+    putYarnEnvProperty('min_user_id', self.get_system_min_uid())
 
   def recommendMapReduce2Configurations(self, configurations, clusterData, services, hosts):
     putMapredProperty = self.putProperty(configurations, "mapred-site")
@@ -320,6 +323,41 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       'HIVE_METASTORE': {6: 1, 31: 2, "else": 4},
       'WEBHCAT_SERVER': {6: 1, 31: 2, "else": 4},
       }
+
+  def get_system_min_uid(self):
+    login_defs = '/etc/login.defs'
+    uid_min_tag = 'UID_MIN'
+    comment_tag = '#'
+    uid_min = uid_default = '1000'
+    uid = None
+
+    if os.path.exists(login_defs):
+      with open(login_defs, 'r') as f:
+        data = f.read().split('\n')
+        # look for uid_min_tag in file
+        uid = filter(lambda x: uid_min_tag in x, data)
+        # filter all lines, where uid_min_tag was found in comments
+        uid = filter(lambda x: x.find(comment_tag) > x.find(uid_min_tag) or x.find(comment_tag) == -1, uid)
+
+      if uid is not None and len(uid) > 0:
+        uid = uid[0]
+        comment = uid.find(comment_tag)
+        tag = uid.find(uid_min_tag)
+        if comment == -1:
+          uid_tag = tag + len(uid_min_tag)
+          uid_min = uid[uid_tag:].strip()
+        elif comment > tag:
+          uid_tag = tag + len(uid_min_tag)
+          uid_min = uid[uid_tag:comment].strip()
+
+    # check result for value
+    try:
+      int(uid_min)
+    except ValueError:
+      return uid_default
+
+    return uid_min
+
 
 # Validation helper methods
 def getSiteProperties(configurations, siteName):
