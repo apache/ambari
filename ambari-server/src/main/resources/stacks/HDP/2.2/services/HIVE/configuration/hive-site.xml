@@ -265,9 +265,10 @@ limitations under the License.
     <description>Thrift URI for the remote metastore. Used by metastore client to connect to remote metastore.</description>
   </property>
 
-  <property>
+  <property require-input="true">
     <name>javax.jdo.option.ConnectionPassword</name>
     <value></value>
+    <property-type>PASSWORD</property-type>
     <description>password to use against metastore database</description>
   </property>
 
