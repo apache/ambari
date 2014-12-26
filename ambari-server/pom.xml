@@ -1205,6 +1205,7 @@
         <filtering>true</filtering>
         <excludes>
           <exclude>stacks/**</exclude>
+          <exclude>common-services/**</exclude>
         </excludes>
       </resource>
       <resource>
@@ -1212,6 +1213,7 @@
         <filtering>false</filtering>
         <includes>
           <include>stacks/**</include>
+          <include>common-services/**</include>
         </includes>
       </resource>
     </resources>
