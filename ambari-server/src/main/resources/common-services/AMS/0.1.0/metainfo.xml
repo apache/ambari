@@ -74,6 +74,9 @@
               <name>ambari-metrics-monitor</name>
             </package>
             <package>
+              <name>ambari-metrics-hadoop-sink</name>
+            </package>
+            <package>
               <name>hadoop_2_2_*</name>
             </package>
           </packages>

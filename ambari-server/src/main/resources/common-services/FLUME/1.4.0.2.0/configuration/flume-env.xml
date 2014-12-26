@@ -69,8 +69,10 @@ export JAVA_HOME={{java_home}}
 # export JAVA_OPTS="-Xms100m -Xmx2000m -Dcom.sun.management.jmxremote"
 
 # Note that the Flume conf directory is always included in the classpath.
-#TODO temporary addition
-export FLUME_CLASSPATH=$FLUME_CLASSPATH:/usr/lib/flume/lib/*
+# Add flume sink to classpath
+if [ -e "/usr/lib/flume/lib/ambari-metrics-flume-sink.jar" ]; then
+  export FLUME_CLASSPATH=$FLUME_CLASSPATH:/usr/lib/flume/lib/ambari-metrics-flume-sink.jar
+fi
 
 export HIVE_HOME={{flume_hive_home}}
 export HCAT_HOME={{flume_hcat_home}}

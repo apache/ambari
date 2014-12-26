@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -14,11 +14,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-LINK_NAME="/usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar"
-JAR_NAME="/usr/lib/ambari-metrics-hadoop-sink/${sinkJarName}"
+HADOOP_LINK_NAME="/usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar"
+FLUME_LINK_NAME="/usr/lib/flume/lib/ambari-metrics-flume-sink.jar"
+HADOOP_SINK_JAR="/usr/lib/ambari-metrics-hadoop-sink/${hadoop.sink.jar}"
+FLUME_SINK_JAR="/usr/lib/flume/lib/${flume.sink.jar}"
+#link for storm jar not required with current loading
+#STORM_SINK_JAR="/usr/lib/storm/lib/${storm.sink.jar}"
+#STORM_LINK_NAME="/usr/lib/storm/lib/ambari-metrics-storm-sink.jar"
 
-if [ -e "$LINK_NAME" ]; then
-  rm -f $LINK_NAME
-fi
+JARS=(${HADOOP_SINK_JAR} ${FLUME_SINK_JAR})
+LINKS=(${HADOOP_LINK_NAME} ${FLUME_LINK_NAME})
 
-ln -s $JAR_NAME $LINK_NAME
+for index in ${!LINKS[*]}
+do
+  if [ -e "${LINKS[$index]}" ]; then
+    rm -f ${LINKS[$index]}
+  fi
+
+  ln -s ${JARS[$index]} ${LINKS[$index]}
+done

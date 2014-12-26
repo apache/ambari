@@ -40,7 +40,9 @@
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
     <deb.architecture>amd64</deb.architecture>
     <deb.dependency.list>${deb.python.ver},python-dev,gcc</deb.dependency.list>
-    <sinkJarName>ambari-metrics-hadoop-sink-with-common-${project.version}.jar</sinkJarName>
+    <hadoop.sink.jar>ambari-metrics-hadoop-sink-with-common-${project.version}.jar</hadoop.sink.jar>
+    <storm.sink.jar>ambari-metrics-storm-sink-with-common-${project.version}.jar</storm.sink.jar>
+    <flume.sink.jar>ambari-metrics-flume-sink-with-common-${project.version}.jar</flume.sink.jar>
   </properties>
 
   <build>
@@ -177,9 +179,6 @@
                   <needarch>x86_64</needarch>
                   <autoRequires>false</autoRequires>
                   <requires>
-                    <require>ambari-metrics-hadoop-sink</require>
-                    <require>ambari-metrics-flume-sink</require>
-                    <require>ambari-metrics-storm-sink</require>
                     <require>${python.ver}</require>
                     <require>gcc</require>
                     <require>python-devel</require>
@@ -409,7 +408,7 @@
                   <defaultGroupname>root</defaultGroupname>
 
                   <postinstallScriptlet>
-                    <scriptFile>${hadoop-sink.dir}/target/classes/rpm/postinstall.sh</scriptFile>
+                    <scriptFile>${project.basedir}/src/main/package/rpm/sink/postinstall.sh</scriptFile>
                     <fileEncoding>utf-8</fileEncoding>
                   </postinstallScriptlet>
 
@@ -423,75 +422,27 @@
                       </sources>
 
                     </mapping>
-
-                  </mappings>
-                </configuration>
-
-              </execution>
-
-              <!-- flume-sink -->
-              <execution>
-                <id>ambari-metrics-flume-sink</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>rpm</goal>
-                </goals>
-                <configuration>
-                  <name>ambari-metrics-flume-sink</name>
-                  <copyright>2012, Apache Software Foundation</copyright>
-                  <group>Development</group>
-                  <description>Maven Recipe: RPM Package.</description>
-                  <mappings>
                     <mapping>
                       <directory>/usr/lib/flume/lib</directory>
-                      <filemode>644</filemode>
-                      <username>root</username>
-                      <groupname>root</groupname>
                       <sources>
                         <source>
-                          <location>${flume-sink.dir}/target/ambari-metrics-flume-sink-${project.version}.jar</location>
-                        </source>
-                        <source>
-                          <location>${flume-sink.dir}/target/lib</location>
+                          <location>${flume-sink.dir}/target/ambari-metrics-flume-sink-with-common-${project.version}.jar</location>
                         </source>
                       </sources>
                     </mapping>
-                  </mappings>
-                </configuration>
-              </execution>
-
-              <!-- storm-sink -->
-              <execution>
-                <id>ambari-metrics-storm-sink</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>rpm</goal>
-                </goals>
-
-                <configuration>
-                  <name>ambari-metrics-storm-sink</name>
-                  <copyright>2012, Apache Software Foundation</copyright>
-                  <group>Development</group>
-                  <description>Maven Recipe: RPM Package.</description>
-                  <defaultDirmode>755</defaultDirmode>
-                  <defaultFilemode>644</defaultFilemode>
-                  <defaultUsername>root</defaultUsername>
-                  <defaultGroupname>root</defaultGroupname>
-                  <mappings>
                     <mapping>
                       <directory>/usr/lib/storm/lib</directory>
                       <sources>
                         <source>
-                          <location>${storm-sink.dir}/target/ambari-metrics-storm-sink-${project.version}.jar</location>
-                        </source>
-                        <source>
-                          <location>${storm-sink.dir}/target/lib</location>
+                          <location>${storm-sink.dir}/target/ambari-metrics-storm-sink-with-common-${project.version}.jar</location>
                         </source>
                       </sources>
                     </mapping>
                   </mappings>
                 </configuration>
+
               </execution>
+
             </executions>
           </plugin>
         </plugins>
@@ -730,21 +681,12 @@
                 <!-- flume sink -->
 
                 <data>
-                  <src>${flume-sink.dir}/target/ambari-metrics-flume-sink-${project.version}.jar</src>
+                  <src>${flume-sink.dir}/target/${flume.sink.jar}</src>
                   <type>file</type>
                   <mapper>
                     <type>perm</type>
                     <filemode>644</filemode>
                     <dirmode>755</dirmode>
-                    <prefix>/usr/lib/flume/lib</prefix>
-                  </mapper>
-                </data>
-                <data>
-                  <src>${flume-sink.dir}/target/lib</src>
-                  <type>directory</type>
-                  <mapper>
-                    <type>perm</type>
-                    <filemode>644</filemode>
                     <prefix>/usr/lib/flume/lib</prefix>
                   </mapper>
                 </data>
@@ -752,21 +694,12 @@
                 <!-- storm sink -->
 
                 <data>
-                  <src>${storm-sink.dir}/target/ambari-metrics-storm-sink-${project.version}.jar</src>
+                  <src>${storm-sink.dir}/target/${storm.sink.jar}</src>
                   <type>file</type>
                   <mapper>
                     <type>perm</type>
                     <filemode>644</filemode>
                     <dirmode>755</dirmode>
-                    <prefix>/usr/lib/storm/lib</prefix>
-                  </mapper>
-                </data>
-                <data>
-                  <src>${storm-sink.dir}/target/lib</src>
-                  <type>directory</type>
-                  <mapper>
-                    <type>perm</type>
-                    <filemode>644</filemode>
                     <prefix>/usr/lib/storm/lib</prefix>
                   </mapper>
                 </data>
