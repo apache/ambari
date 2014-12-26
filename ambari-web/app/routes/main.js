@@ -509,28 +509,29 @@ module.exports = Em.Route.extend({
 
     adminStackVersions: Em.Route.extend({
       route: '/versions',
+      enter: function (router) {
+        if (App.get('supports.stackUpgrade')) {
+          router.set('mainAdminController.category', "stackVersions");
+        } else {
+          router.transitionTo('admin.stackAndUpgrade');
+        }
+      },
       index: Em.Route.extend({
         route: '/',
         connectOutlets: function (router) {
-          if (App.get('supports.stackUpgrade')) {
-            router.set('mainAdminController.category', "stackVersions");
-            router.get('mainAdminController').connectOutlet('mainStackVersions');
-          }
+          router.get('mainAdminController').connectOutlet('mainStackVersions');
         }
       }),
       version: Em.Route.extend({
         route: '/:repository_version_id',
-        connectOutlets: function (router, stackVersion) {
-          router.get('mainAdminController').connectOutlet('mainStackVersionsDetails', stackVersion);
+        connectOutlets: function (router, repoVersion) {
+          router.get('mainAdminController').connectOutlet('mainStackVersionsDetails', repoVersion);
         }
       }),
       update: Em.Route.extend({
         route: '/updates',
         connectOutlets: function (router) {
-          if (App.get('supports.stackUpgrade')) {
-            router.set('mainAdminController.category', "stackVersions");
-            router.get('mainAdminController').connectOutlet('repoVersions');
-          }
+          router.get('mainAdminController').connectOutlet('repoVersions');
         }
       })
     }),

@@ -121,6 +121,9 @@ App.MainStackVersionsDetailsView = Em.View.extend({
 
   didInsertElement: function() {
     App.get('router.mainStackVersionsController').set('isPolling', true);
+    if (!App.RepositoryVersion.find().findProperty('id', this.get('content.id'))) {
+      App.get('router.mainStackVersionsController').load();
+    }
     App.get('router.mainStackVersionsController').doPolling();
     this.get('controller').doPolling();
   },

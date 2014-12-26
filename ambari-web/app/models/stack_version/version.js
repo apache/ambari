@@ -19,7 +19,6 @@
 var App = require('app');
 
 App.StackVersion = DS.Model.extend({
-  id: DS.attr('string'),
   clusterName: DS.attr('string'),
   stack: DS.attr('string'),
   version: DS.attr('string'),

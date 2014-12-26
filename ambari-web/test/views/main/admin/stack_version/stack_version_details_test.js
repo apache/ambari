@@ -85,17 +85,34 @@ describe('App.MainStackVersionsDetailsView', function () {
   describe('#didInsertElement', function () {
     beforeEach(function() {
       sinon.stub(App.get('router.mainStackVersionsController'), 'set', Em.K);
+      sinon.stub(App.get('router.mainStackVersionsController'), 'load', Em.K);
       sinon.stub(App.get('router.mainStackVersionsController'), 'doPolling', Em.K);
       sinon.stub(view.get('controller'), 'doPolling', Em.K);
+      sinon.stub(App.RepositoryVersion, 'find', function() {
+        return [{id: 1}]
+      });
     });
     afterEach(function() {
       App.get('router.mainStackVersionsController').set.restore();
+      App.get('router.mainStackVersionsController').load.restore();
       App.get('router.mainStackVersionsController').doPolling.restore();
       view.get('controller').doPolling.restore();
+      App.RepositoryVersion.find.restore();
     });
-    it("runs polling when view is in dom" , function() {
+    it("runs polling and load when view is in dom" , function() {
+      view.set('content.id', 2);
       view.didInsertElement();
       expect(App.get('router.mainStackVersionsController').set.calledWith('isPolling', true)).to.be.true;
+      expect(App.get('router.mainStackVersionsController').load.calledOnce).to.be.true;
+      expect(App.get('router.mainStackVersionsController').doPolling.calledOnce).to.be.true;
+      expect(view.get('controller').doPolling.calledOnce).to.be.true;
+    });
+
+    it("runs polling when view is in dom" , function() {
+      view.set('content.id', 1);
+      view.didInsertElement();
+      expect(App.get('router.mainStackVersionsController').set.calledWith('isPolling', true)).to.be.true;
+      expect(App.get('router.mainStackVersionsController').load.calledOnce).to.be.false;
       expect(App.get('router.mainStackVersionsController').doPolling.calledOnce).to.be.true;
       expect(view.get('controller').doPolling.calledOnce).to.be.true;
     });

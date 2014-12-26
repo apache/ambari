@@ -19,7 +19,6 @@
 var App = require('app');
 
 App.RepositoryVersion = DS.Model.extend({
-  id: DS.attr('string'),
   displayName : DS.attr('string'),
   repositoryVersion : DS.attr('string'),
   upgradePack : DS.attr('string'),
