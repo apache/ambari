@@ -136,6 +136,8 @@ describe('App.MainConfigHistoryView', function() {
     });
   });
 
+  /**
+   * for now we don't use this method
   describe("#modifiedFilterView", function () {
     var subView = view.get('modifiedFilterView').create({
       parentView: view,
@@ -160,7 +162,7 @@ describe('App.MainConfigHistoryView', function() {
       subView.onTimeChange();
       expect(view.updateFilter.calledWith(1, [0, 1], 'range')).to.be.true;
     });
-  });
+  });*/
 
   describe("#authorFilterView", function () {
     var subView = view.get('authorFilterView').create({

@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var customDatePopup = require('/views/common/custom_date_popup');
 
 App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin, {
   name: 'mainConfigHistoryController',
@@ -130,14 +129,6 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
       {
         value: 'Past 30 Days',
         label: 'Past 30 Days'
-      },
-      {
-        value: 'Custom',
-        label: 'Custom'
-      },
-      {
-        value: 'Custom2',
-        label: 'Custom'
       }
     ],
     optionValue: 'Any',
@@ -164,20 +155,14 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
         case 'Past 30 Days':
           time = curTime - 2592000000;
           break;
-        case 'Custom':
-        case 'Custom2':
-          customDatePopup.showCustomDatePopup(this, this.get('actualValues'));
-          break;
         case 'Any':
           time = "";
           break;
       }
-      if (!["Custom", "Custom2"].contains(this.get('optionValue.value'))) {
-        this.set("actualValues", {
-          endTime: '',
-          startTime: time
-        });
-      }
+      this.set("actualValues", {
+        endTime: '',
+        startTime: time
+      });
     }.observes('optionValue'),
     cancel: function () {
       this.set('optionValue', this.get('content').findProperty('value', 'Any'));

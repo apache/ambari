@@ -66,6 +66,7 @@ var wrapperView = Ember.View.extend({
    * @type {Array}
    *
    **/
+  //TODO delete if will not be used
   triggeredOnSameValue: null,
 
   clearFilter: function () {
@@ -157,12 +158,14 @@ var wrapperView = Ember.View.extend({
     var parent = this.$().parent();
     this.set('parentNode', parent);
     parent.addClass('notActive');
-    this.checkSelectSpecialOptions();
+    //TODO delete if will not be used
+    //this.checkSelectSpecialOptions();
   },
 
   /**
    * Check for Em.Select that should use dispatching event when option with same value selected more than one time.
    **/
+    //TODO delete if will not be used
   checkSelectSpecialOptions: function () {
     // check predefined property
     if (!this.get('triggeredOnSameValue') || !this.get('triggeredOnSameValue').length) return;
@@ -195,6 +198,7 @@ var wrapperView = Ember.View.extend({
    * when option with same value selected more than one time.
    *
    **/
+  //TODO delete if will not be used
   valueCustomObserver: function () {
     var hiddenValue;
     this.get('triggeredOnSameValue').forEach(function (triggeredValue) {

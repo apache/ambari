@@ -142,19 +142,12 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
     column: 3,
     appliedEmptyValue: ["", ""],
     fieldType: 'filter-input-width,modified-filter',
-    triggeredOnSameValue: [
-      {
-        values: ['Custom', 'Custom2'],
-        displayAs: 'Custom'
-      }
-    ],
     emptyValue: 'Any',
-    valueBinding: "controller.modifiedFilter.optionValue",
-    selectedBinding: "controller.modifiedFilter.optionValue",
     contentBinding: "controller.modifiedFilter.content",
-    onTimeChange: function () {
+    onChangeValue: function () {
+      this.set("controller.modifiedFilter.optionValue", this.get('selected'));
       this.get('parentView').updateFilter(this.get('column'), [this.get('controller.modifiedFilter.actualValues.startTime'), this.get('controller.modifiedFilter.actualValues.endTime')], 'range');
-    }.observes('controller.modifiedFilter.actualValues')
+    }
   }),
 
   authorFilterView: filters.createTextView({
