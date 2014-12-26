@@ -89,7 +89,6 @@ App.MainAdminSecurityController = Em.Controller.extend({
   userNameMap: {
     'hdfs_user': {defaultValue: 'hdfs', siteName: 'hadoop-env', serviceName: 'HDFS'},
     'yarn_user': {defaultValue: 'yarn', siteName: 'yarn-env', serviceName: 'YARN'},
-    'mapred_user': {defaultValue: 'mapred', siteName: 'mapred-env', serviceName: 'MAPREDUCE'},
     'mapred_user': {defaultValue: 'mapred', siteName: 'mapred-env', serviceName: 'MAPREDUCE2'},
     'hbase_user': {defaultValue: 'hbase', siteName: 'hbase-env', serviceName: 'HBASE'},
     'hive_user': {defaultValue: 'hive', siteName: 'hive-env', serviceName: 'HIVE'},
@@ -244,7 +243,6 @@ App.MainAdminSecurityController = Em.Controller.extend({
           this.hide();
         },
         bodyClass: Ember.View.extend({
-          isMapReduceInstalled: App.Service.find().mapProperty('serviceName').contains('MAPREDUCE'),
           templateName: require('templates/main/admin/security/notify_security_off_popup')
         })
       })

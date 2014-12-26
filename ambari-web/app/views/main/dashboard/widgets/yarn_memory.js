@@ -22,7 +22,7 @@ var numberUtils = require('utils/number_utils');
 App.YARNMemoryPieChartView = App.PieChartDashboardWidgetView.extend({
 
   title: Em.I18n.t('dashboard.widgets.YARNMemory'),
-  id: '27',
+  id: '20',
 
   widgetHtmlId: 'widget-yarn-memory',
   model_type: 'yarn',

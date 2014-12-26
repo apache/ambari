@@ -251,8 +251,6 @@ describe('utils/helper', function() {
           'KERBEROS_SERVER': 'Kerberos Server',
           'MAPREDUCE2_CLIENT': 'MapReduce2 Client',
           'MAPREDUCE2_SERVICE_CHECK': 'MapReduce2 Service Check',
-          'MAPREDUCE_CLIENT': 'MapReduce Client',
-          'MAPREDUCE_SERVICE_CHECK': 'MapReduce Service Check',
           'MYSQL_SERVER': 'MySQL Server',
           'NAGIOS_SERVER': 'Nagios Server',
           'NAMENODE': 'NameNode',

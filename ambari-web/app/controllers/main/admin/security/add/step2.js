@@ -41,11 +41,6 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
       component: 'DATANODE'
     },
     {
-      serviceName: 'MAPREDUCE',
-      configName: 'tasktracker_hosts',
-      component: 'TASKTRACKER'
-    },
-    {
       serviceName: 'YARN',
       configName: 'nodemanager_host',
       component: 'NODEMANAGER'
@@ -100,16 +95,6 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
       serviceName: 'HDFS',
       configName: 'journalnode_hosts',
       components: ['JOURNALNODE']
-    },
-    {
-      serviceName: 'MAPREDUCE',
-      configName: 'jobtracker_host',
-      components: ['JOBTRACKER']
-    },
-    {
-      serviceName: 'MAPREDUCE',
-      configName: 'jobhistoryserver_host',
-      components: ['HISTORYSERVER']
     },
     {
       serviceName: 'MAPREDUCE2',

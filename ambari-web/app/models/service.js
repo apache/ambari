@@ -178,7 +178,6 @@ App.Service.Health = {
  */
   App.Service.extendedModel = {
   'HDFS': 'HDFSService',
-  'MAPREDUCE': 'MapReduceService',
   'HBASE': 'HBaseService',
   'YARN': 'YARNService',
   'MAPREDUCE2': 'MapReduce2Service',

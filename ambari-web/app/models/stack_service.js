@@ -175,7 +175,6 @@ App.StackService.FIXTURES = [];
 App.StackService.displayOrder = [
   'HDFS',
   'GLUSTERFS',
-  'MAPREDUCE',
   'MAPREDUCE2',
   'YARN',
   'TEZ',
@@ -243,14 +242,6 @@ App.StackService.configCategories = function () {
       break;
     case 'GLUSTERFS':
       serviceConfigCategories.pushObjects([
-        App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'})
-      ]);
-      break;
-    case 'MAPREDUCE':
-      serviceConfigCategories.pushObjects([
-        App.ServiceConfigCategory.create({ name: 'HISTORYSERVER', displayName: 'History Server'}),
-        App.ServiceConfigCategory.create({ name: 'JOBTRACKER', displayName: 'JobTracker'}),
-        App.ServiceConfigCategory.create({ name: 'TASKTRACKER', displayName: 'TaskTracker'}),
         App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'})
       ]);
       break;

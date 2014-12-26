@@ -21,7 +21,7 @@ var App = require('app');
 App.SuperVisorUpView = App.TextDashboardWidgetView.extend({
 
   title: Em.I18n.t('dashboard.widgets.SuperVisorUp'),
-  id: '28',
+  id: '21',
 
   isPieChart: false,
   isText: true,

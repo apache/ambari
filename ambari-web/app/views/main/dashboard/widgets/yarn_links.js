@@ -21,7 +21,7 @@ var App = require('app');
 App.YARNLinksView = App.LinkDashboardWidgetView.extend({
   templateName: require('templates/main/dashboard/widgets/yarn_links'),
   title: Em.I18n.t('dashboard.widgets.YARNLinks'),
-  id: '30',
+  id: '23',
 
   model_type: 'yarn',
 

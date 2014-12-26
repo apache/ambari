@@ -118,60 +118,53 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
   setInitPrefObject: function () {
     //in case of some service not installed
     var visibleFull = [
-      '2', '4', '8', '10',
-      '17', '11', '12', '13', '14',
-      '18', '1', '6', '5', '9',
-      '3', '7', '15', '16', '20',
-      '19', '21', '23',
-      '24', '25', '26', '27', '30', // all yarn
-      '28', // storm
-      '29' // flume
+      '2', '4', '11', //hdfs
+      '6', '7', '8', '9', //host metrics
+      '1', '5', '3',  '10', //hdfs
+      '13', '12', '14', '16', //hbase
+      '17', '18', '19', '20', '23', // all yarn
+      '21', // storm
+      '22' // flume
     ]; // all in order
     var hiddenFull = [
-      ['22', 'Region In Transition']
+      ['15', 'Region In Transition']
     ];
 
     // Display widgets for host metrics if the stack definition has a host metrics service to display it.
     if (this.get('host_metrics_model') == null) {
-      var hostMetrics = ['11', '12', '13', '14'];
+      var hostMetrics = ['6', '7', '8', '9'];
       hostMetrics.forEach(function (item) {
         visibleFull = visibleFull.without(item);
       }, this);
     }
 
     if (this.get('hdfs_model') == null) {
-      var hdfs = ['1', '2', '3', '4', '5', '15', '17'];
+      var hdfs = ['1', '2', '3', '4', '5', '10', '11'];
       hdfs.forEach(function (item) {
         visibleFull = visibleFull.without(item);
       }, this);
     }
-    if (this.get('mapreduce_model') == null) {
-      var map = ['6', '7', '8', '9', '10', '16', '18'];
-      map.forEach(function (item) {
-        visibleFull = visibleFull.without(item);
-      }, this);
-    }
     if (this.get('hbase_model') == null) {
-      var hbase = ['19', '20', '21', '23'];
+      var hbase = ['12', '13', '14', '16'];
       hbase.forEach(function (item) {
         visibleFull = visibleFull.without(item);
       }, this);
       hiddenFull = [];
     }
     if (this.get('yarn_model') == null) {
-      var yarn = ['24', '25', '26', '27', '30'];
+      var yarn = ['17', '18', '19', '20', '23'];
       yarn.forEach(function (item) {
         visibleFull = visibleFull.without(item);
       }, this);
     }
     if (this.get('storm_model') == null) {
-      var storm = ['28'];
+      var storm = ['21'];
       storm.forEach(function (item) {
         visibleFull = visibleFull.without(item);
       }, this);
     }
     if (this.get('flume_model') == null) {
-      var flume = ['29'];
+      var flume = ['22'];
       flume.forEach(function (item) {
         visibleFull = visibleFull.without(item);
       }, this);
@@ -184,8 +177,6 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
   host_metrics_model: null,
 
   hdfs_model: null,
-
-  mapreduce_model: null,
 
   mapreduce2_model: null,
 
@@ -386,7 +377,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
 
     // check each service, find out the newly added service and already deleted service
     if (this.get('hdfs_model') != null) {
-      var hdfs = ['1', '2', '3', '4', '5', '15', '17'];
+      var hdfs = ['1', '2', '3', '4', '5', '10', '11'];
       hdfs.forEach(function (item) {
         toDelete = self.removeWidget(toDelete, item);
       }, this);
@@ -394,7 +385,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
 
     // Display widgets for host metrics if the stack definition has a host metrics service to display it.
     if (this.get('host_metrics_model') != null) {
-      var hostMetrics = ['11', '12', '13', '14'];
+      var hostMetrics = ['6', '7', '8', '9'];
       var flag = self.containsWidget(toDelete, hostMetrics[0]);
       if (flag) {
         hostMetrics.forEach(function (item) {
@@ -405,19 +396,8 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
       }
     }
 
-    if (this.get('mapreduce_model') != null) {
-      var map = ['6', '7', '8', '9', '10', '16', '18'];
-      var flag = self.containsWidget(toDelete, map[0]);
-      if (flag) {
-        map.forEach(function (item) {
-          toDelete = self.removeWidget(toDelete, item);
-        }, this);
-      } else {
-        toAdd = toAdd.concat(map);
-      }
-    }
     if (this.get('hbase_model') != null) {
-      var hbase = ['19', '20', '21', '22', '23'];
+      var hbase = ['12', '13', '14', '15', '16'];
       var flag = self.containsWidget(toDelete, hbase[0]);
       if (flag) {
         hbase.forEach(function (item) {
@@ -428,7 +408,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
       }
     }
     if (this.get('yarn_model') != null) {
-      var yarn = ['24', '25', '26', '27', '30'];
+      var yarn = ['17', '18', '19', '20', '23'];
       var flag = self.containsWidget(toDelete, yarn[0]);
       if (flag) {
         yarn.forEach(function (item) {
@@ -439,7 +419,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
       }
     }
     if (this.get('storm_model') != null) {
-      var storm = ['28'];
+      var storm = ['21'];
       var flag = self.containsWidget(toDelete, storm[0]);
       if (flag) {
         storm.forEach(function (item) {
@@ -450,7 +430,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
       }
     }
     if (this.get('flume_model') != null) {
-      var flume = ['29'];
+      var flume = ['22'];
       var flag = self.containsWidget(toDelete, flume[0]);
       if (flag) {
         flume.forEach(function (item) {
@@ -492,31 +472,24 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
       '3': App.NameNodeCpuPieChartView,
       '4': App.DataNodeUpView,
       '5': App.NameNodeRpcView,
-      '6': App.JobTrackerHeapPieChartView,
-      '7': App.JobTrackerCpuPieChartView,
-      '8': App.TaskTrackerUpView,
-      '9': App.JobTrackerRpcView,
-      '10': App.MapReduceSlotsView,
-      '11': App.ChartClusterMetricsMemoryWidgetView,
-      '12': App.ChartClusterMetricsNetworkWidgetView,
-      '13': App.ChartClusterMetricsCPUWidgetView,
-      '14': App.ChartClusterMetricsLoadWidgetView,
-      '15': App.NameNodeUptimeView,
-      '16': App.JobTrackerUptimeView,
-      '17': App.HDFSLinksView,
-      '18': App.MapReduceLinksView,
-      '19': App.HBaseLinksView,
-      '20': App.HBaseMasterHeapPieChartView,
-      '21': App.HBaseAverageLoadView,
-      '22': App.HBaseRegionsInTransitionView,
-      '23': App.HBaseMasterUptimeView,
-      '24': App.ResourceManagerHeapPieChartView,
-      '25': App.ResourceManagerUptimeView,
-      '26': App.NodeManagersLiveView,
-      '27': App.YARNMemoryPieChartView,
-      '28': App.SuperVisorUpView,
-      '29': App.FlumeAgentUpView,
-      '30': App.YARNLinksView
+      '6': App.ChartClusterMetricsMemoryWidgetView,
+      '7': App.ChartClusterMetricsNetworkWidgetView,
+      '8': App.ChartClusterMetricsCPUWidgetView,
+      '9': App.ChartClusterMetricsLoadWidgetView,
+      '10': App.NameNodeUptimeView,
+      '11': App.HDFSLinksView,
+      '12': App.HBaseLinksView,
+      '13': App.HBaseMasterHeapPieChartView,
+      '14': App.HBaseAverageLoadView,
+      '15': App.HBaseRegionsInTransitionView,
+      '16': App.HBaseMasterUptimeView,
+      '17': App.ResourceManagerHeapPieChartView,
+      '18': App.ResourceManagerUptimeView,
+      '19': App.NodeManagersLiveView,
+      '20': App.YARNMemoryPieChartView,
+      '21': App.SuperVisorUpView,
+      '22': App.FlumeAgentUpView,
+      '23': App.YARNLinksView
     }, id);
   },
 
@@ -532,9 +505,8 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
     dashboardVersion: 'new',
     visible: [],
     hidden: [],
-    threshold: {1: [80, 90], 2: [85, 95], 3: [90, 95], 4: [80, 90], 5: [1000, 3000], 6: [70, 90], 7: [90, 95], 8: [50, 75], 9: [30000, 120000],
-      10: [], 11: [], 12: [], 13: [], 14: [], 15: [], 16: [], 17: [], 18: [], 19: [], 20: [70, 90], 21: [10, 19.2], 22: [3, 10], 23: [],
-      24: [70, 90], 25: [], 26: [50, 75], 27: [50, 75], 28: [85, 95], 29: [85, 95], 30: []} // id:[thresh1, thresh2]
+    threshold: {1: [80, 90], 2: [85, 95], 3: [90, 95], 4: [80, 90], 5: [1000, 3000], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: [], 13: [70, 90], 14: [10, 19.2], 15: [3, 10], 16: [],
+      17: [70, 90], 18: [], 19: [50, 75], 20: [50, 75], 21: [85, 95], 22: [85, 95], 23: []} // id:[thresh1, thresh2]
   }),
 
   /**

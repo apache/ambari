@@ -170,20 +170,6 @@ describe('App.UpdateController', function () {
           "ServiceComponentInfo/RegionsInTransition"]
       },
       {
-        title: 'MAPREDUCE service',
-        services: [
-          {
-            ServiceInfo: {
-              service_name: 'MAPREDUCE'
-            }
-          }
-        ],
-        result: ["ServiceComponentInfo/AliveNodes," +
-          "ServiceComponentInfo/GrayListedNodes," +
-          "ServiceComponentInfo/BlackListedNodes," +
-          "ServiceComponentInfo/jobtracker/*,"]
-      },
-      {
         title: 'STORM service',
         services: [
           {

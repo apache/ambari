@@ -52,7 +52,6 @@ App.MainAdminKerberosController = Em.Controller.extend({
         this.hide();
       },
       bodyClass: Ember.View.extend({
-        isMapReduceInstalled: App.Service.find().mapProperty('serviceName').contains('MAPREDUCE'),
         templateName: require('templates/main/admin/security/notify_security_off_popup')
       })
     })

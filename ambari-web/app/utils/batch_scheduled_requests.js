@@ -57,7 +57,6 @@ module.exports = {
     var rollingRestartComponents = {
       HDFS: 'DATANODE',
       YARN: 'NODEMANAGER',
-      MAPREDUCE: 'TASKTRACKER',
       HBASE: 'HBASE_REGIONSERVER',
       STORM: 'SUPERVISOR'
     };

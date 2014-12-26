@@ -21,7 +21,7 @@ var App = require('app');
 App.ChartClusterMetricsMemoryWidgetView = App.ClusterMetricsDashboardWidgetView.extend({
 
   title: Em.I18n.t('dashboard.clusterMetrics.memory'),
-  id: '11',
+  id: '6',
 
   content: App.ChartClusterMetricsMemory.extend({
     noTitleUnderGraph: true,

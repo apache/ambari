@@ -21,7 +21,7 @@ var App = require('app');
 App.NodeManagersLiveView = App.TextDashboardWidgetView.extend({
 
   title: Em.I18n.t('dashboard.widgets.NodeManagersLive'),
-  id: '26',
+  id: '19',
 
   model_type: 'yarn',
 

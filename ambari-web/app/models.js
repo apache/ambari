@@ -39,7 +39,6 @@ require('models/service_config');
 require('models/service_audit');
 require('models/service/hdfs');
 require('models/service/yarn');
-require('models/service/mapreduce');
 require('models/service/mapreduce2');
 require('models/service/hbase');
 require('models/service/flume');

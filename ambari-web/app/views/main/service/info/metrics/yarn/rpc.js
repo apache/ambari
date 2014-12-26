@@ -28,7 +28,7 @@ var App = require('app');
  */
 App.ChartServiceMetricsYARN_RPC = App.ChartLinearTimeView.extend({
   id: "service-metrics-yarn-rpc",
-  title: Em.I18n.t('services.service.info.metrics.mapreduce.rpc'),
+  title: Em.I18n.t('services.service.info.metrics.yarn.rpc'),
   yAxisFormatter: App.ChartLinearTimeView.TimeElapsedFormatter,
 
   ajaxIndex: 'service.metrics.yarn.rpc',
@@ -41,7 +41,7 @@ App.ChartServiceMetricsYARN_RPC = App.ChartLinearTimeView.extend({
         var seriesData = jsonData.metrics.rpc[name];
         switch (name) {
           case "RpcQueueTime_avg_time":
-            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.rpc.displayNames.RpcQueueTimeAvgTime');
+            displayName = Em.I18n.t('services.service.info.metrics.yarn.rpc.displayNames.RpcQueueTimeAvgTime');
             break;
           default:
             break;

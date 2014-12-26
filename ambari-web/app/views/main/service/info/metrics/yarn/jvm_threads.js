@@ -28,7 +28,7 @@ var App = require('app');
  */
 App.ChartServiceMetricsYARN_JVMThreads = App.ChartLinearTimeView.extend({
   id: "service-metrics-yarn-jvm-threads",
-  title: Em.I18n.t('services.service.info.metrics.mapreduce.jvmThreads'),
+  title: Em.I18n.t('services.service.info.metrics.yarn.jvmThreads'),
   renderer: 'line',
 
   ajaxIndex: 'service.metrics.yarn.jobs_threads',
@@ -41,16 +41,16 @@ App.ChartServiceMetricsYARN_JVMThreads = App.ChartLinearTimeView.extend({
         var seriesData = jsonData.metrics.jvm[name];
         switch (name) {
           case "threadsBlocked":
-            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.jvmThreads.displayNames.threadsBlocked');
+            displayName = Em.I18n.t('services.service.info.metrics.yarn.jvmThreads.displayNames.threadsBlocked');
             break;
           case "threadsWaiting":
-            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.jvmThreads.displayNames.threadsWaiting');
+            displayName = Em.I18n.t('services.service.info.metrics.yarn.jvmThreads.displayNames.threadsWaiting');
             break;
           case "threadsTimedWaiting":
-            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.jvmThreads.displayNames.threadsTimedWaiting');
+            displayName = Em.I18n.t('services.service.info.metrics.yarn.jvmThreads.displayNames.threadsTimedWaiting');
             break;
           case "threadsRunnable":
-            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.jvmThreads.displayNames.threadsRunnable');
+            displayName = Em.I18n.t('services.service.info.metrics.yarn.jvmThreads.displayNames.threadsRunnable');
             break;
           default:
             break;

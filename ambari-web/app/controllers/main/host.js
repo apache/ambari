@@ -785,9 +785,6 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
         if (svcName === "YARN" || svcName === "HBASE" || svcName === "HDFS") {
           App.router.get('mainHostDetailsController').doRecommissionAndStart(hostNames, svcName, masterName, slaveName);
         }
-        else if (svcName === "MAPREDUCE") {
-          App.router.get('mainHostDetailsController').doRecommissionAndRestart(hostNames, svcName, masterName, slaveName);
-        }
       } else {
         hostsWithComponentInProperState = components.filterProperty('workStatus', 'STARTED').mapProperty('hostName');
         //For decommession

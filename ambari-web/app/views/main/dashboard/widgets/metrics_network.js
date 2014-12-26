@@ -21,7 +21,7 @@ var App = require('app');
 App.ChartClusterMetricsNetworkWidgetView = App.ClusterMetricsDashboardWidgetView.extend({
 
   title: Em.I18n.t('dashboard.clusterMetrics.network'),
-  id: '12',
+  id: '7',
 
   content: App.ChartClusterMetricsNetwork.extend({
     noTitleUnderGraph: true,

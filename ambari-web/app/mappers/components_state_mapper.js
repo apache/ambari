@@ -52,11 +52,6 @@ App.componentsStateMapper = App.QuickDataMapper.create({
       node_managers_installed: 'INSTALLED_PATH',
       node_managers_total: 'TOTAL_PATH'
     },
-    'TASKTRACKER': {
-      task_trackers_started: 'STARTED_PATH',
-      task_trackers_installed: 'INSTALLED_PATH',
-      task_trackers_total: 'TOTAL_PATH'
-    },
     'HBASE_REGIONSERVER': {
       region_servers_started: 'STARTED_PATH',
       region_servers_installed: 'INSTALLED_PATH',

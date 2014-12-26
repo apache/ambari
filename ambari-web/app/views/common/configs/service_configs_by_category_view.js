@@ -162,35 +162,8 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, {
         }
       }
       else if (changedProperty.get("name") == "user_group") {
-        if (!((this.get("controller.selectedServiceNames").indexOf("MAPREDUCE") >= 0) || (this.get("controller.selectedServiceNames").indexOf("YARN") >= 0))) {
+        if (!(this.get("controller.selectedServiceNames").indexOf("YARN") >= 0)) {
           return;
-        }
-        if (this.get("controller.selectedServiceNames").indexOf("MAPREDUCE") >= 0) {
-          curConfigs = stepConfigs.findProperty("serviceName", "MAPREDUCE").get("configs");
-          if (newValue != curConfigs.findProperty("name", "mapreduce.tasktracker.group").get("value")) {
-            this.affectedProperties.push(
-              {
-                serviceName: "MAPREDUCE",
-                propertyName: "mapreduce.tasktracker.group",
-                propertyDisplayName: "mapreduce.tasktracker.group",
-                newValue: newValue,
-                curValue: curConfigs.findProperty("name", "mapreduce.tasktracker.group").get("value"),
-                changedPropertyName: "user_group"
-              }
-            )
-          }
-          if ($.trim(newValue) != $.trim(curConfigs.findProperty("name", "mapreduce.cluster.administrators").get("value"))) {
-            this.affectedProperties.push(
-              {
-                serviceName: "MAPREDUCE",
-                propertyName: "mapreduce.cluster.administrators",
-                propertyDisplayName: "mapreduce.cluster.administrators",
-                newValue: " " + $.trim(newValue),
-                curValue: curConfigs.findProperty("name", "mapreduce.cluster.administrators").get("value"),
-                changedPropertyName: "user_group"
-              }
-            );
-          }
         }
         if (this.get("controller.selectedServiceNames").indexOf("MAPREDUCE2") >= 0) {
           curConfigs = stepConfigs.findProperty("serviceName", "MAPREDUCE2").get("configs");

@@ -24,7 +24,7 @@ require('controllers/wizard/step4_controller');
 describe('App.WizardStep4Controller', function () {
 
   var services = [
-    'HDFS', 'MAPREDUCE', 'NAGIOS', 'GANGLIA', 'OOZIE', 'HIVE', 'HBASE', 'PIG', 'SCOOP', 'ZOOKEEPER',
+    'HDFS', 'NAGIOS', 'GANGLIA', 'OOZIE', 'HIVE', 'HBASE', 'PIG', 'SCOOP', 'ZOOKEEPER',
     'YARN', 'MAPREDUCE2', 'FALCON', 'TEZ', 'STORM'
   ];
 
@@ -92,11 +92,6 @@ describe('App.WizardStep4Controller', function () {
     it('should return true if there are no services selected, except disabled', function () {
       controller.setEach('isSelected', false);
       expect(controller.get('isMinimum')).to.equal(true);
-    });
-
-    it('should return false if at least one service is selected, except disabled', function () {
-      controller.findProperty('serviceName', 'MAPREDUCE').set('isSelected', true);
-      expect(controller.get('isMinimum')).to.equal(false);
     });
   });
 

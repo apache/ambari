@@ -132,20 +132,17 @@ describe('App.ChartLinearTimeView', function () {
   describe("#getDataForAjaxRequest()", function() {
     var services = {
       yarnService: [],
-      hdfsService: [],
-      mapreduceService: []
+      hdfsService: []
     };
     beforeEach(function(){
       sinon.stub(App.HDFSService, 'find', function(){return services.hdfsService});
       sinon.stub(App.YARNService, 'find', function(){return services.yarnService});
-      sinon.stub(App.MapReduceService, 'find', function(){return services.mapreduceService});
       sinon.stub(App, 'dateTime').returns(1000);
       chartLinearTimeView.set('content', null);
     });
     afterEach(function(){
       App.HDFSService.find.restore();
       App.YARNService.find.restore();
-      App.MapReduceService.find.restore();
       App.dateTime.restore();
     });
 
@@ -159,7 +156,6 @@ describe('App.ChartLinearTimeView', function () {
         stepSeconds: 15,
         hostName: 'host1',
         nameNodeName: '',
-        jobTrackerNode: '',
         resourceManager: ''
       });
     });
@@ -175,7 +171,6 @@ describe('App.ChartLinearTimeView', function () {
         stepSeconds: 15,
         hostName: '',
         nameNodeName: 'host1',
-        jobTrackerNode: '',
         resourceManager: ''
       });
       services.hdfsService = [];
@@ -192,27 +187,9 @@ describe('App.ChartLinearTimeView', function () {
         stepSeconds: 15,
         hostName: '',
         nameNodeName: 'host1',
-        jobTrackerNode: '',
         resourceManager: ''
       });
       services.hdfsService = [];
-    });
-    it("get jobTracker host", function() {
-      services.mapreduceService = [
-        Em.Object.create({
-          jobTracker: {hostName: 'host1'}
-        })
-      ];
-      expect(chartLinearTimeView.getDataForAjaxRequest()).to.be.eql({
-        toSeconds: 1,
-        fromSeconds: -3599,
-        stepSeconds: 15,
-        hostName: '',
-        nameNodeName: '',
-        jobTrackerNode: 'host1',
-        resourceManager: ''
-      });
-      services.mapreduceService = [];
     });
     it("get resourceManager host", function() {
       services.yarnService = [
@@ -226,7 +203,6 @@ describe('App.ChartLinearTimeView', function () {
         stepSeconds: 15,
         hostName: '',
         nameNodeName: '',
-        jobTrackerNode: '',
         resourceManager: 'host1'
       });
       services.yarnService = [];

@@ -92,9 +92,6 @@ App.SlaveComponentGroupsController = Em.ArrayController.extend({
       case 'HDFS':
         componentName = 'DataNode';
         break;
-      case 'MAPREDUCE':
-        componentName = 'TaskTracker';
-        break;
       case 'HBASE':
         componentName = 'RegionServer';
     }
@@ -121,10 +118,6 @@ App.SlaveComponentGroupsController = Em.ArrayController.extend({
       case 'HDFS':
         return { name: 'DATANODE',
           displayName: 'DataNode'};
-      case 'MAPREDUCE':
-        return { name: 'TASKTRACKER',
-          displayName: 'TaskTracker'};
-
       case 'HBASE':
         return { name: 'HBASE_REGIONSERVER',
           displayName: 'RegionServer'};

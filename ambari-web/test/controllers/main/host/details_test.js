@@ -1004,10 +1004,6 @@ describe('App.MainHostDetailsController', function () {
       controller.runDecommission('host1', 'YARN');
       expect(controller.doDecommission.calledWith('host1', 'YARN', "RESOURCEMANAGER", "NODEMANAGER")).to.be.true;
     });
-    it('MAPREDUCE service', function () {
-      controller.runDecommission('host1', 'MAPREDUCE');
-      expect(controller.doDecommission.calledWith('host1', 'MAPREDUCE', "JOBTRACKER", "TASKTRACKER")).to.be.true;
-    });
     it('HBASE service', function () {
       sinon.stub(controller, 'warnBeforeDecommission', Em.K);
       controller.runDecommission('host1', 'HBASE');
@@ -1020,13 +1016,11 @@ describe('App.MainHostDetailsController', function () {
 
     beforeEach(function () {
       sinon.stub(controller, "doRecommissionAndStart", Em.K);
-      sinon.stub(controller, "doRecommissionAndRestart", Em.K);
       sinon.stub(controller, "showBackgroundOperationsPopup", Em.K);
     });
 
     afterEach(function () {
       controller.doRecommissionAndStart.restore();
-      controller.doRecommissionAndRestart.restore();
       controller.showBackgroundOperationsPopup.restore();
     });
 
@@ -1038,11 +1032,6 @@ describe('App.MainHostDetailsController', function () {
     it('YARN service', function () {
       controller.runRecommission('host1', 'YARN');
       expect(controller.doRecommissionAndStart.calledWith('host1', 'YARN', "RESOURCEMANAGER", "NODEMANAGER")).to.be.true;
-      expect(controller.showBackgroundOperationsPopup.calledOnce).to.be.true;
-    });
-    it('MAPREDUCE service', function () {
-      controller.runRecommission('host1', 'MAPREDUCE');
-      expect(controller.doRecommissionAndRestart.calledWith('host1', 'MAPREDUCE', "JOBTRACKER", "TASKTRACKER")).to.be.true;
       expect(controller.showBackgroundOperationsPopup.calledOnce).to.be.true;
     });
     it('HBASE service', function () {
@@ -1216,13 +1205,6 @@ describe('App.MainHostDetailsController', function () {
       ]};
       expect(controller.decommissionSuccessCallback(data)).to.be.true;
       expect(controller.showBackgroundOperationsPopup.calledOnce).to.be.true;
-    });
-  });
-
-  describe('#doRecommissionAndRestart()', function () {
-    it('Query should be sent', function () {
-      controller.doRecommissionAndRestart('', '', '', '');
-      expect(App.ajax.send.calledOnce).to.be.true;
     });
   });
 

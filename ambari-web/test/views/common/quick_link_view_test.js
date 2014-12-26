@@ -116,38 +116,6 @@ describe('App.QuickViewLinks', function () {
                 host_components: [
                   {
                     HostRoles: {
-                      component_name: 'JOBTRACKER'
-                    }
-                  }
-                ],
-                Hosts: {
-                  public_host_name: 'host1'
-                }
-              },
-              {
-                host_components: [
-                  {
-                    HostRoles: {
-                      component_name: 'HISTORYSERVER'
-                    }
-                  }
-                ],
-                Hosts: {
-                  public_host_name: 'host2'
-                }
-              }
-            ]
-          },
-          serviceName: 'MAPREDUCE',
-          hosts: ['host1', 'host2']
-        },
-        {
-          response: {
-            items: [
-              {
-                host_components: [
-                  {
-                    HostRoles: {
                       component_name: 'STORM_UI_SERVER'
                     }
                   }
@@ -195,7 +163,7 @@ describe('App.QuickViewLinks', function () {
               ]
             });
           },
-          title: 'service with master component, except HDFS, HBase, MapReduce, YARN and Storm'
+          title: 'service with master component, except HDFS, HBase, YARN and Storm'
         },
         {
           response: {

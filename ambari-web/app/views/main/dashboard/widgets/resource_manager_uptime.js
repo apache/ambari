@@ -22,7 +22,7 @@ var date = require('utils/date');
 App.ResourceManagerUptimeView = App.UptimeTextDashboardWidgetView.extend({
 
   title: Em.I18n.t('dashboard.widgets.ResourceManagerUptime'),
-  id: '25',
+  id: '18',
 
   model_type: 'yarn',
 

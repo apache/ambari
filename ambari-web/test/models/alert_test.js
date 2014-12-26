@@ -61,11 +61,6 @@ var alert,
   ],
   serviceTypeCases = [
     {
-      type: 'MAPREDUCE',
-      name: 'MapReduce',
-      link: '#/main/services/MAPREDUCE/summary'
-    },
-    {
       type: 'HDFS',
       name: 'HDFS',
       link: '#/main/services/HDFS/summary'

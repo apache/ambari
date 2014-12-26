@@ -98,10 +98,6 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
     return App.router.get('clusterController.nagiosUrl');
   }.property('App.router.clusterController.nagiosUrl'),
 
-  isNagiosInstalled: function () {
-    return App.router.get('clusterController.isNagiosInstalled');
-  }.property('App.router.clusterController.isNagiosInstalled'),
-
   showServiceAlertsPopup: function (event) {
     var service = event.context;
     return App.ModalPopup.show({

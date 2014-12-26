@@ -338,9 +338,6 @@ App.MainServiceItemView = Em.View.extend({
         case 'yarn':
           svc = App.YARNService.find().objectAt(0);
           break;
-        case 'mapreduce':
-          svc = App.MapReduceService.find().objectAt(0);
-          break;
         case 'hbase':
           svc = App.HBaseService.find().objectAt(0);
           break;

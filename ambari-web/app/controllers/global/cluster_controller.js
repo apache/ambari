@@ -194,47 +194,6 @@ App.ClusterController = Em.Controller.extend({
     this.set('isGangliaUrlLoaded', true);
   },
 
-  setNagiosUrl: function () {
-    if (App.get('testMode')) {
-      this.set('nagiosUrl', 'http://nagiosserver/nagios');
-      this.set('isNagiosUrlLoaded', true);
-    } else {
-      // We want live data here
-      var nagiosServer = App.HostComponent.find().findProperty('componentName', 'NAGIOS_SERVER');
-      if (this.get('isLoaded') && nagiosServer) {
-        this.set('isNagiosUrlLoaded', false);
-        App.ajax.send({
-          name: 'hosts.for_quick_links',
-          sender: this,
-          data: {
-            clusterName: App.get('clusterName'),
-            masterHosts: nagiosServer.get('hostName'),
-            urlParams: ''
-          },
-          success: 'setNagiosUrlSuccessCallback'
-        });
-      }
-    }
-  }.observes('App.router.updateController.isUpdated', 'dataLoadList.serviceMetrics', 'dataLoadList.hosts', 'nagiosWebProtocol', 'isLoaded'),
-
-  setNagiosUrlSuccessCallback: function (response) {
-    var url = null;
-    if (response.items.length > 0) {
-      url = this.get('nagiosWebProtocol') + "://" + (App.singleNodeInstall ? App.singleNodeAlias + ":42080" : response.items[0].Hosts.public_host_name) + "/nagios";
-    }
-    this.set('nagiosUrl', url);
-    this.set('isNagiosUrlLoaded', true);
-  },
-
-  nagiosWebProtocol: function () {
-    var properties = this.get('ambariProperties');
-    if (properties && properties.hasOwnProperty('nagios.https') && properties['nagios.https']) {
-      return "https";
-    } else {
-      return "http";
-    }
-  }.property('ambariProperties'),
-
   gangliaWebProtocol: function () {
     var properties = this.get('ambariProperties');
     if (properties && properties.hasOwnProperty('ganglia.https') && properties['ganglia.https']) {
@@ -243,10 +202,6 @@ App.ClusterController = Em.Controller.extend({
       return "http";
     }
   }.property('ambariProperties'),
-
-  isNagiosInstalled: function () {
-    return !!App.Service.find().findProperty('serviceName', 'NAGIOS');
-  }.property('App.router.updateController.isUpdated', 'dataLoadList.serviceMetrics'),
 
   isGangliaInstalled: function () {
     return !!App.Service.find().findProperty('serviceName', 'GANGLIA');

@@ -22,7 +22,7 @@ var numberUtils = require('utils/number_utils');
 App.ResourceManagerHeapPieChartView = App.PieChartDashboardWidgetView.extend({
 
   title: Em.I18n.t('dashboard.widgets.ResourceManagerHeap'),
-  id: '24',
+  id: '17',
 
   model_type: 'yarn',
   modelFieldMax: 'jvmMemoryHeapMax',

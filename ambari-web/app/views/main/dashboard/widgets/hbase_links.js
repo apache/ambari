@@ -22,7 +22,7 @@ App.HBaseLinksView = App.LinkDashboardWidgetView.extend({
 
   templateName: require('templates/main/dashboard/widgets/hbase_links'),
   title: Em.I18n.t('dashboard.widgets.HBaseLinks'),
-  id: '19',
+  id: '12',
 
   model_type: 'hbase',
 

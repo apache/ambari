@@ -42,7 +42,6 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
     return {
       HBASE: App.MainDashboardServiceHbaseView,
       HDFS: App.MainDashboardServiceHdfsView,
-      MAPREDUCE: App.MainDashboardServiceMapreduceView,
       STORM: App.MainDashboardServiceStormView,
       YARN: App.MainDashboardServiceYARNView,
       FLUME: Em.View.extend({
@@ -199,9 +198,6 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
           break;
         case 'yarn':
           svc = App.YARNService.find().objectAt(0);
-          break;
-        case 'mapreduce':
-          svc = App.MapReduceService.find().objectAt(0);
           break;
         case 'hbase':
           svc = App.HBaseService.find().objectAt(0);
@@ -459,9 +455,6 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
       switch (svcName.toLowerCase()) {
         case 'hdfs':
           gangliaUrl += "/?r=hour&cs=&ce=&m=&s=by+name&c=HDPSlaves&tab=m&vn=";
-          break;
-        case 'mapreduce':
-          gangliaUrl += "/?r=hour&cs=&ce=&m=&s=by+name&c=HDPJobTracker&tab=m&vn=";
           break;
         case 'hbase':
           gangliaUrl += "?r=hour&cs=&ce=&m=&s=by+name&c=HDPHBaseMaster&tab=m&vn=";

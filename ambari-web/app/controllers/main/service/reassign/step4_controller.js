@@ -188,16 +188,6 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
           principal: 'yarn.resourcemanager.webapp.spnego-principal'
         }
       ]
-    },
-    {
-      componentName: 'JOBTRACKER',
-      configs: [
-        {
-          site: 'mapred-site',
-          keytab: 'mapreduce.jobtracker.keytab.file',
-          principal: 'mapreduce.jobtracker.kerberos.principal'
-        }
-      ]
     }
   ],
 

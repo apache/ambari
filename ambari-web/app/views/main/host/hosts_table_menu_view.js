@@ -51,12 +51,6 @@ App.HostTableMenuView = Em.View.extend({
       componentNameFormatted: Em.I18n.t('dashboard.services.hbase.regionServers')
     }),
     Em.Object.create({
-      serviceName: 'MAPREDUCE',
-      componentName: 'TASKTRACKER',
-      masterComponentName: 'JOBTRACKER',
-      componentNameFormatted: Em.I18n.t('dashboard.services.mapreduce.taskTrackers')
-    }),
-    Em.Object.create({
       serviceName: 'STORM',
       componentName: 'SUPERVISOR',
       masterComponentName: 'SUPERVISOR',

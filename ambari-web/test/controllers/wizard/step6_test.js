@@ -23,10 +23,6 @@ require('controllers/wizard/step6_controller');
 var controller,
   services = [
     Em.Object.create({
-      serviceName: 'MAPREDUCE',
-      isSelected: true
-    }),
-    Em.Object.create({
       serviceName: 'YARN',
       isSelected: true
     }),

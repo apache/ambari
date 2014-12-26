@@ -21,7 +21,7 @@ var App = require('app');
 App.HBaseAverageLoadView = App.TextDashboardWidgetView.extend({
 
   title: Em.I18n.t('dashboard.widgets.HBaseAverageLoad'),
-  id: '21',
+  id: '14',
 
   model_type: 'hbase',
   hiddenInfo: function () {

@@ -166,8 +166,6 @@ App.Alert = Em.Object.extend({
     if (this.get('serviceType')) {
       var type = this.get('serviceType').toLowerCase();
       switch (type) {
-        case 'mapreduce':
-          return 'MapReduce';
         case 'hdfs':
           return 'HDFS';
         case 'hbase':
@@ -190,8 +188,6 @@ App.Alert = Em.Object.extend({
     if (this.get('serviceType')) {
       var type = this.get('serviceType').toLowerCase();
       switch (type) {
-        case 'mapreduce':
-          return '#/main/services/MAPREDUCE/summary';
         case 'hdfs':
           return '#/main/services/HDFS/summary';
         case 'hbase':

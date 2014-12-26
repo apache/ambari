@@ -71,10 +71,6 @@ var service,
       configurable: true
     },
     {
-      name: 'MAPREDUCE',
-      configurable: true
-    },
-    {
       name: 'MAPREDUCE2',
       configurable: true
     },

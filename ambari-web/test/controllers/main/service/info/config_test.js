@@ -731,58 +731,6 @@ describe("App.MainServiceInfoConfigsController", function () {
       });
     });
 
-    describe("when service name is MAPREDUCE", function() {
-      beforeEach(function() {
-        mainServiceInfoConfigsController.set('content', Ember.Object.create ({ serviceName: 'MAPREDUCE' }));
-      });
-
-      var tests = [
-        {
-          it: "should set dirChanged to false if none of the properties exist",
-          expect: false,
-          config: Ember.Object.create ({})
-        },
-        {
-          it: "should set dirChanged to true if mapred.local.dir is not default",
-          expect: true,
-          config: Ember.Object.create ({
-            name: 'mapred.local.dir',
-            isNotDefaultValue: true
-          })
-        },
-        {
-          it: "should set dirChanged to false if mapred.local.dir is default",
-          expect: false,
-          config: Ember.Object.create ({
-            name: 'mapred.local.dir',
-            isNotDefaultValue: false
-          })
-        },
-        {
-          it: "should set dirChanged to true if mapred.system.dir is not default",
-          expect: true,
-          config: Ember.Object.create ({
-            name: 'mapred.system.dir',
-            isNotDefaultValue: true
-          })
-        },
-        {
-          it: "should set dirChanged to false if mapred.system.dir is default",
-          expect: false,
-          config: Ember.Object.create ({
-            name: 'mapred.system.dir',
-            isNotDefaultValue: false
-          })
-        }
-      ];
-
-      tests.forEach(function(test) {
-        it(test.it, function() {
-          mainServiceInfoConfigsController.set('stepConfigs', [Ember.Object.create ({ configs: [test.config], serviceName: 'MAPREDUCE' })]);
-          expect(mainServiceInfoConfigsController.isDirChanged()).to.equal(test.expect);
-        })
-      });
-    });
   });
 
   describe("#addDynamicProperties", function() {

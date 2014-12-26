@@ -1200,12 +1200,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
           (hdfsConfigs.findProperty('name', 'dfs.datanode.data.dir') && hdfsConfigs.findProperty('name', 'dfs.datanode.data.dir').get('isNotDefaultValue'))) {
           dirChanged = true;
       }
-    } else if (serviceName === 'MAPREDUCE') {
-      var mapredConfigs = this.get('stepConfigs').findProperty('serviceName', 'MAPREDUCE').get('configs');
-      if ((mapredConfigs.findProperty('name', 'mapred.local.dir') && mapredConfigs.findProperty('name', 'mapred.local.dir').get('isNotDefaultValue')) ||
-          (mapredConfigs.findProperty('name', 'mapred.system.dir') && mapredConfigs.findProperty('name', 'mapred.system.dir').get('isNotDefaultValue'))) {
-            dirChanged = true;
-      }
     }
     return dirChanged;
   },
@@ -1300,8 +1294,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       messageClass = 'alert alert-success';
       // warn the user if any of the components are in UNKNOWN state
       urlParams += ',ServiceComponentInfo/installed_count,ServiceComponentInfo/total_count';
-      if (this.get('content.serviceName') === 'HDFS' || App.Service.find().someProperty('id', 'MAPREDUCE')) {
-        urlParams += '&ServiceComponentInfo/service_name.in(HDFS,MAPREDUCE)'
+      if (this.get('content.serviceName') === 'HDFS') {
+        urlParams += '&ServiceComponentInfo/service_name.in(HDFS)'
       }
     } else {
       header = Em.I18n.t('common.failure');
@@ -2264,12 +2258,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     {
       hostProperty: 'jobtracker_host',
       componentName: 'JOBTRACKER',
-      serviceName: 'MAPREDUCE',
-      serviceUseThis: []
-    },
-    {
-      hostProperty: 'jobtracker_host',
-      componentName: 'JOBTRACKER',
       serviceName: 'MAPREDUCE2',
       serviceUseThis: []
     },
@@ -2278,12 +2266,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       componentName: 'HISTORYSERVER',
       serviceName: 'MAPREDUCE2',
       serviceUseThis: ['YARN']
-    },
-    {
-      hostProperty: 'hs_host',
-      componentName: 'HISTORYSERVER',
-      serviceName: 'MAPREDUCE',
-      serviceUseThis: []
     },
     {
       hostProperty: 'ats_host',

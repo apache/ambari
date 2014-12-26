@@ -366,7 +366,6 @@ App.format = {
     'HISTORYSERVER': 'History Server',
     'HIVE_SERVER': 'HiveServer2',
     'JCE': 'JCE',
-    'MAPREDUCE': 'MapReduce',
     'MAPREDUCE2': 'MapReduce2',
     'MYSQL': 'MySQL',
     'REST': 'REST',

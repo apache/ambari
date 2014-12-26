@@ -131,25 +131,13 @@ App.QuickViewLinks = Em.View.extend({
       }];
       this.set('quickLinks', quickLinks);
       this.set('isLoaded', true);
-      /**
-       * MAPREDUCE is only service that use 2 different masters in quick links
-       * so we must work with this service as with one-master-service but set up
-       * two hosts for two components. (JOBTRACKER and HISTORYSERVER)
-       */
-    } else if (hosts.length == 1 || this.get('content.serviceName') == "MAPREDUCE") {
+    } else if (hosts.length == 1) {
 
       quickLinks = this.get('content.quickLinks').map(function (item) {
         var protocol = self.setProtocol(item.get('service_id'), self.get('configProperties'), self.ambariProperties());
         if (item.get('template')) {
           var port = item.get('http_config') && self.setPort(item, protocol);
-          /**
-           * setting other host for mapreduce (only for MAPREDUCE and JobHistory Server)!!!
-           */
-          if (self.get('content.serviceName') == "MAPREDUCE" && item.get('label') == "JobHistory Server") {
-            item.set('url', item.get('template').fmt(protocol, hosts[1], port));
-          } else {
-            item.set('url', item.get('template').fmt(protocol, hosts[0], port));
-          }
+          item.set('url', item.get('template').fmt(protocol, hosts[0], port));
         }
         return item;
       });
@@ -273,10 +261,6 @@ App.QuickViewLinks = Em.View.extend({
           hosts[0] = this.findComponentHost(response.items, 'RESOURCEMANAGER');
         }
         break;
-      case "MAPREDUCE":
-        hosts[0] = this.findComponentHost(response.items, "JOBTRACKER");
-        hosts[1] = this.findComponentHost(response.items, "HISTORYSERVER");
-        break;
       case "STORM":
         hosts[0] = this.findComponentHost(response.items, "STORM_UI_SERVER");
         break;
@@ -295,7 +279,7 @@ App.QuickViewLinks = Em.View.extend({
    * becides GANGLIA, NAGIOS, YARN, MAPREDUCE2. These properties use
    * their properties to know protocol
    */
-  servicesSupportsHttps: ["HDFS", "HBASE", "MAPREDUCE"],
+  servicesSupportsHttps: ["HDFS", "HBASE"],
 
   /**
    * setProtocol - if cluster is secure for some services (GANGLIA, NAGIOS, MAPREDUCE2, YARN and servicesSupportsHttps)
@@ -380,7 +364,6 @@ App.QuickViewLinks = Em.View.extend({
       case "hdfs":
       case "yarn":
       case "mapreduce2":
-      case "mapreduce":
       case "hbase":
       case "oozie":
       case "ganglia":

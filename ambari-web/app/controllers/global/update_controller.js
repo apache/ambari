@@ -413,10 +413,6 @@ App.UpdateController = Em.Controller.extend({
         "ServiceComponentInfo/AverageLoad," +
         "ServiceComponentInfo/Revision," +
         "ServiceComponentInfo/RegionsInTransition",
-      'MAPREDUCE': "ServiceComponentInfo/AliveNodes," +
-        "ServiceComponentInfo/GrayListedNodes," +
-        "ServiceComponentInfo/BlackListedNodes," +
-        "ServiceComponentInfo/jobtracker/*,",
       'STORM': /^2.1/.test(App.get('currentStackVersionNumber')) ? 'metrics/api/cluster/summary' : 'metrics/api/v1/cluster/summary,metrics/api/v1/topology/summary'
     };
     var services = App.cache['services'];

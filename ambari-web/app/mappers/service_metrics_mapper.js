@@ -95,34 +95,6 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     version: 'jobHistoryServerComponent.ServiceComponentInfo.Version',
     map_reduce2_clients: 'map_reduce2_clients'
   },
-  mapReduceConfig: {
-    version: 'jobTrackerComponent.ServiceComponentInfo.Version',
-    job_tracker_start_time: 'jobTrackerComponent.ServiceComponentInfo.StartTime',
-    job_tracker_heap_used: 'jobTrackerComponent.ServiceComponentInfo.HeapMemoryUsed',
-    job_tracker_heap_max: 'jobTrackerComponent.ServiceComponentInfo.HeapMemoryMax',
-    alive_trackers: 'alive_trackers',
-    black_list_trackers: 'black_list_trackers',
-    gray_list_trackers: 'gray_list_trackers',
-    map_slots: 'map_slots',
-    reduce_slots: 'reduce_slots',
-    jobs_submitted: 'jobTrackerComponent.ServiceComponentInfo.jobtracker.jobs_submitted',
-    jobs_completed: 'jobTrackerComponent.ServiceComponentInfo.jobtracker.jobs_completed',
-    jobs_running: 'jobTrackerComponent.ServiceComponentInfo.jobtracker.jobs_running',
-    map_slots_occupied: 'jobTrackerComponent.ServiceComponentInfo.jobtracker.occupied_map_slots',
-    map_slots_reserved: 'jobTrackerComponent.ServiceComponentInfo.jobtracker.reserved_map_slots',
-    reduce_slots_occupied: 'jobTrackerComponent.ServiceComponentInfo.jobtracker.occupied_reduce_slots',
-    reduce_slots_reserved: 'jobTrackerComponent.ServiceComponentInfo.jobtracker.reserved_reduce_slots',
-    maps_running: 'jobTrackerComponent.ServiceComponentInfo.jobtracker.running_maps',
-    maps_waiting: 'jobTrackerComponent.ServiceComponentInfo.jobtracker.waiting_maps',
-    reduces_running: 'jobTrackerComponent.ServiceComponentInfo.jobtracker.running_reduces',
-    reduces_waiting: 'jobTrackerComponent.ServiceComponentInfo.jobtracker.waiting_reduces',
-    trackers_decommissioned: 'jobTrackerComponent.host_components[0].metrics.mapred.jobtracker.trackers_decommissioned',
-    job_tracker_cpu: 'jobTrackerComponent.host_components[0].metrics.cpu.cpu_wio',
-    job_tracker_rpc: 'jobTrackerComponent.host_components[0].metrics.rpc.RpcQueueTime_avg_time',
-    task_trackers_started: 'task_trackers_started',
-    task_trackers_installed: 'task_trackers_installed',
-    task_trackers_total: 'task_trackers_total'
-  },
   hbaseConfig: {
     version: 'masterComponent.ServiceComponentInfo.Version',
     master_start_time: 'masterComponent.ServiceComponentInfo.MasterStartTime',
@@ -244,11 +216,6 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           finalJson.rand = Math.random();
           result.push(finalJson);
           App.store.load(App.HDFSService, finalJson);
-        } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "MAPREDUCE") {
-          finalJson = this.mapreduceMapper(item);
-          finalJson.rand = Math.random();
-          result.push(finalJson);
-          App.store.load(App.MapReduceService, finalJson);
         } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "HBASE") {
           finalJson = this.hbaseMapper(item);
           finalJson.rand = Math.random();
@@ -543,57 +510,6 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     var finalJson = this.parseIt(item, finalConfig);
     finalJson.quick_links = [27, 28, 29, 30];
 
-    return finalJson;
-  },
-  mapreduceMapper: function (item) {
-    // Change the JSON so that it is easy to map
-    var result = [];
-    var finalConfig = jQuery.extend({}, this.config);
-    var mapReduceConfig = this.mapReduceConfig;
-    item.components.forEach(function (component) {
-      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "JOBTRACKER") {
-        item.jobTrackerComponent = component;
-        finalConfig = jQuery.extend(finalConfig, mapReduceConfig);
-        // Get the live, gray & black nodes from string json
-        item.map_slots = 0;
-        item.reduce_slots = 0;
-        var liveNodesJson = App.parseJSON(component.ServiceComponentInfo.AliveNodes);
-        var grayNodesJson = App.parseJSON(component.ServiceComponentInfo.GrayListedNodes);
-        var blackNodesJson = App.parseJSON(component.ServiceComponentInfo.BlackListedNodes);
-        item.alive_trackers = [];
-        item.gray_list_trackers = [];
-        item.black_list_trackers = [];
-        if (liveNodesJson != null) {
-          liveNodesJson.forEach(function (nj) {
-            item.alive_trackers.push('TASKTRACKER' + '_' + nj.hostname);
-            if (nj.slots && nj.slots.map_slots)
-              item.map_slots += nj.slots.map_slots;
-            if (nj.slots && nj.slots.map_slots_used)
-              item.map_slots_used += nj.slots.map_slots_used;
-            if (nj.slots && nj.slots.reduce_slots)
-              item.reduce_slots += nj.slots.reduce_slots;
-            if (nj.slots && nj.slots.reduce_slots_used)
-              item.reduce_slots_used += nj.slots.reduce_slots_used;
-          });
-        }
-        if (grayNodesJson != null) {
-          grayNodesJson.forEach(function (nj) {
-            item.gray_list_trackers.push('TASKTRACKER' + '_' + nj.hostname);
-          });
-        }
-        if (blackNodesJson != null) {
-          blackNodesJson.forEach(function (nj) {
-            item.black_list_trackers.push('TASKTRACKER' + '_' + nj.hostname);
-          });
-        }
-      } else if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "HISTORYSERVER") {
-        item.jobHistoryServerComponent = component;
-        finalConfig = jQuery.extend(finalConfig, mapReduceConfig);
-      }
-    });
-    // Map
-    var finalJson = this.parseIt(item, finalConfig);
-    finalJson.quick_links = [5, 6, 7, 8, 9, 10, 11, 12];
     return finalJson;
   },
   hbaseMapper: function (item) {

@@ -33,7 +33,6 @@ describe('batch_scheduled_requests', function() {
     var tests = [
       {serviceName: 'HDFS', componentName: 'DATANODE'},
       {serviceName: 'YARN', componentName: 'NODEMANAGER'},
-      {serviceName: 'MAPREDUCE', componentName: 'TASKTRACKER'},
       {serviceName: 'HBASE', componentName: 'HBASE_REGIONSERVER'},
       {serviceName: 'STORM', componentName: 'SUPERVISOR'},
       {serviceName: 'SOME_INVALID_SERVICE', componentName: null}

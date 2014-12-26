@@ -66,21 +66,6 @@ App.MainChartsHeatmapController = Em.Controller.extend({
       );
     }
 
-    if (App.MapReduceService.find().get('length')) {
-      metrics.push(
-        Em.Object.create({
-          label: Em.I18n.t('charts.heatmap.category.mapreduce'),
-          category: 'mapreduce',
-          items: [
-            App.MainChartHeatmapMapreduceMapsRunningMetric.create(),
-            App.MainChartHeatmapMapreduceReducesRunningMetric.create(),
-            App.MainChartHeatmapMapreduceGCTimeMillisMetric.create(),
-            App.MainChartHeatmapMapreduceMemHeapUsedMetric.create()
-          ]
-        })
-      );
-    }
-
     if (App.YARNService.find().get('length')) {
       metrics.push(
         Em.Object.create({

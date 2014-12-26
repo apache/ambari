@@ -31,21 +31,19 @@ describe('App.MainDashboardWidgetsView', function () {
   describe('#setInitPrefObject', function () {
     var host_metrics_widgets_count = 4;
     var hdfs_widgets_count = 7;
-    var mapreduce_widgets_count = 7;
     var hbase_widgets_count = 4;
     var yarn_widgets_count = 4;
-    var total_widgets_count = 27;
+    var total_widgets_count = 20;
     var tests = Em.A([
       {
         models: {
           host_metrics_model: null,
           hdfs_model: null,
-          mapreduce_model: null,
           hbase_model: null,
           yarn_model: null
         },
         e: {
-          visibleL: total_widgets_count - host_metrics_widgets_count - hdfs_widgets_count - mapreduce_widgets_count - hbase_widgets_count - yarn_widgets_count - 1,
+          visibleL: total_widgets_count - host_metrics_widgets_count - hdfs_widgets_count - hbase_widgets_count - yarn_widgets_count - 1,
           hiddenL: 0
         },
         m: 'All models are null'
@@ -54,35 +52,32 @@ describe('App.MainDashboardWidgetsView', function () {
         models: {
           host_metrics_model: {},
           hdfs_model: null,
-          mapreduce_model: null,
           hbase_model: null,
           yarn_model: null
         },
         e: {
-          visibleL: total_widgets_count - hdfs_widgets_count - mapreduce_widgets_count - hbase_widgets_count - yarn_widgets_count - 1,
+          visibleL: total_widgets_count - hdfs_widgets_count - hbase_widgets_count - yarn_widgets_count - 1,
           hiddenL: 0
         },
-        m: 'hdfs_model, mapreduce_model, hbase_model, yarn_model are null'
+        m: 'hdfs_model, hbase_model, yarn_model are null'
       },
       {
         models: {
           host_metrics_model: {},
           hdfs_model: {},
-          mapreduce_model: null,
           hbase_model: null,
           yarn_model: null
         },
         e: {
-          visibleL: total_widgets_count - mapreduce_widgets_count - hbase_widgets_count - yarn_widgets_count - 1,
+          visibleL: total_widgets_count - hbase_widgets_count - yarn_widgets_count - 1,
           hiddenL: 0
         },
-        m: 'mapreduce_model, hbase_model, yarn_model are null'
+        m: 'hbase_model, yarn_model are null'
       },
       {
         models: {
           host_metrics_model: {},
           hdfs_model: {},
-          mapreduce_model: {},
           hbase_model: null,
           yarn_model: null
         },
@@ -96,7 +91,6 @@ describe('App.MainDashboardWidgetsView', function () {
         models: {
           host_metrics_model: {},
           hdfs_model: {},
-          mapreduce_model: {},
           hbase_model: {},
           yarn_model: null
         },
@@ -110,7 +104,6 @@ describe('App.MainDashboardWidgetsView', function () {
         models: {
           host_metrics_model: {},
           hdfs_model: {},
-          mapreduce_model: {},
           hbase_model: {},
           yarn_model: {}
         },
@@ -125,7 +118,6 @@ describe('App.MainDashboardWidgetsView', function () {
       it(test.m, function () {
         view.set('host_metrics_model', test.models.host_metrics_model);
         view.set('hdfs_model', test.models.hdfs_model);
-        view.set('mapreduce_model', test.models.mapreduce_model);
         view.set('hbase_model', test.models.hbase_model);
         view.set('yarn_model', test.models.yarn_model);
         view.setInitPrefObject();

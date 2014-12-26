@@ -51,17 +51,6 @@ App.service_graph_config = {
 		'YARN_JVMHeap'
 	],
 
-	'mapreduce': [
-		'MapReduce_JobsStatus',
-		'MapReduce_TasksRunningWaiting',
-		'MapReduce_MapSlots',
-		'MapReduce_ReduceSlots',
-		'MapReduce_GC',
-		'MapReduce_RPC',
-		'MapReduce_JVMHeap',
-		'MapReduce_JVMThreads'
-	],
-
 	'hbase': [
 		'HBASE_ClusterRequests',
 		'HBASE_RegionServerReadWriteRequests',

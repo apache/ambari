@@ -28,7 +28,7 @@ var App = require('app');
  */
 App.ChartServiceMetricsYARN_JVMHeap = App.ChartLinearTimeView.extend({
   id: "service-metrics-yarn-jvm-heap",
-  title: Em.I18n.t('services.service.info.metrics.mapreduce.jvmHeap'),
+  title: Em.I18n.t('services.service.info.metrics.yarn.jvmHeap'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
 
@@ -43,16 +43,16 @@ App.ChartServiceMetricsYARN_JVMHeap = App.ChartLinearTimeView.extend({
         var seriesData = jsonData.metrics.jvm[name];
         switch (name) {
           case "memHeapCommittedM":
-            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.jvmHeap.displayNames.memHeapCommittedM');
+            displayName = Em.I18n.t('services.service.info.metrics.yarn.jvmHeap.displayNames.memHeapCommittedM');
             break;
           case "memNonHeapUsedM":
-            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.jvmHeap.displayNames.memNonHeapUsedM');
+            displayName = Em.I18n.t('services.service.info.metrics.yarn.jvmHeap.displayNames.memNonHeapUsedM');
             break;
           case "memHeapUsedM":
-            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.jvmHeap.displayNames.memHeapUsedM');
+            displayName = Em.I18n.t('services.service.info.metrics.yarn.jvmHeap.displayNames.memHeapUsedM');
             break;
           case "memNonHeapCommittedM":
-            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.jvmHeap.displayNames.memNonHeapCommittedM');
+            displayName = Em.I18n.t('services.service.info.metrics.yarn.jvmHeap.displayNames.memNonHeapCommittedM');
             break;
           default:
             break;

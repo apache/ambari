@@ -481,7 +481,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       case 'addServiceController':
         var servicesList = this.get('content.services').filterProperty('isSelected').filterProperty('isInstalled', false).mapProperty('serviceName');
         if (servicesList.contains('OOZIE')) {
-          servicesList = servicesList.concat(['HDFS', 'YARN', 'MAPREDUCE', 'MAPREDUCE2']);
+          servicesList = servicesList.concat(['HDFS', 'YARN', 'MAPREDUCE2']);
         }
         name = 'common.services.update';
         data = {

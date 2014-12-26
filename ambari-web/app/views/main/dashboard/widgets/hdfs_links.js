@@ -22,7 +22,7 @@ App.HDFSLinksView = App.LinkDashboardWidgetView.extend({
 
   templateName: require('templates/main/dashboard/widgets/hdfs_links'),
   title: Em.I18n.t('dashboard.widgets.HDFSLinks'),
-  id: '17',
+  id: '11',
 
   model_type: 'hdfs',
 

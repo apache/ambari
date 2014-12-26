@@ -92,7 +92,7 @@ describe('App.AddServiceController', function() {
       res: {
         "context": Em.I18n.t('requestInfo.installServices'),
         "ServiceInfo": {"state": "INSTALLED"},
-        "urlParams": "ServiceInfo/service_name.in(OOZIE,HDFS,YARN,MAPREDUCE,MAPREDUCE2)"
+        "urlParams": "ServiceInfo/service_name.in(OOZIE,HDFS,YARN,MAPREDUCE2)"
       }
     }];
     tests.forEach(function(t){

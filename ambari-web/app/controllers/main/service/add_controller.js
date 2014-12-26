@@ -402,7 +402,7 @@ App.AddServiceController = App.WizardController.extend({
    */
   generateDataForInstallServices: function(selectedServices) {
     if (selectedServices.contains('OOZIE')) {
-      selectedServices = selectedServices.concat(['HDFS', 'YARN', 'MAPREDUCE', 'MAPREDUCE2']);
+      selectedServices = selectedServices.concat(['HDFS', 'YARN', 'MAPREDUCE2']);
     }
     return {
       "context": Em.I18n.t('requestInfo.installServices'),

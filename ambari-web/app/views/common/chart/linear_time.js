@@ -167,8 +167,6 @@ App.ChartLinearTimeView = Ember.View.extend({
 
     var HDFSService = App.HDFSService.find().objectAt(0);
     var nameNodeName = "";
-    var MapReduceService = App.MapReduceService.find().objectAt(0);
-    var jobTrackerNode = MapReduceService ? MapReduceService.get('jobTracker.hostName') : "";
     var YARNService = App.YARNService.find().objectAt(0);
     var resourceManager = YARNService ? YARNService.get('resourceManager.hostName') : "";
     var timeUnit = this.get('timeUnitSeconds');
@@ -181,7 +179,6 @@ App.ChartLinearTimeView = Ember.View.extend({
       stepSeconds: 15,
       hostName: hostName,
       nameNodeName: nameNodeName,
-      jobTrackerNode: jobTrackerNode,
       resourceManager: resourceManager
     };
   },
