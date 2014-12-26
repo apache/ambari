@@ -49,7 +49,7 @@ describe('App.HighAvailabilityWizardStep4Controller', function() {
           HostRoles: { desired_state: 'STARTED' },
           metrics: { dfs: { namenode: {
             Safemode: 'ON',
-            JournalNodeTransactionInfo: "{\"LastAppliedOrWrittenTxId\":\"4\",\"MostRecentCheckpointTxId\":\"2\"}"
+            JournalTransactionInfo: "{\"LastAppliedOrWrittenTxId\":\"4\",\"MostRecentCheckpointTxId\":\"2\"}"
           }}}
         },
         m: 'NameNode started, Safemode on, journal node transaction invalid. Polling should be performed and isNameNodeStarted should be true',
@@ -64,7 +64,7 @@ describe('App.HighAvailabilityWizardStep4Controller', function() {
           HostRoles: { desired_state: 'INSTALLED' },
           metrics: { dfs: { namenode: {
             Safemode: 'ON',
-            JournalNodeTransactionInfo: "{\"LastAppliedOrWrittenTxId\":\"15\",\"MostRecentCheckpointTxId\":\"14\"}"
+            JournalTransactionInfo: "{\"LastAppliedOrWrittenTxId\":\"15\",\"MostRecentCheckpointTxId\":\"14\"}"
           }}}
         },
         m: 'NameNode not started, Safemode on, journal node transaction present. Polling should not be performed and isNameNodeStarted should be false',
@@ -79,7 +79,7 @@ describe('App.HighAvailabilityWizardStep4Controller', function() {
           HostRoles: { desired_state: 'STARTED' },
           metrics: { dfs: { namenode: {
             Safemode: "",
-            JournalNodeTransactionInfo: "{\"LastAppliedOrWrittenTxId\":\"15\",\"MostRecentCheckpointTxId\":\"14\"}"
+            JournalTransactionInfo: "{\"LastAppliedOrWrittenTxId\":\"15\",\"MostRecentCheckpointTxId\":\"14\"}"
           }}}
         },
         m: 'NameNode started, Safemode off, journal node transaction present. Polling should not be performed and isNameNodeStarted should be true',
