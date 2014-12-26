@@ -25,14 +25,14 @@
         <span class="host-maintenance-notice pull-right"><span class="icon-medkit"></span> {{t hosts.host.passive.mode}}</span>
       {{/unless}}
     </div>
-    <div><a href="javascript:void(null)" data-toggle="modal" {{action back}}><i
+    <div><a href="javascript:void(null)" id="host-details-back-btn" data-toggle="modal" {{action back}}><i
             class="icon-arrow-left"></i>&nbsp;{{t common.back}}</a></div>
     <div class="content">
       {{view App.MainHostMenuView hostBinding="view.content"}}
       {{#isAccessible ADMIN}}
         <div class="service-button">
           <div class="btn-group display-inline-block">
-            <a href="javascript:void(null)" {{bindAttr class=":btn :dropdown-toggle"}} data-toggle="dropdown">
+            <a href="javascript:void(null)" {{bindAttr class=":btn :dropdown-toggle"}} id="host-details-action-btn" data-toggle="dropdown">
               {{t hosts.host.details.hostActions}}
               <span class="caret"></span>
             </a>

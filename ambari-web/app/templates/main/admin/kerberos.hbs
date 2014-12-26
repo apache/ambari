@@ -19,14 +19,14 @@
   {{#if securityEnabled}}
     <div>
       <p class="text-success">{{t admin.security.enabled}}
-        <a class="btn btn-padding btn-warning" {{bindAttr disabled="isSubmitDisabled"}} {{action notifySecurityOffPopup target="controller"}}>{{t admin.security.button.disable}} </a>
+        <a class="btn btn-padding btn-warning admin-disable-security-btn" {{bindAttr disabled="isSubmitDisabled"}} {{action notifySecurityOffPopup target="controller"}}>{{t admin.security.button.disable}} </a>
         <br/>
       </p>
     </div>
   {{else}}
     <div>
       <p class="muted">{{t admin.security.disabled}}
-        <a class="btn btn-padding btn-success" {{action startKerberosWizard target="controller"}}>{{t admin.kerberos.button.enable}} </a>
+        <a class="btn btn-padding btn-success admin-enable-security-btn" {{action startKerberosWizard target="controller"}}>{{t admin.kerberos.button.enable}} </a>
         <br/>
       </p>
     </div>

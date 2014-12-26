@@ -86,6 +86,8 @@ App.WizardStep2View = Em.View.extend({
 
     attributeBindings: ['type', 'checked'],
 
+    classNames: ['radio-btn-provide-ssh-key'],
+
     checked: function () {
       return this.get('controller.content.installOptions.useSsh');
     }.property('controller.content.installOptions.useSsh'),
@@ -106,6 +108,8 @@ App.WizardStep2View = Em.View.extend({
     tagName: 'input',
 
     attributeBindings: ['type', 'checked'],
+
+    classNames: ['radio-btn-manual-reg'],
 
     type: 'radio',
 

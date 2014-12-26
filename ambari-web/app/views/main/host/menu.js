@@ -27,19 +27,22 @@ App.MainHostMenuView = Em.CollectionView.extend({
     Em.Object.create({
       name: 'summary',
       label: Em.I18n.t('common.summary'),
-      routing: 'summary'
+      routing: 'summary',
+      id: 'host-details-summary-tab'
     }),
     Em.Object.create({
       name: 'configs',
       label: Em.I18n.t('common.configs'),
-      routing: 'configs'
+      routing: 'configs',
+      id: 'host-details-summary-configs'
     }),
     Em.Object.create({
       name: 'alerts',
       label: Em.I18n.t('hosts.host.alerts.label'),
       routing: 'alerts',
       badgeText: '0',
-      badgeClasses: 'label'
+      badgeClasses: 'label',
+      id: 'host-details-summary-alerts'
     }),
     Em.Object.create({
       name: 'versions',
@@ -47,7 +50,8 @@ App.MainHostMenuView = Em.CollectionView.extend({
       routing: 'stackVersions',
       hidden: function() {
         return !App.get('supports.stackUpgrade')
-      }.property('App.get.supports.stackUpgrade')
+      }.property('App.get.supports.stackUpgrade'),
+      id: 'host-details-summary-version'
     })
   ],
 
@@ -92,7 +96,7 @@ App.MainHostMenuView = Em.CollectionView.extend({
   itemViewClass: Em.View.extend({
     classNameBindings: ["active"],
     active: "",
-    template: Ember.Handlebars.compile('{{#unless view.content.hidden}}<a {{action hostNavigate view.content.routing }} href="#"> {{unbound view.content.label}} ' +
+    template: Ember.Handlebars.compile('{{#unless view.content.hidden}}<a {{action hostNavigate view.content.routing }} {{bindAttr id="view.content.id"}} href="#"> {{unbound view.content.label}} ' +
     '{{#if view.content.badgeText}} ' +
     '<span {{bindAttr class="view.content.badgeClasses"}}> ' +
     '{{view.content.badgeText}}' +

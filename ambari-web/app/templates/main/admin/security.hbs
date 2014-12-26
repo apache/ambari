@@ -20,7 +20,7 @@
     <div>
       <p class="text-success">{{t admin.security.enabled}}
         {{#isAccessible ADMIN}}
-          <a class="btn btn-padding btn-warning" {{bindAttr disabled="isSubmitDisabled"}} {{action notifySecurityOffPopup target="controller"}}>{{t admin.security.button.disable}}
+          <a class="btn btn-padding btn-warning admin-disable-security-btn" {{bindAttr disabled="isSubmitDisabled"}} {{action notifySecurityOffPopup target="controller"}}>{{t admin.security.button.disable}}
           </a> <br/>
         {{/isAccessible}}
       </p>
@@ -32,7 +32,7 @@
     <div>
       <p class="muted">{{t admin.security.disabled}}
         {{#isAccessible ADMIN}}
-          <a class="btn btn-padding btn-success" {{action addSecurity}}>{{t admin.security.button.enable}}
+          <a class="btn btn-padding btn-success admin-enable-security-btn" {{action addSecurity}}>{{t admin.security.button.enable}}
           </a> <br/>
         {{/isAccessible}}
       </p>

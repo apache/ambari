@@ -121,18 +121,18 @@
           <td class="passive-state">
               <span rel="ComponentsTooltip" {{bindAttr data-original-title="view.componentsInPassiveStateMessage" class="host.componentsInPassiveStateCount:icon-medkit"}}></span>
           </td>
-          <td>{{host.ip}}</td>
-          <td>{{host.coresFormatted}}</td>
-          <td>{{host.memoryFormatted}}</td>
+          <td class="host-ip">{{host.ip}}</td>
+          <td class="cores-formatted">{{host.coresFormatted}}</td>
+          <td class="memory-formatted">{{host.memoryFormatted}}</td>
 
-          <td>
+          <td class="disk-info">
             <div class="progress progress-info" {{bindAttr title="host.diskInfoBar"}} rel="UsageTooltip">
               <div class="bar" {{bindAttr style="view.usageStyle"}}></div>
             </div>
           </td>
 
-          <td>{{host.loadAvg}}</td>
-          <td {{bindAttr class="App.supports.stackUpgrade::hidden"}}>
+          <td class="load-avg">{{host.loadAvg}}</td>
+          <td {{bindAttr class="App.supports.stackUpgrade::hidden :host-table-versions"}}>
             <a href="#" class="expander" {{action toggleVersions target="view"}}>
               <span {{bindAttr class="view.isVersionsCollapsed:icon-caret-right:icon-caret-down"}}></span>
               {{view.content.stackVersions.length}} {{pluralize view.content.stackVersions.length singular="t:common.version" plural="t:common.versions"}}
@@ -141,7 +141,7 @@
               {{{view.versionlabels}}}
             </div>
           </td>
-          <td>
+          <td class="host-table-components">
             <a href="#" class="expander" {{action toggleComponents target="view"}}> <span {{bindAttr class="view.isComponentsCollapsed:icon-caret-right:icon-caret-down"}}></span>
               {{view.content.hostComponents.length}} {{pluralize view.content.hostComponents.length singular="t:common.component" plural="t:common.components"}}</a>
             <div class="host-components collapsed-list">
@@ -167,7 +167,7 @@
 
   <div class="page-bar">
     <div class="filtered-info span4">
-      <label>{{view.filteredContentInfo}} - <a {{action clearFilters target="view"}} href="#">{{t tableView.filters.clearAllFilters}}</a></label>
+      <label>{{view.filteredContentInfo}} - <a {{action clearFilters target="view"}} id="hosts-page-clear-filters" href="#">{{t tableView.filters.clearAllFilters}}</a></label>
     </div>
     <div class="selected-hosts-info span4">
       {{#if view.showSelectedFilter}}

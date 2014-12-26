@@ -47,6 +47,10 @@ App.MainDashboardView = Em.View.extend({
     classNameBindings: 'isActive:active'.w(),
     isActive: function () {
       return this.get('item') === this.get('parentView.selected');
-    }.property('item', 'parentView.selected')
+    }.property('item', 'parentView.selected'),
+    elementId: Ember.computed(function(){
+      var label = Em.get(this, 'templateData.keywords.category.label');
+      return label ? 'dashboard-view-tab-' + label.toLowerCase().replace(/\s/g, '-') : "";
+    })
   })
 });

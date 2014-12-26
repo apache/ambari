@@ -26,11 +26,13 @@ App.LoginView = Em.View.extend({
     didInsertElement: function(){
       this._super();
       this.$().focus();
-    }
+    },
+    classNames: ['login-user-name']
   }),
   passTextField : Em.TextField.extend({
     insertNewline: function(){
       this.get("controller").submit();
-    }
+    },
+    classNames: ['login-user-password']
   })
 });

@@ -126,17 +126,35 @@
                     <h4>{{t hosts.host.summary.header}}</h4>
                 </div>
                 <div class="host-summary-content">
-                    <dl class="dl-horizontal">
-                        <dt>{{t hosts.host.summary.hostname}}:</dt><dd>&nbsp;{{view.content.hostName}}</dd>
-                        <dt>{{t common.ipAddress}}:</dt><dd>&nbsp;{{view.content.ip}}</dd>
-                        <dt>{{t common.os}}:</dt><dd>&nbsp;{{view.content.osType}}&nbsp;({{view.content.osArch}})</dd>
-                        <dt>{{t common.cores}}:</dt><dd>&nbsp;{{view.content.coresFormatted}}</dd>
-                        <dt>{{t common.disk}}:</dt><dd>&nbsp;{{view.content.diskInfoBar}}</dd>
-                        <dt>{{t common.memory}}:</dt><dd>&nbsp;{{view.content.memoryFormatted}}</dd>
-                        <dt>{{t common.loadAvg}}:</dt><dd>&nbsp;{{view.content.loadAvg}}</dd>
-                        <dt>{{t hosts.host.summary.agentHeartbeat}}:</dt><dd>&nbsp;{{view.timeSinceHeartBeat}}</dd>
+                    <dl class="dl-horizontal host-details-summary-list">
+
+                        <dt class="summary-hostname-label">{{t hosts.host.summary.hostname}}:</dt>
+                          <dd class="summary-hostname-value">&nbsp;{{view.content.hostName}}</dd>
+
+                        <dt class="summary-ipaddress-label">{{t common.ipAddress}}:</dt>
+                          <dd class="summary-ipaddress-value">&nbsp;{{view.content.ip}}</dd>
+
+                        <dt class="summary-os-label">{{t common.os}}:</dt>
+                          <dd class="summary-os-value">&nbsp;{{view.content.osType}}&nbsp;({{view.content.osArch}})</dd>
+
+                        <dt class="summary-cores-label">{{t common.cores}}:</dt>
+                          <dd class="summary-cores-value">&nbsp;{{view.content.coresFormatted}}</dd>
+
+                        <dt class="summary-disk-label">{{t common.disk}}:</dt>
+                          <dd class="summary-disk-value">&nbsp;{{view.content.diskInfoBar}}</dd>
+
+                        <dt class="summary-memory-label">{{t common.memory}}:</dt>
+                          <dd class="summary-memory-value">&nbsp;{{view.content.memoryFormatted}}</dd>
+
+                        <dt class="summary-load-avg-label">{{t common.loadAvg}}:</dt>
+                          <dd class="summary-load-avg-value">&nbsp;{{view.content.loadAvg}}</dd>
+
+                        <dt class="summary-agent-heart-label">{{t hosts.host.summary.agentHeartbeat}}:</dt>
+                          <dd class="summary-agent-heart-value">&nbsp;{{view.timeSinceHeartBeat}}</dd>
+
                         {{#if App.supports.stackUpgrade}}
-                          <dt>{{t hosts.host.summary.currentVersion}}:</dt><dd>&nbsp;{{view.content.currentVersion}}</dd>
+                          <dt class="summary-cur-ver-label">{{t hosts.host.summary.currentVersion}}:</dt>
+                            <dd class="summary-cur-ver-value">&nbsp;{{view.content.currentVersion}}</dd>
                         {{/if}}
                     </dl>
                 </div>

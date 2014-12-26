@@ -56,7 +56,7 @@
 
   <div class="btn-area">
     {{#unless view.parentView.controller.hideBackButton}}
-      <a class="btn pull-left" {{action back}}>&larr; {{t common.back}}</a>
+      <a class="btn pull-left installer-back-btn" {{action back}}>&larr; {{t common.back}}</a>
     {{/unless}}
     <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}> {{t common.next}} &rarr;</a>
   </div>

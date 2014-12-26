@@ -24,7 +24,7 @@
   <div class="box">
     <div class="box-header">
       <div class="button-section">
-        <button class="btn btn-primary" {{bindAttr disabled="view.noHostsSelected"}}
+        <button class="btn btn-primary step3-remove-selected-btn" {{bindAttr disabled="view.noHostsSelected"}}
           {{action removeSelectedHosts target="controller" }}><i class="icon-trash icon-white"></i>
           {{t installer.step3.removeSelected}}
         </button>
@@ -74,23 +74,23 @@
           {{#if view.pageContent}}
             {{#each host in view.pageContent}}
               {{#view App.WizardHostView categoryBinding="controller.category" hostInfoBinding="host"}}
-              <td>
+              <td class="step3-table-checkbox">
                 {{view Ember.Checkbox checkedBinding="host.isChecked"}}
               </td>
               <td class="host">
                 <span title="{{unbound host.name}}" class="trim_hostname">{{host.name}}</span>
               </td>
-              <td>
+              <td class="step3-table-progress">
                 <div {{bindAttr class="host.bootBarColor host.isBootDone::progress-striped host.isBootDone::active :progress"}}>
                   <div class="bar" style="width:100%">
                   </div>
                 </div>
               </td>
-              <td>
+              <td class="step3-table-status">
                 <a href="javascript:void(null)"
                    data-toggle="modal" {{action hostLogPopup host target="controller"}}><span {{bindAttr class="host.bootStatusColor"}}>{{host.bootStatusForDisplay}}</span></a>
               </td>
-              <td>
+              <td class="step3-table-action">
                 <a class="btn btn-mini" {{action remove target="view"}}><i class="icon-trash"></i>
                   {{t common.remove}}</a>
                 {{#if view.isRetryable}}<a class="btn btn-mini" {{action retry target="view"}}><i
@@ -101,7 +101,7 @@
             {{/each}}
           {{else}}
           <tr>
-            <td colspan="5">
+            <td class="step3-table-no-hosts" colspan="5">
               {{t hosts.table.noHosts}}
             </td>
           </tr>
@@ -147,7 +147,7 @@
     {{/unless}}
   </div>
   <div class="btn-area">
-    <button class="btn pull-left" {{bindAttr disabled="isRegistrationInProgress"}} {{action back}}>&larr; {{t common.back}}</button>
+    <button class="btn pull-left installer-back-btn" {{bindAttr disabled="isRegistrationInProgress"}} {{action back}}>&larr; {{t common.back}}</button>
     <button class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.next}} &rarr;</button>
   </div>
 </div>

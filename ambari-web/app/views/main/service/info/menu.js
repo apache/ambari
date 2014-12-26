@@ -23,10 +23,10 @@ App.MainServiceInfoMenuView = Em.CollectionView.extend({
   classNames: ["nav", "nav-tabs"],
   content:function(){
     var menuItems = [
-      { label: Em.I18n.t('services.service.info.menu.summary'), routing:'summary', active:"active"}
+      { label: Em.I18n.t('services.service.info.menu.summary'), id: 'summary-service-tab',routing:'summary', active:"active"}
       //{ label:'Audit', routing:'audit'}
     ];
-    if(this.get('configTab')) menuItems.push({ label: Em.I18n.t('services.service.info.menu.configs'), routing:'configs'});
+    if(this.get('configTab')) menuItems.push({ label: Em.I18n.t('services.service.info.menu.configs'), id: 'configs-service-tab', routing:'configs'});
     return menuItems;
   }.property(),
 
@@ -47,6 +47,6 @@ App.MainServiceInfoMenuView = Em.CollectionView.extend({
   itemViewClass: Em.View.extend({
     classNameBindings: ["active"],
     active: "",
-    template: Ember.Handlebars.compile('<a {{action showInfo view.content.routing }} href="#"> {{unbound view.content.label}}</a>')
+    template: Ember.Handlebars.compile('<a {{action showInfo view.content.routing}} {{bindAttr id="view.content.id"}} href="#"> {{unbound view.content.label}}</a>')
   })
 });
