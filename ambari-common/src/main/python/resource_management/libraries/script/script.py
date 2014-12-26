@@ -32,6 +32,7 @@ from resource_management.libraries.resources import PropertiesFile
 from resource_management.core.resources import File, Directory
 from resource_management.core.source import InlineTemplate
 from resource_management.core.environment import Environment
+from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail, ClientComponentHasNoStatus, ComponentIsNotRunning
 from resource_management.core.resources.packaging import Package
 from resource_management.libraries.script.config_dictionary import ConfigDictionary, UnknownConfiguration
@@ -48,7 +49,7 @@ USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEV
 
 <COMMAND> command type (INSTALL/CONFIGURE/START/STOP/SERVICE_CHECK...)
 <JSON_CONFIG> path to command json file. Ex: /var/lib/ambari-agent/data/command-2.json
-<BASEDIR> path to service metadata dir. Ex: /var/lib/ambari-agent/cache/stacks/HDP/2.0.6/services/HDFS
+<BASEDIR> path to service metadata dir. Ex: /var/lib/ambari-agent/cache/common-services/HDFS/2.1.0.2.0/package
 <STROUTPUT> path to file with structured command output (file will be created). Ex:/tmp/my.txt
 <LOGGING_LEVEL> log level for stdout. Ex:DEBUG,INFO
 <TMP_DIR> temporary directory for executable scripts. Ex: /var/lib/ambari-agent/data/tmp
@@ -96,19 +97,8 @@ class Script(object):
     Sets up logging;
     Parses command parameters and executes method relevant to command type
     """
-    # set up logging (two separate loggers for stderr and stdout with different loglevels)
-    logger = logging.getLogger('resource_management')
-    logger.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(message)s')
-    chout = logging.StreamHandler(sys.stdout)
-    chout.setLevel(logging.INFO)
-    chout.setFormatter(formatter)
-    cherr = logging.StreamHandler(sys.stderr)
-    cherr.setLevel(logging.ERROR)
-    cherr.setFormatter(formatter)
-    logger.addHandler(cherr)
-    logger.addHandler(chout)
-
+    logger, chout, cherr = Logger.initialize_logger()
+    
     # parse arguments
     if len(sys.argv) < 7:
      logger.error("Script expects at least 6 arguments")

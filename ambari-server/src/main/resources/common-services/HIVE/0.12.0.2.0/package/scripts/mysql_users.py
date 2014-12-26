@@ -40,8 +40,7 @@ def mysql_adduser():
   Execute(cmd,
           tries=3,
           try_sleep=5,
-          path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-          logoutput=True,
+          path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
   )
 
 # Removes hive access from components
@@ -66,6 +65,5 @@ def mysql_deluser():
           tries=3,
           try_sleep=5,
           path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-          logoutput=True,
   )
 

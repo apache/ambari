@@ -32,6 +32,12 @@ class Package(Resource):
 
   # Allow using only specific list of repositories when performing action
   use_repos = ResourceArgument(default=[])
+  """
+  True           -  log it in INFO mode
+  False          -  never log it
+  None (default) -  log it in DEBUG mode
+  """
+  logoutput = ResourceArgument(default=None)
 
   version = ResourceArgument()
   actions = ["install", "upgrade", "remove"]

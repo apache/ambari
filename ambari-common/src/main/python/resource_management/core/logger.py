@@ -21,16 +21,36 @@ Ambari Agent
 """
 
 __all__ = ["Logger"]
+import sys
 import logging
 from resource_management.libraries.script.config_dictionary import UnknownConfiguration
 
 MESSAGE_MAX_LEN = 256
+DICTIONARY_MAX_LEN = 5
 
 class Logger:
-  logger = logging.getLogger("resource_management")
-
+  logger = None
   # unprotected_strings : protected_strings map
   sensitive_strings = {}
+  
+  @staticmethod
+  def initialize_logger(logging_level=logging.INFO, name='resource_management', format='%(asctime)s - %(message)s'):
+    # set up logging (two separate loggers for stderr and stdout with different loglevels)
+    logger = logging.getLogger(name)
+    logger.setLevel(logging_level)
+    formatter = logging.Formatter(format)
+    chout = logging.StreamHandler(sys.stdout)
+    chout.setLevel(logging_level)
+    chout.setFormatter(formatter)
+    cherr = logging.StreamHandler(sys.stderr)
+    cherr.setLevel(logging.ERROR)
+    cherr.setFormatter(formatter)
+    logger.addHandler(cherr)
+    logger.addHandler(chout)
+    
+    Logger.logger = logger
+    
+    return logger, chout, cherr
 
   @staticmethod
   def error(text):
@@ -78,13 +98,17 @@ class Logger:
       text = text.replace(placeholder, '')
 
     return text
-
+  
   @staticmethod
   def _get_resource_repr(resource):
+    return Logger.get_function_repr(repr(resource), resource.arguments)
+
+  @staticmethod
+  def get_function_repr(name, arguments):
     logger_level = logging._levelNames[Logger.logger.level]
 
     arguments_str = ""
-    for x,y in resource.arguments.iteritems():
+    for x,y in arguments.iteritems():
 
       # strip unicode 'u' sign
       if isinstance(y, unicode):
@@ -94,7 +118,7 @@ class Logger:
         val = repr(y).lstrip('u')
       # don't show dicts of configurations
       # usually too long
-      elif logger_level != 'DEBUG' and isinstance(y, dict):
+      elif isinstance(y, dict) and len(y) > DICTIONARY_MAX_LEN:
         val = "..."
       # for configs which didn't come
       elif isinstance(y, UnknownConfiguration):
@@ -118,4 +142,4 @@ class Logger:
     if arguments_str:
       arguments_str = arguments_str[:-2]
 
-    return unicode("{0} {{{1}}}").format(resource, arguments_str)
+    return unicode("{0} {{{1}}}").format(name, arguments_str)

@@ -26,6 +26,7 @@ __all__ = ["non_blocking_call", "checked_call", "call", "quote_bash_args", "as_u
 import sys
 import logging
 import string
+import inspect
 import subprocess
 import threading
 import traceback
@@ -34,6 +35,8 @@ from exceptions import Fail
 from exceptions import ExecuteTimeoutException
 from resource_management.core.logger import Logger
 
+# use quiet=True calls from this folder (logs get too messy duplicating the resources with its commands)
+RMF_FOLDER = 'resource_management/'
 EXPORT_PLACEHOLDER = "[RMF_EXPORT_PLACEHOLDER]"
 ENV_PLACEHOLDER = "[RMF_ENV_PLACEHOLDER]"
 
@@ -42,24 +45,51 @@ PLACEHOLDERS_TO_STR = {
   ENV_PLACEHOLDER: "{env_str}"
 }
 
-def checked_call(command, verbose=False, logoutput=False,
+def log_function_call(function):
+  def inner(command, **kwargs):
+    caller_filename = inspect.getouterframes(inspect.currentframe())[1][1]
+    # quiet = can be False/True or None -- which means undefined yet
+    quiet = kwargs['quiet'] if 'quiet' in kwargs else None
+    is_internal_call = RMF_FOLDER in caller_filename
+    
+    if quiet == False or (quiet == None and not is_internal_call):
+      command_alias = string_cmd_from_args_list(command) if isinstance(command, (list, tuple)) else command
+      log_msg = Logger.get_function_repr("{0}['{1}']".format(function.__name__, command_alias), kwargs)
+      Logger.info(log_msg)
+      
+    # logoutput=False - never log
+    # logoutput=True - log in INFO level
+    # logouput=None - log in DEBUG level
+    # logouput=not-specified - log in DEBUG level, not counting internal calls
+    kwargs['logoutput'] = ('logoutput' in kwargs and kwargs['logoutput'] and Logger.logger.isEnabledFor(logging.INFO)) or \
+      ('logoutput' in kwargs and kwargs['logoutput']==None and Logger.logger.isEnabledFor(logging.DEBUG)) or \
+      (not 'logoutput' in kwargs and not is_internal_call and Logger.logger.isEnabledFor(logging.DEBUG))
+       
+    return function(command, **kwargs)
+    
+  return inner
+
+@log_function_call
+def checked_call(command, quiet=False, logoutput=None,
          cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, path=None, sudo=False, on_new_line=None):
   """
   Execute the shell command and throw an exception on failure.
   @throws Fail
   @return: return_code, output
   """
-  return _call(command, verbose, logoutput, True, cwd, env, preexec_fn, user, wait_for_finish, timeout, path, sudo, on_new_line)
+  return _call(command, logoutput, True, cwd, env, preexec_fn, user, wait_for_finish, timeout, path, sudo, on_new_line)
 
-def call(command, verbose=False, logoutput=False,
+@log_function_call
+def call(command, quiet=False, logoutput=None,
          cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, path=None, sudo=False, on_new_line=None):
   """
   Execute the shell command despite failures.
   @return: return_code, output
   """
-  return _call(command, verbose, logoutput, False, cwd, env, preexec_fn, user, wait_for_finish, timeout, path, sudo, on_new_line)
+  return _call(command, logoutput, False, cwd, env, preexec_fn, user, wait_for_finish, timeout, path, sudo, on_new_line)
 
-def non_blocking_call(command, verbose=False,
+@log_function_call
+def non_blocking_call(command, quiet=False,
          cwd=None, env=None, preexec_fn=None, user=None, timeout=None, path=None, sudo=False):
   """
   Execute the shell command and don't wait until it's completion
@@ -68,9 +98,9 @@ def non_blocking_call(command, verbose=False,
   (use proc.stdout.readline to read output in cycle, don't foget to proc.stdout.close(),
   to get return code use proc.wait() and after that proc.returncode)
   """
-  return _call(command, verbose, False, True, cwd, env, preexec_fn, user, False, timeout, path, sudo, None)
+  return _call(command, False, True, cwd, env, preexec_fn, user, False, timeout, path, sudo, None)
 
-def _call(command, verbose=False, logoutput=False, throw_on_failure=True,
+def _call(command, logoutput=None, throw_on_failure=True,
          cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, path=None, sudo=False, on_new_line=None):
   """
   Execute shell command
@@ -104,9 +134,6 @@ def _call(command, verbose=False, logoutput=False, throw_on_failure=True,
   env_str = _get_environment_str(env)
   for placeholder, replacement in PLACEHOLDERS_TO_STR.iteritems():
     command = command.replace(placeholder, replacement.format(env_str=env_str))
-  
-  if verbose:
-    Logger.info("Running: " + command)
 
   # --noprofile is used to preserve PATH set for ambari-agent
   subprocess_command = ["/bin/bash","--login","--noprofile","-c", command]

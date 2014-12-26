@@ -99,20 +99,20 @@ class ExecuteUpgradeTasks(Script):
           unless = replace_variables(unless, host_name, version)
 
           if first:
-            code, out = call(first, verbose=True)
+            code, out = call(first)
             Logger.info("Pre-condition command. Code: %s, Out: %s" % (str(code), str(out)))
             if code != 0:
               break
 
           if unless:
-            code, out = call(unless, verbose=True)
+            code, out = call(unless)
             Logger.info("Unless command. Code: %s, Out: %s" % (str(code), str(out)))
             if code == 0:
               break
 
           for i in range(1, effective_times+1):
             # TODO, Execute already has a tries and try_sleep, see hdfs_namenode.py for an example
-            code, out = call(command, verbose=True)
+            code, out = call(command)
             Logger.info("Command. Code: %s, Out: %s" % (str(code), str(out)))
 
             if code == 0 or code in ignore_return_codes:
@@ -123,7 +123,7 @@ class ExecuteUpgradeTasks(Script):
               try:
                 if on_failure:
                   on_failure = replace_variables(on_failure, host_name, version)
-                  code_failure_handler, out_failure_handler = call(on_failure, verbose=True)
+                  code_failure_handler, out_failure_handler = call(on_failure)
                   Logger.error("Failure Handler. Code: %s, Out: %s" % (str(code_failure_handler), str(out_failure_handler)))
               except:
                 pass

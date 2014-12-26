@@ -20,8 +20,11 @@ Ambari Agent
 
 """
 
+import logging
+
 from resource_management.core.base import Fail
 from resource_management.core.providers import Provider
+from resource_management.core.logger import Logger
 
 
 class PackageProvider(Provider):
@@ -52,4 +55,8 @@ class PackageProvider(Provider):
       return self.resource.package_name + '-' + self.resource.version
     else:
       return self.resource.package_name
+    
+  def get_logoutput(self):
+    return self.resource.logoutput==True and Logger.logger.isEnabledFor(logging.INFO) or self.resource.logoutput==None and Logger.logger.isEnabledFor(logging.DEBUG)
+    
     

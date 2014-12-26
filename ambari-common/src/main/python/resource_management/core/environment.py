@@ -23,6 +23,7 @@ Ambari Agent
 __all__ = ["Environment"]
 
 import os
+import logging
 import shutil
 import time
 from datetime import datetime
@@ -38,13 +39,16 @@ from resource_management.core.logger import Logger
 class Environment(object):
   _instances = []
 
-  def __init__(self, basedir=None, test_mode=False):
+  def __init__(self, basedir=None, test_mode=False, logging_level=logging.INFO):
     """
     @param basedir: basedir/files, basedir/templates are the places where templates / static files
     are looked up
     @param test_mode: if this is enabled, resources won't be executed until manualy running env.run().
     """
     self.reset(basedir, test_mode)
+    
+    if not Logger.logger:
+      Logger.initialize_logger(logging_level)
 
   def reset(self, basedir, test_mode):
     self.system = System.get_instance()
@@ -103,8 +107,6 @@ class Environment(object):
         self.config.params[variable] = value
         
   def run_action(self, resource, action):
-    Logger.debug("Performing action %s on %s" % (action, resource))
-
     provider_class = find_provider(self, resource.__class__.__name__,
                                    resource.provider)
     provider = provider_class(resource)

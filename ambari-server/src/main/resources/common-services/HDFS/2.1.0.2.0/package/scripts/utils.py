@@ -58,7 +58,7 @@ def failover_namenode():
   """
   import params
   check_service_cmd = format("hdfs haadmin -getServiceState {namenode_id}")
-  code, out = call(check_service_cmd, verbose=True, logoutput=True, user=params.hdfs_user)
+  code, out = call(check_service_cmd, logoutput=True, user=params.hdfs_user)
 
   state = "unknown"
   if code == 0 and out:
@@ -94,7 +94,7 @@ def kill_zkfc(zkfc_user):
     zkfc_pid_file = get_service_pid_file("zkfc", zkfc_user)
     if zkfc_pid_file:
       check_process = format("ls {zkfc_pid_file} > /dev/null 2>&1 && ps -p `cat {zkfc_pid_file}` > /dev/null 2>&1")
-      code, out = call(check_process, verbose=True)
+      code, out = call(check_process)
       if code == 0:
         Logger.debug("ZKFC is running and will be killed to initiate namenode failover.")
         kill_command = format("{check_process} && kill -9 `cat {zkfc_pid_file}` > /dev/null 2>&1")

@@ -49,5 +49,5 @@ old_uid=$(id -u $username)
 sudo_prefix="sudo -H -E"
 echo "Changing uid of $username from $old_uid to $newUid"
 echo "Changing directory permisions for ${dir_array[@]}"
-$sudo_prefix usermod -u $newUid $username && for dir in ${dir_array[@]} ; do ls $dir && echo "Changing permission for $dir" && $sudo_prefix chown -Rh $newUid $dir ; done
+$sudo_prefix usermod -u $newUid $username && for dir in ${dir_array[@]} ; do ls $dir 2> /dev/null && echo "Changing permission for $dir" && $sudo_prefix chown -Rh $newUid $dir ; done
 exit 0

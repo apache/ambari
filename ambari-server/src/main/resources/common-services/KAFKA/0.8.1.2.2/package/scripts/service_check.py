@@ -25,24 +25,17 @@ class ServiceCheck(Script):
       env.set_params(params)
       
       kafka_config = self.read_kafka_config()
-      environment = self.get_env()
       
       create_topic_cmd_created_output = "Created topic \"ambari_kafka_service_check\"."
       create_topic_cmd_exists_output = "Topic \"ambari_kafka_service_check\" already exists."
       
-      print "Running kafka create topic command"
-      create_topic_cmd = (params.kafka_home+'/bin/kafka-topics.sh', '--zookeeper '+kafka_config['zookeeper.connect'],
-                          '--create --topic ambari_kafka_service_check', '--partitions 1 --replication-factor 1')
+      source_cmd = format("source {conf_dir}/kafka-env.sh")
+      create_topic_cmd = format("{kafka_home}/bin/kafka-topics.sh --zookeeper {kafka_config[zookeeper.connect]} --create --topic ambari_kafka_service_check --partitions 1 --replication-factor 1")
       
-      code, out = shell.checked_call(create_topic_cmd, 
-                                     verbose=True, env=environment)
-
-      if out.find(create_topic_cmd_created_output) != -1:
-          print out
-      elif out.find(create_topic_cmd_exists_output) != -1:
-          print "Topic ambari_kafka_service_check exists"
-      else:
-          raise Fail(out)
+      print "Running kafka create topic command"
+      Execute(format("{source_cmd} ; {create_topic_cmd} | grep '{create_topic_cmd_created_output}\|{create_topic_cmd_exists_output}'"),
+              logoutput=True,
+      )
 
   def read_kafka_config(self):
     import params
@@ -54,17 +47,6 @@ class ServiceCheck(Script):
           kafka_config[key] = value.replace("\n","")
     
     return kafka_config
-
-  def get_env(self):
-    import params
-    code, out = shell.checked_call(format('source {conf_dir}/kafka-env.sh && env'))
-    
-    environment = {}
-    for line in out.split("\n"):
-      (key, _, value) = line.partition("=")
-      environment[key] = value.replace("\n","")
-      
-    return environment
 
 if __name__ == "__main__":
     ServiceCheck().execute()

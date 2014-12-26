@@ -25,16 +25,22 @@ from resource_management.core import shell
 from resource_management.core.shell import string_cmd_from_args_list
 from resource_management.core.logger import Logger
 
-INSTALL_CMD = ['/usr/bin/zypper', '--quiet', 'install', '--auto-agree-with-licenses', '--no-confirm']
-REMOVE_CMD = ['/usr/bin/zypper', '--quiet', 'remove', '--no-confirm']
+INSTALL_CMD = {
+  True: ['/usr/bin/zypper', 'install', '--auto-agree-with-licenses', '--no-confirm'],
+  False: ['/usr/bin/zypper', '--quiet', 'install', '--auto-agree-with-licenses', '--no-confirm'],
+}
+REMOVE_CMD = {
+  True: ['/usr/bin/zypper', 'remove', '--no-confirm'],
+  False: ['/usr/bin/zypper', '--quiet', 'remove', '--no-confirm'],
+}
 CHECK_CMD = "installed_pkgs=`rpm -qa %s` ; [ ! -z \"$installed_pkgs\" ]"
 
 class ZypperProvider(PackageProvider):
   def install_package(self, name, use_repos=[]):
     if not self._check_existence(name):
-      cmd = INSTALL_CMD + [name]
+      cmd = INSTALL_CMD[self.get_logoutput()] + [name]
       Logger.info("Installing package %s ('%s')" % (name, string_cmd_from_args_list(cmd)))
-      shell.checked_call(cmd, sudo=True)
+      shell.checked_call(cmd, sudo=True, logoutput=self.get_logoutput())
     else:
       Logger.info("Skipping installing existent package %s" % (name))
 
@@ -43,9 +49,9 @@ class ZypperProvider(PackageProvider):
   
   def remove_package(self, name):
     if self._check_existence(name):
-      cmd = REMOVE_CMD + [name]
+      cmd = REMOVE_CMD[self.get_logoutput()] + [name]
       Logger.info("Removing package %s ('%s')" % (name, string_cmd_from_args_list(cmd)))
-      shell.checked_call(cmd, sudo=True)
+      shell.checked_call(cmd, sudo=True, logoutput=self.get_logoutput())
     else:
       Logger.info("Skipping removing non-existent package %s" % (name))
 

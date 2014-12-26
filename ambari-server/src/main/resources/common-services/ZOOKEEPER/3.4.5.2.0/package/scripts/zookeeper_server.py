@@ -41,7 +41,7 @@ def call_and_match_output(command, regex_expression, err_message):
   """
   # TODO Rolling Upgrade, does this work in Ubuntu? If it doesn't see dynamic_variable_interpretation.py to see how stdout was redirected
   # to a temporary file, which was then read.
-  code, out = call(command, verbose=True)
+  code, out = call(command)
   if not (out and re.search(regex_expression, out, re.IGNORECASE)):
     raise Fail(err_message)
 
@@ -84,7 +84,7 @@ class ZookeeperServer(Script):
     quorum_err_message = "Failed to establish zookeeper quorum"
     call_and_match_output(create_command, 'Created', quorum_err_message)
     call_and_match_output(list_command, r"\[.*?" + unique + ".*?\]", quorum_err_message)
-    call(delete_command, verbose=True)
+    call(delete_command)
 
   def stop(self, env, rolling_restart=False):
     import params

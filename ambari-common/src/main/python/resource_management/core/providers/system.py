@@ -245,9 +245,7 @@ class ExecuteProvider(Provider):
     if self.resource.creates:
       if os.path.exists(self.resource.creates):
         return
-
-    Logger.debug("Executing %s" % self.resource)
-
+      
     env = self.resource.environment
           
     for i in range (0, self.resource.tries):
