@@ -252,6 +252,14 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
     return !!this.get('controller.content.criticalAlertsCount');
   }.property('controller.content.criticalAlertsCount'),
 
+  /**
+   * Define if service has alert definitions defined
+   * @type {Boolean}
+   */
+  hasAlertDefinitions: function () {
+    return App.AlertDefinition.getAllDefinitions().someProperty('serviceName', this.get('controller.content.serviceName'));
+  }.property('controller.content.serviceName'),
+
   restartRequiredHostsAndComponents:function () {
     return this.get('controller.content.restartRequiredHostsAndComponents');
   }.property('controller.content.restartRequiredHostsAndComponents'),

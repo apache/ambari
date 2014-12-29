@@ -104,4 +104,37 @@ describe('App.MainServiceInfoSummaryView', function() {
 
   });
 
+  describe('#hasAlertDefinitions', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.AlertDefinition, 'getAllDefinitions', function () {
+        return [
+          {
+            serviceName: 'HDFS'
+          },
+          {
+            serviceName: 'YARN'
+          }
+        ];
+      });
+    });
+
+    afterEach(function () {
+      App.AlertDefinition.getAllDefinitions.restore();
+    });
+
+    it('should return true if at least one alert definition for this service exists', function () {
+      view.set('controller.content', Em.Object.create({
+        serviceName: 'HDFS'
+      }));
+      expect(view.get('hasAlertDefinitions')).to.be.true;
+
+      it('should return false if there is no alert definition for this service', function () {
+        view.set('controller.content', Em.Object.create({
+          serviceName: 'ZOOKEEPER'
+        }));
+        expect(view.get('hasAlertDefinitions')).to.be.false;
+      });
+    })
+  });
 });
