@@ -26,9 +26,9 @@
     <version>0.1.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-
   <artifactId>ambari-metrics-assembly</artifactId>
   <packaging>pom</packaging>
+  <version>0.1.0-SNAPSHOT</version>
 
   <properties>
     <collector.dir>${project.basedir}/../ambari-metrics-timelineservice</collector.dir>
@@ -47,6 +47,33 @@
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>parse-version</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>parse-version</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>regex-property</id>
+            <goals>
+              <goal>regex-property</goal>
+            </goals>
+            <configuration>
+              <name>ambariVersion</name>
+              <value>${project.version}</value>
+              <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-).*</regex>
+              <replacement>$1.$2.$3</replacement>
+              <failIfNoMatch>false</failIfNoMatch>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
         <version>2.7</version>
@@ -94,7 +121,7 @@
               <finalName>ambari-metrics-collector-${project.version}</finalName>
               <appendAssemblyId>false</appendAssemblyId>
               <descriptors>
-                <descriptor>src/main/assembly/collector.xml</descriptor>
+                <descriptor>${assemblydescriptor.collector}</descriptor>
               </descriptors>
               <tarLongFileMode>gnu</tarLongFileMode>
             </configuration>
@@ -110,7 +137,7 @@
               <finalName>ambari-metrics-monitor-${project.version}</finalName>
               <appendAssemblyId>false</appendAssemblyId>
               <descriptors>
-                <descriptor>src/main/assembly/monitor.xml</descriptor>
+                <descriptor>${assemblydescriptor.monitor}</descriptor>
               </descriptors>
               <tarLongFileMode>gnu</tarLongFileMode>
             </configuration>
@@ -126,7 +153,7 @@
               <finalName>ambari-metrics-hadoop-sink-${project.version}</finalName>
               <appendAssemblyId>false</appendAssemblyId>
               <descriptors>
-                <descriptor>src/main/assembly/sink.xml</descriptor>
+                <descriptor>${assemblydescriptor.sink}</descriptor>
               </descriptors>
               <tarLongFileMode>gnu</tarLongFileMode>
             </configuration>
@@ -709,6 +736,48 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+    <profile>
+      <id>windows</id>
+      <activation>
+        <os>
+          <family>win</family>
+        </os>
+      </activation>
+      <properties>
+        <envClassifier>win</envClassifier>
+        <dirsep>\</dirsep>
+        <pathsep>;</pathsep>
+        <executable.python>python</executable.python>
+        <executable.shell>cmd</executable.shell>
+        <fileextension.shell>cmd</fileextension.shell>
+        <fileextension.dot.shell-default>.cmd</fileextension.dot.shell-default>
+        <assemblydescriptor.collector>src/main/assembly/collector-windows.xml</assemblydescriptor.collector>
+        <assemblydescriptor.monitor>src/main/assembly/monitor-windows.xml</assemblydescriptor.monitor>
+        <assemblydescriptor.sink>src/main/assembly/sink-windows.xml</assemblydescriptor.sink>
+        <packagingFormat>jar</packagingFormat>
+      </properties>
+    </profile>
+    <profile>
+      <id>linux</id>
+      <activation>
+        <os>
+          <family>unix</family>
+        </os>
+      </activation>
+      <properties>
+        <envClassifier>linux</envClassifier>
+        <dirsep>/</dirsep>
+        <pathsep>:</pathsep>
+        <executable.python>${project.basedir}/../ambari-common/src/main/unix/ambari-python-wrap</executable.python>
+        <executable.shell>sh</executable.shell>
+        <fileextension.shell>sh</fileextension.shell>
+        <fileextension.dot.shell-default></fileextension.dot.shell-default>
+        <assemblydescriptor.collector>src/main/assembly/collector.xml</assemblydescriptor.collector>
+        <assemblydescriptor.monitor>src/main/assembly/monitor.xml</assemblydescriptor.monitor>
+        <assemblydescriptor.sink>src/main/assembly/sink.xml</assemblydescriptor.sink>
+        <packagingFormat>jar</packagingFormat>
+      </properties>
     </profile>
   </profiles>
 

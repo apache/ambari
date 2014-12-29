@@ -402,7 +402,7 @@ class WinService(win32serviceutil.ServiceFramework):
   # _svc_display_name_ = The service display name
   # _svc_description_ = The service description
 
-  _heventSvcStop = win32event.CreateEvent(None, 0, 0, None)
+  _heventSvcStop = win32event.CreateEvent(None, 1, 0, None)
   _hmtxOut = win32event.CreateMutex(None, False, None)  #[fbarca] Python doesn't support critical sections
 
   def __init__(self, *args):
@@ -418,17 +418,18 @@ class WinService(win32serviceutil.ServiceFramework):
 
   def SvcStop(self):
     self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
-    win32event.SetEvent(self._heventSvcStop)
+    win32event.SetEvent(WinService._heventSvcStop)
 
   # Service code entry point. Override it to implement the intended functionality.
   def ServiceMain(self):
     #Default implementation, does nothing.
-    win32event.WaitForSingleObject(self._heventSvcStop, win32event.INFINITE)
+    win32event.WaitForSingleObject(WinService._heventSvcStop, win32event.INFINITE)
     pass
 
-  def DefCtrlCHandler(self):
+  @staticmethod
+  def DefCtrlCHandler():
     print_info_msg("Ctrl+C handler invoked. Stopping.")
-    win32event.SetEvent(self._heventSvcStop)
+    win32event.SetEvent(WinService._heventSvcStop)
     pass
 
   #username domain\\username : The Username the service is to run under
@@ -438,7 +439,7 @@ class WinService(win32serviceutil.ServiceFramework):
   #perfmonini file: .ini file to use for registering performance monitor data
   #perfmondll file: .dll file to use when querying the service for performance data, default = perfmondata.dll
   @classmethod
-  def Install(cls, startupMode = "auto", username = None, password = None, interactive = False,
+  def Install(cls, classPath = None, startupMode = "auto", username = None, password = None, interactive = False,
               perfMonIni = None, perfMonDll = None):
     installArgs = [sys.argv[0], "--startup=" + startupMode]
     if username is not None and username:
@@ -452,7 +453,8 @@ class WinService(win32serviceutil.ServiceFramework):
     if perfMonDll is not None and perfMonDll:
       installArgs.append("--perfmondll=" + perfMonDll)
     installArgs.append("install")
-    win32serviceutil.HandleCommandLine(cls, None, installArgs)
+
+    win32serviceutil.HandleCommandLine(cls, classPath, installArgs)
 
   @classmethod
   def Start(cls, waitSecs = 30):
@@ -483,11 +485,12 @@ class WinService(win32serviceutil.ServiceFramework):
 
   def CheckForStop(self):
     #Check for stop event to be signaled
-    return win32event.WAIT_OBJECT_0 == win32event.WaitForSingleObject(self._heventSvcStop, 1)
+    return win32event.WAIT_OBJECT_0 == win32event.WaitForSingleObject(WinService._heventSvcStop, 1)
 
   def _StopOrWaitForChildProcessToFinish(self, childProcess):
     #Wait for the child process to finish or for the stop event to be signaled
-    if(win32event.WAIT_OBJECT_0 == win32event.WaitForMultipleObjects([self._heventSvcStop, childProcess._handle], False, win32event.INFINITE)):
+    if(win32event.WAIT_OBJECT_0 == win32event.WaitForMultipleObjects([WinService._heventSvcStop, childProcess._handle],
+                                                                     False, win32event.INFINITE)):
       # The OS only detaches the child process when the master process exits.
       # We must kill it manually.
       try:

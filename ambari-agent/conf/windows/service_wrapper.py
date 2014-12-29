@@ -92,7 +92,7 @@ class AmbariAgentService(AmbariService):
     # Soft dependency on the Windows Time service
     ensure_time_service_is_started()
 
-    self.heartbeat_stop_handler = HeartbeatStopHandlers(self._heventSvcStop)
+    self.heartbeat_stop_handler = HeartbeatStopHandlers(AmbariAgentService._heventSvcStop)
 
     self.ReportServiceStatus(win32service.SERVICE_RUNNING)
 
