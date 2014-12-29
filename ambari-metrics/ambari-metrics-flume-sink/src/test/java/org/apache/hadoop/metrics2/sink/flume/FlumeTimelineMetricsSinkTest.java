@@ -38,34 +38,26 @@ public class FlumeTimelineMetricsSinkTest {
   @Test
   public void testNonNumericMetricMetricExclusion() throws InterruptedException {
     FlumeTimelineMetricsSink flumeTimelineMetricsSink = new FlumeTimelineMetricsSink();
-    TimelineMetricsCache timelineMetricsCache = getTimelineMetricsCache(flumeTimelineMetricsSink);
-    flumeTimelineMetricsSink.setPollFrequency(1);
-    HttpClient httpClient = EasyMock.createNiceMock(HttpClient.class);
-    flumeTimelineMetricsSink.setHttpClient(httpClient);
+    FlumeTimelineMetricsSink.TimelineMetricsCollector collector =
+      flumeTimelineMetricsSink.new TimelineMetricsCollector();
     mockStatic(JMXPollUtil.class);
     EasyMock.expect(JMXPollUtil.getAllMBeans()).andReturn(
         Collections.singletonMap("component1", Collections.singletonMap("key1", "value1"))).once();
-    replay(JMXPollUtil.class, timelineMetricsCache, httpClient);
-    flumeTimelineMetricsSink.start();
-    Thread.sleep(5);
-    flumeTimelineMetricsSink.stop();
+    replay(JMXPollUtil.class);
+    collector.run();
     verifyAll();
   }
 
   @Test
-  public void testNumericMetricMetricSubmission() throws InterruptedException {
+  public void testNumericMetricSubmission() throws InterruptedException {
     FlumeTimelineMetricsSink flumeTimelineMetricsSink = new FlumeTimelineMetricsSink();
-    TimelineMetricsCache timelineMetricsCache = getTimelineMetricsCache(flumeTimelineMetricsSink);
-    flumeTimelineMetricsSink.setPollFrequency(1);
-    HttpClient httpClient = EasyMock.createNiceMock(HttpClient.class);
-    flumeTimelineMetricsSink.setHttpClient(httpClient);
+    FlumeTimelineMetricsSink.TimelineMetricsCollector collector =
+      flumeTimelineMetricsSink.new TimelineMetricsCollector();
     mockStatic(JMXPollUtil.class);
     EasyMock.expect(JMXPollUtil.getAllMBeans()).andReturn(
         Collections.singletonMap("component1", Collections.singletonMap("key1", "42"))).once();
-    replay(JMXPollUtil.class, timelineMetricsCache, httpClient);
-    flumeTimelineMetricsSink.start();
-    Thread.sleep(5);
-    flumeTimelineMetricsSink.stop();
+    replay(JMXPollUtil.class);
+    collector.run();
     verifyAll();
   }
 
@@ -101,17 +93,13 @@ public class FlumeTimelineMetricsSinkTest {
   @Test
   public void testMetricsRetrievalExceptionTolerance() throws InterruptedException {
     FlumeTimelineMetricsSink flumeTimelineMetricsSink = new FlumeTimelineMetricsSink();
-    TimelineMetricsCache timelineMetricsCache = getTimelineMetricsCache(flumeTimelineMetricsSink);
-    flumeTimelineMetricsSink.setPollFrequency(1);
-    HttpClient httpClient = EasyMock.createNiceMock(HttpClient.class);
-    flumeTimelineMetricsSink.setHttpClient(httpClient);
+    FlumeTimelineMetricsSink.TimelineMetricsCollector collector =
+      flumeTimelineMetricsSink.new TimelineMetricsCollector();
     mockStatic(JMXPollUtil.class);
     EasyMock.expect(JMXPollUtil.getAllMBeans()).
         andThrow(new RuntimeException("Failed to retrieve Flume Properties")).once();
-    replay(JMXPollUtil.class, timelineMetricsCache, httpClient);
-    flumeTimelineMetricsSink.start();
-    Thread.sleep(5);
-    flumeTimelineMetricsSink.stop();
+    replay(JMXPollUtil.class);
+    collector.run();
     verifyAll();
   }
 }

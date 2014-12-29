@@ -116,7 +116,7 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
    * org.apache.flume. All attributes of such beans are sent
    * to the metrics collector service.
    */
-  private class TimelineMetricsCollector implements Runnable {
+  class TimelineMetricsCollector implements Runnable {
     @Override
     public void run() {
       LOG.debug("Collecting Metrics for Flume");
