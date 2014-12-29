@@ -134,6 +134,7 @@ class TestNamenode(RMFTestCase):
         user = 'hdfs',
         action = ['execute'],
         hadoop_conf_dir = '/etc/hadoop/conf',
+        only_if= None,
     )
     self.assertNoMoreResources()
 
@@ -257,8 +258,9 @@ class TestNamenode(RMFTestCase):
     )
     self.assertResourceCalled('HdfsResource', None,
         security_enabled = True,
-        hadoop_bin_dir = '/usr/bin',
+        only_if = None,
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
+        hadoop_bin_dir = '/usr/bin',
         hadoop_fs = 'hdfs://c6401.ambari.apache.org:8020',
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
@@ -358,8 +360,9 @@ class TestNamenode(RMFTestCase):
     )
     self.assertResourceCalled('HdfsResource', None,
         security_enabled = False,
-        hadoop_bin_dir = '/usr/bin',
+        only_if = "/usr/bin/sudo su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = UnknownConfigurationMock(),
+        hadoop_bin_dir = '/usr/bin',
         hadoop_fs = 'hdfs://ns1',
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
@@ -442,8 +445,9 @@ class TestNamenode(RMFTestCase):
     )
     self.assertResourceCalled('HdfsResource', None,
         security_enabled = True,
-        hadoop_bin_dir = '/usr/bin',
+        only_if = "/usr/bin/sudo su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
+        hadoop_bin_dir = '/usr/bin',
         hadoop_fs = 'hdfs://ns1',
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
@@ -545,6 +549,7 @@ class TestNamenode(RMFTestCase):
         user = 'hdfs',
         action = ['execute'],
         hadoop_conf_dir = '/etc/hadoop/conf',
+        only_if= "/usr/bin/sudo su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn1 | grep active'",
     )
     self.assertNoMoreResources()
 
@@ -628,8 +633,9 @@ class TestNamenode(RMFTestCase):
     )
     self.assertResourceCalled('HdfsResource', None,
         security_enabled = False,
-        hadoop_bin_dir = '/usr/bin',
+        only_if = "/usr/bin/sudo su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin ; hdfs --config /etc/hadoop/conf haadmin -getServiceState nn2 | grep active'",
         keytab = UnknownConfigurationMock(),
+        hadoop_bin_dir = '/usr/bin',
         hadoop_fs = 'hdfs://ns1',
         kinit_path_local = '/usr/bin/kinit',
         user = 'hdfs',
