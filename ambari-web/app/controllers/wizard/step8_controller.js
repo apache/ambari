@@ -305,6 +305,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
           break;
       }
 
+      hive_properties.push('hive_master_hosts');
       hive_properties.forEach(function (property) {
         configs = configs.without(configs.findProperty('name', property));
       });

@@ -802,11 +802,11 @@ var props = {
     {
       "id": "puppet var",
       "name": "hive_metastore",
-      "displayName": "Hive Metastore host",
+      "displayName": "Hive Metastore hosts",
       "value": "",
       "defaultValue": "localhost",
-      "description": "The host that has been assigned to run Hive Metastore and HiveServer2",
-      "displayType": "masterHost",
+      "description": "The hosts that have been assigned to run Hive Metastore and HiveServer2",
+      "displayType": "masterHosts",
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "HIVE",
@@ -824,7 +824,7 @@ var props = {
       "isOverridable": false,
       "serviceName": "HIVE",
       "category": "Hive Metastore",
-      "component": "HIVE_SERVER"
+      "components": ["HIVE_SERVER", "HIVE_METASTORE"]
     },
     {
       "id": "puppet var",
@@ -838,7 +838,7 @@ var props = {
       "isOverridable": false,
       "serviceName": "HIVE",
       "category": "Hive Metastore",
-      "component": "HIVE_SERVER"
+      "components": ["HIVE_SERVER", "HIVE_METASTORE"]
     },
     {
       "id": "puppet var",

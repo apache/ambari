@@ -69,7 +69,7 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     {
       serviceName: 'HIVE',
       configName: 'hive_metastore',
-      components: ['HIVE_SERVER']
+      components: ['HIVE_METASTORE', 'HIVE_SERVER']
     },
     {
       serviceName: 'HIVE',

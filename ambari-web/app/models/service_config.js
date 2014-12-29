@@ -439,6 +439,12 @@ App.ServiceConfigProperty = Em.Object.extend({
       case 'hive_ambari_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName);
         break;
+      case 'hive_master_hosts':
+        var hostNames = masterComponentHostsInDB.filter(function (masterComponent) {
+          return ['HIVE_METASTORE', 'HIVE_SERVER'].contains(masterComponent.component);
+        });
+        this.set('value', hostNames.mapProperty('hostName').uniq().join(','));
+        break;
       case 'hive_database':
         var newMySQLDBOption = this.get('options').findProperty('displayName', 'New MySQL Database');
         if (newMySQLDBOption) {

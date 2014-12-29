@@ -220,6 +220,23 @@ describe('App.AddSecurityConfigs', function () {
       expect(config.value).to.be.null;
     });
 
+    it('Hive Metastore hostname array is converted to string', function () {
+      var config = {
+        value: '<templateName[0]>',
+        templateName: ['hive_metastore']
+      };
+      controller.set('globalProperties', []);
+      controller.set('configs', [
+        {
+          name: 'hive_metastore',
+          value: ['h0', 'h1', 'h2']
+        }
+      ]);
+
+      expect(controller.setConfigValue(config)).to.be.true;
+      expect(config.value).to.equal('h0,h1,h2');
+    });
+
   });
 
   describe('#addHostConfig()', function() {

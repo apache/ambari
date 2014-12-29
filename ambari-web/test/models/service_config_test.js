@@ -752,6 +752,30 @@ describe('App.ServiceConfigProperty', function () {
         },
         value: ['h0', 'h1'],
         title: 'array that contains names of hosts with Hive Metastore'
+      },
+      'hive_master_hosts': {
+        localDB: {
+          masterComponentHosts: [
+            {
+              component: 'HIVE_SERVER',
+              hostName: 'h0'
+            },
+            {
+              component: 'HIVE_METASTORE',
+              hostName: 'h0'
+            },
+            {
+              component: 'HIVE_METASTORE',
+              hostName: 'h1'
+            },
+            {
+              component: 'WEBHCAT_SERVER',
+              hostName: 'h2'
+            }
+          ]
+        },
+        value: 'h0,h1',
+        title: 'comma separated list of hosts with Hive Server and Metastore'
       }
     };
 
@@ -829,6 +853,12 @@ describe('App.ServiceConfigProperty', function () {
       serviceConfigProperty.set('name', 'hivemetastore_host');
       serviceConfigProperty.initialValue(cases['hivemetastore_host'].localDB);
       expect(serviceConfigProperty.get('value')).to.eql(cases['hivemetastore_host'].value);
+    });
+
+    it(cases['hive_master_hosts'].title, function () {
+      serviceConfigProperty.set('name', 'hive_master_hosts');
+      serviceConfigProperty.initialValue(cases['hive_master_hosts'].localDB);
+      expect(serviceConfigProperty.get('value')).to.equal(cases['hive_master_hosts'].value);
     });
 
   });

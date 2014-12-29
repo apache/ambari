@@ -3232,6 +3232,16 @@ module.exports =
       "category": "HIVE_METASTORE",
       "index": 0
     },
+    {
+      "name": "hive_master_hosts",
+      "value": "",
+      "defaultValue": "",
+      "isOverridable": false,
+      "isRequiredByAgent": false,
+      "isVisible": false,
+      "serviceName": "HIVE",
+      "filename": "hive-env.xml"
+    },
     // for existing MySQL
     {
       "id": "puppet var",

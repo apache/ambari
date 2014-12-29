@@ -538,7 +538,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     }
 
     this.showBackgroundOperationsPopup(function () {
-      if (params.componentName === 'ZOOKEEPER_SERVER' || params.componentName === 'HIVE_METASTORE') {
+      if (params.componentName === 'ZOOKEEPER_SERVER' || params.componentName === 'HIVE_METASTORE' ||  params.componentName === 'HIVE_SERVER') {
         self.set(params.componentName === 'ZOOKEEPER_SERVER' ? 'zkRequestId' : 'hiveRequestId', data.Requests.id);
         self.addObserver(
           'App.router.backgroundOperationsController.serviceTimestamp',
@@ -576,21 +576,26 @@ App.MainHostDetailsController = Em.Controller.extend({
       name: 'admin.get.all_configurations',
       sender: this,
       data: {
-        urlParams: '(type=hive-site&tag='+data.Clusters.desired_configs['hive-site'].tag+')|(type=webhcat-site&tag=' + data.Clusters.desired_configs['webhcat-site'].tag + ')'
+        urlParams: '(type=hive-site&tag=' + data.Clusters.desired_configs['hive-site'].tag + ')|(type=webhcat-site&tag=' +
+          data.Clusters.desired_configs['webhcat-site'].tag + ')|(type=hive-env&tag=' + data.Clusters.desired_configs['hive-env'].tag +
+          ')|(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')'
       },
       success: 'onLoadHiveConfigs'
     });
   },
 
   /**
-   * update and save Hive hive.metastore.uris config to server
+   * update and save Hive related configs to server
    * @param {object} data
    * @method onLoadHiveConfigs
    */
   onLoadHiveConfigs: function (data) {
     var hiveMSHosts = this.getHiveHosts();
+    var hiveMasterHosts = hiveMSHosts.concat([App.HostComponent.find().findProperty('componentName', 'HIVE_SERVER').get('hostName')]).uniq().join(',');
     var configs = {};
     var port = "";
+    var hiveUser = "";
+    var webhcatUser = "";
 
     data.items.forEach(function (item) {
       configs[item.type] = item.properties;
@@ -599,11 +604,16 @@ App.MainHostDetailsController = Em.Controller.extend({
     port = configs['hive-site']['hive.metastore.uris'].match(/:[0-9]{2,4}/);
     port = port ? port[0].slice(1) : "9083";
 
+    hiveUser = configs['hive-env']['hive_user'];
+    webhcatUser = configs['hive-env']['webhcat_user'];
+
     for (var i = 0; i < hiveMSHosts.length; i++) {
       hiveMSHosts[i] = "thrift://" + hiveMSHosts[i] + ":" + port;
     }
     configs['hive-site']['hive.metastore.uris'] = hiveMSHosts.join(',');
     configs['webhcat-site']['templeton.hive.properties'] = configs['webhcat-site']['templeton.hive.properties'].replace(/thrift.+[0-9]{2,},/i, hiveMSHosts.join('\\,') + ",");
+    configs['core-site']['hadoop.proxyuser.' + hiveUser + '.hosts'] = hiveMasterHosts;
+    configs['core-site']['hadoop.proxyuser.' + webhcatUser + '.hosts'] = hiveMasterHosts;
 
     for (var site in configs) {
       if (!configs.hasOwnProperty(site)) continue;

@@ -543,9 +543,9 @@ var props = [
   },
   {
     "name": "templeton.hive.properties",
-    "templateName": ["hivemetastore_host","hive_metastore_principal_name","kerberos_domain"],
+    "templateName": ["hive_metastore","hive_metastore_principal_name","kerberos_domain"],
     "foreignKey": null,
-    "value": "hive.metastore.local=false,hive.metastore.uris=thrift://<templateName[0]>:9083,hive." +
+    "value": "hive.metastore.local=false,hive.metastore.uris=<templateName[0]>,hive." +
       "metastore.sasl.enabled=true,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse,hive.exec.mode.local.auto=false,hive.metastore.kerberos.principal=<templateName[1]>@<templateName[2]>",
     "filename": "webhcat-site.xml",
     "serviceName": "HIVE"
@@ -747,7 +747,7 @@ var props = [
   },
   {
     "name": "hadoop.proxyuser.<foreignKey[0]>.hosts",
-    "templateName": ["hivemetastore_host"],
+    "templateName": ["hive_metastore"],
     "foreignKey": ["hive_metastore_primary_name"],
     "value": "<templateName[0]>",
     "filename": "core-site.xml",

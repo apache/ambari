@@ -293,7 +293,7 @@ describe('App.WizardStep8Controller', function () {
             {name: 'hive_ambari_host', value: 'h1'},
             {name: 'hive_hostname', value: 'h2'}
           ],
-          removed: Em.A(['hive_existing_mysql_database', 'hive_existing_oracle_database', 'hive_existing_postgresql_database']),
+          removed: Em.A(['hive_existing_mysql_database', 'hive_existing_oracle_database', 'hive_existing_postgresql_database', 'hive_master_hosts']),
           m: 'hive_database: New MySQL Database',
           host: 'h1'
         },
@@ -304,7 +304,7 @@ describe('App.WizardStep8Controller', function () {
             {name: 'hive_existing_mysql_host', value: 'h1'},
             {name: 'hive_hostname', value: 'h2'}
           ],
-          removed: Em.A(['hive_ambari_database', 'hive_existing_oracle_database', 'hive_existing_postgresql_database']),
+          removed: Em.A(['hive_ambari_database', 'hive_existing_oracle_database', 'hive_existing_postgresql_database', 'hive_master_hosts']),
           m: 'hive_database: Existing MySQL Database',
           host: 'h1'
         },
@@ -315,7 +315,7 @@ describe('App.WizardStep8Controller', function () {
             {name: 'hive_existing_postgresql_host', value: 'h1'},
             {name: 'hive_hostname', value: 'h2'}
           ],
-          removed: Em.A(['hive_ambari_database', 'hive_existing_oracle_database', 'hive_existing_mysql_database']),
+          removed: Em.A(['hive_ambari_database', 'hive_existing_oracle_database', 'hive_existing_mysql_database', 'hive_master_hosts']),
           m: 'hive_database: Existing PostgreSQL Database',
           host: 'h1'
         },
@@ -326,7 +326,7 @@ describe('App.WizardStep8Controller', function () {
             {name: 'hive_existing_oracle_host', value: 'h1'},
             {name: 'hive_hostname', value: 'h2'}
           ],
-          removed: Em.A(['hive_ambari_database', 'hive_existing_mysql_database', 'hive_existing_postgresql_database']),
+          removed: Em.A(['hive_ambari_database', 'hive_existing_mysql_database', 'hive_existing_postgresql_database', 'hive_master_hosts']),
           m: 'hive_database: Existing Oracle Database',
           host: 'h1'
         }

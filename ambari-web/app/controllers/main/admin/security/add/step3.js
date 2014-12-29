@@ -38,6 +38,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       'NODEMANAGER': 'yarn_user',
       'ZOOKEEPER_SERVER': 'zk_user',
       'HIVE_SERVER': 'hive_user',
+      'HIVE_METASTORE': 'hive_user',
       'OOZIE_SERVER': 'oozie_user',
       'NAGIOS_SERVER': 'nagios_user',
       'HBASE_MASTER': 'hbase_user',
@@ -346,9 +347,9 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
    * @param hadoopGroupId
    */
   setHostComponentsSecureValue: function (result, host, addedPrincipalsHost, securityUsers, hadoopGroupId) {
-    var componentsToDisplay = ['NAMENODE', 'SECONDARY_NAMENODE', 'DATANODE', 'JOBTRACKER', 'ZOOKEEPER_SERVER', 'HIVE_SERVER', 'TASKTRACKER',
-      'OOZIE_SERVER', 'NAGIOS_SERVER', 'HBASE_MASTER', 'HBASE_REGIONSERVER', 'HISTORYSERVER', 'RESOURCEMANAGER', 'NODEMANAGER', 'JOURNALNODE',
-      'SUPERVISOR', 'NIMBUS', 'STORM_UI_SERVER','FALCON_SERVER', 'KNOX_GATEWAY', 'APP_TIMELINE_SERVER'];
+    var componentsToDisplay = ['NAMENODE', 'SECONDARY_NAMENODE', 'DATANODE', 'JOBTRACKER', 'ZOOKEEPER_SERVER', 'HIVE_SERVER', 'HIVE_METASTORE',
+      'TASKTRACKER', 'OOZIE_SERVER', 'NAGIOS_SERVER', 'HBASE_MASTER', 'HBASE_REGIONSERVER', 'HISTORYSERVER', 'RESOURCEMANAGER', 'NODEMANAGER',
+      'JOURNALNODE', 'SUPERVISOR', 'NIMBUS', 'STORM_UI_SERVER','FALCON_SERVER', 'KNOX_GATEWAY', 'APP_TIMELINE_SERVER'];
     if (App.get('isHadoop22Stack')) {
       componentsToDisplay.push('DRPC_SERVER');
     }
@@ -439,7 +440,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
    * @return {*}
    */
   changeDisplayName: function (name) {
-    if (name === 'HiveServer2') {
+    if (name === 'HiveServer2' || name === 'Hive Metastore') {
       return 'Hive Metastore and HiveServer2';
     } else {
       return name;
