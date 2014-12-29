@@ -763,7 +763,7 @@ public class KerberosHelper {
         event,
         commandParameters,
         commandDetail,
-        timeout);
+        timeout, false);
 
     return stage;
   }
@@ -1049,7 +1049,7 @@ public class KerberosHelper {
             "SET_KEYTAB",
             requestResourceFilters,
             requestParams);
-        customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, requestParams);
+        customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, requestParams, false);
       }
 
       roleGraph = new RoleGraph(roleCommandOrder);

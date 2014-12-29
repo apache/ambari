@@ -221,6 +221,7 @@ CREATE TABLE stage (
   stage_id NUMBER(19) NOT NULL,
   request_id NUMBER(19) NOT NULL,
   cluster_id NUMBER(19) NULL,
+  skippable NUMBER(1) DEFAULT 0 NOT NULL,
   log_info VARCHAR2(255) NULL,
   request_context VARCHAR2(255) NULL,
   cluster_host_info BLOB NOT NULL,

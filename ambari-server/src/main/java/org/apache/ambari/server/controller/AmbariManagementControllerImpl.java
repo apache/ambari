@@ -1593,7 +1593,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     stage.addHostRoleExecutionCommand(scHost.getHostName(), Role.valueOf(scHost
       .getServiceComponentName()), roleCommand,
       event, scHost.getClusterName(),
-      scHost.getServiceName());
+      scHost.getServiceName(), false);
     String serviceName = scHost.getServiceName();
     String componentName = event.getServiceComponentName();
     String hostname = scHost.getHostName();
@@ -2073,7 +2073,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
         customCommandExecutionHelper.addServiceCheckAction(stage, clientHost,
           smokeTestRole, nowTimestamp, serviceName,
-          componentName, null);
+          componentName, null, false);
       }
 
       RoleCommandOrder rco = getRoleCommandOrder(cluster);
@@ -2846,9 +2846,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         jsons.getHostParamsForStage());
 
     if (actionRequest.isCommand()) {
-      customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, requestProperties);
+      customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, requestProperties, false);
     } else {
-      actionExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage);
+      actionExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, false);
     }
 
     RoleGraph rg;

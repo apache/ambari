@@ -7800,7 +7800,7 @@ public class AmbariManagementControllerTest {
             RoleCommand.START,
             new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
                     hostName1, System.currentTimeMillis()),
-            clusterName, "HBASE");
+            clusterName, "HBASE", false);
 
     stages.add(new Stage(requestId1, "/a2", clusterName, 1L, context,
       CLUSTER_HOST_INFO, "", ""));
@@ -7808,7 +7808,7 @@ public class AmbariManagementControllerTest {
     stages.get(1).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
             new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
-                    hostName1, System.currentTimeMillis()), clusterName, "HBASE");
+                    hostName1, System.currentTimeMillis()), clusterName, "HBASE", false);
 
     stages.add(new Stage(requestId1, "/a3", clusterName, 1L, context,
       CLUSTER_HOST_INFO, "", ""));
@@ -7816,7 +7816,7 @@ public class AmbariManagementControllerTest {
     stages.get(2).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
             new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
-                    hostName1, System.currentTimeMillis()), clusterName, "HBASE");
+                    hostName1, System.currentTimeMillis()), clusterName, "HBASE", false);
 
     Request request = new Request(stages, clusters);
     actionDB.persistActions(request);
@@ -7828,7 +7828,7 @@ public class AmbariManagementControllerTest {
     stages.get(0).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
             new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
-                    hostName1, System.currentTimeMillis()), clusterName, "HBASE");
+                    hostName1, System.currentTimeMillis()), clusterName, "HBASE", false);
 
     stages.add(new Stage(requestId2, "/a5", clusterName, 1L, context,
       CLUSTER_HOST_INFO, "", ""));
@@ -7836,7 +7836,7 @@ public class AmbariManagementControllerTest {
     stages.get(1).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
             new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
-                    hostName1, System.currentTimeMillis()), clusterName, "HBASE");
+                    hostName1, System.currentTimeMillis()), clusterName, "HBASE", false);
 
     request = new Request(stages, clusters);
     actionDB.persistActions(request);

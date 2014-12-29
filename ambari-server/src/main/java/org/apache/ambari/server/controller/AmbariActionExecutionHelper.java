@@ -202,12 +202,15 @@ public class AmbariActionExecutionHelper {
 
   /**
    * Add tasks to the stage based on the requested action execution
-   * @param actionContext the context associated with the action
-   * @param stage stage into which tasks must be inserted
-   * @throws AmbariException
+   *
+   * @param actionContext  the context associated with the action
+   * @param stage          stage into which tasks must be inserted
+   * @param retryAllowed   indicates whether retry is allowed on failure
+   *
+   * @throws AmbariException if the task can not be added
    */
   public void addExecutionCommandsToStage(
-          final ActionExecutionContext actionContext, Stage stage)
+      final ActionExecutionContext actionContext, Stage stage, boolean retryAllowed)
       throws AmbariException {
 
     String actionName = actionContext.getActionName();
@@ -331,7 +334,7 @@ public class AmbariActionExecutionHelper {
         Role.valueOf(actionContext.getActionName()), RoleCommand.ACTIONEXECUTE,
           new ServiceComponentHostOpInProgressEvent(actionContext.getActionName(),
             hostName, System.currentTimeMillis()), clusterName,
-              serviceName);
+              serviceName, retryAllowed);
 
       Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
       Map<String, Map<String, Map<String, String>>> configurationAttributes = new TreeMap<String, Map<String, Map<String, String>>>();

@@ -190,7 +190,7 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
         StageResourceProvider.calculateTaskStatusCounts(getHostRoleStatuses(stages));
 
     setResourceProperty(upgradeGroup, UPGRADE_GROUP_STATUS,
-        StageResourceProvider.calculateSummaryStatus(counters, stages.size()), requestedIds);
+        StageResourceProvider.calculateSummaryStatus(counters, stages.size(), false), requestedIds);
 
     setResourceProperty(upgradeGroup, UPGRADE_GROUP_PROGRESS_PERCENT,
         StageResourceProvider.calculateProgressPercent(counters, stages.size()), requestedIds);
