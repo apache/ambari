@@ -71,13 +71,13 @@ jdbc_driver_name = default("/configurations/oozie-site/oozie.service.JPAService.
 oozie_env_sh_template = config['configurations']['oozie-env']['content']
 
 if jdbc_driver_name == "com.mysql.jdbc.Driver":
-  jdbc_driver_jar = "/usr/share/java/mysql-connector-java.jar"
+  jdbc_driver_jar = "mysql-connector-java.jar"
   jdbc_symlink_name = "mysql-jdbc-driver.jar"
 elif jdbc_driver_name == "org.postgresql.Driver":
   jdbc_driver_jar = format("{oozie_home}/libtools/postgresql-9.0-801.jdbc4.jar") #oozie using it's own postgres jdbc
   jdbc_symlink_name = "postgres-jdbc-driver.jar"
 elif jdbc_driver_name == "oracle.jdbc.driver.OracleDriver":
-  jdbc_driver_jar = "/usr/share/java/ojdbc6.jar"
+  jdbc_driver_jar = "ojdbc.jar"
   jdbc_symlink_name = "oracle-jdbc-driver.jar"
 else:
   jdbc_driver_jar = ""
@@ -85,6 +85,7 @@ else:
 
 driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
 driver_curl_target = format("{java_share_dir}/{jdbc_driver_jar}")
+downloaded_custom_connector = format("{tmp_dir}/{jdbc_driver_jar}")
 if jdbc_driver_name == "org.postgresql.Driver":
   target = jdbc_driver_jar
 else:
@@ -98,9 +99,9 @@ else:
 lzo_jar_suffix = '`LZO_JARS=($(find /usr/lib/hadoop/lib/ -name "hadoop-lzo-*")); echo ${LZO_JARS[0]}`' if lzo_enabled else ""
   
 if lzo_enabled and jdbc_driver_name:
-    jar_path = format("{lzo_jar_suffix}:{jdbc_driver_jar}")        
+    jar_path = format("{lzo_jar_suffix}:{target}")
 else:
-    jar_path = "{lzo_jar_suffix}{jdbc_driver_jar}"
+    jar_path = "{lzo_jar_suffix}{target}"
 
 #oozie-log4j.properties
 if (('oozie-log4j' in config['configurations']) and ('content' in config['configurations']['oozie-log4j'])):

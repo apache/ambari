@@ -281,24 +281,28 @@ def jdbc_connector():
       "no_proxy": format("{ambari_server_hostname}")
     }
 
-    Execute(('curl', '-kf', '-x', "", '--retry', '10', params.driver_curl_source, '-o', params.driver_curl_target),
-            not_if=format("test -f {target}"),
+    # TODO: should be removed after ranger_hive_plugin will not provide jdbc
+    Execute(('rm', '-f', params.prepackaged_ojdbc_symlink),
+            path=["/bin", "/usr/bin/"],
+            sudo = True)
+
+    Execute(('curl', '-kf', '-x', "", '--retry', '10', params.driver_curl_source, '-o',
+             params.downloaded_custom_connector),
+            not_if=format("test -f {downloaded_custom_connector}"),
             path=["/bin", "/usr/bin/"],
             environment=environment,
             sudo = True)
 
 
-    Execute(('cp', params.driver_curl_target, params.target),
-            not_if=format("test -f {target}"),
-            creates=params.target,
+    Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.target),
+            #creates=params.target, TODO: uncomment after ranger_hive_plugin will not provide jdbc
             path=["/bin", "/usr/bin/"],
             sudo = True)
 
   else:
     #for default hive db (Mysql)
-    Execute(('cp', format('/usr/share/java/{jdbc_jar_name}'), params.target),
-            not_if=format("test -f {target}"),
-            creates=params.target,
+    Execute(('cp', '--remove-destination', format('/usr/share/java/{jdbc_jar_name}'), params.target),
+            #creates=params.target, TODO: uncomment after ranger_hive_plugin will not provide jdbc
             path=["/bin", "/usr/bin/"],
             sudo=True
     )

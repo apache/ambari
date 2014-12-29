@@ -161,19 +161,18 @@ def oozie_server_specific():
       "no_proxy": format("{ambari_server_hostname}")
     }
 
-    Execute(('curl', '-kf', '-x', "", '--retry', '10', params.driver_curl_source, '-o', params.driver_curl_target),
-            not_if=format("test -f {target}"),
+    Execute(('curl', '-kf', '-x', "", '--retry', '10', params.driver_curl_source, '-o',
+             params.downloaded_custom_connector),
+            not_if=format("test -f {downloaded_custom_connector}"),
             path=["/bin", "/usr/bin/"],
             environment=environment,
             sudo = True)
 
 
-    Execute(('cp', params.driver_curl_target, params.target),
-            not_if=format("test -f {target}"),
-            creates=params.target,
+    Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.target),
+            #creates=params.target, TODO: uncomment after ranger_hive_plugin will not provide jdbc
             path=["/bin", "/usr/bin/"],
             sudo = True)
-
 
   #falcon el extension
   if params.has_falcon_host:

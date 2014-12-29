@@ -125,6 +125,7 @@ else:
 
 driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
 driver_curl_target = format("{java_share_dir}/{jdbc_driver_jar}")
+downloaded_custom_connector = format("{tmp_dir}/{jdbc_driver_jar}")
 if jdbc_driver_name == "org.postgresql.Driver":
   target = jdbc_driver_jar
 else:

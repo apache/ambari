@@ -195,11 +195,9 @@ class TestHiveMetastore(RMFTestCase):
                               owner = 'hive',
                               group = 'hadoop',
                               )
-    self.assertResourceCalled('Execute', ('cp', '/usr/share/java/mysql-connector-java.jar', '/usr/lib/hive/lib//mysql-connector-java.jar'),
+    self.assertResourceCalled('Execute', ('cp', '--remove-destination', '/usr/share/java/mysql-connector-java.jar', '/usr/lib/hive/lib//mysql-connector-java.jar'),
                               path = ['/bin', '/usr/bin/'],
-                              creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
-                              sudo = True,
-                              not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
+                              sudo = True
                               )
     self.assertResourceCalled('Execute', '/bin/sh -c \'cd /usr/lib/ambari-agent/ && curl -kf -x "" --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar\'',
         environment = {'no_proxy': 'c6401.ambari.apache.org'},
@@ -290,11 +288,9 @@ class TestHiveMetastore(RMFTestCase):
                               owner = 'hive',
                               group = 'hadoop',
                               )
-    self.assertResourceCalled('Execute', ('cp', '/usr/share/java/mysql-connector-java.jar', '/usr/lib/hive/lib//mysql-connector-java.jar'),
+    self.assertResourceCalled('Execute', ('cp', '--remove-destination', '/usr/share/java/mysql-connector-java.jar', '/usr/lib/hive/lib//mysql-connector-java.jar'),
         path = ['/bin', '/usr/bin/'],
-        creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
-        sudo = True,
-        not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
+        sudo = True
     )
     self.assertResourceCalled('Execute', '/bin/sh -c \'cd /usr/lib/ambari-agent/ && curl -kf -x "" --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar\'',
         environment = {'no_proxy': 'c6401.ambari.apache.org'},
