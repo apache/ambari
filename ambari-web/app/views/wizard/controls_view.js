@@ -543,12 +543,6 @@ App.ServiceConfigRadioButton = Ember.Checkbox.extend({
   name: null,
   value: null,
 
-  elementId: Ember.computed(function(){
-    var label = Em.get(this, 'serviceConfig.name') ? Em.get(this, 'serviceConfig.name').toLowerCase().replace(/\./g, '-') : "",
-      fileName = Em.get(this, 'serviceConfig.filename') ? Em.get(this, 'serviceConfig.filename').toLowerCase().replace(/\./g, '-') : "";
-    return 'service-config-' + label + "-" + fileName;
-  }),
-
   didInsertElement: function () {
     console.debug('App.ServiceConfigRadioButton.didInsertElement');
     if (this.get('parentView.serviceConfig.value') === this.get('value')) {
