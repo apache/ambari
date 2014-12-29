@@ -98,6 +98,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
+import org.apache.ambari.server.state.ServiceComponentHostEventType;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
@@ -2328,7 +2329,15 @@ public class ClusterImpl implements Cluster {
           failedEvents.add(event);
         } catch (InvalidStateTransitionException e) {
           LOG.error("Invalid transition ", e);
-          failedEvents.add(event);
+          if ((e.getEvent() == ServiceComponentHostEventType.HOST_SVCCOMP_START) &&
+            (e.getCurrentState() == State.STARTED)) {
+            LOG.warn("Component request for component = " + event.getServiceComponentName() + " to start is invalid, since component is already started. Ignoring this request.");
+            // skip adding this as a failed event, to work around stack ordering issues with Hive
+          } else {
+            failedEvents.add(event);
+          }
+
+
         }
       }
     } finally {
