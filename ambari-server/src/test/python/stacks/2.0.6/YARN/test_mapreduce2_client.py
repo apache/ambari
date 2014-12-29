@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 from mock.mock import MagicMock, call, patch
+from resource_management.libraries.functions import version
 from stacks.utils.RMFTestCase import *
 import os
 
@@ -309,6 +310,7 @@ class TestMapReduce2Client(RMFTestCase):
                               )
     self.assertNoMoreResources()
 
+  @patch.object(version, "get_hdp_build_version", new=MagicMock(return_value="2.2.0.0-2041"))
   def test_upgrade(self):
     self.executeScript("2.0.6/services/YARN/package/scripts/mapreduce2_client.py",
                    classname = "MapReduce2Client",

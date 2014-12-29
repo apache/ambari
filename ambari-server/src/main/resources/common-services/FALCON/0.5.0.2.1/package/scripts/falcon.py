@@ -84,17 +84,19 @@ def falcon(type, action = None):
   if type == 'server':
     if action == 'config':
       if params.store_uri[0:4] == "hdfs":
-        params.HdfsDirectory(params.store_uri,
+        params.HdfsResource(params.store_uri,
+                             type="file",
                              action="create_delayed",
                              owner=params.falcon_user,
                              mode=0755
         )
-      params.HdfsDirectory(params.flacon_apps_dir,
+      params.HdfsResource(params.flacon_apps_dir,
+                           type="directory",
                            action="create_delayed",
                            owner=params.falcon_user,
                            mode=0777#TODO change to proper mode
       )
-      params.HdfsDirectory(None, action="create")
+      params.HdfsResource(None, action="execute")
       Directory(params.falcon_local_dir,
                 owner=params.falcon_user,
                 recursive=True,

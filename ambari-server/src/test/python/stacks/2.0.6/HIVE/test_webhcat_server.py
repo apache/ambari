@@ -116,37 +116,6 @@ class TestWebHCatServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
-    self.assertResourceCalled('HdfsDirectory', '/apps/webhcat',
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = "/usr/bin/kinit",
-                              mode = 0755,
-                              owner = 'hcat',
-                              bin_dir = '/usr/bin',
-                              action = ['create_delayed'],
-                              )
-    self.assertResourceCalled('HdfsDirectory', '/user/hcat',
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = "/usr/bin/kinit",
-                              mode = 0755,
-                              owner = 'hcat',
-                              bin_dir = '/usr/bin',
-                              action = ['create_delayed'],
-                              )
-    self.assertResourceCalled('HdfsDirectory', None,
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = "/usr/bin/kinit",
-                              bin_dir = '/usr/bin',
-                              action = ['create'],
-                              )
     self.assertResourceCalled('Directory', '/var/run/webhcat',
                               owner = 'hcat',
                               group = 'hadoop',
@@ -164,42 +133,6 @@ class TestWebHCatServer(RMFTestCase):
                               group = 'hadoop',
                               recursive = True,
                               )
-    self.assertResourceCalled('CopyFromLocal', '/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar',
-                              owner='hcat',
-                              mode=0755,
-                              dest_dir='/apps/webhcat',
-                              kinnit_if_needed='',
-                              hadoop_conf_dir='/etc/hadoop/conf',
-                              hadoop_bin_dir='/usr/bin',
-                              hdfs_user='hdfs'
-    )
-    self.assertResourceCalled('CopyFromLocal', '/usr/share/HDP-webhcat/pig.tar.gz',
-                              owner='hcat',
-                              mode=0755,
-                              dest_dir='/apps/webhcat',
-                              kinnit_if_needed='',
-                              hadoop_conf_dir='/etc/hadoop/conf',
-                              hadoop_bin_dir='/usr/bin',
-                              hdfs_user='hdfs'
-    )
-    self.assertResourceCalled('CopyFromLocal', '/usr/share/HDP-webhcat/hive.tar.gz',
-                              owner='hcat',
-                              mode=0755,
-                              dest_dir='/apps/webhcat',
-                              kinnit_if_needed='',
-                              hadoop_bin_dir='/usr/bin',
-                              hadoop_conf_dir='/etc/hadoop/conf',
-                              hdfs_user='hdfs'
-    )
-    self.assertResourceCalled('CopyFromLocal', '/usr/share/HDP-webhcat/sqoop*.tar.gz',
-                              owner='hcat',
-                              mode=0755,
-                              dest_dir='/apps/webhcat',
-                              kinnit_if_needed='',
-                              hadoop_bin_dir='/usr/bin',
-                              hadoop_conf_dir='/etc/hadoop/conf',
-                              hdfs_user='hdfs'
-    )
     self.assertResourceCalled('XmlConfig', 'webhcat-site.xml',
                               owner = 'hcat',
                               group = 'hadoop',
@@ -214,37 +147,6 @@ class TestWebHCatServer(RMFTestCase):
                               )
 
   def assert_configure_secured(self):
-    self.assertResourceCalled('HdfsDirectory', '/apps/webhcat',
-                              security_enabled = True,
-                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              mode = 0755,
-                              owner = 'hcat',
-                              bin_dir = '/usr/bin',
-                              action = ['create_delayed'],
-                              )
-    self.assertResourceCalled('HdfsDirectory', '/user/hcat',
-                              security_enabled = True,
-                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              mode = 0755,
-                              owner = 'hcat',
-                              bin_dir = '/usr/bin',
-                              action = ['create_delayed'],
-                              )
-    self.assertResourceCalled('HdfsDirectory', None,
-                              security_enabled = True,
-                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              bin_dir = '/usr/bin',
-                              action = ['create'],
-                              )
     self.assertResourceCalled('Directory', '/var/run/webhcat',
                               owner = 'hcat',
                               group = 'hadoop',
@@ -266,42 +168,6 @@ class TestWebHCatServer(RMFTestCase):
                               path = ['/bin'],
                               user = 'hcat',
                               )
-    self.assertResourceCalled('CopyFromLocal', '/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar',
-                              owner='hcat',
-                              mode=0755,
-                              dest_dir='/apps/webhcat',
-                              kinnit_if_needed='/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs;',
-                              hadoop_conf_dir='/etc/hadoop/conf',
-                              hadoop_bin_dir='/usr/bin',
-                              hdfs_user='hdfs'
-    )
-    self.assertResourceCalled('CopyFromLocal', '/usr/share/HDP-webhcat/pig.tar.gz',
-                              owner='hcat',
-                              mode=0755,
-                              dest_dir='/apps/webhcat',
-                              kinnit_if_needed='/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs;',
-                              hadoop_conf_dir='/etc/hadoop/conf',
-                              hadoop_bin_dir='/usr/bin',
-                              hdfs_user='hdfs'
-    )
-    self.assertResourceCalled('CopyFromLocal', '/usr/share/HDP-webhcat/hive.tar.gz',
-                              owner='hcat',
-                              mode=0755,
-                              dest_dir='/apps/webhcat',
-                              kinnit_if_needed='/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs;',
-                              hadoop_conf_dir='/etc/hadoop/conf',
-                              hadoop_bin_dir='/usr/bin',
-                              hdfs_user='hdfs'
-    )
-    self.assertResourceCalled('CopyFromLocal', '/usr/share/HDP-webhcat/sqoop*.tar.gz',
-                              owner='hcat',
-                              mode=0755,
-                              dest_dir='/apps/webhcat',
-                              kinnit_if_needed='/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs;',
-                              hadoop_conf_dir='/etc/hadoop/conf',
-                              hadoop_bin_dir='/usr/bin',
-                              hdfs_user='hdfs'
-    )
     self.assertResourceCalled('XmlConfig', 'webhcat-site.xml',
                               owner = 'hcat',
                               group = 'hadoop',

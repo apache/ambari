@@ -28,37 +28,42 @@ def yarn(name = None):
   import params
 
 
-  if name in ["nodemanager","historyserver"]:
+  if name == "historyserver":
     if params.yarn_log_aggregation_enabled:
-      params.HdfsDirectory(params.yarn_nm_app_log_dir,
+      params.HdfsResource(params.yarn_nm_app_log_dir,
+                           type="directory",
                            action="create_delayed",
                            owner=params.yarn_user,
                            group=params.user_group,
                            mode=0777,
                            recursive_chmod=True
       )
-    params.HdfsDirectory("/mapred",
+    params.HdfsResource("/mapred",
+                         type="directory",
                          action="create_delayed",
                          owner=params.mapred_user
     )
-    params.HdfsDirectory("/mapred/system",
+    params.HdfsResource("/mapred/system",
+                         type="directory",
                          action="create_delayed",
                          owner=params.hdfs_user
     )
-    params.HdfsDirectory(params.mapreduce_jobhistory_intermediate_done_dir,
+    params.HdfsResource(params.mapreduce_jobhistory_intermediate_done_dir,
+                         type="directory",
                          action="create_delayed",
                          owner=params.mapred_user,
                          group=params.user_group,
                          mode=0777
     )
 
-    params.HdfsDirectory(params.mapreduce_jobhistory_done_dir,
+    params.HdfsResource(params.mapreduce_jobhistory_done_dir,
+                         type="directory",
                          action="create_delayed",
                          owner=params.mapred_user,
                          group=params.user_group,
-                         mode=01777
+                         mode=0777
     )
-    params.HdfsDirectory(None, action="create")
+    params.HdfsResource(None, action="execute")
 
   if name == "nodemanager":
     Directory(params.nm_local_dirs.split(',') + params.nm_log_dirs.split(','),
@@ -129,12 +134,14 @@ def yarn(name = None):
        group=params.user_group
     )
     if params.node_labels_dir:
-      params.HdfsDirectory(params.node_labels_dir,
-                           action="create",
+      params.HdfsResource(params.node_labels_dir,
+                           type="directory",
+                           action="create_delayed",
                            owner=params.yarn_user,
                            group=params.user_group,
                            mode=0700
       )
+      params.HdfsResource(None, action="execute")
   elif name == 'apptimelineserver':
     Directory(params.ats_leveldb_dir,
        owner=params.yarn_user,

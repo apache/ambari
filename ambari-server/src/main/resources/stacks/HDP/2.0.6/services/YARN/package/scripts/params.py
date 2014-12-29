@@ -30,7 +30,10 @@ tmp_dir = Script.get_tmp_dir()
 
 # This is expected to be of the form #.#.#.#
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+hdp_stack_version_major = format_hdp_stack_version(stack_version_unformatted)
+
+# this is not avaliable on INSTALL action because hdp-select is not available
+hdp_stack_version = version.get_hdp_build_version(hdp_stack_version_major)
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)
@@ -38,7 +41,7 @@ version = default("/commandParams/version", None)
 hostname = config['hostname']
 
 #hadoop params
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
+if hdp_stack_version_major != "" and compare_versions(hdp_stack_version_major, '2.2') >= 0:
   yarn_role_root = "hadoop-yarn-client"
   mapred_role_root = "hadoop-mapreduce-client"
 
@@ -66,6 +69,9 @@ if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
   hadoop_yarn_home            = format("/usr/hdp/current/{yarn_role_root}")
   yarn_bin                    = format("/usr/hdp/current/{yarn_role_root}/sbin")
   yarn_container_bin          = format("/usr/hdp/current/{yarn_role_root}/bin")
+
+  mapreduce_tar_source = config['configurations']['cluster-env']['mapreduce_tar_source']
+  mapreduce_tar_destination = config['configurations']['cluster-env']['mapreduce_tar_destination_folder'] + "/" + os.path.basename(mapreduce_tar_source)
 else:
   hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
   hadoop_bin = "/usr/lib/hadoop/sbin"
@@ -183,17 +189,21 @@ jobhistory_heapsize = default("/configurations/mapred-env/jobhistory_heapsize", 
 #for create_hdfs_directory
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
+
+fs_root = config['configurations']['core-site']['fs.defaultFS']
+
 import functools
-#create partial functions with common arguments for every HdfsDirectory call
-#to create hdfs directory we need to call params.HdfsDirectory in code
-HdfsDirectory = functools.partial(
-  HdfsDirectory,
-  conf_dir=hadoop_conf_dir,
-  hdfs_user=hdfs_user,
+#create partial functions with common arguments for every HdfsResource call
+#to create hdfs directory we need to call params.HdfsResource in code
+HdfsResource = functools.partial(
+  HdfsResource,
+  user=hdfs_user,
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
-  bin_dir = hadoop_bin_dir
+  hadoop_fs=fs_root,
+  hadoop_bin_dir = hadoop_bin_dir,
+  hadoop_conf_dir = hadoop_conf_dir
 )
 update_exclude_file_only = default("/commandParams/update_exclude_file_only",False)
 

@@ -29,15 +29,19 @@ tmp_dir = Script.get_tmp_dir()
 
 # This is expected to be of the form #.#.#.#
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
-stack_is_hdp21 = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.1') >= 0 and compare_versions(hdp_stack_version, '2.2') < 0
+hdp_stack_version_major = format_hdp_stack_version(stack_version_unformatted)
+stack_is_hdp21 = hdp_stack_version_major != "" and compare_versions(hdp_stack_version_major, '2.1') >= 0 and compare_versions(hdp_stack_version_major, '2.2') < 0
 
+# this is not avaliable on INSTALL action because hdp-select is not available
+hdp_stack_version = version.get_hdp_build_version(hdp_stack_version_major)
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)
 
+webhcat_apps_dir = "/apps/webhcat"
+
 # Hadoop params
 # TODO, this logic should initialize these parameters in a file inside the HDP 2.2 stack.
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >=0:
+if hdp_stack_version_major != "" and compare_versions(hdp_stack_version_major, '2.2') >=0:
   # start out with client libraries
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
   hadoop_home = '/usr/hdp/current/hadoop-client'
@@ -60,6 +64,25 @@ if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >=0:
   webhcat_bin_dir = '/usr/hdp/current/hive-webhcat/sbin'
 
   hive_specific_configs_supported = True
+
+  # --- Tarballs ---
+
+  hive_tar_source = config['configurations']['cluster-env']['hive_tar_source']
+  pig_tar_source = config['configurations']['cluster-env']['pig_tar_source']
+  hadoop_streaming_tar_source = config['configurations']['cluster-env']['hadoop-streaming_tar_source']
+  sqoop_tar_source = config['configurations']['cluster-env']['sqoop_tar_source']
+  mapreduce_tar_source = config['configurations']['cluster-env']['mapreduce_tar_source']
+  tez_tar_source = config['configurations']['cluster-env']['tez_tar_source']
+
+  hive_tar_destination = config['configurations']['cluster-env']['hive_tar_destination_folder']  + "/" + os.path.basename(hive_tar_source)
+  pig_tar_destination = config['configurations']['cluster-env']['pig_tar_destination_folder'] + "/" + os.path.basename(pig_tar_source)
+  hadoop_streaming_tar_destination_dir = config['configurations']['cluster-env']['hadoop-streaming_tar_destination_folder']
+  sqoop_tar_destination = config['configurations']['cluster-env']['sqoop_tar_destination_folder'] + "/" + os.path.basename(sqoop_tar_source)
+  mapreduce_tar_destination = config['configurations']['cluster-env']['mapreduce_tar_destination_folder'] + "/" + os.path.basename(mapreduce_tar_source)
+  tez_tar_destination = config['configurations']['cluster-env']['tez_tar_destination_folder'] + "/" + os.path.basename(tez_tar_source)
+
+  tarballs_mode = 0444
+
 else:
   hadoop_bin_dir = "/usr/bin"
   hadoop_home = '/usr'
@@ -70,7 +93,7 @@ else:
   hive_tar_file = '/usr/share/HDP-webhcat/hive.tar.gz'
   sqoop_tar_file = '/usr/share/HDP-webhcat/sqoop*.tar.gz'
 
-  if hdp_stack_version != "" and compare_versions(hdp_stack_version, "2.1.0.0") < 0:
+  if hdp_stack_version_major != "" and compare_versions(hdp_stack_version_major, "2.1.0.0") < 0:
     hcat_lib = '/usr/lib/hcatalog/share/hcatalog'
     webhcat_bin_dir = '/usr/lib/hcatalog/sbin'
   # for newer versions
@@ -80,13 +103,27 @@ else:
     
   hive_specific_configs_supported = False
 
+  # --- Tarballs ---
+  hive_tar_source = hive_tar_file
+  pig_tar_source = pig_tar_file
+  hadoop_streaming_tar_source = hadoop_streeming_jars
+  sqoop_tar_source = sqoop_tar_file
+
+  hive_tar_destination = webhcat_apps_dir + "/" + os.path.basename(hive_tar_source)
+  pig_tar_destination = webhcat_apps_dir + "/" + os.path.basename(pig_tar_source)
+  hadoop_streaming_tar_destination_dir = webhcat_apps_dir
+  sqoop_tar_destination_dir = webhcat_apps_dir
+
+  tarballs_mode = 0755
+
+
 hadoop_conf_dir = "/etc/hadoop/conf"
 hive_conf_dir_prefix = "/etc/hive"
 hive_conf_dir = format("{hive_conf_dir_prefix}/conf")
 hive_client_conf_dir = format("{hive_conf_dir_prefix}/conf")
 hive_server_conf_dir = format("{hive_conf_dir_prefix}/conf.server")
 
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, "2.1.0.0") < 0:
+if hdp_stack_version_major != "" and compare_versions(hdp_stack_version_major, "2.1.0.0") < 0:
   hcat_conf_dir = '/etc/hcatalog/conf'
   config_dir = '/etc/hcatalog/conf'
 # for newer versions
@@ -194,7 +231,7 @@ mysql_adduser_path = format("{tmp_dir}/addMysqlUser.sh")
 mysql_deluser_path = format("{tmp_dir}/removeMysqlUser.sh")
 
 ######## Metastore Schema
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, "2.1.0.0") < 0:
+if hdp_stack_version_major != "" and compare_versions(hdp_stack_version_major, "2.1.0.0") < 0:
   init_metastore_schema = False
 else:
   init_metastore_schema = True
@@ -239,7 +276,6 @@ tez_user = config['configurations']['tez-env']['tez_user']
 # Tez jars
 tez_local_api_jars = '/usr/lib/tez/tez*.jar'
 tez_local_lib_jars = '/usr/lib/tez/lib/*.jar'
-app_dir_files = {tez_local_api_jars:None}
 
 # Tez libraries
 tez_lib_uris = default("/configurations/tez-site/tez.lib.uris", None)
@@ -283,7 +319,6 @@ templeton_jar = config['configurations']['webhcat-site']['templeton.jar']
 
 webhcat_server_host = config['clusterHostInfo']['webhcat_server_host']
 
-webhcat_apps_dir = "/apps/webhcat"
 
 hcat_hdfs_user_dir = format("/user/{hcat_user}")
 hcat_hdfs_user_mode = 0755
@@ -293,14 +328,15 @@ webhcat_hdfs_user_mode = 0755
 security_param = "true" if security_enabled else "false"
 
 import functools
-#create partial functions with common arguments for every HdfsDirectory call
-#to create hdfs directory we need to call params.HdfsDirectory in code
-HdfsDirectory = functools.partial(
-  HdfsDirectory,
-  conf_dir = hadoop_conf_dir,
-  hdfs_user = hdfs_principal_name if security_enabled else hdfs_user,
+#create partial functions with common arguments for every HdfsResource call
+#to create hdfs directory we need to call params.HdfsResource in code
+HdfsResource = functools.partial(
+  HdfsResource,
+  user = hdfs_principal_name if security_enabled else hdfs_user,
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
-  bin_dir = hadoop_bin_dir
+  hadoop_fs=fs_root,
+  hadoop_bin_dir = hadoop_bin_dir,
+  hadoop_conf_dir = hadoop_conf_dir
 )

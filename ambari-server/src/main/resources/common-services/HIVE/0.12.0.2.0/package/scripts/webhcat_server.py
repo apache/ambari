@@ -31,7 +31,7 @@ class WebHCatServer(Script):
   def configure(self, env):
     import params
     env.set_params(params)
-    webhcat()
+    webhcat(env)
 
 
   def start(self, env, rolling_restart=False):

@@ -70,6 +70,8 @@ export OOZIE_EXIT_CODE=0
 export JOBTRACKER=`getValueFromField ${hadoop_conf_dir}/yarn-site.xml yarn.resourcemanager.address`
 export NAMENODE=`getValueFromField ${hadoop_conf_dir}/core-site.xml fs.defaultFS`
 export OOZIE_SERVER=`getValueFromField ${oozie_conf_dir}/oozie-site.xml oozie.base.url | tr '[:upper:]' '[:lower:]'`
+export JSON_PATH='/var/lib/ambari-agent/data/hdfs_resources.json'
+export JAR_PATH='/var/lib/ambari-agent/lib/fast-hdfs-resource.jar'
 
 if [ "$os_family" == "ubuntu" ] ; then
   LIST_PACKAGE_FILES_CMD='dpkg-query -L'
@@ -100,10 +102,33 @@ else
   kinitcmd=""
 fi
 
-sudo su ${smoke_test_user} -s /bin/bash - -c "${hadoop_bin_dir}/hdfs --config ${hadoop_conf_dir} dfs -rm -r examples"
-sudo su ${smoke_test_user} -s /bin/bash - -c "${hadoop_bin_dir}/hdfs --config ${hadoop_conf_dir} dfs -rm -r input-data"
-sudo su ${smoke_test_user} -s /bin/bash - -c "${hadoop_bin_dir}/hdfs --config ${hadoop_conf_dir} dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples examples"
-sudo su ${smoke_test_user} -s /bin/bash - -c "${hadoop_bin_dir}/hdfs --config ${hadoop_conf_dir} dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples/input-data input-data"
+cat >$JSON_PATH<<EOF
+[{
+	"target":"examples",
+	"type":"directory",
+	"action":"delete"
+},
+{
+	"target":"input-data",
+	"type":"directory",
+	"action":"delete"
+},
+{
+	"target":"examples",
+	"type":"directory",
+	"action":"create",
+	"source":"$OOZIE_EXAMPLES_DIR/examples"
+},
+{
+	"target":"input-data",
+	"type":"directory",
+	"action":"create",
+	"source":"$OOZIE_EXAMPLES_DIR/examples/input-data"
+}]
+EOF
+
+echo "About to run: hadoop --config ${hadoop_conf_dir} jar ${JAR_PATH} ${JSON_PATH} ${NAMENODE}"
+sudo su ${smoke_test_user} -s /bin/bash - -c "hadoop --config ${hadoop_conf_dir} jar ${JAR_PATH} ${JSON_PATH} ${NAMENODE}"
 
 cmd="${kinitcmd}source ${oozie_conf_dir}/oozie-env.sh ; ${oozie_bin_dir}/oozie -Doozie.auth.token.cache=false job -oozie $OOZIE_SERVER -config $OOZIE_EXAMPLES_DIR/examples/apps/map-reduce/job.properties  -run"
 echo $cmd

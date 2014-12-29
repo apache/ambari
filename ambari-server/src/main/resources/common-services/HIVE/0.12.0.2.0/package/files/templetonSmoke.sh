@@ -20,12 +20,22 @@
 #
 #
 
+function getValueFromField {
+  xmllint $1 | grep "<name>$2</name>" -C 2 | grep '<value>' | cut -d ">" -f2 | cut -d "<" -f1
+  return $?
+}
+
 export ttonhost=$1
 export smoke_test_user=$2
 export smoke_user_keytab=$3
 export security_enabled=$4
 export kinit_path_local=$5
+export hadoop_conf_dir=$6
 export ttonurl="http://${ttonhost}:50111/templeton/v1"
+
+export NAMENODE=`getValueFromField ${hadoop_conf_dir}/core-site.xml fs.defaultFS`
+export JSON_PATH='/var/lib/ambari-agent/data/hdfs_resources.json'
+export JAR_PATH='/var/lib/ambari-agent/lib/fast-hdfs-resource.jar'
 
 if [[ $security_enabled == "true" ]]; then
   kinitcmd="${kinit_path_local}  -kt ${smoke_user_keytab} ${smoke_test_user}; "
@@ -74,11 +84,25 @@ echo "A = load '$ttonTestInput' using PigStorage(':');"  > /tmp/$ttonTestScript
 echo "B = foreach A generate \$0 as id; " >> /tmp/$ttonTestScript
 echo "store B into '$ttonTestOutput';" >> /tmp/$ttonTestScript
 
-#copy pig script to hdfs
-sudo su ${smoke_test_user} -s /bin/bash - -c "hadoop dfs -copyFromLocal /tmp/$ttonTestScript /tmp/$ttonTestScript"
+cat >$JSON_PATH<<EOF
+[{
+	"target":"/tmp/${ttonTestScript}",
+	"type":"directory",
+	"action":"create",
+	"source":"/tmp/${ttonTestScript}"
+},
+{
+	"target":"${ttonTestInput}",
+	"type":"directory",
+	"action":"create",
+	"source":"/etc/passwd"
+}]
+EOF
 
+#copy pig script to hdfs
 #copy input file to hdfs
-sudo su ${smoke_test_user} -s /bin/bash - -c "hadoop dfs -copyFromLocal /etc/passwd $ttonTestInput"
+echo "About to run: hadoop --config ${hadoop_conf_dir} jar ${JAR_PATH} ${JSON_PATH} ${NAMENODE}"
+sudo su ${smoke_test_user} -s /bin/bash - -c "hadoop --config ${hadoop_conf_dir} jar ${JAR_PATH} ${JSON_PATH} ${NAMENODE}"
 
 #create, copy post args file
 echo -n "user.name=${smoke_test_user}&file=/tmp/$ttonTestScript" > /tmp/pig_post.txt

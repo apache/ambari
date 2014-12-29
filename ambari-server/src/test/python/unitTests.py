@@ -27,7 +27,8 @@ import shutil
 
 #excluded directories with non-test staff from stack and service scanning,
 #also we can add service or stack to skip here
-STACK_EXCLUDE = ["utils"]
+# FIXME: remove this once 1.3.2 stacks is deleted (not supported)
+STACK_EXCLUDE = ["utils", "1.3.2"]
 SERVICE_EXCLUDE = ["configs"]
 
 TEST_MASK = '[Tt]est*.py'

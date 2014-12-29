@@ -48,20 +48,22 @@ config_dir = format("{config_dir_prefix}/conf")
 
 hadoop_home = '/usr'
 java64_home = config['hostLevelParams']['java_home']
+fs_root = config['configurations']['core-site']['fs.defaultFS']
 
 tez_user = config['configurations']['tez-env']['tez_user']
 user_group = config['configurations']['cluster-env']['user_group']
 tez_env_sh_template = config['configurations']['tez-env']['content']
 
 import functools
-# Create partial functions with common arguments for every HdfsDirectory call
-# to create hdfs directory we need to call params.HdfsDirectory in code
-HdfsDirectory = functools.partial(
-  HdfsDirectory,
-  conf_dir=hadoop_conf_dir,
-  hdfs_user=hdfs_principal_name if security_enabled else hdfs_user,
+# Create partial functions with common arguments for every HdfsResource call
+# to create hdfs directory we need to call params.HdfsResource in code
+HdfsResource = functools.partial(
+  HdfsResource,
+  user=hdfs_principal_name if security_enabled else hdfs_user,
   security_enabled=security_enabled,
   keytab=hdfs_user_keytab,
   kinit_path_local=kinit_path_local,
-  bin_dir=hadoop_bin_dir
+  hadoop_fs=fs_root,
+  hadoop_bin_dir = hadoop_bin_dir,
+  hadoop_conf_dir = hadoop_conf_dir
 )
