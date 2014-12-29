@@ -244,6 +244,7 @@ class ExecuteProvider(Provider):
   def action_run(self):
     if self.resource.creates:
       if os.path.exists(self.resource.creates):
+        Logger.info("Skipping %s due to creates" % self.resource)
         return
       
     env = self.resource.environment

@@ -39,6 +39,9 @@ class User(Resource):
   comment = ResourceArgument()
   uid = ResourceArgument()
   gid = ResourceArgument()
+  """
+  If the user exists, and there are some groups, appends to existant
+  """
   groups = ForcedListArgument(default=[]) # supplementary groups
   home = ResourceArgument()
   shell = ResourceArgument()

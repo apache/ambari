@@ -51,7 +51,12 @@ class UserProvider(Provider):
       command.append("--system")
 
     if self.resource.groups:
-      command += ["-G", ",".join(self.resource.groups)]
+      
+      groups = self.resource.groups
+      if self.user and self.user_groups:
+        groups += self.user_groups
+      
+      command += ["-G", ",".join(groups)]
 
     for option_name, option_flag in options.items():
       option_value = getattr(self.resource, option_name)
@@ -74,7 +79,10 @@ class UserProvider(Provider):
       return pwd.getpwnam(self.resource.username)
     except KeyError:
       return None
-
+    
+  @property
+  def user_groups(self):
+    return [g.gr_name for g in grp.getgrall() if self.resource.username in g.gr_mem]
 
 class GroupProvider(Provider):
   def action_create(self):
