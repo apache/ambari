@@ -30,7 +30,6 @@ import inspect
 import subprocess
 import threading
 import traceback
-from multiprocessing import Queue
 from exceptions import Fail
 from exceptions import ExecuteTimeoutException
 from resource_management.core.logger import Logger
@@ -142,8 +141,8 @@ def _call(command, logoutput=None, throw_on_failure=True,
                           preexec_fn=preexec_fn)
   
   if timeout:
-    q = Queue()
-    t = threading.Timer( timeout, _on_timeout, [proc, q] )
+    timeout_event = threading.Event()
+    t = threading.Timer( timeout, _on_timeout, [proc, timeout_event] )
     t.start()
     
   if not wait_for_finish:
@@ -172,8 +171,8 @@ def _call(command, logoutput=None, throw_on_failure=True,
   proc.wait()  
   out = out.strip('\n')
   
-  if timeout:
-    if q.empty():
+  if timeout: 
+    if not timeout_event.is_set():
       t.cancel()
     # timeout occurred
     else:
@@ -242,8 +241,8 @@ def _get_environment_str(env):
 def string_cmd_from_args_list(command):
   return ' '.join(quote_bash_args(x) for x in command)
 
-def _on_timeout(proc, q):
-  q.put(True)
+def _on_timeout(proc, timeout_event):
+  timeout_event.set()
   if proc.poll() == None:
     try:
       proc.terminate()
