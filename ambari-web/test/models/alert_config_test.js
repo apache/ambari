@@ -56,14 +56,9 @@ describe('App.AlertConfigProperties', function () {
 
       it('value change should effect displayValue for AGGREGATE type', function () {
 
-        model = App.AlertConfigProperties.Threshold.create({
+        model = App.AlertConfigProperties.Threshold.create(App.AlertConfigProperties.Thresholds.PercentageMixin, {
           value: '0.4',
           valueMetric: '%',
-          configsController: Em.Object.create({
-            content: {
-              type: 'AGGREGATE'
-            }
-          }),
           text: 'text',
           showInputForValue: false,
           showInputForText: false
@@ -77,11 +72,6 @@ describe('App.AlertConfigProperties', function () {
         model = App.AlertConfigProperties.Threshold.create({
           value: '0.4',
           valueMetric: '%',
-          configsController: Em.Object.create({
-            content: {
-              type: 'SCRIPT'
-            }
-          }),
           text: 'text',
           showInputForValue: false,
           showInputForText: false

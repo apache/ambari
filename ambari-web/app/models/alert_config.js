@@ -149,15 +149,7 @@ App.AlertConfigProperty = Ember.Object.extend({
    */
   isValid: function () {
     return true;
-  }.property(),
-
-  /**
-   * Configs controller
-   * Should be set in controller in rendering configs function
-   * Used to get access to other configs properties of one group or definition properties
-   * @type {App.MainAlertDefinitionConfigsController}
-   */
-  configsController: null
+  }.property()
 
 });
 
@@ -170,24 +162,28 @@ App.AlertConfigProperties = {
     classNames: 'alert-text-input',
     apiProperty: 'name'
   }),
+
   AlertNameSelected: App.AlertConfigProperty.extend({
     name: 'alert_name',
     label: 'Alert Name',
     displayType: 'select',
     apiProperty: 'name'
   }),
+
   ServiceAlertType: App.AlertConfigProperty.extend({
     name: 'alert_type_service',
     label: 'Service Alert Definition',
     displayType: 'radioButton',
     group: 'alert_type'
   }),
+
   HostAlertType: App.AlertConfigProperty.extend({
     name: 'alert_type_host',
     label: 'Host Alert Definition',
     displayType: 'radioButton',
     group: 'alert_type'
   }),
+
   Service: App.AlertConfigProperty.extend({
     name: 'service',
     label: 'Service',
@@ -197,6 +193,7 @@ App.AlertConfigProperties = {
       return App.StackService.find().findProperty('displayName', this.get('value')).get('serviceName');
     }.property('value')
   }),
+
   Component: App.AlertConfigProperty.extend({
     name: 'component',
     label: 'Component',
@@ -206,6 +203,7 @@ App.AlertConfigProperties = {
       return App.StackServiceComponent.find().findProperty('displayName', this.get('value')).get('componentName');
     }.property('value')
   }),
+
   Scope: App.AlertConfigProperty.extend({
     name: 'scope',
     label: 'Scope',
@@ -215,6 +213,7 @@ App.AlertConfigProperties = {
       return this.get('value').toUpperCase();
     }.property('value')
   }),
+
   Description: App.AlertConfigProperty.extend({
     name: 'description',
     label: 'Description',
@@ -223,6 +222,7 @@ App.AlertConfigProperties = {
     // todo: check value after API will be provided
     apiProperty: 'description'
   }),
+
   Interval: App.AlertConfigProperty.extend({
     name: 'interval',
     label: 'Interval',
@@ -343,31 +343,39 @@ App.AlertConfigProperties = {
       (this.get('previousText') !== null && this.get('text') !== this.get('previousText'));
     }.property('value', 'text', 'previousValue', 'previousText'),
 
+    /**
+     * May be redefined in child-models, mixins etc
+     * @method getValue
+     * @returns {string}
+     */
+    getNewValue: function () {
+      return this.get('value');
+    },
+
     valueWasChanged: function () {
-      var value = this.get('value');
-      var valueMetric = this.get('valueMetric');
       var displayValue = this.get('displayValue');
-      var newDisplayValue = value;
-      if (value && '%' == valueMetric && !isNaN(value) && this.get('configsController.content.type') == 'AGGREGATE') {
-        newDisplayValue = (Number(value) * 100) + '';
-      }
+      var newDisplayValue = this.getNewValue();
       if (newDisplayValue != displayValue) {
         this.set('displayValue', newDisplayValue);
       }
-    }.observes('value', 'valueMetric', 'configsController.content.type'),
+    }.observes('value'),
+
+    /**
+     * May be redefined in child-models, mixins etc
+     * @method getDisplayValue
+     * @returns {string}
+     */
+    getNewDisplayValue: function () {
+      return this.get('displayValue');
+    },
 
     displayValueWasChanged: function () {
       var value = this.get('value');
-      var valueMetric = this.get('valueMetric');
-      var displayValue = this.get('displayValue');
-      var newValue = displayValue;
-      if (displayValue && '%' == valueMetric && !isNaN(displayValue) && this.get('configsController.content.type') == 'AGGREGATE') {
-        newValue = (Number(displayValue) / 100) + '';
-      }
+      var newValue = this.getNewDisplayValue();
       if (newValue != value) {
         this.set('value', newValue);
       }
-    }.observes('displayValue', 'valueMetric', 'configsController.content.type')
+    }.observes('displayValue')
 
   }),
 
@@ -378,6 +386,7 @@ App.AlertConfigProperties = {
     classNames: 'alert-text-input',
     apiProperty: 'source.uri'
   }),
+
   URIExtended: App.AlertConfigProperty.extend({
     name: 'uri',
     label: 'URI',
@@ -394,6 +403,7 @@ App.AlertConfigProperties = {
       return result;
     }.property('value')
   }),
+
   DefaultPort: App.AlertConfigProperty.extend({
     name: 'default_port',
     label: 'Default Port',
@@ -401,6 +411,7 @@ App.AlertConfigProperties = {
     classNames: 'alert-port-input',
     apiProperty: 'source.default_port'
   }),
+
   Path: App.AlertConfigProperty.extend({
     name: 'path',
     label: 'Path',
@@ -408,6 +419,7 @@ App.AlertConfigProperties = {
     classNames: 'alert-text-input',
     apiProperty: 'source.path'
   }),
+
   Metrics: App.AlertConfigProperty.extend({
     name: 'metrics',
     label: 'JMX/Ganglia Metrics',
@@ -420,6 +432,7 @@ App.AlertConfigProperties = {
       return this.get('value').split(',\n');
     }.property('value')
   }),
+
   FormatString: App.AlertConfigProperty.extend({
     name: 'metrics_string',
     label: 'Format String',
@@ -435,8 +448,11 @@ App.AlertConfigProperties = {
 App.AlertConfigProperties.Thresholds = {
 
   OkThreshold: App.AlertConfigProperties.Threshold.extend({
+
     badge: 'OK',
+
     name: 'ok_threshold',
+
     apiProperty: function () {
       var ret = [];
       if (this.get('showInputForValue')) {
@@ -447,11 +463,15 @@ App.AlertConfigProperties.Thresholds = {
       }
       return ret;
     }.property('showInputForValue', 'showInputForText')
+
   }),
 
   WarningThreshold: App.AlertConfigProperties.Threshold.extend({
+
     badge: 'WARNING',
+
     name: 'warning_threshold',
+
     apiProperty: function () {
       var ret = [];
       if (this.get('showInputForValue')) {
@@ -462,23 +482,22 @@ App.AlertConfigProperties.Thresholds = {
       }
       return ret;
     }.property('showInputForValue', 'showInputForText'),
+
     isValid: function () {
       var value = this.get('value');
       if (!value) return false;
       value = ('' + value).trim();
-      if (this.get('showInputForValue') && this.get('valueMetric') == '%' && this.get('configsController.content.type') == 'AGGREGATE') {
-        return !isNaN(value) && value > 0 && value <= 1.0;
-      } else if (this.get('showInputForValue')) {
-        return !isNaN(value) && value > 0;
-      } else {
-        return true;
-      }
-    }.property('value', 'showInputForValue', 'configsController.content.type')
+      return this.get('showInputForValue') ? !isNaN(value) && value > 0 : true;
+    }.property('value', 'showInputForValue')
+
   }),
 
   CriticalThreshold: App.AlertConfigProperties.Threshold.extend({
+
     badge: 'CRITICAL',
+
     name: 'critical_threshold',
+
     apiProperty: function () {
       var ret = [];
       if (this.get('showInputForValue')) {
@@ -489,18 +508,47 @@ App.AlertConfigProperties.Thresholds = {
       }
       return ret;
     }.property('showInputForValue', 'showInputForText'),
+
     isValid: function () {
       var value = this.get('value');
       if (!value) return false;
       value = ('' + value).trim();
-      if (this.get('showInputForValue') && this.get('valueMetric') == '%' && this.get('configsController.content.type') == 'AGGREGATE') {
-        return !isNaN(value) && value > 0 && value <= 1.0;
-      } else if (this.get('showInputForValue')) {
-        return !isNaN(value) && value > 0;
-      } else {
-        return true;
-      }
-    }.property('value', 'showInputForValue', 'configsController.content.type')
+      return this.get('showInputForValue') ? !isNaN(value) && value > 0 : true;
+    }.property('value', 'showInputForValue')
+  }),
+
+  /**
+   * Mixin for <code>App.AlertConfigProperties.Threshold</code>
+   * Used to validate values in percentage range (0..1]
+   * @type {Em.Mixin}
+   */
+  PercentageMixin: Em.Mixin.create({
+
+    isValid: function () {
+      var value = this.get('value');
+      if (!value) return false;
+      value = ('' + value).trim();
+      return this.get('showInputForValue') ? !isNaN(value) && value > 0 && value <= 1.0 : true;
+    }.property('value', 'showInputForValue'),
+
+    /**
+     * Return <code>value * 100</code>
+     * @returns {string}
+     */
+    getNewValue: function () {
+      var value = this.get('value');
+      return (value && !isNaN(value)) ? (Number(value) * 100) + '' : value;
+    },
+
+    /**
+     * Return <code>displayValue / 100</code>
+     * @returns {string}
+     */
+    getNewDisplayValue: function () {
+      var displayValue = this.get('displayValue');
+      return (displayValue && !isNaN(displayValue)) ? (Number(displayValue) / 100) + '' : displayValue;
+    }
+
   })
 
 };

@@ -103,11 +103,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
    */
   getThresholdsProperty: function (type, property) {
     var warning = this.get('content.reporting').findProperty('type', type);
-    if (warning && warning.get(property)) {
-      return warning.get(property);
-    } else {
-      return null;
-    }
+    return warning && warning.get(property) ? warning.get(property) : null;
   },
 
   /**
@@ -138,7 +134,6 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
     }
 
     configs.setEach('isDisabled', !this.get('canEdit'));
-    configs.setEach('configsController', this);
 
     this.set('configs', configs);
   },
@@ -315,12 +310,12 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         text: isWizard ? '' : this.getThresholdsProperty('ok', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('ok', 'value')
       }),
-      App.AlertConfigProperties.Thresholds.WarningThreshold.create({
+      App.AlertConfigProperties.Thresholds.WarningThreshold.create(App.AlertConfigProperties.Thresholds.PercentageMixin, {
         text: isWizard ? '' : this.getThresholdsProperty('warning', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('warning', 'value'),
         valueMetric: '%'
       }),
-      App.AlertConfigProperties.Thresholds.CriticalThreshold.create({
+      App.AlertConfigProperties.Thresholds.CriticalThreshold.create(App.AlertConfigProperties.Thresholds.PercentageMixin, {
         text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('critical', 'value'),
         valueMetric: '%'
