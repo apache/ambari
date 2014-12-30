@@ -11,7 +11,8 @@
     "moment": "~2.8.1",
     "ember-i18n": "~1.6.0",
     "font-awesome": "4.2",
-    "file-saver": "*"
+    "file-saver": "*",
+    "bootstrap3-typeahead": "~3.0.3"
   },
   "overrides": {
     "codemirror":{

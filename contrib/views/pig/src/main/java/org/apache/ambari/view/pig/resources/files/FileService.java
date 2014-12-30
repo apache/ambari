@@ -25,6 +25,7 @@ import org.apache.ambari.view.pig.services.BaseService;
 import org.apache.ambari.view.pig.utils.*;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileAlreadyExistsException;
+import org.apache.hadoop.fs.FileStatus;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,8 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * File access resource
@@ -60,9 +63,21 @@ public class FileService extends BaseService {
   @GET
   @Path("{filePath:.*}")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response getFile(@PathParam("filePath") String filePath, @QueryParam("page") Long page) throws IOException, InterruptedException {
-    LOG.debug("Reading file " + filePath);
+  public Response getFile(@PathParam("filePath") String filePath,
+                          @QueryParam("page") Long page,
+                          @QueryParam("action") String action) throws IOException, InterruptedException {
     try {
+      if (action != null && action.equals("ls")) {
+        LOG.debug("List directory " + filePath);
+        List<String> ls = new LinkedList<String>();
+        for (FileStatus fs : getHdfsApi().listdir(filePath)) {
+          ls.add(fs.getPath().toString());
+        }
+        JSONObject object = new JSONObject();
+        object.put("ls", ls);
+        return Response.ok(object).status(200).build();
+      }
+      LOG.debug("Reading file " + filePath);
       FilePaginator paginator = new FilePaginator(filePath, context);
 
       if (page == null)

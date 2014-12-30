@@ -23,12 +23,12 @@
   </div>
   <div class="modal-body">
   <div class="form-group">
-      <label for="exampleInputEmail1">{{t 'common.name'}}</label>
+      <label>{{t 'common.name'}}</label>
       {{input class="form-control" placeholderTranslation="udfs.modal.udf_name" valueBinding="content.name"}}
     </div>
-    <div class="form-group">
-      <label for="exampleInputPassword1">{{t 'common.path'}}</label>
-      {{input class="form-control" placeholderTranslation="udfs.modal.hdfs_path" valueBinding="content.path"}}
+    <div class="form-group has-feedback">
+      <label>{{t 'common.path'}}</label>
+      {{path-input class="form-control isLoading" placeholderTranslation="udfs.modal.hdfs_path" valueBinding="content.path" storeBinding="content.store"}}
     </div>
   </div>
   <div class="modal-footer">

@@ -125,7 +125,7 @@ public class FileTest extends HDFSTest {
     Response response = fileService.updateFile(request, filePath);
     Assert.assertEquals(204, response.getStatus());
 
-    Response response2 = fileService.getFile(filePath, 0L);
+    Response response2 = fileService.getFile(filePath, 0L, null);
     Assert.assertEquals(200, response2.getStatus());
 
     JSONObject obj = ((JSONObject) response2.getEntity());
@@ -140,7 +140,7 @@ public class FileTest extends HDFSTest {
 
     doCreateFile(name, "1234567890");
 
-    Response response = fileService.getFile(filePath, 0L);
+    Response response = fileService.getFile(filePath, 0L, null);
     Assert.assertEquals(200, response.getStatus());
 
     JSONObject obj = ((JSONObject) response.getEntity());
@@ -151,7 +151,7 @@ public class FileTest extends HDFSTest {
     Assert.assertTrue(((FileResource) obj.get("file")).isHasNext());
     Assert.assertEquals(filePath, ((FileResource) obj.get("file")).getFilePath());
 
-    response = fileService.getFile(filePath, 1L);
+    response = fileService.getFile(filePath, 1L, null);
     Assert.assertEquals(200, response.getStatus());
 
     obj = ((JSONObject) response.getEntity());
@@ -159,7 +159,7 @@ public class FileTest extends HDFSTest {
     Assert.assertEquals(1, ((FileResource) obj.get("file")).getPage());
     Assert.assertTrue(((FileResource) obj.get("file")).isHasNext());
 
-    response = fileService.getFile(filePath, 2L);
+    response = fileService.getFile(filePath, 2L, null);
     Assert.assertEquals(200, response.getStatus());
 
     obj = ((JSONObject) response.getEntity());
@@ -168,7 +168,7 @@ public class FileTest extends HDFSTest {
     Assert.assertFalse(((FileResource) obj.get("file")).isHasNext());
 
     thrown.expect(BadRequestFormattedException.class);
-    fileService.getFile(filePath, 3L);
+    fileService.getFile(filePath, 3L, null);
   }
 
   @Test
@@ -178,7 +178,7 @@ public class FileTest extends HDFSTest {
 
     doCreateFile(name, "");
 
-    Response response = fileService.getFile(filePath, 0L);
+    Response response = fileService.getFile(filePath, 0L, null);
     Assert.assertEquals(200, response.getStatus());
     JSONObject obj = ((JSONObject) response.getEntity());
     Assert.assertEquals("", ((FileResource) obj.get("file")).getFileContent());
@@ -189,7 +189,7 @@ public class FileTest extends HDFSTest {
   @Test
   public void testFileNotFound() throws IOException, InterruptedException {
     thrown.expect(NotFoundFormattedException.class);
-    fileService.getFile("/tmp/notExistentFile", 2L);
+    fileService.getFile("/tmp/notExistentFile", 2L, null);
   }
 
   @Test
@@ -202,6 +202,6 @@ public class FileTest extends HDFSTest {
     Assert.assertEquals(204, response.getStatus());
 
     thrown.expect(NotFoundFormattedException.class);
-    fileService.getFile(filePath, 0L);
+    fileService.getFile(filePath, 0L, null);
   }
 }

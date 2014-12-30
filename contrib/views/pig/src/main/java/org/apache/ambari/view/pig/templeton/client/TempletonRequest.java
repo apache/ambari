@@ -31,7 +31,7 @@ import java.io.IOException;
  * GET parameters to every request
  * @param <RESPONSE> data type to deserialize response from JSON
  */
-public class TempletonRequest<RESPONSE> extends Request<RESPONSE> {
+public class TempletonRequest<RESPONSE> extends RequestWrapper<RESPONSE> {
   private String username;
   private String doAs;
 

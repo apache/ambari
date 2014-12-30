@@ -36,7 +36,7 @@ import java.util.Map;
  * Request handler, supports GET, POST, PUT, DELETE methods
  * @param <RESPONSE> data type to deserialize response from JSON
  */
-public class Request<RESPONSE> {
+public class RequestWrapper<RESPONSE> {
   protected final Class<RESPONSE> responseClass;
   protected final ViewContext context;
   protected final WebResource resource;
@@ -44,7 +44,7 @@ public class Request<RESPONSE> {
   protected final Gson gson = new Gson();
 
   protected final static Logger LOG =
-      LoggerFactory.getLogger(Request.class);
+      LoggerFactory.getLogger(RequestWrapper.class);
 
   /**
    * Constructor
@@ -52,7 +52,7 @@ public class Request<RESPONSE> {
    * @param responseClass model class
    * @param context View Context instance
    */
-  public Request(WebResource resource, Class<RESPONSE> responseClass, ViewContext context) {
+  public RequestWrapper(WebResource resource, Class<RESPONSE> responseClass, ViewContext context) {
     this.resource = resource;
     this.responseClass = responseClass;
     this.context = context;
@@ -69,7 +69,7 @@ public class Request<RESPONSE> {
     InputStream inputStream = context.getURLStreamProvider().readFrom(resource.toString(), "GET",
         null, new HashMap<String, String>());
 
-    LOG.info(String.format("curl \"" + resource.toString() + "\""));
+    recordLastCurlCommand(String.format("curl \"" + resource.toString() + "\""));
     String responseJson = IOUtils.toString(inputStream);
     LOG.debug(String.format("RESPONSE => %s", responseJson));
     return gson.fromJson(responseJson, responseClass);
@@ -117,7 +117,7 @@ public class Request<RESPONSE> {
     Map<String, String> headers = new HashMap<String, String>();
     headers.put("Content-Type", "application/x-www-form-urlencoded");
 
-    LOG.info(String.format("curl " + curlBuilder.toString() + " \"" + resource.toString() + "\""));
+    recordLastCurlCommand(String.format("curl " + curlBuilder.toString() + " \"" + resource.toString() + "\""));
     InputStream inputStream = context.getURLStreamProvider().readFrom(resource.toString(),
         "POST", builder.build().getRawQuery(), headers);
     String responseJson = IOUtils.toString(inputStream);
@@ -172,7 +172,7 @@ public class Request<RESPONSE> {
     Map<String, String> headers = new HashMap<String, String>();
     headers.put("Content-Type", "application/x-www-form-urlencoded");
 
-    LOG.info(String.format("curl -X PUT " + curlBuilder.toString() + " \"" + resource.toString() + "\""));
+    recordLastCurlCommand(String.format("curl -X PUT " + curlBuilder.toString() + " \"" + resource.toString() + "\""));
 
     InputStream inputStream = context.getURLStreamProvider().readFrom(resource.toString(),
         "PUT", builder.build().getRawQuery(), headers);
@@ -228,7 +228,7 @@ public class Request<RESPONSE> {
     Map<String, String> headers = new HashMap<String, String>();
     headers.put("Content-Type", "application/x-www-form-urlencoded");
 
-    LOG.info(String.format("curl -X DELETE " + curlBuilder.toString() + " \"" + resource.toString() + "\""));
+    recordLastCurlCommand(String.format("curl -X DELETE " + curlBuilder.toString() + " \"" + resource.toString() + "\""));
 
     InputStream inputStream = context.getURLStreamProvider().readFrom(resource.toString(),
         "DELETE", builder.build().getRawQuery(), headers);
@@ -257,5 +257,15 @@ public class Request<RESPONSE> {
    */
   public RESPONSE delete(MultivaluedMapImpl params, MultivaluedMapImpl data) throws IOException {
     return delete(resource.queryParams(params), data);
+  }
+
+  private static String lastCurlCommand = null;
+  private static void recordLastCurlCommand(String curl) {
+    LOG.info(curl);
+    lastCurlCommand = curl;
+  }
+
+  public static String getLastCurlCommand() {
+    return lastCurlCommand;
   }
 }
