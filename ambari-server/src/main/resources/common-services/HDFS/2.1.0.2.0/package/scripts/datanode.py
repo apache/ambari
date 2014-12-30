@@ -22,7 +22,7 @@ from resource_management import *
 from resource_management.libraries.functions.version import compare_versions, \
   format_hdp_stack_version
 from resource_management.libraries.functions.security_commons import build_expectations, \
-  cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties
+  cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, FILE_TYPE_XML
 from hdfs import hdfs
 
 
@@ -108,7 +108,8 @@ class DataNode(Script):
     hdfs_expectations.update(hdfs_site_expectations)
 
     security_params = get_params_from_filesystem(status_params.hadoop_conf_dir,
-                                                 ['core-site.xml', 'hdfs-site.xml'])
+                                                 {'core-site.xml': FILE_TYPE_XML,
+                                                  'hdfs-site.xml': FILE_TYPE_XML})
     result_issues = validate_security_config_properties(security_params, hdfs_expectations)
     if not result_issues:  # If all validations passed successfully
       try:
@@ -126,18 +127,16 @@ class DataNode(Script):
                               security_params['hdfs-site']['dfs.datanode.keytab.file'],
                               security_params['hdfs-site']['dfs.datanode.kerberos.principal'],
                               status_params.hostname,
-                              status_params.tmp_dir,
-                              30)
+                              status_params.tmp_dir)
         self.put_structured_out({"securityState": "SECURED_KERBEROS"})
       except Exception as e:
         self.put_structured_out({"securityState": "ERROR"})
         self.put_structured_out({"securityStateErrorInfo": str(e)})
     else:
-      issues = ""
+      issues = []
       for cf in result_issues:
-        issues += "Configuration file " + cf + " did not pass the validation. Reason: " + \
-                  result_issues[cf]
-      self.put_structured_out({"securityIssuesFound": issues})
+        issues.append("Configuration file %s did not pass the validation. Reason: %s" % (cf, result_issues[cf]))
+      self.put_structured_out({"securityIssuesFound": ". ".join(issues)})
       self.put_structured_out({"securityState": "UNSECURED"})
 
 

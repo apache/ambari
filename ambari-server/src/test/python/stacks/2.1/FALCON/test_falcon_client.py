@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+from mock.mock import patch
 from stacks.utils.RMFTestCase import *
 
 
@@ -73,3 +74,27 @@ class TestFalconClient(RMFTestCase):
                               owner = 'falcon'
                               )
     self.assertNoMoreResources()
+
+  @patch("resource_management.libraries.script.Script.put_structured_out")
+  def test_security_status(self, put_structured_out_mock):
+    # Test that function works when is called with correct parameters
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/falcon_client.py",
+                       classname="FalconClient",
+                       command="security_status",
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+
+    put_structured_out_mock.assert_called_with({"securityState": "SECURED_KERBEROS"})
+
+     # Testing with security_enable = false
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/falcon_client.py",
+                       classname="FalconClient",
+                       command="security_status",
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+
+    put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})

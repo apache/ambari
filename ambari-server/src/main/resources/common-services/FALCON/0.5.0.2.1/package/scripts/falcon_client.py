@@ -50,5 +50,14 @@ class FalconClient(Script):
     Execute(format("hdp-select set hadoop-client {version}"))
 
 
+  def security_status(self, env):
+    import status_params
+    env.set_params(status_params)
+
+    if status_params.security_enabled:
+      self.put_structured_out({"securityState": "SECURED_KERBEROS"})
+    else:
+      self.put_structured_out({"securityState": "UNSECURED"})
+
 if __name__ == "__main__":
   FalconClient().execute()

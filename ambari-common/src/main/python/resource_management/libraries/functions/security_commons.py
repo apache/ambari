@@ -23,6 +23,8 @@ from tempfile import mkstemp
 import os
 import json
 
+FILE_TYPE_XML = 'XML'
+FILE_TYPE_PROPERTIES = 'PROPERTIES'
 
 def validate_security_config_properties(params, configuration_rules):
   """
@@ -103,29 +105,47 @@ def build_expectations(config_file, value_checks, empty_checks, read_checks):
 def get_params_from_filesystem(conf_dir, config_files):
   """
   Used to retrieve properties from xml config files and build a dict
+
+  The dictionary of configuration files to file types should contain one of the following values"
+    'XML'
+    'PROPERTIES'
+
   :param conf_dir:  directory where the configuration files sit
-  :param config_files: list of configuration file names
-  :return:
+  :param config_files: dictionary of configuration file names to (supported) file types
+  :return: a dictionary of config-type to a dictionary of key/value pairs for
   """
   result = {}
   from xml.etree import ElementTree as ET
+  import ConfigParser, StringIO
+  for config_file, file_type in config_files.iteritems():
+    file_name, file_ext = os.path.splitext(config_file)
 
-  for config_file in config_files:
-    configuration = ET.parse(conf_dir + os.sep + config_file)
-    props = configuration.getroot().getchildren()
-    config_file_id = config_file[:-4] if len(config_file) > 4 else config_file
-    result[config_file_id] = {}
-    for prop in props:
-      result[config_file_id].update({prop[0].text: prop[1].text})
+    if file_type == FILE_TYPE_XML:
+      configuration = ET.parse(conf_dir + os.sep + config_file)
+      props = configuration.getroot().getchildren()
+      config_file_id = file_name if file_name else config_file
+      result[config_file_id] = {}
+      for prop in props:
+        result[config_file_id].update({prop[0].text: prop[1].text})
+
+    elif file_type == FILE_TYPE_PROPERTIES:
+      with open(conf_dir + os.sep + config_file, 'r') as f:
+        config_string = '[root]\n' + f.read()
+      ini_fp = StringIO.StringIO(config_string)
+      config = ConfigParser.RawConfigParser()
+      config.readfp(ini_fp)
+      props = config.items('root')
+      result[file_name] = {}
+      for key, value in props:
+        result[file_name].update({key : value})
   return result
 
 
 def cached_kinit_executor(kinit_path, exec_user, keytab_file, principal, hostname, temp_dir,
-                          expiration_time):
+                          expiration_time=5):
   """
   Main cached kinit executor - Uses a temporary file on the FS to cache executions. Each command
   will have its own file and only one entry (last successful execution) will be stored
-  :return:
   """
   key = str(hash("%s|%s" % (principal, keytab_file)))
   filename = key + "_tmp.txt"
@@ -151,15 +171,13 @@ def cached_kinit_executor(kinit_path, exec_user, keytab_file, principal, hostnam
       cache_file.write("{}")
 
   if (not output) or (key not in output) or ("last_successful_execution" not in output[key]):
-    return new_cached_exec(key, file_path, kinit_path, exec_user, keytab_file, principal, hostname)
+    new_cached_exec(key, file_path, kinit_path, exec_user, keytab_file, principal, hostname)
   else:
     last_run_time = output[key]["last_successful_execution"]
     now = datetime.now()
     if (now - datetime.strptime(last_run_time, "%Y-%m-%d %H:%M:%S.%f") > timedelta(
       minutes=expiration_time)):
-      return new_cached_exec(key, file_path, kinit_path, exec_user, keytab_file, principal, hostname)
-    else:
-      return True
+      new_cached_exec(key, file_path, kinit_path, exec_user, keytab_file, principal, hostname)
 
 
 def new_cached_exec(key, file_path, kinit_path, exec_user, keytab_file, principal, hostname):
@@ -180,5 +198,3 @@ def new_cached_exec(key, file_path, kinit_path, exec_user, keytab_file, principa
       json.dump(result, cache_file)
   finally:
     os.remove(temp_kinit_cache_file)
-
-  return True

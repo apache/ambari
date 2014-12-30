@@ -116,8 +116,12 @@ class RMFTestCase(TestCase):
     
     # Reload params import, otherwise it won't change properties during next import
     if 'params' in sys.modules:  
-      del(sys.modules["params"]) 
-    
+      del(sys.modules["params"])
+
+    # Reload status_params import, otherwise it won't change properties during next import
+    if 'status_params' in sys.modules:
+      del(sys.modules["status_params"])
+
     # run
     with Environment(basedir, test_mode=True) as RMFTestCase.env:
       with patch('resource_management.core.shell.checked_call', return_value=shell_mock_value): # we must always mock any shell calls
