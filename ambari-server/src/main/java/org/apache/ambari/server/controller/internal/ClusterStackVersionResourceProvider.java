@@ -387,6 +387,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
         cluster.transitionClusterVersion(stackId, desiredRepoVersion, RepositoryVersionState.INSTALLING);
       }
       cluster.inferHostVersions(existingCSVer);
+      cluster.recalculateClusterVersionState(desiredRepoVersion);
 
       req.persist();
 

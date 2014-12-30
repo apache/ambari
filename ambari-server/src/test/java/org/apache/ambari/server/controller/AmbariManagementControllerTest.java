@@ -1487,6 +1487,7 @@ public class AmbariManagementControllerTest {
     Cluster c = clusters.getCluster("foo");
     StackId stackId = new StackId("HDP-0.1");
     c.setDesiredStackVersion(stackId);
+    c.setCurrentStackVersion(stackId);
     helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     c.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
 
@@ -1509,6 +1510,7 @@ public class AmbariManagementControllerTest {
     Cluster c = clusters.getCluster("c1");
     StackId stackID = new StackId("HDP-0.1");
     c.setDesiredStackVersion(stackID);
+    c.setCurrentStackVersion(stackID);
     helper.getOrCreateRepositoryVersion(stackID.getStackName(), stackID.getStackVersion());
     c.createClusterVersion(stackID.getStackName(), stackID.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
 

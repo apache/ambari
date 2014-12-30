@@ -437,6 +437,7 @@ public class HostResourceProvider extends BaseBlueprintProcessor {
 
     Map<String, Set<String>> hostClustersMap = new HashMap<String, Set<String>>();
     Map<String, Map<String, String>> hostAttributes = new HashMap<String, Map<String, String>>();
+    Set<String> allClusterSet = new HashSet<String>();
 
     for (HostRequest hostRequest : hostRequests) {
       if (hostRequest.getHostname() != null &&
@@ -446,6 +447,7 @@ public class HostResourceProvider extends BaseBlueprintProcessor {
 
         Set<String> clusterSet = new HashSet<String>();
         clusterSet.add(hostRequest.getClusterName());
+        allClusterSet.add(hostRequest.getClusterName());
         hostClustersMap.put(hostRequest.getHostname(), clusterSet);
         if (hostRequest.getHostAttributes() != null) {
           hostAttributes.put(hostRequest.getHostname(), hostRequest.getHostAttributes());
@@ -453,6 +455,10 @@ public class HostResourceProvider extends BaseBlueprintProcessor {
       }
     }
     clusters.updateHostWithClusterAndAttributes(hostClustersMap, hostAttributes);
+
+    for (String clusterName : allClusterSet) {
+      clusters.getCluster(clusterName).recalculateAllClusterVersionStates();
+    }
   }
 
   private void createHostResource(Clusters clusters, Set<String> duplicates,
@@ -793,6 +799,11 @@ public class HostResourceProvider extends BaseBlueprintProcessor {
           }
         }
       }
+
+      if (null != request.getClusterName() && !request.getClusterName().isEmpty()) {
+        clusters.getCluster(request.getClusterName()).recalculateAllClusterVersionStates();
+      }
+
       //todo: if attempt was made to update a property other than those
       //todo: that are allowed above, should throw exception
     }
@@ -864,6 +875,7 @@ public class HostResourceProvider extends BaseBlueprintProcessor {
       if (null != hostRequest.getClusterName()) {
         clusters.unmapHostFromCluster(hostRequest.getHostname(),
             hostRequest.getClusterName());
+        clusters.getCluster(hostRequest.getClusterName()).recalculateAllClusterVersionStates();
       } else {
         clusters.deleteHost(hostRequest.getHostname());
       }

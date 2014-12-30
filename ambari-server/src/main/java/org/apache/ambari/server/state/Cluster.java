@@ -153,16 +153,25 @@ public interface Cluster {
   /**
    * Update state of a cluster stack version for cluster based on states of host versions.
    * May be called multiple times.
-   * As of now, only transition from INSTALLING to INSTALLING/INSTALLED/INSTALL_FAILED
+   * As of now, only transition from INSTALLING to INSTALLING/INSTALLED/INSTALL_FAILED/OUT_OF_SYNC
    * is supported
    * @throws AmbariException
    */
   void recalculateClusterVersionState(String repositoryVersion) throws AmbariException;
 
   /**
+   * Update state of all cluster stack versions for cluster based on states of host versions.
+   * May be called multiple times.
+   * As of now, only transition from INSTALLING to INSTALLING/INSTALLED/INSTALL_FAILED/OUT_OF_SYNC
+   * is supported
+   * @throws AmbariException
+   */
+  public void recalculateAllClusterVersionStates() throws AmbariException;
+
+  /**
    * Create a cluster version for the given stack and version, whose initial state must either
    * be either {@link RepositoryVersionState#CURRENT} (if no other cluster version exists) or
-   * {@link RepositoryVersionState#UPGRADING} (if at exactly one CURRENT cluster version already exists).
+   * {@link RepositoryVersionState#INSTALLING} (if at exactly one CURRENT cluster version already exists).
    * @param stack Stack name
    * @param version Stack version
    * @param userName User performing the operation

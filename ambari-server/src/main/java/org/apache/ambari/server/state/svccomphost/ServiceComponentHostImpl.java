@@ -33,6 +33,7 @@ import org.apache.ambari.server.agent.AlertDefinitionCommand;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.events.AlertHashInvalidationEvent;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
+import org.apache.ambari.server.events.ServiceComponentInstalledEvent;
 import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
@@ -1312,6 +1313,15 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           host.refresh();
           serviceComponent.refresh();
           persisted = true;
+
+          // publish the service component installed event
+          StackId stackId = getDesiredStackVersion();
+
+          ServiceComponentInstalledEvent event = new ServiceComponentInstalledEvent(
+              getClusterId(), stackId.getStackName(),
+              stackId.getStackVersion(), getServiceName(), getServiceComponentName(), getHostName());
+
+          eventPublisher.publish(event);
         } else {
           saveIfPersisted();
         }

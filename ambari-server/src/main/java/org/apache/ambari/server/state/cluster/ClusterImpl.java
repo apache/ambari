@@ -1247,6 +1247,10 @@ public class ClusterImpl implements Cluster {
     }
   }
 
+  private RepositoryVersionState getWorstState(RepositoryVersionState currentState, RepositoryVersionState newState) {
+    return currentState.getPriority() < newState.getPriority() ? currentState : newState;
+  }
+
   @Override
   public void recalculateClusterVersionState(String repositoryVersion) throws AmbariException {
     clusterGlobalLock.readLock().lock();
@@ -1256,7 +1260,7 @@ public class ClusterImpl implements Cluster {
         Map<String, Host> hosts = clusters.getHostsForCluster(this.getClusterName());
         String stackId = this.getCurrentStackVersion().getStackId();
         ClusterVersionEntity clusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(this.getClusterName(),
-                stackId, repositoryVersion);
+            stackId, repositoryVersion);
 
         if (clusterVersion == null) {
           throw new AmbariException(String.format("Repository version %s not found for cluster %s",
@@ -1265,6 +1269,7 @@ public class ClusterImpl implements Cluster {
 
         RepositoryVersionState worstState;
         if (clusterVersion.getState() != RepositoryVersionState.INSTALL_FAILED &&
+                clusterVersion.getState() != RepositoryVersionState.OUT_OF_SYNC &&
                 clusterVersion.getState() != RepositoryVersionState.INSTALLING &&
                 clusterVersion.getState() != RepositoryVersionState.INSTALLED) {
           // anything else is not supported as of now
@@ -1275,23 +1280,19 @@ public class ClusterImpl implements Cluster {
         for (Host host : hosts.values()) {
           String hostName = host.getHostName();
           if (host.getState() != HostState.HEALTHY) {
-            worstState = RepositoryVersionState.INSTALL_FAILED;
+            worstState = getWorstState(worstState, RepositoryVersionState.OUT_OF_SYNC);
             LOG.warn(String.format("Host %s is in unhealthy state, treating as %s",
                     hostName, worstState));
-            continue;
           }
 
           HostVersionEntity hostVersion = hostVersionDAO.findByClusterStackVersionAndHost(this.getClusterName(),
                   stackId, repositoryVersion, hostName);
           if (hostVersion == null) {
-            throw new AmbariException(String.format("Repo version %s is not installed on host %s",
+            LOG.warn(String.format("Repo version %s is not installed on host %s",
                     repositoryVersion, hostName));
-          }
-          if (hostVersion.getState() == RepositoryVersionState.INSTALL_FAILED) {
-            worstState = hostVersion.getState();
-            break;
-          } else if (hostVersion.getState() == RepositoryVersionState.INSTALLING) {
-            worstState = RepositoryVersionState.INSTALLING;
+            worstState = getWorstState(worstState, RepositoryVersionState.OUT_OF_SYNC);
+          } else {
+            worstState = getWorstState(worstState, hostVersion.getState());
           }
         }
         if (worstState != clusterVersion.getState()) {
@@ -1308,10 +1309,32 @@ public class ClusterImpl implements Cluster {
     }
   }
 
+  @Override
+  public void recalculateAllClusterVersionStates() throws AmbariException {
+    clusterGlobalLock.readLock().lock();
+    try {
+      readWriteLock.writeLock().lock();
+      try {
+        List<ClusterVersionEntity> clusterVersionEntities = clusterVersionDAO.findByCluster(getClusterName());
+        StackId currentStackId = getCurrentStackVersion();
+        for (ClusterVersionEntity clusterVersionEntity : clusterVersionEntities) {
+          if (clusterVersionEntity.getRepositoryVersion().getStack().equals(currentStackId.getStackId())
+            && clusterVersionEntity.getState() != RepositoryVersionState.CURRENT) {
+            recalculateClusterVersionState(clusterVersionEntity.getRepositoryVersion().getVersion());
+          }
+        }
+      } finally {
+        readWriteLock.writeLock().unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }
+
   /**
    * Create a cluster version for the given stack and version, whose initial state must either
    * be either {@link org.apache.ambari.server.state.RepositoryVersionState#CURRENT} (if no other cluster version exists) or
-   * {@link org.apache.ambari.server.state.RepositoryVersionState#UPGRADING} (if at exactly one CURRENT cluster version already exists).
+   * {@link org.apache.ambari.server.state.RepositoryVersionState#INSTALLING} (if at exactly one CURRENT cluster version already exists).
    * @param stack Stack name
    * @param version Stack version
    * @param userName User performing the operation
@@ -1325,7 +1348,8 @@ public class ClusterImpl implements Cluster {
       readWriteLock.writeLock().lock();
       try {
         Set<RepositoryVersionState> allowedStates = new HashSet<RepositoryVersionState>();
-        if (this.clusterEntity.getClusterVersionEntities() == null || this.clusterEntity.getClusterVersionEntities().isEmpty()) {
+        Collection<ClusterVersionEntity> allClusterVersions = getAllClusterVersions();
+        if (allClusterVersions == null || allClusterVersions.isEmpty()) {
           allowedStates.add(RepositoryVersionState.CURRENT);
         } else {
           allowedStates.add(RepositoryVersionState.INSTALLING);
@@ -1364,6 +1388,7 @@ public class ClusterImpl implements Cluster {
    * @throws AmbariException
    */
   @Override
+  @Transactional
   public void transitionClusterVersion(String stack, String version, RepositoryVersionState state) throws AmbariException {
     Set<RepositoryVersionState> allowedStates = new HashSet<RepositoryVersionState>();
     clusterGlobalLock.readLock().lock();
@@ -1378,22 +1403,36 @@ public class ClusterImpl implements Cluster {
         if (existingClusterVersion.getState() != state) {
           switch (existingClusterVersion.getState()) {
             case CURRENT:
-              allowedStates.add(RepositoryVersionState.INSTALLED);
+              // If CURRENT state is changed here cluster will not have CURRENT state.
+              // CURRENT state will be changed to INSTALLED when another CURRENT state is added.
+              // allowedStates.add(RepositoryVersionState.INSTALLED);
+              break;
             case INSTALLING:
               allowedStates.add(RepositoryVersionState.INSTALLED);
               allowedStates.add(RepositoryVersionState.INSTALL_FAILED);
+              allowedStates.add(RepositoryVersionState.OUT_OF_SYNC);
+              break;
             case INSTALL_FAILED:
               allowedStates.add(RepositoryVersionState.INSTALLING);
+              break;
             case INSTALLED:
               allowedStates.add(RepositoryVersionState.INSTALLING);
               allowedStates.add(RepositoryVersionState.UPGRADING);
+              allowedStates.add(RepositoryVersionState.OUT_OF_SYNC);
+              break;
+            case OUT_OF_SYNC:
+              allowedStates.add(RepositoryVersionState.INSTALLING);
+              break;
             case UPGRADING:
               allowedStates.add(RepositoryVersionState.UPGRADED);
               allowedStates.add(RepositoryVersionState.UPGRADE_FAILED);
+              break;
             case UPGRADED:
               allowedStates.add(RepositoryVersionState.CURRENT);
+              break;
             case UPGRADE_FAILED:
               allowedStates.add(RepositoryVersionState.UPGRADING);
+              break;
           }
 
           if (!allowedStates.contains(state)) {

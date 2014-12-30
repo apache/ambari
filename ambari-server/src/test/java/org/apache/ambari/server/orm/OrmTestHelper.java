@@ -43,6 +43,7 @@ import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
@@ -56,6 +57,7 @@ import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
+import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -110,6 +112,12 @@ public class OrmTestHelper {
 
   @Inject
   public RepositoryVersionDAO repositoryVersionDAO;
+
+  @Inject
+  public HostVersionDAO hostVersionDAO;
+
+  @Inject
+  public HostDAO hostDAO;
 
   public EntityManager getEntityManager() {
     return entityManagerProvider.get();
@@ -560,6 +568,18 @@ public class OrmTestHelper {
       }
     }
     return repositoryVersion;
+  }
+
+  /**
+   * Convenient method to create host version for given stack.
+   */
+  public HostVersionEntity createHostVersion(String hostName, RepositoryVersionEntity repositoryVersionEntity,
+                                             RepositoryVersionState repositoryVersionState) {
+    HostEntity hostEntity = hostDAO.findByName(hostName);
+    HostVersionEntity hostVersionEntity = new HostVersionEntity(hostName, repositoryVersionEntity, repositoryVersionState);
+    hostVersionEntity.setHostEntity(hostEntity);
+    hostVersionDAO.create(hostVersionEntity);
+    return hostVersionEntity;
   }
 
 }

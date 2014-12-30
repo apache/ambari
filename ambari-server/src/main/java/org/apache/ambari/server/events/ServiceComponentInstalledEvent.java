@@ -46,6 +46,14 @@ public class ServiceComponentInstalledEvent extends ServiceEvent {
     m_hostName = hostName;
   }
 
+  public String getComponentName() {
+    return m_componentName;
+  }
+
+  public String getHostName() {
+    return m_hostName;
+  }
+
   /**
    * {@inheritDoc}
    */
