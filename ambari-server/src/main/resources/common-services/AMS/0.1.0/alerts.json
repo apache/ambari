@@ -3,7 +3,8 @@
     "service": [
       {
         "name": "ams_metric_monitor_process_percent",
-        "label": "Percent AMS Metric Monitors Available",
+        "label": "Percent Metric Monitors Available",
+        "description": "This alert is triggered if a percentage of Metric Monitor processes are not up and listening on the network for the configured warning and critical thresholds.",
         "interval": 1,
         "scope": "SERVICE",
         "enabled": true,
@@ -29,7 +30,8 @@
     "METRIC_COLLECTOR": [
       {
         "name": "ams_metric_collector_process",
-        "label": "AMS Metric Collector Process",
+        "label": "Metric Collector Process",
+        "description": "This alert is triggered if the Metric Collector cannot be confirmed to be up and listening on the configured port for number of seconds equal to threshold.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,
@@ -54,7 +56,8 @@
       },
       {
         "name": "ams_metric_collector_hbase_master_process",
-        "label": "AMS Metric Collector HBase Master Process",
+        "label": "Metric Collector - HBase Master Process",
+        "description": "This alert is triggered if the Metric Collector's HBase master processes cannot be confirmed to be up and listening on the network for the configured critical threshold, given in seconds.",
         "interval": 1,
         "scope": "ANY",
         "source": {
@@ -78,7 +81,8 @@
       },
       {
         "name": "ams_metric_collector_hbase_master_cpu",
-        "label": "AMS Metric Collector HBase Maser CPU Utilization",
+        "label": "Metric Collector HBase Maser CPU Utilization",
+        "description": "This host-level alert is triggered if CPU utilization of the Metric Collector's HBase Master exceeds certain warning and critical thresholds. It checks the HBase Master JMX Servlet for the SystemCPULoad property. The threshold values are in percent.",
         "interval": 5,
         "scope": "ANY",
         "enabled": true,
@@ -116,7 +120,8 @@
       },
       {
         "name": "ams_metric_collector_zookeeper_server_process",
-        "label": "AMS Metric Collector ZooKeeper Server Process",
+        "label": "Metric Collector - ZooKeeper Server Process",
+        "description": "This host-level alert is triggered if the Metric Collector's ZooKeeper server process cannot be determined to be up and listening on the network.",
         "interval": 1,
         "scope": "ANY",
         "source": {
@@ -142,7 +147,8 @@
     "METRIC_MONITOR": [
       {
         "name": "ams_metric_monitor_process",
-        "label": "AMS Metric Monitor Status",
+        "label": "Metric Monitor Status",
+        "description": "This alert indicates the status of the Metric Monitor process as determined by the monitor status script.",
         "interval": 1,
         "scope": "ANY",
         "source": {
