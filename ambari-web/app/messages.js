@@ -911,6 +911,7 @@ Em.I18n.translations = {
 
   'alerts.notifications.error.email': 'Must be a valid email address',
   'alerts.notifications.error.integer': 'Must be an integer',
+  'alerts.notifications.error.retypePassword': 'Password confirmation must match password',
 
   'alerts.notifications.addCustomPropertyPopup.header': 'Add Property',
   'alerts.notifications.addCustomPropertyPopup.error.propertyExists': 'Custom Property with current name already exists',
@@ -1883,6 +1884,7 @@ Em.I18n.translations = {
   'alerts.actions.manage_alert_notifications_popup.SMTPUseAuthentication':'Use authentication',
   'alerts.actions.manage_alert_notifications_popup.SMTPUsername':'Username',
   'alerts.actions.manage_alert_notifications_popup.SMTPPassword':'Password',
+  'alerts.actions.manage_alert_notifications_popup.retypeSMTPPassword':'Password Confirmation',
   'alerts.actions.manage_alert_notifications_popup.SMTPSTARTTLS':'Start TLS',
   'alerts.actions.manage_alert_notifications_popup.emailFrom':'Email From',
   'alerts.actions.manage_alert_notifications_popup.version':'Version',

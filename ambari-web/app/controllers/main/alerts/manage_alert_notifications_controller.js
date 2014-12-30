@@ -89,9 +89,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
       label: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.SMTPUseAuthentication'),
       value: false,
       defaultValue: false,
-      inversedValue: function () {
-        return !this.get('value');
-      }.property('value')
+      invertedValue: Em.computed.not('value')
     }),
     SMTPUsername: {
       label: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.SMTPUsername'),
@@ -100,6 +98,11 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
     },
     SMTPPassword: {
       label: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.SMTPPassword'),
+      value: '',
+      defaultValue: ''
+    },
+    retypeSMTPPassword: {
+      label: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.retypeSMTPPassword'),
       value: '',
       defaultValue: ''
     },
@@ -290,6 +293,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
     inputFields.set('SMTPUseAuthentication.value', selectedAlertNotification.get('properties')['mail.smtp.auth']);
     inputFields.set('SMTPUsername.value', selectedAlertNotification.get('properties')['ambari.dispatch.credential.username']);
     inputFields.set('SMTPPassword.value', selectedAlertNotification.get('properties')['ambari.dispatch.credential.password']);
+    inputFields.set('retypeSMTPPassword.value', selectedAlertNotification.get('properties')['ambari.dispatch.credential.password']);
     inputFields.set('SMTPSTARTTLS.value', selectedAlertNotification.get('properties')['mail.smtp.starttls.enable']);
     inputFields.set('emailFrom.value', selectedAlertNotification.get('properties')['mail.smtp.from']);
     inputFields.set('version.value', selectedAlertNotification.get('properties')['ambari.dispatch.snmp.version']);
@@ -338,6 +342,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
           this.emailFromValidation();
           this.smtpPortValidation();
           this.portValidation();
+          this.retypePasswordValidation();
         },
 
         isEmailMethodSelected: function () {
@@ -391,6 +396,18 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
             this.set('controller.inputFields.port.errorMsg', null);
           }
         }.observes('controller.inputFields.port.value'),
+
+        retypePasswordValidation: function () {
+          var passwordValue = this.get('controller.inputFields.SMTPPassword.value');
+          var retypePasswordValue = this.get('controller.inputFields.retypeSMTPPassword.value');
+          if (passwordValue !== retypePasswordValue) {
+            this.set('parentView.hasErrors', true);
+            this.set('controller.inputFields.retypeSMTPPassword.errorMsg', Em.I18n.t('alerts.notifications.error.retypePassword'));
+          } else {
+            this.set('parentView.hasErrors', false);
+            this.set('controller.inputFields.retypeSMTPPassword.errorMsg', null);
+          }
+        }.observes('controller.inputFields.retypeSMTPPassword.value', 'controller.inputFields.SMTPPassword.value'),
 
 
         groupsSelectView: Em.Select.extend({

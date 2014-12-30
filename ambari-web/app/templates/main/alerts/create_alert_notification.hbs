@@ -149,7 +149,7 @@
         <label class="control-label">{{controller.inputFields.SMTPUsername.label}}</label>
 
         <div class="controls">
-          {{view Em.TextField disabledBinding="controller.inputFields.SMTPUseAuthentication.inversedValue" valueBinding="controller.inputFields.SMTPUsername.value" class="input-xlarge"}}
+          {{view Em.TextField disabledBinding="controller.inputFields.SMTPUseAuthentication.invertedValue" valueBinding="controller.inputFields.SMTPUsername.value" class="input-xlarge"}}
         </div>
       </div>
 
@@ -157,7 +157,19 @@
         <label class="control-label">{{controller.inputFields.SMTPPassword.label}}</label>
 
         <div class="controls">
-          {{view Em.TextField type="password" disabledBinding="controller.inputFields.SMTPUseAuthentication.inversedValue" valueBinding="controller.inputFields.SMTPPassword.value" class="input-xlarge"}}
+          {{view Em.TextField type="password" disabledBinding="controller.inputFields.SMTPUseAuthentication.invertedValue" valueBinding="controller.inputFields.SMTPPassword.value" class="input-xlarge"}}
+        </div>
+      </div>
+
+      <div {{bindAttr class=":control-group controller.inputFields.retypeSMTPPassword.errorMsg:error"}}>
+        <label class="control-label">{{controller.inputFields.retypeSMTPPassword.label}}</label>
+
+        <div class="controls">
+          {{view Em.TextField type="password" disabledBinding="controller.inputFields.SMTPUseAuthentication.invertedValue" valueBinding="controller.inputFields.retypeSMTPPassword.value" class="input-xlarge"}}
+        </div>
+
+        <div class="controls error-msg">
+          {{controller.inputFields.retypeSMTPPassword.errorMsg}}
         </div>
       </div>
 
@@ -165,7 +177,7 @@
         <label class="control-label" for="inputSMTPSTARTTLS">{{controller.inputFields.SMTPSTARTTLS.label}}</label>
 
         <div class="controls">
-          {{view Em.Checkbox disabledBinding="controller.inputFields.SMTPUseAuthentication.inversedValue" checkedBinding="controller.inputFields.SMTPSTARTTLS.value" id="inputSMTPSTARTTLS" class="input-xlarge"}}
+          {{view Em.Checkbox disabledBinding="controller.inputFields.SMTPUseAuthentication.invertedValue" checkedBinding="controller.inputFields.SMTPSTARTTLS.value" id="inputSMTPSTARTTLS" class="input-xlarge"}}
         </div>
       </div>
     {{else}}
