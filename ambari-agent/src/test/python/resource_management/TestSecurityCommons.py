@@ -123,8 +123,10 @@ class TestSecurityCommons(TestCase):
   def test_get_params_from_filesystem(self, et_parser_mock):
 
     conf_dir = gettempdir()
-    config_file = []
-    config_file.append("config.xml")
+    config_file = {
+      "config.xml": FILE_TYPE_XML
+    }
+
 
     prop1_name_mock = MagicMock()
     prop1_name_mock.text.return_value = 'property1'
@@ -173,7 +175,7 @@ class TestSecurityCommons(TestCase):
     self.assertEquals(not result['config'].items(), True)
 
     #Testing that returns an empty dictionary if is called with empty config_files
-    empty_config_file = []
+    empty_config_file = {}
 
     result = get_params_from_filesystem(conf_dir, empty_config_file)
 
@@ -218,7 +220,7 @@ class TestSecurityCommons(TestCase):
 
     json_load_mock.return_value = output
 
-    self.assertEquals(cached_kinit_executor(kinit_path, user, keytab_file, principal, hostname, temp_dir, expiration_time), True)
+    cached_kinit_executor(kinit_path, user, keytab_file, principal, hostname, temp_dir, expiration_time)
     os_path_exists_mock.assert_called_with(file_path)
     os_isfile_mock.assert_called_with(file_path + os.sep + filename)
     open_file_mock.assert_called_with(file_path + os.sep + filename, 'r')
