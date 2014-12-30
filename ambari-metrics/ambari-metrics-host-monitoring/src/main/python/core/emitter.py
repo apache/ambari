@@ -32,13 +32,12 @@ class Emitter(threading.Thread):
   """
   Wake up every send interval seconds and empty the application metric map.
   """
-  def __init__(self, config, application_metric_map, stop_handler):
+  def __init__(self, config, application_metric_map):
     threading.Thread.__init__(self)
     logger.debug('Initializing Emitter thread.')
     self.lock = threading.Lock()
     self.collector_address = config.get_server_address()
     self.send_interval = config.get_send_interval()
-    self._stop_handler = stop_handler
     self.application_metric_map = application_metric_map
 
   def run(self):
@@ -46,16 +45,10 @@ class Emitter(threading.Thread):
     while True:
       try:
         self.submit_metrics()
-        #Wait for the service stop event instead of sleeping blindly
-        if 0 == self._stop_handler.wait(self.send_interval):
-          logger.info('Shutting down Emitter thread')
-          return
+        time.sleep(self.send_interval)
       except Exception, e:
         logger.warn('Unable to emit events. %s' % str(e))
-        #Wait for the service stop event instead of sleeping blindly
-        if 0 == self._stop_handler.wait(self.RETRY_SLEEP_INTERVAL):
-          logger.info('Shutting down Emitter thread - abort retry')
-          return
+        time.sleep(self.RETRY_SLEEP_INTERVAL)
         logger.info('Retrying emit after %s seconds.' % self.RETRY_SLEEP_INTERVAL)
     pass
   
@@ -76,9 +69,7 @@ class Emitter(threading.Thread):
         logger.warn("Error sending metrics to server. Retrying after {0} "
                     "...".format(self.RETRY_SLEEP_INTERVAL))
         retry_count += 1
-        #Wait for the service stop event instead of sleeping blindly
-        if 0 == self._stop_handler.wait(self.RETRY_SLEEP_INTERVAL):
-          return
+        time.sleep(self.RETRY_SLEEP_INTERVAL)
       pass
     pass
   

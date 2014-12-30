@@ -1,3 +1,5 @@
+import inspect
+
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -14,7 +16,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ambari_commons.xml_utils import ConvertToXml
+class ConvertToXml:
+  "Template class, allow to output fields in xml format"
+  def getField(self):
+    return [name for name, obj in inspect.getmembers(self)
+            if not name.startswith("__") and not inspect.isroutine(obj)]
+
+  def attributesToXml(self):
+    result = ""
+    listOfAttr = self.getField()
+    for attrName in listOfAttr:
+      result += "<" + attrName + ">"
+      result += str(getattr(self, attrName))
+      result += "</" + attrName + ">"
+    return result
 
 
 class Configurations(ConvertToXml):

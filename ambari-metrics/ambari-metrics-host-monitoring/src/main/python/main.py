@@ -18,67 +18,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import logging
-import os
-import sys
-
-from ambari_commons.os_utils import remove_file
-
+import core
 from core.controller import Controller
-from core.config_reader import Configuration, PID_OUT_FILE, SERVER_LOG_FILE, SERVER_OUT_FILE
-from core.stop_handler import bind_signal_handlers
-
+from core.config_reader import Configuration
+import logging
+import signal
+import sys
 
 logger = logging.getLogger()
 
-
-def save_pid(pid, pidfile):
-  """
-    Save pid to pidfile.
-  """
-  try:
-    pfile = open(pidfile, "w")
-    pfile.write("%s\n" % pid)
-  except IOError:
-    pass
-  finally:
-    try:
-      pfile.close()
-    except:
-      pass
-
-
 def main(argv=None):
   # Allow Ctrl-C
-  stop_handler = bind_signal_handlers()
-
-  server_process_main(stop_handler)
-
-def server_process_main(stop_handler, scmStatus=None):
-  if scmStatus is not None:
-    scmStatus.reportStartPending()
-
-  save_pid(os.getpid(), PID_OUT_FILE)
+  signal.signal(signal.SIGINT, signal.SIG_DFL)
 
   config = Configuration()
-  controller = Controller(config, stop_handler)
-
+  controller = Controller(config)
+  
   _init_logging(config)
-
+  
   logger.info('Starting Server RPC Thread: %s' % ' '.join(sys.argv))
   controller.start()
-
-  print "Server out at: " + SERVER_OUT_FILE
-  print "Server log at: " + SERVER_LOG_FILE
-
-  if scmStatus is not None:
-    scmStatus.reportStarted()
-
-  #The controller thread finishes when the stop event is signaled
-  controller.join()
-
-  remove_file(PID_OUT_FILE)
-  pass
+  controller.start_emitter()
 
 def _init_logging(config):
   _levels = {

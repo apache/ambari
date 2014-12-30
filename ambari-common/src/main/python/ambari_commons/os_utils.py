@@ -48,16 +48,13 @@ def quote_path(filepath):
     filepath_ret = filepath
   return filepath_ret
 
-def _search_file(filename, search_path, pathsep):
+def search_file(filename, search_path, pathsep=os.pathsep):
+  """ Given a search path, find file with requested name """
   for path in string.split(search_path, pathsep):
     candidate = os.path.join(path, filename)
     if os.path.exists(candidate):
       return os.path.abspath(candidate)
   return None
-
-def search_file(filename, search_path, pathsep=os.pathsep):
-  """ Given a search path, find file with requested name """
-  return _search_file(filename, search_path, pathsep)
 
 def copy_file(src, dest_file):
   try:
@@ -106,7 +103,9 @@ def get_password(prompt):
   return os_getpass(prompt)
 
 def find_in_path(file):
-  full_path = _search_file(file, os.environ["PATH"], os.pathsep)
-  if full_path is None:
-    raise Exception("File {0} not found in PATH".format(file))
-  return full_path
+  dirs = os.environ["PATH"].split(os.pathsep)
+  for dir in dirs:
+    full_path = os.path.join(dir, file)
+    if os.path.exists(full_path):
+      return full_path
+  raise Exception("File {} not found in PATH".format(file))

@@ -33,7 +33,7 @@ logger = logging.getLogger()
 
 class Controller(threading.Thread):
 
-  def __init__(self, config, stop_handler):
+  def __init__(self, config):
     # Process initialization code
     threading.Thread.__init__(self)
     logger.debug('Initializing Controller thread.')
@@ -48,42 +48,27 @@ class Controller(threading.Thread):
     self.metric_collector = MetricsCollector(self.event_queue, self.application_metric_map)
     self.server_url = config.get_server_address()
     self.sleep_interval = config.get_collector_sleep_interval()
-    self._stop_handler = stop_handler
     self.initialize_events_cache()
-    self.emitter = Emitter(self.config, self.application_metric_map, stop_handler)
-    self._t = None
+    self.emitter = Emitter(self.config, self.application_metric_map)
 
   def run(self):
     logger.info('Running Controller thread: %s' % threading.currentThread().getName())
-
-    self.start_emitter()
-
-  # Wake every 5 seconds to push events to the queue
+    # Wake every 5 seconds to push events to the queue
     while True:
       if (self.event_queue.full()):
         logger.warn('Event Queue full!! Suspending further collections.')
       else:
         self.enqueque_events()
       pass
-      #Wait for the service stop event instead of sleeping blindly
-      if 0 == self._stop_handler.wait(self.sleep_interval):
-        logger.info('Shutting down Controller thread')
-        break
-
-    if not self._t is None:
-      self._t.cancel()
-      self._t.join(5)
-
-    #The emitter thread should have stopped by now, just ensure it has shut down properly
-    self.emitter.join(5)
+      time.sleep(self.sleep_interval)
     pass
 
   # TODO: Optimize to not use Timer class and use the Queue instead
   def enqueque_events(self):
     # Queue events for up to a minute
     for event in self.events_cache:
-      self._t = Timer(event.get_collect_interval(), self.metric_collector.process_event, args=(event,))
-      self._t.start()
+      t = Timer(event.get_collect_interval(), self.metric_collector.process_event, args=(event,))
+      t.start()
     pass
 
   def initialize_events_cache(self):

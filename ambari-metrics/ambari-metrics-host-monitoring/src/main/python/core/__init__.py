@@ -19,9 +19,8 @@ limitations under the License.
 """
 
 import os, sys
-
 path = os.path.abspath(__file__)
-path = os.path.normpath(os.path.join(os.path.dirname(path), "..", "psutil", "build"))
+path = os.path.join(os.path.dirname(os.path.dirname(path)), "psutil/build/")
 
 for dir in os.walk(path).next()[1]:
   if 'lib' in dir:

@@ -31,8 +31,8 @@
       <outputDirectory>site-packages/resource_monitoring</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>${monitor.dir}/conf/unix</directory>
       <outputDirectory>conf</outputDirectory>
+      <directory>${monitor.dir}/conf/unix</directory>
       <includes>
         <include>metric_groups.conf</include>
         <include>metric_monitor.ini</include>

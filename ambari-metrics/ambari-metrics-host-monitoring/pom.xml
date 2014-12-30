@@ -32,7 +32,6 @@
     <resmonitor.install.dir>
       /usr/lib/python2.6/site-packages/resource_monitoring
     </resmonitor.install.dir>
-    <final.name>${project.artifactId}-${project.version}</final.name>
   </properties>
   <build>
     <plugins>
@@ -83,12 +82,55 @@
         <version>3.0</version>
       </plugin>
       <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <tarLongFileMode>gnu</tarLongFileMode>
+          <descriptors>
+            <descriptor>${project.basedir}/../../ambari-project/src/main/assemblies/empty.xml</descriptor>
+          </descriptors>
+        </configuration>
+        <executions>
+          <execution>
+            <id>build-tarball</id>
+            <phase>none</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <id>psutils-compile</id>
+            <phase>process-test-classes</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target name="psutils-compile">
+                <exec dir="${basedir}/src/main/python/psutil" executable="${project.basedir}/../../ambari-common/src/main/unix/ambari-python-wrap" failonerror="true">
+                  <arg value="setup.py" />
+                  <arg value="build" />
+                  <arg value="--build-platlib" />
+                  <arg value="${basedir}/target/psutil_build" />
+                </exec>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
         <executions>
           <execution>
             <configuration>
-              <executable>${executable.python}</executable>
+              <executable>${project.basedir}/../../ambari-common/src/main/unix/ambari-python-wrap</executable>
               <workingDirectory>src/test/python</workingDirectory>
               <arguments>
                 <argument>unitTests.py</argument>
@@ -111,8 +153,6 @@
         <artifactId>apache-rat-plugin</artifactId>
         <configuration>
           <excludes>
-            <exclude>conf/unix/metric_groups.conf</exclude>
-            <exclude>conf/windows/metric_groups.conf</exclude>
             <exclude>src/main/python/psutil/**</exclude>
             <exclude>.pydevproject</exclude>
           </excludes>
@@ -128,102 +168,4 @@
       </plugin>
     </plugins>
   </build>
-  <profiles>
-    <profile>
-      <id>windows</id>
-      <activation>
-        <os>
-          <family>win</family>
-        </os>
-      </activation>
-      <properties>
-        <envClassifier>win</envClassifier>
-        <dirsep>\</dirsep>
-        <pathsep>;</pathsep>
-        <executable.python>python</executable.python>
-        <executable.shell>cmd</executable.shell>
-        <fileextension.shell>cmd</fileextension.shell>
-        <fileextension.dot.shell-default>.cmd</fileextension.dot.shell-default>
-        <assemblydescriptor>src/main/assemblies/amhm-windows.xml</assemblydescriptor>
-        <packagingFormat>jar</packagingFormat>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-antrun-plugin</artifactId>
-            <version>1.7</version>
-            <executions>
-              <execution>
-                <id>psutils-compile</id>
-                <phase>process-test-classes</phase>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-                <configuration>
-                  <target name="psutils-compile">
-                    <exec dir="${basedir}/src/main/python/psutil" executable="python" failonerror="true">
-                      <arg value="setup.py" />
-                      <arg value="bdist_egg" />
-                      <arg value="--bdist-dir" />
-                      <arg value="${basedir}/target/psutil_build_temp" />
-                      <arg value="--dist-dir" />
-                      <arg value="${basedir}/target/psutil_build" />
-                    </exec>
-                  </target>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>linux</id>
-      <activation>
-        <os>
-          <family>unix</family>
-        </os>
-      </activation>
-      <properties>
-        <envClassifier>linux</envClassifier>
-        <dirsep>/</dirsep>
-        <pathsep>:</pathsep>
-        <executable.python>${project.basedir}/../../ambari-common/src/main/unix/ambari-python-wrap</executable.python>
-        <executable.shell>sh</executable.shell>
-        <fileextension.shell>sh</fileextension.shell>
-        <fileextension.dot.shell-default></fileextension.dot.shell-default>
-        <assemblydescriptor>src/main/assemblies/empty.xml</assemblydescriptor>
-        <packagingFormat>jar</packagingFormat>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-antrun-plugin</artifactId>
-            <version>1.7</version>
-            <executions>
-              <execution>
-                <id>psutils-compile</id>
-                <phase>process-test-classes</phase>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-                <configuration>
-                  <target name="psutils-compile">
-                    <exec dir="${basedir}/src/main/python/psutil" executable="python" failonerror="true">
-                      <arg value="setup.py" />
-                      <arg value="build" />
-                      <arg value="--build-platlib" />
-                      <arg value="${basedir}/target/psutil_build" />
-                    </exec>
-                  </target>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 </project>
