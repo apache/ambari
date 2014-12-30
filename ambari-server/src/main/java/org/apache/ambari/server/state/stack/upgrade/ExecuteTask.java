@@ -27,6 +27,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 
 /**
  * Used to represent an execution that should occur on an agent.
+ * An equivalent class exists in the python server-side, called ExecuteTask in ru_execute_tasks.py
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -43,46 +44,26 @@ public class ExecuteTask extends Task {
   public String hosts;
 
   /**
+   * Similar to a command, but instead it is a call to invoke the script (using its relative path).
+   * THe script and function elements are used together, and are invoked with additional environment variables.
+   * If both a (script, function) and command are defined, only the (script, function) will be executed.
+   * The service is already specified as part of the group.
+   */
+  @XmlElement(name="script")
+  public String script;
+
+  /**
+   * Function name to call in the {@see script} element.
+   */
+  @XmlElement(name="function")
+  public String function;
+
+  /**
    * Command to run under normal conditions.
+   *  If both a function and command are defined, only the function will be executed.
    */
   @XmlElement(name="command")
   public String command;
-
-  /**
-   * Run the command only if this condition is first met.
-   */
-  @XmlElement(name="first")
-  public String first;
-
-  /**
-   * Run the command unless this condition is met.
-   */
-  @XmlElement(name="unless")
-  public String unless;
-
-  /**
-   * Command to run if a failure occurs.
-   */
-  @XmlElement(name="onfailure")
-  public String onfailure;
-
-  /**
-   * Run the command up to x times, until it succeeds.
-   */
-  @XmlElement(name="upto")
-  public String upto;
-
-  /**
-   * If "until" is specified, then sleep this many seconds between attempts.
-   */
-  @XmlElement(name="every")
-  public String every;
-
-  /**
-   * Comma delimited list of return codes to ignore
-   */
-  @XmlElement(name="ignore")
-  public String ignore;
 
   @Override
   public Task.Type getType() {

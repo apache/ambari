@@ -45,22 +45,15 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.HostConfig;
-import org.apache.ambari.server.state.HostEvent;
-import org.apache.ambari.server.state.HostHealthStatus;
-import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.junit.After;
 import org.junit.Before;
@@ -103,6 +96,7 @@ public class ClusterStackVersionResourceProviderTest {
   private Injector injector;
   private AmbariMetaInfo ambariMetaInfo;
   private RepositoryVersionDAO repositoryVersionDAOMock;
+  private ConfigHelper configHelper;
 
   private String operatingSystemsJson = "[\n" +
           "   {\n" +
@@ -126,6 +120,7 @@ public class ClusterStackVersionResourceProviderTest {
   public void setup() throws Exception {
     // Create instances of mocks
     repositoryVersionDAOMock = createNiceMock(RepositoryVersionDAO.class);
+    configHelper = createNiceMock(ConfigHelper.class);
     // Initialize injector
     InMemoryDefaultTestModule module = new InMemoryDefaultTestModule();
     injector = Guice.createInjector(Modules.override(module).with(new MockModule()));
@@ -178,6 +173,9 @@ public class ClusterStackVersionResourceProviderTest {
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
+    Map<String, Map<String, String>> hostConfigTags = new HashMap<String, Map<String, String>>();
+    expect(configHelper.getEffectiveDesiredTags(anyObject(ClusterImpl.class), anyObject(String.class))).andReturn(hostConfigTags);
+
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(managementController.getAuthName()).andReturn("admin").anyTimes();
@@ -204,7 +202,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     // replay
     replay(managementController, response, clusters, resourceProviderFactory, csvResourceProvider,
-            cluster, repositoryVersionDAOMock, sch, actionManager);
+        cluster, repositoryVersionDAOMock, configHelper, sch, actionManager);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
@@ -240,6 +238,7 @@ public class ClusterStackVersionResourceProviderTest {
     @Override
     protected void configure() {
       bind(RepositoryVersionDAO.class).toInstance(repositoryVersionDAOMock);
+      bind(ConfigHelper.class).toInstance(configHelper);
     }
   }
 }

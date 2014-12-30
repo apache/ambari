@@ -83,6 +83,13 @@ class Script(object):
   4 path to file with structured command output (file will be created)
   """
   structuredOut = {}
+  command_data_file = ""
+  basedir = ""
+  stroutfile = ""
+  logging_level = ""
+
+  # Class variable
+  tmp_dir = ""
 
   def put_structured_out(self, sout):
     Script.structuredOut.update(sout)
@@ -106,13 +113,13 @@ class Script(object):
      sys.exit(1)
 
     command_name = str.lower(sys.argv[1])
-    command_data_file = sys.argv[2]
-    basedir = sys.argv[3]
+    self.command_data_file = sys.argv[2]
+    self.basedir = sys.argv[3]
     self.stroutfile = sys.argv[4]
-    logging_level = sys.argv[5]
+    self.logging_level = sys.argv[5]
     Script.tmp_dir = sys.argv[6]
 
-    logging_level_str = logging._levelNames[logging_level]
+    logging_level_str = logging._levelNames[self.logging_level]
     chout.setLevel(logging_level_str)
     logger.setLevel(logging_level_str)
 
@@ -123,7 +130,7 @@ class Script(object):
       reload_windows_env()
 
     try:
-      with open(command_data_file, "r") as f:
+      with open(self.command_data_file, "r") as f:
         pass
         Script.config = ConfigDictionary(json.load(f))
         #load passwords here(used on windows to impersonate different users)
@@ -138,7 +145,7 @@ class Script(object):
     # Run class method depending on a command type
     try:
       method = self.choose_method_to_execute(command_name)
-      with Environment(basedir) as env:
+      with Environment(self.basedir) as env:
         method(env)
     except ClientComponentHasNoStatus or ComponentIsNotRunning:
       # Support of component status checks.

@@ -70,9 +70,6 @@ def _get_tar_source_and_dest_folder(tarball_prefix):
   if not component_tar_destination_folder.endswith("/"):
     component_tar_destination_folder = component_tar_destination_folder + "/"
 
-  if not component_tar_destination_folder.startswith("hdfs://"):
-    return None, None
-
   return component_tar_source_file, component_tar_destination_folder
 
 

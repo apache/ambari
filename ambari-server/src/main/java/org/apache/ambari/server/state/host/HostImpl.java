@@ -1226,14 +1226,18 @@ public class HostImpl implements Host {
   @Override
   public Map<String, HostConfig> getDesiredHostConfigs(Cluster cluster) throws AmbariException {
     Map<String, HostConfig> hostConfigMap = new HashMap<String, HostConfig>();
-    for (Map.Entry<String, DesiredConfig> desiredConfigEntry :
-        cluster.getDesiredConfigs().entrySet()) {
-      HostConfig hostConfig = new HostConfig();
-      hostConfig.setDefaultVersionTag(desiredConfigEntry.getValue().getTag());
-      hostConfigMap.put(desiredConfigEntry.getKey(), hostConfig);
+    Map<String, DesiredConfig> clusterDesiredConfigs = (cluster == null) ? new HashMap<String, DesiredConfig>() : cluster.getDesiredConfigs();
+
+    if (clusterDesiredConfigs != null) {
+      for (Map.Entry<String, DesiredConfig> desiredConfigEntry :
+          clusterDesiredConfigs.entrySet()) {
+        HostConfig hostConfig = new HostConfig();
+        hostConfig.setDefaultVersionTag(desiredConfigEntry.getValue().getTag());
+        hostConfigMap.put(desiredConfigEntry.getKey(), hostConfig);
+      }
     }
 
-    Map<Long, ConfigGroup> configGroups = cluster.getConfigGroupsByHostname(getHostName());
+    Map<Long, ConfigGroup> configGroups = (cluster == null) ? new HashMap<Long, ConfigGroup>() : cluster.getConfigGroupsByHostname(getHostName());
 
     if (configGroups != null && !configGroups.isEmpty()) {
       for (ConfigGroup configGroup : configGroups.values()) {

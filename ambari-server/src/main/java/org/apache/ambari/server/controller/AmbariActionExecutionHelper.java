@@ -43,6 +43,7 @@ import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
@@ -72,6 +73,8 @@ public class AmbariActionExecutionHelper {
   private AmbariMetaInfo ambariMetaInfo;
   @Inject
   private MaintenanceStateHelper maintenanceStateHelper;
+  @Inject
+  private ConfigHelper configHelper;
 
   /**
    * Validates the request to execute an action.
@@ -336,7 +339,9 @@ public class AmbariActionExecutionHelper {
             hostName, System.currentTimeMillis()), clusterName,
               serviceName, retryAllowed);
 
-      Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
+      Map<String, Map<String, String>> hostConfigTags = configHelper.getEffectiveDesiredTags(cluster, hostName);
+      Map<String, Map<String, String>> hostConfigurations = configHelper.getEffectiveConfigProperties(cluster, hostConfigTags);
+
       Map<String, Map<String, Map<String, String>>> configurationAttributes = new TreeMap<String, Map<String, Map<String, String>>>();
       Map<String, Map<String, String>> configTags = null;
       if (!StringUtils.isEmpty(serviceName) && null != cluster) {
@@ -355,7 +360,7 @@ public class AmbariActionExecutionHelper {
        * TODO Execution command field population should be (partially?)
         * combined with the same code at createHostAction()
         */
-      execCmd.setConfigurations(configurations);
+      execCmd.setConfigurations(hostConfigurations);
       execCmd.setConfigurationAttributes(configurationAttributes);
       execCmd.setConfigurationTags(configTags);
       execCmd.setCommandParams(commandParams);

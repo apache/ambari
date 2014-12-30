@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.state;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -48,6 +49,7 @@ import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapperBuilder;
 import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,10 +119,8 @@ public class UpgradeHelper {
 
               // Override the hosts with the ordered collection
               hostsType.hosts = order;
-
             } else {
-                // TODO Rolling Upgrade, enable once Namenode HA is a pre-check requirement.
-                // throw new AmbariException(MessageFormat.format("Could not find active and standby namenodes using hosts: {0}", StringUtils.join(hostsType.hosts, ", ").toString()));
+                throw new AmbariException(MessageFormat.format("Could not find active and standby namenodes using hosts: {0}", StringUtils.join(hostsType.hosts, ", ").toString()));
             }
 
             builder.add(hostsType, service.serviceName, svc.isClientOnlyService(), pc);

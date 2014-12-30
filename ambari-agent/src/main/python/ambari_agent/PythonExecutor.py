@@ -51,7 +51,7 @@ class PythonExecutor:
     pass
 
 
-  def open_subporcess_files(self, tmpoutfile, tmperrfile, override_output_files):
+  def open_subprocess_files(self, tmpoutfile, tmperrfile, override_output_files):
     if override_output_files: # Recreate files
       tmpout =  open(tmpoutfile, 'w')
       tmperr =  open(tmperrfile, 'w')
@@ -83,8 +83,8 @@ class PythonExecutor:
     script_params += [tmpstructedoutfile, logger_level, tmp_dir]
     pythonCommand = self.python_command(script, script_params)
     logger.info("Running command " + pprint.pformat(pythonCommand))
-    if(handle == None) :
-      tmpout, tmperr = self.open_subporcess_files(tmpoutfile, tmperrfile, override_output_files)
+    if handle is None:
+      tmpout, tmperr = self.open_subprocess_files(tmpoutfile, tmperrfile, override_output_files)
 
       process = self.launch_python_subprocess(pythonCommand, tmpout, tmperr)
       # map task_id to pid
@@ -106,7 +106,7 @@ class PythonExecutor:
       background.start()
       return {"exitcode": 777}
 
-  def prepare_process_result (self, process, tmpoutfile, tmperrfile, tmpstructedoutfile, timeout=None):
+  def prepare_process_result(self, process, tmpoutfile, tmperrfile, tmpstructedoutfile, timeout=None):
     out, error, structured_out = self.read_result_from_files(tmpoutfile, tmperrfile, tmpstructedoutfile)
     # Building results
     returncode = process.returncode
@@ -200,7 +200,7 @@ class BackgroundThread(threading.Thread):
     self.pythonExecutor = pythonExecutor
 
   def run(self):
-    process_out, process_err  = self.pythonExecutor.open_subporcess_files(self.holder.out_file, self.holder.err_file, True)
+    process_out, process_err = self.pythonExecutor.open_subprocess_files(self.holder.out_file, self.holder.err_file, True)
 
     logger.info("Starting process command %s" % self.holder.command)
     process = self.pythonExecutor.launch_python_subprocess(self.holder.command, process_out, process_err)
@@ -214,7 +214,7 @@ class BackgroundThread(threading.Thread):
     process.communicate()
 
     self.holder.handle.exitCode = process.returncode
-    process_condenced_result = self.pythonExecutor.prepare_process_result(process, self.holder.out_file, self.holder.err_file, self.holder.structured_out_file)
-    logger.info("Calling callback with args %s" % process_condenced_result)
-    self.holder.handle.on_background_command_complete_callback(process_condenced_result, self.holder.handle)
+    process_condensed_result = self.pythonExecutor.prepare_process_result(process, self.holder.out_file, self.holder.err_file, self.holder.structured_out_file)
+    logger.info("Calling callback with args %s" % process_condensed_result)
+    self.holder.handle.on_background_command_complete_callback(process_condensed_result, self.holder.handle)
     logger.info("Exiting from thread for holder pid %s" % self.holder.handle.pid)

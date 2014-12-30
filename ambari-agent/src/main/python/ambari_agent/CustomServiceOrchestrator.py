@@ -133,7 +133,7 @@ class CustomServiceOrchestrator():
         hook_dir = self.file_cache.get_hook_base_dir(command, server_url_prefix)
         base_dir = self.file_cache.get_service_base_dir(command, server_url_prefix)
         
-        script_path = self.resolve_script_path(base_dir, script, script_type)
+        script_path = self.resolve_script_path(base_dir, script)
         script_tuple = (script_path, base_dir)
 
       tmpstrucoutfile = os.path.join(self.tmp_dir,
@@ -260,7 +260,7 @@ class CustomServiceOrchestrator():
 
     return result
 
-  def resolve_script_path(self, base_dir, script, script_type):
+  def resolve_script_path(self, base_dir, script):
     """
     Incapsulates logic of script location determination.
     """

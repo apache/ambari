@@ -20,8 +20,6 @@ limitations under the License.
 import sys
 import os
 import json
-import subprocess
-from datetime import datetime
 
 from resource_management import *
 from resource_management.libraries.functions.security_commons import build_expectations, \
@@ -31,7 +29,9 @@ from resource_management.libraries.functions.version import compare_versions, \
   format_hdp_stack_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.core.exceptions import Fail
 
+import namenode_upgrade
 from hdfs_namenode import namenode
 from hdfs import hdfs
 import hdfs_rebalance
@@ -46,6 +46,12 @@ class NameNode(Script):
     env.set_params(params)
     #TODO we need this for HA because of manual steps
     self.configure(env)
+
+  def prepare_rolling_upgrade(self, env):
+    namenode_upgrade.prepare_rolling_upgrade()
+
+  def finalize_rolling_upgrade(self, env):
+    namenode_upgrade.finalize_rolling_upgrade()
 
   def pre_rolling_restart(self, env):
     Logger.info("Executing Rolling Upgrade pre-restart")

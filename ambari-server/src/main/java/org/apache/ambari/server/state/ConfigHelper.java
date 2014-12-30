@@ -102,7 +102,7 @@ public class ConfigHelper {
   private Map<String, Map<String, String>> getEffectiveDesiredTags(
       Cluster cluster, Map<String, HostConfig> hostConfigOverrides) {
 
-    Map<String, DesiredConfig> clusterDesired = cluster.getDesiredConfigs();
+    Map<String, DesiredConfig> clusterDesired = (cluster == null) ? new HashMap<String, DesiredConfig>() : cluster.getDesiredConfigs();
 
     Map<String, Map<String,String>> resolved = new TreeMap<String, Map<String, String>>();
 

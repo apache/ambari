@@ -64,7 +64,9 @@ import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
 import org.apache.ambari.server.state.stack.UpgradePack;
@@ -78,6 +80,9 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActi
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -341,9 +346,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           String configType = formattedVar.substring(0, posConfigFile);
           String propertyName = formattedVar.substring(posConfigFile + 1, formattedVar.length());
           try {
-            // TODO, some properties use 0.0.0.0 to indicate the current host.
-            // Right now, ru_execute_tasks.py is responsible for replacing 0.0.0.0 with the hostname.
-
             String configValue = configHelper.getPropertyValueFromStackDefinitions(cluster, configType, propertyName);
             task = task.replace(origVar, configValue);
           } catch (Exception err) {
@@ -484,9 +486,22 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     RequestResourceFilter filter = new RequestResourceFilter("", "",
         new ArrayList<String>(wrapper.getHosts()));
 
-
     Map<String, String> params = new HashMap<String, String>();
     params.put("tasks", entity.getTasks());
+    params.put("version", version);
+
+    // Because custom task may end up calling a script/function inside a service, it is necessary to set the
+    // service_package_folder and hooks_folder params.
+    AmbariMetaInfo ambariMetaInfo = m_metaProvider.get();
+    StackId stackId = cluster.getDesiredStackVersion();
+    StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
+    if (wrapper.getTasks() != null && wrapper.getTasks().size() > 0) {
+      String serviceName = wrapper.getTasks().get(0).getService();
+      ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(), stackId.getStackVersion(), serviceName);
+      params.put(SERVICE_PACKAGE_FOLDER,
+          serviceInfo.getServicePackageFolder());
+      params.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
+    }
 
     ActionExecutionContext actionContext = new ActionExecutionContext(
         cluster.getClusterName(), "ru_execute_tasks",
@@ -497,13 +512,17 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     Map<String, String> hostLevelParams = new HashMap<String, String>();
     hostLevelParams.put(JDK_LOCATION, getManagementController().getJdkResourceUrl());
 
+    ExecuteCommandJson jsons = commandExecutionHelper.get().getCommandJson(
+        actionContext, cluster);
+
     Stage stage = stageFactory.get().createNew(request.getId().longValue(),
         "/tmp/ambari",
         cluster.getClusterName(),
         cluster.getClusterId(),
         entity.getText(),
-        "{}", "{}",
-        StageUtils.getGson().toJson(hostLevelParams));
+        jsons.getClusterHostInfo(),
+        jsons.getCommandParamsForStage(),
+        jsons.getHostParamsForStage());
 
     stage.setSkippable(UPGRADE_DEFAULT_SKIPPABLE);
 
@@ -589,13 +608,13 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       filters.add(new RequestResourceFilter(tw.getService(), "", Collections.<String>emptyList()));
     }
 
-    Map<String, String> restartCommandParams = new HashMap<String, String>();
-    restartCommandParams.put("version", version);
+    Map<String, String> commandParams = new HashMap<String, String>();
+    commandParams.put("version", version);
 
     ActionExecutionContext actionContext = new ActionExecutionContext(
         cluster.getClusterName(), "SERVICE_CHECK",
         filters,
-        restartCommandParams);
+        commandParams);
     actionContext.setTimeout(Short.valueOf((short)-1));
 
     ExecuteCommandJson jsons = commandExecutionHelper.get().getCommandJson(

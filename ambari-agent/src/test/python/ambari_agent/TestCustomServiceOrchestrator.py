@@ -146,13 +146,13 @@ class TestCustomServiceOrchestrator(TestCase):
     # Testing existing path
     exists_mock.return_value = True
     path = orchestrator.\
-      resolve_script_path(os.path.join("HBASE", "package"), os.path.join("scripts", "hbase_master.py"), "PYTHON")
+      resolve_script_path(os.path.join("HBASE", "package"), os.path.join("scripts", "hbase_master.py"))
     self.assertEqual(os.path.join("HBASE", "package", "scripts", "hbase_master.py"), path)
     # Testing not existing path
     exists_mock.return_value = False
     try:
       orchestrator.resolve_script_path("/HBASE",
-                                       os.path.join("scripts", "hbase_master.py"), "PYTHON")
+                                       os.path.join("scripts", "hbase_master.py"))
       self.fail('ExpectedException not thrown')
     except AgentException:
       pass # Expected

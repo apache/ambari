@@ -20,19 +20,49 @@ Ambari Agent
 
 """
 
+import os
 import json
 import socket
-import re
 import time
 
-from resource_management import *
-from resource_management.core.shell import call, checked_call
+from resource_management.libraries.script import Script
+from resource_management.libraries.functions.default import default
+from resource_management.core.shell import call
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
-from resource_management.libraries.functions.list_ambari_managed_repos import *
+from ambari_agent.FileCache import FileCache
+from ambari_agent.AmbariConfig import AmbariConfig
+
+agent_config = AmbariConfig()
 
 
-# TODO, HACK
+class ExecuteTask:
+  """
+  Encapsulate a task that can be executed on the agent.
+  An equivalent class exists in the Java server-side, called ExecuteTask.java
+  """
+
+  def __init__(self, t):
+    """
+    @:param t: Dictionary with string representation
+    """
+    self.type = t["type"] if "type" in t else None
+    self.hosts = t["hosts"] if "hosts" in t else None
+    self.script = t["script"] if "script" in t else None
+    self.function = t["function"] if "function" in t else None
+    self.command = t["command"] if "command" in t else None
+
+  def __str__(self):
+    inner = []
+    if self.type:
+      inner.append("Type: %s" % str(self.type))
+    if self.script and self.function:
+      inner.append("Script: %s - Function: %s" % (str(self.script), str(self.function)))
+    elif self.command:
+      inner.append("Command: %s" % str(self.command))
+    return "Task. %s" % ", ".join(inner)
+
+
 def replace_variables(cmd, host_name, version):
   if cmd:
     cmd = cmd.replace("{{host_name}}", "{host_name}")
@@ -40,6 +70,17 @@ def replace_variables(cmd, host_name, version):
     cmd = cmd.replace("{{version}}", "{version}")
     cmd = format(cmd)
   return cmd
+
+
+def resolve_ambari_config():
+  config_path = os.path.abspath(AmbariConfig.getConfigFile())
+  try:
+    if os.path.exists(config_path):
+      agent_config.read(config_path)
+    else:
+      raise Exception("No config found at %s" % str(config_path))
+  except Exception, err:
+    Logger.warn(err)
 
 
 class ExecuteUpgradeTasks(Script):
@@ -51,86 +92,58 @@ class ExecuteUpgradeTasks(Script):
   """
 
   def actionexecute(self, env):
-    # Parse parameters
+    resolve_ambari_config()
+
+    # Parse parameters from command json file.
     config = Script.get_config()
 
-    # TODO Rolling Upgrade, should be retrieved from the command.
     host_name = socket.gethostname()
-    version = "2.2.0.0"
+    version = default('/roleParams/version', None)
 
-    # TODO Rolling Upgrade, does this work on Ubuntu?
-    code, out = checked_call("hdp-select")
-    if code == 0 and out:
-      p = re.compile(r"(2\.2\.0\.0\-\d{4})")
-      m = p.search(out)
-      if m and len(m.groups()) == 1:
-        version = m.group(1)
+    # These 2 variables are optional
+    service_package_folder = default('/roleParams/service_package_folder', None)
+    hooks_folder = default('/roleParams/hooks_folder', None)
 
     tasks = json.loads(config['roleParams']['tasks'])
     if tasks:
       for t in tasks:
-        Logger.info("Task: %s" % str(t))
-        command = t["command"] if "command" in t else None
-        first = t["first"] if "first" in t else None
-        unless = t["unless"] if "unless" in t else None
-        on_failure = t["onfailure"] if "onfailure" in t else None
+        task = ExecuteTask(t)
+        Logger.info(str(task))
 
-        # Run at most x times
-        upto = None
-        try:
-          upto = int(t["upto"]) if "upto" in t else None
-        except ValueError, e:
-          Logger.warning("Could not retrieve 'upto' value from task.")
+        # If a (script, function) exists, it overwrites the command.
+        if task.script and task.function and service_package_folder and hooks_folder:
+          file_cache = FileCache(agent_config)
+          command_paths = {"commandParams":
+                                 {"service_package_folder": service_package_folder,
+                                  "hooks_folder": hooks_folder
+                                 }
+                              }
+          server_url_prefix = default('/hostLevelParams/jdk_location', "")
+          base_dir = file_cache.get_service_base_dir(command_paths, server_url_prefix)
+          script_path = os.path.join(base_dir, task.script)
+          if not os.path.exists(script_path):
+            message = "Script %s does not exist" % str(script_path)
+            raise Fail(message)
 
-        # If upto is set, repeat every x seconds
-        every = int(t["every"]) if "every" in t and upto else 0
-        if every < 0:
-          every = 0
-        effective_times = upto if upto else 1
+          # Notice that the script_path is now the fully qualified path, and the
+          # same command-#.json file is used.
+          command_params = ["python",
+                            script_path,
+                            task.function,
+                            self.command_data_file,
+                            self.basedir,
+                            self.stroutfile,
+                            self.logging_level,
+                            Script.get_tmp_dir()]
 
-        # Set of return codes to ignore
-        ignore_return_codes = t["ignore"] if "ignore" in t else set()
-        if ignore_return_codes:
-          ignore_return_codes = set([int(e) for e in ignore_return_codes.split(",")])
+          task.command = " ".join(command_params)
 
-        if command:
-          command = replace_variables(command, host_name, version)
-          first = replace_variables(first, host_name, version)
-          unless = replace_variables(unless, host_name, version)
-
-          if first:
-            code, out = call(first)
-            Logger.info("Pre-condition command. Code: %s, Out: %s" % (str(code), str(out)))
-            if code != 0:
-              break
-
-          if unless:
-            code, out = call(unless)
-            Logger.info("Unless command. Code: %s, Out: %s" % (str(code), str(out)))
-            if code == 0:
-              break
-
-          for i in range(1, effective_times+1):
-            # TODO, Execute already has a tries and try_sleep, see hdfs_namenode.py for an example
-            code, out = call(command)
-            Logger.info("Command. Code: %s, Out: %s" % (str(code), str(out)))
-
-            if code == 0 or code in ignore_return_codes:
-              break
-
-            if i == effective_times:
-              err_msg = Logger.filter_text("Execution of '%s' returned %d. %s" % (command, code, out))
-              try:
-                if on_failure:
-                  on_failure = replace_variables(on_failure, host_name, version)
-                  code_failure_handler, out_failure_handler = call(on_failure)
-                  Logger.error("Failure Handler. Code: %s, Out: %s" % (str(code_failure_handler), str(out_failure_handler)))
-              except:
-                pass
-              raise Fail(err_msg)
-
-            if upto:
-              time.sleep(every)
+        if task.command:
+          task.command = replace_variables(task.command, host_name, version)
+          code, out = call(task.command)
+          Logger.info("Command: %s\nCode: %s, Out: %s" % (task.command, str(code), str(out)))
+          if code != 0:
+            raise Fail(out)
 
 if __name__ == "__main__":
   ExecuteUpgradeTasks().execute()

@@ -1335,7 +1335,7 @@ Em.I18n.translations = {
   'admin.stackUpgrade.dialog.keepRunning': "Keep running Upgrade in background",
   'admin.stackUpgrade.dialog.failed': "Failed on:",
   'admin.stackUpgrade.dialog.manual': "Manual steps required",
-  'admin.stackUpgrade.dialog.manualDone': "I have preformed the manual steps above.",
+  'admin.stackUpgrade.dialog.manualDone': "I have performed the manual steps above.",
   'admin.stackUpgrade.dialog.closeProgress': "Upgrade is in progress. \n If you dismiss this window, Upgrade will keep running in background.",
   'admin.stackUpgrade.dialog.closePause': "Upgrade is paused. \n If you dismiss this window, you can resume Upgrade later.",
   'admin.stackUpgrade.preupgradeCheck.header': "Upgrade to {0}",
