@@ -43,6 +43,7 @@ App.ChmodModalController = Em.ObjectController.extend({
   otrW:_permissionsProp(8, 'w').property('permissions'),
   otrE:_permissionsProp(9, 'x').property('permissions'),
   replaceAt:function (index,p) {
-    return this.get('permissions').substr(0, index) + p + perm.substr(index + p.length);;
+    var perm = this.get('permissions');
+    return perm.substr(0, index) + p + perm.substr(index + p.length);
   }
 });

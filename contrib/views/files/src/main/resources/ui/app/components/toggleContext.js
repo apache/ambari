@@ -50,7 +50,8 @@ App.ToggleContextComponent = Em.Component.extend({
     }
   },
   willClearRender:function () {
-    this.$().parents('.file-row').off('click');
-    this.$().parents('.file-row').off('.context.data-api').removeData('context');
+    var fileRow = this.$().parents('tr');
+    fileRow.off('click');
+    fileRow.data('context').destroy();
   }
 });

@@ -23,6 +23,10 @@ Em.CloakedView.reopen({
   classNameBindings:['_containedView.controller.isMoving:isMoving']
 });
 
+Ember.CloakedView.reopen({
+  cloak:Em.K
+});
+
 App.FileView = Em.View.extend({
   templateName: 'util/fileRow',
   tagName:'tr'

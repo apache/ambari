@@ -86,17 +86,18 @@ App.FilesRoute = Em.Route.extend({
   },
   model:function (params) {
     var path = (Em.isEmpty(params.path))?'/':params.path;
-    return this.store.listdir(path);
+    var model = this.store.listdir(path);
+    this.set('prevModel',model);
+    return model;
   },
-  afterModel:function (model) {
-    this.store.filter('file',function(file) {
-      if (!model.contains(file)) {
-        return true;
-      }
-    }).then(function (files) {
-      files.forEach(function (file) {
-        file.store.unloadRecord(file);
+  prevModel:null,
+  beforeModel:function () {
+    if (this.get('prevModel.isPending')) {
+      this.get('prevModel').then(function (files) {
+        files.forEach(function (file) {
+          file.store.unloadRecord(file);
+        });
       });
-    });
+    }
   }
 });

@@ -18,6 +18,26 @@
 
 var App = require('app');
 
+Em.BsPopoverComponent.reopen({
+  willClearRender:function () {
+    var triggers = this.triggers.split(' ');
+
+      for (var i = triggers.length; i--;) {
+          var trigger = triggers[i];
+
+          if (trigger == 'click') {
+              this.$element.off('click');
+          } else if (trigger != 'manual') {
+              var eventIn  = trigger == 'hover' ? 'mouseenter' : 'focus';
+              var eventOut = trigger == 'hover' ? 'mouseleave' : 'blur';
+
+              this.$element.off(eventIn);
+              this.$element.off(eventOut);
+          }
+      }
+  }
+});
+
 App.PopoverDeleteComponent = Em.Component.extend({
   popover:Em.computed.alias('childViews.firstObject'),
   layoutName:'components/deletePopover',

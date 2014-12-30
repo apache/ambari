@@ -16,7 +16,6 @@
    limitations under the License.
 }}
 
-<tr {{bind-attr class=":file-row isMoving:isMoving"}}>
   <td>
     {{#if content.isDirectory}}
     <i class="fa fa-folder"></i>
@@ -69,7 +68,7 @@
         <li>{{popover-delete confirm="deleteFile"}}</li>
       </ul>
     {{/unless}}
-    </td>
+  </td>
   <td>
   {{#if isMoving}}
     <a href="#" {{action 'moveFile' 'cancel' target="parentController" }} data-toggle="tooltip" data-placement="bottom" title="Cancel moving"> <i class="fa fa-times fa-lg"></i></a>
@@ -78,4 +77,3 @@
   {{/if}}
   {{toggle-context}}
   </td>
-</tr>
