@@ -52,7 +52,7 @@
     </fileSet>
     <fileSet>
       <directory>${monitor.dir}/target/psutil_build</directory>
-      <outputDirectory>/sbin/core/psutil/build</outputDirectory>
+      <outputDirectory>/sbin/psutil/build</outputDirectory>
       <includes>
         <include>*.egg</include>
       </includes>
