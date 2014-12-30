@@ -26,13 +26,11 @@ def oozie(is_server=False # TODO: see if see can remove this
   import params
 
   if is_server:
-    params.HdfsResource(params.oozie_hdfs_user_dir,
-                         type="directory",
-                         action="create_delayed",
+    params.HdfsDirectory(params.oozie_hdfs_user_dir,
+                         action="create",
                          owner=params.oozie_user,
                          mode=params.oozie_hdfs_user_mode
     )
-    params.HdfsResource(None, action="execute")
   Directory(params.conf_dir,
              recursive = True,
              owner = params.oozie_user,

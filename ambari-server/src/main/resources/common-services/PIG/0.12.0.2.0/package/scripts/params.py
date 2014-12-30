@@ -21,7 +21,6 @@ Ambari Agent
 
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from resource_management import *
-import os
 
 # server configurations
 config = Script.get_config()
@@ -38,9 +37,6 @@ if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
   hadoop_home = '/usr/hdp/current/hadoop-client'
   pig_bin_dir = '/usr/hdp/current/pig-client/bin'
-
-  tez_tar_source = config['configurations']['cluster-env']['tez_tar_source']
-  tez_tar_destination = config['configurations']['cluster-env']['tez_tar_destination_folder'] + "/" + os.path.basename(tez_tar_source)
 else:
   hadoop_bin_dir = "/usr/bin"
   hadoop_home = '/usr'
@@ -57,7 +53,6 @@ security_enabled = config['configurations']['cluster-env']['security_enabled']
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 pig_env_sh_template = config['configurations']['pig-env']['content']
-fs_root = config['configurations']['core-site']['fs.defaultFS']
 
 # not supporting 32 bit jdk.
 java64_home = config['hostLevelParams']['java_home']
@@ -67,15 +62,14 @@ pig_properties = config['configurations']['pig-properties']['content']
 log4j_props = config['configurations']['pig-log4j']['content']
 
 import functools
-#create partial functions with common arguments for every HdfsResource call
-#to create hdfs directory we need to call params.HdfsResource in code
-HdfsResource = functools.partial(
-  HdfsResource,
-  user=hdfs_principal_name if security_enabled else hdfs_user,
+#create partial functions with common arguments for every HdfsDirectory call
+#to create hdfs directory we need to call params.HdfsDirectory in code
+HdfsDirectory = functools.partial(
+  HdfsDirectory,
+  conf_dir=hadoop_conf_dir,
+  hdfs_user=hdfs_principal_name if security_enabled else hdfs_user,
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
-  hadoop_fs=fs_root,
-  hadoop_bin_dir = hadoop_bin_dir,
-  hadoop_conf_dir = hadoop_conf_dir
+  bin_dir = hadoop_bin_dir
 )

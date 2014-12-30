@@ -19,7 +19,6 @@ limitations under the License.
 '''
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
-from resource_management.libraries.functions import version
 from resource_management.libraries.script.script import Script
 import os
 
@@ -446,7 +445,6 @@ class TestYarnClient(RMFTestCase):
     self.assertNoMoreResources()
 
 
-  @patch.object(version, "get_hdp_build_version", new=MagicMock(return_value="2.2.0.0-2041"))
   def test_upgrade(self):
     self.executeScript("2.0.6/services/YARN/package/scripts/yarn_client.py",
                    classname = "YarnClient",

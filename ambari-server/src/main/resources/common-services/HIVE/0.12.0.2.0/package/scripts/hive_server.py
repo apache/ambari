@@ -22,8 +22,8 @@ import hive_server_upgrade
 from resource_management import *
 from hive import hive
 from hive_service import hive_service
+from resource_management.libraries.functions.dynamic_variable_interpretation import copy_tarballs_to_hdfs
 from install_jars import install_tez_jars
-from resource_management.libraries.functions.version import compare_versions
 
 class HiveServer(Script):
 
@@ -35,8 +35,7 @@ class HiveServer(Script):
   def configure(self, env):
     import params
     env.set_params(params)
-    
-    if not (params.hdp_stack_version_major != "" and compare_versions(params.hdp_stack_version_major, '2.2') >=0):
+    if not (params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2') >=0):
       install_tez_jars()
 
     hive(name='hiveserver2')
@@ -46,6 +45,10 @@ class HiveServer(Script):
     import params
     env.set_params(params)
     self.configure(env) # FOR SECURITY
+
+    # This function is needed in HDP 2.2, but it is safe to call in earlier versions.
+    copy_tarballs_to_hdfs('mapreduce', params.tez_user, params.hdfs_user, params.user_group)
+    copy_tarballs_to_hdfs('tez', params.tez_user, params.hdfs_user, params.user_group)
 
     hive_service( 'hiveserver2', action = 'start',
       rolling_restart=rolling_restart )

@@ -144,7 +144,7 @@ class TestRepositoryResource(TestCase):
       template_content = template_item[1]['content'].get_content()
       
       self.assertEquals(template_name, '/tmp/1.txt')
-      self.assertEquals(template_content, 'deb http://download.base_url.org/rpm/ a b c')
+      self.assertEquals(template_content, 'deb http://download.base_url.org/rpm/ a b c\n')
       
       copy_item = str(file_mock.call_args_list[1])
       self.assertEqual(copy_item, "call('/etc/apt/sources.list.d/HDP.list', content=StaticFile('/tmp/1.txt'))")
@@ -179,7 +179,7 @@ class TestRepositoryResource(TestCase):
       template_content = template_item[1]['content'].get_content()
       
       self.assertEquals(template_name, '/tmp/1.txt')
-      self.assertEquals(template_content, 'deb http://download.base_url.org/rpm/ a b c')
+      self.assertEquals(template_content, 'deb http://download.base_url.org/rpm/ a b c\n')
       
       self.assertEqual(file_mock.call_count, 1)
       self.assertEqual(execute_mock.call_count, 0)

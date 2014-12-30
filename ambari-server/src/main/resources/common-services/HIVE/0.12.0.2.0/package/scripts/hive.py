@@ -19,8 +19,6 @@ limitations under the License.
 """
 
 from resource_management import *
-from install_jars import install_tez_jars
-import glob
 import sys
 import os
 
@@ -29,96 +27,18 @@ def hive(name=None):
   import params
 
   if name == 'hiveserver2':
-    if params.hdp_stack_version_major != "" and compare_versions(params.hdp_stack_version_major, '2.2') >=0:
-      params.HdfsResource(InlineTemplate(params.mapreduce_tar_destination).get_content(),
-                          type="file",
-                          action="create_delayed",
-                          source=params.mapreduce_tar_source,
-                          group=params.user_group,
-                          mode=params.tarballs_mode
-      )
-      params.HdfsResource(InlineTemplate(params.tez_tar_destination).get_content(),
-                          type="file",
-                          action="create_delayed",
-                          source=params.tez_tar_source,
-                          group=params.user_group,
-                          mode=params.tarballs_mode
-      )
-    else:
-      install_tez_jars()
-        
-    if params.hdp_stack_version_major != "" and compare_versions(params.hdp_stack_version_major, "2.2.0.0") < 0:
-      params.HdfsResource(params.webhcat_apps_dir,
-                           type="directory",
-                           action="create_delayed",
-                           owner=params.webhcat_user,
-                           mode=0755
-      )
-  
-    if params.hcat_hdfs_user_dir != params.webhcat_hdfs_user_dir:
-      params.HdfsResource(params.hcat_hdfs_user_dir,
-                           type="directory",
-                           action="create_delayed",
-                           owner=params.hcat_user,
-                           mode=params.hcat_hdfs_user_mode
-      )
-    params.HdfsResource(params.webhcat_hdfs_user_dir,
-                         type="directory",
-                         action="create_delayed",
-                         owner=params.webhcat_user,
-                         mode=params.webhcat_hdfs_user_mode
-    )
-  
-    for src_filepath in glob.glob(params.hadoop_streaming_tar_source):
-      src_filename = os.path.basename(src_filepath)
-      params.HdfsResource(InlineTemplate(params.hadoop_streaming_tar_destination_dir).get_content() + '/' + src_filename,
-                          type="file",
-                          action="create_delayed",
-                          source=src_filepath,
-                          group=params.user_group,
-                          mode=params.tarballs_mode
-      )
-  
-    if (os.path.isfile(params.pig_tar_source)):
-      params.HdfsResource(InlineTemplate(params.pig_tar_destination).get_content(),
-                          type="file",
-                          action="create_delayed",
-                          source=params.pig_tar_source,
-                          group=params.user_group,
-                          mode=params.tarballs_mode
-      )
-  
-    params.HdfsResource(InlineTemplate(params.hive_tar_destination).get_content(),
-                        type="file",
-                        action="create_delayed",
-                        source=params.hive_tar_source,
-                        group=params.user_group,
-                        mode=params.tarballs_mode
-    )
 
-    for src_filepath in glob.glob(params.sqoop_tar_source):
-      src_filename = os.path.basename(src_filepath)
-      params.HdfsResource(InlineTemplate(params.sqoop_tar_destination_dir).get_content() + '/' + src_filename,
-                          type="file",
-                          action="create_delayed",
-                          source=src_filepath,
-                          group=params.user_group,
-                          mode=params.tarballs_mode
-      )
-      
-    params.HdfsResource(params.hive_apps_whs_dir,
-                         type="directory",
+    params.HdfsDirectory(params.hive_apps_whs_dir,
                          action="create_delayed",
                          owner=params.hive_user,
                          mode=0777
     )
-    params.HdfsResource(params.hive_hdfs_user_dir,
-                         type="directory",
+    params.HdfsDirectory(params.hive_hdfs_user_dir,
                          action="create_delayed",
                          owner=params.hive_user,
                          mode=params.hive_hdfs_user_mode
     )
-    params.HdfsResource(None, action="execute")
+    params.HdfsDirectory(None, action="create")
 
   Directory(params.hive_conf_dir_prefix,
             mode=0755

@@ -230,9 +230,6 @@ class TestSNamenode(RMFTestCase):
                               content = Template('slaves.j2'),
                               owner = 'hdfs',
                               )
-    self.assertResourceCalled('File', '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar',
-        content = StaticFile('fast-hdfs-resource.jar'),
-    )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namesecondary',
                               owner = 'hdfs',
                               group = 'hadoop',
@@ -272,9 +269,6 @@ class TestSNamenode(RMFTestCase):
                               content = Template('slaves.j2'),
                               owner = 'root',
                               )
-    self.assertResourceCalled('File', '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar',
-        content = StaticFile('fast-hdfs-resource.jar'),
-    )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namesecondary',
                               owner = 'hdfs',
                               group = 'hadoop',

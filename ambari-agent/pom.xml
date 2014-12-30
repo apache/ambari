@@ -402,12 +402,6 @@
                 </source>
               </sources>
             </mapping>
-            <mapping>
-              <directory>/var/lib/ambari-agent/lib</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-            </mapping>
           </mappings>
         </configuration>
       </plugin>
@@ -522,7 +516,6 @@
                 <path>/var/lib/${project.artifactId}/data/tmp</path>
                 <path>/var/lib/${project.artifactId}/keys</path>
                 <path>${package.log.dir}</path>
-                <path>/var/lib/${project.artifactId}/lib</path>
               </paths>
               <mapper>
                 <type>perm</type>

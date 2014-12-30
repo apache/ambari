@@ -152,15 +152,15 @@ public class Resource {
     if (dfs.isFile(new Path(resource.getTarget()))
         && !"file".equals(resource.getType()))
       throw new IllegalArgumentException(
-          "Cannot create a directory " + resource.getTarget() +
-              " because file is present on the given path.");
+          "Cannot create a file " + resource.getTarget() +
+              " because directory is present on the given path.");
 
     // Check consistency for ("type":"directory" == directory in hadoop)
     if (dfs.isDirectory(new Path(resource.getTarget()))
         && !"directory".equals(resource.getType()))
       throw new IllegalArgumentException(
-          "Cannot create a file " + resource.getTarget() +
-              " because directory is present on the given path.");
+          "Cannot create a directory " + resource.getTarget() +
+              " because file is present on the given path.");
 
   }
 

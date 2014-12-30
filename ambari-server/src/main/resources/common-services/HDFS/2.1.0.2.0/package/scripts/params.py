@@ -81,8 +81,6 @@ else:
 hadoop_conf_dir = "/etc/hadoop/conf"
 hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
 limits_conf_dir = "/etc/security/limits.d"
-# Path to which fast-hdfs-resource.jar will be installed
-ambari_libs_dir = "/var/lib/ambari-agent/lib"
 
 execute_path = os.environ['PATH'] + os.pathsep + hadoop_bin_dir
 ulimit_cmd = "ulimit -c unlimited && "
@@ -226,22 +224,19 @@ if security_enabled:
   nn_kinit_cmd = format("{kinit_path_local} -kt {_nn_keytab} {_nn_principal_name};")  
 else:
   dn_kinit_cmd = ""
-  nn_kinit_cmd = ""
-
-fs_root = config['configurations']['core-site']['fs.defaultFS']
+  nn_kinit_cmd = ""  
 
 import functools
-#create partial functions with common arguments for every HdfsResource call
-#to create hdfs directory we need to call params.HdfsResource in code
-HdfsResource = functools.partial(
-  HdfsResource,
-  user=hdfs_user,
+#create partial functions with common arguments for every HdfsDirectory call
+#to create hdfs directory we need to call params.HdfsDirectory in code
+HdfsDirectory = functools.partial(
+  HdfsDirectory,
+  conf_dir=hadoop_conf_dir,
+  hdfs_user=hdfs_user,
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
-  hadoop_fs=fs_root,
-  hadoop_bin_dir = hadoop_bin_dir,
-  hadoop_conf_dir = hadoop_conf_dir
+  bin_dir = hadoop_bin_dir
 )
 
 io_compression_codecs = config['configurations']['core-site']['io.compression.codecs']
