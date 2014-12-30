@@ -18,12 +18,10 @@
 
 package org.apache.ambari.server.upgrade;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
@@ -40,13 +38,19 @@ import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.UpgradeState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -255,6 +259,42 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     // remove NAGIOS to make way for the new embedded alert framework
     removeNagiosService();
+    updateHiveDatabaseType();
+  }
+
+  protected void updateHiveDatabaseType() throws AmbariException {
+    final String PROPERTY_NAME = "hive_database_type";
+    final String PROPERTY_VALUE_OLD = "postgresql";
+    final String PROPERTY_VALUE_NEW = "postgres";
+    final String PROPERTY_CONFIG_NAME = "hive-env";
+
+    AmbariManagementController ambariManagementController = injector.getInstance(
+            AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+      Map<String, String> prop = new HashMap<String, String>();
+      String hive_database_type = null;
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          hive_database_type = null;
+
+          if (cluster.getDesiredConfigByType(PROPERTY_CONFIG_NAME) != null) {
+            hive_database_type = cluster.getDesiredConfigByType(
+                    PROPERTY_CONFIG_NAME).getProperties().get(PROPERTY_NAME);
+          }
+
+          if (hive_database_type != null && !hive_database_type.isEmpty() &&
+                  hive_database_type.equals(PROPERTY_VALUE_OLD)) {
+            prop.put(PROPERTY_NAME, PROPERTY_VALUE_NEW);
+            updateConfigurationPropertiesForCluster(cluster, PROPERTY_CONFIG_NAME, prop, true, false);
+          }
+        }
+      }
+
+    }
   }
 
   /**
