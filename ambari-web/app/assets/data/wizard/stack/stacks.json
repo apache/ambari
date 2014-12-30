@@ -1,8 +1,8 @@
 {
-  "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions?fields=stackServices/StackServices,Versions",
+  "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions?fields=services/StackServices,Versions",
   "items" : [
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0",
+      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0",
       "Versions" : {
         "active" : true,
         "min_upgrade_version" : null,
@@ -18,9 +18,9 @@
           }
         }
       },
-      "stackServices" : [
+      "services" : [
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0/stackServices/FLUME",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0/services/FLUME",
           "StackServices" : {
             "comments" : "Data management and processing platform",
             "custom_commands" : [ ],
@@ -57,7 +57,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0/stackServices/GANGLIA",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0/services/GANGLIA",
           "StackServices" : {
             "comments" : "Ganglia Metrics Collection system (<a href=\"http://oss.oetiker.ch/rrdtool/\" target=\"_blank\">RRDTool</a> will be installed too)",
             "custom_commands" : [ ],
@@ -80,7 +80,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0/stackServices/HBASE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0/services/HBASE",
           "StackServices" : {
             "comments" : "Non-relational distributed database and centralized service for configuration management &\n        synchronization\n      ",
             "custom_commands" : [ ],
@@ -124,7 +124,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0/stackServices/HDFS",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0/services/HDFS",
           "StackServices" : {
             "comments" : "Apache Hadoop Distributed File System",
             "custom_commands" : [ ],
@@ -173,7 +173,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0/stackServices/HIVE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0/services/HIVE",
           "StackServices" : {
             "comments" : "Data warehouse system for ad-hoc queries & analysis of large datasets and table & storage management service",
             "custom_commands" : [ ],
@@ -236,7 +236,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0/stackServices/MAPREDUCE2",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0/services/MAPREDUCE2",
           "StackServices" : {
             "comments" : "Apache Hadoop NextGen MapReduce (YARN)",
             "custom_commands" : [ ],
@@ -267,7 +267,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0/stackServices/NAGIOS",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0/services/NAGIOS",
           "StackServices" : {
             "comments" : "Nagios Monitoring and Alerting system",
             "custom_commands" : [ ],
@@ -290,7 +290,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0/stackServices/OOZIE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0/services/OOZIE",
           "StackServices" : {
             "comments" : "System for workflow coordination and execution of Apache Hadoop jobs.  This also includes the installation of the optional Oozie Web Console which relies on and will install the <a target=\"_blank\" href=\"http://www.sencha.com/legal/open-source-faq/\">ExtJS</a> Library.\n      ",
             "custom_commands" : [ ],
@@ -327,7 +327,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0/stackServices/PIG",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0/services/PIG",
           "StackServices" : {
             "comments" : "Scripting platform for analyzing large datasets",
             "custom_commands" : [ ],
@@ -364,7 +364,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0/stackServices/SQOOP",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0/services/SQOOP",
           "StackServices" : {
             "comments" : "Tool for transferring bulk data between Apache Hadoop and\n        structured data stores such as relational databases\n      ",
             "custom_commands" : [ ],
@@ -389,7 +389,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0/stackServices/YARN",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0/services/YARN",
           "StackServices" : {
             "comments" : "Apache Hadoop NextGen MapReduce (YARN)",
             "custom_commands" : [ ],
@@ -432,7 +432,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0/stackServices/ZOOKEEPER",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0/services/ZOOKEEPER",
           "StackServices" : {
             "comments" : "Centralized service which provides highly reliable distributed coordination",
             "custom_commands" : [ ],
@@ -463,7 +463,7 @@
       ]
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6",
+      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6",
       "Versions" : {
         "active" : false,
         "min_upgrade_version" : null,
@@ -479,9 +479,9 @@
           }
         }
       },
-      "stackServices" : [
+      "services" : [
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6/stackServices/FLUME",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6/services/FLUME",
           "StackServices" : {
             "comments" : "Data management and processing platform",
             "custom_commands" : [ ],
@@ -518,7 +518,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6/stackServices/GANGLIA",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6/services/GANGLIA",
           "StackServices" : {
             "comments" : "Ganglia Metrics Collection system (<a href=\"http://oss.oetiker.ch/rrdtool/\" target=\"_blank\">RRDTool</a> will be installed too)",
             "custom_commands" : [ ],
@@ -541,7 +541,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6/stackServices/HBASE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6/services/HBASE",
           "StackServices" : {
             "comments" : "Non-relational distributed database and centralized service for configuration management &\n        synchronization\n      ",
             "custom_commands" : [ ],
@@ -585,7 +585,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6/stackServices/HDFS",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6/services/HDFS",
           "StackServices" : {
             "comments" : "Apache Hadoop Distributed File System",
             "custom_commands" : [ ],
@@ -634,7 +634,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6/stackServices/HIVE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6/services/HIVE",
           "StackServices" : {
             "comments" : "Data warehouse system for ad-hoc queries & analysis of large datasets and table & storage management service",
             "custom_commands" : [ ],
@@ -697,7 +697,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6/stackServices/MAPREDUCE2",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6/services/MAPREDUCE2",
           "StackServices" : {
             "comments" : "Apache Hadoop NextGen MapReduce (YARN)",
             "custom_commands" : [ ],
@@ -728,7 +728,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6/stackServices/NAGIOS",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6/services/NAGIOS",
           "StackServices" : {
             "comments" : "Nagios Monitoring and Alerting system",
             "custom_commands" : [ ],
@@ -751,7 +751,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6/stackServices/OOZIE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6/services/OOZIE",
           "StackServices" : {
             "comments" : "System for workflow coordination and execution of Apache Hadoop jobs.  This also includes the installation of the optional Oozie Web Console which relies on and will install the <a target=\"_blank\" href=\"http://www.sencha.com/legal/open-source-faq/\">ExtJS</a> Library.\n      ",
             "custom_commands" : [ ],
@@ -788,7 +788,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6/stackServices/PIG",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6/services/PIG",
           "StackServices" : {
             "comments" : "Scripting platform for analyzing large datasets",
             "custom_commands" : [ ],
@@ -825,7 +825,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6/stackServices/SQOOP",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6/services/SQOOP",
           "StackServices" : {
             "comments" : "Tool for transferring bulk data between Apache Hadoop and\n        structured data stores such as relational databases\n      ",
             "custom_commands" : [ ],
@@ -850,7 +850,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6/stackServices/YARN",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6/services/YARN",
           "StackServices" : {
             "comments" : "Apache Hadoop NextGen MapReduce (YARN)",
             "custom_commands" : [ ],
@@ -893,7 +893,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6/stackServices/ZOOKEEPER",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6/services/ZOOKEEPER",
           "StackServices" : {
             "comments" : "Centralized service which provides highly reliable distributed coordination",
             "custom_commands" : [ ],
@@ -924,7 +924,7 @@
       ]
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6.GlusterFS",
+      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS",
       "Versions" : {
         "active" : false,
         "min_upgrade_version" : null,
@@ -940,9 +940,9 @@
           }
         }
       },
-      "stackServices" : [
+      "services" : [
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6.GlusterFS/stackServices/FLUME",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/FLUME",
           "StackServices" : {
             "comments" : "Data management and processing platform",
             "custom_commands" : [ ],
@@ -979,7 +979,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6.GlusterFS/stackServices/GANGLIA",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/GANGLIA",
           "StackServices" : {
             "comments" : "Ganglia Metrics Collection system (<a href=\"http://oss.oetiker.ch/rrdtool/\" target=\"_blank\">RRDTool</a> will be installed too)",
             "custom_commands" : [ ],
@@ -1002,7 +1002,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6.GlusterFS/stackServices/GLUSTERFS",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/GLUSTERFS",
           "StackServices" : {
             "comments" : "An Hadoop Compatible File System",
             "custom_commands" : [ ],
@@ -1031,7 +1031,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6.GlusterFS/stackServices/HBASE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/HBASE",
           "StackServices" : {
             "comments" : "Non-relational distributed database and centralized service for configuration management &\n        synchronization\n      ",
             "custom_commands" : [ ],
@@ -1075,7 +1075,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6.GlusterFS/stackServices/HDFS",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/HDFS",
           "StackServices" : {
             "comments" : "Apache Hadoop Distributed File System",
             "custom_commands" : [ ],
@@ -1130,7 +1130,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6.GlusterFS/stackServices/HIVE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/HIVE",
           "StackServices" : {
             "comments" : "Data warehouse system for ad-hoc queries & analysis of large datasets and table & storage management service",
             "custom_commands" : [ ],
@@ -1193,7 +1193,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6.GlusterFS/stackServices/MAPREDUCE2",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/MAPREDUCE2",
           "StackServices" : {
             "comments" : "Apache Hadoop NextGen MapReduce (YARN)",
             "custom_commands" : [ ],
@@ -1224,7 +1224,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6.GlusterFS/stackServices/NAGIOS",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/NAGIOS",
           "StackServices" : {
             "comments" : "Nagios Monitoring and Alerting system",
             "custom_commands" : [ ],
@@ -1247,7 +1247,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6.GlusterFS/stackServices/OOZIE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/OOZIE",
           "StackServices" : {
             "comments" : "System for workflow coordination and execution of Apache Hadoop jobs.  This also includes the installation of the optional Oozie Web Console which relies on and will install the <a target=\"_blank\" href=\"http://www.sencha.com/legal/open-source-faq/\">ExtJS</a> Library.\n      ",
             "custom_commands" : [ ],
@@ -1284,7 +1284,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6.GlusterFS/stackServices/PIG",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/PIG",
           "StackServices" : {
             "comments" : "Scripting platform for analyzing large datasets",
             "custom_commands" : [ ],
@@ -1321,7 +1321,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6.GlusterFS/stackServices/SQOOP",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/SQOOP",
           "StackServices" : {
             "comments" : "Tool for transferring bulk data between Apache Hadoop and\n        structured data stores such as relational databases\n      ",
             "custom_commands" : [ ],
@@ -1346,7 +1346,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6.GlusterFS/stackServices/YARN",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/YARN",
           "StackServices" : {
             "comments" : "Apache Hadoop NextGen MapReduce (YARN)",
             "custom_commands" : [ ],
@@ -1389,7 +1389,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.6.GlusterFS/stackServices/ZOOKEEPER",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/ZOOKEEPER",
           "StackServices" : {
             "comments" : "Centralized service which provides highly reliable distributed\n        coordination.",
             "custom_commands" : [ ],
@@ -1420,7 +1420,7 @@
       ]
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1",
+      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1",
       "Versions" : {
         "active" : true,
         "min_upgrade_version" : null,
@@ -1436,9 +1436,9 @@
           }
         }
       },
-      "stackServices" : [
+      "services" : [
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/FALCON",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/FALCON",
           "StackServices" : {
             "comments" : "Data management and processing platform",
             "custom_commands" : [ ],
@@ -1475,7 +1475,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/FLUME",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/FLUME",
           "StackServices" : {
             "comments" : "Data management and processing platform",
             "custom_commands" : [ ],
@@ -1512,7 +1512,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/GANGLIA",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/GANGLIA",
           "StackServices" : {
             "comments" : "Ganglia Metrics Collection system (<a href=\"http://oss.oetiker.ch/rrdtool/\" target=\"_blank\">RRDTool</a> will be installed too)",
             "custom_commands" : [ ],
@@ -1535,7 +1535,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/HBASE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HBASE",
           "StackServices" : {
             "comments" : "Non-relational distributed database and centralized service for configuration management &\n        synchronization\n      ",
             "custom_commands" : [ ],
@@ -1579,7 +1579,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/HDFS",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HDFS",
           "StackServices" : {
             "comments" : "Apache Hadoop Distributed File System",
             "custom_commands" : [ ],
@@ -1628,7 +1628,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/HIVE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE",
           "StackServices" : {
             "comments" : "Data warehouse system for ad-hoc queries & analysis of large datasets and table & storage management service",
             "custom_commands" : [ ],
@@ -1691,7 +1691,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/MAPREDUCE2",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/MAPREDUCE2",
           "StackServices" : {
             "comments" : "Apache Hadoop NextGen MapReduce (YARN)",
             "custom_commands" : [ ],
@@ -1722,7 +1722,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/NAGIOS",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/NAGIOS",
           "StackServices" : {
             "comments" : "Nagios Monitoring and Alerting system",
             "custom_commands" : [ ],
@@ -1745,7 +1745,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/OOZIE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/OOZIE",
           "StackServices" : {
             "comments" : "System for workflow coordination and execution of Apache Hadoop jobs.  This also includes the installation of the optional Oozie Web Console which relies on and will install the <a target=\"_blank\" href=\"http://www.sencha.com/legal/open-source-faq/\">ExtJS</a> Library.\n      ",
             "custom_commands" : [ ],
@@ -1782,7 +1782,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/PIG",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/PIG",
           "StackServices" : {
             "comments" : "Scripting platform for analyzing large datasets",
             "custom_commands" : [ ],
@@ -1819,7 +1819,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/SQOOP",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/SQOOP",
           "StackServices" : {
             "comments" : "Tool for transferring bulk data between Apache Hadoop and\n        structured data stores such as relational databases\n      ",
             "custom_commands" : [ ],
@@ -1844,7 +1844,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/STORM",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/STORM",
           "StackServices" : {
             "comments" : "Apache Hadoop Stream processing framework",
             "custom_commands" : [ ],
@@ -1875,7 +1875,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/TEZ",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/TEZ",
           "StackServices" : {
             "comments" : "Tez is the next generation Hadoop Query Processing framework written on top of YARN.",
             "custom_commands" : [ ],
@@ -1906,7 +1906,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/YARN",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/YARN",
           "StackServices" : {
             "comments" : "Apache Hadoop NextGen MapReduce (YARN)",
             "custom_commands" : [ ],
@@ -1949,7 +1949,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1/stackServices/ZOOKEEPER",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/ZOOKEEPER",
           "StackServices" : {
             "comments" : "Centralized service which provides highly reliable distributed coordination",
             "custom_commands" : [ ],
@@ -1980,7 +1980,7 @@
       ]
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS",
+      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS",
       "Versions" : {
         "active" : false,
         "min_upgrade_version" : null,
@@ -1996,9 +1996,9 @@
           }
         }
       },
-      "stackServices" : [
+      "services" : [
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/stackServices/FALCON",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/FALCON",
           "StackServices" : {
             "comments" : "Data management and processing platform",
             "custom_commands" : [ ],
@@ -2041,7 +2041,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/stackServices/FLUME",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/FLUME",
           "StackServices" : {
             "comments" : "Data management and processing platform",
             "custom_commands" : [ ],
@@ -2078,7 +2078,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/stackServices/GANGLIA",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/GANGLIA",
           "StackServices" : {
             "comments" : "Ganglia Metrics Collection system (<a href=\"http://oss.oetiker.ch/rrdtool/\" target=\"_blank\">RRDTool</a> will be installed too)",
             "custom_commands" : [ ],
@@ -2101,7 +2101,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/stackServices/GLUSTERFS",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/GLUSTERFS",
           "StackServices" : {
             "comments" : "An Hadoop Compatible File System",
             "custom_commands" : [ ],
@@ -2130,7 +2130,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/stackServices/HBASE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/HBASE",
           "StackServices" : {
             "comments" : "Non-relational distributed database and centralized service for configuration management &\n        synchronization\n      ",
             "custom_commands" : [ ],
@@ -2174,7 +2174,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/stackServices/HDFS",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/HDFS",
           "StackServices" : {
             "comments" : "Apache Hadoop Distributed File System",
             "custom_commands" : [ ],
@@ -2223,7 +2223,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/stackServices/HIVE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/HIVE",
           "StackServices" : {
             "comments" : "Data warehouse system for ad-hoc queries & analysis of large datasets and table & storage management service",
             "custom_commands" : [ ],
@@ -2286,7 +2286,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/stackServices/MAPREDUCE2",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/MAPREDUCE2",
           "StackServices" : {
             "comments" : "Apache Hadoop NextGen MapReduce (YARN)",
             "custom_commands" : [ ],
@@ -2317,7 +2317,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/stackServices/NAGIOS",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/NAGIOS",
           "StackServices" : {
             "comments" : "Nagios Monitoring and Alerting system",
             "custom_commands" : [ ],
@@ -2340,7 +2340,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/stackServices/OOZIE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/OOZIE",
           "StackServices" : {
             "comments" : "System for workflow coordination and execution of Apache Hadoop jobs.  This also includes the installation of the optional Oozie Web Console which relies on and will install the <a target=\"_blank\" href=\"http://www.sencha.com/legal/open-source-faq/\">ExtJS</a> Library.\n      ",
             "custom_commands" : [ ],
@@ -2377,7 +2377,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/stackServices/PIG",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/PIG",
           "StackServices" : {
             "comments" : "Scripting platform for analyzing large datasets",
             "custom_commands" : [ ],
@@ -2414,7 +2414,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/stackServices/SQOOP",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/SQOOP",
           "StackServices" : {
             "comments" : "Tool for transferring bulk data between Apache Hadoop and\n        structured data stores such as relational databases\n      ",
             "custom_commands" : [ ],
@@ -2439,7 +2439,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/stackServices/STORM",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/STORM",
           "StackServices" : {
             "comments" : "Apache Hadoop Stream processing framework",
             "custom_commands" : [ ],
@@ -2468,7 +2468,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/stackServices/TEZ",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/TEZ",
           "StackServices" : {
             "comments" : "Tez is the next generation Hadoop Query Processing framework written on top of YARN.",
             "custom_commands" : [ ],
@@ -2499,7 +2499,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/stackServices/YARN",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/YARN",
           "StackServices" : {
             "comments" : "Apache Hadoop NextGen MapReduce (YARN)",
             "custom_commands" : [ ],
@@ -2542,7 +2542,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/stackServices/ZOOKEEPER",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/ZOOKEEPER",
           "StackServices" : {
             "comments" : "Centralized service which provides highly reliable distributed\n        coordination.",
             "custom_commands" : [ ],
@@ -2573,7 +2573,7 @@
       ]
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.2",
+      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2",
       "Versions" : {
         "active" : true,
         "min_upgrade_version" : null,
@@ -2589,9 +2589,9 @@
           }
         }
       },
-      "stackServices" : [
+      "services" : [
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.2/stackServices/FALCON",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/FALCON",
           "StackServices" : {
             "comments" : "Data management and processing platform",
             "custom_commands" : [ ],
@@ -2628,7 +2628,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.2/stackServices/FLUME",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/FLUME",
           "StackServices" : {
             "comments" : "Data management and processing platform",
             "custom_commands" : [ ],
@@ -2665,7 +2665,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.2/stackServices/GANGLIA",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/GANGLIA",
           "StackServices" : {
             "comments" : "Ganglia Metrics Collection system (<a href=\"http://oss.oetiker.ch/rrdtool/\" target=\"_blank\">RRDTool</a> will be installed too)",
             "custom_commands" : [ ],
@@ -2688,7 +2688,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.2/stackServices/HBASE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/HBASE",
           "StackServices" : {
             "comments" : "Non-relational distributed database and centralized service for configuration management &\n        synchronization\n      ",
             "custom_commands" : [ ],
@@ -2732,7 +2732,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.2/stackServices/HDFS",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/HDFS",
           "StackServices" : {
             "comments" : "Apache Hadoop Distributed File System",
             "custom_commands" : [ ],
@@ -2781,7 +2781,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.2/stackServices/HIVE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/HIVE",
           "StackServices" : {
             "comments" : "Data warehouse system for ad-hoc queries & analysis of large datasets and table & storage management service",
             "custom_commands" : [ ],
@@ -2842,7 +2842,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.2/stackServices/KAFKA",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/KAFKA",
           "StackServices" : {
             "comments" : "A high-throughput distributed messaging system",
             "custom_commands" : [ ],
@@ -2879,7 +2879,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.2/stackServices/KNOX",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/KNOX",
           "StackServices" : {
             "comments" : "Provides a single point of authentication and access for Apache Hadoop services in a cluster",
             "custom_commands" : [ ],
@@ -2932,7 +2932,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.2/stackServices/MAPREDUCE2",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/MAPREDUCE2",
           "StackServices" : {
             "comments" : "Apache Hadoop NextGen MapReduce (YARN)",
             "custom_commands" : [ ],
@@ -2963,7 +2963,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.2/stackServices/NAGIOS",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/NAGIOS",
           "StackServices" : {
             "comments" : "Nagios Monitoring and Alerting system",
             "custom_commands" : [ ],
@@ -2986,7 +2986,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.2/stackServices/OOZIE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/OOZIE",
           "StackServices" : {
             "comments" : "System for workflow coordination and execution of Apache Hadoop jobs.  This also includes the installation of the optional Oozie Web Console which relies on and will install the <a target=\"_blank\" href=\"http://www.sencha.com/legal/open-source-faq/\">ExtJS</a> Library.\n      ",
             "custom_commands" : [ ],
@@ -3023,7 +3023,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.2/stackServices/PIG",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/PIG",
           "StackServices" : {
             "comments" : "Scripting platform for analyzing large datasets",
             "custom_commands" : [ ],
@@ -3060,7 +3060,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.2/stackServices/SLIDER",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/SLIDER",
           "StackServices" : {
             "comments" : "A framework for deploying, managing and monitoring existing distributed applications on YARN.",
             "custom_commands" : [ ],
@@ -3099,7 +3099,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.2/stackServices/SQOOP",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/SQOOP",
           "StackServices" : {
             "comments" : "Tool for transferring bulk data between Apache Hadoop and\n        structured data stores such as relational databases\n      ",
             "custom_commands" : [ ],
@@ -3124,7 +3124,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.2/stackServices/STORM",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/STORM",
           "StackServices" : {
             "comments" : "Apache Hadoop Stream processing framework",
             "custom_commands" : [ ],
@@ -3155,7 +3155,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.2/stackServices/TEZ",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/TEZ",
           "StackServices" : {
             "comments" : "Tez is the next generation Hadoop Query Processing framework written on top of YARN.",
             "custom_commands" : [ ],
@@ -3186,7 +3186,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.2/stackServices/YARN",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/YARN",
           "StackServices" : {
             "comments" : "Apache Hadoop NextGen MapReduce (YARN)",
             "custom_commands" : [ ],
@@ -3229,7 +3229,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.2/stackServices/ZOOKEEPER",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/ZOOKEEPER",
           "StackServices" : {
             "comments" : "Centralized service which provides highly reliable distributed coordination",
             "custom_commands" : [ ],

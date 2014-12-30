@@ -22,7 +22,7 @@ require('models/service_config');
 
 /**
  * This model loads all services supported by the stack
- * The model maps to the  http://hostname:8080/api/v1/stacks2/HDP/versions/${versionNumber}/stackServices?fields=StackServices/*,serviceComponents/*
+ * The model maps to the  http://hostname:8080/api/v1/stacks/HDP/versions/${versionNumber}/services?fields=StackServices/*,serviceComponents/*
  * @type {*}
  */
 App.StackService = DS.Model.extend({

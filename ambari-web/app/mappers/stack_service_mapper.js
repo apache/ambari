@@ -81,7 +81,9 @@ App.stackServiceMapper = App.QuickDataMapper.create({
     json.items.forEach(function (item) {
       var stackService = item.StackServices;
       var serviceComponents = [];
-      item.serviceComponents.forEach(function (serviceComponent) {
+      //TODO iterate over item.components after API is fixed
+      var components = Em.get(item, 'components') || Em.get(item, 'serviceComponents');
+      components.forEach(function (serviceComponent) {
         var dependencies = serviceComponent.dependencies.map(function (dependecy) {
           return { Dependencies: App.keysUnderscoreToCamelCase(App.permit(dependecy.Dependencies, ['component_name', 'scope'])) };
         });

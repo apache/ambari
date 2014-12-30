@@ -36,7 +36,7 @@ describe('App.stackMapper', function () {
             "stack_name" : "HDP",
             "stack_version" : "1.3"
           },
-          "operatingSystems" : [
+          "operating_systems" : [
             {
               "OperatingSystems" : {
                 "os_type" : "redhat5",
@@ -111,7 +111,7 @@ describe('App.stackMapper', function () {
           "stack_name" : "HDP",
           "stack_version" : "2.0.6"
         },
-        "operatingSystems" : [
+        "operating_systems" : [
           {
             "OperatingSystems" : {
               "os_type" : "redhat5",
@@ -186,7 +186,7 @@ describe('App.stackMapper', function () {
           "stack_name" : "HDP",
           "stack_version" : "2.1"
         },
-        "operatingSystems" : [
+        "operating_systems" : [
           {
             "OperatingSystems" : {
               "os_type" : "redhat5",

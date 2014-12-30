@@ -1,8 +1,8 @@
 {
-  "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions?fields=Versions,operatingSystems/repositories/Repositories&_=1399980533218",
+  "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions?fields=Versions,operating_systems/repositories/Repositories&_=1399980533218",
   "items" : [
     {
-      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.2.0",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.2.0",
       "Versions" : {
         "active" : false,
         "min_upgrade_version" : null,
@@ -10,9 +10,9 @@
         "stack_name" : "HDP",
         "stack_version" : "1.2.0"
       },
-      "operatingSystems" : [
+      "operating_systems" : [
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/redhat5",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.2.0/operating_systems/redhat5",
           "OperatingSystems" : {
             "os_type" : "redhat5",
             "stack_name" : "HDP",
@@ -20,7 +20,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/redhat5/repositories/HDP-1.2.0",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.2.0/operating_systems/redhat5/repositories/HDP-1.2.0",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP-1.2.0/repos/centos5",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-1.2.0/repos/centos5",
@@ -36,7 +36,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/redhat6",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.2.0/operating_systems/redhat6",
           "OperatingSystems" : {
             "os_type" : "redhat6",
             "stack_name" : "HDP",
@@ -44,7 +44,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/redhat6/repositories/HDP-1.2.0",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.2.0/operating_systems/redhat6/repositories/HDP-1.2.0",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP-1.2.0/repos/centos6",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-1.2.0/repos/centos6",
@@ -60,7 +60,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/suse11",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.2.0/operating_systems/suse11",
           "OperatingSystems" : {
             "os_type" : "suse11",
             "stack_name" : "HDP",
@@ -68,7 +68,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/suse11/repositories/HDP-1.2.0",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.2.0/operating_systems/suse11/repositories/HDP-1.2.0",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP-1.2.0/repos/suse11",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-1.2.0/repos/suse11",
@@ -82,7 +82,7 @@
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.2.0/operatingSystems/suse11/repositories/HDP-UTILS-1.1.0.15",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.2.0/operating_systems/suse11/repositories/HDP-UTILS-1.1.0.15",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/suse11",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/suse11",
@@ -100,7 +100,7 @@
       ]
     },
     {
-      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.2.1",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.2.1",
       "Versions" : {
         "active" : false,
         "min_upgrade_version" : null,
@@ -108,9 +108,9 @@
         "stack_name" : "HDP",
         "stack_version" : "1.2.1"
       },
-      "operatingSystems" : [
+      "operating_systems" : [
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/redhat5",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.2.1/operating_systems/redhat5",
           "OperatingSystems" : {
             "os_type" : "redhat5",
             "stack_name" : "HDP",
@@ -118,7 +118,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/redhat5/repositories/HDP-1.2.1",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.2.1/operating_systems/redhat5/repositories/HDP-1.2.1",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/1.x/updates/1.2.1",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/1.x/updates/1.2.1",
@@ -134,7 +134,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/redhat6",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.2.1/operating_systems/redhat6",
           "OperatingSystems" : {
             "os_type" : "redhat6",
             "stack_name" : "HDP",
@@ -142,7 +142,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/redhat6/repositories/HDP-1.2.1",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.2.1/operating_systems/redhat6/repositories/HDP-1.2.1",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/1.x/updates/1.2.1",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/1.x/updates/1.2.1",
@@ -158,7 +158,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/suse11",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.2.1/operating_systems/suse11",
           "OperatingSystems" : {
             "os_type" : "suse11",
             "stack_name" : "HDP",
@@ -166,7 +166,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.2.1/operatingSystems/suse11/repositories/HDP-1.2.1",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.2.1/operating_systems/suse11/repositories/HDP-1.2.1",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/1.x/updates/1.2.1",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/1.x/updates/1.2.1",
@@ -184,7 +184,7 @@
       ]
     },
     {
-      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3",
       "Versions" : {
         "active" : true,
         "min_upgrade_version" : null,
@@ -192,9 +192,9 @@
         "stack_name" : "HDP",
         "stack_version" : "1.3"
       },
-      "operatingSystems" : [
+      "operating_systems" : [
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3/operatingSystems/redhat5",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3/operating_systems/redhat5",
           "OperatingSystems" : {
             "os_type" : "redhat5",
             "stack_name" : "HDP",
@@ -202,7 +202,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3/operatingSystems/redhat5/repositories/HDP-1.3",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3/operating_systems/redhat5/repositories/HDP-1.3",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/1.x/updates/1.3.7.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/1.x/updates/1.3.7.0",
@@ -218,7 +218,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3/operatingSystems/redhat6",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3/operating_systems/redhat6",
           "OperatingSystems" : {
             "os_type" : "redhat6",
             "stack_name" : "HDP",
@@ -226,7 +226,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3/operatingSystems/redhat6/repositories/HDP-1.3",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3/operating_systems/redhat6/repositories/HDP-1.3",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/1.x/updates/1.3.7.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/1.x/updates/1.3.7.0",
@@ -242,7 +242,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3/operatingSystems/suse11",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3/operating_systems/suse11",
           "OperatingSystems" : {
             "os_type" : "suse11",
             "stack_name" : "HDP",
@@ -250,7 +250,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3/operatingSystems/suse11/repositories/HDP-1.3",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3/operating_systems/suse11/repositories/HDP-1.3",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/1.x/updates/1.3.7.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/1.x/updates/1.3.7.0",
@@ -268,7 +268,7 @@
       ]
     },
     {
-      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.0",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.0",
       "Versions" : {
         "active" : false,
         "min_upgrade_version" : null,
@@ -276,9 +276,9 @@
         "stack_name" : "HDP",
         "stack_version" : "1.3.0"
       },
-      "operatingSystems" : [
+      "operating_systems" : [
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/redhat5",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.0/operating_systems/redhat5",
           "OperatingSystems" : {
             "os_type" : "redhat5",
             "stack_name" : "HDP",
@@ -286,7 +286,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/redhat5/repositories/HDP-1.3.0",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.0/operating_systems/redhat5/repositories/HDP-1.3.0",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/1.x/GA/1.3.0.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/1.x/GA/1.3.0.0",
@@ -302,7 +302,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/redhat6",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.0/operating_systems/redhat6",
           "OperatingSystems" : {
             "os_type" : "redhat6",
             "stack_name" : "HDP",
@@ -310,7 +310,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/redhat6/repositories/HDP-1.3.0",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.0/operating_systems/redhat6/repositories/HDP-1.3.0",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/1.x/GA/1.3.0.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/1.x/GA/1.3.0.0",
@@ -326,7 +326,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/suse11",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.0/operating_systems/suse11",
           "OperatingSystems" : {
             "os_type" : "suse11",
             "stack_name" : "HDP",
@@ -334,7 +334,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.0/operatingSystems/suse11/repositories/HDP-1.3.0",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.0/operating_systems/suse11/repositories/HDP-1.3.0",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/1.x/GA/1.3.0.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/1.x/GA/1.3.0.0",
@@ -352,7 +352,7 @@
       ]
     },
     {
-      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.2",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.2",
       "Versions" : {
         "active" : true,
         "min_upgrade_version" : null,
@@ -360,9 +360,9 @@
         "stack_name" : "HDP",
         "stack_version" : "1.3.2"
       },
-      "operatingSystems" : [
+      "operating_systems" : [
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.2/operatingSystems/redhat5",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.2/operating_systems/redhat5",
           "OperatingSystems" : {
             "os_type" : "redhat5",
             "stack_name" : "HDP",
@@ -370,7 +370,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.2/operatingSystems/redhat5/repositories/HDP-1.3.2",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.2/operating_systems/redhat5/repositories/HDP-1.3.2",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/1.x/updates/1.3.2.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/1.x/updates/1.3.2.0",
@@ -384,7 +384,7 @@
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.2/operatingSystems/redhat5/repositories/HDP1-UTILS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.2/operating_systems/redhat5/repositories/HDP1-UTILS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.16/repos/centos5",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.16/repos/centos5",
@@ -400,7 +400,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.2/operatingSystems/redhat6",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.2/operating_systems/redhat6",
           "OperatingSystems" : {
             "os_type" : "redhat6",
             "stack_name" : "HDP",
@@ -408,7 +408,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.2/operatingSystems/redhat6/repositories/HDP-1.3.2",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.2/operating_systems/redhat6/repositories/HDP-1.3.2",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/1.x/updates/1.3.2.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/1.x/updates/1.3.2.0",
@@ -422,7 +422,7 @@
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.2/operatingSystems/redhat6/repositories/HDP1-UTILS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.2/operating_systems/redhat6/repositories/HDP1-UTILS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.16/repos/centos6",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.16/repos/centos6",
@@ -438,7 +438,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.2/operatingSystems/suse11",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.2/operating_systems/suse11",
           "OperatingSystems" : {
             "os_type" : "suse11",
             "stack_name" : "HDP",
@@ -446,7 +446,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.2/operatingSystems/suse11/repositories/HDP-1.3.2",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.2/operating_systems/suse11/repositories/HDP-1.3.2",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/1.x/updates/1.3.2.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/1.x/updates/1.3.2.0",
@@ -460,7 +460,7 @@
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.2/operatingSystems/suse11/repositories/HDP1-UTILS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.2/operating_systems/suse11/repositories/HDP1-UTILS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.16/repos/suse11",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.16/repos/suse11",
@@ -478,7 +478,7 @@
       ]
     },
     {
-      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.2.GlusterFS",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.2.GlusterFS",
       "Versions" : {
         "active" : false,
         "min_upgrade_version" : null,
@@ -486,9 +486,9 @@
         "stack_name" : "HDP",
         "stack_version" : "1.3.2.GlusterFS"
       },
-      "operatingSystems" : [
+      "operating_systems" : [
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.2.GlusterFS/operatingSystems/redhat5",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.2.GlusterFS/operating_systems/redhat5",
           "OperatingSystems" : {
             "os_type" : "redhat5",
             "stack_name" : "HDP",
@@ -496,7 +496,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.2.GlusterFS/operatingSystems/redhat5/repositories/HDP-1.3.2.GlusterFS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.2.GlusterFS/operating_systems/redhat5/repositories/HDP-1.3.2.GlusterFS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/1.x/updates/1.3.2.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/1.x/updates/1.3.2.0",
@@ -512,7 +512,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.2.GlusterFS/operatingSystems/redhat6",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.2.GlusterFS/operating_systems/redhat6",
           "OperatingSystems" : {
             "os_type" : "redhat6",
             "stack_name" : "HDP",
@@ -520,7 +520,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.2.GlusterFS/operatingSystems/redhat6/repositories/HDP-1.3.2.GlusterFS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.2.GlusterFS/operating_systems/redhat6/repositories/HDP-1.3.2.GlusterFS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/1.x/updates/1.3.2.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/1.x/updates/1.3.2.0",
@@ -536,7 +536,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.2.GlusterFS/operatingSystems/suse11",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.2.GlusterFS/operating_systems/suse11",
           "OperatingSystems" : {
             "os_type" : "suse11",
             "stack_name" : "HDP",
@@ -544,7 +544,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.2.GlusterFS/operatingSystems/suse11/repositories/HDP-1.3.2.GlusterFS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.2.GlusterFS/operating_systems/suse11/repositories/HDP-1.3.2.GlusterFS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/1.x/updates/1.3.2.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/1.x/updates/1.3.2.0",
@@ -562,7 +562,7 @@
       ]
     },
     {
-      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.3",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.3",
       "Versions" : {
         "active" : false,
         "min_upgrade_version" : null,
@@ -570,9 +570,9 @@
         "stack_name" : "HDP",
         "stack_version" : "1.3.3"
       },
-      "operatingSystems" : [
+      "operating_systems" : [
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.3/operatingSystems/redhat5",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.3/operating_systems/redhat5",
           "OperatingSystems" : {
             "os_type" : "redhat5",
             "stack_name" : "HDP",
@@ -580,7 +580,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.3/operatingSystems/redhat5/repositories/HDP-1.3.3",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.3/operating_systems/redhat5/repositories/HDP-1.3.3",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/1.x/updates/1.3.3.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/1.x/updates/1.3.3.0",
@@ -594,7 +594,7 @@
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.3/operatingSystems/redhat5/repositories/HDP1-UTILS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.3/operating_systems/redhat5/repositories/HDP1-UTILS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.16/repos/centos5",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.16/repos/centos5",
@@ -610,7 +610,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.3/operatingSystems/redhat6",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.3/operating_systems/redhat6",
           "OperatingSystems" : {
             "os_type" : "redhat6",
             "stack_name" : "HDP",
@@ -618,7 +618,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.3/operatingSystems/redhat6/repositories/HDP-1.3.3",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.3/operating_systems/redhat6/repositories/HDP-1.3.3",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/1.x/updates/1.3.3.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/1.x/updates/1.3.3.0",
@@ -632,7 +632,7 @@
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.3/operatingSystems/redhat6/repositories/HDP1-UTILS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.3/operating_systems/redhat6/repositories/HDP1-UTILS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.16/repos/centos6",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.16/repos/centos6",
@@ -648,7 +648,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.3/operatingSystems/suse11",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.3/operating_systems/suse11",
           "OperatingSystems" : {
             "os_type" : "suse11",
             "stack_name" : "HDP",
@@ -656,7 +656,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.3/operatingSystems/suse11/repositories/HDP-1.3.3",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.3/operating_systems/suse11/repositories/HDP-1.3.3",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/1.x/updates/1.3.3.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/1.x/updates/1.3.3.0",
@@ -670,7 +670,7 @@
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/1.3.3/operatingSystems/suse11/repositories/HDP1-UTILS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/1.3.3/operating_systems/suse11/repositories/HDP1-UTILS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.16/repos/suse11",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.16/repos/suse11",
@@ -688,7 +688,7 @@
       ]
     },
     {
-      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0",
       "Versions" : {
         "active" : true,
         "min_upgrade_version" : null,
@@ -696,9 +696,9 @@
         "stack_name" : "HDP",
         "stack_version" : "2.0"
       },
-      "operatingSystems" : [
+      "operating_systems" : [
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0/operatingSystems/redhat5",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0/operating_systems/redhat5",
           "OperatingSystems" : {
             "os_type" : "redhat5",
             "stack_name" : "HDP",
@@ -706,7 +706,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0/operatingSystems/redhat5/repositories/HDP-2.0",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0/operating_systems/redhat5/repositories/HDP-2.0",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.0.10.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.0.10.0",
@@ -720,7 +720,7 @@
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0/operatingSystems/redhat5/repositories/HDP2-UTILS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0/operating_systems/redhat5/repositories/HDP2-UTILS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/centos5",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/centos5",
@@ -736,7 +736,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0/operatingSystems/redhat6",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0/operating_systems/redhat6",
           "OperatingSystems" : {
             "os_type" : "redhat6",
             "stack_name" : "HDP",
@@ -744,7 +744,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0/operatingSystems/redhat6/repositories/HDP-2.0",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0/operating_systems/redhat6/repositories/HDP-2.0",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.10.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.10.0",
@@ -758,7 +758,7 @@
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0/operatingSystems/redhat6/repositories/HDP2-UTILS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0/operating_systems/redhat6/repositories/HDP2-UTILS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/centos6",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/centos6",
@@ -774,7 +774,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0/operatingSystems/suse11",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0/operating_systems/suse11",
           "OperatingSystems" : {
             "os_type" : "suse11",
             "stack_name" : "HDP",
@@ -782,7 +782,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0/operatingSystems/suse11/repositories/HDP-2.0",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0/operating_systems/suse11/repositories/HDP-2.0",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.0.10.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.0.10.0",
@@ -796,7 +796,7 @@
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0/operatingSystems/suse11/repositories/HDP2-UTILS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0/operating_systems/suse11/repositories/HDP2-UTILS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/suse11",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/suse11",
@@ -814,7 +814,7 @@
       ]
     },
     {
-      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0.5",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0.5",
       "Versions" : {
         "active" : false,
         "min_upgrade_version" : null,
@@ -822,9 +822,9 @@
         "stack_name" : "HDP",
         "stack_version" : "2.0.5"
       },
-      "operatingSystems" : [
+      "operating_systems" : [
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0.5/operatingSystems/redhat5",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0.5/operating_systems/redhat5",
           "OperatingSystems" : {
             "os_type" : "redhat5",
             "stack_name" : "HDP",
@@ -832,7 +832,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0.5/operatingSystems/redhat5/repositories/HDP-2.0.5",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0.5/operating_systems/redhat5/repositories/HDP-2.0.5",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.0.5.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.0.5.0",
@@ -848,7 +848,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0.5/operatingSystems/redhat6",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0.5/operating_systems/redhat6",
           "OperatingSystems" : {
             "os_type" : "redhat6",
             "stack_name" : "HDP",
@@ -856,7 +856,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0.5/operatingSystems/redhat6/repositories/HDP-2.0.5",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0.5/operating_systems/redhat6/repositories/HDP-2.0.5",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.5.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.5.0",
@@ -872,7 +872,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0.5/operatingSystems/suse11",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0.5/operating_systems/suse11",
           "OperatingSystems" : {
             "os_type" : "suse11",
             "stack_name" : "HDP",
@@ -880,7 +880,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0.5/operatingSystems/suse11/repositories/HDP-2.0.5",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0.5/operating_systems/suse11/repositories/HDP-2.0.5",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.0.5.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.0.5.0",
@@ -898,7 +898,7 @@
       ]
     },
     {
-      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0.6",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0.6",
       "Versions" : {
         "active" : false,
         "min_upgrade_version" : null,
@@ -906,9 +906,9 @@
         "stack_name" : "HDP",
         "stack_version" : "2.0.6"
       },
-      "operatingSystems" : [
+      "operating_systems" : [
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0.6/operatingSystems/redhat5",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0.6/operating_systems/redhat5",
           "OperatingSystems" : {
             "os_type" : "redhat5",
             "stack_name" : "HDP",
@@ -916,7 +916,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0.6/operatingSystems/redhat5/repositories/HDP-2.0.6",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0.6/operating_systems/redhat5/repositories/HDP-2.0.6",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.0.6.1",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.0.6.1",
@@ -930,7 +930,7 @@
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0.6/operatingSystems/redhat5/repositories/HDP2-UTILS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0.6/operating_systems/redhat5/repositories/HDP2-UTILS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/centos5",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/centos5",
@@ -946,7 +946,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0.6/operatingSystems/redhat6",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0.6/operating_systems/redhat6",
           "OperatingSystems" : {
             "os_type" : "redhat6",
             "stack_name" : "HDP",
@@ -954,7 +954,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0.6/operatingSystems/redhat6/repositories/HDP-2.0.6",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0.6/operating_systems/redhat6/repositories/HDP-2.0.6",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.1",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.1",
@@ -968,7 +968,7 @@
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0.6/operatingSystems/redhat6/repositories/HDP2-UTILS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0.6/operating_systems/redhat6/repositories/HDP2-UTILS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/centos6",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/centos6",
@@ -984,7 +984,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0.6/operatingSystems/suse11",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0.6/operating_systems/suse11",
           "OperatingSystems" : {
             "os_type" : "suse11",
             "stack_name" : "HDP",
@@ -992,7 +992,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0.6/operatingSystems/suse11/repositories/HDP-2.0.6",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0.6/operating_systems/suse11/repositories/HDP-2.0.6",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.0.6.1",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.0.6.1",
@@ -1010,7 +1010,7 @@
       ]
     },
     {
-      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0.6.GlusterFS",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS",
       "Versions" : {
         "active" : false,
         "min_upgrade_version" : null,
@@ -1018,9 +1018,9 @@
         "stack_name" : "HDP",
         "stack_version" : "2.0.6.GlusterFS"
       },
-      "operatingSystems" : [
+      "operating_systems" : [
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0.6.GlusterFS/operatingSystems/redhat5",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/operating_systems/redhat5",
           "OperatingSystems" : {
             "os_type" : "redhat5",
             "stack_name" : "HDP",
@@ -1028,7 +1028,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0.6.GlusterFS/operatingSystems/redhat5/repositories/HDP-2.0.6.GlusterFS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/operating_systems/redhat5/repositories/HDP-2.0.6.GlusterFS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.0.6.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.0.6.0",
@@ -1044,7 +1044,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0.6.GlusterFS/operatingSystems/redhat6",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/operating_systems/redhat6",
           "OperatingSystems" : {
             "os_type" : "redhat6",
             "stack_name" : "HDP",
@@ -1052,7 +1052,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0.6.GlusterFS/operatingSystems/redhat6/repositories/HDP-2.0.6.GlusterFS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/operating_systems/redhat6/repositories/HDP-2.0.6.GlusterFS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0",
@@ -1068,7 +1068,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0.6.GlusterFS/operatingSystems/suse11",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/operating_systems/suse11",
           "OperatingSystems" : {
             "os_type" : "suse11",
             "stack_name" : "HDP",
@@ -1076,7 +1076,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.0.6.GlusterFS/operatingSystems/suse11/repositories/HDP-2.0.6.GlusterFS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/operating_systems/suse11/repositories/HDP-2.0.6.GlusterFS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.0.6.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.0.6.0",
@@ -1094,7 +1094,7 @@
       ]
     },
     {
-      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1",
       "Versions" : {
         "active" : true,
         "min_upgrade_version" : null,
@@ -1102,9 +1102,9 @@
         "stack_name" : "HDP",
         "stack_version" : "2.1"
       },
-      "operatingSystems" : [
+      "operating_systems" : [
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/operatingSystems/ubuntu12",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/operating_systems/ubuntu12",
           "OperatingSystems" : {
             "os_type" : "ubuntu12",
             "stack_name" : "HDP",
@@ -1112,7 +1112,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/operatingSystems/ubuntu12/repositories/HDP-2.1",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/operating_systems/ubuntu12/repositories/HDP-2.1",
               "Repositories" : {
                 "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/ubuntu12/2.x/updates/2.1.1.0",
                 "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/ubuntu12/2.x/updates/2.1.1.0",
@@ -1128,7 +1128,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/operatingSystems/redhat5",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/operating_systems/redhat5",
           "OperatingSystems" : {
             "os_type" : "redhat5",
             "stack_name" : "HDP",
@@ -1136,7 +1136,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/operatingSystems/redhat5/repositories/HDP-2.1",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/operating_systems/redhat5/repositories/HDP-2.1",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.1.2.0",
                 "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.1.1.0",
@@ -1150,7 +1150,7 @@
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/operatingSystems/redhat5/repositories/HDP2-UTILS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/operating_systems/redhat5/repositories/HDP2-UTILS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/centos5",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/centos5",
@@ -1166,7 +1166,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/operatingSystems/redhat6",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/operating_systems/redhat6",
           "OperatingSystems" : {
             "os_type" : "redhat6",
             "stack_name" : "HDP",
@@ -1174,7 +1174,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/operatingSystems/redhat6/repositories/HDP-2.1",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/operating_systems/redhat6/repositories/HDP-2.1",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.1.2.0",
                 "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/updates/2.1.1.0",
@@ -1188,7 +1188,7 @@
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/operatingSystems/redhat6/repositories/HDP2-UTILS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/operating_systems/redhat6/repositories/HDP2-UTILS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/centos6",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/centos6",
@@ -1204,7 +1204,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/operatingSystems/suse11",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/operating_systems/suse11",
           "OperatingSystems" : {
             "os_type" : "suse11",
             "stack_name" : "HDP",
@@ -1212,7 +1212,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/operatingSystems/suse11/repositories/HDP-2.1",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/operating_systems/suse11/repositories/HDP-2.1",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.1.2.0",
                 "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/suse11/2.x/updates/2.1.1.0",
@@ -1226,7 +1226,7 @@
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1/operatingSystems/suse11/repositories/HDP2-UTILS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/operating_systems/suse11/repositories/HDP2-UTILS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/suse11",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/suse11",
@@ -1244,7 +1244,7 @@
       ]
     },
     {
-      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS",
       "Versions" : {
         "active" : false,
         "min_upgrade_version" : null,
@@ -1252,9 +1252,9 @@
         "stack_name" : "HDP",
         "stack_version" : "2.1.GlusterFS"
       },
-      "operatingSystems" : [
+      "operating_systems" : [
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/operatingSystems/centos5",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/operating_systems/centos5",
           "OperatingSystems" : {
             "os_type" : "centos5",
             "stack_name" : "HDP",
@@ -1262,7 +1262,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/operatingSystems/centos5/repositories/HDP-2.1.GlusterFS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/operating_systems/centos5/repositories/HDP-2.1.GlusterFS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.0.6.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.0.6.0",
@@ -1278,7 +1278,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/operatingSystems/centos6",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/operating_systems/centos6",
           "OperatingSystems" : {
             "os_type" : "centos6",
             "stack_name" : "HDP",
@@ -1286,7 +1286,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/operatingSystems/centos6/repositories/HDP-2.1.GlusterFS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/operating_systems/centos6/repositories/HDP-2.1.GlusterFS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0",
@@ -1302,7 +1302,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/operatingSystems/oraclelinux5",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/operating_systems/oraclelinux5",
           "OperatingSystems" : {
             "os_type" : "oraclelinux5",
             "stack_name" : "HDP",
@@ -1310,7 +1310,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/operatingSystems/oraclelinux5/repositories/HDP-2.1.GlusterFS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/operating_systems/oraclelinux5/repositories/HDP-2.1.GlusterFS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.0.6.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.0.6.0",
@@ -1326,7 +1326,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/operatingSystems/oraclelinux6",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/operating_systems/oraclelinux6",
           "OperatingSystems" : {
             "os_type" : "oraclelinux6",
             "stack_name" : "HDP",
@@ -1334,7 +1334,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/operatingSystems/oraclelinux6/repositories/HDP-2.1.GlusterFS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/operating_systems/oraclelinux6/repositories/HDP-2.1.GlusterFS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0",
@@ -1350,7 +1350,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/operatingSystems/redhat5",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/operating_systems/redhat5",
           "OperatingSystems" : {
             "os_type" : "redhat5",
             "stack_name" : "HDP",
@@ -1358,7 +1358,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/operatingSystems/redhat5/repositories/HDP-2.1.GlusterFS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/operating_systems/redhat5/repositories/HDP-2.1.GlusterFS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.0.6.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.0.6.0",
@@ -1374,7 +1374,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/operatingSystems/redhat6",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/operating_systems/redhat6",
           "OperatingSystems" : {
             "os_type" : "redhat6",
             "stack_name" : "HDP",
@@ -1382,7 +1382,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/operatingSystems/redhat6/repositories/HDP-2.1.GlusterFS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/operating_systems/redhat6/repositories/HDP-2.1.GlusterFS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0",
@@ -1398,7 +1398,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/operatingSystems/sles11",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/operating_systems/sles11",
           "OperatingSystems" : {
             "os_type" : "sles11",
             "stack_name" : "HDP",
@@ -1406,7 +1406,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/operatingSystems/sles11/repositories/HDP-2.1.GlusterFS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/operating_systems/sles11/repositories/HDP-2.1.GlusterFS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.0.6.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.0.6.0",
@@ -1422,7 +1422,7 @@
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/operatingSystems/suse11",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/operating_systems/suse11",
           "OperatingSystems" : {
             "os_type" : "suse11",
             "stack_name" : "HDP",
@@ -1430,7 +1430,7 @@
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks2/HDP/versions/2.1.GlusterFS/operatingSystems/suse11/repositories/HDP-2.1.GlusterFS",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/operating_systems/suse11/repositories/HDP-2.1.GlusterFS",
               "Repositories" : {
                 "base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.0.6.0",
                 "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.0.6.0",

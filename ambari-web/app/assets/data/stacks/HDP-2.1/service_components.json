@@ -1,5 +1,5 @@
 {
-  "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services?fields=StackServices/*,serviceComponents/*&_=1409656091161",
+  "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services?fields=StackServices/*,components/*&_=1409656091161",
   "items" : [
     {
       "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/FALCON",
@@ -39,7 +39,7 @@
           }
         }
       },
-      "serviceComponents" : [
+      "components" : [
         {
           "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/FALCON/components/FALCON_CLIENT",
           "StackServiceComponents" : {
@@ -128,7 +128,7 @@
           }
         }
       },
-      "serviceComponents" : [
+      "components" : [
         {
           "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/FLUME/components/FLUME_HANDLER",
           "StackServiceComponents" : {
@@ -168,7 +168,7 @@
           }
         }
       },
-      "serviceComponents" : [
+      "components" : [
         {
           "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/GANGLIA/components/GANGLIA_MONITOR",
           "StackServiceComponents" : {
@@ -245,7 +245,7 @@
           }
         }
       },
-      "serviceComponents" : [
+      "components" : [
         {
           "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HBASE/components/HBASE_CLIENT",
           "StackServiceComponents" : {
@@ -362,7 +362,7 @@
           }
         }
       },
-      "serviceComponents" : [
+      "components" : [
         {
           "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HDFS/components/DATANODE",
           "StackServiceComponents" : {
@@ -504,7 +504,7 @@
           }
         }
       },
-      "serviceComponents" : [
+      "components" : [
         {
           "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/HIVE_CLIENT",
           "StackServiceComponents" : {
@@ -727,7 +727,7 @@
           }
         }
       },
-      "serviceComponents" : [
+      "components" : [
         {
           "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/MAPREDUCE2/components/HISTORYSERVER",
           "StackServiceComponents" : {
@@ -798,7 +798,7 @@
           }
         }
       },
-      "serviceComponents" : [
+      "components" : [
         {
           "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/NAGIOS/components/NAGIOS_SERVER",
           "StackServiceComponents" : {
@@ -911,7 +911,7 @@
           }
         }
       },
-      "serviceComponents" : [
+      "components" : [
         {
           "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/OOZIE/components/OOZIE_CLIENT",
           "StackServiceComponents" : {
@@ -1031,7 +1031,7 @@
           }
         }
       },
-      "serviceComponents" : [
+      "components" : [
         {
           "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/PIG/components/PIG",
           "StackServiceComponents" : {
@@ -1073,7 +1073,7 @@
           }
         }
       },
-      "serviceComponents" : [
+      "components" : [
         {
           "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/SQOOP/components/SQOOP",
           "StackServiceComponents" : {
@@ -1141,7 +1141,7 @@
           }
         }
       },
-      "serviceComponents" : [
+      "components" : [
         {
           "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/STORM/components/DRPC_SERVER",
           "StackServiceComponents" : {
@@ -1263,7 +1263,7 @@
           }
         }
       },
-      "serviceComponents" : [
+      "components" : [
         {
           "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/TEZ/components/TEZ_CLIENT",
           "StackServiceComponents" : {
@@ -1321,7 +1321,7 @@
           }
         }
       },
-      "serviceComponents" : [
+      "components" : [
         {
           "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/YARN/components/APP_TIMELINE_SERVER",
           "StackServiceComponents" : {
@@ -1417,7 +1417,7 @@
           }
         }
       },
-      "serviceComponents" : [
+      "components" : [
         {
           "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/ZOOKEEPER/components/ZOOKEEPER_CLIENT",
           "StackServiceComponents" : {
@@ -1489,7 +1489,7 @@
           }
         }
       },
-      "serviceComponents" : [
+      "components" : [
         {
           "href" : "http://c6403.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/KERBEROS/components/KDC_SERVER",
           "StackServiceComponents" : {

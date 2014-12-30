@@ -1087,7 +1087,7 @@ var urls = {
     'mock': '/data/clusters/info.json'
   },
   'cluster.update_upgrade_version': {
-    'real': '/stacks/{stackName}/versions?fields=stackServices/StackServices,Versions',
+    'real': '/stacks/{stackName}/versions?fields=services/StackServices,Versions',
     'mock': '/data/wizard/stack/stacks.json',
     'format': function (data) {
       return {
@@ -1388,7 +1388,7 @@ var urls = {
     }
   },
   'wizard.service_components': {
-    'real': '{stackUrl}/services?fields=StackServices/*,serviceComponents/*,serviceComponents/dependencies/Dependencies/scope',
+    'real': '{stackUrl}/services?fields=StackServices/*,components/*,components/dependencies/Dependencies/scope',
     'mock': '/data/stacks/HDP-2.1/service_components.json',
     'format': function (data) {
       return {
@@ -1634,7 +1634,7 @@ var urls = {
     'mock': '/data/wizard/stack/stacks2.json'
   },
   'wizard.stacks_versions': {
-    'real': '/stacks/{stackName}/versions?fields=Versions,operatingSystems/repositories/Repositories',
+    'real': '/stacks/{stackName}/versions?fields=Versions,operating_systems/repositories/Repositories',
     'mock': '/data/wizard/stack/{stackName}_versions.json'
   },
   'wizard.launch_bootstrap': {
