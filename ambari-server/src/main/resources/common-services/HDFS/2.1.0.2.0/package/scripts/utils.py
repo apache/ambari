@@ -73,11 +73,20 @@ def failover_namenode():
 
     # Wait until it transitions to standby
     check_standby_cmd = format("hdfs haadmin -getServiceState {namenode_id} | grep standby")
-    Execute(check_standby_cmd,
-            user=params.hdfs_user,
-            tries=30,
-            try_sleep=6,
-            logoutput=True)
+
+    # process may already be down.  try one time, then proceed
+    code, out = call(check_standby_cmd, user=params.hdfs_user, logoutput=True)
+    Logger.info(format("Rolling Upgrade - check for standby returned {code}"))
+
+    if code == 255 and out:
+      Logger.info("Rolling Upgrade - namenode is already down")
+    else:
+      Execute(check_standby_cmd,
+              user=params.hdfs_user,
+              tries=30,
+              try_sleep=6,
+              logoutput=True)
+
   else:
     Logger.info("Rolling Upgrade - Host %s is the standby namenode." % str(params.hostname))
 
