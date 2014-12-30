@@ -1372,10 +1372,6 @@ var urls = {
     },
     'mock': ''
   },
-  'admin.stack_versions.progress.request': {
-    'real': '/clusters/{clusterName}/requests/{requestId}?fields=Requests/progress_percent',
-    'mock': '/data/background_operations/host_upgrade_tasks.json'
-  },
   'admin.rolling_upgrade.pre_upgrade_check': {
     'real': '/clusters/{clusterName}/rolling_upgrades_check?fields=*',
     'mock': '/data/stack_versions/pre_upgrade_check.json'

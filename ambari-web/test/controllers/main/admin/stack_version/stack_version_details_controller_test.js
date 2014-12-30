@@ -90,8 +90,9 @@ describe('App.MainStackVersionsDetailsController', function () {
 
   describe('#updateProgressSuccess', function () {
     it("saves progress state t othe controller", function () {
-      controller.updateProgressSuccess({Requests: {progress_percent: 10} });
+      controller.updateProgressSuccess({Requests: {progress_percent: 10} , tasks: [{task: 1}]});
       expect(controller.get('progress')).to.equal(10);
+      expect(controller.get('logs')).to.eql([{task: 1}])
     });
   });
 

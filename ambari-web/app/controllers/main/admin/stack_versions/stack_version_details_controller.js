@@ -112,7 +112,7 @@ App.MainStackVersionsDetailsController = Em.Controller.extend({
       } else {
         clearTimeout(self.get('timeoutRef'));
       }
-    }, App.componentsUpdateInterval));
+    }, 3000));
   },
 
   /**
@@ -123,7 +123,7 @@ App.MainStackVersionsDetailsController = Em.Controller.extend({
    */
   updateProgress: function() {
     return App.ajax.send({
-      'name': 'admin.stack_versions.progress.request',
+      'name': 'admin.high_availability.polling',
       'sender': this,
       'data': {
         requestId: App.db.get('repoVersion', 'id')
@@ -140,6 +140,7 @@ App.MainStackVersionsDetailsController = Em.Controller.extend({
   updateProgressSuccess: function(data) {
     if (Em.get(data, 'Requests.progress_percent')) {
       this.set('progress', parseInt(Em.get(data, 'Requests.progress_percent')));
+      this.set('logs', data.tasks);
     }
   },
 
