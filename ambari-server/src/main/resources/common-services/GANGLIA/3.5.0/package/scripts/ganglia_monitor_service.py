@@ -20,8 +20,7 @@ from resource_management import *
 
 
 def monitor(action=None):# 'start' or 'stop'
-  Execute(
-    format(
-      "service hdp-gmond {action} >> /tmp/gmond.log  2>&1 ; /bin/ps auwx | /bin/grep [g]mond  >> /tmp/gmond.log  2>&1"),
+  service_start_command = as_sudo(('service', 'hdp-gmond', action))
+  Execute(format("{service_start_command} >> /tmp/gmond.log  2>&1 ; /bin/ps auwx | /bin/grep [g]mond  >> /tmp/gmond.log  2>&1"),
     path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
   )

@@ -88,7 +88,9 @@ def change_permission():
             mode=0755,
             recursive=True
   )
-  Execute(format("chown -R {web_user} {dwoo_path}"))
+  Execute(('chown', '-R', params.web_user, params.dwoo_path),
+          sudo = True,
+  )
 
 def server_files():
   import params

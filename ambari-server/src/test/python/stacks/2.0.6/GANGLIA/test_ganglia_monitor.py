@@ -60,7 +60,7 @@ class TestGangliaMonitor(RMFTestCase):
     )
     self.assert_configure_default()
     self.assert_gmond_master_conf_generated()
-    self.assertResourceCalled('Execute', 'service hdp-gmond start >> /tmp/gmond.log  2>&1 ; /bin/ps auwx | /bin/grep [g]mond  >> /tmp/gmond.log  2>&1',
+    self.assertResourceCalled('Execute', '/usr/bin/sudo [RMF_ENV_PLACEHOLDER] -H -E service hdp-gmond start >> /tmp/gmond.log  2>&1 ; /bin/ps auwx | /bin/grep [g]mond  >> /tmp/gmond.log  2>&1',
         path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
     )
     self.assertNoMoreResources()
@@ -74,9 +74,9 @@ class TestGangliaMonitor(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled('Execute', 'service hdp-gmond stop >> /tmp/gmond.log  2>&1 ; /bin/ps auwx | /bin/grep [g]mond  >> /tmp/gmond.log  2>&1',
-                              path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
-                              )
+    self.assertResourceCalled('Execute', '/usr/bin/sudo [RMF_ENV_PLACEHOLDER] -H -E service hdp-gmond stop >> /tmp/gmond.log  2>&1 ; /bin/ps auwx | /bin/grep [g]mond  >> /tmp/gmond.log  2>&1',
+        path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+    )
     self.assertNoMoreResources()
 
 
@@ -90,11 +90,13 @@ class TestGangliaMonitor(RMFTestCase):
     )
     self.assert_configure_default()
     self.assert_gmond_master_conf_generated()
-    self.assertResourceCalled('Execute', 'chkconfig gmond off',
+    self.assertResourceCalled('Execute', ('chkconfig', 'gmond', 'off'),
         path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+        sudo = True,
     )
-    self.assertResourceCalled('Execute', 'chkconfig gmetad off',
+    self.assertResourceCalled('Execute', ('chkconfig', 'gmetad', 'off'),
         path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+        sudo = True,
     )
     self.assertNoMoreResources()
 

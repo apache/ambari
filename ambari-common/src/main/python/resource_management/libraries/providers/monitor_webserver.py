@@ -29,12 +29,16 @@ class MonitorWebserverProvider(Provider):
     self.get_serivice_params()
     self.enable_keep_alive()
     service_name = self.service_name
-    Execute(format("/etc/init.d/{service_name} start"))
+    Execute((format('/etc/init.d/{service_name}'), 'start'),
+      sudo = True,        
+    )
 
   def action_stop(self):
     self.get_serivice_params()
     service_name = self.service_name
-    Execute(format("/etc/init.d/{service_name} stop"))
+    Execute((format('/etc/init.d/{service_name}'), 'stop'),
+      sudo = True,        
+    )
 
   def action_restart(self):
     self.action_stop()
@@ -49,7 +53,9 @@ class MonitorWebserverProvider(Provider):
       self.service_name = "httpd"
       self.httpd_conf_dir = '/etc/httpd/conf'
 
+  # "tee --append /etc/apt/sources.list > /dev/null"
   def enable_keep_alive(self):
     httpd_conf_dir = self.httpd_conf_dir
-    Execute(format(
-      "grep -E 'KeepAlive (On|Off)' {httpd_conf_dir}/httpd.conf && sed -i 's/KeepAlive Off/KeepAlive On/' {httpd_conf_dir}/httpd.conf || echo 'KeepAlive On' >> {httpd_conf_dir}/httpd.conf"))
+    command = format("grep -E 'KeepAlive (On|Off)' {httpd_conf_dir}/httpd.conf && " + as_sudo(('sed',  '-i','s/KeepAlive Off/KeepAlive On/', format("{httpd_conf_dir}/httpd.conf"))) + " || echo 'KeepAlive On' | ") + as_sudo(('tee', '--append', format('{httpd_conf_dir}/httpd.conf'))) + " > /dev/null" 
+    Execute(command
+    )

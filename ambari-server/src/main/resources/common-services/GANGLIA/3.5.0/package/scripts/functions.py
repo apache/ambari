@@ -20,12 +20,19 @@ from resource_management import *
 
 def turn_off_autostart(service):
   if System.get_instance().os_family == "ubuntu":
-    Execute(format("update-rc.d {service} disable"),
-            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
+    Execute(('update-rc.d', service, 'disable'),
+            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+            sudo = True
     )
-    Execute(format("service {service} stop"), ignore_failures=True)
-    Execute(format("echo 'manual' > /etc/init/{service}.override")) # disbale upstart job
+    Execute(('service', service, 'stop'),
+            sudo = True,
+            ignore_failures=True,
+    )
+    File(format('/etc/init/{service}.override'), # disable upstart job
+         content = 'manual',
+    )
   else:
-    Execute(format("chkconfig {service} off"),
-            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
+    Execute(('chkconfig', service, 'off'),
+            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+            sudo = True,
     )

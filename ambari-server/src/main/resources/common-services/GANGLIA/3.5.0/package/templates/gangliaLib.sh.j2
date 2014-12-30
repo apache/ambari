@@ -46,6 +46,7 @@ RRDCACHED_WRITE_THREADS={{rrdcached_write_threads}}
 RRDCACHED_TIMEOUT={{rrdcached_timeout}}
 RRDCACHED_FLUSH_TIMEOUT={{rrdcached_flush_timeout}}
 RRDCACHED_DELAY={{rrdcached_delay}}
+TMP_GANGLIA_FILE="/tmp/ganglia_tmp_file"
 
 # This file contains all the info about each Ganglia Cluster in our Grid.
 GANGLIA_CLUSTERS_CONF_FILE=./gangliaClusters.conf;
@@ -56,7 +57,7 @@ function createDirectory()
 
     if [ "x" != "x${directoryPath}" ]
     then
-        mkdir -p ${directoryPath};
+        sudo -H -E mkdir -p ${directoryPath};
     fi
 }
 

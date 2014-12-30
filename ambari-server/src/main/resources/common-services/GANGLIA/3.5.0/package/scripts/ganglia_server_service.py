@@ -20,8 +20,8 @@ from resource_management import *
 
 
 def server(action=None):# 'start' or 'stop'
-  command = "service hdp-gmetad {action} >> /tmp/gmetad.log  2>&1 ; /bin/ps auwx | /bin/grep [g]metad  >> /tmp/gmetad.log  2>&1"
-  Execute(format(command),
+  command = as_sudo(('service', 'hdp-gmetad', action)) + " >> /tmp/gmetad.log  2>&1 ; /bin/ps auwx | /bin/grep [g]metad  >> /tmp/gmetad.log  2>&1"
+  Execute(command,
           path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
   )
   MonitorWebserver("restart")

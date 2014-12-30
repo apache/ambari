@@ -46,7 +46,8 @@ function instantiateGmetadConf()
   # gmetad utility library.
   source ./gmetadLib.sh;
 
-  generateGmetadConf > ${GMETAD_CONF_FILE};
+  generateGmetadConf > ${TMP_GANGLIA_FILE};
+  sudo -H -E cp ${TMP_GANGLIA_FILE} ${GMETAD_CONF_FILE}
 }
 
 function instantiateGmondConf()
@@ -63,19 +64,22 @@ function instantiateGmondConf()
     createDirectory "${GANGLIA_CONF_DIR}/${gmondClusterName}/conf.d";
     
     # Always blindly generate the core gmond config - that goes on every box running gmond. 
-    generateGmondCoreConf ${gmondClusterName} > `getGmondCoreConfFileName ${gmondClusterName}`;
+    generateGmondCoreConf ${gmondClusterName} > ${TMP_GANGLIA_FILE};
+    sudo -H -E cp ${TMP_GANGLIA_FILE} `getGmondCoreConfFileName ${gmondClusterName}`;
 
     isMasterGmond=${2};
 
     # Decide whether we want to add on the master or slave gmond config.
     if [ "0" -eq "${isMasterGmond}" ]
     then
-      generateGmondSlaveConf ${gmondClusterName} > `getGmondSlaveConfFileName ${gmondClusterName}`;
+      generateGmondSlaveConf ${gmondClusterName} > ${TMP_GANGLIA_FILE};
+      sudo -H -E cp ${TMP_GANGLIA_FILE} `getGmondSlaveConfFileName ${gmondClusterName}`;
     else
-      generateGmondMasterConf ${gmondClusterName} > `getGmondMasterConfFileName ${gmondClusterName}`;
+      generateGmondMasterConf ${gmondClusterName} > ${TMP_GANGLIA_FILE}
+      sudo -H -E cp ${TMP_GANGLIA_FILE} `getGmondMasterConfFileName ${gmondClusterName}`;
     fi
 
-    chown -R ${3}:${4} ${GANGLIA_CONF_DIR}/${gmondClusterName}
+    sudo -H -E chown -R ${3}:${4} ${GANGLIA_CONF_DIR}/${gmondClusterName}
 
   else
     echo "No gmondClusterName passed in, nothing to instantiate";
@@ -118,8 +122,8 @@ done
 createDirectory ${GANGLIA_CONF_DIR};
 createDirectory ${GANGLIA_RUNTIME_DIR};
 # So rrdcached can drop its PID files in here.
-chmod -R o+rw ${GANGLIA_RUNTIME_DIR};
-chown ${owner}:${group} ${GANGLIA_CONF_DIR};
+sudo -H -E chmod -R o+rw ${GANGLIA_RUNTIME_DIR};
+sudo -H -E chown ${owner}:${group} ${GANGLIA_CONF_DIR};
 
 if [ -n "${gmondClusterName}" ]
 then

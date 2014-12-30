@@ -45,9 +45,9 @@ class TestGangliaServer(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
-    self.assertResourceCalled('Execute', 'service hdp-gmetad start >> /tmp/gmetad.log  2>&1 ; /bin/ps auwx | /bin/grep [g]metad  >> /tmp/gmetad.log  2>&1',
-                              path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
-                              )
+    self.assertResourceCalled('Execute', '/usr/bin/sudo [RMF_ENV_PLACEHOLDER] -H -E service hdp-gmetad start >> /tmp/gmetad.log  2>&1 ; /bin/ps auwx | /bin/grep [g]metad  >> /tmp/gmetad.log  2>&1',
+        path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+    )
     self.assertResourceCalled('MonitorWebserver', 'restart',
                               )
     self.assertNoMoreResources()
@@ -60,9 +60,9 @@ class TestGangliaServer(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled('Execute', 'service hdp-gmetad stop >> /tmp/gmetad.log  2>&1 ; /bin/ps auwx | /bin/grep [g]metad  >> /tmp/gmetad.log  2>&1',
-                              path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
-                              )
+    self.assertResourceCalled('Execute', '/usr/bin/sudo [RMF_ENV_PLACEHOLDER] -H -E service hdp-gmetad stop >> /tmp/gmetad.log  2>&1 ; /bin/ps auwx | /bin/grep [g]metad  >> /tmp/gmetad.log  2>&1',
+        path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+    )
     self.assertResourceCalled('MonitorWebserver', 'restart',
                               )
     self.assertNoMoreResources()
@@ -176,7 +176,9 @@ class TestGangliaServer(RMFTestCase):
         recursive = True,
         mode = 0755,
     )
-    self.assertResourceCalled('Execute', 'chown -R wwwrun /var/lib/ganglia-web/dwoo',)
+    self.assertResourceCalled('Execute', ('chown', '-R', 'wwwrun', '/var/lib/ganglia-web/dwoo'),
+        sudo = True,
+    )
     self.assertResourceCalled('Directory', '/srv/www/cgi-bin',
         recursive = True,
     )

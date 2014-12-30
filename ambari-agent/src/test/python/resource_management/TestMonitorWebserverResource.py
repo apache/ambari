@@ -31,11 +31,9 @@ class TestMonitorWebserverResource(TestCase):
     with Environment(test_mode=True) as env:
       MonitorWebserverProvider(MonitorWebserver("start")).action_start()
     defined_resources = env.resource_list
-    expected_resources = "[MonitorWebserver['start'], " \
-                         "Execute['grep -E 'KeepAlive (On|Off)' /etc/httpd/conf/httpd.conf" \
-                         " && sed -i 's/KeepAlive Off/KeepAlive On/' /etc/httpd/conf/httpd.conf" \
-                         " || echo 'KeepAlive On' >> /etc/httpd/conf/httpd.conf']," \
-                         " Execute['/etc/init.d/httpd start']]"
+    expected_resources = "[MonitorWebserver['start'], Execute['grep -E 'KeepAlive (On|Off)' /etc/httpd/conf/httpd.conf && " \
+    "/usr/bin/sudo [RMF_ENV_PLACEHOLDER] -H -E sed -i 's/KeepAlive Off/KeepAlive On/' /etc/httpd/conf/httpd.conf || " \
+    "echo 'KeepAlive On' | /usr/bin/sudo [RMF_ENV_PLACEHOLDER] -H -E tee --append /etc/httpd/conf/httpd.conf > /dev/null'], Execute['('/etc/init.d/httpd', 'start')']]"
     self.assertEqual(str(defined_resources), expected_resources)
 
   @patch.object(System, "os_family", new='suse')
@@ -43,11 +41,9 @@ class TestMonitorWebserverResource(TestCase):
     with Environment(test_mode=True) as env:
       MonitorWebserverProvider(MonitorWebserver("start")).action_start()
     defined_resources = env.resource_list
-    expected_resources = "[MonitorWebserver['start'], " \
-                         "Execute['grep -E 'KeepAlive (On|Off)' /etc/apache2/httpd.conf " \
-                         "&& sed -i 's/KeepAlive Off/KeepAlive On/' /etc/apache2/httpd.conf " \
-                         "|| echo 'KeepAlive On' >> /etc/apache2/httpd.conf']," \
-                         " Execute['/etc/init.d/apache2 start']]"
+    expected_resources = "[MonitorWebserver['start'], Execute['grep -E 'KeepAlive (On|Off)' /etc/apache2/httpd.conf && /usr/bin/sudo [RMF_ENV_PLACEHOLDER] " \
+    "-H -E sed -i 's/KeepAlive Off/KeepAlive On/' /etc/apache2/httpd.conf || echo 'KeepAlive On' | " \
+    "/usr/bin/sudo [RMF_ENV_PLACEHOLDER] -H -E tee --append /etc/apache2/httpd.conf > /dev/null'], Execute['('/etc/init.d/apache2', 'start')']]"
     self.assertEqual(str(defined_resources), expected_resources)
 
   @patch.object(System, "os_family", new='redhat')
@@ -56,7 +52,7 @@ class TestMonitorWebserverResource(TestCase):
       MonitorWebserverProvider(MonitorWebserver("stop")).action_stop()
     defined_resources = env.resource_list
     expected_resources = "[MonitorWebserver['stop'], " \
-                         "Execute['/etc/init.d/httpd stop']]"
+                         "Execute['('/etc/init.d/httpd', 'stop')']]"
     self.assertEqual(str(defined_resources), expected_resources)
 
   @patch.object(System, "os_family", new='suse')
@@ -65,5 +61,5 @@ class TestMonitorWebserverResource(TestCase):
       MonitorWebserverProvider(MonitorWebserver("stop")).action_stop()
     defined_resources = env.resource_list
     expected_resources = "[MonitorWebserver['stop'], " \
-                         "Execute['/etc/init.d/apache2 stop']]"
+                         "Execute['('/etc/init.d/apache2', 'stop')']]"
     self.assertEqual(str(defined_resources), expected_resources)
