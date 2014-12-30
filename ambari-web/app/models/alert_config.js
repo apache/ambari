@@ -152,12 +152,12 @@ App.AlertConfigProperty = Ember.Object.extend({
   }.property(),
 
   /**
-   * Array of a group of configs, that current config property relates to
+   * Configs controller
    * Should be set in controller in rendering configs function
-   * Used to get access to other configs properties of one group
-   * @type {App.AlertConfigProperty[]}
+   * Used to get access to other configs properties of one group or definition properties
+   * @type {App.MainAlertDefinitionConfigsController}
    */
-  allConfigs: []
+  configsController: null
 
 });
 
@@ -348,26 +348,26 @@ App.AlertConfigProperties = {
       var valueMetric = this.get('valueMetric');
       var displayValue = this.get('displayValue');
       var newDisplayValue = value;
-      if (value && '%' == valueMetric && !isNaN(value)) {
+      if (value && '%' == valueMetric && !isNaN(value) && this.get('configsController.content.type') == 'AGGREGATE') {
         newDisplayValue = (Number(value) * 100) + '';
       }
       if (newDisplayValue != displayValue) {
         this.set('displayValue', newDisplayValue);
       }
-    }.observes('value', 'valueMetric'),
+    }.observes('value', 'valueMetric', 'configsController.content.type'),
 
     displayValueWasChanged: function () {
       var value = this.get('value');
       var valueMetric = this.get('valueMetric');
       var displayValue = this.get('displayValue');
       var newValue = displayValue;
-      if (displayValue && '%' == valueMetric && !isNaN(displayValue)) {
+      if (displayValue && '%' == valueMetric && !isNaN(displayValue) && this.get('configsController.content.type') == 'AGGREGATE') {
         newValue = (Number(displayValue) / 100) + '';
       }
       if (newValue != value) {
         this.set('value', newValue);
       }
-    }.observes('displayValue', 'valueMetric')
+    }.observes('displayValue', 'valueMetric', 'configsController.content.type')
 
   }),
 
@@ -466,14 +466,14 @@ App.AlertConfigProperties.Thresholds = {
       var value = this.get('value');
       if (!value) return false;
       value = ('' + value).trim();
-      if (this.get('showInputForValue') && this.get('valueMetric') == '%') {
+      if (this.get('showInputForValue') && this.get('valueMetric') == '%' && this.get('configsController.content.type') == 'AGGREGATE') {
         return !isNaN(value) && value > 0 && value <= 1.0;
       } else if (this.get('showInputForValue')) {
         return !isNaN(value) && value > 0;
       } else {
         return true;
       }
-    }.property('value', 'showInputForValue')
+    }.property('value', 'showInputForValue', 'configsController.content.type')
   }),
 
   CriticalThreshold: App.AlertConfigProperties.Threshold.extend({
@@ -493,14 +493,14 @@ App.AlertConfigProperties.Thresholds = {
       var value = this.get('value');
       if (!value) return false;
       value = ('' + value).trim();
-      if (this.get('showInputForValue') && this.get('valueMetric') == '%') {
+      if (this.get('showInputForValue') && this.get('valueMetric') == '%' && this.get('configsController.content.type') == 'AGGREGATE') {
         return !isNaN(value) && value > 0 && value <= 1.0;
       } else if (this.get('showInputForValue')) {
         return !isNaN(value) && value > 0;
       } else {
         return true;
       }
-    }.property('value', 'showInputForValue')
+    }.property('value', 'showInputForValue', 'configsController.content.type')
   })
 
 };

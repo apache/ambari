@@ -54,11 +54,16 @@ describe('App.AlertConfigProperties', function () {
 
     describe('#valueWasChanged', function () {
 
-      it('value change should effect displayValue', function () {
+      it('value change should effect displayValue for AGGREGATE type', function () {
 
         model = App.AlertConfigProperties.Threshold.create({
           value: '0.4',
           valueMetric: '%',
+          configsController: Em.Object.create({
+            content: {
+              type: 'AGGREGATE'
+            }
+          }),
           text: 'text',
           showInputForValue: false,
           showInputForText: false
@@ -67,10 +72,16 @@ describe('App.AlertConfigProperties', function () {
         expect(model.get('displayValue')).to.eql('40');
       });
 
-      it('value change should not effect displayValue', function () {
+      it('value change should not effect displayValue for not AGGREGATE type', function () {
 
         model = App.AlertConfigProperties.Threshold.create({
           value: '0.4',
+          valueMetric: '%',
+          configsController: Em.Object.create({
+            content: {
+              type: 'SCRIPT'
+            }
+          }),
           text: 'text',
           showInputForValue: false,
           showInputForText: false

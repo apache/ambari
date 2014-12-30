@@ -138,7 +138,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
     }
 
     configs.setEach('isDisabled', !this.get('canEdit'));
-    configs.setEach('allConfigs', configs);
+    configs.setEach('configsController', this);
 
     this.set('configs', configs);
   },
@@ -497,7 +497,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       var largeValue = Em.get(this.get('configs').findProperty('name', 'critical_threshold'), 'value');
       var largeValid = Em.get(this.get('configs').findProperty('name', 'critical_threshold'), 'isValid');
     }
-    return smallValid && largeValid ? !(smallValue <= largeValue) : false;
+    return smallValid && largeValid ? Number(smallValue) > Number(largeValue) : false;
   }.property('configs.@each.value'),
 
   /**
