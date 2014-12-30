@@ -179,6 +179,8 @@
             <exclude>derby.log</exclude>
             <exclude>CHANGES.txt</exclude>
             <exclude>pass.txt</exclude>
+            <exclude>ambari-metrics/ambari-metrics-host-monitoring/conf/unix/metric_groups.conf</exclude>
+            <exclude>ambari-metrics/ambari-metrics-host-monitoring/conf/windows/metric_groups.conf</exclude>
             <exclude>contrib/addons/test/dataServices/jmx/data/cluster_configuration.json.nohbase</exclude>
             <exclude>contrib/ambari-scom/msi/src/GUI_Ambari.sln</exclude>
             <exclude>version</exclude>

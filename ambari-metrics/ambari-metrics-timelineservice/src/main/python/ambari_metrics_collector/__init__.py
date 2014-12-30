@@ -16,19 +16,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
+Ambari Agent
+
 """
-
-import os, sys
-
-path = os.path.abspath(__file__)
-path = os.path.normpath(os.path.join(os.path.dirname(path), "psutil", "build"))
-
-for dir in os.walk(path).next()[1]:
-  if 'lib' in dir:
-    sys.path.append(os.path.join(path, dir))
-
-try:
-  import psutil
-except ImportError:
-  print 'psutil binaries need to be built by running, psutil/build.py ' \
-        'manually or by running a, mvn clean package, command.'

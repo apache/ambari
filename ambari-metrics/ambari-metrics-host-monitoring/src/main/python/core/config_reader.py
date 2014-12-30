@@ -22,10 +22,67 @@ import ConfigParser
 import StringIO
 import json
 import os
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyImpl
+
+
+#
+# Abstraction for OS-dependent configuration defaults
+#
+class ConfigDefaults(object):
+  def get_config_file_path(self):
+    pass
+  def get_metric_file_path(self):
+    pass
+
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class ConfigDefaultsWindows(ConfigDefaults):
+  def __init__(self):
+    self._CONFIG_FILE_PATH = "conf\\metric_monitor.ini"
+    self._METRIC_FILE_PATH = "conf\\metric_groups.conf"
+    pass
+
+  def get_config_file_path(self):
+    return self._CONFIG_FILE_PATH
+  def get_metric_file_path(self):
+    return self._METRIC_FILE_PATH
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class ConfigDefaultsLinux(ConfigDefaults):
+  def __init__(self):
+    self._CONFIG_FILE_PATH = "/etc/ambari-metrics-monitor/conf/metric_monitor.ini"
+    self._METRIC_FILE_PATH = "/etc/ambari-metrics-monitor/conf/metric_groups.conf"
+    pass
+
+  def get_config_file_path(self):
+    return self._CONFIG_FILE_PATH
+  def get_metric_file_path(self):
+    return self._METRIC_FILE_PATH
+
+configDefaults = ConfigDefaults()
+
 
 config = ConfigParser.RawConfigParser()
-CONFIG_FILE_PATH = "/etc/ambari-metrics-monitor/conf/metric_monitor.ini"
-METRIC_FILE_PATH = "/etc/ambari-metrics-monitor/conf/metric_groups.conf"
+
+CONFIG_FILE_PATH = configDefaults.get_config_file_path()
+METRIC_FILE_PATH = configDefaults.get_metric_file_path()
+
+OUT_DIR = os.path.join(os.sep, "var", "log", "ambari-metrics-host-monitoring")
+SERVER_OUT_FILE = OUT_DIR + os.sep + "ambari-metrics-host-monitoring.out"
+SERVER_LOG_FILE = OUT_DIR + os.sep + "ambari-metrics-host-monitoring.log"
+
+PID_DIR = os.path.join(os.sep, "var", "run", "ambari-metrics-host-monitoring")
+PID_OUT_FILE = PID_DIR + os.sep + "ambari-metrics-host-monitoring.pid"
+EXITCODE_OUT_FILE = PID_DIR + os.sep + "ambari-metrics-host-monitoring.exitcode"
+
+SERVICE_USERNAME_KEY = "TMP_AMHM_USERNAME"
+SERVICE_PASSWORD_KEY = "TMP_AMHM_PASSWORD"
+
+SETUP_ACTION = "setup"
+START_ACTION = "start"
+STOP_ACTION = "stop"
+RESTART_ACTION = "restart"
+STATUS_ACTION = "status"
 
 config_content = """
 [default]
@@ -96,6 +153,11 @@ class Configuration:
       self.metric_groups = json.load(open(METRIC_FILE_PATH))
     else:
       print 'No metric configs found at {0}'.format(METRIC_FILE_PATH)
+      self.metric_groups = \
+      {
+        'host_metric_groups': [],
+        'process_metric_groups': []
+      }
     pass
 
   def getConfig(self):
