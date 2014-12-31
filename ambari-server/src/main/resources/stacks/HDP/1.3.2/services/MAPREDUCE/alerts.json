@@ -42,10 +42,10 @@
           },
           "reporting": {
             "ok": {
-              "text": "HTTP {0} response in {2:.4f} seconds"
+              "text": "HTTP {0} response in {2:.3f} seconds"
             },
             "warning":{
-              "text": "HTTP {0} response in {2:.4f} seconds"
+              "text": "HTTP {0} response in {2:.3f} seconds"
             },
             "critical": {
               "text": "Connection failed to {1}"
@@ -205,10 +205,10 @@
           },
           "reporting": {
             "ok": {
-              "text": "HTTP {0} response in {2:.4f} seconds"
+              "text": "HTTP {0} response in {2:.3f} seconds"
             },
             "warning":{
-              "text": "HTTP {0} response in {2:.4f} seconds"
+              "text": "HTTP {0} response in {2:.3f} seconds"
             },
             "critical": {
               "text": "Connection failed to {1}"

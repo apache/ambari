@@ -151,6 +151,14 @@ public class EmailDispatcher implements NotificationDispatcher {
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isDigestSupported() {
+    return true;
+  }
+
+  /**
    * The {@link EmailAuthenticator} class is used to provide a username and
    * password combination to an SMTP server.
    */

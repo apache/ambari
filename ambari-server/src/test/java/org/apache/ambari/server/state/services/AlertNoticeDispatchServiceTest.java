@@ -62,7 +62,8 @@ import com.google.inject.util.Modules;
  */
 public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
 
-  final static String ALERT_NOTICE_UUID = UUID.randomUUID().toString();
+  final static String ALERT_NOTICE_UUID_1 = UUID.randomUUID().toString();
+  final static String ALERT_NOTICE_UUID_2 = UUID.randomUUID().toString();
   final static String ALERT_UNIQUE_TEXT = "0eeda438-2b13-4869-a416-137e35ff76e9";
   final static String HOSTNAME = "c6401.ambari.apache.org";
   final static Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
@@ -133,13 +134,34 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
 
   /**
    * Tests the parsing of the {@link AlertHistoryEntity} list into
-   * {@link AlertInfo}.
+   * {@link AlertSummaryInfo}.
    *
    * @throws Exception
    */
   @Test
   public void testAlertInfo() throws Exception {
-    AlertInfo alertInfo = new AlertInfo(m_histories);
+    AlertHistoryEntity history = m_histories.get(0);
+    AlertInfo alertInfo = new AlertInfo(history);
+    assertEquals(history.getAlertDefinition().getLabel(), alertInfo.getAlertName());
+    assertEquals(history.getAlertState(), alertInfo.getAlertState());
+    assertEquals(history.getAlertText(), alertInfo.getAlertText());
+    assertEquals(history.getComponentName(), alertInfo.getComponentName());
+    assertEquals(history.getHostName(), alertInfo.getHostName());
+    assertEquals(history.getServiceName(), alertInfo.getServiceName());
+
+    assertEquals(false, alertInfo.hasComponentName());
+    assertEquals(true, alertInfo.hasHostName());
+  }
+
+  /**
+   * Tests the parsing of the {@link AlertHistoryEntity} list into
+   * {@link AlertSummaryInfo}.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testAlertSummaryInfo() throws Exception {
+    AlertSummaryInfo alertInfo = new AlertSummaryInfo(m_histories);
     assertEquals(50, alertInfo.getAlerts().size());
     assertEquals(10, alertInfo.getAlerts("Service 1").size());
     assertEquals(10, alertInfo.getAlerts("Service 2").size());
@@ -176,18 +198,16 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
   }
 
   /**
-   * Tests that the dispatcher is not called when there are no notices.
+   * Tests a digest dispatch for email.
    *
    * @throws Exception
    */
   @Test
-  public void testDispatch() throws Exception {
-    MockDispatcher dispatcher = new MockDispatcher();
+  public void testDigestDispatch() throws Exception {
+    MockEmailDispatcher dispatcher = new MockEmailDispatcher();
 
-    EasyMock.expect(m_dao.findPendingNotices()).andReturn(getMockNotices()).once();
-
-    EasyMock.expect(m_dispatchFactory.getDispatcher("EMAIL")).andReturn(
-        dispatcher).once();
+    EasyMock.expect(m_dao.findPendingNotices()).andReturn(getSingleEmailMockNotice()).once();
+    EasyMock.expect(m_dispatchFactory.getDispatcher("EMAIL")).andReturn(dispatcher).once();
 
     EasyMock.replay(m_dao, m_dispatchFactory);
 
@@ -210,6 +230,35 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
   }
 
   /**
+   * Tests a digest dispatch for SNMP.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testSingleDispatch() throws Exception {
+    MockSnmpDispatcher dispatcher = new MockSnmpDispatcher();
+
+    EasyMock.expect(m_dao.findPendingNotices()).andReturn(getSnmpMockNotices()).once();
+    EasyMock.expect(m_dispatchFactory.getDispatcher("SNMP")).andReturn(
+        dispatcher).atLeastOnce();
+
+    EasyMock.replay(m_dao, m_dispatchFactory);
+
+    // "startup" the service so that its initialization is done
+    AlertNoticeDispatchService service = m_injector.getInstance(AlertNoticeDispatchService.class);
+    service.startUp();
+
+    // service trigger with mock executor that blocks
+    service.setExecutor(new MockExecutor());
+    service.runOneIteration();
+
+    EasyMock.verify(m_dao, m_dispatchFactory);
+
+    List<Notification> notifications = dispatcher.getNotifications();
+    assertEquals(2, notifications.size());
+  }
+
+  /**
    * Tests that a failed dispatch invokes the callback to mark the UUIDs of the
    * notices as FAILED.
    *
@@ -217,14 +266,17 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
    */
   @Test
   public void testFailedDispatch() throws Exception {
-    MockDispatcher dispatcher = new MockDispatcher();
-    List<AlertNoticeEntity> notices = getMockNotices();
+    MockEmailDispatcher dispatcher = new MockEmailDispatcher();
+    List<AlertNoticeEntity> notices = getSingleEmailMockNotice();
     AlertNoticeEntity notice = notices.get(0);
 
     // these expectations happen b/c we need to mark the notice as FAILED
     EasyMock.expect(m_dao.findPendingNotices()).andReturn(notices).once();
-    EasyMock.expect(m_dao.findNoticeByUuid(ALERT_NOTICE_UUID)).andReturn(notice).once();
-    EasyMock.expect(m_dao.merge(getMockNotices().get(0))).andReturn(notice).once();
+    EasyMock.expect(m_dao.findNoticeByUuid(ALERT_NOTICE_UUID_1)).andReturn(notice).once();
+    EasyMock.expect(m_dao.merge(getSingleEmailMockNotice().get(0))).andReturn(notice).once();
+
+    EasyMock.expect(m_dispatchFactory.getDispatcher("EMAIL")).andReturn(
+        dispatcher).once();
 
     EasyMock.replay(m_dao, m_dispatchFactory);
 
@@ -242,11 +294,11 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
   }
 
   /**
-   * Gets PENDING notices.
+   * Gets a single PENDING notice.
    *
    * @return
    */
-  private List<AlertNoticeEntity> getMockNotices(){
+  private List<AlertNoticeEntity> getSingleEmailMockNotice() {
     AlertHistoryEntity history = new AlertHistoryEntity();
     history.setServiceName("HDFS");
     history.setClusterId(1L);
@@ -257,6 +309,7 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
     history.setAlertTimestamp(System.currentTimeMillis());
 
     AlertTargetEntity target = new AlertTargetEntity();
+    target.setTargetId(1L);
     target.setAlertStates(EnumSet.allOf(AlertState.class));
     target.setTargetName("Alert Target");
     target.setDescription("Mock Target");
@@ -266,7 +319,7 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
     target.setProperties(properties);
 
     AlertNoticeEntity notice = new AlertNoticeEntity();
-    notice.setUuid(ALERT_NOTICE_UUID);
+    notice.setUuid(ALERT_NOTICE_UUID_1);
     notice.setAlertTarget(target);
     notice.setAlertHistory(history);
     notice.setNotifyState(NotificationState.PENDING);
@@ -278,9 +331,67 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
   }
 
   /**
+   * Gets 2 PENDING notices for SNMP.
+   *
+   * @return
+   */
+  private List<AlertNoticeEntity> getSnmpMockNotices() {
+    AlertDefinitionEntity definition = new AlertDefinitionEntity();
+    definition.setDefinitionId(1L);
+    definition.setDefinitionName("alert-definition-1");
+    definition.setLabel("Alert Definition 1");
+
+    AlertHistoryEntity history1 = new AlertHistoryEntity();
+    history1.setAlertDefinition(definition);
+    history1.setServiceName("HDFS");
+    history1.setClusterId(1L);
+    history1.setAlertLabel("Label");
+    history1.setAlertState(AlertState.OK);
+    history1.setAlertText(ALERT_UNIQUE_TEXT);
+    history1.setAlertTimestamp(System.currentTimeMillis());
+
+    AlertHistoryEntity history2 = new AlertHistoryEntity();
+    history2.setAlertDefinition(definition);
+    history2.setServiceName("HDFS");
+    history2.setClusterId(1L);
+    history2.setAlertLabel("Label");
+    history2.setAlertState(AlertState.CRITICAL);
+    history2.setAlertText(ALERT_UNIQUE_TEXT + " CRITICAL");
+    history2.setAlertTimestamp(System.currentTimeMillis());
+
+    AlertTargetEntity target = new AlertTargetEntity();
+    target.setTargetId(1L);
+    target.setAlertStates(EnumSet.allOf(AlertState.class));
+    target.setTargetName("Alert Target");
+    target.setDescription("Mock Target");
+    target.setNotificationType("SNMP");
+
+    String properties = "{ \"foo\" : \"bar\" }";
+    target.setProperties(properties);
+
+    AlertNoticeEntity notice1 = new AlertNoticeEntity();
+    notice1.setUuid(ALERT_NOTICE_UUID_1);
+    notice1.setAlertTarget(target);
+    notice1.setAlertHistory(history1);
+    notice1.setNotifyState(NotificationState.PENDING);
+
+    AlertNoticeEntity notice2 = new AlertNoticeEntity();
+    notice2.setUuid(ALERT_NOTICE_UUID_2);
+    notice2.setAlertTarget(target);
+    notice2.setAlertHistory(history2);
+    notice2.setNotifyState(NotificationState.PENDING);
+
+    ArrayList<AlertNoticeEntity> notices = new ArrayList<AlertNoticeEntity>();
+    notices.add(notice1);
+    notices.add(notice2);
+
+    return notices;
+  }
+
+  /**
    * A mock dispatcher that captures the {@link Notification}.
    */
-  private static final class MockDispatcher implements NotificationDispatcher {
+  private static final class MockEmailDispatcher implements NotificationDispatcher {
 
     private Notification m_notificaiton;
 
@@ -289,7 +400,15 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
      */
     @Override
     public String getType() {
-      return null;
+      return "EMAIL";
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isDigestSupported() {
+      return true;
     }
 
     /**
@@ -302,6 +421,43 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
 
     public Notification getNotification() {
       return m_notificaiton;
+    }
+  }
+
+  /**
+   * A mock dispatcher that captures the {@link Notification}.
+   */
+  private static final class MockSnmpDispatcher implements
+      NotificationDispatcher {
+
+    private List<Notification> m_notifications = new ArrayList<Notification>();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getType() {
+      return "SNMP";
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isDigestSupported() {
+      return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void dispatch(Notification notification) {
+      m_notifications.add(notification);
+    }
+
+    public List<Notification> getNotifications() {
+      return m_notifications;
     }
   }
 
@@ -334,6 +490,7 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
       binder.bind(AmbariMetaInfo.class).toInstance(m_metaInfo);
 
       EasyMock.expect(m_metaInfo.getServerVersion()).andReturn("2.0.0").anyTimes();
+      EasyMock.replay(m_metaInfo);
     }
   }
 }

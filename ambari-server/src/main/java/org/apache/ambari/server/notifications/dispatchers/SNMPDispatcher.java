@@ -17,7 +17,10 @@
  */
 package org.apache.ambari.server.notifications.dispatchers;
 
-import com.google.inject.Singleton;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
 import org.apache.ambari.server.notifications.Notification;
 import org.apache.ambari.server.notifications.NotificationDispatcher;
 import org.apache.ambari.server.notifications.Recipient;
@@ -46,9 +49,7 @@ import org.snmp4j.smi.VariableBinding;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
 import org.snmp4j.util.DefaultPDUFactory;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
+import com.google.inject.Singleton;
 
 /**
  * The {@link SNMPDispatcher} class is used to dispatch {@link Notification} via SNMP.
@@ -187,6 +188,14 @@ public class SNMPDispatcher implements NotificationDispatcher {
       userTarget.setVersion(snmpVersion.getTargetVersion());
       return userTarget;
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isDigestSupported() {
+    return false;
   }
 
   /**

@@ -177,18 +177,20 @@
   </alert-template>
   <alert-template type="SNMP">
     <subject>
-      <![CDATA[Alert Summary: OK[$summary.getOkCount()], Warning[$summary.getWarningCount()], Critical[$summary.getCriticalCount()], Unknown[$summary.getUnknownCount()]]]>
+      <![CDATA[[$alert.getAlertState()] $alert.getAlertName()]]>
     </subject>
     <body>
       <![CDATA[
-#set( $alertStates = ["OK", "WARNING", "CRITICAL", "UNKNOWN"] )
-#set( $services = $summary.getServices() )
-#foreach( $service in $services )
-#foreach( $alert in $summary.getAlerts($service) )
-[$service] [$alert.getAlertState()] [$alert.getAlertDefinition().getLabel()] [$alert.getAlertText()]
+[Alert] $alert.getAlertName()
+[Service] $alert.getServiceName()
+#if( $alert.hasComponentName() )
+[Component] $alert.getComponentName()
 #end
+#if( $alert.hasHostName() )
+[Host] $alert.getHostName()
 #end
-      ]]>
+
+$alert.getAlertText()]]>
     </body>
   </alert-template>  
 </alert-templates>

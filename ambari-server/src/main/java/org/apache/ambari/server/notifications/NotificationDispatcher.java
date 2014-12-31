@@ -44,4 +44,12 @@ public interface NotificationDispatcher {
    */
   public void dispatch(Notification notification);
 
+  /**
+   * Gets whether the dispatcher supports sending a digest or summary in a
+   * single {@link Notification}. Some providers may not allow the
+   * {@link Notification} to contain information on more than a single event.
+   *
+   * @return {@code true} if digest is supported, {@code false} otherwise.
+   */
+  public boolean isDigestSupported();
 }

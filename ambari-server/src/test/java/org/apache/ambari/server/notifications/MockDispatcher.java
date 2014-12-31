@@ -41,6 +41,14 @@ public class MockDispatcher implements NotificationDispatcher {
    * {@inheritDoc}
    */
   @Override
+  public boolean isDigestSupported() {
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public void dispatch(Notification notification) {
   }
 }

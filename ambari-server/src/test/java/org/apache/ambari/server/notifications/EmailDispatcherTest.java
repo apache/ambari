@@ -77,7 +77,7 @@ public class EmailDispatcherTest {
    * Tests that an email without properties causes a callback error.
    */
   @Test
-  public void testNoEmailPropeties() {
+  public void testNoEmailProperties() {
     Notification notification = new Notification();
     DispatchCallback callback = EasyMock.createMock(DispatchCallback.class);
     notification.Callback = callback;
