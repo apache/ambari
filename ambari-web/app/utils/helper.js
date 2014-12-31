@@ -746,6 +746,7 @@ App.registerBoundHelper('statusIcon', Em.View.extend({
     'COMPLETED': 'icon-ok completed',
     'WARNING': 'icon-warning-sign',
     'FAILED': 'icon-exclamation-sign failed',
+    'HOLDING_FAILED': 'icon-exclamation-sign failed',
     'PENDING': 'icon-cog pending',
     'QUEUED': 'icon-cog queued',
     'IN_PROGRESS': 'icon-cogs in_progress',

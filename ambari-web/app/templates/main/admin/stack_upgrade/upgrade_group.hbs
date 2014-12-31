@@ -83,12 +83,12 @@
         {{t admin.stackUpgrade.dialog.failed}}&nbsp;
         <a href="#" {{action toggleExpanded view.content controller.upgradeData.upgradeGroups target="view"}}>{{view.failedItem.context}}</a>
       </div>
-      <div class="button-row">
-        {{#if view.ignoreAvailable}}
+      {{#if view.isHoldingState}}
+        <div class="button-row">
           <button class="btn btn-warning" {{action continue view.failedItem target="view"}}>{{t admin.stackUpgrade.dialog.continue}}</button>
-        {{/if}}
-        <button class="btn" {{action retry view.failedItem target="view"}}>{{t common.retry}}</button>
-      </div>
+          <button class="btn" {{action retry view.failedItem target="view"}}>{{t common.retry}}</button>
+        </div>
+      {{/if}}
     </div>
   {{/if}}
   {{#if view.isManualOpened}}

@@ -88,12 +88,12 @@ App.upgradeGroupView = Em.View.extend({
   }.property('manualItem'),
 
   /**
-   * indicate whether failed item can be skipped in order to continue Upgrade
+   * indicate whether failed item can be skipped or retried in order to continue Upgrade
    * @type {boolean}
    */
-  ignoreAvailable: function () {
-    return Boolean(this.get('failedItem') && ['HOLDING_FAILED', 'HOLDING_TIMED_OUT'].contains(this.get('failedItem.status')));
-  }.property('failedItem'),
+  isHoldingState: function () {
+    return Boolean(this.get('failedItem.status') && this.get('failedItem.status').contains('HOLDING'));
+  }.property('failedItem.status'),
 
   /**
    * set status to Upgrade item

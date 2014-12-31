@@ -174,7 +174,7 @@ describe('App.upgradeGroupView', function () {
     });
   });
 
-  describe("#ignoreAvailable", function () {
+  describe("#isHoldingState", function () {
     var testCases = [
       {
         data: {
@@ -206,8 +206,8 @@ describe('App.upgradeGroupView', function () {
         view.reopen({
           failedItem: test.data.failedItem
         });
-        view.propertyDidChange('ignoreAvailable');
-        expect(view.get('ignoreAvailable')).to.equal(test.result);
+        view.propertyDidChange('isHoldingState');
+        expect(view.get('isHoldingState')).to.equal(test.result);
       });
     });
   });
