@@ -9106,6 +9106,13 @@ public class AmbariManagementControllerTest {
       componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "DATANODE", "host2", "DISABLED"));
       updateHostComponents(amc, componentHostRequests, mapRequestProps, false);
       org.junit.Assert.assertEquals(State.DISABLED, sch.getState());
+      
+      // State should not be changed if componentHostRequests are empty
+      componentHostRequests.clear();
+      mapRequestProps.put(RequestOperationLevel.OPERATION_CLUSTER_ID,"c1");
+      updateHostComponents(amc, componentHostRequests, mapRequestProps, false);
+      org.junit.Assert.assertEquals(State.DISABLED, sch.getState());
+      mapRequestProps.clear();
 
       // ServiceComponentHost remains in disabled after service stop
       assertEquals(sch.getServiceComponentName(),"DATANODE");

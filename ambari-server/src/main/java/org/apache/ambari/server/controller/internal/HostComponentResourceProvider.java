@@ -402,7 +402,10 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
     Resource.Type reqOpLvl = determineOperationLevel(requestProperties);
 
-
+    String clusterName = requestProperties.get(RequestOperationLevel.OPERATION_CLUSTER_ID);
+    if (clusterName != null && !clusterName.isEmpty()) {
+      clusterNames.add(clusterName);
+    }
     for (ServiceComponentHostRequest request : requests) {
       validateServiceComponentHostRequest(request);
 
@@ -417,7 +420,11 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
       logRequestInfo("Received a updateHostComponent request", request);
 
-      clusterNames.add(request.getClusterName());
+      if((clusterName == null || clusterName.isEmpty()) 
+              && (request.getClusterName() != null 
+              && !request.getClusterName().isEmpty())) {
+        clusterNames.add(request.getClusterName());
+      }
 
       if (clusterNames.size() > 1) {
         throw new IllegalArgumentException("Updates to multiple clusters is not"
