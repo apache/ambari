@@ -21,11 +21,17 @@
 -->
 
 <configuration>
-  <!-- sqoop-env.sh -->
+  <property>
+    <name>sqoop_user</name>
+    <deleted>true</deleted>
+  </property>
+
+  <!-- sqoop-env.cmd -->
   <property>
     <name>content</name>
     <description>This is the jinja template for sqoop-env.cmd file</description>
-    <value>@echo off
+    <value>
+@echo off
 :: Licensed to the Apache Software Foundation (ASF) under one or more
 :: contributor license agreements.  See the NOTICE file distributed with
 :: this work for additional information regarding copyright ownership.

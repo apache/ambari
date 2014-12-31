@@ -20,38 +20,11 @@
   <services>
     <service>
       <name>SQOOP</name>
-      <displayName>Sqoop</displayName>
-      <comment>Tool for transferring bulk data between Apache Hadoop and
-        structured data stores such as relational databases
-      </comment>
-      <version>1.4.4.2.0</version>
-
+      <extends>common-services/SQOOP/1.4.4.2.0</extends>
+      <version>1.4.4.2.1.1.0</version>
       <components>
         <component>
           <name>SQOOP</name>
-          <displayName>Sqoop</displayName>
-          <category>CLIENT</category>
-          <cardinality>1+</cardinality>
-          <dependencies>
-            <dependency>
-              <name>HDFS/HDFS_CLIENT</name>
-              <scope>host</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
-            <dependency>
-              <name>MAPREDUCE2/MAPREDUCE2_CLIENT</name>
-              <scope>host</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
-          </dependencies>
-          <commandScript>
-            <script>scripts/sqoop_client.py</script>
-            <scriptType>PYTHON</scriptType>
-          </commandScript>
           <configFiles>
             <configFile>
               <type>env</type>
@@ -61,20 +34,6 @@
           </configFiles>
         </component>
       </components>
-
-      <commandScript>
-        <script>scripts/service_check.py</script>
-        <scriptType>PYTHON</scriptType>
-        <timeout>300</timeout>
-      </commandScript>
-
-      <requiredServices>
-        <service>HDFS</service>
-      </requiredServices>
-
-      <configuration-dependencies>
-        <config-type>sqoop-env</config-type>
-      </configuration-dependencies>
     </service>
   </services>
 </metainfo>

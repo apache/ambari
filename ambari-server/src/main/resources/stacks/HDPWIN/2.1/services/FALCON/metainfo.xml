@@ -21,86 +21,20 @@
     <service>
       <name>FALCON</name>
       <displayName>Falcon</displayName>
-      <comment>Data management and processing platform</comment>
-      <version>0.5.0.2.1</version>
+      <extends>common-services/FALCON/0.5.0.2.1</extends>
+      <version>0.5.0.2.1.1.0</version>
       <components>
         <component>
           <name>FALCON_CLIENT</name>
-          <displayName>Falcon Client</displayName>
-          <category>CLIENT</category>
-          <cardinality>1+</cardinality>
-          <commandScript>
-            <script>scripts/falcon_client.py</script>
-            <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
-          </commandScript>
           <configFiles>
             <configFile>
               <type>env</type>
               <fileName>falcon-env.cmd</fileName>
               <dictionaryName>falcon-env</dictionaryName>
             </configFile>
-            <configFile>
-              <type>xml</type>
-              <fileName>runtime.properties</fileName>
-              <dictionaryName>falcon-runtime.properties</dictionaryName>
-            </configFile>
-            <configFile>
-              <type>xml</type>
-              <fileName>startup.properties</fileName>
-              <dictionaryName>falcon-startup.properties</dictionaryName>
-            </configFile>
           </configFiles>
         </component>
-        <component>
-          <name>FALCON_SERVER</name>
-          <displayName>Falcon Server</displayName>
-          <category>MASTER</category>
-          <cardinality>1</cardinality>
-          <dependencies>
-            <dependency>
-              <name>OOZIE/OOZIE_SERVER</name>
-              <scope>cluster</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
-            <dependency>
-              <name>OOZIE/OOZIE_CLIENT</name>
-              <scope>cluster</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
-          </dependencies>
-          <commandScript>
-            <script>scripts/falcon_server.py</script>
-            <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
-          </commandScript>
-        </component>
       </components>
-
-      <commandScript>
-        <script>scripts/service_check.py</script>
-        <scriptType>PYTHON</scriptType>
-        <timeout>300</timeout>
-      </commandScript>
-
-      <requiredServices>
-        <service>OOZIE</service>
-      </requiredServices>
-
-      <configuration-dependencies>
-        <config-type>falcon-env</config-type>
-        <config-type>falcon-startup.properties</config-type>
-        <config-type>falcon-runtime.properties</config-type>
-      </configuration-dependencies>
-
-      <excluded-config-types>
-        <config-type>oozie-site</config-type>
-      </excluded-config-types>
-
     </service>
   </services>
 </metainfo>

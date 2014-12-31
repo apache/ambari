@@ -47,8 +47,8 @@ module.exports = {
    */
   isValidDir: function(value){
     var floatRegex = /^\/[0-9a-z]*/;
-    var winRegex = /^[a-z]:\\[0-9a-z]*/;
-    var winUrlRegex = /^file:\/\/\/[a-z]:\/[0-9a-z]*/;
+    var winRegex = /^[a-z]:\\[0-9a-zA-Z]*/;
+    var winUrlRegex = /^file:\/\/\/[a-zA-Z]:\/[0-9a-zA-Z]*/;
     var dirs = value.replace(/,/g,' ').trim().split(new RegExp("\\s+", "g"));
     for(var i = 0; i < dirs.length; i++){
       if(!floatRegex.test(dirs[i]) && !winRegex.test(dirs[i]) && !winUrlRegex.test(dirs[i])){
@@ -65,9 +65,11 @@ module.exports = {
    */
   isValidDataNodeDir: function(value) {
     var dirRegex = /^(\[[0-9a-zA-Z]+\])?(\/[0-9a-z]*)/;
+    var winRegex = /^(\[[0-9a-zA-Z]+\])?[a-zA-Z]:\\[0-9a-zA-Z]*/;
+    var winUrlRegex = /^(\[[0-9a-zA-Z]+\])?file:\/\/\/[a-zA-Z]:\/[0-9a-zA-Z]*/;
     var dirs = value.replace(/,/g,' ').trim().split(new RegExp("\\s+", "g"));
     for(var i = 0; i < dirs.length; i++){
-      if(!dirRegex.test(dirs[i])){
+      if(!dirRegex.test(dirs[i]) && !winRegex.test(dirs[i]) && !winUrlRegex.test(dirs[i])){
         return false;
       }
     }

@@ -23,8 +23,7 @@
 <configuration>
   <property>
     <name>oozie_user</name>
-    <value>oozie</value>
-    <description>Oozie User.</description>
+    <deleted>true</deleted>
   </property>
   <property>
     <name>oozie_hostname</name>
@@ -39,32 +38,22 @@
     <description>Oozie Server Database.</description>
   </property>
   <property>
-    <name>oozie_derby_database</name>
-    <value>Derby</value>
-    <description>Oozie Derby Database</description>
-  </property>
-  <property>
     <name>oozie_data_dir</name>
-    <value>/hadoop/oozie/data</value>
+    <value>c:\hadoop\oozie\data</value>
     <description>Data directory in which the Oozie DB exists</description>
   </property>
   <property>
     <name>oozie_log_dir</name>
-    <value>/var/log/oozie</value>
+    <value>c:\hadoop\logs\oozie</value>
     <description>Directory for oozie logs</description>
   </property>
   <property>
     <name>oozie_pid_dir</name>
-    <value>/var/run/oozie</value>
+    <value>c:\hadoop\run\oozie</value>
     <description>Directory in which the pid files for oozie reside.</description>
   </property>
-  <property>
-    <name>oozie_admin_port</name>
-    <value>11001</value>
-    <description>The admin port Oozie server runs.</description>
-  </property>
 
-  <!-- oozie-env.sh -->
+  <!-- oozie-env.cmd -->
   <property>
     <name>content</name>
     <description>oozie-env.cmd content</description>

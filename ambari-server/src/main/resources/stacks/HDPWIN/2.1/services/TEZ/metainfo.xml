@@ -20,26 +20,12 @@
   <services>
     <service>
       <name>TEZ</name>
-      <displayName>Tez</displayName>
-      <comment>Tez is the next generation Hadoop Query Processing framework written on top of YARN.</comment>
-      <version>0.4.0.2.1</version>
+      <extends>common-services/TEZ/0.4.0.2.1</extends>
+      <version>0.4.0.2.1.1.0</version>
       <components>
         <component>
           <name>TEZ_CLIENT</name>
-          <displayName>Tez Client</displayName>
-          <cardinality>1+</cardinality>
-          <category>CLIENT</category>
-          <commandScript>
-            <script>scripts/tez_client.py</script>
-            <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
-          </commandScript>
           <configFiles>
-            <configFile>
-              <type>xml</type>
-              <fileName>tez-site.xml</fileName>
-              <dictionaryName>tez-site</dictionaryName>
-            </configFile>
             <configFile>
               <type>env</type>
               <fileName>tez-env.cmd</fileName>
@@ -48,16 +34,6 @@
           </configFiles>
         </component>
       </components>
-
-      <requiredServices>
-        <service>YARN</service>
-      </requiredServices>
-
-      <configuration-dependencies>
-        <config-type>tez-site</config-type>
-        <config-type>tez-env</config-type>
-      </configuration-dependencies>
-
     </service>
   </services>
 </metainfo>

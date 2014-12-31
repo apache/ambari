@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 <!--
 /**
@@ -18,30 +19,29 @@
  * limitations under the License.
  */
 -->
-<configuration supports_final="false">
+
+<configuration>
   <property>
-    <name>*.domain</name>
-    <value>${falcon.app.type}</value>
+    <name>storm_user</name>
+    <deleted>true</deleted>
+  </property>
+
+  <property>
+    <name>storm_log_dir</name>
+    <value>c:\hadoop\logs\storm</value>
     <description></description>
   </property>
   <property>
-    <name>*.log.cleanup.frequency.minutes.retention</name>
-    <value>hours(6)</value>
+    <name>storm_pid_dir</name>
+    <value>c:\hadoop\run\storm</value>
     <description></description>
   </property>
+
+  <!-- storm-env.cmd -->
   <property>
-    <name>*.log.cleanup.frequency.hours.retention</name>
-    <value>minutes(1)</value>
-    <description></description>
-  </property>
-  <property>
-    <name>*.log.cleanup.frequency.days.retention</name>
-    <value>days(7)</value>
-    <description></description>
-  </property>
-  <property>
-    <name>*.log.cleanup.frequency.months.retention</name>
-    <value>months(3)</value>
-    <description></description>
+    <name>content</name>
+    <description>This is the jinja template for storm-env.cmd file</description>
+    <value>
+    </value>
   </property>
 </configuration>
