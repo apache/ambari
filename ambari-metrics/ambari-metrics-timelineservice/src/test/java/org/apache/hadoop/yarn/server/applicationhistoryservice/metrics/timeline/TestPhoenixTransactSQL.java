@@ -17,9 +17,13 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
+import org.easymock.Capture;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -28,12 +32,19 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.LikeCondition;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.SplitByMetricNamesCondition;
 
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+
+import org.easymock.EasyMock;
+
 public class TestPhoenixTransactSQL {
   @Test
   public void testConditionClause() throws Exception {
     Condition condition = new DefaultCondition(
       Arrays.asList("cpu_user", "mem_free"), "h1", "a1", "i1",
-        1407959718L, 1407959918L, null, false);
+        1407959718L, 1407959918L, null, null, false);
 
     String preparedClause = condition.getConditionClause();
     String expectedClause = "METRIC_NAME IN (?, ?) AND HOSTNAME = ? AND " +
@@ -47,7 +58,7 @@ public class TestPhoenixTransactSQL {
   public void testSplitByMetricNamesCondition() throws Exception {
     Condition c = new DefaultCondition(
       Arrays.asList("cpu_user", "mem_free"), "h1", "a1", "i1",
-      1407959718L, 1407959918L, null, false);
+      1407959718L, 1407959918L, null, null, false);
 
     SplitByMetricNamesCondition condition = new SplitByMetricNamesCondition(c);
     condition.setCurrentMetric(c.getMetricNames().get(0));
@@ -64,7 +75,7 @@ public class TestPhoenixTransactSQL {
   public void testLikeConditionClause() throws Exception {
     Condition condition = new LikeCondition(
         Arrays.asList("cpu_user", "mem_free"), "h1", "a1", "i1",
-        1407959718L, 1407959918L, null, false);
+        1407959718L, 1407959918L, null, null, false);
 
     String preparedClause = condition.getConditionClause();
     String expectedClause = "(METRIC_NAME LIKE ? OR METRIC_NAME LIKE ?) AND HOSTNAME = ? AND " +
@@ -76,7 +87,7 @@ public class TestPhoenixTransactSQL {
 
     condition = new LikeCondition(
         Collections.<String>emptyList(), "h1", "a1", "i1",
-        1407959718L, 1407959918L, null, false);
+        1407959718L, 1407959918L, null, null, false);
 
     preparedClause = condition.getConditionClause();
     expectedClause = " HOSTNAME = ? AND " +
@@ -88,7 +99,7 @@ public class TestPhoenixTransactSQL {
 
     condition = new LikeCondition(
         null, "h1", "a1", "i1",
-        1407959718L, 1407959918L, null, false);
+        1407959718L, 1407959918L, null, null, false);
 
     preparedClause = condition.getConditionClause();
     expectedClause = " HOSTNAME = ? AND " +
@@ -100,7 +111,7 @@ public class TestPhoenixTransactSQL {
 
     condition = new LikeCondition(
         Arrays.asList("cpu_user"), "h1", "a1", "i1",
-        1407959718L, 1407959918L, null, false);
+        1407959718L, 1407959918L, null, null, false);
 
     preparedClause = condition.getConditionClause();
     expectedClause = "(METRIC_NAME LIKE ?) AND HOSTNAME = ? AND " +
@@ -112,7 +123,7 @@ public class TestPhoenixTransactSQL {
 
     condition = new LikeCondition(
         Arrays.asList("cpu_user", "mem_free", "cpu_aidle"), "h1", "a1", "i1",
-        1407959718L, 1407959918L, null, false);
+        1407959718L, 1407959918L, null, null, false);
 
     preparedClause = condition.getConditionClause();
     expectedClause = "(METRIC_NAME LIKE ? OR METRIC_NAME LIKE ? OR METRIC_NAME LIKE ?) AND HOSTNAME = ? AND " +
@@ -120,5 +131,113 @@ public class TestPhoenixTransactSQL {
 
     Assert.assertNotNull(preparedClause);
     Assert.assertEquals(expectedClause, preparedClause);
+  }
+
+  @Test
+  public void testPrepareGetAggregatePrecisionMINUTES() throws SQLException {
+    Condition condition = new DefaultCondition(
+        Arrays.asList("cpu_user", "mem_free"), "h1", "a1", "i1",
+        1407959718L, 1407959918L, Precision.MINUTES, null, false);
+    Connection connection = createNiceMock(Connection.class);
+    PreparedStatement preparedStatement = createNiceMock(PreparedStatement.class);
+    Capture<String> stmtCapture = new Capture<String>();
+    expect(connection.prepareStatement(EasyMock.and(EasyMock.anyString(), EasyMock.capture(stmtCapture))))
+        .andReturn(preparedStatement);
+
+    replay(connection, preparedStatement);
+    PhoenixTransactSQL.prepareGetAggregateSqlStmt(connection, condition);
+    String stmt = stmtCapture.getValue();
+    Assert.assertTrue(stmt.contains("FROM METRIC_AGGREGATE"));
+    verify(connection, preparedStatement);
+  }
+
+  @Test
+  public void testPrepareGetAggregateNoPrecision() throws SQLException {
+    Condition condition = new DefaultCondition(
+        Arrays.asList("cpu_user", "mem_free"), "h1", "a1", "i1",
+        1407959718L, 1407959918L, null, null, false);
+    Connection connection = createNiceMock(Connection.class);
+    PreparedStatement preparedStatement = createNiceMock(PreparedStatement.class);
+    Capture<String> stmtCapture = new Capture<String>();
+    expect(connection.prepareStatement(EasyMock.and(EasyMock.anyString(), EasyMock.capture(stmtCapture))))
+        .andReturn(preparedStatement);
+
+    replay(connection, preparedStatement);
+    PhoenixTransactSQL.prepareGetAggregateSqlStmt(connection, condition);
+    String stmt = stmtCapture.getValue();
+    Assert.assertTrue(stmt.contains("FROM METRIC_AGGREGATE"));
+    verify(connection, preparedStatement);
+  }
+
+  @Test
+  public void testPrepareGetAggregatePrecisionHours() throws SQLException {
+    Condition condition = new DefaultCondition(
+        Arrays.asList("cpu_user", "mem_free"), "h1", "a1", "i1",
+        1407959718L, 1407959918L, Precision.HOURS, null, false);
+    Connection connection = createNiceMock(Connection.class);
+    PreparedStatement preparedStatement = createNiceMock(PreparedStatement.class);
+    Capture<String> stmtCapture = new Capture<String>();
+    expect(connection.prepareStatement(EasyMock.and(EasyMock.anyString(), EasyMock.capture(stmtCapture))))
+        .andReturn(preparedStatement);
+
+    replay(connection, preparedStatement);
+    PhoenixTransactSQL.prepareGetAggregateSqlStmt(connection, condition);
+    String stmt = stmtCapture.getValue();
+    Assert.assertTrue(stmt.contains("FROM METRIC_AGGREGATE_HOURLY"));
+    verify(connection, preparedStatement);
+  }
+
+  @Test
+  public void testPrepareGetMetricsPrecisionMinutes() throws SQLException {
+    Condition condition = new DefaultCondition(
+        Arrays.asList("cpu_user", "mem_free"), "h1", "a1", "i1",
+        1407959718L, 1407959918L, Precision.MINUTES, null, false);
+    Connection connection = createNiceMock(Connection.class);
+    PreparedStatement preparedStatement = createNiceMock(PreparedStatement.class);
+    Capture<String> stmtCapture = new Capture<String>();
+    expect(connection.prepareStatement(EasyMock.and(EasyMock.anyString(), EasyMock.capture(stmtCapture))))
+        .andReturn(preparedStatement);
+
+    replay(connection, preparedStatement);
+    PhoenixTransactSQL.prepareGetMetricsSqlStmt(connection, condition);
+    String stmt = stmtCapture.getValue();
+    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_MINUTE"));
+    verify(connection, preparedStatement);
+  }
+
+  @Test
+  public void testPrepareGetMetricsNoPrecision() throws SQLException {
+    Condition condition = new DefaultCondition(
+        Arrays.asList("cpu_user", "mem_free"), "h1", "a1", "i1",
+        1407959718L, 1407959918L, null, null, false);
+    Connection connection = createNiceMock(Connection.class);
+    PreparedStatement preparedStatement = createNiceMock(PreparedStatement.class);
+    Capture<String> stmtCapture = new Capture<String>();
+    expect(connection.prepareStatement(EasyMock.and(EasyMock.anyString(), EasyMock.capture(stmtCapture))))
+        .andReturn(preparedStatement);
+
+    replay(connection, preparedStatement);
+    PhoenixTransactSQL.prepareGetMetricsSqlStmt(connection, condition);
+    String stmt = stmtCapture.getValue();
+    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD"));
+    verify(connection, preparedStatement);
+  }
+
+  @Test
+  public void testPrepareGetMetricsPrecisionHours() throws SQLException {
+    Condition condition = new DefaultCondition(
+        Arrays.asList("cpu_user", "mem_free"), "h1", "a1", "i1",
+        1407959718L, 1407959918L, Precision.HOURS, null, false);
+    Connection connection = createNiceMock(Connection.class);
+    PreparedStatement preparedStatement = createNiceMock(PreparedStatement.class);
+    Capture<String> stmtCapture = new Capture<String>();
+    expect(connection.prepareStatement(EasyMock.and(EasyMock.anyString(), EasyMock.capture(stmtCapture))))
+        .andReturn(preparedStatement);
+
+    replay(connection, preparedStatement);
+    PhoenixTransactSQL.prepareGetMetricsSqlStmt(connection, condition);
+    String stmt = stmtCapture.getValue();
+    Assert.assertTrue(stmt.contains("FROM METRIC_RECORD_HOURLY"));
+    verify(connection, preparedStatement);
   }
 }

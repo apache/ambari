@@ -55,6 +55,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
   private static ObjectMapper mapper;
   private final static ObjectReader timelineObjectReader;
   private static final String METRIC_REGEXP_PATTERN = "\\([^)]*\\)";
+  private static final int COLLECTOR_DEFAULT_PORT = 6188;
 
   static {
     TIMELINE_APPID_MAP.put("HBASE_MASTER", "HBASE");
@@ -390,7 +391,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
             if (metricsRequest == null) {
               metricsRequest = new MetricsRequest(temporalInfo,
                 getAMSUriBuilder(collectorHostName,
-                  collectorPort != null ? Integer.parseInt(collectorPort) : 8188));
+                  collectorPort != null ? Integer.parseInt(collectorPort) : COLLECTOR_DEFAULT_PORT));
               requests.put(temporalInfo, metricsRequest);
             }
             metricsRequest.putResource(getHostName(resource), resource);

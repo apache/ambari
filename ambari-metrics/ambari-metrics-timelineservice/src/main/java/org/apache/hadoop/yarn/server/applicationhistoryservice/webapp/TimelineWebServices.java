@@ -30,6 +30,7 @@ import org.apache.hadoop.yarn.api.records.timeline.TimelineEvents;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.yarn.api.records.timeline.TimelinePutResponse;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.Precision;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricStore;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.timeline.EntityIdentifier;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.timeline.GenericObjectMapper;
@@ -295,17 +296,20 @@ public class TimelineWebServices {
     @QueryParam("hostname") String hostname,
     @QueryParam("startTime") String startTime,
     @QueryParam("endTime") String endTime,
+    @QueryParam("precision") String precision,
     @QueryParam("limit") String limit
   ) {
     init(res);
     try {
       return timelineMetricStore.getTimelineMetric(metricName, hostname,
         appId, instanceId, parseLongStr(startTime), parseLongStr(endTime),
-        parseIntStr(limit));
-
+        Precision.getPrecision(precision), parseIntStr(limit));
     } catch (NumberFormatException ne) {
       throw new BadRequestException("startTime and limit should be numeric " +
         "values");
+    } catch (IllegalArgumentException iae) {
+      throw new BadRequestException("precision should be seconds, minutes " +
+        "or hours");
     } catch (SQLException sql) {
       throw new WebApplicationException(sql,
         Response.Status.INTERNAL_SERVER_ERROR);
@@ -325,6 +329,7 @@ public class TimelineWebServices {
    * @param instanceId Application instance id.
    * @param hostname Hostname where the metrics originated.
    * @param startTime Start time for the metric records retrieved.
+   * @param precision Precision [ seconds, minutes, hours ]
    * @param limit limit on total number of {@link TimelineMetric} records
    *              retrieved.
    * @return {@link TimelineMetrics}
@@ -341,6 +346,7 @@ public class TimelineWebServices {
     @QueryParam("hostname") String hostname,
     @QueryParam("startTime") String startTime,
     @QueryParam("endTime") String endTime,
+    @QueryParam("precision") String precision,
     @QueryParam("limit") String limit,
     @QueryParam("grouped") String grouped
   ) {
@@ -349,16 +355,21 @@ public class TimelineWebServices {
       LOG.debug("Request for metrics => metricNames: " + metricNames + ", " +
         "appId: " + appId + ", instanceId: " + instanceId + ", " +
         "hostname: " + hostname + ", startTime: " + startTime + ", " +
-        "endTime: " + endTime);
+        "endTime: " + endTime + ", " +
+        "precision: " + precision);
 
       return timelineMetricStore.getTimelineMetrics(
         parseListStr(metricNames, ","), hostname, appId, instanceId,
-        parseLongStr(startTime), parseLongStr(endTime), parseIntStr(limit),
+        parseLongStr(startTime), parseLongStr(endTime),
+        Precision.getPrecision(precision), parseIntStr(limit),
         parseBoolean(grouped));
 
     } catch (NumberFormatException ne) {
       throw new BadRequestException("startTime and limit should be numeric " +
         "values");
+    } catch (IllegalArgumentException iae) {
+      throw new BadRequestException("precision should be seconds, minutes " +
+        "or hours");
     } catch (SQLException sql) {
       throw new WebApplicationException(sql,
         Response.Status.INTERNAL_SERVER_ERROR);

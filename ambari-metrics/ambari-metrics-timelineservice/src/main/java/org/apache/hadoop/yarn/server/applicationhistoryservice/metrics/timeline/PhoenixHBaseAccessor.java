@@ -181,6 +181,23 @@ public class PhoenixHBaseAccessor {
     return metric;
   }
 
+  static TimelineMetric getAggregatedTimelineMetricFromResultSet(ResultSet rs)
+      throws SQLException, IOException {
+    TimelineMetric metric = new TimelineMetric();
+    metric.setMetricName(rs.getString("METRIC_NAME"));
+    metric.setHostName(rs.getString("HOSTNAME"));
+    metric.setAppId(rs.getString("APP_ID"));
+    metric.setInstanceId(rs.getString("INSTANCE_ID"));
+    metric.setTimestamp(rs.getLong("SERVER_TIME"));
+    metric.setStartTime(rs.getLong("SERVER_TIME"));
+    metric.setType(rs.getString("UNITS"));
+    Map<Long, Double> valueMap = new HashMap<Long, Double>();
+    valueMap.put(rs.getLong("SERVER_TIME"),
+        rs.getDouble("METRIC_SUM") / rs.getInt("METRIC_COUNT"));
+    metric.setMetricValues(valueMap);
+    return metric;
+  }
+
   private static Map<Long, Double> readLastMetricValueFromJSON(String json)
     throws IOException {
     Map<Long, Double> values = readMetricFromJSON(json);
@@ -413,7 +430,13 @@ public class PhoenixHBaseAccessor {
 
         ResultSet rs = stmt.executeQuery();
         while (rs.next()) {
-          TimelineMetric metric = getTimelineMetricFromResultSet(rs);
+          TimelineMetric metric;
+          if (condition.getPrecision() == Precision.HOURS
+              || condition.getPrecision() == Precision.MINUTES) {
+            metric = getAggregatedTimelineMetricFromResultSet(rs);
+          } else {
+            metric = getTimelineMetricFromResultSet(rs);
+          }
 
           if (condition.isGrouped()) {
             metrics.addOrMergeTimelineMetric(metric);
@@ -491,7 +514,12 @@ public class PhoenixHBaseAccessor {
 
         ResultSet rs = stmt.executeQuery();
         while (rs.next()) {
-          TimelineMetric metric = getAggregateTimelineMetricFromResultSet(rs);
+          TimelineMetric metric;
+          if (condition.getPrecision() == Precision.HOURS) {
+            metric = getAggregateHoursTimelineMetricFromResultSet(rs);
+          } else {
+            metric = getAggregateTimelineMetricFromResultSet(rs);
+          }
 
           if (condition.isGrouped()) {
             metrics.addOrMergeTimelineMetric(metric);
@@ -555,6 +583,22 @@ public class PhoenixHBaseAccessor {
     Map<Long, Double> valueMap = new TreeMap<Long, Double>();
     valueMap.put(rs.getLong("SERVER_TIME"),
       rs.getDouble("METRIC_SUM") / rs.getInt("HOSTS_COUNT"));
+    metric.setMetricValues(valueMap);
+
+    return metric;
+  }
+
+  private TimelineMetric getAggregateHoursTimelineMetricFromResultSet(
+    ResultSet rs) throws SQLException {
+    TimelineMetric metric = new TimelineMetric();
+    metric.setMetricName(rs.getString("METRIC_NAME"));
+    metric.setAppId(rs.getString("APP_ID"));
+    metric.setInstanceId(rs.getString("INSTANCE_ID"));
+    metric.setTimestamp(rs.getLong("SERVER_TIME"));
+    metric.setStartTime(rs.getLong("SERVER_TIME"));
+    Map<Long, Double> valueMap = new HashMap<Long, Double>();
+    valueMap.put(rs.getLong("SERVER_TIME"),
+        rs.getDouble("METRIC_SUM") / rs.getInt("METRIC_COUNT"));
     metric.setMetricValues(valueMap);
 
     return metric;

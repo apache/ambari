@@ -19,19 +19,15 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,8 +36,10 @@ import static junit.framework.Assert.fail;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.Condition;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.DefaultCondition;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.GET_CLUSTER_AGGREGATE_SQL;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.LOG;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.NATIVE_TIME_RANGE_DELTA;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.prepareSingleTimelineMetric;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.createEmptyTimelineClusterMetric;
 
 public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
   private Connection conn;
@@ -97,9 +95,10 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
 
     //THEN
     Condition condition = new DefaultCondition(null, null, null, null, startTime,
-      endTime, null, true);
+      endTime, null, null, true);
     condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_SQL,
-      PhoenixTransactSQL.getNaiveTimeRangeHint(startTime, NATIVE_TIME_RANGE_DELTA)));
+      PhoenixTransactSQL.getNaiveTimeRangeHint(startTime, NATIVE_TIME_RANGE_DELTA),
+      METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
 
     PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt
       (conn, condition);
@@ -157,9 +156,10 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
 
     //THEN
     Condition condition = new DefaultCondition(null, null, null, null, startTime,
-      endTime, null, true);
+      endTime, null, null, true);
     condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_SQL,
-      PhoenixTransactSQL.getNaiveTimeRangeHint(startTime, NATIVE_TIME_RANGE_DELTA)));
+      PhoenixTransactSQL.getNaiveTimeRangeHint(startTime, NATIVE_TIME_RANGE_DELTA),
+      METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
 
     PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt
       (conn, condition);
@@ -205,13 +205,13 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     Map<TimelineClusterMetric, MetricClusterAggregate> records =
       new HashMap<TimelineClusterMetric, MetricClusterAggregate>();
 
-    records.put(createEmptyTimelineMetric(ctime),
+    records.put(createEmptyTimelineClusterMetric(ctime),
       new MetricClusterAggregate(4.0, 2, 0.0, 4.0, 0.0));
-    records.put(createEmptyTimelineMetric(ctime += minute),
+    records.put(createEmptyTimelineClusterMetric(ctime += minute),
       new MetricClusterAggregate(4.0, 2, 0.0, 4.0, 0.0));
-    records.put(createEmptyTimelineMetric(ctime += minute),
+    records.put(createEmptyTimelineClusterMetric(ctime += minute),
       new MetricClusterAggregate(4.0, 2, 0.0, 4.0, 0.0));
-    records.put(createEmptyTimelineMetric(ctime += minute),
+    records.put(createEmptyTimelineClusterMetric(ctime += minute),
       new MetricClusterAggregate(4.0, 2, 0.0, 4.0, 0.0));
 
     hdb.saveClusterAggregateRecords(records);
@@ -249,24 +249,24 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     Map<TimelineClusterMetric, MetricClusterAggregate> records =
       new HashMap<TimelineClusterMetric, MetricClusterAggregate>();
 
-    records.put(createEmptyTimelineMetric("disk_used", ctime),
+    records.put(createEmptyTimelineClusterMetric("disk_used", ctime),
       new MetricClusterAggregate(4.0, 2, 0.0, 4.0, 0.0));
-    records.put(createEmptyTimelineMetric("disk_free", ctime),
+    records.put(createEmptyTimelineClusterMetric("disk_free", ctime),
       new MetricClusterAggregate(1.0, 2, 0.0, 1.0, 1.0));
 
-    records.put(createEmptyTimelineMetric("disk_used", ctime += minute),
+    records.put(createEmptyTimelineClusterMetric("disk_used", ctime += minute),
       new MetricClusterAggregate(4.0, 2, 0.0, 4.0, 0.0));
-    records.put(createEmptyTimelineMetric("disk_free", ctime),
+    records.put(createEmptyTimelineClusterMetric("disk_free", ctime),
       new MetricClusterAggregate(1.0, 2, 0.0, 1.0, 1.0));
 
-    records.put(createEmptyTimelineMetric("disk_used", ctime += minute),
+    records.put(createEmptyTimelineClusterMetric("disk_used", ctime += minute),
       new MetricClusterAggregate(4.0, 2, 0.0, 4.0, 0.0));
-    records.put(createEmptyTimelineMetric("disk_free", ctime),
+    records.put(createEmptyTimelineClusterMetric("disk_free", ctime),
       new MetricClusterAggregate(1.0, 2, 0.0, 1.0, 1.0));
 
-    records.put(createEmptyTimelineMetric("disk_used", ctime += minute),
+    records.put(createEmptyTimelineClusterMetric("disk_used", ctime += minute),
       new MetricClusterAggregate(4.0, 2, 0.0, 4.0, 0.0));
-    records.put(createEmptyTimelineMetric("disk_free", ctime),
+    records.put(createEmptyTimelineClusterMetric("disk_free", ctime),
       new MetricClusterAggregate(1.0, 2, 0.0, 1.0, 1.0));
 
     hdb.saveClusterAggregateRecords(records);
@@ -302,84 +302,5 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     Connection conn = getConnection(getUrl());
     Statement stmt = conn.createStatement();
     return stmt.executeQuery(query);
-  }
-
-  private TimelineClusterMetric createEmptyTimelineMetric(String name,
-                                                          long startTime) {
-    TimelineClusterMetric metric = new TimelineClusterMetric(name,
-      "test_app", null, startTime, null);
-
-    return metric;
-  }
-
-  private TimelineClusterMetric createEmptyTimelineMetric(long startTime) {
-    return createEmptyTimelineMetric("disk_used", startTime);
-  }
-
-  private MetricHostAggregate
-  createMetricHostAggregate(double max, double min, int numberOfSamples,
-                            double sum) {
-    MetricHostAggregate expectedAggregate =
-      new MetricHostAggregate();
-    expectedAggregate.setMax(max);
-    expectedAggregate.setMin(min);
-    expectedAggregate.setNumberOfSamples(numberOfSamples);
-    expectedAggregate.setSum(sum);
-
-    return expectedAggregate;
-  }
-
-  private PhoenixHBaseAccessor createTestableHBaseAccessor() {
-    Configuration metricsConf = new Configuration();
-    metricsConf.set(
-      TimelineMetricConfiguration.HBASE_COMPRESSION_SCHEME, "NONE");
-
-    return
-      new PhoenixHBaseAccessor(
-        new Configuration(),
-        metricsConf,
-        new ConnectionProvider() {
-          @Override
-          public Connection getConnection() {
-            Connection connection = null;
-            try {
-              connection = DriverManager.getConnection(getUrl());
-            } catch (SQLException e) {
-              LOG.warn("Unable to connect to HBase store using Phoenix.", e);
-            }
-            return connection;
-          }
-        });
-  }
-
-  private TimelineMetrics prepareSingleTimelineMetric(long startTime,
-                                                      String host,
-                                                      String metricName,
-                                                      double val) {
-    TimelineMetrics m = new TimelineMetrics();
-    m.setMetrics(Arrays.asList(
-      createTimelineMetric(startTime, metricName, host, val)));
-
-    return m;
-  }
-
-  private TimelineMetric createTimelineMetric(long startTime,
-                                              String metricName,
-                                              String host,
-                                              double val) {
-    TimelineMetric m = new TimelineMetric();
-    m.setAppId("host");
-    m.setHostName(host);
-    m.setMetricName(metricName);
-    m.setStartTime(startTime);
-    Map<Long, Double> vals = new HashMap<Long, Double>();
-    vals.put(startTime + 15000l, val);
-    vals.put(startTime + 30000l, val);
-    vals.put(startTime + 45000l, val);
-    vals.put(startTime + 60000l, val);
-
-    m.setMetricValues(vals);
-
-    return m;
   }
 }

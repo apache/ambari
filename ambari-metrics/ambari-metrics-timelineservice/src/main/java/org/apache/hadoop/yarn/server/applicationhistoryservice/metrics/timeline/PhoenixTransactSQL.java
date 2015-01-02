@@ -192,7 +192,17 @@ public class PhoenixTransactSQL {
     "HOSTS_COUNT, " +
     "METRIC_MAX, " +
     "METRIC_MIN " +
-    "FROM METRIC_AGGREGATE";
+    "FROM %s";
+
+  public static final String GET_CLUSTER_AGGREGATE_HOURLY_SQL = "SELECT %s " +
+      "METRIC_NAME, APP_ID, " +
+      "INSTANCE_ID, SERVER_TIME, " +
+      "UNITS, " +
+      "METRIC_SUM, " +
+      "METRIC_COUNT, " +
+      "METRIC_MAX, " +
+      "METRIC_MIN " +
+      "FROM %s";
 
   public static final String METRICS_RECORD_TABLE_NAME = "METRIC_RECORD";
   public static final String METRICS_AGGREGATE_MINUTE_TABLE_NAME =
@@ -206,6 +216,8 @@ public class PhoenixTransactSQL {
   public static final String DEFAULT_TABLE_COMPRESSION = "SNAPPY";
   public static final String DEFAULT_ENCODING = "FAST_DIFF";
   public static final long NATIVE_TIME_RANGE_DELTA = 120000; // 2 minutes
+  public static final long HOUR = 3600000; // 1 hour
+  public static final long DAY = 86400000; // 1 day
 
   /**
    * Filter to optimize HBase scan by using file timestamps. This prevents
@@ -227,9 +239,43 @@ public class PhoenixTransactSQL {
     if (condition.getStatement() != null) {
       stmtStr = condition.getStatement();
     } else {
-      stmtStr = String.format(GET_METRIC_SQL,
+
+      String metricsTable;
+      String query;
+      if (condition.getPrecision() == null) {
+        Long timeRange = condition.getEndTime() - condition.getStartTime();
+        if (timeRange > DAY) {
+          metricsTable = METRICS_AGGREGATE_HOURLY_TABLE_NAME;
+          query = GET_METRIC_AGGREGATE_ONLY_SQL;
+          condition.setPrecision(Precision.HOURS);
+        } else if (timeRange > HOUR) {
+          metricsTable = METRICS_AGGREGATE_MINUTE_TABLE_NAME;
+          query = GET_METRIC_AGGREGATE_ONLY_SQL;
+          condition.setPrecision(Precision.MINUTES);
+        } else {
+          metricsTable = METRICS_RECORD_TABLE_NAME;
+          query = GET_METRIC_SQL;
+          condition.setPrecision(Precision.SECONDS);
+        }
+      } else {
+        switch (condition.getPrecision()) {
+          case HOURS:
+            metricsTable = METRICS_AGGREGATE_HOURLY_TABLE_NAME;
+            query = GET_METRIC_AGGREGATE_ONLY_SQL;
+            break;
+          case MINUTES:
+            metricsTable = METRICS_AGGREGATE_MINUTE_TABLE_NAME;
+            query = GET_METRIC_AGGREGATE_ONLY_SQL;
+            break;
+          default:
+            metricsTable = METRICS_RECORD_TABLE_NAME;
+            query = GET_METRIC_SQL;
+        }
+      }
+
+      stmtStr = String.format(query,
         getNaiveTimeRangeHint(condition.getStartTime(), NATIVE_TIME_RANGE_DELTA),
-        METRICS_RECORD_TABLE_NAME);
+        metricsTable);
     }
 
     StringBuilder sb = new StringBuilder(stmtStr);
@@ -378,7 +424,32 @@ public class PhoenixTransactSQL {
       throw new IllegalArgumentException("Condition is empty.");
     }
 
-    StringBuilder sb = new StringBuilder(GET_CLUSTER_AGGREGATE_SQL);
+    String metricsAggregateTable;
+    String queryStmt;
+    if (condition.getPrecision() == null) {
+      Long timeRange = condition.getEndTime() - condition.getStartTime();
+      if (timeRange > DAY) {
+        metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME;
+        queryStmt = GET_CLUSTER_AGGREGATE_HOURLY_SQL;
+        condition.setPrecision(Precision.HOURS);
+      } else {
+        metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
+        queryStmt = GET_CLUSTER_AGGREGATE_SQL;
+        condition.setPrecision(Precision.SECONDS);
+      }
+    } else {
+      switch (condition.getPrecision()) {
+        case HOURS:
+          metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME;
+          queryStmt = GET_CLUSTER_AGGREGATE_HOURLY_SQL;
+          break;
+        default:
+          metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
+          queryStmt = GET_CLUSTER_AGGREGATE_SQL;
+      }
+    }
+
+    StringBuilder sb = new StringBuilder(queryStmt);
     sb.append(" WHERE ");
     sb.append(condition.getConditionClause());
     sb.append(" ORDER BY METRIC_NAME, SERVER_TIME");
@@ -388,7 +459,7 @@ public class PhoenixTransactSQL {
 
     String query = String.format(sb.toString(),
       PhoenixTransactSQL.getNaiveTimeRangeHint(condition.getStartTime(),
-        NATIVE_TIME_RANGE_DELTA));
+        NATIVE_TIME_RANGE_DELTA), metricsAggregateTable);
     if (LOG.isDebugEnabled()) {
       LOG.debug("SQL => " + query + ", condition => " + condition);
     }
@@ -482,6 +553,8 @@ public class PhoenixTransactSQL {
     boolean isGrouped();
     void setStatement(String statement);
     String getHostname();
+    Precision getPrecision();
+    void setPrecision(Precision precision);
     String getAppId();
     String getInstanceId();
     String getConditionClause();
@@ -503,6 +576,7 @@ public class PhoenixTransactSQL {
     String instanceId;
     Long startTime;
     Long endTime;
+    Precision precision;
     Integer limit;
     boolean grouped;
     boolean noLimit = false;
@@ -511,14 +585,15 @@ public class PhoenixTransactSQL {
     Set<String> orderByColumns = new LinkedHashSet<String>();
 
     DefaultCondition(List<String> metricNames, String hostname, String appId,
-              String instanceId, Long startTime, Long endTime, Integer limit,
-              boolean grouped) {
+              String instanceId, Long startTime, Long endTime, Precision precision,
+              Integer limit, boolean grouped) {
       this.metricNames = metricNames;
       this.hostname = hostname;
       this.appId = appId;
       this.instanceId = instanceId;
       this.startTime = startTime;
       this.endTime = endTime;
+      this.precision = precision;
       this.limit = limit;
       this.grouped = grouped;
     }
@@ -590,6 +665,14 @@ public class PhoenixTransactSQL {
 
     public String getHostname() {
       return hostname == null || hostname.isEmpty() ? null : hostname;
+    }
+    
+    public Precision getPrecision() {
+      return precision;
+    }
+
+    public void setPrecision(Precision precision) {
+      this.precision = precision;
     }
 
     public String getAppId() {
@@ -708,9 +791,10 @@ public class PhoenixTransactSQL {
 
     LikeCondition(List<String> metricNames, String hostname,
                   String appId, String instanceId, Long startTime,
-                  Long endTime, Integer limit, boolean grouped) {
+                  Long endTime, Precision precision, Integer limit,
+                  boolean grouped) {
       super(metricNames, hostname, appId, instanceId, startTime, endTime,
-        limit, grouped);
+        precision, limit, grouped);
     }
 
     @Override
@@ -777,6 +861,16 @@ public class PhoenixTransactSQL {
     @Override
     public String getHostname() {
       return adaptee.getHostname();
+    }
+
+    @Override
+    public Precision getPrecision() {
+      return adaptee.getPrecision();
+    }
+
+    @Override
+    public void setPrecision(Precision precision) {
+      adaptee.setPrecision(precision);
     }
 
     @Override

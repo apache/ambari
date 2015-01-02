@@ -95,6 +95,8 @@ public abstract class AbstractProviderModule implements ProviderModule,
   private static final Map<Service.Type, Map<String, String[]>> serviceDesiredProperties = new EnumMap<Service.Type, Map<String, String[]>>(Service.Type.class);
   private static final Map<String, Service.Type> componentServiceMap = new HashMap<String, Service.Type>();
 
+  private static final String COLLECTOR_DEFAULT_PORT = "6188";
+
   private static final Map<String, Map<String, String[]>> jmxDesiredProperties = new HashMap<String, Map<String, String[]>>();
   private volatile Map<String, String> clusterCoreSiteConfigVersionMap = new HashMap<String, String>();
   private volatile Map<String, String> clusterJmxProtocolMap = new HashMap<String, String>();
@@ -351,7 +353,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
           if (!configProperties.isEmpty()) {
             clusterMetricServerPort = getPortString(configProperties.get("METRIC_COLLECTOR"));
           } else {
-            clusterMetricServerPort = "8188";
+            clusterMetricServerPort = COLLECTOR_DEFAULT_PORT;
           }
         }
 

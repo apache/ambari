@@ -17,14 +17,21 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
+/**
+ * Is used to determine metrics aggregate table.
+ *
+ * @see org.apache.hadoop.yarn.server.applicationhistoryservice.webapp.TimelineWebServices#getTimelineMetric
+ * @see org.apache.hadoop.yarn.server.applicationhistoryservice.webapp.TimelineWebServices#getTimelineMetrics
+ */
+public enum Precision {
+  SECONDS,
+  MINUTES,
+  HOURS;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-
-import static org.junit.runners.Suite.SuiteClasses;
-
-@RunWith(Suite.class)
-@SuiteClasses({ITMetricAggregator.class, ITClusterAggregator.class, ITPhoenixHBaseAccessor.class})
-public class TestClusterSuite {
-
+  public static Precision getPrecision(String precision) throws IllegalArgumentException {
+    if (precision == null ) {
+      return null;
+    }
+    return Precision.valueOf(precision.toUpperCase());
+  }
 }

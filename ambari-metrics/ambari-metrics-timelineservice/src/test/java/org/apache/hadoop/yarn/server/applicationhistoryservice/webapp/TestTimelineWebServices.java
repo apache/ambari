@@ -382,7 +382,7 @@ public class TestTimelineWebServices extends JerseyTest {
   public void testGetMetrics() throws Exception {
     WebResource r = resource();
     ClientResponse response = r.path("ws").path("v1").path("timeline")
-      .path("metrics").queryParam("metricNames", "cpu_user")
+      .path("metrics").queryParam("metricNames", "cpu_user").queryParam("precision", "seconds")
       .accept(MediaType.APPLICATION_JSON)
       .get(ClientResponse.class);
     assertEquals(MediaType.APPLICATION_JSON_TYPE, response.getType());
