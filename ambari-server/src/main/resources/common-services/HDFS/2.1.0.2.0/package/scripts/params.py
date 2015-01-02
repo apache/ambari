@@ -175,7 +175,7 @@ smoke_hdfs_user_mode = 0770
 namenode_formatted_old_mark_dir = format("{hadoop_pid_dir_prefix}/hdfs/namenode/formatted/")
 namenode_formatted_mark_dir = format("/var/lib/hdfs/namenode/formatted/")
 
-fs_checkpoint_dir = config['configurations']['hdfs-site']['dfs.namenode.checkpoint.dir']
+fs_checkpoint_dirs = config['configurations']['hdfs-site']['dfs.namenode.checkpoint.dir'].split(',')
 
 dfs_data_dir = config['configurations']['hdfs-site']['dfs.datanode.data.dir']
 dfs_data_dir = ",".join([re.sub(r'^\[.+\]', '', dfs_dir.strip()) for dfs_dir in dfs_data_dir.split(",")])

@@ -26,12 +26,13 @@ def snamenode(action=None, format=False):
   import params
 
   if action == "configure":
-    Directory(params.fs_checkpoint_dir,
-              recursive=True,
-              recursive_permission=True,
-              mode=0755,
-              owner=params.hdfs_user,
-              group=params.user_group)
+    for fs_checkpoint_dir in params.fs_checkpoint_dirs:
+      Directory(fs_checkpoint_dir,
+                recursive=True,
+                recursive_permission=True,
+                mode=0755,
+                owner=params.hdfs_user,
+                group=params.user_group)
     File(params.exclude_file_path,
          content=Template("exclude_hosts_list.j2"),
          owner=params.hdfs_user,

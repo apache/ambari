@@ -237,6 +237,13 @@ class TestSNamenode(RMFTestCase):
                               recursive = True,
                               recursive_permission = True
                               )
+    self.assertResourceCalled('Directory', '/hadoop/hdfs/namesecondary2',
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              mode = 0755,
+                              recursive = True,
+                              recursive_permission = True
+    )
 
   def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
