@@ -128,7 +128,7 @@ public class HostVersionDAO {
    * Retrieve the single host version for the given cluster, stack name, stack version, and host name.
    *
    * @param clusterName Cluster name
-   * @param stack Stack name (e.g., HDP)
+   * @param stack Stack name (e.g., HDP-2.2)
    * @param version Stack version (e.g., 2.2.0.1-995)
    * @param hostName FQDN of host
    * @return Returns the single host version that matches the criteria.

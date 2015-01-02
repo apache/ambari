@@ -29,7 +29,7 @@ public class UpgradeCheck {
   private final String description;
   private final UpgradeCheckType type;
   private final String clusterName;
-  private UpgradeCheckStatus status;
+  private UpgradeCheckStatus status = UpgradeCheckStatus.PASS;
   private String failReason = "";
   private List<String> failedOn = new ArrayList<String>();
 
