@@ -23,13 +23,20 @@ App.EditableList = Ember.View.extend({
   templateName: require('templates/common/editable_list'),
 
   items: [], // items show on list
-  resources: [], // originial resources including all items
+  resources: [], // original resources including all items
   itemsOriginal: [], //backup of items
 
   editMode: false,
   input: '',
   typeahead: [],
   selectedTypeahed: 0,
+
+  init: function () {
+    this._super();
+    this.set('itemsOriginal', Em.copy(this.get('items')));
+    this.set('input', '');
+    this.set('editMode', false);
+  },
 
   onPrimary: function (event) {
     this.set('editMode', false);
@@ -56,12 +63,6 @@ App.EditableList = Ember.View.extend({
     items.removeObject(event.context);
     this.set('input', '');
   },
-
-  updateCategory: function() {
-    this.set('itemsOriginal', Em.copy(this.get('items')));
-    this.set('input', '');
-    this.set('editMode', false);
-  }.observes('name'),
 
   /**
    * available items to add, will show up typing ahead

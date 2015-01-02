@@ -1910,6 +1910,8 @@ Em.I18n.translations = {
 
   'hosts.filters.clearSelection': 'clear selection',
 
+  'hosts.filters.filterComponents': 'Filter by <strong>Component</strong>',
+
   'hosts.table.restartComponents.withNames':'Restart {0}',
   'hosts.table.restartComponents.withoutNames':'{0} components should be restarted',
 

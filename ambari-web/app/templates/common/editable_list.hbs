@@ -20,7 +20,7 @@
   <div class="items-box" {{action enableEditMode target="view"}}>
     <ul class="items-list">
       {{#each item in view.items}}
-        <li {{bindAttr class=":item item.global::deletable"}}>
+        <li {{bindAttr class=":item item.global:global:deletable"}}>
           <span>
             <a href>{{item.name}}</a>
             {{#unless item.global}}
