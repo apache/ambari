@@ -104,21 +104,15 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
 });
 
 /**
- * Customized input control with Utits type specified
- * @type {*}
+ * Customized input control with Units type specified
+ * @type {Em.View}
  */
 App.ServiceConfigTextFieldWithUnit = Ember.View.extend(App.ServiceConfigPopoverSupport, {
   valueBinding: 'serviceConfig.value',
   classNames: ['input-append', 'with-unit'],
   placeholderBinding: 'serviceConfig.defaultValue',
 
-  templateName: require('templates/wizard/controls_service_config_textfield_with_unit'),
-
-  elementId: Ember.computed(function(){
-    var label = Em.get(this, 'serviceConfig.name') ? Em.get(this, 'serviceConfig.name').toLowerCase().replace(/\./g, '-') : "",
-      fileName = Em.get(this, 'serviceConfig.filename') ? Em.get(this, 'serviceConfig.filename').toLowerCase().replace(/\./g, '-') : "";
-    return 'service-config-' + label + "-" + fileName;
-  })
+  templateName: require('templates/wizard/controls_service_config_textfield_with_unit')
 });
 
 /**
