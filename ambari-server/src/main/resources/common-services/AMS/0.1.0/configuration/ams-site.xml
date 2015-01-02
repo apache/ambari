@@ -47,7 +47,7 @@
   </property>
   <property>
     <name>timeline.metrics.aggregator.checkpoint.dir</name>
-    <value>/tmp</value>
+    <value>/var/lib/ambari-metrics-collector/checkpoint</value>
     <description>
       Directory to store aggregator checkpoints. Change to a permanent
       location so that checkpoint ar not lost.

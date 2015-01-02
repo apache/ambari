@@ -95,7 +95,10 @@ regionserver_heapsize = config['configurations']['ams-hbase-env']['hbase_regions
 regionserver_xmn_max = config['configurations']['ams-hbase-env']['hbase_regionserver_xmn_max']
 regionserver_xmn_percent = config['configurations']['ams-hbase-env']['hbase_regionserver_xmn_ratio']
 regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, regionserver_xmn_percent, regionserver_xmn_max)
+# For embedded mode
+hbase_heapsize = master_heapsize
 
+ams_checkpoint_dir = config['configurations']['ams-site']['timeline.metrics.aggregator.checkpoint.dir']
 hbase_pid_dir = status_params.hbase_pid_dir
 hbase_tmp_dir = config['configurations']['ams-hbase-site']['hbase.tmp.dir']
 # TODO UPGRADE default, update site during upgrade

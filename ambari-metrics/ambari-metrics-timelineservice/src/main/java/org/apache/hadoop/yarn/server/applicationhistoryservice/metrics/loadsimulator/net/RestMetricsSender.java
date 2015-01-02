@@ -32,7 +32,7 @@ import java.net.ProtocolException;
 public class RestMetricsSender implements MetricsSender {
   private final static Logger LOG = LoggerFactory.getLogger(RestMetricsSender.class);
 
-  private final static String COLLECTOR_URL = "http://%s:8188/ws/v1/timeline/metrics";
+  private final static String COLLECTOR_URL = "http://%s:6188/ws/v1/timeline/metrics";
   private final String collectorServiceAddress;
 
   /**

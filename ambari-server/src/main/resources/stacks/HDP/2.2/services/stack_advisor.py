@@ -137,13 +137,13 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     regionServerItem = self.validatorLessThenDefaultValue(properties, recommendedDefaults, "hbase_regionserver_heapsize")
     masterItem = self.validatorLessThenDefaultValue(properties, recommendedDefaults, "hbase_master_heapsize")
 
-    if regionServerItem is None and masterItem is None:
-      hbase_regionserver_heapsize = formatXmxSizeToBytes(properties["hbase_regionserver_heapsize"])
+    if masterItem is None:
       hbase_master_heapsize = formatXmxSizeToBytes(properties["hbase_master_heapsize"])
 
       # TODO Add AMS Collector Xmx property to ams-env
-      # Collector + HBASE Master + HBASE RegionServer HeapSize
-      requiredMemory = 1073741824 + hbase_regionserver_heapsize + hbase_master_heapsize
+      # Collector 512m + HBASE Master heapsize
+      # For standalone HBase, master's heap memory is used by regionserver as well
+      requiredMemory = 536870912 + hbase_master_heapsize
 
       amsCollectorHosts = self.getComponentHostNames(services, "AMS", "METRIC_COLLECTOR")
       for collectorHostName in amsCollectorHosts:

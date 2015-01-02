@@ -31,6 +31,12 @@ def ams(name=None):
               recursive=True
     )
 
+    Directory(params.ams_checkpoint_dir,
+              owner=params.ams_user,
+              group=params.user_group,
+              recursive=True
+    )
+
     XmlConfig("ams-site.xml",
               conf_dir=params.ams_collector_conf_dir,
               configurations=params.config['configurations']['ams-site'],
