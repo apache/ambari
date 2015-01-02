@@ -101,7 +101,7 @@ App.upgradeGroupView = Em.View.extend({
    * @param status
    */
   setUpgradeItemStatus: function(item, status) {
-    App.ajax.send({
+    return App.ajax.send({
       name: 'admin.upgrade.upgradeItem.setState',
       sender: this,
       data: {
@@ -110,7 +110,9 @@ App.upgradeGroupView = Em.View.extend({
         groupId: item.get('group_id'),
         status: status
       }
-    });
+    }).done(function () {
+        item.set('status', status);
+      });
   },
 
   /**
