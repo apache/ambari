@@ -85,5 +85,29 @@ describe('App.AlertInstance', function () {
     });
 
   });
-  
+
+  describe('#status', function () {
+
+    it('should show maint mode icon', function () {
+
+      model.set('maintenanceState', 'ON');
+      model.set('state', 'OK');
+      var status = model.get('status');
+
+      expect(status).to.equal('<div class="label alert-state-single-host alert-state-PENDING"><span class="icon-medkit"></span> OK</div>');
+
+    });
+
+    it('should not show maint mode icon', function () {
+
+      model.set('maintenanceState', 'OFF');
+      model.set('state', 'OK');
+      var status = model.get('status');
+
+      expect(status).to.equal('<div class="label alert-state-single-host alert-state-OK">OK</div>');
+
+    });
+
+  });
+
 });

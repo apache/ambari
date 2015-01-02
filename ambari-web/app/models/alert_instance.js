@@ -42,9 +42,12 @@ App.AlertInstance = DS.Model.extend({
    * @type {string}
    */
   status: function () {
+    var isMaintenanceStateOn = this.get('maintenanceState') === 'ON';
     var state = this.get('state');
+    var stateClass = isMaintenanceStateOn ? 'PENDING' : state;
     var shortState = this.get('shortState')[state];
-    return '<span class="label alert-state-single-host alert-state-' + state + '">' + shortState + '</span>';
+    var maintenanceIcon = isMaintenanceStateOn ? '<span class="icon-medkit"></span> ' : '';
+    return '<div class="label alert-state-single-host alert-state-' + stateClass + '">' + maintenanceIcon + shortState + '</div>';
   }.property('state'),
 
   /**
