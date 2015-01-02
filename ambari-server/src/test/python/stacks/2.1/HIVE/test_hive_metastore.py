@@ -138,55 +138,37 @@ class TestHiveMetastore(RMFTestCase):
 
   def assert_configure_default(self):
     self.assertResourceCalled('Directory', '/etc/hive',
-        mode = 0755
-    )
-    self.assertResourceCalled('Directory', '/etc/hive/conf.server',
-        owner = 'hive',
-        group = 'hadoop',
-        recursive = True,
-    )
-    self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
-        group = 'hadoop',
-        conf_dir = '/etc/hive/conf.server',
-        mode = 0644,
-        configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site'],
-        owner = 'hive',
-        configurations = self.getConfig()['configurations']['mapred-site'],
-    )
-    self.assertResourceCalled('File', '/etc/hive/conf.server/hive-default.xml.template',
-        owner = 'hive',
-        group = 'hadoop',
-    )
-    self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh.template',
-        owner = 'hive',
-        group = 'hadoop',
-    )
+                              mode = 0755,
+                              )
     self.assertResourceCalled('Directory', '/etc/hive/conf',
-        owner = 'hive',
-        group = 'hadoop',
-        recursive = True,
-    )
+                              owner = 'hive',
+                              group = 'hadoop',
+                              recursive = True,
+                              )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
-        group = 'hadoop',
-        conf_dir = '/etc/hive/conf',
-        mode = 0644,
-        configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site'],
-        owner = 'hive',
-        configurations = self.getConfig()['configurations']['mapred-site'],
-    )
+                              group = 'hadoop',
+                              conf_dir = '/etc/hive/conf',
+                              mode = 0644,
+                              configuration_attributes = {u'final': {u'mapred.healthChecker.script.path': u'true',
+                                                                     u'mapreduce.jobtracker.staging.root.dir': u'true'}},
+                              owner = 'hive',
+                              configurations = self.getConfig()['configurations']['mapred-site'],
+                              )
     self.assertResourceCalled('File', '/etc/hive/conf/hive-default.xml.template',
-        owner = 'hive',
-        group = 'hadoop',
-    )
+                              owner = 'hive',
+                              group = 'hadoop',
+                              )
     self.assertResourceCalled('File', '/etc/hive/conf/hive-env.sh.template',
-        owner = 'hive',
-        group = 'hadoop',
-    )
+                              owner = 'hive',
+                              group = 'hadoop',
+                              )
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
                               group = 'hadoop',
                               conf_dir = '/etc/hive/conf.server',
                               mode = 0644,
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hive-site'],
+                              configuration_attributes = {u'final': {u'hive.optimize.bucketmapjoin.sortedmerge': u'true',
+                                                                     u'javax.jdo.option.ConnectionDriverName': u'true',
+                                                                     u'javax.jdo.option.ConnectionPassword': u'true'}},
                               owner = 'hive',
                               configurations = self.getConfig()['configurations']['hive-site'],
                               )
@@ -195,91 +177,76 @@ class TestHiveMetastore(RMFTestCase):
                               owner = 'hive',
                               group = 'hadoop',
                               )
-    self.assertResourceCalled('Execute', ('cp', '--remove-destination', '/usr/share/java/mysql-connector-java.jar', '/usr/lib/hive/lib//mysql-connector-java.jar'),
+    self.assertResourceCalled('Execute', ('cp',
+                                          '--remove-destination',
+                                          '/usr/share/java/mysql-connector-java.jar',
+                                          '/usr/lib/hive/lib//mysql-connector-java.jar'),
                               path = ['/bin', '/usr/bin/'],
-                              sudo = True
+                              sudo = True,
                               )
     self.assertResourceCalled('Execute', '/bin/sh -c \'cd /usr/lib/ambari-agent/ && curl -kf -x "" --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar\'',
-        environment = {'no_proxy': 'c6401.ambari.apache.org'},
-        not_if = '[ -f /usr/lib/ambari-agent/DBConnectionVerification.jar ]',
-    )
+                              environment = {'no_proxy': u'c6401.ambari.apache.org'},
+                              not_if = '[ -f /usr/lib/ambari-agent/DBConnectionVerification.jar ]',
+                              )
     self.assertResourceCalled('File', '/tmp/start_metastore_script',
-        content = StaticFile('startMetastore.sh'),
-        mode = 0755,
-    )
+                              content = StaticFile('startMetastore.sh'),
+                              mode = 0755,
+                              )
     self.assertResourceCalled('Execute', 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -initSchema -dbType mysql -userName hive -passWord aaa',
-        not_if = 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -info -dbType mysql -userName hive -passWord aaa',
-    )
+                              not_if = 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -info -dbType mysql -userName hive -passWord aaa',
+                              )
     self.assertResourceCalled('Directory', '/var/run/hive',
-        owner = 'hive',
-        group = 'hadoop',
-        mode = 0755,
-        recursive = True,
-    )
+                              owner = 'hive',
+                              group = 'hadoop',
+                              mode = 0755,
+                              recursive = True,
+                              )
     self.assertResourceCalled('Directory', '/var/log/hive',
-        owner = 'hive',
-        group = 'hadoop',
-        mode = 0755,
-        recursive = True,
-    )
+                              owner = 'hive',
+                              group = 'hadoop',
+                              mode = 0755,
+                              recursive = True,
+                              )
     self.assertResourceCalled('Directory', '/var/lib/hive',
-        owner = 'hive',
-        group = 'hadoop',
-        mode = 0755,
-        recursive = True,
-    )
+                              owner = 'hive',
+                              group = 'hadoop',
+                              mode = 0755,
+                              recursive = True,
+                              )
 
   def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/etc/hive',
-        mode = 0755
-    )
-    self.assertResourceCalled('Directory', '/etc/hive/conf.server',
-        owner = 'hive',
-        group = 'hadoop',
-        recursive = True,
-    )
-    self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
-        group = 'hadoop',
-        conf_dir = '/etc/hive/conf.server',
-        mode = 0644,
-        configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site'],
-        owner = 'hive',
-        configurations = self.getConfig()['configurations']['mapred-site'],
-    )
-    self.assertResourceCalled('File', '/etc/hive/conf.server/hive-default.xml.template',
-        owner = 'hive',
-        group = 'hadoop',
-    )
-    self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh.template',
-        owner = 'hive',
-        group = 'hadoop',
-    )
+                              mode = 0755,
+                              )
     self.assertResourceCalled('Directory', '/etc/hive/conf',
-        owner = 'hive',
-        group = 'hadoop',
-        recursive = True,
-    )
+                              owner = 'hive',
+                              group = 'hadoop',
+                              recursive = True,
+                              )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
-        group = 'hadoop',
-        conf_dir = '/etc/hive/conf',
-        mode = 0644,
-        configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site'],
-        owner = 'hive',
-        configurations = self.getConfig()['configurations']['mapred-site'],
-    )
+                              group = 'hadoop',
+                              conf_dir = '/etc/hive/conf',
+                              mode = 0644,
+                              configuration_attributes = {u'final': {u'mapred.healthChecker.script.path': u'true',
+                                                                     u'mapreduce.jobtracker.staging.root.dir': u'true'}},
+                              owner = 'hive',
+                              configurations = self.getConfig()['configurations']['mapred-site'],
+                              )
     self.assertResourceCalled('File', '/etc/hive/conf/hive-default.xml.template',
-        owner = 'hive',
-        group = 'hadoop',
-    )
+                              owner = 'hive',
+                              group = 'hadoop',
+                              )
     self.assertResourceCalled('File', '/etc/hive/conf/hive-env.sh.template',
-        owner = 'hive',
-        group = 'hadoop',
-    )
+                              owner = 'hive',
+                              group = 'hadoop',
+                              )
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
                               group = 'hadoop',
                               conf_dir = '/etc/hive/conf.server',
                               mode = 0644,
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hive-site'],
+                              configuration_attributes = {u'final': {u'hive.optimize.bucketmapjoin.sortedmerge': u'true',
+                                                                     u'javax.jdo.option.ConnectionDriverName': u'true',
+                                                                     u'javax.jdo.option.ConnectionPassword': u'true'}},
                               owner = 'hive',
                               configurations = self.getConfig()['configurations']['hive-site'],
                               )
@@ -288,36 +255,39 @@ class TestHiveMetastore(RMFTestCase):
                               owner = 'hive',
                               group = 'hadoop',
                               )
-    self.assertResourceCalled('Execute', ('cp', '--remove-destination', '/usr/share/java/mysql-connector-java.jar', '/usr/lib/hive/lib//mysql-connector-java.jar'),
-        path = ['/bin', '/usr/bin/'],
-        sudo = True
-    )
+    self.assertResourceCalled('Execute', ('cp',
+                                          '--remove-destination',
+                                          '/usr/share/java/mysql-connector-java.jar',
+                                          '/usr/lib/hive/lib//mysql-connector-java.jar'),
+                              path = ['/bin', '/usr/bin/'],
+                              sudo = True,
+                              )
     self.assertResourceCalled('Execute', '/bin/sh -c \'cd /usr/lib/ambari-agent/ && curl -kf -x "" --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar\'',
-        environment = {'no_proxy': 'c6401.ambari.apache.org'},
-        not_if = '[ -f /usr/lib/ambari-agent/DBConnectionVerification.jar ]',
-    )
+                              environment = {'no_proxy': u'c6401.ambari.apache.org'},
+                              not_if = '[ -f /usr/lib/ambari-agent/DBConnectionVerification.jar ]',
+                              )
     self.assertResourceCalled('File', '/tmp/start_metastore_script',
-        content = StaticFile('startMetastore.sh'),
-        mode = 0755,
-    )
+                              content = StaticFile('startMetastore.sh'),
+                              mode = 0755,
+                              )
     self.assertResourceCalled('Execute', 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -initSchema -dbType mysql -userName hive -passWord asd',
-        not_if = 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -info -dbType mysql -userName hive -passWord asd',
-    )
+                              not_if = 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -info -dbType mysql -userName hive -passWord asd',
+                              )
     self.assertResourceCalled('Directory', '/var/run/hive',
-        owner = 'hive',
-        group = 'hadoop',
-        mode = 0755,
-        recursive = True,
-    )
+                              owner = 'hive',
+                              group = 'hadoop',
+                              mode = 0755,
+                              recursive = True,
+                              )
     self.assertResourceCalled('Directory', '/var/log/hive',
-        owner = 'hive',
-        group = 'hadoop',
-        mode = 0755,
-        recursive = True,
-    )
+                              owner = 'hive',
+                              group = 'hadoop',
+                              mode = 0755,
+                              recursive = True,
+                              )
     self.assertResourceCalled('Directory', '/var/lib/hive',
-        owner = 'hive',
-        group = 'hadoop',
-        mode = 0755,
-        recursive = True,
-    )
+                              owner = 'hive',
+                              group = 'hadoop',
+                              mode = 0755,
+                              recursive = True,
+                              )

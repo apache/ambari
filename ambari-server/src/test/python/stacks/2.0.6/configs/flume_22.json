@@ -742,7 +742,7 @@
         "logviewer_server_hosts": [
             "c6402.ambari.apache.org"
         ],
-        "hive_metastore_hosts": [
+        "hive_metastore_host": [
             "c6402.ambari.apache.org"
         ], 
         "hbase_rs_hosts": [
