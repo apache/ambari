@@ -276,6 +276,13 @@ public class StageResourceProviderTest {
     counts = StageResourceProvider.calculateTaskStatusCounts(hostRoleStatuses);
 
     assertEquals(HostRoleStatus.COMPLETED, StageResourceProvider.calculateSummaryStatus(counts, hostRoleStatuses.size(), false));
+
+
+    hostRoleStatuses = new LinkedList<HostRoleStatus>();
+
+    counts = StageResourceProvider.calculateTaskStatusCounts(hostRoleStatuses);
+
+    assertEquals(HostRoleStatus.PENDING, StageResourceProvider.calculateSummaryStatus(counts, hostRoleStatuses.size(), false));
   }
 
 
