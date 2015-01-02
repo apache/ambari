@@ -345,7 +345,7 @@ App.InstallerController = App.WizardController.extend({
     } else {
       this.set('isServerClientVersionMismatch', false);
     }
-    App.set('isManagedMySQLForHiveEnabled', App.config.isManagedMySQLForHiveAllowed(data.RootServiceComponents.properties['server.os_type']));
+    App.set('isManagedMySQLForHiveEnabled', App.config.isManagedMySQLForHiveAllowed(data.RootServiceComponents.properties['server.os_family']));
   },
   getServerVersionErrorCallback: function () {
     console.log('ERROR: Cannot load Ambari server version');

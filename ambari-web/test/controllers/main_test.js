@@ -26,27 +26,27 @@ describe('App.InstallerController', function () {
     var controller = App.MainController.create(),
       cases = [
         {
-          osType: 'redhat5',
+          osFamily: 'redhat5',
           expected: false
         },
         {
-          osType: 'redhat6',
+          osFamily: 'redhat6',
           expected: true
         },
         {
-          osType: 'suse11',
+          osFamily: 'suse11',
           expected: false
         }
       ],
       title = 'App.isManagedMySQLForHiveEnabled should be {0} for {1}';
 
     cases.forEach(function (item) {
-      it(title.format(item.expected, item.osType), function () {
+      it(title.format(item.expected, item.osFamily), function () {
         controller.getServerVersionSuccessCallback({
           'RootServiceComponents': {
             'component_version': '',
             'properties': {
-              'server.os_type': item.osType
+              'server.os_family': item.osFamily
             }
           }
         });

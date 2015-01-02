@@ -49,12 +49,12 @@ App.config = Em.Object.create({
 
   /**
    * Check if Hive installation with new MySQL database created via Ambari is allowed
-   * @param osType
+   * @param osFamily
    * @returns {boolean}
    */
-  isManagedMySQLForHiveAllowed: function (osType) {
+  isManagedMySQLForHiveAllowed: function (osFamily) {
     var osList = ['redhat5', 'suse11'];
-    return !osList.contains(osType);
+    return !osList.contains(osFamily);
   },
 
   /**
