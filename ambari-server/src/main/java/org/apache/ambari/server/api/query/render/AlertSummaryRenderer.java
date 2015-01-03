@@ -32,6 +32,7 @@ import org.apache.ambari.server.controller.internal.AlertResourceProvider;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.state.AlertState;
+import org.apache.ambari.server.state.MaintenanceState;
 
 /**
  * The {@link AlertSummaryRenderer} is used to format the results of queries to
@@ -47,18 +48,22 @@ import org.apache.ambari.server.state.AlertState;
  *   "alerts_summary" : {
  *     "CRITICAL" : {
  *       "count" : 3,
+ *       "maintenance_count" : 1,
  *       "original_timestamp" : 1415372828182
  *     },
  *     "OK" : {
  *       "count" : 37,
+ *       "maintenance_count" : 0,
  *       "original_timestamp" : 1415375364937
  *     },
  *     "UNKNOWN" : {
  *       "count" : 1,
+ *       "maintenance_count" : 0,
  *       "original_timestamp" : 1415372632261
  *     },
  *     "WARN" : {
  *       "count" : 0,
+ *       "maintenance_count" : 0,
  *       "original_timestamp" : 0
  *     }
  *   }
@@ -73,18 +78,6 @@ import org.apache.ambari.server.state.AlertState;
  * instead of a collection of entities.
  */
 public class AlertSummaryRenderer extends BaseRenderer implements Renderer {
-
-  protected static final String OK_COUNT_PROPERTY = "alerts_summary/OK/count";
-  protected static final String OK_TIMESTAMP_PROPERTY = "alerts_summary/OK/original_timestamp";
-
-  protected static final String WARN_COUNT_PROPERTY = "alerts_summary/WARNING/count";
-  protected static final String WARN_TIMESTAMP_PROPERTY = "alerts_summary/WARNING/original_timestamp";
-
-  protected static final String CRITICAL_COUNT_PROPERTY = "alerts_summary/CRITICAL/count";
-  protected static final String CRITICAL_TIMESTAMP_PROPERTY = "alerts_summary/CRITICAL/original_timestamp";
-
-  protected static final String UNKNOWN_COUNT_PROPERTY = "alerts_summary/UNKNOWN/count";
-  protected static final String UNKNOWN_TIMESTAMP_PROPERTY = "alerts_summary/UNKNOWN/original_timestamp";
 
   /**
    * {@inheritDoc}
@@ -134,26 +127,14 @@ public class AlertSummaryRenderer extends BaseRenderer implements Renderer {
   @Override
   public Result finalizeResult(Result queryResult) {
     TreeNode<Resource> resultTree = queryResult.getResultTree();
-    Result summary = new ResultImpl(true);
-
-    // counts
-    int ok = 0;
-    int warning = 0;
-    int critical = 0;
-    int unknown = 0;
-
-    // keeps track of the most recent state change
-    // (not the most recent alert received)
-    long mostRecentOK = 0;
-    long mostRecentWarning = 0;
-    long mostRecentCritical = 0;
-    long mostRecentUnknown = 0;
+    AlertStateSummary alertSummary = new AlertStateSummary();
 
     // iterate over all returned flattened alerts and build the summary info
     for (TreeNode<Resource> node : resultTree.getChildren()) {
       Resource resource = node.getObject();
       AlertState state = (AlertState) resource.getPropertyValue(AlertResourceProvider.ALERT_STATE);
       Long originalTimestampObject = (Long) resource.getPropertyValue(AlertResourceProvider.ALERT_ORIGINAL_TIMESTAMP);
+      MaintenanceState maintenanceState = (MaintenanceState) resource.getPropertyValue(AlertResourceProvider.ALERT_MAINTENANCE_STATE);
 
       // NPE sanity
       if (null == state) {
@@ -166,60 +147,49 @@ public class AlertSummaryRenderer extends BaseRenderer implements Renderer {
         originalTimestamp = originalTimestampObject.longValue();
       }
 
+      // NPE sanity
+      boolean isMaintenanceModeEnabled = false;
+      if (null != maintenanceState && maintenanceState != MaintenanceState.OFF) {
+        isMaintenanceModeEnabled = true;
+      }
+
+      final AlertStateValues alertStateValues;
       switch (state) {
         case CRITICAL: {
-          critical++;
-
-          if (originalTimestamp > mostRecentCritical) {
-            mostRecentCritical = originalTimestamp;
-          }
-
+          alertStateValues = alertSummary.Critical;
           break;
         }
         case OK: {
-          ok++;
-
-          if (originalTimestamp > mostRecentOK) {
-            mostRecentOK = originalTimestamp;
-          }
-
+          alertStateValues = alertSummary.Ok;
           break;
         }
         case WARNING: {
-          warning++;
-
-          if (originalTimestamp > mostRecentWarning) {
-            mostRecentWarning = originalTimestamp;
-          }
-
+          alertStateValues = alertSummary.Warning;
           break;
         }
         default:
         case UNKNOWN: {
-          unknown++;
-
-          if (originalTimestamp > mostRecentUnknown) {
-            mostRecentUnknown = originalTimestamp;
-          }
-
+          alertStateValues = alertSummary.Unknown;
           break;
         }
       }
+
+      if (isMaintenanceModeEnabled) {
+        alertStateValues.MaintenanceCount++;
+      } else {
+        alertStateValues.Count++;
+      }
+
+      if (originalTimestamp > alertStateValues.Timestamp) {
+        alertStateValues.Timestamp = originalTimestamp;
+      }
     }
 
+    Result summary = new ResultImpl(true);
     Resource resource = new ResourceImpl(Resource.Type.Alert);
-    resource.setProperty(OK_COUNT_PROPERTY, ok);
-    resource.setProperty(WARN_COUNT_PROPERTY, warning);
-    resource.setProperty(CRITICAL_COUNT_PROPERTY, critical);
-    resource.setProperty(UNKNOWN_COUNT_PROPERTY, unknown);
-
-    resource.setProperty(OK_TIMESTAMP_PROPERTY, mostRecentOK);
-    resource.setProperty(WARN_TIMESTAMP_PROPERTY, mostRecentWarning);
-    resource.setProperty(CRITICAL_TIMESTAMP_PROPERTY, mostRecentCritical);
-    resource.setProperty(UNKNOWN_TIMESTAMP_PROPERTY, mostRecentUnknown);
-
     TreeNode<Resource> summaryTree = summary.getResultTree();
     summaryTree.addChild(resource, "alerts_summary");
+    resource.setProperty("alerts_summary", alertSummary);
 
     return summary;
   }
@@ -235,5 +205,6 @@ public class AlertSummaryRenderer extends BaseRenderer implements Renderer {
   protected void addRequiredAlertProperties(Set<String> properties) {
     properties.add(AlertResourceProvider.ALERT_STATE);
     properties.add(AlertResourceProvider.ALERT_ORIGINAL_TIMESTAMP);
+    properties.add(AlertResourceProvider.ALERT_MAINTENANCE_STATE);
   }
 }

@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.persistence.EntityManager;
 
+import org.apache.ambari.server.api.query.render.AlertStateSummary;
 import org.apache.ambari.server.api.query.render.AlertSummaryGroupedRenderer;
 import org.apache.ambari.server.api.query.render.AlertSummaryRenderer;
 import org.apache.ambari.server.api.services.Result;
@@ -59,6 +60,7 @@ import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Assert;
@@ -243,16 +245,12 @@ public class AlertResourceProviderTest {
     TreeNode<Resource> summaryResources = summaryResultTree.getChild("alerts_summary");
 
     Resource summaryResource = summaryResources.getObject();
+    AlertStateSummary alertStateSummary = (AlertStateSummary) summaryResource.getPropertyValue("alerts_summary");
 
-    Integer okCount = (Integer) summaryResource.getPropertyValue("alerts_summary/OK/count");
-    Integer warningCount = (Integer) summaryResource.getPropertyValue("alerts_summary/WARNING/count");
-    Integer criticalCount = (Integer) summaryResource.getPropertyValue("alerts_summary/CRITICAL/count");
-    Integer unknownCount = (Integer) summaryResource.getPropertyValue("alerts_summary/UNKNOWN/count");
-
-    Assert.assertEquals(10, okCount.intValue());
-    Assert.assertEquals(2, warningCount.intValue());
-    Assert.assertEquals(1, criticalCount.intValue());
-    Assert.assertEquals(3, unknownCount.intValue());
+    Assert.assertEquals(10, alertStateSummary.Ok.Count);
+    Assert.assertEquals(2, alertStateSummary.Warning.Count);
+    Assert.assertEquals(1, alertStateSummary.Critical.Count);
+    Assert.assertEquals(3, alertStateSummary.Unknown.Count);
   }
 
   /**
@@ -303,6 +301,66 @@ public class AlertResourceProviderTest {
     Assert.assertEquals(4, summaryList.size());
   }
 
+  /**
+   * Tests that the {@link AlertSummaryGroupedRenderer} correctly transforms the
+   * alert data when it has maintenace mode alerts.
+   *
+   * @throws Exception
+   */
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testGetClusterGroupedSummaryMaintenanceCounts() throws Exception {
+    // turn on MM for all alerts in the WARNING state
+    List<AlertCurrentEntity> currents = getMockEntitiesManyStates();
+    for (AlertCurrentEntity current : currents) {
+      if (current.getAlertHistory().getAlertState() == AlertState.WARNING) {
+        current.setMaintenanceState(MaintenanceState.ON);
+      }
+    }
+
+    expect(m_dao.findCurrentByCluster(captureLong(new Capture<Long>()))).andReturn(
+        currents).anyTimes();
+
+    replay(m_dao);
+
+    Request request = PropertyHelper.getReadRequest(
+        AlertResourceProvider.ALERT_ID,
+        AlertResourceProvider.ALERT_DEFINITION_NAME,
+        AlertResourceProvider.ALERT_LABEL, AlertResourceProvider.ALERT_STATE,
+        AlertResourceProvider.ALERT_ORIGINAL_TIMESTAMP);
+
+    Predicate predicate = new PredicateBuilder().property(
+        AlertResourceProvider.ALERT_CLUSTER_NAME).equals("c1").toPredicate();
+
+    AlertResourceProvider provider = createProvider();
+    Set<Resource> results = provider.getResources(request, predicate);
+
+    verify(m_dao);
+
+    AlertSummaryGroupedRenderer renderer = new AlertSummaryGroupedRenderer();
+    ResultImpl result = new ResultImpl(true);
+    TreeNode<Resource> resources = result.getResultTree();
+
+    AtomicInteger alertResourceId = new AtomicInteger(1);
+    for (Resource resource : results) {
+      resources.addChild(resource, "Alert " + alertResourceId.getAndIncrement());
+    }
+
+    Result groupedSummary = renderer.finalizeResult(result);
+    Assert.assertNotNull(groupedSummary);
+
+    // pull out the alerts_summary child set by the renderer
+    TreeNode<Resource> summaryResultTree = groupedSummary.getResultTree();
+    TreeNode<Resource> summaryResources = summaryResultTree.getChild("alerts_summary_grouped");
+
+    Resource summaryResource = summaryResources.getObject();
+    List<Object> summaryList = (List<Object>) summaryResource.getPropertyValue("alerts_summary_grouped");
+    Assert.assertEquals(4, summaryList.size());
+  }
+
+  /**
+   * @return
+   */
   private AlertResourceProvider createProvider() {
     return new AlertResourceProvider(m_amc);
   }
