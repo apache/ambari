@@ -779,6 +779,7 @@
         <assemblydescriptor.monitor>src/main/assembly/monitor-windows.xml</assemblydescriptor.monitor>
         <assemblydescriptor.sink>src/main/assembly/sink-windows.xml</assemblydescriptor.sink>
         <packagingFormat>jar</packagingFormat>
+        <python.build.version>2.7</python.build.version>
       </properties>
     </profile>
     <profile>

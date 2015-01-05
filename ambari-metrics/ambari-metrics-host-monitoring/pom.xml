@@ -164,10 +164,10 @@
                   <target name="psutils-compile">
                     <exec dir="${basedir}/src/main/python/psutil" executable="${executable.python}" failonerror="true">
                       <arg value="setup.py" />
-                      <arg value="bdist_egg" />
-                      <arg value="--bdist-dir" />
-                      <arg value="${basedir}/target/psutil_build_temp" />
-                      <arg value="--dist-dir" />
+                      <arg value="build" />
+                      <arg value="--build-temp" />
+                      <arg value="${basedir}\target\psutil_build_temp" />
+                      <arg value="--build-base" />
                       <arg value="${basedir}/target/psutil_build" />
                     </exec>
                   </target>

@@ -17,7 +17,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import glob
 
 import optparse
 import os
@@ -25,8 +24,7 @@ import sys
 
 from ambari_commons.ambari_service import AmbariService
 from ambari_commons.exceptions import FatalException, NonFatalException
-from ambari_commons.logging_utils import print_warning_msg, print_error_msg, print_info_msg
-from ambari_commons.os_utils import search_file, run_os_command
+from ambari_commons.logging_utils import print_warning_msg, print_error_msg
 from ambari_commons.os_windows import SvcStatusCallback
 from core.config_reader import SERVER_OUT_FILE, SERVICE_USERNAME_KEY, SERVICE_PASSWORD_KEY, \
   SETUP_ACTION, START_ACTION, STOP_ACTION, RESTART_ACTION, STATUS_ACTION
@@ -134,43 +132,6 @@ def init_options_parser():
   # --help reserved for help
   return parser
 
-def find_python_exe_path():
-  paths = "." + os.pathsep + os.environ["PATH"]
-
-  # Find python.exe by attempting to load it as a resource dll
-  python_path = search_file("python.exe", paths)
-  return os.path.dirname(python_path)
-
-
-def find_psutil_egg():
-  abs_subdir = os.path.join(os.getcwd(), "sbin", "psutil", "build")
-  egg_files = glob.glob(os.path.join(abs_subdir, "psutil*-win-amd64.egg"))
-  if egg_files is None or len(egg_files) == 0:
-    err = "Unable to find the expected psutil egg file in {0}. " \
-          "Verify that the installation carried out correctly.".format(abs_subdir)
-    raise FatalException(1, err)
-  if len(egg_files) > 1:
-    err = "Multiple psutil egg files found in {0}".format(abs_subdir)
-    print_warning_msg(err)
-  #Return the latest
-  return egg_files[len(egg_files) - 1]
-
-
-def setup_psutil():
-  python_exe_path = find_python_exe_path()
-  egg_file = find_psutil_egg()
-  cmd = [os.path.join(python_exe_path, "Scripts", "easy_install"), "--upgrade", egg_file]
-
-  retval, std_out, std_err = run_os_command(cmd)
-  if std_err is not None and std_err != '':
-    print_warning_msg(std_err)
-    print_info_msg(std_out)
-  if 0 != retval:
-    err = "Psutil egg installation failed. Exit code={0}, err output={1}".format(retval, std_err)
-    raise FatalException(1, err)
-
-  # Now the egg should be installed in the site_packages dir
-
 def win_main():
   parser = init_options_parser()
   (options, args) = parser.parse_args()
@@ -189,7 +150,6 @@ def win_main():
 
   try:
     if action == SETUP_ACTION:
-      setup_psutil()
       svcsetup()
     elif action == START_ACTION:
       start(options)

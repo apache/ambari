@@ -51,11 +51,8 @@
       </includes>
     </fileSet>
     <fileSet>
-      <directory>${monitor.dir}/target/psutil_build</directory>
-      <outputDirectory>/sbin/psutil/build</outputDirectory>
-      <includes>
-        <include>*.egg</include>
-      </includes>
+      <directory>${monitor.dir}/target/psutil_build/lib.win-amd64-${python.build.version}</directory>
+      <outputDirectory>/sbin</outputDirectory>
     </fileSet>
     <fileSet>
       <directory>${monitor.dir}/conf/windows</directory>
