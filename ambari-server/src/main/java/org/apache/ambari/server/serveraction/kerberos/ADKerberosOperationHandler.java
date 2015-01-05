@@ -247,12 +247,8 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     attributes.put(upn);
 
     Attribute spn = new BasicAttribute("servicePrincipalName");
-    spn.add(principal + "@" + realm.toUpperCase());
+    spn.add(principal);
     attributes.put(spn);
-
-    Attribute obcat = new BasicAttribute("objectCategory");  // objectCategory
-    obcat.add("CN=Person,CN=Schema,CN=Configuration," + realmToDcs(realm));
-    attributes.put(obcat);
 
     Attribute uac = new BasicAttribute("userAccountControl");  // userAccountControl
     uac.add("512");
@@ -355,12 +351,12 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     // is not issued by trusted authority. This is typical with self signed certificated in
     // development environment
     System.setProperty("javax.net.ssl.trustStore",
-      "/Users/darumugam/workspace/ambari/apache-ambari-rd/cacerts");
+      "/tmp/workspace/ambari/apache-ambari-rd/cacerts");
 
     ADKerberosOperationHandler handler = new ADKerberosOperationHandler();
 
     KerberosCredential kc = new KerberosCredential(
-      "Administrator@knox.com", "hadUp2Argus", null);  // null keytab
+      "Administrator@knox.com", "hadoop", null);  // null keytab
 
     handler.open(kc, "KNOX.COM",
       "ldaps://dillwin12.knox.com:636", "ou=service accounts,dc=knox,dc=com");
