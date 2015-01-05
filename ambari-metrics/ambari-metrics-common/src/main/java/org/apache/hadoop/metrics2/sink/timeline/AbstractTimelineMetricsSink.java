@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.metrics2.sink.timeline.base;
+package org.apache.hadoop.metrics2.sink.timeline;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
@@ -37,7 +37,7 @@ public abstract class AbstractTimelineMetricsSink {
   public static final String METRICS_SEND_INTERVAL = "sendInterval";
   public static final String COLLECTOR_HOST_PROPERTY = "collector";
 
-  protected final Log LOG = LogFactory.getLog(this.getClass());
+  protected final Log LOG;
   private HttpClient httpClient = new HttpClient();
 
   protected static ObjectMapper mapper;
@@ -48,6 +48,10 @@ public abstract class AbstractTimelineMetricsSink {
     mapper.setAnnotationIntrospector(introspector);
     mapper.getSerializationConfig()
         .setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+  }
+
+  public AbstractTimelineMetricsSink() {
+    LOG = LogFactory.getLog(this.getClass());
   }
 
   protected void emitMetrics(TimelineMetrics metrics) throws IOException {

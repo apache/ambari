@@ -23,6 +23,7 @@ import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -78,6 +79,9 @@ public class TimelineMetricsCache {
   class TimelineMetricHolder extends LinkedHashMap<String, TimelineMetricWrapper> {
     private static final long serialVersionUID = 1L;
     private boolean gotOverflow = false;
+    // To avoid duplication at the end of the buffer and beginning of the next
+    // segment of values
+    private Map<String, Long> endOfBufferTimestamps = new HashMap<String, Long>();
 
     @Override
     protected boolean removeEldestEntry(Map.Entry<String, TimelineMetricWrapper> eldest) {
@@ -93,7 +97,7 @@ public class TimelineMetricsCache {
       TimelineMetricWrapper metricWrapper = this.get(metricName);
 
       if (metricWrapper == null
-        || metricWrapper.getTimeDiff() < maxEvictionTimeInMillis) {
+        || metricWrapper.getTimeDiff() < getMaxEvictionTimeInMillis()) {
         return null;
       }
 
@@ -104,13 +108,27 @@ public class TimelineMetricsCache {
     }
 
     public void put(String metricName, TimelineMetric timelineMetric) {
-
+      if (isDuplicate(timelineMetric)) {
+        return;
+      }
       TimelineMetricWrapper metric = this.get(metricName);
       if (metric == null) {
         this.put(metricName, new TimelineMetricWrapper(timelineMetric));
       } else {
         metric.putMetric(timelineMetric);
       }
+      // Buffer last ts value
+      endOfBufferTimestamps.put(metricName, timelineMetric.getStartTime());
+    }
+
+    /**
+     * Test whether last buffered timestamp is same as the newly received.
+     * @param timelineMetric @TimelineMetric
+     * @return true/false
+     */
+    private boolean isDuplicate(TimelineMetric timelineMetric) {
+      return endOfBufferTimestamps.containsKey(timelineMetric.getMetricName())
+        && endOfBufferTimestamps.get(timelineMetric.getMetricName()).equals(timelineMetric.getStartTime());
     }
   }
 
@@ -120,6 +138,14 @@ public class TimelineMetricsCache {
     }
 
     return null;
+  }
+
+  /**
+   * Getter method to help testing eviction
+   * @return @int
+   */
+  public int getMaxEvictionTimeInMillis() {
+    return maxEvictionTimeInMillis;
   }
 
   public void putTimelineMetric(TimelineMetric timelineMetric) {

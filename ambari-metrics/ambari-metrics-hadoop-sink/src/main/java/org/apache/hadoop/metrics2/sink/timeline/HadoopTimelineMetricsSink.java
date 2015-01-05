@@ -23,7 +23,6 @@ import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.metrics2.*;
 import org.apache.hadoop.metrics2.impl.MsInfo;
-import org.apache.hadoop.metrics2.sink.timeline.base.AbstractTimelineMetricsSink;
 import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
 import org.apache.hadoop.metrics2.util.Servers;
 import org.apache.hadoop.net.DNS;
@@ -151,19 +150,19 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
         (Collection<AbstractMetric>) record.metrics();
 
       List<TimelineMetric> metricList = new ArrayList<TimelineMetric>();
+      long startTime = record.timestamp();
 
       for (AbstractMetric metric : metrics) {
         sb.append(metric.name());
         String name = sb.toString();
+        Number value = metric.value();
         TimelineMetric timelineMetric = new TimelineMetric();
         timelineMetric.setMetricName(name);
         timelineMetric.setHostName(hostName);
         timelineMetric.setAppId(serviceName);
-        timelineMetric.setStartTime(record.timestamp());
-        timelineMetric.setType(ClassUtils.getShortCanonicalName(
-          metric.value(), "Number"));
-        timelineMetric.getMetricValues().put(record.timestamp(),
-          metric.value().doubleValue());
+        timelineMetric.setStartTime(startTime);
+        timelineMetric.setType(ClassUtils.getShortCanonicalName(value, "Number"));
+        timelineMetric.getMetricValues().put(startTime, value.doubleValue());
         // Put intermediate values into the cache until it is time to send
         metricsCache.putTimelineMetric(timelineMetric);
 
