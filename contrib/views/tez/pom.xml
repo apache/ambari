@@ -1,0 +1,161 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ -->
+ <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <groupId>org.apache.ambari.views</groupId>
+    <artifactId>ambari-contrib-views</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.apache.ambari</groupId>
+  <artifactId>tez-ambari-view</artifactId>
+  <name>tez-ambari-view</name>
+  <version>0.6.0-SNAPSHOT</version>
+  <description>Tez Ambari View</description>
+  <repositories>
+    <repository>
+      <id>apache.snapshots</id>
+      <name>Apache Development Snapshot Repository</name>
+      <url>https://repository.apache.org/content/repositories/snapshots/</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+  <build>
+
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>parse-version</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>parse-version</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>regex-property</id>
+            <goals>
+              <goal>regex-property</goal>
+            </goals>
+            <configuration>
+              <name>ambariVersion</name>
+              <value>${project.version}</value>
+              <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-).*</regex>
+              <replacement>$1.$2.$3</replacement>
+              <failIfNoMatch>false</failIfNoMatch>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Unpack the dependent war and add to classes directory -->
+      <plugin>
+       <groupId>org.apache.maven.plugins</groupId>
+       <artifactId>maven-dependency-plugin</artifactId>
+       <version>2.9</version>
+       <executions>
+         <execution>
+           <id>unpack</id>
+           <phase>process-resources</phase>
+           <goals>
+             <goal>unpack</goal>
+           </goals>
+           <configuration>
+             <artifactItems>
+               <artifactItem>
+                 <groupId>org.apache.tez</groupId>
+                 <artifactId>tez-ui</artifactId>
+                 <version>${version}</version>
+                 <type>war</type>
+                 <overWrite>false</overWrite>
+                 <outputDirectory>target/classes</outputDirectory>
+               </artifactItem>
+             </artifactItems>
+             <includes>fonts/**/*, img/**/*, scripts/**/*, styles/**/*</includes>
+           </configuration>
+         </execution>
+       </executions>
+      </plugin>
+    </plugins>
+
+    <resources>
+      <resource>
+        <directory>src/main/resources/ui</directory>
+        <filtering>false</filtering>
+        <includes>
+          <include>scripts/*</include>
+          <include>index.html</include>
+        </includes>
+      </resource>
+
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+        <includes>
+          <include>WEB-INF/web.xml</include>
+          <include>META-INF/**/*</include>
+          <include>view.xml</include>
+        </includes>
+      </resource>
+    </resources>
+
+  </build>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>org.apache.tez</groupId>
+      <artifactId>tez-ui</artifactId>
+      <version>${version}</version>
+      <type>war</type>
+    </dependency>
+
+    <dependency>
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-server</artifactId>
+      <version>1.8</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.ambari</groupId>
+      <artifactId>ambari-views</artifactId>
+      <version>${ambari.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+      <version>2.5</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.inject</groupId>
+      <artifactId>guice</artifactId>
+    </dependency>
+
+  </dependencies>
+</project>
