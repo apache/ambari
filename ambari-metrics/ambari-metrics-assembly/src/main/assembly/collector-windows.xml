@@ -79,6 +79,13 @@
       </includes>
     </fileSet>
   </fileSets>
+  <files>
+    <file>
+      <source>${basedir}/src/main/package/msi/collector.wxs</source>
+      <outputDirectory>../../</outputDirectory>
+      <filtered>true</filtered>
+    </file>
+  </files>
   <dependencySets>
     <dependencySet>
       <unpack>false</unpack>

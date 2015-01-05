@@ -52,6 +52,11 @@
       <source>${storm-sink.dir}/target/ambari-metrics-storm-sink-with-common-${project.version}.jar</source>
       <outputDirectory>hadoop-sink</outputDirectory>
     </file>
+    <file>
+      <source>${basedir}/src/main/package/msi/sink.wxs</source>
+      <outputDirectory>../../</outputDirectory>
+      <filtered>true</filtered>
+    </file>
   </files>
 
 

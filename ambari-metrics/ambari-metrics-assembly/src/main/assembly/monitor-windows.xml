@@ -70,6 +70,13 @@
       </includes>
     </fileSet>
   </fileSets>
+  <files>
+    <file>
+      <source>${basedir}/src/main/package/msi/monitor.wxs</source>
+      <outputDirectory>../../</outputDirectory>
+      <filtered>true</filtered>
+    </file>
+  </files>
   <dependencySets>
     <dependencySet>
       <useProjectArtifact>false</useProjectArtifact>
