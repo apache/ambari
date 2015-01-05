@@ -2385,7 +2385,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   /**
    * set host name(s) property for component
    * @param {String} serviceName - service name of component
-   * @param {String} componentName - component name whic host we want to know
+   * @param {String} componentName - component name which host we want to know
    * @param {String} hostProperty - name of host property for current component
    * @param {Boolean} multiple - true if can be more than one component
    * @method setHostForService

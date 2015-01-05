@@ -21,49 +21,48 @@
   <table class="table no-borders">
     <thead>
     <tr>
-      <th>
-        {{t common.service}}
-      </th>
-      <th>
-        {{t common.property}}
-      </th>
-      <th>
-        {{t common.value}}
-      </th>
-      <th>
-        {{t common.description}}
-      </th>
+      <th>{{t common.service}}</th>
+      <th>{{t common.property}}</th>
+      <th>{{t common.value}}</th>
+      <th>{{t common.description}}</th>
     </tr>
     </thead>
     <tbody>
-    {{#each service in stepConfigs}}
-      {{#each property in service.configs}}
-        {{#if property.warn}}
-          <tr>
-            <td>
-              {{property.serviceName}}
-            </td>
-            <td>
-              {{property.name}}
-            </td>
-            <td>
-              {{property.value}}
-            </td>
-            <td>
-              {{property.description}}<br/>
-              <strong>{{property.warnMessage}}</strong>
-            </td>
-          </tr>
-        {{/if}}
+      {{#each service in stepConfigs}}
+        {{#each property in service.configs}}
+          {{#if property.warn}}
+            <tr>
+              <td>{{property.serviceName}}</td>
+              <td>{{property.name}}</td>
+              <td>{{property.value}}</td>
+              <td>
+                {{property.description}}<br/>
+                <strong>{{property.warnMessage}}</strong>
+              </td>
+            </tr>
+          {{/if}}
+          {{#if property.error}}
+            {{#if property.isVisible}}
+              <tr>
+                <td>{{property.serviceName}}</td>
+                <td>{{property.name}}</td>
+                <td>{{property.value}}</td>
+                <td>
+                  {{property.description}}<br/>
+                  <strong>{{property.errorMessage}}</strong>
+                </td>
+              </tr>
+            {{/if}}
+          {{/if}}
+        {{/each}}
       {{/each}}
-    {{/each}}
-    {{#each message in configValidationGlobalMessage}}
-      <tr>
-        <td>{{message.serviceName}}</td>
-        <td>{{message.propertyName}}</td>
-        <td colspan="2">{{message.warnMessage}} in {{message.filename}}</td>
-      </tr>
-    {{/each}}
+      {{#each message in configValidationGlobalMessage}}
+        <tr>
+          <td>{{message.serviceName}}</td>
+          <td>{{message.propertyName}}</td>
+          <td colspan="2">{{message.warnMessage}} in {{message.filename}}</td>
+        </tr>
+      {{/each}}
     </tbody>
   </table>
 </div>

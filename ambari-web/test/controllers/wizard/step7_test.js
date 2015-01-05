@@ -854,6 +854,7 @@ describe('App.InstallerStep7Controller', function () {
   });
 
   describe('#setStepConfigs', function () {
+
     beforeEach(function () {
       installerStep7Controller.reopen({
         content: {services: []},
@@ -864,12 +865,14 @@ describe('App.InstallerStep7Controller', function () {
         })
       });
     });
+
     afterEach(function () {
       App.config.renderConfigs.restore();
     });
+
     it('if wizard isn\'t addService, should set output of App.config.renderConfigs', function () {
       var serviceConfigs = Em.A([
-        {},
+        {serviceName:'HDFS', configs: []},
         {}
       ]);
       sinon.stub(App.config, 'renderConfigs', function () {
@@ -879,8 +882,9 @@ describe('App.InstallerStep7Controller', function () {
       installerStep7Controller.setStepConfigs([], []);
       expect(installerStep7Controller.get('stepConfigs')).to.eql(serviceConfigs);
     });
+
     it('addServiceWizard used', function () {
-      var serviceConfigs = Em.A([Em.Object.create({serviceName: 's1'}), Em.Object.create({serviceName: 's2'})]);
+      var serviceConfigs = Em.A([Em.Object.create({serviceName: 'HDFS', configs: []}), Em.Object.create({serviceName: 's2'})]);
       installerStep7Controller.set('wizardController.name', 'addServiceController');
       installerStep7Controller.reopen({selectedServiceNames: ['s2']});
       sinon.stub(App.config, 'renderConfigs', function () {
@@ -890,6 +894,7 @@ describe('App.InstallerStep7Controller', function () {
       expect(installerStep7Controller.get('stepConfigs').everyProperty('showConfig', true)).to.equal(true);
       expect(installerStep7Controller.get('stepConfigs').findProperty('serviceName', 's2').get('selected')).to.equal(true);
     });
+
     it('addServiceWizard used, HA enabled', function () {
       sinon.stub(App, 'get', function (k) {
         if (k === 'isHaEnabled') {
@@ -921,6 +926,71 @@ describe('App.InstallerStep7Controller', function () {
       expect(installerStep7Controller.get('stepConfigs').findProperty('serviceName', 'HDFS').get('configs').length).to.equal(2);
       App.get.restore();
     });
+
+    it('not windows stack', function () {
+
+      var s = sinon.stub(App, 'get');
+      s.withArgs('isHadoopWindowsStack').returns(false);
+      s.withArgs('isHaEnabled').returns(false);
+
+      var serviceConfigs = Em.A([
+        Em.Object.create({
+          serviceName: 'HDFS',
+          configs: [
+            {category: 'MetricsSink'},
+            {category: 'MetricsSink'},
+            {category: 'NameNode'},
+            {category: 'NameNode'},
+            {category: 'MetricsSink'}
+          ]
+        }),
+        Em.Object.create({serviceName: 's2'})]
+      );
+
+      installerStep7Controller.reopen({selectedServiceNames: ['HDFS', 's2']});
+      sinon.stub(App.config, 'renderConfigs', function () {
+        return serviceConfigs;
+      });
+      installerStep7Controller.setStepConfigs([], []);
+
+      expect(installerStep7Controller.get('stepConfigs').findProperty('serviceName', 'HDFS').get('configs').length).to.equal(2);
+
+      s.restore();
+
+    });
+
+    it('windows stack', function () {
+
+      var s = sinon.stub(App, 'get');
+      s.withArgs('isHadoopWindowsStack').returns(true);
+      s.withArgs('isHaEnabled').returns(false);
+
+      var serviceConfigs = Em.A([
+        Em.Object.create({
+          serviceName: 'HDFS',
+          configs: [
+            {category: 'MetricsSink'},
+            {category: 'MetricsSink'},
+            {category: 'NameNode'},
+            {category: 'NameNode'},
+            {category: 'MetricsSink'}
+          ]
+        }),
+        Em.Object.create({serviceName: 's2'})]
+      );
+
+      installerStep7Controller.reopen({selectedServiceNames: ['HDFS', 's2']});
+      sinon.stub(App.config, 'renderConfigs', function () {
+        return serviceConfigs;
+      });
+      installerStep7Controller.setStepConfigs([], []);
+
+      expect(installerStep7Controller.get('stepConfigs').findProperty('serviceName', 'HDFS').get('configs').length).to.equal(5);
+
+      s.restore();
+
+    });
+
   });
 
   describe('#checkHostOverrideInstaller', function () {
