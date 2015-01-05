@@ -45,6 +45,10 @@ public class KerberosOperationHandlerFactory {
       case MIT_KDC:
         handler = new MITKerberosOperationHandler();
         break;
+      case ACTIVE_DIRECTORY:
+        handler = new ADKerberosOperationHandler();
+        break;
+
     }
 
     return handler;
