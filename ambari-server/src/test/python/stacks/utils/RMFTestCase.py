@@ -140,6 +140,10 @@ class RMFTestCase(TestCase):
   @staticmethod
   def _getSrcFolder():
     return os.path.join(os.path.abspath(os.path.dirname(__file__)),os.path.normpath("../../../../"))
+  
+  @staticmethod
+  def _getCommonServicesFolder():
+    return os.path.join(RMFTestCase._getSrcFolder(), PATH_TO_COMMON_SERVICES)
       
   @staticmethod
   def _get_attr(module, attr):

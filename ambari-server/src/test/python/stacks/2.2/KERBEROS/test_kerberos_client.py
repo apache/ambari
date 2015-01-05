@@ -19,20 +19,23 @@ limitations under the License.
 
 import os
 import use_cases
-from utils import get_property_value, get_unstructured_data
-
-
-
+import sys
 from stacks.utils.RMFTestCase import *
 
 class TestKerberosClient(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "KERBEROS/1.10.3-10/package"
+  STACK_VERSION = "2.2"
+
   def test_configure_managed_kdc(self):
     json_data = use_cases.get_manged_kdc_use_case()
 
-    self.executeScript("2.2/services/KERBEROS/package/scripts/kerberos_client.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/kerberos_client.py",
                        classname="KerberosClient",
                        command="configure",
-                       config_dict=json_data)
+                       config_dict=json_data,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
 
     self.assertResourceCalled('Directory', use_cases.get_krb5_conf_dir(json_data),
                               owner='root',
@@ -52,10 +55,14 @@ class TestKerberosClient(RMFTestCase):
   def test_configure_unmanaged_kdc(self):
     json_data = use_cases.get_unmanged_kdc_use_case()
 
-    self.executeScript("2.2/services/KERBEROS/package/scripts/kerberos_client.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/kerberos_client.py",
                        classname="KerberosClient",
                        command="configure",
-                       config_dict=json_data)
+                       config_dict=json_data,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+
 
     self.assertResourceCalled('Directory', use_cases.get_krb5_conf_dir(json_data),
                               owner='root',
@@ -75,10 +82,13 @@ class TestKerberosClient(RMFTestCase):
   def test_configure_unmanaged_ad(self):
     json_data = use_cases.get_unmanged_ad_use_case()
 
-    self.executeScript("2.2/services/KERBEROS/package/scripts/kerberos_client.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/kerberos_client.py",
                        classname="KerberosClient",
                        command="configure",
-                       config_dict=json_data)
+                       config_dict=json_data,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
 
     self.assertResourceCalled('Directory', use_cases.get_krb5_conf_dir(json_data),
                               owner='root',
@@ -98,10 +108,13 @@ class TestKerberosClient(RMFTestCase):
   def test_configure_cross_realm_trust(self):
     json_data = use_cases.get_cross_realm_use_case()
 
-    self.executeScript("2.2/services/KERBEROS/package/scripts/kerberos_client.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/kerberos_client.py",
                        classname="KerberosClient",
                        command="configure",
-                       config_dict=json_data)
+                       config_dict=json_data,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
 
     self.assertResourceCalled('Directory', use_cases.get_krb5_conf_dir(json_data),
                               owner='root',
@@ -120,6 +133,11 @@ class TestKerberosClient(RMFTestCase):
 
 
   def test_get_property(self):
+    package_dir = os.path.join(RMFTestCase._getCommonServicesFolder(), self.COMMON_SERVICES_PACKAGE_DIR)
+    scripts_dir = os.path.join(package_dir, "scripts")
+    sys.path += [scripts_dir]
+    from utils import get_property_value
+
     d = {
       'non_empty' : "Nonempty value",
       'unicode_non_empty' : u"Nonempty value",
