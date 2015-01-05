@@ -19,6 +19,63 @@ limitations under the License.
 '''
 
 
+"""
+Upgrade catalog file format description:
+
+
+Format version 1.0
+
+Global section description:
+  STACKNAME - name of stack, for example HDP
+  OLDVERSION - version of stack from which upgrade should be done, used by fromStack script argument
+  NEWVERSION - version of stack to which upgrade should be done, used by toStack script argument
+
+Sub-section options:
+  config-types - contains global per-config settings
+    merged-copy - would merge latest server properties with properties defined in "properties" section,
+                  without this option server properties would be rewritten by properties defined in "properties" section
+
+Sub-section properties - Contains property definition
+Sub-section property-mapping(optional) - contains mapping of property names in case, if some property changed their name in NEWVERSION
+
+Example:
+
+{
+  "version": "1.0",
+  "stacks": [
+    {
+      "name": "STACKNAME",
+      "old-version": "OLDVERSION",
+      "target-version": "NEWVERSION",
+      "options": {
+        "config-types": {
+          "CONFIGTYPE1": {
+            "merged-copy": "yes"
+          }
+        }
+      },
+      "properties": {
+        "CONFIGTYPE1": {
+          "some_property": "some property value",
+          "some_second_property: {
+             "remove": "yes"
+          },
+          "template_property": {
+           "value": "{TEMPLATE_TAG}",
+           "template": "yes"
+          }
+        }
+      },
+     "property-mapping": {
+       "old-property-name": "new-property-name"
+     }
+    }
+  ]
+}
+
+More examples available in ambari-server/src/main/resources/upgrade/catalog/
+"""
+
 import getpass
 import optparse
 from pprint import pprint
@@ -174,7 +231,7 @@ class Options(Const):
 # ==============================
 #    Catalog classes definition
 # ==============================
-class UpgradeCatalogFarm(object):
+class UpgradeCatalogFactory(object):
 
    # versions of catalog which is currently supported
   _supported_catalog_versions = ["1.0"]
@@ -235,7 +292,7 @@ class UpgradeCatalog(object):
   # private variables
   _json_catalog = None
   _properties_catalog = None
-  _properties_map_catalog = None
+  _properties_map_catalog = {}  # Initially should be assigned empty dictionary as default value
   _version = None
   _search_pattern = None
 
@@ -559,9 +616,12 @@ def add_services():
              validate=True, validate_expect_body=False, request_type="POST")
 
 
-def update_config(properties, config_type):
+def update_config(properties, config_type, attributes=None):
   tag = "version" + str(int(time.time() * 1000))
   properties_payload = {"Clusters": {"desired_config": {"type": config_type, "tag": tag, "properties": properties}}}
+  if attributes is not None:
+    properties_payload["Clusters"]["desired_config"]["properties_attributes"] = attributes
+
   expect_body = config_type != "cluster-env"  # ToDo: make exceptions more flexible
 
   curl(Options.CLUSTER_URL, request_type="PUT", data=properties_payload, validate=True,
@@ -582,14 +642,20 @@ def get_zookeeper_quorum():
 def get_config(cfg_type):
   tag, structured_resp = get_config_resp(cfg_type)
   properties = None
+  properties_attributes = None
+
   if 'items' in structured_resp:
     for item in structured_resp['items']:
       if (tag == item['tag']) or (cfg_type == item['type']):
-        properties = item['properties']
+        if 'properties' in item:
+          properties = item['properties']
+        if 'properties_attributes' in item:
+          properties_attributes = item['properties_attributes']
+        break
   if properties is None:
     raise FatalException(-1, "Unable to read configuration for type " + cfg_type + " and tag " + tag)
 
-  return properties
+  return properties, properties_attributes
 
 
 def parse_config_resp(resp):
@@ -607,7 +673,7 @@ def get_config_resp(cfg_type, error_if_na=True, parsed=False, tag=None):
   CONFIG_URL_FORMAT = Options.CLUSTER_URL + '/configurations?type={0}&tag={1}'
 
   # Read the config version
-  if tag in None:
+  if tag is None:
     structured_resp = curl(Options.CLUSTER_URL, validate=True, validate_expect_body=True, parse=True, simulate=False)
 
     if 'Clusters' in structured_resp:
@@ -654,7 +720,8 @@ def get_config_resp_all():
     all_options)
 
   for item in all_options:
-    desired_configs[item["type"]] = item["properties"]
+    if CatConst.STACK_PROPERTIES in item:  # config item could not contain anu property
+      desired_configs[item["type"]] = item["properties"]
 
   return desired_configs
 
@@ -682,9 +749,10 @@ def modify_config_item(config_type, catalog):
   catalog.set_substitution_handler(_substitute)
 
   try:
-    properties_latest = rename_all_properties(get_config(config_type), catalog.property_map_catalog)
+    properties_latest, properties_attributes_latest = rename_all_properties(get_config(config_type), catalog.property_map_catalog)
   except Exception as e:
     properties_latest = {}
+    properties_attributes_latest = None
 
   properties_copy = catalog.get_properties(config_type)
   is_merged_copy = CatConst.MERGED_COPY_TAG in catalog.config_groups.get(config_type) \
@@ -699,7 +767,7 @@ def modify_config_item(config_type, catalog):
   if is_merged_copy:  # Append configs to existed ones
     tag, structured_resp = get_config_resp(config_type, False)
     if structured_resp is not None:
-      update_config_using_existing_properties(config_type, properties_copy, properties_latest, catalog)
+      update_config_using_existing_properties(config_type, properties_copy, properties_latest, properties_attributes_latest, catalog)
   else:  # Rewrite/create config items
     update_config(catalog.get_properties_as_dict(properties_copy), config_type)
 
@@ -710,7 +778,7 @@ def modify_configs():
   else:
     config_type = None
 
-  catalog_farm = UpgradeCatalogFarm(Options.OPTIONS.upgrade_json)  # Load upgrade catalog
+  catalog_farm = UpgradeCatalogFactory(Options.OPTIONS.upgrade_json)  # Load upgrade catalog
   catalog = catalog_farm.get_catalog(Options.OPTIONS.from_stack, Options.OPTIONS.to_stack)  # get desired version of catalog
 
   if catalog is None:
@@ -735,14 +803,9 @@ def rename_all_properties(properties, name_mapping):
   return properties
 
 
-def update_config_using_existing(conf_type, properties_template, catalog):
-  site_properties = get_config(conf_type)
-  update_config_using_existing_properties(conf_type, properties_template, site_properties, catalog)
-
-
 # properties template - passed as dict from UpgradeCatalog
 def update_config_using_existing_properties(conf_type, properties_template,
-                                            site_properties, catalog):
+                                            site_properties, properties_attributes_latest, catalog):
   keys_processed = []
   keys_to_delete = []
   properties_parsed = catalog.get_properties_as_dict(properties_template)
@@ -759,7 +822,17 @@ def update_config_using_existing_properties(conf_type, properties_template,
   for key in keys_to_delete:
     del properties_parsed[key]
 
-  update_config(properties_parsed, conf_type)
+  # check property attributes list
+  if properties_attributes_latest is not None:
+    for key in properties_attributes_latest:
+      properties_attributes_latest[key] = dict(filter(
+        lambda (item_key, item_value): item_key not in keys_to_delete,
+        zip(properties_attributes_latest[key].keys(), properties_attributes_latest[key].values())
+      ))
+
+
+
+  update_config(properties_parsed, conf_type, attributes=properties_attributes_latest)
 
 
 def backup_configs(conf_type=None):
@@ -1015,7 +1088,7 @@ def verify_configuration():
   else:
     config_type = None
 
-  catalog_farm = UpgradeCatalogFarm(Options.OPTIONS.upgrade_json)  # Load upgrade catalog
+  catalog_farm = UpgradeCatalogFactory(Options.OPTIONS.upgrade_json)  # Load upgrade catalog
   catalog = catalog_farm.get_catalog(Options.OPTIONS.from_stack, Options.OPTIONS.to_stack)  # get desired version of catalog
 
   if catalog is None:
