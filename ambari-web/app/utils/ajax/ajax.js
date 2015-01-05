@@ -1268,6 +1268,12 @@ var urls = {
       }
     }
   },
+  'admin.kerberos.kerberos_descriptor': {
+    // @todo: replace with real URL after API implementation
+    //        /clusters/{clusterName}?fields=Clusters/kerberos_descriptor
+    'real': '/stacks/{stackName}/versions/{stackVersionNumber}?fields=Versions/kerberos_descriptor',
+    'mock': '/data/wizard/kerberos/stack_descriptors.json'
+  },
   'admin.kerberize.stack_descriptor': {
     'real': '/stacks/{stackName}/versions/{stackVersionNumber}?fields=Versions/kerberos_descriptor',
     'mock': '/data/wizard/kerberos/stack_descriptors.json'

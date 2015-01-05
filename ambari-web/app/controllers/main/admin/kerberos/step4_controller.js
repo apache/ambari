@@ -16,6 +16,9 @@
  * limitations under the License.
  */
 
+var App = require('app');
+require('controllers/wizard/step7_controller');
+
 App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecurityConfigs, {
   name: 'kerberosWizardStep4Controller',
 

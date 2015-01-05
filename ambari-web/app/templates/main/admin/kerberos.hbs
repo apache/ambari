@@ -19,9 +19,12 @@
   {{#if securityEnabled}}
     <div>
       <p class="text-success">{{t admin.security.enabled}}
-        <a class="btn btn-padding btn-warning admin-disable-security-btn" {{bindAttr disabled="isSubmitDisabled"}} {{action notifySecurityOffPopup target="controller"}}>{{t admin.security.button.disable}} </a>
+        <a class="btn btn-padding btn-warning admin-disable-security-btn" {{bindAttr disabled="isSubmitDisabled"}} {{action notifySecurityOffPopup target="controller"}}>{{t admin.kerberos.button.disable}} </a>
         <br/>
       </p>
+    </div>
+    <div id="serviceConfig">
+      {{view App.ServicesConfigView}}
     </div>
   {{else}}
     <div>

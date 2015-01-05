@@ -19,7 +19,7 @@
 
 var App = require('app');
 
-App.version = '1.3.0'; // filled out by set-ambari-version.sh script
+App.version = ''; // filled out by set-ambari-version.sh script
 App.testMode = (location.port == '3333'); // test mode is automatically enabled if running on brunch server
 App.testModeDelayForActions = 10000;
 App.skipBootstrap = false;

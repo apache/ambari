@@ -957,6 +957,7 @@ Em.I18n.translations = {
   'admin.kerberos.wizard.configuration.note': 'This is the initial configuration created by Enable Kerberos wizard.',
   'admin.kerberos.wizard.header':'Enable Kerberos Wizard',
   'admin.kerberos.button.enable': 'Enable Kerberos',
+  'admin.kerberos.button.disable': 'Disable Kerberos',
   'admin.kerberos.wizard.step1.header': 'Get Started',
   'admin.kerberos.wizard.step2.header': 'Configure Kerberos',
   'admin.kerberos.wizard.step3.header': 'Install and Test Kerberos',
