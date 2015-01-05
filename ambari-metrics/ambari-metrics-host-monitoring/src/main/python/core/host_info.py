@@ -48,13 +48,12 @@ class HostInfo():
     Return cpu stats at current time
     """
     cpu_times = psutil.cpu_times_percent()
-    load_avg = os.getloadavg()
     cpu_count = self.__host_static_info.get('cpu_num', 1)
 
     # Divide by number of cpu's on the system
     number2percents = lambda x: ((x / int(cpu_count)) * 100)
 
-    return {
+    result = {
       'cpu_num': int(cpu_count),
       'cpu_user': number2percents(cpu_times.user) if hasattr(cpu_times, 'user') else '',
       'cpu_system': number2percents(cpu_times.system) if hasattr(cpu_times, 'system') else '',
@@ -62,11 +61,17 @@ class HostInfo():
       'cpu_nice': number2percents(cpu_times.nice) if hasattr(cpu_times, 'nice') else '',
       'cpu_wio': number2percents(cpu_times.iowait) if hasattr(cpu_times, 'iowait') else '',
       'cpu_intr': number2percents(cpu_times.irq) if hasattr(cpu_times, 'irq') else '',
-      'cpu_sintr': number2percents(cpu_times.softirq) if hasattr(cpu_times, 'softirq') else '',
-      'load_one' : load_avg[0] if len(load_avg) > 0 else '',
-      'load_five' : load_avg[1] if len(load_avg) > 1 else '',
-      'load_fifteen' : load_avg[2] if len(load_avg) > 2 else ''
+      'cpu_sintr': number2percents(cpu_times.softirq) if hasattr(cpu_times, 'softirq') else ''
     }
+    if platform.system() != "Windows":
+      load_avg = os.getloadavg()
+      result.update({
+        'load_one' : load_avg[0] if len(load_avg) > 0 else '',
+        'load_five' : load_avg[1] if len(load_avg) > 1 else '',
+        'load_fifteen' : load_avg[2] if len(load_avg) > 2 else ''
+      })
+    return result
+
   pass
 
   def get_process_info(self):

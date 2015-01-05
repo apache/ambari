@@ -30,16 +30,14 @@ logger = logging.getLogger()
 
 class TestMetricCollector(TestCase):
   
-  @patch("os.getloadavg")
   @patch.object(HostInfo, "get_cpu_times")
   @patch.object(ApplicationMetricMap, "__init__")
-  def testCollectEvent(self, amm_mock, host_info_mock, avg_mock):
+  def testCollectEvent(self, amm_mock, host_info_mock):
     amm_mock.return_value = None
     host_info_mock.return_value = {'metric_name' : 'metric_value'}
-    avg_mock.return_value.__getitem__.return_value = 13
 
     metric_collector = MetricsCollector(None, amm_mock)
-    
+
     group_config = {'collect_every' : 1, 'metrics' : 'cpu'}
     
     e = HostMetricCollectEvent(group_config, 'cpu')

@@ -20,7 +20,7 @@ limitations under the License.
 
 import logging
 from host_info import HostInfo
-
+import platform
 from unittest import TestCase
 from mock.mock import patch
 
@@ -29,9 +29,8 @@ logger = logging.getLogger()
 class TestHostInfo(TestCase):
 
   @patch("psutil.cpu_count")
-  @patch("os.getloadavg")
   @patch("psutil.cpu_times_percent")
-  def testCpuTimes(self, cp_mock, avg_mock, count_mock):
+  def testCpuTimes(self, cp_mock, count_mock):
     count_mock.return_value = 1
 
     cp = cp_mock.return_value
@@ -42,13 +41,18 @@ class TestHostInfo(TestCase):
     cp.iowait = 0
     cp.irq = 0
     cp.softirq = 0
-
-    avg_mock.return_value  = [13, 13, 13]
-    
     hostinfo = HostInfo()
-    
-    cpu = hostinfo.get_cpu_times()
-    
+
+    if platform.system() != "Windows":
+      with patch("os.getloadavg") as avg_mock:
+        avg_mock.return_value  = [13, 13, 13]
+        cpu = hostinfo.get_cpu_times()
+        self.assertEqual(cpu['load_one'], 13)
+        self.assertEqual(cpu['load_five'], 13)
+        self.assertEqual(cpu['load_fifteen'], 13)
+    else:
+      cpu = hostinfo.get_cpu_times()
+
     self.assertAlmostEqual(cpu['cpu_user'], 10)
     self.assertAlmostEqual(cpu['cpu_system'], 10)
     self.assertAlmostEqual(cpu['cpu_idle'], 70)
@@ -56,9 +60,7 @@ class TestHostInfo(TestCase):
     self.assertAlmostEqual(cpu['cpu_wio'], 0)
     self.assertAlmostEqual(cpu['cpu_intr'], 0)
     self.assertAlmostEqual(cpu['cpu_sintr'], 0)
-    self.assertEqual(cpu['load_one'], 13)
-    self.assertEqual(cpu['load_five'], 13)
-    self.assertEqual(cpu['load_fifteen'], 13)
+
     
   @patch("psutil.disk_usage")
   @patch("psutil.disk_partitions")
