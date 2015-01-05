@@ -82,7 +82,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
   def getServiceConfigurationRecommenderDict(self):
     return {
       "YARN": self.recommendYARNConfigurations,
-      "MAPREDUCE2": self.recommendMapReduce2Configurations
+      "MAPREDUCE2": self.recommendMapReduce2Configurations,
+      "HDFS": self.recommendHDFSConfigurations
     }
 
   def putProperty(self, config, configType):
@@ -109,6 +110,14 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putMapredProperty('mapreduce.map.java.opts', "-Xmx" + str(int(round(0.8 * clusterData['mapMemory']))) + "m")
     putMapredProperty('mapreduce.reduce.java.opts', "-Xmx" + str(int(round(0.8 * clusterData['reduceMemory']))) + "m")
     putMapredProperty('mapreduce.task.io.sort.mb', min(int(round(0.4 * clusterData['mapMemory'])), 1024))
+ 
+  def recommendHDFSConfigurations(self, configurations, clusterData, services, hosts):
+    putHDFSProperty = self.putProperty(configurations, "hadoop-env")
+    putHDFSProperty('namenode_heapsize', max(int(clusterData['totalAvailableRam'] / 2), 1024))
+    putHDFSProperty = self.putProperty(configurations, "hadoop-env")
+    putHDFSProperty('namenode_opt_newsize', max(int(clusterData['totalAvailableRam'] / 8), 128))
+    putHDFSProperty = self.putProperty(configurations, "hadoop-env")
+    putHDFSProperty('namenode_opt_maxnewsize', max(int(clusterData['totalAvailableRam'] / 8), 256))
 
   def getConfigurationClusterSummary(self, servicesList, hosts, components):
 
@@ -210,6 +219,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
   def getServiceConfigurationValidators(self):
     return {
+      "HDFS": {"hadoop-env": self.validateHDFSConfigurationsEnv},
       "MAPREDUCE2": {"mapred-site": self.validateMapReduce2Configurations},
       "YARN": {"yarn-site": self.validateYARNConfigurations}
     }
@@ -292,6 +302,12 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
                         {"config-name": 'yarn.scheduler.minimum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.minimum-allocation-mb')},
                         {"config-name": 'yarn.scheduler.maximum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.maximum-allocation-mb')} ]
     return self.toConfigurationValidationProblems(validationItems, "yarn-site")
+
+  def validateHDFSConfigurationsEnv(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = [ {"config-name": 'namenode_heapsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_heapsize')},
+                        {"config-name": 'namenode_opt_newsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_opt_newsize')},
+                        {"config-name": 'namenode_opt_maxnewsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_opt_maxnewsize')}]
+    return self.toConfigurationValidationProblems(validationItems, "hadoop-env")
 
   def getMastersWithMultipleInstances(self):
     return ['ZOOKEEPER_SERVER', 'HBASE_MASTER']
