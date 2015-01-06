@@ -87,7 +87,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
    * Set realm property with value from previous configuration step.
    * Set appropriate category for all configs.
    *
-   * @param {App.ServiceCofigProperty[]} configs
+   * @param {App.ServiceConfigProperty[]} configs
    * @returns {App.ServiceConfigProperty[]}
    */
   prepareConfigProperties: function(configs) {
@@ -158,7 +158,6 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     var kerberosDescriptor = this.get('kerberosDescriptor');
     var configs = this.get('stepConfigs')[0].get('configs');
     this.updateKerberosDescriptor(kerberosDescriptor, configs);
-    this.get('wizardController').setDBProperty('kerberosDescriptorConfigs', kerberosDescriptor);
-    this.set('wizardController.content.kerberosDescriptorConfigs', kerberosDescriptor);
+    this.get('wizardController').saveKerberosDescriptorConfigs(kerberosDescriptor);
   }
 });

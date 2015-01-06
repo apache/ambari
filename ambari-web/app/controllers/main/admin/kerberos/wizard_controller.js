@@ -23,7 +23,7 @@ App.KerberosWizardController = App.WizardController.extend({
 
   name: 'kerberosWizardController',
 
-  totalSteps: 6,
+  totalSteps: 7,
 
   isKerberosWizard: true,
 
@@ -38,7 +38,7 @@ App.KerberosWizardController = App.WizardController.extend({
     hosts: '',
     kerberosOption: null,
     cluster: null,
-    services: null,
+    services: [],
     advancedServiceConfig: null,
     serviceConfigProperties: [],
     kerberosDescriptorConfigs: null,
@@ -164,6 +164,11 @@ App.KerberosWizardController = App.WizardController.extend({
     });
   },
 
+  loadKerberosDescriptorConfigs: function () {
+    var kerberosDescriptorConfigs = this.getDBProperty('kerberosDescriptorConfigs');
+    this.set('content.kerberosDescriptorConfigs', kerberosDescriptorConfigs);
+  },
+
 
   saveRequestIds: function (requestIds) {
     this.setDBProperty('requestIds',requestIds);
@@ -188,6 +193,12 @@ App.KerberosWizardController = App.WizardController.extend({
     var requestIds = this.getDBProperty('tasksRequestIds');
     this.set('content.tasksRequestIds', requestIds);
   },
+
+  saveKerberosDescriptorConfigs: function (kerberosDescriptorConfigs) {
+    this.setDBProperty('kerberosDescriptorConfigs',kerberosDescriptorConfigs);
+    this.set('content.kerberosDescriptorConfigs', kerberosDescriptorConfigs);
+  },
+
 
   loadMap: {
     '1': [
@@ -216,6 +227,22 @@ App.KerberosWizardController = App.WizardController.extend({
           this.loadTasksStatuses();
           this.loadTasksRequestIds();
           this.loadRequestIds();
+        }
+      }
+    ],
+    '4': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.loadKerberosDescriptorConfigs();
+        }
+      }
+    ],
+    '5': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.loadKerberosDescriptorConfigs();
         }
       }
     ]

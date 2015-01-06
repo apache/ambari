@@ -16,16 +16,24 @@
  * limitations under the License.
  */
 
-var App = require('app');
+App.KerberosWizardStep7Controller = App.KerberosProgressPageController.extend({
+  name: 'kerberosWizardStep6Controller',
+  clusterDeployState: 'KERBEROS_DEPLOY',
+  commands: ['startServices'],
 
-App.KerberosWizardStep6View = App.KerberosProgressPageView.extend({
-
-  templateName: require('templates/main/admin/kerberos/step6'),
-
-  noticeCompleted: Em.I18n.t('admin.kerberos.wizard.step6.notice.completed'),
-
-  submitButtonText: Em.I18n.t('common.next'),
-
-  showBackButton: false
-
+  startServices: function () {
+    App.ajax.send({
+      name: 'common.services.update',
+      sender: this,
+      data: {
+        "context": "Start services",
+        "ServiceInfo": {
+          "state": "STARTED"
+        },
+        urlParams: "params/run_smoke_test=true"
+      },
+      success: 'startPolling',
+      error: 'onTaskError'
+    });
+  }
 });

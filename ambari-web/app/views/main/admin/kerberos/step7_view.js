@@ -15,16 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 var App = require('app');
 
-App.KerberosWizardStep6View = App.KerberosProgressPageView.extend({
+App.KerberosWizardStep7View = App.KerberosProgressPageView.extend({
 
-  templateName: require('templates/main/admin/kerberos/step6'),
+  templateName: require('templates/main/admin/kerberos/step7'),
 
-  noticeCompleted: Em.I18n.t('admin.kerberos.wizard.step6.notice.completed'),
+  noticeCompleted: Em.I18n.t('admin.kerberos.wizard.step7.notice.completed'),
 
-  submitButtonText: Em.I18n.t('common.next'),
+  submitButtonText: Em.I18n.t('common.complete'),
 
   showBackButton: false
 

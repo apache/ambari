@@ -19,38 +19,31 @@
 App.KerberosWizardStep6Controller = App.KerberosProgressPageController.extend({
   name: 'kerberosWizardStep6Controller',
   clusterDeployState: 'KERBEROS_DEPLOY',
-  commands: ['stopServices','startServices'],
+  isSingleRequestPage: true,
+  request: {},
 
-  stopServices: function () {
-    App.ajax.send({
-      name: 'common.services.update',
-      data: {
-        context: "Stop services",
-        "ServiceInfo": {
-          "state": "INSTALLED"
+  setRequest: function (data, kerberosDescriptor) {
+    this.set('request', {
+      name: 'KERBERIZE_CLUSTER',
+      ajaxName: 'admin.kerberize.cluster',
+      ajaxData: {
+        data: {
+          Clusters: {
+            desired_config: data
+          },
+          kerberos_descriptor: kerberosDescriptor
         }
-      },
-      sender: this,
-      success: 'startPolling',
-      error: 'onTaskError'
+      }
     });
   },
 
-  startServices: function () {
-    App.ajax.send({
-      name: 'common.services.update',
-      sender: this,
-      data: {
-        "context": "Start services",
-        "ServiceInfo": {
-          "state": "STARTED"
-        },
-        urlParams: "params/run_smoke_test=true"
-      },
-      success: 'startPolling',
-      error: 'onTaskError'
-    });
+  contextForPollingRequest: Em.I18n.t('requestInfo.kerberizeCluster'),
+
+  commands: [],
+
+  retry: function () {
+    this.set('showRetry', false);
+    this.get('tasks').setEach('status','PENDING');
+    App.router.send('retry');
   }
 });
-
-

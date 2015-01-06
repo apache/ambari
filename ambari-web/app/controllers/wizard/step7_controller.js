@@ -730,11 +730,14 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
     }
 
     if (!App.get('isHadoopWindowsStack')) {
-      c = serviceConfigs.findProperty('serviceName', 'HDFS').configs;
-      c.filterProperty('category', 'MetricsSink').map(function (config) {
-        c = c.without(config);
-      });
-      serviceConfigs.findProperty('serviceName', 'HDFS').configs = c;
+      var hdfsService =  serviceConfigs.findProperty('serviceName', 'HDFS');
+      if (hdfsService) {
+        c = hdfsService.configs;
+        c.filterProperty('category', 'MetricsSink').map(function (config) {
+          c = c.without(config);
+        });
+        serviceConfigs.findProperty('serviceName', 'HDFS').configs = c;
+      }
     }
 
     this.set('stepConfigs', serviceConfigs);

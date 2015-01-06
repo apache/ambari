@@ -139,6 +139,7 @@ require('views/main/admin/kerberos/step3_view');
 require('views/main/admin/kerberos/step4_view');
 require('views/main/admin/kerberos/step5_view');
 require('views/main/admin/kerberos/step6_view');
+require('views/main/admin/kerberos/step7_view');
 
 require('views/main/admin/security');
 require('views/main/admin/security/disable');
