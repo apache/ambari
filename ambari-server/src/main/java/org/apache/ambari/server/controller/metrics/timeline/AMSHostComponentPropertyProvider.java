@@ -47,10 +47,6 @@ public class AMSHostComponentPropertyProvider extends AMSPropertyProvider {
   protected String getComponentName(Resource resource) {
     String componentName = (String) resource.getPropertyValue(componentNamePropertyId);
 
-    if (TIMELINE_APPID_MAP.containsKey(componentName)) {
-      componentName = TIMELINE_APPID_MAP.get(componentName);
-    }
-
     return componentName;
   }
 }
