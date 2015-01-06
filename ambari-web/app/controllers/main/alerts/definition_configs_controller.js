@@ -304,6 +304,9 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       App.AlertConfigProperties.Description.create({
         value: isWizard ? '' : alertDefinition.get('description')
       }),
+      App.AlertConfigProperties.Interval.create({
+        value: isWizard ? '' : alertDefinition.get('interval')
+      }),
       App.AlertConfigProperties.Thresholds.OkThreshold.create({
         label: 'Thresholds',
         showInputForValue: false,

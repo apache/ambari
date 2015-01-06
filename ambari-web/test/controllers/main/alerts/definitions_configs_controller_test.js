@@ -283,6 +283,7 @@ describe('App.MainAlertDefinitionConfigsController', function () {
       controller.set('content', Em.Object.create({
         name: 'alertDefinitionName',
         description: 'alertDefinitionDescription',
+        interval: 60,
         reporting: [
           Em.Object.create({
             type: 'warning',
@@ -301,7 +302,7 @@ describe('App.MainAlertDefinitionConfigsController', function () {
 
       var result = controller.renderAggregateConfigs();
 
-      expect(result.length).to.equal(4);
+      expect(result.length).to.equal(5);
     });
 
   });
