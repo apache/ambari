@@ -25,6 +25,7 @@ import json
 
 FILE_TYPE_XML = 'XML'
 FILE_TYPE_PROPERTIES = 'PROPERTIES'
+FILE_TYPE_JAAS_CONF = 'JAAS_CONF'
 
 def validate_security_config_properties(params, configuration_rules):
   """
@@ -57,19 +58,20 @@ def validate_security_config_properties(params, configuration_rules):
       rules = rule_sets['value_checks'] if 'value_checks' in rule_sets else None
       if rules:
         for property_name, expected_value in rules.iteritems():
-          actual_value = actual_values[property_name] if property_name in actual_values else ''
+          actual_value = get_value(actual_values, property_name, '')
           if actual_value != expected_value:
-            issues[config_file] = "Property " + property_name + ". Expected/Actual: " + \
-                                  expected_value + "/" + actual_value
+            issues[config_file] = "Property %s contains an unexpected value. " \
+                                  "Expected/Actual: %s/%s" \
+                                  % (property_name, expected_value, actual_value)
 
       # Process Empty Checks
       # The rules are expected to be a list of property names that should not have empty values
       rules = rule_sets['empty_checks'] if 'empty_checks' in rule_sets else None
       if rules:
         for property_name in rules:
-          actual_value = actual_values[property_name] if property_name in actual_values else ''
+          actual_value = get_value(actual_values, property_name, '')
           if not actual_value:
-            issues[config_file] = "Property " + property_name + " must exist and must not be empty!"
+            issues[config_file] = "Property %s must exist and must not be empty" % property_name
 
       # Process Read Checks
       # The rules are expected to be a list of property names that resolve to files names and must
@@ -77,12 +79,13 @@ def validate_security_config_properties(params, configuration_rules):
       rules = rule_sets['read_checks'] if 'read_checks' in rule_sets else None
       if rules:
         for property_name in rules:
-          actual_value = actual_values[property_name] if property_name in actual_values else None
-          if not actual_value or not os.path.isfile(actual_value):
-            issues[
-              config_file] = "Property " + property_name + " points to an inaccessible file or parameter does not exist!"
+          actual_value = get_value(actual_values, property_name, None)
+          if not actual_value:
+            issues[config_file] = "Property %s does not exist" % property_name
+          elif not os.path.isfile(actual_value):
+            issues[config_file] = "Property %s points to an inaccessible file - %s" % (property_name, actual_value)
     except Exception as e:
-      issues[config_file] = "Exception occurred while validating the config file\nCauses: " + str(e)
+      issues[config_file] = "Exception occurred while validating the config file\nCauses: %s" % str(e)
   return issues
 
 
@@ -117,6 +120,8 @@ def get_params_from_filesystem(conf_dir, config_files):
   result = {}
   from xml.etree import ElementTree as ET
   import ConfigParser, StringIO
+  import re
+
   for config_file, file_type in config_files.iteritems():
     file_name, file_ext = os.path.splitext(config_file)
 
@@ -138,6 +143,30 @@ def get_params_from_filesystem(conf_dir, config_files):
       result[file_name] = {}
       for key, value in props:
         result[file_name].update({key : value})
+
+    elif file_type == FILE_TYPE_JAAS_CONF:
+      section_header = re.compile('^(\w+)\s+\{\s*$')
+      section_data = re.compile('(^[^ \s\=\}\{]+)\s*=?\s*"?([^ ";]+)"?;?\s*$')
+      section_footer = re.compile('^\}\s*;?\s*$')
+      section_name = "root"
+      result[file_name] = {}
+      with open(conf_dir + os.sep + config_file, 'r') as f:
+        for line in f:
+          if line:
+            m = section_header.search(line)
+            if m:
+              section_name = m.group(1)
+              if section_name not in result[file_name]:
+                result[file_name][section_name] = {}
+            else:
+              m = section_footer.search(line)
+              if m:
+                section_name = "root"
+              else:
+                m = section_data.search(line)
+                if m:
+                  result[file_name][section_name][m.group(1)] = m.group(2)
+
   return result
 
 
@@ -198,3 +227,15 @@ def new_cached_exec(key, file_path, kinit_path, exec_user, keytab_file, principa
       json.dump(result, cache_file)
   finally:
     os.remove(temp_kinit_cache_file)
+
+def get_value(values, property_path, default_value):
+  names = property_path.split('/')
+
+  current_dict = values
+  for name in names:
+    if name in current_dict:
+      current_dict = current_dict[name]
+    else:
+      return default_value
+
+  return current_dict
