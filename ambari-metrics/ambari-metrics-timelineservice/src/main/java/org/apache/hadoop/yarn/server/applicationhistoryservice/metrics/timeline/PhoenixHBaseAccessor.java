@@ -221,8 +221,7 @@ public class PhoenixHBaseAccessor {
     return metricHostAggregate;
   }
 
-  static TimelineClusterMetric
-  getTimelineMetricClusterKeyFromResultSet(ResultSet rs)
+  static TimelineClusterMetric getTimelineMetricClusterKeyFromResultSet(ResultSet rs)
     throws SQLException, IOException {
     TimelineClusterMetric metric = new TimelineClusterMetric(
       rs.getString("METRIC_NAME"),
@@ -234,8 +233,7 @@ public class PhoenixHBaseAccessor {
     return metric;
   }
 
-  static MetricClusterAggregate
-  getMetricClusterAggregateFromResultSet(ResultSet rs)
+  static MetricClusterAggregate getMetricClusterAggregateFromResultSet(ResultSet rs)
     throws SQLException {
     MetricClusterAggregate agg = new MetricClusterAggregate();
     agg.setSum(rs.getDouble("METRIC_SUM"));
@@ -547,15 +545,14 @@ public class PhoenixHBaseAccessor {
     return stmt;
   }
 
-  private TimelineMetric getAggregateTimelineMetricFromResultSet(
-    ResultSet rs) throws SQLException {
+  private TimelineMetric getAggregateTimelineMetricFromResultSet(ResultSet rs) throws SQLException {
     TimelineMetric metric = new TimelineMetric();
     metric.setMetricName(rs.getString("METRIC_NAME"));
     metric.setAppId(rs.getString("APP_ID"));
     metric.setInstanceId(rs.getString("INSTANCE_ID"));
     metric.setTimestamp(rs.getLong("SERVER_TIME"));
     metric.setStartTime(rs.getLong("SERVER_TIME"));
-    Map<Long, Double> valueMap = new HashMap<Long, Double>();
+    Map<Long, Double> valueMap = new TreeMap<Long, Double>();
     valueMap.put(rs.getLong("SERVER_TIME"),
       rs.getDouble("METRIC_SUM") / rs.getInt("HOSTS_COUNT"));
     metric.setMetricValues(valueMap);
