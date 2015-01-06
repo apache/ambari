@@ -1215,7 +1215,7 @@ App.config = Em.Object.create({
     var configData = {
       id: stored.id,
       name: stored.name,
-      displayName: stored.name,
+      displayName: App.format.normalizeName(stored.name),
       serviceName: stored.serviceName,
       value: stored.value,
       defaultValue: stored.defaultValue,
@@ -1230,7 +1230,8 @@ App.config = Em.Object.create({
       isFinal: stored.isFinal,
       defaultIsFinal: stored.defaultIsFinal,
       supportsFinal: stored.supportsFinal,
-      showLabel: stored.showLabel !== false
+      showLabel: stored.showLabel !== false,
+      category: stored.category
     };
 
     App.get('config').calculateConfigProperties(configData, isAdvanced, advancedConfigs);

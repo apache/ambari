@@ -20,6 +20,8 @@ var App = require('app');
 require('models/cluster');
 require('controllers/wizard');
 
+var c;
+
 describe('App.WizardController', function () {
 
   var wizardController = App.WizardController.create({});
@@ -29,6 +31,10 @@ describe('App.WizardController', function () {
   for(var i = 0; i < totalSteps; i++) {
     ruller.push(i);
   }
+
+  beforeEach(function () {
+    c = App.WizardController.create({});
+  });
 
   describe('#setLowerStepsDisable', function() {
     for(var i = 1; i < totalSteps; i++) {
@@ -159,4 +165,54 @@ describe('App.WizardController', function () {
     });
   });
 
+  describe('#saveServiceConfigProperties', function () {
+
+    beforeEach(function () {
+      c.set('content', {});
+      sinon.stub(c, 'setDBProperty', Em.K);
+    });
+
+    afterEach(function () {
+      c.setDBProperty.restore();
+    });
+
+    var stepController = Em.Object.create({
+      installedServiceNames: [],
+      stepConfigs: [
+      Em.Object.create({
+        serviceName: 'HDFS',
+        configs: [
+          Em.Object.create({
+            id: 'id',
+            name: 'name',
+            value: 'value',
+            defaultValue: 'defaultValue',
+            description: 'description',
+            serviceName: 'serviceName',
+            domain: 'domain',
+            isVisible: true,
+            isFinal: true,
+            defaultIsFinal: true,
+            supportsFinal: true,
+            filename: 'filename',
+            displayType: 'string',
+            isRequiredByAgent: true,
+            hasInitialValue: true,
+            isRequired: true,
+            group: {name: 'group'},
+            showLabel: true,
+            category: 'some_category'
+          })
+        ]
+      })
+    ]});
+
+    it('should save configs to content.serviceConfigProperties', function () {
+      c.saveServiceConfigProperties(stepController);
+      var saved = c.get('content.serviceConfigProperties');
+      expect(saved.length).to.equal(1);
+      expect(saved[0].category).to.equal('some_category');
+    });
+
+  });
 });
