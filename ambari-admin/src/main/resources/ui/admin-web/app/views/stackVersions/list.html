@@ -83,12 +83,12 @@
     </div>
     <div class="pull-right left-margin">
       <pagination class="paginator"
-                  total-items="pagination.totalStacks"
+                  total-items="pagination.totalRepos"
                   max-size="pagination.maxVisiblePages"
                   items-per-page="pagination.itemsPerPage"
                   ng-model="pagination.currentPage"
-                  ng-change="fetchRepos()"
-      ></pagination>
+                  ng-change="pageChanged()"
+        ></pagination>
     </div>
     <div class="pull-right">
       <select class="form-control"

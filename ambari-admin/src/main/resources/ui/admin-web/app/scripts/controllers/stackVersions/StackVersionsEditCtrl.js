@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('StackVersionsEditCtrl', ['$scope', '$location', 'Stack', '$routeParams', 'ConfirmationModal', 'Alert', function($scope, $location, Stack, $routeParams, ConfirmationModal, Alert) {
+.controller('StackVersionsEditCtrl', ['$scope', '$location', 'Cluster', 'Stack', '$routeParams', 'ConfirmationModal', 'Alert', function($scope, $location, Cluster, Stack, $routeParams, ConfirmationModal, Alert) {
   $scope.loadStackVersionInfo = function () {
     return Stack.getRepo($routeParams.versionId, $routeParams.stackName).then(function (response) {
       $scope.id = response.id;
@@ -32,6 +32,20 @@ angular.module('ambariAdminConsole')
         os.selected = true;
       });
       $scope.osList = response.osList;
+      // if user reach here from UI click, repo status should be cached
+      // otherwise re-fetch repo status from cluster end point.
+      var repoStatus = Cluster.repoStatusCache[$scope.id];
+      if (!repoStatus) {
+        $scope.fetchClusters()
+        .then(function () {
+          return $scope.fetchRepoClusterStatus();
+        })
+        .then(function () {
+          $scope.deleteEnabled = ($scope.repoStatus == 'current' || $scope.repoStatus == 'installed')? false : true;
+        });
+      } else {
+        $scope.deleteEnabled = (repoStatus == 'current' || repoStatus == 'installed')? false : true;
+      }
       $scope.addMissingOSList();
     });
   }
@@ -46,28 +60,28 @@ angular.module('ambariAdminConsole')
       //TODO map data.operating_systems after API is fixed
       var operatingSystems = data.operating_systems || data.operatingSystems;
       var osList = operatingSystems.map(function (os) {
-          return existingOSHash[os.OperatingSystems.os_type] || {
-            OperatingSystems: {
-              os_type : os.OperatingSystems.os_type
-            },
-            repositories: [
-              {
-                Repositories: {
-                  base_url: '',
-                  repo_id: 'HDP-' + $routeParams.versionId,
-                  repo_name: 'HDP'
-                }
-              },
-              {
-                Repositories: {
-                  base_url: '',
-                  repo_id: 'HDP-UTILS-' + $routeParams.versionId,
-                  repo_name: 'HDP-UTILS'
-                }
+        return existingOSHash[os.OperatingSystems.os_type] || {
+          OperatingSystems: {
+            os_type : os.OperatingSystems.os_type
+          },
+          repositories: [
+            {
+              Repositories: {
+                base_url: '',
+                repo_id: 'HDP-' + $routeParams.versionId,
+                repo_name: 'HDP'
               }
-            ],
-            selected: false
-          };
+            },
+            {
+              Repositories: {
+                base_url: '',
+                repo_id: 'HDP-UTILS-' + $routeParams.versionId,
+                repo_name: 'HDP-UTILS'
+              }
+            }
+          ],
+          selected: false
+        };
       });
       $scope.osList = osList;
     })
@@ -77,7 +91,6 @@ angular.module('ambariAdminConsole')
   }
 
   $scope.skipValidation = false;
-  $scope.deleteEnabled = true;
 
   $scope.save = function () {
     $scope.editVersionDisabled = true;
@@ -99,6 +112,19 @@ angular.module('ambariAdminConsole')
   $scope.cancel = function () {
     $scope.editVersionDisabled = true;
     $location.path('/stackVersions');
+  };
+
+  $scope.fetchRepoClusterStatus = function () {
+    var clusterName = $scope.clusters[0].Clusters.cluster_name; // only support one cluster at the moment
+    return Cluster.getRepoVersionStatus(clusterName, $scope.id).then(function (response) {
+      $scope.repoStatus = response.status;
+    });
+  };
+
+  $scope.fetchClusters = function () {
+    return Cluster.getAllClusters().then(function (clusters) {
+      $scope.clusters = clusters;
+    });
   };
 
   $scope.delete = function () {

@@ -20,6 +20,8 @@
 angular.module('ambariAdminConsole')
 .factory('Cluster', ['$http', '$q', 'Settings', function($http, $q, Settings) {
   return {
+    repoStatusCache : {},
+
     getAllClusters: function() {
       var deferred = $q.defer();
       $http.get(Settings.baseUrl + '/clusters', {mock: 'cluster/clusters.json'})
@@ -128,6 +130,7 @@ angular.module('ambariAdminConsole')
       });
     },
     getRepoVersionStatus: function (clusterName, repoId ) {
+      var me = this;
       var deferred = $q.defer();
       var url = Settings.baseUrl + '/clusters/' + clusterName +
         '/stack_versions?fields=*&ClusterStackVersions/repository_version=' + repoId;
@@ -153,6 +156,7 @@ angular.module('ambariAdminConsole')
         } else {
           response.status = '';
         }
+        me.repoStatusCache[repoId] = response.status;
         deferred.resolve(response);
       })
       .catch(function (data) {

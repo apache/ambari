@@ -85,12 +85,29 @@ angular.module('ambariAdminConsole')
       if (versionFilter) {
         url += '&versions/repository_versions/RepositoryVersions/display_name.matches(.*' + versionFilter + '.*)';
       }
-      url += '&from='+ (pagination.currentPage - 1) * pagination.itemsPerPage;
-      url += '&page_size=' + pagination.itemsPerPage;
       var deferred = $q.defer();
       $http.get(Settings.baseUrl + url, {mock: 'version/versions.json'})
       .success(function (data) {
-        deferred.resolve(data)
+        var repos = [];
+        angular.forEach(data.items, function(stack) {
+          angular.forEach(stack.versions, function (version) {
+            var repoVersions = version.repository_versions;
+            if (repoVersions.length > 0) {
+              repos = repos.concat(repoVersions);
+            }
+          });
+        });
+        repos = repos.map(function (stack) {
+          return stack.RepositoryVersions;
+        });
+        // prepare response data with client side pagination
+        var response = {};
+        response.itemTotal = repos.length;
+        var from = (pagination.currentPage - 1) * pagination.itemsPerPage;
+        var to = (repos.length - from > pagination.itemsPerPage)? from + pagination.itemsPerPage : repos.length;
+        response.items = repos.slice(from, to);
+        response.showed = to - from;
+        deferred.resolve(response)
       })
       .error(function (data) {
         deferred.reject(data);
@@ -129,8 +146,8 @@ angular.module('ambariAdminConsole')
 
     getRepo: function (repoVersion, stack_name) {
       var url = Settings.baseUrl + '/stacks/' + stack_name + '/versions?' +
-                'fields=repository_versions/operating_systems/repositories/*' +
-                '&repository_versions/RepositoryVersions/repository_version=' + repoVersion;
+      'fields=repository_versions/operating_systems/repositories/*' +
+      '&repository_versions/RepositoryVersions/repository_version=' + repoVersion;
       var deferred = $q.defer();
       $http.get(url, {mock: 'version/version.json'})
       .success(function (data) {
