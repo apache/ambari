@@ -36,6 +36,8 @@ yarn_historyserver_pid_file_old = format("{yarn_pid_dir}/yarn-{yarn_user}-histor
 yarn_historyserver_pid_file = format("{yarn_pid_dir}/yarn-{yarn_user}-timelineserver.pid")  # *-historyserver.pid is deprecated
 mapred_historyserver_pid_file = format("{mapred_pid_dir}/mapred-{mapred_user}-historyserver.pid")
 
+# Security related/required params
 hadoop_conf_dir = "/etc/hadoop/conf"
 hostname = config['hostname']
 kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+security_enabled = config['configurations']['cluster-env']['security_enabled']

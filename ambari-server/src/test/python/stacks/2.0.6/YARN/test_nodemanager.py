@@ -609,3 +609,101 @@ class TestNodeManager(RMFTestCase):
     except Fail,fail:
       self.assertTrue(process_mock.called)
       self.assertEqual(process_mock.call_count,12)
+
+  @patch("resource_management.libraries.functions.security_commons.build_expectations")
+  @patch("resource_management.libraries.functions.security_commons.get_params_from_filesystem")
+  @patch("resource_management.libraries.functions.security_commons.validate_security_config_properties")
+  @patch("resource_management.libraries.functions.security_commons.cached_kinit_executor")
+  @patch("resource_management.libraries.script.Script.put_structured_out")
+  def test_security_status(self, put_structured_out_mock, cached_kinit_executor_mock, validate_security_config_mock, get_params_mock, build_exp_mock):
+    # Test that function works when is called with correct parameters
+    import status_params
+
+    security_params = {}
+    security_params['yarn-site'] = {}
+    security_params['yarn-site']['yarn.nodemanager.keytab'] = 'path/to/nodemanager/keytab'
+    security_params['yarn-site']['yarn.nodemanager.principal'] = 'nodemanager_principal'
+    security_params['yarn-site']['yarn.nodemanager.webapp.spnego-keytab-file'] = 'path/to/nodemanager/webapp/keytab'
+    security_params['yarn-site']['yarn.nodemanager.webapp.spnego-principal'] = 'nodemanager_webapp_principal'
+    result_issues = []
+    props_value_check = {"yarn.timeline-service.enabled": "true",
+                         "yarn.timeline-service.http-authentication.type": "kerberos",
+                         "yarn.acl.enable": "true"}
+    props_empty_check = ["yarn.nodemanager.principal",
+                         "yarn.nodemanager.keytab",
+                         "yarn.nodemanager.webapp.spnego-principal",
+                         "yarn.nodemanager.webapp.spnego-keytab-file"]
+
+    props_read_check = ["yarn.nodemanager.keytab",
+                        "yarn.nodemanager.webapp.spnego-keytab-file"]
+
+    get_params_mock.return_value = security_params
+    validate_security_config_mock.return_value = result_issues
+
+    self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
+                       classname="Nodemanager",
+                       command="security_status",
+                       config_file="secured.json"
+    )
+
+    build_exp_mock.assert_called_with('yarn-site', props_value_check, props_empty_check, props_read_check)
+    put_structured_out_mock.assert_called_with({"securityState": "SECURED_KERBEROS"})
+    self.assertTrue(cached_kinit_executor_mock.call_count, 2)
+    cached_kinit_executor_mock.assert_called_with(status_params.kinit_path_local,
+                              status_params.yarn_user,
+                              security_params['yarn-site']['yarn.nodemanager.webapp.spnego-keytab-file'],
+                              security_params['yarn-site']['yarn.nodemanager.webapp.spnego-principal'],
+                              status_params.hostname,
+                              status_params.tmp_dir,
+                              30)
+
+    # Testing that the exception throw by cached_executor is caught
+    cached_kinit_executor_mock.reset_mock()
+    cached_kinit_executor_mock.side_effect = Exception("Invalid command")
+
+    try:
+          self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
+                       classname="Nodemanager",
+                       command="security_status",
+                       config_file="secured.json"
+          )
+    except:
+      self.assertTrue(True)
+
+    # Testing with a security_params which doesn't contains yarn-site
+    empty_security_params = {}
+    cached_kinit_executor_mock.reset_mock()
+    get_params_mock.reset_mock()
+    put_structured_out_mock.reset_mock()
+    get_params_mock.return_value = empty_security_params
+
+    self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
+                       classname="Nodemanager",
+                       command="security_status",
+                       config_file="secured.json"
+    )
+    put_structured_out_mock.assert_called_with({"securityIssuesFound": "Keytab file or principal are not set property."})
+
+    # Testing with not empty result_issues
+    result_issues_with_params = {}
+    result_issues_with_params['yarn-site']="Something bad happened"
+
+    validate_security_config_mock.reset_mock()
+    get_params_mock.reset_mock()
+    validate_security_config_mock.return_value = result_issues_with_params
+    get_params_mock.return_value = security_params
+
+    self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
+                       classname="Nodemanager",
+                       command="security_status",
+                       config_file="secured.json"
+    )
+    put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
+
+    # Testing with security_enable = false
+    self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
+                       classname="Nodemanager",
+                       command="security_status",
+                       config_file="default.json"
+    )
+    put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
