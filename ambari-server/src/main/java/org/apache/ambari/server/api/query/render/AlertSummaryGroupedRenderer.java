@@ -53,12 +53,14 @@ import org.codehaus.jackson.annotate.JsonProperty;
  *         "CRITICAL": {
  *           "count": 1,
  *           "maintenance_count" : 1,
- *           "original_timestamp": 1415372992337
+ *           "original_timestamp": 1415372992337,
+ *           "latest_text" : "TCP Connection Failure"
  *         },
  *         "OK": {
  *           "count": 1,
  *           "maintenance_count" : 0,
- *           "original_timestamp": 1415372992337
+ *           "original_timestamp": 1415372992337,
+ *           "latest_text" : "TCP OK"
  *         },
  *         "UNKNOWN": {
  *           "count": 0,
@@ -134,6 +136,7 @@ public class AlertSummaryGroupedRenderer extends AlertSummaryRenderer {
       AlertState state = (AlertState) resource.getPropertyValue(AlertResourceProvider.ALERT_STATE);
       Long originalTimestampObject = (Long) resource.getPropertyValue(AlertResourceProvider.ALERT_ORIGINAL_TIMESTAMP);
       MaintenanceState maintenanceState = (MaintenanceState) resource.getPropertyValue(AlertResourceProvider.ALERT_MAINTENANCE_STATE);
+      String alertText = (String) resource.getPropertyValue(AlertResourceProvider.ALERT_TEXT);
 
       // NPE sanity
       if (null == state) {
@@ -192,9 +195,11 @@ public class AlertSummaryGroupedRenderer extends AlertSummaryRenderer {
         alertStateValues.Count++;
       }
 
-      // track the most recent timestamp if state change
+      // check to see if this alerts time is sooner; if so, keep track of it
+      // and of its text
       if (originalTimestamp > alertStateValues.Timestamp) {
         alertStateValues.Timestamp = originalTimestamp;
+        alertStateValues.AlertText = alertText;
       }
     }
 
@@ -230,6 +235,7 @@ public class AlertSummaryGroupedRenderer extends AlertSummaryRenderer {
     properties.add(AlertResourceProvider.ALERT_ID);
     properties.add(AlertResourceProvider.ALERT_DEFINITION_NAME);
     properties.add(AlertResourceProvider.ALERT_MAINTENANCE_STATE);
+    properties.add(AlertResourceProvider.ALERT_TEXT);
   }
 
   /**
@@ -237,14 +243,14 @@ public class AlertSummaryGroupedRenderer extends AlertSummaryRenderer {
    * track of each alert definition's summary information as the result set is
    * being iterated over.
    */
-  private final static class AlertDefinitionSummary {
+  public final static class AlertDefinitionSummary {
     @JsonProperty(value = "definition_id")
-    private long Id;
+    public long Id;
 
     @JsonProperty(value = "definition_name")
-    private String Name;
+    public String Name;
 
     @JsonProperty(value = "summary")
-    private final AlertStateSummary State = new AlertStateSummary();
+    public final AlertStateSummary State = new AlertStateSummary();
   }
 }

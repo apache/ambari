@@ -18,6 +18,7 @@
 package org.apache.ambari.server.api.query.render;
 
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 /**
  * The {@link AlertStateValues} class holds various information about an alert
@@ -42,4 +43,11 @@ public final class AlertStateValues {
    */
   @JsonProperty(value = "maintenance_count")
   public int MaintenanceCount = 0;
+
+  /**
+   * The most recently received text from any instance of the alert.
+   */
+  @JsonProperty(value = "latest_text")
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  public String AlertText = null;
 }
