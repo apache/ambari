@@ -83,7 +83,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     return {
       "YARN": self.recommendYARNConfigurations,
       "MAPREDUCE2": self.recommendMapReduce2Configurations,
-      "HDFS": self.recommendHDFSConfigurations
+      "HDFS": self.recommendHDFSConfigurations,
+      "HBASE": self.recommendHbaseEnvConfigurations
     }
 
   def putProperty(self, config, configType):
@@ -118,6 +119,11 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putHDFSProperty('namenode_opt_newsize', max(int(clusterData['totalAvailableRam'] / 8), 128))
     putHDFSProperty = self.putProperty(configurations, "hadoop-env")
     putHDFSProperty('namenode_opt_maxnewsize', max(int(clusterData['totalAvailableRam'] / 8), 256))
+
+  def recommendHbaseEnvConfigurations(self, configurations, clusterData, services, hosts):
+    putHbaseProperty = self.putProperty(configurations, "hbase-env")
+    putHbaseProperty('hbase_regionserver_heapsize', int(clusterData['hbaseRam']) * 1024)
+    putHbaseProperty('hbase_master_heapsize', int(clusterData['hbaseRam']) * 1024)
 
   def getConfigurationClusterSummary(self, servicesList, hosts, components):
 
@@ -221,7 +227,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     return {
       "HDFS": {"hadoop-env": self.validateHDFSConfigurationsEnv},
       "MAPREDUCE2": {"mapred-site": self.validateMapReduce2Configurations},
-      "YARN": {"yarn-site": self.validateYARNConfigurations}
+      "YARN": {"yarn-site": self.validateYARNConfigurations},
+      "HBASE": {"hbase-env": self.validateHbaseEnvConfigurations}
     }
 
   def validateServiceConfigurations(self, serviceName):
@@ -302,6 +309,11 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
                         {"config-name": 'yarn.scheduler.minimum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.minimum-allocation-mb')},
                         {"config-name": 'yarn.scheduler.maximum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.maximum-allocation-mb')} ]
     return self.toConfigurationValidationProblems(validationItems, "yarn-site")
+ 
+  def validateHbaseEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = [ {"config-name": 'hbase_regionserver_heapsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hbase_regionserver_heapsize')},
+                        {"config-name": 'hbase_master_heapsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hbase_master_heapsize')} ]
+    return self.toConfigurationValidationProblems(validationItems, "hbase-env")
 
   def validateHDFSConfigurationsEnv(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ {"config-name": 'namenode_heapsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_heapsize')},

@@ -576,6 +576,43 @@ class TestHDP22StackAdvisor(TestCase):
     }
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
+    
+  def test_recommendHbaseEnvConfigurations(self):
+    servicesList = ["HBASE"]
+    configurations = {}
+    components = []
+    hosts = {
+      "items" : [
+        {
+          "Hosts" : {
+            "cpu_count" : 6,
+            "total_mem" : 50331648,
+            "disk_info" : [
+              {"mountpoint" : "/"},
+              {"mountpoint" : "/dev/shm"},
+              {"mountpoint" : "/vagrant"},
+              {"mountpoint" : "/"},
+              {"mountpoint" : "/dev/shm"},
+              {"mountpoint" : "/vagrant"}
+            ]
+          }
+        }
+      ]
+    }
+    expected = {
+      "hbase-env": {
+        "properties": {
+          "hbase_master_heapsize": "8192",
+          "hbase_regionserver_heapsize": "8192",
+          }
+      }
+    }
+
+    clusterData = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components)
+    self.assertEquals(clusterData['hbaseRam'], 8)
+
+    self.stackAdvisor.recommendHbaseEnvConfigurations(configurations, clusterData, None, None)
+    self.assertEquals(configurations, expected)
 
   def test_recommendHDFSConfigurations(self):
     configurations = {}
