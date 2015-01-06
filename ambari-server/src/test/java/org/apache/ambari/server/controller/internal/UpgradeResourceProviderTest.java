@@ -49,6 +49,7 @@ import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
+import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -164,9 +165,11 @@ public class UpgradeResourceProviderTest {
     UpgradeEntity entity = upgrades.get(0);
     assertEquals(cluster.getClusterId(), entity.getClusterId().longValue());
 
-    assertEquals(4, entity.getUpgradeGroups().size());
+    List<UpgradeGroupEntity> upgradeGroups = entity.getUpgradeGroups();
+    assertEquals(4, upgradeGroups.size());
 
-    UpgradeGroupEntity group = entity.getUpgradeGroups().get(1);
+
+    UpgradeGroupEntity group = upgradeGroups.get(1);
     assertEquals(4, group.getItems().size());
 
     assertTrue(group.getItems().get(0).getText().contains("Preparing"));
@@ -189,6 +192,26 @@ public class UpgradeResourceProviderTest {
     // same number of tasks as stages here
     assertEquals(9, tasks.size());
 
+    Set<Long> slaveStageIds = new HashSet<Long>();
+
+    UpgradeGroupEntity coreSlavesGroup = upgradeGroups.get(2);
+
+    for (UpgradeItemEntity itemEntity : coreSlavesGroup.getItems()) {
+      slaveStageIds.add(itemEntity.getStageId());
+    }
+
+    for (Stage stage : stages) {
+
+      // For this test the core slaves group stages should be skippable and NOT allow retry.
+      assertEquals(slaveStageIds.contains(stage.getStageId()), stage.isSkippable());
+
+      for (Map<String, HostRoleCommand> taskMap : stage.getHostRoleCommands().values()) {
+
+        for (HostRoleCommand task : taskMap.values()) {
+          assertEquals(!slaveStageIds.contains(stage.getStageId()), task.isRetryAllowed());
+        }
+      }
+    }
     return status;
   }
 

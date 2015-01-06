@@ -53,6 +53,8 @@
       </service>
     </group>
     <group name="CORE_SLAVES" title="Core Slaves" xsi:type="colocated">
+      <skippable>true</skippable>      <!-- set skippable for test -->
+      <allow-retry>false</allow-retry> <!-- set no retry for test -->
       <service name="HDFS">
         <component>DATANODE</component>
       </service>

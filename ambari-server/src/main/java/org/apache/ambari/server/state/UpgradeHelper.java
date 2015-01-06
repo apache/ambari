@@ -84,6 +84,8 @@ public class UpgradeHelper {
       UpgradeGroupHolder groupHolder = new UpgradeGroupHolder();
       groupHolder.name = group.name;
       groupHolder.title = group.title;
+      groupHolder.skippable = group.skippable;
+      groupHolder.allowRetry = group.allowRetry;
 
       StageWrapperBuilder builder = group.getBuilder();
 
@@ -171,6 +173,17 @@ public class UpgradeHelper {
      * The title
      */
     public String title;
+
+    /**
+     * Indicate whether retry is allowed for the stages in this group.
+     */
+    public boolean allowRetry = true;
+
+    /**
+     * Indicates whether the stages in this group are skippable on failure.  If a
+     * stage is skippable, a failed result can be skipped without failing the entire upgrade.
+     */
+    public boolean skippable = false;
 
     /**
      * List of stages for the group

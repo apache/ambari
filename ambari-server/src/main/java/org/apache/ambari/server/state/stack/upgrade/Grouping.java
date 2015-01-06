@@ -44,6 +44,12 @@ public class Grouping {
   @XmlAttribute(name="title")
   public String title;
 
+  @XmlElement(name="skippable", defaultValue="false")
+  public boolean skippable = false;
+
+  @XmlElement(name="allow-retry", defaultValue="true")
+  public boolean allowRetry = true;
+
   @XmlElement(name="service")
   public List<UpgradePack.OrderService> services = new ArrayList<UpgradePack.OrderService>();
 

@@ -68,6 +68,7 @@
     </group>
 
     <group name="HIVE" title="Hive">
+      <skippable>true</skippable>
       <service name="HIVE">
         <component>HIVE_METASTORE</component>
         <component>HIVE_SERVER</component>
@@ -76,7 +77,8 @@
     </group>
 
     <group name="FALCON" title="Falcon">
-      <service name="Falcon">
+      <skippable>true</skippable>
+      <service name="FALCON">
         <component>FALCON_SERVER</component>
         <component>FALCON_CLIENT</component>
       </service>

@@ -93,12 +93,6 @@ import com.google.inject.Provider;
 @StaticallyInject
 public class UpgradeResourceProvider extends AbstractControllerResourceProvider {
 
-  /**
-   * Default failure retry/skip options for upgrades.
-   */
-  private static final boolean UPGRADE_DEFAULT_ALLOW_RETRY = true;
-  private static final boolean UPGRADE_DEFAULT_SKIPPABLE = true;
-
   protected static final String UPGRADE_CLUSTER_NAME = "Upgrade/cluster_name";
   protected static final String UPGRADE_VERSION = "Upgrade/repository_version";
   protected static final String UPGRADE_REQUEST_ID = "Upgrade/request_id";
@@ -386,6 +380,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       UpgradeGroupEntity groupEntity = new UpgradeGroupEntity();
       groupEntity.setName(group.name);
       groupEntity.setTitle(group.title);
+      boolean skippable = group.skippable;
+      boolean allowRetry = group.allowRetry;
 
       List<UpgradeItemEntity> itemEntities = new ArrayList<UpgradeItemEntity>();
 
@@ -405,7 +401,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
               injectVariables(configHelper, cluster, itemEntity);
 
-              makeServerSideStage(cluster, req, version, itemEntity, (ServerSideActionTask) task);
+              makeServerSideStage(cluster, req, version, itemEntity, (ServerSideActionTask) task, skippable, allowRetry);
             }
           }
         } else {
@@ -418,7 +414,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           injectVariables(configHelper, cluster, itemEntity);
 
           // upgrade items match a stage
-          createStage(cluster, req, version, itemEntity, wrapper);
+          createStage(cluster, req, version, itemEntity, wrapper, skippable, allowRetry);
         }
 
       }
@@ -456,17 +452,18 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   }
 
   private void createStage(Cluster cluster, RequestStageContainer request, final String version,
-      UpgradeItemEntity entity, StageWrapper wrapper) throws AmbariException {
+      UpgradeItemEntity entity, StageWrapper wrapper, boolean skippable, boolean allowRetry)
+      throws AmbariException {
 
     switch (wrapper.getType()) {
       case RESTART:
-        makeRestartStage(cluster, request, version, entity, wrapper);
+        makeRestartStage(cluster, request, version, entity, wrapper, skippable, allowRetry);
         break;
       case RU_TASKS:
-        makeActionStage(cluster, request, version, entity, wrapper);
+        makeActionStage(cluster, request, version, entity, wrapper, skippable, allowRetry);
         break;
       case SERVICE_CHECK:
-        makeServiceCheckStage(cluster, request, version, entity, wrapper);
+        makeServiceCheckStage(cluster, request, version, entity, wrapper, skippable, allowRetry);
         break;
       default:
         break;
@@ -475,7 +472,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   }
 
   private void makeActionStage(Cluster cluster, RequestStageContainer request, final String version,
-      UpgradeItemEntity entity, StageWrapper wrapper) throws AmbariException {
+                               UpgradeItemEntity entity, StageWrapper wrapper,
+                               boolean skippable, boolean allowRetry) throws AmbariException {
 
     if (0 == wrapper.getHosts().size()) {
       throw new AmbariException(
@@ -524,7 +522,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         jsons.getCommandParamsForStage(),
         jsons.getHostParamsForStage());
 
-    stage.setSkippable(UPGRADE_DEFAULT_SKIPPABLE);
+    stage.setSkippable(skippable);
 
     long stageId = request.getLastStageId() + 1;
     if (0L == stageId) {
@@ -535,7 +533,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     // !!! TODO verify the action is valid
 
-    actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, UPGRADE_DEFAULT_ALLOW_RETRY);
+    actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, allowRetry);
 
     // need to set meaningful text on the command
     for (Map<String, HostRoleCommand> map : stage.getHostRoleCommands().values()) {
@@ -548,7 +546,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   }
 
   private void makeRestartStage(Cluster cluster, RequestStageContainer request, final String version,
-      UpgradeItemEntity entity, StageWrapper wrapper) throws AmbariException {
+                                UpgradeItemEntity entity, StageWrapper wrapper,
+                                boolean skippable, boolean allowRetry) throws AmbariException {
 
     List<RequestResourceFilter> filters = new ArrayList<RequestResourceFilter>();
 
@@ -580,7 +579,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         jsons.getCommandParamsForStage(),
         jsons.getHostParamsForStage());
 
-    stage.setSkippable(UPGRADE_DEFAULT_SKIPPABLE);
+    stage.setSkippable(skippable);
 
     long stageId = request.getLastStageId() + 1;
     if (0L == stageId) {
@@ -594,13 +593,14 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     Map<String, String> requestParams = new HashMap<String, String>();
     requestParams.put("command", "RESTART");
 
-    commandExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, requestParams, UPGRADE_DEFAULT_ALLOW_RETRY);
+    commandExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, requestParams, allowRetry);
 
     request.addStages(Collections.singletonList(stage));
   }
 
   private void makeServiceCheckStage(Cluster cluster, RequestStageContainer request, String version,
-      UpgradeItemEntity entity, StageWrapper wrapper) throws AmbariException {
+                                     UpgradeItemEntity entity, StageWrapper wrapper,
+                                     boolean skippable, boolean allowRetry) throws AmbariException {
 
     List<RequestResourceFilter> filters = new ArrayList<RequestResourceFilter>();
 
@@ -629,7 +629,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         jsons.getCommandParamsForStage(),
         jsons.getHostParamsForStage());
 
-    stage.setSkippable(UPGRADE_DEFAULT_SKIPPABLE);
+    stage.setSkippable(skippable);
 
     long stageId = request.getLastStageId() + 1;
     if (0L == stageId) {
@@ -640,13 +640,14 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     Map<String, String> requestParams = new HashMap<String, String>();
 
-    commandExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, requestParams, UPGRADE_DEFAULT_ALLOW_RETRY);
+    commandExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, requestParams, allowRetry);
 
     request.addStages(Collections.singletonList(stage));
   }
 
   private void makeServerSideStage(Cluster cluster, RequestStageContainer request, String version,
-      UpgradeItemEntity entity, ServerSideActionTask task) throws AmbariException {
+                                   UpgradeItemEntity entity, ServerSideActionTask task,
+                                   boolean skippable, boolean allowRtery) throws AmbariException {
 
     Map<String, String> commandParams = new HashMap<String, String>();
     commandParams.put("clusterName", cluster.getClusterName());
@@ -690,7 +691,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         jsons.getCommandParamsForStage(),
         jsons.getHostParamsForStage());
 
-    stage.setSkippable(UPGRADE_DEFAULT_SKIPPABLE);
+    stage.setSkippable(skippable);
 
     long stageId = request.getLastStageId() + 1;
     if (0L == stageId) {
@@ -707,7 +708,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         RoleCommand.EXECUTE,
         cluster.getClusterName(), host,
         new ServiceComponentHostServerActionEvent(StageUtils.getHostName(), System.currentTimeMillis()),
-        commandParams, null, 1200, UPGRADE_DEFAULT_ALLOW_RETRY);
+        commandParams, null, 1200, allowRtery);
 
     request.addStages(Collections.singletonList(stage));
   }
