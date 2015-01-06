@@ -24,3 +24,13 @@ config = Script.get_config()
 
 pid_dir = config['configurations']['hbase-env']['hbase_pid_dir']
 hbase_user = config['configurations']['hbase-env']['hbase_user']
+
+# Security related/required params
+hostname = config['hostname']
+security_enabled = config['configurations']['cluster-env']['security_enabled']
+kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+tmp_dir = Script.get_tmp_dir()
+
+
+hbase_conf_dir_prefix = "/etc/hbase"
+hbase_conf_dir = format("{hbase_conf_dir_prefix}/conf")

@@ -91,9 +91,6 @@
               }
             }
           ]
-        },
-        {
-          "name": "HBASE_CLIENT"
         }
       ]
     }
