@@ -138,15 +138,20 @@ angular.module('ambariAdminConsole')
         if (data.length > 0) {
           var hostStatus = data[0].ClusterStackVersions.host_states;
           var currentHosts = hostStatus['CURRENT'].length;
+          var installedHosts = hostStatus['INSTALLED'].length;
           var totalHosts = 0;
+          // collect hosts on all status
           angular.forEach(hostStatus, function(status) {
             totalHosts += status.length;
           });
-          response.status = currentHosts > 0? 'current' : '';
+          response.status = currentHosts > 0? 'current' :
+                            installedHosts > 0? 'installed' : '';
           response.currentHosts = currentHosts;
+          response.installedHosts = installedHosts;
           response.totalHosts = totalHosts;
+          response.stackVersionId = data[0].ClusterStackVersions.id;
         } else {
-          response.repoState = '';
+          response.status = '';
         }
         deferred.resolve(response);
       })

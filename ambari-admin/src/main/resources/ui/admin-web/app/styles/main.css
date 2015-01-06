@@ -1291,12 +1291,15 @@ accordion .panel-group .panel{
 
 .repo-version-inline .bold-dot {
   font-weight: bold;
-  padding-right: 4px;
+  padding-right: 15px;
 }
 
-.status-current
-{
+.status-current {
   background-color: green;
+}
+
+.status-installed {
+  background-color: orangered;
 }
 
 .repo-version-select {
@@ -1305,4 +1308,8 @@ accordion .panel-group .panel{
 
 .repo-version-left {
   text-align: right;
+}
+
+.name-label-adjust {
+  width: 20.7%;
 }

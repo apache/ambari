@@ -51,7 +51,7 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.goToCluster = function() {
-    window.location.replace('/#/main/admin/versions/updates');
+    window.location.replace('/#/main/admin/versions/' + this.repo.id);
   };
 
   $scope.clearFilters = function () {
@@ -60,14 +60,16 @@ angular.module('ambariAdminConsole')
     $scope.resetPagination();
   };
 
-  $scope.fetchRepoClusterStatus = function (repos) {
+  $scope.fetchRepoClusterStatus = function () {
     var clusterName = $scope.clusters[0].Clusters.cluster_name; // only support one cluster at the moment
-    angular.forEach(repos, function (repo) {
+    angular.forEach($scope.repos, function (repo) {
       Cluster.getRepoVersionStatus(clusterName, repo.id).then(function (response) {
         repo.status = response.status;
         repo.totalHosts = response.totalHosts;
         repo.currentHosts = response.currentHosts;
-        repo.cluster = response.status == 'current'? clusterName : '';
+        repo.installedHosts = response.installedHosts;
+        repo.stackVersionId = response.stackVersionId;
+        repo.cluster = (repo.status == 'current' || repo.status == 'installed')? clusterName : '';
       });
     });
   };
@@ -90,7 +92,7 @@ angular.module('ambariAdminConsole')
       $scope.repos = repos;
       $scope.tableInfo.total = stacks.length;
       $scope.tableInfo.showed = stacks.length;
-      $scope.fetchRepoClusterStatus($scope.repos);
+      $scope.fetchRepoClusterStatus();
     });
   };
 

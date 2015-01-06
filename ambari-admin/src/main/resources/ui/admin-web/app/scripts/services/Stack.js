@@ -61,11 +61,13 @@ angular.module('ambariAdminConsole')
             var stack_name = version.Versions.stack_name;
             var stack_version = version.Versions.stack_version;
             var upgrade_packs = version.Versions.upgrade_packs;
+            var active = version.Versions.active;
             allStackVersions.push({
               stack_name: stack_name,
               stack_version: stack_version,
               displayName: stack_name + '-' + stack_version,
-              upgrade_packs: upgrade_packs
+              upgrade_packs: upgrade_packs,
+              active: active
             });
           });
         });
@@ -81,7 +83,7 @@ angular.module('ambariAdminConsole')
       var versionFilter = filter.version;
       var url = '/stacks?fields=versions/repository_versions/RepositoryVersions';
       if (versionFilter) {
-        url += '&versions/repository_versions/RepositoryVersions/repository_version.matches(.*' + versionFilter + '.*)';
+        url += '&versions/repository_versions/RepositoryVersions/display_name.matches(.*' + versionFilter + '.*)';
       }
       url += '&from='+ (pagination.currentPage - 1) * pagination.itemsPerPage;
       url += '&page_size=' + pagination.itemsPerPage;

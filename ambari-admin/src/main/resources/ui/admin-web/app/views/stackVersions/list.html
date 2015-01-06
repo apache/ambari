@@ -50,11 +50,10 @@
     <tbody>
     <tr ng-repeat="repo in repos">
       <td class="col-medium">
-        <a href="#/stackVersions/{{repo.stack_name}}/{{repo.repository_version}}/edit">{{repo.stack_name + '-' + repo.repository_version}}</a>
+        <a href="#/stackVersions/{{repo.stack_name}}/{{repo.repository_version}}/edit">{{repo.display_name}}</a>
       </td>
       <td class="col-small">
-        <a href ng-show="repo.cluster">
-          <i class="glyphicon glyphicon-cloud"></i>
+        <a href="/#/main/admin/versions/{{repo.stackVersionId}}" ng-show="repo.cluster">
           {{repo.cluster}}
         </a>
         <select ng-show="!repo.cluster"
@@ -66,6 +65,9 @@
       <td>
         <div ng-show="repo.status == 'current'">
           <span class="label {{'status-' + repo.status}}">Current:&nbsp;{{repo.currentHosts}}/{{repo.totalHosts}}</span>
+        </div>
+        <div ng-show="repo.status == 'installed'">
+          <span class="label {{'status-' + repo.status}}">Installed:&nbsp;{{repo.installedHosts}}/{{repo.totalHosts}}</span>
         </div>
       </td>
     </tr>
