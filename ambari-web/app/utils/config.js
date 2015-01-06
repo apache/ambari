@@ -826,7 +826,7 @@ App.config = Em.Object.create({
     if (data.items.length) {
       data.items.forEach(function (item) {
         item.StackLevelConfigurations.property_type = item.StackConfigurations.property_type || [];
-        item.StackLevelConfigurations.service_name = 'Cluster';
+        item.StackLevelConfigurations.service_name = 'MISC';
         var property = this.createAdvancedPropertyObject(item.StackLevelConfigurations);
         if (property) properties.push(property);
       }, this);
@@ -936,7 +936,7 @@ App.config = Em.Object.create({
      * HDP stack version is 1.x
      */
     if (fileName == 'mapred-queue-acls.xml') return false;
-    item.isVisible = true;
+    item.isVisible = fileName != 'cluster-env.xml';
     var property = {
       serviceName: serviceName,
       name: item.property_name,
@@ -973,7 +973,7 @@ App.config = Em.Object.create({
       propertyData.displayName = App.format.normalizeName(config.property_name);
       propertyData.displayType = 'user';
       if (config.service_name) {
-        var propertyIndex = config.service_name == 'Cluster' ? 30 : App.StackService.find().mapProperty('serviceName').indexOf(config.service_name);
+        var propertyIndex = config.service_name == 'MISC' ? 30 : App.StackService.find().mapProperty('serviceName').indexOf(config.service_name);
         propertyData.belongsToService = [config.service_name];
         propertyData.index = propertyIndex;
       } else {

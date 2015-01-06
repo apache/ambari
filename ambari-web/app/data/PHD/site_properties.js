@@ -1807,44 +1807,6 @@ module.exports =
       "filename": "hadoop-env.xml",
       "category": "Advanced hadoop-env"
     },
-    {
-      "id": "puppet var",
-      "name": "security_enabled",
-      "displayName": "Hadoop Security",
-      "description": "Enable hadoop security",
-      "defaultValue": 'false',
-      "isRequired": false,
-      "displayType": "checkbox",
-      "isOverridable": false,
-      "isVisible": false,
-      "serviceName": "MISC",
-      "filename": "cluster-env.xml"
-    },
-    {
-      "id": "puppet var",
-      "name": "kerberos_domain",
-      "displayName": "Kerberos realm",
-      "description": "Kerberos realm",
-      "defaultValue": 'EXAMPLE.COM',
-      "isRequired": false,
-      "isOverridable": false,
-      "isVisible": false,
-      "serviceName": "MISC",
-      "filename": "cluster-env.xml"
-    },
-    {
-      "id": "puppet var",
-      "name": "rpm_version",
-      "displayName": "Hadoop RPM version",
-      "description": "Hadoop RPM version",
-      "defaultValue": '',
-      "isRequired": true,
-      "isOverridable": false,
-      "isVisible": false,
-      "isEditable": false,
-      "serviceName": "MISC",
-      "filename": "cluster-env.xml"
-    },
 
   /**********************************************MAPREDUCE2***************************************/
     {
@@ -3639,21 +3601,6 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "smokeuser",
-      "displayName": "Smoke Test User",
-      "description": "The user used to run service smoke tests",
-      "defaultValue": "ambari-qa",
-      "isReconfigurable": false,
-      "displayType": "user",
-      "isOverridable": false,
-      "isVisible": App.supports.customizeSmokeTestUser,
-      "serviceName": "MISC",
-      "filename": "cluster-env.xml",
-      "category": "Users and Groups",
-      "index": 16
-    },
-    {
-      "id": "puppet var",
       "name": "tez_user",
       "displayName": "Tez User",
       "description": "User to run Tez as",
@@ -3667,21 +3614,6 @@ module.exports =
       "category": "Users and Groups",
       "belongsToService": ["TEZ"],
       "index": 15
-    },
-    {
-      "id": "puppet var",
-      "name": "user_group",
-      "displayName": "Hadoop Group",
-      "description": "Group that the users specified above belong to",
-      "defaultValue": "hadoop",
-      "isReconfigurable": false,
-      "displayType": "user",
-      "isOverridable": false,
-      "isVisible": true,
-      "serviceName": "MISC",
-      "filename": "cluster-env.xml",
-      "category": "Users and Groups",
-      "index": 17
     },
     {
       "id": "puppet var",
@@ -3720,7 +3652,6 @@ module.exports =
       "isReconfigurable": true,
       "isOverridable": false,
       "isVisible": true,
-      "serviceName": "MISC",
       "filename": "cluster-env.xml",
       "category": "Users and Groups"
     }

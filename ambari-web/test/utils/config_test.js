@@ -642,6 +642,32 @@ describe('App.config', function () {
           {
             key: 'displayType',
             e: 'password'
+          },
+          {
+            key: 'isVisible',
+            e: true
+          }
+        ]
+      },
+      {
+        name: 'ignore_groupsusers_create',
+        cases: [
+          {
+            key: 'isVisible',
+            e: false
+          }
+        ]
+      },
+      {
+        name: 'user_group',
+        cases: [
+          {
+            key: 'isVisible',
+            e: true
+          },
+          {
+            key: 'index',
+            e: 30
           }
         ]
       }
@@ -651,7 +677,16 @@ describe('App.config', function () {
     modelSetup.advancedConfigs.items.forEach(function(item) {
       properties.push(App.config.createAdvancedPropertyObject(item.StackConfigurations));
     });
-    
+    App.config.loadClusterConfigSuccess(modelSetup.advancedClusterConfigs, {url: '/cluster/configurations'}, {callback: function (items) {properties = properties.concat(items)}});
+
+    beforeEach(function () {
+      sinon.stub(App, 'get').withArgs('isHadoopWindowsStack').returns(false);
+    });
+
+    afterEach(function () {
+      App.get.restore();
+    });
+
     tests.forEach(function(test) {
       test.cases.forEach(function(testCase) {
         it('config property `{0}` `{1}` key should be`{2}`'.format(test.name, testCase.key, testCase.e), function() {
