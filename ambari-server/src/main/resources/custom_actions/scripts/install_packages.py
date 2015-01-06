@@ -131,7 +131,7 @@ class InstallPackages(Script):
     else:
       repo['mirrorsList'] = url_info['mirrorsList']
 
-    ubuntu_components = [url_info['repositoryId']] + self.UBUNTU_REPO_COMPONENTS_POSTFIX
+    ubuntu_components = [url_info['name']] + self.UBUNTU_REPO_COMPONENTS_POSTFIX
     file_name = self.REPO_FILE_NAME_PREFIX + repository_version
 
     Repository(repo['repoName'],
