@@ -29,7 +29,8 @@ public class KerberosPrincipalDescriptorTest {
   public static final String JSON_VALUE =
       "{" +
           "\"value\": \"service/_HOST@_REALM\"," +
-          "\"configuration\": \"service-site/service.component.kerberos.principal\"" +
+          "\"configuration\": \"service-site/service.component.kerberos.principal\"," +
+          "\"local_username\": \"localUser\"" +
           "}";
 
   public static final Map<String, Object> MAP_VALUE =
@@ -37,6 +38,7 @@ public class KerberosPrincipalDescriptorTest {
         {
           put("value", "HTTP/_HOST@_REALM");
           put("configuration", "service-site/service.component.kerberos.https.principal");
+          put("local_username", null);
         }
       };
 
@@ -45,6 +47,7 @@ public class KerberosPrincipalDescriptorTest {
     Assert.assertFalse(principalDescriptor.isContainer());
     Assert.assertEquals("service/_HOST@_REALM", principalDescriptor.getValue());
     Assert.assertEquals("service-site/service.component.kerberos.principal", principalDescriptor.getConfiguration());
+    Assert.assertEquals("localUser", principalDescriptor.getLocalUsername());
   }
 
   public static void validateFromMap(KerberosPrincipalDescriptor principalDescriptor) {
@@ -52,12 +55,14 @@ public class KerberosPrincipalDescriptorTest {
     Assert.assertFalse(principalDescriptor.isContainer());
     Assert.assertEquals("HTTP/_HOST@_REALM", principalDescriptor.getValue());
     Assert.assertEquals("service-site/service.component.kerberos.https.principal", principalDescriptor.getConfiguration());
+    Assert.assertNull(principalDescriptor.getLocalUsername());
   }
 
   public static void validateUpdatedData(KerberosPrincipalDescriptor principalDescriptor) {
     Assert.assertNotNull(principalDescriptor);
     Assert.assertEquals("HTTP/_HOST@_REALM", principalDescriptor.getValue());
     Assert.assertEquals("service-site/service.component.kerberos.https.principal", principalDescriptor.getConfiguration());
+    Assert.assertEquals("localUser", principalDescriptor.getLocalUsername());
   }
 
   private static KerberosPrincipalDescriptor createFromJSON() {

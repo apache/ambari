@@ -13,7 +13,8 @@
           "name": "hbase",
           "principal": {
             "value": "${hbase-env/hbase_user}@${realm}",
-            "configuration": "hbase-env/hbase_principal_name"
+            "configuration": "hbase-env/hbase_principal_name",
+            "local_username": "${hbase-env/hbase_user}"
           },
           "keytab": {
             "file": "${keytab_dir}/hbase.headless.keytab",
@@ -48,7 +49,8 @@
               "name": "hbase_master_hbase",
               "principal": {
                 "value": "hbase/_HOST@${realm}",
-                "configuration": "hbase-site/hbase.master.kerberos.principal"
+                "configuration": "hbase-site/hbase.master.kerberos.principal",
+                "local_username": "${hbase-env/hbase_user}"
               },
               "keytab": {
                 "file": "${keytab_dir}/hbase.service.keytab",
@@ -72,7 +74,8 @@
               "name": "hbase_regionserver_hbase",
               "principal": {
                 "value": "hbase/_HOST@${realm}",
-                "configuration": "hbase-site/hbase.regionserver.kerberos.principal"
+                "configuration": "hbase-site/hbase.regionserver.kerberos.principal",
+                "local_username": "${hbase-env/hbase_user}"
               },
               "keytab": {
                 "file": "${keytab_dir}/hbase.service.keytab",

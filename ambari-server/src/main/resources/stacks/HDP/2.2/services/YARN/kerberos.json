@@ -30,7 +30,8 @@
               "name": "nodemanager_nm",
               "principal": {
                 "value": "nm/_HOST@${realm}",
-                "configuration": "yarn-site/yarn.nodemanager.principal"
+                "configuration": "yarn-site/yarn.nodemanager.principal",
+                "local_username": "${yarn-env/yarn_user}"
               },
               "keytab": {
                 "file": "${keytab_dir}/nm.service.keytab",
@@ -85,7 +86,8 @@
               "name": "resource_manager_rm",
               "principal": {
                 "value": "rm/_HOST@${realm}",
-                "configuration": "yarn-site/yarn.resourcemanager.principal"
+                "configuration": "yarn-site/yarn.resourcemanager.principal",
+                "local_username": "${yarn-env/yarn_user}"
               },
               "keytab": {
                 "file": "${keytab_dir}/rm.service.keytab",
@@ -135,7 +137,8 @@
               "name": "app_timeline_server_yarn",
               "principal": {
                 "value": "yarn/_HOST@${realm}",
-                "configuration": "yarn-site/yarn.timeline-service.principal"
+                "configuration": "yarn-site/yarn.timeline-service.principal",
+                "local_username": "${yarn-env/yarn_user}"
               },
               "keytab": {
                 "file": "${keytab_dir}/yarn.service.keytab",
@@ -201,7 +204,8 @@
               "name": "history_server_jhs",
               "principal": {
                 "value": "jhs/_HOST@${realm}",
-                "configuration": "mapred-site/mapreduce.jobhistory.principal"
+                "configuration": "mapred-site/mapreduce.jobhistory.principal",
+                "local_username": "${mapred-env/mapred_user}"
               },
               "keytab": {
                 "file": "${keytab_dir}/jhs.service.keytab",

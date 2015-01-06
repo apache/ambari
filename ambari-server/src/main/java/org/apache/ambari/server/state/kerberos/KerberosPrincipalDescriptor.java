@@ -47,6 +47,10 @@ import java.util.Map;
  *          "description": "The configuration type and property name indicating the property to be
  *                          updated with the generated principal - format: config-type/property.name",
  *          "type": "string"
+ *        },
+ *        "local_username": {
+ *          "description": "The local username this principal maps to - optional if no mapping is needed",
+ *          "type": "string"
  *        }
  *      }
  *   }
@@ -73,6 +77,14 @@ public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
   private String configuration;
 
   /**
+   * a String indicating the local username related to this principal, or null of no local mapping is
+   * needed or available.
+   * <p/>
+   * This value may be using in generating auth_to_local configuration settings.
+   */
+  private String localUsername;
+
+  /**
    * Creates a new KerberosPrincipalDescriptor
    * <p/>
    * See {@link org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor} for the JSON
@@ -87,6 +99,8 @@ public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
     setName(getStringValue(data, "value"));
 
     setConfiguration(getStringValue(data, "configuration"));
+
+    setLocalUsername(getStringValue(data, "local_username"));
   }
 
   /**
@@ -143,6 +157,26 @@ public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
   }
 
   /**
+   * Gets the local username associated with this principal
+   *
+   * @return a String indicating the local username related to this principal, or null of not local
+   * mapping is needed/available
+   */
+  public String getLocalUsername() {
+    return localUsername;
+  }
+
+  /**
+   * Sets the local username associated with this principal
+   *
+   * @param localUsername a String indicating the local username related to this principal, or null
+   *                      of no local mapping is needed/available
+   */
+  public void setLocalUsername(String localUsername) {
+    this.localUsername = localUsername;
+  }
+
+  /**
    * Updates this KerberosPrincipalDescriptor with data from another KerberosPrincipalDescriptor
    * <p/>
    * Properties will be updated if the relevant updated values are not null.
@@ -162,6 +196,11 @@ public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
       if (updatedValue != null) {
         setConfiguration(updatedValue);
       }
+
+      updatedValue = updates.getLocalUsername();
+      if (updatedValue != null) {
+        setLocalUsername(updatedValue);
+      }
     }
   }
 
@@ -179,6 +218,7 @@ public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
 
     map.put("value", getValue());
     map.put("configuration", getConfiguration());
+    map.put("local_username", getLocalUsername());
 
     return map;
   }

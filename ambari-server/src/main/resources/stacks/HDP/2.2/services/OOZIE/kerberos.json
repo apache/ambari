@@ -20,7 +20,7 @@
             "oozie.service.AuthorizationService.authorization.enabled": "true",
             "oozie.service.HadoopAccessorService.kerberos.enabled": "true",
             "local.realm": "${realm}",
-            "oozie.authentication.kerberos.name.rules": "RULE:[2:$1@$0]([jt]t@.*${realm})s/.*/mapred/\nRULE:[2:$1@$0]([nd]n@.*${realm})s/.*/hdfs/\nRULE:[2:$1@$0](hm@.*${realm})s/.*/hbase/\nRULE:[2:$1@$0](rs@.*${realm})s/.*/hbase/\nDEFAULT"
+            "oozie.authentication.kerberos.name.rules": "_AUTH_TO_LOCAL_RULES"
           }
         }
       ],
@@ -32,7 +32,8 @@
               "name": "oozie_server",
               "principal": {
                 "value": "oozie/_HOST@${realm}",
-                "configuration": "oozie-site/oozie.service.HadoopAccessorService.kerberos.principal"
+                "configuration": "oozie-site/oozie.service.HadoopAccessorService.kerberos.principal",
+                "local_username" : "${oozie-env/oozie_user}"
               },
               "keytab": {
                 "file": "${keytab_dir}/oozie.service.keytab",

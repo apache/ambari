@@ -30,7 +30,8 @@
               "name": "falcon_server",
               "principal": {
                 "value": "falcon/${host}@${realm}",
-                "configuration": "falcon-startup.properties/*.falcon.service.authentication.kerberos.principal"
+                "configuration": "falcon-startup.properties/*.falcon.service.authentication.kerberos.principal",
+                "local_username" : "${falcon-env/falcon_user}"
               },
               "keytab": {
                 "file": "${keytab_dir}/falcon.service.keytab",

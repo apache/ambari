@@ -62,7 +62,9 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -252,6 +254,7 @@ public class KerberosHelper {
         KerberosActionDataFileBuilder kerberosActionDataFileBuilder = null;
         Map<String, String> kerberosDescriptorProperties = kerberosDescriptor.getProperties();
         Map<String, Map<String, String>> kerberosConfigurations = new HashMap<String, Map<String, String>>();
+        AuthToLocalBuilder authToLocalBuilder = new AuthToLocalBuilder();
 
         // Create a temporary directory to store metadata needed to complete this task.  Information
         // such as which principals and keytabs files to create as well as what configurations need
@@ -268,9 +271,6 @@ public class KerberosHelper {
 
         // Create the file used to store details about principals and keytabs to create
         indexFile = new File(dataDirectory, KerberosActionDataFile.DATA_FILE_NAME);
-
-        // host names that would be passed in request resource filters while creating stage for pushing keytabs
-        List<String>  updateHosts = new ArrayList<String>();
 
         try {
           // Iterate over the hosts in the cluster to find the components installed in each.  For each
@@ -324,9 +324,12 @@ public class KerberosHelper {
 
                   if (serviceDescriptor != null) {
                     KerberosComponentDescriptor componentDescriptor = serviceDescriptor.getComponent(sch.getServiceComponentName());
+                    List<KerberosIdentityDescriptor> serviceIdentities = serviceDescriptor.getIdentities(true);
 
                     if (componentDescriptor != null) {
+                      List<KerberosIdentityDescriptor> componentIdentities = componentDescriptor.getIdentities(true);
                       int identitiesAdded = 0;
+
                       // Test to see if this component should be process by querying the handler
                       if (handler.shouldProcess(desiredSecurityState, sch)) {
                         // Calculate the set of configurations to update and replace any variables
@@ -341,20 +344,23 @@ public class KerberosHelper {
 
                         // Add service-level principals (and keytabs)
                         identitiesAdded += addIdentities(kerberosActionDataFileBuilder,
-                            serviceDescriptor.getIdentities(true), sch, configurations);
+                            serviceIdentities, sch, configurations);
 
                         // Add component-level principals (and keytabs)
                         identitiesAdded += addIdentities(kerberosActionDataFileBuilder,
-                            componentDescriptor.getIdentities(true), sch, configurations);
-
-                        // add host to updateHosts that would be passed in request resource filters 
-                        updateHosts.add(sch.getHostName());
+                            componentIdentities, sch, configurations);
 
                         if (identitiesAdded > 0) {
                           serviceComponentHostsToProcess.add(sch);
                         }
                       }
+
+                      // Add component-level principals to auth_to_local builder
+                      addIdentities(authToLocalBuilder, componentIdentities, configurations);
                     }
+
+                    // Add service-level principals to auth_to_local builder
+                    addIdentities(authToLocalBuilder, serviceIdentities, configurations);
                   }
                 }
               }
@@ -387,6 +393,21 @@ public class KerberosHelper {
             }
             throw new AmbariException("Missing KDC administrator credentials");
           }
+
+          // Determine if the any auth_to_local configurations need to be set dynamically
+          // Lazily create the auth_to_local rules
+          String authToLocal = null;
+          for(Map<String, String> configuration: kerberosConfigurations.values()) {
+            for(Map.Entry<String,String> entry: configuration.entrySet()) {
+              if("_AUTH_TO_LOCAL_RULES".equals(entry.getValue())) {
+                if (authToLocal == null) {
+                  authToLocal = authToLocalBuilder.generate(realm);
+                }
+
+                entry.setValue(authToLocal);
+              }
+            }
+          }
         }
 
         // Always set up the necessary stages to perform the tasks needed to complete the operation.
@@ -415,7 +436,7 @@ public class KerberosHelper {
         // Use the handler implementation to setup the relevant stages.
         int lastStageId = handler.createStages(cluster, hosts, kerberosConfigurations,
             clusterHostInfoJson, hostParamsJson, event, roleCommandOrder, realm, kdcType.toString(),
-            dataDirectory, requestStageContainer, updateHosts);
+            dataDirectory, requestStageContainer, serviceComponentHostsToProcess);
 
         // Add the cleanup stage...
 
@@ -584,8 +605,7 @@ public class KerberosHelper {
    * @throws java.io.IOException if an error occurs while writing a record to the data file
    */
   private int addIdentities(KerberosActionDataFileBuilder kerberosActionDataFileBuilder,
-                            List<KerberosIdentityDescriptor> identities,
-                            ServiceComponentHost sch,
+                            List<KerberosIdentityDescriptor> identities, ServiceComponentHost sch,
                             Map<String, Map<String, String>> configurations) throws IOException {
     int identitiesAdded = 0;
 
@@ -618,6 +638,7 @@ public class KerberosHelper {
             keytabFileConfiguration = KerberosDescriptor.replaceVariables(keytabDescriptor.getConfiguration(), configurations);
           }
 
+          // Append an entry to the action data file builder...
           kerberosActionDataFileBuilder.addRecord(sch.getHostName(),
               sch.getServiceName(),
               sch.getServiceComponentName(),
@@ -636,6 +657,30 @@ public class KerberosHelper {
     }
 
     return identitiesAdded;
+  }
+
+  /**
+   * Adds identities to the AuthToLocalBuilder.
+   *
+   * @param authToLocalBuilder the AuthToLocalBuilder to use to build the auth_to_local mapping
+   * @param identities         a List of KerberosIdentityDescriptors to process
+   * @param configurations     a Map of configurations to use a replacements for variables
+   *                           in identity fields
+   * @throws org.apache.ambari.server.AmbariException
+   */
+  private void addIdentities(AuthToLocalBuilder authToLocalBuilder,
+                             List<KerberosIdentityDescriptor> identities,
+                             Map<String, Map<String, String>> configurations) throws AmbariException {
+    if (identities != null) {
+      for (KerberosIdentityDescriptor identity : identities) {
+        KerberosPrincipalDescriptor principalDescriptor = identity.getPrincipalDescriptor();
+        if (principalDescriptor != null) {
+          authToLocalBuilder.append(
+              KerberosDescriptor.replaceVariables(principalDescriptor.getValue(), configurations),
+              KerberosDescriptor.replaceVariables(principalDescriptor.getLocalUsername(), configurations));
+        }
+      }
+    }
   }
 
   /**
@@ -803,6 +848,26 @@ public class KerberosHelper {
   }
 
   /**
+   * Given a Collection of ServiceComponentHosts generates a unique list of hosts.
+   *
+   * @param serviceComponentHosts a Collection of ServiceComponentHosts from which to to retrieve host names
+   * @return a List of (unique) host names
+   */
+  private List<String> createUniqueHostList(Collection<ServiceComponentHost> serviceComponentHosts) {
+    Set<String> hostNames = new HashSet<String>();
+
+    if (serviceComponentHosts != null) {
+
+      for (ServiceComponentHost sch : serviceComponentHosts) {
+        hostNames.add(sch.getHostName());
+      }
+    }
+
+    return new ArrayList<String>(hostNames);
+  }
+
+
+  /**
    * Handler is an interface that needs to be implemented by toggle handler classes to do the
    * "right" thing for the task at hand.
    */
@@ -862,7 +927,7 @@ public class KerberosHelper {
      * @param dataDirectory          a File pointing to the (temporary) data directory
      * @param requestStageContainer  a RequestStageContainer to store the new stages in, if null a
      *                               new RequestStageContainer will be created
-     * @param updateHosts  host names that would be passed in request resource filters while creating stage for pushing keytabs
+     * @param serviceComponentHosts  a List of ServiceComponentHosts that needs to be updated as part of this operation
      * @return the last stage id generated, or -1 if no stages were created
      * @throws AmbariException if an error occurs while creating the relevant stages
      */
@@ -873,7 +938,7 @@ public class KerberosHelper {
                      RoleCommandOrder roleCommandOrder,
                      String realm, String kdcType, File dataDirectory,
                      RequestStageContainer requestStageContainer,
-                     List<String> updateHosts)
+                     List<ServiceComponentHost> serviceComponentHosts)
         throws AmbariException;
 
   }
@@ -929,7 +994,8 @@ public class KerberosHelper {
                             ServiceComponentHostServerActionEvent event,
                             RoleCommandOrder roleCommandOrder, String realm, String kdcType,
                             File dataDirectory, RequestStageContainer requestStageContainer,
-                            List<String> updateHosts) throws AmbariException {
+                            List<ServiceComponentHost> serviceComponentHosts)
+        throws AmbariException {
       // If there are principals, keytabs, and configurations to process, setup the following sages:
       //  1) generate principals
       //  2) generate keytab files
@@ -1038,10 +1104,11 @@ public class KerberosHelper {
           StageUtils.getGson().toJson(commandParameters),
           hostParamsJson);
 
-      if (!updateHosts.isEmpty()) {
+      if (!serviceComponentHosts.isEmpty()) {
+        List<String> hostsToUpdate = createUniqueHostList(serviceComponentHosts);
         Map<String, String> requestParams = new HashMap<String, String>();
         List<RequestResourceFilter> requestResourceFilters = new ArrayList<RequestResourceFilter>();
-        RequestResourceFilter reqResFilter = new RequestResourceFilter("KERBEROS", "KERBEROS_CLIENT", updateHosts);
+        RequestResourceFilter reqResFilter = new RequestResourceFilter("KERBEROS", "KERBEROS_CLIENT", hostsToUpdate);
         requestResourceFilters.add(reqResFilter);
 
         ActionExecutionContext actionExecContext = new ActionExecutionContext(
@@ -1078,7 +1145,6 @@ public class KerberosHelper {
     }
 
   }
-
 
   /**
    * DisableKerberosHandler is an implementation of the Handler interface used to disable Kerberos
@@ -1130,7 +1196,7 @@ public class KerberosHelper {
                             ServiceComponentHostServerActionEvent event,
                             RoleCommandOrder roleCommandOrder, String realm, String kdcType,
                             File dataDirectory, RequestStageContainer requestStageContainer,
-                            List<String> updateHosts) {
+                            List<ServiceComponentHost> serviceComponentHosts) {
       // TODO (rlevas): If there are principals, keytabs, and configurations to process, setup the following sages:
       //  1) remove principals
       //  2) remove keytab files
