@@ -298,7 +298,10 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       App.ajax.send({
         name: "admin.rolling_upgrade.pre_upgrade_check",
         sender: this,
-        data: version,
+        data: {
+          version: version.value,
+          label: version.label
+        },
         success: "runPreUpgradeCheckSuccess"
       });
     } else {

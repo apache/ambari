@@ -1379,7 +1379,7 @@ var urls = {
     'mock': ''
   },
   'admin.rolling_upgrade.pre_upgrade_check': {
-    'real': '/clusters/{clusterName}/rolling_upgrades_check?fields=*',
+    'real': '/clusters/{clusterName}/rolling_upgrades_check?fields=*&UpgradeChecks/repository_version={version}',
     'mock': '/data/stack_versions/pre_upgrade_check.json'
   },
 

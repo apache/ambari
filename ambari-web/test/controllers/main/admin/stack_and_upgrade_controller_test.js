@@ -238,8 +238,19 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       App.ajax.send.restore();
     });
     it("make ajax call", function() {
-      controller.runPreUpgradeCheck("2.2.1");
-      expect(App.ajax.send.calledOnce).to.be.true;
+      controller.runPreUpgradeCheck({
+        value: '2.2',
+        label: 'HDP-2.2'
+      });
+      expect(App.ajax.send.getCall(0).args[0]).to.eql({
+        name: "admin.rolling_upgrade.pre_upgrade_check",
+        sender: controller,
+        data: {
+          version: '2.2',
+          label: 'HDP-2.2'
+        },
+        success: "runPreUpgradeCheckSuccess"
+      });
     });
   });
 
