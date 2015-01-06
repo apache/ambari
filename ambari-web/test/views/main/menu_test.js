@@ -24,17 +24,13 @@ var mainMenuView = App.MainMenuView.create();
 describe('App.MainMenuView', function () {
 
   describe('#content', function () {
-    var supportsMirroring;
     beforeEach(function () {
-      supportsMirroring = Em.get('App.supports.mirroring');
-      Em.set('App.supports.mirroring', false);
       this.mock = sinon.stub(App, 'get');
       sinon.stub(App.router, 'get')
         .withArgs('clusterController.isLoaded').returns(true)
         .withArgs('loggedIn').returns(true);
     });
     afterEach(function () {
-      Em.set('App.supports.mirroring', supportsMirroring);
       this.mock.restore();
       App.router.get.restore();
     });
