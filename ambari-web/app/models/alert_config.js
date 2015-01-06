@@ -355,7 +355,7 @@ App.AlertConfigProperties = {
     valueWasChanged: function () {
       var displayValue = this.get('displayValue');
       var newDisplayValue = this.getNewValue();
-      if (newDisplayValue != displayValue) {
+      if (Math.abs(newDisplayValue - displayValue) > 0.000001) {
         this.set('displayValue', newDisplayValue);
       }
     }.observes('value'),
@@ -372,7 +372,7 @@ App.AlertConfigProperties = {
     displayValueWasChanged: function () {
       var value = this.get('value');
       var newValue = this.getNewDisplayValue();
-      if (newValue != value) {
+      if (Math.abs(newValue - value) > 0.000001) {
         this.set('value', newValue);
       }
     }.observes('displayValue')
