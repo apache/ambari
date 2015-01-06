@@ -177,8 +177,8 @@ var wrapperView = Em.View.extend({
             st_order = a.get('severityOrder'),
             ret = 0;
           for (var i = 0; i < st_order.length; i++) {
-            var a_v = Em.isNone(a_summary[st_order[i]]) ? 0 : a_summary[st_order[i]],
-              b_v = Em.isNone(b_summary[st_order[i]]) ? 0 : b_summary[st_order[i]];
+            var a_v = Em.isNone(a_summary[st_order[i]]) ? 0 : a_summary[st_order[i]].count + a_summary[st_order[i]].maintenanceCount,
+              b_v = Em.isNone(b_summary[st_order[i]]) ? 0 : b_summary[st_order[i]].count + b_summary[st_order[i]].maintenanceCount;
             ret = b_v - a_v;
             if (ret !== 0) {
               break;

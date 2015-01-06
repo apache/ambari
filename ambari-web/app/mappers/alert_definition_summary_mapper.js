@@ -30,7 +30,10 @@ App.alertDefinitionSummaryMapper = App.QuickDataMapper.create({
         var summary = {},
           timestamp = 0;
         Em.keys(alertDefinitionSummary.summary).forEach(function(status) {
-          summary[status] = alertDefinitionSummary.summary[status].count;
+          summary[status] = {
+            count: alertDefinitionSummary.summary[status].count,
+            maintenanceCount: alertDefinitionSummary.summary[status].maintenance_count
+          };
           if (alertDefinitionSummary.summary[status].original_timestamp > timestamp) {
             timestamp = alertDefinitionSummary.summary[status].original_timestamp;
           }

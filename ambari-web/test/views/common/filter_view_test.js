@@ -492,22 +492,27 @@ describe('filters.getFilterByType', function () {
 
     Em.A([
       {
-        origin: {OK: 1},
+        origin: {OK: {count: 1, maintenanceCount: 0}},
         compareValue: 'OK',
         e: true
       },
       {
-        origin: {WARN: 1},
+        origin: {OK: {count: 0, maintenanceCount: 1}},
+        compareValue: 'OK',
+        e: true
+      },
+      {
+        origin: {WARN: {count: 1, maintenanceCount: 0}},
         compareValue: 'OK',
         e: false
       },
       {
-        origin: {WARN: 0},
+        origin: {WARN: {count: 0, maintenanceCount: 0}},
         compareValue: 'WARN',
         e: false
       },
       {
-        origin: {OK: 0, WARN: 0},
+        origin: {OK: {count: 0, maintenanceCount: 0}, WARN: {count: 0, maintenanceCount: 0}},
         compareValue: 'PENDING',
         e: true
       },
@@ -517,7 +522,7 @@ describe('filters.getFilterByType', function () {
         e: true
       },
       {
-        origin: {OK: 1},
+        origin: {OK: {count: 1, maintenanceCount: 0}},
         compareValue: 'PENDING',
         e: false
       }

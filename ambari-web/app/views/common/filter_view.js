@@ -619,13 +619,13 @@ module.exports = {
           if ('PENDING' === compareValue) {
             var isPending = true;
             Em.keys(origin).forEach(function(state) {
-              if (origin[state] && origin[state] > 0) {
+              if (origin[state] && (origin[state].count > 0 || origin[state].maintenanceCount > 0)) {
                 isPending = false;
               }
             });
             return isPending;
           }
-          return !!origin[compareValue] && origin[compareValue] > 0;
+          return !!origin[compareValue] && (origin[compareValue].count > 0 || origin[compareValue].maintenanceCount > 0);
         };
         break;
       case 'alert_group':

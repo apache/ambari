@@ -47,10 +47,22 @@ App.AlertDefinition = DS.Model.extend({
    * Format:
    * <code>
    *   {
-   *    "CRITICAL": 1,
-   *    "OK": 1,
-   *    "UNKNOWN": 0,
-   *    "WARN": 0
+   *    "CRITICAL": {
+   *      count: 1,
+   *      maintenanceCount: 0
+   *    },
+   *    "OK": {
+   *      count: 0,
+   *      maintenanceCount: 1
+   *    },
+   *    "UNKNOWN": {
+   *      count: 0,
+   *      maintenanceCount: 0
+   *    },
+   *    "WARN": {
+   *      count: 1,
+   *      maintenanceCount: 1
+   *    }
    *   }
    * </code>
    * @type {object}
@@ -118,21 +130,31 @@ App.AlertDefinition = DS.Model.extend({
         hostCnt = 0,
         self = this;
     order.forEach(function (state) {
-      var cnt = summary[state] ? summary[state] : 0;
+      var cnt = summary[state] ? summary[state].count + summary[state].maintenanceCount : 0;
       hostCnt += cnt;
     });
     if (hostCnt > 1) {
       // multiple hosts
       return order.map(function (state) {
         var shortState = self.get('shortState')[state];
-        return summary[state] ? '<span class="alert-state-single-host label alert-state-' + state + '">' + shortState + ' (' + summary[state] + ')</span>' : null;
-      }).compact().join(' ');
+        var result = '';
+        result += summary[state].count ? '<span class="alert-state-single-host label alert-state-' + state + '">' + shortState + ' (' + summary[state].count + ')</span>' : '';
+        // add status with maintenance mode icon
+        result += summary[state].maintenanceCount ?
+        '<span class="alert-state-single-host label alert-state-PENDING"><span class="icon-medkit"></span> ' + shortState + ' (' + summary[state].maintenanceCount + ')</span>' : '';
+        return result;
+      }).without('').join(' ');
     } else if (hostCnt == 1) {
       // single host, single status
       return order.map(function (state) {
         var shortState = self.get('shortState')[state];
-        return summary[state] ? '<span class="alert-state-single-host label alert-state-' + state + '">' + shortState + '</span>' : null;
-      }).compact().join(' ');
+        var result = '';
+        result += summary[state].count ? '<span class="alert-state-single-host label alert-state-' + state + '">' + shortState + '</span>' : '';
+        // add status with maintenance mode icon
+        result += summary[state].maintenanceCount ?
+        '<span class="alert-state-single-host label alert-state-PENDING"><span class="icon-medkit"></span> ' + shortState + '</span>' : '';
+        return result;
+      }).without('').join(' ');
     } else if (hostCnt == 0) {
       // none
       return '<span class="alert-state-single-host label alert-state-PENDING">NONE</span>';
@@ -167,7 +189,7 @@ App.AlertDefinition = DS.Model.extend({
   isCritical: function () {
     var summary = this.get('summary');
     var state = 'CRITICAL';
-    return !!summary[state];
+    return !!summary[state] && !!(summary[state].count || summary[state].maintenanceCount);
   }.property('summary'),
 
   /**
@@ -177,7 +199,7 @@ App.AlertDefinition = DS.Model.extend({
   isWarning: function () {
     var summary = this.get('summary');
     var state = 'WARNING';
-    return !!summary[state];
+    return !!summary[state] && !!(summary[state].count || summary[state].maintenanceCount);
   }.property('summary'),
 
   /**
@@ -187,7 +209,7 @@ App.AlertDefinition = DS.Model.extend({
   isOK: function () {
     var summary = this.get('summary');
     var state = 'OK';
-    return !!summary[state];
+    return !!summary[state] && !!(summary[state].count || summary[state].maintenanceCount);
   }.property('summary'),
 
   /**
@@ -197,7 +219,7 @@ App.AlertDefinition = DS.Model.extend({
   isUnknown: function () {
     var summary = this.get('summary');
     var state = 'UNKNOWN';
-    return !!summary[state];
+    return !!summary[state] && !!(summary[state].count || summary[state].maintenanceCount);
   }.property('summary'),
 
   /**

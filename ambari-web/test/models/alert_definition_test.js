@@ -34,14 +34,14 @@ describe('App.AlertDefinition', function () {
 
     Em.A([
       {
-        summary: {OK: 1, UNKNOWN: 1, WARNING: 2},
+        summary: {OK: {count: 1, maintenanceCount: 0}, UNKNOWN: {count: 1, maintenanceCount: 0}, WARNING: {count: 2, maintenanceCount: 0}, CRITICAL: {count: 0, maintenanceCount: 0}},
         m: 'No CRITICAL',
         e: '<span class="alert-state-single-host label alert-state-OK">OK (1)</span> ' +
         '<span class="alert-state-single-host label alert-state-WARNING">WARN (2)</span> ' +
         '<span class="alert-state-single-host label alert-state-UNKNOWN">UNKWN (1)</span>'
       },
       {
-        summary: {WARNING: 2, CRITICAL: 3, UNKNOWN: 1, OK: 1},
+        summary: {WARNING: {count: 2, maintenanceCount: 0}, CRITICAL: {count: 3, maintenanceCount: 0}, UNKNOWN: {count: 1, maintenanceCount: 0}, OK: {count: 1, maintenanceCount: 0}},
         m: 'All states exists',
         e: '<span class="alert-state-single-host label alert-state-OK">OK (1)</span> ' +
         '<span class="alert-state-single-host label alert-state-WARNING">WARN (2)</span> ' +
@@ -49,9 +49,14 @@ describe('App.AlertDefinition', function () {
         '<span class="alert-state-single-host label alert-state-UNKNOWN">UNKWN (1)</span>'
       },
       {
-        summary: {OK: 1},
+        summary: {OK: {count: 1, maintenanceCount: 0}, UNKNOWN: {count: 0, maintenanceCount: 0}, WARNING: {count: 0, maintenanceCount: 0}, CRITICAL: {count: 0, maintenanceCount: 0}},
         m: 'Single host',
         e: '<span class="alert-state-single-host label alert-state-OK">OK</span>'
+      },
+      {
+        summary: {OK: {count: 0, maintenanceCount: 1}, UNKNOWN: {count: 0, maintenanceCount: 0}, WARNING: {count: 0, maintenanceCount: 0}, CRITICAL: {count: 0, maintenanceCount: 0}},
+        m: 'Maintenance OK alert',
+        e: '<span class="alert-state-single-host label alert-state-PENDING"><span class="icon-medkit"></span> OK</span>'
       },
       {
         summary: {},
@@ -70,10 +75,10 @@ describe('App.AlertDefinition', function () {
   describe('#isCriticalOrWarning', function () {
 
     Em.A([
-      {summary: {CRITICAL: 1}, e: true},
-      {summary: {WARNING: 1}, e: true},
-      {summary: {OK: 1}, e: false},
-      {summary: {UNKNOWN: 1}, e: false},
+      {summary: {CRITICAL: {count: 1, maintenanceCount: 0}}, e: true},
+      {summary: {WARNING: {count: 1, maintenanceCount: 0}}, e: true},
+      {summary: {OK: {count: 1, maintenanceCount: 0}}, e: false},
+      {summary: {UNKNOWN: {count: 1, maintenanceCount: 0}}, e: false},
       {summary: {}, e: false}
     ]).forEach(function (test, i) {
       it('test ' + (i + 1), function () {
@@ -87,10 +92,10 @@ describe('App.AlertDefinition', function () {
   describe('#isCritical', function () {
 
     Em.A([
-      {summary: {CRITICAL: 1}, e: true},
-      {summary: {WARNING: 1}, e: false},
-      {summary: {OK: 1}, e: false},
-      {summary: {UNKNOWN: 1}, e: false},
+      {summary: {CRITICAL: {count: 1, maintenanceCount: 0}}, e: true},
+      {summary: {WARNING: {count: 1, maintenanceCount: 0}}, e: false},
+      {summary: {OK: {count: 1, maintenanceCount: 0}}, e: false},
+      {summary: {UNKNOWN: {count: 1, maintenanceCount: 0}}, e: false},
       {summary: {}, e: false}
     ]).forEach(function (test, i) {
       it('test ' + (i + 1), function () {
@@ -104,10 +109,10 @@ describe('App.AlertDefinition', function () {
   describe('#isWarning', function () {
 
     Em.A([
-      {summary: {CRITICAL: 1}, e: false},
-      {summary: {WARNING: 1}, e: true},
-      {summary: {OK: 1}, e: false},
-      {summary: {UNKNOWN: 1}, e: false},
+      {summary: {CRITICAL: {count: 1, maintenanceCount: 0}}, e: false},
+      {summary: {WARNING: {count: 1, maintenanceCount: 0}}, e: true},
+      {summary: {OK: {count: 1, maintenanceCount: 0}}, e: false},
+      {summary: {UNKNOWN: {count: 1, maintenanceCount: 0}}, e: false},
       {summary: {}, e: false}
     ]).forEach(function (test, i) {
       it('test ' + (i + 1), function () {

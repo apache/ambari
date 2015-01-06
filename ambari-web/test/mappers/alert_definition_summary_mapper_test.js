@@ -36,46 +36,46 @@ describe('App.alertDefinitionSummaryMapper', function () {
           {
             definition_id: 1,
             summary: {
-              OK: {count: 1, original_timestamp: 1},
-              WARNING: {count: 1, original_timestamp: 2},
-              CRITICAL: {count: 0, original_timestamp: 0},
-              UNKNOWN: {count: 0, original_timestamp: 0}
+              OK: {count: 1, original_timestamp: 1, maintenance_count: 0},
+              WARNING: {count: 1, original_timestamp: 2, maintenance_count: 0},
+              CRITICAL: {count: 0, original_timestamp: 0, maintenance_count: 1},
+              UNKNOWN: {count: 0, original_timestamp: 0, maintenance_count: 0}
             }
           },
           {
             definition_id: 2,
             summary: {
-              OK: {count: 1, original_timestamp: 1},
-              WARNING: {count: 5, original_timestamp: 2},
-              CRITICAL: {count: 1, original_timestamp: 1},
-              UNKNOWN: {count: 1, original_timestamp: 3}
+              OK: {count: 1, original_timestamp: 1, maintenance_count: 0},
+              WARNING: {count: 5, original_timestamp: 2, maintenance_count: 0},
+              CRITICAL: {count: 1, original_timestamp: 1, maintenance_count: 0},
+              UNKNOWN: {count: 1, original_timestamp: 3, maintenance_count: 0}
             }
           },
           {
             definition_id: 3,
             summary: {
-              OK: {count: 1, original_timestamp: 1},
-              WARNING: {count: 2, original_timestamp: 2},
-              CRITICAL: {count: 3, original_timestamp: 4},
-              UNKNOWN: {count: 4, original_timestamp: 3}
+              OK: {count: 1, original_timestamp: 1, maintenance_count: 0},
+              WARNING: {count: 2, original_timestamp: 2, maintenance_count: 2},
+              CRITICAL: {count: 3, original_timestamp: 4, maintenance_count: 0},
+              UNKNOWN: {count: 4, original_timestamp: 3, maintenance_count: 0}
             }
           },
           {
             definition_id: 4,
             summary: {
-              OK: {count: 4, original_timestamp: 1},
-              WARNING: {count: 3, original_timestamp: 2},
-              CRITICAL: {count: 2, original_timestamp: 1},
-              UNKNOWN: {count: 1, original_timestamp: 2}
+              OK: {count: 4, original_timestamp: 1, maintenance_count: 0},
+              WARNING: {count: 3, original_timestamp: 2, maintenance_count: 0},
+              CRITICAL: {count: 2, original_timestamp: 1, maintenance_count: 0},
+              UNKNOWN: {count: 1, original_timestamp: 2, maintenance_count: 0}
             }
           },
           {
             definition_id: 5,
             summary: {
-              OK: {count: 1, original_timestamp: 1},
-              WARNING: {count: 1, original_timestamp: 2},
-              CRITICAL: {count: 1, original_timestamp: 3},
-              UNKNOWN: {count: 1, original_timestamp: 4}
+              OK: {count: 1, original_timestamp: 1, maintenance_count: 0},
+              WARNING: {count: 1, original_timestamp: 2, maintenance_count: 0},
+              CRITICAL: {count: 1, original_timestamp: 3, maintenance_count: 0},
+              UNKNOWN: {count: 1, original_timestamp: 4, maintenance_count: 0}
             }
           }
         ]
@@ -105,19 +105,19 @@ describe('App.alertDefinitionSummaryMapper', function () {
 
       App.alertDefinitionSummaryMapper.map(dataToMap);
       expect(App.PortAlertDefinition.find().findProperty('id', 1).get('lastTriggered')).to.equal(2);
-      expect(App.PortAlertDefinition.find().findProperty('id', 1).get('summary')).to.eql({OK: 1, WARNING: 1, CRITICAL: 0, UNKNOWN: 0});
+      expect(App.PortAlertDefinition.find().findProperty('id', 1).get('summary')).to.eql({OK: {count: 1, maintenanceCount: 0}, WARNING: {count: 1, maintenanceCount: 0}, CRITICAL: {count: 0, maintenanceCount: 1}, UNKNOWN: {count: 0, maintenanceCount: 0}});
 
       expect(App.MetricsAlertDefinition.find().findProperty('id', 2).get('lastTriggered')).to.equal(3);
-      expect(App.MetricsAlertDefinition.find().findProperty('id', 2).get('summary')).to.eql({OK: 1, WARNING: 5, CRITICAL: 1, UNKNOWN: 1});
+      expect(App.MetricsAlertDefinition.find().findProperty('id', 2).get('summary')).to.eql({OK: {count: 1, maintenanceCount: 0}, WARNING: {count: 5, maintenanceCount: 0}, CRITICAL: {count: 1, maintenanceCount: 0}, UNKNOWN: {count: 1, maintenanceCount: 0}});
 
       expect(App.WebAlertDefinition.find().findProperty('id', 3).get('lastTriggered')).to.equal(4);
-      expect(App.WebAlertDefinition.find().findProperty('id', 3).get('summary')).to.eql({OK: 1, WARNING: 2, CRITICAL: 3, UNKNOWN: 4});
+      expect(App.WebAlertDefinition.find().findProperty('id', 3).get('summary')).to.eql({OK: {count: 1, maintenanceCount: 0}, WARNING: {count: 2, maintenanceCount: 2}, CRITICAL: {count: 3, maintenanceCount: 0}, UNKNOWN: {count: 4, maintenanceCount: 0}});
 
       expect(App.AggregateAlertDefinition.find().findProperty('id', 4).get('lastTriggered')).to.equal(2);
-      expect(App.AggregateAlertDefinition.find().findProperty('id', 4).get('summary')).to.eql({OK: 4, WARNING: 3, CRITICAL: 2, UNKNOWN: 1});
+      expect(App.AggregateAlertDefinition.find().findProperty('id', 4).get('summary')).to.eql({OK: {count: 4, maintenanceCount: 0}, WARNING: {count: 3, maintenanceCount: 0}, CRITICAL: {count: 2, maintenanceCount: 0}, UNKNOWN: {count: 1, maintenanceCount: 0}});
 
       expect(App.ScriptAlertDefinition.find().findProperty('id', 5).get('lastTriggered')).to.equal(4);
-      expect(App.ScriptAlertDefinition.find().findProperty('id', 5).get('summary')).to.eql({OK: 1, WARNING: 1, CRITICAL: 1, UNKNOWN: 1});
+      expect(App.ScriptAlertDefinition.find().findProperty('id', 5).get('summary')).to.eql({OK: {count: 1, maintenanceCount: 0}, WARNING: {count: 1, maintenanceCount: 0}, CRITICAL: {count: 1, maintenanceCount: 0}, UNKNOWN: {count: 1, maintenanceCount: 0}});
 
     });
 

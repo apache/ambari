@@ -31,26 +31,26 @@ describe('#wrapperView', function () {
 
       Em.A([
         {
-          a: App.AlertDefinition.createRecord({summary: {OK: 1, WARNING: 1}}),
-          b: App.AlertDefinition.createRecord({summary: {WARNING: 1}}),
+          a: App.AlertDefinition.createRecord({summary: {OK: {count: 1, maintenanceCount: 0}, WARNING: {count: 1, maintenanceCount: 0}}}),
+          b: App.AlertDefinition.createRecord({summary: {WARNING: {count: 1, maintenanceCount: 0}}}),
           order: true,
           e: 1
         },
         {
-          a: App.AlertDefinition.createRecord({summary: {OK: 1, WARNING: 2}}),
-          b: App.AlertDefinition.createRecord({summary: {OK: 1, WARNING: 1}}),
+          a: App.AlertDefinition.createRecord({summary: {OK: {count: 1, maintenanceCount: 0}, WARNING: {count: 2, maintenanceCount: 0}}}),
+          b: App.AlertDefinition.createRecord({summary: {OK: {count: 1, maintenanceCount: 0}, WARNING: {count: 1, maintenanceCount: 0}}}),
           order: true,
           e: 1
         },
         {
-          a: App.AlertDefinition.createRecord({summary: {OK: 1, WARNING: 1}}),
-          b: App.AlertDefinition.createRecord({summary: {WARNING: 1}}),
+          a: App.AlertDefinition.createRecord({summary: {OK: {count: 1, maintenanceCount: 0}, WARNING: {count: 1, maintenanceCount: 0}}}),
+          b: App.AlertDefinition.createRecord({summary: {WARNING: {count: 1, maintenanceCount: 0}}}),
           order: false,
           e: -1
         },
         {
-          a: App.AlertDefinition.createRecord({summary: {OK: 1, WARNING: 2}}),
-          b: App.AlertDefinition.createRecord({summary: {OK: 1, WARNING: 1}}),
+          a: App.AlertDefinition.createRecord({summary: {OK: {count: 1, maintenanceCount: 0}, WARNING: {count: 2, maintenanceCount: 0}}}),
+          b: App.AlertDefinition.createRecord({summary: {OK: {count: 1, maintenanceCount: 0}, WARNING: {count: 1, maintenanceCount: 0}}}),
           order: false,
           e: -1
         }
