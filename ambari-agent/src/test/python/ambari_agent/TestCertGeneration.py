@@ -25,8 +25,17 @@ import ConfigParser
 import security
 from security import CertificateManager
 from ambari_agent import AmbariConfig
+from mock.mock import patch, MagicMock
+from ambari_commons import OSCheck
+from only_for_platform import only_for_platform, get_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
+
+if get_platform() != PLATFORM_WINDOWS:
+  os_distro_value = ('Suse','11','Final')
+else:
+  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
 
 class TestCertGeneration(TestCase):
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   def setUp(self):
     self.tmpdir = tempfile.mkdtemp()
     config = AmbariConfig.AmbariConfig()

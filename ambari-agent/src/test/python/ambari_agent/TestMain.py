@@ -97,6 +97,7 @@ class TestMain(unittest.TestCase):
     setLevel_mock.assert_called_with(logging.DEBUG)
 
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(main.logger, "setLevel")
   @patch("logging.basicConfig")
   def test_update_log_level(self, basicConfig_mock, setLevel_mock):
@@ -155,6 +156,7 @@ class TestMain(unittest.TestCase):
     self.assertFalse(read_mock.called)
 
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("sys.exit")
   @patch("os.path.isfile")
   @patch("os.path.isdir")
@@ -275,6 +277,7 @@ class TestMain(unittest.TestCase):
       self.assertTrue(True)
 
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(socket, "gethostbyname")
   @patch.object(main, "setup_logging")
   @patch.object(main, "bind_signal_handlers")

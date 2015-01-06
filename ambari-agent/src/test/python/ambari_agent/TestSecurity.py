@@ -29,6 +29,14 @@ import ssl
 import os
 import tempfile
 
+from ambari_commons import OSCheck
+from only_for_platform import only_for_platform, get_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
+
+if get_platform() != PLATFORM_WINDOWS:
+  os_distro_value = ('Suse','11','Final')
+else:
+  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
+
 with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   from ambari_agent import NetUtil
   from ambari_agent.security import CertificateManager
@@ -40,6 +48,7 @@ with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
 aa = mock.mock.mock_open()
 class TestSecurity(unittest.TestCase):
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   def setUp(self):
     # disable stdout
     out = StringIO.StringIO()

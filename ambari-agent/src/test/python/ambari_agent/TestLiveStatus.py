@@ -23,9 +23,16 @@ from ambari_agent.LiveStatus import LiveStatus
 from ambari_agent.AmbariConfig import AmbariConfig
 import os, sys, StringIO
 from ambari_agent import ActualConfigHandler
-from mock.mock import patch
+from mock.mock import patch, MagicMock
 import pprint
 from ambari_agent import StatusCheck
+from ambari_commons import OSCheck
+from only_for_platform import only_for_platform, get_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
+
+if get_platform() != PLATFORM_WINDOWS:
+  os_distro_value = ('Suse','11','Final')
+else:
+  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
 
 
 class TestLiveStatus(TestCase):
@@ -137,6 +144,7 @@ class TestLiveStatus(TestCase):
     # enable stdout
     sys.stdout = sys.__stdout__
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(ActualConfigHandler.ActualConfigHandler, "read_actual_component")
   def test_build(self, read_actual_component_mock):
     for component in LiveStatus.COMPONENTS:
@@ -174,6 +182,7 @@ class TestLiveStatus(TestCase):
     self.assertTrue(len(result) > 0, 'Livestatus should not be empty')
     self.assertTrue(result['status'], LiveStatus.LIVE_STATUS)
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(ActualConfigHandler.ActualConfigHandler, "read_actual_component")
   @patch.object(StatusCheck.StatusCheck, "getStatus")
   def test_build_predefined(self, getStatus_mock, read_actual_component_mock):

@@ -24,6 +24,13 @@ from mock.mock import patch, MagicMock, call, Mock
 from ambari_agent import DataCleaner
 import AmbariConfig
 import os
+from ambari_commons import OSCheck
+from only_for_platform import only_for_platform, get_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
+
+if get_platform() != PLATFORM_WINDOWS:
+  os_distro_value = ('Suse','11','Final')
+else:
+  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
 
 class TestDataCleaner(unittest.TestCase):
 
@@ -42,6 +49,7 @@ class TestDataCleaner(unittest.TestCase):
     cleaner = DataCleaner.DataCleaner(config)
     self.assertFalse(DataCleaner.logger.warn.called)
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   def test_config(self):
     """
     Verify that if the config does not have a property, default values are used.

@@ -21,8 +21,15 @@ import tempfile
 from unittest import TestCase
 import os
 import logging
-from mock.mock import patch
+from mock.mock import patch, MagicMock, call
 from ambari_agent.LiveStatus import LiveStatus
+from ambari_commons import OSCheck
+from only_for_platform import only_for_platform, get_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
+
+if get_platform() != PLATFORM_WINDOWS:
+  os_distro_value = ('Suse','11','Final')
+else:
+  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
 
 with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   from ambari_agent.AmbariConfig import AmbariConfig
@@ -132,6 +139,7 @@ class TestActualConfigHandler(TestCase):
 
   logger = logging.getLogger()
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   def test_read_write(self):
     config = AmbariConfig().getConfig()
     tmpdir = tempfile.gettempdir()
@@ -144,6 +152,7 @@ class TestActualConfigHandler(TestCase):
     self.assertEquals(tags, output)
     os.remove(os.path.join(tmpdir, ActualConfigHandler.CONFIG_NAME))
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   def test_read_empty(self):
     config = AmbariConfig().getConfig()
     tmpdir = tempfile.gettempdir()
@@ -158,6 +167,7 @@ class TestActualConfigHandler(TestCase):
     self.assertEquals(None, output)
     os.remove(os.path.join(tmpdir, ActualConfigHandler.CONFIG_NAME))
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   def test_read_write_component(self):
     config = AmbariConfig().getConfig()
     tmpdir = tempfile.gettempdir()
@@ -184,6 +194,7 @@ class TestActualConfigHandler(TestCase):
     os.remove(os.path.join(tmpdir, "FOO_" + ActualConfigHandler.CONFIG_NAME))
     os.remove(os.path.join(tmpdir, ActualConfigHandler.CONFIG_NAME))
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   def test_write_actual_component_and_client_components(self):
     config = AmbariConfig().getConfig()
     tmpdir = tempfile.gettempdir()
@@ -208,6 +219,7 @@ class TestActualConfigHandler(TestCase):
     os.remove(os.path.join(tmpdir, "HBASE_CLIENT_" + ActualConfigHandler.CONFIG_NAME))
     os.remove(os.path.join(tmpdir, "HDFS_CLIENT_" + ActualConfigHandler.CONFIG_NAME))
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(ActualConfigHandler, "write_file")
   def test_write_client_components(self, write_file_mock):
     config = AmbariConfig().getConfig()
@@ -228,6 +240,7 @@ class TestActualConfigHandler(TestCase):
     self.assertTrue(write_file_mock.called)
     self.assertEqual(1, write_file_mock.call_count)
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(ActualConfigHandler, "write_file")
   def test_write_empty_client_components(self, write_file_mock):
     config = AmbariConfig().getConfig()
@@ -247,6 +260,7 @@ class TestActualConfigHandler(TestCase):
     self.assertEquals(tags1, handler.read_actual_component('HBASE_CLIENT'))
     self.assertFalse(write_file_mock.called)
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(ActualConfigHandler, "write_file")
   @patch.object(ActualConfigHandler, "read_file")
   def test_read_actual_component_inmemory(self, read_file_mock, write_file_mock):

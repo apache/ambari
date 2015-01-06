@@ -22,9 +22,17 @@ from ambari_agent import NetUtil
 from mock.mock import MagicMock, patch
 import unittest
 import threading
-from only_for_platform import only_for_platform, PLATFORM_LINUX
+from ambari_commons import OSCheck
+from only_for_platform import only_for_platform, get_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
+
+if get_platform() != PLATFORM_WINDOWS:
+  os_distro_value = ('Suse','11','Final')
+else:
+  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
+
 class TestNetUtil(unittest.TestCase):
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("urlparse.urlparse")
   @patch("httplib.HTTPSConnection")
   def test_checkURL(self, httpsConMock, parseMock):

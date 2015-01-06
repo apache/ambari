@@ -29,9 +29,17 @@ from threading import Thread
 from PythonExecutor import PythonExecutor
 from AmbariConfig import AmbariConfig
 from mock.mock import MagicMock, patch
+from ambari_commons import OSCheck
+from only_for_platform import only_for_platform, get_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
+
+if get_platform() != PLATFORM_WINDOWS:
+  os_distro_value = ('Suse','11','Final')
+else:
+  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
 
 class TestPythonExecutor(TestCase):
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("ambari_commons.shell.kill_process_with_children")
   def test_watchdog_1(self, kill_process_with_children_mock):
     """
@@ -65,6 +73,7 @@ class TestPythonExecutor(TestCase):
     self.assertTrue(callback_method.called)
 
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   def test_watchdog_2(self):
     """
     Tries to catch false positive watchdog invocations
@@ -98,6 +107,7 @@ class TestPythonExecutor(TestCase):
     self.assertEquals(subproc_mock.returncode, 0, "Subprocess should not be terminated before timeout")
     self.assertTrue(callback_method.called)
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   def test_execution_results(self):
     subproc_mock = self.Subprocess_mockup()
     executor = PythonExecutor("/tmp", AmbariConfig().getConfig())
@@ -129,6 +139,7 @@ class TestPythonExecutor(TestCase):
                                'structuredOut': {}})
     self.assertTrue(callback_method.called)
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   def test_is_successfull(self):
     executor = PythonExecutor("/tmp", AmbariConfig().getConfig())
 
@@ -141,6 +152,7 @@ class TestPythonExecutor(TestCase):
     self.assertFalse(executor.isSuccessfull(1))
 
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   def test_python_command(self):
     executor = PythonExecutor("/tmp", AmbariConfig().getConfig())
     command = executor.python_command("script", ["script_param1"])

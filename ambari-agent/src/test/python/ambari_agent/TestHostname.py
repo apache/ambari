@@ -26,11 +26,18 @@ import socket
 import tempfile
 import shutil
 import os, pprint, json,stat
-from mock.mock import patch
-from only_for_platform import only_for_platform, PLATFORM_LINUX
+from mock.mock import patch, MagicMock
+from ambari_commons import OSCheck
+from only_for_platform import only_for_platform, get_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
+
+if get_platform() != PLATFORM_WINDOWS:
+  os_distro_value = ('Suse','11','Final')
+else:
+  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
 
 class TestHostname(TestCase):
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   def test_hostname(self):
     hostname.cached_hostname = None
     hostname.cached_public_hostname = None
@@ -87,6 +94,7 @@ class TestHostname(TestCase):
       config.remove_option('agent', 'public_hostname_script')
     pass
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(socket, "getfqdn")
   def test_caching(self, getfqdn_mock):
     hostname.cached_hostname = None

@@ -222,6 +222,7 @@ class TestActionQueue(TestCase):
     self.assertTrue(process_command_mock.call_count > 1)
 
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("traceback.print_exc")
   @patch.object(ActionQueue, "execute_command")
   @patch.object(ActionQueue, "execute_status_command")
@@ -441,6 +442,7 @@ class TestActionQueue(TestCase):
     self.assertEqual(len(report['reports']), 0)
 
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(CustomServiceOrchestrator, "runCommand")
   @patch("CommandStatusDict.CommandStatusDict")
   @patch.object(ActionQueue, "status_update_callback")
@@ -481,6 +483,7 @@ class TestActionQueue(TestCase):
     self.assertEqual(len(report['reports']), 1)
     self.assertEqual(expected, report['reports'][0])
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(ActualConfigHandler, "write_client_components")
   @patch.object(CustomServiceOrchestrator, "runCommand")
   @patch("CommandStatusDict.CommandStatusDict")
@@ -523,6 +526,7 @@ class TestActionQueue(TestCase):
     self.assertEqual(expected, report['reports'][0])
     self.assertFalse(write_client_components_mock.called)
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(ActionQueue, "status_update_callback")
   @patch.object(StackVersionsFileHandler, "read_stack_version")
   @patch.object(CustomServiceOrchestrator, "requestComponentStatus")
@@ -555,6 +559,7 @@ class TestActionQueue(TestCase):
     self.assertEqual(report['componentStatus'][0], expected)
     self.assertTrue(requestComponentStatus_mock.called)
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(ActionQueue, "status_update_callback")
   @patch.object(StackVersionsFileHandler, "read_stack_version")
   @patch.object(CustomServiceOrchestrator, "requestComponentStatus")
@@ -627,6 +632,7 @@ class TestActionQueue(TestCase):
     actionQueue.join()
     self.assertEqual(actionQueue.stopped(), True, 'Action queue is not stopped.')
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(StackVersionsFileHandler, "read_stack_version")
   @patch.object(CustomServiceOrchestrator, "runCommand")
   @patch.object(CustomServiceOrchestrator, "__init__")

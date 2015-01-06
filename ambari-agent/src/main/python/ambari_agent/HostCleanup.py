@@ -18,6 +18,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import sys
+from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
+
 # For compatibility with different OSes
 # Edit PYTHONPATH to be able to import common_functions
 sys.path.append("/usr/lib/python2.6/site-packages/")
@@ -34,8 +36,6 @@ import shlex
 import datetime
 from AmbariConfig import AmbariConfig
 from ambari_commons import OSCheck, OSConst
-if OSCheck.get_os_family() != OSConst.WINSRV_FAMILY:
-  from pwd import getpwnam
 
 
 logger = logging.getLogger()
@@ -423,7 +423,17 @@ class HostCleanup:
           self.do_erase_dir_silent([fileToCheck])
           logger.info("Deleting file/folder: " + fileToCheck)
 
+  @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
   def get_user_ids(self, userList):
+
+    userIds = []
+    # No user ids to check in Windows for now
+    return userIds
+
+  @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
+  def get_user_ids(self, userList):
+    from pwd import getpwnam
+
     userIds = []
     if userList:
       for user in userList:
