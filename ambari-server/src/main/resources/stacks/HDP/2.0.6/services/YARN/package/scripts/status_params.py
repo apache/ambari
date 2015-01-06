@@ -21,6 +21,7 @@ limitations under the License.
 from resource_management import *
 
 config = Script.get_config()
+tmp_dir = Script.get_tmp_dir()
 
 mapred_user = config['configurations']['mapred-env']['mapred_user']
 yarn_user = config['configurations']['yarn-env']['yarn_user']
@@ -34,3 +35,7 @@ nodemanager_pid_file = format("{yarn_pid_dir}/yarn-{yarn_user}-nodemanager.pid")
 yarn_historyserver_pid_file_old = format("{yarn_pid_dir}/yarn-{yarn_user}-historyserver.pid")
 yarn_historyserver_pid_file = format("{yarn_pid_dir}/yarn-{yarn_user}-timelineserver.pid")  # *-historyserver.pid is deprecated
 mapred_historyserver_pid_file = format("{mapred_pid_dir}/mapred-{mapred_user}-historyserver.pid")
+
+hadoop_conf_dir = "/etc/hadoop/conf"
+hostname = config['hostname']
+kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
