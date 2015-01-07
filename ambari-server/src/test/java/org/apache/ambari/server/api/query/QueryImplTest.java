@@ -275,7 +275,8 @@ public class QueryImplTest {
     Assert.assertEquals("StackVersion:1", versionNode.getName());
     Assert.assertEquals(Resource.Type.StackVersion, versionNode.getObject().getType());
 
-    Assert.assertEquals(4, versionNode.getChildren().size());
+    Assert.assertEquals(5, versionNode.getChildren().size());
+
     TreeNode<Resource> opSystemsNode = versionNode.getChild("operatingSystems");
     Assert.assertEquals(3, opSystemsNode.getChildren().size());
 
@@ -296,6 +297,13 @@ public class QueryImplTest {
     Assert.assertEquals("centos5", repositoryResource.getPropertyValue("Repositories/os_type"));
     Assert.assertEquals("1.2.1", repositoryResource.getPropertyValue("Repositories/stack_version"));
     Assert.assertEquals("HDP", repositoryResource.getPropertyValue("Repositories/stack_name"));
+
+    TreeNode<Resource> artifactsNode = versionNode.getChild("artifacts");
+    Assert.assertEquals(1, artifactsNode.getChildren().size());
+
+    TreeNode<Resource> artifactNode = artifactsNode.getChild("StackArtifact:1");
+    Assert.assertEquals("StackArtifact:1", artifactNode.getName());
+    Assert.assertEquals(Resource.Type.StackArtifact, artifactNode.getObject().getType());
   }
 
   @Test

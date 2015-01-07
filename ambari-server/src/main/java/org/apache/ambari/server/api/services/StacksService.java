@@ -139,6 +139,53 @@ public class StacksService extends BaseService {
         createStackServiceResource(stackName, stackVersion, serviceName));
   }
 
+  @GET
+  @Path("{stackName}/versions/{stackVersion}/artifacts")
+  @Produces("text/plain")
+  public Response getStackArtifacts(String body, @Context HttpHeaders headers,
+                                              @Context UriInfo ui, @PathParam("stackName") String stackName,
+                                              @PathParam("stackVersion") String stackVersion) {
+
+    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET,
+        createStackArtifactsResource(stackName, stackVersion, null));
+  }
+
+  @GET
+  @Path("{stackName}/versions/{stackVersion}/artifacts/{artifactName}")
+  @Produces("text/plain")
+  public Response getStackArtifact(String body, @Context HttpHeaders headers,
+                                   @Context UriInfo ui, @PathParam("stackName") String stackName,
+                                   @PathParam("stackVersion") String stackVersion,
+                                   @PathParam("artifactName") String artifactName) {
+
+    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET,
+        createStackArtifactsResource(stackName, stackVersion, artifactName));
+  }
+
+  @GET
+  @Path("{stackName}/versions/{stackVersion}/services/{serviceName}/artifacts")
+  @Produces("text/plain")
+  public Response getStackServiceArtifacts(String body, @Context HttpHeaders headers,
+                                  @Context UriInfo ui, @PathParam("stackName") String stackName,
+                                  @PathParam("stackVersion") String stackVersion,
+                                  @PathParam("serviceName") String serviceName) {
+
+    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET,
+        createStackServiceArtifactsResource(stackName, stackVersion, serviceName, null));
+  }
+
+  @GET
+  @Path("{stackName}/versions/{stackVersion}/services/{serviceName}/artifacts/{artifactName}")
+  @Produces("text/plain")
+  public Response getStackServiceArtifact(String body, @Context HttpHeaders headers,
+                                           @Context UriInfo ui, @PathParam("stackName") String stackName,
+                                           @PathParam("stackVersion") String stackVersion,
+                                           @PathParam("serviceName") String serviceName,
+                                           @PathParam("artifactName") String artifactName) {
+
+    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET,
+        createStackServiceArtifactsResource(stackName, stackVersion, serviceName, artifactName));
+  }
 
   @GET
   @Path("{stackName}/versions/{stackVersion}/services/{serviceName}/configurations")
@@ -314,6 +361,29 @@ public class StacksService extends BaseService {
     mapIds.put(Resource.Type.StackLevelConfiguration, propertyName);
 
     return createResource(Resource.Type.StackLevelConfiguration, mapIds);
+  }
+
+  ResourceInstance createStackArtifactsResource(String stackName, String stackVersion, String artifactName) {
+    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.put(Resource.Type.Stack, stackName);
+    mapIds.put(Resource.Type.StackVersion, stackVersion);
+    mapIds.put(Resource.Type.StackArtifact, artifactName);
+
+    return createResource(Resource.Type.StackArtifact, mapIds);
+  }
+
+  ResourceInstance createStackServiceArtifactsResource(String stackName,
+                                                       String stackVersion,
+                                                       String serviceName,
+                                                       String artifactName) {
+
+    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.put(Resource.Type.Stack, stackName);
+    mapIds.put(Resource.Type.StackVersion, stackVersion);
+    mapIds.put(Resource.Type.StackService, serviceName);
+    mapIds.put(Resource.Type.StackArtifact, artifactName);
+
+    return createResource(Resource.Type.StackArtifact, mapIds);
   }
 
   ResourceInstance createStackResource(String stackName) {

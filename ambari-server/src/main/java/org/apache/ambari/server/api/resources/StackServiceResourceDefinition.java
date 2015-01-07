@@ -50,6 +50,7 @@ public class StackServiceResourceDefinition extends BaseStacksResourceDefinition
     Set<SubResourceDefinition> setChildren = new HashSet<SubResourceDefinition>();
     setChildren.add(new SubResourceDefinition(Resource.Type.StackConfiguration));
     setChildren.add(new SubResourceDefinition(Resource.Type.StackServiceComponent));
+    setChildren.add(new SubResourceDefinition(Type.StackArtifact));
 
     return setChildren;
 

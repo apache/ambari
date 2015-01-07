@@ -342,6 +342,20 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new SimpleResourceDefinition(Resource.Type.Stage, "stage", "stages", Resource.Type.Task);
         break;
 
+      case StackArtifact:
+        resourceDefinition = new BaseStacksResourceDefinition(Resource.Type.StackArtifact) {
+          @Override
+          public String getPluralName() {
+            return "artifacts";
+          }
+
+          @Override
+          public String getSingularName() {
+            return "artifact";
+          }
+        };
+        break;
+
       default:
         throw new IllegalArgumentException("Unsupported resource type: " + type);
     }

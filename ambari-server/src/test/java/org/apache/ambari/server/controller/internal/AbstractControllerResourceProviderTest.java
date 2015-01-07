@@ -35,6 +35,7 @@ import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Abstract controller resource provider test.
@@ -75,4 +76,13 @@ public class AbstractControllerResourceProviderTest {
     Assert.assertTrue(provider instanceof ServiceResourceProvider);
   }
 
+  @Test
+  public void testGetStackArtifactResourceProvider() {
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        Resource.Type.StackArtifact, null, null, managementController);
+
+    assertEquals(StackArtifactResourceProvider.class, provider.getClass());
   }
+}

@@ -978,6 +978,7 @@ public class ClusterControllerImplTest {
       providers.put(Resource.Type.OperatingSystem, new TestOperatingSystemResourceProvider());
       providers.put(Resource.Type.Repository, new TestRepositoryResourceProvider());
       providers.put(Resource.Type.RepositoryVersion, new TestRepositoryVersionResourceProvider());
+      providers.put(Type.StackArtifact, new TestStackArtifactResourceProvider());
     }
 
     @Override
@@ -1250,7 +1251,23 @@ public class ClusterControllerImplTest {
 
       return getResources(Resource.Type.RepositoryVersion, predicate, "RepositoriVersions/id", keyPropertyValues);
     }
-  }  
+  }
+
+  private static class TestStackArtifactResourceProvider extends TestResourceProvider {
+    private TestStackArtifactResourceProvider() {
+      super(StackArtifactResourceProvider.propertyIds, StackArtifactResourceProvider.keyPropertyIds);
+    }
+
+    @Override
+    public Set<Resource> getResources(Request request, Predicate predicate)
+        throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+      Set<String> keyPropertyValues = new LinkedHashSet<String>();
+
+      keyPropertyValues.add("kerberos_descriptor");
+
+      return getResources(Type.StackArtifact, predicate, "Artifacts/artifact_name", keyPropertyValues);
+    }
+  }
 
 }
 

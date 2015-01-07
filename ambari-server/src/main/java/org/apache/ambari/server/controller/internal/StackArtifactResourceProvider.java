@@ -1,0 +1,401 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.apache.ambari.server.controller.internal;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.StackAccessException;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * Provider for stack and stack service artifacts.
+ * Artifacts contain an artifact name as the PK and artifact data in the form of
+ * a map which is the content of the artifact.
+ * <p>
+ * An example of an artifact is a kerberos descriptor.
+ * <p>
+ * Stack artifacts are part of the stack definition and therefore can't
+ * be created, updated or deleted.
+ */
+public class StackArtifactResourceProvider extends AbstractControllerResourceProvider {
+  /**
+   * stack name
+   */
+  public static final String STACK_NAME_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Artifacts", "stack_name");
+
+  /**
+   * stack version
+   */
+  public static final String STACK_VERSION_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Artifacts", "stack_version");
+
+  /**
+   * stack service name
+   */
+  public static final String STACK_SERVICE_NAME_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Artifacts", "service_name");
+
+  /**
+   * artifact name
+   */
+  public static final String ARTIFACT_NAME_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Artifacts", "artifact_name");
+
+  /**
+   * artifact data
+   */
+  public static final String ARTIFACT_DATA_PROPERTY_ID = "artifact_data";
+
+  /**
+   * primary key fields
+   */
+  public static Set<String> pkPropertyIds = new HashSet<String>();
+
+  /**
+   * map of resource type to fk field
+   */
+  public static Map<Resource.Type, String> keyPropertyIds =
+      new HashMap<Resource.Type, String>();
+
+  /**
+   * resource properties
+   */
+  public static Set<String> propertyIds = new HashSet<String>();
+
+  /**
+   * name of the kerberos descriptor artifact.
+   */
+  public static final String KERBEROS_DESCRIPTOR_NAME = "kerberos_descriptor";
+
+
+  /**
+   * set resource properties, pk and fk's
+   */
+  static {
+    // resource properties
+    propertyIds.add(STACK_NAME_PROPERTY_ID);
+    propertyIds.add(STACK_VERSION_PROPERTY_ID);
+    propertyIds.add(STACK_SERVICE_NAME_PROPERTY_ID);
+    propertyIds.add(ARTIFACT_NAME_PROPERTY_ID);
+    propertyIds.add(ARTIFACT_DATA_PROPERTY_ID);
+
+    // pk property
+    pkPropertyIds.add(ARTIFACT_NAME_PROPERTY_ID);
+
+    // fk properties
+    keyPropertyIds.put(Resource.Type.StackArtifact, ARTIFACT_NAME_PROPERTY_ID);
+    keyPropertyIds.put(Resource.Type.Stack, STACK_NAME_PROPERTY_ID);
+    keyPropertyIds.put(Resource.Type.StackVersion, STACK_VERSION_PROPERTY_ID);
+    keyPropertyIds.put(Resource.Type.StackService, STACK_SERVICE_NAME_PROPERTY_ID);
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param managementController ambari controller
+   */
+  protected StackArtifactResourceProvider(AmbariManagementController managementController) {
+    super(propertyIds, keyPropertyIds, managementController);
+  }
+
+  @Override
+  public Set<Resource> getResources(Request request, Predicate predicate)
+      throws SystemException,
+             UnsupportedPropertyException,
+             NoSuchResourceException,
+             NoSuchParentResourceException {
+
+    Set<Resource> resources = new HashSet<Resource>();
+
+    resources.addAll(getKerberosDescriptors(request, predicate));
+    // add other artifacts types here
+
+    if (resources.isEmpty()) {
+      throw new NoSuchResourceException(
+          "The requested resource doesn't exist: Artifact not found, " + predicate);
+    }
+
+    return resources;
+  }
+
+  @Override
+  protected Set<String> getPKPropertyIds() {
+    return pkPropertyIds;
+  }
+
+  @Override
+  public RequestStatus createResources(Request request)
+      throws SystemException,
+      UnsupportedPropertyException,
+      ResourceAlreadyExistsException,
+      NoSuchParentResourceException {
+
+    throw new UnsupportedOperationException("Creating stack artifacts is not supported");
+  }
+
+  @Override
+  public RequestStatus updateResources(Request request, Predicate predicate)
+      throws SystemException,
+             UnsupportedPropertyException,
+             NoSuchResourceException,
+             NoSuchParentResourceException {
+
+    throw new UnsupportedOperationException("Updating of stack artifacts is not supported");
+  }
+
+  @Override
+  public RequestStatus deleteResources(Predicate predicate)
+      throws SystemException,
+             UnsupportedPropertyException,
+             NoSuchResourceException,
+             NoSuchParentResourceException {
+
+    throw new UnsupportedOperationException("Deletion of stack artifacts is not supported");
+  }
+
+  /**
+   * Get all stack and stack service descriptor resources.
+   *
+   * @param request    user request
+   * @param predicate  request predicate
+   *
+   * @return set of all stack related kerberos descriptor resources; will not return null
+   *
+   * @throws SystemException                if an unexpected exception occurs
+   * @throws UnsupportedPropertyException   if an unsupported property was requested
+   * @throws NoSuchParentResourceException  if a specified parent resource doesn't exist
+   * @throws NoSuchResourceException        if the requested resource doesn't exist
+   */
+  private Set<Resource> getKerberosDescriptors(Request request, Predicate predicate)
+      throws SystemException,
+             UnsupportedPropertyException,
+             NoSuchParentResourceException,
+             NoSuchResourceException {
+
+    Set<Resource> resources = new HashSet<Resource>();
+
+    for (Map<String, Object> properties : getPropertyMaps(predicate)) {
+      String artifactName = (String) properties.get(ARTIFACT_NAME_PROPERTY_ID);
+      if (artifactName == null || artifactName.equals(KERBEROS_DESCRIPTOR_NAME)) {
+        String stackName = (String) properties.get(STACK_NAME_PROPERTY_ID);
+        String stackVersion = (String) properties.get(STACK_VERSION_PROPERTY_ID);
+        String stackService = (String) properties.get(STACK_SERVICE_NAME_PROPERTY_ID);
+
+        Map<String, Object> descriptor;
+        try {
+          descriptor = getKerberosDescriptor(stackName, stackVersion, stackService);
+        } catch (IOException e) {
+          LOG.error("Unable to process Kerberos Descriptor. Properties: " + properties, e);
+          throw new SystemException("An internal exception occurred while attempting to build a Kerberos Descriptor " +
+              "artifact. See ambari server logs for more information", e);
+        }
+
+        if (descriptor != null) {
+          Resource resource = new ResourceImpl(Resource.Type.StackArtifact);
+          Set<String> requestedIds = getRequestPropertyIds(request, predicate);
+          setResourceProperty(resource, ARTIFACT_NAME_PROPERTY_ID, KERBEROS_DESCRIPTOR_NAME, requestedIds);
+          setResourceProperty(resource, ARTIFACT_DATA_PROPERTY_ID, descriptor, requestedIds);
+          setResourceProperty(resource, STACK_NAME_PROPERTY_ID, stackName, requestedIds);
+          setResourceProperty(resource, STACK_VERSION_PROPERTY_ID, stackVersion, requestedIds);
+          if (stackService != null) {
+            setResourceProperty(resource, STACK_SERVICE_NAME_PROPERTY_ID, stackService, requestedIds);
+          }
+          resources.add(resource);
+        }
+      }
+    }
+    return resources;
+  }
+
+  /**
+   * Get a kerberos descriptor.
+   *
+   * @param stackName     stack name
+   * @param stackVersion  stack version
+   * @param serviceName   service name
+   *
+   * @return map of kerberos descriptor data or null if no descriptor exists
+   *
+   * @throws IOException if unable to parse the associated kerberos descriptor file
+   * @throws NoSuchParentResourceException if the parent stack or stack service doesn't exist
+   */
+  private Map<String, Object> getKerberosDescriptor(String stackName, String stackVersion, String serviceName)
+      throws NoSuchParentResourceException, IOException {
+
+      return serviceName == null ?
+          buildStackDescriptor(stackName, stackVersion) :
+          getServiceDescriptor(stackName, stackVersion, serviceName);
+  }
+
+  /**
+   * Build a kerberos descriptor for the specified stack. This descriptor is for the entire stack version
+   * and will contain both the stack descriptor as well as all service descriptors.
+   *
+   * @return map of kerberos descriptor data or null if no descriptor exists
+   *
+   * @throws IOException     if unable to read the kerberos descriptor file
+   * @throws AmbariException if unable to parse the kerberos descriptor file json
+   * @throws NoSuchParentResourceException if the parent stack doesn't exist
+   */
+  private Map<String, Object> buildStackDescriptor(String stackName, String stackVersion)
+      throws NoSuchParentResourceException, IOException {
+
+    KerberosDescriptor kerberosDescriptor = null;
+
+    AmbariManagementController controller = getManagementController();
+    StackInfo stackInfo;
+    try {
+      stackInfo = controller.getAmbariMetaInfo().getStack(stackName, stackVersion);
+    } catch (StackAccessException e) {
+      throw new NoSuchParentResourceException(String.format(
+          "Parent stack resource doesn't exist: stackName='%s', stackVersion='%s'", stackName, stackVersion));
+    }
+
+    Collection<KerberosServiceDescriptor> serviceDescriptors = getServiceDescriptors(stackInfo);
+
+    String kerberosFileLocation = stackInfo.getKerberosDescriptorFileLocation();
+    if (kerberosFileLocation != null) {
+      kerberosDescriptor = KerberosDescriptor.fromFile(new File(kerberosFileLocation));
+    } else if (! serviceDescriptors.isEmpty()) {
+      // service descriptors present with no stack descriptor,
+      // create an empty stack descriptor to hold services
+      kerberosDescriptor = new KerberosDescriptor();
+    }
+
+    if (kerberosDescriptor != null) {
+      for (KerberosServiceDescriptor descriptor : serviceDescriptors) {
+        kerberosDescriptor.putService(descriptor);
+      }
+      return kerberosDescriptor.toMap();
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Get the kerberos descriptor for the specified stack service.
+   *
+   * @param stackName     stack name
+   * @param stackVersion  stack version
+   * @param serviceName   service name
+   *
+   * @return map of kerberos descriptor data or null if no descriptor exists
+   *
+   * @throws IOException if unable to read or parse the kerberos descriptor file
+   * @throws NoSuchParentResourceException if the parent stack or stack service doesn't exist
+   */
+  private Map<String, Object> getServiceDescriptor(
+      String stackName, String stackVersion, String serviceName) throws NoSuchParentResourceException, IOException {
+
+    AmbariManagementController controller = getManagementController();
+
+    ServiceInfo serviceInfo;
+    try {
+      serviceInfo = controller.getAmbariMetaInfo().getService(stackName, stackVersion, serviceName);
+    } catch (StackAccessException e) {
+      throw new NoSuchParentResourceException(String.format(
+          "Parent stack/service resource doesn't exist: stackName='%s', stackVersion='%s', serviceName='%s'",
+          stackName, stackVersion, serviceName));
+    }
+    File kerberosFile = serviceInfo.getKerberosDescriptorFile();
+
+    if (kerberosFile != null) {
+      KerberosServiceDescriptor serviceDescriptor = getMatchingServiceDescriptor(
+          KerberosServiceDescriptor.fromFile(kerberosFile), serviceName);
+
+      if (serviceDescriptor != null) {
+        return serviceDescriptor.toMap();
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Get a collection of all service descriptors for the specified stack.
+   *
+   * @param stack  stack name
+   *
+   * @return collection of all service descriptors for the stack; will not return null
+   *
+   * @throws IOException if unable to read or parse a descriptor file
+   */
+  private Collection<KerberosServiceDescriptor> getServiceDescriptors(StackInfo stack) throws IOException {
+    Collection<KerberosServiceDescriptor> serviceDescriptors = new ArrayList<KerberosServiceDescriptor>();
+    for (ServiceInfo service : stack.getServices()) {
+      File descriptorFile = service.getKerberosDescriptorFile();
+      if (descriptorFile != null) {
+        KerberosServiceDescriptor descriptor = getMatchingServiceDescriptor(
+            KerberosServiceDescriptor.fromFile(descriptorFile), service.getName());
+
+        if (descriptor != null) {
+          serviceDescriptors.add(descriptor);
+        }
+      }
+    }
+    return serviceDescriptors;
+  }
+
+  /**
+   * Get the correct service descriptor from an array of service descriptors.
+   * This is necessary because in some cases, multiple stack services are contained in the same
+   * stack metainfo file and all point to the same kerberos descriptor.
+   * This should be fixed in the stack to only return the matching descriptor, not all descriptors.
+   * When/If these changes are made in the stack, this method will go away as only the correct descriptor
+   * will be returned for a given service.
+   *
+   * @param descriptors  array of service descriptors
+   * @param serviceName  service name
+   *
+   * @return the service descriptor which correlates to the specified service or null if no match is made
+   */
+  private KerberosServiceDescriptor getMatchingServiceDescriptor(KerberosServiceDescriptor[] descriptors,
+                                                                 String serviceName) {
+    KerberosServiceDescriptor match = null;
+    for (KerberosServiceDescriptor descriptor : descriptors) {
+      if (descriptor.getName().equals(serviceName)) {
+        match = descriptor;
+        break;
+      }
+    }
+    return match;
+  }
+}

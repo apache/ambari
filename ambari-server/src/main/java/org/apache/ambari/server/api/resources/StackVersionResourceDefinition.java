@@ -53,6 +53,7 @@ public class StackVersionResourceDefinition extends BaseStacksResourceDefinition
     setChildren.add(new SubResourceDefinition(Resource.Type.StackService));
     setChildren.add(new SubResourceDefinition(Resource.Type.StackLevelConfiguration));
     setChildren.add(new SubResourceDefinition(Resource.Type.RepositoryVersion));
+    setChildren.add(new SubResourceDefinition(Type.StackArtifact));
 
     return setChildren;
 
