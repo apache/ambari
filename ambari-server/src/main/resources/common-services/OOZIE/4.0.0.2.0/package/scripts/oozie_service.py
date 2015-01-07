@@ -23,7 +23,15 @@ from resource_management import *
 def oozie_service(action = 'start'): # 'start' or 'stop'
   import params
 
-  kinit_if_needed = format("{kinit_path_local} -kt {oozie_keytab} {oozie_principal};") if params.security_enabled else ""
+  if params.security_enabled:
+    if params.oozie_principal is None:
+      oozie_principal_with_host = 'missing_principal'
+    else:
+      oozie_principal_with_host = params.oozie_principal.replace("_HOST", params.hostname)
+    kinit_if_needed = format("{kinit_path_local} -kt {oozie_keytab} {oozie_principal_with_host};")
+  else:
+    kinit_if_needed = ""
+
   no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1")
   
   if action == 'start':
