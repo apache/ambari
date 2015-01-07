@@ -239,7 +239,7 @@ hive_hdfs_user_mode = 0700
 hive_apps_whs_dir = config['configurations']['hive-site']["hive.metastore.warehouse.dir"]
 #for create_hdfs_directory
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
-hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
+hdfs_principal_name = default('/configurations/hadoop-env/hdfs_principal_name', 'missing_principal').replace("_HOST", hostname)
 
 # Tez-related properties
 tez_user = config['configurations']['tez-env']['tez_user']
@@ -306,7 +306,7 @@ import functools
 HdfsDirectory = functools.partial(
   HdfsDirectory,
   conf_dir = hadoop_conf_dir,
-  hdfs_user = hdfs_principal_name if security_enabled else hdfs_user,
+  hdfs_user = hdfs_user,
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,

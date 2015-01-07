@@ -33,7 +33,8 @@
               "name": "hive_metastore_hive",
               "principal": {
                 "value": "hive/_HOST@${realm}",
-                "configuration": "hive-site/hive.metastore.kerberos.principal"
+                "configuration": "hive-site/hive.metastore.kerberos.principal",
+                "local_username": "${hive-env/hive_user}"
               },
               "keytab": {
                 "file": "${keytab_dir}/hive.service.keytab",
@@ -57,7 +58,8 @@
               "name": "hive_server_hive",
               "principal": {
                 "value": "hive/_HOST@${realm}",
-                "configuration": "hive-site/hive.server2.authentication.kerberos.principal"
+                "configuration": "hive-site/hive.server2.authentication.kerberos.principal",
+                "local_username": "${hive-env/hive_user}"
               },
               "keytab": {
                 "file": "${keytab_dir}/hive.service.keytab",
@@ -89,7 +91,6 @@
             {
               "name": "/spnego",
               "principal": {
-                "value": "HTTP/${host}@${realm}",
                 "configuration": "webhcat-site/templeton.kerberos.principal"
               },
               "keytab": {

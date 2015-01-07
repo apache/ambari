@@ -128,9 +128,15 @@ def webhcat():
                     hadoop_conf_dir=params.hadoop_conf_dir
       )
 
+  # Replace _HOST with hostname in relevant principal-related properties
+  webhcat_site = params.config['configurations']['webhcat-site'].copy()
+  for prop_name in ['templeton.hive.properties', 'templeton.kerberos.principal']:
+    if prop_name in webhcat_site:
+      webhcat_site[prop_name] = webhcat_site[prop_name].replace("_HOST", params.hostname)
+
   XmlConfig("webhcat-site.xml",
             conf_dir=params.config_dir,
-            configurations=params.config['configurations']['webhcat-site'],
+            configurations=webhcat_site,
             configuration_attributes=params.config['configuration_attributes']['webhcat-site'],
             owner=params.webhcat_user,
             group=params.user_group,
