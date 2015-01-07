@@ -18,6 +18,7 @@ limitations under the License.
 """
 
 from kerberos_common import *
+from resource_management.libraries.functions.security_commons import cached_kinit_executor
 
 class KerberosClient(KerberosScript):
   def install(self, env):
@@ -32,6 +33,27 @@ class KerberosClient(KerberosScript):
 
   def status(self, env):
     raise ClientComponentHasNoStatus()
+
+  def security_status(self, env):
+    import status_params
+    if status_params.security_enabled:
+      if status_params.smoke_user and status_params.smoke_user_keytab:
+        try:
+          cached_kinit_executor(status_params.kinit_path_local,
+                                status_params.smoke_user,
+                                status_params.smoke_user_keytab,
+                                status_params.smoke_user,
+                                status_params.hostname,
+                                status_params.tmp_dir)
+          self.put_structured_out({"securityState": "SECURED_KERBEROS"})
+        except Exception as e:
+          self.put_structured_out({"securityState": "ERROR"})
+          self.put_structured_out({"securityStateErrorInfo": str(e)})
+      else:
+        self.put_structured_out({"securityState": "UNKNOWN"})
+        self.put_structured_out({"securityStateErrorInfo": "Missing smoke user credentials"})
+    else:
+      self.put_structured_out({"securityState": "UNSECURED"})
 
   def set_keytab(self, env):
     KerberosScript.write_keytab_file()
