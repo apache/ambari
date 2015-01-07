@@ -17,7 +17,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+from resource_management import *
 from stacks.utils.RMFTestCase import *
+from mock.mock import patch
 
 class TestKnoxGateway(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "KNOX/0.5.0.2.2/package"
@@ -93,3 +95,105 @@ class TestKnoxGateway(RMFTestCase):
     self.assertNoMoreResources()
 
 
+  @patch("resource_management.libraries.functions.security_commons.build_expectations")
+  @patch("resource_management.libraries.functions.security_commons.get_params_from_filesystem")
+  @patch("resource_management.libraries.functions.security_commons.validate_security_config_properties")
+  @patch("resource_management.libraries.functions.security_commons.cached_kinit_executor")
+  @patch("resource_management.libraries.script.Script.put_structured_out")
+  def test_security_status(self, put_structured_out_mock, cached_kinit_executor_mock,
+                           validate_security_config_mock, get_params_mock, build_exp_mock):
+    # Test that function works when is called with correct parameters
+
+    security_params = {
+      "krb5JAASLogin":
+        {
+          'keytab': "/path/to/keytab",
+          'principal': "principal"
+        },
+      "gateway-site" : {
+        "gateway.hadoop.kerberos.secured" : "true"
+      }
+    }
+
+    result_issues = []
+
+    get_params_mock.return_value = security_params
+    validate_security_config_mock.return_value = result_issues
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/knox_gateway.py",
+                       classname = "KnoxGateway",
+                       command="security_status",
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+
+    import status_params
+
+    self.assertTrue(build_exp_mock.call_count, 2)
+    build_exp_mock.assert_called_with('gateway-site', {"gateway.hadoop.kerberos.secured": "true"}, None, None)
+    put_structured_out_mock.assert_called_with({"securityState": "SECURED_KERBEROS"})
+    self.assertTrue(cached_kinit_executor_mock.call_count, 1)
+    cached_kinit_executor_mock.assert_called_with(status_params.kinit_path_local,
+                                                  status_params.knox_user,
+                                                  security_params['krb5JAASLogin']['keytab'],
+                                                  security_params['krb5JAASLogin']['principal'],
+                                                  status_params.hostname,
+                                                  status_params.temp_dir)
+
+    # Testing that the exception throw by cached_executor is caught
+    cached_kinit_executor_mock.reset_mock()
+    cached_kinit_executor_mock.side_effect = Exception("Invalid command")
+
+    try:
+      self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/knox_gateway.py",
+                         classname = "KnoxGateway",
+                         command="security_status",
+                         config_file="secured.json",
+                         hdp_stack_version = self.STACK_VERSION,
+                         target = RMFTestCase.TARGET_COMMON_SERVICES
+      )
+    except:
+      self.assertTrue(True)
+
+    # Testing with a security_params which doesn't contains krb5JAASLogin
+    empty_security_params = {"krb5JAASLogin" : {}}
+    cached_kinit_executor_mock.reset_mock()
+    get_params_mock.reset_mock()
+    put_structured_out_mock.reset_mock()
+    get_params_mock.return_value = empty_security_params
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/knox_gateway.py",
+                       classname = "KnoxGateway",
+                       command="security_status",
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+    put_structured_out_mock.assert_called_with({"securityIssuesFound": "Keytab file and principal are not set."})
+
+    # Testing with not empty result_issues
+    result_issues_with_params = {'krb5JAASLogin': "Something bad happened"}
+    validate_security_config_mock.reset_mock()
+    get_params_mock.reset_mock()
+    validate_security_config_mock.return_value = result_issues_with_params
+    get_params_mock.return_value = security_params
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/knox_gateway.py",
+                       classname = "KnoxGateway",
+                       command="security_status",
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+    put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
+
+    # Testing with security_enable = false
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/knox_gateway.py",
+                       classname = "KnoxGateway",
+                       command="security_status",
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+    put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})

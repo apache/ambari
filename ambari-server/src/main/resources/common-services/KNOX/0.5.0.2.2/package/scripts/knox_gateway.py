@@ -18,6 +18,9 @@ limitations under the License.
 """
 
 from resource_management import *
+from resource_management.libraries.functions.security_commons import build_expectations, \
+  cached_kinit_executor, validate_security_config_properties, get_params_from_filesystem, \
+  FILE_TYPE_XML
 import sys
 
 from knox import knox
@@ -97,6 +100,67 @@ class KnoxGateway(Script):
             )
     Execute (format("rm -f {ldap_pid_file}"))
 
+  def security_status(self, env):
+    import status_params
+
+    env.set_params(status_params)
+
+    if status_params.security_enabled:
+      expectations = {}
+      expectations.update(build_expectations(
+        'krb5JAASLogin',
+        None,
+        ['keytab', 'principal'],
+        None
+      ))
+      expectations.update(build_expectations(
+        'gateway-site',
+        {
+          "gateway.hadoop.kerberos.secured" : "true"
+        },
+        None,
+        None
+      ))
+
+      security_params = {
+        "krb5JAASLogin":
+          {
+            'keytab': status_params.knox_keytab_path,
+            'principal': status_params.knox_principal_name
+          }
+      }
+      security_params.update(get_params_from_filesystem(status_params.knox_conf_dir,
+        {"gateway-site.xml" : FILE_TYPE_XML}))
+
+      result_issues = validate_security_config_properties(security_params, expectations)
+      if not result_issues:  # If all validations passed successfully
+        try:
+          # Double check the dict before calling execute
+          if ( 'krb5JAASLogin' not in security_params
+               or 'keytab' not in security_params['krb5JAASLogin']
+               or 'principal' not in security_params['krb5JAASLogin']):
+            self.put_structured_out({"securityState": "UNSECURED"})
+            self.put_structured_out({"securityIssuesFound": "Keytab file and principal are not set."})
+            return
+
+          cached_kinit_executor(status_params.kinit_path_local,
+                                status_params.knox_user,
+                                security_params['krb5JAASLogin']['keytab'],
+                                security_params['krb5JAASLogin']['principal'],
+                                status_params.hostname,
+                                status_params.temp_dir)
+          self.put_structured_out({"securityState": "SECURED_KERBEROS"})
+        except Exception as e:
+          self.put_structured_out({"securityState": "ERROR"})
+          self.put_structured_out({"securityStateErrorInfo": str(e)})
+      else:
+        issues = []
+        for cf in result_issues:
+          issues.append("Configuration file %s did not pass the validation. Reason: %s" % (cf, result_issues[cf]))
+        self.put_structured_out({"securityIssuesFound": ". ".join(issues)})
+        self.put_structured_out({"securityState": "UNSECURED"})
+    else:
+      self.put_structured_out({"securityState": "UNSECURED"})
 
 
 if __name__ == "__main__":

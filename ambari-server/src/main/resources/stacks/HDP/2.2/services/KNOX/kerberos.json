@@ -10,7 +10,9 @@
               "name": "knox_principal",
               "principal": {
                 "value": "${knox-env/knox_user}/_HOST@${realm}",
-                "configuration": "knox-env/knox_principal_name"
+                "configuration": "knox-env/knox_principal_name",
+                "local_username": "${knox-env/knox_user}"
+
               },
               "keytab": {
                 "file": "${keytab_dir}/knox.service.keytab",

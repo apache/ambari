@@ -58,6 +58,12 @@
         },
         "slider-env": {
             "content": "envproperties\nline2"
+        },
+        "knox-env": {
+            "knox_master_secret": "sa",
+            "knox_group": "knox",
+            "knox_pid_dir": "/var/run/knox",
+            "knox_user": "knox"
         }
     },
     "configuration_attributes": {},

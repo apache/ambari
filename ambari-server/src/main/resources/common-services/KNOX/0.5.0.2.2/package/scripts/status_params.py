@@ -22,6 +22,19 @@ from resource_management import *
 
 config = Script.get_config()
 
+knox_conf_dir = '/etc/knox/conf'
 knox_pid_dir = config['configurations']['knox-env']['knox_pid_dir']
 knox_pid_file = format("{knox_pid_dir}/gateway.pid")
 ldap_pid_file = format("{knox_pid_dir}/ldap.pid")
+
+security_enabled = config['configurations']['cluster-env']['security_enabled']
+if security_enabled:
+    knox_keytab_path = config['configurations']['knox-env']['knox_keytab_path']
+    knox_principal_name = config['configurations']['knox-env']['knox_principal_name']
+else:
+    knox_keytab_path = None
+    knox_principal_name = None
+hostname = config['hostname'].lower()
+knox_user = default("/configurations/knox-env/knox_user", "knox")
+kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+temp_dir = Script.get_tmp_dir()
