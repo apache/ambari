@@ -22,6 +22,7 @@ import os
 import socket
 import sys
 import re
+import json
 
 from ambari_agent.AlertSchedulerHandler import AlertSchedulerHandler
 from ambari_agent.alerts.collector import AlertCollector
@@ -38,7 +39,8 @@ from unittest import TestCase
 class TestAlerts(TestCase):
 
   def setUp(self):
-    pass
+    # save original open() method for later use
+    self.original_open = open
 
 
   def tearDown(self):
@@ -710,3 +712,38 @@ class TestAlerts(TestCase):
     self.assertEquals(alert._get_reporting_text(alert.RESULT_OK), '{0}')
     self.assertEquals(alert._get_reporting_text(alert.RESULT_WARNING), '{0}')
     self.assertEquals(alert._get_reporting_text(alert.RESULT_CRITICAL), '{0}')
+    
+  @patch("json.dump")
+  def test_update_configurations(self, json_mock):
+
+    def open_side_effect(file, mode):
+      if mode == 'w':
+        file_mock = MagicMock()
+        return file_mock
+      else:
+        return self.original_open(file, mode)
+
+    test_file_path = os.path.join('ambari_agent', 'dummy_files')
+    test_stack_path = os.path.join('ambari_agent', 'dummy_files')
+    test_common_services_path = os.path.join('ambari_agent', 'dummy_files')
+    test_host_scripts_path = os.path.join('ambari_agent', 'dummy_files')
+
+    commands = [{"clusterName": "c1",
+                 "configurations": {
+                   "hdfs-site": {
+                     "dfs.namenode.http-address": "c6401.ambari.apache.org:50071"
+                   }
+                 }}]
+    with open(os.path.join(test_stack_path, "definitions.json"),"r") as fp:
+      all_commands = json.load(fp)
+    all_commands[0]['configurations']['hdfs-site'].update({"dfs.namenode.http-address": "c6401.ambari.apache.org:50071"})
+
+    ash = AlertSchedulerHandler(test_file_path, test_stack_path, test_common_services_path, test_host_scripts_path)
+    ash.start()
+
+    with patch("__builtin__.open") as open_mock:
+      open_mock.side_effect = open_side_effect
+      ash.update_configurations(commands)
+    self.assertTrue(json_mock.called)
+    self.assertTrue(json_mock.called_with(all_commands))
+

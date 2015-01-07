@@ -81,6 +81,33 @@ class AlertSchedulerHandler():
     if reschedule_jobs:
       self.reschedule()
 
+  def __update_definition_configs(self):
+    """ updates the persisted configs and restarts the scheduler """
+
+    definitions = []
+
+    all_commands = None
+    # Load definitions from json
+    try:
+      with open(os.path.join(self.cachedir, self.FILENAME), 'r') as fp:
+        all_commands = json.load(fp)
+    except IOError, ValueError:
+      if (logger.isEnabledFor(logging.DEBUG)):
+        logger.exception("Failed to load definitions. {0}".format(traceback.format_exc()))
+      return
+
+    # Update definitions with current config
+    for command_json in all_commands:
+      clusterName = '' if not 'clusterName' in command_json else command_json['clusterName']
+      hostName = '' if not 'hostName' in command_json else command_json['hostName']
+
+      self.__update_config_values(command_json['configurations'],self.__config_maps[clusterName])
+
+    # Save definitions to file
+    with open(os.path.join(self.cachedir, self.FILENAME), 'w') as f:
+      json.dump(all_commands, f, indent=2)
+
+    self.reschedule_all()
 
   def __make_function(self, alert_def):
     return lambda: alert_def.collect()
@@ -134,7 +161,7 @@ class AlertSchedulerHandler():
         if scheduled_job.name == definition_uuid:
           uuid_valid = True
           break
-      
+
       # jobs without valid UUIDs should be unscheduled
       if uuid_valid == False:
         jobs_removed += 1
@@ -158,6 +185,33 @@ class AlertSchedulerHandler():
   
     logger.info("Alert Reschedule Summary: {0} rescheduled, {1} unscheduled".format(
         str(jobs_scheduled), str(jobs_removed)))
+
+  def reschedule_all(self):
+    """
+    Removes jobs that are scheduled where their UUID no longer is valid.
+    Schedules jobs where the definition UUID is not currently scheduled.
+    """
+    jobs_scheduled = 0
+    jobs_removed = 0
+
+    definitions = self.__load_definitions()
+    scheduled_jobs = self.__scheduler.get_jobs()
+
+    # unschedule all scheduled jobs
+    for scheduled_job in scheduled_jobs:
+
+        jobs_removed += 1
+        logger.info("Unscheduling {0}".format(scheduled_job.name))
+        self._collector.remove_by_uuid(scheduled_job.name)
+        self.__scheduler.unschedule_job(scheduled_job)
+
+    # for every definition, schedule a job
+    for definition in definitions:
+        jobs_scheduled += 1
+        self.schedule_definition(definition)
+
+    logger.info("Alert Reschedule Summary: {0} rescheduled, {1} unscheduled".format(
+      str(jobs_scheduled), str(jobs_removed)))
 
 
   def collector(self):
@@ -259,7 +313,18 @@ class AlertSchedulerHandler():
         
     return result
 
- 
+  def __update_config_values(self, configs, actual_configs):
+    for slashkey in actual_configs.keys():
+      dicts = slashkey.split('/')
+      current_dict = configs
+      for i in range(len(dicts)):
+        if i+1 >= len(dicts):
+          current_dict[dicts[i]] = actual_configs[slashkey]
+        else:
+          if not dicts[i] in current_dict:
+            current_dict[dicts[i]]={}
+          current_dict = current_dict[dicts[i]]
+
   def update_configurations(self, commands):
     """
     when an execution command comes in, update any necessary values.
@@ -274,7 +339,10 @@ class AlertSchedulerHandler():
         configmap = command['configurations']
         keylist = self.__config_maps[clusterName].keys()
         vals = self.__find_config_values(configmap, keylist)
-        self.__config_maps[clusterName].update(vals)
+        # if we have updated values push them to config_maps and reschedule
+        if vals != self.__config_maps[clusterName]:
+          self.__config_maps[clusterName].update(vals)
+          self.__update_definition_configs()
         
 
   def schedule_definition(self,definition):
