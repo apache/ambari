@@ -4672,7 +4672,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     }
 
     get_ambari_properties_method.return_value = configs
-    raw_input_mock.side_effect = ['a:3', 'b:b', 'hody', 'b:2', 'false', 'user', 'uid', 'group', 'cn', 'member', 'base', 'true']
+    raw_input_mock.side_effect = ['a:3', 'b:b', 'hody', 'b:2', 'false', 'user', 'uid', 'group', 'cn', 'member', 'dn', 'base', 'true']
     ambari_server.SILENT = False
     get_YN_input_method.return_value = True
 
@@ -4688,6 +4688,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
         "authentication.ldap.groupObjectClass": "group",
         "authentication.ldap.groupNamingAttr": "cn",
         "authentication.ldap.groupMembershipAttr": "member",
+        "authentication.ldap.dnAttribute": "dn",
         "authentication.ldap.baseDn": "base",
         "authentication.ldap.bindAnonymously": "true",
         "client.security": "ldap",
@@ -4702,7 +4703,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(8, raw_input_mock.call_count)
 
     raw_input_mock.reset_mock()
-    raw_input_mock.side_effect = ['a:3', '', 'b:2', 'false', 'user', 'uid', 'group', 'cn', 'member', 'base', 'true']
+    raw_input_mock.side_effect = ['a:3', '', 'b:2', 'false', 'user', 'uid', 'group', 'cn', 'member', 'dn', 'base', 'true']
 
     ambari_server.setup_ldap()
 
@@ -4715,6 +4716,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
         "authentication.ldap.groupObjectClass": "group",
         "authentication.ldap.groupNamingAttr": "cn",
         "authentication.ldap.groupMembershipAttr": "member",
+        "authentication.ldap.dnAttribute": "dn",
         "authentication.ldap.baseDn": "base",
         "authentication.ldap.bindAnonymously": "true",
         "client.security": "ldap",
@@ -4813,6 +4815,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
         "authentication.ldap.groupObjectClass": "test",
         "authentication.ldap.groupMembershipAttr": "test",
         "authentication.ldap.groupNamingAttr": "test",
+        "authentication.ldap.dnAttribute": "test",
         "client.security": "ldap", \
         ambari_server.LDAP_MGR_PASSWORD_PROPERTY: "ldap-password.dat",
         "ambari.ldap.isConfigured": "true"
@@ -4873,6 +4876,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
         "authentication.ldap.useSSL": "true",
         "authentication.ldap.usernameAttribute": "test",
         "authentication.ldap.baseDn": "test",
+        "authentication.ldap.dnAttribute": "test",
         "authentication.ldap.bindAnonymously": "false",
         "authentication.ldap.managerDn": "test",
         "client.security": "ldap",

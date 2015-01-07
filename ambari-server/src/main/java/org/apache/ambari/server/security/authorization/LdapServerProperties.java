@@ -35,6 +35,7 @@ public class LdapServerProperties {
   private String managerDn;
   private String managerPassword;
   private String baseDN;
+  private String dnAttribute;
 
   //LDAP group properties
   private String groupBase;
@@ -216,6 +217,14 @@ public class LdapServerProperties {
     return userObjectClass;
   }
 
+  public String getDnAttribute() {
+    return dnAttribute;
+  }
+
+  public void setDnAttribute(String dnAttribute) {
+    this.dnAttribute = dnAttribute;
+  }
+
   @Override
   public boolean equals(Object obj) {
     if (this == obj) return true;
@@ -249,6 +258,8 @@ public class LdapServerProperties {
         that.adminGroupMappingRules) : that.adminGroupMappingRules != null) return false;
     if (groupSearchFilter != null ? !groupSearchFilter.equals(
         that.groupSearchFilter) : that.groupSearchFilter != null) return false;
+    if (dnAttribute != null ? !dnAttribute.equals(
+        that.dnAttribute) : that.dnAttribute != null) return false;
 
     return true;
   }
@@ -271,6 +282,7 @@ public class LdapServerProperties {
     result = 31 * result + (groupNamingAttr != null ? groupNamingAttr.hashCode() : 0);
     result = 31 * result + (adminGroupMappingRules != null ? adminGroupMappingRules.hashCode() : 0);
     result = 31 * result + (groupSearchFilter != null ? groupSearchFilter.hashCode() : 0);
+    result = 31 * result + (dnAttribute != null ? dnAttribute.hashCode() : 0);
     return result;
   }
 

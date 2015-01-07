@@ -3226,6 +3226,7 @@ def setup_ldap():
                         "authentication.ldap.groupObjectClass",
                         "authentication.ldap.groupNamingAttr",
                         "authentication.ldap.groupMembershipAttr",
+                        "authentication.ldap.dnAttribute",
                         "authentication.ldap.baseDn",
                         "authentication.ldap.bindAnonymously"]
 
@@ -3250,8 +3251,9 @@ def setup_ldap():
   LDAP_GROUP_CLASS_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[5], "posixGroup")
   LDAP_GROUP_ATT_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[6], "cn")
   LDAP_GROUP_MEMBER_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[7], "memberUid")
-  LDAP_BASE_DN_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[8])
-  LDAP_BIND_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[9], "false")
+  LDAP_DN_ATT_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[8], "dn")
+  LDAP_BASE_DN_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[9])
+  LDAP_BIND_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[10], "false")
   LDAP_MGR_DN_DEFAULT = get_value_from_properties(properties, ldap_property_list_opt[0])
   SSL_TRUSTSTORE_TYPE_DEFAULT = get_value_from_properties(properties, SSL_TRUSTSTORE_TYPE_PROPERTY, "jks")
   SSL_TRUSTSTORE_PATH_DEFAULT = get_value_from_properties(properties, SSL_TRUSTSTORE_PATH_PROPERTY)
@@ -3259,23 +3261,24 @@ def setup_ldap():
 
   ldap_properties_map_reqd =\
   {
-    ldap_property_list_reqd[0]:(LDAP_PRIMARY_URL_DEFAULT, "Primary URL* {{host:port}} {0}: ".format(get_prompt_default(LDAP_PRIMARY_URL_DEFAULT)), False),\
-    ldap_property_list_reqd[1]:(LDAP_SECONDARY_URL_DEFAULT, "Secondary URL {{host:port}} {0}: ".format(get_prompt_default(LDAP_SECONDARY_URL_DEFAULT)), True),\
-    ldap_property_list_reqd[2]:(LDAP_USE_SSL_DEFAULT, "Use SSL* [true/false] {0}: ".format(get_prompt_default(LDAP_USE_SSL_DEFAULT)), False),\
-    ldap_property_list_reqd[3]:(LDAP_USER_CLASS_DEFAULT, "User object class* {0}: ".format(get_prompt_default(LDAP_USER_CLASS_DEFAULT)), False),\
-    ldap_property_list_reqd[4]:(LDAP_USER_ATT_DEFAULT, "User name attribute* {0}: ".format(get_prompt_default(LDAP_USER_ATT_DEFAULT)), False),\
-    ldap_property_list_reqd[5]:(LDAP_GROUP_CLASS_DEFAULT, "Group object class* {0}: ".format(get_prompt_default(LDAP_GROUP_CLASS_DEFAULT)), False),\
-    ldap_property_list_reqd[6]:(LDAP_GROUP_ATT_DEFAULT, "Group name attribute* {0}: ".format(get_prompt_default(LDAP_GROUP_ATT_DEFAULT)), False),\
-    ldap_property_list_reqd[7]:(LDAP_GROUP_MEMBER_DEFAULT, "Group member attribute* {0}: ".format(get_prompt_default(LDAP_GROUP_MEMBER_DEFAULT)), False),\
-    ldap_property_list_reqd[8]:(LDAP_BASE_DN_DEFAULT, "Base DN* {0}: ".format(get_prompt_default(LDAP_BASE_DN_DEFAULT)), False),\
-    ldap_property_list_reqd[9]:(LDAP_BIND_DEFAULT, "Bind anonymously* [true/false] {0}: ".format(get_prompt_default(LDAP_BIND_DEFAULT)), False),\
+    ldap_property_list_reqd[0]:(LDAP_PRIMARY_URL_DEFAULT, "Primary URL* {{host:port}} {0}: ".format(get_prompt_default(LDAP_PRIMARY_URL_DEFAULT)), False),
+    ldap_property_list_reqd[1]:(LDAP_SECONDARY_URL_DEFAULT, "Secondary URL {{host:port}} {0}: ".format(get_prompt_default(LDAP_SECONDARY_URL_DEFAULT)), True),
+    ldap_property_list_reqd[2]:(LDAP_USE_SSL_DEFAULT, "Use SSL* [true/false] {0}: ".format(get_prompt_default(LDAP_USE_SSL_DEFAULT)), False),
+    ldap_property_list_reqd[3]:(LDAP_USER_CLASS_DEFAULT, "User object class* {0}: ".format(get_prompt_default(LDAP_USER_CLASS_DEFAULT)), False),
+    ldap_property_list_reqd[4]:(LDAP_USER_ATT_DEFAULT, "User name attribute* {0}: ".format(get_prompt_default(LDAP_USER_ATT_DEFAULT)), False),
+    ldap_property_list_reqd[5]:(LDAP_GROUP_CLASS_DEFAULT, "Group object class* {0}: ".format(get_prompt_default(LDAP_GROUP_CLASS_DEFAULT)), False),
+    ldap_property_list_reqd[6]:(LDAP_GROUP_ATT_DEFAULT, "Group name attribute* {0}: ".format(get_prompt_default(LDAP_GROUP_ATT_DEFAULT)), False),
+    ldap_property_list_reqd[7]:(LDAP_GROUP_MEMBER_DEFAULT, "Group member attribute* {0}: ".format(get_prompt_default(LDAP_GROUP_MEMBER_DEFAULT)), False),
+    ldap_property_list_reqd[8]:(LDAP_DN_ATT_DEFAULT, "Distinguished name attribute* {0}: ".format(get_prompt_default(LDAP_DN_ATT_DEFAULT)), False),
+    ldap_property_list_reqd[9]:(LDAP_BASE_DN_DEFAULT, "Base DN* {0}: ".format(get_prompt_default(LDAP_BASE_DN_DEFAULT)), False),
+    ldap_property_list_reqd[10]:(LDAP_BIND_DEFAULT, "Bind anonymously* [true/false] {0}: ".format(get_prompt_default(LDAP_BIND_DEFAULT)), False),
   }
 
   ldap_property_value_map = {}
   for idx, key in enumerate(ldap_property_list_reqd):
     if idx in [0, 1]:
       pattern = REGEX_HOSTNAME_PORT
-    elif idx in [2, 9]:
+    elif idx in [2, 10]:
       pattern = REGEX_TRUE_FALSE
     else:
       pattern = REGEX_ANYTHING

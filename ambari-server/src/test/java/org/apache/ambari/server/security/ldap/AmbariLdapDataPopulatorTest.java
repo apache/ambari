@@ -45,6 +45,7 @@ import org.easymock.IAnswer;
 import org.junit.Test;
 import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.ContextMapper;
+import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.LdapTemplate;
 
 import static junit.framework.Assert.*;
@@ -1417,6 +1418,7 @@ public class AmbariLdapDataPopulatorTest {
 
     expect(configuration.getLdapServerProperties()).andReturn(ldapServerProperties).anyTimes();
     expect(ldapServerProperties.getUserObjectClass()).andReturn("objectClass").anyTimes();
+    expect(ldapServerProperties.getDnAttribute()).andReturn("dn").anyTimes();
     expect(ldapServerProperties.getBaseDN()).andReturn("baseDN").anyTimes();
 
     expect(ldapTemplate.search(eq("baseDN"), eq("(&(objectClass=objectClass)(|(dn=foo)(uid=foo)))"), capture(contextMapperCapture))).andReturn(list);
@@ -1432,6 +1434,67 @@ public class AmbariLdapDataPopulatorTest {
     populator.getLdapUserByMemberAttr("uid=foo,dc=example,dc=com");
 
     verify(ldapTemplate, ldapServerProperties, users, configuration);
+  }
+
+  @Test
+  public void testLdapUserContextMapper_uidIsNull() throws Exception {
+    LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
+    expect(ldapServerProperties.getUsernameAttribute()).andReturn("cn").once();
+    DirContextAdapter adapter = createNiceMock(DirContextAdapter.class);
+    expect(adapter.getStringAttribute("cn")).andReturn("testUser");
+    expect(adapter.getStringAttribute("uid")).andReturn(null);
+    expect(adapter.getNameInNamespace()).andReturn("cn=testUser,ou=Ambari,dc=SME,dc=support,dc=com");
+
+    replay(ldapServerProperties, adapter);
+
+    Set<LdapUserDto> userResultSet = new HashSet<LdapUserDto>();
+    AmbariLdapDataPopulator.LdapUserContextMapper ldapUserContextMapper = new AmbariLdapDataPopulator.LdapUserContextMapper(userResultSet, ldapServerProperties);
+    ldapUserContextMapper.mapFromContext(adapter);
+
+    assertEquals(1, userResultSet.size());
+    LdapUserDto userDto = userResultSet.iterator().next();
+    assertNull(userDto.getUid());
+    assertEquals("testuser", userDto.getUserName());
+    assertEquals("cn=testuser,ou=ambari,dc=sme,dc=support,dc=com", userDto.getDn());
+  }
+
+  @Test
+  public void testLdapUserContextMapper_uidAndUsernameAreNull() throws Exception {
+    LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
+    expect(ldapServerProperties.getUsernameAttribute()).andReturn("cn").once();
+    DirContextAdapter adapter = createNiceMock(DirContextAdapter.class);
+    expect(adapter.getStringAttribute("cn")).andReturn(null);
+    expect(adapter.getStringAttribute("uid")).andReturn(null);
+
+    replay(ldapServerProperties, adapter);
+
+    Set<LdapUserDto> userResultSet = new HashSet<LdapUserDto>();
+    AmbariLdapDataPopulator.LdapUserContextMapper ldapUserContextMapper = new AmbariLdapDataPopulator.LdapUserContextMapper(userResultSet, ldapServerProperties);
+    ldapUserContextMapper.mapFromContext(adapter);
+
+    assertEquals(0, userResultSet.size());
+  }
+
+  @Test
+  public void testLdapUserContextMapper() throws Exception {
+    LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
+    expect(ldapServerProperties.getUsernameAttribute()).andReturn("cn").once();
+    DirContextAdapter adapter = createNiceMock(DirContextAdapter.class);
+    expect(adapter.getStringAttribute("cn")).andReturn("testUser");
+    expect(adapter.getStringAttribute("uid")).andReturn("UID1");
+    expect(adapter.getNameInNamespace()).andReturn("cn=testUser,ou=Ambari,dc=SME,dc=support,dc=com");
+
+    replay(ldapServerProperties, adapter);
+
+    Set<LdapUserDto> userResultSet = new HashSet<LdapUserDto>();
+    AmbariLdapDataPopulator.LdapUserContextMapper ldapUserContextMapper = new AmbariLdapDataPopulator.LdapUserContextMapper(userResultSet, ldapServerProperties);
+    ldapUserContextMapper.mapFromContext(adapter);
+
+    assertEquals(1, userResultSet.size());
+    LdapUserDto userDto = userResultSet.iterator().next();
+    assertEquals("uid1", userDto.getUid());
+    assertEquals("testuser", userDto.getUserName());
+    assertEquals("cn=testuser,ou=ambari,dc=sme,dc=support,dc=com", userDto.getDn());
   }
 
   private static int userIdCounter = 1;

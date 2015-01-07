@@ -82,7 +82,6 @@ public class AmbariLdapDataPopulator {
 
   // Constants
   private static final String UID_ATTRIBUTE          = "uid";
-  private static final String DN_ATTRIBUTE           = "dn";
   private static final String OBJECT_CLASS_ATTRIBUTE = "objectClass";
 
   /**
@@ -459,6 +458,7 @@ public class AmbariLdapDataPopulator {
   private Filter getMemberFilter(String memberAttribute) {
 
     String   usernameAttribute = ldapServerProperties.getUsernameAttribute();
+    String   dnAttribute = ldapServerProperties.getDnAttribute();
     OrFilter memberFilter      = null;
 
     String[] filters = memberAttribute.split(",");
@@ -468,7 +468,7 @@ public class AmbariLdapDataPopulator {
 
         String lOperand = operands[0];
 
-        if (lOperand.equals(usernameAttribute) || lOperand.equals(UID_ATTRIBUTE) || lOperand.equals(DN_ATTRIBUTE)) {
+        if (lOperand.equals(usernameAttribute) || lOperand.equals(UID_ATTRIBUTE) || lOperand.equals(dnAttribute)) {
           if (memberFilter == null) {
             memberFilter = new OrFilter();
           }
@@ -477,7 +477,7 @@ public class AmbariLdapDataPopulator {
       }
     }
     return memberFilter == null ?
-        new OrFilter().or(new EqualsFilter(DN_ATTRIBUTE, memberAttribute)).
+        new OrFilter().or(new EqualsFilter(dnAttribute, memberAttribute)).
             or(new EqualsFilter(UID_ATTRIBUTE, memberAttribute)) :
         memberFilter;
   }
@@ -494,29 +494,7 @@ public class AmbariLdapDataPopulator {
     final Set<LdapGroupDto> groups = new HashSet<LdapGroupDto>();
     final LdapTemplate ldapTemplate = loadLdapTemplate();
     String baseDn = ldapServerProperties.getBaseDN();
-    ldapTemplate.search(baseDn, filter.encode(), new ContextMapper() {
-
-      @Override
-      public Object mapFromContext(Object ctx) {
-        final DirContextAdapter adapter = (DirContextAdapter) ctx;
-
-        final LdapGroupDto group = new LdapGroupDto();
-        final String groupNameAttribute = adapter.getStringAttribute(ldapServerProperties.getGroupNamingAttr());
-
-        if (groupNameAttribute != null) {
-          group.setGroupName(groupNameAttribute.toLowerCase());
-
-          final String[] uniqueMembers = adapter.getStringAttributes(ldapServerProperties.getGroupMembershipAttr());
-          if (uniqueMembers != null) {
-            for (String uniqueMember: uniqueMembers) {
-              group.getMemberAttributes().add(uniqueMember.toLowerCase());
-            }
-          }
-          groups.add(group);
-        }
-        return null;
-      }
-    });
+    ldapTemplate.search(baseDn, filter.encode(), new LdapGroupContextMapper(groups, ldapServerProperties));
     return groups;
   }
 
@@ -543,26 +521,7 @@ public class AmbariLdapDataPopulator {
     final Set<LdapUserDto> users = new HashSet<LdapUserDto>();
     final LdapTemplate ldapTemplate = loadLdapTemplate();
     String baseDn = ldapServerProperties.getBaseDN();
-    ldapTemplate.search(baseDn, filter.encode(), new ContextMapper() {
-
-      @Override
-      public Object mapFromContext(Object ctx) {
-        final LdapUserDto user = new LdapUserDto();
-        final DirContextAdapter adapter  = (DirContextAdapter) ctx;
-        final String usernameAttribute = adapter.getStringAttribute(ldapServerProperties.getUsernameAttribute());
-        final String uidAttribute = adapter.getStringAttribute(UID_ATTRIBUTE);
-        if (usernameAttribute != null && uidAttribute != null) {
-          user.setUserName(usernameAttribute.toLowerCase());
-          user.setUid(uidAttribute.toLowerCase());
-          user.setDn(adapter.getNameInNamespace().toLowerCase());
-          users.add(user);
-        } else {
-          LOG.warn("Ignoring LDAP user " + adapter.getNameInNamespace() + " as it doesn't have required" +
-              " attributes uid and " + ldapServerProperties.getUsernameAttribute());
-        }
-        return null;
-      }
-    });
+    ldapTemplate.search(baseDn, filter.encode(), new LdapUserContextMapper(users, ldapServerProperties));
     return users;
   }
 
@@ -643,5 +602,67 @@ public class AmbariLdapDataPopulator {
       ldapTemplate = new LdapTemplate(ldapContextSource);
     }
     return ldapTemplate;
+  }
+
+  //
+  // ContextMapper implementations
+  //
+
+  protected static class LdapGroupContextMapper implements ContextMapper {
+
+    private final Set<LdapGroupDto> groups;
+    private final LdapServerProperties ldapServerProperties;
+
+    public LdapGroupContextMapper(Set<LdapGroupDto> groups, LdapServerProperties ldapServerProperties) {
+      this.groups = groups;
+      this.ldapServerProperties = ldapServerProperties;
+    }
+
+    @Override
+    public Object mapFromContext(Object ctx) {
+      final DirContextAdapter adapter = (DirContextAdapter) ctx;
+      final String groupNameAttribute = adapter.getStringAttribute(ldapServerProperties.getGroupNamingAttr());
+      if (groupNameAttribute != null) {
+        final LdapGroupDto group = new LdapGroupDto();
+        group.setGroupName(groupNameAttribute.toLowerCase());
+        final String[] uniqueMembers = adapter.getStringAttributes(ldapServerProperties.getGroupMembershipAttr());
+        if (uniqueMembers != null) {
+          for (String uniqueMember: uniqueMembers) {
+            group.getMemberAttributes().add(uniqueMember.toLowerCase());
+          }
+        }
+        groups.add(group);
+      }
+      return null;
+    }
+  }
+
+  protected static class LdapUserContextMapper implements ContextMapper {
+
+    private final Set<LdapUserDto> users;
+    private final LdapServerProperties ldapServerProperties;
+
+    public LdapUserContextMapper(Set<LdapUserDto> users, LdapServerProperties ldapServerProperties) {
+      this.users = users;
+      this.ldapServerProperties = ldapServerProperties;
+    }
+
+    @Override
+    public Object mapFromContext(Object ctx) {
+      final DirContextAdapter adapter  = (DirContextAdapter) ctx;
+      final String usernameAttribute = adapter.getStringAttribute(ldapServerProperties.getUsernameAttribute());
+      final String uidAttribute = adapter.getStringAttribute(UID_ATTRIBUTE);
+      if (usernameAttribute != null || uidAttribute != null) {
+        final LdapUserDto user = new LdapUserDto();
+        user.setUserName(usernameAttribute != null ? usernameAttribute.toLowerCase() : null);
+        user.setUid(uidAttribute != null ? uidAttribute.toLowerCase() : null);
+        user.setDn(adapter.getNameInNamespace().toLowerCase());
+        users.add(user);
+      } else {
+        LOG.warn("Ignoring LDAP user " + adapter.getNameInNamespace() + " as it doesn't have required" +
+                " attributes uid and " + ldapServerProperties.getUsernameAttribute());
+      }
+      return null;
+    }
   }
 }
