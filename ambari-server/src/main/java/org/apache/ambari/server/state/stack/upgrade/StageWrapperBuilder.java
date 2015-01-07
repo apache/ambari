@@ -33,10 +33,12 @@ public abstract class StageWrapperBuilder {
    *
    * @param hostsType   the hosts, along with their type
    * @param service     the service name
+   * @param forUpgrade  {@code true} when performing an upgrade, {@code false} for a downgrade
    * @param clientOnly  whether the service is client only, no service checks
    * @param pc          the ProcessingComponent derived from the upgrade pack
    */
-  public abstract void add(HostsType hostsType, String service, boolean clientOnly, ProcessingComponent pc);
+  public abstract void add(HostsType hostsType, String service,
+      boolean forUpgrade, boolean clientOnly, ProcessingComponent pc);
 
   /**
    * Builds the stage wrappers.
@@ -56,6 +58,28 @@ public abstract class StageWrapperBuilder {
         component,
         1 == hosts.size() ? hosts.iterator().next() : Integer.valueOf(hosts.size()),
         1 == hosts.size() ? "" : " hosts");
+  }
+
+  /**
+   * Determine the list of tasks given these rules
+   * <ul>
+   *   <li>When performing an upgrade, only use upgrade tasks</li>
+   *   <li>When performing a downgrade, use the downgrade tasks if they are defined</li>
+   *   <li>When performing a downgrade, but no downgrade tasks exist, reuse the upgrade tasks</li>
+   * </ul>
+   * @param forUpgrade  {@code true} if resolving for an upgrade, {@code false} for downgrade
+   * @param preTasks    {@code true} if loading pre-upgrade or pre-downgrade
+   * @param pc          the processing component holding task definitions
+   * @return
+   */
+  protected List<Task> resolveTasks(boolean forUpgrade, boolean preTasks, ProcessingComponent pc) {
+    if (forUpgrade) {
+      return preTasks ? pc.preTasks : pc.postTasks;
+    } else {
+      return preTasks ?
+        (null == pc.preDowngradeTasks ? pc.preTasks : pc.preDowngradeTasks) :
+        (null == pc.postDowngradeTasks ? pc.postTasks : pc.postDowngradeTasks);
+    }
   }
 
 

@@ -17,14 +17,23 @@
  */
 package org.apache.ambari.server.state.stack;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
+import org.apache.ambari.server.state.stack.upgrade.RestartTask;
+import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -67,32 +76,12 @@ public class UpgradePackTest {
 
   @Test
   public void testUpgradeParsing() throws Exception {
-    /*
     Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
     assertTrue(upgrades.size() > 0);
+    assertTrue(upgrades.containsKey("upgrade_test"));
 
-    Map<String, List<String>> expectedOrder = new LinkedHashMap<String, List<String>>() {{
-      put("ZOOKEEPER", Arrays.asList("ZOOKEEPER_SERVER", "ZOOKEEPER_CLIENT"));
-      put("HDFS", Arrays.asList("JOURNALNODE", "NAMENODE", "DATANODE"));
-    }};
-
-
-    UpgradePack up = upgrades.values().iterator().next();
+    UpgradePack up = upgrades.get("upgrade_test");
     assertEquals("2.2.*", up.getTarget());
-
-    // !!! test the orders
-    assertEquals(expectedOrder.size(), up.getOrder().size());
-
-    int i = 0;
-    for (Entry<String, List<String>> entry : expectedOrder.entrySet()) {
-      assertTrue(up.getOrder().containsKey(entry.getKey()));
-      assertEquals(i++, indexOf(up.getOrder(), entry.getKey()));
-
-      int j = 0;
-      for (String comp : entry.getValue()) {
-        assertEquals(comp, up.getOrder().get(entry.getKey()).get(j++));
-      }
-    }
 
     Map<String, List<String>> expectedStages = new LinkedHashMap<String, List<String>>() {{
       put("ZOOKEEPER", Arrays.asList("ZOOKEEPER_SERVER"));
@@ -100,7 +89,7 @@ public class UpgradePackTest {
     }};
 
     // !!! test the tasks
-    i = 0;
+    int i = 0;
     for (Entry<String, List<String>> entry : expectedStages.entrySet()) {
       assertTrue(up.getTasks().containsKey(entry.getKey()));
       assertEquals(i++, indexOf(up.getTasks(), entry.getKey()));
@@ -120,39 +109,26 @@ public class UpgradePackTest {
     assertTrue(up.getTasks().get("HDFS").containsKey("NAMENODE"));
 
     ProcessingComponent pc = up.getTasks().get("HDFS").get("NAMENODE");
-    assertNull(pc.batch);
-    assertNull(pc.preTasks);
-    assertNull(pc.postTasks);
+    assertNotNull(pc.preTasks);
+    assertNotNull(pc.postTasks);
     assertNotNull(pc.tasks);
-    assertEquals(3, pc.tasks.size());
+    assertNull(pc.preDowngradeTasks);
+    assertNull(pc.postDowngradeTasks);
+    assertEquals(1, pc.tasks.size());
 
-    assertEquals(Task.Type.EXECUTE, pc.tasks.get(0).getType());
-    assertEquals(ExecuteTask.class, pc.tasks.get(0).getClass());
-    assertEquals("su - {hdfs-user} -c 'dosomething'",
-        ExecuteTask.class.cast(pc.tasks.get(0)).command);
+    assertEquals(Task.Type.RESTART, pc.tasks.get(0).getType());
+    assertEquals(RestartTask.class, pc.tasks.get(0).getClass());
 
-    assertEquals(Task.Type.CONFIGURE, pc.tasks.get(1).getType());
-    assertEquals(ConfigureTask.class, pc.tasks.get(1).getClass());
-    assertEquals("hdfs-site",
-        ConfigureTask.class.cast(pc.tasks.get(1)).configType);
-    assertEquals("myproperty",
-        ConfigureTask.class.cast(pc.tasks.get(1)).key);
-    assertEquals("mynewvalue",
-        ConfigureTask.class.cast(pc.tasks.get(1)).value);
-
-    assertEquals(Task.Type.MANUAL, pc.tasks.get(2).getType());
-    assertEquals(ManualTask.class, pc.tasks.get(2).getClass());
-    assertEquals("Update your database",
-        ManualTask.class.cast(pc.tasks.get(2)).message);
 
     assertTrue(up.getTasks().containsKey("ZOOKEEPER"));
     assertTrue(up.getTasks().get("ZOOKEEPER").containsKey("ZOOKEEPER_SERVER"));
 
     pc = up.getTasks().get("HDFS").get("DATANODE");
-    assertNotNull(pc.batch);
-//    assertEquals(Batch.Type.CONDITIONAL, pc.batch.getType());
-//    assertEquals(15, ConditionalBatch.class.cast(pc.batch).initial);
-//    assertEquals(50, ConditionalBatch.class.cast(pc.batch).remaining);
+    assertNotNull(pc.preDowngradeTasks);
+    assertEquals(0, pc.preDowngradeTasks.size());
+    assertNotNull(pc.postDowngradeTasks);
+    assertEquals(1, pc.postDowngradeTasks.size());
+
 
     pc = up.getTasks().get("ZOOKEEPER").get("ZOOKEEPER_SERVER");
     assertNotNull(pc.preTasks);
@@ -161,10 +137,6 @@ public class UpgradePackTest {
     assertEquals(1, pc.postTasks.size());
     assertNotNull(pc.tasks);
     assertEquals(1, pc.tasks.size());
-    assertNotNull(pc.batch);
-//    assertEquals(Batch.Type.COUNT, pc.batch.getType());
-//    assertEquals(2, CountBatch.class.cast(pc.batch).count);
-  */
   }
 
 

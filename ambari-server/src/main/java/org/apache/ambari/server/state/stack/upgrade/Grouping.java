@@ -74,9 +74,10 @@ public class Grouping {
      * @param pc the ProcessingComponent derived from the upgrade pack.
      */
     @Override
-    public void add(HostsType hostsType, String service, boolean clientOnly, ProcessingComponent pc) {
+    public void add(HostsType hostsType, String service,
+        boolean forUpgrade, boolean clientOnly, ProcessingComponent pc) {
 
-      List<TaskBucket> buckets = buckets(pc.preTasks);
+      List<TaskBucket> buckets = buckets(resolveTasks(forUpgrade, true, pc));
       for (TaskBucket bucket : buckets) {
         List<TaskWrapper> preTasks = TaskWrapperBuilder.getTaskList(service, pc.name, hostsType, bucket.tasks);
         Set<String> preTasksEffectiveHosts = TaskWrapperBuilder.getEffectiveHosts(preTasks);
@@ -102,7 +103,7 @@ public class Grouping {
         }
       }
 
-      buckets = buckets(pc.postTasks);
+      buckets = buckets(resolveTasks(forUpgrade, false, pc));
       for (TaskBucket bucket : buckets) {
         List<TaskWrapper> postTasks = TaskWrapperBuilder.getTaskList(service, pc.name, hostsType, bucket.tasks);
         Set<String> postTasksEffectiveHosts = TaskWrapperBuilder.getEffectiveHosts(postTasks);

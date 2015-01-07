@@ -320,6 +320,18 @@
             <value>10010</value>
           </task>
         </pre-upgrade>
+        
+        <pre-downgrade>
+          <task xsi:type="manual">
+            <message>The HiveServer port will now change to 10000. Ensure that this port is available on each HiveServer instance.</message>
+          </task>
+
+          <task xsi:type="configure">
+            <type>hive-site</type>
+            <key>hive.server2.thrift.port</key>
+            <value>10000</value>
+          </task>
+        </pre-downgrade>
 
         <upgrade>
           <task xsi:type="restart" />

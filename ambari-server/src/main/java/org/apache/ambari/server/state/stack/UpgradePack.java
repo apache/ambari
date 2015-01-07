@@ -29,7 +29,6 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
-import org.apache.ambari.server.state.stack.upgrade.Batch;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.Task;
 
@@ -131,6 +130,11 @@ public class UpgradePack {
     @XmlElement(name="task")
     public List<Task> preTasks;
 
+    @XmlElementWrapper(name="pre-downgrade")
+    @XmlElement(name="task")
+    public List<Task> preDowngradeTasks;
+
+
     @XmlElementWrapper(name="upgrade")
     @XmlElement(name="task")
     public List<Task> tasks;
@@ -139,8 +143,9 @@ public class UpgradePack {
     @XmlElement(name="task")
     public List<Task> postTasks;
 
-    @XmlElement(name="batch")
-    public Batch batch;
+    @XmlElementWrapper(name="post-downgrade")
+    @XmlElement(name="task")
+    public List<Task> postDowngradeTasks;
 
   }
 

@@ -77,7 +77,7 @@ public class UpgradeHelperTest {
   }
 
   @Test
-  public void testOrchestration() throws Exception {
+  public void testUpgradeOrchestration() throws Exception {
     Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("foo", "bar");
     assertTrue(upgrades.isEmpty());
 
@@ -88,11 +88,8 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
-
     UpgradeHelper helper = new UpgradeHelper();
     List<UpgradeGroupHolder> groups = helper.createUpgrade(cluster, m_masterHostResolver, upgrade);
-
-
 
     assertEquals(5, groups.size());
 
@@ -116,6 +113,42 @@ public class UpgradeHelperTest {
   }
 
   @Test
+  public void testDowngradeOrchestration() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("foo", "bar");
+    assertTrue(upgrades.isEmpty());
+
+    upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    assertTrue(upgrades.containsKey("upgrade_test"));
+    UpgradePack upgrade = upgrades.get("upgrade_test");
+    assertNotNull(upgrade);
+
+    Cluster cluster = makeCluster();
+
+    UpgradeHelper helper = new UpgradeHelper();
+    List<UpgradeGroupHolder> groups = helper.createDowngrade(cluster, m_masterHostResolver, upgrade);
+
+    assertEquals(5, groups.size());
+
+    assertEquals("PRE_CLUSTER", groups.get(0).name);
+    assertEquals("CORE_SLAVES", groups.get(1).name);
+    assertEquals("CORE_MASTER", groups.get(2).name);
+    assertEquals("ZOOKEEPER", groups.get(3).name);
+
+    UpgradeGroupHolder postGroup = groups.get(4);
+    assertEquals(postGroup.name, "POST_CLUSTER");
+    assertEquals(postGroup.title, "Finalize Upgrade");
+    assertEquals(postGroup.items.size(), 3);
+    assertEquals(postGroup.items.get(0).getText(), "Confirm Finalize");
+    assertEquals(postGroup.items.get(1).getText(), "Execute HDFS Finalize");
+    assertEquals(postGroup.items.get(2).getText(), "Save Cluster State");
+    assertEquals(postGroup.items.get(2).getType(), StageWrapper.Type.SERVER_SIDE_ACTION);
+
+    assertEquals(9, groups.get(1).items.size());
+    assertEquals(8, groups.get(2).items.size());
+    assertEquals(6, groups.get(3).items.size());
+  }
+
+  @Test
   public void testBuckets() throws Exception {
     Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("foo", "bar");
     assertTrue(upgrades.isEmpty());
@@ -134,9 +167,7 @@ public class UpgradeHelperTest {
     UpgradeGroupHolder group = groups.iterator().next();
 
     assertEquals(7, group.items.size());
-
   }
-
 
   /**
    * Create an HA cluster

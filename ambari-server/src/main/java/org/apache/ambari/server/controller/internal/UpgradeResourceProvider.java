@@ -17,7 +17,9 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -81,9 +83,6 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
-
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
@@ -96,10 +95,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   protected static final String UPGRADE_CLUSTER_NAME = "Upgrade/cluster_name";
   protected static final String UPGRADE_VERSION = "Upgrade/repository_version";
   protected static final String UPGRADE_REQUEST_ID = "Upgrade/request_id";
+  protected static final String UPGRADE_FORCE_DOWNGRADE = "Upgrade/force_downgrade";
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
       Arrays.asList(UPGRADE_REQUEST_ID, UPGRADE_CLUSTER_NAME));
   private static final Set<String> PROPERTY_IDS = new HashSet<String>();
+
 
   private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<Resource.Type, String>();
 
@@ -125,6 +126,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     PROPERTY_IDS.add(UPGRADE_CLUSTER_NAME);
     PROPERTY_IDS.add(UPGRADE_VERSION);
     PROPERTY_IDS.add(UPGRADE_REQUEST_ID);
+    PROPERTY_IDS.add(UPGRADE_FORCE_DOWNGRADE);
 
     // !!! boo
     for (String requestPropertyId : RequestResourceProvider.PROPERTY_IDS) {
@@ -172,6 +174,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           return createUpgrade(up, requestMap);
         }
       });
+
+    if (null == entity) {
+      throw new SystemException("Could not load upgrade");
+    }
 
     notifyCreate(Resource.Type.Upgrade, request);
 
@@ -366,7 +372,16 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     MasterHostResolver mhr = new MasterHostResolver(cluster);
     UpgradeHelper helper = new UpgradeHelper();
 
-    List<UpgradeGroupHolder> groups = helper.createUpgrade(cluster, mhr, pack);
+    String forceDowngrade = (String) requestMap.get(UPGRADE_FORCE_DOWNGRADE);
+
+    List<UpgradeGroupHolder> groups = null;
+
+    if (null != forceDowngrade && Boolean.parseBoolean(forceDowngrade)) {
+      groups = helper.createDowngrade(cluster, mhr, pack);
+    } else {
+      groups = helper.createUpgrade(cluster, mhr, pack);
+    }
+
     if (groups.isEmpty()) {
       throw new AmbariException("There are no upgrade groupings available");
     }

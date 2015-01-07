@@ -104,9 +104,7 @@
           <task xsi:type="restart" />
         </upgrade>
         <post-upgrade>
-          <task xsi:type="execute">
-            <command>ls</command>
-          </task>
+          <task xsi:type="configure" />
         </post-upgrade>
       </component>
     </service>
@@ -135,9 +133,15 @@
         </post-upgrade>
       </component>
       <component name="DATANODE">
+        <pre-downgrade />
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
+        <post-downgrade>
+          <task xsi:type="manual">
+            <message>Manual Downgrade</message>
+          </task>
+        </post-downgrade>
       </component>
     </service>
     <service name="YARN">

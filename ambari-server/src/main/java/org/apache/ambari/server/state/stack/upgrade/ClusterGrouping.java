@@ -90,7 +90,8 @@ public class ClusterGrouping extends Grouping {
     }
 
     @Override
-    public void add(HostsType hostsType, String service, boolean clientOnly, ProcessingComponent pc) {
+    public void add(HostsType hostsType, String service,
+        boolean forUpgrade, boolean clientOnly, ProcessingComponent pc) {
       // !!! no-op in this case
     }
 

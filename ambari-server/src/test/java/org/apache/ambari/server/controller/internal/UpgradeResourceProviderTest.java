@@ -174,7 +174,7 @@ public class UpgradeResourceProviderTest {
 
     assertTrue(group.getItems().get(0).getText().contains("Preparing"));
     assertTrue(group.getItems().get(1).getText().contains("Restarting"));
-    assertTrue(group.getItems().get(2).getText().contains("Completing"));
+    assertTrue(group.getItems().get(2).getText().contains("Updating"));
     assertTrue(group.getItems().get(3).getText().contains("Service Check"));
 
     ActionManager am = injector.getInstance(ActionManager.class);

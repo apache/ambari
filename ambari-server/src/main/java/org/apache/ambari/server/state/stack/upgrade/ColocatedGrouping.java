@@ -66,7 +66,8 @@ public class ColocatedGrouping extends Grouping {
     }
 
     @Override
-    public void add(HostsType hostsType, String service, boolean clientOnly, ProcessingComponent pc) {
+    public void add(HostsType hostsType, String service,
+        boolean forUpgrade, boolean clientOnly, ProcessingComponent pc) {
 
       int count = Double.valueOf(Math.ceil(
           (double) batch.percent / 100 * hostsType.hosts.size())).intValue();
@@ -86,11 +87,13 @@ public class ColocatedGrouping extends Grouping {
 
         TaskProxy proxy = null;
 
-        if (null != pc.preTasks && pc.preTasks.size() > 0) {
+        List<Task> tasks = resolveTasks(forUpgrade, true, pc);
+
+        if (null != tasks && tasks.size() > 0) {
           proxy = new TaskProxy();
           proxy.clientOnly = clientOnly;
           proxy.message = getStageText("Preparing", pc.name, Collections.singleton(host));
-          proxy.tasks.addAll(TaskWrapperBuilder.getTaskList(service, pc.name, singleHostsType, pc.preTasks));
+          proxy.tasks.addAll(TaskWrapperBuilder.getTaskList(service, pc.name, singleHostsType, tasks));
           proxy.service = service;
           proxy.component = pc.name;
           targetList.add(proxy);
@@ -112,12 +115,14 @@ public class ColocatedGrouping extends Grouping {
           }
         }
 
-        if (null != pc.postTasks && pc.postTasks.size() > 0) {
+        tasks = resolveTasks(forUpgrade, false, pc);
+
+        if (null != tasks && tasks.size() > 0) {
           proxy = new TaskProxy();
           proxy.clientOnly = clientOnly;
           proxy.component = pc.name;
           proxy.service = service;
-          proxy.tasks.addAll(TaskWrapperBuilder.getTaskList(service, pc.name, singleHostsType, pc.postTasks));
+          proxy.tasks.addAll(TaskWrapperBuilder.getTaskList(service, pc.name, singleHostsType, tasks));
           proxy.message = getStageText("Completing", pc.name, Collections.singleton(host));
           targetList.add(proxy);
         }
