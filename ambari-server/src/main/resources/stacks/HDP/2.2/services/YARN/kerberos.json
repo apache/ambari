@@ -73,11 +73,13 @@
               }
             }
           ],
-          "configurations": {
-            "yarn-site": {
-              "yarn.nodemanager.container-executor.class": "org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor"
+          "configurations": [
+            {
+              "yarn-site": {
+                "yarn.nodemanager.container-executor.class": "org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor"
+              }
             }
-          }
+          ]
         },
         {
           "name": "RESOURCEMANAGER",
