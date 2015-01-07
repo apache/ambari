@@ -26,6 +26,9 @@ from hbase import hbase
          
 class HbaseClient(Script):
 
+  def get_stack_to_component(self):
+    return {"HDP": "hbase-client"}
+
   def pre_rolling_restart(self, env):
     import params
     env.set_params(params)
@@ -42,6 +45,8 @@ class HbaseClient(Script):
     env.set_params(params)
     
     hbase(name='client')
+
+    self.save_component_version_to_structured_out(params.stack_name)
 
   def status(self, env):
     raise ClientComponentHasNoStatus()

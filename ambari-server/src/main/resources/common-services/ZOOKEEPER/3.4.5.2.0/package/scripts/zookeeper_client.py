@@ -25,6 +25,10 @@ from resource_management import *
 from zookeeper import zookeeper
 
 class ZookeeperClient(Script):
+
+  def get_stack_to_component(self):
+    return {"HDP": "zookeeper-client"}
+
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
@@ -34,6 +38,8 @@ class ZookeeperClient(Script):
     env.set_params(params)
 
     zookeeper(type='client')
+
+    self.save_component_version_to_structured_out(params.stack_name)
 
   def status(self, env):
     raise ClientComponentHasNoStatus()

@@ -32,6 +32,10 @@ from yarn import yarn
 from service import service
 
 class Nodemanager(Script):
+
+  def get_stack_to_component(self):
+    return {"HDP": "hadoop-yarn-nodemanager"}
+
   def install(self, env):
     self.install_packages(env)
 
@@ -53,6 +57,8 @@ class Nodemanager(Script):
     env.set_params(params)
     self.configure(env) # FOR SECURITY
     service('nodemanager',action='start')
+
+    self.save_component_version_to_structured_out(params.stack_name)
 
   def post_rolling_restart(self, env):
     Logger.info("Executing NodeManager Rolling Upgrade post-restart")

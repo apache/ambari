@@ -30,6 +30,9 @@ from install_jars import install_tez_jars
 
 class HiveServer(Script):
 
+  def get_stack_to_component(self):
+    return {"HDP": "hive-server2"}
+
   def install(self, env):
     import params
     self.install_packages(env, exclude_packages=params.hive_exclude_packages)
@@ -55,6 +58,8 @@ class HiveServer(Script):
 
     hive_service( 'hiveserver2', action = 'start',
       rolling_restart=rolling_restart )
+
+    self.save_component_version_to_structured_out(params.stack_name)
 
 
   def stop(self, env, rolling_restart=False):

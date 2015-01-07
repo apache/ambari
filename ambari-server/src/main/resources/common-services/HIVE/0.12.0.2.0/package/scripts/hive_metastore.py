@@ -28,6 +28,10 @@ from hive_service import hive_service
 
 
 class HiveMetastore(Script):
+
+  def get_stack_to_component(self):
+    return {"HDP": "hive-metastore"}
+
   def install(self, env):
     import params
 
@@ -48,6 +52,8 @@ class HiveMetastore(Script):
     env.set_params(params)
     self.configure(env)  # FOR SECURITY
     hive_service('metastore', action = 'start')
+
+    self.save_component_version_to_structured_out(params.stack_name)
 
 
   def stop(self, env, rolling_restart = False):

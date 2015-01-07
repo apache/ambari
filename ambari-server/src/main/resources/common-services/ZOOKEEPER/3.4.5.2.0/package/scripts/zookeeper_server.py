@@ -50,6 +50,10 @@ def call_and_match_output(command, regex_expression, err_message):
 
 
 class ZookeeperServer(Script):
+
+  def get_stack_to_component(self):
+    return {"HDP": "zookeeper-server"}
+
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
@@ -72,6 +76,8 @@ class ZookeeperServer(Script):
     env.set_params(params)
     self.configure(env)
     zookeeper_service(action = 'start')
+
+    self.save_component_version_to_structured_out(params.stack_name)
 
   def post_rolling_restart(self, env):
     Logger.info("Executing Rolling Upgrade post-restart")

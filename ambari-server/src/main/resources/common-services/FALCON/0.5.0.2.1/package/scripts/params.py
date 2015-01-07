@@ -18,11 +18,14 @@ limitations under the License.
 """
 
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
+from resource_management.libraries.functions.default import default
 from resource_management import *
 
 from status_params import *
 
 config = Script.get_config()
+
+stack_name = default("/hostLevelParams/stack_name", None)
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)

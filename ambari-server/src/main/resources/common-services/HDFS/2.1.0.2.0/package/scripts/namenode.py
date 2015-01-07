@@ -39,6 +39,10 @@ from utils import failover_namenode
 
 
 class NameNode(Script):
+
+  def get_stack_to_component(self):
+    return {"HDP": "hadoop-hdfs-namenode"}
+
   def install(self, env):
     import params
 
@@ -67,6 +71,8 @@ class NameNode(Script):
     env.set_params(params)
     self.configure(env)
     namenode(action="start", rolling_restart=rolling_restart, env=env)
+
+    self.save_component_version_to_structured_out(params.stack_name)
 
   def post_rolling_restart(self, env):
     Logger.info("Executing Rolling Upgrade post-restart")

@@ -30,6 +30,10 @@ from service import service
 
 
 class Resourcemanager(Script):
+
+  def get_stack_to_component(self):
+    return {"HDP": "hadoop-yarn-resourcemanager"}
+
   def install(self, env):
     self.install_packages(env)
 
@@ -55,6 +59,8 @@ class Resourcemanager(Script):
     service('resourcemanager',
             action='start'
     )
+
+    self.save_component_version_to_structured_out(params.stack_name)
 
   def stop(self, env, rolling_restart=False):
     import params

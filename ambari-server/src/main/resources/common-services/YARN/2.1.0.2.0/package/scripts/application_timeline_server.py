@@ -31,6 +31,9 @@ from service import service
 
 class ApplicationTimelineServer(Script):
 
+  def get_stack_to_component(self):
+    return {"HDP": "hadoop-yarn-timelineserver"}
+
   def install(self, env):
     self.install_packages(env)
     #self.configure(env)
@@ -53,6 +56,8 @@ class ApplicationTimelineServer(Script):
     env.set_params(params)
     self.configure(env) # FOR SECURITY
     service('timelineserver', action='start')
+
+    self.save_component_version_to_structured_out(params.stack_name)
 
   def stop(self, env, rolling_restart=False):
     import params

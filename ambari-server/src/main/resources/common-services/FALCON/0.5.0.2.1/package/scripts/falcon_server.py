@@ -27,6 +27,10 @@ from resource_management.libraries.functions.security_commons import build_expec
 from falcon import falcon
 
 class FalconServer(Script):
+
+  def get_stack_to_component(self):
+    return {"HDP": "falcon-server"}
+
   def install(self, env):
     import params
 
@@ -41,6 +45,8 @@ class FalconServer(Script):
     self.configure(env)
 
     falcon('server', action='start')
+
+    self.save_component_version_to_structured_out(params.stack_name)
 
 
   def stop(self, env, rolling_restart=False):

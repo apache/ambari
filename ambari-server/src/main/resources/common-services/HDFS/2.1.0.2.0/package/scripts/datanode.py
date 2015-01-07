@@ -19,14 +19,17 @@ limitations under the License.
 import datanode_upgrade
 from hdfs_datanode import datanode
 from resource_management import *
-from resource_management.libraries.functions.version import compare_versions, \
-  format_hdp_stack_version
+from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, FILE_TYPE_XML
 from hdfs import hdfs
 
 
 class DataNode(Script):
+
+  def get_stack_to_component(self):
+    return {"HDP": "hadoop-hdfs-datanode"}
+
   def install(self, env):
     import params
 
@@ -58,6 +61,8 @@ class DataNode(Script):
     env.set_params(params)
     self.configure(env)
     datanode(action="start")
+
+    self.save_component_version_to_structured_out(params.stack_name)
 
 
   def stop(self, env, rolling_restart=False):

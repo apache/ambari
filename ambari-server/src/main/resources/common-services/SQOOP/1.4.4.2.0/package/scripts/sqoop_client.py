@@ -25,6 +25,10 @@ from sqoop import sqoop
 
 
 class SqoopClient(Script):
+
+  def get_stack_to_component(self):
+    return {"HDP": "sqoop-client"}
+
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
@@ -33,6 +37,8 @@ class SqoopClient(Script):
     import params
     env.set_params(params)
     sqoop(type='client')
+
+    self.save_component_version_to_structured_out(params.stack_name)
 
   def status(self, env):
     raise ClientComponentHasNoStatus()

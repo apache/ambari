@@ -35,6 +35,8 @@ from resource_management.core.environment import Environment
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail, ClientComponentHasNoStatus, ComponentIsNotRunning
 from resource_management.core.resources.packaging import Package
+from resource_management.libraries.functions.version_select_util import get_component_version
+from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.script.config_dictionary import ConfigDictionary, UnknownConfiguration
 
 IS_WINDOWS = platform.system() == "Windows"
@@ -91,6 +93,13 @@ class Script(object):
   # Class variable
   tmp_dir = ""
 
+  def get_stack_to_component(self):
+    """
+    To be overridden by subclasses.
+    Returns a dictionary where the key is a stack name, and the value is the component name used in selecting the version.
+    """
+    return {}
+
   def put_structured_out(self, sout):
     Script.structuredOut.update(sout)
     try:
@@ -98,6 +107,23 @@ class Script(object):
         json.dump(Script.structuredOut, fp)
     except IOError:
       Script.structuredOut.update({"errMsg" : "Unable to write to " + self.stroutfile})
+
+  def save_component_version_to_structured_out(self, stack_name):
+    """
+    :param stack_name: One of HDP, HDPWIN, PHD, BIGTOP.
+    :return: Append the version number to the structured out.
+    """
+    import params
+    component_version = None
+
+    stack_to_component = self.get_stack_to_component()
+    if stack_to_component:
+      if stack_name == "HDP" and params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2') >= 0:
+        component_name = stack_to_component[stack_name] if stack_name in stack_to_component else None
+        component_version = get_component_version(stack_name, component_name)
+
+      if component_version:
+        self.put_structured_out({"version": component_version})
 
   def execute(self):
     """

@@ -26,6 +26,10 @@ from webhcat import webhcat
 from webhcat_service import webhcat_service
 
 class WebHCatServer(Script):
+
+  def get_stack_to_component(self):
+    return {"HDP": "hive-webhcat"}
+
   def install(self, env):
     self.install_packages(env)
 
@@ -41,6 +45,8 @@ class WebHCatServer(Script):
     env.set_params(params)
     self.configure(env) # FOR SECURITY
     webhcat_service(action = 'start')
+
+    self.save_component_version_to_structured_out(params.stack_name)
 
 
   def stop(self, env, rolling_restart=False):

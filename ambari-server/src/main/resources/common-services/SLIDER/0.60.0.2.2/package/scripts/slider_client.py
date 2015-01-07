@@ -24,6 +24,10 @@ from slider import slider
 
 
 class SliderClient(Script):
+
+  def get_stack_to_component(self):
+    return {"HDP": "slider-client"}
+
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
@@ -34,6 +38,8 @@ class SliderClient(Script):
     env.set_params(params)
 
     slider()
+
+    self.save_component_version_to_structured_out(params.stack_name)
 
   def status(self, env):
     raise ClientComponentHasNoStatus()

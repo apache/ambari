@@ -30,6 +30,10 @@ from hdfs import hdfs
 
 
 class JournalNode(Script):
+
+  def get_stack_to_component(self):
+    return {"HDP": "hadoop-hdfs-journalnode"}
+
   def install(self, env):
     import params
 
@@ -59,6 +63,8 @@ class JournalNode(Script):
       create_pid_dir=True,
       create_log_dir=True
     )
+
+    self.save_component_version_to_structured_out(params.stack_name)
 
   def stop(self, env, rolling_restart=False):
     import params

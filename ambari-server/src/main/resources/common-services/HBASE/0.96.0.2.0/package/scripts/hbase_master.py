@@ -30,6 +30,10 @@ import upgrade
 
          
 class HbaseMaster(Script):
+
+  def get_stack_to_component(self):
+    return {"HDP": "hbase-master"}
+
   def install(self, env):
     self.install_packages(env)
     
@@ -52,6 +56,8 @@ class HbaseMaster(Script):
     hbase_service( 'master',
       action = 'start'
     )
+
+    self.save_component_version_to_structured_out(params.stack_name)
     
   def stop(self, env, rolling_restart=False):
     import params

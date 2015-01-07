@@ -20,12 +20,17 @@ limitations under the License.
 
 import sys
 from resource_management import *
+
 from storm import storm
 from service import service
 from service_check import ServiceCheck
 
 
 class StormRestApi(Script):
+
+  def get_stack_to_component(self):
+    return {"HDP": "storm-client"}
+
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
@@ -42,6 +47,8 @@ class StormRestApi(Script):
     self.configure(env)
 
     service("rest_api", action="start")
+
+    self.save_component_version_to_structured_out(params.stack_name)
 
   def stop(self, env):
     import params

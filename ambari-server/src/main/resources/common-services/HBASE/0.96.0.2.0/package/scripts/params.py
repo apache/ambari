@@ -20,12 +20,15 @@ limitations under the License.
 
 from functions import calc_xmn_from_xms
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
+from resource_management.libraries.functions.default import default
 from resource_management import *
 import status_params
 
 # server configurations
 config = Script.get_config()
 exec_tmp_dir = Script.get_tmp_dir()
+
+stack_name = default("/hostLevelParams/stack_name", None)
 
 version = default("/commandParams/version", None)
 

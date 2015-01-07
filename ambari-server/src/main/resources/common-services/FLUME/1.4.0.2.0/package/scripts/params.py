@@ -18,9 +18,12 @@ limitations under the License.
 """
 
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
+from resource_management.libraries.functions.default import default
 from resource_management import *
 
 config = Script.get_config()
+
+stack_name = default("/hostLevelParams/stack_name", None)
 
 user_group = config['configurations']['cluster-env']['user_group']
 proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']

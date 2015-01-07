@@ -26,6 +26,10 @@ from oozie_service import oozie_service
 
          
 class OozieClient(Script):
+
+  def get_stack_to_component(self):
+    return {"HDP": "oozie-client"}
+
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
@@ -35,6 +39,8 @@ class OozieClient(Script):
     env.set_params(params)
 
     oozie(is_server=False)
+
+    self.save_component_version_to_structured_out(params.stack_name)
 
   def status(self, env):
     raise ClientComponentHasNoStatus()

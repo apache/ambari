@@ -23,6 +23,10 @@ from resource_management import *
 
 
 class SqoopServiceCheck(Script):
+
+  def get_stack_to_component(self):
+    return {"HDP": "sqoop-server"}
+
   def service_check(self, env):
     import params
     env.set_params(params)
@@ -35,6 +39,8 @@ class SqoopServiceCheck(Script):
             path = params.sqoop_bin_dir,
             logoutput = True
     )
+
+    self.save_component_version_to_structured_out(params.stack_name)
 
 if __name__ == "__main__":
   SqoopServiceCheck().execute()

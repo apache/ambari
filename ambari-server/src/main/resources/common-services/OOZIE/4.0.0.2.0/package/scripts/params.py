@@ -19,6 +19,7 @@ limitations under the License.
 """
 
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
+from resource_management.libraries.functions.default import default
 from resource_management import *
 import status_params
 import itertools
@@ -27,6 +28,8 @@ import os
 # server configurations
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
+
+stack_name = default("/hostLevelParams/stack_name", None)
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)

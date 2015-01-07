@@ -27,6 +27,10 @@ from knox import knox
 from ldap import ldap
 
 class KnoxGateway(Script):
+
+  def get_stack_to_component(self):
+    return {"HDP": "knox-server"}
+
   def install(self, env):
     self.install_packages(env)
     import params
@@ -53,6 +57,8 @@ class KnoxGateway(Script):
             environment={'JAVA_HOME': params.java_home},
             not_if=no_op_test
     )
+
+    self.save_component_version_to_structured_out(params.stack_name)
 
   def stop(self, env):
     import params

@@ -31,6 +31,10 @@ from yarn import yarn
 from service import service
 
 class HistoryServer(Script):
+
+  def get_stack_to_component(self):
+    return {"HDP": "hadoop-mapreduce-historyserver"}
+
   def install(self, env):
     self.install_packages(env)
 
@@ -54,6 +58,8 @@ class HistoryServer(Script):
     self.configure(env) # FOR SECURITY
     copy_tarballs_to_hdfs('mapreduce', params.mapred_user, params.hdfs_user, params.user_group)
     service('historyserver', action='start', serviceName='mapreduce')
+
+    self.save_component_version_to_structured_out(params.stack_name)
 
   def stop(self, env, rolling_restart=False):
     import params

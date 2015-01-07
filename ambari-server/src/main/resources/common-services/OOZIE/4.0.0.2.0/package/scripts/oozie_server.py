@@ -29,6 +29,10 @@ from oozie_service import oozie_service
 
          
 class OozieServer(Script):
+
+  def get_stack_to_component(self):
+    return {"HDP": "oozie-server"}
+
   def install(self, env):
     self.install_packages(env)
     
@@ -44,6 +48,8 @@ class OozieServer(Script):
     #TODO remove this when config command will be implemented
     self.configure(env)
     oozie_service(action='start')
+
+    self.save_component_version_to_structured_out(params.stack_name)
     
   def stop(self, env, rolling_restart=False):
     import params

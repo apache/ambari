@@ -25,6 +25,10 @@ from resource_management.libraries.functions.flume_agent_helper import find_expe
 from resource_management.libraries.functions.flume_agent_helper import get_flume_status
 
 class FlumeHandler(Script):
+
+  def get_stack_to_component(self):
+    return {"HDP": "flume-server"}
+
   def install(self, env):
     import params
 
@@ -38,6 +42,8 @@ class FlumeHandler(Script):
     self.configure(env)
 
     flume(action='start')
+
+    self.save_component_version_to_structured_out(params.stack_name)
 
   def stop(self, env, rolling_restart=False):
     import params
