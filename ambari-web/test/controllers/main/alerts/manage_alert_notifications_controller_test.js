@@ -352,6 +352,7 @@ describe('App.ManageAlertNotificationsController', function () {
         view = controller.showCreateEditPopup().get('bodyClass').create({
           controller: Em.Object.create({
             inputFields: {
+              name: {},
               global: {},
               allGroups: {},
               SMTPPassword: {},
@@ -400,6 +401,36 @@ describe('App.ManageAlertNotificationsController', function () {
           view.clearAllGroups();
           expect(view.get('groupSelect.selection')).to.eql([]);
 
+        });
+
+      });
+
+      describe('#nameValidation', function () {
+
+        it('should check inputFields.name.value', function () {
+          view.set('controller.inputFields.name.value', '');
+          expect(view.get('controller.inputFields.name.errorMsg')).to.equal(Em.I18n.t('alerts.actions.manage_alert_notifications_popup.error.name.empty'));
+          expect(view.get('parentView.hasErrors')).to.be.true;
+        });
+
+        it('should check inputFields.name.value', function () {
+          view.set('controller.inputFields.name.errorMsg', 'error');
+          view.set('controller.inputFields.name.value', 'test');
+          expect(view.get('controller.inputFields.name.errorMsg')).to.equal('');
+        });
+
+        it('should check inputFields.name.value', function () {
+          view.set('isEdit', true);
+          view.set('controller.inputFields.name.value', '');
+          expect(view.get('controller.inputFields.name.errorMsg')).to.equal(Em.I18n.t('alerts.actions.manage_alert_notifications_popup.error.name.empty'));
+          expect(view.get('parentView.hasErrors')).to.be.true;
+        });
+
+        it('should check inputFields.name.value', function () {
+          view.set('isEdit', true);
+          view.set('controller.inputFields.name.errorMsg', 'error');
+          view.set('controller.inputFields.name.value', 'test');
+          expect(view.get('controller.inputFields.name.errorMsg')).to.equal('');
         });
 
       });

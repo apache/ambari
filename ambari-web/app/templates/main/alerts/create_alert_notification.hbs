@@ -22,11 +22,15 @@
 
 
     {{! alert-notification name }}
-    <div class="control-group">
+    <div {{bindAttr class=":control-group controller.inputFields.name.errorMsg:error"}}>
       <label class="control-label" for="inputName">{{controller.inputFields.name.label}}</label>
 
       <div class="controls">
         {{view Em.TextField valueBinding="controller.inputFields.name.value" id="inputName" class="input-xlarge"}}
+      </div>
+
+      <div class="controls error-msg">
+        {{controller.inputFields.name.errorMsg}}
       </div>
     </div>
     {{! alert-notification name end }}

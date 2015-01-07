@@ -350,16 +350,45 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
         }.property('controller.inputFields.method.value'),
 
         nameValidation: function () {
-          this.set('parentView.hasErrors', !this.get('controller.inputFields.name.value').trim());
+          var newName = this.get('controller.inputFields.name.value').trim();
+          var errorMessage = '';
+          // on editing, save current notification name
+          if (newName && !this.get('currentName')) {
+            this.set('currentName', newName);
+          }
+          if (isEdit) {
+            // edit current alert notification
+            if (!newName) {
+              this.set('nameError', true);
+              errorMessage = Em.I18n.t('alerts.actions.manage_alert_notifications_popup.error.name.empty');
+            } else if (newName && newName != this.get('currentName') && self.get('alertNotifications').mapProperty('name').contains(newName)) {
+              this.set('nameError', true);
+              errorMessage = Em.I18n.t('alerts.actions.manage_alert_notifications_popup.error.name.existed');
+            } else {
+              this.set('nameError', false);
+            }
+          } else {
+            // add new alert notification
+            if (!newName) {
+              this.set('nameError', true);
+              errorMessage = Em.I18n.t('alerts.actions.manage_alert_notifications_popup.error.name.empty');
+            } else if (newName && self.get('alertNotifications').mapProperty('name').contains(newName)) {
+              this.set('nameError', true);
+              errorMessage = Em.I18n.t('alerts.actions.manage_alert_notifications_popup.error.name.existed');
+            } else {
+              this.set('nameError', false);
+            }
+          }
+          this.set('controller.inputFields.name.errorMsg', errorMessage);
         }.observes('controller.inputFields.name.value'),
 
         emailToValidation: function () {
           var emailTo = this.get('controller.inputFields.email.value');
           if (emailTo && !validator.isValidEmail(emailTo)) {
-            this.set('parentView.hasErrors', true);
+            this.set('emailToError', true);
             this.set('controller.inputFields.email.errorMsg', Em.I18n.t('alerts.notifications.error.email'));
           } else {
-            this.set('parentView.hasErrors', false);
+            this.set('emailToError', false);
             this.set('controller.inputFields.email.errorMsg', null);
           }
         }.observes('controller.inputFields.email.value'),
@@ -367,10 +396,10 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
         emailFromValidation: function () {
           var emailFrom = this.get('controller.inputFields.emailFrom.value');
           if (emailFrom && !validator.isValidEmail(emailFrom)) {
-            this.set('parentView.hasErrors', true);
+            this.set('emailFromError', true);
             this.set('controller.inputFields.emailFrom.errorMsg', Em.I18n.t('alerts.notifications.error.email'));
           } else {
-            this.set('parentView.hasErrors', false);
+            this.set('emailFromError', false);
             this.set('controller.inputFields.emailFrom.errorMsg', null);
           }
         }.observes('controller.inputFields.emailFrom.value'),
@@ -378,10 +407,10 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
         smtpPortValidation: function () {
           var value = this.get('controller.inputFields.SMTPPort.value');
           if (value && (!validator.isValidInt(value) || value < 0)) {
-            this.set('parentView.hasErrors', true);
+            this.set('smtpPortError', true);
             this.set('controller.inputFields.SMTPPort.errorMsg', Em.I18n.t('alerts.notifications.error.integer'));
           } else {
-            this.set('parentView.hasErrors', false);
+            this.set('smtpPortError', false);
             this.set('controller.inputFields.SMTPPort.errorMsg', null);
           }
         }.observes('controller.inputFields.SMTPPort.value'),
@@ -389,10 +418,10 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
         portValidation: function () {
           var value = this.get('controller.inputFields.port.value');
           if (value && (!validator.isValidInt(value) || value < 0)) {
-            this.set('parentView.hasErrors', true);
+            this.set('portError', true);
             this.set('controller.inputFields.port.errorMsg', Em.I18n.t('alerts.notifications.error.integer'));
           } else {
-            this.set('parentView.hasErrors', false);
+            this.set('portError', false);
             this.set('controller.inputFields.port.errorMsg', null);
           }
         }.observes('controller.inputFields.port.value'),
@@ -401,13 +430,19 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
           var passwordValue = this.get('controller.inputFields.SMTPPassword.value');
           var retypePasswordValue = this.get('controller.inputFields.retypeSMTPPassword.value');
           if (passwordValue !== retypePasswordValue) {
-            this.set('parentView.hasErrors', true);
+            this.set('passwordError', true);
             this.set('controller.inputFields.retypeSMTPPassword.errorMsg', Em.I18n.t('alerts.notifications.error.retypePassword'));
           } else {
-            this.set('parentView.hasErrors', false);
+            this.set('passwordError', false);
             this.set('controller.inputFields.retypeSMTPPassword.errorMsg', null);
           }
         }.observes('controller.inputFields.retypeSMTPPassword.value', 'controller.inputFields.SMTPPassword.value'),
+
+        setParentErrors: function () {
+          var hasErrors = this.get('nameError') || this.get('emailToError') || this.get('emailFromError') ||
+            this.get('smtpPortError') || this.get('portError') || this.get('passwordError');
+          this.set('parentView.hasErrors', hasErrors);
+        }.observes('nameError', 'emailToError', 'emailFromError', 'smtpPortError', 'portError', 'passwordError'),
 
 
         groupsSelectView: Em.Select.extend({

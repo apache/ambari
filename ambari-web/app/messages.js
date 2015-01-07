@@ -1903,6 +1903,8 @@ Em.I18n.translations = {
   'alerts.actions.manage_alert_notifications_popup.selectAll':'Select All',
   'alerts.actions.manage_alert_notifications_popup.confirmDeleteHeader':'Confirm Delete',
   'alerts.actions.manage_alert_notifications_popup.confirmDeleteBody':'Are you sure you want to delete {0} notification?',
+  'alerts.actions.manage_alert_notifications_popup.error.name.empty': 'Notification name is required',
+  'alerts.actions.manage_alert_notifications_popup.error.name.existed': 'Notification name already exists',
 
   'hosts.host.add':'Add New Hosts',
   'hosts.table.noHosts':'No hosts to display',
