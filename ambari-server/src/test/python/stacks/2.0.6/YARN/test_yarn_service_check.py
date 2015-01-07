@@ -23,13 +23,17 @@ from stacks.utils.RMFTestCase import *
 
 @patch("sys.executable", new = '/usr/bin/python2.6')
 class TestServiceCheck(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "YARN/2.1.0.2.0/package"
+  STACK_VERSION = "2.0.6"
 
   def test_service_check_default(self):
 
-    self.executeScript("2.0.6/services/YARN/package/scripts/service_check.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
                           classname="ServiceCheck",
                           command="service_check",
-                          config_file="default.json"
+                          config_file="default.json",
+                          hdp_stack_version = self.STACK_VERSION,
+                          target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/tmp/validateYarnComponentStatus.py',
                           content = StaticFile('validateYarnComponentStatus.py'),
@@ -49,10 +53,12 @@ class TestServiceCheck(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_service_check_secured(self):
-    self.executeScript("2.0.6/services/YARN/package/scripts/service_check.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
                           classname="ServiceCheck",
                           command="service_check",
-                          config_file="secured.json"
+                          config_file="secured.json",
+                          hdp_stack_version = self.STACK_VERSION,
+                          target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/tmp/validateYarnComponentStatus.py',
                           content = StaticFile('validateYarnComponentStatus.py'),

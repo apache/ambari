@@ -249,7 +249,8 @@ public class StackManager {
           ServiceMetainfoXml metaInfoXml = serviceDirectory.getMetaInfoFile();
           for (ServiceInfo serviceInfo : metaInfoXml.getServices()) {
             ServiceModule serviceModule = new ServiceModule(stackContext, serviceInfo, serviceDirectory, true);
-            String commonServiceKey = serviceName + StackManager.PATH_DELIMITER + serviceVersion;
+
+            String commonServiceKey = serviceInfo.getName() + StackManager.PATH_DELIMITER + serviceInfo.getVersion();
             commonServiceModules.put(commonServiceKey, serviceModule);
           }
         }

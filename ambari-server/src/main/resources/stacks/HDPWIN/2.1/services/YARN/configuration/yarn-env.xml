@@ -22,8 +22,24 @@
 
 <configuration>
   <property>
-    <name>apptimelineserver_heapsize</name>
-    <value>1024</value>
-    <description>Max heapsize for AppTimelineServer using a numerical value in the scale of MB</description>
+    <name>yarn_log_dir_prefix</name>
+    <value>c:\hadoop\logs\hadoop-yarn</value>
+    <description>YARN Log Dir Prefix</description>
+  </property>
+  <property>
+    <name>yarn_pid_dir_prefix</name>
+    <value>c:\hadoop\run\hadoop-yarn</value>
+    <description>YARN PID Dir Prefix</description>
+  </property>
+  <property>
+    <name>yarn_user</name>
+    <deleted>true</deleted>
+  </property>
+  <!-- yarn-env.cmd -->
+  <property>
+    <name>content</name>
+    <description>This is the jinja template for yarn-env.cmd file</description>
+    <value>
+    </value>
   </property>
 </configuration>

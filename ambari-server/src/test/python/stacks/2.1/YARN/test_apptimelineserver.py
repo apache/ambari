@@ -28,22 +28,29 @@ origin_exists = os.path.exists
     side_effect=lambda *args: origin_exists(args[0])
     if args[0][-2:] == "j2" else True))
 class TestAppTimelineServer(RMFTestCase):
-
+  COMMON_SERVICES_PACKAGE_DIR = "YARN/2.1.0.2.0/package"
+  STACK_VERSION = "2.0.6"
 
   def test_configure_default(self):
-    self.executeScript("2.0.6/services/YARN/package/scripts/application_timeline_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/application_timeline_server.py",
                        classname="ApplicationTimelineServer",
                        command="configure",
-                       config_file="default.json")
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
 
     self.assert_configure_default()
     self.assertNoMoreResources()
 
   def test_start_default(self):
-    self.executeScript("2.0.6/services/YARN/package/scripts/application_timeline_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/application_timeline_server.py",
                        classname="ApplicationTimelineServer",
                        command="start",
-                       config_file="default.json")
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
 
     self.assert_configure_default()
 
@@ -62,10 +69,13 @@ class TestAppTimelineServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_stop_default(self):
-    self.executeScript("2.0.6/services/YARN/package/scripts/application_timeline_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/application_timeline_server.py",
                        classname="ApplicationTimelineServer",
                        command="stop",
-                       config_file="default.json")
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
 
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf stop timelineserver',
                               user='yarn')
@@ -208,10 +218,13 @@ class TestAppTimelineServer(RMFTestCase):
 
 
   def test_status(self):
-    self.executeScript("2.0.6/services/YARN/package/scripts/application_timeline_server.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/application_timeline_server.py",
                        classname="ApplicationTimelineServer",
                        command="status",
-                       config_file="default.json")
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
 
     self.assertResourceCalled('Execute', 'mv /var/run/hadoop-yarn/yarn/yarn-yarn-historyserver.pid /var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid',
         only_if = 'test -e /var/run/hadoop-yarn/yarn/yarn-yarn-historyserver.pid',

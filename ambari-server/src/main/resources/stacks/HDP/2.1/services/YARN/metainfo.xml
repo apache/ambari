@@ -21,7 +21,6 @@
   <services>
     <service>
       <name>YARN</name>
-      <displayName>YARN</displayName>
       <version>2.4.0.2.1</version>
       <components>
 

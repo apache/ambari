@@ -26,13 +26,17 @@ origin_exists = os.path.exists
   side_effect=lambda *args: origin_exists(args[0])
   if args[0][-2:] == "j2" else True))
 class TestServiceCheck(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "YARN/2.1.0.2.0/package"
+  STACK_VERSION = "2.0.6"
 
   def test_service_check_default(self):
 
-    self.executeScript("2.0.6/services/YARN/package/scripts/mapred_service_check.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mapred_service_check.py",
                       classname="MapReduce2ServiceCheck",
                       command="service_check",
-                      config_file="default.json"
+                      config_file="default.json",
+                      hdp_stack_version = self.STACK_VERSION,
+                      target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('ExecuteHadoop', 'fs -rm -r -f /user/ambari-qa/mapredsmokeoutput /user/ambari-qa/mapredsmokeinput',
                       try_sleep = 5,
@@ -65,10 +69,12 @@ class TestServiceCheck(RMFTestCase):
 
   def test_service_check_secured(self):
 
-    self.executeScript("2.0.6/services/YARN/package/scripts/mapred_service_check.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mapred_service_check.py",
                       classname="MapReduce2ServiceCheck",
                       command="service_check",
-                      config_file="secured.json"
+                      config_file="secured.json",
+                      hdp_stack_version = self.STACK_VERSION,
+                      target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;',
                       user = 'ambari-qa',

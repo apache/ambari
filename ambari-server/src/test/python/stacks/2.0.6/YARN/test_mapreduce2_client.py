@@ -26,12 +26,16 @@ origin_exists = os.path.exists
   side_effect=lambda *args: origin_exists(args[0])
   if args[0][-2:] == "j2" else True))
 class TestMapReduce2Client(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "YARN/2.1.0.2.0/package"
+  STACK_VERSION = "2.0.6"
 
   def test_configure_default(self):
-    self.executeScript("2.0.6/services/YARN/package/scripts/mapreduce2_client.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mapreduce2_client.py",
                        classname = "MapReduce2Client",
                        command = "configure",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
@@ -162,10 +166,12 @@ class TestMapReduce2Client(RMFTestCase):
 
   def test_configure_secured(self):
 
-    self.executeScript("2.0.6/services/YARN/package/scripts/mapreduce2_client.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mapreduce2_client.py",
                        classname = "MapReduce2Client",
                        command = "configure",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
       owner = 'yarn',
@@ -310,10 +316,13 @@ class TestMapReduce2Client(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_upgrade(self):
-    self.executeScript("2.0.6/services/YARN/package/scripts/mapreduce2_client.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mapreduce2_client.py",
                    classname = "MapReduce2Client",
                    command = "restart",
-                   config_file="client-upgrade.json")
+                   config_file="client-upgrade.json",
+                   hdp_stack_version = self.STACK_VERSION,
+                   target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
 
     self.assertResourceCalled("Execute", "hdp-select set hadoop-client 2.2.1.0-2067")
 

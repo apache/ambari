@@ -28,20 +28,28 @@ origin_exists = os.path.exists
   side_effect=lambda *args: origin_exists(args[0])
   if args[0][-2:] == "j2" else True))
 class TestNodeManager(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "YARN/2.1.0.2.0/package"
+  STACK_VERSION = "2.0.6"
 
   def test_configure_default(self):
-    self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
                        classname="Nodemanager",
                        command="configure",
-                       config_file="default.json")
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
     self.assert_configure_default()
     self.assertNoMoreResources()
 
   def test_start_default(self):
-    self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
                        classname="Nodemanager",
                        command="start",
-                       config_file="default.json")
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
     self.assert_configure_default()
 
     pid_check_cmd = 'ls /var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid` >/dev/null 2>&1'
@@ -59,10 +67,13 @@ class TestNodeManager(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_stop_default(self):
-    self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
                        classname="Nodemanager",
                        command="stop",
-                       config_file="default.json")
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf stop nodemanager',
                               user='yarn')
     self.assertResourceCalled('File', '/var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid',
@@ -71,18 +82,24 @@ class TestNodeManager(RMFTestCase):
 
   def test_configure_secured(self):
 
-    self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
                        classname="Nodemanager",
                        command="configure",
-                       config_file="secured.json")
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
     self.assert_configure_secured()
     self.assertNoMoreResources()
 
   def test_start_secured(self):
-    self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
                        classname="Nodemanager",
                        command="start",
-                       config_file="secured.json")
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
 
     self.assert_configure_secured()
 
@@ -101,10 +118,13 @@ class TestNodeManager(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_stop_secured(self):
-    self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
                        classname="Nodemanager",
                        command="stop",
-                       config_file="secured.json")
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf stop nodemanager',
                               user='yarn')
     self.assertResourceCalled('File', '/var/run/hadoop-yarn/yarn/yarn-yarn-nodemanager.pid',
@@ -568,8 +588,13 @@ class TestNodeManager(RMFTestCase):
 
     process_mock.return_value = (0, process_output)
 
-    self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
-      classname="Nodemanager", command = "post_rolling_restart", config_file="default.json")
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
+                       classname="Nodemanager",
+                       command = "post_rolling_restart",
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
 
     self.assertTrue(process_mock.called)
     self.assertEqual(process_mock.call_count,1)
@@ -585,8 +610,13 @@ class TestNodeManager(RMFTestCase):
     process_mock.return_value = (0, process_output)
 
     try:
-      self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
-        classname="Nodemanager", command = "post_rolling_restart", config_file="default.json")
+      self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
+                         classname="Nodemanager",
+                         command = "post_rolling_restart",
+                         config_file="default.json",
+                         hdp_stack_version = self.STACK_VERSION,
+                         target = RMFTestCase.TARGET_COMMON_SERVICES
+      )
       self.fail('Missing NodeManager should have caused a failure')
     except Fail,fail:
       self.assertTrue(process_mock.called)
@@ -603,8 +633,13 @@ class TestNodeManager(RMFTestCase):
     process_mock.return_value = (999, process_output)
 
     try:
-      self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
-        classname="Nodemanager", command = "post_rolling_restart", config_file="default.json")
+      self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
+                         classname="Nodemanager",
+                         command = "post_rolling_restart",
+                         config_file="default.json",
+                         hdp_stack_version = self.STACK_VERSION,
+                         target = RMFTestCase.TARGET_COMMON_SERVICES
+      )
       self.fail('Invalid return code should cause a failure')
     except Fail,fail:
       self.assertTrue(process_mock.called)
@@ -640,10 +675,12 @@ class TestNodeManager(RMFTestCase):
     get_params_mock.return_value = security_params
     validate_security_config_mock.return_value = result_issues
 
-    self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
                        classname="Nodemanager",
                        command="security_status",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     build_exp_mock.assert_called_with('yarn-site', props_value_check, props_empty_check, props_read_check)
@@ -662,10 +699,12 @@ class TestNodeManager(RMFTestCase):
     cached_kinit_executor_mock.side_effect = Exception("Invalid command")
 
     try:
-          self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
+          self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
                        classname="Nodemanager",
                        command="security_status",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
           )
     except:
       self.assertTrue(True)
@@ -677,10 +716,12 @@ class TestNodeManager(RMFTestCase):
     put_structured_out_mock.reset_mock()
     get_params_mock.return_value = empty_security_params
 
-    self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
                        classname="Nodemanager",
                        command="security_status",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityIssuesFound": "Keytab file or principal are not set property."})
 
@@ -693,17 +734,21 @@ class TestNodeManager(RMFTestCase):
     validate_security_config_mock.return_value = result_issues_with_params
     get_params_mock.return_value = security_params
 
-    self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
                        classname="Nodemanager",
                        command="security_status",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
 
     # Testing with security_enable = false
-    self.executeScript("2.0.6/services/YARN/package/scripts/nodemanager.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
                        classname="Nodemanager",
                        command="security_status",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})

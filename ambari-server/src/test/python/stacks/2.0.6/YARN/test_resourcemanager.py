@@ -26,20 +26,28 @@ origin_exists = os.path.exists
   side_effect=lambda *args: origin_exists(args[0])
   if args[0][-2:] == "j2" else True))
 class TestResourceManager(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "YARN/2.1.0.2.0/package"
+  STACK_VERSION = "2.0.6"
 
   def test_configure_default(self):
-    self.executeScript("2.0.6/services/YARN/package/scripts/resourcemanager.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/resourcemanager.py",
                        classname="Resourcemanager",
                        command="configure",
-                       config_file="default.json")
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
     self.assert_configure_default()
     self.assertNoMoreResources()
 
   def test_start_default(self):
-    self.executeScript("2.0.6/services/YARN/package/scripts/resourcemanager.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/resourcemanager.py",
                        classname="Resourcemanager",
                        command="start",
-                       config_file="default.json")
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
 
     self.assert_configure_default()
 
@@ -58,10 +66,13 @@ class TestResourceManager(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_stop_default(self):
-    self.executeScript("2.0.6/services/YARN/package/scripts/resourcemanager.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/resourcemanager.py",
                        classname="Resourcemanager",
                        command="stop",
-                       config_file="default.json")
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
 
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf stop resourcemanager',
                               user='yarn')
@@ -71,17 +82,23 @@ class TestResourceManager(RMFTestCase):
 
   def test_configure_secured(self):
 
-    self.executeScript("2.0.6/services/YARN/package/scripts/resourcemanager.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/resourcemanager.py",
                        classname="Resourcemanager",
                        command="configure",
-                       config_file="secured.json")
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
     self.assert_configure_secured()
 
   def test_start_secured(self):
-    self.executeScript("2.0.6/services/YARN/package/scripts/resourcemanager.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/resourcemanager.py",
                        classname="Resourcemanager",
                        command="start",
-                       config_file="secured.json")
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
 
     self.assert_configure_secured()
 
@@ -100,10 +117,13 @@ class TestResourceManager(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_stop_secured(self):
-    self.executeScript("2.0.6/services/YARN/package/scripts/resourcemanager.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/resourcemanager.py",
                        classname="Resourcemanager",
                        command="stop",
-                       config_file="secured.json")
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
 
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf stop resourcemanager',
                               user='yarn')
@@ -113,10 +133,12 @@ class TestResourceManager(RMFTestCase):
 
 
   def test_decommission_default(self):
-    self.executeScript("2.0.6/services/YARN/package/scripts/resourcemanager.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/resourcemanager.py",
                        classname = "Resourcemanager",
                        command = "decommission",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
         owner = 'yarn',
@@ -130,10 +152,12 @@ class TestResourceManager(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_decommission_secured(self):
-    self.executeScript("2.0.6/services/YARN/package/scripts/resourcemanager.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/resourcemanager.py",
                        classname = "Resourcemanager",
                        command = "decommission",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
         owner = 'yarn',
@@ -455,10 +479,12 @@ class TestResourceManager(RMFTestCase):
     get_params_mock.return_value = security_params
     validate_security_config_mock.return_value = result_issues
 
-    self.executeScript("2.0.6/services/YARN/package/scripts/resourcemanager.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/resourcemanager.py",
                        classname="Resourcemanager",
                        command="security_status",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
     build_exp_mock.assert_called_with('yarn-site', props_value_check, props_empty_check, props_read_check)
@@ -477,10 +503,12 @@ class TestResourceManager(RMFTestCase):
     cached_kinit_executor_mock.side_effect = Exception("Invalid command")
 
     try:
-          self.executeScript("2.0.6/services/YARN/package/scripts/resourcemanager.py",
+          self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/resourcemanager.py",
                        classname="Resourcemanager",
                        command="security_status",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
           )
     except:
       self.assertTrue(True)
@@ -492,10 +520,12 @@ class TestResourceManager(RMFTestCase):
     put_structured_out_mock.reset_mock()
     get_params_mock.return_value = empty_security_params
 
-    self.executeScript("2.0.6/services/YARN/package/scripts/resourcemanager.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/resourcemanager.py",
                        classname="Resourcemanager",
                        command="security_status",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityIssuesFound": "Keytab file or principal are not set property."})
 
@@ -508,17 +538,21 @@ class TestResourceManager(RMFTestCase):
     validate_security_config_mock.return_value = result_issues_with_params
     get_params_mock.return_value = security_params
 
-    self.executeScript("2.0.6/services/YARN/package/scripts/resourcemanager.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/resourcemanager.py",
                        classname="Resourcemanager",
                        command="security_status",
-                       config_file="secured.json"
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
 
     # Testing with security_enable = false
-    self.executeScript("2.0.6/services/YARN/package/scripts/resourcemanager.py",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/resourcemanager.py",
                        classname="Resourcemanager",
                        command="security_status",
-                       config_file="default.json"
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
