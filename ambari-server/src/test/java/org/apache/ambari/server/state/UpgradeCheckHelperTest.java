@@ -22,12 +22,24 @@ import java.util.List;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PreUpgradeCheckRequest;
+import org.apache.ambari.server.orm.dao.HostVersionDAO;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.state.UpgradeCheckHelper.UpgradeCheckDescriptor;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeCheck;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeCheckStatus;
 import org.easymock.EasyMock;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.util.Providers;
 
 /**
  * Tests the {@link UpgradeCheckHelper} class
@@ -83,6 +95,41 @@ public class UpgradeCheckHelperTest {
     final List<UpgradeCheck> upgradeChecks = helper.performPreUpgradeChecks(new PreUpgradeCheckRequest("cluster"));
     EasyMock.verify(descriptor);
     Assert.assertEquals(UpgradeCheckStatus.FAIL, upgradeChecks.get(0).getStatus());
+  }
+
+  @Test
+  public void performPreUpgradeChecksTest_clusterIsMissing() throws Exception {
+    final Clusters clusters = Mockito.mock(Clusters.class);
+    Mockito.when(clusters.getCluster(Mockito.anyString())).thenAnswer(new Answer<Cluster>() {
+      @Override
+      public Cluster answer(InvocationOnMock invocation) throws Throwable {
+        final String clusterName = invocation.getArguments()[0].toString();
+        if (clusterName.equals("existing")) {
+          return Mockito.mock(Cluster.class);
+        } else {
+          throw new ClusterNotFoundException(clusterName);
+        }
+      }
+    });
+    final Injector injector = Guice.createInjector(new AbstractModule() {
+
+      @Override
+      protected void configure() {
+        bind(Clusters.class).toInstance(clusters);
+        bind(Configuration.class).toProvider(Providers.<Configuration> of(null));
+        bind(HostVersionDAO.class).toProvider(Providers.<HostVersionDAO> of(null));
+        bind(RepositoryVersionDAO.class).toProvider(Providers.<RepositoryVersionDAO> of(null));
+      }
+    });
+    final UpgradeCheckHelper helper = injector.getInstance(UpgradeCheckHelper.class);
+    helper.registry.clear();
+    helper.registry.add(helper.new ServicesUpCheck()); //mocked Cluster has no services, so the check should always be PASS
+    List<UpgradeCheck> upgradeChecks = helper.performPreUpgradeChecks(new PreUpgradeCheckRequest("existing"));
+    Assert.assertEquals(UpgradeCheckStatus.PASS, upgradeChecks.get(0).getStatus());
+    upgradeChecks = helper.performPreUpgradeChecks(new PreUpgradeCheckRequest("non-existing"));
+    Assert.assertEquals(UpgradeCheckStatus.FAIL, upgradeChecks.get(0).getStatus());
+    //non existing cluster is an expected error
+    Assert.assertTrue(!upgradeChecks.get(0).getFailReason().equals("Unexpected server error happened"));
   }
 
 }

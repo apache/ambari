@@ -25,6 +25,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PreUpgradeCheckRequest;
@@ -80,6 +81,7 @@ public class UpgradeCheckHelper {
     registry.add(new HostsHeartbeatCheck());
     registry.add(new HostsMasterMaintenanceCheck());
     registry.add(new HostsRepositoryVersionCheck());
+    registry.add(new ServicesUpCheck());
     registry.add(new ServicesMaintenanceModeCheck());
     registry.add(new ServicesNamenodeHighAvailabilityCheck());
     registry.add(new ServicesYarnWorkPreservingCheck());
@@ -105,6 +107,10 @@ public class UpgradeCheckHelper {
           upgradeCheckDescriptor.perform(upgradeCheck, request);
           upgradeCheckResults.add(upgradeCheck);
         }
+      } catch (ClusterNotFoundException ex) {
+        upgradeCheck.setStatus(UpgradeCheckStatus.FAIL);
+        upgradeCheck.setFailReason("Cluster with name " + clusterName + " doesn't exists");
+        upgradeCheckResults.add(upgradeCheck);
       } catch (Exception ex) {
         LOG.error("Pre-upgrade check " + upgradeCheckDescriptor.id + " failed", ex);
         upgradeCheck.setStatus(UpgradeCheckStatus.FAIL);
@@ -161,6 +167,35 @@ public class UpgradeCheckHelper {
   }
 
   /**
+   * Checks that services are up.
+   */
+  protected class ServicesUpCheck extends UpgradeCheckDescriptor {
+
+    /**
+     * Constructor.
+     */
+    public ServicesUpCheck() {
+      super("SERVICES_UP", UpgradeCheckType.SERVICE, "All services must be up");
+    }
+
+    @Override
+    public void perform(UpgradeCheck upgradeCheck, PreUpgradeCheckRequest request) throws AmbariException {
+      final String clusterName = request.getClusterName();
+      final Cluster cluster = clustersProvider.get().getCluster(clusterName);
+      for (Map.Entry<String, Service> serviceEntry : cluster.getServices().entrySet()) {
+        final Service service = serviceEntry.getValue();
+        if (!service.isClientOnlyService() && service.getDesiredState() != State.STARTED) {
+          upgradeCheck.getFailedOn().add(service.getName());
+        }
+      }
+      if (!upgradeCheck.getFailedOn().isEmpty()) {
+        upgradeCheck.setStatus(UpgradeCheckStatus.FAIL);
+        upgradeCheck.setFailReason("Some services are down");
+      }
+    }
+  }
+
+  /**
    * Checks that services are in the maintenance mode.
    */
   protected class ServicesMaintenanceModeCheck extends UpgradeCheckDescriptor {
@@ -178,7 +213,7 @@ public class UpgradeCheckHelper {
       final Cluster cluster = clustersProvider.get().getCluster(clusterName);
       for (Map.Entry<String, Service> serviceEntry : cluster.getServices().entrySet()) {
         final Service service = serviceEntry.getValue();
-        if (service.getDesiredState() != State.STARTED || service.getMaintenanceState() == MaintenanceState.ON) {
+        if (service.getMaintenanceState() == MaintenanceState.ON) {
           upgradeCheck.getFailedOn().add(service.getName());
         }
       }
@@ -283,10 +318,16 @@ public class UpgradeCheckHelper {
       final String clusterName = request.getClusterName();
       final Cluster cluster = clustersProvider.get().getCluster(clusterName);
       final Map<String, Host> clusterHosts = clustersProvider.get().getHostsForCluster(clusterName);
+      final RepositoryVersionEntity repositoryVersion = repositoryVersionDaoProvider.get().findByDisplayName(request.getRepositoryVersionName());
+      if (repositoryVersion == null) {
+        upgradeCheck.setStatus(UpgradeCheckStatus.FAIL);
+        upgradeCheck.setFailReason("Repository version " + request.getRepositoryVersionName() + " doesn't exist");
+        upgradeCheck.getFailedOn().addAll(clusterHosts.keySet());
+        return;
+      }
       for (Map.Entry<String, Host> hostEntry : clusterHosts.entrySet()) {
         final Host host = hostEntry.getValue();
         if (host.getMaintenanceState(cluster.getClusterId()) == MaintenanceState.OFF) {
-          final RepositoryVersionEntity repositoryVersion = repositoryVersionDaoProvider.get().findByDisplayName(request.getRepositoryVersionName());
           final HostVersionEntity hostVersion = hostVersionDaoProvider.get().findByClusterStackVersionAndHost(clusterName, repositoryVersion.getStack(), repositoryVersion.getVersion(), host.getHostName());
           if (hostVersion == null || hostVersion.getState() != RepositoryVersionState.INSTALLED) {
             upgradeCheck.getFailedOn().add(host.getHostName());
@@ -297,7 +338,6 @@ public class UpgradeCheckHelper {
         upgradeCheck.setStatus(UpgradeCheckStatus.FAIL);
         upgradeCheck.setFailReason("Some hosts do not have repository version " + request.getRepositoryVersionName() + " installed");
       }
-
     }
   }
 
