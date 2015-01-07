@@ -25,6 +25,8 @@ import status_params
 # server configurations
 config = Script.get_config()
 
+version = default("/commandParams/version", None)
+
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 

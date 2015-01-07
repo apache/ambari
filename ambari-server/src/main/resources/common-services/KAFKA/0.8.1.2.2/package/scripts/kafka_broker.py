@@ -19,6 +19,7 @@ limitations under the License.
 
 from resource_management import *
 import sys
+import upgrade
 
 from kafka import kafka
 
@@ -32,7 +33,12 @@ class KafkaBroker(Script):
     env.set_params(params)
     kafka()
 
-  def start(self, env):
+  def pre_rolling_restart(self, env):
+    import params
+    env.set_params(params)
+    upgrade.prestart(env, "kafka-broker")
+
+  def start(self, env, rolling_restart=False):
     import params
     env.set_params(params)
     self.configure(env)
@@ -43,7 +49,7 @@ class KafkaBroker(Script):
             not_if=no_op_test
     )
 
-  def stop(self, env):
+  def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
     self.configure(env)

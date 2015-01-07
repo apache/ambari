@@ -57,7 +57,7 @@
         <component>HBASE_REGIONSERVER</component>
       </service>
 
-      <service name="YARN">
+     <service name="YARN">
         <component>NODEMANAGER</component>
       </service>
 
@@ -83,6 +83,12 @@
         <component>FALCON_CLIENT</component>
       </service>
     </group>
+
+    <group name="KAFKA" title="Kafka">
+      <service name="KAFKA">
+        <component>KAFKA_BROKER</component>
+      </service>
+   </group>
 
     <group name="CLIENTS" title="Client Components">
       <service name="HDFS">
@@ -270,7 +276,7 @@
         </upgrade>
       </component>
     </service>
-    
+
     <service name="TEZ">
       <component name="TEZ_CLIENT">
         <upgrade>
@@ -345,5 +351,14 @@
         </upgrade>
       </component>
     </service>
+
+    <service name="KAFKA">
+      <component name="KAFKA_BROKER">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+    </service>
+
   </processing>
 </upgrade>
