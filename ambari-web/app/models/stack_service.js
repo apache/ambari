@@ -334,8 +334,8 @@ App.StackService.configCategories = function () {
       break;
     case 'AMS':
       serviceConfigCategories.pushObjects([
-        App.ServiceConfigCategory.create({ name: 'MetricCollector', displayName: 'Metric Collector'}),
-        App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'})
+        App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'}),
+        App.ServiceConfigCategory.create({ name: 'MetricCollector', displayName: 'Metric Collector'})
       ]);
       break;
     case 'PIG':
