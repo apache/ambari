@@ -16,7 +16,7 @@
           "access": "r"
         },
         "group": {
-          "name": "${hadoop-env/user_group}",
+          "name": "${cluster-env/user_group}",
           "access": "r"
         }
       }

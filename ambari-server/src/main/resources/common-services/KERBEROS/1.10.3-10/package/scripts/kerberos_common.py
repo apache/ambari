@@ -350,6 +350,7 @@ class KerberosScript(Script):
   @staticmethod
   def write_keytab_file():
     import params
+    import stat
 
     if params.kerberos_command_params is not None:
       for item  in params.kerberos_command_params:
@@ -358,41 +359,27 @@ class KerberosScript(Script):
           keytab_file_path = get_property_value(item, 'keytab_file_path')
           if (keytab_file_path is not None) and (len(keytab_file_path) > 0):
             head, tail = os.path.split(keytab_file_path)
-            if head and not os.path.isdir(head):
-              os.makedirs(head)
-            with open(keytab_file_path, 'w') as f:
-              f.write(base64.b64decode(keytab_content_base64))
-            owner = get_property_value(item, 'keytab_file_owner')
+            if head:
+              Directory(head, recursive=True, mode=0755, owner="root", group="root")
+
+            owner = get_property_value(item, 'keytab_file_owner_name')
             owner_access = get_property_value(item, 'keytab_file_owner_access')
-            group = get_property_value(item, 'keytab_file_group')
+            group = get_property_value(item, 'keytab_file_group_name')
             group_access = get_property_value(item, 'keytab_file_group_access')
-            KerberosScript._set_file_access(keytab_file_path, owner, owner_access, group, group_access)
+            mode = 0
 
+            if owner_access == 'rw':
+              mode |= stat.S_IREAD | stat.S_IWRITE
+            else:
+              mode |= stat.S_IREAD
 
-  @staticmethod
-  def _set_file_access(file_path, owner, owner_access='rw', group=None, group_access=''):
-    if (file_path is not None) and os.path.isfile(file_path) and (owner is not None):
-      import stat
-      import pwd
-      import grp
+            if group_access == 'rw':
+              mode |= stat.S_IRGRP | stat.S_IWGRP
+            elif group_access == 'r':
+              mode |= stat.S_IRGRP
 
-      pwnam = pwd.getpwnam(owner) if (owner is not None) and (len(owner) > 0) else None
-      uid = pwnam.pw_uid if pwnam is not None else os.geteuid()
-
-      grnam = grp.getgrnam(group) if (group is not None) and (len(group) > 0) else None
-      gid = grnam.gr_gid if grnam is not None else os.getegid()
-
-      chmod = 0
-
-      if owner_access == 'r':
-        chmod |= stat.S_IREAD
-      else:
-        chmod |= stat.S_IREAD | stat.S_IWRITE
-
-      if group_access == 'rw':
-        chmod |= stat.S_IRGRP | stat.S_IWGRP
-      elif group_access == 'r':
-        chmod |= stat.S_IRGRP
-
-      os.chmod(file_path, chmod)
-      os.chown(file_path, uid, gid)
+            File(keytab_file_path,
+                 content=base64.b64decode(keytab_content_base64),
+                 mode=mode,
+                 owner=owner,
+                 group=group)
