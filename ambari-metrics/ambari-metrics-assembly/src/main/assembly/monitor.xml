@@ -31,6 +31,13 @@
       <outputDirectory>site-packages/resource_monitoring</outputDirectory>
     </fileSet>
     <fileSet>
+      <directory>${project.basedir}/../../ambari-common/src/main/python/ambari_commons</directory>
+      <outputDirectory>site-packages/resource_monitoring/ambari_commons</outputDirectory>
+      <includes>
+        <include>**/*</include>
+      </includes>
+    </fileSet>
+    <fileSet>
       <directory>${monitor.dir}/conf/unix</directory>
       <outputDirectory>conf</outputDirectory>
       <includes>

@@ -247,6 +247,16 @@
                       </sources>
                     </mapping>
                     <mapping>
+                      <directory>${resmonitor.install.dir}/ambari_commons</directory>
+                      <sources>
+                        <source>
+                          <location>
+                            ${project.basedir}/../../ambari-common/src/main/python/ambari_commons
+                          </location>
+                        </source>
+                      </sources>
+                    </mapping>
+                    <mapping>
                       <directory>/etc/ambari-metrics-monitor/conf</directory>
                       <configuration>true</configuration>
                     </mapping>
@@ -515,7 +525,6 @@
             <version>1.0.1</version>
             <executions>
               <execution>
-                <!-- unbinds rpm creation from maven lifecycle -->
                 <phase>package</phase>
                 <goals>
                   <goal>jdeb</goal>
@@ -562,6 +571,14 @@
                   <mapper>
                     <type>perm</type>
                     <prefix>${resmonitor.install.dir}/psutil</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <type>directory</type>
+                  <src>${project.basedir}/../../ambari-common/src/main/python/ambari_commons</src>
+                  <mapper>
+                    <type>perm</type>
+                    <prefix>${resmonitor.install.dir}/ambari_commons</prefix>
                   </mapper>
                 </data>
                 <data>
