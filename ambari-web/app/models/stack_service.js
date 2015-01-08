@@ -79,8 +79,16 @@ App.StackService = DS.Model.extend({
 
   isHiddenOnSelectServicePage: function () {
     var hiddenServices = ['MAPREDUCE2'];
-    return hiddenServices.contains(this.get('serviceName')) || !this.get('isInstallable');
+    return hiddenServices.contains(this.get('serviceName')) || !this.get('isInstallable') || this.get('doNotShowAndInstall');
   }.property('serviceName', 'isInstallable'),
+
+  doNotShowAndInstall: function () {
+    var skipServices = [];
+    if(!App.supports.installGanglia) {
+      skipServices.push('GANGLIA');
+    }
+    return skipServices.contains(this.get('serviceName'));
+  }.property('serviceName'),
 
   // Is the service required for monitoring of other hadoop ecosystem services
   isMonitoringService: function () {

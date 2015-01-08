@@ -60,7 +60,8 @@ App.supports = {
   autoRollbackHA: false,
   alwaysEnableManagedMySQLForHive: false,
   automatedKerberos: false,
-  customizeAgentUserAccount: false
+  customizeAgentUserAccount: false,
+  installGanglia: false
 };
 
 if (App.enableExperimental) {
