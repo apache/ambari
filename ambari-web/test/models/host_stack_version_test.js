@@ -62,7 +62,7 @@ describe('App.HostStackVersion', function () {
   describe("#installEnabled", function () {
     var testCases = [
       {
-        status: 'INIT',
+        status: 'OUT_OF_SYNC',
         result: true
       },
       {

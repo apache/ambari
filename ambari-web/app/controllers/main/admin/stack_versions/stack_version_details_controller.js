@@ -50,8 +50,7 @@ App.MainStackVersionsDetailsController = Em.Controller.extend({
    */
   installComplete: function() {
     return this.get('content.stackVersion.state')
-      && this.get('content.stackVersion.state') != "INSTALLING"
-      && this.get('content.stackVersion.state') != "INSTALL_FAILED";
+      && !["INSTALLING", "INSTALL_FAILED", "OUT_OF_SYNC"].contains(this.get('content.stackVersion.state'));
   }.property('content.stackVersion.state'),
 
   /**
@@ -62,7 +61,7 @@ App.MainStackVersionsDetailsController = Em.Controller.extend({
    * @type {Boolean}
    */
   notInstalled: function() {
-    return !this.get('content.stackVersion.state') || this.get('content.stackVersion.state') == "INSTALL_FAILED";
+    return !this.get('content.stackVersion.state') || ["INSTALL_FAILED", "OUT_OF_SYNC"].contains(this.get('content.stackVersion.state'));
   }.property('content.stackVersion.state'),
 
   /**
@@ -78,8 +77,8 @@ App.MainStackVersionsDetailsController = Em.Controller.extend({
    * @type {Number}
    */
   hostsToInstall: function() {
-    return this.get('content.stackVersion') ? this.get('content.stackVersion.initHosts.length') : App.get('allHostNames.length');
-  }.property('content.stackVersion.initHosts.length'),
+    return this.get('content.stackVersion') ? this.get('content.stackVersion.notInstalledHosts.length') : App.get('allHostNames.length');
+  }.property('content.stackVersion.notInstalledHosts.length'),
 
   /**
    * persentage of install progress

@@ -35,8 +35,9 @@ App.RepoVersionsManagementController = Em.ArrayController.extend({
    * @type {String}
    */
   realRepoUrl: function () {
+    //TODO correct url after api will be fixed
     return App.get('apiPrefix') + App.get('stackVersionURL') +
-      '/repository_versions?fields=*,operating_systems/*,operating_systems/repositories/*';
+      '/repository_versions?fields=*,operating_systems/*,operating_systems/repositories/*,operatingSystems/*,operatingSystems/repositories/*';
   }.property('App.stackVersionURL'),
 
   /**
@@ -50,8 +51,9 @@ App.RepoVersionsManagementController = Em.ArrayController.extend({
    * @type {String}
    */
   realStackUrl: function () {
+    //TODO correct url after api will be fixed
     return App.apiPrefix + '/clusters/' + App.get('clusterName') +
-      '/stack_versions?fields=*,repository_versions/*,repository_versions/operating_systems/repositories/*';
+      '/stack_versions?fields=*,repository_versions/*,repository_versions/operating_systems/repositories/*,repository_versions/operatingSystems/repositories/*';
   }.property('App.clusterName'),
 
   /**

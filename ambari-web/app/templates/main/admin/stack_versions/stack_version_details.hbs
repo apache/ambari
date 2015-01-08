@@ -31,9 +31,9 @@
               <div class="span3">{{t admin.stackVersions.details.not.installed.on}}</div>
               <div {{bindAttr class="view.noInitHosts:not-active-link :span6"}}>
                 <a href="#" class="not-installed-hosts-count"
-                  {{action showHosts view.versionStateMap.not_installed content.repositoryVersion view.initHosts target="App.router.mainStackVersionsController"}}>
-                  {{view.initHosts.length}}&nbsp;
-                  {{pluralize view.initHosts.length singular="t:admin.stackVersions.details.host" plural="t:admin.stackVersions.details.hosts"}}
+                  {{action showHosts view.versionStateMap.not_installed content.repositoryVersion view.notInstalledHosts target="App.router.mainStackVersionsController"}}>
+                  {{view.notInstalledHosts.length}}&nbsp;
+                  {{pluralize view.notInstalledHosts.length singular="t:admin.stackVersions.details.host" plural="t:admin.stackVersions.details.hosts"}}
                 </a>
               </div>
             </div>

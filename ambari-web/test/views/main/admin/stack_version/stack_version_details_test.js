@@ -50,6 +50,12 @@ describe('App.MainStackVersionsDetailsView', function () {
       view.set("content.stackVersion.state", "INSTALL_FAILED");
       expect(view.get('installButtonMsg')).to.equal(Em.I18n.t('admin.stackVersions.details.hosts.btn.reinstall'))
     });
+
+    it("install button msg for out of sync failed state" , function() {
+      view.set("controller.hostsToInstall", 1);
+      view.set("content.stackVersion.state", "OUT_OF_SYNC");
+      expect(view.get('installButtonMsg')).to.equal(Em.I18n.t('admin.stackVersions.details.hosts.btn.install').format(1))
+    });
   });
 
   describe('#installButtonClass', function () {
@@ -61,6 +67,11 @@ describe('App.MainStackVersionsDetailsView', function () {
     it("install button class install failed state" , function() {
       view.set("content.stackVersion.state", "INSTALL_FAILED");
       expect(view.get('installButtonClass')).to.equal('btn-danger')
+    });
+
+    it("install button class install out of sync state" , function() {
+      view.set("content.stackVersion.state", "OUT_OF_SYNC");
+      expect(view.get('installButtonClass')).to.equal('btn-success')
     });
   });
 

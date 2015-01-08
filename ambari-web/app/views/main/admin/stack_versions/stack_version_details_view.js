@@ -68,13 +68,13 @@ App.MainStackVersionsDetailsView = Em.View.extend({
    * hosts with stack versions in not installed state
    * when stack version for repoversion is not created returns all hosts in cluster
    */
-  initHosts: function() {
-    if (this.get('showCounters') && this.get('content.stackVersion.installingHosts') && this.get('content.stackVersion.installFailedHosts')) {
-      return this.get('content.stackVersion.installingHosts').concat(this.get('content.stackVersion.installFailedHosts'));
+  notInstalledHosts: function() {
+    if (this.get('showCounters') && this.get('content.stackVersion.notInstalledHosts')) {
+      return this.get('content.stackVersion.notInstalledHosts');
     } else {
       return App.get('allHostNames');
     }
-  }.property('showCounters', 'content.stackVersion.installingHosts.length', 'content.stackVersion.installFailedHosts.length', 'App.allHostNames'),
+  }.property('showCounters', 'content.stackVersion.notInstalledHosts.length', 'App.allHostNames'),
 
   /**
    * hosts with stack versions in installed state

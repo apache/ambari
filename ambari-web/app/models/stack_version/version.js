@@ -27,17 +27,15 @@ App.StackVersion = DS.Model.extend({
   }.property('stack', 'version'),
   state: DS.attr('string'),
   repositoryVersion: DS.belongsTo('App.RepositoryVersion'),
+  notInstalledHosts: DS.attr('array'),
   installingHosts: DS.attr('array'),
   installedHosts: DS.attr('array'),
   installFailedHosts: DS.attr('array'),
+  outOfSyncHosts: DS.attr('array'),
   upgradingHosts: DS.attr('array'),
   upgradedHosts: DS.attr('array'),
   upgradeFailedHosts: DS.attr('array'),
   currentHosts: DS.attr('array'),
-
-  initHosts:  function() {
-    return this.get('installingHosts') && this.get('installingHosts').concat(this.get('installFailedHosts'));
-  }.property('installFailedHosts', 'installingHosts'),
 
   noInstalledHosts:  function() {
     return this.get('installedHosts.length') == 0;
@@ -48,8 +46,8 @@ App.StackVersion = DS.Model.extend({
   }.property('currentHosts.length'),
 
   noInitHosts: function() {
-    return this.get('initHosts.length') == 0;
-  }.property('initHosts.length')
+    return this.get('notInstalledHosts.length') == 0;
+  }.property('notInstalledHosts.length')
 });
 
 App.StackVersion.FIXTURES = [];

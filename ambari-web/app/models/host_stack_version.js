@@ -37,7 +37,7 @@ App.HostStackVersion = DS.Model.extend({
     return App.HostStackVersion.formatStatus(this.get('status'));
   }.property('status'),
   installEnabled: function () {
-    return (this.get('status') === 'INIT' || this.get('status') === 'INSTALL_FAILED');
+    return ['OUT_OF_SYNC', 'INSTALL_FAILED'].contains(this.get('status'));
   }.property('status'),
   installDisabled: Ember.computed.not('installEnabled')
 });
@@ -52,7 +52,7 @@ App.HostStackVersion.statusDefinition = [
   "INSTALLED",
   "INSTALLING",
   "INSTALL_FAILED",
-  "INIT",
+  "OUT_OF_SYNC",
   "CURRENT"
 ];
 
