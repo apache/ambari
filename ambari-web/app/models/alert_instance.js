@@ -143,14 +143,6 @@ App.AlertInstance = DS.Model.extend({
     return this.get('serviceName') === 'AMBARI';
   }.property('serviceName'),
 
-  /**
-   * Text minified to length 50 or less chars
-   * @type {String}
-   */
-  textMinified: function () {
-    return this.get('text') ? (this.get('text').length > 52 ? this.get('text').substring(0, 50) + '...' : this.get('text')) : '';
-  }.property('text'),
-
   shortState: {
     'CRITICAL': 'CRIT',
     'WARNING': 'WARN',

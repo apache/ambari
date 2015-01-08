@@ -161,6 +161,17 @@ App.AlertDefinition = DS.Model.extend({
     return '';
   }.property('summary'),
 
+  latestText: function () {
+    var order = this.get('order'), summary = this.get('summary'), text = '';
+    order.forEach(function (state) {
+      var cnt = summary[state] ? summary[state].count + summary[state].maintenanceCount : 0;
+      if (cnt > 0) {
+        text = summary[state].latestText;
+      }
+    });
+    return text;
+  }.property('summary'),
+
   isHostAlertDefinition: function () {
     var serviceID = (this.get('service')._id === "AMBARI"),
         component = (this.get('componentName') === "AMBARI_AGENT");

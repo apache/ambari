@@ -57,35 +57,6 @@ describe('App.AlertInstance', function () {
 
   });
 
-  describe('#textMinified', function () {
-
-    var tests = [
-      {
-        m: 'should return empty string',
-        t: undefined,
-        r: ''
-      },
-      {
-        m: 'should return minified string',
-        t: '012345678901234567890123456789012345678901234567890123456789',
-        r: '01234567890123456789012345678901234567890123456789...'
-      },
-      {
-        m: 'should return initial string',
-        t: '01234567890123456789012345678901234567890123456789',
-        r: '01234567890123456789012345678901234567890123456789'
-      }
-    ];
-
-    tests.forEach(function(test){
-      it(test.m, function () {
-        model.set('text', test.t);
-        expect(model.get('textMinified')).to.equal(test.r);
-      });
-    });
-
-  });
-
   describe('#status', function () {
 
     it('should show maint mode icon', function () {

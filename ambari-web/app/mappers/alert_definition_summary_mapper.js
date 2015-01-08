@@ -34,6 +34,9 @@ App.alertDefinitionSummaryMapper = App.QuickDataMapper.create({
             count: alertDefinitionSummary.summary[status].count,
             maintenanceCount: alertDefinitionSummary.summary[status].maintenance_count
           };
+          if (alertDefinitionSummary.summary[status].latest_text) {
+            summary[status].latestText = alertDefinitionSummary.summary[status].latest_text;
+          }
           if (alertDefinitionSummary.summary[status].original_timestamp > timestamp) {
             timestamp = alertDefinitionSummary.summary[status].original_timestamp;
           }
