@@ -634,9 +634,8 @@ describe('App.MainHostDetailsController', function () {
       });
       var data = {Clusters: {desired_configs: {'core-site': {tag: 1}}}};
       App.HostComponent.find().clear();
-      App.set('isStackServicesLoaded', true);
+      App.propertyDidChange('isHaEnabled');
       expect(controller.constructConfigUrlParams(data)).to.eql(['(type=core-site&tag=1)']);
-      App.set('isStackServicesLoaded', false);
       App.store.load(App.HostComponent, {
         id: 'SECONDARY_NAMENODE_host1',
         component_name: 'SECONDARY_NAMENODE'
@@ -648,6 +647,7 @@ describe('App.MainHostDetailsController', function () {
         id: 'HBASE',
         service_name: 'HBASE'
       });
+      App.propertyDidChange('isHaEnabled');
       var data = {Clusters: {desired_configs: {'hbase-site': {tag: 1}}}};
       expect(controller.constructConfigUrlParams(data)).to.eql(['(type=hbase-site&tag=1)']);
       App.Service.find().clear();
@@ -770,7 +770,7 @@ describe('App.MainHostDetailsController', function () {
         id: 'HDFS',
         service_name: 'HDFS'
       });
-      App.set('isStackServicesLoaded', true);
+      App.propertyDidChange('isHaEnabled');
       expect(controller.setZKConfigs(configs, 'host1:2181', [])).to.be.true;
       expect(configs).to.eql({"core-site": {
         "ha.zookeeper.quorum": "host1:2181"
@@ -779,7 +779,7 @@ describe('App.MainHostDetailsController', function () {
         id: 'SECONDARY_NAMENODE_host1',
         component_name: 'SECONDARY_NAMENODE'
       });
-      App.set('isStackServicesLoaded', false);
+      App.propertyDidChange('isHaEnabled');
     });
     it('hbase-site is present', function () {
       var configs = {'hbase-site': {}};

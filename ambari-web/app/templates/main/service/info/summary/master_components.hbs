@@ -17,7 +17,7 @@
 }}
 <tr class="hidden"><td></td></tr>
 {{#each comp in view.mastersComp}}
-  <tr {{bindAttr class="comp.isZkfc:component-small"}}>
+  <tr {{bindAttr class="comp.isSubComponent:component-small"}}>
     <td>
       <a href="#" {{action showDetails comp.host}} title="{{unbound comp.host.publicHostName}}" rel="UsageTooltip">
         {{#if comp.displayNameAdvanced}}

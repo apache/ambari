@@ -474,7 +474,11 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
     return gangliaUrl;
   }.property('App.router.clusterController.gangliaUrl', 'service.serviceName'),
 
-  didInsertElement:function () {
+  willInsertElement: function () {
+    App.router.get('updateController').updateServiceMetric(Em.K);
+  },
+
+  didInsertElement: function () {
     var svcName = this.get('service.serviceName');
     if (svcName) {
       this.constructGraphObjects(App.service_graph_config[svcName.toLowerCase()]);

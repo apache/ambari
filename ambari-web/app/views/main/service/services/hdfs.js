@@ -43,28 +43,20 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     },
     templateName: require('templates/main/service/info/summary/master_components'),
     mastersComp: function() {
-      if (App.get('isHaEnabled')) {
-        // return all Namenodes followed by its ZKFC
-        var namenodes = this.get('parentView.service.hostComponents').filter(function(comp){
-          return comp.get('isMaster') && comp.get('componentName') !== 'JOURNALNODE';
-        });
-        var zkfcs = this.get('parentView.service.hostComponents').filter(function(comp){
-          return comp.get('componentName') == 'ZKFC';
-        });
-        var nnZkfc = [];
-        namenodes.forEach( function(namenode) {
-          nnZkfc.push(namenode);
-          var zkfc = zkfcs.findProperty('host.publicHostName', namenode.get('host.publicHostName'));
+      var masterComponents = [];
+      var zkfcs = this.get('parentView.service.hostComponents').filterProperty('componentName', 'ZKFC');
+
+      this.get('parentView.service.hostComponents').forEach(function (comp) {
+        if (comp.get('isMaster') && comp.get('componentName') !== 'JOURNALNODE') {
+          masterComponents.push(comp);
+          var zkfc = zkfcs.findProperty('hostName', comp.get('hostName'));
           if (zkfc) {
-            nnZkfc.push(zkfc.set('isZkfc', true));
+            zkfc.set('isSubComponent', true);
+            masterComponents.push(zkfc);
           }
-        });
-        return nnZkfc;
-      } else {
-        return this.get('parentView.service.hostComponents').filter(function(comp){
-          return comp.get('isMaster') && comp.get('componentName') !== 'JOURNALNODE';
-        });
-      }
+        }
+      });
+      return masterComponents;
     }.property('parentView.service.hostComponents.length')
   }),
 

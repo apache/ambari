@@ -168,15 +168,15 @@ describe('App', function () {
     });
 
     it('if hadoop stack version higher than 2 then isHaEnabled should be true', function () {
-      App.set('isStackServicesLoaded', true);
+      App.propertyDidChange('isHaEnabled');
       expect(App.get('isHaEnabled')).to.equal(true);
-      App.set('isStackServicesLoaded', false);
     });
     it('if cluster has SECONDARY_NAMENODE then isHaEnabled should be false', function () {
       App.store.load(App.HostComponent, {
         id: 'SECONDARY_NAMENODE',
         component_name: 'SECONDARY_NAMENODE'
       });
+      App.propertyDidChange('isHaEnabled');
       expect(App.get('isHaEnabled')).to.equal(false);
     });
   });
