@@ -276,7 +276,7 @@ App.ServiceConfigProperty = Em.Object.extend({
     return result;
   }.property('displayType'),
 
-  initialValue: function (localDB) {
+  initialValue: function (localDB, hiveMetastoreUrisDefault) {
     var masterComponentHostsInDB = localDB.masterComponentHosts;
     //console.log("value in initialvalue: " + JSON.stringify(masterComponentHostsInDB));
     var hostsInfo = localDB.hosts; // which we are setting in installerController in step3.
@@ -481,18 +481,10 @@ App.ServiceConfigProperty = Em.Object.extend({
         this.set('value', hiveServerHost).set('defaultValue', hiveServerHost);
         break;
       case 'hive.metastore.uris':
-        var hiveMSHosts = masterComponentHostsInDB.filterProperty('component', 'HIVE_METASTORE').mapProperty('hostName'),
-            hiveMSHostPort = hiveMSHosts,
-            regex = "\\w*:(\\d+)",
-            portValue = this.get('defaultValue').match(new RegExp(regex));
-
-        if (!portValue) return;
-        if (portValue[1]) {
-          for (var i = 0; i < hiveMSHosts.length; i++) {
-            hiveMSHostPort[i] = "thrift://" + hiveMSHosts[i] + ":" + portValue[1];
-          }
+        var hiveMSUris = this.getHiveMetastoreUris(masterComponentHostsInDB, hiveMetastoreUrisDefault);
+        if (hiveMSUris) {
+          this.setDefaultValue("(.*)", hiveMSUris);
         }
-        this.setDefaultValue("(.*)", hiveMSHostPort);
         break;
       case 'oozie_existing_mysql_host':
       case 'oozie_existing_postgresql_host':
@@ -566,11 +558,11 @@ App.ServiceConfigProperty = Em.Object.extend({
         this.setDefaultValue("(.*)", zkHostPort);
         break;
       case 'templeton.hive.properties':
-        var hiveMetaStoreHost = masterComponentHostsInDB.findProperty('component', 'HIVE_METASTORE').hostName;
+        var hiveMSUris = this.getHiveMetastoreUris(masterComponentHostsInDB, hiveMetastoreUrisDefault).replace(',', '\\,');
         if (/\/\/localhost:/g.test(this.get('value'))) {
-          this.set('defaultValue', this.get('value') + ', hive.metastore.execute.setugi=true');
-          this.setDefaultValue("(localhost)", hiveMetaStoreHost);
+          this.set('defaultValue', this.get('value') + ',hive.metastore.execute.setugi=true');
         }
+        this.setDefaultValue("(hive\\.metastore\\.uris=)([^\\,]+)", "$1" + hiveMSUris);
         break;
       case 'dfs.name.dir':
       case 'dfs.namenode.name.dir':
@@ -602,6 +594,27 @@ App.ServiceConfigProperty = Em.Object.extend({
         this.setDefaultValue('localhost', falconServerHost);
         break;
     }
+  },
+
+  /**
+   * Get hive.metastore.uris initial value
+   * @param hosts
+   * @param defaultValue
+   * @returns {string}
+   */
+  getHiveMetastoreUris: function (hosts, defaultValue) {
+    var hiveMSHosts = hosts.filterProperty('component', 'HIVE_METASTORE').mapProperty('hostName'),
+      hiveMSUris = hiveMSHosts,
+      regex = "\\w*:(\\d+)",
+      portValue = defaultValue && defaultValue.match(new RegExp(regex));
+
+    if (!portValue) return '';
+    if (portValue[1]) {
+      for (var i = 0; i < hiveMSHosts.length; i++) {
+        hiveMSUris[i] = "thrift://" + hiveMSHosts[i] + ":" + portValue[1];
+      }
+    }
+    return hiveMSUris.join(',');
   },
 
   /**

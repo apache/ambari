@@ -776,6 +776,41 @@ describe('App.ServiceConfigProperty', function () {
         },
         value: 'h0,h1',
         title: 'comma separated list of hosts with Hive Server and Metastore'
+      },
+      'hive.metastore.uris': {
+        localDB: {
+          masterComponentHosts: [
+            {
+              component: 'HIVE_METASTORE',
+              hostName: 'h0'
+            },
+            {
+              component: 'HIVE_METASTORE',
+              hostName: 'h1'
+            }
+          ]
+        },
+        defaultValue: 'thrift://localhost:9083',
+        value: 'thrift://h0:9083,thrift://h1:9083',
+        title: 'comma separated list of Metastore hosts with thrift prefix and port'
+      },
+      'templeton.hive.properties': {
+        localDB: {
+          masterComponentHosts: [
+            {
+              component: 'HIVE_METASTORE',
+              hostName: 'h0'
+            },
+            {
+              component: 'HIVE_METASTORE',
+              hostName: 'h1'
+            }
+          ]
+        },
+        hiveMSUrisDefaultValue: 'thrift://localhost:9083',
+        defaultValue: 'hive.metastore.local=false,hive.metastore.uris=thrift://localhost:9933,hive.metastore.sasl.enabled=false',
+        value: 'hive.metastore.local=false,hive.metastore.uris=thrift://h0:9083\\,thrift://h1:9083,hive.metastore.sasl.enabled=false,hive.metastore.execute.setugi=true',
+        title: 'should add relevant hive.metastore.uris value'
       }
     };
 
@@ -861,5 +896,107 @@ describe('App.ServiceConfigProperty', function () {
       expect(serviceConfigProperty.get('value')).to.equal(cases['hive_master_hosts'].value);
     });
 
+    it(cases['hive.metastore.uris'].title, function () {
+      serviceConfigProperty.setProperties({
+        name: 'hive.metastore.uris',
+        defaultValue: cases['hive.metastore.uris'].defaultValue
+      });
+      serviceConfigProperty.initialValue(cases['hive.metastore.uris'].localDB, cases['hive.metastore.uris'].defaultValue);
+      expect(serviceConfigProperty.get('value')).to.equal(cases['hive.metastore.uris'].value);
+      expect(serviceConfigProperty.get('defaultValue')).to.equal(cases['hive.metastore.uris'].value);
+    });
+
+    it(cases['templeton.hive.properties'].title, function () {
+      serviceConfigProperty.setProperties({
+        name: 'templeton.hive.properties',
+        defaultValue: cases['templeton.hive.properties'].defaultValue,
+        value: cases['templeton.hive.properties'].defaultValue
+      });
+      serviceConfigProperty.initialValue(cases['templeton.hive.properties'].localDB, cases['templeton.hive.properties'].hiveMSUrisDefaultValue);
+      expect(serviceConfigProperty.get('value')).to.equal(cases['templeton.hive.properties'].value);
+      expect(serviceConfigProperty.get('defaultValue')).to.equal(cases['templeton.hive.properties'].value);
+    });
+
   });
+
+  describe('#getHiveMetastoreUris', function () {
+
+    var cases = [
+      {
+        hosts: [
+          {
+            hostName: 'h0',
+            component: 'HIVE_SERVER'
+          },
+          {
+            hostName: 'h1',
+            component: 'HIVE_METASTORE'
+          },
+          {
+            hostName: 'h2',
+            component: 'HIVE_METASTORE'
+          }
+        ],
+        defaultValue: 'thrift://localhost:9083',
+        expected: 'thrift://h1:9083,thrift://h2:9083',
+        title: 'typical case'
+      },
+      {
+        hosts: [
+          {
+            hostName: 'h0',
+            component: 'HIVE_SERVER'
+          }
+        ],
+        defaultValue: 'thrift://localhost:9083',
+        expected: '',
+        title: 'no Metastore hosts in DB'
+      },
+      {
+        hosts: [
+          {
+            hostName: 'h0',
+            component: 'HIVE_SERVER'
+          },
+          {
+            hostName: 'h1',
+            component: 'HIVE_METASTORE'
+          },
+          {
+            hostName: 'h2',
+            component: 'HIVE_METASTORE'
+          }
+        ],
+        defaultValue: '',
+        expected: '',
+        title: 'default value without port'
+      },
+      {
+        hosts: [
+          {
+            hostName: 'h0',
+            component: 'HIVE_SERVER'
+          },
+          {
+            hostName: 'h1',
+            component: 'HIVE_METASTORE'
+          },
+          {
+            hostName: 'h2',
+            component: 'HIVE_METASTORE'
+          }
+        ],
+        expected: '',
+        title: 'no default value specified'
+      }
+    ];
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        expect(serviceConfigProperty.getHiveMetastoreUris(item.hosts, item.defaultValue)).to.equal(item.expected);
+      });
+    });
+
+  });
+
 });

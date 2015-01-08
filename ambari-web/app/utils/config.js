@@ -682,7 +682,12 @@ App.config = Em.Object.create({
         var serviceConfigProperty = App.ServiceConfigProperty.create(_config);
         this.updateHostOverrides(serviceConfigProperty, _config);
         if (!storedConfigs && !serviceConfigProperty.get('hasInitialValue')) {
-          serviceConfigProperty.initialValue(localDB);
+          var hiveMetastoreUrisDefault;
+          var hiveMetastoreUrisConfig = serviceConfigs.findProperty('name', 'hive.metastore.uris');
+          if (hiveMetastoreUrisConfig) {
+            hiveMetastoreUrisDefault = hiveMetastoreUrisConfig.defaultValue;
+          }
+          serviceConfigProperty.initialValue(localDB, hiveMetastoreUrisDefault);
         }
         if (storedConfigs && storedConfigs.filterProperty('name', _config.name).length && !!_config.filename) {
           var storedConfig = storedConfigs.filterProperty('name', _config.name).findProperty('filename', _config.filename);
