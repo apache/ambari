@@ -20,6 +20,18 @@ var App = require('app');
 
 App.GotoCopyController = Ember.ObjectController.extend({
   needs:['pig'],
+  buttons: [
+    {
+      title: Em.I18n.t('scripts.modal.continue_editing'),
+      action: "cancel",
+      classBindings:[':btn',':btn-default']
+    },
+    {
+      title: Em.I18n.t('scripts.modal.go_to_copy'),
+      action: "ok",
+      classBindings:[':btn',':btn-primary']
+    }
+  ],
   actions:{
     confirm:function () {
       this.transitionToRoute('script.edit',this.get('content.id'));

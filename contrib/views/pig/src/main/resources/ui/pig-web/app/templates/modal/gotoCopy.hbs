@@ -22,10 +22,6 @@
     <h4 class="modal-title">{{t 'scripts.modal.copy_created'}}</h4>
   </div>
   <div class="modal-body">
-    {{t 'scripts.modal.copy_created_massage' titleBinding="content.title" tagName="p"}}
-  </div>
-  <div class="modal-footer">
-    <button type="button" {{action "cancel" target="view"}} class="btn btn-default" data-dismiss="modal">{{t 'scripts.modal.continue_editing'}}</button>
-    <button type="button" {{action "ok" content target="view"}} class="btn btn-primary">{{t 'scripts.modal.go_to_copy'}}</button>
+    <p>{{t 'scripts.modal.copy_created_massage' titleBinding="content.title"}}</p>
   </div>
 {{/pig-modal}}

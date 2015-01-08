@@ -20,6 +20,18 @@ var App = require('app');
 
 App.DeleteJobController = Ember.ObjectController.extend({
   needs:['script'],
+  buttons: [
+    {
+      title: Em.I18n.t('common.cancel'),
+      action: "cancel",
+      classBindings:[':btn',':btn-default']
+    },
+    {
+      title: Em.I18n.t('common.delete'),
+      action: "ok",
+      classBindings:[':btn',':btn-danger']
+    }
+  ],
   actions:{
     confirm:function () {
       this.get('controllers.script').send('deleteJob',this.get('content'));

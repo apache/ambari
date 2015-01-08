@@ -22,15 +22,11 @@ App.ScriptHistoryRoute = Em.Route.extend({
   enter: function() {
     this.controllerFor('script').set('activeTab','history');
   },
-  model:function(param) {
-    this.controllerFor('pig').set('activeScriptId', param.script_id);
-    return this.store.find('job', {scriptId: param.script_id});
+  beforeModel:function (t) {
+    var asId = t.params[t.targetName].hasOwnProperty('script_id') && t.params[t.targetName]['script_id'];
+    this.controllerFor('pig').set('activeScriptId',asId);
   },
-  setupController:function (controller,model) {
-    var script_id = this.controllerFor('pig').get('activeScriptId');
-    model.store.recordArrayManager.registerFilteredRecordArray(model,model.type,function(job) {
-      return job.get('scriptId') == script_id;
-    });
-    controller.set('model',model);
+  model:function(param) {
+    return this.store.find('job', {scriptId: param.script_id});
   }
 });

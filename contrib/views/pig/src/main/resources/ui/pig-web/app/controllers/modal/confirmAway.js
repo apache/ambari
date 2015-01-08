@@ -20,6 +20,23 @@ var App = require('app');
 
 App.ConfirmAwayController = Ember.ObjectController.extend({
   needs:['pig'],
+  buttons: [
+    {
+      title: Em.I18n.t('common.cancel'),
+      action: "cancel",
+      classBindings:[':btn',':btn-default']
+    },
+    {
+      title: Em.I18n.t('common.discard_changes'),
+      action: "option",
+      classBindings:[':btn',':btn-danger']
+    },
+    {
+      title: Em.I18n.t('common.save'),
+      action: "ok",
+      classBindings:[':btn',':btn-success']
+    }
+  ],
   waitingTransition:null,
   actions:{
     confirm:function () {

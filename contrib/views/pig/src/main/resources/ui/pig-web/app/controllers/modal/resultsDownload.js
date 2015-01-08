@@ -19,6 +19,13 @@
 var App = require('app');
 
 App.ResultsDownloadController = Ember.ObjectController.extend(App.FileHandler,{
+  buttons: [
+    {
+      title: Em.I18n.t('common.close'),
+      action: "cancel",
+      classBindings:[':btn',':btn-default']
+    }
+  ],
   jobResultsLoader:function (output) {
     var jobId = this.get('content.id');
     var url = ['jobs',jobId, 'results','stdout'].join('/');

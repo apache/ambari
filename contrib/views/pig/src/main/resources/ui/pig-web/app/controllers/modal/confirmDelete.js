@@ -20,6 +20,18 @@ var App = require('app');
 
 App.ConfirmDeleteController = Ember.ObjectController.extend({
   needs:['pig'],
+  buttons: [
+    {
+      title: Em.I18n.t('common.cancel'),
+      action: "cancel",
+      classBindings:[':btn',':btn-default']
+    },
+    {
+      title: Em.I18n.t('common.delete'),
+      action: "ok",
+      classBindings:[':btn',':btn-danger']
+    }
+  ],
   actions:{
     confirm:function () {
       this.get('controllers.pig').send('confirmdelete',this.get('content'));

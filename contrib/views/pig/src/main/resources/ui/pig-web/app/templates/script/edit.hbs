@@ -17,7 +17,7 @@
 }}
 
 <div class="edit-script">
-  <div {{bind-attr class=":panel :panel-editscript fullscreen:fullscreen scriptError:panel-danger:panel-default"}} >
+  <div {{bind-attr class=":panel :panel-editscript fullscreen:fullscreen content.isError:panel-danger:panel-default"}} >
     <div class="panel-heading">
       {{outlet nav}}
 
@@ -137,7 +137,7 @@
         <div class="input-group">
           {{input action="addArgument" placeholderTranslation="editor.pig_argument" class="form-control" valueBinding='tmpArgument'}}
           <span class="input-group-btn">
-            <button class="btn btn-default pull-right" {{action 'addArgument'}} ><i class="fa fa-plus"></i> {{t 'common.add'}}</button>
+            <button class="btn btn-default pull-right" {{action 'addArgument' tmpArgument}} ><i class="fa fa-plus"></i> {{t 'common.add'}}</button>
           </span>
         </div>
       </div>

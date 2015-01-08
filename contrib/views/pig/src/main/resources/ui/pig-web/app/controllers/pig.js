@@ -21,9 +21,14 @@ var App = require('app');
 App.PigController = Em.ArrayController.extend({
   needs:['scriptEdit'],
   category: 'scripts',
+  navs: [
+    {name:'scripts',url:'pig',label: Em.I18n.t('scripts.scripts'),icon:'fa-file-code-o'},
+    {name:'udfs',url:'pig.udfs',label:Em.I18n.t('udfs.udfs'),icon:'fa-plug'},
+    {name:'history',url:'pig.history',label:Em.I18n.t('common.history'),icon:'fa-clock-o'}
+  ],
   actions:{
     closeScript:function () {
-      this.transitionToRoute('pig.scripts');
+      this.transitionToRoute('pig');
     },
     saveScript: function (script,onSuccessCallback) {
       var onSuccess = onSuccessCallback || function(model){

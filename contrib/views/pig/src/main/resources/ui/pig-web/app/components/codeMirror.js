@@ -30,7 +30,7 @@ App.CodeMirrorComponent = Ember.Component.extend({
       return cm.setOption('readOnly',true);
     }
     var cmElement = $(cm.display.wrapper);
-    if (this.get('content.isLoaded')) {
+    if (this.get('content.isFulfilled')) {
       cm.setOption('readOnly',false);
       cmElement.removeClass('inactive');
       cm.setValue((this.get('content.fileContent')||''));
@@ -39,7 +39,7 @@ App.CodeMirrorComponent = Ember.Component.extend({
       cm.setOption('readOnly',true);
       cmElement.addClass('inactive');
     }
-  }.observes('codeMirror', 'content.didLoad'),
+  }.observes('codeMirror', 'content.isFulfilled'),
   toggleFullScreen:function () {
     Em.run.next(this,function () {
       this.get('codeMirror').setOption("fullScreen", this.get('fullscreen'));
@@ -71,7 +71,7 @@ App.CodeMirrorComponent = Ember.Component.extend({
       var addMargin = $('.CodeMirror-vscrollbar').css('display') === "block";
       var margin = $('.CodeMirror-vscrollbar').width();
       $('.fullscreen-toggle').css('right',((addMargin)?3+margin:3));
-    }
+    };
 
     cm.on('viewportChange',updateToggle);
 

@@ -21,6 +21,18 @@ var App = require('app');
 App.CreateScriptController = Ember.ObjectController.extend({
   needs:['pigScripts'],
   filePath:'',
+  buttons: [
+    {
+      title: Em.I18n.t('common.cancel'),
+      action: "cancel",
+      classBindings:[':btn',':btn-default']
+    },
+    {
+      title: Em.I18n.t('common.create'),
+      action: "ok",
+      classBindings:[':btn',':btn-success','isValid::disabled']
+    }
+  ],
   clearFilePath:function () {
     this.set('filePath','');
     this.set('titleErrorMessage','');

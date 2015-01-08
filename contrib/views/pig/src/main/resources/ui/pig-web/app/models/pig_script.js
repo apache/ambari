@@ -23,6 +23,9 @@ App.Script = DS.Model.extend({
   pigScript:DS.belongsTo('file', { async: true }),
   dateCreated:DS.attr('isodate', { defaultValue: moment()}),
   templetonArguments:DS.attr('string'),
+  pythonScript:DS.attr('string'),
+  owner:DS.attr('string'),
+  opened:DS.attr('string'),
   // nav item identifier
   name:function (q){
     return this.get('title')+this.get('id');

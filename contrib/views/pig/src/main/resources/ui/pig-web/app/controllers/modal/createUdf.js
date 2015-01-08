@@ -20,6 +20,18 @@ var App = require('app');
 
 App.CreateUdfController = Ember.ObjectController.extend({
   needs:['pigUdfs'],
+  buttons: [
+    {
+      title: Em.I18n.t('common.cancel'),
+      action: "cancel",
+      classBindings:[':btn',':btn-default']
+    },
+    {
+      title: Em.I18n.t('common.create'),
+      action: "ok",
+      classBindings:[':btn',':btn-success','isValid::disabled']
+    }
+  ],
   actions:{
     confirm:function () {
       this.get('controllers.pigUdfs').send('createUdf',this.get('content'),this.get('filePath'));

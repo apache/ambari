@@ -41,21 +41,6 @@ App.ScriptEditView = Em.View.extend({
       this.set('controller.content.pigScript.fileContent',registered);
     }
   },
-  argumentInput: Ember.TextField.extend({
-    viewName:"argumentInput",
-    actions:{
-      sendArgument:function(){
-        this.get('parentView.controller').send('addArgument',this.get('value'));
-        this.set('value',null);
-      }
-    },
-    classNames:["form-control argadd"],
-    keyPress:function  (event) {
-      if (event.keyCode=="13") {
-        this.send('sendArgument');
-      }
-    }
-  }),
   focusInput:Em.TextField.extend({
     becomeFocused: function () {
       this.$().focus().val(this.$().val());

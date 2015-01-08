@@ -22,7 +22,7 @@ App.PigView = Em.View.extend({
   hideScript:true,
   selectedBinding: 'controller.category',
   navs: [
-    {name:'scripts',url:'pig.scripts',label: Em.I18n.t('scripts.scripts'),icon:'fa-file-code-o'},
+    {name:'scripts',url:'pig',label: Em.I18n.t('scripts.scripts'),icon:'fa-file-code-o'},
     {name:'udfs',url:'pig.udfs',label:Em.I18n.t('udfs.udfs'),icon:'fa-plug'},
     {name:'history',url:'pig.history',label:Em.I18n.t('common.history'),icon:'fa-clock-o'}
   ],
@@ -35,42 +35,33 @@ App.PigView = Em.View.extend({
     Em.run.later(this, function (show) {
       this.$('.nav-script-wrap').toggleClass('in',show);
     },!!this.get('controller.activeScript'),250);
-  }.observes('controller.activeScript'),
+  }.observes('controller.activeScript')
+});
 
-  navItemsView : Ember.CollectionView.extend({
-    tagName: 'div',
-    classNames:['list-group', 'nav-main'],
-    content: function () { 
-      return this.get('parentView.navs')
-    }.property('parentView.navs'),
-    mouseEnter:function  (argument) {
-      this.get('parentView').$('.nav-script-wrap').addClass('reveal');
+App.NavItemsView = Ember.CollectionView.extend({
+  tagName: 'div',
+  classNames:['list-group', 'nav-main'],
+  content: [],
+  mouseEnter:function  (argument) {
+    this.get('parentView').$('.nav-script-wrap').addClass('reveal');
+  },
+  mouseLeave:function  (argument) {
+    this.get('parentView').$('.nav-script-wrap').removeClass('reveal');
+  },
+  itemViewClass: Ember.Component.extend({
+    tagName: 'a',
+    layout: Em.Handlebars.compile(
+      '<i class="fa fa-fw fa-2x {{unbound view.content.icon}}"></i> '+
+      '<span>{{view.content.label}}</span>'
+    ),
+    classNames: ['list-group-item pig-nav-item text-left'],
+    classNameBindings: ['isActive:active'],
+    action: 'gotoSection',
+    click: function() {
+      this.sendAction('action',this.get('content'));
     },
-    mouseLeave:function  (argument) {
-      this.get('parentView').$('.nav-script-wrap').removeClass('reveal');
-    },
-    itemViewClass: Ember.View.extend(Ember.ViewTargetActionSupport,{
-      tagName: 'a',
-      template: Em.Handlebars.compile(
-        '<i class="fa fa-fw fa-2x {{unbound view.content.icon}}"></i> '+
-        '<span>{{view.content.label}}</span>'
-      ),
-      classNames: ['list-group-item pig-nav-item text-left'],
-      classNameBindings: ['isActive:active'],
-      action: 'gotoSection',
-      click: function(e) {
-        if (e.target.type=="button") {
-          return false;
-        }
-        this.triggerAction({
-          actionContext:this.content
-        }); 
-      },
-      isActive: function () {
-        return this.get('content.name') === this.get('parentView.parentView.selected');
-      }.property('content.name', 'parentView.parentView.selected'),
-
-      hideLabel:Em.computed.bool('controller.activeScript')
-    })
+    isActive: function () {
+      return this.get('content.name') === this.get('parentView.parentView.selected');
+    }.property('content.name', 'parentView.parentView.selected')
   })
 });

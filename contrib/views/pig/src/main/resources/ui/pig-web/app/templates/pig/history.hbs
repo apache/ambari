@@ -21,7 +21,7 @@
     <h3 class="pull-left"> {{t 'common.history'}}</h3>
   </div>
   <table class="table table-striped ">
-    <thead> 
+    <thead>
       <tr class="label-row">
         <th class="first">{{t 'common.date'}}</th>
         <th>{{t 'scripts.script'}}</th>
@@ -30,12 +30,12 @@
         <th>{{t 'common.actions'}}</th>
       </tr>
     </thead>
-    <tbody> 
+    <tbody>
     {{#each paginatedContent}}
       <tr>
         <td>{{#link-to 'script.job' this.id }} {{showDate this.dateStarted 'YYYY-MM-DD HH:mm'}} {{/link-to}}</td>
         <td>
-          {{#view 'view.scriptLink' scriptId=this.scriptId allIds=controller.scriptIds}}{{this.title}}{{/view}}
+          {{#view view.scriptLink scriptId=this.scriptId allIds=controller.scriptIds}}{{this.title}}{{/view}}
         </td>
         <td>
           <h4>

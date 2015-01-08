@@ -31,15 +31,15 @@ App.PigRoute = Em.Route.extend({
   },
   actions: {
     gotoSection: function(nav) {
-      var location = (nav.hasOwnProperty('url'))?[nav.url]:['pig.scriptEdit',nav.get('id')];
-      this.transitionTo.apply(this,location);
+      var location = (nav.hasOwnProperty('url'))?nav.url:this.routeName;
+      this.transitionTo(location);
     },
     showAlert:function (alert) {
       var pigAlert = this.controllerFor('pigAlert');
-      return pigAlert.content.pushObject(Em.Object.create(alert));
+      return pigAlert.get('content').pushObject(Em.Object.create(alert));
     },
     openModal: function(modal,content) {
-      this.controllerFor(modal).set('content', content);
+      this.controllerFor(modal).set('model', content);
       return this.render(['modal',modal].join('/'), {
         into: 'pig',
         outlet: 'modal',

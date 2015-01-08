@@ -22,10 +22,6 @@
     <h4 class="modal-title">{{t 'scripts.modal.confirm_delete'}}</h4>
   </div>
   <div class="modal-body">
-  {{t 'udfs.modal.delete_udf' titleBinding="content.name" tagName="p"}}
-  </div>
-  <div class="modal-footer">
-    <button type="button" {{action "cancel" target="view"}} class="btn btn-default" data-dismiss="modal">{{t 'common.cancel'}}</button>
-    <button type="button" {{action "ok" content target="view"}} class="btn btn-danger">{{t 'common.delete'}}</button>
+    <p>{{t 'udfs.modal.delete_udf' titleBinding="content.name"}}</p>
   </div>
 {{/pig-modal}}

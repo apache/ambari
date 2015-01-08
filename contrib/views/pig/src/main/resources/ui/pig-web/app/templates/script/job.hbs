@@ -63,10 +63,10 @@
           {{/if}}
         </h4>
       </div>
-      {{#view "view.collapsePanel" id="scriptResults" class="panel-collapse collapse in" }}
+      {{#view view.collapsePanel id="scriptResults" class="panel-collapse collapse in" }}
         <div class="panel-body">
         {{#if jobResults.isPending}}
-          <pre><div class="spinner-sm"></div></pre>
+          <div class="spinner-sm"></div>
         {{else}}
           {{#if jobResults.isFulfilled }}
           <pre>{{jobResults.content.fileContent}}</pre>
@@ -91,10 +91,10 @@
           {{/if}}
         </h4>
       </div>
-      {{#view "view.collapsePanel" id="scriptLogs" class="panel-collapse collapse"}}
+      {{#view view.collapsePanel id="scriptLogs" class="panel-collapse collapse"}}
         <div class="panel-body">
         {{#if jobLogs.isPending}}
-          <pre><div class="spinner-sm"></div></pre>
+          <div class="spinner-sm"></div>
         {{else}}
           {{#if jobLogs.isFulfilled}}
           <pre>{{jobLogs.content.fileContent}}</pre>
@@ -117,7 +117,7 @@
           </a>
         </h4>
       </div>
-      {{#view "view.collapsePanel" id="scriptDetails" class="panel-collapse collapse" }}
+      {{#view view.collapsePanel id="scriptDetails" class="panel-collapse collapse" }}
         <div {{bind-attr class=":panel-body :body-title :body-title-contents fullscreen:fullscreen "}} >
           {{t 'job.script_contents'}}:
           <div class="fullscreen-toggle pull-right" {{action 'fullscreen'}} data-toggle="tooltip" data-placement="bottom" {{translateAttr title="editor.toggle_fullscreen"}}><i {{bind-attr class=":fa :fa-lg fullscreen:fa-compress:fa-expand"}} ></i></div>

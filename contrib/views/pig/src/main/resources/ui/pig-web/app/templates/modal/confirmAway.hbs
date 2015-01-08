@@ -24,9 +24,4 @@
   <div class="modal-body">
     {{t 'scripts.modal.unsaved_changes_warning'}}
   </div>
-  <div class="modal-footer">
-    <button type="button" {{action "cancel" target="view"}} class="btn btn-default" >{{t 'common.cancel'}}</button>
-    <button type="button" {{action "option" target="view" }} {{bind-attr class=":btn :btn-danger"}}>{{t 'common.discard_changes'}}</button>
-    <button type="button" {{action "ok" target="view"}} {{bind-attr class=":btn :btn-success"}}>{{t 'common.save'}}</button>
-  </div>
 {{/pig-modal}}

@@ -22,10 +22,6 @@
     <h4 class="modal-title">{{t 'scripts.modal.confirm_delete'}}</h4>
   </div>
   <div class="modal-body">
-  {{t 'job.modal.confirm_delete_massage' titleBinding="content.title" tagName="p"}}
-  </div>
-  <div class="modal-footer">
-    <button type="button" {{action "cancel" target="view"}} class="btn btn-default" data-dismiss="modal">{{t 'common.cancel'}}</button>
-    <button type="button" {{action "ok" content target="view"}} class="btn btn-danger">{{t 'common.delete'}}</button>
+    <p>{{t 'job.modal.confirm_delete_massage' titleBinding="content.title"}}</p>
   </div>
 {{/pig-modal}}

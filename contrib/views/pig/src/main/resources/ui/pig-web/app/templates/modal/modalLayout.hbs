@@ -20,6 +20,11 @@
   <div {{bind-attr class=":modal-dialog large:modal-lg small:modal-sm" }}>
     <div class="modal-content">
       {{yield}}
+      <div class="modal-footer">
+        {{#each buttonViews}}
+          {{view this isValidBinding='view.isValid'}}
+        {{/each}}
+      </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->

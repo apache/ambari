@@ -21,6 +21,14 @@
     <meta charset="utf-8">
     <title>Pig</title>
     <link rel="stylesheet" href="static/stylesheets/app.css">
+    <script>
+      ENV = {
+        I18N_COMPILE_WITHOUT_HANDLEBARS: true,
+        FEATURES:{
+          I18N_TRANSLATE_HELPER_SPAN:false
+        }
+      };
+    </script>
     <script src="static/javascripts/vendor.js"></script>
     <script src="static/javascripts/app.js"></script>
     <script>require('initialize');</script>

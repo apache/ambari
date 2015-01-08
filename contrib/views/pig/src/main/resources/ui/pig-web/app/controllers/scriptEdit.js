@@ -39,7 +39,7 @@ App.ScriptEditController = Em.ObjectController.extend({
     if (editorContent) {
       var match_var = editorContent.match(/\%\w+\%/g);
       if (match_var) {
-        var oldParams = controller.pigParams;
+        var oldParams = controller.get('pigParams');
         controller.set('pigParams',[]);
         match_var.forEach(function (param) {
           var suchParams = controller.pigParams.filterProperty('param',param);
@@ -84,15 +84,13 @@ App.ScriptEditController = Em.ObjectController.extend({
         this.set('isRenaming',false);
       }
     },
-    addArgument:function () {
-      var arg = this.get('tmpArgument');
+    addArgument:function (arg) {
+      var settled = this.get('content.argumentsArray');
       if (!arg) {
         return false;
       }
-      var pull = this.get('content.argumentsArray');
-      if (Em.$.inArray(arg,pull)<0) {
-        pull.pushObject(arg);
-        this.set('content.argumentsArray',pull);
+      if (!settled.contains(arg)) {
+        settled.pushObject(arg);
         this.set('tmpArgument','');
       } else {
         this.send('showAlert', {'message': Em.I18n.t('scripts.alert.arg_present'), status:'info'});
@@ -103,19 +101,15 @@ App.ScriptEditController = Em.ObjectController.extend({
       this.set('content.argumentsArray',removed);
     },
     execute: function (script, operation) {
-      var executeMethod = {
-        'execute':this.prepareExecute,
-        'explain':this.prepareExplain,
-        'syntax_check':this.prepareSyntaxCheck
-      };
-
       this.set('isExec',true);
 
       return Ember.RSVP.resolve(script.get('pigScript'))
         .then(function (file) {
           return Ember.RSVP.all([file.save(),script.save()]);
         })
-        .then(executeMethod[operation].bind(this))
+        .then(function (data) {
+          return this.prepareJob(operation,data);
+        }.bind(this))
         .then(this.executeSuccess.bind(this), this.executeError.bind(this))
         .finally(Em.run.bind(this,this.set,'isExec',false));
     },
@@ -136,71 +130,82 @@ App.ScriptEditController = Em.ObjectController.extend({
     this.send('showAlert', {message:Em.I18n.t('job.alert.start_filed'),status:'error',trace:trace});
   },
 
-  prepareExecute:function (data) {
-    var file = data[0], script = data[1], pigParams = this.get('pigParams') || [], fileContent = file.get('fileContent');
+  prepareJob:function (type, data) {
+    var job, promise,
+        exc = 'execute' == type,
+        exp = 'explain' == type,
+        chk = 'syntax_check' == type,
+        file = data[0],
+        script = data[1],
+        pigParams = this.get('pigParams') || [],
+        fileContent = file.get('fileContent'),
+        args = script.get('templetonArguments'),
+        title = script.get('title'),
+        hasParams = pigParams.length > 0;
 
     pigParams.forEach(function (param) {
       var rgParam = new RegExp(param.param,'g');
       fileContent = fileContent.replace(rgParam,param.value);
     });
 
-    var job = this.store.createRecord('job',{
-      scriptId: script.get('id'),
-      templetonArguments: script.get('templetonArguments'),
-      title: script.get('title'),
-      forcedContent: (pigParams.length > 0)? fileContent:null,
-      pigScript: (pigParams.length == 0)?file:null
+    job = this.store.createRecord('job', {
+
+      /**
+       * Link to script.
+       * @type {String}
+       */
+      scriptId:script.get('id'),
+
+      /**
+       * Add '-check' argument for syntax check and remove all for explain.
+       * @type {String}
+       */
+      templetonArguments:(exc)?args:(chk)?(!args.match(/-check/g))?args+(args?"\t":"")+'-check':args:'',
+
+      /**
+       * Modify title for syntax check and operations.
+       * @type {String}
+       */
+      title:(exc)?title:(chk)?'Syntax check: "%@"'.fmt(title):'Explain: "%@"'.fmt(title),
+
+      /**
+       * If the script has parameters, set this value to script with replaced ones.
+       * And if operations is explain, set it to reference to sourceFile.
+       * @type {String}
+       */
+      forcedContent:(exp)?'explain -script ${sourceFile}':(hasParams)?fileContent:null,
+
+      /**
+       * If other, than execute, need to set job type.
+       * @type {String}
+       */
+      jobType:(!exc)?type:null,
+
+      /**
+       * If execute of syntax_check without params, just set App.File instance.
+       * @type {App.File}
+       */
+      pigScript:(!exp && !hasParams)?file:null,
+
+      /**
+       * For explain job type need sourceFile ...
+       * @type {String}
+       */
+      sourceFile:(exp && !hasParams)?file.get('id'):null,
+
+      /**
+       * ... or sourceFileContent if script has parameters.
+       * @type {String}
+       */
+      sourceFileContent:(exp && hasParams)?fileContent:null
     });
 
-    return job.save();
+    promise = job.save();
+
+    Em.run.next(promise, promise.catch, Em.run.bind(job,job.deleteRecord));
+
+    return promise;
   },
-  prepareExplain:function (data) {
-    var file = data[0], script = data[1], pigParams = this.get('pigParams') || [], fileContent = file.get('fileContent');
-
-    pigParams.forEach(function (param) {
-      var rgParam = new RegExp(param.param,'g');
-      fileContent = fileContent.replace(rgParam,param.value);
-    });
-
-    var job = this.store.createRecord('job',{
-      scriptId: script.get('id'),
-      templetonArguments: '',
-      title: 'Explain: "' + script.get('title') + '"',
-      jobType: 'explain',
-      sourceFileContent: (pigParams.length > 0)? fileContent:null,
-      sourceFile: (pigParams.length == 0)?file.get('id'):null,
-      forcedContent: 'explain -script ${sourceFile}'
-    });
-
-    return job.save();
-  },
-  prepareSyntaxCheck:function (data) {
-    var file = data[0], script = data[1], pigParams = this.get('pigParams') || [], fileContent = file.get('fileContent'), args = script.get('templetonArguments');
-
-    pigParams.forEach(function (param) {
-      var rgParam = new RegExp(param.param,'g');
-      fileContent = fileContent.replace(rgParam,param.value);
-    });
-
-    var job = this.store.createRecord('job',{
-      scriptId: script.get('id'),
-      templetonArguments: (!args.match(/-check/g))?args+(args?"\t":"")+'-check':args,
-      title: 'Syntax check: "' + script.get('title') + '"',
-      jobType:  'syntax_check',
-      forcedContent: (pigParams.length > 0)? fileContent:null,
-      pigScript: (pigParams.length == 0)?file:null
-    });
-
-    return job.save();
-  },
-
-  /**
-   * Is script is in error state.
-   * @return {boolean}
-   */
-  scriptError:function () {
-    return this.get('content.isError');
-  }.property('content.isError'),
 
   /**
    * available UDFs

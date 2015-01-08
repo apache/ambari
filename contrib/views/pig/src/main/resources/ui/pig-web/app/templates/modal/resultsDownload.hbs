@@ -26,7 +26,7 @@
   </div>
   <div class="modal-body">
     {{#if jobResultsLoader.isPending}}
-      <pre><div class="spinner-sm"></div></pre>
+      <div class="spinner-sm"></div>
     {{else}}
       {{#if jobResultsLoader.isFulfilled}}
       <pre>{{jobResultsLoader.content.fileContent}}</pre>
@@ -35,8 +35,5 @@
         {{jobResultsLoader.reason}}
       {{/if}}
     {{/if}}
-  </div>
-  <div class="modal-footer">
-    <button type="button" {{action "cancel" target="view"}} class="btn btn-default" data-dismiss="modal">{{t 'common.close'}}</button>
   </div>
 {{/pig-modal}}

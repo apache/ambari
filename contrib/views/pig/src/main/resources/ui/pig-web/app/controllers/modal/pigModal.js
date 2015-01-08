@@ -21,6 +21,27 @@ var App = require('app');
 App.PigModalComponent = Ember.Component.extend({
   didClose:'removeModal',
   size:'',
+  buttons:Em.computed.alias('targetObject.buttons'),
+  isValid:Em.computed.alias('targetObject.isValid'),
+  buttonViews:function () {
+    var data = this.get('buttons') || [];
+    var views = [];
+
+    data.forEach(function (btn) {
+      views.push(Em.Component.extend({
+        tagName:'button',
+        title:btn.title,
+        action:btn.action,
+        click:function () {
+          this.sendAction();
+        },
+        classNameBindings: btn.classBindings,
+        layout:Em.Handlebars.compile('{{view.title}}')
+      }));
+    });
+
+    return views;
+  }.property('buttons'),
   large:function () {
     return this.get('size') =='lg';
   }.property('size'),
