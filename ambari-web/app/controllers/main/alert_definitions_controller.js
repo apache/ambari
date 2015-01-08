@@ -48,7 +48,9 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
    * @type {App.AlertDefinition[]}
    */
   content: function () {
-    return App.AlertDefinition.getAllDefinitions();
+    var definitions = App.AlertDefinition.getAllDefinitions();
+    definitions.sort(App.AlertDefinition.getSortDefinitionsByStatus(true));
+    return definitions;
   }.property('mapperTimestamp'),
 
   /**

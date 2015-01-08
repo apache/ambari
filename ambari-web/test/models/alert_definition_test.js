@@ -167,4 +167,44 @@ describe('App.AlertDefinition', function () {
 
   });
 
+  describe('REOPEN', function () {
+
+    describe('#getSortDefinitionsByStatus', function () {
+
+      Em.A([
+          {
+            a: App.AlertDefinition.createRecord({summary: {OK: {count: 1, maintenanceCount: 0}, WARNING: {count: 1, maintenanceCount: 0}}}),
+            b: App.AlertDefinition.createRecord({summary: {WARNING: {count: 1, maintenanceCount: 0}}}),
+            order: true,
+            e: -1
+          },
+          {
+            a: App.AlertDefinition.createRecord({summary: {OK: {count: 1, maintenanceCount: 0}, WARNING: {count: 2, maintenanceCount: 0}}}),
+            b: App.AlertDefinition.createRecord({summary: {OK: {count: 1, maintenanceCount: 0}, WARNING: {count: 1, maintenanceCount: 0}}}),
+            order: true,
+            e: -1
+          },
+          {
+            a: App.AlertDefinition.createRecord({summary: {OK: {count: 1, maintenanceCount: 0}, WARNING: {count: 1, maintenanceCount: 0}}}),
+            b: App.AlertDefinition.createRecord({summary: {WARNING: {count: 1, maintenanceCount: 0}}}),
+            order: false,
+            e: 1
+          },
+          {
+            a: App.AlertDefinition.createRecord({summary: {OK: {count: 1, maintenanceCount: 0}, WARNING: {count: 2, maintenanceCount: 0}}}),
+            b: App.AlertDefinition.createRecord({summary: {OK: {count: 1, maintenanceCount: 0}, WARNING: {count: 1, maintenanceCount: 0}}}),
+            order: false,
+            e: 1
+          }
+        ]).forEach(function(test, i) {
+          it('test #' + (i + 1), function () {
+            var func = App.AlertDefinition.getSortDefinitionsByStatus(test.order);
+            expect(func(test.a, test.b)).to.equal(test.e);
+          });
+        });
+
+    });
+
+  });
+
 });

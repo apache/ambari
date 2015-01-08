@@ -154,7 +154,7 @@ var wrapperView = Em.View.extend({
           a_p = Em.isNone(a_p) ? -Infinity : parseFloat(a_p);
           b_p = Em.isNone(b_p) ? -Infinity : parseFloat(b_p);
           if (order) {
-            return a_p - b_p;;
+            return a_p - b_p;
           } else {
             return b_p - a_p
           }
@@ -171,26 +171,7 @@ var wrapperView = Em.View.extend({
         };
         break;
       case 'alert_status':
-        func = function (a, b) {
-          var a_summary = a.get('summary'),
-            b_summary = b.get('summary'),
-            st_order = a.get('severityOrder'),
-            ret = 0;
-          for (var i = 0; i < st_order.length; i++) {
-            var a_v = Em.isNone(a_summary[st_order[i]]) ? 0 : a_summary[st_order[i]].count + a_summary[st_order[i]].maintenanceCount,
-              b_v = Em.isNone(b_summary[st_order[i]]) ? 0 : b_summary[st_order[i]].count + b_summary[st_order[i]].maintenanceCount;
-            ret = b_v - a_v;
-            if (ret !== 0) {
-              break;
-            }
-          }
-          if (order) {
-            return -ret;
-          }
-          else {
-            return ret;
-          }
-        };
+        func = App.AlertDefinition.getSortDefinitionsByStatus(order);
         break;
       default:
         func = function (a, b) {

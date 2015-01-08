@@ -130,8 +130,7 @@ App.AlertDefinition = DS.Model.extend({
         hostCnt = 0,
         self = this;
     order.forEach(function (state) {
-      var cnt = summary[state] ? summary[state].count + summary[state].maintenanceCount : 0;
-      hostCnt += cnt;
+      hostCnt += summary[state] ? summary[state].count + summary[state].maintenanceCount : 0;
     });
     if (hostCnt > 1) {
       // multiple hosts
@@ -159,7 +158,7 @@ App.AlertDefinition = DS.Model.extend({
       // none
       return '<span class="alert-state-single-host label alert-state-PENDING">NONE</span>';
     }
-    return null;
+    return '';
   }.property('summary'),
 
   isHostAlertDefinition: function () {
@@ -268,6 +267,11 @@ App.AlertDefinition = DS.Model.extend({
 
 App.AlertDefinition.reopenClass({
 
+  /**
+   * Get all available AlertDefinitions
+   * @returns {Array|string}
+   * @method getAllDefinitions
+   */
   getAllDefinitions: function () {
     return Array.prototype.concat.call(
         Array.prototype, App.PortAlertDefinition.find().toArray(),
@@ -276,6 +280,31 @@ App.AlertDefinition.reopenClass({
         App.AggregateAlertDefinition.find().toArray(),
         App.ScriptAlertDefinition.find().toArray()
     )
+  },
+
+  /**
+   * Return function to sort list of AlertDefinitions by their status
+   * It sorts according to <code>severityOrder</code>
+   * @param {boolean} order true - DESC, false - ASC
+   * @returns {Function}
+   * @method getSortDefinitionsByStatus
+   */
+  getSortDefinitionsByStatus: function (order) {
+    return function (a, b) {
+      var a_summary = a.get('summary'),
+        b_summary = b.get('summary'),
+        st_order = a.get('severityOrder'),
+        ret = 0;
+      for (var i = 0; i < st_order.length; i++) {
+        var a_v = Em.isNone(a_summary[st_order[i]]) ? 0 : a_summary[st_order[i]].count + a_summary[st_order[i]].maintenanceCount,
+          b_v = Em.isNone(b_summary[st_order[i]]) ? 0 : b_summary[st_order[i]].count + b_summary[st_order[i]].maintenanceCount;
+        ret = b_v - a_v;
+        if (ret !== 0) {
+          break;
+        }
+      }
+      return order ? ret : -ret;
+    };
   }
 
 });
