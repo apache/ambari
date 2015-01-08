@@ -41,6 +41,7 @@ with patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_
   from ambari_agent import hostname
   from ambari_agent.Controller import AGENT_AUTO_RESTART_EXIT_CODE
   from ambari_commons import OSCheck
+  from ambari_agent.Hardware import Hardware
   import ambari_commons
 
 @only_for_platform(PLATFORM_LINUX)
@@ -166,6 +167,7 @@ class TestController(unittest.TestCase):
 
 
 
+  @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
   @patch("urllib2.build_opener")
   @patch("urllib2.install_opener")
   @patch.object(Controller, "ActionQueue")
@@ -204,6 +206,7 @@ class TestController(unittest.TestCase):
     self.assertTrue(aq.start.called)
 
 
+  @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
   @patch("urllib2.build_opener")
   @patch("urllib2.install_opener")
   @patch.object(ActionQueue.ActionQueue, "run")

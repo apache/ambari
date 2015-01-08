@@ -19,7 +19,7 @@ limitations under the License.
 '''
 
 from unittest import TestCase
-from mock.mock import patch
+from mock.mock import patch, MagicMock
 import unittest
 import platform
 from only_for_platform import only_for_platform, PLATFORM_LINUX
@@ -33,6 +33,7 @@ with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
 @only_for_platform(PLATFORM_LINUX)
 @patch.object(platform,"linux_distribution", new = ('Suse','11','Final'))
 class TestHardware(TestCase):
+  @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
   def test_build(self, get_os_version_mock, get_os_type_mock):

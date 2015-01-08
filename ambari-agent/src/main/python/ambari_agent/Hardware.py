@@ -78,11 +78,18 @@ class Hardware:
     lines = dfdata.splitlines()
     for l in lines:
       mountinfo = Hardware.extractMountInfo(l)
-      if mountinfo != None and os.access(mountinfo['mountpoint'], os.W_OK):
+      if mountinfo != None and Hardware._chk_mount(mountinfo['mountpoint']):
         mounts.append(mountinfo)
       pass
     pass
     return mounts
+
+  @staticmethod
+  def _chk_mount(mountpoint):
+    if subprocess.call("sudo test -w '{0}'".format(mountpoint), shell=True) == 0:
+      return True
+    else:
+      return False
 
   @staticmethod
   def _osdisks_win():
