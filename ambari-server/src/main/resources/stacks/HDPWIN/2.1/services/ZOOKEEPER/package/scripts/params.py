@@ -18,6 +18,7 @@ limitations under the License.
 Ambari Agent
 
 """
+from ambari_commons.str_utils import ensure_double_backslashes
 
 from resource_management import *
 
@@ -30,14 +31,16 @@ hdp_root = os.environ["HADOOP_NODE_INSTALL_ROOT"]
 zk_user = "hadoop"
 
 # notused zk_log_dir = config['configurations']['zookeeper-env']['zk_log_dir']
-zk_data_dir = config['configurations']['zoo.cfg']['dataDir']
+zk_data_dir = ensure_double_backslashes(config['configurations']['zoo.cfg']['dataDir'])
 tickTime = config['configurations']['zoo.cfg']['tickTime']
 initLimit = config['configurations']['zoo.cfg']['initLimit']
 syncLimit = config['configurations']['zoo.cfg']['syncLimit']
 clientPort = config['configurations']['zoo.cfg']['clientPort']
 
 if 'zoo.cfg' in config['configurations']:
-  zoo_cfg_properties_map = config['configurations']['zoo.cfg']
+  zoo_cfg_properties_map = config['configurations']['zoo.cfg'].copy()
+  # Fix the data dir - ZK won't start unless the backslashes are doubled
+  zoo_cfg_properties_map['dataDir'] = zk_data_dir
 else:
   zoo_cfg_properties_map = {}
 zoo_cfg_properties_map_length = len(zoo_cfg_properties_map)

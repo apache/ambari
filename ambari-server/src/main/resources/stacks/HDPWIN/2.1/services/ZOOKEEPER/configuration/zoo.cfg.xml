@@ -23,7 +23,7 @@
 <configuration>
   <property>
     <name>dataDir</name>
-    <value>c:\hadoop\zookeeper</value>
+    <value>c:\\\\hadoop\\\\zookeeper</value>
     <description>Data directory for ZooKeeper.</description>
   </property>
 </configuration>

@@ -169,7 +169,7 @@ def install_windows_msi(msi_url, save_dir, save_file, hadoop_password, stack_ver
     hdp_stack_version = format_hdp_stack_version(stack_version)
     hdp_22_specific_props = ''
     if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
-      hdp_22_specific_props = hdp_22
+      hdp_22_specific_props = hdp_22.format(hdp_data_dir=hdp_data_dir)
 
     # install msi
     download_file(msi_url, os.path.join(msi_save_dir, save_file))
