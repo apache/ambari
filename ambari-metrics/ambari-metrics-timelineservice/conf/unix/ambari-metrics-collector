@@ -31,7 +31,7 @@ HBASE_CONF_DIR=/etc/ams-hbase/conf
 
 METRIC_COLLECTOR=ambari-metrics-collector
 
-AMS_LOG_DIR=/var/log/ambari-metrics-collector
+AMS_LOG_DIR=/var/log/ambari-metric-collector
 
 STOP_TIMEOUT=5
 
