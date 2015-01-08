@@ -292,6 +292,21 @@ public class KerberosDescriptorTest {
       {
         put("", new HashMap<String, String>() {{
           put("global_variable", "Hello World");
+          put("variable-name", "dash");
+          put("variable_name", "underscore");
+          put("variable.name", "dot");
+        }});
+
+        put("config_type", new HashMap<String, String>() {{
+          put("variable-name", "config_type_dash");
+          put("variable_name", "config_type_underscore");
+          put("variable.name", "config_type_dot");
+        }});
+
+        put("config.type", new HashMap<String, String>() {{
+          put("variable-name", "config.type_dash");
+          put("variable_name", "config.type_underscore");
+          put("variable.name", "config.type_dot");
         }});
 
         put("config-type", new HashMap<String, String>() {{
@@ -329,9 +344,37 @@ public class KerberosDescriptorTest {
     Assert.assertEquals("Replacement1_reference",
         KerberosDescriptor.replaceVariables("${config-type/variable.name}_reference", configurations));
 
+    Assert.assertEquals("dash",
+        KerberosDescriptor.replaceVariables("${variable-name}", configurations));
+
+    Assert.assertEquals("underscore",
+        KerberosDescriptor.replaceVariables("${variable_name}", configurations));
+
+    Assert.assertEquals("config_type_dot",
+        KerberosDescriptor.replaceVariables("${config_type/variable.name}", configurations));
+
+    Assert.assertEquals("config_type_dash",
+        KerberosDescriptor.replaceVariables("${config_type/variable-name}", configurations));
+
+    Assert.assertEquals("config_type_underscore",
+        KerberosDescriptor.replaceVariables("${config_type/variable_name}", configurations));
+
+    Assert.assertEquals("config.type_dot",
+        KerberosDescriptor.replaceVariables("${config.type/variable.name}", configurations));
+
+    Assert.assertEquals("config.type_dash",
+        KerberosDescriptor.replaceVariables("${config.type/variable-name}", configurations));
+
+    Assert.assertEquals("config.type_underscore",
+        KerberosDescriptor.replaceVariables("${config.type/variable_name}", configurations));
+
+    Assert.assertEquals("dot",
+        KerberosDescriptor.replaceVariables("${variable.name}", configurations));
+
     // Replacement yields an empty string
     Assert.assertEquals("",
         KerberosDescriptor.replaceVariables("${config-type/variable.name2}", configurations));
+
 
     // This might cause an infinite loop... we assume protection is in place...
     try {
@@ -341,6 +384,26 @@ public class KerberosDescriptorTest {
     } catch (AmbariException e) {
       // This is expected...
     }
+  }
 
+  @Test
+  public void testReplaceComplicatedVariables() throws AmbariException {
+    Map<String, Map<String, String>> configurations = new HashMap<String, Map<String, String>>() {
+      {
+        put("", new HashMap<String, String>() {{
+          put("host", "c6401.ambari.apache.org");
+          put("realm", "EXAMPLE.COM");
+        }});
+      }
+    };
+
+    Assert.assertEquals("hive.metastore.local=false,hive.metastore.uris=thrift://c6401.ambari.apache.org:9083,hive.metastore.sasl.enabled=true,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse,hive.exec.mode.local.auto=false,hive.metastore.kerberos.principal=hive/_HOST@EXAMPLE.COM",
+        KerberosDescriptor.replaceVariables("hive.metastore.local=false,hive.metastore.uris=thrift://${host}:9083,hive.metastore.sasl.enabled=true,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse,hive.exec.mode.local.auto=false,hive.metastore.kerberos.principal=hive/_HOST@${realm}", configurations));
+
+    Assert.assertEquals("Hello my realm is {EXAMPLE.COM}",
+        KerberosDescriptor.replaceVariables("Hello my realm is {${realm}}", configurations));
+
+    Assert.assertEquals("$c6401.ambari.apache.org",
+        KerberosDescriptor.replaceVariables("$${host}", configurations));
   }
 }

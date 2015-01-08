@@ -44,7 +44,7 @@ public abstract class AbstractKerberosDescriptor {
   /**
    * a regular expression Pattern used to find "variable" placeholders in strings
    */
-  private static final Pattern PATTERN_VARIABLE = Pattern.compile("\\$\\{(?:(.+?)/)?(.+?)\\}");
+  private static final Pattern PATTERN_VARIABLE = Pattern.compile("\\$\\{(?:([\\w\\-\\.]+)/)?([\\w\\-\\.]+)\\}");
 
   /**
    * An AbstractKerberosDescriptor serving as the parent (or container) for this
