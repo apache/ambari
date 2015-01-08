@@ -84,6 +84,27 @@ public class ClusterStackVersionService extends BaseService {
     return handleRequest(headers, null, ui, Request.Type.GET, createResource(stackVersionId));
   }
 
+
+  /**
+   * Gets the cluster stack versions service.
+   *
+   * @param request
+   *          the request
+   * @param stackVersion
+   *          the stack name
+   *
+   * @return the repository stack version service
+   */
+  @Path("{stackVersionId}/repository_versions")
+  public RepositoryVersionService getRepositoryVersionService(@Context javax.ws.rs.core.Request request,
+                                                                  @PathParam("stackVersionId") String stackVersion) {
+    final Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.put(Resource.Type.Cluster, clusterName);
+    mapIds.put(Resource.Type.ClusterStackVersion, stackVersion);
+    return new RepositoryVersionService(mapIds);
+  }
+
+
   /**
    * Handles: POST /{clustername}/stack_versions requests
    * Distribute repositories/install packages.

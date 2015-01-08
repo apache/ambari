@@ -18,10 +18,13 @@
 
 package org.apache.ambari.server.api.services;
 
+import junit.framework.TestCase;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.apache.ambari.server.controller.spi.Resource.Type;
+import org.easymock.EasyMock;
+import org.junit.Test;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
@@ -56,6 +59,14 @@ public class ClusterStackVersionServiceTest extends BaseServiceTest {
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, clusterStackVersionService, m, args, null));
 
     return listInvocations;
+  }
+
+  @Test
+  public void testGetRepositoryVersionService() {
+    ClusterStackVersionService clusterStackVersionService = new TestClusterStackVersionService("cluster");
+    RepositoryVersionService rvs =
+            clusterStackVersionService.getRepositoryVersionService(EasyMock.createMock(javax.ws.rs.core.Request.class), "1");
+    TestCase.assertNotNull(rvs);
   }
 
   private class TestClusterStackVersionService extends ClusterStackVersionService {
