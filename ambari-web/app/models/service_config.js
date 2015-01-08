@@ -472,11 +472,6 @@ App.ServiceConfigProperty = Em.Object.extend({
       case 'hadoop_host':
         this.set('value', masterComponentHostsInDB.filterProperty('component', 'NAMENODE').mapProperty('hostName'));
         break;
-      case 'sink_existing_mssql_server_host':
-      case 'sink_existing_mssql_server_2_host':
-        var nameNodeHost = masterComponentHostsInDB.findProperty('component', 'NAMENODE').hostName;
-        this.set('value', nameNodeHost).set('defaultValue', nameNodeHost);
-        break;
       case 'hive_existing_mysql_host':
       case 'hive_existing_postgresql_host':
       case 'hive_existing_oracle_host':

@@ -102,10 +102,6 @@ describe('App.ServiceConfigRadioButtons', function () {
             value: 'db0'
           },
           {
-            name: 'sink.db.schema.name',
-            value: 'db1'
-          },
-          {
             name: 'oozie.db.schema.name',
             value: 'db2'
           }
@@ -115,10 +111,6 @@ describe('App.ServiceConfigRadioButtons', function () {
         {
           serviceName: 'HIVE',
           value: 'db0'
-        },
-        {
-          serviceName: 'HDFS',
-          value: 'db1'
         },
         {
           serviceName: 'OOZIE',
@@ -174,18 +166,6 @@ describe('App.ServiceConfigRadioButtons', function () {
           {
             name: 'hive_hostname',
             value: 'h6'
-          },
-          {
-            name: 'sink_existing_mssql_server_host',
-            value: 'h7'
-          },
-          {
-            name: 'sink_existing_mssql_server_2_host',
-            value: 'h8'
-          },
-          {
-            name: 'sink.dbservername',
-            value: 'h9'
           },
           {
             name: 'oozie_ambari_host',
@@ -252,21 +232,6 @@ describe('App.ServiceConfigRadioButtons', function () {
           serviceName: 'HIVE',
           value: 'default case',
           expected: 'h6'
-        },
-        {
-          serviceName: 'HDFS',
-          value: 'Existing MSSQL Server database with integrated authentication',
-          expected: 'h7'
-        },
-        {
-          serviceName: 'HDFS',
-          value: 'Existing MSSQL Server database with sql auth',
-          expected: 'h8'
-        },
-        {
-          serviceName: 'HDFS',
-          value: 'default case',
-          expected: 'h9'
         },
         {
           serviceName: 'OOZIE',
@@ -346,12 +311,6 @@ describe('App.ServiceConfigRadioButtons', function () {
           }),
           Em.Object.create({
             name: 'oozie.service.JPAService.jdbc.password'
-          }),
-          Em.Object.create({
-            name: 'sink.dblogin'
-          }),
-          Em.Object.create({
-            name: 'sink.dbpassword'
           })
         ],
         parentView: Em.Object.create({
@@ -478,30 +437,11 @@ describe('App.ServiceConfigRadioButtons', function () {
           connectionUrlValue: 'jdbc:sqlserver://h11;databaseName=db11;integratedSecurity=true',
           dbClassValue: 'com.microsoft.sqlserver.jdbc.SQLServerDriver',
           isAuthVisibleAndRequired: false
-        },
-        {
-          serviceName: 'HDFS',
-          serviceConfigValue: 'Existing MSSQL Server database with sql auth',
-          databaseName: 'db12',
-          hostName: 'h12',
-          connectionUrlValue: 'jdbc:sqlserver://h12;databaseName=db12',
-          dbClassValue: 'com.microsoft.sqlserver.jdbc.SQLServerDriver',
-          isAuthVisibleAndRequired: true
-        },
-        {
-          serviceName: 'HDFS',
-          serviceConfigValue: 'Existing MSSQL Server database with integrated authentication',
-          databaseName: 'db13',
-          hostName: 'h13',
-          connectionUrlValue: 'jdbc:sqlserver://h13;databaseName=db13;integratedSecurity=true',
-          dbClassValue: 'com.microsoft.sqlserver.jdbc.SQLServerDriver',
-          isAuthVisibleAndRequired: false
         }
       ],
       serviceAuthPropsMap = {
         HIVE: ['javax.jdo.option.ConnectionUserName', 'javax.jdo.option.ConnectionPassword'],
-        OOZIE: ['oozie.service.JPAService.jdbc.username', 'oozie.service.JPAService.jdbc.password'],
-        HDFS: ['sink.dblogin', 'sink.dbpassword']
+        OOZIE: ['oozie.service.JPAService.jdbc.username', 'oozie.service.JPAService.jdbc.password']
       };
 
     before(function () {
@@ -624,10 +564,6 @@ describe('App.CheckDBConnectionView', function () {
           value: 'h0'
         },
         {
-          serviceName: 'HDFS',
-          value: 'h1'
-        },
-        {
           serviceName: 'HIVE',
           value: 'h2'
         }
@@ -636,10 +572,6 @@ describe('App.CheckDBConnectionView', function () {
         Em.Object.create({
           name: 'oozieserver_host',
           value: 'h0'
-        }),
-        Em.Object.create({
-          name: 'hadoop_host',
-          value: 'h1'
         }),
         Em.Object.create({
           name: 'hive_ambari_host',

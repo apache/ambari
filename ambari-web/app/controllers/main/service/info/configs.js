@@ -846,46 +846,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   },
 
   checkDatabaseProperties: function (serviceConfig) {
-    this.hideSinkDatabaseProperties(serviceConfig.configs);
     this.hideHiveDatabaseProperties(serviceConfig.configs);
     this.hideOozieDatabaseProperties(serviceConfig.configs);
-  },
-
-  hideSinkDatabaseProperties: function (configs) {
-    if (!['HDFS'].contains(this.get('content.serviceName'))) return;
-    var property = configs.findProperty('name', 'sink.dbservername');
-    if (property) property.set('isVisible', false);
-    var hadoop_user_property = configs.findProperty('name', 'hadoop.user.name');
-    if(hadoop_user_property)
-    {
-      hadoop_user_property.setProperties({
-        isVisible: false,
-        isRequired: false
-      });
-    }
-
-    var hadoop_password_property = configs.findProperty('name', 'hadoop.user.password');
-    if(hadoop_password_property)
-    {
-      hadoop_password_property.setProperties({
-        isVisible: false,
-        isRequired: false
-      });
-    }
-
-    if (configs.someProperty('name', 'sink_database')) {
-      var sinkDb = configs.findProperty('name', 'sink_database');
-      if (sinkDb.value === 'Existing MSSQL Server database with integrated authentication') {
-        configs.findProperty('name', 'sink.dblogin').setProperties({
-          isVisible: false,
-          isRequired: false
-        });
-        configs.findProperty('name', 'sink.dbpassword').setProperties({
-          isVisible: false,
-          isRequired: false
-        });
-      }
-    }
   },
 
   hideHiveDatabaseProperties: function (configs) {
@@ -1547,37 +1509,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     this.onDoPUTClusterConfigurations();
   },
 
-/**
-   * set sink hostnames in configs
-   * @param configs
-   */
-  setSinkHostName: function (configs) {
-    var dbHostPropertyName = null;
-    if (configs.someProperty('name', 'sink_database')) {
-      var sinkDb = configs.findProperty('name', 'sink_database');
-      if (sinkDb.value === 'Existing MSSQL Server database with integrated authentication') {
-        var existingMSSQLServerHost = configs.findProperty('name', 'sink_existing_mssql_server_host');
-        if (existingMSSQLServerHost) {
-           dbHostPropertyName = 'sink_existing_mssql_server_host';
-        }
-        configs = configs.without(configs.findProperty('name', 'sink_existing_mssql_server_2_database'));
-        configs = configs.without(configs.findProperty('name', 'sink_existing_mssql_server_2_host'));
-      } else if (sinkDb.value === 'Existing MSSQL Server database with sql auth') {
-        var existingMSSQL2ServerHost = configs.findProperty('name', 'sink_existing_mssql_server_2_host');
-        if (existingMSSQL2ServerHost) {
-           dbHostPropertyName = 'sink_existing_mssql_server_2_host';
-        }
-        configs = configs.without(configs.findProperty('name', 'sink_existing_mssql_server_database'));
-        configs = configs.without(configs.findProperty('name', 'sink_existing_mssql_server_host'));
-      }
-    }
-    if (dbHostPropertyName) {
-      var sinkHostNameProperty = App.ServiceConfigProperty.create(App.config.get('preDefinedSiteProperties').findProperty('name', 'sink.dbservername'));
-      sinkHostNameProperty.set('value', configs.findProperty('name', dbHostPropertyName).get('value'));
-      configs.pushObject(sinkHostNameProperty);
-    }
-  },
-
   /**
    * set hive hostnames in configs
    * @param configs
@@ -1816,7 +1747,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     //storedConfigs contains custom configs as well
     this.setHiveHostName(configs);
     this.setOozieHostName(configs);
-    this.setSinkHostName(configs);
     this.formatConfigValues(configs);
     var mappedConfigs = App.config.excludeUnsupportedConfigs(this.get('configMapping').all(), App.Service.find().mapProperty('serviceName'));
     var allUiConfigs = this.loadUiSideConfigs(mappedConfigs);
@@ -2371,14 +2301,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       var oozieDb = configs.findProperty('name', 'oozie_database').value;
       if (['Existing MySQL Database', 'Existing Oracle Database', 'Existing PostgreSQL Database', 'Existing MSSQL Server database with integrated authentication', 'Existing MSSQL Server database with sql auth'].contains(oozieDb)) {
         configs.findProperty('name', 'oozie_hostname').isVisible = true;
-      }
-    }
-    if(App.get('isHadoopWindowsStack')) {
-      if (serviceName === 'HDFS') {
-        var sinkDB = configs.findProperty('name', 'sink_database').value;
-        if (['Existing MSSQL Server database with integrated authentication', 'Existing MSSQL Server database with sql auth'].contains(sinkDB)) {
-          configs.findProperty('name', 'sink.dbservername').isVisible = true;
-        }
       }
     }
   },

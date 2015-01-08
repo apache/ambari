@@ -221,38 +221,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   },
 
   /**
-   * Remove unused Sink configs
-   * @param {Ember.Enumerable} configs
-   * @returns {Ember.Enumerable}
-   * @method removeSinkConfigs
-   */
-  removeSinkConfigs: function (configs) {
-    var sinkDb = configs.findProperty('name', 'sink_database');
-    var sinkDbType = configs.findProperty('name', 'sink_database_type');
-    if (sinkDbType) {
-      var sink_properties = Em.A([]);
-
-      switch (sinkDb.value) {
-        case 'Existing MSSQL Server database with integrated authentication':
-          configs.findProperty('name', 'sink.dbservername').value = configs.findProperty('name', 'sink_existing_mssql_server_host').value;
-          sinkDbType.value = 'mssql';
-          sink_properties = Em.A(['sink_existing_mssql_server_2_database', 'sink_existing_mssql_server_2_host']);
-          break;
-        case 'Existing MSSQL Server database with sql auth':
-          configs.findProperty('name', 'sink.dbservername').value = configs.findProperty('name', 'sink_existing_mssql_server_2_host').value;
-          sinkDbType.value = 'mssql';
-          sink_properties = Em.A(['sink_existing_mssql_server_database', 'sink_existing_mssql_server_host']);
-          break;
-      }
-
-      sink_properties.forEach(function (property) {
-        configs = configs.without(configs.findProperty('name', property));
-      });
-    }
-    return configs;
-  },
-
-  /**
    * Remove unused Hive configs
    * @param {Ember.Enumerable} configs
    * @returns {Ember.Enumerable}
@@ -372,9 +340,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     var configs = this.get('content.serviceConfigProperties');
     if (configs.someProperty('name', 'hive_database')) {
       configs = this.removeHiveConfigs(configs);
-    }
-    if (configs.someProperty('name', 'sink_database')) {
-      configs = this.removeSinkConfigs(configs);
     }
     if (configs.someProperty('name', 'oozie_database')) {
       configs = this.removeOozieConfigs(configs);
@@ -743,25 +708,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     return stringUtils.pluralize(hostsCount,
       masterComponents.findProperty('component', componentName).hostName,
         hostsCount + ' ' + Em.I18n.t('installer.step8.hosts'));
-  },
-
-/**
-   * Set displayed MetricsSink DB value based on DB type
-   * @method loadSinkDbValue
-   */
-  loadSinkDbValue: function () {
-    var db, serviceConfigProperties = this.get('wizardController').getDBProperty('serviceConfigProperties'),
-    sinkDb = serviceConfigProperties.findProperty('name', 'sink_database');
-    if (sinkDb.value === 'Existing MSSQL Server database with integrated authentication') {
-      db = serviceConfigProperties.findProperty('name', 'sink_existing_mssql_server_database');
-      return db.value + ' (' + sinkDb.value + ')';
-    }
-    else {
-      if (sinkDb.value === 'Existing MSSQL Server database with sql auth') {
-        db = serviceConfigProperties.findProperty('name', 'sink_existing_mssql_server_2_database');
-        return db.value + ' (' + sinkDb.value + ')';
-      }
-    }
   },
 
   /**

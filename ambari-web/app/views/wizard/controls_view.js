@@ -339,26 +339,6 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
             isVisible: isNotExistingMySQLServer,
             isRequired: isNotExistingMySQLServer
           });
-        } else if (this.get('serviceConfig.serviceName') === 'HDFS') {
-          switch (this.get('serviceConfig.value')) {
-            case 'Existing MSSQL Server database with integrated authentication':
-              connectionUrl.set('value', "jdbc:sqlserver://" + this.get('hostName') + ";databaseName=" + this.get('databaseName') + ";integratedSecurity=true");
-              dbClass.set('value', "com.microsoft.sqlserver.jdbc.SQLServerDriver");
-              break;
-            case 'Existing MSSQL Server database with sql auth':
-              connectionUrl.set('value', "jdbc:sqlserver://" + this.get('hostName') + ";databaseName=" + this.get('databaseName'));
-              dbClass.set('value', "com.microsoft.sqlserver.jdbc.SQLServerDriver");
-              break;
-          }
-          var isNotExistingMySQLServer = this.get('serviceConfig.value') !== 'Existing MSSQL Server database with integrated authentication';
-          this.get('categoryConfigsAll').findProperty('name', 'sink.dblogin').setProperties({
-            isVisible: isNotExistingMySQLServer,
-            isRequired: isNotExistingMySQLServer
-          });
-          this.get('categoryConfigsAll').findProperty('name', 'sink.dbpassword').setProperties({
-            isVisible: isNotExistingMySQLServer,
-            isRequired: isNotExistingMySQLServer
-          });
         }
         connectionUrl.set('defaultValue', connectionUrl.get('value'));
       }
@@ -371,8 +351,6 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
     switch (this.get('serviceConfig.serviceName')) {
       case 'HIVE':
         return this.get('categoryConfigsAll').findProperty('name', 'ambari.hive.db.schema.name');
-      case 'HDFS':
-        return this.get('categoryConfigsAll').findProperty('name', 'sink.db.schema.name');
       case 'OOZIE':
         return this.get('categoryConfigsAll').findProperty('name', 'oozie.db.schema.name');
       default:
@@ -414,20 +392,6 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
       } else {
         returnValue = this.get('categoryConfigsAll').findProperty('name', 'hive_hostname');
       }
-    } else if (this.get('serviceConfig.serviceName') === 'HDFS') {
-      switch (value) {
-        case 'Existing MSSQL Server database with integrated authentication':
-          hostname = this.get('categoryConfigsAll').findProperty('name', 'sink_existing_mssql_server_host');
-          break;
-        case 'Existing MSSQL Server database with sql auth':
-          hostname = this.get('categoryConfigsAll').findProperty('name', 'sink_existing_mssql_server_2_host');
-          break;
-      }
-      if (hostname) {
-        returnValue = hostname;
-      } else {
-        returnValue = this.get('categoryConfigsAll').findProperty('name', 'sink.dbservername');
-      }
     } else if (this.get('serviceConfig.serviceName') === 'OOZIE') {
       switch (value) {
         case 'New Derby Database':
@@ -465,8 +429,6 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
   connectionUrl: function () {
     if (this.get('serviceConfig.serviceName') === 'HIVE') {
       return this.get('categoryConfigsAll').findProperty('name', 'javax.jdo.option.ConnectionURL');
-    } else if (this.get('serviceConfig.serviceName') === 'HDFS') {
-      return this.get('categoryConfigsAll').findProperty('name', 'sink.jdbc.url');
     } else {
       return this.get('categoryConfigsAll').findProperty('name', 'oozie.service.JPAService.jdbc.url');
     }
@@ -475,8 +437,6 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
   dbClass: function () {
     if (this.get('serviceConfig.serviceName') === 'HIVE') {
       return this.get('categoryConfigsAll').findProperty('name', 'javax.jdo.option.ConnectionDriverName');
-    } else if (this.get('serviceConfig.serviceName') === 'HDFS') {
-      return this.get('categoryConfigsAll').findProperty('name', 'sink.jdbc.driver');
     } else {
       return this.get('categoryConfigsAll').findProperty('name', 'oozie.service.JPAService.jdbc.driver');
     }
@@ -491,7 +451,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
    * @method handleDBConnectionProperty
    **/
   handleDBConnectionProperty: function() {
-    var handledProperties = ['oozie_database', 'hive_database', 'sink_database'];
+    var handledProperties = ['oozie_database', 'hive_database'];
     var currentValue = this.get('serviceConfig.value');
     var databases = /MySQL|PostgreSQL|Oracle|Derby|MSSQL/gi;
     var currentDB = currentValue.match(databases)[0];
@@ -510,7 +470,6 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
     // warning msg under database type radio buttons, to warn the user to setup jdbc driver if existed db selected
     var propertyHive = this.get('categoryConfigsAll').findProperty('displayName', 'Hive Database');
     var propertyOozie = this.get('categoryConfigsAll').findProperty('displayName', 'Oozie Database');
-    var propertyMetricsSink = this.get('categoryConfigsAll').findProperty('displayName', 'Metrics Sink Database');
     var propertyAppendTo2 = propertyHive ? propertyHive : propertyOozie;
     if (currentDB && existingDatabase) {
       if (handledProperties.contains(this.get('serviceConfig.name'))) {
@@ -960,8 +919,6 @@ App.CheckDBConnectionView = Ember.View.extend({
   hostNameProperty: function() {
     if (!/wizard/i.test(this.get('controller.name')) && this.get('parentView.service.serviceName') === 'HIVE') {
       return this.get('parentView.service.serviceName').toLowerCase() + '_hostname';
-    } else if (!/wizard/i.test(this.get('controller.name')) && this.get('parentView.service.serviceName') === 'HDFS') {
-      return  'sink.dbservername';
     }
     return '{0}_existing_{1}_host'.format(this.get('parentView.service.serviceName').toLowerCase(), this.get('databaseName').toLowerCase());
   }.property('databaseName'),
@@ -972,7 +929,6 @@ App.CheckDBConnectionView = Ember.View.extend({
   /** @property {object} requiredProperties - properties that necessary for database connection **/
   requiredProperties: function() {
     var propertiesMap = {
-      HDFS: ['sink.db.schema.name','sink.dblogin','sink.dbpassword','sink.jdbc.driver','sink.jdbc.url'],
       OOZIE: ['oozie.db.schema.name','oozie.service.JPAService.jdbc.username','oozie.service.JPAService.jdbc.password','oozie.service.JPAService.jdbc.driver','oozie.service.JPAService.jdbc.url'],
       HIVE: ['ambari.hive.db.schema.name','javax.jdo.option.ConnectionUserName','javax.jdo.option.ConnectionPassword','javax.jdo.option.ConnectionDriverName','javax.jdo.option.ConnectionURL']
     };

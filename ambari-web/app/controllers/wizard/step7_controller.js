@@ -729,17 +729,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
       }
     }
 
-    if (!App.get('isHadoopWindowsStack')) {
-      var hdfsService =  serviceConfigs.findProperty('serviceName', 'HDFS');
-      if (hdfsService) {
-        c = hdfsService.configs;
-        c.filterProperty('category', 'MetricsSink').map(function (config) {
-          c = c.without(config);
-        });
-        serviceConfigs.findProperty('serviceName', 'HDFS').configs = c;
-      }
-    }
-
     this.set('stepConfigs', serviceConfigs);
   },
 
@@ -897,25 +886,23 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
   },
 
   /**
-   * Check if Oozie, Hive or MetricsSink use existing database then need
+   * Check if Oozie or Hive use existing database then need
    * to restore missed properties
    *
    * @param {Object[]} configs
    **/
   setServiceDatabaseConfigs: function (configs) {
     var serviceNames = this.get('installedServiceNames').filter(function (serviceName) {
-      return ['OOZIE', 'HIVE', 'HDFS'].contains(serviceName);
+      return ['OOZIE', 'HIVE'].contains(serviceName);
     });
     serviceNames.forEach(function (serviceName) {
       var propertyPrefix = serviceName.toLowerCase();
-      if (/HDFS/gi.test(serviceName)) propertyPrefix = 'sink';
       var dbTypeConfig = configs.findProperty('name', propertyPrefix + '_database');
       if (!/existing/gi.test(dbTypeConfig.value)) return;
       var dbHostName = propertyPrefix + '_hostname';
       var database = dbTypeConfig.value.match(/MySQL|PostgreSQL|Oracle|Derby|MSSQL/gi)[0];
       var dbPrefix = database.toLowerCase();
       if (database.toLowerCase() == 'mssql') {
-        dbHostName = 'sink.dbservername';
         if (/integrated/gi.test(dbTypeConfig.value)) {
           dbPrefix = 'mssql_server';
         } else {

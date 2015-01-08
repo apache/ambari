@@ -937,11 +937,8 @@ describe('App.InstallerStep7Controller', function () {
         Em.Object.create({
           serviceName: 'HDFS',
           configs: [
-            {category: 'MetricsSink'},
-            {category: 'MetricsSink'},
             {category: 'NameNode'},
-            {category: 'NameNode'},
-            {category: 'MetricsSink'}
+            {category: 'NameNode'}
           ]
         }),
         Em.Object.create({serviceName: 's2'})]
@@ -969,11 +966,8 @@ describe('App.InstallerStep7Controller', function () {
         Em.Object.create({
           serviceName: 'HDFS',
           configs: [
-            {category: 'MetricsSink'},
-            {category: 'MetricsSink'},
             {category: 'NameNode'},
-            {category: 'NameNode'},
-            {category: 'MetricsSink'}
+            {category: 'NameNode'}
           ]
         }),
         Em.Object.create({serviceName: 's2'})]
@@ -985,7 +979,7 @@ describe('App.InstallerStep7Controller', function () {
       });
       installerStep7Controller.setStepConfigs([], []);
 
-      expect(installerStep7Controller.get('stepConfigs').findProperty('serviceName', 'HDFS').get('configs').length).to.equal(5);
+      expect(installerStep7Controller.get('stepConfigs').findProperty('serviceName', 'HDFS').get('configs').length).to.equal(2);
 
       s.restore();
 
