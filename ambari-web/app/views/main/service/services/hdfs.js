@@ -54,7 +54,10 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
         var nnZkfc = [];
         namenodes.forEach( function(namenode) {
           nnZkfc.push(namenode);
-          nnZkfc.push(zkfcs.findProperty('host.publicHostName', namenode.get('host.publicHostName')).set('isZkfc', true));
+          var zkfc = zkfcs.findProperty('host.publicHostName', namenode.get('host.publicHostName'));
+          if (zkfc) {
+            nnZkfc.push(zkfc.set('isZkfc', true));
+          }
         });
         return nnZkfc;
       } else {
@@ -62,7 +65,7 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
           return comp.get('isMaster') && comp.get('componentName') !== 'JOURNALNODE';
         });
       }
-    }.property('parentView.service.hostComponents')
+    }.property('parentView.service.hostComponents.length')
   }),
 
   dataNodesLive: function () {
