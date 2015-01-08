@@ -329,12 +329,12 @@ def configure_os_settings():
   except (KeyError):
     print_error_msg("os_type is not set in the properties file. Setting it now.")
 
-  if OSCheck.is_windows_family():
-    master_os_type = OS_TYPE + OS_VERSION
-  else:
-    # MacOS not supported
-    master_os_type = OS_FAMILY + OS_VERSION
+  # to check server/agent compatibility
+  master_os_family = OS_FAMILY + OS_VERSION
+  # to check supported os_types
+  master_os_type = OS_TYPE + OS_VERSION
 
+  write_property(OS_FAMILY_PROPERTY, master_os_family)
   write_property(OS_TYPE_PROPERTY, master_os_type)
   return 0
 

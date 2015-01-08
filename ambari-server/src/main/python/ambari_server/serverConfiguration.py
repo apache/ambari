@@ -43,6 +43,7 @@ BLIND_PASSWORD = "*****"
 # Common messages
 PRESS_ENTER_MSG = "Press <enter> to continue."
 
+OS_FAMILY_PROPERTY = "server.os_family"
 OS_TYPE_PROPERTY = "server.os_type"
 
 BOOTSTRAP_DIR_PROPERTY = "bootstrap.dir"

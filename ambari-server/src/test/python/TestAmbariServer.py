@@ -2170,6 +2170,9 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     rcode = ambari_server.configure_os_settings()
     self.assertEqual(0, rcode)
     self.assertTrue(write_property_mock.called)
+    self.assertEqual(2, write_property_mock.call_count)
+    self.assertEquals(write_property_mock.call_args_list[0][0][0], "server.os_family")
+    self.assertEquals(write_property_mock.call_args_list[1][0][0], "server.os_type")
 
 
   @patch("__builtin__.open")
