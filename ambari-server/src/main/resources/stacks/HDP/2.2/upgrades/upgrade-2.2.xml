@@ -85,6 +85,7 @@
     </group>
 
     <group name="KAFKA" title="Kafka">
+      <skippable>true</skippable>
       <service name="KAFKA">
         <component>KAFKA_BROKER</component>
       </service>
@@ -122,6 +123,7 @@
     </group>
 
     <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize Upgrade">
+      <skippable>true</skippable>
       <execute-stage title="Confirm Finalize">
         <task xsi:type="manual">
           <message>Please confirm you are ready to finalize</message>
@@ -256,7 +258,8 @@
       <component name="HBASE_MASTER">
         <pre-upgrade>
           <task xsi:type="execute" hosts="master">
-            <command>su - {{hbase-env/hbase_user}} -c 'echo "snapshot_all" | hbase shell'</command>
+            <script>scripts/hbase_upgrade.py</script>
+            <function>snapshot</function>
           </task>
         </pre-upgrade>
         <upgrade>
