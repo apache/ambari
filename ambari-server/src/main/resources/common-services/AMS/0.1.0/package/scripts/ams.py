@@ -89,11 +89,6 @@ def ams(name=None):
       template_tag=None
     )
 
-    File(format("{ams_monitor_conf_dir}/ams-env.sh"),
-         owner=params.ams_user,
-         content=InlineTemplate(params.ams_env_sh_template)
-    )
-
     # TODO
     pass
 

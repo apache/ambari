@@ -40,8 +40,6 @@ if metric_collector_port and metric_collector_port.find(':') != -1:
   metric_collector_port = metric_collector_port.split(':')[1]
 pass
 
-ams_collector_log_dir = config['configurations']['ams-env']['ams_collector_log_dir']
-ams_monitor_log_dir = config['configurations']['ams-env']['ams_monitor_log_dir']
 
 ams_monitor_conf_dir = "/etc/ambari-metrics-monitor/conf/"
 ams_monitor_dir = "/usr/lib/python2.6/site-packages/resource_monitoring"

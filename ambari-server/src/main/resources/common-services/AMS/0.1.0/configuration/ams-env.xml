@@ -25,26 +25,6 @@
     <property-type>USER</property-type>
     <description>AMS User Name.</description>
   </property>
-  <property>
-    <name>ams_collector_log_dir</name>
-    <value>/var/log/ambari-metric-collector</value>
-    <description>Collector log directory.</description>
-  </property>
-  <property>
-    <name>ams_collector_pid_dir</name>
-    <value>/var/run/ambari-metric-collector</value>
-    <description>Collector pid directory.</description>
-  </property>
-  <property>
-    <name>ams_monitor_pid_dir</name>
-    <value>/var/run/ambari-metric-monitor</value>
-    <description>Monitor pid directory.</description>
-  </property>
-  <property>
-    <name>ams_monitor_log_dir</name>
-    <value>/var/log/ambari-metric-monitor</value>
-    <description>Monitor log directory.</description>
-  </property>
 
   <property>
     <name>content</name>
@@ -54,11 +34,7 @@
       # The java implementation to use. Java 1.6 required.
       export JAVA_HOME={{java64_home}}
 
-      # Collector Log directory for log4j
-      export AMS_COLLECTOR_LOG_DIR={{ams_collector_log_dir}}
-
-      # Monitor Log directory for outfile
-      export AMS_MONITOR_LOG_DIR={{ams_monitor_log_dir}}
+      #TODO
     </value>
   </property>
 

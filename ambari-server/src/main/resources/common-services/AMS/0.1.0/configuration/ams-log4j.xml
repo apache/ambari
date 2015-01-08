@@ -43,15 +43,12 @@
       #
 
       # Define some default values that can be overridden by system properties
-      ams.log.dir=.
-      ams.log.file=ambari-metrics-collector.log
-
       # Root logger option
       log4j.rootLogger=INFO,file
 
       # Direct log messages to a log file
       log4j.appender.file=org.apache.log4j.RollingFileAppender
-      log4j.appender.file.File=${ams.log.dir}/${ams.log.file}
+      log4j.appender.file.File=/var/log/ambari-metrics-collector/ambari-metrics-collector.log
       log4j.appender.file.MaxFileSize=80MB
       log4j.appender.file.MaxBackupIndex=60
       log4j.appender.file.layout=org.apache.log4j.PatternLayout

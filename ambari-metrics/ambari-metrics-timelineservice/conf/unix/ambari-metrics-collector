@@ -31,8 +31,6 @@ HBASE_CONF_DIR=/etc/ams-hbase/conf
 
 METRIC_COLLECTOR=ambari-metrics-collector
 
-AMS_LOG_DIR=/var/log/ambari-metric-collector
-
 STOP_TIMEOUT=5
 
 function hbase_daemon
@@ -202,7 +200,7 @@ case "$1" in
         rm -f "${PIDFILE}" >/dev/null 2>&1
     fi
 
-    nohup "${JAVA}" "-cp" "/usr/lib/ambari-metrics-collector/*:${COLLECTOR_CONF_DIR}" "-Djava.net.preferIPv4Stack=true" "-Dams.log.dir=${AMS_COLLECTOR_LOG_DIR}" "-Dproc_${DAEMON_NAME}" "${CLASS}" "$@" > $OUTFILE 2>&1 &
+    nohup "${JAVA}" "-cp" "/usr/lib/ambari-metrics-collector/*:${COLLECTOR_CONF_DIR}" "-Djava.net.preferIPv4Stack=true" "-Dproc_${DAEMON_NAME}" "${CLASS}" "$@" > $OUTFILE 2>&1 &
     PID=$!
     write_pidfile "${PIDFILE}"
     sleep 2
