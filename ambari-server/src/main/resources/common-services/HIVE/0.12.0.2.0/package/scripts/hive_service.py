@@ -67,7 +67,7 @@ def hive_service(name, action='start', rolling_restart=False):
     # AMBARI-5800 - wait for the server to come up instead of just the PID existance
     if name == 'hiveserver2':
       SOCKET_WAIT_SECONDS = 120
-      address=params.hive_server_host
+      address=params.hostname
       port=int(params.hive_server_port)
       
       start_time = time.time()
