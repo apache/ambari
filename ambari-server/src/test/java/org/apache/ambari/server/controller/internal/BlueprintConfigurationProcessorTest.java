@@ -1223,6 +1223,115 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
+  public void testStormConfigClusterUpdateWithoutGangliaServer() throws Exception {
+    final String expectedHostGroupName = "host_group_1";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+    Stack mockStack = mockSupport.createMock(Stack.class);
+
+    // simulate the case where Ganglia is not available in the cluster
+    expect(mockHostGroupOne.getComponents()).andReturn(Collections.<String>emptySet()).atLeastOnce();
+    expect(mockStack.getCardinality("GANGLIA_SERVER")).andReturn(new Cardinality("1")).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> stormSiteProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("storm-site", stormSiteProperties);
+
+    stormSiteProperties.put("worker.childopts", "localhost");
+    stormSiteProperties.put("supervisor.childopts", "localhost");
+    stormSiteProperties.put("nimbus.childopts", "localhost");
+
+
+    // setup properties that include host information
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    Map<String, HostGroup> mapOfHostGroups =
+      new HashMap<String, HostGroup>();
+    mapOfHostGroups.put(expectedHostGroupName, mockHostGroupOne);
+
+    // call top-level export method
+    configProcessor.doUpdateForClusterCreate(mapOfHostGroups, mockStack);
+
+    // verify that the server name is not replaced, since the GANGLIA_SERVER
+    // component is not available
+    assertEquals("worker startup settings not properly handled by cluster create",
+      "localhost", stormSiteProperties.get("worker.childopts"));
+
+    assertEquals("supervisor startup settings not properly handled by cluster create",
+      "localhost", stormSiteProperties.get("supervisor.childopts"));
+
+    assertEquals("nimbus startup settings not properly handled by cluster create",
+      "localhost", stormSiteProperties.get("nimbus.childopts"));
+
+    mockSupport.verifyAll();
+  }
+
+  @Test
+  public void testStormConfigClusterUpdateWithGangliaServer() throws Exception {
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostGroupName = "host_group_1";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+    Stack mockStack = mockSupport.createMock(Stack.class);
+
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Arrays.asList(expectedHostName, "serverTwo")).atLeastOnce();
+    // simulate the case where Ganglia is available in the cluster
+    expect(mockHostGroupOne.getComponents()).andReturn(Collections.singleton("GANGLIA_SERVER")).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> stormSiteProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("storm-site", stormSiteProperties);
+
+    stormSiteProperties.put("worker.childopts", "localhost");
+    stormSiteProperties.put("supervisor.childopts", "localhost");
+    stormSiteProperties.put("nimbus.childopts", "localhost");
+
+
+    // setup properties that include host information
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    Map<String, HostGroup> mapOfHostGroups =
+      new HashMap<String, HostGroup>();
+    mapOfHostGroups.put(expectedHostGroupName, mockHostGroupOne);
+
+    // call top-level export method
+    configProcessor.doUpdateForClusterCreate(mapOfHostGroups, mockStack);
+
+    // verify that the server name is not replaced, since the GANGLIA_SERVER
+    // component is not available
+    assertEquals("worker startup settings not properly handled by cluster create",
+      expectedHostName, stormSiteProperties.get("worker.childopts"));
+
+    assertEquals("supervisor startup settings not properly handled by cluster create",
+      expectedHostName, stormSiteProperties.get("supervisor.childopts"));
+
+    assertEquals("nimbus startup settings not properly handled by cluster create",
+      expectedHostName, stormSiteProperties.get("nimbus.childopts"));
+
+    mockSupport.verifyAll();
+  }
+
+  @Test
   public void testDoUpdateForClusterWithNameNodeHAEnabled() throws Exception {
     final String expectedNameService = "mynameservice";
     final String expectedHostName = "c6401.apache.ambari.org";
