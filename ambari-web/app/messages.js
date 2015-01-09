@@ -44,6 +44,8 @@ Em.I18n.translations = {
   'app.aboutAmbari.getInvolved': 'Get involved!',
   'app.aboutAmbari.version': 'Version',
   'app.aboutAmbari.licensed': 'Licensed under the Apache License, Version 2.0',
+  'app.upgrade.inProgress': 'Upgrade: In Process',
+  'app.upgrade.holding': 'Upgrade: Action Required',
 
   'apply':'apply',
   'and':'and',

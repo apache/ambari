@@ -48,6 +48,23 @@ module.exports = Em.Application.create({
   upgradeState: 'INIT',
 
   /**
+   * flag is true when upgrade process is running
+   * @returns {boolean}
+   */
+  upgradeInProgress: function() {
+    return ["IN_PROGRESS"].contains(this.get('upgradeState'));
+  }.property('upgradeState'),
+
+  /**
+   * flag is true when upgrade process is waiting for user action
+   * to procced, retry, perform manual steps etc.
+   * @returns {boolean}
+   */
+  upgradeHolding: function() {
+    return this.get('upgradeState').contains("HOLDING");
+  }.property('upgradeState'),
+
+  /**
    * compute user access rights by permission type
    * types:
    *  - ADMIN

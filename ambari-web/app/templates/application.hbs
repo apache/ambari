@@ -44,6 +44,14 @@
                   {{allAlertsCount}} {{pluralize allAlertsCount singular="alert" plural="alerts"}}</span>
                 {{/if}}
               {{/with}}
+              {{#if App.upgradeInProgress}}
+                <span class="label upgrade-in-progress" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
+                  <i class="icon-cog"></i> {{t app.upgrade.inProgress}}</span>
+              {{/if}}
+              {{#if App.upgradeHolding}}
+                <span class="label upgrade-holding" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
+                  <i class="icon-pause"></i> {{t app.upgrade.holding}}</span>
+              {{/if}}
             </a>
           {{else}}
             <a class="logo"><img src="/img/logo-white.png" alt="Apache Ambari" title="Apache Ambari"></a>

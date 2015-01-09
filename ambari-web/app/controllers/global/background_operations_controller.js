@@ -189,6 +189,16 @@ App.BackgroundOperationsController = Em.Controller.extend({
   },
 
   /**
+   * returns true if it's upgrade equest
+   * use this flag to exclude upgrade requests from bgo
+   * @param {object} request
+   * @returns {boolean}
+   */
+  isUpgradeRequest: function(request) {
+    var context = Em.get(request, 'Requests.request_context');
+    return context ? context.toLowerCase().contains('upgrading') : false;
+  },
+  /**
    * Prepare, received from server, requests for host component popup
    * @param data
    */
@@ -199,6 +209,9 @@ App.BackgroundOperationsController = Em.Controller.extend({
     var countGot = data.itemTotal;
    
     data.items.forEach(function (request) {
+      if (this.isUpgradeRequest(request)) {
+        return;
+      }
       var rq = this.get("services").findProperty('id', request.Requests.id);
       var isRunning = this.isRequestRunning(request);
       var requestParams = this.parseRequestContext(request.Requests.request_context);

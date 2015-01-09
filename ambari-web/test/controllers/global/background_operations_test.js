@@ -153,6 +153,25 @@ describe('App.BackgroundOperationsController', function () {
     });
   });
 
+  describe('#isUpgradeRequest', function() {
+
+    it('defines if request is upgrade task (true)', function() {
+      expect(controller.isUpgradeRequest({Requests: {request_context: "upgrading"}})).to.be.true;
+    });
+
+    it('defines if request is upgrade task (true - with uppercase)', function() {
+      expect(controller.isUpgradeRequest({Requests: {request_context: "UPGRADING"}})).to.be.true;
+    });
+
+    it('defines if request is upgrade task (false)', function() {
+      expect(controller.isUpgradeRequest({Requests: {request_context: "install"}})).to.be.false;
+    });
+
+    it('defines if request is upgrade task (false - invalid param)', function() {
+      expect(controller.isUpgradeRequest({Requests: {}})).to.be.false;
+    });
+  });
+
   describe('#callBackForMostRecent()', function () {
     it('No requests exists', function () {
       var data = {
@@ -184,6 +203,21 @@ describe('App.BackgroundOperationsController', function () {
       expect(controller.get("services").mapProperty('id')).to.eql([1]);
     });
 
+    it('One request that is excluded', function () {
+      var data = {
+        items: [
+          {
+            Requests: {
+              id: 1,
+              request_context: 'upgrading'
+            }
+          }
+        ]
+      };
+      controller.callBackForMostRecent(data);
+      expect(controller.get("allOperationsCount")).to.equal(0);
+      expect(controller.get("services").mapProperty('id')).to.eql([]);
+    });
 
     it('One running request', function () {
       var data = {

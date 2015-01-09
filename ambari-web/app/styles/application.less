@@ -22,6 +22,25 @@
 @space-m: 10px;
 @space-l: 20px;
 
+@-webkit-keyframes orangePulse {
+  from { background-color: #fdb82f; }
+  50% { background-color: #fd910e; }
+  to { background-color: #fdb82f; }
+}
+
+@-moz-keyframes orangePulse {
+  from { background-color: #fdb82f; }
+  50% { background-color: #fd910e; }
+  to { background-color: #fdb82f; }
+}
+
+@keyframes orangePulse
+{
+  0% { background-color: #fdb82f; }
+  50% { background-color: #fd910e; }
+  100% { background-color: #fdb82f; }
+}
+
 @-webkit-keyframes greenPulse {
   from { background-color: #118fff; }
   50% { background-color: #006DCC; }
@@ -213,6 +232,34 @@ footer {
         -moz-animation-duration: 1s;
         -moz-animation-iteration-count: infinite;
         animation-name: greenPulseInner;
+        animation-duration: 1s;
+        animation-iteration-count: infinite;
+      }
+
+      .upgrade-in-progress {
+        text-shadow: none;
+        background-color: #006DCC;
+        -webkit-animation-name: greenPulse;
+        -webkit-animation-duration: 1s;
+        -webkit-animation-iteration-count: infinite;
+        -moz-animation-name: greenPulse;
+        -moz-animation-duration: 1s;
+        -moz-animation-iteration-count: infinite;
+        animation-name: greenPulse;
+        animation-duration: 1s;
+        animation-iteration-count: infinite;
+      }
+
+      .upgrade-holding {
+        text-shadow: none;
+        background-color: @health-status-orange;
+        -webkit-animation-name: orangePulse;
+        -webkit-animation-duration: 1s;
+        -webkit-animation-iteration-count: infinite;
+        -moz-animation-name: orangePulse;
+        -moz-animation-duration: 1s;
+        -moz-animation-iteration-count: infinite;
+        animation-name: orangePulse;
         animation-duration: 1s;
         animation-iteration-count: infinite;
       }
