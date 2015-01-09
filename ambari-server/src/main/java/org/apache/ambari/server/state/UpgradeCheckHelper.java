@@ -310,7 +310,7 @@ public class UpgradeCheckHelper {
 
     @Override
     public boolean isApplicable(PreUpgradeCheckRequest request) throws AmbariException {
-      return request.getRepositoryVersionName() != null;
+      return request.getRepositoryVersion() != null;
     }
 
     @Override
@@ -318,10 +318,11 @@ public class UpgradeCheckHelper {
       final String clusterName = request.getClusterName();
       final Cluster cluster = clustersProvider.get().getCluster(clusterName);
       final Map<String, Host> clusterHosts = clustersProvider.get().getHostsForCluster(clusterName);
-      final RepositoryVersionEntity repositoryVersion = repositoryVersionDaoProvider.get().findByDisplayName(request.getRepositoryVersionName());
+      final StackId stackId = cluster.getDesiredStackVersion();
+      final RepositoryVersionEntity repositoryVersion = repositoryVersionDaoProvider.get().findByStackAndVersion(stackId.getStackId(), request.getRepositoryVersion());
       if (repositoryVersion == null) {
         upgradeCheck.setStatus(UpgradeCheckStatus.FAIL);
-        upgradeCheck.setFailReason("Repository version " + request.getRepositoryVersionName() + " doesn't exist");
+        upgradeCheck.setFailReason("Repository version " + request.getRepositoryVersion() + " doesn't exist");
         upgradeCheck.getFailedOn().addAll(clusterHosts.keySet());
         return;
       }
@@ -336,7 +337,7 @@ public class UpgradeCheckHelper {
       }
       if (!upgradeCheck.getFailedOn().isEmpty()) {
         upgradeCheck.setStatus(UpgradeCheckStatus.FAIL);
-        upgradeCheck.setFailReason("Some hosts do not have repository version " + request.getRepositoryVersionName() + " installed");
+        upgradeCheck.setFailReason("Some hosts do not have repository version " + request.getRepositoryVersion() + " installed");
       }
     }
   }

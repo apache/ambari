@@ -109,7 +109,7 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
       final String clusterName = propertyMap.get(UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID).toString();
       final PreUpgradeCheckRequest upgradeCheckRequest = new PreUpgradeCheckRequest(clusterName);
       if (propertyMap.containsKey(UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID)) {
-        upgradeCheckRequest.setRepositoryVersionName(propertyMap.get(UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID).toString());
+        upgradeCheckRequest.setRepositoryVersion(propertyMap.get(UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID).toString());
       }
       for (UpgradeCheck upgradeCheck: upgradeChecks.performPreUpgradeChecks(upgradeCheckRequest)) {
         final Resource resource = new ResourceImpl(Resource.Type.PreUpgradeCheck);
@@ -120,8 +120,8 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
         setResourceProperty(resource, UPGRADE_CHECK_FAILED_ON_PROPERTY_ID, upgradeCheck.getFailedOn(), requestedIds);
         setResourceProperty(resource, UPGRADE_CHECK_CHECK_TYPE_PROPERTY_ID, upgradeCheck.getType(), requestedIds);
         setResourceProperty(resource, UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID, upgradeCheck.getClusterName(), requestedIds);
-        if (upgradeCheckRequest.getRepositoryVersionName() != null) {
-          setResourceProperty(resource, UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID, upgradeCheckRequest.getRepositoryVersionName(), requestedIds);
+        if (upgradeCheckRequest.getRepositoryVersion() != null) {
+          setResourceProperty(resource, UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID, upgradeCheckRequest.getRepositoryVersion(), requestedIds);
         }
         resources.add(resource);
       }

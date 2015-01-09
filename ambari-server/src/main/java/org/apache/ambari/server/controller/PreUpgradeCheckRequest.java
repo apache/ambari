@@ -22,7 +22,7 @@ package org.apache.ambari.server.controller;
  */
 public class PreUpgradeCheckRequest {
   private final String clusterName;
-  private String repositoryVersionName;
+  private String repositoryVersion;
 
   //TODO make repositoryVersionName also final as soon as UI will be changed to always provide it to API
   public PreUpgradeCheckRequest(String clusterName) {
@@ -33,11 +33,11 @@ public class PreUpgradeCheckRequest {
     return clusterName;
   }
 
-  public String getRepositoryVersionName() {
-    return repositoryVersionName;
+  public String getRepositoryVersion() {
+    return repositoryVersion;
   }
 
-  public void setRepositoryVersionName(String repositoryVersionName) {
-    this.repositoryVersionName = repositoryVersionName;
+  public void setRepositoryVersion(String repositoryVersion) {
+    this.repositoryVersion = repositoryVersion;
   }
 }
