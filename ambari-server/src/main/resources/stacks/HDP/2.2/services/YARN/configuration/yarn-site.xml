@@ -60,7 +60,7 @@
   </property>
   <property>
     <name>yarn.client.nodemanager-connect.max-wait-ms</name>
-    <value>900000</value>
+    <value>60000</value>
     <description>Max time to wait to establish a connection to NM</description>
   </property>
   <property>
