@@ -55,7 +55,7 @@ App.ReassignMasterController = App.WizardController.extend({
     hdfsUser: "hdfs",
     group: "hadoop",
     reassign: null,
-    componentsWithManualCommands: ['NAMENODE', 'SECONDARY_NAMENODE', 'OOZIE_SERVER', 'MYSQL_SERVER'],
+    componentsWithManualCommands: ['NAMENODE', 'SECONDARY_NAMENODE', 'OOZIE_SERVER', 'MYSQL_SERVER', 'APP_TIMELINE_SERVER'],
     hasManualSteps: false,
     hasCheckDBStep: false,
     componentsWithCheckDBStep: ['HIVE_METASTORE', 'HIVE_SERVER', 'OOZIE_SERVER'],

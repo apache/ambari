@@ -471,6 +471,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         break;
       case 'APP_TIMELINE_SERVER':
         urlParams.push('(type=yarn-site&tag=' + data.Clusters.desired_configs['yarn-site'].tag + ')');
+        urlParams.push('(type=yarn-env&tag=' + data.Clusters.desired_configs['yarn-env'].tag + ')');
         break;
       case 'OOZIE_SERVER':
         urlParams.push('(type=oozie-site&tag=' + data.Clusters.desired_configs['oozie-site'].tag + ')');
@@ -527,6 +528,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
 
     this.saveClusterStatus(secureConfigs, this.getComponentDir(configs, componentName));
     this.saveConfigsToServer(configs);
+    this.saveServiceProperties(configs);
   },
 
   /**
@@ -1045,6 +1047,10 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
       db_host, db_type, db_props['schema_name'], db_props['user_name'],
       db_props['user_passwd'], db_props['driver_class'], db_props['db_connection_url']
     );
-  }.property('dbProperties')
+  }.property('dbProperties'),
+
+  saveServiceProperties: function(configs) {
+    App.router.get(this.get('content.controllerName')).saveServiceProperties(configs);
+  }
 
 });

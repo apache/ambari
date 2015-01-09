@@ -497,7 +497,8 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       {
         componentName: 'APP_TIMELINE_SERVER',
         result: [
-          "(type=yarn-site&tag=5)"
+          "(type=yarn-site&tag=5)",
+          "(type=yarn-env&tag=8)",
         ]
       },
       {
@@ -523,7 +524,8 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
           'mapred-site': {tag: 4},
           'yarn-site': {tag: 5},
           'oozie-site': {tag: 6},
-          'webhcat-site': {tag: 7}
+          'webhcat-site': {tag: 7},
+          'yarn-env': {tag: 8}
         }
       }
     };
@@ -582,6 +584,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       sinon.stub(controller, 'getComponentDir', Em.K);
       sinon.stub(controller, 'saveClusterStatus', Em.K);
       sinon.stub(controller, 'saveConfigsToServer', Em.K);
+      sinon.stub(controller, 'saveServiceProperties', Em.K);
       controller.set('content.reassignHosts.target', 'host1');
     });
     afterEach(function () {
@@ -592,6 +595,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       controller.getComponentDir.restore();
       controller.saveClusterStatus.restore();
       controller.saveConfigsToServer.restore();
+      controller.saveServiceProperties.restore();
     });
 
     it('component is not NAMENODE', function () {
@@ -604,6 +608,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       expect(controller.getComponentDir.calledWith({}, 'COMP1')).to.be.true;
       expect(controller.saveClusterStatus.calledWith([])).to.be.true;
       expect(controller.saveConfigsToServer.calledWith({})).to.be.true;
+      expect(controller.saveServiceProperties.calledWith({})).to.be.true;
     });
     it('component is NAMENODE, has configs', function () {
       controller.set('content.reassign.component_name', 'NAMENODE');
@@ -620,6 +625,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       expect(controller.getComponentDir.calledWith({'hdfs-site': {}}, 'NAMENODE')).to.be.true;
       expect(controller.saveClusterStatus.calledWith([])).to.be.true;
       expect(controller.saveConfigsToServer.calledWith({'hdfs-site': {}})).to.be.true;
+      expect(controller.saveServiceProperties.calledWith({'hdfs-site': {}})).to.be.true;
     });
     it('component is RESOURCEMANAGER, has configs', function () {
       controller.set('content.reassign.component_name', 'RESOURCEMANAGER');
@@ -636,6 +642,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       expect(controller.getComponentDir.calledWith({'hdfs-site': {}}, 'RESOURCEMANAGER')).to.be.true;
       expect(controller.saveClusterStatus.calledWith([])).to.be.true;
       expect(controller.saveConfigsToServer.calledWith({'hdfs-site': {}})).to.be.true;
+      expect(controller.saveServiceProperties.calledWith({'hdfs-site': {}})).to.be.true;
     });
   });
 

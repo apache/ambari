@@ -36,7 +36,14 @@ App.ReassignMasterWizardStep5View = Em.View.extend({
       ha = '_ha';
       var nnStartedHost = this.get('controller.content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName').without(sourceHost);
     }
-    return Em.I18n.t('services.reassign.step5.body.' + this.get('controller.content.reassign.component_name').toLowerCase() + ha).format(componentDir, sourceHost, targetHost, this.get('controller.content.hdfsUser'), nnStartedHost,this.get('controller.content.group'), componentDirCmd);
+
+    var user = this.get('controller.content.hdfsUser');
+
+    if(this.get('controller.content.reassign.component_name') === 'APP_TIMELINE_SERVER') {
+      user = this.get('controller.content.serviceProperties.yarn-env.yarn_user');
+    }
+
+    return Em.I18n.t('services.reassign.step5.body.' + this.get('controller.content.reassign.component_name').toLowerCase() + ha).format(componentDir, sourceHost, targetHost, user, nnStartedHost,this.get('controller.content.group'), componentDirCmd);
   }.property('controller.content.reassign.component_name', 'controller.content.componentDir', 'controller.content.masterComponentHosts', 'controller.content.reassign.host_id', 'controller.content.hdfsUser'),
 
   securityNotice: function () {

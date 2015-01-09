@@ -1795,6 +1795,14 @@ Em.I18n.translations = {
     '<div class="code-snippet">mysql db_name < backup-file.sql</div></li>' +
     '</ol>' +
     '</div>',
+  'services.reassign.step5.body.app_timeline_server': '<div class="alert alert-info">' +
+  '<ol>' +
+  '<li>Copy <b>/hadoop/yarn/timeline/leveldb-timeline-store.ldb</b> from the source host <b>{1}</b> to <b>/hadoop/yarn/timeline/leveldb-timeline-store.ldb</b> on the target host <b>{2}</b>.</li>' +
+  '<li>Login to the target host <b>{2}</b> and change permissions by running:' +
+  '<div class="code-snippet">chown -R {3}:{5} /hadoop/yarn/timeline/leveldb-timeline-store.ldb</div></li>' +
+  '<div class="code-snippet">chmod -R 700 /hadoop/yarn/timeline/leveldb-timeline-store.ldb</div></li>' +
+  '</ol>' +
+  '</div>',
   'services.reassign.step5.body.securityNotice': '<div class="alert alert-info"> <div class="alert alert-warn"> <strong>Note: </strong> Secure cluster' +
     ' requires generating necessary principals for reassigned component and creating keytab files with the principal on ' +
     'the target host. The keytab file should be accessible to the service user.</div> {0} </div>',
