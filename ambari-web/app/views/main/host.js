@@ -585,12 +585,30 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
     }.property('content.hostComponents.length'),
 
     /**
+     * true if host has only one repoversion
+     * in this case expander in version columnn is hidden
+     * @returns {Boolean}
+     */
+    hasSingleVersion: function() {
+      return this.get('content.stackVersions.length') == 1;
+    }.property('content.stackVersions.length'),
+
+    /**
+     * this version is always shown others hidden unless expander is open
+     * @returns {String}
+     */
+    currentVersion: function() {
+      var repoVersion = this.get('content.stackVersions').findProperty('isCurrent');
+      return repoVersion.get('repoVersion') + " (" + repoVersion.get('displayStatus') + ")";
+    }.property('content.stackVersions'),
+
+    /**
      * String with list of host components <code>displayName</code>
      * @returns {String}
      */
     versionlabels: function () {
-      return this.get('content.stackVersions').map(function (version) {
-        return Em.I18n.t('hosts.host.stackVersions.table.labels').format(version.get('version'), version.get('displayStatus'));
+      return this.get('content.stackVersions').filterProperty('isCurrent', false).map(function (version) {
+        return Em.I18n.t('hosts.host.stackVersions.table.labels').format(version.get('repoVersion'), version.get('displayStatus'));
       }).join("<br />");
     }.property('content.stackVersions.length'),
 
