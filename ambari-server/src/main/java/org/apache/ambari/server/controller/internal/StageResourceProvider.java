@@ -374,14 +374,15 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
    */
   protected static HostRoleStatus calculateSummaryStatus(Map<HostRoleStatus, Integer> counters, int total,
                                                          boolean failAll) {
-    return counters.get(HostRoleStatus.HOLDING) > 0 ? HostRoleStatus.HOLDING :
+    return counters.get(HostRoleStatus.PENDING) == total ? HostRoleStatus.PENDING :
+        counters.get(HostRoleStatus.HOLDING) > 0 ? HostRoleStatus.HOLDING :
         counters.get(HostRoleStatus.HOLDING_FAILED) > 0 ? HostRoleStatus.HOLDING_FAILED :
         counters.get(HostRoleStatus.HOLDING_TIMEDOUT) > 0 ? HostRoleStatus.HOLDING_TIMEDOUT :
         counters.get(HostRoleStatus.FAILED) > 0 && failAll ? HostRoleStatus.FAILED :
         counters.get(HostRoleStatus.ABORTED) > 0 ? HostRoleStatus.ABORTED :
         counters.get(HostRoleStatus.TIMEDOUT) > 0 && failAll ? HostRoleStatus.TIMEDOUT :
-        counters.get(HostRoleStatus.IN_PROGRESS) > 0 ? HostRoleStatus.IN_PROGRESS :
-        counters.get(HostRoleStatus.COMPLETED) == total  && total > 0 ? HostRoleStatus.COMPLETED : HostRoleStatus.PENDING;
+        counters.get(HostRoleStatus.COMPLETED) == total ? HostRoleStatus.COMPLETED :
+            HostRoleStatus.IN_PROGRESS;
   }
 
   /**

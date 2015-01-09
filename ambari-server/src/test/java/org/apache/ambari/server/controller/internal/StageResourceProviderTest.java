@@ -283,6 +283,36 @@ public class StageResourceProviderTest {
     counts = StageResourceProvider.calculateTaskStatusCounts(hostRoleStatuses);
 
     assertEquals(HostRoleStatus.PENDING, StageResourceProvider.calculateSummaryStatus(counts, hostRoleStatuses.size(), false));
+
+
+    hostRoleStatuses = new LinkedList<HostRoleStatus>();
+
+    hostRoleStatuses.add(HostRoleStatus.COMPLETED);
+    hostRoleStatuses.add(HostRoleStatus.IN_PROGRESS);
+    hostRoleStatuses.add(HostRoleStatus.PENDING);
+    hostRoleStatuses.add(HostRoleStatus.PENDING);
+    hostRoleStatuses.add(HostRoleStatus.PENDING);
+    hostRoleStatuses.add(HostRoleStatus.PENDING);
+
+    counts = StageResourceProvider.calculateTaskStatusCounts(hostRoleStatuses);
+
+    assertEquals(HostRoleStatus.IN_PROGRESS, StageResourceProvider.calculateSummaryStatus(counts, hostRoleStatuses.size(), false));
+
+
+    hostRoleStatuses = new LinkedList<HostRoleStatus>();
+
+    hostRoleStatuses.add(HostRoleStatus.COMPLETED);
+    hostRoleStatuses.add(HostRoleStatus.COMPLETED);
+    hostRoleStatuses.add(HostRoleStatus.PENDING);
+    hostRoleStatuses.add(HostRoleStatus.PENDING);
+    hostRoleStatuses.add(HostRoleStatus.PENDING);
+    hostRoleStatuses.add(HostRoleStatus.PENDING);
+
+    counts = StageResourceProvider.calculateTaskStatusCounts(hostRoleStatuses);
+
+    // this used to be PENDING; Changing behavior so that IN_PROGRESS is returned if any resource used in the calculation
+    // is past PENDING; AMBARI-8811
+    assertEquals(HostRoleStatus.IN_PROGRESS, StageResourceProvider.calculateSummaryStatus(counts, hostRoleStatuses.size(), false));
   }
 
 
