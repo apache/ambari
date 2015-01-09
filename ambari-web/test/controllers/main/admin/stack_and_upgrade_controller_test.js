@@ -246,7 +246,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         name: "admin.rolling_upgrade.pre_upgrade_check",
         sender: controller,
         data: {
-          version: '2.2',
+          value: '2.2',
           label: 'HDP-2.2'
         },
         success: "runPreUpgradeCheckSuccess"
