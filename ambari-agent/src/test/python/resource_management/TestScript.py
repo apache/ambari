@@ -25,6 +25,7 @@ import pprint
 from unittest import TestCase
 import threading
 import tempfile
+import shutil
 import time
 from threading import Thread
 
@@ -43,7 +44,11 @@ class TestScript(TestCase):
     out = StringIO.StringIO()
     sys.stdout = out
 
-
+    # Temporary files and directories needed as args to Script(),
+    # which must be deleted in teardown
+    self.tmp_command_file = tempfile.NamedTemporaryFile()
+    self.tmp_structured_out_file = tempfile.NamedTemporaryFile()
+    self.tmp_data_dir = tempfile.mkdtemp()
 
   @patch("resource_management.core.providers.package.PackageProvider")
   def test_install_packages(self, package_provider_mock):
@@ -67,9 +72,11 @@ class TestScript(TestCase):
       }
     }
 
+    args = [str(os.getcwd()), "INSTALL",  str(self.tmp_command_file), str(os.getcwd()), str(self.tmp_structured_out_file), "INFO",  str(self.tmp_data_dir)]
+
     # Testing config without any keys
     with Environment(".", test_mode=True) as env:
-      script = Script()
+      script = Script(args)
       Script.config = no_packages_config
       script.install_packages(env)
     resource_dump = pprint.pformat(env.resource_list)
@@ -77,7 +84,7 @@ class TestScript(TestCase):
 
     # Testing empty package list
     with Environment(".", test_mode=True) as env:
-      script = Script()
+      script = Script(args)
       Script.config = empty_config
       script.install_packages(env)
     resource_dump = pprint.pformat(env.resource_list)
@@ -85,6 +92,7 @@ class TestScript(TestCase):
 
     # Testing installing of a list of packages
     with Environment(".", test_mode=True) as env:
+      script = Script(args)
       Script.config = dummy_config
       script.install_packages("env")
     resource_dump = pprint.pformat(env.resource_list)
@@ -92,9 +100,10 @@ class TestScript(TestCase):
 
   @patch("__builtin__.open")
   def test_structured_out(self, open_mock):
-    script = Script()
-    script.stroutfile = ''
+    args = [str(os.getcwd()), "INSTALL",  str(self.tmp_command_file), str(os.getcwd()), str(self.tmp_structured_out_file), "INFO",  str(self.tmp_data_dir)]
 
+    script = Script(args)
+    script.stroutfile = ''
     self.assertEqual(Script.structuredOut, {})
 
     script.put_structured_out({"1": "1"})
@@ -110,8 +119,13 @@ class TestScript(TestCase):
     self.assertEqual(open_mock.call_count, 3)
     self.assertEqual(Script.structuredOut, {"1": "3", "2": "2"})
 
+
   def tearDown(self):
     # enable stdout
     sys.stdout = sys.__stdout__
+    try:
+      shutil.rmtree(self.tmp_data_dir)
+    except:
+      pass
 
 

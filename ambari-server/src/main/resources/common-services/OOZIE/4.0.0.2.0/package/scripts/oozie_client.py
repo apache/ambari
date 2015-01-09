@@ -41,8 +41,6 @@ class OozieClient(Script):
 
     oozie(is_server=False)
 
-    self.save_component_version_to_structured_out(params.stack_name)
-
   def status(self, env):
     raise ClientComponentHasNoStatus()
 

@@ -31,5 +31,7 @@ class AfterInstallHook(Hook):
     setup_hdp_install_directory()
     setup_config()
 
+
 if __name__ == "__main__":
-  AfterInstallHook().execute()
+  h = AfterInstallHook()
+  h.execute()

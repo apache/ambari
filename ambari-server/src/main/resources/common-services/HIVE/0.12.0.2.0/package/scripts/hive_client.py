@@ -24,6 +24,9 @@ from hive import hive
 
 class HiveClient(Script):
 
+  def get_stack_to_component(self):
+    return {"HDP": "hadoop-client"}
+
   def pre_rolling_restart(self, env):
     import params
     env.set_params(params)
@@ -41,7 +44,6 @@ class HiveClient(Script):
     env.set_params(params)
 
     hive(name='client')
-
 
   def status(self, env):
     raise ClientComponentHasNoStatus()
