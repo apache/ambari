@@ -30,6 +30,7 @@ App.ModalPopup = Ember.View.extend({
   secondary: Em.I18n.t('common.cancel'),
   third: null,
   autoHeight: true,
+  marginBottom: 300,
   disablePrimary: false,
   disableSecondary: false,
   disableThird: false,
@@ -66,7 +67,7 @@ App.ModalPopup = Ember.View.extend({
     if (this.autoHeight) {
       var block = this.$().find('#modal > .modal-body').first();
       if(block.offset()) {
-        block.css('max-height', $(window).height() - block.offset().top  - 300 + $(window).scrollTop()); // fix popup height
+        block.css('max-height', $(window).height() - block.offset().top  - this.marginBottom + $(window).scrollTop()); // fix popup height
       }
     }
     // If popup is opened from another popup it should be displayed above

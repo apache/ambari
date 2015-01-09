@@ -331,6 +331,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
     var createEditPopup = App.ModalPopup.show({
       header: isEdit ? Em.I18n.t('alerts.actions.manage_alert_notifications_popup.editHeader') : Em.I18n.t('alerts.actions.manage_alert_notifications_popup.addHeader'),
       classNames: ['create-edit-alert-notification-popup'],
+      marginBottom: 130,
       bodyClass: Em.View.extend({
         controller: this,
         templateName: require('templates/main/alerts/create_alert_notification'),
