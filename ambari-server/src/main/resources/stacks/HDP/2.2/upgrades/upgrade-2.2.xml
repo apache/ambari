@@ -76,6 +76,14 @@
       </service>
     </group>
 
+    <group name="OOZIE" title="Oozie">
+      <skippable>true</skippable>
+      <service name="OOZIE">
+        <component>OOZIE_SERVER</component>
+        <component>OOZIE_CLIENT</component>
+      </service>
+    </group>
+
     <group name="FALCON" title="Falcon">
       <skippable>true</skippable>
       <service name="FALCON">
@@ -314,7 +322,7 @@
       <component name="HIVE_SERVER">
         <pre-upgrade>
           <task xsi:type="manual">
-            <message>The HiveServer port will now change to 10010. Ensure that this port is available on each HiveServer instance.</message>
+            <message>The HiveServer port will now change to 10010. You can use "netstat -anp | grep 10010" to determine if the port is available on each HiveServer host. If the port is not available, the process using it must be terminated.</message>
           </task>
 
           <task xsi:type="configure">
@@ -326,7 +334,7 @@
         
         <pre-downgrade>
           <task xsi:type="manual">
-            <message>The HiveServer port will now change to 10000. Ensure that this port is available on each HiveServer instance.</message>
+            <message>The HiveServer port will now change to 10000. You can use "netstat -anp | grep 10000" to determine if the port is available on each HiveServer host. If the port is not available, the process using it must be terminated.</message>
           </task>
 
           <task xsi:type="configure">
@@ -348,6 +356,24 @@
       </component>
 
       <component name="HIVE_CLIENT">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="OOZIE">
+      <component name="OOZIE_SERVER">
+        <pre-upgrade>
+          <task xsi:type="manual">
+            <message>Backup the Oozie Server database.</message>
+          </task>
+        </pre-upgrade>
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+      <component name="OOZIE_CLIENT">
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>

@@ -17,12 +17,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
+from resource_management.core import shell
+from resource_management.core.exceptions import Fail
+
 
 class TestOozieServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "OOZIE/4.0.0.2.0/package"
   STACK_VERSION = "2.0.6"
+  UPGRADE_STACK_VERSION = "2.2"
 
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
@@ -593,3 +598,86 @@ class TestOozieServer(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
+
+
+  @patch("tarfile.open")
+  @patch("os.path.isdir")
+  @patch("os.path.exists")
+  @patch("os.path.isfile")
+  @patch("os.remove")
+  @patch("os.chmod")
+  @patch("shutil.rmtree", new = MagicMock())
+  @patch("glob.iglob", new = MagicMock(return_value=["/usr/hdp/2.2.1.0-2187/hadoop/lib/hadoop-lzo-0.6.0.2.2.1.0-2187.jar"]))
+  @patch("shutil.copy")
+  @patch.object(shell, "call")
+  def test_upgrade(self, call_mock, shutil_copy_mock, chmod_mock, remove_mock,
+      isfile_mock, exists_mock, isdir_mock, tarfile_open_mock):
+
+    isdir_mock.return_value = True
+    exists_mock.side_effect = [False,False,True]
+    isfile_mock.return_value = True
+
+    prepare_war_stdout = """INFO: Adding extension: libext/mysql-connector-java.jar
+    New Oozie WAR file with added 'JARs' at /var/lib/oozie/oozie-server/webapps/oozie.war"""
+
+    call_mock.return_value = (0, prepare_war_stdout)
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
+     classname = "OozieServer", command = "pre_rolling_restart", config_file = "oozie-upgrade.json",
+     hdp_stack_version = self.UPGRADE_STACK_VERSION,
+     target = RMFTestCase.TARGET_COMMON_SERVICES )
+
+    # 2 calls to tarfile.open (1 directories, read + write)
+    self.assertTrue(tarfile_open_mock.called)
+    self.assertEqual(tarfile_open_mock.call_count,2)
+
+    self.assertTrue(chmod_mock.called)
+    self.assertEqual(chmod_mock.call_count,1)
+    chmod_mock.assert_called_once_with('/usr/hdp/current/oozie-server/libext-customer', 511)
+
+    self.assertTrue(isfile_mock.called)
+    self.assertEqual(isfile_mock.call_count,4)
+    isfile_mock.assert_called_with('/usr/share/HDP-oozie/ext-2.2.zip')
+
+    self.assertTrue(remove_mock.called)
+    self.assertEqual(remove_mock.call_count,1)
+    remove_mock.assert_called_with('/usr/bin/oozie')
+
+    self.assertResourceCalled('Execute', 'hdp-select set oozie-server 2.2.1.0-2135')
+    self.assertResourceCalled('Execute', 'hdfs dfs -chown oozie:hadoop /user/oozie/share', user='oozie')
+    self.assertResourceCalled('Execute', 'hdfs dfs -chmod -R 755 /user/oozie/share', user='oozie')
+    self.assertResourceCalled('Execute', '/usr/hdp/current/oozie-server/bin/ooziedb.sh upgrade -run', user='oozie')
+    self.assertResourceCalled('Execute', '/usr/hdp/current/oozie-server/bin/oozie-setup.sh sharelib create -fs hdfs://c6401.ambari.apache.org:8020', user='oozie')
+
+    self.assertNoMoreResources()
+
+  @patch("tarfile.open")
+  @patch("os.path.isdir")
+  @patch("os.path.exists")
+  @patch("os.path.isfile")
+  @patch("os.remove")
+  @patch("os.chmod")
+  @patch("shutil.rmtree", new = MagicMock())
+  @patch("glob.iglob", new = MagicMock(return_value=["/usr/hdp/2.2.1.0-2187/hadoop/lib/hadoop-lzo-0.6.0.2.2.1.0-2187.jar"]))
+  @patch("shutil.copy")
+  @patch.object(shell, "call")
+  def test_upgrade_failed_prepare_war(self, call_mock, shutil_copy_mock, chmod_mock, remove_mock,
+      isfile_mock, exists_mock, isdir_mock, tarfile_open_mock):
+
+    isdir_mock.return_value = True
+    exists_mock.side_effect = [False,False,True]
+    isfile_mock.return_value = True
+
+    call_mock.return_value = (0, 'Whoops, you messed up the WAR.')
+
+    try:
+      self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
+       classname = "OozieServer", command = "pre_rolling_restart", config_file = "oozie-upgrade.json",
+       hdp_stack_version = self.UPGRADE_STACK_VERSION,
+       target = RMFTestCase.TARGET_COMMON_SERVICES )
+
+      self.fail("An invalid WAR preparation should have caused an error")
+    except Fail,f:
+      pass
+
+

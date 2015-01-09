@@ -18,9 +18,16 @@ limitations under the License.
 
 """
 
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
-from resource_management.libraries.functions.default import default
-from resource_management import *
+from resource_management.core import System
+from resource_management.libraries import Script
+from resource_management.libraries.functions import default
+from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.functions import get_port_from_url
+from resource_management.libraries.functions import format
+from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.version import compare_versions
+from resource_management.libraries.resources import HdfsDirectory
+
 import status_params
 import itertools
 import os
@@ -29,6 +36,8 @@ import os
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
+# New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
+version = default("/commandParams/version", None)
 stack_name = default("/hostLevelParams/stack_name", None)
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
@@ -38,15 +47,29 @@ hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
   hadoop_lib_home = "/usr/hdp/current/hadoop-client/lib"
-  oozie_lib_dir = "/usr/hdp/current/oozie-client/"
-  oozie_setup_sh = "/usr/hdp/current/oozie-client/bin/oozie-setup.sh"
-  oozie_webapps_dir = "/usr/hdp/current/oozie-client/oozie-server/webapps"
-  oozie_webapps_conf_dir = "/usr/hdp/current/oozie-client/oozie-server/conf"
-  oozie_libext_dir = "/usr/hdp/current/oozie-client/libext"
-  oozie_server_dir = "/usr/hdp/current/oozie-client/oozie-server"
-  oozie_shared_lib = "/usr/hdp/current/oozie-client/share"
-  oozie_home = "/usr/hdp/current/oozie-client"
-  oozie_bin_dir = "/usr/hdp/current/oozie-client/bin"
+
+  # if this is a server action, then use the server binaries; smoke tests
+  # use the client binaries
+  server_role_dir_mapping = { 'OOZIE_SERVER' : 'oozie-server',
+    'OOZIE_SERVICE_CHECK' : 'oozie-client' }
+
+  command_role = default("/role", "")
+  if command_role not in server_role_dir_mapping:
+    command_role = 'OOZIE_SERVICE_CHECK'
+
+  oozie_root = server_role_dir_mapping[command_role]
+
+  # using the correct oozie root dir, format the correct location
+  oozie_lib_dir = format("/usr/hdp/current/{oozie_root}/")
+  oozie_setup_sh = format("/usr/hdp/current/{oozie_root}/bin/oozie-setup.sh")
+  oozie_webapps_dir = format("/usr/hdp/current/{oozie_root}/oozie-server/webapps")
+  oozie_webapps_conf_dir = format("/usr/hdp/current/{oozie_root}/oozie-server/conf")
+  oozie_libext_dir = format("/usr/hdp/current/{oozie_root}/libext")
+  oozie_libext_customer_dir = format("/usr/hdp/current/{oozie_root}/libext-customer")
+  oozie_server_dir = format("/usr/hdp/current/{oozie_root}/oozie-server")
+  oozie_shared_lib = format("/usr/hdp/current/{oozie_root}/share")
+  oozie_home = format("/usr/hdp/current/{oozie_root}")
+  oozie_bin_dir = format("/usr/hdp/current/{oozie_root}/bin")
   falcon_home = '/usr/hdp/current/falcon-client'
 else:
   hadoop_bin_dir = "/usr/bin"
@@ -86,7 +109,7 @@ security_enabled = config['configurations']['cluster-env']['security_enabled']
 oozie_heapsize = config['configurations']['oozie-env']['oozie_heapsize']
 oozie_permsize = config['configurations']['oozie-env']['oozie_permsize']
 
-kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 oozie_service_keytab = config['configurations']['oozie-site']['oozie.service.HadoopAccessorService.keytab.file']
 oozie_principal = config['configurations']['oozie-site']['oozie.service.HadoopAccessorService.kerberos.principal']
 smokeuser_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
