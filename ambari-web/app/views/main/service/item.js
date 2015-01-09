@@ -89,20 +89,22 @@ App.MainServiceItemView = Em.View.extend({
         action: App.get('isHaEnabled') ? 'disableHighAvailability' : 'enableHighAvailability',
         label: App.get('isHaEnabled') ? Em.I18n.t('admin.highAvailability.button.disable') : Em.I18n.t('admin.highAvailability.button.enable'),
         cssClass: App.get('isHaEnabled') ? 'icon-arrow-down' : 'icon-arrow-up',
-        isHidden: (App.get('isHaEnabled') || (/^1.3/.test(App.get('currentStackVersionNumber'))))
+        isHidden: (App.get('isHaEnabled') || (/^1.3/.test(App.get('currentStackVersionNumber')))),
+        disabled: App.get('isSingleNode')
       },
       TOGGLE_RM_HA: {
         action: 'enableRMHighAvailability',
         label: Em.I18n.t('admin.rm_highAvailability.button.enable'),
         cssClass: 'icon-arrow-up',
-        isHidden: App.get('isRMHaEnabled')
+        isHidden: App.get('isRMHaEnabled'),
+        disabled: App.get('isSingleNode')
       },
       MOVE_COMPONENT: {
         action: 'reassignMaster',
         context: '',
         label: Em.I18n.t('services.service.actions.reassign.master'),
         cssClass: 'icon-share-alt',
-        disabled: false
+        disabled: App.get('isSingleNode')
       },
       STARTDEMOLDAP: {
         action: 'startLdapKnox',

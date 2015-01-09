@@ -77,6 +77,7 @@ describe('App.MainServiceItemView', function () {
         {
           serviceName: "HDFS",
           displayName: "HDFS",
+          isSingleNode: true,
           serviceTypes: ["HA_MODE"],
           hostComponents: [
             Em.Object.create({
@@ -103,9 +104,9 @@ describe('App.MainServiceItemView', function () {
           result: [
             {"action": "restartAllHostComponents", "context": "HDFS", "label": "Restart All", "cssClass": "icon-repeat", "disabled": false},
             {"action": "rollingRestart", "label": "Restart DataNodes", "cssClass": "icon-time", "disabled": false, "context": "DATANODE"},
-            {"action": "reassignMaster", "context": "NAMENODE", "label": "Move NameNode", "cssClass": "icon-share-alt", "disabled": false},
-            {"action": "reassignMaster", "context": "SECONDARY_NAMENODE", "label": "Move SNameNode", "cssClass": "icon-share-alt", "disabled": false},
-            {"action": "enableHighAvailability", "label": "Enable NameNode HA", "cssClass": "icon-arrow-up", "isHidden": false},
+            {"action": "reassignMaster", "context": "NAMENODE", "label": "Move NameNode", "cssClass": "icon-share-alt", "disabled": true},
+            {"action": "reassignMaster", "context": "SECONDARY_NAMENODE", "label": "Move SNameNode", "cssClass": "icon-share-alt", "disabled": true},
+            {"action": "enableHighAvailability", "label": "Enable NameNode HA", "cssClass": "icon-arrow-up", "isHidden": false, "disabled": true,},
             {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt"},
             {"action": "turnOnOffPassive", "context": "Turn On Maintenance Mode for HDFS", "label": "Turn On Maintenance Mode", "cssClass": "icon-medkit", "disabled": false},
             {"action": "rebalanceHdfsNodes", "customCommand": "REBALANCEHDFS", "context": "Rebalance HDFS", "label": "Rebalance HDFS", "cssClass": "icon-refresh", "disabled": false},
@@ -172,7 +173,7 @@ describe('App.MainServiceItemView', function () {
             {"action": "rollingRestart", "label": "Restart NodeManagers", "cssClass": "icon-time", "disabled": false, "context": "NODEMANAGER"},
             {"action": "reassignMaster", "context": "APP_TIMELINE_SERVER", "label": "Move App Timeline Server", "cssClass": "icon-share-alt", "disabled": false},
             {"action": "reassignMaster", "context": "RESOURCEMANAGER", "label": "Move ResourceManager", "cssClass": "icon-share-alt", "disabled": false},
-            {"action": "enableRMHighAvailability", "label": "Enable ResourceManager HA", "cssClass": "icon-arrow-up", "isHidden": false},
+            {"action": "enableRMHighAvailability", "label": "Enable ResourceManager HA", "cssClass": "icon-arrow-up", "isHidden": false, disabled: false},
             {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt"},
             {"action": "turnOnOffPassive", "context": "Turn On Maintenance Mode for YARN", "label": "Turn On Maintenance Mode", "cssClass": "icon-medkit", "disabled": false},
             {"action": "downloadClientConfigs", "label": "Download Client Configs", "cssClass": "icon-download-alt", "isHidden": true, "disabled": false, "hasSubmenu": false, "submenuOptions": []}
@@ -330,6 +331,8 @@ describe('App.MainServiceItemView', function () {
 
       sinon.stub(App, 'get', function (k) {
         switch (k) {
+          case 'isSingleNode':
+            return (view.get('controller.content.serviceName') == 'HDFS');
           case 'supports.autoRollbackHA':
           case 'isRMHaEnabled':
           case 'isHaEnabled':

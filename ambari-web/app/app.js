@@ -137,6 +137,15 @@ module.exports = Em.Application.create({
     return Em.get((this.get('currentStackVersion') || this.get('defaultStackVersion')).match(/(.+)-\d.+/), '1');
   }.property('currentStackVersion', 'defaultStackVersion'),
 
+  /**
+   * true if cluster has only 1 host
+   * for now is used to disable move/HA actions
+   * @type {boolean}
+   */
+  isSingleNode: function() {
+    return this.get('allHostNames.length') === 1;
+  }.property('allHostNames.length'),
+
   allHostNames: [],
 
   currentStackVersionNumber: function () {
