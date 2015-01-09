@@ -123,7 +123,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
       componentName: 'OOZIE_SERVER',
         configs: {
           'oozie-site': {
-            'oozie.base.url': '<replace-value>:11000/oozie'
+            'oozie.base.url': 'http://<replace-value>:11000/oozie'
           }
         }
     },
