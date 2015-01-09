@@ -29,7 +29,7 @@
   {{else}}
     <div>
       <p class="muted">{{t admin.security.disabled}}
-        <a class="btn btn-padding btn-success admin-enable-security-btn" {{action startKerberosWizard target="controller"}}>{{t admin.kerberos.button.enable}} </a>
+        <a class="btn btn-padding btn-success admin-enable-security-btn" {{action checkAndStartKerberosWizard target="controller"}}>{{t admin.kerberos.button.enable}} </a>
         <br/>
       </p>
     </div>

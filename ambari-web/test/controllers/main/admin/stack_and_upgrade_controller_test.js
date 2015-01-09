@@ -256,11 +256,11 @@ describe('App.MainAdminStackAndUpgradeController', function() {
 
   describe("#runPreUpgradeCheckSuccess()", function () {
     beforeEach(function () {
-      sinon.stub(App.ModalPopup, 'show', Em.K);
+      sinon.stub(App, 'showClusterCheckPopup', Em.K);
       sinon.stub(controller, 'upgrade', Em.K);
     });
     afterEach(function () {
-      App.ModalPopup.show.restore();
+      App.showClusterCheckPopup.restore();
       controller.upgrade.restore();
     });
     it("shows popup", function () {
@@ -274,8 +274,8 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         }
       }]};
       controller.runPreUpgradeCheckSuccess(check,null,{label: "name"});
-      expect(controller.upgrade.calledOnce).to.be.false;
-      expect(App.ModalPopup.show.calledOnce).to.be.true;
+      expect(controller.upgrade.called).to.be.false;
+      expect(App.showClusterCheckPopup.called).to.be.true;
     });
     it("runs upgrade popup", function () {
       var check = { items: [{
@@ -288,8 +288,8 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         }
       }]};
       controller.runPreUpgradeCheckSuccess(check,null,{label: "name"});
-      expect(controller.upgrade.calledOnce).to.be.true;
-      expect(App.ModalPopup.show.calledOnce).to.be.false;
+      expect(controller.upgrade.called).to.be.true;
+      expect(App.showClusterCheckPopup.called).to.be.false;
     });
   });
 

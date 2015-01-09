@@ -316,15 +316,10 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   runPreUpgradeCheckSuccess: function (data, opt, params) {
     if (data.items.someProperty('UpgradeChecks.status', "FAIL")) {
-      return App.ModalPopup.show({
-        header: Em.I18n.t('admin.stackUpgrade.preupgradeCheck.header').format(params.label),
-        primary: Em.I18n.t('common.dismiss'),
-        secondary: false,
-        bodyClass: Em.View.extend({
-          templateName: require('templates/main/admin/stack_upgrade/pre_upgrade_check_dialog'),
-          checks: data.items.filterProperty('UpgradeChecks.status', "FAIL")
-        })
-      })
+      var header = Em.I18n.t('popup.clusterCheck.Upgrade.header').format(params.label);
+      var title = Em.I18n.t('popup.clusterCheck.Upgrade.title');
+      var alert = Em.I18n.t('popup.clusterCheck.Upgrade.alert');
+      App.showClusterCheckPopup(data, header, title, alert);
     } else {
       this.upgrade(params);
     }

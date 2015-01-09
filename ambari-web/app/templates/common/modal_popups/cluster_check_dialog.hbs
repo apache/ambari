@@ -16,14 +16,14 @@
 * limitations under the License.
 }}
 <div id="pre-upgrade-check">
-  <h4>{{t admin.stackUpgrade.preupgradeCheck.title}}</h4>
+  <h4>{{view.title}}</h4>
   <div class="alert alert-warning">
-    {{t admin.stackUpgrade.preupgradeCheck.alert}}
+    {{view.alert}}
   </div>
   <div class="limited-height-2">
     {{#each item in view.checks}}
         <i class="icon-remove"></i>&nbsp;<span>{{item.UpgradeChecks.check}}</span>
-        <pre>{{t admin.stackUpgrade.preupgradeCheck.reason}}{{item.UpgradeChecks.reason}}<br/>{{t admin.stackUpgrade.preupgradeCheck.failedOn}}{{item.UpgradeChecks.failed_on}}</pre>
+        <pre>{{t popup.clusterCheck.reason}}{{item.UpgradeChecks.reason}}<br/>{{t popup.clusterCheck.failedOn}}{{item.UpgradeChecks.failed_on}}</pre>
     {{/each}}
   </div>
 </div>

@@ -19,14 +19,16 @@
 var App = require('app');
 
 describe('App.MainAdminKerberosController', function() {
+
+  var controller = App.MainAdminKerberosController.create({});
+
   describe('#prepareConfigProperties', function() {
     beforeEach(function() {
-      this.controller = App.MainAdminKerberosController.create({});
       sinon.stub(App.Service, 'find').returns([
         Em.Object.create({ serviceName: 'KERBEROS'}),
         Em.Object.create({ serviceName: 'HDFS' })
       ]);
-      this.result = this.controller.prepareConfigProperties([
+      this.result = controller.prepareConfigProperties([
         Em.Object.create({ name: 'prop1', isEditable: true, serviceName: 'SERVICE1'}),
         Em.Object.create({ name: 'prop2', isEditable: true, serviceName: 'KERBEROS'}),
         Em.Object.create({ name: 'prop3', isEditable: true, serviceName: 'HDFS'}),
@@ -51,6 +53,45 @@ describe('App.MainAdminKerberosController', function() {
         expect(prop).to.be.ok;
         expect(prop.get('isEditable')).to.be.false;
       });
+    });
+  });
+
+  describe("#runSecurityCheckSuccess()", function () {
+    beforeEach(function () {
+      sinon.stub(App, 'showClusterCheckPopup', Em.K);
+      sinon.stub(controller, 'startKerberosWizard', Em.K);
+    });
+    afterEach(function () {
+      App.showClusterCheckPopup.restore();
+      controller.startKerberosWizard.restore();
+    });
+    it("shows popup", function () {
+      var check =  { items: [{
+        UpgradeChecks: {
+          "check": "Work-preserving RM/NM restart is enabled in YARN configs",
+          "status": "FAIL",
+          "reason": "FAIL",
+          "failed_on": [],
+          "check_type": "SERVICE"
+        }
+      }]};
+      controller.runSecurityCheckSuccess(check,null,{label: "name"});
+      expect(controller.startKerberosWizard.called).to.be.false;
+      expect(App.showClusterCheckPopup.called).to.be.true;
+    });
+    it("runs startKerberosWizard", function () {
+      var check = { items: [{
+        UpgradeChecks: {
+          "check": "Work-preserving RM/NM restart is enabled in YARN configs",
+          "status": "PASS",
+          "reason": "OK",
+          "failed_on": [],
+          "check_type": "SERVICE"
+        }
+      }]};
+      controller.runSecurityCheckSuccess(check,null,{label: "name"});
+      expect(controller.startKerberosWizard.called).to.be.true;
+      expect(App.showClusterCheckPopup.called).to.be.false;
     });
   });
 });

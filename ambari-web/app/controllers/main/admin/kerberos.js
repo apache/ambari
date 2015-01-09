@@ -64,6 +64,44 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
     return this.get('securityEnabled');
   },
 
+  /**
+   * performes clustere check before kerbefos security
+   * wizard starts if <code>preKerberizeCheck<code> supports is true
+   * otherwise runs <code>startKerberosWizard<code>
+   * @method checkAndStartKerberosWizard
+   */
+  checkAndStartKerberosWizard: function() {
+    if (App.get('supports.preKerberizeCheck')) {
+      App.ajax.send({
+        name: "admin.kerberos_security.checks",
+        sender: this,
+        success: "runSecurityCheckSuccess"
+      });
+    } else {
+      this.startKerberosWizard();
+    }
+  },
+
+  /**
+   * success callback of <code>checkAndStartKerberosWizard()</code>
+   * if there are some fails - it shows popup else open security wizard
+   * @param data {object}
+   * @param opt {object}
+   * @param params {object}
+   * @returns {App.ModalPopup|undefined}
+   */
+  runSecurityCheckSuccess: function (data, opt, params) {
+    //TODO correct check
+    if (data.items.someProperty('UpgradeChecks.status', "FAIL")) {
+      var header = Em.I18n.t('popup.clusterCheck.Security.header').format(params.label);
+      var title = Em.I18n.t('popup.clusterCheck.Security.title');
+      var alert = Em.I18n.t('popup.clusterCheck.Security.alert');
+      App.showClusterCheckPopup(data, header, title, alert);
+    } else {
+      this.startKerberosWizard();
+    }
+  },
+
   startKerberosWizard: function () {
     this.setAddSecurityWizardStatus('RUNNING');
     App.router.transitionTo('adminAddKerberos');

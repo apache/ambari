@@ -1383,6 +1383,12 @@ var urls = {
     'mock': '/data/stack_versions/pre_upgrade_check.json'
   },
 
+  'admin.kerberos_security.checks': {
+    //TODO when api will be known
+    'real': '',
+    'mock': '/data/stack_versions/pre_upgrade_check.json'
+  },
+
   'wizard.advanced_repositories.valid_url': {
     'real': '/stacks/{stackName}/versions/{stackVersion}/operating_systems/{osType}/repositories/{repoId}',
     'mock': '',
