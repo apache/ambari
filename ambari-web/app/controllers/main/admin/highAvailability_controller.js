@@ -21,10 +21,6 @@ var App = require('app');
 App.MainAdminHighAvailabilityController = Em.Controller.extend({
   name: 'mainAdminHighAvailabilityController',
 
-  securityEnabled: function () {
-    return App.router.get('mainAdminSecurityController.securityEnabled');
-  }.property('App.router.mainAdminSecurityController.securityEnabled'),
-
   tag: null,
 
   dataIsLoaded: false,
@@ -36,25 +32,20 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
   enableHighAvailability: function () {
     var message = [];
     var hostComponents = App.HostComponent.find();
-    //Prerequisite Checks
-    if (this.get('securityEnabled')) {
-      this.showErrorPopup(Em.I18n.t('admin.highAvailability.error.security'));
-      return false;
-    } else {
-      if (hostComponents.findProperty('componentName', 'NAMENODE').get('workStatus') !== 'STARTED') {
-        message.push(Em.I18n.t('admin.highAvailability.error.namenodeStarted'));
-      }
-      if (hostComponents.filterProperty('componentName', 'ZOOKEEPER_SERVER').length < 3) {
-        message.push(Em.I18n.t('admin.highAvailability.error.zooKeeperNum'));
-      }
 
-      if (App.router.get('mainHostController.hostsCountMap.TOTAL') < 3) {
-        message.push(Em.I18n.t('admin.highAvailability.error.hostsNum'));
-      }
-      if (message.length > 0) {
-        this.showErrorPopup(message);
-        return false;
-      }
+    if (hostComponents.findProperty('componentName', 'NAMENODE').get('workStatus') !== 'STARTED') {
+      message.push(Em.I18n.t('admin.highAvailability.error.namenodeStarted'));
+    }
+    if (hostComponents.filterProperty('componentName', 'ZOOKEEPER_SERVER').length < 3) {
+      message.push(Em.I18n.t('admin.highAvailability.error.zooKeeperNum'));
+    }
+
+    if (App.router.get('mainHostController.hostsCountMap.TOTAL') < 3) {
+      message.push(Em.I18n.t('admin.highAvailability.error.hostsNum'));
+    }
+    if (message.length > 0) {
+      this.showErrorPopup(message);
+      return false;
     }
     App.router.transitionTo('main.services.enableHighAvailability');
     return true;

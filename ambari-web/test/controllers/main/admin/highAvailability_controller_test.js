@@ -44,20 +44,7 @@ describe('App.MainAdminHighAvailabilityController', function () {
       App.HostComponent.find.restore();
     });
 
-    it('Security enabled', function () {
-      sinon.stub(controller, 'get', function (k) {
-        if (k === 'securityEnabled') return true;
-        return Em.get(controller, k);
-      });
-      expect(controller.enableHighAvailability()).to.be.false;
-      expect(controller.showErrorPopup.calledOnce).to.be.true;
-      controller.get.restore();
-    });
     it('NAMENODE in INSTALLED state', function () {
-      sinon.stub(controller, 'get', function (k) {
-        if (k === 'securityEnabled') return false;
-        return Em.get(controller, k);
-      });
       hostComponents = [
         Em.Object.create({
           componentName: 'NAMENODE',
@@ -83,7 +70,6 @@ describe('App.MainAdminHighAvailabilityController', function () {
       expect(controller.enableHighAvailability()).to.be.false;
       expect(controller.showErrorPopup.calledOnce).to.be.true;
       App.router.get.restore();
-      controller.get.restore();
     });
     it('Cluster has less than 3 ZOOKEPER_SERVER components', function () {
       hostComponents = [
@@ -101,10 +87,6 @@ describe('App.MainAdminHighAvailabilityController', function () {
       App.router.get.restore();
     });
     it('total hosts number less than 3', function () {
-      sinon.stub(controller, 'get', function (k) {
-        if (k === 'securityEnabled') return false;
-        return Em.get(controller, k);
-      });
       hostComponents = [
         Em.Object.create({
           componentName: 'NAMENODE',
@@ -129,13 +111,8 @@ describe('App.MainAdminHighAvailabilityController', function () {
       expect(controller.enableHighAvailability()).to.be.false;
       expect(controller.showErrorPopup.calledOnce).to.be.true;
       App.router.get.restore();
-      controller.get.restore();
     });
     it('All checks passed', function () {
-      sinon.stub(controller, 'get', function (k) {
-        if (k === 'securityEnabled') return false;
-        return Em.get(controller, k);
-      });
       hostComponents = [
         Em.Object.create({
           componentName: 'NAMENODE',
@@ -161,7 +138,6 @@ describe('App.MainAdminHighAvailabilityController', function () {
       expect(App.router.transitionTo.calledWith('main.services.enableHighAvailability')).to.be.true;
       expect(controller.showErrorPopup.calledOnce).to.be.false;
       App.router.get.restore();
-      controller.get.restore();
     });
   });
 
