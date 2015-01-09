@@ -190,6 +190,16 @@ public class BlueprintEntity {
 
       operationalConfiguration.putAll(getConfigurationAsMap(hostGroup.getConfigurations()));
       for (HostGroupComponentEntity component : hostGroup.getComponents()) {
+        //check that MYSQL_SERVER component is not available while hive using existing db
+        if (component.getName().equals("MYSQL_SERVER")) {
+          Map<String, String> hiveEnvConfig = clusterConfigurations.get("hive-env");
+          if (hiveEnvConfig != null && !hiveEnvConfig.isEmpty() && hiveEnvConfig.get("hive_database") != null
+                  && hiveEnvConfig.get("hive_database").startsWith("Existing")) {
+            throw new IllegalArgumentException("Incorrect configuration: MYSQL_SERVER component is available but hive" +
+                    " using existing db!");
+          }
+        }
+
         //for now, AMBARI is not recognized as a service in Stacks
         if (! component.getName().equals("AMBARI_SERVER")) {
           ServiceInfo service;
