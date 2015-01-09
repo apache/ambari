@@ -186,6 +186,7 @@ App.MainStackVersionsDetailsController = Em.Controller.extend({
         App.router.transitionTo('main.admin.adminStackVersions.version', repoVersion);
       } else {
         self.set('content', repoVersion);
+        self.doPolling();
       }
     });
   }

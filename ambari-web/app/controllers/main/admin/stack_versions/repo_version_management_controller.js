@@ -163,16 +163,29 @@ App.RepoVersionsManagementController = Em.ArrayController.extend({
   },
 
   /**
-   * shows popup with listed hosts wich has current state of hostStackVersion
+   * runs <code>showHostsListPopup<code>
    * @param event
-   * @returns {*|void}
+   * @returns {void}
    * @method showHosts
    */
   showHosts: function(event) {
-    var self = this;
     var status = event.contexts[0];
     var version = event.contexts[1];
     var hosts = event.contexts[2];
+    this.showHostsListPopup(status, version, hosts);
+  },
+
+  /**
+   * shows popup with listed hosts wich has current state of hostStackVersion
+   * @param {Object} status - status of repoverion
+   *    {id: "string", label: "string"}
+   * @param {string} version - repo version name
+   * @param {[string]} hosts - array of host containing current repo version in proper state
+   * @returns {App.ModalPopup}
+   * @method showHostsListPopup
+   */
+  showHostsListPopup: function(status, version, hosts) {
+    var self = this;
     if (hosts.length) {
       return App.ModalPopup.show({
         bodyClass: Ember.View.extend({

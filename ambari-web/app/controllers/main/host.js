@@ -930,7 +930,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     associations[8] = 'componentsWithStaleConfigsCount';
     associations[9] = 'componentsInPassiveStateCount';
     associations[10] = 'selected';
-    associations[11] = 'stackVersions';
+    associations[11] = 'stackVersions.repoVersion';
     return associations;
   }.property()
 

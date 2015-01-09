@@ -23,7 +23,7 @@ App.MainStackVersionsDetailsView = Em.View.extend({
   templateName: require('templates/main/admin/stack_versions/stack_version_details'),
 
   content: function() {
-    return this.get('controller.content')
+    return this.get('controller.content');
   }.property('controller.content'),
 
   /**
@@ -34,7 +34,7 @@ App.MainStackVersionsDetailsView = Em.View.extend({
   installButtonMsg: function() {
     return this.get('content.stackVersion.state') == 'INSTALL_FAILED'
       ? Em.I18n.t('admin.stackVersions.details.hosts.btn.reinstall')
-      : Em.I18n.t('admin.stackVersions.details.hosts.btn.install').format(this.get('controller.hostsToInstall'))
+      : Em.I18n.t('admin.stackVersions.details.hosts.btn.install').format(this.get('controller.hostsToInstall'));
   }.property('content.stackVersion.state', 'parentView.content.stackVersion.initHosts.length'),
 
   /**
@@ -55,55 +55,58 @@ App.MainStackVersionsDetailsView = Em.View.extend({
   }.property('controller.progress'),
 
   /**
-   * true if repoVersion has ClusterStackVersion
-   * defines show host counters on repoversionDetails page
-   * @type {Boolean}
-   */
-  showCounters: function() {
-    return this.get('content.stackVersion') != null;
-  }.property('content.stackVersion'),
-
-
-  /**
    * hosts with stack versions in not installed state
    * when stack version for repoversion is not created returns all hosts in cluster
    */
   notInstalledHosts: function() {
-    if (this.get('showCounters') && this.get('content.stackVersion.notInstalledHosts')) {
-      return this.get('content.stackVersion.notInstalledHosts');
-    } else {
-      return App.get('allHostNames');
-    }
-  }.property('showCounters', 'content.stackVersion.notInstalledHosts.length', 'App.allHostNames'),
+    return this.get('content.stackVersion') ? this.get('content.stackVersion.notInstalledHosts') : App.get('allHostNames');
+  }.property('content.stackVersion.notInstalledHosts.length', 'App.allHostNames'),
 
   /**
    * hosts with stack versions in installed state
    * when stack version for repoversion is not created returns an empty array
    */
   installedHosts: function() {
-    return this.get('showCounters') ? this.get('content.stackVersion.installedHosts') : [];
-  }.property('showCounters', 'content.stackVersion.installedHosts.length'),
+    return this.get('content.stackVersion') ? this.get('content.stackVersion.installedHosts') : [];
+  }.property('content.stackVersion.installedHosts.length'),
 
   /**
    * hosts with stack versions in current state
    * when stack version for repoversion is not created returns an empty array
    */
   currentHosts: function() {
-    return this.get('showCounters') ? this.get('content.stackVersion.currentHosts') : [];
-  }.property('showCounters', 'content.stackVersion.currentHosts.length'),
+    return this.get('content.stackVersion') ? this.get('content.stackVersion.currentHosts') : [];
+  }.property('content.stackVersion.currentHosts.length'),
 
+  /**
+   * true if there are no hosts without this repoversion
+   * @type {boolean}
+   */
   noInitHosts: function() {
-    return this.get('showCounters') ? this.get('content.stackVersion.noInitHosts') : false;
-  }.property('showCounters', 'content.stackVersion.noInitHosts'),
+    return this.get('content.stackVersion') ? this.get('content.stackVersion.noInitHosts') : false;
+  }.property('content.stackVersion.noInitHosts'),
 
+  /**
+   * true if there are no hosts with this repoversion
+   * @type {boolean}
+   */
   noInstalledHosts:  function() {
-    return this.get('showCounters') ? this.get('content.stackVersion.noInstalledHosts') : true;
-  }.property('showCounters', 'content.stackVersion.noInstalledHosts'),
+    return this.get('content.stackVersion') ? this.get('content.stackVersion.noInstalledHosts') : true;
+  }.property('content.stackVersion.noInstalledHosts'),
 
+  /**
+   * true if there are no hosts with this repoversion as current
+   * @type {boolean}
+   */
   noCurrentHosts: function() {
-    return this.get('showCounters') ? this.get('content.stackVersion.noCurrentHosts') : true;
-  }.property('showCounters', 'content.stackVersion.noCurrentHosts'),
+    return this.get('content.stackVersion') ? this.get('content.stackVersion.noCurrentHosts') : true;
+  }.property('content.stackVersion.noCurrentHosts'),
 
+  /**
+   * map containing version (id, label)
+   * this is used as param for <code>showHosts<code> method
+   * @type {Object}
+   */
   versionStateMap: {
     'current': {
       'id': 'current',
@@ -117,6 +120,36 @@ App.MainStackVersionsDetailsView = Em.View.extend({
       'id': 'installing',
       'label': Em.I18n.t('admin.stackVersions.hosts.popup.header.not_installed')
     }
+  },
+
+  /**
+   * runs <code>showHostsListPopup<code> from <code>repoVersionsManagementController<code>
+   * to open popup with hosts that has this repo version
+   * in not_installed state
+   */
+  showNotInstalledHosts: function() {
+    App.router.get('repoVersionsManagementController').showHostsListPopup(this.get('versionStateMap.not_installed'),
+      this.get('content.repositoryVersion'), this.get('notInstalledHosts'));
+  },
+
+  /**
+   * runs <code>showHostsListPopup<code> from <code>repoVersionsManagementController<code>
+   * to open popup with hosts that has this repo version
+   * in installed state
+   */
+  showInstalledHosts: function() {
+    App.router.get('repoVersionsManagementController').showHostsListPopup(this.get('versionStateMap.installed'),
+      this.get('content.repositoryVersion'), this.get('installedHosts'));
+  },
+
+  /**
+   * runs <code>showHostsListPopup<code> from <code>repoVersionsManagementController<code>
+   * to open popup with hosts that has this repo version
+   * in current state
+   */
+  showCurrentHosts: function() {
+    App.router.get('repoVersionsManagementController').showHostsListPopup(this.get('versionStateMap.current'),
+      this.get('content.repositoryVersion'), this.get('currentHosts'));
   },
 
   didInsertElement: function() {

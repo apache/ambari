@@ -31,7 +31,7 @@
               <div class="span3">{{t admin.stackVersions.details.not.installed.on}}</div>
               <div {{bindAttr class="view.noInitHosts:not-active-link :span6"}}>
                 <a href="#" class="not-installed-hosts-count"
-                  {{action showHosts view.versionStateMap.not_installed content.repositoryVersion view.notInstalledHosts target="App.router.mainStackVersionsController"}}>
+                  {{action showNotInstalledHosts target="view"}}>
                   {{view.notInstalledHosts.length}}&nbsp;
                   {{pluralize view.notInstalledHosts.length singular="t:admin.stackVersions.details.host" plural="t:admin.stackVersions.details.hosts"}}
                 </a>
@@ -42,7 +42,7 @@
             <div class="span3">{{t admin.stackVersions.details.installed.on}}</div>
             <div {{bindAttr class="view.noInstalledHosts:not-active-link :span6"}}>
               <a href="#" class="installed-hosts-count"
-                {{action showHosts view.versionStateMap.installed content.repositoryVersion view.installedHosts target="App.router.mainStackVersionsController"}}>
+                {{action showInstalledHosts target="view"}}>
                 {{view.installedHosts.length}}&nbsp;
                 {{pluralize view.installedHosts.length singular="t:admin.stackVersions.details.host" plural="t:admin.stackVersions.details.hosts"}}
               </a>
@@ -52,7 +52,7 @@
             <div class="span3">{{t admin.stackVersions.details.current.on}}</div>
             <div {{bindAttr class="view.noCurrentHosts:not-active-link :span6"}}>
               <a href="#" class="current-hosts-count"
-                {{action showHosts view.versionStateMap.current content.repositoryVersion view.currentHosts target="App.router.mainStackVersionsController"}}>
+                {{action showCurrentHosts target="view"}}>
                 {{view.currentHosts.length}}&nbsp;
                 {{pluralize view.currentHosts.length singular="t:admin.stackVersions.details.host" plural="t:admin.stackVersions.details.hosts"}}
               </a>

@@ -124,8 +124,7 @@ describe('App.RepoVersionsManagementController', function () {
       App.router.get('mainHostController').filterByStack.restore();
       App.router.transitionTo.restore();
     });
-    var tests = [
-      {
+    [{
         version: "version1",
         state: "state1",
         m: 'go to hosts filtered by host stack version and host stack state',
@@ -156,14 +155,26 @@ describe('App.RepoVersionsManagementController', function () {
       });
   });
 
-  describe('#showHosts()', function () {
+  describe('#showHostsListPopup()', function () {
     it('show list of hosts for current version in choosen state', function () {
       sinon.stub(controller, 'filterHostsByStack', Em.K);
 
-      controller.showHosts({ contexts: [{id: "state", label: "label"}, "version",["host"]]}).onPrimary();
+      controller.showHostsListPopup({id: "state", label: "label"}, "version", ["host"]).onPrimary();
       expect(controller.filterHostsByStack.calledWith("version", "state")).to.be.true;
 
       controller.filterHostsByStack.restore();
     });
   });
+
+  describe('#showHosts()', function () {
+    it('show list of hosts for current version in choosen state', function () {
+      sinon.stub(controller, 'showHostsListPopup', Em.K);
+
+      controller.showHosts({contexts: [{id: "state", label: "label"}, "version", ["host"]]});
+      expect(controller.showHostsListPopup.calledWith({id: "state", label: "label"}, "version", ["host"])).to.be.true;
+
+      controller.showHostsListPopup.restore();
+    });
+  });
+
 });

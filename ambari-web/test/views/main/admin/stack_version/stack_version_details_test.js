@@ -23,6 +23,7 @@ var view;
 
 describe('App.MainStackVersionsDetailsView', function () {
 
+  var defaultRepoVersion = "2.2.1.0";
   beforeEach(function () {
     view = App.MainStackVersionsDetailsView.create({
       "controller": {
@@ -34,8 +35,12 @@ describe('App.MainStackVersionsDetailsView', function () {
         "stackVersion":
           {
             "state" : "ANY"
-          }
-      }
+          },
+        'repositoryVersion': defaultRepoVersion
+      },
+      "currentHosts": ['currentHost'],
+      "installedHosts": ['installedHost'],
+      "notInstalledHosts": ['notInstalledHost']
     });
   });
 
@@ -79,17 +84,6 @@ describe('App.MainStackVersionsDetailsView', function () {
     it("this that is used as width of progress bar" , function() {
       view.set("controller.progress", 20);
       expect(view.get('progress')).to.equal('width:20%');
-    });
-  });
-
-  describe('#showCounters', function () {
-    it("true when repo version has cluster stack version" , function() {
-      view.set("content.stackVersion", Em.Object.create({}));
-      expect(view.get('showCounters')).to.be.true;
-    });
-    it("false when repo version has no cluster stack version" , function() {
-      view.set("content.stackVersion", null);
-      expect(view.get('showCounters')).to.be.false;
     });
   });
 
@@ -139,6 +133,60 @@ describe('App.MainStackVersionsDetailsView', function () {
     it("runs polling when view is in dom" , function() {
       view.willDestroyElement();
       expect(App.get('router.mainStackVersionsController').set.calledWith('isPolling', false)).to.be.true;
+    });
+  });
+
+  describe('#showNotInstalledHosts', function() {
+    beforeEach(function() {
+      sinon.stub(App.get('router.repoVersionsManagementController'), 'showHostsListPopup', Em.K);
+    });
+    afterEach(function () {
+      App.get('router.repoVersionsManagementController').showHostsListPopup.restore();
+    });
+
+    it("runs showHostsListPopup from repoVersionsManagementController", function () {
+      var state = {
+        'id': 'installing',
+        'label': Em.I18n.t('admin.stackVersions.hosts.popup.header.not_installed')
+      };
+      view.showNotInstalledHosts();
+      expect(App.get('router.repoVersionsManagementController').showHostsListPopup.calledWith(state, defaultRepoVersion, ['notInstalledHost'])).to.be.true;
+    });
+  });
+
+  describe('#showInstalledHosts', function() {
+    beforeEach(function() {
+      sinon.stub(App.get('router.repoVersionsManagementController'), 'showHostsListPopup', Em.K);
+    });
+    afterEach(function () {
+      App.get('router.repoVersionsManagementController').showHostsListPopup.restore();
+    });
+
+    it("runs showHostsListPopup from repoVersionsManagementController", function () {
+      var state = {
+        'id': 'installed',
+        'label': Em.I18n.t('admin.stackVersions.hosts.popup.header.installed')
+      };
+      view.showInstalledHosts();
+      expect(App.get('router.repoVersionsManagementController').showHostsListPopup.calledWith(state, defaultRepoVersion, ['installedHost'])).to.be.true;
+    });
+  });
+
+  describe('#showCurrentHosts', function() {
+    beforeEach(function() {
+      sinon.stub(App.get('router.repoVersionsManagementController'), 'showHostsListPopup', Em.K);
+    });
+    afterEach(function () {
+      App.get('router.repoVersionsManagementController').showHostsListPopup.restore();
+    });
+
+    it("runs showHostsListPopup from repoVersionsManagementController", function () {
+      var state = {
+        'id': 'current',
+        'label': Em.I18n.t('admin.stackVersions.hosts.popup.header.current')
+      };
+      view.showCurrentHosts();
+      expect(App.get('router.repoVersionsManagementController').showHostsListPopup.calledWith(state, defaultRepoVersion, ['currentHost'])).to.be.true;
     });
   });
 });
