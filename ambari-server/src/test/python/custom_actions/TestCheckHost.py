@@ -232,6 +232,8 @@ class TestCheckHost(TestCase):
     structured_out_mock.assert_called_with({})
 
 
+  @patch("platform.linux_distribution")
+  @patch("platform.system")
   @patch.object(Script, 'get_config')
   @patch.object(Script, 'get_tmp_dir')
   @patch('resource_management.libraries.script.Script.put_structured_out')
@@ -244,7 +246,12 @@ class TestCheckHost(TestCase):
   @patch('time.time')
   def testLastAgentEnv(self, time_mock, checkReverseLookup_mock, checkIptables_mock, getTransparentHugePage_mock,
                        getUMask_mock, checkLiveServices_mock, javaProcs_mock, put_structured_out_mock,
-                       get_tmp_dir_mock, get_config_mock):
+                       get_tmp_dir_mock, get_config_mock, systemMock, distMock):
+
+
+    systemMock.return_value = "Linux"
+    distMock.return_value = ("CentOS", "6.3", None)
+
     jsonFilePath = os.path.join("../resources/custom_actions", "check_last_agent_env.json")
     with open(jsonFilePath, "r") as jsonFile:
       jsonPayload = json.load(jsonFile)

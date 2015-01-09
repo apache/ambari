@@ -202,28 +202,35 @@ def main():
   for test_dir, msg in test_dirs:
     sys.stderr.write(msg)
     tests = get_test_files(test_dir, mask=test_mask, recursive=False)
-    #TODO Add an option to randomize the tests' execution
-    #shuffle(tests)
+
+    # TODO Add an option to randomize the tests' execution
+    # shuffle(tests)
+
     modules = [os.path.basename(s)[:-3] for s in tests]
-    suites = [unittest.defaultTestLoader.loadTestsFromName(name) for name in
-      modules]
+    suites = [unittest.defaultTestLoader.loadTestsFromName(name) for name in modules]
     testSuite = unittest.TestSuite(suites)
     textRunner = unittest.TextTestRunner(verbosity=2).run(testSuite)
     test_runs += textRunner.testsRun
+
     test_errors.extend(
       [(str(item[0]), str(item[1]), "ERROR") for item in textRunner.errors])
+
     test_failures.extend(
       [(str(item[0]), str(item[1]), "FAIL") for item in textRunner.failures])
-    tests_status = textRunner.wasSuccessful() and not has_failures
 
-  if not tests_status:
+  if len(test_errors) > 0 or len(test_failures) > 0:
+    has_failures = True
+
+  if has_failures:
     sys.stderr.write("----------------------------------------------------------------------\n")
     sys.stderr.write("Failed tests:\n")
-  for failed_tests in [test_errors,test_failures]:
-    for err in failed_tests:
-      sys.stderr.write("{0}: {1}\n".format(err[2],err[0]))
-      sys.stderr.write("----------------------------------------------------------------------\n")
-      sys.stderr.write("{0}\n".format(err[1]))
+
+    for failed_tests in [test_errors,test_failures]:
+      for err in failed_tests:
+        sys.stderr.write("{0}: {1}\n".format(err[2],err[0]))
+        sys.stderr.write("----------------------------------------------------------------------\n")
+        sys.stderr.write("{0}\n".format(err[1]))
+
   sys.stderr.write("----------------------------------------------------------------------\n")
   sys.stderr.write("Total run:{0}\n".format(test_runs))
   sys.stderr.write("Total errors:{0}\n".format(len(test_errors)))
@@ -233,12 +240,13 @@ def main():
   tempfile.tempdir = oldtmpdirpath
   tempfile.oldtmpdirpath = None
 
-  if tests_status:
+  if not has_failures:
     sys.stderr.write("OK\n")
     exit_code = 0
   else:
     sys.stderr.write("ERROR\n")
     exit_code = 1
+
   return exit_code
 
 
