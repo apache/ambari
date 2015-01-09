@@ -35,6 +35,13 @@ App.upgradeEntity = Em.Object.extend({
   isExpanded: false,
 
   /**
+   * @type {boolean}
+   */
+  isVisible: function () {
+    return this.get('status') !== 'PENDING';
+  }.property('status'),
+
+  /**
    * status of tasks/items/groups which should be grayed out and disabled
    * @type {Array}
    */

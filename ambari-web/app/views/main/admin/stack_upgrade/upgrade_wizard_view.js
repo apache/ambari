@@ -24,6 +24,16 @@ App.upgradeWizardView = Em.View.extend({
   templateName: require('templates/main/admin/stack_upgrade/stack_upgrade_wizard'),
 
   /**
+   * @type {Array}
+   */
+  failedStatuses: ['HOLDING_FAILED', 'HOLDING_TIMED_OUT', 'FAILED', 'TIMED_OUT'],
+
+  /**
+   * @type {Array}
+   */
+  activeStatuses: ['HOLDING_FAILED', 'HOLDING_TIMED_OUT', 'FAILED', 'TIMED_OUT', 'HOLDING', 'IN_PROGRESS'],
+
+  /**
    * update timer
    * @type {number|null}
    * @default null
@@ -36,12 +46,103 @@ App.upgradeWizardView = Em.View.extend({
   isLoaded: false,
 
   /**
+   * @type {boolean}
+   */
+  isDetailsOpened: false,
+
+  /**
+   * @type {boolean}
+   */
+  outsideView: true,
+
+  /**
    * progress value is rounded to floor
    * @type {number}
    */
   overallProgress: function () {
     return Math.floor(this.get('controller.upgradeData.Upgrade.progress_percent'));
   }.property('controller.upgradeData.Upgrade.progress_percent'),
+
+  /**
+   * upgrade groups, reversed and PENDING ones are hidden
+   * @type {Array}
+   */
+  upgradeGroups: function () {
+    if (Em.isNone(this.get('controller.upgradeData.upgradeGroups'))) return [];
+    var upgradeGroups = this.get('controller.upgradeData.upgradeGroups');
+    upgradeGroups.reverse();
+    return upgradeGroups;
+  }.property('controller.upgradeData.upgradeGroups'),
+
+  /**
+   * currently active group
+   * @type {object|undefined}
+   */
+  activeGroup: function () {
+    return this.get('upgradeGroups').find(function (item) {
+      return this.get('activeStatuses').contains(item.get('status'));
+    }, this);
+  }.property('upgradeGroups.@each.status'),
+
+  /**
+   * if upgrade group is in progress it should have currently running item
+   * @type {object|undefined}
+   */
+  runningItem: function () {
+    return this.get('activeGroup.upgradeItems') && this.get('activeGroup.upgradeItems').findProperty('status', 'IN_PROGRESS');
+  }.property('activeGroup.upgradeItems.@each.status'),
+
+  /**
+   * if upgrade group is failed it should have failed item
+   * @type {object|undefined}
+   */
+  failedItem: function () {
+    return this.get('activeGroup.upgradeItems') && this.get('activeGroup.upgradeItems').find(function (item) {
+      return this.get('failedStatuses').contains(item.get('status'));
+    }, this);
+  }.property('activeGroup.upgradeItems.@each.status'),
+
+  /**
+   * details of currently active task
+   * @type {object|undefined}
+   */
+  taskDetails: function () {
+    if (this.get('runningItem')) {
+      return this.get('runningItem').get('tasks').findProperty('status', 'IN_PROGRESS');
+    } else if (this.get('failedItem')) {
+      return this.get('failedItem').get('tasks').find(function (task) {
+        return this.get('failedStatuses').contains(task.get('status'));
+      }, this);
+    }
+  }.property('failedItem.tasks.@each.status', 'runningItem.tasks.@each.status'),
+
+  /**
+   * indicate whether failed item can be skipped or retried in order to continue Upgrade
+   * @type {boolean}
+   */
+  isHoldingState: function () {
+    return Boolean(this.get('failedItem.status') && this.get('failedItem.status').contains('HOLDING'));
+  }.property('failedItem.status'),
+
+  /**
+   * @type {boolean}
+   */
+  isManualDone: false,
+
+  /**
+   * @type {boolean}
+   */
+  isManualProceedDisabled: function () {
+    return !this.get('isManualDone');
+  }.property('isManualDone'),
+
+  /**
+   * if upgrade group is manual it should have manual item
+   * @type {object|undefined}
+   */
+  manualItem: function () {
+    return this.get('activeGroup.upgradeItems') && this.get('activeGroup.upgradeItems').findProperty('status', 'HOLDING');
+  }.property('activeGroup.upgradeItems.@each.status'),
 
   /**
    * label of Upgrade status
@@ -66,6 +167,13 @@ App.upgradeWizardView = Em.View.extend({
         return ""
     }
   }.property('controller.upgradeData.Upgrade.request_status'),
+
+  /**
+   * toggle details box
+   */
+  toggleDetails: function () {
+    this.toggleProperty('isDetailsOpened');
+  },
 
   /**
    * start polling upgrade data
@@ -104,5 +212,50 @@ App.upgradeWizardView = Em.View.extend({
       self.get('controller').loadUpgradeData();
       self.doPolling();
     }, App.bgOperationsUpdateInterval));
+  },
+
+  /**
+   * set status to Upgrade item
+   * @param item
+   * @param status
+   */
+  setUpgradeItemStatus: function(item, status) {
+    return App.ajax.send({
+      name: 'admin.upgrade.upgradeItem.setState',
+      sender: this,
+      data: {
+        upgradeId: item.get('request_id'),
+        itemId: item.get('stage_id'),
+        groupId: item.get('group_id'),
+        status: status
+      }
+    }).done(function () {
+        item.set('status', status);
+      });
+  },
+
+  /**
+   * set current upgrade item state to FAILED (for HOLDING_FAILED) or TIMED_OUT (for HOLDING_TIMED_OUT)
+   * in order to ignore fail and continue Upgrade
+   * @param {object} event
+   */
+  continue: function (event) {
+    this.setUpgradeItemStatus(event.context, event.context.get('status').slice(8));
+  },
+
+  /**
+   * set current upgrade item state to PENDING in order to retry Upgrade
+   * @param {object} event
+   */
+  retry: function (event) {
+    this.setUpgradeItemStatus(event.context, 'PENDING');
+  },
+
+  /**
+   * set current upgrade item state to COMPLETED in order to proceed
+   * @param {object} event
+   */
+  complete: function (event) {
+    this.setUpgradeItemStatus(event.context, 'COMPLETED');
   }
 });

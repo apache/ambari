@@ -21,11 +21,14 @@ var App = require('app');
 require('views/main/admin/stack_upgrade/upgrade_wizard_view');
 
 describe('App.upgradeWizardView', function () {
-  var view = App.upgradeWizardView.create();
+  var view = App.upgradeWizardView.create({
+    failedStatuses: ['FAILED']
+  });
   view.reopen({
     controller: Em.Object.create({
       loadUpgradeData: Em.K
-    })
+    }),
+    activeGroup: Em.Object.create()
   });
   view.removeObserver('App.clusterName', view, 'startPolling');
 
@@ -116,6 +119,160 @@ describe('App.upgradeWizardView', function () {
       this.clock.tick(App.bgOperationsUpdateInterval);
       expect(view.get('controller').loadUpgradeData.calledOnce).to.be.true;
       expect(view.doPolling.calledTwice).to.be.true;
+    });
+  });
+
+  describe("#continue()", function () {
+    before(function () {
+      sinon.stub(view, 'setUpgradeItemStatus', Em.K);
+    });
+    after(function () {
+      view.setUpgradeItemStatus.restore();
+    });
+    it("", function () {
+      view.continue({context: Em.Object.create({'status': 'HOLDING_FAILED'})});
+      expect(view.setUpgradeItemStatus.calledWith(Em.Object.create({'status': 'HOLDING_FAILED'}), 'FAILED')).to.be.true;
+    });
+  });
+
+  describe("#complete()", function () {
+    before(function () {
+      sinon.stub(view, 'setUpgradeItemStatus', Em.K);
+    });
+    after(function () {
+      view.setUpgradeItemStatus.restore();
+    });
+    it("", function () {
+      view.complete({context: Em.Object.create({'status': 'FAILED'})});
+      expect(view.setUpgradeItemStatus.calledWith(Em.Object.create({'status': 'FAILED'}), 'COMPLETED')).to.be.true;
+    });
+  });
+
+  describe("#retry()", function () {
+    before(function () {
+      sinon.stub(view, 'setUpgradeItemStatus', Em.K);
+    });
+    after(function () {
+      view.setUpgradeItemStatus.restore();
+    });
+    it("", function () {
+      view.retry({context: Em.Object.create({'status': 'FAILED'})});
+      expect(view.setUpgradeItemStatus.calledWith(Em.Object.create({'status': 'FAILED'}), 'PENDING')).to.be.true;
+    });
+  });
+
+  describe("#setUpgradeItemStatus()", function () {
+    before(function () {
+      sinon.stub(App.ajax, 'send', function () {
+        return {
+          done: function (callback) {
+            callback();
+          }
+        }
+      });
+    });
+    after(function () {
+      App.ajax.send.restore();
+    });
+    it("", function () {
+      var item = Em.Object.create({
+        request_id: 1,
+        stage_id: 1,
+        group_id: 1
+      })
+      view.setUpgradeItemStatus(item, 'PENDING');
+      expect(App.ajax.send.getCall(0).args[0]).to.eql({
+        name: 'admin.upgrade.upgradeItem.setState',
+        sender: view,
+        data: {
+          upgradeId: 1,
+          itemId: 1,
+          groupId: 1,
+          status: 'PENDING'
+        }
+      });
+      expect(item.get('status')).to.equal('PENDING');
+    });
+  });
+
+  describe("#manualItem", function () {
+    it("no running item", function () {
+      view.set('activeGroup.upgradeItems', []);
+      view.propertyDidChange('manualItem');
+      expect(view.get('manualItem')).to.be.undefined;
+    });
+    it("running item present", function () {
+      view.set('activeGroup.upgradeItems', [Em.Object.create({status: 'HOLDING'})]);
+      view.propertyDidChange('manualItem');
+      expect(view.get('manualItem')).to.be.eql(Em.Object.create({status: 'HOLDING'}));
+    });
+  });
+
+  describe("#isManualProceedDisabled", function () {
+    it("", function () {
+      view.set('isManualDone', true);
+      view.propertyDidChange('isManualProceedDisabled');
+      expect(view.get('isManualProceedDisabled')).to.be.false;
+    });
+  });
+
+  describe("#failedItem", function () {
+    it("no running item", function () {
+      view.set('activeGroup.upgradeItems', []);
+      view.propertyDidChange('failedItem');
+      expect(view.get('failedItem')).to.be.undefined;
+    });
+    it("running item present", function () {
+      view.set('activeGroup.upgradeItems', [Em.Object.create({status: 'FAILED'})]);
+      view.propertyDidChange('failedItem');
+      expect(view.get('failedItem')).to.be.eql(Em.Object.create({status: 'FAILED'}));
+    });
+  });
+
+  describe("#runningItem", function () {
+    it("no running item", function () {
+      view.set('activeGroup.upgradeItems', []);
+      view.propertyDidChange('runningItem');
+      expect(view.get('runningItem')).to.be.undefined;
+    });
+    it("running item present", function () {
+      view.set('activeGroup.upgradeItems', [
+        {status: 'IN_PROGRESS'}
+      ]);
+      view.propertyDidChange('runningItem');
+      expect(view.get('runningItem')).to.be.eql({status: 'IN_PROGRESS'});
+    });
+  });
+
+  describe("#isHoldingState", function () {
+    var testCases = [
+      {
+        data: {
+          failedItem: {status: 'PENDING'}
+        },
+        result: false
+      },
+      {
+        data: {
+          failedItem: {status: 'HOLDING_FAILED'}
+        },
+        result: true
+      },
+      {
+        data: {
+          failedItem: {status: 'HOLDING_TIMED_OUT'}
+        },
+        result: true
+      }
+    ];
+    testCases.forEach(function (test) {
+      it('failedItem - ' + test.data.failedItem, function () {
+        view.reopen({
+          failedItem: test.data.failedItem
+        });
+        view.propertyDidChange('isHoldingState');
+        expect(view.get('isHoldingState')).to.equal(test.result);
+      });
     });
   });
 });

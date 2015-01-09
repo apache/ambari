@@ -39,23 +39,25 @@
 
   {{! List of UpgradeItem}}
   {{#each item in view.content.upgradeItems}}
-    <div class="row-fluid">
-      <div {{bindAttr class="item.isActive::not-active-link :span8"}}>
-        {{statusIcon item.status}}
-        <a href="#" {{action toggleExpanded item view.content.upgradeItems target="view"}}>{{item.context}}</a>
+    {{#if item.isVisible}}
+      <div class="row-fluid">
+        <div {{bindAttr class="item.isActive::not-active-link :span8"}}>
+          {{statusIcon item.status}}
+          <a href="#" {{action toggleExpanded item view.content.upgradeItems target="view"}}>{{item.context}}</a>
+        </div>
+        {{#if item.isRunning}}
+          <div class="span3">
+            {{view App.ProgressBarView
+              progressBinding="item.progress"
+              statusBinding="item.status"
+            }}
+          </div>
+          <div class="span1">
+            <div>{{item.progress}}%</div>
+          </div>
+        {{/if}}
       </div>
-      {{#if item.isRunning}}
-        <div class="span3">
-          {{view App.ProgressBarView
-            progressBinding="item.progress"
-            statusBinding="item.status"
-          }}
-        </div>
-        <div class="span1">
-          <div>{{item.progress}}%</div>
-        </div>
-      {{/if}}
-    </div>
+    {{/if}}
     {{#if item.isExpanded}}
 
       {{! List of Tasks}}
@@ -67,44 +69,3 @@
     {{/if}}
   {{/each}}
 </div>
-
-{{#unless view.content.isExpanded}}
-  {{#if view.showProgressInfo}}
-    <div class="box details-box">
-      <div>
-        {{t admin.stackUpgrade.dialog.inProgress}}&nbsp;
-        <a href="#" {{action toggleExpanded view.content controller.upgradeData.upgradeGroups target="view"}}>{{view.runningItem.context}}</a>
-      </div>
-    </div>
-  {{/if}}
-  {{#if view.showFailedInfo}}
-    <div class="box details-box">
-      <div>
-        {{t admin.stackUpgrade.dialog.failed}}&nbsp;
-        <a href="#" {{action toggleExpanded view.content controller.upgradeData.upgradeGroups target="view"}}>{{view.failedItem.context}}</a>
-      </div>
-      {{#if view.isHoldingState}}
-        <div class="button-row">
-          <button class="btn btn-warning" {{action continue view.failedItem target="view"}}>{{t admin.stackUpgrade.dialog.continue}}</button>
-          <button class="btn" {{action retry view.failedItem target="view"}}>{{t common.retry}}</button>
-        </div>
-      {{/if}}
-    </div>
-  {{/if}}
-  {{#if view.isManualOpened}}
-    <div class="box details-box">
-      <p><strong>{{t admin.stackUpgrade.dialog.manual}}</strong></p>
-      <p>{{view.manualItem.context}}</p>
-
-      <div class="message">
-        {{view Em.Checkbox checkedBinding="view.isManualDone"}}
-        {{t admin.stackUpgrade.dialog.manualDone}}
-      </div>
-      <div class="button-row">
-        <button class="btn btn-success" {{bindAttr disabled="view.isManualProceedDisabled"}} {{action complete view.manualItem target="view"}}>
-          {{t common.proceed}}
-        </button>
-      </div>
-    </div>
-  {{/if}}
-{{/unless}}

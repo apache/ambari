@@ -16,9 +16,12 @@
 * limitations under the License.
 }}
 
-
-<div {{bindAttr class="view.content.isActive::not-active-link"}}>{{statusIcon view.content.status}}<a href="#" {{action toggleExpanded view.content view.tasks target="view.parentView"}}>{{view.content.command_detail}}</a></div>
-{{#if view.content.isExpanded}}
+{{#unless view.outsideView}}
+  <div {{bindAttr class="view.content.isActive::not-active-link"}}>{{statusIcon view.content.status}}<a
+    href="#" {{action toggleExpanded view.content view.tasks target="view.parentView"}}>{{view.content.command_detail}}</a>
+  </div>
+{{/unless}}
+{{#if view.showContent}}
   <div class="task-details task-detail-info">
     <ul class="nav nav-tabs">
       <li class="active"><a href="#tab1" data-toggle="tab">{{t common.stdout}}</a></li>
