@@ -142,9 +142,7 @@ var wrapperView = Ember.View.extend({
   /**
    * Callback for value changes
    */
-  onChangeValue: function () {
-
-  },
+  onChangeValue: Em.K,
 
   /**
    * Filter components is located here. Should be redefined

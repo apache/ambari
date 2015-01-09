@@ -32,7 +32,22 @@ App.MainAlertDefinitionsView = App.TableView.extend({
   willInsertElement: function () {
     if (!this.get('controller.showFilterConditionsFirstLoad')) {
       this.clearFilterCondition();
+      this.clearStartIndex();
     }
+    this.removeObserver('filteredCount', this, 'updatePaging');
+    this.removeObserver('displayLength', this, 'updatePaging');
+    var startIndex = App.db.getStartIndex(this.get('controller.name'));
+    this._super();
+    this.set('startIndex', startIndex ? startIndex : 1);
+    this.addObserver('filteredCount', this, 'updatePaging');
+    this.addObserver('displayLength', this, 'updatePaging');
+  },
+
+  /**
+   * Method is same as in the parentView, but observes are set in the <code>willInsertElement</code>
+   * and not in the declaration
+   */
+  updatePaging: function () {
     this._super();
   },
 
@@ -42,6 +57,22 @@ App.MainAlertDefinitionsView = App.TableView.extend({
     Em.run.next(function () {
       self.set('isInitialRendering', false);
     });
+  },
+
+  /**
+   * Save <code>startIndex</code> to the localStorage
+   * @method saveStartIndex
+   */
+  saveStartIndex: function() {
+    App.db.setStartIndex(this.get('controller.name'), this.get('startIndex'));
+  }.observes('startIndex'),
+
+  /**
+   * Clear <code>startIndex</code> from the localStorage
+   * @method clearStartIndex
+   */
+  clearStartIndex: function () {
+    App.db.setStartIndex(this.get('controller.name'), null);
   },
 
   /**

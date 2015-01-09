@@ -41,22 +41,26 @@ describe('App.MainAlertDefinitionsView', function () {
 
     beforeEach(function(){
       sinon.stub(view, 'clearFilterCondition', Em.K);
+      sinon.stub(view, 'clearStartIndex', Em.K);
     });
 
     afterEach(function(){
       view.clearFilterCondition.restore();
+      view.clearStartIndex.restore();
     });
 
-    it('should call clearFilterCondition if controller.showFilterConditionsFirstLoad is false', function () {
+    it('should call clearFilterCondition, clearStartIndex if controller.showFilterConditionsFirstLoad is false', function () {
       view.set('controller', {showFilterConditionsFirstLoad: false, content: []});
       view.willInsertElement();
       expect(view.clearFilterCondition.calledOnce).to.be.true;
+      expect(view.clearStartIndex.calledOnce).to.be.true;
     });
 
-    it('should not call clearFilterCondition if controller.showFilterConditionsFirstLoad is true', function () {
+    it('should not call clearFilterCondition, clearStartIndex if controller.showFilterConditionsFirstLoad is true', function () {
       view.set('controller', {showFilterConditionsFirstLoad: true, content: []});
       view.willInsertElement();
-      expect(view.clearFilterCondition.calledOnce).to.be.false;
+      expect(view.clearFilterCondition.called).to.be.false;
+      expect(view.clearStartIndex.called).to.be.false;
     });
   });
 
