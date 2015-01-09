@@ -125,6 +125,14 @@ App.upgradeWizardView = Em.View.extend({
   }.property('failedItem.status'),
 
   /**
+   * indicate whether failed item can be skipped or retried in order to continue Upgrade
+   * @type {boolean}
+   */
+  isSkipable: function () {
+    return this.get('failedItem.skippable');
+  }.property('failedItem.skippable'),
+
+  /**
    * @type {boolean}
    */
   isManualDone: false,
@@ -257,5 +265,13 @@ App.upgradeWizardView = Em.View.extend({
    */
   complete: function (event) {
     this.setUpgradeItemStatus(event.context, 'COMPLETED');
+  },
+
+  /**
+   * set current upgrade item state to FAILED in order to cancel upgrade
+   * @param {object} event
+   */
+  cancel: function (event) {
+    this.setUpgradeItemStatus(event.context, 'FAILED');
   }
 });

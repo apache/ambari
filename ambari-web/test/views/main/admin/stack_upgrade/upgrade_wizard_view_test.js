@@ -161,6 +161,19 @@ describe('App.upgradeWizardView', function () {
     });
   });
 
+  describe("#cancel()", function () {
+    before(function () {
+      sinon.stub(view, 'setUpgradeItemStatus', Em.K);
+    });
+    after(function () {
+      view.setUpgradeItemStatus.restore();
+    });
+    it("cabcel request", function () {
+      view.cancel({context: Em.Object.create({'status': 'HOLDING_FAILED'})});
+      expect(view.setUpgradeItemStatus.calledWith(Em.Object.create({'status': 'HOLDING_FAILED'}), 'FAILED')).to.be.true;
+    });
+  });
+
   describe("#setUpgradeItemStatus()", function () {
     before(function () {
       sinon.stub(App.ajax, 'send', function () {

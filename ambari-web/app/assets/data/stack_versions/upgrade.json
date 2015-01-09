@@ -15,7 +15,7 @@
     "queued_task_count" : 0,
     "request_context" : "Upgrading to 2.2.1.0-2191",
     "request_id" : 26,
-    "request_status" : "FAILED",
+    "request_status" : "IN_PROGRESS",
     "resource_filters" : [ ],
     "start_time" : 1420802576700,
     "task_count" : 21,
@@ -355,7 +355,7 @@
             "skippable" : false,
             "stage_id" : 10,
             "start_time" : 1420803704259,
-            "status" : "IN_PROGRESS"
+            "status" : "HOLDING_FAILED"
           },
           "tasks" : [
             {

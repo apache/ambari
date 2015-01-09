@@ -1335,6 +1335,7 @@ Em.I18n.translations = {
   'admin.stackUpgrade.dialog.operationFailed': "This operation failed.",
   'admin.stackUpgrade.dialog.stop': "Stop Upgrade",
   'admin.stackUpgrade.dialog.continue': "Ignore and Proceed",
+  'admin.stackUpgrade.dialog.cancel': "Cancel Upgrade",
   'admin.stackUpgrade.dialog.inProgress': "Now Running:",
   'admin.stackUpgrade.dialog.keepRunning': "Keep running Upgrade in background",
   'admin.stackUpgrade.dialog.failed': "Failed on:",

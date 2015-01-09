@@ -64,7 +64,11 @@
             </div>
             {{#if view.isHoldingState}}
               <div class="button-row">
-                <button class="btn btn-warning" {{action continue view.failedItem target="view"}}>{{t admin.stackUpgrade.dialog.continue}}</button>
+                {{#if view.isSkipable}}
+                  <button class="btn btn-warning" {{action continue view.failedItem target="view"}}>{{t admin.stackUpgrade.dialog.continue}}</button>
+                {{else}}
+                  <button class="btn btn-danger" {{action cancel view.failedItem target="view"}}>{{t admin.stackUpgrade.dialog.cancel}}</button>
+                {{/if}}
                 <button class="btn" {{action retry view.failedItem target="view"}}>{{t common.retry}}</button>
               </div>
             {{/if}}
