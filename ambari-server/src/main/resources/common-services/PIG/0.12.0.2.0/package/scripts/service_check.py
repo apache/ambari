@@ -81,7 +81,7 @@ class PigServiceCheck(Script):
       )
 
       # Check for Pig-on-Tez
-      copy_tarballs_to_hdfs('tez', params.smokeuser, params.hdfs_user, params.user_group)
+      copy_tarballs_to_hdfs('tez', 'hadoop-client', params.smokeuser, params.hdfs_user, params.user_group)
 
       if params.security_enabled:
         kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser};")

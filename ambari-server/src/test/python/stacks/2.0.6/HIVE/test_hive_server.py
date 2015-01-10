@@ -22,6 +22,7 @@ import subprocess
 
 from mock.mock import MagicMock, patch
 from resource_management.core import shell
+from resource_management.libraries.functions import dynamic_variable_interpretation
 from stacks.utils.RMFTestCase import *
 
 class TestHiveServer(RMFTestCase):
@@ -43,6 +44,7 @@ class TestHiveServer(RMFTestCase):
   @patch.object(shell, "call", new=MagicMock(return_value=(0, '')))
   @patch.object(subprocess,"Popen")
   @patch("socket.socket")
+  @patch.object(dynamic_variable_interpretation, "copy_tarballs_to_hdfs", new=MagicMock())
   def test_start_default(self, socket_mock, popen_mock):
     s = socket_mock.return_value
     
@@ -75,6 +77,7 @@ class TestHiveServer(RMFTestCase):
     self.assertTrue(s.close.called)
 
   @patch("socket.socket")
+  @patch.object(dynamic_variable_interpretation, "copy_tarballs_to_hdfs", new=MagicMock())
   def test_stop_default(self, socket_mock):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",

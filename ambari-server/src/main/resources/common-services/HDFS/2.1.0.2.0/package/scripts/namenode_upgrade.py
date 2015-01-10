@@ -23,6 +23,7 @@ from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.format import format
 from resource_management.core.shell import call
 from resource_management.core.exceptions import Fail
+from resource_management.libraries.functions.decorator import retry
 
 
 class SAFEMODE:
@@ -33,28 +34,29 @@ class SAFEMODE:
 safemode_to_instruction = {SAFEMODE.ON: "enter",
                            SAFEMODE.OFF: "leave"}
 
-
-def reach_safemode_state(secure_user, safemode_state, in_ha):
+@retry(times=3, sleep_time=6, err_class=Fail)
+def reach_safemode_state(user, safemode_state, in_ha):
   """
   Enter or leave safemode for the Namenode.
-  @param secure_user: user to perform action as
+  @param user: user to perform action as
   @param safemode_state: ON or OFF
   @param in_ha: bool indicating if Namenode High Availability is enabled
   @:return True if successful, false otherwise.
   """
-  Logger.info("Prepare to leave safemode")
+  Logger.info("Prepare to transition into safemode state %s" % safemode_state)
   import params
 
   hostname = params.hostname
   grep = format("Safe mode is {safemode_state} in {hostname}") if in_ha else format("Safe mode is {safemode_state}")
-  safemode_check = format("su - {secure_user} -c 'hdfs dfsadmin -safemode get | grep \"{grep}\"'")
+  safemode_check = format("su - {user} -c 'hdfs dfsadmin -safemode get | grep \"{grep}\"'")
   code, out = call(safemode_check)
   Logger.info("Command: %s\nCode: %d." % (safemode_check, code))
   if code != 0:
     command = "hdfs dfsadmin -safemode %s" % (safemode_to_instruction[safemode_state])
     Execute(command,
-            user=secure_user,
-            logoutput=True)
+            user=user,
+            logoutput=True,
+            path=[params.hadoop_bin_dir])
 
     code, out = call(safemode_check)
     Logger.info("Command: %s\nCode: %d. Out: %s" % (safemode_check, code, out))
@@ -73,23 +75,23 @@ def prepare_rolling_upgrade():
   Logger.info("Executing Rolling Upgrade prepare")
   import params
 
-  secure_user = params.hdfs_principal_name if params.security_enabled else params.hdfs_user
+  user = params.hdfs_principal_name if params.security_enabled else params.hdfs_user
 
   if params.security_enabled:
     Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
-            user=secure_user)
+            user=user)
 
-  safemode_transition_successful = reach_safemode_state(secure_user, SAFEMODE.OFF, True)
+  safemode_transition_successful = reach_safemode_state(user, SAFEMODE.OFF, True)
   if not safemode_transition_successful:
     raise Fail("Could leave safemode")
 
   prepare = "hdfs dfsadmin -rollingUpgrade prepare"
   query = "hdfs dfsadmin -rollingUpgrade query"
   Execute(prepare,
-          user=secure_user,
+          user=user,
           logoutput=True)
   Execute(query,
-          user=secure_user,
+          user=user,
           logoutput=True)
 
 
@@ -100,12 +102,12 @@ def finalize_rolling_upgrade():
   Logger.info("Executing Rolling Upgrade finalize")
   import params
 
-  secure_user = params.hdfs_principal_name if params.security_enabled else params.hdfs_user
+  user = params.hdfs_principal_name if params.security_enabled else params.hdfs_user
   finalize_cmd = "hdfs dfsadmin -rollingUpgrade finalize"
   Execute(finalize_cmd,
-          user=secure_user,
+          user=user,
           logoutput=True)
 
-  safemode_transition_successful = reach_safemode_state(secure_user, SAFEMODE.OFF, True)
+  safemode_transition_successful = reach_safemode_state(user, SAFEMODE.OFF, True)
   if not safemode_transition_successful:
     Logger.warning("Could leave safemode")

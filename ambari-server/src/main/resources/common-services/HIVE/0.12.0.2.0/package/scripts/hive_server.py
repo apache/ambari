@@ -53,8 +53,8 @@ class HiveServer(Script):
     self.configure(env) # FOR SECURITY
 
     # This function is needed in HDP 2.2, but it is safe to call in earlier versions.
-    copy_tarballs_to_hdfs('mapreduce', params.tez_user, params.hdfs_user, params.user_group)
-    copy_tarballs_to_hdfs('tez', params.tez_user, params.hdfs_user, params.user_group)
+    copy_tarballs_to_hdfs('mapreduce', 'hive-server2', params.tez_user, params.hdfs_user, params.user_group)
+    copy_tarballs_to_hdfs('tez', 'hive-server2', params.tez_user, params.hdfs_user, params.user_group)
 
     hive_service( 'hiveserver2', action = 'start',
       rolling_restart=rolling_restart )
@@ -88,6 +88,8 @@ class HiveServer(Script):
 
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       Execute(format("hdp-select set hive-server2 {version}"))
+      copy_tarballs_to_hdfs('mapreduce', 'hive-server2', params.tez_user, params.hdfs_user, params.user_group)
+      copy_tarballs_to_hdfs('tez', 'hive-server2', params.tez_user, params.hdfs_user, params.user_group)
 
 
   def security_status(self, env):

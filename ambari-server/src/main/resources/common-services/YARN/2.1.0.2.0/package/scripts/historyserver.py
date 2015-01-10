@@ -50,13 +50,13 @@ class HistoryServer(Script):
 
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       Execute(format("hdp-select set hadoop-mapreduce-historyserver {version}"))
-      copy_tarballs_to_hdfs('mapreduce', params.mapred_user, params.hdfs_user, params.user_group)
+      copy_tarballs_to_hdfs('mapreduce', 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
 
   def start(self, env, rolling_restart=False):
     import params
     env.set_params(params)
     self.configure(env) # FOR SECURITY
-    copy_tarballs_to_hdfs('mapreduce', params.mapred_user, params.hdfs_user, params.user_group)
+    copy_tarballs_to_hdfs('mapreduce', 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
     service('historyserver', action='start', serviceName='mapreduce')
 
     self.save_component_version_to_structured_out(params.stack_name)

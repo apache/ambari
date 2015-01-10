@@ -3434,7 +3434,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     p = MagicMock()
     get_ambari_properties_mock.reset_mock()
     get_ambari_properties_mock.return_value = p
-    p.__getitem__.side_effect = ["something", "something", KeyError("test exception")]
+    p.__getitem__.side_effect = ["something", KeyError("test exception")]
     fail = False
 
     try:
@@ -3445,7 +3445,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     # test if some drivers are available in resources, and symlink available too
     p.reset_mock()
-    p.__getitem__.side_effect = ["something", "something", "resources"]
+    p.__getitem__.side_effect = ["something", "resources"]
     lexists_mock.return_value = True
     isfile_mock.side_effect = [True, False, False]
     ambari_server.upgrade(args)

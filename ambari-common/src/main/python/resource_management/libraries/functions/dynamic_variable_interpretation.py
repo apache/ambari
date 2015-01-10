@@ -114,9 +114,10 @@ def _copy_files(source_and_dest_pairs, file_owner, group_owner, kinit_if_needed)
   return return_value
 
 
-def copy_tarballs_to_hdfs(tarball_prefix, component_user, file_owner, group_owner):
+def copy_tarballs_to_hdfs(tarball_prefix, hdp_select_component_name, component_user, file_owner, group_owner):
   """
   :param tarball_prefix: Prefix of the tarball must be one of tez, hive, mr, pig
+  :param hdp_select_component_name: Component name to get the status to determine the version
   :param component_user: User that will execute the Hadoop commands
   :param file_owner: Owner of the files copied to HDFS (typically hdfs account)
   :param group_owner: Group owner of the files copied to HDFS (typically hadoop group)
@@ -145,7 +146,7 @@ def copy_tarballs_to_hdfs(tarball_prefix, component_user, file_owner, group_owne
   tmpfile = tempfile.NamedTemporaryFile()
   out = None
   with open(tmpfile.name, 'r+') as file:
-    get_hdp_version_cmd = '/usr/bin/hdp-select status > %s' % tmpfile.name
+    get_hdp_version_cmd = '/usr/bin/hdp-select status %s > %s' % (hdp_select_component_name, tmpfile.name)
     code, stdoutdata = shell.call(get_hdp_version_cmd)
     out = file.read()
   pass
