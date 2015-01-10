@@ -140,3 +140,13 @@ class TestStormRestApi(TestStormBase):
     )
     self.assertNoMoreResources()
 
+  def test_pre_rolling_restart(self):
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/rest_api.py",
+                       classname = "StormRestApi",
+                       command = "pre_rolling_restart",
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES)
+
+    self.assertResourceCalled("Execute", "hdp-select set storm-client 2.2.1.0-2067")
+

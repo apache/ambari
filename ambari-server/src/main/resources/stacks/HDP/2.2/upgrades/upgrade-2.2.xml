@@ -63,7 +63,7 @@
 
       <batch>
         <percent>33</percent>
-        <message>Please run additional tests</message>
+        <message>Core Services have been upgraded. You are advised to perform tests against your cluster to ensure proper operation before proceeding with upgrade of remaining services.</message>
       </batch>
     </group>
 
@@ -98,6 +98,17 @@
         <component>KAFKA_BROKER</component>
       </service>
    </group>
+
+    <group name="STORM" title="Storm">
+      <skippable>true</skippable>
+      <service name="STORM">
+        <component>NIMBUS</component>
+        <component>STORM_REST_API</component>
+        <component>SUPERVISOR</component>
+        <component>STORM_UI_SERVER</component>
+        <component>DRPC_SERVER</component>
+      </service>
+    </group>
 
     <group name="CLIENTS" title="Client Components">
       <service name="HDFS">
@@ -401,5 +412,42 @@
       </component>
     </service>
 
+    <service name="STORM">
+      <component name="NIMBUS">
+        <pre-upgrade>
+          <task xsi:type="manual">
+            <message>Deactivate and kill your currently running topology.</message>
+          </task>
+        </pre-upgrade>
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+      <component name="STORM_REST_API">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+      <component name="SUPERVISOR">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+      <component name="STORM_UI_SERVER">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+      <component name="DRPC_SERVER">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+        <post-upgrade>
+          <task xsi:type="manual">
+            <message>Rebuild your topology and resubmit the topology using the new jar.</message>
+          </task>
+        </post-upgrade>
+      </component>
+    </service>
   </processing>
 </upgrade>

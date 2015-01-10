@@ -138,3 +138,14 @@ class TestStormUiServer(TestStormBase):
         action = ['delete'],
     )
     self.assertNoMoreResources()
+
+  def test_pre_rolling_restart(self):
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ui_server.py",
+                       classname = "UiServer",
+                       command = "pre_rolling_restart",
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES)
+
+    self.assertResourceCalled("Execute", "hdp-select set storm-client 2.2.1.0-2067")
+

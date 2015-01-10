@@ -26,6 +26,10 @@ from service_check import ServiceCheck
 
 
 class UiServer(Script):
+
+  def get_stack_to_component(self):
+    return {"HDP": "storm-client"}
+
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
@@ -36,14 +40,21 @@ class UiServer(Script):
 
     storm()
 
-  def start(self, env):
+  def pre_rolling_restart(self, env):
+    import params
+    env.set_params(params)
+
+    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      Execute(format("hdp-select set storm-client {version}"))
+
+  def start(self, env, rolling_restart=False):
     import params
     env.set_params(params)
     self.configure(env)
 
     service("ui", action="start")
 
-  def stop(self, env):
+  def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
 

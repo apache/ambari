@@ -20,7 +20,8 @@
     "serviceName": "HIVE",
     "role": "HIVE_SERVER",
     "commandParams": {
-        "command_timeout": "300", 
+        "version": "2.2.1.0-2067",
+        "command_timeout": "300",
         "service_package_folder": "OOZIE",
         "script_type": "PYTHON",
         "script": "scripts/service_check.py",

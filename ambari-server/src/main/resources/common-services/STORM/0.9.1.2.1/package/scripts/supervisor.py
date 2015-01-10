@@ -39,7 +39,14 @@ class Supervisor(Script):
     env.set_params(params)
     storm()
 
-  def start(self, env):
+  def pre_rolling_restart(self, env):
+    import params
+    env.set_params(params)
+
+    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      Execute(format("hdp-select set storm-supervisor {version}"))
+
+  def start(self, env, rolling_restart=False):
     import params
     env.set_params(params)
     self.configure(env)
@@ -49,7 +56,7 @@ class Supervisor(Script):
 
     self.save_component_version_to_structured_out(params.stack_name)
 
-  def stop(self, env):
+  def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
 
