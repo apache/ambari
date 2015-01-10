@@ -81,6 +81,7 @@
         <config-type>gateway-site</config-type>
         <config-type>gateway-log4j</config-type>
         <config-type>topology</config-type>
+        <config-type>ranger-knox-plugin-properties</config-type>
       </configuration-dependencies>
     </service>
   </services>

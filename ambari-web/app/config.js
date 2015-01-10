@@ -61,6 +61,7 @@ App.supports = {
   autoRollbackHA: false,
   alwaysEnableManagedMySQLForHive: false,
   automatedKerberos: false,
+  ranger: false,
   customizeAgentUserAccount: false,
   installGanglia: false
 };
