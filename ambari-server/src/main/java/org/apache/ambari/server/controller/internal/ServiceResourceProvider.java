@@ -17,19 +17,9 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -70,9 +60,18 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.commons.lang.StringUtils;
 
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.assistedinject.AssistedInject;
-import com.google.inject.persist.Transactional;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Resource provider for service resources.
@@ -110,6 +109,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     serviceStateMap.put("HBASE", new HBaseServiceState());
     serviceStateMap.put("FLUME", new FlumeServiceState());
     serviceStateMap.put("HIVE", new HiveServiceState());
+    serviceStateMap.put("OOZIE", new OozieServiceState());
   }
 
   private static final ServiceState DEFAULT_SERVICE_STATE = new DefaultServiceState();
@@ -1045,6 +1045,71 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
                    hasClient   ? clientState == null ? State.INSTALLED : clientState :
                    hasDisabled ? State.DISABLED :
                    hasMM       ? maxMMState : State.UNKNOWN;
+          }
+        } catch (AmbariException e) {
+          LOG.error("Can't determine service state.", e);
+        }
+      }
+      return State.UNKNOWN;
+    }
+  }
+
+  /**
+   * Calculator of Oozie service state.
+   */
+  protected static class OozieServiceState implements ServiceState {
+
+    @Override
+    public State getState(AmbariManagementController controller,String clusterName, String serviceName) {
+      AmbariMetaInfo ambariMetaInfo = controller.getAmbariMetaInfo();
+      Clusters       clusters       = controller.getClusters();
+
+      if (clusterName != null && clusterName.length() > 0) {
+        try {
+          Cluster cluster = clusters.getCluster(clusterName);
+          if (cluster != null) {
+            StackId stackId = cluster.getDesiredStackVersion();
+
+            ServiceComponentHostRequest request = new ServiceComponentHostRequest(clusterName,
+                    serviceName, null, null, null);
+
+            Set<ServiceComponentHostResponse> hostComponentResponses =
+                    controller.getHostComponents(Collections.singleton(request));
+
+            int     oozieServerActiveCount = 0;
+            State   nonStartedState        = null;
+
+            for (ServiceComponentHostResponse hostComponentResponse : hostComponentResponses ) {
+              try {
+                ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
+                        stackId.getStackVersion(), hostComponentResponse.getServiceName(),
+                        hostComponentResponse.getComponentName());
+
+                if (componentInfo.isMaster()) {
+                  State state = getHostComponentState(hostComponentResponse);
+
+                  switch (state) {
+                    case STARTED:
+                    case DISABLED:
+                      String componentName = hostComponentResponse.getComponentName();
+                      if (componentName.equals("OOZIE_SERVER")) {
+                        ++oozieServerActiveCount;
+                      }
+                      break;
+                    default:
+                      nonStartedState = state;
+                  }
+                }
+              } catch (ObjectNotFoundException e) {
+                // component doesn't exist, nothing to do
+              }
+            }
+
+            // should have state INSTALLED when there is no active OOZIE_SERVER
+            if (oozieServerActiveCount > 0) {
+              return State.STARTED;
+            }
+            return nonStartedState == null ? State.INSTALLED : nonStartedState;
           }
         } catch (AmbariException e) {
           LOG.error("Can't determine service state.", e);
