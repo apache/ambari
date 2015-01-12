@@ -139,15 +139,4 @@ if security_enabled:
   _hostname_lowercase = config['hostname'].lower()
   knox_principal_name = config['configurations']['knox-env']['knox_principal_name'].replace('_HOST',_hostname_lowercase)
 
-# ranger host
-ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
-has_ranger_admin = not len(ranger_admin_hosts) == 0
 
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
-    # Setting Flag value for ranger hbase plugin
-    enable_ranger_knox = False
-    user_input = config['configurations']['ranger-knox-plugin-properties']['ranger-knox-plugin-enabled']
-    if user_input.lower() == 'yes':
-      enable_ranger_knox = True
-    elif user_input.lower() == 'no':
-      enable_ranger_knox = False

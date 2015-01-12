@@ -25,7 +25,6 @@ import sys
 
 from knox import knox
 from ldap import ldap
-from setup_ranger_knox import setup_ranger_knox
 
 class KnoxGateway(Script):
 
@@ -40,7 +39,6 @@ class KnoxGateway(Script):
     File(format('{knox_conf_dir}/topologies/sandbox.xml'),
          action = "delete",
     )
-    setup_ranger_knox(env)
 
   def configure(self, env):
     import params
@@ -54,7 +52,6 @@ class KnoxGateway(Script):
     self.configure(env)
     daemon_cmd = format('{knox_bin} start')
     no_op_test = format('ls {knox_pid_file} >/dev/null 2>&1 && ps -p `cat {knox_pid_file}` >/dev/null 2>&1')
-    setup_ranger_knox(env)
     Execute(daemon_cmd,
             user=params.knox_user,
             environment={'JAVA_HOME': params.java_home},
