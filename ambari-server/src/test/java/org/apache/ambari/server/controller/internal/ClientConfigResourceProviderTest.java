@@ -41,6 +41,9 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.util.*;
+import static org.apache.ambari.server.configuration.Configuration.AMBARI_PYTHON_WRAP_DEFAULT;
+import static org.apache.ambari.server.configuration.Configuration.SERVER_TMP_DIR_DEFAULT;
+import org.apache.ambari.server.stack.StackManager;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertFalse;
@@ -151,6 +154,7 @@ public class ClientConfigResourceProviderTest {
     ServiceOsSpecific serviceOsSpecific = createNiceMock(ServiceOsSpecific.class);
     ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
     Configuration configuration = PowerMock.createStrictMockAndExpectNew(Configuration.class);
+    Map<String, String> configMap = createNiceMock(Map.class);
 
     File mockFile = PowerMock.createNiceMock(File.class);
     Runtime runtime = createMock(Runtime.class);
@@ -219,7 +223,11 @@ public class ClientConfigResourceProviderTest {
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
     responses.add(shr1);
-
+    
+    Map<String, String> returnConfigMap = new HashMap<String, String>();
+    returnConfigMap.put(Configuration.SERVER_TMP_DIR_KEY, Configuration.SERVER_TMP_DIR_DEFAULT);
+    returnConfigMap.put(Configuration.AMBARI_PYTHON_WRAP_KEY, Configuration.AMBARI_PYTHON_WRAP_DEFAULT);
+    
     // set expectations
     expect(managementController.getConfigHelper()).andReturn(configHelper);
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
@@ -228,8 +236,9 @@ public class ClientConfigResourceProviderTest {
     expect(configHelper.getEffectiveConfigProperties(cluster, configTags)).andReturn(properties);
     expect(clusterConfig.getType()).andReturn(Configuration.HIVE_CONFIG_TAG).anyTimes();
     expect(configHelper.getEffectiveConfigAttributes(cluster, configTags)).andReturn(attributes);
-    expect(configuration.getProperty(Configuration.SERVER_TMP_DIR_KEY)).andReturn(Configuration.SERVER_TMP_DIR_DEFAULT);
-    expect(configuration.getProperty(Configuration.AMBARI_PYTHON_WRAP_KEY)).andReturn(Configuration.AMBARI_PYTHON_WRAP_DEFAULT);
+    expect(configMap.get(Configuration.SERVER_TMP_DIR_KEY)).andReturn(Configuration.SERVER_TMP_DIR_DEFAULT);
+    expect(configMap.get(Configuration.AMBARI_PYTHON_WRAP_KEY)).andReturn(Configuration.AMBARI_PYTHON_WRAP_DEFAULT);
+    expect(configuration.getConfigsMap()).andReturn(returnConfigMap);
     expect(configuration.getExternalScriptTimeout()).andReturn(Integer.parseInt(Configuration.EXTERNAL_SCRIPT_TIMEOUT_DEFAULT));
     Map<String,String> props = new HashMap<String, String>();
     props.put(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY, "pass");
@@ -309,7 +318,7 @@ public class ClientConfigResourceProviderTest {
     // replay
     replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo, commandScriptDefinition,
             clusterConfig, host, service, serviceComponent, serviceComponentHost, serviceInfo, configHelper,
-            runtime, process);
+            runtime, process, configMap);
     PowerMock.replayAll();
 
     Set<Resource> resources = provider.getResources(request, predicate);
@@ -322,6 +331,209 @@ public class ClientConfigResourceProviderTest {
     PowerMock.verifyAll();
   }
 
+  @Test
+  public void testGetResourcesFromCommonServices() throws Exception {
+    Resource.Type type = Resource.Type.ClientConfig;
+
+    AmbariManagementController managementController = createNiceMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+
+    Cluster cluster = createNiceMock(Cluster.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    StackId stackId = createNiceMock(StackId.class);
+    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
+    ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
+    CommandScriptDefinition commandScriptDefinition = createNiceMock(CommandScriptDefinition.class);
+    Config clusterConfig = createNiceMock(Config.class);
+    DesiredConfig desiredConfig = createNiceMock(DesiredConfig.class);
+    Host host = createNiceMock(Host.class);
+    Service service = createNiceMock(Service.class);
+    ServiceComponent serviceComponent = createNiceMock(ServiceComponent.class);
+    ServiceComponentHost serviceComponentHost = createNiceMock(ServiceComponentHost.class);
+    ServiceOsSpecific serviceOsSpecific = createNiceMock(ServiceOsSpecific.class);
+    ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
+    Configuration configuration = PowerMock.createStrictMockAndExpectNew(Configuration.class);
+    Map<String, String> configMap = createNiceMock(Map.class);
+
+    File mockFile = PowerMock.createNiceMock(File.class);
+    Runtime runtime = createMock(Runtime.class);
+    Process process = createNiceMock(Process.class);
+
+    Map<String, DesiredConfig> desiredConfigMap = new HashMap<String, DesiredConfig>();
+    desiredConfigMap.put("hive-site", desiredConfig);
+    Map<String, Map<String, String>> allConfigTags = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> configTags = new HashMap<String,
+            Map<String, String>>();
+    Map<String, Map<String, Map<String, String>>> attributes = new HashMap<String,
+            Map<String, Map<String, String>>>();
+
+    ClientConfigFileDefinition clientConfigFileDefinition = new ClientConfigFileDefinition();
+    clientConfigFileDefinition.setDictionaryName("pig-env");
+    clientConfigFileDefinition.setFileName("pig-env.sh");
+    clientConfigFileDefinition.setType("env");
+    List <ClientConfigFileDefinition> clientConfigFileDefinitionList = new LinkedList<ClientConfigFileDefinition>();
+    clientConfigFileDefinitionList.add(clientConfigFileDefinition);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
+    // create the request
+    Request request = PropertyHelper.getReadRequest(ClientConfigResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID, "c1",
+            ClientConfigResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID,
+            ClientConfigResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID);
+
+    Predicate predicate = new PredicateBuilder().property(ClientConfigResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID).equals("c1").
+        toPredicate();
+
+    String clusterName = "C1";
+    String serviceName = "PIG";
+    String componentName = "PIG";
+    String hostName = "Host100";
+    String desiredState = "INSTALLED";
+
+    String stackName = "S1";
+    String stackVersion = "V1";
+
+    String stackRoot="/tmp/stacks/S1/V1";
+    String packageFolder= StackManager.COMMON_SERVICES + "/PIG/package";
+    String commonServicesPath = "/var/lib/ambari-server/src/main/resources/common-services";
+
+    if (System.getProperty("os.name").contains("Windows")) {
+      stackRoot = "\\tmp\\stacks\\S1\\V1";
+      packageFolder = StackManager.COMMON_SERVICES + "\\PIG\\package";
+    }
+
+    File stackRootFile = new File(stackRoot);
+    HashMap<String, Host> hosts = new HashMap<String, Host>();
+    hosts.put(hostName, host);
+    HashMap<String, Service> services = new HashMap<String, Service>();
+    services.put(serviceName,service);
+    HashMap<String, ServiceComponent> serviceComponentMap = new HashMap<String, ServiceComponent>();
+    serviceComponentMap.put(componentName,serviceComponent);
+    HashMap<String, ServiceComponentHost> serviceComponentHosts = new HashMap<String, ServiceComponentHost>();
+    serviceComponentHosts.put(componentName, serviceComponentHost);
+    HashMap<String, ServiceOsSpecific> serviceOsSpecificHashMap = new HashMap<String, ServiceOsSpecific>();
+    serviceOsSpecificHashMap.put("key",serviceOsSpecific);
+
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(clusterName, serviceName, componentName, hostName, desiredState, "", null, null, null);
+
+    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
+    responses.add(shr1);
+    
+    Map<String, String> returnConfigMap = new HashMap<String, String>();
+    returnConfigMap.put(Configuration.SERVER_TMP_DIR_KEY, Configuration.SERVER_TMP_DIR_DEFAULT);
+    returnConfigMap.put(Configuration.AMBARI_PYTHON_WRAP_KEY, Configuration.AMBARI_PYTHON_WRAP_DEFAULT);
+    
+    // set expectations
+    expect(managementController.getConfigHelper()).andReturn(configHelper);
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster(clusterName)).andReturn(cluster).anyTimes();
+    expect(configHelper.getEffectiveConfigProperties(cluster, configTags)).andReturn(properties);
+    expect(clusterConfig.getType()).andReturn(Configuration.HIVE_CONFIG_TAG).anyTimes();
+    expect(configHelper.getEffectiveConfigAttributes(cluster, configTags)).andReturn(attributes);
+    expect(configMap.get(Configuration.SERVER_TMP_DIR_KEY)).andReturn(Configuration.SERVER_TMP_DIR_DEFAULT);
+    expect(configMap.get(Configuration.AMBARI_PYTHON_WRAP_KEY)).andReturn(Configuration.AMBARI_PYTHON_WRAP_DEFAULT);
+    expect(configuration.getConfigsMap()).andReturn(returnConfigMap);
+    expect(configuration.getCommonServicesPath()).andReturn(commonServicesPath);
+    expect(configuration.getExternalScriptTimeout()).andReturn(Integer.parseInt(Configuration.EXTERNAL_SCRIPT_TIMEOUT_DEFAULT));
+    Map<String,String> props = new HashMap<String, String>();
+    props.put(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY, "pass");
+    props.put("key","value");
+    expect(clusterConfig.getProperties()).andReturn(props);
+    expect(configHelper.getEffectiveDesiredTags(cluster, hostName)).andReturn(allConfigTags);
+    expect(cluster.getClusterName()).andReturn(clusterName);
+    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
+    expect(cluster.getCurrentStackVersion()).andReturn(stackId);
+
+    PowerMock.mockStaticPartial(StageUtils.class, "getClusterHostInfo");
+    Map<String, Set<String>> clusterHostInfo = new HashMap<String, Set<String>>();
+    Set<String> all_hosts = new HashSet<String>(Arrays.asList("Host100","Host101","Host102"));
+    Set<String> some_hosts = new HashSet<String>(Arrays.asList("0-1","2"));
+    Set<String> ohter_hosts = new HashSet<String>(Arrays.asList("0,1"));
+    Set<String> clusterHostTypes = new HashSet<String>(Arrays.asList("nm_hosts", "hs_host",
+            "namenode_host", "rm_host", "snamenode_host", "slave_hosts", "zookeeper_hosts"));
+    for (String hostTypes: clusterHostTypes) {
+      if (hostTypes.equals("slave_hosts")) {
+        clusterHostInfo.put(hostTypes, ohter_hosts);
+      } else {
+        clusterHostInfo.put(hostTypes, some_hosts);
+      }
+    }
+    Map<String, Host> stringHostMap = new HashMap<String, Host>();
+    stringHostMap.put(hostName, host);
+    clusterHostInfo.put("all_hosts",all_hosts);
+    expect(StageUtils.getClusterHostInfo(stringHostMap,cluster)).andReturn(clusterHostInfo);
+
+    expect(stackId.getStackName()).andReturn(stackName).anyTimes();
+    expect(stackId.getStackVersion()).andReturn(stackVersion).anyTimes();
+
+    expect(ambariMetaInfo.getComponent(stackName, stackVersion, serviceName, componentName)).andReturn(componentInfo);
+    expect(ambariMetaInfo.getService(stackName, stackVersion, serviceName)).andReturn(serviceInfo);
+    expect(serviceInfo.getServicePackageFolder()).andReturn(packageFolder);
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
+            (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
+    expect(componentInfo.getCommandScript()).andReturn(commandScriptDefinition);
+    expect(componentInfo.getClientConfigFiles()).andReturn(clientConfigFileDefinitionList);
+    expect(ambariMetaInfo.getStackRoot()).andReturn(stackRootFile);
+    expect(cluster.getConfig("hive-site", null)).andReturn(clusterConfig);
+    expect(cluster.getDesiredConfigs()).andReturn(desiredConfigMap);
+    expect(clusters.getHostsForCluster(clusterName)).andReturn(hosts);
+    expect(clusters.getHost(hostName)).andReturn(host);
+
+    HashMap<String, String> rcaParams = new HashMap<String, String>();
+    rcaParams.put("key","value");
+    expect(managementController.getRcaParameters()).andReturn(rcaParams).anyTimes();
+    expect(ambariMetaInfo.getService(stackName, stackVersion, serviceName)).andReturn(serviceInfo);
+    expect(serviceInfo.getOsSpecifics()).andReturn(new HashMap<String, ServiceOsSpecific>()).anyTimes();
+    Set<String> userSet = new HashSet<String>();
+    userSet.add("hdfs");
+    expect(configHelper.getPropertyValuesWithPropertyType(stackId, PropertyInfo.PropertyType.USER, cluster)).andReturn(userSet);
+    PowerMock.expectNew(File.class, new Class<?>[]{String.class}, anyObject(String.class)).andReturn(mockFile).anyTimes();
+    PowerMock.createNiceMockAndExpectNew(PrintWriter.class, anyObject());
+    expect(mockFile.getParent()).andReturn("");
+    PowerMock.mockStatic(Runtime.class);
+    expect(mockFile.exists()).andReturn(true);
+    String commandLine = "ambari-python-wrap " + commonServicesPath + "/PIG/package/null generate_configs null " +
+            commonServicesPath + "/PIG/package /var/lib/ambari-server/tmp/structured-out.json " +
+            "INFO /var/lib/ambari-server/tmp";
+
+    if (System.getProperty("os.name").contains("Windows")) {
+      String absoluteStackRoot = stackRootFile.getAbsolutePath();
+      commandLine = "ambari-python-wrap " + commonServicesPath +
+              "\\PIG\\package\\null generate_configs null " +
+              commonServicesPath + "\\PIG\\package /var/lib/ambari-server/tmp\\structured-out.json " +
+              "INFO /var/lib/ambari-server/tmp";
+    }
+
+    ProcessBuilder processBuilder = PowerMock.createNiceMock(ProcessBuilder.class);
+    PowerMock.expectNew(ProcessBuilder.class,Arrays.asList(commandLine.split("\\s+"))).andReturn(processBuilder).once();
+    expect(processBuilder.start()).andReturn(process).once();
+    InputStream inputStream = new ByteArrayInputStream("some logging info".getBytes());
+    expect(process.getInputStream()).andReturn(inputStream);
+
+    // replay
+    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo, commandScriptDefinition,
+            clusterConfig, host, service, serviceComponent, serviceComponentHost, serviceInfo, configHelper,
+            runtime, process, configMap);
+    PowerMock.replayAll();
+
+    Set<Resource> resources = provider.getResources(request, predicate);
+    assertFalse(resources.isEmpty());
+
+    // verify
+    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo,commandScriptDefinition,
+            clusterConfig, host, service, serviceComponent, serviceComponentHost, serviceInfo, configHelper,
+            runtime, process);
+    PowerMock.verifyAll();
+  }
+  
+  
+  
   @Test
   public void testDeleteResources() throws Exception {
     Resource.Type type = Resource.Type.ClientConfig;

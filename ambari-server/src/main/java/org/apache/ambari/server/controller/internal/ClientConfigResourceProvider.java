@@ -40,6 +40,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.*;
+import org.apache.ambari.server.stack.StackManager;
 
 /**
  * Resource provider for client config resources.
@@ -122,8 +123,9 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
     }
 
     Configuration configs = new Configuration();
-    String TMP_PATH = configs.getProperty(Configuration.SERVER_TMP_DIR_KEY);
-    String pythonCmd = configs.getProperty(Configuration.AMBARI_PYTHON_WRAP_KEY);
+    Map<String, String> configMap = configs.getConfigsMap();
+    String TMP_PATH = configMap.get(Configuration.SERVER_TMP_DIR_KEY);
+    String pythonCmd = configMap.get(Configuration.AMBARI_PYTHON_WRAP_KEY);
     AmbariManagementController managementController = getManagementController();
     ConfigHelper configHelper = managementController.getConfigHelper();
     Cluster cluster = null;
@@ -142,7 +144,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
               getComponent(stackId.getStackName(), stackId.getStackVersion(), serviceName, componentName);
       packageFolder = managementController.getAmbariMetaInfo().
               getService(stackId.getStackName(), stackId.getStackVersion(), serviceName).getServicePackageFolder();
-
+                   
       String commandScript = componentInfo.getCommandScript().getScript();
       List<ClientConfigFileDefinition> clientConfigFiles = componentInfo.getClientConfigFiles();
 
@@ -151,8 +153,13 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       }
 
       String stackRoot = managementController.getAmbariMetaInfo().getStackRoot().getAbsolutePath();
-
-      String packageFolderAbsolute = stackRoot + File.separator + packageFolder;
+      String packageFolderAbsolute = null;
+      if (packageFolder.contains(StackManager.COMMON_SERVICES)){
+        packageFolderAbsolute = configs.getCommonServicesPath().replace(StackManager.COMMON_SERVICES, packageFolder);
+      } else {
+        packageFolderAbsolute = stackRoot + File.separator + packageFolder;
+      }
+      
       String commandScriptAbsolute = packageFolderAbsolute + File.separator + commandScript;
 
 
