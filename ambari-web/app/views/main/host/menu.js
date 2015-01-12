@@ -65,9 +65,9 @@ App.MainHostMenuView = Em.CollectionView.extend({
     var badgeText = "" + criticalWarningCount;
     var badgeClasses = "label";
     if (criticalCount > 0) {
-      badgeClasses += " label-important";
+      badgeClasses += " alerts-crit-count";
     } else if (warningCount > 0) {
-      badgeClasses += " label-warning";
+      badgeClasses += " alerts-warn-count";
     }
     var alertOption = this.get('content').findProperty('name', 'alerts');
     alertOption.set('badgeText', badgeText);

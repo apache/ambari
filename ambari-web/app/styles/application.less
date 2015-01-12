@@ -291,6 +291,7 @@ footer {
       }
       .alerts-count {
         margin: 1px;
+        background: @health-status-red;
       }
       .icon-th {
         font-size: 1.3em;
@@ -338,7 +339,7 @@ footer {
           padding: 0 0 0 3px;
         }
         .operations-count {
-          background: #953B39;
+          background: @health-status-red;
           padding: 1px 4px;
           float: right;
           margin-right: 5px;
@@ -1674,19 +1675,19 @@ a:focus {
     #min-height-limit .progress{
       margin-left: 40px;
       .bar-success {
-        background-image: linear-gradient(to bottom, #95b000, #95a800);
+        background-image: linear-gradient(to bottom, @health-status-green, @health-status-green);
         background-repeat: repeat-x;
-        filter: progid:dximagetransform.microsoft.gradient(startColorstr='#95b000', endColorstr='#95a800', GradientType=0);
+        filter: progid:dximagetransform.microsoft.gradient(startColorstr='#5AB400', endColorstr='#5AB400', GradientType=0);
       }
       .bar-warning {
-        background-image: linear-gradient(to bottom, #FF9E00, #FF8E00);
+        background-image: linear-gradient(to bottom,@health-status-orange, @health-status-orange);
         background-repeat: repeat-x;
-        filter: progid:dximagetransform.microsoft.gradient(startColorstr='#FF9E00', endColorstr='#FF8E00', GradientType=0);
+        filter: progid:dximagetransform.microsoft.gradient(startColorstr='#FF8E00', endColorstr='#FF8E00', GradientType=0);
       }
       .bar-danger {
-        background-image: linear-gradient(to bottom, #B81000, #B80000);
+        background-image: linear-gradient(to bottom, @health-status-red, @health-status-red);
         background-repeat: repeat-x;
-        filter: progid:dximagetransform.microsoft.gradient(startColorstr='#B81000', endColorstr='#B80000', GradientType=0);
+        filter: progid:dximagetransform.microsoft.gradient(startColorstr='#ff0000', endColorstr='#ff0000', GradientType=0);
       }
     }
 
@@ -2812,7 +2813,7 @@ width:100%;
       }
       .label.operations-count {
         padding: 1px 4px;
-        background: #953B39;
+        background: @health-status-red;
         float: right;
         margin-right: 5px;
         margin-top: 3px;
@@ -3358,21 +3359,21 @@ table.graphs {
 
     .is-red{
       .widget-content {
-        color: #B80000;
+        color: @health-status-red;
         padding-top: 70px;
         font-weight: bold;
       }
     }
     .is-orange{
       .widget-content {
-        color: #FF8E00;
+        color: @health-status-orange;
         padding-top: 70px;
         font-weight: bold;
       }
     }
     .is-green {
       .widget-content {
-        color: #95A800;
+        color: @health-status-green;
         padding-top: 70px;
         font-weight: bold;
       }
@@ -4047,14 +4048,35 @@ table.graphs {
     margin-left: 4px;
   }
 }
-#hosts, #host-details, #serviceConfig {
+#host-details, #serviceConfig {
   .icon-refresh {
     color: @restart-indicator-color;
   }
-  .alerts-count {
+  .alerts-crit-count {
     margin-left: 0;
+    background: @health-status-red;
+  }
+  .alerts-warn-count {
+    margin-left: 0;
+    background: @health-status-orange;
   }
 }
+#hosts{
+  .icon-refresh {
+    color: @restart-indicator-color;
+  }
+  .alerts-crit-count {
+    margin-left: 0;
+    background: @health-status-red;
+    cursor: pointer;
+  }
+  .alerts-warn-count {
+    margin-left: 0;
+    background: @health-status-orange;
+    cursor: pointer;
+  }
+}
+
 .background-operations {
   .progress {
     margin-bottom: 5px;

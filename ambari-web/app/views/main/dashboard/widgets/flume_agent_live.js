@@ -145,7 +145,7 @@ App.FlumeAgentUpView = App.TextDashboardWidgetView.extend({
 
       didInsertElement: function () {
         var handlers = [configObj.get('thresh1'), configObj.get('thresh2')];
-        var colors = ['#B80000', '#FF8E00', '#95A800']; //color red, orange, green
+        var colors = [App.healthStatusRed, App.healthStatusOrange, App.healthStatusGreen]; //color red, orange, green
 
         if (browserVerion == -1 || browserVerion > 9) {
           configObj.set('isIE9', false);

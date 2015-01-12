@@ -113,9 +113,9 @@ App.PieChartDashboardWidgetView = App.DashboardWidgetView.extend({
       var used = parseFloat(this.get('parentView.dataForPieChart')[1]);
       var thresh1 = parseFloat(this.get('thresh1'));
       var thresh2 = parseFloat(this.get('thresh2'));
-      var color_green = '#95A800';
-      var color_red = '#B80000';
-      var color_orange = '#FF8E00';
+      var color_green = App.healthStatusGreen;
+      var color_red = App.healthStatusRed;
+      var color_orange = App.healthStatusOrange;
       if (used <= thresh1) {
         this.set('palette', new Rickshaw.Color.Palette({
           scheme: [ '#FFFFFF', color_green  ].reverse()

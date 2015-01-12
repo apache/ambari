@@ -135,7 +135,7 @@ App.HBaseAverageLoadView = App.TextDashboardWidgetView.extend({
       },
 
       didInsertElement: function () {
-        var colors = ['#95A800', '#FF8E00', '#B80000']; //color green, orange ,red
+        var colors = [App.healthStatusGreen, App.healthStatusOrange, App.healthStatusRed]; //color green, orange ,red
         var handlers = [33, 66]; //fixed value
 
         if (browserVerion == -1 || browserVerion > 9) {

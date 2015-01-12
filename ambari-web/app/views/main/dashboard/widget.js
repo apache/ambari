@@ -268,7 +268,7 @@ App.DashboardWidgetView = Em.View.extend({
       didInsertElement: function () {
         var browserVersion = self.getInternetExplorerVersion();
         var handlers = [configObj.get('thresh1'), configObj.get('thresh2')];
-        var colors = ['#95A800', '#FF8E00', '#B80000']; //color green, orange ,red
+        var colors = [App.healthStatusGreen, App.healthStatusOrange, App.healthStatusRed]; //color green, orange ,red
 
         if (browserVersion == -1 || browserVersion > 9) {
           configObj.set('isIE9', false);

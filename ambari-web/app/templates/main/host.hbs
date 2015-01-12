@@ -107,9 +107,9 @@
             </span>
             {{#if host.criticalWarningAlertsCount}}
               {{#if host.alertsSummary.CRITICAL}}
-                <span class="label alerts-count label-important" {{action "goToHostAlerts" host target="controller"}}>{{host.criticalWarningAlertsCount}}</span>
+                <span class="label alerts-crit-count" {{action "goToHostAlerts" host target="controller"}}>{{host.criticalWarningAlertsCount}}</span>
               {{else}}
-                <span class="label alerts-count label-warning" {{action "goToHostAlerts" host target="controller"}}>{{host.criticalWarningAlertsCount}}</span>
+                <span class="label alerts-warn-count" {{action "goToHostAlerts" host target="controller"}}>{{host.criticalWarningAlertsCount}}</span>
               {{/if}}
             {{/if}}
           </td>
