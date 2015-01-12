@@ -35,7 +35,7 @@
     <!--<yarn.basedir>${project.parent.parent.basedir}</yarn.basedir>-->
     <protobuf.version>2.5.0</protobuf.version>
     <hadoop.version>(2.6.0.2.2.0.0, 2.6.0.2.2.1.0)</hadoop.version>
-    <phoenix.version>4.2.0.2.2.0.0-2041</phoenix.version>
+    <phoenix.version>[4.2.0.2.2.1.0, 4.2.0.2.2.2.0)</phoenix.version>
     <hbase.version>0.98.4.2.2.0.0-2041-hadoop2</hbase.version>
   </properties>
 
