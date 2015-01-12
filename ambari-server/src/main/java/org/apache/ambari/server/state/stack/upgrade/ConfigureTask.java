@@ -50,6 +50,9 @@ public class ConfigureTask extends ServerSideActionTask {
   @XmlElement(name="value")
   public String value;
 
+  @XmlElement(name="summary")
+  public String summary;
+
   @Override
   public Type getType() {
     return type;

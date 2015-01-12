@@ -277,8 +277,28 @@ public class UpgradeResourceProviderTest {
     resources = upgradeItemResourceProvider.getResources(request, predicate);
 
     assertEquals(2, resources.size());
+
     res = resources.iterator().next();
     assertNotNull(res.getPropertyValue("UpgradeItem/status"));
+
+    // !!! check for manual stage vs item text
+    propertyIds.clear();
+    propertyIds.add("UpgradeItem");
+
+    predicate = new PredicateBuilder()
+      .property(UpgradeItemResourceProvider.UPGRADE_GROUP_ID).equals("3").and()
+      .property(UpgradeItemResourceProvider.UPGRADE_REQUEST_ID).equals("1").and()
+      .property(UpgradeItemResourceProvider.UPGRADE_CLUSTER_NAME).equals("c1")
+      .toPredicate();
+    request = PropertyHelper.getReadRequest(propertyIds);
+
+    upgradeItemResourceProvider = new UpgradeItemResourceProvider(amc);
+    resources = upgradeItemResourceProvider.getResources(request, predicate);
+    assertEquals(1, resources.size());
+    res = resources.iterator().next();
+
+    assertEquals("Validate Partial Upgrade", res.getPropertyValue("UpgradeItem/context"));
+    assertTrue(res.getPropertyValue("UpgradeItem/text").toString().startsWith("Please run"));
 
   }
 

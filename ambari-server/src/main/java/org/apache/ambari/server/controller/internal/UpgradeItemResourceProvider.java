@@ -56,6 +56,7 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
   protected static final String UPGRADE_REQUEST_ID = "UpgradeItem/request_id";
   protected static final String UPGRADE_GROUP_ID = "UpgradeItem/group_id";
   protected static final String UPGRADE_ITEM_STAGE_ID = "UpgradeItem/stage_id";
+  protected static final String UPGRADE_ITEM_TEXT = "UpgradeItem/text";
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
       Arrays.asList(UPGRADE_REQUEST_ID, UPGRADE_ITEM_STAGE_ID));
@@ -73,6 +74,7 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
     PROPERTY_IDS.add(UPGRADE_ITEM_STAGE_ID);
     PROPERTY_IDS.add(UPGRADE_GROUP_ID);
     PROPERTY_IDS.add(UPGRADE_REQUEST_ID);
+    PROPERTY_IDS.add(UPGRADE_ITEM_TEXT);
 
     // !!! boo
     for (String p : StageResourceProvider.PROPERTY_IDS) {
@@ -223,6 +225,7 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
     setResourceProperty(resource, UPGRADE_REQUEST_ID, upgrade.getRequestId(), requestedIds);
     setResourceProperty(resource, UPGRADE_GROUP_ID, group.getId(), requestedIds);
     setResourceProperty(resource, UPGRADE_ITEM_STAGE_ID, item.getStageId(), requestedIds);
+    setResourceProperty(resource, UPGRADE_ITEM_TEXT, item.getText(), requestedIds);
 
     return resource;
   }

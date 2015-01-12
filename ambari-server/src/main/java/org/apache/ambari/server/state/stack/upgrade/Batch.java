@@ -30,4 +30,7 @@ public class Batch {
   @XmlElement(name="message")
   public String message;
 
+  @XmlElement(name="summary")
+  public String summary;
+
 }

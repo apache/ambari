@@ -63,6 +63,7 @@
 
       <batch>
         <percent>33</percent>
+        <summary>Verfication Required</summary>
         <message>Core Services have been upgraded. You are advised to perform tests against your cluster to ensure proper operation before proceeding with upgrade of remaining services.</message>
       </batch>
     </group>

@@ -80,6 +80,7 @@ import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -668,10 +669,17 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     commandParams.put("clusterName", cluster.getClusterName());
     commandParams.put("version", version);
 
-    String itemText = entity.getText();
+    String itemDetail = entity.getText();
+    String stageText = StringUtils.abbreviate(entity.getText(), 255);
+
     switch (task.getType()) {
       case MANUAL: {
-        itemText = ((ManualTask) task).message;
+        ManualTask mt = (ManualTask) task;
+        itemDetail = mt.message;
+        if (null != mt.summary) {
+          stageText = mt.summary;
+        }
+        entity.setText(itemDetail);
         break;
       }
       case CONFIGURE: {
@@ -679,14 +687,18 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         commandParams.put("type", ct.configType);
         commandParams.put("key", ct.key);
         commandParams.put("value", ct.value);
-        itemText = String.format("Updating config %s/%s to %s", ct.configType, ct.key, ct.value);
+        itemDetail = String.format("Updating config %s/%s to %s", ct.configType, ct.key, ct.value);
+        if (null != ct.summary) {
+          stageText = ct.summary;
+        } else {
+          stageText = String.format("Updating Config %s", ct.configType);
+        }
+        entity.setText(itemDetail);
         break;
       }
       default:
         break;
     }
-
-    entity.setText(itemText);
 
     ActionExecutionContext actionContext = new ActionExecutionContext(
         cluster.getClusterName(), Role.AMBARI_SERVER_ACTION.toString(),
@@ -701,7 +713,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         "/tmp/ambari",
         cluster.getClusterName(),
         cluster.getClusterId(),
-        entity.getText(),
+        stageText,
         jsons.getClusterHostInfo(),
         jsons.getCommandParamsForStage(),
         jsons.getHostParamsForStage());
@@ -721,9 +733,13 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     stage.addServerActionCommand(task.getImplementationClass(),
         Role.AMBARI_SERVER_ACTION,
         RoleCommand.EXECUTE,
-        cluster.getClusterName(), host,
+        cluster.getClusterName(),
+        host,
         new ServiceComponentHostServerActionEvent(StageUtils.getHostName(), System.currentTimeMillis()),
-        commandParams, null, 1200, allowRtery);
+        commandParams,
+        itemDetail,
+        Integer.valueOf(1200),
+        allowRtery);
 
     request.addStages(Collections.singletonList(stage));
   }
