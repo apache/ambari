@@ -89,9 +89,11 @@ App.upgradeTaskView = Em.View.extend({
 
   /**
    * request task details from server
+   * @return {$.ajax|null}
    */
   getTaskDetails: function () {
-    App.ajax.send({
+    if (Em.isNone(this.get('content'))) return null;
+    return App.ajax.send({
       name: 'admin.upgrade.task',
       sender: this,
       data: {

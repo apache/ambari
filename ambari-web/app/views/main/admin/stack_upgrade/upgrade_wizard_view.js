@@ -18,6 +18,7 @@
 
 
 var App = require('app');
+var stringUtils = require('utils/string_utils');
 
 App.upgradeWizardView = Em.View.extend({
   controllerBinding: 'App.router.mainAdminStackAndUpgradeController',
@@ -56,6 +57,15 @@ App.upgradeWizardView = Em.View.extend({
   outsideView: true,
 
   /**
+   * Downgrade should be available only if target version higher than current, so we can't downgrade
+   * when downgrade already started
+   * @type {boolean}
+   */
+  isDowngradeAvailable: function () {
+    return stringUtils.compareVersions(this.get('controller.upgradeVersion'), this.get('controller.currentVersion.repository_version')) === 1;
+  }.property('controller.currentVersion', 'controller.upgradeVersion'),
+
+  /**
    * progress value is rounded to floor
    * @type {number}
    */
@@ -70,6 +80,9 @@ App.upgradeWizardView = Em.View.extend({
   upgradeGroups: function () {
     if (Em.isNone(this.get('controller.upgradeData.upgradeGroups'))) return [];
     var upgradeGroups = this.get('controller.upgradeData.upgradeGroups');
+    upgradeGroups.forEach(function (group) {
+      group.get('upgradeItems').reverse();
+    });
     upgradeGroups.reverse();
     return upgradeGroups;
   }.property('controller.upgradeData.upgradeGroups'),

@@ -1328,6 +1328,9 @@ Em.I18n.translations = {
   'admin.stackVersions.updateTab.title.available': "Updates Available ({0})",
   'admin.stackVersions.updateTab.title.not.available': "No Updates Available",
 
+  'admin.stackUpgrade.downgrade.proceed': "Proceed with Downgrade",
+  'admin.stackUpgrade.downgrade.title': "Downgrade to {0}",
+  'admin.stackUpgrade.downgrade.body': "Are you sure you wish to abort the upgrade process and downgrade to {0}",
   'admin.stackUpgrade.title': "Stack and upgrade",
   'admin.stackUpgrade.hostsOnline': "{0}/{1} hosts online",
   'admin.stackUpgrade.state.available': "Upgrade Available",

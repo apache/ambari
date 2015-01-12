@@ -60,7 +60,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   /**
    * properties that stored to localStorage to resume wizard progress
    */
-  wizardStorageProperties: ['upgradeId', 'upgradeVersion'],
+  wizardStorageProperties: ['upgradeId', 'upgradeVersion', 'currentVersion'],
 
   init: function () {
     this.initDBProperties();
@@ -250,10 +250,36 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   },
 
   /**
-   * make call to start downgrade process
+   * downgrade confirmation popup
    */
-  downgrade: function () {
-    //TODO start downgrade
+  confirmDowngrade: function () {
+    var self = this;
+    var currentVersion = this.get('currentVersion');
+    return App.showConfirmationPopup(
+      function() {
+        self.downgrade.call(self, currentVersion);
+      },
+      Em.I18n.t('admin.stackUpgrade.downgrade.body').format(currentVersion.repository_name),
+      null,
+      Em.I18n.t('admin.stackUpgrade.downgrade.title').format(currentVersion.repository_name),
+      Em.I18n.t('admin.stackUpgrade.downgrade.proceed')
+    );
+  },
+
+  /**
+   * make call to start downgrade process
+   * @params {object} currentVersion
+   */
+  downgrade: function (currentVersion) {
+    App.ajax.send({
+      name: 'admin.downgrade.start',
+      sender: this,
+      data: {
+        value: currentVersion.repository_version,
+        label: currentVersion.repository_name
+      },
+      success: 'upgradeSuccessCallback'
+    });
   },
 
   /**
@@ -264,21 +290,20 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     App.ajax.send({
       name: 'admin.upgrade.start',
       sender: this,
-      data: {
-        version: version.value
-      },
+      data: version,
       success: 'upgradeSuccessCallback'
     });
-    this.set('upgradeVersion', version.label);
-    this.setDBProperty('upgradeVersion', version.label);
+    this.setDBProperty('currentVersion', this.get('currentVersion'));
   },
 
   /**
    * success callback of <code>upgrade()</code>
    * @param {object} data
    */
-  upgradeSuccessCallback: function (data) {
+  upgradeSuccessCallback: function (data, opt, params) {
     this.set('upgradeId', data.resources[0].Upgrade.request_id);
+    this.set('upgradeVersion', params.label);
+    this.setDBProperty('upgradeVersion', params.label);
     this.setDBProperty('upgradeId', data.resources[0].Upgrade.request_id);
     this.setDBProperty('upgradeState', 'PENDING');
     App.set('upgradeState', 'PENDING');
@@ -351,6 +376,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     App.set('upgradeState', 'INIT');
     this.set('upgradeVersion', null);
     this.setDBProperty('upgradeVersion', undefined);
+    this.setDBProperty('currentVersion', undefined);
     App.clusterStatus.setClusterStatus({
       localdb: App.db.data
     });

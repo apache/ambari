@@ -104,27 +104,6 @@ App.MainAdminStackAndUpgradeView = Em.View.extend({
     version: function () {
       return this.get('controller.currentVersion');
     }.property('controller.currentVersion'),
-    btnClass: 'btn-danger',
-    didInsertElement: function () {
-      this.buttonObserver();
-    },
-
-    /**
-     * method of controller called on click of source version button
-     * @type {string}
-     * @default null
-     */
-    method: null,
-
-    /**
-     * label of source version button
-     * @type {string}
-     */
-    label: "",
-    buttonObserver: function () {
-      this.set('method', App.get('upgradeState') !== 'INIT' && 'downgrade');
-      this.set('label', App.get('upgradeState') !== 'INIT' && Em.I18n.t('common.downgrade'));
-    }.observes('App.upgradeState'),
     hostsCount: function () {
       return this.get('version.host_states.CURRENT.length');
     }.property('version.host_states.CURRENT.length')

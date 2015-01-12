@@ -360,6 +360,9 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       controller.setDBProperty.restore();
     });
     it("make ajax call", function() {
+      controller.set('currentVersion', {
+        repository_version: '2.2'
+      });
       controller.upgrade({
         value: '2.2',
         label: 'HDP-2.2'
@@ -368,12 +371,14 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         name: 'admin.upgrade.start',
         sender: controller,
         data: {
-          version: '2.2'
+          value: '2.2',
+          label: 'HDP-2.2'
         },
         success: 'upgradeSuccessCallback'
       });
-      expect(controller.get('upgradeVersion')).to.equal('HDP-2.2');
-      expect(controller.setDBProperty.calledWith('upgradeVersion', 'HDP-2.2')).to.be.true;
+      expect(controller.setDBProperty.calledWith('currentVersion', {
+        repository_version: '2.2'
+      })).to.be.true;
     });
   });
 
@@ -398,8 +403,10 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           }
         ]
       };
-      controller.upgradeSuccessCallback(data);
+      controller.upgradeSuccessCallback(data, {}, {label: 'HDP-2.2.1'});
       expect(controller.setDBProperty.calledWith('upgradeId', 1)).to.be.true;
+      expect(controller.setDBProperty.calledWith('upgradeVersion', 'HDP-2.2.1')).to.be.true;
+      expect(controller.get('upgradeVersion')).to.equal('HDP-2.2.1');
       expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
       expect(controller.openUpgradeDialog.calledOnce).to.be.true;
     });
@@ -529,6 +536,47 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(controller.get('upgradeVersion')).to.be.null;
       expect(controller.setDBProperty.calledWith('upgradeVersion', undefined)).to.be.true;
       expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#confirmDowngrade()", function() {
+    before(function () {
+      sinon.stub(App, 'showConfirmationPopup', Em.K);
+    });
+    after(function () {
+      App.showConfirmationPopup.restore();
+    });
+    it("show confirmation popup", function() {
+      controller.set('currentVersion', Em.Object.create({
+        repository_version: '2.2',
+        repository_name: 'HDP-2.2'
+      }));
+      controller.confirmDowngrade();
+      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#downgrade()", function() {
+    before(function () {
+      sinon.stub(App.ajax, 'send', Em.K);
+    });
+    after(function () {
+      App.ajax.send.restore();
+    });
+    it("make ajax call", function() {
+      controller.downgrade(Em.Object.create({
+        repository_version: '2.2',
+        repository_name: 'HDP-2.2'
+      }));
+      expect(App.ajax.send.getCall(0).args[0]).to.eql({
+        name: 'admin.downgrade.start',
+        sender: controller,
+        data: {
+          value: '2.2',
+          label: 'HDP-2.2'
+        },
+        success: 'upgradeSuccessCallback'
+      });
     });
   });
 });

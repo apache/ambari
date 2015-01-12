@@ -26,12 +26,8 @@
       {{#view view.sourceVersionView classNames="span2 offset3 box flex-width"}}
         <div class="version-name"><strong>{{view.versionName}}</strong></div>
         <div>
-          {{#if view.label}}
-            <button {{bindAttr class=":btn view.btnClass"}} {{action runAction target="view"}}>{{view.label}}</button>
-          {{else}}
-            {{view.hostsCount}}
-            &nbsp;{{pluralize view.hostsCount singular="t:admin.stackUpgrade.host" plural="t:admin.stackUpgrade.hosts"}}
-          {{/if}}
+          {{view.hostsCount}}
+          &nbsp;{{pluralize view.hostsCount singular="t:admin.stackUpgrade.host" plural="t:admin.stackUpgrade.hosts"}}
         </div>
       {{/view}}
       <div class="span1">

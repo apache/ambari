@@ -64,6 +64,9 @@
             </div>
             {{#if view.isHoldingState}}
               <div class="button-row">
+                {{#if view.isDowngradeAvailable}}
+                  <button class="btn btn-danger" {{action confirmDowngrade target="controller"}}>{{t common.downgrade}}</button>
+                {{/if}}
                 {{#if view.isSkipable}}
                   <button class="btn btn-warning" {{action continue view.failedItem target="view"}}>{{t admin.stackUpgrade.dialog.continue}}</button>
                 {{else}}
@@ -84,6 +87,9 @@
               {{t admin.stackUpgrade.dialog.manualDone}}
             </div>
             <div class="button-row">
+              {{#if view.isDowngradeAvailable}}
+                <button class="btn btn-danger" {{action confirmDowngrade target="controller"}}>{{t common.downgrade}}</button>
+              {{/if}}
               <button class="btn btn-success" {{bindAttr disabled="view.isManualProceedDisabled"}} {{action complete view.manualItem target="view"}}>
                 {{t common.proceed}}
               </button>

@@ -1335,14 +1335,29 @@ var urls = {
     'mock': '/data/stack_versions/upgrade_task.json'
   },
   'admin.upgrade.start': {
-    'real': '/clusters/{clusterName}/upgrades/{id}',
+    'real': '/clusters/{clusterName}/upgrades',
     'mock': '/data/stack_versions/start_upgrade.json',
     'type': 'POST',
     'format': function (data) {
       return {
         data: JSON.stringify({
           "Upgrade": {
-            "repository_version": data.version
+            "repository_version": data.value
+          }
+        })
+      }
+    }
+  },
+  'admin.downgrade.start': {
+    'real': '/clusters/{clusterName}/upgrades',
+    'mock': '/data/stack_versions/start_upgrade.json',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          "Upgrade": {
+            "repository_version": data.value,
+            "force_downgrade": true
           }
         })
       }
