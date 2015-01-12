@@ -367,7 +367,13 @@
             "hadoop.security.auth_to_local": "RULE:[2:$1@$0](rm@.*EXAMPLE.COM)s/.*/yarn/\nRULE:[2:$1@$0](nm@.*EXAMPLE.COM)s/.*/yarn/\nRULE:[2:$1@$0](nn@.*EXAMPLE.COM)s/.*/hdfs/\nRULE:[2:$1@$0](dn@.*EXAMPLE.COM)s/.*/hdfs/\nRULE:[2:$1@$0](hbase@.*EXAMPLE.COM)s/.*/hbase/\nRULE:[2:$1@$0](hbase@.*EXAMPLE.COM)s/.*/hbase/\nRULE:[2:$1@$0](oozie@.*EXAMPLE.COM)s/.*/oozie/\nRULE:[2:$1@$0](jhs@.*EXAMPLE.COM)s/.*/mapred/\nRULE:[2:$1@$0](jn/_HOST@.*EXAMPLE.COM)s/.*/hdfs/\nDEFAULT", 
             "hadoop.proxyuser.oozie.hosts": "c6402.ambari.apache.org", 
             "ipc.client.connection.maxidletime": "30000"
-        }, 
+        },
+        "ranger-hdfs-plugin-properties" : {
+            "ranger-hdfs-plugin-enabled":"yes"
+        },
+        "ranger-hive-plugin-properties" : {
+            "ranger-hive-plugin-enabled":"yes"
+        },
         "hive-site": {
             "hive.enforce.sorting": "true", 
             "javax.jdo.option.ConnectionPassword": "!`\"' 1", 

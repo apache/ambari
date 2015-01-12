@@ -288,6 +288,7 @@
         <config-type>hive-env</config-type>
         <config-type>webhcat-site</config-type>
         <config-type>webhcat-env</config-type>
+        <config-type>ranger-hive-plugin-properties</config-type>
       </configuration-dependencies>
     </service>
   </services>

@@ -312,6 +312,11 @@
             "hadoop.security.auth_to_local": "\n        RULE:[2:$1@$0]([rn]m@.*)s/.*/yarn/\n        RULE:[2:$1@$0](jhs@.*)s/.*/mapred/\n        RULE:[2:$1@$0]([nd]n@.*)s/.*/hdfs/\n        RULE:[2:$1@$0](hm@.*)s/.*/hbase/\n        RULE:[2:$1@$0](rs@.*)s/.*/hbase/\n        DEFAULT",
             "ipc.client.connection.maxidletime": "30000"
         },
+
+        "ranger-hive-plugin-properties" : {
+            "ranger-hive-plugin-enabled":"yes"
+        },
+
         "hadoop-env": {
             "dtnode_heapsize": "1024m",
             "namenode_opt_maxnewsize": "200m",
