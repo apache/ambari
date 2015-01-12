@@ -695,7 +695,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, {
         }, isInstaller);
     }
     else {
-      serviceConfigController.addOverrideProperty(serviceConfigProperty);
+      serviceConfigController.addOverrideProperty(serviceConfigProperty, selectedConfigGroup);
     }
   }
 

@@ -174,14 +174,17 @@ describe("App.MainServiceInfoConfigsController", function () {
       overrides: []
     });
 
+    var group = {};
     var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty);
     newSCP.set('value', '');
     newSCP.set('isOriginalSCP', false);
     newSCP.set('parentSCP', serviceConfigProperty);
     newSCP.set('isEditable', true);
+    newSCP.set('group', group);
+
 
     it("add new overridden property", function () {
-      mainServiceInfoConfigsController.addOverrideProperty(serviceConfigProperty);
+      mainServiceInfoConfigsController.addOverrideProperty(serviceConfigProperty, group);
       expect(serviceConfigProperty.get("overrides")[0]).to.eql(newSCP);
     });
   });

@@ -59,11 +59,22 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
   }.property('serviceConfig.isEditable')
 });
 
+App.ServiceConfigCalculateId = Ember.Mixin.create({
+
+  elementId: Ember.computed(function(){
+    var label = Em.get(this, 'serviceConfig.name') ? Em.get(this, 'serviceConfig.name').toLowerCase().replace(/\./g, '-') : '',
+        fileName = Em.get(this, 'serviceConfig.filename') ? Em.get(this, 'serviceConfig.filename').toLowerCase().replace(/\./g, '-') : '',
+        group = Em.get(this, 'serviceConfig.group.name') || 'default';
+    return 'service-config-' + label + '-' + fileName + '-' + group;
+  })
+
+});
+
 /**
  * Default input control
  * @type {*}
  */
-App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupport, {
+App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, {
 
   valueBinding: 'serviceConfig.value',
   classNameBindings: 'textFieldClassName',
@@ -93,13 +104,7 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
     } else {
       return ['span9'];
     }
-  }.property('serviceConfig.displayType', 'serviceConfig.unit'),
-
-  elementId: Ember.computed(function(){
-    var label = Em.get(this, 'serviceConfig.name') ? Em.get(this, 'serviceConfig.name').toLowerCase().replace(/\./g, '-') : "",
-        fileName = Em.get(this, 'serviceConfig.filename') ? Em.get(this, 'serviceConfig.filename').toLowerCase().replace(/\./g, '-') : "";
-    return 'service-config-' + label + "-" + fileName;
-  })
+  }.property('serviceConfig.displayType', 'serviceConfig.unit')
 
 });
 
@@ -154,13 +159,7 @@ App.ServiceConfigPasswordField = Ember.TextField.extend({
 
   readOnly: function () {
     return !this.get('serviceConfig.isEditable');
-  }.property('serviceConfig.isEditable'),
-
-  elementId: Ember.computed(function(){
-    var label = Em.get(this, 'serviceConfig.name') ? Em.get(this, 'serviceConfig.name').toLowerCase().replace(/\./g, '-') : "",
-      fileName = Em.get(this, 'serviceConfig.filename') ? Em.get(this, 'serviceConfig.filename').toLowerCase().replace(/\./g, '-') : "";
-    return 'service-config-' + label + "-" + fileName;
-  })
+  }.property('serviceConfig.isEditable')
 
 });
 
@@ -168,68 +167,46 @@ App.ServiceConfigPasswordField = Ember.TextField.extend({
  * Textarea control
  * @type {*}
  */
-App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSupport, {
+App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, {
 
   valueBinding: 'serviceConfig.value',
   rows: 4,
-  classNames: ['span9', 'directories'],
-  elementId: Ember.computed(function(){
-    var label = Em.get(this, 'serviceConfig.name') ? Em.get(this, 'serviceConfig.name').toLowerCase().replace(/\./g, '-') : "",
-      fileName = Em.get(this, 'serviceConfig.filename') ? Em.get(this, 'serviceConfig.filename').toLowerCase().replace(/\./g, '-') : "";
-    return 'service-config-' + label + "-" + fileName;
-  })
+  classNames: ['span9', 'directories']
 });
 
 /**
  * Textarea control for content type
  * @type {*}
  */
-App.ServiceConfigTextAreaContent = Ember.TextArea.extend(App.ServiceConfigPopoverSupport, {
+App.ServiceConfigTextAreaContent = Ember.TextArea.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, {
 
   valueBinding: 'serviceConfig.value',
   rows: 20,
-  classNames: ['span10'],
-  elementId: Ember.computed(function(){
-    var label = Em.get(this, 'serviceConfig.name') ? Em.get(this, 'serviceConfig.name').toLowerCase().replace(/\./g, '-') : "",
-      fileName = Em.get(this, 'serviceConfig.filename') ? Em.get(this, 'serviceConfig.filename').toLowerCase().replace(/\./g, '-') : "";
-    return 'service-config-' + label + fileName;
-  })
+  classNames: ['span10']
 });
 
 /**
  * Textarea control with bigger height
  * @type {*}
  */
-App.ServiceConfigBigTextArea = App.ServiceConfigTextArea.extend({
-  rows: 10,
-
-  elementId: Ember.computed(function(){
-    var label = Em.get(this, 'serviceConfig.name') ? Em.get(this, 'serviceConfig.name').toLowerCase().replace(/\./g, '-') : "",
-      fileName = Em.get(this, 'serviceConfig.filename') ? Em.get(this, 'serviceConfig.filename').toLowerCase().replace(/\./g, '-') : "";
-    return 'service-config-' + label + "-" + fileName;
-  })
+App.ServiceConfigBigTextArea = App.ServiceConfigTextArea.extend(App.ServiceConfigCalculateId, {
+  rows: 10
 });
 
 /**
  * Checkbox control
  * @type {*}
  */
-App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSupport, {
+App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, {
 
   checkedBinding: 'serviceConfig.value',
 
   disabled: function () {
     return !this.get('serviceConfig.isEditable');
-  }.property('serviceConfig.isEditable'),
-
-  elementId: Ember.computed(function(){
-    var label = Em.get(this, 'serviceConfig.name') ? Em.get(this, 'serviceConfig.name').toLowerCase().replace(/\./g, '-') : "",
-      fileName = Em.get(this, 'serviceConfig.filename') ? Em.get(this, 'serviceConfig.filename').toLowerCase().replace(/\./g, '-') : "";
-    return 'service-config-' + label + "-" + fileName;
-  })
+  }.property('serviceConfig.isEditable')
 });
 
-App.ServiceConfigRadioButtons = Ember.View.extend({
+App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, {
   templateName: require('templates/wizard/controls_service_config_radio_buttons'),
 
   didInsertElement: function () {
@@ -243,12 +220,6 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
       }
     }
   },
-
-  elementId: Ember.computed(function(){
-    var label = Em.get(this, 'serviceConfig.name') ? Em.get(this, 'serviceConfig.name').toLowerCase().replace(/\./g, '-') : "",
-      fileName = Em.get(this, 'serviceConfig.filename') ? Em.get(this, 'serviceConfig.filename').toLowerCase().replace(/\./g, '-') : "";
-    return 'service-config-' + label + "-" + fileName;
-}),
 
   configs: function () {
     if (this.get('controller.name') == 'mainServiceInfoConfigsController') return this.get('categoryConfigsAll');
@@ -539,16 +510,11 @@ App.ServiceConfigRadioButton = Ember.Checkbox.extend({
   }.property('parentView.serviceConfig.isEditable')
 });
 
-App.ServiceConfigComboBox = Ember.Select.extend(App.ServiceConfigPopoverSupport, {
+App.ServiceConfigComboBox = Ember.Select.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, {
   contentBinding: 'serviceConfig.options',
   selectionBinding: 'serviceConfig.value',
   placeholderBinding: 'serviceConfig.defaultValue',
-  classNames: [ 'span3' ],
-  elementId: Ember.computed(function(){
-    var label = Em.get(this, 'serviceConfig.name') ? Em.get(this, 'serviceConfig.name').toLowerCase().replace(/\./g, '-') : "",
-      fileName = Em.get(this, 'serviceConfig.filename') ? Em.get(this, 'serviceConfig.filename').toLowerCase().replace(/\./g, '-') : "";
-    return 'service-config-' + label + "-" + fileName;
-  })
+  classNames: [ 'span3' ]
 });
 
 
@@ -577,18 +543,12 @@ App.ServiceConfigHostPopoverSupport = Ember.Mixin.create({
  * Show hostname without ability to edit it
  * @type {*}
  */
-App.ServiceConfigMasterHostView = Ember.View.extend(App.ServiceConfigHostPopoverSupport, {
+App.ServiceConfigMasterHostView = Ember.View.extend(App.ServiceConfigHostPopoverSupport, App.ServiceConfigCalculateId, {
 
   classNames: ['master-host', 'span6'],
   valueBinding: 'serviceConfig.value',
 
-  template: Ember.Handlebars.compile('{{value}}'),
-
-  elementId: Ember.computed(function(){
-    var label = Em.get(this, 'serviceConfig.name') ? Em.get(this, 'serviceConfig.name').toLowerCase().replace(/\./g, '-') : "",
-      fileName = Em.get(this, 'serviceConfig.filename') ? Em.get(this, 'serviceConfig.filename').toLowerCase().replace(/\./g, '-') : "";
-    return 'service-config-' + label + "-" + fileName;
-  })
+  template: Ember.Handlebars.compile('{{value}}')
 
 });
 
@@ -596,25 +556,19 @@ App.ServiceConfigMasterHostView = Ember.View.extend(App.ServiceConfigHostPopover
  * Show value as plain label in italics
  * @type {*}
  */
-App.ServiceConfigLabelView = Ember.View.extend(App.ServiceConfigHostPopoverSupport, {
+App.ServiceConfigLabelView = Ember.View.extend(App.ServiceConfigHostPopoverSupport, App.ServiceConfigCalculateId, {
 
   classNames: ['master-host', 'span6'],
   valueBinding: 'serviceConfig.value',
 
-  template: Ember.Handlebars.compile('<i>{{view.value}}</i>'),
-
-  elementId: Ember.computed(function(){
-    var label = Em.get(this, 'serviceConfig.name') ? Em.get(this, 'serviceConfig.name').toLowerCase().replace(/\./g, '-') : "",
-      fileName = Em.get(this, 'serviceConfig.filename') ? Em.get(this, 'serviceConfig.filename').toLowerCase().replace(/\./g, '-') : "";
-    return 'service-config-' + label + "-" + fileName;
-  })
+  template: Ember.Handlebars.compile('<i>{{view.value}}</i>')
 });
 
 /**
  * Base component to display Multiple hosts
  * @type {*}
  */
-App.ServiceConfigMultipleHostsDisplay = Ember.Mixin.create(App.ServiceConfigHostPopoverSupport, {
+App.ServiceConfigMultipleHostsDisplay = Ember.Mixin.create(App.ServiceConfigHostPopoverSupport, App.ServiceConfigCalculateId, {
 
   hasNoHosts: function () {
     console.log('view', this.get('viewName')); //to know which View cause errors
@@ -640,13 +594,7 @@ App.ServiceConfigMultipleHostsDisplay = Ember.Mixin.create(App.ServiceConfigHost
     } else {
       return Em.I18n.t('installer.controls.serviceConfigMultipleHosts.other');
     }
-  }.property('value'),
-
-  elementId: Ember.computed(function(){
-    var label = Em.get(this, 'serviceConfig.name') ? Em.get(this, 'serviceConfig.name').toLowerCase().replace(/\./g, '-') : "",
-      fileName = Em.get(this, 'serviceConfig.filename') ? Em.get(this, 'serviceConfig.filename').toLowerCase().replace(/\./g, '-') : "";
-    return 'service-config-' + label + "-" + fileName;
-  })
+  }.property('value')
 
 });
 
@@ -656,7 +604,7 @@ App.ServiceConfigMultipleHostsDisplay = Ember.Mixin.create(App.ServiceConfigHost
  * Show hostnames without ability to edit it
  * @type {*}
  */
-App.ServiceConfigMasterHostsView = Ember.View.extend(App.ServiceConfigMultipleHostsDisplay, {
+App.ServiceConfigMasterHostsView = Ember.View.extend(App.ServiceConfigMultipleHostsDisplay, App.ServiceConfigCalculateId, {
 
   viewName: "serviceConfigMasterHostsView",
   valueBinding: 'serviceConfig.value',
@@ -677,13 +625,7 @@ App.ServiceConfigMasterHostsView = Ember.View.extend(App.ServiceConfigMultipleHo
       }),
       secondary: null
     });
-  },
-
-  elementId: Ember.computed(function(){
-    var label = Em.get(this, 'serviceConfig.name') ? Em.get(this, 'serviceConfig.name').toLowerCase().replace(/\./g, '-') : "",
-      fileName = Em.get(this, 'serviceConfig.filename') ? Em.get(this, 'serviceConfig.filename').toLowerCase().replace(/\./g, '-') : "";
-    return 'service-config-' + label + "-" + fileName;
-  })
+  }
 
 });
 
@@ -691,7 +633,7 @@ App.ServiceConfigMasterHostsView = Ember.View.extend(App.ServiceConfigMultipleHo
  * Show tabs list for slave hosts
  * @type {*}
  */
-App.SlaveComponentGroupsMenu = Em.CollectionView.extend({
+App.SlaveComponentGroupsMenu = Em.CollectionView.extend(App.ServiceConfigCalculateId, {
 
   content: function () {
     return this.get('controller.componentGroups');
@@ -712,20 +654,15 @@ App.SlaveComponentGroupsMenu = Em.CollectionView.extend({
     }.property('content.properties.@each.isValid', 'content.properties.@each.isVisible'),
 
     templateName: require('templates/wizard/controls_slave_component_groups_menu')
-  }),
-
-  elementId: Ember.computed(function(){
-    var label = Em.get(this, 'serviceConfig.name') ? Em.get(this, 'serviceConfig.name').toLowerCase().replace(/\./g, '-') : "",
-      fileName = Em.get(this, 'serviceConfig.filename') ? Em.get(this, 'serviceConfig.filename').toLowerCase().replace(/\./g, '-') : "";
-    return 'service-config-' + label + "-" + fileName;
   })
+
 });
 
 /**
  * <code>Add group</code> button
  * @type {*}
  */
-App.AddSlaveComponentGroupButton = Ember.View.extend({
+App.AddSlaveComponentGroupButton = Ember.View.extend(App.ServiceConfigCalculateId, {
 
   tagName: 'span',
   slaveComponentName: null,
@@ -737,13 +674,7 @@ App.AddSlaveComponentGroupButton = Ember.View.extend({
       placement: 'right',
       trigger: 'hover'
     });
-  },
-
-  elementId: Ember.computed(function(){
-    var label = Em.get(this, 'serviceConfig.name') ? Em.get(this, 'serviceConfig.name').toLowerCase().replace(/\./g, '-') : "",
-      fileName = Em.get(this, 'serviceConfig.filename') ? Em.get(this, 'serviceConfig.filename').toLowerCase().replace(/\./g, '-') : "";
-    return 'service-config-' + label + "-" + fileName;
-  })
+  }
 
 });
 
@@ -751,7 +682,7 @@ App.AddSlaveComponentGroupButton = Ember.View.extend({
  * Multiple Slave Hosts component
  * @type {*}
  */
-App.ServiceConfigSlaveHostsView = Ember.View.extend(App.ServiceConfigMultipleHostsDisplay, {
+App.ServiceConfigSlaveHostsView = Ember.View.extend(App.ServiceConfigMultipleHostsDisplay, App.ServiceConfigCalculateId, {
 
   viewName: 'serviceConfigSlaveHostsView',
 
@@ -774,13 +705,7 @@ App.ServiceConfigSlaveHostsView = Ember.View.extend(App.ServiceConfigMultipleHos
       }),
       secondary: null
     });
-  },
-
-  elementId: Ember.computed(function(){
-    var label = Em.get(this, 'serviceConfig.name') ? Em.get(this, 'serviceConfig.name').toLowerCase().replace(/\./g, '-') : "",
-      fileName = Em.get(this, 'serviceConfig.filename') ? Em.get(this, 'serviceConfig.filename').toLowerCase().replace(/\./g, '-') : "";
-    return 'service-config-' + label + "-" + fileName;
-  })
+  }
 
 });
 
@@ -788,7 +713,7 @@ App.ServiceConfigSlaveHostsView = Ember.View.extend(App.ServiceConfigMultipleHos
  * properties for present active slave group
  * @type {*}
  */
-App.SlaveGroupPropertiesView = Ember.View.extend({
+App.SlaveGroupPropertiesView = Ember.View.extend(App.ServiceConfigCalculateId, {
 
   viewName: 'serviceConfigSlaveHostsView',
 
@@ -805,20 +730,14 @@ App.SlaveGroupPropertiesView = Ember.View.extend({
 
   errorCount: function () {
     return this.get('group.properties').filterProperty('isValid', false).filterProperty('isVisible', true).get('length');
-  }.property('configs.@each.isValid', 'configs.@each.isVisible'),
-
-  elementId: Ember.computed(function(){
-    var label = Em.get(this, 'serviceConfig.name') ? Em.get(this, 'serviceConfig.name').toLowerCase().replace(/\./g, '-') : "",
-      fileName = Em.get(this, 'serviceConfig.filename') ? Em.get(this, 'serviceConfig.filename').toLowerCase().replace(/\./g, '-') : "";
-    return 'service-config-' + label + "-" + fileName;
-  })
+  }.property('configs.@each.isValid', 'configs.@each.isVisible')
 });
 
 /**
  * DropDown component for <code>select hosts for groups</code> popup
  * @type {*}
  */
-App.SlaveComponentDropDownGroupView = Ember.View.extend({
+App.SlaveComponentDropDownGroupView = Ember.View.extend(App.ServiceConfigCalculateId, {
 
   viewName: "slaveComponentDropDownGroupView",
 
@@ -840,12 +759,6 @@ App.SlaveComponentDropDownGroupView = Ember.View.extend({
     selected: function () {
       return this.get('parentView.content.group') === this.get('content');
     }.property('content')
-  }),
-
-  elementId: Ember.computed(function(){
-    var label = Em.get(this, 'serviceConfig.name') ? Em.get(this, 'serviceConfig.name').toLowerCase().replace(/\./g, '-') : "",
-      fileName = Em.get(this, 'serviceConfig.filename') ? Em.get(this, 'serviceConfig.filename').toLowerCase().replace(/\./g, '-') : "";
-    return 'service-config-' + label + "-" + fileName;
   })
 });
 
@@ -853,7 +766,7 @@ App.SlaveComponentDropDownGroupView = Ember.View.extend({
  * Show info about current group
  * @type {*}
  */
-App.SlaveComponentChangeGroupNameView = Ember.View.extend({
+App.SlaveComponentChangeGroupNameView = Ember.View.extend(App.ServiceConfigCalculateId, {
 
   contentBinding: 'controller.activeGroup',
   classNames: ['control-group'],
@@ -876,13 +789,7 @@ App.SlaveComponentChangeGroupNameView = Ember.View.extend({
       var result = this.get('controller').changeSlaveGroupName(this.get('content'), inputVal);
       this.set('error', result);
     }
-  },
-
-  elementId: Ember.computed(function(){
-    var label = Em.get(this, 'serviceConfig.name') ? Em.get(this, 'serviceConfig.name').toLowerCase().replace(/\./g, '-') : "",
-      fileName = Em.get(this, 'serviceConfig.filename') ? Em.get(this, 'serviceConfig.filename').toLowerCase().replace(/\./g, '-') : "";
-    return 'service-config-' + label + "-" + fileName;
-  })
+  }
 });
 /**
  * View for testing connection to database.

@@ -1018,7 +1018,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         return c.name == overrideToAdd.name && c.filename == overrideToAdd.filename;
       });
       if (overrideToAdd[0]) {
-        this.addOverrideProperty(overrideToAdd[0]);
+        this.addOverrideProperty(overrideToAdd[0], this.get('selectedConfigGroup'));
         this.set('overrideToAdd', null);
       }
     }
@@ -2467,9 +2467,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   /**
    * add new overridden property to config property object
    * @param {object} serviceConfigProperty - config property object
+   * @param {App.ConfigGroup} group - config group for new property
    * @method addOverrideProperty
    */
-  addOverrideProperty: function (serviceConfigProperty) {
+  addOverrideProperty: function (serviceConfigProperty, group) {
     var overrides = serviceConfigProperty.get('overrides');
     if (!overrides) {
       overrides = [];
@@ -2481,6 +2482,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
     newSCP.set('parentSCP', serviceConfigProperty);
     newSCP.set('isEditable', true);
+    newSCP.set('group', group);
     console.debug("createOverrideProperty(): Added:", newSCP, " to main-property:", serviceConfigProperty);
     overrides.pushObject(newSCP);
   },
