@@ -20,8 +20,7 @@ Ambari Agent
 
 """
 
-from resource_management import *
-from resource_management.libraries.functions.is_empty import *
+from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.core.exceptions import Fail
 import re
 

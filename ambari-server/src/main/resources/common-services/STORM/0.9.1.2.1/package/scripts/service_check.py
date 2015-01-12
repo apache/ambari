@@ -18,8 +18,12 @@ limitations under the License.
 
 """
 
-from resource_management import *
+from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import get_unique_id_and_date
+from resource_management.core.resources import File
+from resource_management.core.resources import Execute
+from resource_management.libraries.script import Script
+from resource_management.core.source import StaticFile
 
 class ServiceCheck(Script):
   def service_check(self, env):

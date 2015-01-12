@@ -21,7 +21,12 @@ Ambari Agent
 """
 
 import os
-from resource_management import *
+from resource_management.core.resources import File
+from resource_management.core.providers import Provider
+from resource_management.core.source import Template
+from resource_management.libraries.functions.format import format
+from resource_management.core.environment import Environment
+
 
 class TemplateConfigProvider(Provider):
   def action_create(self):

@@ -24,7 +24,15 @@ import os
 import filecmp
 import tempfile
 from ambari_commons import OSCheck
-from resource_management import *
+from resource_management.core.resources import Execute
+from resource_management.core.resources import File
+from resource_management.core.providers import Provider
+from resource_management.core.source import Template
+from resource_management.core.source import StaticFile
+from resource_management.libraries.functions.format import format
+from resource_management.core.environment import Environment
+from resource_management.core.shell import checked_call
+import re
 
 class RhelSuseRepositoryProvider(Provider):
   def action_create(self):

@@ -18,7 +18,13 @@ limitations under the License.
 
 """
 
-from resource_management import *
+from resource_management.core.resources import File
+from resource_management.core.resources import Directory
+from resource_management.core.source import InlineTemplate
+from resource_management.libraries.resources.template_config import TemplateConfig
+from resource_management.libraries.functions.format import format
+from resource_management.core.source import Template
+from resource_management.libraries.functions import compare_versions
 from yaml_utils import escape_yaml_propetry
 import sys
 

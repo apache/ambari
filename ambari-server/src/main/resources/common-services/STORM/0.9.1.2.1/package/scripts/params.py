@@ -20,7 +20,8 @@ limitations under the License.
 
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from resource_management.libraries.functions.default import default
-from resource_management import *
+from resource_management.libraries.script import Script
+from resource_management.libraries.functions import default, format
 import status_params
 
 # server configurations

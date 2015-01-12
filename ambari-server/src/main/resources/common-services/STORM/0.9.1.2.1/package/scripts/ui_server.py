@@ -19,10 +19,11 @@ limitations under the License.
 """
 
 import sys
-from resource_management import *
 from storm import storm
 from service import service
 from service_check import ServiceCheck
+from resource_management.libraries.functions import check_process_status
+from resource_management.libraries.script import Script
 
 
 class UiServer(Script):

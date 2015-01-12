@@ -19,10 +19,10 @@ limitations under the License.
 """
 
 import sys
-from resource_management import *
 from storm import storm
 from service import service
 from supervisord_service import supervisord_service, supervisord_check_status
+from resource_management.libraries.script import Script
 
 
 class Supervisor(Script):

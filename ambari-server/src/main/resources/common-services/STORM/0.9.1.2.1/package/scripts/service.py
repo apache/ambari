@@ -19,7 +19,9 @@ limitations under the License.
 """
 
 
-from resource_management import *
+from resource_management.core.resources import Execute
+from resource_management.core.resources import File
+from resource_management.libraries.functions.format import format
 import time
 
 

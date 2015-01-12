@@ -21,7 +21,10 @@ Ambari Agent
 """
 
 import os
-from resource_management import *
+from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
+from resource_management.core.providers import Provider
+from resource_management.libraries.functions.format import format
+from resource_management.core.shell import as_user
 
 class CopyFromLocalProvider(Provider):
   def action_run(self):

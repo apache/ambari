@@ -17,7 +17,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-from resource_management import *
+from resource_management.libraries.script import Script
+from resource_management.libraries.functions.format import format
 
 config = Script.get_config()
 
