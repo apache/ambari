@@ -34,7 +34,6 @@ public interface TimelineMetricStore {
    * @param instanceId Application instance id.
    * @param startTime Start timestamp
    * @param endTime End timestamp
-   * @param precision Precision [ seconds, minutes, hours ]
    * @param limit Override default result limit
    * @param groupedByHosts Group {@link TimelineMetric} by metric name, hostname,
    *                app id and instance id
@@ -44,7 +43,7 @@ public interface TimelineMetricStore {
    */
   TimelineMetrics getTimelineMetrics(List<String> metricNames, String hostname,
       String applicationId, String instanceId, Long startTime,
-      Long endTime, Precision precision, Integer limit, boolean groupedByHosts)
+      Long endTime, Integer limit, boolean groupedByHosts)
     throws SQLException, IOException;
 
 
@@ -54,7 +53,7 @@ public interface TimelineMetricStore {
    */
   TimelineMetric getTimelineMetric(String metricName, String hostname,
       String applicationId, String instanceId, Long startTime,
-      Long endTime, Precision precision, Integer limit)
+      Long endTime, Integer limit)
       throws SQLException, IOException;
 
 
