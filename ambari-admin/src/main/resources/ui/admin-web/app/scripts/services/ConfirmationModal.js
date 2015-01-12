@@ -21,7 +21,7 @@ angular.module('ambariAdminConsole')
 .factory('ConfirmationModal', ['$modal', '$q', function($modal, $q) {
 
 	return {
-		show: function(header, body) {
+		show: function(header, body, confirmText, cancelText) {
 			var deferred = $q.defer();
 
 			var modalInstance = $modal.open({
@@ -29,6 +29,8 @@ angular.module('ambariAdminConsole')
 				controller: ['$scope', '$modalInstance', function($scope, $modalInstance) {
 					$scope.header = header;
 					$scope.body = body;
+          $scope.confirmText = confirmText || "Ok";
+          $scope.cancelText = cancelText || "Cancel";
 
 					$scope.ok = function() {
 						$modalInstance.close();
