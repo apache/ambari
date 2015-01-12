@@ -22,6 +22,9 @@ import sys
 from resource_management.libraries.script import Script
 from storm import storm
 from supervisord_service import supervisord_service, supervisord_check_status
+from resource_management.libraries.functions import format
+from resource_management.core.resources.system import Execute
+from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 
 
 class Nimbus(Script):
