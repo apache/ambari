@@ -29,9 +29,6 @@
   {{/if}}
 
   <div id="step8-content" class="well pre-scrollable">
-    <div id="printReview">
-      <a class="btn btn-info pull-right" {{action printReview target="view"}}>{{t common.print}}</a> <br/>
-    </div>
     <div id="step8-info">
       {{#each item in controller.clusterInfo}}
         <p>
@@ -76,5 +73,6 @@
     <a class="btn pull-left installer-back-btn" {{bindAttr disabled="controller.isBackBtnDisabled"}} {{action back}}>&larr; {{t common.back}}</a>
     <a class="btn btn-success pull-right"
        id="spinner" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.deploy}} &rarr;</a>
+    <a class="btn btn-info pull-right" {{action printReview target="view"}}>{{t common.print}}</a>
   </div>
 </div>
