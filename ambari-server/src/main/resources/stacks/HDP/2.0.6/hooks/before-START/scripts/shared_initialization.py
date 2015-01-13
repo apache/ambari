@@ -27,8 +27,9 @@ def setup_hadoop():
   """
   import params
 
-  Execute("/bin/echo 0 > /selinux/enforce",
-          only_if="test -f /selinux/enforce"
+  Execute(("setenforce","0"),
+          only_if="test -f /selinux/enforce",
+          sudo=True,
   )
 
   if params.current_service == "HDFS":

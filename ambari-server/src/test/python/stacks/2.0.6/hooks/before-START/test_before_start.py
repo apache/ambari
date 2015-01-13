@@ -32,8 +32,9 @@ class TestHookBeforeStart(RMFTestCase):
                        command="hook",
                        config_file="default.json"
     )
-    self.assertResourceCalled('Execute', '/bin/echo 0 > /selinux/enforce',
+    self.assertResourceCalled('Execute', ('setenforce', '0'),
                               only_if = 'test -f /selinux/enforce',
+                              sudo=True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop',
                               owner = 'root',
@@ -89,8 +90,9 @@ class TestHookBeforeStart(RMFTestCase):
                        command="hook",
                        config_file="secured.json"
     )
-    self.assertResourceCalled('Execute', '/bin/echo 0 > /selinux/enforce',
+    self.assertResourceCalled('Execute', ('setenforce', '0'),
                               only_if = 'test -f /selinux/enforce',
+                              sudo=True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop',
                               owner = 'root',
@@ -151,8 +153,9 @@ class TestHookBeforeStart(RMFTestCase):
                        command="hook",
                        config_dict=default_json
     )
-    self.assertResourceCalled('Execute', '/bin/echo 0 > /selinux/enforce',
+    self.assertResourceCalled('Execute', ('setenforce', '0'),
                               only_if = 'test -f /selinux/enforce',
+                              sudo=True,
                               )
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-i386-32',
         recursive = True,
