@@ -18,9 +18,12 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
+import com.google.inject.Singleton;
+
 /**
  * KerberosOperationHandlerFactory gets relevant KerberosOperationHandlers given a KDCType.
  */
+@Singleton
 public class KerberosOperationHandlerFactory {
 
   /**
@@ -32,7 +35,7 @@ public class KerberosOperationHandlerFactory {
    * @param kdcType the relevant KDCType
    * @return a KerberosOperationHandler
    */
-  public static KerberosOperationHandler getKerberosOperationHandler(KDCType kdcType) {
+  public KerberosOperationHandler getKerberosOperationHandler(KDCType kdcType) {
     KerberosOperationHandler handler = null;
 
     // If not specified, use KDCType.MIT_KDC as a default
@@ -48,7 +51,6 @@ public class KerberosOperationHandlerFactory {
       case ACTIVE_DIRECTORY:
         handler = new ADKerberosOperationHandler();
         break;
-
     }
 
     return handler;

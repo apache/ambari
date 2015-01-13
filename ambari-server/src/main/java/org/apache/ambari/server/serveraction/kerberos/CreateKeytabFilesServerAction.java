@@ -139,13 +139,19 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
               File keytabFile = new File(hostDirectory, DigestUtils.sha1Hex(keytabFilePath));
               Integer keyNumber = principalKeyNumberMap.get(evaluatedPrincipal);
 
-              if (operationHandler.createKeytabFile(evaluatedPrincipal, password, keyNumber, keytabFile)) {
-                LOG.debug("Successfully created keytab file for {} at {}",
-                    evaluatedPrincipal, keytabFile.getAbsolutePath());
-              } else {
-                String message = String.format("Failed to create keytab file for %s at %s",
-                    evaluatedPrincipal, keytabFile.getAbsolutePath());
-                LOG.error(message);
+              try {
+                if (operationHandler.createKeytabFile(evaluatedPrincipal, password, keyNumber, keytabFile)) {
+                  LOG.debug("Successfully created keytab file for {} at {}",
+                      evaluatedPrincipal, keytabFile.getAbsolutePath());
+                } else {
+                  String message = String.format("Failed to create keytab file for %s at %s",
+                      evaluatedPrincipal, keytabFile.getAbsolutePath());
+                  LOG.error(message);
+                  commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", "", message);
+                }
+              } catch (KerberosOperationException e) {
+                String message = String.format("Failed to create keytab file for %s - %s", evaluatedPrincipal, e.getMessage());
+                LOG.error(message, e);
                 commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", "", message);
               }
             } else {

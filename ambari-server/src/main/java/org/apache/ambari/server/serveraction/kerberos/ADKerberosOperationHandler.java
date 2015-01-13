@@ -19,18 +19,16 @@
 package org.apache.ambari.server.serveraction.kerberos;
 
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import javax.naming.*;
 import javax.naming.directory.*;
+import javax.naming.ldap.Control;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapContext;
 import java.io.UnsupportedEncodingException;
-import java.util.HashSet;
 import java.util.Properties;
-import java.util.Set;
 
 /**
  * Implementation of <code>KerberosOperationHandler</code> to created principal in Active Directory
@@ -41,27 +39,21 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
 
   private static final String LDAP_CONTEXT_FACTORY_CLASS = "com.sun.jndi.ldap.LdapCtxFactory";
 
-  private String adminPrincipal;
-  private String adminPassword;
-  private String realm;
-
   private String ldapUrl;
   private String principalContainerDn;
 
-  private static final int ONELEVEL_SCOPE = SearchControls.ONELEVEL_SCOPE;
+  private static final int ONE_LEVEL_SCOPE = SearchControls.ONELEVEL_SCOPE;
   private static final String LDAP_ATUH_MECH_SIMPLE = "simple";
 
   private LdapContext ldapContext;
-
   private SearchControls searchControls;
 
   /**
    * Prepares and creates resources to be used by this KerberosOperationHandler.
-   * This method in this class would always throw <code>AmabriException</code> reporting
+   * This method in this class would always throw <code>KerberosOperationException</code> reporting
    * ldapUrl is not provided.
-   * Please use <code>open(KerberosCredential administratorCredentials, String defaultRealm,
+   * Use <code>open(KerberosCredential administratorCredentials, String defaultRealm,
    * String ldapUrl, String principalContainerDn)</code> for successful operation.
-   * <p/>
    * <p/>
    * It is expected that this KerberosOperationHandler will not be used before this call.
    *
@@ -71,7 +63,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
    */
   @Override
   public void open(KerberosCredential administratorCredentials, String realm)
-    throws AmbariException {
+      throws KerberosOperationException {
     open(administratorCredentials, realm, null, null);
   }
 
@@ -85,56 +77,42 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
    * @param realm                    a String declaring the default Kerberos realm (or domain)
    * @param ldapUrl                  ldapUrl of ldap back end where principals would be created
    * @param principalContainerDn     DN of the container in ldap back end where principals would be created
+   * @throws KerberosKDCConnectionException       if a connection to the KDC cannot be made
+   * @throws KerberosAdminAuthenticationException if the administrator credentials fail to authenticate
+   * @throws KerberosRealmException               if the realm does not map to a KDC
+   * @throws KerberosOperationException           if an unexpected error occurred
    */
   @Override
   public void open(KerberosCredential administratorCredentials, String realm,
                    String ldapUrl, String principalContainerDn)
-    throws AmbariException {
+      throws KerberosOperationException {
+
+    if (isOpen()) {
+      close();
+    }
+
     if (administratorCredentials == null) {
-      throw new AmbariException("admininstratorCredential not provided");
+      throw new KerberosAdminAuthenticationException("administrator Credential not provided");
     }
     if (realm == null) {
-      throw new AmbariException("realm not provided");
+      throw new KerberosRealmException("realm not provided");
     }
     if (ldapUrl == null) {
-      throw new AmbariException("ldapUrl not provided");
+      throw new KerberosKDCConnectionException("ldapUrl not provided");
     }
     if (principalContainerDn == null) {
-      throw new AmbariException("principalContainerDn not provided");
+      throw new KerberosLDAPContainerException("principalContainerDn not provided");
     }
-    this.adminPrincipal = administratorCredentials.getPrincipal();
-    this.adminPassword = administratorCredentials.getPassword();
-    this.realm = realm;
+
+    setAdministratorCredentials(administratorCredentials);
+    setDefaultRealm(realm);
+
     this.ldapUrl = ldapUrl;
     this.principalContainerDn = principalContainerDn;
-    createLdapContext();
-  }
+    this.ldapContext = createLdapContext();
+    this.searchControls = createSearchControls();
 
-  private void createLdapContext() throws AmbariException {
-    LOG.info("Creating ldap context");
-
-    Properties env = new Properties();
-    env.put(Context.INITIAL_CONTEXT_FACTORY, LDAP_CONTEXT_FACTORY_CLASS);
-    env.put(Context.PROVIDER_URL, ldapUrl);
-    env.put(Context.SECURITY_PRINCIPAL, adminPrincipal);
-    env.put(Context.SECURITY_CREDENTIALS, adminPassword);
-    env.put(Context.SECURITY_AUTHENTICATION, LDAP_ATUH_MECH_SIMPLE);
-    env.put(Context.REFERRAL, "follow");
-
-    try {
-      ldapContext = new InitialLdapContext(env, null);
-    } catch (NamingException ne) {
-      LOG.error("Can not created ldapContext", ne);
-      throw new AmbariException("Can not created ldapContext", ne);
-    }
-
-    searchControls = new SearchControls();
-    searchControls.setSearchScope(ONELEVEL_SCOPE);
-
-    Set<String> userSearchAttributes = new HashSet<String>();
-    userSearchAttributes.add("cn");
-    searchControls.setReturningAttributes(userSearchAttributes.toArray(
-      new String[userSearchAttributes.size()]));
+    setOpen(true);
   }
 
   /**
@@ -143,37 +121,16 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
    * It is expected that this KerberosOperationHandler will not be used after this call.
    */
   @Override
-  public void close() {
-    try {
-      if (ldapContext != null) {
+  public void close() throws KerberosOperationException {
+    if (ldapContext != null) {
+      try {
         ldapContext.close();
+      } catch (NamingException e) {
+        throw new KerberosOperationException("Unexpected error", e);
       }
-    } catch (NamingException ne) {
-      // ignored, nothing we could do about it
     }
 
-  }
-
-  /**
-   * Maps Keberos realm name to AD dc tree syntaz
-   *
-   * @param realm kerberos realm name
-   * @return mapped dc tree string
-   */
-  private static String realmToDcs(String realm) {
-    if (realm == null || realm.isEmpty()) {
-      return realm;
-    }
-    String[] tokens = realm.split("\\.");
-    StringBuilder sb = new StringBuilder();
-    int len = tokens.length;
-    if (len > 0) {
-      sb.append("dc=").append(tokens[0]);
-    }
-    for (int i = 1; i < len; i++)   {
-      sb.append(",").append("dc=").append(tokens[i]);
-    }
-    return sb.toString();
+    setOpen(false);
   }
 
   /**
@@ -183,24 +140,27 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
    *
    * @param principal a String containing the principal to test
    * @return true if the principal exists; false otherwise
-   * @throws AmbariException
+   * @throws KerberosOperationException
    */
   @Override
-  public boolean principalExists(String principal) throws AmbariException {
+  public boolean principalExists(String principal) throws KerberosOperationException {
+    if (!isOpen()) {
+      throw new KerberosOperationException("This operation handler has not be opened");
+    }
     if (principal == null) {
-      throw new AmbariException("principal is null");
+      throw new KerberosOperationException("principal is null");
     }
     NamingEnumeration<SearchResult> searchResultEnum = null;
     try {
       searchResultEnum = ldapContext.search(
-        principalContainerDn,
-        "(cn=" + principal + ")",
-        searchControls);
+          principalContainerDn,
+          "(cn=" + principal + ")",
+          searchControls);
       if (searchResultEnum.hasMore()) {
         return true;
       }
     } catch (NamingException ne) {
-      throw new AmbariException("can not check if principal exists: " + principal, ne);
+      throw new KerberosOperationException("can not check if principal exists: " + principal, ne);
     } finally {
       try {
         if (searchResultEnum != null) {
@@ -221,16 +181,19 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
    * @param principal a String containing the principal to add
    * @param password  a String containing the password to use when creating the principal
    * @return an Integer declaring the generated key number
-   * @throws AmbariException
+   * @throws KerberosOperationException
    */
   @Override
   public Integer createServicePrincipal(String principal, String password)
-    throws AmbariException {
+      throws KerberosOperationException {
+    if (!isOpen()) {
+      throw new KerberosOperationException("This operation handler has not be opened");
+    }
     if (principal == null) {
-      throw new AmbariException("principal is null");
+      throw new KerberosOperationException("principal is null");
     }
     if (password == null) {
-      throw new AmbariException("principal password is null");
+      throw new KerberosOperationException("principal password is null");
     }
     Attributes attributes = new BasicAttributes();
 
@@ -243,7 +206,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     attributes.put(cn);
 
     Attribute upn = new BasicAttribute("userPrincipalName");
-    upn.add(principal + "@" + realm.toLowerCase());
+    upn.add(String.format("%s@%s", principal, getDefaultRealm().toLowerCase()));
     attributes.put(upn);
 
     Attribute spn = new BasicAttribute("servicePrincipalName");
@@ -259,7 +222,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     try {
       passwordAttr.add(quotedPasswordVal.getBytes("UTF-16LE"));
     } catch (UnsupportedEncodingException ue) {
-      throw new AmbariException("Can not encode password with UTF-16LE", ue);
+      throw new KerberosOperationException("Can not encode password with UTF-16LE", ue);
     }
     attributes.put(passwordAttr);
 
@@ -267,7 +230,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
       Name name = new CompositeName().add("cn=" + principal + "," + principalContainerDn);
       ldapContext.createSubcontext(name, attributes);
     } catch (NamingException ne) {
-      throw new AmbariException("Can not created principal : " + principal, ne);
+      throw new KerberosOperationException("Can not create principal : " + principal, ne);
     }
     return 0;
   }
@@ -280,35 +243,38 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
    * @param principal a String containing the principal to update
    * @param password  a String containing the password to set
    * @return an Integer declaring the new key number
-   * @throws AmbariException
+   * @throws KerberosOperationException
    */
   @Override
-  public Integer setPrincipalPassword(String principal, String password) throws AmbariException {
+  public Integer setPrincipalPassword(String principal, String password) throws KerberosOperationException {
+    if (!isOpen()) {
+      throw new KerberosOperationException("This operation handler has not be opened");
+    }
     if (principal == null) {
-      throw new AmbariException("principal is null");
+      throw new KerberosOperationException("principal is null");
     }
     if (password == null) {
-      throw new AmbariException("principal password is null");
-    }
-    if (!principalExists(principal)) {
-      if (password == null) {
-        throw new AmbariException("principal not found : " + principal);
-      }
+      throw new KerberosOperationException("principal password is null");
     }
     try {
-      createLdapContext();
-
+      if (!principalExists(principal)) {
+        throw new KerberosOperationException("principal not found : " + principal);
+      }
+    } catch (KerberosOperationException e) {
+      e.printStackTrace();
+    }
+    try {
       ModificationItem[] mods = new ModificationItem[1];
       String quotedPasswordVal = "\"" + password + "\"";
       mods[0] = new ModificationItem(DirContext.REPLACE_ATTRIBUTE,
-        new BasicAttribute("UnicodePwd", quotedPasswordVal.getBytes("UTF-16LE")));
+          new BasicAttribute("UnicodePwd", quotedPasswordVal.getBytes("UTF-16LE")));
       ldapContext.modifyAttributes(
-        new CompositeName().add("cn=" + principal + "," + principalContainerDn),
-        mods);
+          new CompositeName().add("cn=" + principal + "," + principalContainerDn),
+          mods);
     } catch (NamingException ne) {
-      throw new AmbariException("Can not set password for principal : " + principal, ne);
+      throw new KerberosOperationException("Can not set password for principal : " + principal, ne);
     } catch (UnsupportedEncodingException ue) {
-      throw new AmbariException("Unsupported encoding UTF-16LE", ue);
+      throw new KerberosOperationException("Unsupported encoding UTF-16LE", ue);
     }
     return 0;
   }
@@ -320,61 +286,109 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
    *
    * @param principal a String containing the principal to remove
    * @return true if the principal was successfully removed; otherwise false
-   * @throws AmbariException
+   * @throws KerberosOperationException
    */
   @Override
-  public boolean removeServicePrincipal(String principal) throws AmbariException {
-    if (principal == null) {
-      throw new AmbariException("principal is null");
+  public boolean removeServicePrincipal(String principal) throws KerberosOperationException {
+    if (!isOpen()) {
+      throw new KerberosOperationException("This operation handler has not be opened");
     }
-    if (!principalExists(principal)) {
-      return false;
+    if (principal == null) {
+      throw new KerberosOperationException("principal is null");
+    }
+    try {
+      if (!principalExists(principal)) {
+        return false;
+      }
+    } catch (KerberosOperationException e) {
+      e.printStackTrace();
     }
     try {
       Name name = new CompositeName().add("cn=" + principal + "," + principalContainerDn);
       ldapContext.destroySubcontext(name);
     } catch (NamingException ne) {
-      throw new AmbariException("Can not remove principal: " + principal);
+      throw new KerberosOperationException("Can not remove principal: " + principal);
     }
+
     return true;
   }
 
   /**
-   * Implementation of main method to illustrate the use of operations on this class
+   * Helper method to create the LDAP context needed to interact with the Active Directory.
    *
-   * @param args not used here
-   * @throws Throwable
+   * @return the relevant LdapContext
+   * @throws KerberosKDCConnectionException       if a connection to the KDC cannot be made
+   * @throws KerberosAdminAuthenticationException if the administrator credentials fail to authenticate
+   * @throws KerberosRealmException               if the realm does not map to a KDC
+   * @throws KerberosOperationException           if an unexpected error occurred
    */
-  public static void main(String[] args) throws Throwable {
+  protected LdapContext createLdapContext() throws KerberosOperationException {
+    KerberosCredential administratorCredentials = getAdministratorCredentials();
 
-    // SSL Certificate of AD should have been imported into truststore when that certificate
-    // is not issued by trusted authority. This is typical with self signed certificated in
-    // development environment
-    System.setProperty("javax.net.ssl.trustStore",
-      "/tmp/workspace/ambari/apache-ambari-rd/cacerts");
+    Properties properties = new Properties();
+    properties.put(Context.INITIAL_CONTEXT_FACTORY, LDAP_CONTEXT_FACTORY_CLASS);
+    properties.put(Context.PROVIDER_URL, ldapUrl);
+    properties.put(Context.SECURITY_PRINCIPAL, administratorCredentials.getPrincipal());
+    properties.put(Context.SECURITY_CREDENTIALS, administratorCredentials.getPassword());
+    properties.put(Context.SECURITY_AUTHENTICATION, LDAP_ATUH_MECH_SIMPLE);
+    properties.put(Context.REFERRAL, "follow");
+    properties.put("java.naming.ldap.factory.socket", TrustingSSLSocketFactory.class.getName());
 
-    ADKerberosOperationHandler handler = new ADKerberosOperationHandler();
+    try {
+      return createInitialLdapContext(properties, null);
+    } catch (CommunicationException e) {
+      String message = String.format("Failed to communicate with the Active Directory at %s: %s", ldapUrl, e.getMessage());
+      LOG.warn(message, e);
+      throw new KerberosKDCConnectionException(message, e);
+    } catch (AuthenticationException e) {
+      String message = String.format("Failed to authenticate with the Active Directory at %s: %s", ldapUrl, e.getMessage());
+      LOG.warn(message, e);
+      throw new KerberosAdminAuthenticationException(message, e);
+    } catch (NamingException e) {
+      String error = e.getMessage();
 
-    KerberosCredential kc = new KerberosCredential(
-      "Administrator@knox.com", "hadoop", null);  // null keytab
+      if ((error != null) && !error.isEmpty()) {
+        String message = String.format("Failed to communicate with the Active Directory at %s: %s", ldapUrl, e.getMessage());
+        LOG.warn(message, e);
 
-    handler.open(kc, "KNOX.COM",
-      "ldaps://dillwin12.knox.com:636", "ou=service accounts,dc=knox,dc=com");
+        if (error.startsWith("Cannot parse url:")) {
+          throw new KerberosKDCConnectionException(message, e);
+        } else {
+          throw new KerberosOperationException(message, e);
+        }
+      } else {
+        throw new KerberosOperationException("Unexpected error condition", e);
+      }
+    }
+  }
 
-    // does the princial already exist?
-    System.out.println("Principal exists: " + handler.principalExists("nn/c1508.ambari.apache.org"));
+  /**
+   * Helper method to create the LDAP context needed to interact with the Active Directory.
+   * <p/>
+   * This is mainly used to help with building mocks for test cases.
+   *
+   * @param properties environment used to create the initial DirContext.
+   *                   Null indicates an empty environment.
+   * @param controls   connection request controls for the initial context.
+   *                   If null, no connection request controls are used.
+   * @return the relevant LdapContext
+   * @throws NamingException if a naming exception is encountered
+   */
+  protected LdapContext createInitialLdapContext(Properties properties, Control[] controls)
+      throws NamingException {
+    return new InitialLdapContext(properties, controls);
+  }
 
-    //create principal
-    handler.createServicePrincipal("nn/c1508.ambari.apache.org", "welcome");
-
-    //update the password
-    handler.setPrincipalPassword("nn/c1508.ambari.apache.org", "welcome10");
-
-    // remove the principal
-    // handler.removeServicePrincipal("nn/c1508.ambari.apache.org");
-
-    handler.close();
-
+  /**
+   * Helper method to create the SearchControls instance
+   *
+   * @return the relevant SearchControls
+   */
+  protected SearchControls createSearchControls() {
+    SearchControls searchControls = new SearchControls();
+    searchControls.setSearchScope(ONE_LEVEL_SCOPE);
+    searchControls.setReturningAttributes(new String[]{"cn"});
+    return searchControls;
   }
 
 }

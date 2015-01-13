@@ -97,6 +97,15 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   private Clusters clusters = null;
 
   /**
+   * The KerberosOperationHandlerFactory to use to obtain KerberosOperationHandler instances
+   * <p/>
+   * This is needed to help with test cases to mock a KerberosOperationHandler
+   */
+  @Inject
+  private KerberosOperationHandlerFactory kerberosOperationHandlerFactory;
+
+
+  /**
    * Given a (command parameter) Map and a property name, attempts to safely retrieve the requested
    * data.
    *
@@ -301,7 +310,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
               throw new AmbariException(message);
             }
 
-            KerberosOperationHandler handler = KerberosOperationHandlerFactory.getKerberosOperationHandler(kdcType);
+            KerberosOperationHandler handler = kerberosOperationHandlerFactory.getKerberosOperationHandler(kdcType);
             if (handler == null) {
               String message = String.format("Failed to process the identities, a KDC operation handler was not found for the KDC type of : %s",
                   kdcType.toString());
@@ -325,9 +334,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
                   break;
                 }
               }
-            } catch (AmbariException e) {
-              // Catch this separately from IOException since the reason it was thrown was not the same
-              // Note: AmbariException is an IOException, so there may be some confusion
+            } catch (KerberosOperationException e) {
               throw new AmbariException(e.getMessage(), e);
             } catch (IOException e) {
               String message = String.format("Failed to process the identities, cannot read the index file: %s",
@@ -349,7 +356,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
               // exception since there is little we can or care to do about it now.
               try {
                 handler.close();
-              } catch (AmbariException e) {
+              } catch (KerberosOperationException e) {
                 // Ignore this...
               }
             }

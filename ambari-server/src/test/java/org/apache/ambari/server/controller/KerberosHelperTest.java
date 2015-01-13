@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
@@ -32,7 +33,12 @@ import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.security.SecurityHelper;
+import org.apache.ambari.server.serveraction.kerberos.KDCType;
 import org.apache.ambari.server.serveraction.kerberos.KerberosCredential;
+import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException;
+import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandler;
+import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandlerTest;
+import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandlerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -77,6 +83,43 @@ public class KerberosHelperTest extends EasyMockSupport {
 
   @Before
   public void setUp() throws Exception {
+    final KerberosOperationHandlerFactory kerberosOperationHandlerFactory = createNiceMock(KerberosOperationHandlerFactory.class);
+
+    expect(kerberosOperationHandlerFactory.getKerberosOperationHandler(KDCType.MIT_KDC))
+        .andReturn(new KerberosOperationHandler() {
+          @Override
+          public void open(KerberosCredential administratorCredentials, String defaultRealm) throws KerberosOperationException {
+            setAdministratorCredentials(administratorCredentials);
+            setDefaultRealm(defaultRealm);
+          }
+
+          @Override
+          public void close() throws KerberosOperationException {
+
+          }
+
+          @Override
+          public boolean principalExists(String principal) throws KerberosOperationException {
+            return "principal".equals(principal);
+          }
+
+          @Override
+          public Integer createServicePrincipal(String principal, String password) throws KerberosOperationException {
+            return null;
+          }
+
+          @Override
+          public Integer setPrincipalPassword(String principal, String password) throws KerberosOperationException {
+            return null;
+          }
+
+          @Override
+          public boolean removeServicePrincipal(String principal) throws KerberosOperationException {
+            return false;
+          }
+        })
+        .anyTimes();
+
     injector = Guice.createInjector(new AbstractModule() {
 
       @Override
@@ -96,6 +139,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         bind(StageFactory.class).toInstance(createNiceMock(StageFactory.class));
         bind(Clusters.class).toInstance(createNiceMock(ClustersImpl.class));
         bind(ConfigHelper.class).toInstance(createNiceMock(ConfigHelper.class));
+        bind(KerberosOperationHandlerFactory.class).toInstance(kerberosOperationHandlerFactory);
       }
     });
   }
@@ -141,6 +185,32 @@ public class KerberosHelperTest extends EasyMockSupport {
 
   @Test
   public void testEnableKerberos() throws Exception {
+    testEnableKerberos(new KerberosCredential("principal", "password", "keytab"));
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testEnableKerberosMissingCredentials() throws Exception {
+    try {
+      testEnableKerberos(null);
+    }
+    catch (IllegalArgumentException e) {
+      Assert.assertTrue(e.getMessage().startsWith("Missing KDC administrator credentials"));
+      throw e;
+    }
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testEnableKerberosInvalidCredentials() throws Exception {
+    try {
+      testEnableKerberos(new KerberosCredential("invalid_principal", "password", "keytab"));
+    }
+    catch (IllegalArgumentException e) {
+      Assert.assertTrue(e.getMessage().startsWith("Invalid KDC administrator credentials"));
+      throw e;
+    }
+  }
+
+  private void testEnableKerberos(final KerberosCredential kerberosCredential) throws Exception {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
 
     final ServiceComponentHost sch1 = createNiceMock(ServiceComponentHost.class);
@@ -214,9 +284,11 @@ public class KerberosHelperTest extends EasyMockSupport {
         .andReturn(new StackId("HDP", "2.2"))
         .anyTimes();
     expect(cluster.getSessionAttributes()).andReturn(new HashMap<String, Object>(){{
-      put("kerberos_admin/" + KerberosCredential.KEY_NAME_PRINCIPAL, "principal");
-      put("kerberos_admin/" + KerberosCredential.KEY_NAME_PASSWORD, "password");
-      put("kerberos_admin/" + KerberosCredential.KEY_NAME_KEYTAB, "keytab");
+      if(kerberosCredential != null) {
+        put("kerberos_admin/" + KerberosCredential.KEY_NAME_PRINCIPAL, kerberosCredential.getPrincipal());
+        put("kerberos_admin/" + KerberosCredential.KEY_NAME_PASSWORD, kerberosCredential.getPassword());
+        put("kerberos_admin/" + KerberosCredential.KEY_NAME_KEYTAB, kerberosCredential.getKeytab());
+      }
     }}).anyTimes();
 
     final Clusters clusters = injector.getInstance(Clusters.class);
