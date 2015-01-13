@@ -37,7 +37,7 @@
         {{#if view.runningItem}}
           <div class="box details-box">
             <div class="row-fluid">
-              <div class="pull-left">{{t admin.stackUpgrade.dialog.inProgress}}&nbsp;{{view.runningItem.context}}</div>
+              <div class="pull-left">{{t admin.stackUpgrade.dialog.inProgress}}&nbsp;{{view.runningItem.text}}</div>
               {{#if view.isDetailsOpened}}
                 <a href="#" class="pull-right" {{action toggleDetails target="view"}}>{{t admin.stackUpgrade.dialog.details.hide}}</a>
                 <div class="clear">
@@ -52,7 +52,7 @@
         {{#if view.failedItem}}
           <div class="box details-box">
             <div class="row-fluid">
-              <div class="pull-left">{{t admin.stackUpgrade.dialog.failed}}&nbsp;{{view.failedItem.context}}</div>
+              <div class="pull-left">{{t admin.stackUpgrade.dialog.failed}}&nbsp;{{view.failedItem.text}}</div>
               {{#if view.isDetailsOpened}}
                 <a href="#" class="pull-right" {{action toggleDetails target="view"}}>{{t admin.stackUpgrade.dialog.details.hide}}</a>
                 <div class="clear">
@@ -80,7 +80,7 @@
         {{#if view.manualItem}}
           <div class="box details-box">
             <p><strong>{{t admin.stackUpgrade.dialog.manual}}</strong></p>
-            <p>{{view.manualItem.context}}</p>
+            <p>{{view.manualItem.text}}</p>
 
             <div class="message">
               {{view Em.Checkbox checkedBinding="view.isManualDone"}}
