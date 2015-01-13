@@ -20,6 +20,7 @@ package org.apache.ambari.server.view;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
@@ -198,16 +199,24 @@ public class ViewContextImpl implements ViewContext, ViewController {
     }
   }
 
+  @Transactional
   @Override
   public void putInstanceData(String key, String value) {
     checkInstance();
-    viewInstanceEntity.putInstanceData(key, value);
-    try {
-      viewRegistry.updateViewInstance(viewInstanceEntity);
-    } catch (SystemException e) {
-      String msg = "Caught exception updating the view instance.";
-      LOG.error(msg, e);
-      throw new IllegalStateException(msg, e);
+
+    ViewInstanceEntity updateInstance =
+        viewRegistry.getViewInstanceEntity(viewInstanceEntity.getViewName(), viewInstanceEntity.getInstanceName());
+
+    if (updateInstance != null) {
+      updateInstance.putInstanceData(key, value);
+
+      try {
+        viewRegistry.updateViewInstance(updateInstance);
+      } catch (SystemException e) {
+        String msg = "Caught exception updating the view instance.";
+        LOG.error(msg, e);
+        throw new IllegalStateException(msg, e);
+      }
     }
   }
 

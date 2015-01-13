@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -296,7 +297,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
     ViewInstanceEntity viewInstanceEntity = null;
 
     if (update) {
-      viewInstanceEntity = viewRegistry.getInstanceDefinition(commonViewName, version, name);
+      viewInstanceEntity = viewRegistry.getViewInstanceEntity(viewName, name);
     }
 
     if (viewInstanceEntity == null) {
@@ -356,6 +357,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
   // Create a create command with all properties set.
   private Command<Void> getCreateCommand(final Map<String, Object> properties) {
     return new Command<Void>() {
+      @Transactional
       @Override
       public Void invoke() throws AmbariException {
         try {
@@ -391,6 +393,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
   // Create an update command with all properties set.
   private Command<Void> getUpdateCommand(final Map<String, Object> properties) {
     return new Command<Void>() {
+      @Transactional
       @Override
       public Void invoke() throws AmbariException {
 

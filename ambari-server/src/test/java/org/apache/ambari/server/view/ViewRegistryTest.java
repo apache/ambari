@@ -85,6 +85,8 @@ import org.apache.ambari.server.view.events.EventImplTest;
 import org.apache.ambari.view.ViewDefinition;
 import org.apache.ambari.view.events.Event;
 import org.apache.ambari.view.events.Listener;
+import org.apache.ambari.view.validation.ValidationResult;
+import org.apache.ambari.view.validation.Validator;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Assert;
@@ -832,7 +834,7 @@ public class ViewRegistryTest {
     ViewInstanceEntity updateInstance = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
 
     expect(viewInstanceDAO.merge(viewInstanceEntity)).andReturn(viewInstanceEntity);
-    expect(viewInstanceDAO.findByName("MY_VIEW{1.0.0}", viewInstanceEntity.getInstanceName())).andReturn(viewInstanceEntity);
+    expect(viewInstanceDAO.findByName("MY_VIEW{1.0.0}", viewInstanceEntity.getInstanceName())).andReturn(viewInstanceEntity).anyTimes();
 
     replay(viewDAO, viewInstanceDAO, securityHelper);
 
@@ -940,7 +942,7 @@ public class ViewRegistryTest {
     ViewInstanceEntity updateInstance = getViewInstanceEntity(viewEntity, invalidConfig.getInstances().get(0));
 
     expect(viewInstanceDAO.merge(viewInstanceEntity)).andReturn(null);
-    expect(viewInstanceDAO.findByName("MY_VIEW{1.0.0}", viewInstanceEntity.getInstanceName())).andReturn(viewInstanceEntity);
+    expect(viewInstanceDAO.findByName("MY_VIEW{1.0.0}", viewInstanceEntity.getInstanceName())).andReturn(viewInstanceEntity).anyTimes();
 
     replay(viewDAO, viewInstanceDAO, securityHelper);
 
@@ -954,6 +956,97 @@ public class ViewRegistryTest {
       // expected
     }
     verify(viewDAO, viewInstanceDAO, securityHelper);
+  }
+
+  @Test
+  public void testUpdateViewInstance_validatorPass() throws Exception {
+
+    ViewRegistry registry = ViewRegistry.getInstance();
+
+    Properties properties = new Properties();
+    properties.put("p1", "v1");
+
+    Configuration ambariConfig = new Configuration(properties);
+    Validator validator = createNiceMock(Validator.class);
+    ValidationResult result = createNiceMock(ValidationResult.class);
+
+    ViewConfig config = ViewConfigTest.getConfig(xml_valid_instance);
+    ViewEntity viewEntity = getViewEntity(config, ambariConfig, getClass().getClassLoader(), "");
+    viewEntity.setValidator(validator);
+    ViewInstanceEntity viewInstanceEntity = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
+    ViewInstanceEntity updateInstance = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
+
+    expect(viewInstanceDAO.merge(viewInstanceEntity)).andReturn(viewInstanceEntity);
+    expect(viewInstanceDAO.findByName("MY_VIEW{1.0.0}", viewInstanceEntity.getInstanceName())).andReturn(viewInstanceEntity).anyTimes();
+
+    expect(validator.validateInstance(viewInstanceEntity, Validator.ValidationContext.PRE_UPDATE)).andReturn(result).anyTimes();
+    expect(result.isValid()).andReturn(true).anyTimes();
+
+    replay(viewDAO, viewInstanceDAO, securityHelper, validator, result);
+
+    registry.addDefinition(viewEntity);
+    registry.installViewInstance(viewInstanceEntity);
+
+    registry.updateViewInstance(updateInstance);
+
+    Collection<ViewInstanceEntity> viewInstanceDefinitions = registry.getInstanceDefinitions(viewEntity);
+
+    Assert.assertEquals(1, viewInstanceDefinitions.size());
+
+    ViewInstanceEntity instanceEntity = viewInstanceDefinitions.iterator().next();
+    Assert.assertEquals("v2-1", instanceEntity.getProperty("p2").getValue() );
+
+    Assert.assertEquals(viewInstanceEntity, viewInstanceDefinitions.iterator().next());
+
+    verify(viewDAO, viewInstanceDAO, securityHelper, validator, result);
+  }
+
+  @Test
+  public void testUpdateViewInstance_validatorFail() throws Exception {
+
+    ViewRegistry registry = ViewRegistry.getInstance();
+
+    Properties properties = new Properties();
+    properties.put("p1", "v1");
+
+    Configuration ambariConfig = new Configuration(properties);
+    Validator validator = createNiceMock(Validator.class);
+    ValidationResult result = createNiceMock(ValidationResult.class);
+
+    ViewConfig config = ViewConfigTest.getConfig(xml_valid_instance);
+    ViewEntity viewEntity = getViewEntity(config, ambariConfig, getClass().getClassLoader(), "");
+    viewEntity.setValidator(validator);
+    ViewInstanceEntity viewInstanceEntity = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
+    ViewInstanceEntity updateInstance = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
+
+    expect(viewInstanceDAO.merge(viewInstanceEntity)).andReturn(viewInstanceEntity);
+    expect(viewInstanceDAO.findByName("MY_VIEW{1.0.0}", viewInstanceEntity.getInstanceName())).andReturn(viewInstanceEntity).anyTimes();
+
+    expect(validator.validateInstance(viewInstanceEntity, Validator.ValidationContext.PRE_UPDATE)).andReturn(result).anyTimes();
+    expect(result.isValid()).andReturn(false).anyTimes();
+
+    replay(viewDAO, viewInstanceDAO, securityHelper, validator, result);
+
+    registry.addDefinition(viewEntity);
+    registry.installViewInstance(viewInstanceEntity);
+
+    try {
+      registry.updateViewInstance(updateInstance);
+      Assert.fail("expected an IllegalStateException");
+    } catch (IllegalStateException e) {
+      // expected
+    }
+
+    Collection<ViewInstanceEntity> viewInstanceDefinitions = registry.getInstanceDefinitions(viewEntity);
+
+    Assert.assertEquals(1, viewInstanceDefinitions.size());
+
+    ViewInstanceEntity instanceEntity = viewInstanceDefinitions.iterator().next();
+    Assert.assertEquals("v2-1", instanceEntity.getProperty("p2").getValue() );
+
+    Assert.assertEquals(viewInstanceEntity, viewInstanceDefinitions.iterator().next());
+
+    verify(viewDAO, viewInstanceDAO, securityHelper, validator, result);
   }
 
   @Test

@@ -333,14 +333,14 @@ public class ViewRegistry {
   }
 
   /**
-    * Get the instance definition for the given view name and instance name.
-    *
-    * @param viewName      the view name
-    * @param version       the version
-    * @param instanceName  the instance name
-    *
-    * @return the view instance definition for the given view and instance name
-    */
+   * Get the instance definition for the given view name and instance name.
+   *
+   * @param viewName      the view name
+   * @param version       the version
+   * @param instanceName  the instance name
+   *
+   * @return the view instance definition for the given view and instance name
+   */
   public ViewInstanceEntity getInstanceDefinition(String viewName, String version, String instanceName) {
     Map<String, ViewInstanceEntity> viewInstanceDefinitionMap =
         viewInstanceDefinitions.get(getDefinition(viewName, version));
@@ -535,7 +535,21 @@ public class ViewRegistry {
     if (viewEntity != null) {
       instanceEntity.validate(viewEntity, Validator.ValidationContext.PRE_UPDATE);
       instanceDAO.merge(instanceEntity);
+
+      syncViewInstance(instanceEntity);
     }
+  }
+
+  /**
+   * Get a view instance entity for the given view name and instance name.
+   *
+   * @param viewName      the view name
+   * @param instanceName  the instance name
+   *
+   * @return a view instance entity for the given view name and instance name.
+   */
+  public ViewInstanceEntity getViewInstanceEntity(String viewName, String instanceName) {
+    return instanceDAO.findByName(viewName, instanceName);
   }
 
   /**
@@ -1152,12 +1166,30 @@ public class ViewRegistry {
           instanceDefinitions.add(persistedInstance);
         }
       } else {
-        instance.setResource(persistedInstance.getResource());
-        instance.setViewInstanceId(persistedInstance.getViewInstanceId());
-        instance.setData(persistedInstance.getData());
-        instance.setEntities(persistedInstance.getEntities());
+        syncViewInstance(instance, persistedInstance);
       }
     }
+  }
+
+  // sync the given view instance entity to the matching view instance entity in the registry
+  private void syncViewInstance(ViewInstanceEntity instanceEntity) {
+    String viewName     = instanceEntity.getViewDefinition().getViewName();
+    String version      = instanceEntity.getViewDefinition().getVersion();
+    String instanceName = instanceEntity.getInstanceName();
+
+    ViewInstanceEntity registryEntry = getInstanceDefinition(viewName, version, instanceName);
+    if (registryEntry != null) {
+      syncViewInstance(registryEntry, instanceEntity);
+    }
+  }
+
+  // sync a given view instance entity with another given view instance entity
+  private void syncViewInstance(ViewInstanceEntity instance1, ViewInstanceEntity instance2) {
+    instance1.setResource(instance2.getResource());
+    instance1.setViewInstanceId(instance2.getViewInstanceId());
+    instance1.setData(instance2.getData());
+    instance1.setEntities(instance2.getEntities());
+    instance1.setProperties(instance2.getProperties());
   }
 
   // create an admin resource to represent a view instance
