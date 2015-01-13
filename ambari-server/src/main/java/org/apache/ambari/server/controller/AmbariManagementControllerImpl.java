@@ -125,6 +125,7 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
+import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
@@ -206,6 +207,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private AmbariLdapDataPopulator ldapDataPopulator;
   @Inject
   private RepositoryVersionDAO repositoryVersionDAO;
+  @Inject
+  private RepositoryVersionHelper repositoryVersionHelper;
 
   private MaintenanceStateHelper maintenanceStateHelper;
 
@@ -370,7 +373,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         RepositoryVersionEntity existingRepositoryVersion = repositoryVersionDAO.findByStackAndVersion(newStackId.getStackId(), newStackId.getStackVersion());
         if (existingRepositoryVersion == null) {
           repositoryVersionDAO.create(newStackId.getStackId(), newStackId.getStackVersion(), newStackId.getStackId(),
-              "", RepositoryVersionResourceProvider.serializeOperatingSystems(stackInfo.getRepositories()));
+              repositoryVersionHelper.getUpgradePackageNameSafe(newStackId.getStackId(), newStackId.getStackVersion(), newStackId.getStackVersion()),
+              repositoryVersionHelper.serializeOperatingSystems(stackInfo.getRepositories()));
         }
         c.createClusterVersion(stackId.getStackId(), stackId.getStackVersion(), getAuthName(), RepositoryVersionState.CURRENT);
       } catch (Exception e) {

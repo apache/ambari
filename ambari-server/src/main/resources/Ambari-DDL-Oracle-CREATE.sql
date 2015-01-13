@@ -72,7 +72,7 @@ CREATE TABLE clusterstate (
   PRIMARY KEY (cluster_id));
 
 CREATE TABLE cluster_version (
-  id BIGINT NUMBER(19) NULL,
+  id NUMBER(19) NULL,
   repo_version_id NUMBER(19) NOT NULL,
   cluster_id NUMBER(19) NOT NULL,
   state VARCHAR2(32) NOT NULL,
@@ -694,9 +694,9 @@ CREATE INDEX idx_alert_notice_state on alert_notice(notify_state);
 
 -- upgrade tables
 CREATE TABLE upgrade (
-  upgrade_id BIGINT NOT NULL,
-  cluster_id BIGINT NOT NULL,
-  request_id BIGINT NOT NULL,
+  upgrade_id NUMBER(19) NOT NULL,
+  cluster_id NUMBER(19) NOT NULL,
+  request_id NUMBER(19) NOT NULL,
   state VARCHAR2(255) DEFAULT 'NONE' NOT NULL,
   PRIMARY KEY (upgrade_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
@@ -704,8 +704,8 @@ CREATE TABLE upgrade (
 );
 
 CREATE TABLE upgrade_group (
-  upgrade_group_id BIGINT NOT NULL,
-  upgrade_id BIGINT NOT NULL,
+  upgrade_group_id NUMBER(19) NOT NULL,
+  upgrade_id NUMBER(19) NOT NULL,
   group_name VARCHAR2(255) DEFAULT '' NOT NULL,
   group_title VARCHAR2(1024) DEFAULT '' NOT NULL,
   PRIMARY KEY (upgrade_group_id),
@@ -713,9 +713,9 @@ CREATE TABLE upgrade_group (
 );
 
 CREATE TABLE upgrade_item (
-  upgrade_item_id BIGINT NOT NULL,
-  upgrade_group_id BIGINT NOT NULL,
-  stage_id BIGINT NOT NULL,
+  upgrade_item_id NUMBER(19) NOT NULL,
+  upgrade_group_id NUMBER(19) NOT NULL,
+  stage_id NUMBER(19) NOT NULL,
   state VARCHAR2(255) DEFAULT 'NONE' NOT NULL,
   hosts CLOB,
   tasks CLOB,

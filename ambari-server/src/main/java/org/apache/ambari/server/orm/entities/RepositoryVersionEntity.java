@@ -32,11 +32,15 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
 
-import org.apache.ambari.server.controller.internal.RepositoryVersionResourceProvider;
+import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 @Entity
 @Table(name = "repo_version", uniqueConstraints = {
@@ -56,9 +60,13 @@ import org.slf4j.LoggerFactory;
   @NamedQuery(name = "repositoryVersionByStackVersion", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack=:stack AND repoversion.version=:version"),
   @NamedQuery(name = "repositoryVersionByStack", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.stack=:stack")
 })
+@StaticallyInject
 public class RepositoryVersionEntity {
 
   private static Logger LOG = LoggerFactory.getLogger(RepositoryVersionEntity.class);
+
+  @Inject
+  private static Provider<RepositoryVersionHelper> repositoryVersionHelperProvider;
 
   @Id
   @Column(name = "repo_version_id")
@@ -151,7 +159,7 @@ public class RepositoryVersionEntity {
   public List<OperatingSystemEntity> getOperatingSystems() {
     if (StringUtils.isNotBlank(operatingSystems)) {
       try {
-        return RepositoryVersionResourceProvider.parseOperatingSystems(operatingSystems);
+        return repositoryVersionHelperProvider.get().parseOperatingSystems(operatingSystems);
       } catch (Exception ex) {
         // Should never happen as we validate json before storing it to DB
         LOG.error("Could not parse operating systems json stored in database:" + operatingSystems, ex);
