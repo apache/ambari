@@ -636,6 +636,7 @@ public class BlueprintResourceProviderTest {
     expect(stackServiceResponse.getServiceName()).andReturn("test-service").anyTimes();
     expect(stackServiceResponse.getStackName()).andReturn("test-stack-name").anyTimes();
     expect(stackServiceResponse.getStackVersion()).andReturn("test-stack-version").anyTimes();
+    expect(stackServiceResponse.getExcludedConfigTypes()).andReturn(Collections.<String>emptySet());
 
     expect(managementController.getStackComponents(capture(serviceComponentRequestCapture))).andReturn(setServiceComponents).anyTimes();
     expect(stackServiceComponentResponse.getCardinality()).andReturn("2").anyTimes();
@@ -746,6 +747,7 @@ public class BlueprintResourceProviderTest {
     expect(stackServiceResponse.getServiceName()).andReturn("test-service").anyTimes();
     expect(stackServiceResponse.getStackName()).andReturn("test-stack-name").anyTimes();
     expect(stackServiceResponse.getStackVersion()).andReturn("test-stack-version").anyTimes();
+    expect(stackServiceResponse.getExcludedConfigTypes()).andReturn(Collections.<String>emptySet());
 
     expect(managementController.getStackComponents(capture(serviceComponentRequestCapture))).andReturn(setServiceComponents).anyTimes();
     expect(stackServiceComponentResponse.getCardinality()).andReturn("2").anyTimes();
@@ -864,6 +866,7 @@ public class BlueprintResourceProviderTest {
     expect(stackServiceResponse.getServiceName()).andReturn("test-service").anyTimes();
     expect(stackServiceResponse.getStackName()).andReturn("test-stack-name").anyTimes();
     expect(stackServiceResponse.getStackVersion()).andReturn("test-stack-version").anyTimes();;
+    expect(stackServiceResponse.getExcludedConfigTypes()).andReturn(Collections.<String>emptySet());
 
     expect(managementController.getStackComponents(capture(serviceComponentRequestCapture))).andReturn(setServiceComponents).anyTimes();
     expect(stackServiceComponentResponse.getCardinality()).andReturn("2").anyTimes();
@@ -971,6 +974,7 @@ public class BlueprintResourceProviderTest {
     expect(stackServiceResponse.getServiceName()).andReturn("test-service").anyTimes();
     expect(stackServiceResponse.getStackName()).andReturn("test-stack-name").anyTimes();
     expect(stackServiceResponse.getStackVersion()).andReturn("test-stack-version").anyTimes();
+    expect(stackServiceResponse.getExcludedConfigTypes()).andReturn(Collections.<String>emptySet());
 
     expect(managementController.getStackComponents(capture(serviceComponentRequestCapture))).andReturn(setServiceComponents).anyTimes();
     expect(stackServiceComponentResponse.getCardinality()).andReturn("2").anyTimes();

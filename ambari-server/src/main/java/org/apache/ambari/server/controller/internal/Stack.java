@@ -100,6 +100,12 @@ class Stack {
       new HashMap<String, Map<String, Map<String, ConfigProperty>>>();
 
   /**
+   * Map of service to set of excluded config types
+   */
+  private Map<String, Set<String>> excludedConfigurationTypes =
+    new HashMap<String, Set<String>>();
+
+  /**
    * Ambari Management Controller, used to obtain Stack definitions
    */
   private final AmbariManagementController ambariManagementController;
@@ -154,6 +160,7 @@ class Stack {
     for (StackServiceResponse stackService : stackServices) {
       String serviceName = stackService.getServiceName();
       parseComponents(serviceName);
+      parseExcludedConfigurations(stackService);
       parseConfigurations(serviceName);
       registerConditionalDependencies();
     }
@@ -211,6 +218,18 @@ class Stack {
    */
   public Collection<String> getConfigurationTypes(String service) {
     return serviceConfigurations.get(service).keySet();
+  }
+
+  /**
+   * Get the set of excluded configuration types
+   *   for this service
+   *
+   * @param service service name
+   *
+   * @return Set of names of excluded config types
+   */
+  public Set<String> getExcludedConfigurationTypes(String service) {
+    return excludedConfigurationTypes.get(service);
   }
 
   /**
@@ -423,6 +442,15 @@ class Stack {
       mapTypeConfig.put(config.getPropertyName(),
           new ConfigProperty(config.getPropertyValue(), config.getPropertyAttributes()));
     }
+  }
+
+  /**
+   * Obtain the excluded configuration types from the StackServiceResponse
+   *
+   * @param stackServiceResponse the response object associated with this stack service
+   */
+  private void parseExcludedConfigurations(StackServiceResponse stackServiceResponse) {
+    excludedConfigurationTypes.put(stackServiceResponse.getServiceName(), stackServiceResponse.getExcludedConfigTypes());
   }
 
   /**

@@ -808,23 +808,27 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
    *
    * @throws SystemException an unexpected exception occurred
    */
-  private void setConfigurationsOnCluster(String clusterName, Stack stack, Map<String, HostGroupImpl> blueprintHostGroups) throws SystemException {
+  void setConfigurationsOnCluster(String clusterName, Stack stack, Map<String, HostGroupImpl> blueprintHostGroups) throws SystemException {
     List<BlueprintServiceConfigRequest> listofConfigRequests =
       new LinkedList<BlueprintServiceConfigRequest>();
 
     // create a list of config requests on a per-service basis, in order
     // to properly support the new service configuration versioning mechanism
     // in Ambari
-    Collection<String> encounteredConfigTypes = new HashSet<String>();
     for (String service : getServicesToDeploy(stack, blueprintHostGroups)) {
       BlueprintServiceConfigRequest blueprintConfigRequest =
         new BlueprintServiceConfigRequest(service);
 
       for (String serviceConfigType : stack.getConfigurationTypes(service)) {
-        //todo: This is a temporary fix to ensure that we don't try to add the same
-        //todo: config type multiple times.
-        //todo: This is to unblock BUG-28939 and will be correctly fixed as part of BUG-29145.
-        if (encounteredConfigTypes.add(serviceConfigType)) {
+        Set<String> excludedConfigTypes = stack.getExcludedConfigurationTypes(service);
+        if (excludedConfigTypes == null) {
+          // if the service does not have excluded config types
+          // associated, then treat this as an empty set
+          excludedConfigTypes = Collections.emptySet();
+        }
+
+        // only include config types that are not excluded, re-introducing fix from AMBARI-8009
+        if (!excludedConfigTypes.contains(serviceConfigType)) {
           // skip handling of cluster-env here
           if (!serviceConfigType.equals("cluster-env")) {
             if (mapClusterConfigurations.containsKey(serviceConfigType)) {

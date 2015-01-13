@@ -35,6 +35,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -2963,6 +2964,7 @@ public class ClusterResourceProviderTest {
 
 
     expect(mockStackServiceResponseOne.getServiceName()).andReturn("OOZIE").atLeastOnce();
+    expect(mockStackServiceResponseOne.getExcludedConfigTypes()).andReturn(Collections.<String>emptySet()).atLeastOnce();
     expect(mockManagementController.getStackServices(isA(Set.class))).andReturn(Collections.singleton(mockStackServiceResponseOne));
     expect(mockManagementController.getStackComponents(isA(Set.class))).andReturn(Collections.singleton(mockStackComponentResponse));
     expect(mockManagementController.getStackConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
@@ -3046,6 +3048,7 @@ public class ClusterResourceProviderTest {
 
 
     expect(mockStackServiceResponseOne.getServiceName()).andReturn("FALCON").atLeastOnce();
+    expect(mockStackServiceResponseOne.getExcludedConfigTypes()).andReturn(Collections.<String>emptySet()).atLeastOnce();
     expect(mockManagementController.getStackServices(isA(Set.class))).andReturn(Collections.singleton(mockStackServiceResponseOne));
     expect(mockManagementController.getStackComponents(isA(Set.class))).andReturn(Collections.singleton(mockStackComponentResponse));
     expect(mockManagementController.getStackConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
@@ -3127,6 +3130,7 @@ public class ClusterResourceProviderTest {
 
 
     expect(mockStackServiceResponseOne.getServiceName()).andReturn("OOZIE").atLeastOnce();
+    expect(mockStackServiceResponseOne.getExcludedConfigTypes()).andReturn(Collections.<String>emptySet()).atLeastOnce();
     expect(mockManagementController.getStackServices(isA(Set.class))).andReturn(Collections.singleton(mockStackServiceResponseOne));
     expect(mockManagementController.getStackComponents(isA(Set.class))).andReturn(Collections.singleton(mockStackComponentResponse));
     expect(mockManagementController.getStackConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
@@ -3203,6 +3207,7 @@ public class ClusterResourceProviderTest {
     expect(mockStackComponentResponse.getAutoDeploy()).andReturn(new AutoDeployInfo());
 
     expect(mockStackServiceResponseOne.getServiceName()).andReturn("FALCON").atLeastOnce();
+    expect(mockStackServiceResponseOne.getExcludedConfigTypes()).andReturn(Collections.<String>emptySet()).atLeastOnce();
 
     expect(mockManagementController.getStackServices(isA(Set.class))).andReturn(Collections.singleton(mockStackServiceResponseOne));
     expect(mockManagementController.getStackComponents(isA(Set.class))).andReturn(Collections.singleton(mockStackComponentResponse));
@@ -3280,6 +3285,7 @@ public class ClusterResourceProviderTest {
     expect(mockStackComponentResponse.getAutoDeploy()).andReturn(new AutoDeployInfo());
 
     expect(mockStackServiceResponseOne.getServiceName()).andReturn("HIVE").atLeastOnce();
+    expect(mockStackServiceResponseOne.getExcludedConfigTypes()).andReturn(Collections.<String>emptySet()).atLeastOnce();
     expect(mockManagementController.getStackServices(isA(Set.class))).andReturn(Collections.singleton(mockStackServiceResponseOne));
     expect(mockManagementController.getStackComponents(isA(Set.class))).andReturn(Collections.singleton(mockStackComponentResponse));
     expect(mockManagementController.getStackConfigurations(isA(Set.class))).andReturn(Collections.<StackConfigurationResponse>emptySet());
@@ -3356,6 +3362,7 @@ public class ClusterResourceProviderTest {
     expect(mockStackComponentResponse.getAutoDeploy()).andReturn(new AutoDeployInfo());
 
     expect(mockStackServiceResponseOne.getServiceName()).andReturn("HBASE").atLeastOnce();
+    expect(mockStackServiceResponseOne.getExcludedConfigTypes()).andReturn(Collections.<String>emptySet()).atLeastOnce();
 
     expect(mockManagementController.getStackServices(isA(Set.class))).andReturn(Collections.singleton(mockStackServiceResponseOne));
     expect(mockManagementController.getStackComponents(isA(Set.class))).andReturn(Collections.singleton(mockStackComponentResponse));
@@ -3401,6 +3408,215 @@ public class ClusterResourceProviderTest {
     mockSupport.verifyAll();
 
   }
+
+  @Test
+  public void testSetConfigurationsOnClusterWithExcludedTypes() throws Exception {
+    EasyMockSupport mockSupport = new EasyMockSupport();
+    AmbariManagementController mockMgmtController =
+      mockSupport.createMock(AmbariManagementController.class);
+    ResourceProvider mockServiceProvider =
+      mockSupport.createMock(ResourceProvider.class);
+    ResourceProvider mockComponentProvider =
+      mockSupport.createMock(ResourceProvider.class);
+    ResourceProvider mockHostProvider =
+      mockSupport.createMock(ResourceProvider.class);
+    ResourceProvider mockHostComponentProvider =
+      mockSupport.createMock(ResourceProvider.class);
+    ResourceProvider mockConfigGroupProvider =
+      mockSupport.createMock(ResourceProvider.class);
+    Stack mockStack =
+      mockSupport.createMock(Stack.class);
+    BaseBlueprintProcessor.HostGroupImpl mockHostGroupOne =
+      mockSupport.createMock(BaseBlueprintProcessor.HostGroupImpl.class);
+
+    ArrayList<Capture<Set<ClusterRequest>>> listOfRequestCaptures =
+      new ArrayList<Capture<Set<ClusterRequest>>>();
+    for (int i = 0; i < 2; i++) {
+      listOfRequestCaptures.add(new Capture<Set<ClusterRequest>>());
+    }
+
+    ArrayList<Capture<Map<String, String>>> listOfPropertiesCaptures =
+      new ArrayList<Capture<Map<String, String>>>();
+    for (int i = 0; i < 2; i++) {
+      listOfPropertiesCaptures.add(new Capture<Map<String, String>>());
+    }
+
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Collections.singleton("c6401.ambari.apache.org")).atLeastOnce();
+    expect(mockHostGroupOne.getComponents()).andReturn(Arrays.asList("FALCON_SERVER", "FALCON_CLIENT"));
+    expect(mockStack.getServicesForComponents(Arrays.asList("FALCON_SERVER", "FALCON_CLIENT")))
+      .andReturn(Arrays.asList("FALCON")).atLeastOnce();
+    expect(mockStack.getConfigurationTypes("FALCON")).andReturn(Arrays.asList("falcon-site", "falcon-env", "oozie-site")).atLeastOnce();
+    // configure falcon to include a single excluded config type
+    expect(mockStack.getExcludedConfigurationTypes("FALCON")).andReturn(Collections.<String>singleton("oozie-site")).atLeastOnce();
+
+    // setup expectations for controller.updateClusters() calls
+    for (int i = 0; i < 2; i++) {
+      expect(mockMgmtController.updateClusters(capture(listOfRequestCaptures.get(i)), capture(listOfPropertiesCaptures.get(i)))).andReturn(null);
+    }
+
+    Map<String, BaseBlueprintProcessor.HostGroupImpl> testMapOfHostGroups =
+      new HashMap<String, BaseBlueprintProcessor.HostGroupImpl>();
+    testMapOfHostGroups.put("host-group-one", mockHostGroupOne);
+
+    mockSupport.replayAll();
+
+    ClusterResourceProvider clusterResourceProvider =
+      new TestClusterResourceProvider(mockMgmtController, mockServiceProvider,
+        mockComponentProvider, mockHostProvider, mockHostComponentProvider, mockConfigGroupProvider);
+
+    Map<String, Map<String, String>> clusterConfig =
+      clusterResourceProvider.getClusterConfigurations();
+    clusterConfig.put("falcon-site", Collections.singletonMap("key1", "value1"));
+    clusterConfig.put("falcon-env", Collections.singletonMap("envKey1", "envValue1"));
+    clusterConfig.put("oozie-site", Collections.singletonMap("oozie-key-one", "oozie-value-one"));
+    clusterConfig.put("cluster-env", Collections.<String, String>emptyMap());
+
+    // call the method being tested
+    clusterResourceProvider.setConfigurationsOnCluster("clusterone", mockStack, testMapOfHostGroups);
+
+    // verify that the ClusterRequest's passed to the controller include the expected information
+    for (Capture<Set<ClusterRequest>> requestCapture : listOfRequestCaptures) {
+      Set<ClusterRequest> request = requestCapture.getValue();
+      assertEquals("Incorrect number of cluster requests in this update",
+                   1, request.size());
+    }
+
+
+    for (Capture<Map<String, String>> propertiesCapture : listOfPropertiesCaptures) {
+      assertNull("Incorrect request properties sent with this update",
+                 propertiesCapture.getValue());
+    }
+
+    // verify that the config requests include the expected information
+    ClusterRequest requestOne = listOfRequestCaptures.get(0).getValue().iterator().next();
+    ClusterRequest requestTwo = listOfRequestCaptures.get(1).getValue().iterator().next();
+
+    if (requestOne.getDesiredConfig().size() == 1) {
+      verifyClusterRequest(requestOne, "cluster-env");
+      // verify that the falcon config does not include oozie-site, since it is excluded
+      verifyClusterRequest(requestTwo, "falcon-site", "falcon-env");
+    } else {
+      verifyClusterRequest(requestTwo, "cluster-env");
+      // verify that the falcon config does not include oozie-site, since it is excluded
+      verifyClusterRequest(requestOne, "falcon-site", "falcon-env");
+    }
+
+    mockSupport.verifyAll();
+  }
+
+  @Test
+  public void testSetConfigurationsOnClusterWithNoExcludedTypes() throws Exception {
+    EasyMockSupport mockSupport = new EasyMockSupport();
+    AmbariManagementController mockMgmtController =
+      mockSupport.createMock(AmbariManagementController.class);
+    ResourceProvider mockServiceProvider =
+      mockSupport.createMock(ResourceProvider.class);
+    ResourceProvider mockComponentProvider =
+      mockSupport.createMock(ResourceProvider.class);
+    ResourceProvider mockHostProvider =
+      mockSupport.createMock(ResourceProvider.class);
+    ResourceProvider mockHostComponentProvider =
+      mockSupport.createMock(ResourceProvider.class);
+    ResourceProvider mockConfigGroupProvider =
+      mockSupport.createMock(ResourceProvider.class);
+    Stack mockStack =
+      mockSupport.createMock(Stack.class);
+    BaseBlueprintProcessor.HostGroupImpl mockHostGroupOne =
+      mockSupport.createMock(BaseBlueprintProcessor.HostGroupImpl.class);
+
+    ArrayList<Capture<Set<ClusterRequest>>> listOfRequestCaptures =
+      new ArrayList<Capture<Set<ClusterRequest>>>();
+    for (int i = 0; i < 2; i++) {
+      listOfRequestCaptures.add(new Capture<Set<ClusterRequest>>());
+    }
+
+    ArrayList<Capture<Map<String, String>>> listOfPropertiesCaptures =
+      new ArrayList<Capture<Map<String, String>>>();
+    for (int i = 0; i < 2; i++) {
+      listOfPropertiesCaptures.add(new Capture<Map<String, String>>());
+    }
+
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Collections.singleton("c6401.ambari.apache.org")).atLeastOnce();
+    expect(mockHostGroupOne.getComponents()).andReturn(Arrays.asList("FALCON_SERVER", "FALCON_CLIENT"));
+    expect(mockStack.getServicesForComponents(Arrays.asList("FALCON_SERVER", "FALCON_CLIENT")))
+      .andReturn(Arrays.asList("FALCON")).atLeastOnce();
+    expect(mockStack.getConfigurationTypes("FALCON")).andReturn(Arrays.asList("falcon-site", "falcon-env", "oozie-site")).atLeastOnce();
+    // configure falcon to NOT have any excluded types
+    expect(mockStack.getExcludedConfigurationTypes("FALCON")).andReturn(Collections.<String>emptySet()).atLeastOnce();
+
+    // setup expectations for controller.updateClusters() calls
+    for (int i = 0; i < 2; i++) {
+      expect(mockMgmtController.updateClusters(capture(listOfRequestCaptures.get(i)), capture(listOfPropertiesCaptures.get(i)))).andReturn(null);
+    }
+
+    Map<String, BaseBlueprintProcessor.HostGroupImpl> testMapOfHostGroups =
+      new HashMap<String, BaseBlueprintProcessor.HostGroupImpl>();
+    testMapOfHostGroups.put("host-group-one", mockHostGroupOne);
+
+    mockSupport.replayAll();
+
+    ClusterResourceProvider clusterResourceProvider =
+      new TestClusterResourceProvider(mockMgmtController, mockServiceProvider,
+        mockComponentProvider, mockHostProvider, mockHostComponentProvider, mockConfigGroupProvider);
+
+    Map<String, Map<String, String>> clusterConfig =
+      clusterResourceProvider.getClusterConfigurations();
+
+    clusterConfig.put("falcon-site", Collections.singletonMap("key1", "value1"));
+    clusterConfig.put("falcon-env", Collections.singletonMap("envKey1", "envValue1"));
+    clusterConfig.put("oozie-site", Collections.singletonMap("oozie-key-one", "oozie-value-one"));
+    clusterConfig.put("cluster-env", Collections.<String, String>emptyMap());
+
+    // call the method being tested
+    clusterResourceProvider.setConfigurationsOnCluster("clusterone", mockStack, testMapOfHostGroups);
+
+    // verify that the ClusterRequest's passed to the controller include the expected information
+    for (Capture<Set<ClusterRequest>> requestCapture : listOfRequestCaptures) {
+      Set<ClusterRequest> request = requestCapture.getValue();
+      assertEquals("Incorrect number of cluster requests in this update",
+        1, request.size());
+    }
+
+    for (Capture<Map<String, String>> propertiesCapture : listOfPropertiesCaptures) {
+      assertNull("Incorrect request properties sent with this update",
+        propertiesCapture.getValue());
+    }
+
+    // verify that the config requests include the expected information
+    ClusterRequest requestOne = listOfRequestCaptures.get(0).getValue().iterator().next();
+    ClusterRequest requestTwo = listOfRequestCaptures.get(1).getValue().iterator().next();
+
+    if (requestOne.getDesiredConfig().size() == 1) {
+      verifyClusterRequest(requestOne, "cluster-env");
+      // verify that the falcon config includes oozie-site, since nothing is excluded in this test
+      verifyClusterRequest(requestTwo, "falcon-site", "falcon-env", "oozie-site");
+    } else {
+      verifyClusterRequest(requestTwo, "cluster-env");
+      // verify that the falcon config includes oozie-site, since nothing is excluded in this test
+      verifyClusterRequest(requestOne, "falcon-site", "falcon-env", "oozie-site");
+    }
+
+    mockSupport.verifyAll();
+  }
+
+  private static void verifyClusterRequest(ClusterRequest request, String... expectedConfigTypes) throws Exception {
+    assertEquals("Incorrect number of cluster requests ",
+                 expectedConfigTypes.length, request.getDesiredConfig().size());
+
+    Set<String> foundConfigTypes = new HashSet<String>();
+    // build set of config types listed in this request
+    for (ConfigurationRequest configRequest : request.getDesiredConfig()) {
+      foundConfigTypes.add(configRequest.getType());
+    }
+
+    // verify that the expected types are found
+    for (String expectedType : expectedConfigTypes) {
+      assertTrue("Expected config type not found in this config request",
+                 foundConfigTypes.contains(expectedType));
+    }
+
+  }
+
 
 
   private class TestClusterResourceProvider extends ClusterResourceProvider {

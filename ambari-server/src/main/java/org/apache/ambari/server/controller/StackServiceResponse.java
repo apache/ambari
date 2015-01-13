@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class StackServiceResponse {
 
@@ -40,6 +41,9 @@ public class StackServiceResponse {
   private List<String> customCommands;
 
   private Map<String, Map<String, Map<String, String>>> configTypes;
+
+  private Set<String> excludedConfigTypes;
+
   private List<String> requiredServices;
 
   /**
@@ -62,6 +66,7 @@ public class StackServiceResponse {
     comments = service.getComment();
     serviceVersion = service.getVersion();
     configTypes = service.getConfigTypeAttributes();
+    excludedConfigTypes = service.getExcludedConfigTypes();
     requiredServices = service.getRequiredServices();
     serviceCheckSupported = null != service.getCommandScript();
 
@@ -137,6 +142,10 @@ public class StackServiceResponse {
 
   public Map<String, Map<String, Map<String, String>>> getConfigTypes() {
     return configTypes;
+  }
+
+  public Set<String> getExcludedConfigTypes() {
+    return excludedConfigTypes;
   }
   
   public List<String> getRequiredServices() {
