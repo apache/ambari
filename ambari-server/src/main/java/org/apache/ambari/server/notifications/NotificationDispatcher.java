@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.notifications;
 
+import java.util.Map;
 
 /**
  * The {@link NotificationDispatcher} interface represents a mechanism for dispatching a
@@ -52,4 +53,42 @@ public interface NotificationDispatcher {
    * @return {@code true} if digest is supported, {@code false} otherwise.
    */
   public boolean isDigestSupported();
+
+  /**
+   * Validates alert target configuration. Checks if it can dispatch notifications with given properties set.
+   * @param properties alert target properties
+   * @return ConfigValidationResult with validation status and message
+   */
+  public ConfigValidationResult validateTargetConfig(Map<String, String> properties);
+
+  public static class ConfigValidationResult {
+
+    public enum Status {
+      VALID, INVALID
+    }
+
+    private String message;
+    private Status status;
+
+    private ConfigValidationResult(Status status, String message) {
+      this.message = message;
+      this.status = status;
+    }
+
+    public String getMessage() {
+      return message;
+    }
+
+    public Status getStatus() {
+      return status;
+    }
+
+    public static ConfigValidationResult valid() {
+      return new ConfigValidationResult(Status.VALID, "Configuration is valid");
+    }
+
+    public static ConfigValidationResult invalid(String message) {
+      return new ConfigValidationResult(Status.INVALID, message);
+    }
+  }
 }

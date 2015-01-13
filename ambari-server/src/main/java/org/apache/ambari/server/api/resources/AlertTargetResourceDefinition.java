@@ -18,12 +18,15 @@
 package org.apache.ambari.server.api.resources;
 
 import org.apache.ambari.server.controller.spi.Resource;
+import java.util.Collection;
 
 /**
  * The {@link AlertTargetResourceDefinition} class is used to register alert
  * targets to be returned via the REST API.
  */
 public class AlertTargetResourceDefinition extends BaseResourceDefinition {
+
+  public static final String VALIDATE_CONFIG_DIRECTIVE = "validate_config";
 
   /**
    * Constructor.
@@ -46,5 +49,12 @@ public class AlertTargetResourceDefinition extends BaseResourceDefinition {
   @Override
   public String getSingularName() {
     return "alert_target";
+  }
+
+  @Override
+  public Collection<String> getCreateDirectives() {
+    Collection<String> directives = super.getCreateDirectives();
+    directives.add(VALIDATE_CONFIG_DIRECTIVE);
+    return directives;
   }
 }

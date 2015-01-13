@@ -49,6 +49,8 @@ import org.snmp4j.smi.VariableBinding;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
 import org.snmp4j.util.DefaultPDUFactory;
 
+import java.util.Map;
+
 import com.google.inject.Singleton;
 
 /**
@@ -105,7 +107,7 @@ public class SNMPDispatcher implements NotificationDispatcher {
     LOG.info("Sending SNMP trap: {}", notification.Subject);
     try {
       snmp = new Snmp(new DefaultUdpTransportMapping());
-      SnmpVersion snmpVersion = getSnmpVersion(notification);
+      SnmpVersion snmpVersion = getSnmpVersion(notification.DispatchProperties);
       sendTraps(notification, snmpVersion);
       successCallback(notification);
     } catch (InvalidSnmpConfigurationException ex) {
@@ -115,6 +117,38 @@ public class SNMPDispatcher implements NotificationDispatcher {
       LOG.error("Error occurred during SNMP trap dispatching.", ex);
       failureCallback(notification);
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConfigValidationResult validateTargetConfig(Map<String, String> properties) {
+    try {
+      getDispatchProperty(properties, BODY_OID_PROPERTY);
+      getDispatchProperty(properties, SUBJECT_OID_PROPERTY);
+      getDispatchProperty(properties, TRAP_OID_PROPERTY);
+      getDispatchProperty(properties, PORT_PROPERTY);
+      SnmpVersion snmpVersion = getSnmpVersion(properties);
+      switch (snmpVersion) {
+        case SNMPv3:
+          getDispatchProperty(properties, SECURITY_USERNAME_PROPERTY);
+          TrapSecurity securityLevel = getSecurityLevel(properties);
+          switch (securityLevel) {
+            case AUTH_PRIV:
+              getDispatchProperty(properties, SECURITY_PRIV_PASSPHRASE_PROPERTY);
+            case AUTH_NOPRIV:
+              getDispatchProperty(properties, SECURITY_AUTH_PASSPHRASE_PROPERTY);
+          }
+          break;
+        case SNMPv2c:
+        case SNMPv1:
+          getDispatchProperty(properties, COMMUNITY_PROPERTY);
+      }
+    } catch (InvalidSnmpConfigurationException ex) {
+      return ConfigValidationResult.invalid(ex.getMessage());
+    }
+    return ConfigValidationResult.valid();
   }
 
   /**
@@ -128,10 +162,10 @@ public class SNMPDispatcher implements NotificationDispatcher {
     PDU pdu = DefaultPDUFactory.createPDU(snmpVersion.getTargetVersion());
     pdu.setType(snmpVersion.getTrapType());
     // Set trap oid for PDU
-    pdu.add(new VariableBinding(SnmpConstants.snmpTrapOID, new OID(getDispatchProperty(notification, TRAP_OID_PROPERTY))));
+    pdu.add(new VariableBinding(SnmpConstants.snmpTrapOID, new OID(getDispatchProperty(notification.DispatchProperties, TRAP_OID_PROPERTY))));
     // Set notification body and subject for PDU objects with identifiers specified in dispatch properties.
-    pdu.add(new VariableBinding(new OID(getDispatchProperty(notification, BODY_OID_PROPERTY)), new OctetString(notification.Body)));
-    pdu.add(new VariableBinding(new OID(getDispatchProperty(notification, SUBJECT_OID_PROPERTY)), new OctetString(notification.Subject)));
+    pdu.add(new VariableBinding(new OID(getDispatchProperty(notification.DispatchProperties, BODY_OID_PROPERTY)), new OctetString(notification.Body)));
+    pdu.add(new VariableBinding(new OID(getDispatchProperty(notification.DispatchProperties, SUBJECT_OID_PROPERTY)), new OctetString(notification.Subject)));
     return pdu;
   }
 
@@ -144,7 +178,7 @@ public class SNMPDispatcher implements NotificationDispatcher {
    */
   protected void sendTraps(Notification notification, SnmpVersion snmpVersion) throws InvalidSnmpConfigurationException, IOException {
     PDU trap = prepareTrap(notification, snmpVersion);
-    String udpPort = getDispatchProperty(notification, PORT_PROPERTY);
+    String udpPort = getDispatchProperty(notification.DispatchProperties, PORT_PROPERTY);
     for (Recipient recipient : getNotificationRecipients(notification)) {
       String address = recipient.Identifier;
       Target target = createTrapTarget(notification, snmpVersion);
@@ -162,13 +196,13 @@ public class SNMPDispatcher implements NotificationDispatcher {
    */
   protected Target createTrapTarget(Notification notification, SnmpVersion snmpVersion) throws InvalidSnmpConfigurationException {
     if (snmpVersion.isCommunityTargetRequired()) {
-      OctetString community = new OctetString(getDispatchProperty(notification, COMMUNITY_PROPERTY));
+      OctetString community = new OctetString(getDispatchProperty(notification.DispatchProperties, COMMUNITY_PROPERTY));
       CommunityTarget communityTarget = new CommunityTarget();
       communityTarget.setCommunity(community);
       communityTarget.setVersion(snmpVersion.getTargetVersion());
       return communityTarget;
     } else {
-      OctetString userName = new OctetString(getDispatchProperty(notification, SECURITY_USERNAME_PROPERTY));
+      OctetString userName = new OctetString(getDispatchProperty(notification.DispatchProperties, SECURITY_USERNAME_PROPERTY));
       if (snmp.getUSM() == null) {
         // provide User-based Security Model (USM) with user specified
         USM usm = new USM(SecurityProtocols.getInstance(), new OctetString(MPv3.createLocalEngineID()), 0);
@@ -183,7 +217,7 @@ public class SNMPDispatcher implements NotificationDispatcher {
       }
       UserTarget userTarget = new UserTarget();
       userTarget.setSecurityName(userName);
-      userTarget.setSecurityLevel(getSecurityLevel(notification).getSecurityLevel());
+      userTarget.setSecurityLevel(getSecurityLevel(notification.DispatchProperties).getSecurityLevel());
       userTarget.setSecurityModel(SecurityModel.SECURITY_MODEL_USM);
       userTarget.setVersion(snmpVersion.getTargetVersion());
       return userTarget;
@@ -283,27 +317,27 @@ public class SNMPDispatcher implements NotificationDispatcher {
   }
 
   /**
-   * Get dispatch property with specific key from notification.
-   * @param notification alerts notification
+   * Get dispatch property with specific key from dispatch properties.
+   * @param dispatchProperties dispatch properties
    * @param key property key
    * @return property value
    * @throws InvalidSnmpConfigurationException if property with such key does not exist
    */
-  private static String getDispatchProperty(Notification notification, String key) throws InvalidSnmpConfigurationException {
-    if (notification.DispatchProperties == null || !notification.DispatchProperties.containsKey(key)) {
+  private static String getDispatchProperty(Map<String, String> dispatchProperties, String key) throws InvalidSnmpConfigurationException {
+    if (dispatchProperties == null || !dispatchProperties.containsKey(key)) {
       throw new InvalidSnmpConfigurationException(String.format("Property \"%s\" should be set.", key));
     }
-    return notification.DispatchProperties.get(key);
+    return dispatchProperties.get(key);
   }
 
   /**
-   * Returns {@link SnmpVersion} instance corresponding to dispatch property <code>ambari.dispatch.snmp.version</code> from notification.
-   * @param notification alerts notification
+   * Returns {@link SnmpVersion} instance corresponding to dispatch property <code>ambari.dispatch.snmp.version</code> from dispatch properties.
+   * @param dispatchProperties dispatch properties
    * @return corresponding SnmpVersion instance
    * @throws InvalidSnmpConfigurationException if dispatch properties doesn't contain required property
    */
-  private SnmpVersion getSnmpVersion(Notification notification) throws InvalidSnmpConfigurationException {
-    String snmpVersion = getDispatchProperty(notification, SNMP_VERSION_PROPERTY);
+  private SnmpVersion getSnmpVersion(Map<String, String> dispatchProperties) throws InvalidSnmpConfigurationException {
+    String snmpVersion = getDispatchProperty(dispatchProperties, SNMP_VERSION_PROPERTY);
     try {
       return SnmpVersion.valueOf(snmpVersion);
     } catch (IllegalArgumentException ex) {
@@ -314,13 +348,13 @@ public class SNMPDispatcher implements NotificationDispatcher {
   }
 
   /**
-   * Returns {@link TrapSecurity} instance corresponding to dispatch property <code>ambari.dispatch.snmp.security.level</code> from notification.
-   * @param notification alerts notification
+   * Returns {@link TrapSecurity} instance corresponding to dispatch property <code>ambari.dispatch.snmp.security.level</code> from dispatch properties.
+   * @param dispatchProperties dispatch properties
    * @return corresponding TrapSecurity instance
    * @throws InvalidSnmpConfigurationException if dispatch properties doesn't contain required property
    */
-  private TrapSecurity getSecurityLevel(Notification notification) throws InvalidSnmpConfigurationException {
-    String securityLevel = getDispatchProperty(notification, SECURITY_LEVEL_PROPERTY);
+  private TrapSecurity getSecurityLevel(Map<String, String> dispatchProperties) throws InvalidSnmpConfigurationException {
+    String securityLevel = getDispatchProperty(dispatchProperties, SECURITY_LEVEL_PROPERTY);
     try {
       return TrapSecurity.valueOf(securityLevel);
     } catch (IllegalArgumentException ex) {

@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.Executor;
@@ -419,6 +420,11 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
       m_notificaiton = notification;
     }
 
+    @Override
+    public ConfigValidationResult validateTargetConfig(Map<String, String> properties) {
+      return null;
+    }
+
     public Notification getNotification() {
       return m_notificaiton;
     }
@@ -458,6 +464,12 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
 
     public List<Notification> getNotifications() {
       return m_notifications;
+    }
+
+    @Override
+    public ConfigValidationResult validateTargetConfig(
+        Map<String, String> properties) {
+      return null;
     }
   }
 

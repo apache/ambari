@@ -117,12 +117,12 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
   /**
    * The property containing the dispatch authentication username.
    */
-  private static final String AMBARI_DISPATCH_CREDENTIAL_USERNAME = "ambari.dispatch.credential.username";
+  public static final String AMBARI_DISPATCH_CREDENTIAL_USERNAME = "ambari.dispatch.credential.username";
 
   /**
    * The property containing the dispatch authentication password.
    */
-  private static final String AMBARI_DISPATCH_CREDENTIAL_PASSWORD = "ambari.dispatch.credential.password";
+  public static final String AMBARI_DISPATCH_CREDENTIAL_PASSWORD = "ambari.dispatch.credential.password";
 
   /**
    * The property containing the dispatch recipients

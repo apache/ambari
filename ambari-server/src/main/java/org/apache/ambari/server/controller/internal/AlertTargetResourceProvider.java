@@ -31,6 +31,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
+import org.apache.ambari.server.api.resources.AlertTargetResourceDefinition;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -41,6 +42,8 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.notifications.DispatchFactory;
+import org.apache.ambari.server.notifications.NotificationDispatcher;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
@@ -105,8 +108,11 @@ public class AlertTargetResourceProvider extends
   @Inject
   private static AlertDispatchDAO s_dao;
 
+  @Inject
+  private static DispatchFactory dispatchFactory;
+
   /**
-   * Used for serializationa and deserialization of some fields.
+   * Used for serialization and deserialization of some fields.
    */
   private static final Gson s_gson = new Gson();
 
@@ -126,7 +132,7 @@ public class AlertTargetResourceProvider extends
     createResources(new Command<Void>() {
       @Override
       public Void invoke() throws AmbariException {
-        createAlertTargets(request.getProperties());
+        createAlertTargets(request.getProperties(), request.getRequestInfoProperties());
         return null;
       }
     });
@@ -225,10 +231,11 @@ public class AlertTargetResourceProvider extends
    * Create and persist {@link AlertTargetEntity} from the map of properties.
    *
    * @param requestMaps
+   * @param requestInfoProps
    * @throws AmbariException
    */
   @SuppressWarnings("unchecked")
-  private void createAlertTargets(Set<Map<String, Object>> requestMaps)
+  private void createAlertTargets(Set<Map<String, Object>> requestMaps, Map<String, String> requestInfoProps)
       throws AmbariException {
     List<AlertTargetEntity> entities = new ArrayList<AlertTargetEntity>();
     for (Map<String, Object> requestMap : requestMaps) {
@@ -250,10 +257,17 @@ public class AlertTargetResourceProvider extends
             "The type of the alert target is required.");
       }
 
-      String properties = extractProperties(requestMap);
-      if (StringUtils.isEmpty(properties)) {
+      Map<String, String> properties = extractProperties(requestMap);
+
+      String propertiesJson = s_gson.toJson(properties);
+      if (StringUtils.isEmpty(propertiesJson)) {
         throw new IllegalArgumentException(
             "Alert targets must be created with their connection properties");
+      }
+
+      String validationProperty =  requestInfoProps.get(AlertTargetResourceDefinition.VALIDATE_CONFIG_DIRECTIVE);
+      if (validationProperty != null && validationProperty.equalsIgnoreCase("true")) {
+        validateTargetConfig(notificationType, properties);
       }
 
       // global not required
@@ -286,7 +300,7 @@ public class AlertTargetResourceProvider extends
 
       entity.setDescription(description);
       entity.setNotificationType(notificationType);
-      entity.setProperties(properties);
+      entity.setProperties(propertiesJson);
       entity.setTargetName(name);
       entity.setAlertStates(alertStateSet);
       entity.setGlobal(isGlobal);
@@ -344,7 +358,7 @@ public class AlertTargetResourceProvider extends
         entity.setNotificationType(notificationType);
       }
 
-      String properties = extractProperties(requestMap);
+      String properties = s_gson.toJson(extractProperties(requestMap));
       if (!StringUtils.isEmpty(properties)) {
         entity.setProperties(properties);
       }
@@ -448,8 +462,8 @@ public class AlertTargetResourceProvider extends
    * @return the JSON representing the key/value pairs of all properties, or
    *         {@code null} if none.
    */
-  private String extractProperties( Map<String, Object> requestMap ){
-    Map<String, Object> normalizedMap = new HashMap<String, Object>(
+  private Map<String, String> extractProperties(Map<String, Object> requestMap) {
+    Map<String, String> normalizedMap = new HashMap<String, String>(
         requestMap.size());
 
     for (Entry<String, Object> entry : requestMap.entrySet()) {
@@ -458,10 +472,26 @@ public class AlertTargetResourceProvider extends
 
       if (propCat.equals(ALERT_TARGET_PROPERTIES)) {
         String propKey = PropertyHelper.getPropertyName(key);
-        normalizedMap.put(propKey, entry.getValue());
+        normalizedMap.put(propKey, entry.getValue().toString());
       }
     }
 
-    return s_gson.toJson(normalizedMap);
+    return normalizedMap;
+  }
+
+  /**
+   * Finds dispatcher for given notification type and validates on it given alert target configuration properties.
+   * @param notificationType type of dispatcher
+   * @param properties alert target configuration properties
+   */
+  private void validateTargetConfig(String notificationType, Map<String, String> properties) {
+    NotificationDispatcher dispatcher = dispatchFactory.getDispatcher(notificationType);
+    if (dispatcher == null) {
+      throw new IllegalArgumentException("Dispatcher for given notification type doesn't exist");
+    }
+    NotificationDispatcher.ConfigValidationResult validationResult = dispatcher.validateTargetConfig(properties);
+    if (validationResult.getStatus() == NotificationDispatcher.ConfigValidationResult.Status.INVALID) {
+      throw new IllegalArgumentException(validationResult.getMessage());
+    }
   }
 }

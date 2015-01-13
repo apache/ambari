@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.notifications;
 
+import java.util.Map;
+
 /**
  *
  */
@@ -50,5 +52,10 @@ public class MockDispatcher implements NotificationDispatcher {
    */
   @Override
   public void dispatch(Notification notification) {
+  }
+
+  @Override
+  public ConfigValidationResult validateTargetConfig(Map<String, String> properties) {
+    return null;
   }
 }

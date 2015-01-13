@@ -15,15 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.notifications;
+package org.apache.ambari.server.notifications.dispatchers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
+import org.apache.ambari.server.notifications.*;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.alert.TargetType;
 import org.easymock.EasyMock;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -32,6 +36,10 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
+
+import javax.mail.AuthenticationFailedException;
+import javax.mail.MessagingException;
+import javax.mail.Transport;
 
 /**
  *
@@ -77,7 +85,7 @@ public class EmailDispatcherTest {
    * Tests that an email without properties causes a callback error.
    */
   @Test
-  public void testNoEmailProperties() {
+  public void testNoEmailPropeties() {
     Notification notification = new Notification();
     DispatchCallback callback = EasyMock.createMock(DispatchCallback.class);
     notification.Callback = callback;
@@ -101,6 +109,58 @@ public class EmailDispatcherTest {
     dispatcher.dispatch(notification);
 
     EasyMock.verify(callback);
+  }
+
+  @Test
+  public void testValidateTargetConfig_invalidOnAuthenticationException() throws Exception {
+
+    Map<String, String> properties = new HashMap<String, String>();
+    Transport mockedTransport = EasyMock.createNiceMock(Transport.class);
+    EmailDispatcher dispatcher = EasyMock.createMockBuilder(EmailDispatcher.class).
+        addMockedMethods("getMailTransport").createNiceMock();
+
+    EasyMock.expect(dispatcher.getMailTransport(properties)).andReturn(mockedTransport);
+    mockedTransport.connect();
+    EasyMock.expectLastCall().andThrow(new AuthenticationFailedException());
+
+    EasyMock.replay(dispatcher, mockedTransport);
+
+    NotificationDispatcher.ConfigValidationResult configValidationResult = dispatcher.validateTargetConfig(properties);
+    Assert.assertEquals(NotificationDispatcher.ConfigValidationResult.Status.INVALID, configValidationResult.getStatus());
+  }
+
+  @Test
+  public void testValidateTargetConfig_invalidOnMessagingException() throws Exception {
+
+    Map<String, String> properties = new HashMap<String, String>();
+    Transport mockedTransport = EasyMock.createNiceMock(Transport.class);
+    EmailDispatcher dispatcher = EasyMock.createMockBuilder(EmailDispatcher.class).
+        addMockedMethods("getMailTransport").createNiceMock();
+
+    EasyMock.expect(dispatcher.getMailTransport(properties)).andReturn(mockedTransport);
+    mockedTransport.connect();
+    EasyMock.expectLastCall().andThrow(new MessagingException());
+
+    EasyMock.replay(dispatcher, mockedTransport);
+
+    NotificationDispatcher.ConfigValidationResult configValidationResult = dispatcher.validateTargetConfig(properties);
+    Assert.assertEquals(NotificationDispatcher.ConfigValidationResult.Status.INVALID, configValidationResult.getStatus());
+  }
+
+  @Test
+  public void testValidateTargetConfig_validIfNoErrors() throws Exception {
+
+    Map<String, String> properties = new HashMap<String, String>();
+    Transport mockedTransport = EasyMock.createNiceMock(Transport.class);
+    EmailDispatcher dispatcher = EasyMock.createMockBuilder(EmailDispatcher.class).
+        addMockedMethods("getMailTransport").createNiceMock();
+
+    EasyMock.expect(dispatcher.getMailTransport(properties)).andReturn(mockedTransport);
+
+    EasyMock.replay(dispatcher, mockedTransport);
+
+    NotificationDispatcher.ConfigValidationResult configValidationResult = dispatcher.validateTargetConfig(properties);
+    Assert.assertEquals(NotificationDispatcher.ConfigValidationResult.Status.VALID, configValidationResult.getStatus());
   }
 
   /**

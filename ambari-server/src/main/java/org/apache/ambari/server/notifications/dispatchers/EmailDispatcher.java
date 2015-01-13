@@ -17,13 +17,16 @@
  */
 package org.apache.ambari.server.notifications.dispatchers;
 
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Timer;
 
+import javax.mail.AuthenticationFailedException;
 import javax.mail.Authenticator;
 import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
+import javax.mail.NoSuchProviderException;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
@@ -35,6 +38,7 @@ import org.apache.ambari.server.notifications.Notification;
 import org.apache.ambari.server.notifications.NotificationDispatcher;
 import org.apache.ambari.server.notifications.Recipient;
 import org.apache.ambari.server.state.alert.TargetType;
+import org.apache.ambari.server.state.services.AlertNoticeDispatchService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -159,10 +163,44 @@ public class EmailDispatcher implements NotificationDispatcher {
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConfigValidationResult validateTargetConfig(Map<String, String> properties) {
+    try {
+      Transport transport = getMailTransport(properties);
+      transport.connect();
+      transport.close();
+    } catch(AuthenticationFailedException e) {
+      LOG.debug("Invalid credentials. Authentication failure.", e);
+      return ConfigValidationResult.invalid("Invalid credentials. Authentication failure: " + e.getMessage());
+    } catch(MessagingException e) {
+      LOG.debug("Invalid config.", e);
+      return ConfigValidationResult.invalid("Invalid config: " + e.getMessage());
+    }
+    return ConfigValidationResult.valid();
+  }
+
+  protected Transport getMailTransport(Map<String, String> properties) throws NoSuchProviderException {
+    DispatchCredentials credentials = null;
+    if (properties.containsKey(AlertNoticeDispatchService.AMBARI_DISPATCH_CREDENTIAL_USERNAME)) {
+      credentials = new DispatchCredentials();
+      credentials.UserName = properties.get(AlertNoticeDispatchService.AMBARI_DISPATCH_CREDENTIAL_USERNAME);
+      credentials.Password = properties.get(AlertNoticeDispatchService.AMBARI_DISPATCH_CREDENTIAL_PASSWORD);
+    }
+    Properties props = new Properties();
+    for (Entry<String, String> entry : properties.entrySet()) {
+      props.put(entry.getKey(), entry.getValue());
+    }
+    Session session = Session.getInstance(props, new EmailAuthenticator(credentials));
+    return session.getTransport();
+  }
+
+  /**
    * The {@link EmailAuthenticator} class is used to provide a username and
    * password combination to an SMTP server.
    */
-  private static final class EmailAuthenticator extends Authenticator{
+  private static final class EmailAuthenticator extends Authenticator {
 
     private final DispatchCredentials m_credentials;
 
@@ -180,8 +218,11 @@ public class EmailDispatcher implements NotificationDispatcher {
      */
     @Override
     protected PasswordAuthentication getPasswordAuthentication() {
-      return new PasswordAuthentication(m_credentials.UserName,
-          m_credentials.Password);
+      if (m_credentials != null) {
+        return new PasswordAuthentication(m_credentials.UserName,
+            m_credentials.Password);
+      }
+      return null;
     }
   }
 }
