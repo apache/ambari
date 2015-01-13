@@ -120,8 +120,7 @@
 
       <configuration-dependencies>
         <config-type>krb5-conf</config-type>
-        <config-type>kdc-conf</config-type>
-        <config-type>kadm5-acl</config-type>
+        <config-type>kerberos-env</config-type>
       </configuration-dependencies>
       <restartRequiredAfterChange>true</restartRequiredAfterChange>
     </service>

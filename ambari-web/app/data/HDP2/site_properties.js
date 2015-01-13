@@ -1977,7 +1977,7 @@ module.exports =
       "index": 0
     },
 
-  /********************************************* kerberos***********************************/
+  /*******************************************kerberos***********************************/
     {
       "id": "puppet var",
       "name": "kdc_type",
@@ -2029,6 +2029,27 @@ module.exports =
     },
     {
       "id": "puppet var",
+      "name": "ldap_url",
+      "displayName": "LDAP url",
+      "isOverridable": false,
+      "isVisible": false,
+      "serviceName": "KERBEROS",
+      "filename": "kerberos-env.xml",
+      "category": "KDC",
+      "index": 4
+    },
+    {
+      "id": "puppet var",
+      "name": "container_dn",
+      "displayName": "Container DN",
+      "isVisible": false,
+      "serviceName": "KERBEROS",
+      "filename": "kerberos-env.xml",
+      "category": "KDC",
+      "index": 5
+    },
+    {
+      "id": "puppet var",
       "name": "domains",
       "displayName": "Domains",
       "isRequired": false,
@@ -2038,7 +2059,7 @@ module.exports =
       "serviceName": "KERBEROS",
       "filename": "krb5-conf.xml",
       "category": "KDC",
-      "index": 4
+      "index": 6
     },
     {
       "id": "puppet var",
@@ -2050,7 +2071,7 @@ module.exports =
       "serviceName": "KERBEROS",
       "filename": "krb5-conf.xml",
       "category": "KDC",
-      "index": 5
+      "index": 7
     },
     {
       "id": "puppet var",
@@ -2063,7 +2084,7 @@ module.exports =
       "serviceName": "KERBEROS",
       "filename": "krb5-conf.xml",
       "category": "KDC",
-      "index": 6
+      "index": 8
     },
     {
       "id": "puppet var",
