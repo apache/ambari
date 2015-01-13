@@ -33,7 +33,11 @@ REMOVE_CMD = {
   True: ['/usr/bin/zypper', 'remove', '--no-confirm'],
   False: ['/usr/bin/zypper', '--quiet', 'remove', '--no-confirm'],
 }
-CHECK_CMD = "installed_pkgs=`rpm -qa %s` ; [ ! -z \"$installed_pkgs\" ]"
+CHECK_CMD = "installed_pkgs=`rpm -qa '%s'` ; [ ! -z \"$installed_pkgs\" ]"
+GET_NOT_INSTALLED_CMD = "zypper --non-interactive search --type package --uninstalled-only --match-exact '%s'"
+
+NO_PACKAGES_FOUND_STATUS = 'No packages found.'
+
 LIST_ACTIVE_REPOS_CMD = ['/usr/bin/zypper', 'repos']
 
 def get_active_base_repos():
@@ -82,4 +86,10 @@ class ZypperProvider(PackageProvider):
 
   def _check_existence(self, name):
     code, out = shell.call(CHECK_CMD % name)
-    return not bool(code)
+    if bool(code):
+      return False
+    elif '*' in name or '?' in name:  # Check if all packages matching pattern are installed
+      code1, out1 = shell.call(GET_NOT_INSTALLED_CMD % name)
+      return NO_PACKAGES_FOUND_STATUS in out1.splitlines()
+    else:
+      return True

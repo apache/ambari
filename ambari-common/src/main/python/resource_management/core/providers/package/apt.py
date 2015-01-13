@@ -39,7 +39,11 @@ REMOVE_CMD = {
 }
 REPO_UPDATE_CMD = ['/usr/bin/apt-get', 'update','-qq']
 
-CHECK_CMD = "dpkg --get-selections | grep -v deinstall | awk '{print $1}' | grep ^%s$"
+CHECK_EXISTENCE_CMD = "dpkg --get-selections | grep -v deinstall | awk '{print $1}' | grep '^%s$'"
+GET_PACKAGES_BY_PATTERN_CMD = "apt-cache --names-only search '^%s$' | awk '{print $1}'"
+GET_PACKAGE_STATUS_CMD = "dpkg --status '%s'"
+
+PACKAGE_INSTALLED_STATUS = 'Status: install ok installed'
 
 EMPTY_FILE = "/dev/null"
 APT_SOURCES_LIST_DIR = "/etc/apt/sources.list.d"
@@ -50,6 +54,7 @@ def replace_underscores(function_to_decorate):
     name = args[1].replace("_", "-")
     return function_to_decorate(self, name, *args[2:])
   return wrapper
+
 
 class AptProvider(PackageProvider):
 
@@ -113,5 +118,15 @@ class AptProvider(PackageProvider):
 
   @replace_underscores
   def _check_existence(self, name):
-    code, out = shell.call(CHECK_CMD % name)
-    return not bool(code)
+    code, out = shell.call(CHECK_EXISTENCE_CMD % name)
+    if bool(code):
+      return False
+    elif '*' in name or '.' in name:  # Check if all packages matching regexp are installed
+      code1, out1 = shell.call(GET_PACKAGES_BY_PATTERN_CMD % name)
+      for package_name in out1.splitlines():
+        code2, out2 = shell.call(GET_PACKAGE_STATUS_CMD % package_name)
+        if PACKAGE_INSTALLED_STATUS not in out2.splitlines():
+          return False
+      return True
+    else:
+      return True

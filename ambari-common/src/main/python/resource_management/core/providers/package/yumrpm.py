@@ -36,7 +36,8 @@ REMOVE_CMD = {
   False: ['/usr/bin/yum', '-d', '0', '-e', '0', '-y', 'erase'],
 }
 
-CHECK_CMD = "installed_pkgs=`rpm -qa %s` ; [ ! -z \"$installed_pkgs\" ]"
+CHECK_CMD = "installed_pkgs=`rpm -qa '%s'` ; [ ! -z \"$installed_pkgs\" ]"
+CHECK_AVAILABLE_PACKAGES_CMD = "! yum list available '%s'"
 
 class YumProvider(PackageProvider):
   def install_package(self, name, use_repos=[]):
@@ -66,4 +67,10 @@ class YumProvider(PackageProvider):
     if '.' in name:  # To work with names like 'zookeeper_2_2_1_0_2072.noarch'
       name = os.path.splitext(name)[0]
     code, out = shell.call(CHECK_CMD % name)
-    return not bool(code)
+    if bool(code):
+      return False
+    elif '*' in name or '?' in name:  # Check if all packages matching pattern are installed
+      code1, out1 = shell.call(CHECK_AVAILABLE_PACKAGES_CMD % name)
+      return not bool(code1)
+    else:
+      return True
