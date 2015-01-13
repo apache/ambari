@@ -866,6 +866,8 @@ App.ServiceConfigProperty = Em.Object.extend({
         return App.ServiceConfigMasterHostsView;
       case 'slaveHosts':
         return App.ServiceConfigSlaveHostsView;
+      case 'supportTextConnection':
+        return App.checkConnectionView;
       default:
         if (this.get('unit')) {
           return App.ServiceConfigTextFieldWithUnit;

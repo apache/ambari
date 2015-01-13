@@ -191,6 +191,7 @@ Em.I18n.translations = {
   'common.package': 'Package',
   'common.proceed': 'Proceed',
   'common.proceedAnyway': 'Proceed Anyway',
+  'common.exitAnyway': 'Exit Anyway',
   'common.process': 'Process',
   'common.property': 'Property',
   'common.installed': 'Installed',
@@ -409,6 +410,8 @@ Em.I18n.translations = {
 
   'installer.controls.slaveComponentGroups':' Groups',
   'installer.controls.serviceConfigPopover.title':'{0}<br><small>{1}</small>',
+  'installer.controls.checkConnection.popover':'This action will check accessibility of all hosts to Ambari installed {0} host and port ' +
+    'and accessibility of Ambari installed {0} host to external {0} host',
   'installer.controls.serviceConfigMultipleHosts.other':'1 other',
   'installer.controls.serviceConfigMultipleHosts.others':'{0} others',
   'installer.controls.serviceConfigMasterHosts.header':'{0} Hosts',
@@ -1635,7 +1638,9 @@ Em.I18n.translations = {
   'services.service.config.propertyFilterPopover.content':'Enter keywords to filter properties by property name, value, or description.',
   'services.service.config.hive.oozie.postgresql': 'Existing PostgreSQL Database',
   'services.service.config.database.connection.success': 'Connection OK',
+  'services.service.config.database.connection.inProgress': 'Checking connectivity',
   'services.service.config.database.connection.failed': 'Connection Failed',
+  'services.service.config.connection.exitPopup.msg': 'Test connection is in progress. It\'s recommended to wait until it wil be complete. Are you sure you want to exit Enable Kerberos Wizard?',
   'services.service.config.database.btn.idle': 'Test Connection',
   'services.service.config.database.btn.connecting': 'Connecting...',
   'services.service.config.database.msg.jdbcSetup': 'Be sure you have run:<br/>' +

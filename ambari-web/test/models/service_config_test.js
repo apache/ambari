@@ -331,6 +331,13 @@ var serviceConfig,
         displayType: 'type'
       },
       viewClass: App.ServiceConfigTextField
+    },
+    {
+      initial: {
+        unit: false,
+        displayType: 'supportTextConnection'
+      },
+      viewClass: App.checkConnectionView
     }
   ];
 

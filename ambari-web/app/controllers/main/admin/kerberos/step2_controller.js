@@ -35,6 +35,28 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
 
   addMiscTabToPage: false,
 
+  /**
+   * @type {boolean} true if test conection to hosts is in progress
+   */
+  testConnectionInProgress: false,
+
+  /**
+   * Should Back-button be disabled
+   * @type {boolean}
+   */
+  isBackBtnDisabled: function() {
+    return this.get('testConnectionInProgress');
+  }.property('testConnectionInProgress'),
+
+  /**
+   * Should Next-button be disabled
+   * @type {boolean}
+   */
+  isSubmitDisabled: function () {
+    if (!this.get('stepConfigs.length') || this.get('testConnectionInProgress') || this.get('submitButtonClicked')) return true;
+    return (!this.get('stepConfigs').filterProperty('showConfig', true).everyProperty('errorCount', 0) || this.get("miscModalVisible"));
+  }.property('stepConfigs.@each.errorCount', 'miscModalVisible', 'submitButtonClicked', 'testConnectionInProgress'),
+
   hostNames: function () {
     return this.get('content.hosts');
   }.property('content.hosts'),
@@ -257,6 +279,16 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
         }]
       }
     });
+  },
+
+  /**
+   * shows popup with to warn user  
+   * @param primary
+   */
+  showConnectionInProgressPopup: function(primary) {
+    var primaryText = Em.I18n.t('common.exitAnyway');
+    var msg = Em.I18n.t('services.service.config.connection.exitPopup.msg');
+    App.showConfirmationPopup(primary, msg, null, null, primaryText)
   }
 });
 

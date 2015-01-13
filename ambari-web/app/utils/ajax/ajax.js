@@ -1404,6 +1404,17 @@ var urls = {
     'mock': '/data/stack_versions/pre_upgrade_check.json'
   },
 
+  'admin.kerberos_security.test_connection': {
+    'real': '/kdc_check/{kdcHostname}',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify(data)
+      }
+    }
+  },
+
   'wizard.advanced_repositories.valid_url': {
     'real': '/stacks/{stackName}/versions/{stackVersion}/operating_systems/{osType}/repositories/{repoId}',
     'mock': '',
@@ -1991,7 +2002,7 @@ var urls = {
   },
   'custom_action.request': {
     'real': '/requests/{requestId}/tasks/{taskId}',
-    'mock': '',
+    'mock': '/data/requests/1.json',
     'format': function (data) {
       return {
         requestId: data.requestId,

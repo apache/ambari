@@ -564,6 +564,10 @@ describe('App.CheckDBConnectionView', function () {
           value: 'h0'
         },
         {
+          serviceName: 'KERBEROS',
+          value: 'h1'
+        },
+        {
           serviceName: 'HIVE',
           value: 'h2'
         }
@@ -572,6 +576,10 @@ describe('App.CheckDBConnectionView', function () {
         Em.Object.create({
           name: 'oozieserver_host',
           value: 'h0'
+        }),
+        Em.Object.create({
+          name: 'kdc_host',
+          value: 'h1'
         }),
         Em.Object.create({
           name: 'hive_ambari_host',

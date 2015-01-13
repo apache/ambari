@@ -1998,6 +1998,7 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "isRequiredByAgent": true,
+      "displayType": "supportTextConnection",
       "serviceName": "KERBEROS",
       "filename": "krb5-conf.xml",
       "category": "KDC",

@@ -30,7 +30,7 @@
     {{/if}}
 
     <div class="btn-area">
-      <a id="back-kerberos-step2" class="btn" {{action back}}>&larr; {{t common.back}}</a>
+      <a id="back-kerberos-step2" class="btn" {{bindAttr disabled="isBackBtnDisabled"}} {{action back}}>&larr; {{t common.back}}</a>
       <a id="submit-kerberos-step2" class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}}
         {{action submit target="controller"}}>{{t common.next}} &rarr;</a>
     </div>

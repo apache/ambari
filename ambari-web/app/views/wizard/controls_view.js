@@ -553,6 +553,20 @@ App.ServiceConfigMasterHostView = Ember.View.extend(App.ServiceConfigHostPopover
 });
 
 /**
+ * text field property view that enables possibility
+ * for check connectio
+ * @type {*}
+ */
+App.checkConnectionView = App.ServiceConfigTextField.extend({
+  didInsertElement: function() {
+    this._super();
+    var kdc = this.get('categoryConfigsAll').findProperty('name', 'kdc_type');
+    var propertyAppendTo = this.get('categoryConfigsAll').findProperty('name', 'admin_password');
+    if (propertyAppendTo) propertyAppendTo.set('additionalView', App.CheckDBConnectionView.extend({databaseName: kdc && kdc.get('value')}));
+  }
+});
+
+/**
  * Show value as plain label in italics
  * @type {*}
  */
@@ -826,6 +840,8 @@ App.CheckDBConnectionView = Ember.View.extend({
   hostNameProperty: function() {
     if (!/wizard/i.test(this.get('controller.name')) && this.get('parentView.service.serviceName') === 'HIVE') {
       return this.get('parentView.service.serviceName').toLowerCase() + '_hostname';
+    } else if (this.get('parentView.service.serviceName') === 'KERBEROS') {
+      return 'kdc_host';
     }
     return '{0}_existing_{1}_host'.format(this.get('parentView.service.serviceName').toLowerCase(), this.get('databaseName').toLowerCase());
   }.property('databaseName'),
@@ -837,27 +853,32 @@ App.CheckDBConnectionView = Ember.View.extend({
   requiredProperties: function() {
     var propertiesMap = {
       OOZIE: ['oozie.db.schema.name','oozie.service.JPAService.jdbc.username','oozie.service.JPAService.jdbc.password','oozie.service.JPAService.jdbc.driver','oozie.service.JPAService.jdbc.url'],
-      HIVE: ['ambari.hive.db.schema.name','javax.jdo.option.ConnectionUserName','javax.jdo.option.ConnectionPassword','javax.jdo.option.ConnectionDriverName','javax.jdo.option.ConnectionURL']
+      HIVE: ['ambari.hive.db.schema.name','javax.jdo.option.ConnectionUserName','javax.jdo.option.ConnectionPassword','javax.jdo.option.ConnectionDriverName','javax.jdo.option.ConnectionURL'],
+      KERBEROS: ['kdc_host']
     };
     return propertiesMap[this.get('parentView.service.serviceName')];
   }.property(),
   /** @property {Object} propertiesPattern - check pattern according to type of connection properties **/
   propertiesPattern: function() {
-    return {
-      user_name: /(username|dblogin)$/ig,
-      user_passwd: /(dbpassword|password)$/ig,
-      db_connection_url: /jdbc\.url|connectionurl/ig
+    var patterns = {
+      db_connection_url: /jdbc\.url|connectionurl|kdc_host/ig
+    };
+    if (this.get('parentView.service.serviceName') != "KERBEROS") {
+      patterns.user_name = /(username|dblogin)$/ig;
+      patterns.user_passwd = /(dbpassword|password)$/ig;
     }
-  }.property(),
+    return patterns;
+  }.property('parentView.service.serviceName'),
   /** @property {String} masterHostName - host name location of Master Component related to Service **/
   masterHostName: function() {
     var serviceMasterMap = {
       'OOZIE': 'oozieserver_host',
       'HDFS': 'hadoop_host',
-      'HIVE': 'hive_ambari_host'
+      'HIVE': 'hive_ambari_host',
+      'KERBEROS': 'kdc_host'
     };
     return this.get('parentView.categoryConfigsAll').findProperty('name', serviceMasterMap[this.get('parentView.service.serviceName')]).get('value');
-  }.property(),
+  }.property('parentView.service.serviceName', 'parentView.categoryConfigsAll.@each.value'),
   /** @property {Object} connectionProperties - service specific config values mapped for custom action request **/
   connectionProperties: function() {
     var propObj = {};
@@ -882,6 +903,16 @@ App.CheckDBConnectionView = Ember.View.extend({
   }.property(),
   /** Check validation and load ambari properties **/
   didInsertElement: function() {
+    var kdc = this.get('parentView.categoryConfigsAll').findProperty('name', 'kdc_type');
+    if (kdc) {
+      var name = kdc.get('value') == 'Existing MIT KDC' ? 'KDC' : 'Active Directory';
+      App.popover(this.$(), {
+        title: Em.I18n.t('services.service.config.database.btn.idle'),
+        content: Em.I18n.t('installer.controls.checkConnection.popover').format(name),
+        placement: 'right',
+        trigger: 'hover'
+    });
+    }
     this.handlePropertiesValidation();
     this.getAmbariProperties();
   },
@@ -960,13 +991,47 @@ App.CheckDBConnectionView = Ember.View.extend({
    * @method connectToDatabase
    **/
   connectToDatabase: function() {
-    if (this.get('isBtnDisabled')) return false;
-    var self = this;
-    self.set('isRequestResolved', false);
+    if (this.get('isBtnDisabled')) return;
+    this.set('isRequestResolved', false);
     App.db.set('tmp', this.get('parentView.service.serviceName') + '_connection', {});
     this.setConnectingStatus(true);
-    this.createCustomAction();
+    if (App.get('testMode')) {
+      this.startPolling();
+    } else {
+      this.runCheckConnection();
+    }
   },
+
+  /**
+   * runs check connections methods depending on service
+   * @return {void}
+   * @method runCheckConnection
+   */
+  runCheckConnection: function() {
+    if (this.get('parentView.service.serviceName') === 'KERBEROS') {
+      this.runKDCCheck();
+    } else {
+      this.createCustomAction();
+    }
+  },
+
+  /**
+   * send ajax request to perforn kdc host check
+   * @return {App.ajax}
+   * @method runKDCCheck
+   */
+  runKDCCheck: function() {
+    return App.ajax.send({
+      name: 'admin.kerberos_security.test_connection',
+      sender: this,
+      data: {
+        kdcHostname: this.get('masterHostName')
+      },
+      success: 'onCreateActionSuccess',
+      error: 'onCreateActionError'
+    });
+  },
+
   /**
    * Run custom action for database connection.
    *
@@ -1030,6 +1095,10 @@ App.CheckDBConnectionView = Ember.View.extend({
 
   getTaskInfoSuccess: function(data) {
     var task = data.Tasks;
+    this.set('responseFromServer', {
+      stderr: task.stderr,
+      stdout: task.stdout
+    });
     if (task.status === 'COMPLETED') {
       var structuredOut = task.structured_out.db_connection_check;
       if (structuredOut.exit_code != 0) {
@@ -1045,10 +1114,6 @@ App.CheckDBConnectionView = Ember.View.extend({
       }
     }
     if (task.status === 'FAILED') {
-      this.set('responseFromServer', {
-        stderr: task.stderr,
-        stdout: task.stdout
-      });
       this.setResponseStatus('failed');
     }
     if (/PENDING|QUEUED|IN_PROGRESS/.test(task.status)) {
@@ -1078,9 +1143,9 @@ App.CheckDBConnectionView = Ember.View.extend({
    */
   setConnectingStatus: function(active) {
     if (active) {
-      this.set('responseCaption', null);
-      this.set('responseFromServer', null);
+      this.set('responseCaption', Em.I18n.t('services.service.config.database.connection.inProgress'));
     }
+    this.set('controller.testConnectionInProgress', !!active);
     this.set('btnCaption', !!active ? Em.I18n.t('services.service.config.database.btn.connecting') : Em.I18n.t('services.service.config.database.btn.idle'));
     this.set('isConnecting', !!active);
   },

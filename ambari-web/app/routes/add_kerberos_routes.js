@@ -34,31 +34,39 @@ module.exports = App.WizardRoute.extend({
         secondary: null,
 
         onClose: function () {
-          var self = this;
-          var kerberosProgressPageController = App.router.get('kerberosProgressPageController');
-          var controller = App.router.get('kerberosWizardController');
-          controller.clearTasksData();
-          controller.finish();
-          App.router.get('updateController').set('isWorking', true);
-          if (App.get('testMode')) {
-            App.router.transitionTo('adminKerberos.index');
-            location.reload();
+          var step2Controller = router.get('kerberosWizardStep2Controller')
+          if (step2Controller.get('testConnectionInProgress')) {
+            step2Controller.showConnectionInProgressPopup(this.exitWizard);
+          } else {
+            this.exitWizard();
           }
-          App.clusterStatus.setClusterStatus({
-            clusterName: App.router.getClusterName(),
-            clusterState: 'DEFAULT',
-            localdb: App.db.data
-          }, {
-            alwaysCallback: function () {
-              self.hide();
-              App.router.transitionTo('adminKerberos.index');
-            }
-          });
-
         },
         didInsertElement: function () {
           this.fitHeight();
-        }
+        },
+
+       exitWizard: function() {
+         var self = this;
+         var kerberosProgressPageController = App.router.get('kerberosProgressPageController');
+         var controller = App.router.get('kerberosWizardController');
+         controller.clearTasksData();
+         controller.finish();
+         App.router.get('updateController').set('isWorking', true);
+         if (App.get('testMode')) {
+           App.router.transitionTo('adminKerberos.index');
+           location.reload();
+         }
+         App.clusterStatus.setClusterStatus({
+           clusterName: App.router.getClusterName(),
+           clusterState: 'DEFAULT',
+           localdb: App.db.data
+         }, {
+           alwaysCallback: function () {
+             self.hide();
+             App.router.transitionTo('adminKerberos.index');
+           }
+         });
+       }
       });
       kerberosWizardController.set('popup', popup);
       var currentClusterStatus = App.clusterStatus.get('value');
@@ -130,7 +138,13 @@ module.exports = App.WizardRoute.extend({
     unroutePath: function () {
       return false;
     },
-    back: Em.Router.transitionTo('step1'),
+    back: function(router) {
+      var controller = router.get('kerberosWizardStep2Controller');
+      if (!controller.get('isBackBtnDisabled')) {
+        Em.Router.transitionTo('step1')
+      }
+    },
+
     next: function (router) {
       var kerberosWizardController = router.get('kerberosWizardController');
       var kerberosWizardStep2Controller = router.get('kerberosWizardStep2Controller');

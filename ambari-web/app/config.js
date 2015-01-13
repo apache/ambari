@@ -58,12 +58,12 @@ App.healthStatusOrange = '#FF8E00';
 App.enableExperimental = false;
 
 App.supports = {
-  preKerberizeCheck: false,
   preUpgradeCheck: true,
   stackUpgrade: true,
   autoRollbackHA: false,
-  alwaysEnableManagedMySQLForHive: false,
-  automatedKerberos: false,
+  alwaysEnableManagedMySQLForHive: true,
+  preKerberizeCheck: false,
+  automatedKerberos: true,
   customizeAgentUserAccount: false,
   installGanglia: false
 };

@@ -22,10 +22,10 @@
     <div class="control-group">
       <div class="span9">
         <span {{bindAttr class=":pull-left :btn :btn-primary view.isBtnDisabled:disabled"}} {{action connectToDatabase target="view"}}>{{view.btnCaption}}</span>
-        <div {{bindAttr class=":spinner :mll :pull-left view.isConnecting::hide"}}></div>
         <div class="pull-left connection-result mll">
-            <a {{bindAttr class="view.isConnectionSuccess:mute:action view.isRequestResolved::hide"}} {{action showLogsPopup target="view"}}>{{view.responseCaption}}</a>
+          <a {{bindAttr class="view.isConnectionSuccess:mute:action"}} {{action showLogsPopup target="view"}}>{{view.responseCaption}}</a>
         </div>
+        <div {{bindAttr class=":spinner :mll :pull-left view.isConnecting::hide"}}></div>
         <i {{bindAttr class=":pull-right view.isConnectionSuccess:icon-ok-sign:icon-warning-sign view.isRequestResolved::hide"}}></i>
       </div>
     </div>
