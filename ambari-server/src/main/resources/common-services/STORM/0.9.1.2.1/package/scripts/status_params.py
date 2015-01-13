@@ -18,7 +18,8 @@ limitations under the License.
 
 """
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.functions import default, format
 
 config = Script.get_config()
 
@@ -35,3 +36,13 @@ pid_files = {"logviewer":pid_logviewer,
              "supervisor": pid_supervisor,
              "drpc": pid_drpc,
              "rest_api": pid_rest_api}
+
+# Security related/required params
+hostname = config['hostname']
+security_enabled = config['configurations']['cluster-env']['security_enabled']
+kinit_path_local = get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+tmp_dir = Script.get_tmp_dir()
+conf_dir = "/etc/storm/conf"
+storm_user = config['configurations']['storm-env']['storm_user']
+storm_ui_principal = default('/configurations/storm-env/storm_ui_principal_name', None)
+storm_ui_keytab = default('/configurations/storm-env/storm_ui_keytab', None)

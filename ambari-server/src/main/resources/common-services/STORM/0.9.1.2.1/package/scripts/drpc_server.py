@@ -27,6 +27,9 @@ from resource_management.libraries.functions.version import compare_versions, fo
 from storm import storm
 from service import service
 from service_check import ServiceCheck
+from resource_management.libraries.functions.security_commons import build_expectations, \
+  cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
+  FILE_TYPE_JAAS_CONF
 
 
 class DrpcServer(Script):
@@ -68,6 +71,59 @@ class DrpcServer(Script):
     import status_params
     env.set_params(status_params)
     check_process_status(status_params.pid_drpc)
+
+  def security_status(self, env):
+    import status_params
+
+    env.set_params(status_params)
+
+    if status_params.security_enabled:
+      # Expect the following files to be available in status_params.config_dir:
+      #   storm_jaas.conf
+
+      try:
+        props_value_check = None
+        props_empty_check = ['StormServer/keyTab', 'StormServer/principal']
+        props_read_check = ['StormServer/keyTab']
+        storm_env_expectations = build_expectations('storm_jaas', props_value_check, props_empty_check,
+                                                 props_read_check)
+
+        storm_expectations = {}
+        storm_expectations.update(storm_env_expectations)
+
+        security_params = get_params_from_filesystem(status_params.conf_dir,
+                                                     {'storm_jaas.conf': FILE_TYPE_JAAS_CONF})
+
+        result_issues = validate_security_config_properties(security_params, storm_expectations)
+        if not result_issues:  # If all validations passed successfully
+          # Double check the dict before calling execute
+          if ( 'storm_jaas' not in security_params
+               or 'StormServer' not in security_params['storm_jaas']
+               or 'keyTab' not in security_params['storm_jaas']['StormServer']
+               or 'principal' not in security_params['storm_jaas']['StormServer']):
+            self.put_structured_out({"securityState": "ERROR"})
+            self.put_structured_out({"securityIssuesFound": "Keytab file or principal are not set property."})
+            return
+
+          cached_kinit_executor(status_params.kinit_path_local,
+                                status_params.storm_user,
+                                security_params['storm_jaas']['StormServer']['keyTab'],
+                                security_params['storm_jaas']['StormServer']['principal'],
+                                status_params.hostname,
+                                status_params.tmp_dir,
+                                30)
+          self.put_structured_out({"securityState": "SECURED_KERBEROS"})
+        else:
+          issues = []
+          for cf in result_issues:
+            issues.append("Configuration file %s did not pass the validation. Reason: %s" % (cf, result_issues[cf]))
+          self.put_structured_out({"securityIssuesFound": ". ".join(issues)})
+          self.put_structured_out({"securityState": "UNSECURED"})
+      except Exception as e:
+        self.put_structured_out({"securityState": "ERROR"})
+        self.put_structured_out({"securityStateErrorInfo": str(e)})
+    else:
+      self.put_structured_out({"securityState": "UNSECURED"})
 
 if __name__ == "__main__":
   DrpcServer().execute()

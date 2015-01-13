@@ -604,7 +604,9 @@
             "storm_log_dir": "/var/log/storm", 
             "storm_pid_dir": "/var/run/storm", 
             "storm_user": "storm",
-            "storm_principal_name": "storm"
+            "storm_principal_name": "storm",
+            "storm_ui_keytab" : "/etc/security/keytabs/spnego.service.keytab",
+            "storm_ui_principal_name" : "HTTP/_HOST"
         }, 
         "falcon-env": {
             "falcon_port": "15000", 

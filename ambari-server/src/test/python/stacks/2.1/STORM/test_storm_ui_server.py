@@ -149,3 +149,85 @@ class TestStormUiServer(TestStormBase):
 
     self.assertResourceCalled("Execute", "hdp-select set storm-client 2.2.1.0-2067")
 
+
+  @patch("resource_management.libraries.functions.security_commons.build_expectations")
+  @patch("resource_management.libraries.functions.security_commons.validate_security_config_properties")
+  @patch("resource_management.libraries.functions.security_commons.cached_kinit_executor")
+  @patch("resource_management.libraries.script.Script.put_structured_out")
+  def test_security_status(self, put_structured_out_mock, cached_kinit_executor_mock, validate_security_config_mock, build_exp_mock):
+    # Test that function works when is called with correct parameters
+    result_issues = []
+
+    security_params = {}
+    security_params['storm_ui'] = {}
+    security_params['storm_ui']['storm_ui_principal_name'] = 'HTTP/_HOST'
+    security_params['storm_ui']['storm_ui_keytab'] = '/etc/security/keytabs/spnego.service.keytab'
+
+    props_value_check = None
+    props_empty_check = ['storm_ui_principal_name', 'storm_ui_keytab']
+    props_read_check = ['storm_ui_keytab']
+
+    validate_security_config_mock.return_value = result_issues
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ui_server.py",
+                       classname = "UiServer",
+                       command = "security_status",
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+
+    import status_params
+
+    build_exp_mock.assert_called_with('storm_ui', props_value_check, props_empty_check, props_read_check)
+    put_structured_out_mock.assert_called_with({"securityState": "SECURED_KERBEROS"})
+    self.assertTrue(cached_kinit_executor_mock.call_count, 2)
+
+    cached_kinit_executor_mock.assert_called_with(status_params.kinit_path_local,
+                                status_params.storm_user,
+                                security_params['storm_ui']['storm_ui_keytab'],
+                                security_params['storm_ui']['storm_ui_principal_name'],
+                                status_params.hostname,
+                                status_params.tmp_dir,
+                                30)
+
+    # Testing that the exception throw by cached_executor is caught
+    cached_kinit_executor_mock.reset_mock()
+    cached_kinit_executor_mock.side_effect = Exception("Invalid command")
+
+    try:
+      self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ui_server.py",
+                        classname = "UiServer",
+                        command = "security_status",
+                        config_file="secured.json",
+                        hdp_stack_version = self.STACK_VERSION,
+                        target = RMFTestCase.TARGET_COMMON_SERVICES
+      )
+    except:
+      self.assertTrue(True)
+
+    # Testing with not empty result_issues
+    result_issues_with_params = {}
+    result_issues_with_params['storm_ui']="Something bad happened"
+
+    validate_security_config_mock.reset_mock()
+    validate_security_config_mock.return_value = result_issues_with_params
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ui_server.py",
+                       classname = "UiServer",
+                       command = "security_status",
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+    put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
+
+    # Testing with security_enable = false
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ui_server.py",
+                       classname = "UiServer",
+                       command = "security_status",
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+    put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})

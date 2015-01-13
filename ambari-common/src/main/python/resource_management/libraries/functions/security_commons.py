@@ -146,7 +146,7 @@ def get_params_from_filesystem(conf_dir, config_files):
 
     elif file_type == FILE_TYPE_JAAS_CONF:
       section_header = re.compile('^(\w+)\s+\{\s*$')
-      section_data = re.compile('(^[^ \s\=\}\{]+)\s*=?\s*"?([^ ";]+)"?;?\s*$')
+      section_data = re.compile('^\s*([^ \s\=\}\{]+)\s*=?\s*"?([^ ";].+)"?;?\s*$')
       section_footer = re.compile('^\}\s*;?\s*$')
       section_name = "root"
       result[file_name] = {}
