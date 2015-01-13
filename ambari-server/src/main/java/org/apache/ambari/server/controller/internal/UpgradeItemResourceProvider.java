@@ -68,6 +68,12 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
   @Inject
   private static UpgradeDAO m_dao = null;
 
+  /**
+   * Used to generated the correct tasks and stages during an upgrade.
+   */
+  @Inject
+  private static UpgradeHelper s_upgradeHelper;
+
 
   static {
     // properties
@@ -188,10 +194,8 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
 
       if (!resultMap.isEmpty()) {
         if (null != clusterName) {
-          UpgradeHelper helper = new UpgradeHelper();
-
-          Set<Resource> stages = helper.getStageResources(clusterName, requestId,
-              new ArrayList<Long>(resultMap.keySet()));
+          Set<Resource> stages = s_upgradeHelper.getStageResources(clusterName,
+              requestId, new ArrayList<Long>(resultMap.keySet()));
 
           for (Resource stage : stages) {
             Long l = (Long) stage.getPropertyValue(StageResourceProvider.STAGE_STAGE_ID);

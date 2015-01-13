@@ -213,7 +213,7 @@
           <task xsi:type="restart" />
         </upgrade>
       </component>
-      
+
       <component name="HDFS_CLIENT">
         <upgrade>
           <task xsi:type="restart" />
@@ -233,7 +233,7 @@
           <task xsi:type="restart" />
         </upgrade>
       </component>
-      
+
       <component name="MAPREDUCE2_CLIENT">
         <upgrade>
           <task xsi:type="restart" />
@@ -273,7 +273,7 @@
         </upgrade>
       </component>
     </service>
-    
+
     <service name="HBASE">
       <component name="HBASE_MASTER">
         <pre-upgrade>
@@ -292,7 +292,7 @@
           <task xsi:type="restart" />
         </upgrade>
       </component>
-      
+
       <component name="HBASE_CLIENT">
         <upgrade>
           <task xsi:type="restart" />
@@ -307,7 +307,7 @@
         </upgrade>
       </component>
     </service>
-    
+
     <service name="PIG">
       <component name="PIG">
         <upgrade>
@@ -320,10 +320,10 @@
       <component name="HIVE_METASTORE">
         <pre-upgrade>
           <task xsi:type="manual">
-            <message>Backup the Hive Metastore database.</message>
+            <message>Backup the Hive Metastore database located on the following host(s): {{hosts.all}}</message>
           </task>
           <task xsi:type="manual">
-            <message>Run the SQL file at /usr/hdp/$version/hive/scripts/metastore/upgrade to update the Hive Metastore schema.</message>
+            <message>Consult the README documentation at /usr/hdp/{{version}}/hive/scripts/metastore/upgrade to correctly upgrade the Hive Metastore database. This database upgrade should be performed on the following host(s): {{hosts.all}}</message>
           </task>
         </pre-upgrade>
         <upgrade>
@@ -334,7 +334,7 @@
       <component name="HIVE_SERVER">
         <pre-upgrade>
           <task xsi:type="manual">
-            <message>The HiveServer port will now change to 10010. You can use "netstat -anp | grep 10010" to determine if the port is available on each HiveServer host. If the port is not available, the process using it must be terminated.</message>
+            <message>The HiveServer port will now change to 10010. You can use "netstat -anp | grep 10010" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
           </task>
 
           <task xsi:type="configure">
@@ -343,10 +343,10 @@
             <value>10010</value>
           </task>
         </pre-upgrade>
-        
+
         <pre-downgrade>
           <task xsi:type="manual">
-            <message>The HiveServer port will now change to 10000. You can use "netstat -anp | grep 10000" to determine if the port is available on each HiveServer host. If the port is not available, the process using it must be terminated.</message>
+            <message>The HiveServer port will now change to 10000. You can use "netstat -anp | grep 10000" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
           </task>
 
           <task xsi:type="configure">
@@ -378,7 +378,7 @@
       <component name="OOZIE_SERVER">
         <pre-upgrade>
           <task xsi:type="manual">
-            <message>Backup the Oozie Server database.</message>
+            <message>Backup the Oozie Server database on {{oozie-env/oozie_hostname}}</message>
           </task>
         </pre-upgrade>
         <upgrade>

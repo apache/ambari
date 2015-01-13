@@ -107,18 +107,30 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
   @Inject
   private static UpgradeDAO m_upgradeDAO = null;
+
   @Inject
   private static Provider<AmbariMetaInfo> m_metaProvider = null;
+
   @Inject
   private static RepositoryVersionDAO m_repoVersionDAO = null;
+
   @Inject
   private static Provider<RequestFactory> requestFactory;
+
   @Inject
   private static Provider<StageFactory> stageFactory;
+
   @Inject
   private static Provider<AmbariActionExecutionHelper> actionExecutionHelper;
+
   @Inject
   private static Provider<AmbariCustomCommandExecutionHelper> commandExecutionHelper;
+
+  /**
+   * Used to generated the correct tasks and stages during an upgrade.
+   */
+  @Inject
+  private static UpgradeHelper s_upgradeHelper;
 
   private static Map<String, String> REQUEST_PROPERTY_MAP = new HashMap<String, String>();
 
@@ -222,14 +234,14 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         upgrades = m_upgradeDAO.findUpgrades(cluster.getClusterId());
       }
 
-      UpgradeHelper helper = new UpgradeHelper();
       for (UpgradeEntity entity : upgrades) {
         Resource r = toResource(entity, clusterName, requestPropertyIds);
         results.add(r);
 
         // !!! not terribly efficient, but that's ok in this case.  The handful-per-year
         // an upgrade is done won't kill performance.
-        Resource r1 = helper.getRequestResource(clusterName, entity.getRequestId());
+        Resource r1 = s_upgradeHelper.getRequestResource(clusterName,
+            entity.getRequestId());
         for (Entry<String, String> entry : REQUEST_PROPERTY_MAP.entrySet()) {
           Object o = r1.getPropertyValue(entry.getKey());
 
@@ -332,27 +344,24 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * @param cluster Cluster
    * @param upgradeItem the item whose tasks will be injected.
    */
-  private void injectVariables(ConfigHelper configHelper, Cluster cluster, UpgradeItemEntity upgradeItem) {
+  private void injectVariables(ConfigHelper configHelper, Cluster cluster,
+      UpgradeItemEntity upgradeItem) {
     final String regexp = "(\\{\\{.*?\\}\\})";
 
     String task = upgradeItem.getTasks();
     if (task != null && !task.isEmpty()) {
       Matcher m = Pattern.compile(regexp).matcher(task);
-      while(m.find()) {
+      while (m.find()) {
         String origVar = m.group(1);
-        String formattedVar = origVar.substring(2, origVar.length() - 2).trim();
+        String configValue = configHelper.getPlaceholderValueFromDesiredConfigurations(
+            cluster, origVar);
 
-        int posConfigFile = formattedVar.indexOf("/");
-        if (posConfigFile > 0) {
-          String configType = formattedVar.substring(0, posConfigFile);
-          String propertyName = formattedVar.substring(posConfigFile + 1, formattedVar.length());
-          try {
-            String configValue = configHelper.getPropertyValueFromStackDefinitions(cluster, configType, propertyName);
-            task = task.replace(origVar, configValue);
-          } catch (Exception err) {
-            LOG.error(String.format("Exception trying to retrieve property %s/%s. Error: %s", configType, propertyName, err.getMessage()));
-          }
+        if (null != configValue) {
+          task = task.replace(origVar, configValue);
+        } else {
+          LOG.error("Unable to retrieve value for {}", origVar);
         }
+
       }
       upgradeItem.setTasks(task);
     }
@@ -371,16 +380,17 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     ConfigHelper configHelper = getManagementController().getConfigHelper();
 
     MasterHostResolver mhr = new MasterHostResolver(cluster);
-    UpgradeHelper helper = new UpgradeHelper();
-
     String forceDowngrade = (String) requestMap.get(UPGRADE_FORCE_DOWNGRADE);
 
     List<UpgradeGroupHolder> groups = null;
 
+    // the version being upgraded or downgraded to (ie hdp-2.2.1.0-1234)
+    final String version = (String) requestMap.get(UPGRADE_VERSION);
+
     if (null != forceDowngrade && Boolean.parseBoolean(forceDowngrade)) {
-      groups = helper.createDowngrade(cluster, mhr, pack);
+      groups = s_upgradeHelper.createDowngrade(mhr, pack, version);
     } else {
-      groups = helper.createUpgrade(cluster, mhr, pack);
+      groups = s_upgradeHelper.createUpgrade(mhr, pack, version);
     }
 
     if (groups.isEmpty()) {
@@ -388,8 +398,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
 
     List<UpgradeGroupEntity> groupEntities = new ArrayList<UpgradeGroupEntity>();
-
-    final String version = (String) requestMap.get(UPGRADE_VERSION);
     RequestStageContainer req = createRequest(version);
 
     for (UpgradeGroupHolder group : groups) {

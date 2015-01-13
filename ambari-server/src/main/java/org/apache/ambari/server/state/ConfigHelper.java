@@ -490,6 +490,55 @@ public class ConfigHelper {
     return null;
   }
 
+  /**
+   * Gets the configuration value referenced by the specified placeholder from
+   * the cluster configuration. This will take a configuration placeholder such
+   * as {{hdfs-site/foo}} and return the value of {@code foo} defined in
+   * {@code hdfs-site}.
+   *
+   * @param cluster
+   *          the cluster to use when rendering the placeholder value (not
+   *          {@code null}).
+   * @param placeholder
+   *          the placeholder value, such as {{hdfs-site/foobar}} (not
+   *          {@code null} )
+   * @return the configuration value, or {@code null} if none.
+   * @throws AmbariException
+   *           if there was a problem parsing the placeholder or retrieving the
+   *           referenced value.
+   */
+  public String getPlaceholderValueFromDesiredConfigurations(Cluster cluster,
+      String placeholder) {
+    // remove the {{ and }} from the placholder
+    if (placeholder.startsWith("{{") && placeholder.endsWith("}}")) {
+      placeholder = placeholder.substring(2, placeholder.length() - 2).trim();
+    }
+
+    // break up hdfs-site/foobar into hdfs-site and foobar
+    int delimiterPosition = placeholder.indexOf("/");
+    if (delimiterPosition < 0) {
+      return placeholder;
+    }
+
+    String configType = placeholder.substring(0, delimiterPosition);
+    String propertyName = placeholder.substring(delimiterPosition + 1,
+        placeholder.length());
+
+    // return the value if it exists, otherwise return the placeholder
+    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
+    DesiredConfig desiredConfig = desiredConfigs.get(configType);
+    Config config = cluster.getConfig(configType, desiredConfig.getTag());
+    Map<String, String> configurationProperties = config.getProperties();
+    if (null != configurationProperties) {
+      String value = configurationProperties.get(propertyName);
+      if( null != value ) {
+        return value;
+      }
+    }
+
+    return placeholder;
+  }
+
   public ServiceInfo getPropertyOwnerService(Cluster cluster, String configType, String propertyName) throws AmbariException {
     StackId stackId = cluster.getCurrentStackVersion();
     StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());

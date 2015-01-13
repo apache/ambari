@@ -24,6 +24,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.internal.RequestResourceProvider;
@@ -47,60 +49,130 @@ import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
+import org.apache.ambari.server.state.stack.upgrade.ManualTask;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapperBuilder;
+import org.apache.ambari.server.state.stack.upgrade.Task;
+import org.apache.ambari.server.state.stack.upgrade.Task.Type;
 import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
+
 /**
  * Class to assist with upgrading a cluster.
  */
+@Singleton
 public class UpgradeHelper {
 
-  private static Logger LOG = LoggerFactory.getLogger(UpgradeHelper.class);
+  private static final Logger LOG = LoggerFactory.getLogger(UpgradeHelper.class);
 
   /**
-   * Generates a list of UpgradeGroupHolder items that are used to execute a downgrade
-   * @param cluster     the cluster
-   * @param mhr         Master Host Resolver needed to get master and secondary
-   *                    hosts of several components like NAMENODE
-   * @param upgradePack the upgrade pack
+   * Matches on placeholder values such as
+   *
+   * <pre>
+   * {{host}}
+   * </pre>
+   * and
+   * <pre>
+   * {{hdfs-site/foo}}
+   * </pre>
+   */
+  private static final Pattern PLACEHOLDER_REGEX = Pattern.compile("(\\{\\{.*?\\}\\})");
+
+  /**
+   * A placeholder token that represents all of the hosts that a component is
+   * deployed on. This can be used for cases where text needs to be rendered
+   * with all of the hosts mentioned by their FQDN.
+   */
+  private static final String PLACEHOLDER_HOST_ALL = "{{hosts.all}}";
+
+  /**
+   * A placeholder token that represents a single, active master that a
+   * component is deployed on. This can be used for cases where text needs to eb
+   * rendered with a single master host FQDN inserted.
+   */
+  private static final String PLACEHOLDER_HOST_MASTER = "{{hosts.master}}";
+
+  /**
+   * The version that the stack is being upgraded or downgraded to, such as
+   * {@code 2.2.1.0-1234}.
+   */
+  private static final String PLACEHOLDER_VERSION = "{{version}}";
+
+  /**
+   * Used to render parameter placeholders in {@link ManualTask}s after the
+   * {@link StageWrapperBuilder} has finished building out all of the stages.
+   */
+  @Inject
+  private Provider<ConfigHelper> m_configHelper;
+
+  /**
+   * Generates a list of UpgradeGroupHolder items that are used to execute a
+   * downgrade
+   *
+   * @param mhr
+   *          Master Host Resolver needed to get master and secondary hosts of
+   *          several components like NAMENODE
+   * @param upgradePack
+   *          the upgrade pack
+   * @param version
+   *          the version of the stack that the downgrade to, such as
+   *          {@code 2.2.0.0-2041}.
    * @return the list of holders
    */
-  public List<UpgradeGroupHolder> createDowngrade(Cluster cluster, MasterHostResolver mhr, UpgradePack upgradePack) throws AmbariException {
-    return createSequence(cluster, mhr, upgradePack, false);
+  public List<UpgradeGroupHolder> createDowngrade(MasterHostResolver mhr,
+      UpgradePack upgradePack, String version) throws AmbariException {
+    return createSequence(mhr, upgradePack, version, false);
   }
 
   /**
-   * Generates a list of UpgradeGroupHolder items that are used to execute an upgrade
-   * @param cluster     the cluster
-   * @param mhr         Master Host Resolver needed to get master and secondary
-   *                    hosts of several components like NAMENODE
-   * @param upgradePack the upgrade pack
+   * Generates a list of UpgradeGroupHolder items that are used to execute an
+   * upgrade
+   *
+   * @param mhr
+   *          Master Host Resolver needed to get master and secondary hosts of
+   *          several components like NAMENODE
+   * @param upgradePack
+   *          the upgrade pack
+   * @param version
+   *          the version of the stack that the upgrade is to, such as
+   *          {@code 2.2.0.0-2041}.
    * @return the list of holders
    */
-  public List<UpgradeGroupHolder> createUpgrade(Cluster cluster, MasterHostResolver mhr, UpgradePack upgradePack) throws AmbariException {
-    return createSequence(cluster, mhr, upgradePack, true);
+  public List<UpgradeGroupHolder> createUpgrade(MasterHostResolver mhr,
+      UpgradePack upgradePack, String version) throws AmbariException {
+    return createSequence(mhr, upgradePack, version, true);
   }
 
 
   /**
-   * Generates a list of UpgradeGroupHolder items that are used to execute an upgrade
-   * @param cluster     the cluster
-   * @param mhr         Master Host Resolver needed to get master and secondary
-   *                    hosts of several components like NAMENODE
-   * @param upgradePack the upgrade pack
-   * @param forUpgrade  {@code true} if the sequence is for an upgrade, {@code false} if for a downgrade
+   * Generates a list of UpgradeGroupHolder items that are used to execute an
+   * upgrade
+   *
+   * @param mhr
+   *          Master Host Resolver needed to get master and secondary hosts of
+   *          several components like NAMENODE
+   * @param upgradePack
+   *          the upgrade pack
+   * @param version
+   *          the version of the stack that the upgrade or downgrade is to, such
+   *          as {@code 2.2.0.0-2041}.
+   * @param forUpgrade
+   *          {@code true} if the sequence is for an upgrade, {@code false} if
+   *          for a downgrade
    * @return the list of holders
    *
    */
-  private List<UpgradeGroupHolder> createSequence(Cluster cluster,
-      MasterHostResolver mhr, UpgradePack upgradePack, boolean forUpgrade)
+  private List<UpgradeGroupHolder> createSequence(MasterHostResolver mhr,
+      UpgradePack upgradePack, String version, boolean forUpgrade)
       throws AmbariException {
+    Cluster cluster = mhr.getCluster();
     Map<String, Map<String, ProcessingComponent>> allTasks = upgradePack.getTasks();
-
     List<UpgradeGroupHolder> groups = new ArrayList<UpgradeGroupHolder>();
 
     int idx = 0;
@@ -179,6 +251,9 @@ public class UpgradeHelper {
 
       List<StageWrapper> proxies = builder.build();
 
+      // post process all of the tasks
+      postProcessTasks(proxies, mhr, version);
+
       if (!proxies.isEmpty()) {
         groupHolder.items = proxies;
         if (forUpgrade) {
@@ -208,6 +283,79 @@ public class UpgradeHelper {
     return groups;
   }
 
+  /**
+   * Walks through the generated upgrade hierarchy and applies special
+   * processing to any tasks that require it. An example of this are manual
+   * tasks that have some parameter placeholders rendered.
+   *
+   * @param stageWrappers
+   *          the stage wrappers (not {@code null}).
+   * @param mhr
+   *          a helper to resolve masters, slaves, and hosts (not {@code null}).
+   * @param version
+   *          the version of the stack being upgraded or dowgraded to, such as
+   *          {@code 2.2.0.0-1234} (not {@code null}).
+   */
+  private void postProcessTasks(List<StageWrapper> stageWrappers,
+      MasterHostResolver mhr, String version) throws AmbariException {
+    Cluster cluster = mhr.getCluster();
+
+    for (StageWrapper stageWrapper : stageWrappers) {
+      List<TaskWrapper> taskWrappers = stageWrapper.getTasks();
+      for (TaskWrapper taskWrapper : taskWrappers) {
+        List<Task> tasks = taskWrapper.getTasks();
+
+        // if the task is a manual task, then render any placeholders such
+        // as {{hdfs-site/foo}}
+        for (Task task : tasks) {
+          if (task.getType() == Type.MANUAL) {
+            List<String> tokens = new ArrayList<String>(5);
+            ManualTask manualTask = (ManualTask) task;
+
+            // if there is no message for some reason, skip this one
+            if (null == manualTask.message) {
+              continue;
+            }
+
+            Matcher matcher = PLACEHOLDER_REGEX.matcher(manualTask.message);
+            while (matcher.find()) {
+              tokens.add(matcher.group(1));
+            }
+
+            // iterate through all of the matched tokens
+            for (String token : tokens) {
+              String value = token;
+              if (token.equals(PLACEHOLDER_HOST_ALL)) {
+                HostsType hostsType = mhr.getMasterAndHosts(
+                    taskWrapper.getService(), taskWrapper.getComponent());
+
+                if (null != hostsType) {
+                  value = StringUtils.join(hostsType.hosts, ", ");
+                }
+              } else if (token.equals(PLACEHOLDER_HOST_MASTER)) {
+                HostsType hostsType = mhr.getMasterAndHosts(
+                    taskWrapper.getService(), taskWrapper.getComponent());
+
+                if (null != hostsType) {
+                  value = hostsType.master;
+                }
+              } else if (token.equals(PLACEHOLDER_VERSION)) {
+                value = version;
+              } else {
+                value = m_configHelper.get().getPlaceholderValueFromDesiredConfigurations(
+                    cluster, token);
+              }
+
+              // replace the token in the message with the value
+              if (null != value) {
+                manualTask.message = manualTask.message.replace(token, value);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 
   /**
    * Short-lived objects that hold information about upgrade groups

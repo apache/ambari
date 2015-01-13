@@ -61,7 +61,7 @@
             <command>ls</command>
           </task>
 
-          <task xsi:type="manual">
+          <task xsi:type="execute">
             <command>ls</command>
           </task>
           

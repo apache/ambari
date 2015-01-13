@@ -59,6 +59,16 @@ public class MasterHostResolver {
   }
 
   /**
+   * Gets the cluster that this instace of the {@link MasterHostResolver} is
+   * initialized with.
+   *
+   * @return the cluster (not {@code null}).
+   */
+  public Cluster getCluster() {
+    return cluster;
+  }
+
+  /**
    * Get the master hostname of the given service and component.
    * @param serviceName Service
    * @param componentName Component
@@ -75,7 +85,7 @@ public class MasterHostResolver {
     if (0 == componentHosts.size()) {
       return null;
     }
-    
+
     hostsType.hosts = componentHosts;
 
     Service s = null;
@@ -119,12 +129,12 @@ public class MasterHostResolver {
    */
   private Map<Status, String> getNameNodePair(Set<String> hosts) {
     Map<Status, String> stateToHost = new HashMap<Status, String>();
-    
+
     if (hosts != null && hosts.size() == 2) {
       for (String hostname : hosts) {
         String state = queryJmxBeanValue(hostname, 50070,
             "Hadoop:service=NameNode,name=NameNodeStatus", "State", true);
-        
+
         if (null != state &&
             (state.equalsIgnoreCase(Status.ACTIVE.toString()) ||
                 state.equalsIgnoreCase(Status.STANDBY.toString()))) {
@@ -132,7 +142,7 @@ public class MasterHostResolver {
             stateToHost.put(status, hostname);
           }
         }
-        
+
       if (stateToHost.containsKey(Status.ACTIVE) && stateToHost.containsKey(Status.STANDBY) && !stateToHost.get(Status.ACTIVE).equalsIgnoreCase(stateToHost.get(Status.STANDBY))) {
         return stateToHost;
       }
@@ -140,37 +150,37 @@ public class MasterHostResolver {
 
     return null;
   }
-  
+
   private void resolveResourceManagers(HostsType hostType) {
     // !!! for RM, only the master returns jmx
     Set<String> orderedHosts = new LinkedHashSet<String>(hostType.hosts);
-    
+
     for (String hostname : hostType.hosts) {
-      
+
       String value = queryJmxBeanValue(hostname, 8088,
           "Hadoop:service=ResourceManager,name=RMNMInfo", "modelerType", true);
-      
+
       if (null != value) {
         if (null == hostType.master) {
           hostType.master = hostname;
         }
-        
+
         // !!! quick and dirty to make sure the master is last in the list
         orderedHosts.remove(hostname);
         orderedHosts.add(hostname);
       }
-      
+
     }
     hostType.hosts = orderedHosts;
   }
-  
+
   private void resolveHBaseMasters(HostsType hostsType) {
-    
+
     for (String hostname : hostsType.hosts) {
-      
+
       String value = queryJmxBeanValue(hostname, 60010,
           "Hadoop:service=HBase,name=Master,sub=Server", "tag.isActiveMaster", false);
-      
+
       if (null != value) {
         Boolean bool = Boolean.valueOf(value);
         if (bool.booleanValue()) {
@@ -179,36 +189,36 @@ public class MasterHostResolver {
           hostsType.secondary = hostname;
         }
       }
-      
+
     }
   }
-  
+
   private String queryJmxBeanValue(String hostname, int port, String beanName, String attributeName,
       boolean asQuery) {
-    
+
     String endPoint = asQuery ?
         String.format("http://%s:%s/jmx?qry=%s", hostname, port, beanName) :
           String.format("http://%s:%s/jmx?get=%s::%s", hostname, port, beanName, attributeName);
-    
+
     String response = HTTPUtils.requestURL(endPoint);
-    
+
     if (null == response || response.isEmpty()) {
       return null;
     }
-    
+
     Type type = new TypeToken<Map<String, ArrayList<HashMap<String, String>>>>() {}.getType();
 
     try {
       Map<String, ArrayList<HashMap<String, String>>> jmxBeans =
           StageUtils.getGson().fromJson(response, type);
-      
+
       return jmxBeans.get("beans").get(0).get(attributeName);
     } catch (Exception e) {
       LOG.info("Could not load JMX from {}/{} from {}", beanName, attributeName, hostname, e);
     }
-    
+
     return null;
-    
+
   }
-  
+
 }

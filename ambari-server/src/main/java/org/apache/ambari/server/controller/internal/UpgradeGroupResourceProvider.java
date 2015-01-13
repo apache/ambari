@@ -70,6 +70,12 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
   @Inject
   private static UpgradeDAO m_dao = null;
 
+  /**
+   * Used to generated the correct tasks and stages during an upgrade.
+   */
+  @Inject
+  private static UpgradeHelper s_upgradeHelper;
+
   static {
     // properties
     PROPERTY_IDS.add(UPGRADE_REQUEST_ID);
@@ -122,7 +128,7 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
 
       List<UpgradeGroupEntity> groups = upgrade.getUpgradeGroups();
       if (null != groups) {
-        UpgradeHelper helper = new UpgradeHelper();
+
 
         for (UpgradeGroupEntity group : upgrade.getUpgradeGroups()) {
           Resource r = toResource(upgrade, group, requestPropertyIds);
@@ -132,7 +138,8 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
             stageIds.add(itemEntity.getStageId());
           }
 
-          Set<Resource> stages = helper.getStageResources(clusterName, upgrade.getRequestId(), stageIds);
+          Set<Resource> stages = s_upgradeHelper.getStageResources(clusterName,
+              upgrade.getRequestId(), stageIds);
 
           aggregate(r, stages, requestPropertyIds);
 

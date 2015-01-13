@@ -38,29 +38,50 @@ import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
 import org.apache.ambari.server.state.stack.UpgradePack;
+import org.apache.ambari.server.state.stack.upgrade.ManualTask;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Module;
 import com.google.inject.persist.PersistService;
+import com.google.inject.util.Modules;
 
 /**
  * Tests the {@link UpgradeHelper} class
  */
 public class UpgradeHelperTest {
 
+  private static final String UPGRADE_VERSION = "2.2.1.0-1234";
+  private static final String DOWNGRADE_VERSION = "2.2.0.0-1234";
+
   private Injector injector;
   private AmbariMetaInfo ambariMetaInfo;
   private OrmTestHelper helper;
   private MasterHostResolver m_masterHostResolver;
+  private UpgradeHelper m_upgradeHelper;
+  private ConfigHelper m_configHelper;
 
   @Before
   public void before() throws Exception {
-    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    // configure the mock to return data given a specific placeholder
+    m_configHelper = EasyMock.createNiceMock(ConfigHelper.class);
+
+    expect(
+        m_configHelper.getPlaceholderValueFromDesiredConfigurations(
+            EasyMock.anyObject(Cluster.class), EasyMock.eq("{{foo/bar}}"))).andReturn(
+        "placeholder-rendered-properly").anyTimes();
+
+    replay(m_configHelper);
+
+    // create an injector which will inject the mocks
+    injector = Guice.createInjector(Modules.override(
+        new InMemoryDefaultTestModule()).with(new MockModule()));
 
     injector.getInstance(GuiceJpaInitializer.class);
 
@@ -68,6 +89,7 @@ public class UpgradeHelperTest {
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
     ambariMetaInfo.init();
 
+    m_upgradeHelper = injector.getInstance(UpgradeHelper.class);
     m_masterHostResolver = EasyMock.createMock(MasterHostResolver.class);
   }
 
@@ -88,8 +110,8 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
-    UpgradeHelper helper = new UpgradeHelper();
-    List<UpgradeGroupHolder> groups = helper.createUpgrade(cluster, m_masterHostResolver, upgrade);
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createUpgrade(
+        m_masterHostResolver, upgrade, UPGRADE_VERSION);
 
     assertEquals(5, groups.size());
 
@@ -124,12 +146,14 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
-    UpgradeHelper helper = new UpgradeHelper();
-    List<UpgradeGroupHolder> groups = helper.createDowngrade(cluster, m_masterHostResolver, upgrade);
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createDowngrade(
+        m_masterHostResolver, upgrade, DOWNGRADE_VERSION);
 
     assertEquals(5, groups.size());
 
-    assertEquals("PRE_CLUSTER", groups.get(0).name);
+    UpgradeGroupHolder preGroup = groups.get(0);
+    assertEquals("PRE_CLUSTER", preGroup.name);
+
     assertEquals("CORE_SLAVES", groups.get(1).name);
     assertEquals("CORE_MASTER", groups.get(2).name);
     assertEquals("ZOOKEEPER", groups.get(3).name);
@@ -160,13 +184,41 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
-    UpgradeHelper helper = new UpgradeHelper();
-    List<UpgradeGroupHolder> groups = helper.createUpgrade(cluster, m_masterHostResolver, upgrade);
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createUpgrade(
+        m_masterHostResolver, upgrade, UPGRADE_VERSION);
 
     assertEquals(1, groups.size());
     UpgradeGroupHolder group = groups.iterator().next();
 
-    assertEquals(7, group.items.size());
+    assertEquals(6, group.items.size());
+  }
+
+  @Test
+  public void testManualTaskPostProcessing() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("foo", "bar");
+    assertTrue(upgrades.isEmpty());
+
+    upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    assertTrue(upgrades.containsKey("upgrade_test"));
+    UpgradePack upgrade = upgrades.get("upgrade_test");
+    assertNotNull(upgrade);
+
+    Cluster cluster = makeCluster();
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createUpgrade(
+        m_masterHostResolver, upgrade, UPGRADE_VERSION);
+
+    assertEquals(5, groups.size());
+
+    // grab the manual task out of ZK which has placeholder text
+    UpgradeGroupHolder zookeeperGroup = groups.get(1);
+    assertEquals("ZOOKEEPER", zookeeperGroup.name);
+    ManualTask manualTask = (ManualTask) zookeeperGroup.items.get(0).getTasks().get(
+        0).getTasks().get(0);
+
+    assertEquals(
+        "This is a manual task with a placeholder of placeholder-rendered-properly",
+        manualTask.message);
   }
 
   /**
@@ -250,11 +302,23 @@ public class UpgradeHelperTest {
     type.hosts = new HashSet<String>(Arrays.asList("h1", "h3"));
     expect(m_masterHostResolver.getMasterAndHosts("YARN", "NODEMANAGER")).andReturn(type).anyTimes();
 
+    expect(m_masterHostResolver.getCluster()).andReturn(c).anyTimes();
 
     replay(m_masterHostResolver);
 
     return c;
   }
 
-
+  /**
+   *
+   */
+  private class MockModule implements Module {
+    /**
+    *
+    */
+    @Override
+    public void configure(Binder binder) {
+      binder.bind(ConfigHelper.class).toInstance(m_configHelper);
+    }
+  }
 }

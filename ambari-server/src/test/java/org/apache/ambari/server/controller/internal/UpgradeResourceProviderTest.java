@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -52,19 +53,24 @@ import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.view.ViewRegistry;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Module;
 import com.google.inject.persist.PersistService;
+import com.google.inject.util.Modules;
 
 /**
  * UpgradeResourceDefinition tests.
@@ -77,11 +83,23 @@ public class UpgradeResourceProviderTest {
   private Clusters clusters;
   private OrmTestHelper helper;
   AmbariManagementController amc;
+  private ConfigHelper configHelper;
 
   @Before
   public void before() throws Exception {
+    // setup the config helper for placeholder resolution
+    configHelper = EasyMock.createNiceMock(ConfigHelper.class);
+    expect(
+        configHelper.getPlaceholderValueFromDesiredConfigurations(
+            EasyMock.anyObject(Cluster.class), EasyMock.eq("{{foo/bar}}"))).andReturn(
+        "placeholder-rendered-properly").anyTimes();
 
-    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    EasyMock.replay(configHelper);
+
+    // create an injector which will inject the mocks
+    injector = Guice.createInjector(Modules.override(
+        new InMemoryDefaultTestModule()).with(new MockModule()));
+
     injector.getInstance(GuiceJpaInitializer.class);
 
     helper = injector.getInstance(OrmTestHelper.class);
@@ -145,6 +163,7 @@ public class UpgradeResourceProviderTest {
 
   public org.apache.ambari.server.controller.spi.RequestStatus testCreateResources() throws Exception {
 
+
     Cluster cluster = clusters.getCluster("c1");
 
     List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
@@ -172,7 +191,9 @@ public class UpgradeResourceProviderTest {
     UpgradeGroupEntity group = upgradeGroups.get(1);
     assertEquals(4, group.getItems().size());
 
-    assertTrue(group.getItems().get(0).getText().contains("Preparing"));
+    assertTrue(group.getItems().get(0).getText().contains(
+        "placeholder of placeholder-rendered-properly"));
+
     assertTrue(group.getItems().get(1).getText().contains("Restarting"));
     assertTrue(group.getItems().get(2).getText().contains("Updating"));
     assertTrue(group.getItems().get(3).getText().contains("Service Check"));
@@ -314,5 +335,16 @@ public class UpgradeResourceProviderTest {
     return new UpgradeResourceProvider(amc);
   }
 
-
+  /**
+   *
+   */
+  private class MockModule implements Module {
+    /**
+   *
+   */
+    @Override
+    public void configure(Binder binder) {
+      binder.bind(ConfigHelper.class).toInstance(configHelper);
+    }
+  }
 }
