@@ -31,6 +31,8 @@ OK_MESSAGE = "TCP OK - %.4f response on port %s"
 CRITICAL_MESSAGE = "Connection failed on host {0}:{1}"
 
 HIVE_SERVER_THRIFT_PORT_KEY = '{{hive-site/hive.server2.thrift.port}}'
+HIVE_SERVER_THRIFT_HTTP_PORT_KEY = '{{hive-site/hive.server2.thrift.http.port}}'
+HIVE_SERVER_TRANSPORT_MODE_KEY = '{{hive-site/hive.server2.transport.mode}}'
 SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
 HIVE_SERVER2_AUTHENTICATION_KEY = '{{hive-site/hive.server2.authentication}}'
 HIVE_SERVER_PRINCIPAL_KEY = '{{hive-site/hive.server2.authentication.kerberos.principal}}'
@@ -41,6 +43,7 @@ PERCENT_WARNING = 200
 PERCENT_CRITICAL = 200
 
 THRIFT_PORT_DEFAULT = 10000
+HIVE_SERVER_TRANSPORT_MODE_DEFAULT = 'binary'
 HIVE_SERVER_PRINCIPAL_DEFAULT = 'hive/_HOST@EXAMPLE.COM'
 HIVE_SERVER2_AUTHENTICATION_DEFAULT = 'NOSASL'
 SMOKEUSER_KEYTAB_DEFAULT = '/etc/security/keytabs/smokeuser.headless.keytab'
@@ -51,7 +54,8 @@ def get_tokens():
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return (HIVE_SERVER_THRIFT_PORT_KEY,SECURITY_ENABLED_KEY,HIVE_SERVER2_AUTHENTICATION_KEY,HIVE_SERVER_PRINCIPAL_KEY,SMOKEUSER_KEYTAB_KEY,SMOKEUSER_KEY)
+  return (HIVE_SERVER_THRIFT_PORT_KEY,SECURITY_ENABLED_KEY,HIVE_SERVER2_AUTHENTICATION_KEY,HIVE_SERVER_PRINCIPAL_KEY,
+          SMOKEUSER_KEYTAB_KEY,SMOKEUSER_KEY,HIVE_SERVER_THRIFT_HTTP_PORT_KEY,HIVE_SERVER_TRANSPORT_MODE_KEY)
 
 
 def execute(parameters=None, host_name=None):
@@ -66,9 +70,15 @@ def execute(parameters=None, host_name=None):
   if parameters is None:
     return (('UNKNOWN', ['There were no parameters supplied to the script.']))
 
-  thrift_port = THRIFT_PORT_DEFAULT
-  if HIVE_SERVER_THRIFT_PORT_KEY in parameters:
-    thrift_port = int(parameters[HIVE_SERVER_THRIFT_PORT_KEY])
+  transport_mode = HIVE_SERVER_TRANSPORT_MODE_DEFAULT
+  if HIVE_SERVER_TRANSPORT_MODE_KEY in parameters:
+    transport_mode = parameters[HIVE_SERVER_TRANSPORT_MODE_KEY]
+
+  port = THRIFT_PORT_DEFAULT
+  if transport_mode.lower() == 'binary' and HIVE_SERVER_THRIFT_PORT_KEY in parameters:
+    port = int(parameters[HIVE_SERVER_THRIFT_PORT_KEY])
+  elif  transport_mode.lower() == 'http' and HIVE_SERVER_THRIFT_HTTP_PORT_KEY in parameters:
+    port = int(parameters[HIVE_SERVER_THRIFT_HTTP_PORT_KEY])
 
   security_enabled = False
   if SECURITY_ENABLED_KEY in parameters:
@@ -103,8 +113,8 @@ def execute(parameters=None, host_name=None):
 
     start_time = time.time()
     try:
-      hive_check.check_thrift_port_sasl(host_name, thrift_port, hive_server2_authentication,
-                                        hive_server_principal, kinitcmd, smokeuser)
+      hive_check.check_thrift_port_sasl(host_name, port, hive_server2_authentication,
+                                        hive_server_principal, kinitcmd, smokeuser, transport_mode = transport_mode)
       is_thrift_port_ok = True
     except:
       is_thrift_port_ok = False
@@ -112,10 +122,10 @@ def execute(parameters=None, host_name=None):
     if is_thrift_port_ok == True:
       result_code = 'OK'
       total_time = time.time() - start_time
-      label = OK_MESSAGE % (total_time, thrift_port)
+      label = OK_MESSAGE % (total_time, port)
     else:
       result_code = 'CRITICAL'
-      label = CRITICAL_MESSAGE.format(host_name,thrift_port)
+      label = CRITICAL_MESSAGE.format(host_name,port)
 
   except Exception, e:
     label = str(e)

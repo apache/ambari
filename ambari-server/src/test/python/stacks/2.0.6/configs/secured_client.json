@@ -405,7 +405,8 @@
             "hive.metastore.execute.setugi": "true", 
             "hive.auto.convert.sortmerge.join.noconditionaltask": "true", 
             "hive.server2.enable.doAs": "true", 
-            "hive.optimize.mapjoin.mapreduce": "true", 
+            "hive.optimize.mapjoin.mapreduce": "true",
+            "hive.server2.transport.mode": "binary",
             "hive.server2.authentication.kerberos.keytab": "/etc/security/keytabs/hive.service.keytab"
         }, 
         "yarn-site": {

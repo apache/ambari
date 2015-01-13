@@ -135,7 +135,11 @@ hive_var_lib = '/var/lib/hive'
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 hive_server_host = config['clusterHostInfo']['hive_server_host'][0]
 hive_server_hosts = config['clusterHostInfo']['hive_server_host']
-hive_server_port = default('/configurations/hive-site/hive.server2.thrift.port',"10000")
+hive_transport_mode = config['configurations']['hive-site']['hive.server2.transport.mode']
+if hive_transport_mode.lower() == "http":
+  hive_server_port = config['configurations']['hive-site']['hive.server2.thrift.http.port']
+else:
+  hive_server_port = default('/configurations/hive-site/hive.server2.thrift.port',"10000")
 hive_url = format("jdbc:hive2://{hive_server_host}:{hive_server_port}")
 hive_server_principal = config['configurations']['hive-site']['hive.server2.authentication.kerberos.principal']
 hive_server2_authentication = config['configurations']['hive-site']['hive.server2.authentication']

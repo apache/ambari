@@ -22,7 +22,8 @@ from resource_management.core.resources import Execute
 from resource_management.libraries.functions import format
 import socket
 
-def check_thrift_port_sasl(address, port, hive_auth = "NOSASL", key = None, kinitcmd = None, smokeuser = 'ambari-qa'):
+def check_thrift_port_sasl(address, port, hive_auth = "NOSASL", key = None, kinitcmd = None, smokeuser = 'ambari-qa',
+                           transport_mode = "binary"):
   """
   Hive thrift SASL port check
   """
@@ -36,7 +37,7 @@ def check_thrift_port_sasl(address, port, hive_auth = "NOSASL", key = None, kini
   else:
     url = format("jdbc:hive2://{address}:{port}")
 
-  if hive_auth != "NOSASL":
+  if hive_auth != "NOSASL" and transport_mode != "http":
     cmd = format("! beeline -u '{url}' -e '' ") + "2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'"
     Execute(cmd,
             user=smokeuser,

@@ -42,7 +42,8 @@ class HiveServiceCheck(Script):
     for address in address_list:
       try:
         check_thrift_port_sasl(address, port, params.hive_server2_authentication,
-                               params.hive_server_principal, kinitcmd, params.smokeuser)
+                               params.hive_server_principal, kinitcmd, params.smokeuser,
+                               transport_mode=params.hive_transport_mode)
         print "Successfully connected to %s on port %s" % (address, port)
         workable_server_available = True
       except:

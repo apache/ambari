@@ -82,7 +82,8 @@ def hive_service(name, action='start', rolling_restart=False):
       while time.time() < end_time:
         try:
           check_thrift_port_sasl(address, port, params.hive_server2_authentication,
-                                 params.hive_server_principal, kinitcmd, params.smokeuser)
+                                 params.hive_server_principal, kinitcmd, params.smokeuser,
+                                 transport_mode=params.hive_transport_mode)
           is_service_socket_valid = True
           break
         except Exception, e:
