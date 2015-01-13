@@ -169,6 +169,26 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   clusterNames: [],
 
   /**
+   * Number of completed cluster delete requests
+   * @type {number}
+   */
+  clusterDeleteRequestsCompleted: 0,
+
+  /**
+   * Indicates if all cluster delete requests are completed
+   * @type {boolean}
+   */
+  isAllClusterDeleteRequestsCompleted: function () {
+    return this.get('clusterDeleteRequestsCompleted') == this.get('clusterNames.length');
+  }.property('clusterDeleteRequestsCompleted'),
+
+  /**
+   * Error popup body views for clusters that couldn't be deleted
+   * @type {App.AjaxDefaultErrorPopupBodyView[]}
+   */
+  clusterDeleteErrorViews: [],
+
+  /**
    * Clear current step data
    * @method clearStep
    */
@@ -181,6 +201,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     this.set('ajaxQueueLength', 0);
     this.set('ajaxRequestsQueue', App.ajaxQueue.create());
     this.set('ajaxRequestsQueue.finishedCallback', this.ajaxQueueFinished);
+    this.get('clusterDeleteErrorViews').clear();
+    this.set('clusterDeleteRequestsCompleted', 0);
   },
 
   /**
@@ -881,8 +903,12 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    */
   submitProceed: function () {
     var self = this;
-    this.set('isSubmitDisabled', true);
-    this.set('isBackBtnDisabled', true);
+    this.setProperties({
+      isSubmitDisabled: true,
+      isBackBtnDisabled: true,
+      clusterDeleteRequestsCompleted: 0
+    });
+    this.get('clusterDeleteErrorViews').clear();
     if (this.get('content.controllerName') == 'addHostController') {
       App.router.get('addHostController').setLowerStepsDisable(4);
     }
@@ -924,7 +950,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       if (self.get('content.controllerName') == 'installerController' && (!App.get('testMode')) && clusterNames.length) {
         self.deleteClusters(clusterNames);
       } else {
-        self.deleteClustersCallback(null, null, {isLast: true});
+        self.startDeploy();
       }
     });
   },
@@ -972,6 +998,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method deleteClusters
    */
   deleteClusters: function (clusterNames) {
+    this.get('clusterDeleteErrorViews').clear();
     clusterNames.forEach(function (clusterName, index) {
       App.ajax.send({
         name: 'common.delete.cluster',
@@ -980,39 +1007,103 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
           name: clusterName,
           isLast: index == clusterNames.length - 1
         },
-        success: 'deleteClustersCallback',
-        error: 'deleteClustersCallback'
+        success: 'deleteClusterSuccessCallback',
+        error: 'deleteClusterErrorCallback'
       });
     }, this);
 
   },
 
-  deleteClustersCallback: function (response, request, data) {
-    if (data.isLast) {
-      this.createCluster();
-      this.createSelectedServices();
-      if (this.get('content.controllerName') !== 'addHostController') {
-        if (this.get('wizardController').getDBProperty('fileNamesToUpdate') && this.get('wizardController').getDBProperty('fileNamesToUpdate').length) {
-          this.updateConfigurations(this.get('wizardController').getDBProperty('fileNamesToUpdate'));
-        }
-        this.createConfigurations();
-        this.applyConfigurationsToCluster(this.get('serviceConfigTags'));
+  /**
+   * Method to execute after successful cluster deletion
+   * @method deleteClusterSuccessCallback
+   */
+  deleteClusterSuccessCallback: function () {
+    this.incrementProperty('clusterDeleteRequestsCompleted');
+    if (this.get('isAllClusterDeleteRequestsCompleted')) {
+      if (this.get('clusterDeleteErrorViews.length')) {
+        this.showDeleteClustersErrorPopup();
+      } else {
+        this.startDeploy();
       }
-      this.createComponents();
-      this.registerHostsToCluster();
-      this.createConfigurationGroups();
-      this.createMasterHostComponents();
-      this.createSlaveAndClientsHostComponents();
-      if (this.get('content.controllerName') === 'addServiceController') {
-        this.createAdditionalClientComponents();
-      }
-      this.createAdditionalHostComponents();
-
-      this.set('ajaxQueueLength', this.get('ajaxRequestsQueue.queue.length'));
-      this.get('ajaxRequestsQueue').start();
     }
   },
 
+  /**
+   * Method to execute after failed cluster deletion
+   * @param {object} request
+   * @param {string} ajaxOptions
+   * @param {string} error
+   * @param {object} opt
+   * @method deleteClusterErrorCallback
+   */
+  deleteClusterErrorCallback: function (request, ajaxOptions, error, opt) {
+    this.incrementProperty('clusterDeleteRequestsCompleted');
+    try {
+      var json = $.parseJSON(request.responseText);
+      var message = json.message;
+    } catch (err) {
+    }
+    this.get('clusterDeleteErrorViews').pushObject(App.AjaxDefaultErrorPopupBodyView.create({
+      url: opt.url,
+      type: opt.type,
+      status: request.status,
+      message: message
+    }));
+    if (this.get('isAllClusterDeleteRequestsCompleted')) {
+      this.showDeleteClustersErrorPopup();
+    }
+  },
+
+  /**
+   * Show error popup if cluster deletion failed
+   * @method showDeleteClustersErrorPopup
+   */
+  showDeleteClustersErrorPopup: function () {
+    var self = this;
+    this.setProperties({
+      isSubmitDisabled: false,
+      isBackBtnDisabled: false
+    });
+    App.ModalPopup.show({
+      header: Em.I18n.t('common.error'),
+      secondary: false,
+      onPrimary: function () {
+        this.hide();
+      },
+      bodyClass: Em.ContainerView.extend({
+        childViews: self.get('clusterDeleteErrorViews')
+      })
+    });
+  },
+
+  /**
+   * Start deploy process
+   * @method startDeploy
+   */
+  startDeploy: function () {
+    this.createCluster();
+    this.createSelectedServices();
+    if (this.get('content.controllerName') !== 'addHostController') {
+      if (this.get('wizardController').getDBProperty('fileNamesToUpdate') && this.get('wizardController').getDBProperty('fileNamesToUpdate').length) {
+        this.updateConfigurations(this.get('wizardController').getDBProperty('fileNamesToUpdate'));
+      }
+      this.createConfigurations();
+      this.applyConfigurationsToCluster(this.get('serviceConfigTags'));
+    }
+    this.createComponents();
+    this.registerHostsToCluster();
+    this.createConfigurationGroups();
+    this.createMasterHostComponents();
+    this.createSlaveAndClientsHostComponents();
+    if (this.get('content.controllerName') === 'addServiceController') {
+      this.createAdditionalClientComponents();
+    }
+    this.createAdditionalHostComponents();
+
+    this.set('ajaxQueueLength', this.get('ajaxRequestsQueue.queue.length'));
+    this.get('ajaxRequestsQueue').start();
+  },
 
   /**
    * *******************************************************************

@@ -20,6 +20,7 @@
 // load all views here
 
 require('views/application');
+require('views/common/ajax_default_error_popup_body');
 require('views/common/chart');
 require('views/common/chart/pie');
 require('views/common/chart/linear');

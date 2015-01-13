@@ -833,16 +833,29 @@ describe('App.WizardStep8Controller', function () {
   });
 
   describe('#deleteClusters', function() {
-    it('should call App.ajax.send for each provided clusterName', function() {
+
+    beforeEach(function () {
       sinon.stub(App.ajax, 'send', Em.K);
+    });
+
+    afterEach(function () {
+      App.ajax.send.restore();
+    });
+
+    it('should call App.ajax.send for each provided clusterName', function() {
       var clusterNames = ['h1', 'h2', 'h3'];
       installerStep8Controller.deleteClusters(clusterNames);
       expect(App.ajax.send.callCount).to.equal(clusterNames.length);
       clusterNames.forEach(function(n, i) {
         expect(App.ajax.send.getCall(i).args[0].data).to.eql({name: n, isLast: i == clusterNames.length - 1});
       });
-      App.ajax.send.restore();
     });
+
+    it('should clear cluster delete error popup body views', function () {
+      installerStep8Controller.deleteClusters([]);
+      expect(installerStep8Controller.get('clusterDeleteErrorViews')).to.eql([]);
+    });
+
   });
 
   describe('#createSelectedServicesData', function() {
@@ -1549,6 +1562,202 @@ describe('App.WizardStep8Controller', function () {
         }
       });
     });
+  });
+
+  describe('#isAllClusterDeleteRequestsCompleted', function () {
+    it('should depend on completed cluster delete requests number', function () {
+      installerStep8Controller.setProperties({
+        clusterDeleteRequestsCompleted: 0,
+        clusterNames: ['c0']
+      });
+      expect(installerStep8Controller.get('isAllClusterDeleteRequestsCompleted')).to.be.false;
+      installerStep8Controller.incrementProperty('clusterDeleteRequestsCompleted');
+      expect(installerStep8Controller.get('isAllClusterDeleteRequestsCompleted')).to.be.true;
+    });
+  });
+
+  describe('#deleteClusterSuccessCallback', function () {
+
+    beforeEach(function () {
+      sinon.stub(installerStep8Controller, 'showDeleteClustersErrorPopup', Em.K);
+      sinon.stub(installerStep8Controller, 'startDeploy', Em.K);
+      installerStep8Controller.setProperties({
+        clusterDeleteRequestsCompleted: 0,
+        clusterNames: ['c0', 'c1'],
+        clusterDeleteErrorViews: []
+      });
+      installerStep8Controller.deleteClusterSuccessCallback();
+    });
+
+    afterEach(function () {
+      installerStep8Controller.showDeleteClustersErrorPopup.restore();
+      installerStep8Controller.startDeploy.restore();
+    });
+
+    it('no failed requests', function () {
+      expect(installerStep8Controller.get('clusterDeleteRequestsCompleted')).to.equal(1);
+      expect(installerStep8Controller.showDeleteClustersErrorPopup.called).to.be.false;
+      expect(installerStep8Controller.startDeploy.called).to.be.false;
+      installerStep8Controller.deleteClusterSuccessCallback();
+      expect(installerStep8Controller.get('clusterDeleteRequestsCompleted')).to.equal(2);
+      expect(installerStep8Controller.showDeleteClustersErrorPopup.called).to.be.false;
+      expect(installerStep8Controller.startDeploy.calledOnce).to.be.true;
+    });
+
+    it('one request failed', function () {
+      installerStep8Controller.deleteClusterErrorCallback({}, null, null, {});
+      expect(installerStep8Controller.get('clusterDeleteRequestsCompleted')).to.equal(2);
+      expect(installerStep8Controller.showDeleteClustersErrorPopup.calledOnce).to.be.true;
+      expect(installerStep8Controller.startDeploy.called).to.be.false;
+    });
+
+  });
+
+  describe('#deleteClusterErrorCallback', function () {
+
+    var request = {
+        status: 500,
+        responseText: '{"message":"Internal Server Error"}'
+      },
+      ajaxOptions = 'error',
+      error = 'Internal Server Error',
+      opt = {
+        url: 'api/v1/clusters/c0',
+        type: 'DELETE'
+      };
+
+    beforeEach(function () {
+      installerStep8Controller.setProperties({
+        clusterDeleteRequestsCompleted: 0,
+        clusterNames: ['c0', 'c1'],
+        clusterDeleteErrorViews: []
+      });
+      sinon.stub(installerStep8Controller, 'showDeleteClustersErrorPopup', Em.K);
+      installerStep8Controller.deleteClusterErrorCallback(request, ajaxOptions, error, opt);
+    });
+
+    afterEach(function () {
+      installerStep8Controller.showDeleteClustersErrorPopup.restore();
+    });
+
+    it('should show error popup only if all requests are completed', function () {
+      expect(installerStep8Controller.get('clusterDeleteRequestsCompleted')).to.equal(1);
+      expect(installerStep8Controller.showDeleteClustersErrorPopup.called).to.be.false;
+      installerStep8Controller.deleteClusterErrorCallback(request, ajaxOptions, error, opt);
+      expect(installerStep8Controller.get('clusterDeleteRequestsCompleted')).to.equal(2);
+      expect(installerStep8Controller.showDeleteClustersErrorPopup.calledOnce).to.be.true;
+    });
+
+    it('should create error popup body view', function () {
+      expect(installerStep8Controller.get('clusterDeleteErrorViews')).to.have.length(1);
+      expect(installerStep8Controller.get('clusterDeleteErrorViews.firstObject.url')).to.equal('api/v1/clusters/c0');
+      expect(installerStep8Controller.get('clusterDeleteErrorViews.firstObject.type')).to.equal('DELETE');
+      expect(installerStep8Controller.get('clusterDeleteErrorViews.firstObject.status')).to.equal(500);
+      expect(installerStep8Controller.get('clusterDeleteErrorViews.firstObject.message')).to.equal('Internal Server Error');
+    });
+
+  });
+
+  describe('#showDeleteClustersErrorPopup', function () {
+
+    beforeEach(function () {
+      installerStep8Controller.setProperties({
+        isSubmitDisabled: true,
+        isBackBtnDisabled: true
+      });
+      sinon.stub(App.ModalPopup, 'show', Em.K);
+      installerStep8Controller.showDeleteClustersErrorPopup();
+    });
+
+    afterEach(function () {
+      App.ModalPopup.show.restore();
+    });
+
+    it('should show error popup and unlock navigation', function () {
+      expect(installerStep8Controller.get('isSubmitDisabled')).to.be.false;
+      expect(installerStep8Controller.get('isBackBtnDisabled')).to.be.false;
+      expect(App.ModalPopup.show.calledOnce).to.be.true;
+    });
+
+  });
+
+  describe('#startDeploy', function () {
+
+    var stubbedNames = ['createCluster', 'createSelectedServices', 'updateConfigurations', 'createConfigurations',
+        'applyConfigurationsToCluster', 'createComponents', 'registerHostsToCluster', 'createConfigurationGroups',
+        'createMasterHostComponents', 'createSlaveAndClientsHostComponents', 'createAdditionalClientComponents',
+        'createAdditionalHostComponents'],
+      cases = [
+        {
+          controllerName: 'installerController',
+          notExecuted: ['createAdditionalClientComponents', 'updateConfigurations'],
+          fileNamesToUpdate: [],
+          title: 'Installer, no configs to update'
+        },
+        {
+          controllerName: 'installerController',
+          notExecuted: ['createAdditionalClientComponents'],
+          fileNamesToUpdate: [''],
+          title: 'Installer, some configs to be updated'
+        },
+        {
+          controllerName: 'addHostController',
+          notExecuted: ['updateConfigurations', 'createConfigurations', 'applyConfigurationsToCluster', 'createAdditionalClientComponents'],
+          title: 'Add Host Wizard'
+        },
+        {
+          controllerName: 'addServiceController',
+          notExecuted: ['updateConfigurations'],
+          fileNamesToUpdate: [],
+          title: 'Add Service Wizard, no configs to update'
+        },
+        {
+          controllerName: 'addServiceController',
+          notExecuted: [],
+          fileNamesToUpdate: [''],
+          title: 'Add Service Wizard, some configs to be updated'
+        }
+      ];
+
+    beforeEach(function () {
+      stubbedNames.forEach(function (name) {
+        sinon.stub(installerStep8Controller, name, Em.K);
+      });
+      installerStep8Controller.setProperties({
+        serviceConfigTags: [],
+        content: {
+          controllerName: null
+        }
+      });
+    });
+
+    afterEach(function () {
+      stubbedNames.forEach(function (name) {
+        installerStep8Controller[name].restore();
+      });
+      installerStep8Controller.get.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        sinon.stub(installerStep8Controller, 'get')
+          .withArgs('ajaxRequestsQueue').returns({
+            start: Em.K
+          })
+          .withArgs('ajaxRequestsQueue.queue.length').returns(1)
+          .withArgs('wizardController').returns({
+            getDBProperty: function () {
+              return item.fileNamesToUpdate;
+            }
+          })
+          .withArgs('content.controllerName').returns(item.controllerName);
+        installerStep8Controller.startDeploy();
+        stubbedNames.forEach(function (name) {
+          expect(installerStep8Controller[name].called).to.equal(!item.notExecuted.contains(name));
+        });
+      });
+    });
+
   });
 
 });

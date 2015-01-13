@@ -2308,7 +2308,6 @@ var ajax = Em.Object.extend({
   defaultErrorHandler: function (jqXHR, url, method, showStatus) {
     method = method || 'GET';
     var self = this;
-    var api = " received on " + method + " method for API: " + url;
     try {
       var json = $.parseJSON(jqXHR.responseText);
       var message = json.message;
@@ -2317,7 +2316,6 @@ var ajax = Em.Object.extend({
     if (!showStatus) {
       showStatus = 500;
     }
-    var statusCode = jqXHR.status + " status code";
     if (jqXHR.status === showStatus && !this.get('modalPopup')) {
       this.set('modalPopup', App.ModalPopup.show({
         header: Em.I18n.t('common.error'),
@@ -2326,13 +2324,11 @@ var ajax = Em.Object.extend({
           this.hide();
           self.set('modalPopup', null);
         },
-        bodyClass: Ember.View.extend({
-          classNames: ['api-error'],
-          templateName: require('templates/utils/ajax'),
-          api: api,
-          statusCode: statusCode,
-          message: message,
-          showMessage: !!message
+        bodyClass: App.AjaxDefaultErrorPopupBodyView.extend({
+          type: method,
+          url: url,
+          status: jqXHR.status,
+          message: message
         })
       }));
     }
