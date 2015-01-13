@@ -182,6 +182,9 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn("hostcomponentstate", new DBAccessor.DBColumnInfo("upgrade_state",
         String.class, 32, "NONE", false));
 
+    dbAccessor.addColumn("hostcomponentstate", new DBAccessor.DBColumnInfo("version",
+        String.class, 32, "UNKNOWN", false));
+
     dbAccessor.addColumn("host_role_command", new DBAccessor.DBColumnInfo("retry_allowed",
         Integer.class, 1, 0, false));
 

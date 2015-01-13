@@ -97,11 +97,12 @@ CREATE TABLE hostcomponentdesiredstate (
 CREATE TABLE hostcomponentstate (
   cluster_id NUMBER(19) NOT NULL,
   component_name VARCHAR2(255) NOT NULL,
+  version VARCHAR2(32) DEFAULT 'UNKNOWN' NOT NULL,
   current_stack_version VARCHAR2(255) NOT NULL,
   current_state VARCHAR2(255) NOT NULL,
   host_name VARCHAR2(255) NOT NULL,
   service_name VARCHAR2(255) NOT NULL,
-  upgrade_state VARCHAR2(255) DEFAULT 'NONE' NOT NULL,
+  upgrade_state VARCHAR2(32) DEFAULT 'NONE' NOT NULL,
   security_state VARCHAR2(32) DEFAULT 'UNSECURED' NOT NULL,
   PRIMARY KEY (cluster_id, component_name, host_name, service_name));
 
