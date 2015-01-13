@@ -23,13 +23,20 @@ import json
 import os
 import socket
 import subprocess
-from ambari_commons import inet_utils
+from ambari_commons import inet_utils, OSCheck
 from resource_management import Script, ConfigDictionary
 from mock.mock import patch
 from mock.mock import MagicMock
 from unittest import TestCase
 
 from check_host import CheckHost
+
+from only_for_platform import only_for_platform, get_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
+
+if get_platform() != PLATFORM_WINDOWS:
+  os_distro_value = ('Suse','11','Final')
+else:
+  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
 
 
 class TestCheckHost(TestCase):
@@ -232,7 +239,7 @@ class TestCheckHost(TestCase):
     structured_out_mock.assert_called_with({})
 
 
-  @patch("platform.linux_distribution")
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("platform.system")
   @patch.object(Script, 'get_config')
   @patch.object(Script, 'get_tmp_dir')
@@ -246,12 +253,7 @@ class TestCheckHost(TestCase):
   @patch('time.time')
   def testLastAgentEnv(self, time_mock, checkReverseLookup_mock, checkIptables_mock, getTransparentHugePage_mock,
                        getUMask_mock, checkLiveServices_mock, javaProcs_mock, put_structured_out_mock,
-                       get_tmp_dir_mock, get_config_mock, systemMock, distMock):
-
-
-    systemMock.return_value = "Linux"
-    distMock.return_value = ("CentOS", "6.3", None)
-
+                       get_tmp_dir_mock, get_config_mock, systemmock):
     jsonFilePath = os.path.join("../resources/custom_actions", "check_last_agent_env.json")
     with open(jsonFilePath, "r") as jsonFile:
       jsonPayload = json.load(jsonFile)

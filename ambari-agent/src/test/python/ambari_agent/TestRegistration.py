@@ -23,7 +23,7 @@ import os
 import tempfile
 from mock.mock import patch
 from mock.mock import MagicMock
-from only_for_platform import only_for_platform, PLATFORM_LINUX
+from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 
 with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   from ambari_agent.Register import Register
@@ -33,9 +33,9 @@ with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
 
 class TestRegistration(TestCase):
 
-  @only_for_platform(PLATFORM_LINUX)
+  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
-  @patch.object(FirewallChecks, "run_os_command")
+  @patch("ambari_commons.firewall.run_os_command")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
   def test_registration_build(self, get_os_version_mock, get_os_type_mock, run_os_cmd_mock):

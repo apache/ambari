@@ -39,16 +39,17 @@ import datetime
 import tempfile
 import random
 import pwd
+
+from ambari_commons.logging_utils import get_verbose, set_verbose, get_silent, set_silent, get_debug_mode, \
+  set_debug_mode
 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
 import json
 import base64
-from threading import Thread
+
 from ambari_commons import OSCheck, OSConst, Firewall
 from ambari_server import utils, BackupRestore
 
 # debug settings
-VERBOSE = False
-SILENT = False
 SERVER_START_DEBUG = False
 
 # ldap settings
@@ -1390,7 +1391,7 @@ def execute_remote_script(args, scriptPath):
   tool = get_db_cli_tool(args)
   if not tool:
     # args.warnings.append('{0} not found. Please, run DDL script manually'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
-    if VERBOSE:
+    if get_verbose():
       print_warning_msg('{0} not found'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
     return -1, "Client wasn't found", "Client wasn't found"
   CMD = get_remote_script_line(args, scriptPath, False)
@@ -1405,7 +1406,7 @@ def get_remote_script_line(args, scriptPath, forPrint=True):
   tool = get_db_cli_tool(args)
   if not tool:
     # args.warnings.append('{0} not found. Please, run DDL script manually'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
-    if VERBOSE or args.persistence_type == "remote":
+    if get_verbose() or args.persistence_type == "remote":
       print_warning_msg('{0} not found'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
     return None
   if args.dbms == "postgres":
@@ -2205,7 +2206,7 @@ def check_jdbc_drivers(args):
         JAVA_SHARE_PATH)
 
   if result == -1:
-    if SILENT:
+    if get_silent():
       print_error_msg(msg)
       raise FatalException(-1, msg)
     else:
@@ -2251,7 +2252,7 @@ def verify_setup_allowed():
 
   isSecure = get_is_secure(properties)
   (isPersisted, masterKeyFile) = get_is_persisted(properties)
-  if isSecure and not isPersisted and SILENT:
+  if isSecure and not isPersisted and get_silent():
     print "ERROR: Cannot run silent 'setup' with password encryption enabled " \
           "and Master Key not persisted."
     print "Ambari Server 'setup' exiting."
@@ -2432,8 +2433,7 @@ def proceedJDBCProperties(args):
 #
 def reset(args):
   #force reset if silent option provided
-  global SILENT
-  if SILENT:
+  if get_silent():
     default = "yes"
   else:
     default = "no"
@@ -2452,7 +2452,7 @@ def reset(args):
                      "You will be required to re-configure the Ambari server "
                      "and re-run the cluster wizard. \n"
                      "Are you SURE you want to perform the reset "
-                     "[yes/no] ({0})? ".format(default), SILENT)
+                     "[yes/no] ({0})? ".format(default), get_silent())
   okToRun = choice
 
   if not okToRun:
@@ -2480,7 +2480,7 @@ def reset(args):
       raise NonFatalException("Please replace '*' symbols with password before running DDL`s!")
   else:
     # Run automatic reset only for embedded DB
-    okToRun = get_YN_input("Confirm server reset [yes/no]({0})? ".format(default), SILENT)
+    okToRun = get_YN_input("Confirm server reset [yes/no]({0})? ".format(default), get_silent())
 
     if not okToRun:
       err = "Ambari Server 'reset' cancelled"
@@ -2499,14 +2499,14 @@ def reset(args):
       raise FatalException(1, drop_errdata)
     if drop_errdata and PG_ERROR_BLOCKED in drop_errdata:
       raise FatalException(1, "Database is in use. Please, make sure all connections to the database are closed")
-    if drop_errdata and VERBOSE:
+    if drop_errdata and get_verbose():
       print_warning_msg(drop_errdata)
     print_info_msg("About to run database setup")
     retcode, outdata, errdata = setup_db(args)
-    if errdata and VERBOSE:
+    if errdata and get_verbose():
       print_warning_msg(errdata)
     if (errdata and 'ERROR' in errdata.upper()) or (drop_errdata and 'ERROR' in drop_errdata.upper()):
-      if not VERBOSE:
+      if not get_verbose():
         raise NonFatalException("Non critical error in DDL, use --verbose for more information")
       else:
         raise NonFatalException("Non critical error in DDL")
@@ -2625,7 +2625,7 @@ def start(args):
         environ[SECURITY_MASTER_KEY_LOCATION] = tempFilePath
 
   pidfile = PID_DIR + os.sep + PID_NAME
-  command_base = SERVER_START_CMD_DEBUG if (SERVER_DEBUG_MODE or SERVER_START_DEBUG) else SERVER_START_CMD
+  command_base = SERVER_START_CMD_DEBUG if (get_debug_mode() or SERVER_START_DEBUG) else SERVER_START_CMD
   command = "%s %s; %s" % (ULIMIT_CMD, str(get_ulimit_open_files()),
                            command_base.format(jdk_path,
                                                conf_dir,
@@ -2797,7 +2797,7 @@ def change_objects_owner(args):
   command[-1] = command[-1].format(database_name, 'ambari', new_owner)
   retcode, stdout, stderr = run_os_command(command)
   if not retcode == 0:
-    if VERBOSE:
+    if get_verbose():
       if stdout:
         print_error_msg(stdout.strip())
       if stderr:
@@ -2968,7 +2968,7 @@ def status(args):
 # Prints an "info" messsage.
 #
 def print_info_msg(msg):
-  if VERBOSE:
+  if get_verbose():
     print("INFO: " + msg)
 
 
@@ -3001,7 +3001,7 @@ def get_YN_input(prompt, default):
 
 
 def get_choice_string_input(prompt, default, firstChoice, secondChoice):
-  if SILENT:
+  if get_silent():
     print(prompt)
     return default
   choice = raw_input(prompt).lower()
@@ -3021,7 +3021,7 @@ def get_validated_string_input(prompt, default, pattern, description,
 
   input = ""
   while not input:
-    if SILENT:
+    if get_silent():
       print (prompt)
       input = default
     elif is_pass:
@@ -3126,7 +3126,7 @@ def sync_ldap():
       new_specs = [{"principal_type":"groups","sync_type":"specific","names":""}]
       get_ldap_event_spec_names(LDAP_SYNC_GROUPS, specs, new_specs)
 
-  if VERBOSE:
+  if get_verbose():
     sys.stdout.write('\nCalling API ' + SERVER_API_LDAP_URL + ' : ' + str(bodies) + '\n')
 
   request.add_data(json.dumps(bodies))
@@ -3834,7 +3834,7 @@ def setup_https(args):
           'root-level privileges'
     raise FatalException(4, err)
   args.exit_message = None
-  if not SILENT:
+  if not get_silent():
     properties = get_ambari_properties()
     try:
       security_server_keys_dir = properties.get_property(SSL_KEY_DIR)
@@ -3912,7 +3912,7 @@ def is_server_runing():
 
 def setup_component_https(component, command, property, alias):
 
-  if not SILENT:
+  if not get_silent():
 
     jdk_path = find_jdk()
     if jdk_path is None:
@@ -4149,7 +4149,7 @@ def generate_random_string(length=SSL_KEY_PASSWORD_LENGTH):
 def get_validated_filepath_input(prompt, description, default=None):
   input = False
   while not input:
-    if SILENT:
+    if get_silent():
       print (prompt)
       return default
     else:
@@ -4380,7 +4380,7 @@ def refresh_stack_hash():
 
   try:
     print "Organizing resource files at {0}...".format(resources_location,
-                                                       verbose=VERBOSE)
+                                                       verbose=get_verbose())
     resource_files_keeper.perform_housekeeping()
   except KeeperException, ex:
     msg = "Can not organize resource files at {0}: {1}".format(
@@ -4464,16 +4464,13 @@ def main():
   (options, args) = parser.parse_args()
 
   # set verbose
-  global VERBOSE
-  VERBOSE = options.verbose
+  set_verbose(options.verbose)
 
   # set silent
-  global SILENT
-  SILENT = options.silent
+  set_silent(options.silent)
 
   # debug mode
-  global SERVER_DEBUG_MODE
-  SERVER_DEBUG_MODE = options.debug
+  set_debug_mode(options.debug)
 
   # set ldap_sync_all
   global LDAP_SYNC_ALL

@@ -33,3 +33,15 @@ def only_for_platform(system):
     if platform.system() == system:
       return obj
   return decorator
+
+def not_for_platform(system):
+  def decorator(obj):
+    if platform.system() != system:
+      return obj
+  return decorator
+
+def for_specific_platforms(systems):
+  def decorator(obj):
+    if platform.system() in systems:
+      return obj
+  return decorator

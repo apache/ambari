@@ -18,10 +18,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import subprocess
-import shlex
 from ambari_commons import OSCheck, OSConst
-
+from ambari_commons.os_utils import run_os_command
 
 class Firewall(object):
   def __init__(self):
@@ -64,23 +62,10 @@ class FirewallChecks(object):
 
   def check_iptables(self):
     try:
-      retcode, out, err = self.run_os_command(self.get_command())
-      return self.check_result(retcode, out, err)
+      self.returncode, self.stdoutdata, self.stderrdata = run_os_command(self.get_command())
+      return self.check_result(self.returncode, self.stdoutdata, self.stderrdata)
     except OSError:
       return False
-
-  def run_os_command(self, cmd):
-    if type(cmd) == str:
-      cmd = shlex.split(cmd)
-
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
-    (stdoutdata, stderrdata) = process.communicate()
-    self.returncode = process.returncode
-    self.stdoutdata = stdoutdata
-    self.stderrdata = stderrdata
-    return self.returncode, self.stdoutdata, self.stderrdata
-
 
 
 class UbuntuFirewallChecks(FirewallChecks):

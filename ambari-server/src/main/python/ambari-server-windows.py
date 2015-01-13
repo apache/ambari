@@ -19,10 +19,10 @@ limitations under the License.
 '''
 
 import optparse
+import subprocess
 
 from ambari_commons.ambari_service import AmbariService, ENV_PYTHON_PATH
-from ambari_commons.logging_utils import *
-from ambari_commons.os_utils import remove_file
+from ambari_commons.logging_utils import get_verbose, set_verbose, get_silent, set_silent, get_debug_mode, set_debug_mode
 from ambari_commons.os_windows import SvcStatusCallback
 
 from ambari_server import utils
@@ -41,11 +41,6 @@ SUSPEND_START_MODE = False
 # server commands
 ambari_provider_module_option = ""
 ambari_provider_module = os.environ.get('AMBARI_PROVIDER_MODULE')
-
-#Common setup or upgrade message
-SETUP_OR_UPGRADE_MSG = "- If this is a new setup, then run the \"ambari-server setup\" command to create the user\n" \
-"- If this is an upgrade of an existing setup, run the \"ambari-server upgrade\" command.\n" \
-"Refer to the Ambari documentation for more information on setup and upgrade."
 
 AMBARI_SERVER_DIE_MSG = "Ambari Server java process died with exitcode {0}. Check {1} for more information."
 
@@ -173,22 +168,19 @@ def svcstart():
 def server_process_main(options, scmStatus=None):
   # set verbose
   try:
-    global VERBOSE
-    VERBOSE = options.verbose
+    set_verbose(options.verbose)
   except AttributeError:
     pass
 
   # set silent
   try:
-    global SILENT
-    SILENT = options.silent
+    set_silent(options.silent)
   except AttributeError:
     pass
 
   # debug mode
   try:
-    global DEBUG_MODE
-    DEBUG_MODE = options.debug
+    set_debug_mode(options.debug)
   except AttributeError:
     pass
 
@@ -242,7 +234,7 @@ def server_process_main(options, scmStatus=None):
 
   java_exe = jdk_path + os.sep + JAVA_EXE_SUBPATH
   pidfile = PID_DIR + os.sep + PID_NAME
-  command_base = SERVER_START_CMD_DEBUG if (DEBUG_MODE or SERVER_START_DEBUG) else SERVER_START_CMD
+  command_base = SERVER_START_CMD_DEBUG if (get_debug_mode() or SERVER_START_DEBUG) else SERVER_START_CMD
   suspend_mode = 'y' if SUSPEND_START_MODE else 'n'
   command = command_base.format(conf_dir, suspend_mode)
   if not os.path.exists(PID_DIR):
@@ -305,7 +297,7 @@ def ensure_resources_are_organized(properties):
   resource_files_keeper = ResourceFilesKeeper(resources_location)
   try:
     print "Organizing resource files at {0}...".format(resources_location,
-                                                       verbose=VERBOSE)
+                                                       verbose=get_verbose())
     resource_files_keeper.perform_housekeeping()
   except KeeperException, ex:
     msg = "Can not organize resource files at {0}: {1}".format(

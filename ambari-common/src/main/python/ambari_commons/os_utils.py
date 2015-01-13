@@ -18,20 +18,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import os
 import shutil
 import string
-import os
 
-from os_check import *
+from ambari_commons import OSCheck
 
 if OSCheck.is_windows_family():
-  from os_windows import *
+  from ambari_commons.os_windows import os_change_owner, os_getpass, os_is_root, os_run_os_command, \
+    os_set_open_files_limit, os_set_file_permissions
 else:
   # MacOS not supported
-  from os_linux import *
+  from ambari_commons.os_linux import os_change_owner, os_getpass, os_is_root, os_run_os_command, \
+    os_set_open_files_limit, os_set_file_permissions
+  pass
 
-from logging_utils import *
-from exceptions import FatalException
+from ambari_commons.exceptions import FatalException
+from ambari_commons.logging_utils import print_info_msg, print_warning_msg
 
 
 def is_valid_filepath(filepath):
@@ -90,6 +93,12 @@ def set_file_permissions(file, mod, user, recursive):
     os_set_file_permissions(file, mod, recursive, user)
   else:
     print_info_msg("File %s does not exist" % file)
+
+def run_os_command(cmd, env=None):
+  return os_run_os_command(cmd, env, False)
+
+def run_in_shell(cmd, env=None):
+  return os_run_os_command(cmd, env, True)
 
 def is_root():
   return os_is_root()

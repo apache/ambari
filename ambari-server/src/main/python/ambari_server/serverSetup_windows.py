@@ -30,7 +30,7 @@ from ambari_commons import os_utils
 
 from ambari_commons.exceptions import *
 from ambari_commons.logging_utils import *
-from ambari_commons.os_windows import run_os_command, UserHelper
+from ambari_commons.os_windows import run_powershell_script, UserHelper, CHECK_FIREWALL_SCRIPT
 from ambari_server.dbConfiguration import DBMSConfig
 from ambari_server.serverConfiguration import *
 from ambari_server.serverConfiguration_windows import OUT_DIR

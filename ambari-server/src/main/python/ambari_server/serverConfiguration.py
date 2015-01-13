@@ -21,6 +21,7 @@ limitations under the License.
 import datetime
 import glob
 import re
+import tempfile
 
 from ambari_commons.os_utils import *
 from ambari_commons.logging_utils import print_warning_msg, print_info_msg, print_error_msg
@@ -119,6 +120,13 @@ STACK_LOCATION_DEFAULT = "resources" + os.sep + "stacks"
 
 # JDK
 JDK_RELEASES="java.releases"
+
+#Common setup or upgrade message
+SETUP_OR_UPGRADE_MSG = "- If this is a new setup, then run the \"ambari-server setup\" command to create the user\n" \
+                       "- If this is an upgrade of an existing setup, run the \"ambari-server upgrade\" command.\n" \
+                       "Refer to the Ambari documentation for more information on setup and upgrade."
+
+DEFAULT_DB_NAME = "ambari"
 
 # configuration backup
 back_up_file_path = None

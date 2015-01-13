@@ -18,19 +18,43 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-VERBOSE = False
-SILENT = False
-DEBUG_MODE = False
+_VERBOSE = False
+_SILENT = False
+_DEBUG_MODE = False
 
 # terminal styles
 BOLD_ON = '\033[1m'
 BOLD_OFF = '\033[0m'
 
+def get_verbose():
+  global _VERBOSE
+  return _VERBOSE
+
+def set_verbose(newVal):
+  global _VERBOSE
+  _VERBOSE = newVal
+
+def get_silent():
+  global _SILENT
+  return _SILENT
+
+def set_silent(newVal):
+  global _SILENT
+  _SILENT = newVal
+
+def get_debug_mode():
+  global _DEBUG_MODE
+  return _DEBUG_MODE
+
+def set_debug_mode(newVal):
+  global _DEBUG_MODE
+  _DEBUG_MODE = newVal
+
 #
 # Prints an "info" messsage.
 #
 def print_info_msg(msg):
-  if VERBOSE:
+  if _VERBOSE:
     print("INFO: " + msg)
 
 #

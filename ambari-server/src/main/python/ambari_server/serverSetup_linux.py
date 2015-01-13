@@ -131,9 +131,6 @@ JDBC_DB_DEFAULT_DRIVER = {"postgresql" : "postgresql-jdbc.jar", "mysql" : "mysql
 ORACLE_DB_ID_TYPES = ["Service Name", "SID"]
 
 
-DEFAULT_DB_NAME = "ambari"
-
-
 MESSAGE_ERROR_NOT_ROOT = 'Ambari-server setup should be run with root-level privileges'
 
 MESSAGE_CHECK_FIREWALL = 'Checking iptables...'
@@ -360,7 +357,7 @@ def os_setup_jdbc_drivers(args):
         JAVA_SHARE_PATH)
 
   if result == -1:
-    if SILENT:
+    if get_silent():
       print_error_msg(msg)
       raise FatalException(-1, msg)
     else:

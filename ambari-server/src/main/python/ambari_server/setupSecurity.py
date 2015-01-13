@@ -23,9 +23,11 @@ import random
 import socket
 import stat
 import sys
+import tempfile
 import urllib2
 
 from ambari_commons.exceptions import *
+from ambari_commons.os_utils import run_os_command
 from serverConfiguration import *
 from setupActions import *
 from userInput import *
@@ -774,7 +776,7 @@ def setup_https(args):
           'root-level privileges'
     raise FatalException(4, err)
   args.exit_message = None
-  if not SILENT:
+  if not get_silent():
     properties = get_ambari_properties()
     try:
       security_server_keys_dir = properties.get_property(SSL_KEY_DIR)
@@ -824,7 +826,7 @@ def setup_https(args):
 
 def setup_component_https(component, command, property, alias):
 
-  if not SILENT:
+  if not get_silent():
     jdk_path = find_jdk()
     if jdk_path is None:
       err = "No JDK found, please run the \"ambari-server setup\" " \

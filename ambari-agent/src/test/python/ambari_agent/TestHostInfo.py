@@ -31,7 +31,7 @@ from mock.mock import create_autospec
 import ambari_commons
 from ambari_commons import OSCheck
 import os
-from only_for_platform import only_for_platform, get_platform, PLATFORM_WINDOWS, PLATFORM_LINUX
+from only_for_platform import not_for_platform, get_platform, PLATFORM_WINDOWS, PLATFORM_LINUX
 
 if get_platform() != PLATFORM_WINDOWS:
   os_distro_value = ('Suse','11','Final')
@@ -51,7 +51,7 @@ with patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_
 @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
 class TestHostInfo(TestCase):
 
-  @only_for_platform(PLATFORM_LINUX)
+  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, 'get_os_family')
   @patch('resource_management.libraries.functions.packages_analyzer.subprocessWithTimeout')
   def test_analyze_zypper_out(self, spwt_mock, get_os_family_mock):
@@ -82,7 +82,7 @@ class TestHostInfo(TestCase):
     self.assertTrue(installedPackages[3][2], "HDP")
     self.assertTrue(installedPackages[6][1], "11-38.13.9")
 
-  @only_for_platform(PLATFORM_LINUX)
+  @not_for_platform(PLATFORM_WINDOWS)
   def test_getReposToRemove(self):
     l1 = ["Hortonworks Data Platform Utils Version - HDP-UTILS-1.1.0.15", "Ambari 1.x", "HDP"]
     l2 = ["Ambari", "HDP-UTIL"]
@@ -96,7 +96,7 @@ class TestHostInfo(TestCase):
     self.assertTrue(1, len(l3))
     self.assertEqual(l3[0], "HDP-1.3.0")
 
-  @only_for_platform(PLATFORM_LINUX)
+  @not_for_platform(PLATFORM_WINDOWS)
   def test_perform_package_analysis(self):
     installedPackages = [
       ["hadoop-a", "2.3", "HDP"], ["zk", "3.1", "HDP"], ["webhcat", "3.1", "HDP"],
@@ -143,7 +143,7 @@ class TestHostInfo(TestCase):
     for package in expected:
       self.assertTrue(package in allPackages)
 
-  @only_for_platform(PLATFORM_LINUX)
+  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, 'get_os_family')
   @patch('resource_management.libraries.functions.packages_analyzer.subprocessWithTimeout')
   def test_analyze_yum_output(self, subprocessWithTimeout_mock, get_os_family_mock):
@@ -199,7 +199,7 @@ class TestHostInfo(TestCase):
                                               "koji-override-0/$releasever"])
       self.assertFalse(package['repoName'] in ["AMBARI.dev-1.x"])
 
-  @only_for_platform(PLATFORM_LINUX)
+  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, 'get_os_family')
   @patch('resource_management.libraries.functions.packages_analyzer.subprocessWithTimeout')
   def test_analyze_yum_output_err(self, subprocessWithTimeout_mock, get_os_family_mock):
@@ -230,7 +230,7 @@ class TestHostInfo(TestCase):
 
       self.assertTrue(item in names)
 
-  @only_for_platform(PLATFORM_LINUX)
+  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch('os.path.exists')
   @patch('__builtin__.open')
@@ -253,7 +253,7 @@ class TestHostInfo(TestCase):
     self.assertTrue(newlist[1]['status'], "Invalid home directory")
     print(path_mock.mock_calls)
 
-  @only_for_platform(PLATFORM_LINUX)
+  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "get_os_type")
   @patch('os.umask')
   @patch.object(HostCheckReportFileHandler, 'writeHostCheckFile')
@@ -296,7 +296,7 @@ class TestHostInfo(TestCase):
     self.assertTrue(0 < len(dict['installedPackages']))
     self.assertTrue('agentTimeStampAtReporting' in dict['hostHealth'])
 
-  @only_for_platform(PLATFORM_LINUX)
+  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "get_os_type")
   @patch('os.umask')
   @patch.object(HostCheckReportFileHandler, 'writeHostCheckFile')
@@ -399,7 +399,7 @@ class TestHostInfo(TestCase):
     result = host.dirType("/home")
     self.assertEquals(result, 'unknown')
 
-  @only_for_platform(PLATFORM_LINUX)
+  @not_for_platform(PLATFORM_WINDOWS)
   @patch("os.path.exists")
   @patch("glob.glob")
   def test_hadoopVarRunCount(self, glob_glob_mock, os_path_exists_mock):
@@ -414,7 +414,7 @@ class TestHostInfo(TestCase):
     result = hostInfo.hadoopVarRunCount()
     self.assertEquals(result, 0)
 
-  @only_for_platform(PLATFORM_LINUX)
+  @not_for_platform(PLATFORM_WINDOWS)
   @patch("os.path.exists")
   @patch("glob.glob")
   def test_hadoopVarLogCount(self, glob_glob_mock, os_path_exists_mock):
@@ -429,7 +429,7 @@ class TestHostInfo(TestCase):
     result = hostInfo.hadoopVarLogCount()
     self.assertEquals(result, 0)
 
-  @only_for_platform(PLATFORM_LINUX)
+  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = ('redhat','11','Final')))
   @patch("os.listdir", create=True, autospec=True)
   @patch("__builtin__.open", create=True, autospec=True)
@@ -451,7 +451,7 @@ class TestHostInfo(TestCase):
     self.assertTrue(list[0]['hadoop'])
     self.assertEquals(list[0]['user'], 'user')
 
-  @only_for_platform(PLATFORM_LINUX)
+  @not_for_platform(PLATFORM_WINDOWS)
   @patch("subprocess.Popen")
   @patch.object(Hardware, 'extractMountInfo')
   def test_osdiskAvailableSpace(self, extract_mount_info_mock, subproc_popen_mock):
@@ -469,7 +469,7 @@ class TestHostInfo(TestCase):
 
     self.assertEquals(result, {})
 
-  @only_for_platform(PLATFORM_LINUX)
+  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "get_os_type")
   @patch("subprocess.Popen")
   def test_checkLiveServices(self, subproc_popen, get_os_type_method):
@@ -513,7 +513,7 @@ class TestHostInfo(TestCase):
     self.assertEquals(result[0]['name'], 'service1')
     self.assertTrue(len(result[0]['desc']) > 0)
 
-  @only_for_platform(PLATFORM_LINUX)
+  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = ('redhat','11','Final')))
   @patch("os.path.exists")
   @patch("os.listdir", create=True, autospec=True)
@@ -536,11 +536,11 @@ class TestHostInfo(TestCase):
     self.assertEquals(result[0]['name'], 'config1')
     self.assertEquals(result[0]['target'], 'real_path_to_conf')
 
-  @only_for_platform(PLATFORM_LINUX)
+  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "get_os_family")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_major_version")
-  @patch.object(FirewallChecks, "run_os_command")
+  @patch("ambari_commons.firewall.run_os_command")
   def test_IpTablesRunning(self, run_os_command_mock, get_os_major_version_mock, get_os_type_mock, get_os_family_mock):
     get_os_type_mock.return_value = ""
     get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
@@ -572,18 +572,18 @@ class TestHostInfo(TestCase):
 
     self.assertFalse(hostInfo.checkReverseLookup())
 
-  @only_for_platform(PLATFORM_LINUX)
+  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "get_os_family")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_major_version")
-  @patch.object(FirewallChecks, "run_os_command")
+  @patch("ambari_commons.firewall.run_os_command")
   def test_IpTablesStopped(self, run_os_command_mock, get_os_major_version_mock, get_os_type_mock, get_os_family_mock):
     get_os_type_mock.return_value = ""
     get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
     run_os_command_mock.return_value = 3, "", ""
     self.assertFalse(Firewall().getFirewallObject().check_iptables())
 
-  @only_for_platform(PLATFORM_LINUX)
+  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = ('redhat','11','Final')))
   @patch("os.path.isfile")
   @patch('__builtin__.open')

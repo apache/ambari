@@ -24,7 +24,7 @@ import pwd
 import shlex
 import subprocess
 
-from logging_utils import *
+from ambari_commons.logging_utils import print_info_msg, print_warning_msg
 
 
 NR_CHMOD_CMD = 'chmod {0} {1} {2}'
@@ -33,14 +33,16 @@ NR_CHOWN_CMD = 'chown {0} {1} {2}'
 ULIMIT_CMD = "ulimit -n"
 
 
-def run_os_command(cmd):
+def os_run_os_command(cmd, env=None, shell=False):
   print_info_msg('about to run command: ' + str(cmd))
   if type(cmd) == str:
     cmd = shlex.split(cmd)
   process = subprocess.Popen(cmd,
                              stdout=subprocess.PIPE,
                              stdin=subprocess.PIPE,
-                             stderr=subprocess.PIPE
+                             stderr=subprocess.PIPE,
+                             env=env,
+                             shell=shell
                              )
   (stdoutdata, stderrdata) = process.communicate()
   return process.returncode, stdoutdata, stderrdata
@@ -64,17 +66,17 @@ def os_set_file_permissions(file, mod, recursive, user):
   else:
     params = ""
   command = NR_CHMOD_CMD.format(params, mod, file)
-  retcode, out, err = run_os_command(command)
+  retcode, out, err = os_run_os_command(command)
   if retcode != 0:
     print_warning_msg(WARN_MSG.format(command, file, err))
   command = NR_CHOWN_CMD.format(params, user, file)
-  retcode, out, err = run_os_command(command)
+  retcode, out, err = os_run_os_command(command)
   if retcode != 0:
     print_warning_msg(WARN_MSG.format(command, file, err))
 
 def os_set_open_files_limit(maxOpenFiles):
   command = "%s %s" % (ULIMIT_CMD, str(maxOpenFiles))
-  run_os_command(command)
+  os_run_os_command(command)
 
 
 def os_getpass(prompt):

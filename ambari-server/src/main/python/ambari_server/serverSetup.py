@@ -50,7 +50,7 @@ def verify_setup_allowed():
 
   isSecure = get_is_secure(properties)
   (isPersisted, masterKeyFile) = get_is_persisted(properties)
-  if isSecure and not isPersisted and SILENT:
+  if isSecure and not isPersisted and get_silent():
     print "ERROR: Cannot run silent 'setup' with password encryption enabled " \
           "and Master Key not persisted."
     print "Ambari Server 'setup' exiting."
@@ -526,6 +526,9 @@ def reset(options, serviceClass):
 
 def is_server_running(serviceClass):
   statusStr = serviceClass.QueryStatus()
+  from ambari_commons.os_windows import SERVICE_STATUS_STARTING, SERVICE_STATUS_RUNNING, SERVICE_STATUS_STOPPING, \
+    SERVICE_STATUS_STOPPED, SERVICE_STATUS_NOT_INSTALLED
+
   if statusStr in(SERVICE_STATUS_STARTING, SERVICE_STATUS_RUNNING, SERVICE_STATUS_STOPPING):
     return True, ""
   elif statusStr == SERVICE_STATUS_STOPPED:

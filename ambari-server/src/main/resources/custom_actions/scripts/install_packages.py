@@ -24,9 +24,9 @@ import json
 import sys
 import traceback
 from resource_management import *
-from resource_management.libraries.functions.list_ambari_managed_repos import *
+from resource_management.libraries.functions.list_ambari_managed_repos import list_ambari_managed_repos
 from ambari_commons.os_check import OSCheck, OSConst
-from resource_management.libraries.functions import packages_analyzer
+from resource_management.libraries.functions.packages_analyzer import allInstalledPackages
 
 
 class InstallPackages(Script):
@@ -81,7 +81,7 @@ class InstallPackages(Script):
       packages_were_checked = False
       try:
         packages_installed_before = []
-        packages_analyzer.allInstalledPackages(packages_installed_before)
+        allInstalledPackages(packages_installed_before)
         packages_installed_before = [package[0] for package in packages_installed_before]
         packages_were_checked = True
         for package in package_list:
@@ -95,7 +95,7 @@ class InstallPackages(Script):
         # Remove already installed packages in case of fail
         if packages_were_checked and packages_installed_before:
           packages_installed_after = []
-          packages_analyzer.allInstalledPackages(packages_installed_after)
+          allInstalledPackages(packages_installed_after)
           packages_installed_after = [package[0] for package in packages_installed_after]
           packages_installed_before = set(packages_installed_before)
           new_packages_installed = [package for package in packages_installed_after if package not in packages_installed_before]

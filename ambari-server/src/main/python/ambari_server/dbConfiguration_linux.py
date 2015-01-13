@@ -513,14 +513,14 @@ class PGConfig(DBMSConfig):
       raise FatalException(1, drop_errdata)
     if drop_errdata and PG_ERROR_BLOCKED in drop_errdata:
       raise FatalException(1, "Database is in use. Please, make sure all connections to the database are closed")
-    if drop_errdata and VERBOSE:
+    if drop_errdata and get_verbose():
       print_warning_msg(drop_errdata)
     print_info_msg("About to run database setup")
     retcode, outdata, errdata = setup_db(args)
-    if errdata and VERBOSE:
+    if errdata and get_verbose():
       print_warning_msg(errdata)
     if (errdata and 'ERROR' in errdata.upper()) or (drop_errdata and 'ERROR' in drop_errdata.upper()):
-      if not VERBOSE:
+      if not get_verbose():
         raise NonFatalException("Non critical error in DDL, use --verbose for more information")
       else:
         raise NonFatalException("Non critical error in DDL")
@@ -631,7 +631,7 @@ class PGDatabase:
     tool = get_db_cli_tool(args)
     if not tool:
       # args.warnings.append('{0} not found. Please, run DDL script manually'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
-      if VERBOSE:
+      if get_verbose():
         print_warning_msg('{0} not found'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
       return -1, "Client wasn't found", "Client wasn't found"
 
