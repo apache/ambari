@@ -79,12 +79,13 @@ describe('App.MainServiceItemView', function () {
           displayName: "HDFS",
           isSingleNode: true,
           serviceTypes: ["HA_MODE"],
-          hostComponents: [
+          slaveComponents: [
             Em.Object.create({
               componentName: 'DATANODE',
-              isMaster: false,
-              isSlave: true
-            }),
+              totalCount: 1
+            })
+          ],
+          hostComponents: [
             Em.Object.create({
               componentName: 'HDFS_CLIENT',
               isMaster: false,
@@ -106,7 +107,7 @@ describe('App.MainServiceItemView', function () {
             {"action": "rollingRestart", "label": "Restart DataNodes", "cssClass": "icon-time", "disabled": false, "context": "DATANODE"},
             {"action": "reassignMaster", "context": "NAMENODE", "label": "Move NameNode", "cssClass": "icon-share-alt", "disabled": true},
             {"action": "reassignMaster", "context": "SECONDARY_NAMENODE", "label": "Move SNameNode", "cssClass": "icon-share-alt", "disabled": true},
-            {"action": "enableHighAvailability", "label": "Enable NameNode HA", "cssClass": "icon-arrow-up", "isHidden": false, "disabled": true,},
+            {"action": "enableHighAvailability", "label": "Enable NameNode HA", "cssClass": "icon-arrow-up", "isHidden": false, "disabled": true},
             {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt"},
             {"action": "turnOnOffPassive", "context": "Turn On Maintenance Mode for HDFS", "label": "Turn On Maintenance Mode", "cssClass": "icon-medkit", "disabled": false},
             {"action": "rebalanceHdfsNodes", "customCommand": "REBALANCEHDFS", "context": "Rebalance HDFS", "label": "Rebalance HDFS", "cssClass": "icon-refresh", "disabled": false},
@@ -117,6 +118,7 @@ describe('App.MainServiceItemView', function () {
           serviceName: "ZOOKEEPER",
           displayName: "ZooKeeper",
           serviceTypes: [],
+          slaveComponents: [],
           hostComponents: [
             Em.Object.create({
               componentName: 'ZOOKEEPER_CLIENT',
@@ -145,16 +147,17 @@ describe('App.MainServiceItemView', function () {
           serviceName: "YARN",
           displayName: "YARN",
           serviceTypes: ['HA_MODE'],
+          slaveComponents: [
+            Em.Object.create({
+              componentName: 'NODEMANAGER',
+              totalCount: 1
+            })
+          ],
           hostComponents: [
             Em.Object.create({
               componentName: 'APP_TIMELINE_SERVER',
               isMaster: true,
               isSlave: false
-            }),
-            Em.Object.create({
-              componentName: 'NODEMANAGER',
-              isMaster: false,
-              isSlave: true
             }),
             Em.Object.create({
               componentName: 'RESOURCEMANAGER',
@@ -183,6 +186,7 @@ describe('App.MainServiceItemView', function () {
           serviceName: "MAPREDUCE2",
           displayName: "MapReduce2",
           serviceTypes: [],
+          slaveComponents: [],
           hostComponents: [
             Em.Object.create({
               componentName: 'HISTORYSERVER',
@@ -206,6 +210,7 @@ describe('App.MainServiceItemView', function () {
           serviceName: "KAFKA",
           displayName: "Kafka",
           serviceTypes: [],
+          slaveComponents: [],
           hostComponents: [
             Em.Object.create({
               componentName: 'KAFKA_BROKER',
@@ -224,12 +229,13 @@ describe('App.MainServiceItemView', function () {
           serviceName: "FLUME",
           displayName: "Flume",
           serviceTypes: [],
-          hostComponents: [
+          slaveComponents: [
             Em.Object.create({
               componentName: 'FLUME_HANDLER',
-              isMaster: false,
-              isSlave: true
+              totalCount: 1
             })
+          ],
+          hostComponents: [
           ],
           controller: [
             {'addDisabledTooltipFLUME_HANDLER': ''},
@@ -249,6 +255,12 @@ describe('App.MainServiceItemView', function () {
           serviceName: "HBASE",
           displayName: "HBase",
           serviceTypes: [],
+          slaveComponents: [
+            Em.Object.create({
+              componentName: 'HBASE_REGIONSERVER',
+              totalCount: 1
+            })
+          ],
           hostComponents: [
             Em.Object.create({
               componentName: 'HBASE_CLIENT',
@@ -259,11 +271,6 @@ describe('App.MainServiceItemView', function () {
               componentName: 'HBASE_MASTER',
               isMaster: true,
               isSlave: false
-            }),
-            Em.Object.create({
-              componentName: 'HBASE_REGIONSERVER',
-              isMaster: false,
-              isSlave: true
             })
           ],
           controller: [
@@ -283,6 +290,7 @@ describe('App.MainServiceItemView', function () {
           serviceName: "OOZIE",
           displayName: "Oozie",
           serviceTypes: [],
+          slaveComponents: [],
           hostComponents: [
             Em.Object.create({
               componentName: 'OOZIE_CLIENT',
@@ -307,6 +315,7 @@ describe('App.MainServiceItemView', function () {
           serviceName: "KNOX",
           displayName: "Knox",
           serviceTypes: [],
+          slaveComponents: [],
           hostComponents: [
             Em.Object.create({
               componentName: 'KNOX_GATEWAY',
@@ -392,6 +401,7 @@ describe('App.MainServiceItemView', function () {
           controller: Em.Object.create({
             content: Em.Object.create({
               hostComponents: testCase.hostComponents,
+              slaveComponents: testCase.slaveComponents,
               serviceName: testCase.serviceName,
               displayName: testCase.displayName,
               serviceTypes: testCase.serviceTypes,
