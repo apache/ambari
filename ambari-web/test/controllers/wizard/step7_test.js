@@ -1352,6 +1352,10 @@ describe('App.InstallerStep7Controller', function () {
         {
           siteName: 'ams-hbase-site',
           tagName: 'version1'
+        },
+        {
+          siteName: 'site-without-properties',
+          tagName: 'version1'
         }
       ],
       configs = [
@@ -1382,6 +1386,10 @@ describe('App.InstallerStep7Controller', function () {
           properties: {
             'hbase.client.scanner.caching': '2500'
           }
+        },
+        {
+          type: 'site-without-properties',
+          tag: 'version1'
         }
       ],
       installedServiceNames = ['HBASE', 'AMS'];

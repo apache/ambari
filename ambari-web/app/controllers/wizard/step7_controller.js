@@ -843,7 +843,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
     var self = this;
 
     configsByTags.forEach(function (configSite) {
-      configsMap[configSite.type] = configSite.properties;
+      configsMap[configSite.type] = configSite.properties || {};
     });
     configs.forEach(function (_config) {
       var nonServiceTab = require('data/service_configs');
