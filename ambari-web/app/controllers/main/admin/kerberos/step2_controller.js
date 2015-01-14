@@ -36,7 +36,7 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
   addMiscTabToPage: false,
 
   /**
-   * @type {boolean} true if test conection to hosts is in progress
+   * @type {boolean} true if test connection to hosts is in progress
    */
   testConnectionInProgress: false,
 

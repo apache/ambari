@@ -410,8 +410,7 @@ Em.I18n.translations = {
 
   'installer.controls.slaveComponentGroups':' Groups',
   'installer.controls.serviceConfigPopover.title':'{0}<br><small>{1}</small>',
-  'installer.controls.checkConnection.popover':'This action will check accessibility of all hosts to Ambari installed {0} host and port ' +
-    'and accessibility of Ambari installed {0} host to external {0} host',
+  'installer.controls.checkConnection.popover':'This action will check accessibility of {0} host and port from Ambari Server host',
   'installer.controls.serviceConfigMultipleHosts.other':'1 other',
   'installer.controls.serviceConfigMultipleHosts.others':'{0} others',
   'installer.controls.serviceConfigMasterHosts.header':'{0} Hosts',

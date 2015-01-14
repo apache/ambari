@@ -34,7 +34,7 @@ module.exports = App.WizardRoute.extend({
         secondary: null,
 
         onClose: function () {
-          var step2Controller = router.get('kerberosWizardStep2Controller')
+          var step2Controller = router.get('kerberosWizardStep2Controller');
           if (step2Controller.get('testConnectionInProgress')) {
             step2Controller.showConnectionInProgressPopup(this.exitWizard);
           } else {
@@ -141,7 +141,7 @@ module.exports = App.WizardRoute.extend({
     back: function(router) {
       var controller = router.get('kerberosWizardStep2Controller');
       if (!controller.get('isBackBtnDisabled')) {
-        Em.Router.transitionTo('step1')
+        router.transitionTo('step1')
       }
     },
 
