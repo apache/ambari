@@ -59,15 +59,19 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
   }.property('serviceConfig.isEditable')
 });
 
+/**
+ * mixin set class that serve as unique element identificator,
+ * id not used in order to avoid collision with ember ids
+ */
 App.ServiceConfigCalculateId = Ember.Mixin.create({
-
-  elementId: Ember.computed(function(){
+  idClass: Ember.computed(function () {
     var label = Em.get(this, 'serviceConfig.name') ? Em.get(this, 'serviceConfig.name').toLowerCase().replace(/\./g, '-') : '',
         fileName = Em.get(this, 'serviceConfig.filename') ? Em.get(this, 'serviceConfig.filename').toLowerCase().replace(/\./g, '-') : '',
         group = Em.get(this, 'serviceConfig.group.name') || 'default';
-    return 'service-config-' + label + '-' + fileName + '-' + group;
-  })
-
+        isOrigin = Em.get(this, 'serviceConfig.compareConfigs.length') > 0 ? '-origin' : '';
+    return 'service-config-' + label + '-' + fileName + '-' + group + isOrigin;
+  }),
+  classNameBindings: 'idClass'
 });
 
 /**
