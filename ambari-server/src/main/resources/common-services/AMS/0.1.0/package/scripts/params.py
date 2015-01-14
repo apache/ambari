@@ -21,17 +21,20 @@ limitations under the License.
 from functions import calc_xmn_from_xms
 from resource_management import *
 import status_params
+from ambari_commons import OSCheck
 
+if OSCheck.is_windows_family():
+  from params_windows import *
+else:
+  from params_linux import *
 # server configurations
 config = Script.get_config()
 exec_tmp_dir = Script.get_tmp_dir()
 
 #AMS data
-ams_user = status_params.ams_user
 ams_pid_dir = status_params.ams_collector_pid_dir
 
 ams_collector_script = "/usr/sbin/ambari-metrics-collector"
-ams_collector_conf_dir = "/etc/ambari-metrics-collector/conf"
 ams_collector_pid_dir = status_params.ams_collector_pid_dir
 ams_collector_hosts = default("/clusterHostInfo/metric_collector_hosts", [])
 ams_collector_host_single = ams_collector_hosts[0] #TODO cardinality is 1+ so we can have more than one host
@@ -43,38 +46,14 @@ pass
 ams_collector_log_dir = config['configurations']['ams-env']['ams_collector_log_dir']
 ams_monitor_log_dir = config['configurations']['ams-env']['ams_monitor_log_dir']
 
-ams_monitor_conf_dir = "/etc/ambari-metrics-monitor/conf/"
 ams_monitor_dir = "/usr/lib/python2.6/site-packages/resource_monitoring"
 ams_monitor_pid_dir = status_params.ams_monitor_pid_dir
 ams_monitor_script = "/usr/sbin/ambari-metrics-monitor"
 
-#RPM versioning support
-rpm_version = default("/configurations/hadoop-env/rpm_version", None)
+
 
 #hadoop params
-if rpm_version is not None:
-#RPM versioning support
-  rpm_version = default("/configurations/hadoop-env/rpm_version", None)
 
-#hadoop params
-if rpm_version is not None:
-  hadoop_native_lib = format("/usr/hdp/current/hadoop-client/lib/native/")
-  hadoop_bin_dir = format("/usr/hdp/current/hadoop/bin")
-  daemon_script = format('/usr/hdp/current/hbase/bin/hbase-daemon.sh')
-  region_mover = format('/usr/hdp/current/hbase/bin/region_mover.rb')
-  region_drainer = format('/usr/hdp/current/hbase/bin/draining_servers.rb')
-  hbase_cmd = format('/usr/hdp/current/hbase/bin/hbase')
-else:
-  hadoop_native_lib = format("/usr/lib/hadoop/lib/native")
-  hadoop_bin_dir = "/usr/bin"
-  daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
-  region_mover = "/usr/lib/hbase/bin/region_mover.rb"
-  region_drainer = "/usr/lib/hbase/bin/draining_servers.rb"
-  hbase_cmd = "/usr/lib/hbase/bin/hbase"
-
-hadoop_conf_dir = "/etc/hadoop/conf"
-#hbase_conf_dir = "/etc/ams-hbase/conf"
-hbase_conf_dir = "/etc/ams-hbase/conf"
 hbase_excluded_hosts = config['commandParams']['excluded_hosts']
 hbase_drain_only = config['commandParams']['mark_draining_only']
 hbase_included_hosts = config['commandParams']['included_hosts']
@@ -120,6 +99,7 @@ smoke_test_user = config['configurations']['cluster-env']['smokeuser']
 smokeuser_permissions = "RWXCA"
 service_check_data = functions.get_unique_id_and_date()
 user_group = config['configurations']['cluster-env']["user_group"]
+hadoop_user = "hadoop"
 
 if security_enabled:
   _hostname_lowercase = config['hostname'].lower()

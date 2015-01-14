@@ -28,3 +28,4 @@ from resource_management.libraries.resources.repository import *
 from resource_management.libraries.resources.monitor_webserver import *
 from resource_management.libraries.resources.hdfs_directory import *
 from resource_management.libraries.resources.copy_from_local import *
+from resource_management.libraries.resources.msi import *

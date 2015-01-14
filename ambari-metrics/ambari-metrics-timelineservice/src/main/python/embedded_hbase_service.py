@@ -30,6 +30,7 @@ from ambari_metrics_collector.serviceConfiguration import EMBEDDED_HBASE_MASTER_
 
 MASTER_JVM_ARGS = '{0} ' \
   '"-XX:+UseConcMarkSweepGC" "-Djava.net.preferIPv4Stack=true" ' \
+  '-Djava.library.path="{6}" ' \
   '-Dhadoop.home.dir="{1}" -Dhbase.log.dir="{2}" -Dhbase.log.file={3} -Dhbase.home.dir="{1}" -Dhbase.id.str="{4}" ' \
   '-Dhbase.root.logger="INFO,DRFA" -Dhbase.security.logger="INFO,RFAS" ' \
   '-classpath "{5}" org.apache.hadoop.hbase.master.HMaster start'
@@ -44,7 +45,7 @@ def _build_master_java_args(username = None):
   hbase_log_dir = os.path.join(os.sep, "var", "log", EMBEDDED_HBASE_MASTER_SERVICE)
   hbase_log_file = "hbase.log"
   hbase_user_id = username if username else "SYSTEM"
-
+  java_library_path = os.path.join(hbase_home_dir, "bin")
   if not os.path.exists(hbase_log_dir):
     os.makedirs(hbase_log_dir)
 
@@ -53,7 +54,7 @@ def _build_master_java_args(username = None):
   java_class_path += os.pathsep + hbase_home_dir
   java_class_path += os.pathsep + os.path.join(hbase_home_dir, "lib", "*")
 
-  args = MASTER_JVM_ARGS.format(build_jvm_args(), hbase_home_dir, hbase_log_dir, hbase_log_file, hbase_user_id, java_class_path)
+  args = MASTER_JVM_ARGS.format(build_jvm_args(), hbase_home_dir, hbase_log_dir, hbase_log_file, hbase_user_id, java_class_path, java_library_path)
 
   return args
 

@@ -18,10 +18,80 @@ limitations under the License.
 
 """
 import os
-
+from ambari_commons import OSConst
 from resource_management import *
-import sys
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def hbase(name=None):
+  import params
+  Directory(params.hbase_conf_dir,
+            owner = params.hadoop_user,
+            recursive = True
+  )
+  Directory(params.hbase_tmp_dir,
+             recursive = True,
+             owner = params.hadoop_user
+  )
+
+  Directory (os.path.join(params.local_dir, "jars"),
+             owner = params.hadoop_user,
+             recursive = True
+  )
+
+  XmlConfig("hbase-site.xml",
+            conf_dir = params.hbase_conf_dir,
+            configurations = params.config['configurations']['ams-hbase-site'],
+            configuration_attributes=params.config['configuration_attributes']['ams-hbase-site'],
+            owner = params.hadoop_user
+  )
+
+  if 'ams-hbase-policy' in params.config['configurations']:
+    XmlConfig("hbase-policy.xml",
+              conf_dir = params.hbase_conf_dir,
+              configurations = params.config['configurations']['ams-hbase-policy'],
+              configuration_attributes=params.config['configuration_attributes']['ams-hbase-policy'],
+              owner = params.hadoop_user
+    )
+  # Manually overriding ownership of file installed by hadoop package
+  else:
+    File(os.path.join(params.hbase_conf_dir, "hbase-policy.xml"),
+          owner = params.hadoop_user
+    )
+
+  # File(format("{hbase_conf_dir}/hbase-env.cmd"),
+  #      owner = params.hadoop_user,
+  #      content=InlineTemplate(params.hbase_env_sh_template)
+  # )
+
+  # Metrics properties
+  # File(os.path.join(params.hbase_conf_dir, "hadoop-metrics2-hbase.properties"),
+  #      owner = params.hadoop_user,
+  #      content=Template("hadoop-metrics2-hbase.properties.j2")
+  # )
+
+  hbase_TemplateConfig('regionservers', user=params.hadoop_user)
+
+  if params.security_enabled:
+    hbase_TemplateConfig(format("hbase_{name}_jaas.conf"), user=params.hadoop_user)
+
+  if name != "client":
+    Directory (params.hbase_log_dir,
+               owner = params.hadoop_user,
+               recursive = True
+    )
+
+  if (params.hbase_log4j_props != None):
+    File(os.path.join(params.hbase_conf_dir, "log4j.properties"),
+         owner=params.hadoop_user,
+         content=params.hbase_log4j_props
+    )
+  elif (os.path.exists(os.path.join(params.hbase_conf_dir,"log4j.properties"))):
+    File(os.path.join(params.hbase_conf_dir,"log4j.properties"),
+         owner=params.hadoop_user
+    )
+
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hbase(name=None # 'master' or 'regionserver' or 'client'
               ):
   import params
@@ -83,10 +153,10 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
   #   tag = 'GANGLIA-MASTER' if name == 'master' else 'GANGLIA-RS'
   # )
 
-  hbase_TemplateConfig('regionservers')
+  hbase_TemplateConfig('regionservers', user=params.hbase_user)
 
   if params.security_enabled:
-    hbase_TemplateConfig( format("hbase_{name}_jaas.conf"))
+    hbase_TemplateConfig( format("hbase_{name}_jaas.conf"), user=params.hbase_user)
   
   if name != "client":
     Directory( params.hbase_pid_dir,
@@ -113,11 +183,10 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
       owner=params.hbase_user
     )
 
-
-def hbase_TemplateConfig(name, tag=None):
+def hbase_TemplateConfig(name, tag=None, user=None):
   import params
 
-  TemplateConfig( format("{hbase_conf_dir}/{name}"),
-      owner = params.hbase_user,
+  TemplateConfig( os.path.join(params.hbase_conf_dir, name),
+      owner = user,
       template_tag = tag
   )

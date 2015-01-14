@@ -15,28 +15,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
+Ambari Agent
 """
 
-import sys
-from resource_management import *
+_all__ = ["Msi"]
+from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument
 
-class BeforeStartHook(Hook):
-
-  def hook(self, env):
-    import params
-
-    self.run_custom_hook('before-ANY')
-    self.run_custom_hook('after-INSTALL')
-    env.set_params(params)
-    if params.has_metric_collector:
-      File(os.path.join(params.hadoop_conf_dir, "hadoop-metrics2.properties"),
-           owner=params.hadoop_user,
-           content=Template("hadoop-metrics2.properties.j2")
-      )
-      File(os.path.join(params.hbase_conf_dir, "hadoop-metrics2-hbase.properties"),
-           owner=params.hadoop_user,
-           content=Template("hadoop-metrics2-hbase.properties.j2")
-      )
-
-if __name__ == "__main__":
-  BeforeStartHook().execute()
+class Msi(Resource):
+  action = ForcedListArgument(default="install")
+  msi_name = ResourceArgument(default=lambda obj: obj.name)
+  http_source = ResourceArgument(default=None)
+  dict_args = ResourceArgument(default={})
+  list_args = ResourceArgument(default={})
+  actions = Resource.actions + ["install", "uninstall"]

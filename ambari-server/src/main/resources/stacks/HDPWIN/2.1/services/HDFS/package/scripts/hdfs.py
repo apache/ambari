@@ -52,13 +52,3 @@ def hdfs(component=None):
             mode="f",
             configuration_attributes=params.config['configuration_attributes']['hdfs-site']
   )
-  File(os.path.join(params.hadoop_conf_dir, "hadoop-metrics2.properties"),
-       content=Template("hadoop-metrics2.properties.j2"),
-       owner=params.hdfs_user,
-       mode="f"
-  )
-  File(os.path.join(params.hbase_conf_dir, "hadoop-metrics2-hbase.properties"),
-       content=Template("hadoop-metrics2.properties.j2"),
-       owner=params.hdfs_user,
-       mode="f"
-  )

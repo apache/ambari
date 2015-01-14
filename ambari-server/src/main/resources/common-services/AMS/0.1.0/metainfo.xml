@@ -92,6 +92,20 @@
             </package>
           </packages>
         </osSpecific>
+        <osSpecific>
+          <osFamily>winsrv6</osFamily>
+          <packages>
+            <package>
+              <name>ambari-metrics-collector.msi</name>
+            </package>
+            <package>
+              <name>ambari-metrics-monitor.msi</name>
+            </package>
+            <package>
+              <name>ambari-metrics-hadoop-sink.msi</name>
+            </package>
+          </packages>
+        </osSpecific>
       </osSpecifics>
 
       <commandScript>

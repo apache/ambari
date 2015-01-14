@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -17,26 +18,18 @@ limitations under the License.
 
 """
 
-import sys
+
 from resource_management import *
 
-class BeforeStartHook(Hook):
+config = Script.get_config()
 
-  def hook(self, env):
-    import params
-
-    self.run_custom_hook('before-ANY')
-    self.run_custom_hook('after-INSTALL')
-    env.set_params(params)
-    if params.has_metric_collector:
-      File(os.path.join(params.hadoop_conf_dir, "hadoop-metrics2.properties"),
-           owner=params.hadoop_user,
-           content=Template("hadoop-metrics2.properties.j2")
-      )
-      File(os.path.join(params.hbase_conf_dir, "hadoop-metrics2-hbase.properties"),
-           owner=params.hadoop_user,
-           content=Template("hadoop-metrics2-hbase.properties.j2")
-      )
-
-if __name__ == "__main__":
-  BeforeStartHook().execute()
+ams_user = "hadoop"
+ams_collector_conf_dir = os.environ["COLLECTOR_CONF_DIR"]
+ams_collector_home_dir = os.environ["COLLECTOR_HOME"]
+ams_monitor_conf_dir = os.environ["MONITOR_CONF_DIR"]
+ams_monitor_home_dir = os.environ["MONITOR_HOME"]
+hadoop_native_lib = os.path.join(os.environ["HADOOP_HOME"], "bin")
+hadoop_bin_dir = os.path.join(os.environ["HADOOP_HOME"], "bin")
+hbase_cmd = os.path.join(os.environ["COLLECTOR_HOME"], "hbase", "bin", "hbase.cmd")
+hadoop_conf_dir = os.path.join(os.environ["HADOOP_HOME"], "conf")
+hbase_conf_dir = os.path.join(os.environ["COLLECTOR_HOME"], "hbase", "conf")

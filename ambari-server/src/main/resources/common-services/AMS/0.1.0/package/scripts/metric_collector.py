@@ -22,6 +22,7 @@ from resource_management import *
 from ams import ams
 from ams_service import ams_service
 from hbase import hbase
+from status import check_service_status
 
 class AmsCollector(Script):
     def install(self, env):
@@ -55,8 +56,7 @@ class AmsCollector(Script):
     def status(self, env):
         import status_params
         env.set_params(status_params)
-        pid_file = format("{ams_collector_pid_dir}/ambari-metrics-collector.pid")
-        check_process_status(pid_file)
+        check_service_status(name='collector')
 
 
 if __name__ == "__main__":

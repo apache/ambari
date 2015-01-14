@@ -17,26 +17,22 @@ limitations under the License.
 
 """
 
-import sys
 from resource_management import *
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
-class BeforeStartHook(Hook):
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
+def check_service_status(name):
+  if name=='collector':
+    pid_file = format("{ams_monitor_pid_dir}/ambari-metrics-collector.pid")
+  elif name == 'monitor':
+    pid_file = format("{ams_monitor_pid_dir}/ambari-metrics-monitor.pid")
+  check_process_status(pid_file)
 
-  def hook(self, env):
-    import params
-
-    self.run_custom_hook('before-ANY')
-    self.run_custom_hook('after-INSTALL')
-    env.set_params(params)
-    if params.has_metric_collector:
-      File(os.path.join(params.hadoop_conf_dir, "hadoop-metrics2.properties"),
-           owner=params.hadoop_user,
-           content=Template("hadoop-metrics2.properties.j2")
-      )
-      File(os.path.join(params.hbase_conf_dir, "hadoop-metrics2-hbase.properties"),
-           owner=params.hadoop_user,
-           content=Template("hadoop-metrics2-hbase.properties.j2")
-      )
-
-if __name__ == "__main__":
-  BeforeStartHook().execute()
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def check_service_status(name):
+  import service_mapping
+  if name=='collector':
+    check_windows_service_status(service_mapping.collector_win_service_name)
+  elif name == 'monitor':
+    check_windows_service_status(service_mapping.monitor_win_service_name)

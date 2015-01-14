@@ -44,9 +44,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.sql.HostInfoProvider;
-import org.apache.ambari.server.controller.sql.SQLPropertyProvider;
-import org.apache.ambari.server.controller.sql.SinkConnectionFactory;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
@@ -78,7 +75,7 @@ import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider
  */
 public abstract class AbstractProviderModule implements ProviderModule,
     ResourceProviderObserver, JMXHostProvider, MetricHostProvider,
-    MetricsServiceProvider, HostInfoProvider {
+    MetricsServiceProvider {
 
   private static final int PROPERTY_REQUEST_CONNECT_TIMEOUT = 5000;
   private static final int PROPERTY_REQUEST_READ_TIMEOUT    = 10000;
@@ -546,43 +543,6 @@ public abstract class AbstractProviderModule implements ProviderModule,
     return value;
   }
 
-  // ----- HostInfoProvider -----------------------------------------------
-
-  @Override
-  public String getHostName(String id) throws SystemException {
-    return getClusterNodeName(id);
-  }
-
-  @Override
-  public String getHostAddress(String id) throws SystemException {
-    return getClusterHostAddress(id);
-  }
-
-
-  // get the hostname
-  private String getClusterNodeName(String hostname) throws SystemException {
-    try {
-      if (hostname.equalsIgnoreCase("localhost")) {
-        return InetAddress.getLocalHost().getCanonicalHostName();
-      }
-      return InetAddress.getByName(hostname).getCanonicalHostName();
-    } catch (Exception e) {
-      throw new SystemException("Error getting hostname.", e);
-    }
-  }
-
-  // get the hostname
-  private String getClusterHostAddress(String hostname) throws SystemException {
-    try {
-      if (hostname.equalsIgnoreCase("localhost")) {
-        return InetAddress.getLocalHost().getHostAddress();
-      }
-      return InetAddress.getByName(hostname).getHostAddress();
-    } catch (Exception e) {
-      throw new SystemException("Error getting ip address.", e);
-    }
-  }
-
   // ----- utility methods ---------------------------------------------------
 
   protected abstract ResourceProvider createResourceProvider(Resource.Type type);
@@ -656,15 +616,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
               PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"),
               PropertyHelper.getPropertyId("ServiceComponentInfo", "state"));
           PropertyProvider gpp = null;
-          if (System.getProperty("os.name").contains("Windows")) {
-            gpp = createSQLComponentPropertyProvider(
-                type,
-                this,
-                PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
-                PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"),
-                PropertyHelper.getPropertyId("ServiceComponentInfo", "service_name"));
-          } else {
-            gpp = createMetricsComponentPropertyProvider(
+          gpp = createMetricsComponentPropertyProvider(
               type,
               streamProvider,
               ComponentSSLConfiguration.instance(),
@@ -672,7 +624,6 @@ public abstract class AbstractProviderModule implements ProviderModule,
               this,
               PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
               PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"));
-          }
           providers.add(new StackDefinedPropertyProvider(
               type,
               this,
@@ -699,25 +650,16 @@ public abstract class AbstractProviderModule implements ProviderModule,
               PropertyHelper.getPropertyId("HostRoles", "component_name"),
               PropertyHelper.getPropertyId("HostRoles", "state"));
           PropertyProvider gpp = null;
-          if (System.getProperty("os.name").contains("Windows")) {
-            gpp = createSQLHostComponentPropertyProvider(
-                type,
-                this,
-                PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
-                PropertyHelper.getPropertyId("HostRoles", "host_name"),
-                PropertyHelper.getPropertyId("HostRoles", "component_name"),
-                PropertyHelper.getPropertyId("HostRoles", "service_name"));
-          } else {
-            gpp = createMetricsHostComponentPropertyProvider(
-              type,
-              streamProvider,
-              ComponentSSLConfiguration.instance(),
-              this,
-              this,
-              PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
-              PropertyHelper.getPropertyId("HostRoles", "host_name"),
-              PropertyHelper.getPropertyId("HostRoles", "component_name"));
-          }
+          gpp = createMetricsHostComponentPropertyProvider(
+            type,
+            streamProvider,
+            ComponentSSLConfiguration.instance(),
+            this,
+            this,
+            PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+            PropertyHelper.getPropertyId("HostRoles", "host_name"),
+            PropertyHelper.getPropertyId("HostRoles", "component_name"));
+
           providers.add(new StackDefinedPropertyProvider(
               type,
               this,
@@ -1028,45 +970,6 @@ public abstract class AbstractProviderModule implements ProviderModule,
       PropertyHelper.getMetricPropertyIds(type), streamProvider, configuration,
       hostProvider, serviceProvider, clusterNamePropertyId, hostNamePropertyId,
       componentNamePropertyId);
-  }
-
-  /**
-   * Create the SQL component property provider for the given type.
-   */
-  private PropertyProvider createSQLComponentPropertyProvider(Resource.Type type,
-                                                              HostInfoProvider hostProvider,
-                                                              String clusterNamePropertyId,
-                                                              String componentNamePropertyId,
-                                                              String serviceNamePropertyId) {
-    return new SQLPropertyProvider(
-        PropertyHelper.getSQLServerPropertyIds(type),
-        hostProvider,
-        clusterNamePropertyId,
-        null,
-        componentNamePropertyId,
-        serviceNamePropertyId,
-        SinkConnectionFactory.instance());
-  }
-
-
-  /**
-   * Create the SQL host component property provider for the given type.
-   */
-  private PropertyProvider createSQLHostComponentPropertyProvider(Resource.Type type,
-                                                                  HostInfoProvider hostProvider,
-                                                                  String clusterNamePropertyId,
-                                                                  String hostNamePropertyId,
-                                                                  String componentNamePropertyId,
-                                                                  String serviceNamePropertyId) {
-
-    return new SQLPropertyProvider(
-        PropertyHelper.getSQLServerPropertyIds(type),
-        hostProvider,
-        clusterNamePropertyId,
-        hostNamePropertyId,
-        componentNamePropertyId,
-        serviceNamePropertyId,
-        SinkConnectionFactory.instance());
   }
 
   @Override

@@ -21,61 +21,10 @@
 -->
 
 <configuration>
-    <!-- metrics sink properties -->
-    <property>
-      <name>sink_database</name>
-      <value>Existing MSSQL Server database with sql auth</value>
-    </property>
-
-    <property>
-      <name>sink.dbservername</name>
-      <value/>
-    </property>
-
-    <property>
-      <name>sink.dblogin</name>
-      <value>hadoop</value>
-      <description>
-        DB user name.
-      </description>
-    </property>
-
-    <property>
-      <name>sink.dbpassword</name>
-      <value/>
-      <description>
-        DB password.
-      </description>
-    </property>
-
-    <property>
-      <name>sink.db.schema.name</name>
-      <value>HadoopMetrics</value>
-    </property>
-
-    <property>
-      <name>sink.jdbc.driver</name>
-      <value>com.microsoft.sqlserver.jdbc.SQLServerDriver</value>
-      <description>
-        JDBC driver class.
-      </description>
-    </property>
-
-    <property>
-      <name>sink.jdbc.url</name>
-      <value/>
-      <description>
-        JDBC URL.
-      </description>
-    </property>
-
     <property>
       <name>hadoop.user.name</name>
       <value>hadoop</value>
     </property>
-
-
-
     <property>
         <name>security_enabled</name>
         <value>false</value>

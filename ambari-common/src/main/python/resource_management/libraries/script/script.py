@@ -26,7 +26,7 @@ import sys
 import json
 import logging
 import platform
-
+from ambari_commons.os_check import OSCheck
 from resource_management.libraries.resources import XmlConfig
 from resource_management.libraries.resources import PropertiesFile
 from resource_management.core.resources import File, Directory
@@ -39,11 +39,11 @@ from resource_management.libraries.functions.version_select_util import get_comp
 from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.script.config_dictionary import ConfigDictionary, UnknownConfiguration
 
-IS_WINDOWS = platform.system() == "Windows"
-if IS_WINDOWS:
+if OSCheck.is_windows_family():
   from resource_management.libraries.functions.install_hdp_msi import install_windows_msi
   from resource_management.libraries.functions.reload_windows_env import reload_windows_env
   from resource_management.libraries.functions.zip_archive import archive_dir
+  from resource_management.libraries.resources import Msi
 else:
   from resource_management.libraries.functions.tar_archive import archive_dir
 
@@ -160,7 +160,7 @@ class Script(object):
     # on windows we need to reload some of env variables manually because there is no default paths for configs(like
     # /etc/something/conf on linux. When this env vars created by one of the Script execution, they can not be updated
     # in agent, so other Script executions will not be able to access to new env variables
-    if platform.system() == "Windows":
+    if OSCheck.is_windows_family():
       reload_windows_env()
 
     try:
@@ -243,41 +243,37 @@ class Script(object):
     """
     self.install_packages(env)
 
-
-  if not IS_WINDOWS:
-    def install_packages(self, env, exclude_packages=[]):
-      """
-      List of packages that are required< by service is received from the server
-      as a command parameter. The method installs all packages
-      from this list
-      """
-      config = self.get_config()
-      try:
-        package_list_str = config['hostLevelParams']['package_list']
-        if isinstance(package_list_str, basestring) and len(package_list_str) > 0:
-          package_list = json.loads(package_list_str)
-          for package in package_list:
-            if not package['name'] in exclude_packages:
-              name = package['name']
+  def install_packages(self, env, exclude_packages=[]):
+    """
+    List of packages that are required< by service is received from the server
+    as a command parameter. The method installs all packages
+    from this list
+    """
+    config = self.get_config()
+    try:
+      package_list_str = config['hostLevelParams']['package_list']
+      if isinstance(package_list_str, basestring) and len(package_list_str) > 0:
+        package_list = json.loads(package_list_str)
+        for package in package_list:
+          if not package['name'] in exclude_packages:
+            name = package['name']
+            if OSCheck.is_windows_family():
+              if name[-4:] == ".msi":
+                #TODO all msis must be located in resource folder of server, change it to repo later
+                Msi(name, http_source=os.path.join(config['hostLevelParams']['jdk_location']))
+            else:
               Package(name)
-      except KeyError:
-        pass  # No reason to worry
+    except KeyError:
+      pass  # No reason to worry
 
-        # RepoInstaller.remove_repos(config)
-      pass
-  else:
-    def install_packages(self, env, exclude_packages=[]):
-      """
-      List of packages that are required< by service is received from the server
-      as a command parameter. The method installs all packages
-      from this list
-      """
-      config = self.get_config()
-
+    if OSCheck.is_windows_family():
+      #TODO hacky install of windows msi, remove it or move to old(2.1) stack definition when component based install will be implemented
       install_windows_msi(os.path.join(config['hostLevelParams']['jdk_location'], "hdp.msi"),
                           config["hostLevelParams"]["agentCacheDir"], "hdp.msi", self.get_password("hadoop"),
                           str(config['hostLevelParams']['stack_version']))
-      pass
+      reload_windows_env()
+    # RepoInstaller.remove_repos(config)
+    pass
 
   def fail_with_error(self, message):
     """
@@ -286,6 +282,7 @@ class Script(object):
     print("Error: " + message)
     sys.stderr.write("Error: " + message)
     sys.exit(1)
+
 
   def start(self, env, rolling_restart=False):
     """

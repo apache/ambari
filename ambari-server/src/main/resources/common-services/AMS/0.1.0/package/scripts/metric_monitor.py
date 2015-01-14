@@ -21,7 +21,7 @@ limitations under the License.
 from resource_management import *
 from ams import ams
 from ams_service import ams_service
-from hbase import hbase
+from status import check_service_status
 
 class AmsMonitor(Script):
   def install(self, env):
@@ -52,8 +52,7 @@ class AmsMonitor(Script):
   def status(self, env):
     import status_params
     env.set_params(status_params)
-    pid_file = format("{ams_monitor_pid_dir}/ambari-metrics-monitor.pid")
-    check_process_status(pid_file)
+    check_service_status(name='monitor')
 
 
 if __name__ == "__main__":

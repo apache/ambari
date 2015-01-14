@@ -18,5 +18,21 @@ limitations under the License.
 """
 
 from resource_management import *
-
+import nturl2path
 config = Script.get_config()
+ams_collector_hosts = default("/clusterHostInfo/metric_collector_hosts", [])
+has_metric_collector = not len(ams_collector_hosts) == 0
+if has_metric_collector:
+  metric_collector_host = ams_collector_hosts[0]
+  metric_collector_port = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:8188")
+  if metric_collector_port and metric_collector_port.find(':') != -1:
+    metric_collector_port = metric_collector_port.split(':')[1]
+  pass
+  sink_home = os.environ["SINK_HOME"]
+  timeline_plugin_url = "file:"+nturl2path.pathname2url(os.path.join(sink_home, "hadoop-sink", "ambari-metrics-hadoop-sink.jar"))
+
+
+
+hadoop_conf_dir = os.environ["HADOOP_CONF_DIR"]
+hbase_conf_dir = os.environ["HBASE_CONF_DIR"]
+hadoop_user = "hadoop"

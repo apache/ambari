@@ -19,9 +19,19 @@ limitations under the License.
 """
 
 from resource_management import *
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def ams_service(name, action):
+  import service_mapping
+  if name == 'collector':
+    Service(service_mapping.collector_win_service_name, action=action)
+  elif name == 'monitor':
+    Service(service_mapping.monitor_win_service_name, action=action)
 
-def ams_service(name='collector', action='start'):
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
+def ams_service(name, action):
   import params
 
   if name == 'collector':

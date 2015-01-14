@@ -17,26 +17,5 @@ limitations under the License.
 
 """
 
-import sys
-from resource_management import *
-
-class BeforeStartHook(Hook):
-
-  def hook(self, env):
-    import params
-
-    self.run_custom_hook('before-ANY')
-    self.run_custom_hook('after-INSTALL')
-    env.set_params(params)
-    if params.has_metric_collector:
-      File(os.path.join(params.hadoop_conf_dir, "hadoop-metrics2.properties"),
-           owner=params.hadoop_user,
-           content=Template("hadoop-metrics2.properties.j2")
-      )
-      File(os.path.join(params.hbase_conf_dir, "hadoop-metrics2-hbase.properties"),
-           owner=params.hadoop_user,
-           content=Template("hadoop-metrics2-hbase.properties.j2")
-      )
-
-if __name__ == "__main__":
-  BeforeStartHook().execute()
+collector_win_service_name = "AmbariMetricsCollector"
+monitor_win_service_name = "AmbariMetricsHostMonitoring"
