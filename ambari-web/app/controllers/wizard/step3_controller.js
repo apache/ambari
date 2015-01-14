@@ -379,6 +379,8 @@ App.WizardStep3Controller = Em.Controller.extend({
       });
     this.set('numPolls', 0);
     this.set('registrationStartedAt', null);
+    this.set('isHostsWarningsLoaded', false);
+    this.set('stopChecking', false);
     if (this.get('content.installOptions.manualInstall')) {
       this.startRegistration();
     } else {
