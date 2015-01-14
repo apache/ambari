@@ -68,7 +68,7 @@ public class HeartBeatHandlerInjectKeytabTest  {
       kerberosActionDataFileBuilder = new KerberosActionDataFileBuilder(indexFile);
 
       kerberosActionDataFileBuilder.addRecord("c6403.ambari.apache.org", "HDFS", "DATANODE",
-              "dn/_HOST@_REALM", "hdfs-site/dfs.namenode.kerberos.principal",
+              "dn/_HOST@_REALM", "service", "hdfs-site/dfs.namenode.kerberos.principal",
               "/etc/security/keytabs/dn.service.keytab",
               "hdfs", "r", "hadoop", "", "hdfs-site/dfs.namenode.keytab.file");
 

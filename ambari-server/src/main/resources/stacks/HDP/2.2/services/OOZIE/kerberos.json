@@ -32,6 +32,7 @@
               "name": "oozie_server",
               "principal": {
                 "value": "oozie/_HOST@${realm}",
+                "type" : "service",
                 "configuration": "oozie-site/oozie.service.HadoopAccessorService.kerberos.principal",
                 "local_username" : "${oozie-env/oozie_user}"
               },

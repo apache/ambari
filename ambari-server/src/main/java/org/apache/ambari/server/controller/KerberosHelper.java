@@ -680,10 +680,12 @@ public class KerberosHelper {
       for (KerberosIdentityDescriptor identity : identities) {
         KerberosPrincipalDescriptor principalDescriptor = identity.getPrincipalDescriptor();
         String principal = null;
+        String principalType = null;
         String principalConfiguration = null;
 
         if (principalDescriptor != null) {
           principal = KerberosDescriptor.replaceVariables(principalDescriptor.getValue(), configurations);
+          principalType = principalDescriptor.getType().name().toLowerCase();
           principalConfiguration = KerberosDescriptor.replaceVariables(principalDescriptor.getConfiguration(), configurations);
         }
 
@@ -710,6 +712,7 @@ public class KerberosHelper {
               sch.getServiceName(),
               sch.getServiceComponentName(),
               principal,
+              principalType,
               principalConfiguration,
               keytabFilePath,
               keytabFileOwnerName,

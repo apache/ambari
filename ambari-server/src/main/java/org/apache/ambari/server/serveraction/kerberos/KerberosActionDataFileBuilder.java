@@ -54,6 +54,7 @@ public class KerberosActionDataFileBuilder extends AbstractKerberosDataFileBuild
    * @param serviceComponentName    a String containing the component name column data
    * @param principal               a String containing the (raw, non-evaluated) principal "pattern"
    *                                column data
+   * @param principalType           a String declaring the principal type - expecting "service" or "user"
    * @param principalConfiguration  a String containing the principal's configuration property column data
    *                                (expected to be the type and name of the configuration property
    *                                to use to store the evaluated principal data in
@@ -72,14 +73,16 @@ public class KerberosActionDataFileBuilder extends AbstractKerberosDataFileBuild
    * @throws IOException
    */
   public void addRecord(String hostName, String serviceName, String serviceComponentName,
-                        String principal, String principalConfiguration, String keytabFilePath,
-                        String keytabFileOwnerName, String keytabFileOwnerAccess,
-                        String keytabFileGroupName, String keytabFileGroupAccess,
-                        String keytabFileConfiguration) throws IOException {
+                        String principal, String principalType, String principalConfiguration,
+                        String keytabFilePath, String keytabFileOwnerName,
+                        String keytabFileOwnerAccess, String keytabFileGroupName,
+                        String keytabFileGroupAccess, String keytabFileConfiguration)
+      throws IOException {
     super.appendRecord(hostName,
         serviceName,
         serviceComponentName,
         principal,
+        principalType,
         principalConfiguration,
         keytabFilePath,
         keytabFileOwnerName,
@@ -95,6 +98,7 @@ public class KerberosActionDataFileBuilder extends AbstractKerberosDataFileBuild
         SERVICE,
         COMPONENT,
         PRINCIPAL,
+        PRINCIPAL_TYPE,
         PRINCIPAL_CONFIGURATION,
         KEYTAB_FILE_PATH,
         KEYTAB_FILE_OWNER_NAME,

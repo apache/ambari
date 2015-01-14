@@ -13,6 +13,7 @@
           "name": "hbase",
           "principal": {
             "value": "${hbase-env/hbase_user}@${realm}",
+            "type" : "user",
             "configuration": "hbase-env/hbase_principal_name",
             "local_username": "${hbase-env/hbase_user}"
           },
@@ -49,6 +50,7 @@
               "name": "hbase_master_hbase",
               "principal": {
                 "value": "hbase/_HOST@${realm}",
+                "type" : "service",
                 "configuration": "hbase-site/hbase.master.kerberos.principal",
                 "local_username": "${hbase-env/hbase_user}"
               },
@@ -74,6 +76,7 @@
               "name": "hbase_regionserver_hbase",
               "principal": {
                 "value": "hbase/_HOST@${realm}",
+                "type" : "service",
                 "configuration": "hbase-site/hbase.regionserver.kerberos.principal",
                 "local_username": "${hbase-env/hbase_user}"
               },

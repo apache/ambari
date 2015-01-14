@@ -47,7 +47,7 @@ public class KerberosActionDataFileTest {
 
     for (int i = 0; i < 10; i++) {
       builder.addRecord("hostName" + i, "serviceName" + i, "serviceComponentName" + i,
-          "principal" + i, "principalConfiguration" + i, "keytabFilePath" + i,
+          "principal" + i, "principal_type" + i, "principalConfiguration" + i, "keytabFilePath" + i,
           "keytabFileOwnerName" + i, "keytabFileOwnerAccess" + i,
           "keytabFileGroupName" + i, "keytabFileGroupAccess" + i,
           "keytabFileConfiguration" + i);
@@ -55,7 +55,7 @@ public class KerberosActionDataFileTest {
 
     // Add some odd characters
     builder.addRecord("hostName's", "serviceName#", "serviceComponentName\"",
-        "principal", "principalConfiguration", "keytabFilePath",
+        "principal", "principal_type", "principalConfiguration", "keytabFilePath",
         "'keytabFileOwnerName'", "<keytabFileOwnerAccess>",
         "\"keytabFileGroupName\"", "keytab,File,Group,Access",
         "\"keytab,'File',Configuration\"");
@@ -80,6 +80,7 @@ public class KerberosActionDataFileTest {
         Assert.assertEquals("serviceName" + i, record.get(KerberosActionDataFile.SERVICE));
         Assert.assertEquals("serviceComponentName" + i, record.get(KerberosActionDataFile.COMPONENT));
         Assert.assertEquals("principal" + i, record.get(KerberosActionDataFile.PRINCIPAL));
+        Assert.assertEquals("principal_type" + i, record.get(KerberosActionDataFile.PRINCIPAL_TYPE));
         Assert.assertEquals("principalConfiguration" + i, record.get(KerberosActionDataFile.PRINCIPAL_CONFIGURATION));
         Assert.assertEquals("keytabFilePath" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_PATH));
         Assert.assertEquals("keytabFileOwnerName" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_NAME));
@@ -92,6 +93,7 @@ public class KerberosActionDataFileTest {
         Assert.assertEquals("serviceName#", record.get(KerberosActionDataFile.SERVICE));
         Assert.assertEquals("serviceComponentName\"", record.get(KerberosActionDataFile.COMPONENT));
         Assert.assertEquals("principal", record.get(KerberosActionDataFile.PRINCIPAL));
+        Assert.assertEquals("principal_type", record.get(KerberosActionDataFile.PRINCIPAL_TYPE));
         Assert.assertEquals("principalConfiguration", record.get(KerberosActionDataFile.PRINCIPAL_CONFIGURATION));
         Assert.assertEquals("keytabFilePath", record.get(KerberosActionDataFile.KEYTAB_FILE_PATH));
         Assert.assertEquals("'keytabFileOwnerName'", record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_NAME));
@@ -116,6 +118,7 @@ public class KerberosActionDataFileTest {
         Assert.assertEquals("serviceName" + i, record.get(KerberosActionDataFile.SERVICE));
         Assert.assertEquals("serviceComponentName" + i, record.get(KerberosActionDataFile.COMPONENT));
         Assert.assertEquals("principal" + i, record.get(KerberosActionDataFile.PRINCIPAL));
+        Assert.assertEquals("principal_type" + i, record.get(KerberosActionDataFile.PRINCIPAL_TYPE));
         Assert.assertEquals("principalConfiguration" + i, record.get(KerberosActionDataFile.PRINCIPAL_CONFIGURATION));
         Assert.assertEquals("keytabFilePath" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_PATH));
         Assert.assertEquals("keytabFileOwnerName" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_NAME));
@@ -128,6 +131,7 @@ public class KerberosActionDataFileTest {
         Assert.assertEquals("serviceName#", record.get(KerberosActionDataFile.SERVICE));
         Assert.assertEquals("serviceComponentName\"", record.get(KerberosActionDataFile.COMPONENT));
         Assert.assertEquals("principal", record.get(KerberosActionDataFile.PRINCIPAL));
+        Assert.assertEquals("principal_type", record.get(KerberosActionDataFile.PRINCIPAL_TYPE));
         Assert.assertEquals("principalConfiguration", record.get(KerberosActionDataFile.PRINCIPAL_CONFIGURATION));
         Assert.assertEquals("keytabFilePath", record.get(KerberosActionDataFile.KEYTAB_FILE_PATH));
         Assert.assertEquals("'keytabFileOwnerName'", record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_NAME));
@@ -148,7 +152,7 @@ public class KerberosActionDataFileTest {
     Assert.assertFalse(builder.isClosed());
 
     builder.addRecord("hostName", "serviceName", "serviceComponentName",
-        "principal", "principalConfiguration", "keytabFilePath",
+        "principal","principal_type", "principalConfiguration", "keytabFilePath",
         "keytabFileOwnerName", "keytabFileOwnerAccess",
         "keytabFileGroupName", "keytabFileGroupAccess",
         "keytabFileConfiguration");
@@ -174,7 +178,7 @@ public class KerberosActionDataFileTest {
     Assert.assertFalse(builder.isClosed());
 
     builder.addRecord("hostName", "serviceName", "serviceComponentName",
-        "principal", "principalConfiguration", "keytabFilePath",
+        "principal", "principal_type", "principalConfiguration", "keytabFilePath",
         "keytabFileOwnerName", "keytabFileOwnerAccess",
         "keytabFileGroupName", "keytabFileGroupAccess",
         "keytabFileConfiguration");

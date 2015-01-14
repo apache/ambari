@@ -102,7 +102,7 @@ public class KerberosServerActionTest {
         new KerberosActionDataFileBuilder(new File(temporaryDirectory, KerberosActionDataFile.DATA_FILE_NAME));
     for (int i = 0; i < 10; i++) {
       builder.addRecord("hostName", "serviceName" + i, "serviceComponentName" + i,
-          "principal|_HOST|_REALM" + i, "principalConfiguration" + i, "keytabFilePath" + i,
+          "principal|_HOST|_REALM" + i, "principal_type", "principalConfiguration" + i, "keytabFilePath" + i,
           "keytabFileOwnerName" + i, "keytabFileOwnerAccess" + i,
           "keytabFileGroupName" + i, "keytabFileGroupAccess" + i,
           "keytabFileConfiguration" + i);

@@ -29,6 +29,7 @@ public class KerberosActionDataFile {
   public static final String SERVICE = "service";
   public static final String COMPONENT = "component";
   public static final String PRINCIPAL = "principal";
+  public static final String PRINCIPAL_TYPE = "principal_type";
   public static final String PRINCIPAL_CONFIGURATION = "principal_configuration";
   public static final String KEYTAB_FILE_PATH = "keytab_file_path";
   public static final String KEYTAB_FILE_OWNER_NAME = "keytab_file_owner_name";

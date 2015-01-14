@@ -13,6 +13,7 @@
           "name": "storm_components",
           "principal": {
             "value": "storm/_HOST@${realm}",
+            "type" : "service",
             "configuration": "storm-env/storm_principal_name"
           },
           "keytab": {
@@ -51,6 +52,7 @@
               "name": "nimbus_server",
               "principal": {
                 "value": "nimbus/_HOST@${realm}",
+                "type" : "service",
                 "configuration": "storm-env/nimbus_principal_name"
               },
               "keytab": {
@@ -75,6 +77,7 @@
               "name": "nimbus_server",
               "principal": {
                 "value": "nimbus/_HOST@${realm}",
+                "type" : "service",
                 "configuration": "storm-env/nimbus_principal_name"
               },
               "keytab": {

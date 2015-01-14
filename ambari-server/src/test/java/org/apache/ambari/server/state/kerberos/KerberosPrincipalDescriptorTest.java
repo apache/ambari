@@ -29,6 +29,7 @@ public class KerberosPrincipalDescriptorTest {
   public static final String JSON_VALUE =
       "{" +
           "\"value\": \"service/_HOST@_REALM\"," +
+          "\"type\": \"service\"," +
           "\"configuration\": \"service-site/service.component.kerberos.principal\"," +
           "\"local_username\": \"localUser\"" +
           "}";
@@ -37,6 +38,7 @@ public class KerberosPrincipalDescriptorTest {
       new HashMap<String, Object>() {
         {
           put("value", "HTTP/_HOST@_REALM");
+          put("type", "service");
           put("configuration", "service-site/service.component.kerberos.https.principal");
           put("local_username", null);
         }

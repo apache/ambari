@@ -59,6 +59,7 @@ import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosKeytabDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosPrincipalType;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMockSupport;
@@ -324,10 +325,12 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final KerberosPrincipalDescriptor principalDescriptor1 = createNiceMock(KerberosPrincipalDescriptor.class);
     expect(principalDescriptor1.getValue()).andReturn("component1/_HOST@${realm}").once();
+    expect(principalDescriptor1.getType()).andReturn(KerberosPrincipalType.SERVICE).once();
     expect(principalDescriptor1.getConfiguration()).andReturn("service1-site/component1.kerberos.principal").once();
 
     final KerberosPrincipalDescriptor principalDescriptor2 = createNiceMock(KerberosPrincipalDescriptor.class);
     expect(principalDescriptor2.getValue()).andReturn("component2/${host}@${realm}").once();
+    expect(principalDescriptor2.getType()).andReturn(KerberosPrincipalType.SERVICE).once();
     expect(principalDescriptor2.getConfiguration()).andReturn("service2-site/component2.kerberos.principal").once();
 
     final KerberosKeytabDescriptor keytabDescriptor1 = createNiceMock(KerberosKeytabDescriptor.class);

@@ -30,6 +30,7 @@
               "name": "falcon_server",
               "principal": {
                 "value": "falcon/${host}@${realm}",
+                "type" : "service",
                 "configuration": "falcon-startup.properties/*.falcon.service.authentication.kerberos.principal",
                 "local_username" : "${falcon-env/falcon_user}"
               },

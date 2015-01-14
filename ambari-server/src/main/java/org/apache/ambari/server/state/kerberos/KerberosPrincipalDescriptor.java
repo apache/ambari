@@ -28,7 +28,9 @@ import java.util.Map;
  * A KerberosPrincipalDescriptor has the following properties:
  * <ul>
  * <li>value</li>
+ * <li>type</li>
  * <li>configuration</li>
+ * <li>local_username</li>
  * </ul>
  * <p/>
  * The following JSON Schema will yield a valid KerberosPrincipalDescriptor
@@ -41,6 +43,10 @@ import java.util.Map;
  *      "properties": {
  *        "value": {
  *          "description": "The pattern to use to generate the principal",
+ *          "type": "string"
+ *        },
+ *        "type": {
+ *          "description": "The type of principal - either 'service' or 'user'",
  *          "type": "string"
  *        },
  *        "configuration": {
@@ -61,6 +67,13 @@ import java.util.Map;
  * KerberosPrincipalDescriptor#value value
  */
 public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
+
+  /**
+   * A string declaring the type of principal this KerberosPrincipalDescriptor represents.
+   * <p/>
+   * Expecting either "service" or "user"
+   */
+  private KerberosPrincipalType type;
 
   /**
    * A string declaring configuration type and property name indicating the property to be updated
@@ -98,6 +111,9 @@ public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
     // This is not automatically set by the super classes.
     setName(getStringValue(data, "value"));
 
+    String type = getStringValue(data, "type");
+    setType((type == null) ? KerberosPrincipalType.SERVICE : KerberosPrincipalType.valueOf(type.toUpperCase()));
+
     setConfiguration(getStringValue(data, "configuration"));
 
     setLocalUsername(getStringValue(data, "local_username"));
@@ -130,6 +146,26 @@ public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
    */
   public void setValue(String value) {
     setName(value);
+  }
+
+  /**
+   * Gets the type of this KerberosPrincipalDescriptor
+   *
+   * @return a KerberosPrincipalType declaring the type of this KerberosPrincipalDescriptor
+   */
+  public KerberosPrincipalType getType() {
+    return type;
+  }
+
+  /**
+   * Sets the type of this KerberosPrincipalDescriptor
+   * <p/>
+   * The value should be either "service" or "user"
+   *
+   * @param type a KerberosPrincipalType declaring the type of this KerberosPrincipalDescriptor
+   */
+  public void setType(KerberosPrincipalType type) {
+    this.type = type;
   }
 
   /**
@@ -192,6 +228,11 @@ public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
         setValue(updatedValue);
       }
 
+      KerberosPrincipalType updatedType = updates.getType();
+      if (updatedType != null) {
+        setType(updatedType);
+      }
+
       updatedValue = updates.getConfiguration();
       if (updatedValue != null) {
         setConfiguration(updatedValue);
@@ -217,6 +258,7 @@ public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
     Map<String, Object> map = new HashMap<String, Object>();
 
     map.put("value", getValue());
+    map.put("type", getType().name().toLowerCase());
     map.put("configuration", getConfiguration());
     map.put("local_username", getLocalUsername());
 
@@ -228,7 +270,10 @@ public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
     return super.hashCode() +
         ((getConfiguration() == null)
             ? 0
-            : getConfiguration().hashCode());
+            : getConfiguration().hashCode()) +
+        ((getType() == null)
+            ? 0
+            : getType().hashCode());
   }
 
   @Override
@@ -244,6 +289,11 @@ public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
               (getConfiguration() == null)
                   ? (descriptor.getConfiguration() == null)
                   : getConfiguration().equals(descriptor.getConfiguration())
+          ) &&
+          (
+              (getType() == null)
+                  ? (descriptor.getType() == null)
+                  : getType().equals(descriptor.getType())
           );
     } else {
       return false;

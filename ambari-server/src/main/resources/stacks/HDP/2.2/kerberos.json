@@ -7,7 +7,8 @@
     {
       "name": "spnego",
       "principal": {
-        "value": "HTTP/_HOST@${realm}"
+        "value": "HTTP/_HOST@${realm}",
+        "type" : "service"
       },
       "keytab": {
         "file": "${keytab_dir}/spnego.service.keytab",
@@ -25,6 +26,7 @@
       "name": "hdfs",
       "principal": {
         "value": "${hadoop-env/hdfs_user}@${realm}",
+        "type" : "user" ,
         "configuration": "hadoop-env/hdfs_principal_name"
       },
       "keytab": {
@@ -44,6 +46,7 @@
       "name": "smokeuser",
       "principal": {
         "value": "${cluster-env/smokeuser}@${realm}",
+        "type" : "user",
         "configuration": "cluster-env/smokeuser_principal_name"
       },
       "keytab": {

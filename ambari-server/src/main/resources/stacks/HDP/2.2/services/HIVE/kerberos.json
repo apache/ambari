@@ -33,6 +33,7 @@
               "name": "hive_metastore_hive",
               "principal": {
                 "value": "hive/_HOST@${realm}",
+                "type" : "service",
                 "configuration": "hive-site/hive.metastore.kerberos.principal",
                 "local_username": "${hive-env/hive_user}"
               },
@@ -58,6 +59,7 @@
               "name": "hive_server_hive",
               "principal": {
                 "value": "hive/_HOST@${realm}",
+                "type" : "service",
                 "configuration": "hive-site/hive.server2.authentication.kerberos.principal",
                 "local_username": "${hive-env/hive_user}"
               },

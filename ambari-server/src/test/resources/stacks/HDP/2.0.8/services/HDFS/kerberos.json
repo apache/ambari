@@ -10,6 +10,7 @@
               "name": "namenode_nn",
               "principal": {
                 "value": "nn/_HOST@${realm}",
+                "type" : "service",
                 "configuration": "hdfs-site/dfs.namenode.kerberos.principal",
                 "local_username": "${hadoop-env/hdfs_user}"
               },
@@ -29,7 +30,8 @@
             {
               "name": "namenode_host",
               "principal": {
-                "value": "host/_HOST@${realm}"
+                "value": "host/_HOST@${realm}",
+                "type" : "service"
               },
               "keytab": {
                 "file": "${keytab_dir}/nn.service.keytab",
@@ -65,6 +67,7 @@
               "name": "datanode_dn",
               "principal": {
                 "value": "dn/_HOST@${realm}",
+                "type" : "service",
                 "configuration": "hdfs-site/dfs.datanode.kerberos.principal",
                 "local_username": "${hadoop-env/hdfs_user}"
               },
@@ -84,7 +87,8 @@
             {
               "name": "datanode_host",
               "principal": {
-                "value": "host/_HOST@${realm}"
+                "value": "host/_HOST@${realm}",
+                "type" : "service"
               },
               "keytab": {
                 "file": "${keytab_dir}/dn.service.keytab",
@@ -107,6 +111,7 @@
               "name": "secondary_namenode_nn",
               "principal": {
                 "value": "nn/_HOST@${realm}",
+                "type" : "service",
                 "configuration": "hdfs-site/dfs.secondary.namenode.kerberos.principal",
                 "local_username": "${hadoop-env/hdfs_user}"
               },
@@ -126,7 +131,8 @@
             {
               "name": "secondary_namenode_host",
               "principal": {
-                "value": "host/_HOST@${realm}"
+                "value": "host/_HOST@${realm}",
+                "type" : "service"
               },
               "keytab": {
                 "file": "${keytab_dir}/snn.service.keytab",

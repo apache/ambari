@@ -7,7 +7,8 @@
     {
       "name": "spnego",
       "principal": {
-        "value": "HTTP/_HOST@${realm}"
+        "value": "HTTP/_HOST@${realm}",
+        "type" : "service"
       },
       "keytab": {
         "file": "${keytab_dir}/spnego.service.keytab",
