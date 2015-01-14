@@ -720,7 +720,8 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
               state: operationData.action
             },
             query: 'HostRoles/component_name=' + operationData.componentName + '&HostRoles/host_name.in(' + hostsWithComponentInProperState.join(',') + ')&HostRoles/maintenance_state=OFF',
-            context: operationData.message + ' ' + operationData.componentNameFormatted
+            context: operationData.message + ' ' + operationData.componentNameFormatted,
+            level: 'SERVICE'
           },
           success: 'bulkOperationForHostComponentsSuccessCallback'
         });
