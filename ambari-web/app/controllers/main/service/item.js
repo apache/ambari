@@ -700,7 +700,7 @@ App.MainServiceItemController = Em.Controller.extend({
   },
 
   downloadClientConfigs: function (event) {
-    var component = this.get('content.clientComponents').rejectProperty('totalCount', 0)[0];
+    var component = this.get('content.hostComponents').findProperty('isClient');
     componentsUtils.downloadClientConfigs.call(this, {
       serviceName: this.get('content.serviceName'),
       componentName: (event && event.name) || component.get('componentName'),
