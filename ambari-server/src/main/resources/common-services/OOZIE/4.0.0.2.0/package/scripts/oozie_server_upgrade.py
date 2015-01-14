@@ -117,11 +117,15 @@ def prepare_libext_directory():
   os.chmod(params.oozie_libext_customer_dir, 0o777)
 
   # get all hadooplzo* JAR files
+  # hdp-select set hadoop-client has not run yet, therefore we cannot use
+  # /usr/hdp/current/hadoop-client ; we must use params.current directly
   hadoop_lzo_pattern = 'hadoop-lzo*.jar'
-  files = glob.iglob(os.path.join(params.hadoop_lib_home, hadoop_lzo_pattern))
+  hadoop_client_new_lib_dir = format("/usr/hdp/{version}/hadoop/lib")
+
+  files = glob.iglob(os.path.join(hadoop_client_new_lib_dir, hadoop_lzo_pattern))
   if not files:
     raise Fail("There are no files at {0} matching {1}".format(
-      params.hadoop_lib_home, hadoop_lzo_pattern))
+      hadoop_client_new_lib_dir, hadoop_lzo_pattern))
 
   # copy files into libext
   files_copied = False
@@ -133,7 +137,7 @@ def prepare_libext_directory():
 
   if not files_copied:
     raise Fail("There are no files at {0} matching {1}".format(
-      params.hadoop_lib_home, hadoop_lzo_pattern))
+      hadoop_client_new_lib_dir, hadoop_lzo_pattern))
 
   oozie_ext_zip_file = '/usr/share/HDP-oozie/ext-2.2.zip'
   if not os.path.isfile(oozie_ext_zip_file):

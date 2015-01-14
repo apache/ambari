@@ -45,6 +45,7 @@ hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
 #hadoop params
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
+  # start out assuming client libraries
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
   hadoop_lib_home = "/usr/hdp/current/hadoop-client/lib"
 

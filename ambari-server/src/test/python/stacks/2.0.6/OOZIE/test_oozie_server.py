@@ -607,15 +607,16 @@ class TestOozieServer(RMFTestCase):
   @patch("os.remove")
   @patch("os.chmod")
   @patch("shutil.rmtree", new = MagicMock())
-  @patch("glob.iglob", new = MagicMock(return_value=["/usr/hdp/2.2.1.0-2187/hadoop/lib/hadoop-lzo-0.6.0.2.2.1.0-2187.jar"]))
-  @patch("shutil.copy")
+  @patch("glob.iglob")
+  @patch("shutil.copy", new = MagicMock())
   @patch.object(shell, "call")
-  def test_upgrade(self, call_mock, shutil_copy_mock, chmod_mock, remove_mock,
+  def test_upgrade(self, call_mock, glob_mock, chmod_mock, remove_mock,
       isfile_mock, exists_mock, isdir_mock, tarfile_open_mock):
 
     isdir_mock.return_value = True
     exists_mock.side_effect = [False,False,True]
     isfile_mock.return_value = True
+    glob_mock.return_value = ["/usr/hdp/2.2.1.0-2187/hadoop/lib/hadoop-lzo-0.6.0.2.2.1.0-2187.jar"]
 
     prepare_war_stdout = """INFO: Adding extension: libext/mysql-connector-java.jar
     New Oozie WAR file with added 'JARs' at /var/lib/oozie/oozie-server/webapps/oozie.war"""
@@ -642,6 +643,10 @@ class TestOozieServer(RMFTestCase):
     self.assertTrue(remove_mock.called)
     self.assertEqual(remove_mock.call_count,1)
     remove_mock.assert_called_with('/usr/bin/oozie')
+
+    self.assertTrue(glob_mock.called)
+    self.assertEqual(glob_mock.call_count,1)
+    glob_mock.assert_called_with('/usr/hdp/2.2.1.0-2135/hadoop/lib/hadoop-lzo*.jar')
 
     self.assertResourceCalled('Execute', 'hdp-select set oozie-server 2.2.1.0-2135')
     self.assertResourceCalled('Execute', 'hdfs dfs -chown oozie:hadoop /user/oozie/share', user='oozie')
