@@ -14,6 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+STACKS_FOLDER="/var/lib/ambari-agent/cache/stacks"
+STACKS_FOLDER_OLD=/var/lib/ambari-agent/cache/stacks_$(date '+%d_%m_%y_%H_%M').old
+
+COMMON_SERVICES_FOLDER="/var/lib/ambari-agent/cache/common-services"
+COMMON_SERVICES_FOLDER_OLD=/var/lib/ambari-agent/cache/common-services_$(date '+%d_%m_%y_%H_%M').old
+
 if [ -d "/etc/ambari-agent/conf.save" ]
 then
     mv /etc/ambari-agent/conf.save /etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save
@@ -23,5 +29,15 @@ BAK=/etc/ambari-agent/conf/ambari-agent.ini.old
 ORIG=/etc/ambari-agent/conf/ambari-agent.ini
 
 [ -f $ORIG ] && mv -f $ORIG $BAK
+
+if [ -d "$STACKS_FOLDER" ]
+then
+    mv -f "$STACKS_FOLDER" "$STACKS_FOLDER_OLD"
+fi
+
+if [ -d "$COMMON_SERVICES_FOLDER_OLD" ]
+then
+    mv -f "$COMMON_SERVICES_FOLDER" "$COMMON_SERVICES_FOLDER_OLD"
+fi
 
 exit 0

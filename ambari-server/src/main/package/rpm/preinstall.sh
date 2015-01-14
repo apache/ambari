@@ -16,6 +16,9 @@
 STACKS_FOLDER="/var/lib/ambari-server/resources/stacks"
 STACKS_FOLDER_OLD=/var/lib/ambari-server/resources/stacks_$(date '+%d_%m_%y_%H_%M').old
 
+COMMON_SERVICES_FOLDER="/var/lib/ambari-server/resources/common-services"
+COMMON_SERVICES_FOLDER_OLD=/var/lib/ambari-server/resources/common-services_$(date '+%d_%m_%y_%H_%M').old
+
 if [ -d "/etc/ambari-server/conf.save" ]
 then
     mv /etc/ambari-server/conf.save /etc/ambari-server/conf_$(date '+%d_%m_%y_%H_%M').save
@@ -23,7 +26,12 @@ fi
 
 if [ -d "$STACKS_FOLDER" ]
 then
-    cp -r "$STACKS_FOLDER" "$STACKS_FOLDER_OLD"
+    mv -f "$STACKS_FOLDER" "$STACKS_FOLDER_OLD"
+fi
+
+if [ -d "$COMMON_SERVICES_FOLDER_OLD" ]
+then
+    mv -f "$COMMON_SERVICES_FOLDER" "$COMMON_SERVICES_FOLDER_OLD"
 fi
 
 exit 0
