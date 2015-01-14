@@ -46,8 +46,6 @@ class HbaseClient(Script):
     
     hbase(name='client')
 
-    self.save_component_version_to_structured_out(params.stack_name)
-
   def status(self, env):
     raise ClientComponentHasNoStatus()
 

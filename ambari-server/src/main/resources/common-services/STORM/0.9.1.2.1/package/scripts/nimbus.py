@@ -60,8 +60,6 @@ class Nimbus(Script):
 
     service("nimbus", action="start")
 
-    self.save_component_version_to_structured_out(params.stack_name)
-
   def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)

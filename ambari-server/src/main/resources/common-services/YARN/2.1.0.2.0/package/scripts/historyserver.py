@@ -59,7 +59,6 @@ class HistoryServer(Script):
     copy_tarballs_to_hdfs('mapreduce', 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
     service('historyserver', action='start', serviceName='mapreduce')
 
-    self.save_component_version_to_structured_out(params.stack_name)
 
   def stop(self, env, rolling_restart=False):
     import params

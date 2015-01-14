@@ -99,13 +99,20 @@ class Script(object):
     Returns a dictionary where the key is a stack name, and the value is the component name used in selecting the version.
     """
     return {}
-
+    
+  def load_structured_out(self):
+    Script.structuredOut = {}
+    if os.path.exists(self.stroutfile):
+      with open(self.stroutfile, 'r') as fp:
+        Script.structuredOut = json.load(fp)
+  
   def put_structured_out(self, sout):
+    curr_content = Script.structuredOut.copy()
     Script.structuredOut.update(sout)
     try:
       with open(self.stroutfile, 'w') as fp:
         json.dump(Script.structuredOut, fp)
-    except IOError:
+    except IOError, err:
       Script.structuredOut.update({"errMsg" : "Unable to write to " + self.stroutfile})
 
   def save_component_version_to_structured_out(self, stack_name):
@@ -142,6 +149,7 @@ class Script(object):
     self.command_data_file = sys.argv[2]
     self.basedir = sys.argv[3]
     self.stroutfile = sys.argv[4]
+    self.load_structured_out()
     self.logging_level = sys.argv[5]
     Script.tmp_dir = sys.argv[6]
 
@@ -162,17 +170,28 @@ class Script(object):
         #load passwords here(used on windows to impersonate different users)
         Script.passwords = {}
         for k, v in _PASSWORD_MAP.iteritems():
-          if get_path_form_configuration(k,Script.config) and get_path_form_configuration(v,Script.config ):
-            Script.passwords[get_path_form_configuration(k,Script.config)] = get_path_form_configuration(v,Script.config)
+          if get_path_form_configuration(k,Script.config) and get_path_form_configuration(v, Script.config):
+            Script.passwords[get_path_form_configuration(k,Script.config)] = get_path_form_configuration(v, Script.config)
 
     except IOError:
       logger.exception("Can not read json file with command parameters: ")
       sys.exit(1)
+
     # Run class method depending on a command type
     try:
       method = self.choose_method_to_execute(command_name)
       with Environment(self.basedir) as env:
         method(env)
+
+        # For start actions, try to advertise the component's version
+        if command_name.lower() == "start" or command_name.lower() == "install":
+          try:
+            import params
+            # This is to support older stacks
+            if hasattr(params, "stack_name"):
+              self.save_component_version_to_structured_out(params.stack_name)
+          except ImportError:
+            logger.error("Executing command %s could not import params" % str(command_name))
     except ClientComponentHasNoStatus or ComponentIsNotRunning:
       # Support of component status checks.
       # Non-zero exit code is interpreted as an INSTALLED status of a component
@@ -332,6 +351,14 @@ class Script(object):
 
       if rolling_restart:
         self.post_rolling_restart(env)
+
+    try:
+      import params
+      if hasattr(params, "stack_name"):
+        self.save_component_version_to_structured_out(params.stack_name)
+    except ImportError:
+      logger.error("Restart command could not import params")
+
 
   def post_rolling_restart(self, env):
     """

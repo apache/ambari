@@ -113,10 +113,9 @@ class TestPythonExecutor(TestCase):
     executor = PythonExecutor("/tmp", AmbariConfig().getConfig())
     _, tmpoutfile = tempfile.mkstemp()
     _, tmperrfile = tempfile.mkstemp()
-    # PythonExecutor need only filename and will try to delete this file before execution, this will fail on windows
-    # so we will use NamedTemporaryFile only to generate temp file and close it immediately after creation
-    tmp_file = tempfile.NamedTemporaryFile(delete=False)
-    tmpstroutfile = tmp_file.name
+    
+    tmp_file = tempfile.NamedTemporaryFile()    # the structured out file should be preserved across calls to the hooks and script.
+    tmpstructuredoutfile = tmp_file.name
     tmp_file.close()
 
     PYTHON_TIMEOUT_SECONDS =  5
@@ -134,7 +133,7 @@ class TestPythonExecutor(TestCase):
     callback_method = MagicMock()
     result = executor.run_file("file", ["arg1", "arg2"], "/fake_tmp_dir",
                                tmpoutfile, tmperrfile, PYTHON_TIMEOUT_SECONDS,
-                               tmpstroutfile, "INFO", callback_method, "1-1")
+                               tmpstructuredoutfile, "INFO", callback_method, "1-1")
     self.assertEquals(result, {'exitcode': 0, 'stderr': 'Dummy err', 'stdout': 'Dummy output',
                                'structuredOut': {}})
     self.assertTrue(callback_method.called)

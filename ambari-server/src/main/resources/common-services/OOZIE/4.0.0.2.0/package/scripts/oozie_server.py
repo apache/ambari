@@ -61,7 +61,6 @@ class OozieServer(Script):
 
     oozie_service(action='start', rolling_restart=rolling_restart)
 
-    self.save_component_version_to_structured_out(params.stack_name)
     
   def stop(self, env, rolling_restart=False):
     import params
