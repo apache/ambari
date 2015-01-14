@@ -617,9 +617,9 @@ describe('App.MainServiceItemController', function () {
 
     var mainServiceItemController = App.MainServiceItemController.create({
       content: {
-        hostComponents: [
+        clientComponents: [
           Em.Object.create({
-            isClient: true,
+            totalCount: 1,
             componentName: 'C1',
             displayName: 'd1'
           })
