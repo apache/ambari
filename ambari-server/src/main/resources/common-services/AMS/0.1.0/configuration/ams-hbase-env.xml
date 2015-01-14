@@ -131,6 +131,15 @@ export HBASE_OPTS="$HBASE_OPTS -Djava.security.auth.login.config={{client_jaas_c
 export HBASE_MASTER_OPTS="$HBASE_MASTER_OPTS -Djava.security.auth.login.config={{master_jaas_config_file}}"
 export HBASE_REGIONSERVER_OPTS="$HBASE_REGIONSERVER_OPTS -Djava.security.auth.login.config={{regionserver_jaas_config_file}}"
 {% endif %}
+
+#Specify native libraries of installed Hadoop paltform
+_HADOOP_IN_PATH=$(PATH="${HADOOP_HOME:-${HADOOP_PREFIX}}/bin:$PATH" which hadoop 2>/dev/null)
+_HADOOP_CLASSPATH="/usr/lib/ams-hbase/lib/*"
+_HADOOP_JAVA_LIBRARY_PATH=$(HADOOP_CLASSPATH="$_HADOOP_CLASSPATH" ${_HADOOP_IN_PATH} org.apache.hadoop.hbase.util.GetJavaProperty java.library.path)
+export HBASE_OPTS="$HBASE_OPTS -Djava.library.path=${_HADOOP_JAVA_LIBRARY_PATH}"
+
+#"Unsetting" HADOOP_HOME to avoid importing HADOOP installed cluster related configs like: /usr/hdp/2.2.0.0-2041/hadoop/conf/ 
+export HADOOP_HOME=`pwd`
     </value>
   </property>
 
