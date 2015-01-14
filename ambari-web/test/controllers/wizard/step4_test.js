@@ -75,40 +75,16 @@ describe('App.WizardStep4Controller', function () {
     });
   });
 
-  describe('#isAll', function () {
+  describe('#isAllChecked', function () {
     it('should return true if all services are selected', function () {
       controller.setEach('isInstalled', false);
       controller.findProperty('serviceName', 'HDFS').set('isSelected', true);
-      expect(controller.get('isAll')).to.equal(true);
+      expect(controller.get('isAllChecked')).to.equal(true);
     });
 
     it('should return false if at least one service is not selected', function () {
       controller.findProperty('serviceName', 'HDFS').set('isSelected', false);
-      expect(controller.get('isAll')).to.equal(false);
-    });
-  });
-
-  describe('#isMinimum', function () {
-    it('should return true if there are no services selected, except disabled', function () {
-      controller.setEach('isSelected', false);
-      expect(controller.get('isMinimum')).to.equal(true);
-    });
-  });
-
-  describe('#selectAll()', function () {
-    it('should select all services', function () {
-      controller.setEach('isSelected', false);
-      controller.selectAll();
-      expect(controller.filterProperty('canBeSelected', true).everyProperty('isSelected', true)).to.equal(true);
-    });
-  });
-
-  describe('#selectMinimum()', function () {
-    it('should set isSelected false for all services', function () {
-      controller.setEach('isSelected', true);
-      controller.selectMinimum();
-      expect(controller.findProperty('serviceName', 'HDFS').get('isSelected')).to.equal(false);
-      expect(controller.filterProperty('isDisabled', false).everyProperty('isSelected', false)).to.equal(true);
+      expect(controller.get('isAllChecked')).to.equal(false);
     });
   });
 

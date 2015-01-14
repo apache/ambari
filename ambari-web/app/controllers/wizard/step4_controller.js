@@ -30,6 +30,21 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   content: [],
 
   /**
+   * Check / Uncheck 'Select All' checkbox with one argument; Check / Uncheck all other checkboxes with more arguments
+   * @type {bool}
+   */
+  isAllChecked: function(key, value) {
+    if (arguments.length > 1) {
+      this.filterProperty('isInstalled', false).setEach('isSelected', value);
+      return value;
+    } else {
+      return this.filterProperty('isInstalled', false).
+        filterProperty('isHiddenOnSelectServicePage', false).
+        everyProperty('isSelected', true);
+    }
+  }.property('@each.isSelected'),
+
+  /**
    * Is Submit button disabled
    * @type {bool}
    */
@@ -46,46 +61,11 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   errorStack: [],
 
   /**
-   * Check whether all properties are selected
-   * @type {bool}
-   */
-  isAll: function () {
-    return this.filterProperty('isInstalled', false).
-      filterProperty('isHiddenOnSelectServicePage', false).
-      everyProperty('isSelected', true);
-  }.property('@each.isSelected'),
-
-  /**
-   * Check whether none properties(minimum) are selected
-   * @type {bool}
-   */
-  isMinimum: function () {
-    return this.filterProperty('isInstalled', false).
-      filterProperty('isHiddenOnSelectServicePage', false).
-      everyProperty('isSelected', false);
-  }.property('@each.isSelected'),
-
-  /**
    * Drop errorStack content on selected state changes.
    **/
   clearErrors: function() {
     this.set('errorStack', []);
   }.observes('@each.isSelected'),
-  /**
-   * Onclick handler for <code>select all</code> link
-   * @method selectAll
-   */
-  selectAll: function () {
-    this.filterProperty('isInstalled', false).setEach('isSelected', true);
-  },
-
-  /**
-   * Onclick handler for <code>select minimum</code> link
-   * @method selectMinimum
-   */
-  selectMinimum: function () {
-    this.filterProperty('isInstalled', false).setEach('isSelected', false);
-  },
 
   /**
    * Check if multiple distributed file systems were selected

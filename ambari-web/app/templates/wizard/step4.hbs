@@ -25,14 +25,8 @@
   <table class="table table-striped">
     <thead>
     <tr>
-      <th class="span3">{{t common.service}}
-        <span style="margin-left:10px">
-          <a href="#" id="all" {{action selectAll target="controller"}} {{bindAttr
-          class="isAll:selected:deselected"}}>{{t all}}</a>
-           |
-          <a href="#" id="none" {{action selectMinimum target="controller"}} {{bindAttr
-          class="isMinimum:selected:deselected"}}>{{t none}}</a>
-        </span>
+      <th class="span3">
+          {{view Ember.Checkbox disabledBinding="isInstalled" checkedBinding="isAllChecked"}}{{t common.service}}
       </th>
       <th>{{t common.version}}</th>
       <th>{{t common.description}}</th>
