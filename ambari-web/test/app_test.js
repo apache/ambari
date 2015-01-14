@@ -409,6 +409,13 @@ describe('App', function () {
       App.set('isAdmin', true);
       expect(App.isAccessible('upgrade_ADMIN')).to.be.true;
     });
+    it("Upgrade running, upgrade element should not be blocked", function() {
+      App.set('upgradeState', "IN_PROGRESS");
+      App.set('isAdmin', true);
+      App.set('supports.opsDuringRollingUpgrade', true);
+      expect(App.isAccessible('ADMIN')).to.be.true;
+      App.set('supports.opsDuringRollingUpgrade', false);
+    });
     it("ADMIN type, isAdmin true", function() {
       App.set('upgradeState', "INIT");
       App.set('isAdmin', true);

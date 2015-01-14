@@ -65,7 +65,8 @@ App.supports = {
   preKerberizeCheck: false,
   automatedKerberos: true,
   customizeAgentUserAccount: false,
-  installGanglia: false
+  installGanglia: false,
+  opsDuringRollingUpgrade: false
 };
 
 if (App.enableExperimental) {
