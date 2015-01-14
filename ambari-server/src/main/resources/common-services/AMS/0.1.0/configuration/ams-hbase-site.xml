@@ -27,9 +27,7 @@
     <description>
       AMS service uses HBase as default storage backend. Set the rootdir for
       HBase to either local filesystem path if using AMS in embedded mode or
-      to a HDFS dir, example: hdfs://namenode.example.org:9000/hbase.  By
-      default HBase writes into /tmp. Change this configuration else all data
-      will be lost on machine restart.
+      to a HDFS dir, example: hdfs://namenode.example.org:9000/hbase.
     </description>
   </property>
   <property>
