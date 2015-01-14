@@ -254,6 +254,13 @@ public class Configuration {
   public static final String DEF_ARCHIVE_CONTENT_TYPE;
 
   /**
+   * Kerberos related configuration options
+   */
+  public static final String KDC_PORT_KEY = "default.kdcserver.port";
+  public static final String KDC_PORT_KEY_DEFAULT = "88";
+  public static final String KDC_CONNECTION_CHECK_TIMEOUT_KEY = "kdcserver.connection.check.timeout";
+  public static final String KDC_CONNECTION_CHECK_TIMEOUT_DEFAULT = "10000";
+  /**
    * This key defines whether stages of parallel requests are executed in
    * parallel or sequentally. Only stages from different requests
    * running on not interfering host sets may be executed in parallel.
@@ -432,6 +439,10 @@ public class Configuration {
 
     configsMap.put(SHARED_RESOURCES_DIR_KEY, properties.getProperty(
        SHARED_RESOURCES_DIR_KEY, SHARED_RESOURCES_DIR_DEFAULT));
+    
+    configsMap.put(KDC_PORT_KEY, properties.getProperty(
+        KDC_PORT_KEY, KDC_PORT_KEY_DEFAULT));
+    
 
     File passFile = new File(configsMap.get(SRVR_KSTR_DIR_KEY) + File.separator
         + configsMap.get(SRVR_CRT_PASS_FILE_KEY));
@@ -1252,5 +1263,26 @@ public class Configuration {
    */
   public String getAlertTemplateFile() {
     return properties.getProperty(ALERT_TEMPLATE_FILE);
+  }
+  
+  /**
+   * Gets the default KDC port to use when no port is specified in KDC hostname
+   * 
+   * @return the default KDC port to use.
+   */
+  public String getDefaultKdcPort() {
+    return properties.getProperty(KDC_PORT_KEY, KDC_PORT_KEY_DEFAULT);
+  }
+
+  /**
+   * Gets the inactivity timeout value, in milliseconds, for socket connection
+   * made to KDC Server for its reachability verification.
+   * 
+   * @return the timeout value as configured in {@code ambari.properties} 
+   * 				 or {@code 10000 ms} for default.
+   */
+  public int getKdcConnectionCheckTimeout() {
+    return Integer.parseInt(properties.getProperty(
+        KDC_CONNECTION_CHECK_TIMEOUT_KEY, KDC_CONNECTION_CHECK_TIMEOUT_DEFAULT));
   }
 }
