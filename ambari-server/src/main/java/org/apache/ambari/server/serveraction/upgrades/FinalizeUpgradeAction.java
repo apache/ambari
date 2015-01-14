@@ -18,22 +18,18 @@
 package org.apache.ambari.server.serveraction.upgrades;
 
 import com.google.inject.Inject;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
-import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
-import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryVersionState;
-import org.apache.ambari.server.state.UpgradeState;
 import org.apache.commons.lang.StringUtils;
 
 import java.text.MessageFormat;
@@ -61,15 +57,15 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
   @Inject
   private HostVersionDAO hostVersionDAO;
 
-  @Inject
-  private HostComponentStateDAO hostComponentStateDAO;
-
   @Override
   public CommandReport execute(
       ConcurrentMap<String, Object> requestSharedDataContext)
       throws AmbariException, InterruptedException {
 
     Set<RepositoryVersionState> allowedStates = new HashSet<RepositoryVersionState>();
+    // TODO Rolling Upgrade, hack, should only allow UPGRADED.
+    allowedStates.add(RepositoryVersionState.INSTALLED);
+    allowedStates.add(RepositoryVersionState.UPGRADING);
     allowedStates.add(RepositoryVersionState.UPGRADED);
 
     StringBuffer outSB = new StringBuffer();
@@ -118,12 +114,6 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
                 "Please install and upgrade the Stack Version on those hosts and try again.",
             version,
             StringUtils.join(hostsWithoutCorrectVersionState, ", ")));
-      }
-
-      outSB.append(String.format("Will finalize the upgraded state of all host components.\n"));
-      for (HostComponentStateEntity hostComponentStateEntity: hostComponentStateDAO.findAll()) {
-        hostComponentStateEntity.setUpgradeState(UpgradeState.NONE);
-        hostComponentStateDAO.merge(hostComponentStateEntity);
       }
 
       outSB.append(String.format("Will finalize the version for %d host(s).\n", hosts.keySet().size()));

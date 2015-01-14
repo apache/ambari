@@ -1271,13 +1271,12 @@ public class ClusterImpl implements Cluster {
         if (clusterVersion.getState() != RepositoryVersionState.INSTALL_FAILED &&
                 clusterVersion.getState() != RepositoryVersionState.OUT_OF_SYNC &&
                 clusterVersion.getState() != RepositoryVersionState.INSTALLING &&
-                clusterVersion.getState() != RepositoryVersionState.INSTALLED &&
-                clusterVersion.getState() != RepositoryVersionState.UPGRADING &&
-                clusterVersion.getState() != RepositoryVersionState.UPGRADED) {
+                clusterVersion.getState() != RepositoryVersionState.INSTALLED) {
           // anything else is not supported as of now
           return;
         }
-        worstState = RepositoryVersionState.UPGRADED;
+        // Process transition from INSTALLING state
+        worstState = RepositoryVersionState.INSTALLED;
         for (Host host : hosts.values()) {
           String hostName = host.getHostName();
           if (host.getState() != HostState.HEALTHY) {
@@ -1419,7 +1418,6 @@ public class ClusterImpl implements Cluster {
             case INSTALLED:
               allowedStates.add(RepositoryVersionState.INSTALLING);
               allowedStates.add(RepositoryVersionState.UPGRADING);
-              allowedStates.add(RepositoryVersionState.UPGRADED);
               allowedStates.add(RepositoryVersionState.OUT_OF_SYNC);
               break;
             case OUT_OF_SYNC:

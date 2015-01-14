@@ -127,7 +127,6 @@ GRANT ALL PRIVILEGES ON TABLE ambari.hostcomponentdesiredstate TO :username;
 CREATE TABLE ambari.hostcomponentstate (
   cluster_id BIGINT NOT NULL,
   component_name VARCHAR(255) NOT NULL,
-  version VARCHAR(32) NOT NULL DEFAULT 'UNKNOWN',
   current_stack_version VARCHAR(255) NOT NULL,
   current_state VARCHAR(255) NOT NULL,
   host_name VARCHAR(255) NOT NULL,

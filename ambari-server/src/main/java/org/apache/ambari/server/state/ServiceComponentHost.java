@@ -87,6 +87,7 @@ public interface ServiceComponentHost {
    */
   public SecurityState getSecurityState();
 
+
   /**
    * Sets the current security state for this ServiceComponent
    * <p/>
@@ -95,20 +96,6 @@ public interface ServiceComponentHost {
    * @param state the current SecurityState for this ServiceComponent
    */
   public void setSecurityState(SecurityState state);
-
-  /**
-   * Gets the version of the component.
-   *
-   * @return component version
-   */
-  public String getVersion();
-
-  /**
-   * Sets the version of the component from the stack.
-   *
-   * @param version component version (e.g. 2.2.0.0-2041)
-   */
-  public void setVersion(String version);
 
   /**
    * Gets the desired security state for this ServiceComponent
@@ -132,7 +119,7 @@ public interface ServiceComponentHost {
   public void setDesiredSecurityState(SecurityState securityState) throws AmbariException;
 
   public void setUpgradeState(UpgradeState upgradeState);
-
+  
   public StackId getStackVersion();
 
   public void setStackVersion(StackId stackVersion);
@@ -161,7 +148,7 @@ public interface ServiceComponentHost {
    * @param configTags
    */
   public void updateActualConfigs(Map<String, Map<String, String>> configTags);
-
+  
   /**
    * Gets the actual config tags, if known.
    * @return the actual config map
@@ -174,7 +161,7 @@ public interface ServiceComponentHost {
    * @param state the maintenance state
    */
   public void setMaintenanceState(MaintenanceState state);
-
+  
   /**
    * @return the maintenance state
    */
@@ -184,9 +171,9 @@ public interface ServiceComponentHost {
    * @param procs a list containing a map describing each process
    */
   public void setProcesses(List<Map<String, String>> procs);
-
-
-  /**
+  
+  
+  /**  
    * @return the list of maps describing each process
    */
   public List<Map<String, String>> getProcesses();
@@ -200,12 +187,5 @@ public interface ServiceComponentHost {
    * @param restartRequired the restartRequired flag
    */
   public void setRestartRequired(boolean restartRequired);
-
-  /**
-   * Changes host version state according to state of the components installed on the host.
-   *
-   * @throws AmbariException if host is detached from the cluster
-   */
-  public void recalculateHostVersionState() throws AmbariException;
 
 }

@@ -113,7 +113,6 @@ public class UpgradeCatalog200Test {
     Capture<DBAccessor.DBColumnInfo> alertDefinitionDescriptionColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> alertTargetGlobalColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> hostComponentStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-    Capture<DBAccessor.DBColumnInfo> hostComponentVersionColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> hostComponentStateSecurityStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> hostComponentDesiredStateSecurityStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> hostRoleCommandRetryColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
@@ -151,10 +150,6 @@ public class UpgradeCatalog200Test {
     // Host Component State
     dbAccessor.addColumn(eq("hostcomponentstate"),
         capture(hostComponentStateColumnCapture));
-
-    // Host Component Version
-    dbAccessor.addColumn(eq("hostcomponentstate"),
-        capture(hostComponentVersionColumnCapture));
 
     // Host Role Command retry allowed
     dbAccessor.addColumn(eq("host_role_command"),
@@ -229,14 +224,6 @@ public class UpgradeCatalog200Test {
     assertEquals(String.class, upgradeStateColumn.getType());
     assertEquals("NONE", upgradeStateColumn.getDefaultValue());
     assertFalse(upgradeStateColumn.isNullable());
-
-    // Verify added column in hostcomponentstate table
-    DBAccessor.DBColumnInfo upgradeVersionColumn = hostComponentVersionColumnCapture.getValue();
-    assertEquals("version", upgradeVersionColumn.getName());
-    assertEquals(32, (int) upgradeVersionColumn.getLength());
-    assertEquals(String.class, upgradeVersionColumn.getType());
-    assertEquals("UNKNOWN", upgradeVersionColumn.getDefaultValue());
-    assertFalse(upgradeVersionColumn.isNullable());
 
     // Verify added column in host_role_command table
     DBAccessor.DBColumnInfo upgradeRetryColumn = hostRoleCommandRetryColumnCapture.getValue();

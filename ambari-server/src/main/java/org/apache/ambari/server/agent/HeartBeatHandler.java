@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +41,6 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.bootstrap.DistributeRepositoriesStructuredOutput;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.events.ActionFinalReportReceivedEvent;
@@ -51,14 +49,6 @@ import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
-import org.apache.ambari.server.orm.dao.HostDAO;
-import org.apache.ambari.server.orm.dao.HostVersionDAO;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
-import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.serveraction.kerberos.KerberosActionDataFile;
 import org.apache.ambari.server.serveraction.kerberos.KerberosActionDataFileReader;
 import org.apache.ambari.server.serveraction.kerberos.KerberosServerAction;
@@ -80,8 +70,6 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.UpgradeHelper;
-import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
@@ -100,13 +88,10 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-import com.google.gson.annotations.SerializedName;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
@@ -409,7 +394,6 @@ public class HeartBeatHandler {
     }
     Collection<HostRoleCommand> commands = actionManager.getTasks(taskIds);
 
-    Set<ServiceComponentHost> scHostsRequireRecalculation = new HashSet<ServiceComponentHost>();
     Iterator<HostRoleCommand> hostRoleCommandIterator = commands.iterator();
     for (CommandReport report : reports) {
 
@@ -466,25 +450,6 @@ public class HeartBeatHandler {
           String schName = scHost.getServiceComponentName();
 
           if (report.getStatus().equals(HostRoleStatus.COMPLETED.toString())) {
-
-            // Reading component version if it is present
-            if (StringUtils.isNotBlank(report.getStructuredOut())) {
-              try {
-                final ComponentVersionStructuredOut structuredOutput = gson.fromJson(report.getStructuredOut(), ComponentVersionStructuredOut.class);
-                final String previousVersion = scHost.getVersion();
-                if (StringUtils.isNotBlank(structuredOutput.getVersion()) && !previousVersion.equals(structuredOutput.getVersion())) {
-                  scHost.setVersion(structuredOutput.getVersion());
-                  if (!previousVersion.equals("UNKNOWN")) {
-                    scHost.setUpgradeState(UpgradeState.COMPLETE);
-                  }
-                  scHostsRequireRecalculation.add(scHost);
-                }
-              } catch (JsonSyntaxException ex) {
-                //Json structure for component version was incorrect
-                //do nothing, pass this data further for processing
-              }
-            }
-
             // Updating stack version, if needed
             if (scHost.getState().equals(State.UPGRADING)) {
               scHost.setStackVersion(scHost.getDesiredStackVersion());
@@ -552,10 +517,6 @@ public class HeartBeatHandler {
           }
         }
       }
-    }
-    //Recalculate host versions
-    for (ServiceComponentHost serviceComponentHost : scHostsRequireRecalculation) {
-      serviceComponentHost.recalculateHostVersionState();
     }
     //Update state machines from reports
     actionManager.processTaskResponse(hostname, reports, commands);
@@ -983,20 +944,5 @@ public class HeartBeatHandler {
     ec.setKerberosCommandParams(kcp);
   }
 
-  /**
-   * This class is used for mapping json of structured output for component START action.
-   */
-  private static class ComponentVersionStructuredOut {
-    @SerializedName("version")
-    private String version;
-
-    public String getVersion() {
-      return version;
-    }
-
-    public void setVersion(String version) {
-      this.version = version;
-    }
-  }
 
 }
