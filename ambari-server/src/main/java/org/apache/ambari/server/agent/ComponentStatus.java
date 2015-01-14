@@ -27,6 +27,14 @@ public class ComponentStatus {
   private String componentName;
   private String msg;
   private String status;
+
+  /**
+   * A String declaring the component's security state
+   *
+   * @see org.apache.ambari.server.state.SecurityState
+   */
+  private String securityState;
+
   private String serviceName;
   private String clusterName;
   private String stackVersion;
@@ -55,6 +63,26 @@ public class ComponentStatus {
 
   public void setStatus(String status) {
     this.status = status;
+  }
+
+  /**
+   * Gets the relevant component's security state.
+   *
+   * @return a String declaring this component's security state
+   * @see org.apache.ambari.server.state.SecurityState
+   */
+  public String getSecurityState() {
+    return securityState;
+  }
+
+  /**
+   * Sets the relevant component's security state.
+   *
+   * @param securityState a String declaring this component's security state
+   * @see org.apache.ambari.server.state.SecurityState
+   */
+  public void setSecurityState(String securityState) {
+    this.securityState = securityState;
   }
 
   public String getStackVersion() {
@@ -124,6 +152,7 @@ public class ComponentStatus {
             "componentName='" + componentName + '\'' +
             ", msg='" + msg + '\'' +
             ", status='" + status + '\'' +
+            ", securityState='" + securityState + '\'' +
             ", serviceName='" + serviceName + '\'' +
             ", clusterName='" + clusterName + '\'' +
             ", stackVersion='" + stackVersion + '\'' +

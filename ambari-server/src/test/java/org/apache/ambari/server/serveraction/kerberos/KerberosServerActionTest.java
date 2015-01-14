@@ -117,6 +117,7 @@ public class KerberosServerActionTest {
             .encrypt(Integer.toHexString(cluster.hashCode()).getBytes()));
 
     when(mockExecutionCommand.getCommandParams()).thenReturn(commandParams);
+    when(mockExecutionCommand.getClusterName()).thenReturn("c1");
 
     action = injector.getInstance(KerberosServerAction.class);
 

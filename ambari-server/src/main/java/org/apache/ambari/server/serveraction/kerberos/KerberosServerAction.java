@@ -22,6 +22,7 @@ import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -222,17 +223,58 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   }
 
   /**
+   * Returns the relevant cluster's name
+   * <p/>
+   * Using the data from the execution command, retrieve the relevant cluster's name.
+   *
+   * @return a String declaring the relevant cluster's name
+   * @throws AmbariException if the cluster's name is not available
+   */
+  protected String getClusterName() throws AmbariException {
+    ExecutionCommand executionCommand = getExecutionCommand();
+    String clusterName = (executionCommand == null) ? null : executionCommand.getClusterName();
+
+    if ((clusterName == null) || clusterName.isEmpty()) {
+      throw new AmbariException("Failed to retrieve the cluster name from the execution command");
+    }
+
+    return clusterName;
+  }
+
+  /**
+   * Returns the relevant Cluster object
+   *
+   * @return the relevant Cluster
+   * @throws AmbariException if the Cluster object cannot be retrieved
+   */
+  protected Cluster getCluster() throws AmbariException {
+    Cluster cluster = clusters.getCluster(getClusterName());
+
+    if (cluster == null) {
+      throw new AmbariException(String.format("Failed to retrieve cluster for %s", getClusterName()));
+    }
+
+    return cluster;
+  }
+
+  /**
+   * The Clusters object for this KerberosServerAction
+   *
+   * @return a Clusters object
+   */
+  protected Clusters getClusters() {
+    return clusters;
+  }
+
+
+  /**
    * Given a (command parameter) Map, attempts to safely retrieve the "data_directory" property.
    *
    * @param commandParameters a Map containing the dictionary of data to interrogate
    * @return a String indicating the data directory or null (if not found or set)
    */
   protected KerberosCredential getAdministratorCredential(Map<String, String> commandParameters) throws AmbariException {
-    Cluster cluster = clusters.getCluster(getExecutionCommand().getClusterName());
-
-    if (cluster == null) {
-      throw new AmbariException("Failed get the Cluster object");
-    }
+    Cluster cluster = getCluster();
 
     // Create the key like we did when we encrypted the data, based on the Cluster objects hashcode.
     byte[] key = Integer.toHexString(cluster.hashCode()).getBytes();

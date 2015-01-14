@@ -1046,10 +1046,7 @@ public class KerberosHelper {
 
     @Override
     public SecurityState getNewSCHSecurityState() {
-      // TODO (rlevas): Set this to SecurityState.SECURING
-      // when the required infrastructure is in place
-      // See AMBARI-8343 and associated JIRAs (like AMBARI-8477)
-      return SecurityState.SECURED_KERBEROS;
+      return SecurityState.SECURING;
     }
 
     @Override
@@ -1248,10 +1245,7 @@ public class KerberosHelper {
 
     @Override
     public SecurityState getNewSCHSecurityState() {
-      // TODO (rlevas): Set this to SecurityState.UNSECURING
-      // when the required infrastructure is in place
-      // See AMBARI-8343 and associated JIRAs (like AMBARI-8477)
-      return SecurityState.UNSECURED;
+      return SecurityState.UNSECURING;
     }
 
     @Override
