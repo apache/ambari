@@ -34,6 +34,7 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
+import org.apache.velocity.app.Velocity;
 import org.easymock.EasyMock;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.junit.After;
@@ -101,6 +102,12 @@ public class AmbariServerTest {
     } catch(AmbariException e) {
       // Expected
     }
+  }
+
+  @Test
+  public void testVelocityLogger() throws Exception {
+    new AmbariServer();
+    Assert.assertEquals(AmbariServer.VELOCITY_LOG_CATEGORY, Velocity.getProperty("runtime.log.logsystem.log4j.logger"));
   }
 
   @Test

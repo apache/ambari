@@ -89,6 +89,7 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.ambari.server.view.ViewRegistry;
+import org.apache.velocity.app.Velocity;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.SessionIdManager;
@@ -126,6 +127,13 @@ import com.sun.jersey.spi.container.servlet.ServletContainer;
 @Singleton
 public class AmbariServer {
   private static Logger LOG = LoggerFactory.getLogger(AmbariServer.class);
+
+  // Set velocity logger
+  protected static final String VELOCITY_LOG_CATEGORY = "VelocityLogger";
+
+  static {
+    Velocity.setProperty("runtime.log.logsystem.log4j.logger", VELOCITY_LOG_CATEGORY);
+  }
 
   private Server server = null;
 
