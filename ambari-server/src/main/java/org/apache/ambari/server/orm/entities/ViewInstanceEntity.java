@@ -49,6 +49,7 @@ import org.apache.ambari.server.security.SecurityHelperImpl;
 import org.apache.ambari.server.security.authorization.AmbariAuthorizationFilter;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.server.view.validation.InstanceValidationResultImpl;
+import org.apache.ambari.server.view.validation.ValidationException;
 import org.apache.ambari.server.view.validation.ValidationResultImpl;
 import org.apache.ambari.view.validation.Validator;
 import org.apache.ambari.view.ResourceProvider;
@@ -724,12 +725,12 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    * @param viewEntity the view entity to which this instance will be bound
    * @param context the validation context
    *
-   * @throws IllegalStateException if the instance is not in a valid state
+   * @throws ValidationException if the instance can not be validated
    */
-  public void validate(ViewEntity viewEntity, Validator.ValidationContext context) throws IllegalStateException {
+  public void validate(ViewEntity viewEntity, Validator.ValidationContext context) throws ValidationException {
     InstanceValidationResultImpl result = getValidationResult(viewEntity, context);
     if (!result.isValid()) {
-      throw new IllegalStateException(result.toJson());
+      throw new ValidationException(result.toJson());
     }
   }
 

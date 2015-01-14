@@ -93,7 +93,8 @@ public interface ViewContext {
    * @param key    the key
    * @param value  the value
    *
-   * @throws IllegalStateException if no instance is associated
+   * @throws IllegalStateException    if no instance is associated
+   * @throws IllegalArgumentException if updating the view instance fails validation
    */
   public void putInstanceData(String key, String value);
 

@@ -65,6 +65,7 @@ import org.apache.ambari.server.view.configuration.PersistenceConfig;
 import org.apache.ambari.server.view.configuration.PropertyConfig;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
 import org.apache.ambari.server.view.configuration.ViewConfig;
+import org.apache.ambari.server.view.validation.ValidationException;
 import org.apache.ambari.view.validation.Validator;
 import org.apache.ambari.view.Masker;
 import org.apache.ambari.view.SystemException;
@@ -458,14 +459,14 @@ public class ViewRegistry {
    *
    * @param instanceEntity  the view instance entity
    *
-   * @throws IllegalStateException     if the given instance is not in a valid state
+   * @throws ValidationException       if the given instance fails the validation checks
    * @throws IllegalArgumentException  if the view associated with the given instance
    *                                   does not exist
    * @throws SystemException           if the instance can not be installed
    */
   @Transactional
   public void installViewInstance(ViewInstanceEntity instanceEntity)
-      throws IllegalStateException, IllegalArgumentException, SystemException {
+      throws ValidationException, IllegalArgumentException, SystemException {
     ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
 
     if (viewEntity != null) {
@@ -525,11 +526,11 @@ public class ViewRegistry {
    *
    * @param instanceEntity  the view instance entity
    *
-   * @throws IllegalStateException if the given instance is not in a valid state
+   * @throws ValidationException   if the given instance fails the validation checks
    * @throws SystemException       if the instance can not be updated
    */
   public void updateViewInstance(ViewInstanceEntity instanceEntity)
-      throws IllegalStateException, SystemException {
+      throws ValidationException, SystemException {
     ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
 
     if (viewEntity != null) {
@@ -944,7 +945,7 @@ public class ViewRegistry {
   // create a new view instance definition
   protected ViewInstanceEntity createViewInstanceDefinition(ViewConfig viewConfig, ViewEntity viewDefinition,
                                                             InstanceConfig instanceConfig)
-      throws ClassNotFoundException, SystemException {
+      throws ValidationException, ClassNotFoundException, SystemException {
     ViewInstanceEntity viewInstanceDefinition =
         new ViewInstanceEntity(viewDefinition, instanceConfig);
 

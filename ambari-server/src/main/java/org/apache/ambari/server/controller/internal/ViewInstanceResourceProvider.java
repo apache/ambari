@@ -36,6 +36,7 @@ import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.server.view.validation.InstanceValidationResultImpl;
+import org.apache.ambari.server.view.validation.ValidationException;
 import org.apache.ambari.server.view.validation.ValidationResultImpl;
 import org.apache.ambari.view.validation.Validator;
 
@@ -384,6 +385,9 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
           viewRegistry.installViewInstance(instanceEntity);
         } catch (org.apache.ambari.view.SystemException e) {
           throw new AmbariException("Caught exception trying to create view instance.", e);
+        } catch (ValidationException e) {
+          // results in a BAD_REQUEST (400) response for the validation failure.
+          throw new IllegalArgumentException(e.getMessage(), e);
         }
         return null;
       }
@@ -405,6 +409,9 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
             ViewRegistry.getInstance().updateViewInstance(instance);
           } catch (org.apache.ambari.view.SystemException e) {
             throw new AmbariException("Caught exception trying to update view instance.", e);
+          } catch (ValidationException e) {
+            // results in a BAD_REQUEST (400) response for the validation failure.
+            throw new IllegalArgumentException(e.getMessage(), e);
           }
         }
         return null;

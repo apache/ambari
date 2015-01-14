@@ -29,6 +29,7 @@ import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.apache.ambari.server.view.events.EventImpl;
 import org.apache.ambari.server.view.persistence.DataStoreImpl;
 import org.apache.ambari.server.view.persistence.DataStoreModule;
+import org.apache.ambari.server.view.validation.ValidationException;
 import org.apache.ambari.view.AmbariStreamProvider;
 import org.apache.ambari.view.DataStore;
 import org.apache.ambari.view.ImpersonatorSetting;
@@ -216,6 +217,8 @@ public class ViewContextImpl implements ViewContext, ViewController {
         String msg = "Caught exception updating the view instance.";
         LOG.error(msg, e);
         throw new IllegalStateException(msg, e);
+      } catch (ValidationException e) {
+        throw new IllegalArgumentException(e.getMessage());
       }
     }
   }

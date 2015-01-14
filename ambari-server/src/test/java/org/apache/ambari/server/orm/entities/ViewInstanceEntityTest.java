@@ -28,6 +28,7 @@ import org.apache.ambari.server.view.configuration.InstanceConfigTest;
 import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.apache.ambari.server.view.configuration.ViewConfigTest;
 import org.apache.ambari.server.view.validation.InstanceValidationResultImpl;
+import org.apache.ambari.server.view.validation.ValidationException;
 import org.apache.ambari.server.view.validation.ValidationResultImpl;
 import org.apache.ambari.view.ResourceProvider;
 import org.apache.ambari.view.validation.ValidationResult;
@@ -446,7 +447,7 @@ public class ViewInstanceEntityTest {
     try {
       viewInstanceEntity.validate(viewEntity, Validator.ValidationContext.PRE_CREATE);
       Assert.fail("Expected an IllegalStateException");
-    } catch (IllegalStateException e) {
+    } catch (ValidationException e) {
       // expected
     }
   }
@@ -470,7 +471,7 @@ public class ViewInstanceEntityTest {
     try {
       viewInstanceEntity.validate(viewEntity, Validator.ValidationContext.PRE_CREATE);
       Assert.fail("Expected an IllegalStateException");
-    } catch (IllegalStateException e) {
+    } catch (ValidationException e) {
       // expected
     }
   }
