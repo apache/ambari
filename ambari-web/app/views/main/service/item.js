@@ -132,7 +132,7 @@ App.MainServiceItemView = Em.View.extend({
         action: this.get('controller.isSeveralClients') ? '' : 'downloadClientConfigs',
         label: Em.I18n.t('services.service.actions.downloadClientConfigs'),
         cssClass: 'icon-download-alt',
-        isHidden: !this.get('controller.content.hostComponents').findProperty('isClient'),
+        isHidden: this.get('controller.content.clientComponents').rejectProperty('totalCount', 0).length == 0,
         disabled: false,
         hasSubmenu: this.get('controller.isSeveralClients'),
         submenuOptions: this.get('controller.clientComponents')
