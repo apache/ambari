@@ -90,7 +90,7 @@ public interface Cluster {
   /**
    * Remove ServiceComponentHost from cluster
    * @param svcCompHost
-   */  
+   */
   public void removeServiceComponentHost(ServiceComponentHost svcCompHost) throws AmbariException;
 
 
@@ -155,6 +155,9 @@ public interface Cluster {
    * May be called multiple times.
    * As of now, only transition from INSTALLING to INSTALLING/INSTALLED/INSTALL_FAILED/OUT_OF_SYNC
    * is supported
+   *
+   * @param repositoryVersion repository version (e.g. 2.2.1.0-100)
+   *
    * @throws AmbariException
    */
   void recalculateClusterVersionState(String repositoryVersion) throws AmbariException;
@@ -193,15 +196,15 @@ public interface Cluster {
   /**
    * Gets whether the cluster is still initializing or has finished with its
    * deployment requests.
-   * 
+   *
    * @return either {@link State#INIT} or {@link State#INSTALLED}, never
    *         {@code null}.
    */
   public State getProvisioningState();
-  
+
   /**
    * Sets the provisioning state of the cluster.
-   * 
+   *
    * @param provisioningState
    *          the provisioning state, not {@code null}.
    */

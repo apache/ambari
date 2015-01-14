@@ -19,11 +19,14 @@
 package org.apache.ambari.server.state.svccomphost;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -39,12 +42,16 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.dao.HostVersionDAO;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.state.Cluster;
@@ -55,7 +62,9 @@ import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityState;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
@@ -69,6 +78,7 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,6 +113,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   HostComponentDesiredStateDAO hostComponentDesiredStateDAO;
   @Inject
   HostDAO hostDAO;
+  @Inject
+  HostVersionDAO hostVersionDAO;
+  @Inject
+  RepositoryVersionDAO repositoryVersionDAO;
   @Inject
   ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO;
   @Inject
@@ -685,6 +699,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     stateEntity.setClusterId(serviceComponent.getClusterId());
     stateEntity.setComponentName(serviceComponent.getName());
     stateEntity.setServiceName(serviceComponent.getServiceName());
+    stateEntity.setVersion("UNKNOWN");
     stateEntity.setHostName(hostName);
     stateEntity.setCurrentState(stateMachine.getCurrentState());
     stateEntity.setUpgradeState(UpgradeState.NONE);
@@ -770,6 +785,37 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       try {
         stateMachine.setCurrentState(state);
         stateEntity.setCurrentState(state);
+        saveIfPersisted();
+      } finally {
+        writeLock.unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }
+
+  @Override
+  public String getVersion() {
+    clusterGlobalLock.readLock().lock();
+    try {
+      readLock.lock();
+      try {
+        return stateEntity.getVersion();
+      } finally {
+        readLock.unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }
+
+  @Override
+  public void setVersion(String version) {
+    clusterGlobalLock.readLock().lock();
+    try {
+      writeLock.lock();
+      try {
+        stateEntity.setVersion(version);
         saveIfPersisted();
       } finally {
         writeLock.unlock();
@@ -1657,5 +1703,59 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
+  }
+
+  @Override
+  public void recalculateHostVersionState() throws AmbariException {
+    final String version = getVersion();
+    final String hostName = getHostName();
+    final HostEntity host = hostDAO.findByName(hostName);
+    final Set<Cluster> clustersForHost = clusters.getClustersForHost(hostName);
+    if (clustersForHost.size() != 1) {
+      throw new AmbariException("Host " + hostName + " should be assigned only to one cluster");
+    }
+    final Cluster cluster = clustersForHost.iterator().next();
+    final StackId stack = cluster.getDesiredStackVersion();
+    final RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(stack.getStackId(), version);
+    if (repositoryVersion == null) {
+      LOG.debug("Repository version for stack " + stack.getStackId() + " for version " + version + " was not found");
+      return;
+    }
+    final HostVersionEntity hostVersionEntity = hostVersionDAO.findByClusterStackVersionAndHost(cluster.getClusterName(), repositoryVersion.getStack(), repositoryVersion.getVersion(), hostName);
+    if (hostVersionEntity == null) {
+      LOG.debug(String.format("Host version version for host %s on cluster %s with stack %s and repository version %s was not found",
+          hostName, cluster.getClusterName(), repositoryVersion.getStack(), repositoryVersion.getVersion()));
+      return;
+    }
+
+    final Collection<HostComponentStateEntity> allHostComponents = host.getHostComponentStateEntities();
+    final Collection<HostComponentStateEntity> upgradedHostComponents = new HashSet<HostComponentStateEntity>();
+    for (HostComponentStateEntity hostComponentStateEntity: allHostComponents) {
+      if (hostComponentStateEntity.getUpgradeState().equals(UpgradeState.COMPLETE) && !hostComponentStateEntity.getVersion().equals("UNKNOWN")) {
+        upgradedHostComponents.add(hostComponentStateEntity);
+      }
+    }
+
+    //TODO hack: clients' states are not updated, probably we should check the state of master components
+    final Collection<HostComponentStateEntity> nonUpgradedHostComponents = CollectionUtils.subtract(allHostComponents, upgradedHostComponents);
+    for (HostComponentStateEntity hostComponentStateEntity: nonUpgradedHostComponents) {
+      final Service service = cluster.getService(hostComponentStateEntity.getServiceName());
+      if (service.getServiceComponent(hostComponentStateEntity.getComponentName()).isClientComponent()) {
+        upgradedHostComponents.add(hostComponentStateEntity);
+      }
+    }
+
+    if (allHostComponents.size() == upgradedHostComponents.size() &&
+        (hostVersionEntity.getState().equals(RepositoryVersionState.INSTALLED) || hostVersionEntity.getState().equals(RepositoryVersionState.UPGRADING))) {
+      hostVersionEntity.setState(RepositoryVersionState.UPGRADED);
+      hostVersionDAO.merge(hostVersionEntity);
+    }
+
+    if (!upgradedHostComponents.isEmpty() && upgradedHostComponents.size() < allHostComponents.size()) {
+      hostVersionEntity.setState(RepositoryVersionState.UPGRADING);
+      hostVersionDAO.merge(hostVersionEntity);
+    }
+
+    cluster.recalculateClusterVersionState(version);
   }
 }
