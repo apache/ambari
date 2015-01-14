@@ -122,24 +122,28 @@
 
       <service name="MAPREDUCE2">
         <component>MAPREDUCE2_CLIENT</component>
-       </service>
+      </service>
 
-       <service name="TEZ">
-         <component>TEZ_CLIENT</component>
-       </service>
+      <service name="TEZ">
+        <component>TEZ_CLIENT</component>
+      </service>
 
-       <service name="HBASE">
-         <component>HBASE_CLIENT</component>
-       </service>
+      <service name="HBASE">
+        <component>HBASE_CLIENT</component>
+      </service>
 
-       <service name="PIG">
-         <component name="PIG" />
-       </service>
+      <service name="PIG">
+        <component>PIG</component>
+      </service>
 
-       <service name="HIVE">
-         <component>HIVE_CLIENT</component>
-         <component>HCAT</component>
-       </service>
+      <service name="HIVE">
+        <component>HIVE_CLIENT</component>
+        <component>HCAT</component>
+      </service>
+
+      <service name="SLIDER">
+        <component>SLIDER</component>
+      </service>
     </group>
 
     <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize Upgrade">
@@ -368,6 +372,14 @@
       </component>
 
       <component name="HIVE_CLIENT">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="SLIDER">
+      <component name="SLIDER">
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>

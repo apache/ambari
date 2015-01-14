@@ -20,6 +20,7 @@
     "serviceName": "SLIDER",
     "role": "SLIDER",
     "commandParams": {
+        "version": "2.2.1.0-2067",
         "command_timeout": "300",
         "service_package_folder": "OOZIE",
         "script_type": "PYTHON",
