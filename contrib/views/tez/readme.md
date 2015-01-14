@@ -23,7 +23,7 @@ This view provides a web interface for TEZ.
 Requirements
 -----
 
-- Ambari view 1.3.0
+- Ambari 1.7.0
 - TEZ 0.6.0 or above
 
 Build

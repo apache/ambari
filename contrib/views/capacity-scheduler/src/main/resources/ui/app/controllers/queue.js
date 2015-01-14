@@ -67,12 +67,6 @@ App.QueueController = Ember.ObjectController.extend({
       }
 
     },
-    toggleEditRA:function () {
-      this.toggleProperty('isEditRA');
-    },
-    toggleEditACL:function () {
-      this.toggleProperty('isEditACL');
-    },
     rollbackProp:function(prop){
       attributes = this.content.changedAttributes();
       if (attributes.hasOwnProperty(prop)) {
@@ -106,9 +100,6 @@ App.QueueController = Ember.ObjectController.extend({
   allQueues:Em.computed.alias('controllers.queues.content'),
   allQueuesArranged:Em.computed.alias('controllers.queues.arrangedContent'),
 
-  isEditRA:false,
-  isEditACL:false,
-
   handleAcl:function (key,value) {
     if (value) {
       this.set(key,(value == '*')?'*':' ');
@@ -124,15 +115,6 @@ App.QueueController = Ember.ObjectController.extend({
     var attributes = this.content.changedAttributes();
     return attributes.hasOwnProperty('acl_administer_queue');
   }.property('content.acl_administer_queue'),
-
-  acl_administer_jobs: function (key, value, previousValue) {
-    return this.handleAcl('content.acl_administer_jobs',value);
-  }.property('content.acl_administer_jobs'),
-  aaj_anyone:Ember.computed.equal('acl_administer_jobs', '*'),
-  aaj_dirty:function () {
-    var attributes = this.content.changedAttributes();
-    return attributes.hasOwnProperty('acl_administer_jobs');
-  }.property('content.acl_administer_jobs'),
 
   acl_submit_applications: function (key, value, previousValue) {
     return this.handleAcl('content.acl_submit_applications',value);

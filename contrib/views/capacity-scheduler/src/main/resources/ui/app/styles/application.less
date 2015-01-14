@@ -16,8 +16,31 @@
  * limitations under the License.
  */
 
+.queue-capacity .peer-toggle {
+  width: 100%;
+  // background: #f7f7f7;
+  //border: 1px solid #e4e4e4;
+  text-align: left;
+  padding: 3px;
+}
+
+a .peer-toggle {
+    color: #555;
+    text-decoration: none;
+    font-size: .8em;
+  }
+
+.row.queue-acl-row {
+  padding-left:15px;
+}
+
+.row .queue-resources {
+  padding-left: 0px;
+  padding-right: 30px;
+}
+
 .wrap {
-  padding: 15px;
+  padding: 0px;
 }
 
 .add-queue {
@@ -29,14 +52,44 @@
   }
 }
 
+.input-int {
+  width: 110px;
+}
+
+.input-percent {
+  width: 65px;
+}
+
+.form-horizontal {
+  padding-top: 10px;
+}
+
+.form-horizontal .capacity-edit-form {
+  padding-top: 0px;
+}
+
+.form-horizontal .control-value {
+  padding-top: 0px;
+}
+
+.form-horizontal .form-control-static {
+  padding-top: 5px;
+}
+
 .queue-label {
-    float: left;
     padding-right: 10px;
     min-width: 80px;
+    font-weight: bold;
+    font-size: 1.1em;
+    padding-top: 5px;
+}
+
+.control-label.queue-label {
+    padding-top: 7px;
 }
 
 .capacity-edit {
-    padding-left: 80px;
+    font-weight: normal;
 }
 
 .max-capacity-edit {
@@ -62,7 +115,11 @@
 .control-label {
     font-size: .9em;
 }
-    
+ 
+.input-group-addon {
+  padding: 3px;
+}
+   
 .well-queue {
     background-color: #ffffff;
     border: 1px solid #e3e3e3;
@@ -70,9 +127,13 @@
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05) inset;
     margin-bottom: 20px;
     min-height: 20px;
-    padding: 19px;
-    padding-top: 5px;
+    padding: 15px;
+    padding-top: 0px;
   }
+
+.col-md-8.queue-area {
+  padding-left:0px;
+}
 
 .btn {
   padding: 6px 10px;
@@ -250,11 +311,22 @@
     }
   }
   .panel-title {
+    font-weight: 500;
     position: relative;
     a {
       position: absolute;
       right: 0;
       color: #428bca;
+    }
+    .total {
+      float: right;
+      width: 400px;
+      .level-total-label {
+        float: left;
+        padding-right: 10px;
+        font-size:.9em;
+        font-weight: normal;
+      }
     }
   }
   .panel-body.total{
@@ -263,13 +335,22 @@
     }
   }
   .panel-body.queues {
-    border-top: 1px solid #dddddd;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .panel-body {
+    padding-top: 0px;
   }
 
-  .queue-capacity{
-    border-bottom: 1px solid #dddddd;
-    padding-bottom: 8px;
-    padding-top: 8px;
+  .queues {
+    padding-top: 0px;
+  }
+
+  .queue-capacity-peer {
+  }
+  
+  .queue-capacity {
+    padding-bottom: 4px;
     &.active {
       .progress {
         -webkit-box-shadow: 0px 0px 0px #888888;
@@ -290,11 +371,20 @@
     }
     .help-block {
       display: inline;
+      font-size: .8em;
     }
     /*input {
       width: auto;
     }*/
   }
+}
+
+.control-label.capacity-edit {
+  width: 75px;
+}
+
+.capacity-input {
+  float: left !important;
 }
 
 .queue-heading-row {
@@ -312,4 +402,89 @@
 
 .modal-backdrop.in {
   opacity: 0;
+}
+
+
+
+input[type=range] {
+  -webkit-appearance: none;
+  width: 100%;
+  margin: 7.3px 0;
+}
+input[type=range]:focus {
+  outline: none;
+}
+input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 2px;
+  cursor: pointer;
+  background: #555;
+  border-radius: 1.3px;
+  border: 0.2px solid #010101;
+}
+input[type=range]::-webkit-slider-thumb {
+  border: 1.8px solid #00001e;
+  height: 15px;
+  width: 20px;
+  border-radius: 15px;
+  background: #ffffff;
+  cursor: pointer;
+  -webkit-appearance: none;
+  margin-top: -7px;
+}
+input[type=range]:focus::-webkit-slider-runnable-track {
+  background: #555;
+}
+input[type=range]::-moz-range-track {
+  width: 100%;
+  height: 2px;
+  cursor: pointer;
+  background: #555;
+  border-radius: 1.3px;
+  border: 0.2px solid #010101;
+}
+input[type=range]::-ms-fill-lower {
+    background: red;
+    border-radius: 10px;
+}
+input[type=range]::-moz-range-thumb {
+  border: 1.8px solid #00001e;
+  height: 15px;
+  width: 20px;
+  border-radius: 15px;
+  background: #ffffff;
+  cursor: pointer;
+}
+input[type=range]::-ms-track {
+  width: 100%;
+  height: 2px;
+  cursor: pointer;
+  background: transparent;
+  border-color: transparent;
+  color: transparent;
+}
+input[type=range]::-ms-fill-lower {
+  background: rgba(42, 100, 149, 0.78);
+  border: 0.2px solid #010101;
+  border-radius: 2.6px;
+}
+input[type=range]::-ms-fill-upper {
+  background: #555;
+  border: 0.2px solid #010101;
+  border-radius: 2.6px;
+}
+input[type=range]::-ms-thumb {
+  border: 1.8px solid #00001e;
+  height: 15px;
+  width: 20px;
+  border-radius: 15px;
+  background: #ffffff;
+  cursor: pointer;
+  height: 11.4px;
+}
+input[type=range]:focus::-ms-fill-lower {
+  background: #555;
+}
+input[type=range]:focus::-ms-fill-upper {
+  background: #555;
 }

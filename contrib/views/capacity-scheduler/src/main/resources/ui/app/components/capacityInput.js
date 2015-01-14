@@ -18,6 +18,16 @@
 
 var App = require('app');
 
+App.InputRangeComponent = Em.TextField.extend({
+  type: 'range',
+
+  action: 'mouseUp',
+
+  mouseUp: function () {
+    var value = this.get('value');
+    this.sendAction('action', value);
+  }
+});
 
 App.FocusInputComponent = Ember.TextField.extend({
   becomeFocused: function() {
@@ -86,7 +96,7 @@ App.MaxCapacityInputComponent = App.CapacityInputComponent.extend({
       return queue.set('maximum_capacity',capacity);
     };
     if (max_capacity < capacity && queue.get('isDirty')) {
-      queue.get('errors').add('maximum_capacity', 'Maximum capacity must be greater then capacity');
+      queue.get('errors').add('maximum_capacity', 'Maximum must be equal or greater than capacity');
     } else {
       queue.get('errors').remove('maximum_capacity');
     }

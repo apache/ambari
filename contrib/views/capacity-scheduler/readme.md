@@ -35,11 +35,11 @@ The view can be built as a maven project.
 
 The build will produce the view archive.
 
-    target/capacity-scheduler-0.2.0-SNAPSHOT.jar
+    target/capacity-scheduler-0.3.0-SNAPSHOT.jar
 
 Place the view archive on the Ambari Server and restart to deploy.    
 
-    cp capacity-scheduler-0.2.0-SNAPSHOT /var/lib/ambari-server/resources/views/
+    cp capacity-scheduler-0.3.0-SNAPSHOT /var/lib/ambari-server/resources/views/
     ambari-server restart
 
 Deploying the View
@@ -49,7 +49,7 @@ Use the [Ambari Vagrant](https://cwiki.apache.org/confluence/display/AMBARI/Quic
 
 Deploy the Capacity Scheduler view into Ambari.
 
-    cp capacity-scheduler-0.2.0-SNAPSHOT /var/lib/ambari-server/resources/views/
+    cp capacity-scheduler-0.3.0-SNAPSHOT /var/lib/ambari-server/resources/views/
     ambari-server restart
 
 From the Ambari Administration interface, create a view instance.
@@ -65,4 +65,27 @@ From the Ambari Administration interface, create a view instance.
 
 Login to Ambari and browse to the view instance.
 
-    http://c6401.ambari.apache.org:8080/#/main/views/CAPACITY-SCHEDULER/0.2.0/CS_1
+    http://c6401.ambari.apache.org:8080/#/main/views/CAPACITY-SCHEDULER/0.3.0/CS_1
+
+Local Development
+-----
+If you want to perform UI development without having to build and redeploy the view package,
+you can mount the build target output as a symlink to your vagrant instance.
+UI changes will be picked-up with a browser refresh.
+
+After building and deploying the View, delete the view work directory on the Ambari Server.
+
+    cd /var/lib/ambari-server/resources/views/work
+    rm -rf CAPACITY-SCHEDULER\{0.3.0\}/
+
+Create a symlink from the vagrant machine running your Ambari Server to your local machine.
+
+    ln -s /vagrant/ambari/contrib/views/capacity-scheduler/target/classes/ CAPACITY-SCHEDULER\{0.3.0\}
+    
+Restart Ambari Server, login and browse to the view.
+
+    ambari-server restart
+    http://c6401.ambari.apache.org:8080/#/main/views/CAPACITY-SCHEDULER/0.3.0/CS_1
+    
+If you modify the view UI code on your machine and re-build, the UI will pickup
+the changes on browser refresh.

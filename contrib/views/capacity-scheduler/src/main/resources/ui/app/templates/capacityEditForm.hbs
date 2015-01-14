@@ -16,19 +16,30 @@
 * limitations under the License.
 }}
 
-<form {{bind-attr class=":form-inline :capacity-edit-form " }} role="form">
+<form {{bind-attr class=":form-horizontal :capacity-edit-form " }} role="form">
   <div {{bind-attr class=":form-group" }}>
-    <label  class="control-label capacity-edit">Capacity: </label>
-    {{capacity-input class='input-sm' value=this.capacity totalCapacity=view.totalCapacity queue=this maxVal=100}}
-    
-  </div>
-  <div {{bind-attr class=":form-group this.isValid::has-error" }}>
-    <label class="control-label max-capacity-edit">Max. Capacity: </label>
-    {{max-capacity-input class='input-sm' value=this.maximum_capacity totalCapacity=view.totalCapacity queue=this maxVal=100}}
+    <label class="col-xs-1 control-label capacity-edit">Capacity: </label>
+    <div class="col-xs-2 capacity-input control-value input-group input-percent">
+{{capacity-input class='input-sm' value=this.capacity totalCapacity=view.totalCapacity queue=this maxVal=100}}
+<span class="input-group-addon">%</span>
+    </div>
+    <div class="col-xs-3 control-value">
+{{input-range min="0" max="100" step="1" value=this.capacity}}
+    </div>
+    <label style="padding-top: 0px" class="col-xs-1 control-label capacity-edit">Max Capacity: </label>
+    <div {{bind-attr class="this.isValid::has-error" }}>
+    <div class="col-xs-2 capacity-input control-value input-group input-percent">
+{{max-capacity-input class='input-sm' value=this.maximum_capacity totalCapacity=view.totalCapacity queue=this maxVal=100}}
+<span class="input-group-addon">%</span>
+    </div>
+    <div class="col-xs-3 control-value">
+{{input-range min="0" max="100" step="1" value=this.maximum_capacity}}
     {{#each this.errors.maximum_capacity}}
       <span class="help-block">
         {{message}}
       </span>
     {{/each}}
+  </div>
+  </div>
   </div>
 </form>

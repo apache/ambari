@@ -18,35 +18,43 @@
 
 <div class="panel panel-default panel-capacity">
   <div class="panel-heading">
-  <div class="panel-title">
-    <strong>Capacity</strong>
-    {{#if isOperator}}
-      <a href="#" {{action 'toggleEdit'}} class="text-right">
-        {{#if view.isEdit}}
-          <div class="edit-link">Hide Edit</div>
-        {{else}}
-          <div class="edit-link">Show Edit</div>
-        {{/if}}
-      </a>
-    {{/if}}
-  </div>
-  </div>
-  <div class="panel-body total">
-<div class="control-label queue-label">TOTAL</div>
+    <div class="panel-title">
+    Capacity
+  <div class="total">
+<div class="level-total-label">Level Total</div>
 {{capacity-bar capacityValue=totalCapacity maxCapacityValue=totalCapacity warn=leafQueues.firstObject.overCapacity}}
   </div>
+    </div>
+  </div>
+  <div class="panel-body total">
   <div class="panel-body queues">
     {{#each leafQueues}}
+      {{#if this.isCurrent}}
       <div {{bind-attr class=":queue-capacity this.isCurrent:active"}}>
+          <div class="queue-label">{{this.name}}</div>
+        {{render "capacityEditForm" this}}
+  <a href="#" {{action toggleProperty "showPeerQueues"}}>
+    <div class="peer-toggle">
+Show/Hide Peer Level Queues
+    </div>
+  </a>
+      </div>
+      {{/if}}
+    {{/each}}  
+{{#if showPeerQueues}}
+    {{#each leafQueues}}
+      {{#unless this.isCurrent}}
+      <div {{bind-attr class=":queue-capacity :queue-capacity-peer"}}>
         <p>
-          <div class="control-label queue-label">{{this.name}}</div>
+          <div class="queue-label">{{this.name}}</div>
         </p>
-        {{capacity-bar capacityValue=this.capacity maxCapacityValue=this.maximum_capacity warn=this.overCapacity}}
         {{render "capacityEditForm" this}}
       </div>
+      {{/unless}}
     {{/each}}
+{{/if}}
     {{#each newLeafQueues}}
-      <div {{bind-attr class=":queue-capacity :new-queue this.isCurrent:active"}} >
+      <div {{bind-attr class=":queue-capacity :queue-capacity-peer :new-queue this.isCurrent:active"}} >
         <div class="input-row row" >
           <div class="col-md-5">
             {{#each this.errors.path}}
@@ -54,7 +62,6 @@
             {{/each}}
           </div>
         </div>
-        {{capacity-bar capacityValue=this.capacity maxCapacityValue=this.maximum_capacity warn=this.overCapacity}}
         {{render "capacityEditForm" this}}
       </div>
     {{/each}}

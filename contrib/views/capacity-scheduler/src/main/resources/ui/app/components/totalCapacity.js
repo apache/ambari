@@ -43,8 +43,8 @@ App.TotalCapacityComponent = Ember.Component.extend({
   allQueues:[],
   allQueuesArranged:[],
 
-  isEdit:false,
-
+  isEdit: true,
+  
   disableEdit:function () {
     this.set('isEdit',false);
   }.observes('allQueues'),
@@ -56,7 +56,7 @@ App.TotalCapacityComponent = Ember.Component.extend({
   }),
 
   totalCapacity: Ember.computed.sum('leafQueuesCapacity'),
-
+  
   leafQueues:function () {
     return this.allQueuesArranged.filterBy('parentPath',this.get('currentPrPath')).filterBy('isNew',false);
   }.property('allQueuesArranged.length','currentPrPath'),

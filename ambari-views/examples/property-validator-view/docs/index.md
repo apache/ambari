@@ -48,7 +48,7 @@ The view can be built as a maven project.
 
 The build will produce the view archive.
 
-    ambari-views/examples/property-view/target/property-validator-view-0.1.0.jar
+    target/property-validator-view-0.1.0.jar
 
 Place the view archive on the Ambari Server and restart to deploy.    
 

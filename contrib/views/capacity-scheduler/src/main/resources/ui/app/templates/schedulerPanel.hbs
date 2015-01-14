@@ -19,43 +19,65 @@
 <div class="panel panel-default panel-capacity">
   <div class="panel-heading">
     <div class="panel-title">
-      <strong>Scheduler</strong>
-      {{#if isOperator}}
-          <a href="#" {{action 'toggleEditScheduler'}} class="text-right">
-          {{#if isEditScheduler}}
-                  <div class="edit-link">Hide Edit</div>
-          {{else}}
-                  <div class="edit-link">Show Edit</div>
-          {{/if}}
-        </a>
-      {{/if}}
+      Scheduler
     </div>
   </div>
   <div class="panel-body">
     <form class="form-horizontal" role="form">
       <div class="form-group">
-        <label class="col-xs-4 control-label">Maximum Apps</label>
-        <div class="col-xs-8">
-        {{#if isEditScheduler}}
-          {{int-input value=scheduler.maximum_applications class="input-sm"}}
+        <label class="col-xs-5 control-label">Maximum Applications</label>
+        {{#if isOperator}}
+        <div class="col-xs-6 control-value">
+          {{int-input value=scheduler.maximum_applications maxlength=15 class="input-sm input-int"}}
         {{else}}
+        <div class="col-xs-6">
           <p class="form-control-static">{{scheduler.maximum_applications}}</p>
         {{/if}}
         </div>
       </div>
       <div class="form-group">
-        <label class="col-xs-4 control-label">Minimum AM Resource</label>
-        <div class="col-xs-8">
-        {{#if isEditScheduler}}
-          <div class="input-group">
+        <label class="col-xs-5 control-label">Maximum AM Resource</label>
+        {{#if isOperator}}
+        <div class="col-xs-6 control-value">
+          <div class="input-group input-percent">
             {{int-input value=scheduler.maximum_am_resource_percent class="input-sm" maxVal=100}}
             <span class="input-group-addon">%</span>
           </div>
         {{else}}
-          <p class="form-control-static">{{scheduler.maximum_am_resource_percent}} %</p>
+        <div class="col-xs-6">
+          {{#if scheduler.maximum_am_resource_percent}}
+            <p class="form-control-static">{{scheduler.maximum_am_resource_percent}} %</p>
+          {{else}}
+            <p class="form-control-static">-</p>
+          {{/if}}
         {{/if}}
         </div>
       </div>
+      <div class="form-group">
+        <label class="col-xs-5 control-label">Node Locality Delay</label>
+        {{#if isOperator}}
+        <div class="col-xs-6 control-value">
+            {{int-input value=scheduler.node_locality_delay maxlength=10 class="input-sm input-int"}}
+        {{else}}
+        <div class="col-xs-6">
+          {{#if scheduler.node_locality_delay}}
+            <p class="form-control-static">{{scheduler.node_locality_delay}} %</p>
+          {{else}}
+            <p class="form-control-static">-</p>
+          {{/if}}
+        {{/if}}
+        </div>
+      </div>
+     {{#if isOperator}}
+     {{#if scheduler.resource_calculator}}
+ <div class="form-group">
+        <label class="col-xs-5 control-label">Calculator</label>
+        <div class="col-xs-12 control-value">
+            {{input value=scheduler.resource_calculator class="input-sm form-control"}}
+        </div>
+      </div>
+     {{/if}}
+     {{/if}}
     </form>
   </div>
 </div>

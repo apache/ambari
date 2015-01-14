@@ -21,7 +21,8 @@ var App = require('app');
 App.Scheduler = DS.Model.extend({
   maximum_am_resource_percent: DS.attr('number', { defaultValue: 0 }),
   maximum_applications: DS.attr('number', { defaultValue: 0 }),
-  node_locality_delay: DS.attr('number', { defaultValue: 0 })
+  node_locality_delay: DS.attr('number', { defaultValue: 0 }),
+  resource_calculator: DS.attr('string', { defaultValue: '' }),
 });
 
 /**
@@ -34,28 +35,24 @@ App.Queue = DS.Model.extend({
   depth: DS.attr('number'),
   path: DS.attr('string'),
 
-  // cs props
-  
   // queue props
   state: DS.attr('string', { defaultValue: 'RUNNING' }),
+  acl_administer_queue: DS.attr('string', { defaultValue: '*' }),
+  acl_submit_applications: DS.attr('string', { defaultValue: '*' }),
 
   capacity: DS.attr('number', { defaultValue: 0 }),
   maximum_capacity: DS.attr('number', { defaultValue: 0 }),
   unfunded_capacity: DS.attr('number', { defaultValue: 0 }),
-  
-  acl_administer_queue: DS.attr('string', { defaultValue: '*' }),
-  acl_administer_jobs: DS.attr('string', { defaultValue: '*' }),
-  acl_submit_applications: DS.attr('string', { defaultValue: '*' }),
-  
-  minimum_user_limit_percent: DS.attr('number', { defaultValue: 100 }),
+    
   user_limit_factor: DS.attr('number', { defaultValue: 1 }),
-  
+  minimum_user_limit_percent: DS.attr('number', { defaultValue: 100 }),
+  maximum_applications: DS.attr('number', { defaultValue: '' }),
+  maximum_am_resource_percent: DS.attr('number', { defaultValue: '' }),
+
   queueNames: DS.attr('string'),
   queueNamesArray:function () {
     return (this.get('queueNames.length')>0)?this.get('queueNames').split(','):[];
   }.property('queueNames'),
-
-  
 
   overCapacity:false,
 

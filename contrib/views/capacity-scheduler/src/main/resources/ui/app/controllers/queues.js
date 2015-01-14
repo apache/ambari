@@ -80,9 +80,6 @@ App.QueuesController = Ember.ArrayController.extend({
 
       this.set('hasDeletedQueues',false);
     },
-    toggleEditScheduler:function () {
-      this.toggleProperty('isEditScheduler');
-    },
     clearAlert:function () {
       this.set('alertMessage',null);
     }
@@ -98,9 +95,8 @@ App.QueuesController = Ember.ArrayController.extend({
   isOperator:false,
   isNotOperator:cmp.not('isOperator'),
 
-  isEditScheduler:false,
-
   isWaitingPath:false,
+  
   /**
    * check if RM needs refresh
    * @type {bool}

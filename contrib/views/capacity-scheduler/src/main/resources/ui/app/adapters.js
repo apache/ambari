@@ -97,6 +97,8 @@ App.QueueAdapter = DS.Adapter.extend({
   findAll: function(store, type) {
     var adapter = this;
     var uri = _getCapacitySchedulerUri(adapter.clusterName, adapter.tag);
+    if (App.testMode)
+      uri = uri + "/scheduler-configuration.json";
     return new Ember.RSVP.Promise(function(resolve, reject) {
       adapter.ajax(uri).then(function(data) {
         Ember.run(null, resolve, data);
@@ -110,8 +112,11 @@ App.QueueAdapter = DS.Adapter.extend({
 
   getPrivilege:function () {
     var uri = _getCapacitySchedulerUri(this.clusterName, this.tag);
+    uri = [uri,'privilege'].join('/');
+    if (App.testMode)
+      uri = uri + ".json";
     return new Ember.RSVP.Promise(function(resolve, reject) {
-      this.ajax([uri,'privilege'].join('/'),'GET').then(function(data) {
+      this.ajax(uri,'GET').then(function(data) {
         Ember.run(null, resolve, data);
       }, function(jqXHR) {
         jqXHR.then = null;
@@ -238,13 +243,13 @@ App.ApplicationSerializer = DS.RESTSerializer.extend({
         prefix = this.PREFIX;
     records.forEach(function (record) {
       if (record.id == 'scheduler') {
-        config[prefix + ".maximum-am-resource-percent"] = record.get('maximum_am_resource_percent');
+        config[prefix + ".maximum-am-resource-percent"] = record.get('maximum_am_resource_percent')/100; // convert back to decimal
         config[prefix + ".maximum-applications"] = record.get('maximum_applications');
         config[prefix + ".node-locality-delay"] = record.get('node_locality_delay');
+        config[prefix + ".resource-calculator"] = record.get('resource_calculator');
       } else {
         config[prefix + "." + record.get('path') + ".unfunded.capacity"] = record.get('unfunded_capacity');
         config[prefix + "." + record.get('path') + ".acl_administer_queue"] = record.get('acl_administer_queue');
-        config[prefix + "." + record.get('path') + ".acl_administer_jobs"] = record.get('acl_administer_jobs');
         config[prefix + "." + record.get('path') + ".acl_submit_applications"] = record.get('acl_submit_applications');
         config[prefix + "." + record.get('path') + ".minimum-user-limit-percent"] = record.get('minimum_user_limit_percent');
         config[prefix + "." + record.get('path') + ".maximum-capacity"] = record.get('maximum_capacity');
@@ -252,6 +257,19 @@ App.ApplicationSerializer = DS.RESTSerializer.extend({
         config[prefix + "." + record.get('path') + ".state"] = record.get('state');
         config[prefix + "." + record.get('path') + ".capacity"] = record.get('capacity');
         config[prefix + "." + record.get('path') + ".queues"] = record.get('queueNames')||'';
+
+        // do not set property if not set
+        var ma = record.get('maximum_applications')||'';
+        if (ma) {
+          config[prefix + "." + record.get('path') + ".maximum-applications"] = ma;
+        }
+
+        // do not set property if not set
+        var marp = record.get('maximum_am_resource_percent')||'';
+        if (marp) {
+          marp = marp/100; // convert back to decimal
+          config[prefix + "." + record.get('path') + ".maximum-am-resource-percent"] = marp;
+        }
       };
     });
 
@@ -272,9 +290,10 @@ App.ApplicationSerializer = DS.RESTSerializer.extend({
 
     var scheduler = [{
       id:'scheduler',
-      maximum_am_resource_percent:props[this.PREFIX + ".maximum-am-resource-percent"],
+      maximum_am_resource_percent:props[this.PREFIX + ".maximum-am-resource-percent"]*100, // convert to percent
       maximum_applications:props[this.PREFIX + ".maximum-applications"],
-      node_locality_delay:props[this.PREFIX + ".node-locality-delay"]
+      node_locality_delay:props[this.PREFIX + ".node-locality-delay"],
+      resource_calculator:props[this.PREFIX + ".resource-calculator"]
     }];
     queues = _recurseQueues(null, "root", 0, props, queues, store);
 
@@ -287,9 +306,10 @@ App.ApplicationSerializer = DS.RESTSerializer.extend({
 
     var scheduler = {
       id:'scheduler',
-      maximum_am_resource_percent:props[this.PREFIX + ".maximum-am-resource-percent"],
+      maximum_am_resource_percent:props[this.PREFIX + ".maximum-am-resource-percent"]*100, // convert to percent
       maximum_applications:props[this.PREFIX + ".maximum-applications"],
-      node_locality_delay:props[this.PREFIX + ".node-locality-delay"]
+      node_locality_delay:props[this.PREFIX + ".node-locality-delay"],
+      resource_calculator:props[this.PREFIX + ".resource-calculator"]
     };
     queues = _recurseQueues(null, "root", 0, props, queues, store);
 
@@ -304,9 +324,10 @@ App.ApplicationSerializer = DS.RESTSerializer.extend({
 
     var scheduler = {
       id:'scheduler',
-      maximum_am_resource_percent:props[this.PREFIX + ".maximum-am-resource-percent"],
+      maximum_am_resource_percent:props[this.PREFIX + ".maximum-am-resource-percent"]*100, // convert to percent
       maximum_applications:props[this.PREFIX + ".maximum-applications"],
-      node_locality_delay:props[this.PREFIX + ".node-locality-delay"]
+      node_locality_delay:props[this.PREFIX + ".node-locality-delay"],
+      resource_calculator:props[this.PREFIX + ".resource-calculator"]
     };
     queues = _recurseQueues(null, "root", 0, props, queues, store);
     
@@ -362,15 +383,22 @@ App.ApplicationSerializer = DS.RESTSerializer.extend({
       q.id = q.path.dasherize();
 
     q.unfunded_capacity = props[prefix + "." + q.path + ".unfunded.capacity"];
-    q.acl_administer_queue = props[prefix + "." + q.path + ".acl_administer_queue"];
-    q.acl_administer_jobs = props[prefix + "." + q.path + ".acl_administer_jobs"];
-    q.acl_submit_applications = props[prefix + "." + q.path + ".acl_submit_applications"];
-    q.minimum_user_limit_percent = props[prefix + "." + q.path + ".minimum-user-limit-percent"];
-    q.maximum_capacity = props[prefix + "." + q.path + ".maximum-capacity"];
-    q.user_limit_factor = props[prefix + "." + q.path + ".user-limit-factor"];
+
     q.state = props[prefix + "." + q.path + ".state"];
+    q.acl_administer_queue = props[prefix + "." + q.path + ".acl_administer_queue"];
+    q.acl_submit_applications = props[prefix + "." + q.path + ".acl_submit_applications"];
 
     q.capacity = props[prefix + "." + q.path + ".capacity"];
+    q.maximum_capacity = props[prefix + "." + q.path + ".maximum-capacity"];
+
+    q.user_limit_factor = props[prefix + "." + q.path + ".user-limit-factor"];
+    q.minimum_user_limit_percent = props[prefix + "." + q.path + ".minimum-user-limit-percent"];
+    q.maximum_applications = props[prefix + "." + q.path + ".maximum-applications"];
+    q.maximum_am_resource_percent = props[prefix + "." + q.path + ".maximum-am-resource-percent"]
+
+    if (q.maximum_am_resource_percent)
+      q.maximum_am_resource_percent = q.maximum_am_resource_percent*100; // convert to percent
+
     q.queueNames = props[prefix + "." + q.path + ".queues"];
 
     return q;
@@ -410,6 +438,9 @@ function _recurseQueues(parentQueue, queueName, depth, props, queues, store) {
  * @return  cluster name URI
  */
 function _getCapacitySchedulerUri() {
+  if (App.testMode)
+    return "/data";
+    
   var parts = window.location.pathname.match(/\/[^\/]*/g);
   var view = parts[1];
   var version = '/versions' + parts[2];

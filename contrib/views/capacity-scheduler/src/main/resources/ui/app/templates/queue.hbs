@@ -57,16 +57,7 @@
       {{#each pathErrors}}
         <p class="help-block red">{{this}}</p>
       {{/each}}
-      <h4 ><small>{{content.path}}</small>
-        <div class="btn-group btn-group-xs" data-toggle="buttons" >
-          <label  {{action 'setState' 'running'}} {{bind-attr class=":btn isRunning:btn-success:btn-default isRunning:active isNotOperator:disabled" }}>
-            <input type="radio" name="options"> Running
-          </label>
-          <label  {{action 'setState' 'stopped'}} {{bind-attr class=":btn isRunning:btn-default:btn-danger isRunning::active isNotOperator:disabled" }}>
-            <input type="radio" name="options"> Stopped
-          </label>
-        </div>
-      </h4>
+      <h4><small>{{content.path}}</small></h4>
     </div>
   </div>
   <div class="row queue-capacity-row">
@@ -88,24 +79,29 @@
       <div class="panel panel-default panel-capacity">
         <div class="panel-heading">
           <div class="panel-title">
-            <strong>Access Control</strong>
-            {{#if isOperator}}
-              <a href="#" {{action 'toggleEditACL'}} class="text-right">
-                {{#if isEditACL}}
-                  <div class="edit-link">Hide Edit</div>
-                {{else}}
-                  <div class="edit-link">Show Edit</div>
-                {{/if}}
-              </a>
-            {{/if}}
+            Access Control and Status
           </div>
         </div>
         <div class="panel-body">
           <form class="form-horizontal form-acl" role="form">
-          {{#if isEditACL}}
+          <div class="form-group row">
+              <label class="col-lg-4 col-xs-4 control-label">State</label>
+              <div class="col-lg-6 col-md-6 col-sm-8 col-xs-7 control-value">
+                <div class="btn-group btn-group-xs" data-toggle="buttons" >
+                  <label  {{action 'setState' 'running'}} {{bind-attr class=":btn isRunning:btn-success:btn-default isRunning:active isNotOperator:disabled" }}>
+                    <input type="radio" name="options"> Running
+                  </label>
+                  <label  {{action 'setState' 'stopped'}} {{bind-attr class=":btn isRunning:btn-default:btn-danger isRunning::active isNotOperator:disabled" }}>
+                    <input type="radio" name="options"> Stopped
+                  </label>
+               </div>
+              </div>
+          </div>
+          
+          {{#if isOperator}}
 
             <div class="form-group row">
-              <label class="col-lg-4 col-xs-4 control-label">Administer Queue ACL</label>
+              <label class="col-lg-4 col-xs-4 control-label">Administer Queue</label>
               <div class="col-lg-6 col-md-6 col-sm-8 col-xs-7 control-value">
                 <div class="btn-group btn-group-xs" data-toggle="buttons">
                   {{radio-button label="Anyone" selectionBinding="acl_administer_queue" value="*"}}
@@ -121,24 +117,7 @@
             {{/unless}}
 
             <div class="form-group row">
-              <label class="col-lg-4 col-xs-4 control-label">Administer Jobs ACL</label>
-              <div class="col-lg-6 col-md-6 col-sm-8 col-xs-7 control-value">
-                <div class="btn-group btn-group-xs" data-toggle="buttons">
-                  {{radio-button label="Anyone" selectionBinding="acl_administer_jobs" value="*"}}
-                  {{radio-button label="Custom" selectionBinding="acl_administer_jobs" value="custom"}}
-                </div>
-                {{#if aaj_dirty}}
-                  <a {{action 'rollbackProp' 'acl_administer_jobs'}} href="#"><i class="fa fa-undo"></i></a>
-                {{/if}}
-              </div>
-            </div>
-            {{#unless aaj_anyone}}
-              {{user-group-input ug=content.acl_administer_jobs disabled=aaj_anyone}}
-            {{/unless}}
-
-
-            <div class="form-group row">
-              <label class="col-lg-4 col-xs-4 control-label">Submit Apps ACL</label>
+              <label class="col-lg-4 col-xs-4 control-label">Submit Applications</label>
               <div class="col-lg-6 col-md-6 col-sm-8 col-xs-7 control-value">
                 <div class="btn-group btn-group-xs" data-toggle="buttons">
                   {{radio-button label="Anyone" selectionBinding="acl_submit_applications" value="*"}}
@@ -155,7 +134,7 @@
             
           {{else}}
             <div class="form-group">
-              <label class="col-lg-4 col-xs-4 control-label">Administer Queue ACL</label>
+              <label class="col-lg-4 col-xs-4 control-label">Administer Queue</label>
               <div class="col-lg-8 col-xs-8 control-value">
                <p class="form-control-static">
                 {{escapeACL content.acl_administer_queue}}
@@ -164,16 +143,7 @@
             </div>
 
             <div class="form-group">
-              <label class="col-lg-4 col-xs-4 control-label">Administer Jobs ACL</label>
-              <div class="col-lg-8 col-xs-8 control-value">
-               <p class="form-control-static">
-                {{escapeACL content.acl_administer_jobs}}
-               </p> 
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label class="col-lg-4 col-xs-4 control-label">Submit Apps ACL</label>
+              <label class="col-lg-4 col-xs-4 control-label">Submit Applications</label>
               <div class="col-lg-8 col-xs-8 control-value">
                <p class="form-control-static">
                 {{escapeACL content.acl_submit_applications}}
@@ -186,44 +156,74 @@
       </div>
     </div>
 
-    <div class="col-md-6">
+    <div class="col-md-6 queue-resources">
       <div class="panel panel-default panel-capacity">
         <div class="panel-heading">
           <div class="panel-title">
-            <strong>Resource Allocation</strong>
-            {{#if isOperator}}
-              <a href="#" {{action 'toggleEditRA'}} class="text-right">
-                {{#if isEditRA}}
-                  <div class="edit-link">Hide Edit</div>
-                {{else}}
-                  <div class="edit-link">Show Edit</div>
-                {{/if}}
-              </a>
-            {{/if}}
+            Resources
           </div>
         </div>
         <div class="panel-body">
           <form class="form-horizontal" role="form">
             <div class="form-group">
-              <label class="col-lg-4 col-xs-4 control-label">User Limit Factor</label>
-              <div class="col-lg-8 col-xs-8 ">
-              {{#if isEditRA}}
-                {{int-input value=content.user_limit_factor class="input-sm"}}
+              <label class="col-xs-6 control-label">User Limit Factor</label>
+              {{#if isOperator}}
+              <div class="col-xs-6 control-value">
+                {{int-input value=content.user_limit_factor maxlength=10 class="input-sm input-int"}}
               {{else}}
+              <div class="col-xs-6">
                 <p class="form-control-static">{{content.user_limit_factor}}</p>
               {{/if}}
               </div>
             </div>
             <div class="form-group">
-              <label class="col-lg-4 col-xs-4 control-label">Minimum User Limit</label>
-              <div class="col-lg-8 col-xs-8">
-                {{#if isEditRA}}  
-                  <div class="input-group">
+              <label class="col-xs-6 control-label">Minimum User Limit</label>
+                {{#if isOperator}}  
+              <div class="col-xs-6 control-value">
+                  <div class="input-group input-percent">
                     {{int-input value=content.minimum_user_limit_percent class="input-sm" maxVal=100}}
                     <span class="input-group-addon">%</span>
                   </div>
                 {{else}}
-                  <p class="form-control-static">{{content.minimum_user_limit_percent}} %</p>
+              <div class="col-xs-6">
+                  {{#if content.minimum_user_limit_percent}}
+                    <p class="form-control-static">{{content.minimum_user_limit_percent}} %</p>
+                  {{else}}
+                    <p class="form-control-static">-</p>
+                  {{/if}}
+                {{/if}}
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-xs-6 control-label">Maximum Applications</label>
+              {{#if isOperator}}
+              <div class="col-xs-6 control-value">
+                {{int-input placeholder="Inherited" maxlength=15 value=content.maximum_applications class="input-sm input-int"}}
+              {{else}}
+              <div class="col-xs-6">
+                {{#if content.maximum_applications}}
+                  <p class="form-control-static">{{content.maximum_applications}}</p>
+              {{else}}
+                  <p class="form-control-static">-</p>
+                {{/if}}
+              {{/if}}
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-xs-6 control-label">Maximum AM Resource</label>
+                {{#if isOperator}}
+              <div class="col-xs-6 control-value">
+                  <div class="input-group input-percent">
+                    {{int-input placeholder="Inherited" value=content.maximum_am_resource_percent class="input-sm" maxVal=100}}
+                    <span class="input-group-addon">%</span>
+                  </div>
+                {{else}}
+              <div class="col-xs-6">
+                  {{#if content.maximum_am_resource_percent}}
+                    <p class="form-control-static">{{content.maximum_am_resource_percent}} %</p>
+                  {{else}}
+                    <p class="form-control-static">-</p>
+                  {{/if}}
                 {{/if}}
               </div>
             </div>
