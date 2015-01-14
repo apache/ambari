@@ -378,7 +378,7 @@ App.MainServiceItemController = Em.Controller.extend({
         this.hide();
       },
       bodyClass: Ember.View.extend({
-        templateName: require('templates/common/prompt_popup'),
+        templateName: require('templates/common/modal_popups/prompt_popup'),
         text: Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes.prompt'),
         didInsertElement: function () {
           App.tooltip(this.$(".prompt-input"), {

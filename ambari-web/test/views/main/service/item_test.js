@@ -417,7 +417,8 @@ describe('App.MainServiceItemView', function () {
               serviceTypes: testCase.serviceTypes,
               passiveState: 'OFF'
             }),
-            isSeveralClients: false
+            isSeveralClients: false,
+            clientComponents: []
           }),
           mastersExcludedCommands: mastersExcludedCommands,
           hasConfigTab: hasConfigTab
