@@ -27,8 +27,8 @@ config = Script.get_config()
 exec_tmp_dir = Script.get_tmp_dir()
 
 #AMS data
-ams_user=status_params.ams_user
-ams_pid_dir="/var/run/ambari-metrics"
+ams_user = status_params.ams_user
+ams_pid_dir = status_params.ams_collector_pid_dir
 
 ams_collector_script = "/usr/sbin/ambari-metrics-collector"
 ams_collector_conf_dir = "/etc/ambari-metrics-collector/conf"
@@ -40,6 +40,8 @@ if metric_collector_port and metric_collector_port.find(':') != -1:
   metric_collector_port = metric_collector_port.split(':')[1]
 pass
 
+ams_collector_log_dir = config['configurations']['ams-env']['ams_collector_log_dir']
+ams_monitor_log_dir = config['configurations']['ams-env']['ams_monitor_log_dir']
 
 ams_monitor_conf_dir = "/etc/ambari-metrics-monitor/conf/"
 ams_monitor_dir = "/usr/lib/python2.6/site-packages/resource_monitoring"
@@ -79,8 +81,11 @@ hbase_included_hosts = config['commandParams']['included_hosts']
 
 hbase_user = status_params.hbase_user
 smokeuser = config['configurations']['cluster-env']['smokeuser']
-_authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = config['configurations']['cluster-env']['security_enabled']
+hbase_hdfs_root_dir = config['configurations']['ams-hbase-site']['hbase.rootdir']
+is_hbase_distributed = hbase_hdfs_root_dir.startswith('hdfs://')
+
+# security is disabled for embedded mode, when HBase is backed by file
+security_enabled = False if not is_hbase_distributed else config['configurations']['cluster-env']['security_enabled'] 
 
 # this is "hadoop-metrics.properties" for 1.x stacks
 metric_prop_file_name = "hadoop-metrics2-hbase.properties"
@@ -109,15 +114,6 @@ client_jaas_config_file = format("{hbase_conf_dir}/hbase_client_jaas.conf")
 master_jaas_config_file = format("{hbase_conf_dir}/hbase_master_jaas.conf")
 regionserver_jaas_config_file = format("{hbase_conf_dir}/hbase_regionserver_jaas.conf")
 
-# ganglia_server_hosts = default('/clusterHostInfo/ganglia_server_host', []) # is not passed when ganglia is not present
-# ganglia_server_host = '' if len(ganglia_server_hosts) == 0 else ganglia_server_hosts[0]
-
-# if hbase is selected the hbase_rs_hosts, should not be empty, but still default just in case
-# if 'slave_hosts' in config['clusterHostInfo']:
-#   rs_hosts = default('/clusterHostInfo/hbase_rs_hosts', '/clusterHostInfo/slave_hosts') #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
-# else:
-#   rs_hosts = default('/clusterHostInfo/hbase_rs_hosts', '/clusterHostInfo/all_hosts')
-
 rs_hosts = ["localhost"]
 
 smoke_test_user = config['configurations']['cluster-env']['smokeuser']
@@ -127,19 +123,19 @@ user_group = config['configurations']['cluster-env']["user_group"]
 
 if security_enabled:
   _hostname_lowercase = config['hostname'].lower()
-  master_jaas_princ = config['configurations']['ams-hbase-site']['hbase.master.kerberos.principal'].replace('_HOST',_hostname_lowercase)
-  regionserver_jaas_princ = config['configurations']['ams-hbase-site']['hbase.regionserver.kerberos.principal'].replace('_HOST',_hostname_lowercase)
+  master_jaas_princ = default('/configurations/ams-hbase-site/hbase.master.kerberos.principal', 'hbase/_HOST@EXAMPLE.COM').replace('_HOST',_hostname_lowercase)
+  regionserver_jaas_princ = default('/configurations/ams-hbase-site/hbase.regionserver.kerberos.principal', 'hbase/_HOST@EXAMPLE.COM').replace('_HOST',_hostname_lowercase)
 
-master_keytab_path = config['configurations']['ams-hbase-site']['hbase.master.keytab.file']
-regionserver_keytab_path = config['configurations']['ams-hbase-site']['hbase.regionserver.keytab.file']
-smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
-hbase_user_keytab = config['configurations']['ams-hbase-env']['hbase_user_keytab']
-kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+  master_keytab_path = config['configurations']['ams-hbase-site']['hbase.master.keytab.file']
+  regionserver_keytab_path = config['configurations']['ams-hbase-site']['hbase.regionserver.keytab.file']
+  smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
+  hbase_user_keytab = config['configurations']['ams-hbase-env']['hbase_user_keytab']
+  kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
-# if security_enabled:
-#   kinit_cmd = format("{kinit_path_local} -kt {hbase_user_keytab} {hbase_user};")
-# else:
-#   kinit_cmd = ""
+if security_enabled:
+   kinit_cmd = format("{kinit_path_local} -kt {hbase_user_keytab} {hbase_user};")
+else:
+   kinit_cmd = ""
 
 #log4j.properties
 if (('ams-hbase-log4j' in config['configurations']) and ('content' in config['configurations']['ams-hbase-log4j'])):
@@ -155,7 +151,7 @@ else:
 hbase_env_sh_template = config['configurations']['ams-hbase-env']['content']
 ams_env_sh_template = config['configurations']['ams-env']['content']
 
-hbase_hdfs_root_dir = config['configurations']['ams-hbase-site']['hbase.rootdir']
+
 hbase_staging_dir = "/apps/hbase/staging"
 #for create_hdfs_directory
 hostname = config["hostname"]

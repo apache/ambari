@@ -143,6 +143,9 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
   def validateAmsHbaseEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     regionServerItem = self.validatorLessThenDefaultValue(properties, recommendedDefaults, "hbase_regionserver_heapsize")
     masterItem = self.validatorLessThenDefaultValue(properties, recommendedDefaults, "hbase_master_heapsize")
+    ams_env = getSiteProperties(configurations, "ams-env")
+    logDirItem = self.validatorEqualsPropertyItem(properties, "hbase_log_dir",
+                                                  ams_env, "ams_collector_log_dir")
 
     if masterItem is None:
       hbase_master_heapsize = formatXmxSizeToBytes(properties["hbase_master_heapsize"])
@@ -165,7 +168,9 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
               break
 
     validationItems = [{"config-name": "hbase_regionserver_heapsize", "item": regionServerItem},
-                       {"config-name": "hbase_master_heapsize", "item": masterItem}]
+                       {"config-name": "hbase_master_heapsize", "item": masterItem},
+                       {"config-name": "hbase_log_dir", "item": logDirItem}
+    ]
     return self.toConfigurationValidationProblems(validationItems, "ams-hbase-env")
 
   def recommendMapReduce2Configurations(self, configurations, clusterData, services, hosts):

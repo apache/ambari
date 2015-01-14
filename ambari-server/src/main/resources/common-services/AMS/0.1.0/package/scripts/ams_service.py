@@ -66,7 +66,4 @@ def ams_service(name='collector', action='start'):
 
       pass
     pass
-
-    #TODO
-    pass
   pass

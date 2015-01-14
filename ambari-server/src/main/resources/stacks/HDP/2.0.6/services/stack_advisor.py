@@ -278,6 +278,25 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       return self.getWarnItem("Value is less than the recommended default of {0}".format(defaultValue))
     return None
 
+  def validatorEqualsPropertyItem(self, properties1, propertyName1,
+                                  properties2, propertyName2,
+                                  emptyAllowed=False):
+    if not propertyName1 in properties1:
+      return self.getErrorItem("Value should be set for %s" % propertyName1)
+    if not propertyName2 in properties2:
+      return self.getErrorItem("Value should be set for %s" % propertyName2)
+    value1 = properties1.get(propertyName1)
+    if value1 is None and not emptyAllowed:
+      return self.getErrorItem("Empty value for %s" % propertyName1)
+    value2 = properties2.get(propertyName2)
+    if value2 is None and not emptyAllowed:
+      return self.getErrorItem("Empty value for %s" % propertyName2)
+    if value1 != value2:
+      return self.getWarnItem("It is recommended to set equal values "
+             "for properties {0} and {1}".format(propertyName1, propertyName2))
+
+    return None
+
   def validateXmxValue(self, properties, recommendedDefaults, propertyName):
     if not propertyName in properties:
       return self.getErrorItem("Value should be set")

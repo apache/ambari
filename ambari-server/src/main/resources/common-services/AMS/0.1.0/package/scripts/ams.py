@@ -66,6 +66,18 @@ def ams(name=None):
          content=InlineTemplate(params.ams_env_sh_template)
     )
 
+    Directory(params.ams_collector_log_dir,
+              owner=params.ams_user,
+              group=params.user_group,
+              recursive=True
+    )
+
+    Directory(params.ams_collector_pid_dir,
+              owner=params.ams_user,
+              group=params.user_group,
+              recursive=True
+    )
+
     pass
 
   elif name == 'monitor':
@@ -87,6 +99,11 @@ def ams(name=None):
       owner=params.ams_user,
       group=params.user_group,
       template_tag=None
+    )
+
+    File(format("{ams_monitor_conf_dir}/ams-env.sh"),
+         owner=params.ams_user,
+         content=InlineTemplate(params.ams_env_sh_template)
     )
 
     # TODO

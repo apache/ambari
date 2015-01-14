@@ -102,6 +102,24 @@ while [[ -z "${_ams_configs_done}" ]]; do
   esac
 done
 
+#execute ams-env.sh
+if [[ -f "${MONITOR_CONF_DIR}/ams-env.sh" ]]; then
+  . "${MONITOR_CONF_DIR}/ams-env.sh"
+else
+  echo "ERROR: Cannot execute ${MONITOR_CONF_DIR}/ams-env.sh." 2>&1
+  exit 1
+fi
+
+# Set log directory path
+if [[ -n "${AMS_MONITOR_LOG_DIR}" ]]; then
+  OUTFILE=${AMS_MONITOR_LOG_DIR}/ambari-metrics-monitor.out
+fi
+
+# Set pid directory path
+if [[ -n "${AMS_MONITOR_PID_DIR}" ]]; then
+  PIDFILE=${AMS_MONITOR_PID_DIR}/ambari-metrics-monitor.pid
+fi
+
 case "$1" in
 
   start)
