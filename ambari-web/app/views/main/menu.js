@@ -123,13 +123,6 @@ App.MainMenuView = Em.CollectionView.extend({
           url: 'stack',
           label: Em.I18n.t('admin.stackUpgrade.title')
         });
-        if (App.get('supports.stackUpgrade')) {
-          categories.push({
-            name: 'adminStackVersions.index',
-            url: 'versions',
-            label: Em.I18n.t('common.versions')
-          });
-        }
         categories.push({
           name: 'adminServiceAccounts',
           url: 'serviceAccounts',

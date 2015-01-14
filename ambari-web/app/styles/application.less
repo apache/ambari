@@ -6300,34 +6300,28 @@ i.icon-asterisks {
 }
 
 #stack-upgrade-page {
-  .upgrade-flow {
-    margin: 50px 0;
-    .box {
-      text-align: center;
-      .version-name {
-        padding: 15px 10px;
+  .version-box {
+    border: 1px black solid;
+    margin: 15px 15px 0 0;
+    padding: 5px;
+    a.not-active:hover {
+      text-decoration: none;
+    }
+    .state {
+      margin: 15px 0;
+      line-height: 30px;
+      i {
+        color: #0088cc;
+        font-size: 16px;
       }
-      select {
-        width: initial;
-        min-width: 80%;
-        margin: 10px;
+      .label {
+        padding: 5px 20px;
+        font-size: 14px;
       }
     }
-    .flex-width {
-      width: initial;
-      padding: 0 10px;
-      min-width: 140px;
+    .host-link a {
+      color: black;
     }
-  }
-  .upgrade-flow>div {
-    height: 100px;
-  }
-  .go-to {
-    height: 30px;
-    font-size: 25px;
-    text-align: center;
-    margin-top: 30px;
-    color: #777;
   }
 }
 

@@ -25,16 +25,9 @@ App.MainAdminView = Em.View.extend({
     var items = [];
     items.push({
       name: 'stackAndUpgrade',
-      url: 'stackAndUpgrade',
+      url: 'stackAndUpgrade.index',
       label: Em.I18n.t('admin.stackUpgrade.title')
     });
-    if (App.get('supports.stackUpgrade')) {
-      items.push({
-        name: 'stackVersions',
-        url: 'adminStackVersions.index',
-        label: Em.I18n.t('common.versions')
-      });
-    }
     items.push({
       name: 'serviceAccounts',
       url: 'adminServiceAccounts',

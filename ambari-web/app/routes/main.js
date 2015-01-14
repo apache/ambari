@@ -300,7 +300,7 @@ module.exports = Em.Route.extend({
        router.transitionTo('admin' + controller.get('category').capitalize());
        }, */
       route: '/',
-      redirectsTo: 'stackAndUpgrade'
+      redirectsTo: 'stackAndUpgrade.index'
     }),
 
     adminAuthentication: Em.Route.extend({
@@ -439,38 +439,36 @@ module.exports = Em.Route.extend({
       connectOutlets: function (router) {
         router.set('mainAdminController.category', "stackAndUpgrade");
         router.get('mainAdminController').connectOutlet('mainAdminStackAndUpgrade');
+      },
+
+      index: Em.Route.extend({
+        route: '/',
+        redirectsTo: 'services'
+      }),
+
+      services: Em.Route.extend({
+        route: '/services',
+        connectOutlets: function (router, context) {
+          router.get('mainAdminStackAndUpgradeController').connectOutlet('mainAdminStackServices');
+        }
+      }),
+
+      versions: Em.Route.extend({
+        route: '/versions',
+        connectOutlets: function (router, context) {
+          router.get('mainAdminStackAndUpgradeController').connectOutlet('MainAdminStackVersions');
+        }
+      }),
+
+      stackNavigate: function (router, event) {
+        var parent = event.view._parentView;
+        parent.deactivateChildViews();
+        event.view.set('active', "active");
+        router.transitionTo(event.context);
       }
     }),
     stackUpgrade: require('routes/stack_upgrade_routes'),
 
-    adminStackVersions: Em.Route.extend({
-      route: '/versions',
-      enter: function (router) {
-        if (App.get('supports.stackUpgrade')) {
-          router.set('mainAdminController.category', "stackVersions");
-        } else {
-          router.transitionTo('admin.stackAndUpgrade');
-        }
-      },
-      index: Em.Route.extend({
-        route: '/',
-        connectOutlets: function (router) {
-          router.get('mainAdminController').connectOutlet('mainStackVersions');
-        }
-      }),
-      version: Em.Route.extend({
-        route: '/:repository_version_id',
-        connectOutlets: function (router, repoVersion) {
-          router.get('mainAdminController').connectOutlet('mainStackVersionsDetails', repoVersion);
-        }
-      }),
-      update: Em.Route.extend({
-        route: '/updates',
-        connectOutlets: function (router) {
-          router.get('mainAdminController').connectOutlet('repoVersions');
-        }
-      })
-    }),
     adminAdvanced: Em.Route.extend({
       route: '/advanced',
       connectOutlets: function (router) {

@@ -16,7 +16,19 @@
 * limitations under the License.
 }}
 
-<div id="stack-upgrade-page">
-  {{view App.MainAdminStackMenuView}}
-  {{outlet}}
+
+<div>
+  {{view view.filterView}}
+  {{#isAccessible upgrade_ONLY_ADMIN}}
+    <button class="btn pull-right" {{action goToVersions target="view"}}>{{t admin.stackVersions.manageVersions}}</button>
+  {{/isAccessible}}
+</div>
+<div class="row-fluid">
+  {{#if isLoaded}}
+    {{#each version in view.filteredVersions}}
+      {{view App.UpgradeVersionBoxView contentBinding="version"}}
+    {{/each}}
+  {{else}}
+    <div class="spinner"></div>
+  {{/if}}
 </div>

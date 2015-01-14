@@ -26,38 +26,4 @@ describe('App.UpgradeVersionBoxView', function () {
       upgrade: Em.K
     })
   });
-
-  describe("#versionName", function () {
-    it("version is null", function () {
-      view.set('version', null);
-      view.propertyDidChange('versionName');
-      expect(view.get('versionName')).to.be.empty;
-    });
-    it("version is loaded", function () {
-      view.set('version', Em.Object.create({
-        repository_name: 'HDP-2.2'
-      }));
-      view.propertyDidChange('versionName');
-      expect(view.get('versionName')).to.equal('HDP-2.2');
-    });
-  });
-
-  describe("#runAction()", function () {
-    beforeEach(function () {
-      sinon.spy(view.get('controller'), 'upgrade');
-    });
-    afterEach(function () {
-      view.get('controller').upgrade.restore();
-    });
-    it("call upgrade()", function () {
-      view.set('method', 'upgrade');
-      expect(view.runAction()).to.be.true;
-      expect(view.get('controller').upgrade.calledOnce).to.be.true;
-    });
-    it("no method should be called", function () {
-      view.set('method', null);
-      expect(view.runAction()).to.be.false;
-      expect(view.get('controller').upgrade.called).to.be.false;
-    });
-  });
 });

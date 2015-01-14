@@ -29,9 +29,12 @@ App.AddServiceController = App.WizardController.extend({
    */
   hideBackButton: true,
 
-  serviceToInstall: function() {
-    return App.get('router.mainAdminStackAndUpgradeController.serviceToInstall');
-  }.property('App.router.mainAdminStackAndUpgradeController.serviceToInstall'),
+  /**
+   * @type {object}
+   * @default null
+   */
+  serviceToInstall: null,
+
   /**
    * All wizards data will be stored in this variable
    *

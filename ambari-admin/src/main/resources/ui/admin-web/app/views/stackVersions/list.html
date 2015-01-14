@@ -53,7 +53,7 @@
         <a href="#/stackVersions/{{repo.stack_name}}/{{repo.repository_version}}/edit">{{repo.display_name}}</a>
       </td>
       <td class="col-small">
-        <a href="/#/main/admin/versions/{{repo.stackVersionId}}" ng-show="repo.cluster">
+        <a href="/#/main/admin/stack/versions" ng-show="repo.cluster">
           {{repo.cluster}}
         </a>
         <select ng-show="!repo.cluster"

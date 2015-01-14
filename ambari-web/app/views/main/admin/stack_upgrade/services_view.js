@@ -16,22 +16,28 @@
  * limitations under the License.
  */
 
+
 var App = require('app');
 
-App.RepoVersionsController = App.RepoVersionsManagementController.extend({
-  name: 'repoVersionsController',
-
-  content: function () {
-    return App.RepositoryVersion.find().filterProperty('stackVersion', null);
-  }.property('dataIsLoaded'),
+App.MainAdminStackServicesView = Em.View.extend({
+  templateName: require('templates/main/admin/stack_upgrade/services'),
 
   /**
-   * installs repoversion to the cluster by running <code>installRepoVersion<code> method
-   * of <code>mainStackVersionsDetailsController<code> controller
-   * @param event
-   * @method installRepoVersion
+   * @type {Array}
    */
-  installRepoVersion: function(event) {
-    App.get('router.mainStackVersionsDetailsController').installRepoVersion(event);
+  services: function() {
+    return App.StackService.find().map(function(s) {
+      s.set('isInstalled', App.Service.find().someProperty('serviceName', s.get('serviceName')));
+      return s;
+    });
+  }.property('App.router.clusterController.isLoaded'),
+
+  /**
+   * launch Add Service wizard
+   * @param event
+   */
+  goToAddService: function (event) {
+    App.router.get('addServiceController').set('serviceToInstall', event.context);
+    App.get('router').transitionTo('main.serviceAdd');
   }
 });

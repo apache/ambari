@@ -17,15 +17,14 @@
  */
 
 var App = require('app');
-var stringUtils = require('utils/string_utils');
 
 App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, {
   name: 'mainAdminStackAndUpgradeController',
 
   /**
-   * @type {Object|null}
+   * @type {boolean}
    */
-  serviceToInstall: null,
+  isLoaded: false,
 
   /**
    * @type {object}
@@ -47,7 +46,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
 
   /**
    * version that currently applied to server
-   * @type {Object|null}
+   * should be plain object, because stored to localStorage
+   * @type {object|null}
    */
   currentVersion: null,
 
@@ -61,6 +61,46 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * properties that stored to localStorage to resume wizard progress
    */
   wizardStorageProperties: ['upgradeId', 'upgradeVersion', 'currentVersion'],
+
+  /**
+   * path to the mock json
+   * @type {String}
+   */
+  mockRepoUrl: '/data/stack_versions/repo_versions_all.json',
+
+  /**
+   * api to get RepoVersions
+   * @type {String}
+   */
+  realRepoUrl: function () {
+    //TODO correct url after api will be fixed
+    return App.get('apiPrefix') + App.get('stackVersionURL') +
+      '/repository_versions?fields=*,operating_systems/*,operating_systems/repositories/*,operatingSystems/*,operatingSystems/repositories/*';
+  }.property('App.stackVersionURL'),
+
+  /**
+   * path to the mock json
+   * @type {String}
+   */
+  mockStackUrl: '/data/stack_versions/stack_version_all.json',
+
+  /**
+   * api to get ClusterStackVersions with repository_versions (use to init data load)
+   * @type {String}
+   */
+  realStackUrl: function () {
+    //TODO correct url after api will be fixed
+    return App.apiPrefix + '/clusters/' + App.get('clusterName') +
+      '/stack_versions?fields=*,repository_versions/*,repository_versions/operating_systems/repositories/*,repository_versions/operatingSystems/repositories/*';
+  }.property('App.clusterName'),
+
+  /**
+   * api to get ClusterStackVersions without repository_versions (use to update data)
+   * @type {String}
+   */
+  realUpdateUrl: function () {
+    return App.apiPrefix + '/clusters/' + App.get('clusterName') + '/stack_versions?fields=ClusterStackVersions/*';
+  }.property('App.clusterName'),
 
   init: function () {
     this.initDBProperties();
@@ -78,67 +118,30 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   },
 
   /**
-   * @type {Array}
+   * load all data:
+   * - upgrade data
+   * - stack versions
+   * - repo versions
    */
-  services: function() {
-    return App.StackService.find().map(function(s) {
-      s.set('isInstalled', App.Service.find().someProperty('serviceName', s.get('serviceName')));
-      return s;
-    });
-  }.property('App.router.clusterController.isLoaded'),
+  load: function () {
+    var dfd = $.Deferred();
+    var self = this;
 
-  /**
-   * launch Add Service wizard
-   * @param event
-   */
-  goToAddService: function (event) {
-    this.set('serviceToInstall', event.context);
-    App.get('router').transitionTo('main.serviceAdd');
-  },
-
-  /**
-   * call to fetch cluster stack versions
-   * @return {$.ajax}
-   */
-  loadVersionsInfo: function () {
-    return App.ajax.send({
-      name: 'admin.stack_versions.all',
-      sender: this,
-      data: {},
-      success: 'loadVersionsInfoSuccessCallback'
+    this.loadUpgradeData(true).done(function() {
+      self.loadStackVersionsToModel(true).done(function () {
+        self.loadRepoVersionsToModel().done(function() {
+          var currentVersion = App.StackVersion.find().findProperty('state', 'CURRENT');
+          if (currentVersion) {
+            self.set('currentVersion', {
+              repository_version: currentVersion.get('repositoryVersion.repositoryVersion'),
+              repository_name: currentVersion.get('repositoryVersion.displayName'),
+            });
+          }
+          dfd.resolve();
+        });
+      });
     });
-  },
-
-  /**
-   * parse stack versions and
-   * set <code>currentVersion</code>
-   * set <code>targetVersions</code>
-   * @param data
-   */
-  loadVersionsInfoSuccessCallback: function (data) {
-    var versions = this.parseVersionsData(data);
-    var current = versions.findProperty('state', 'CURRENT');
-    var targetVersions = versions.without(current).filter(function (version) {
-      //Only higher versions that have already been installed to all the hosts are shown
-      return (version.state === 'INSTALLED' &&
-        stringUtils.compareVersions(version.repository_version, current.repository_version) === 1);
-    });
-    this.set('currentVersion', current);
-    this.set('targetVersions', targetVersions);
-  },
-
-  /**
-   * parse ClusterStackVersions data to form common structure
-   * @param {object} data
-   * @return {Array}
-   */
-  parseVersionsData: function (data) {
-    return data.items.map(function (item) {
-      item.ClusterStackVersions.repository_name = item.repository_versions[0].RepositoryVersions.display_name;
-      item.ClusterStackVersions.repository_id = item.repository_versions[0].RepositoryVersions.id;
-      item.ClusterStackVersions.repository_version = item.repository_versions[0].RepositoryVersions.repository_version;
-      return item.ClusterStackVersions;
-    });
+    return dfd.promise();
   },
 
   /**
@@ -184,9 +187,9 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   updateUpgradeData: function (newData) {
     var oldData = this.get('upgradeData'),
-        groupsMap = {},
-        itemsMap = {},
-        tasksMap = {};
+      groupsMap = {},
+      itemsMap = {},
+      tasksMap = {};
 
     if (Em.isNone(oldData)) {
       this.initUpgradeData(newData);
@@ -319,15 +322,20 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @param version
    */
   runPreUpgradeCheck: function(version) {
+    var params = {
+      value: version.get('repositoryVersion'),
+      label: version.get('displayName')
+    };
+
     if (App.get('supports.preUpgradeCheck')) {
       App.ajax.send({
         name: "admin.rolling_upgrade.pre_upgrade_check",
         sender: this,
-        data: version,
+        data: params,
         success: "runPreUpgradeCheckSuccess"
       });
     } else {
-      this.upgrade(version);
+      this.upgrade(params);
     }
   },
 
@@ -349,12 +357,57 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       this.upgrade(params);
     }
   },
+
   /**
-   * make call to resume upgrade process and show popup with current progress
+   * sends request to install repoVersion to the cluster
+   * and create clusterStackVersion resourse
+   * @param {Em.Object} repo
+   * @return {$.ajax}
+   * @method installRepoVersion
    */
-  resumeUpgrade: function () {
-    //TODO resume upgrade
-    this.openUpgradeDialog();
+  installRepoVersion: function (repo) {
+    var data = {
+      ClusterStackVersions: {
+        stack: repo.get('stackVersionType'),
+        version: repo.get('stackVersionNumber'),
+        repository_version: repo.get('repositoryVersion')
+      },
+      id: repo.get('id')
+    };
+    return App.ajax.send({
+      name: 'admin.stack_version.install.repo_version',
+      sender: this,
+      data: data,
+      success: 'installRepoVersionSuccess'
+    });
+  },
+
+  saveRepoOS: function () {
+    //TODO integrate with API
+  },
+
+  /**
+   * success callback for <code>installRepoVersion()<code>
+   * saves request id to the db
+   * @param data
+   * @param opt
+   * @param params
+   * @method installStackVersionSuccess
+   */
+  installRepoVersionSuccess: function (data, opt, params) {
+    App.db.set('repoVersionInstall', 'id', [data.Requests.id]);
+  },
+
+  /**
+   * opens a popup with installations state per host
+   * @param {Em.Object} version
+   * @method showProgressPopup
+   */
+  showProgressPopup: function(version) {
+    var popupTitle = Em.I18n.t('admin.stackVersions.details.install.hosts.popup.title').format(version.get('displayName'));
+    var requestIds = App.get('testMode') ? [1] : App.db.get('repoVersionInstall', 'id');
+    var hostProgressPopupController = App.router.get('highAvailabilityProgressPopupController');
+    hostProgressPopupController.initPopup(popupTitle, requestIds, this);
   },
 
   /**
@@ -388,5 +441,55 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   openUpgradeDialog: function () {
     App.router.transitionTo('admin.stackUpgrade');
+  },
+
+  /**
+   * returns url to get data for repoVersion or clusterStackVersion
+   * @param {Boolean} stack true if load clusterStackVersion
+   * @param {Boolean} fullLoad true if load all data
+   * @returns {String}
+   * @method getUrl
+   */
+  getUrl: function(stack, fullLoad) {
+    if (App.get('testMode')) {
+      return stack ? this.get('mockStackUrl') : this.get('mockRepoUrl')
+    } else {
+      if (fullLoad) {
+        return stack ? this.get('realStackUrl') : this.get('realRepoUrl');
+      } else {
+        return this.get('realUpdateUrl');
+      }
+    }
+  },
+
+  /**
+   * get stack versions from server and push it to model
+   * @return {*}
+   * @method loadStackVersionsToModel
+   */
+  loadStackVersionsToModel: function (fullLoad) {
+    var dfd = $.Deferred();
+    App.HttpClient.get(this.getUrl(true, fullLoad), App.stackVersionMapper, {
+      complete: function () {
+        dfd.resolve();
+      }
+    });
+    return dfd.promise();
+  },
+
+  /**
+   * get repo versions from server and push it to model
+   * @return {*}
+   * @params {Boolean} isUpdate - if true loads part of data that need to be updated
+   * @method loadRepoVersionsToModel()
+   */
+  loadRepoVersionsToModel: function () {
+    var dfd = $.Deferred();
+    App.HttpClient.get(this.getUrl(false, true), App.repoVersionMapper, {
+      complete: function () {
+        dfd.resolve();
+      }
+    });
+    return dfd.promise();
   }
 });
