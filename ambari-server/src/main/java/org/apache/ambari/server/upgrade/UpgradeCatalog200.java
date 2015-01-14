@@ -18,8 +18,13 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
@@ -45,12 +50,8 @@ import org.apache.ambari.server.state.UpgradeState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 
 /**
@@ -224,7 +225,8 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     columns.add(new DBAccessor.DBColumnInfo("upgrade_id", Long.class, null, null, false));
     columns.add(new DBAccessor.DBColumnInfo("cluster_id", Long.class, null, null, false));
     columns.add(new DBAccessor.DBColumnInfo("request_id", Long.class, null, null, false));
-    columns.add(new DBAccessor.DBColumnInfo("state", String.class, 255, UpgradeState.NONE.name(), false));
+    columns.add(new DBAccessor.DBColumnInfo("from_version", String.class, 255, "", false));
+    columns.add(new DBAccessor.DBColumnInfo("to_version", String.class, 255, "", false));
     dbAccessor.createTable("upgrade", columns, "upgrade_id");
     dbAccessor.addFKConstraint("upgrade", "fk_upgrade_cluster_id", "cluster_id", "clusters", "cluster_id", false);
     dbAccessor.addFKConstraint("upgrade", "fk_upgrade_request_id", "request_id", "request", "request_id", false);

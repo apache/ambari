@@ -73,6 +73,8 @@ public class UpgradeDAOTest {
     UpgradeEntity entity = new UpgradeEntity();
     entity.setClusterId(Long.valueOf(1));
     entity.setRequestId(Long.valueOf(1));
+    entity.setFromVersion("");
+    entity.setToVersion("");
 
     UpgradeGroupEntity group = new UpgradeGroupEntity();
     group.setName("group_name");

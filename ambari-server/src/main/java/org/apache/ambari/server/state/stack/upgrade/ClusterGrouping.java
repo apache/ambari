@@ -33,7 +33,6 @@ import javax.xml.bind.annotation.XmlType;
 
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stack.MasterHostResolver;
-import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 
 /**
@@ -83,10 +82,10 @@ public class ClusterGrouping extends Grouping {
     private MasterHostResolver m_resolver = null;
 
     /**
-     * @param cluster the cluster to use with this builder
+     * @param resolver  the resolver to use
      */
-    public void setHelpers(Cluster cluster) {
-      m_resolver = new MasterHostResolver(cluster);
+    public void setHelpers(MasterHostResolver resolver) {
+      m_resolver = resolver;
     }
 
     @Override
@@ -109,7 +108,8 @@ public class ClusterGrouping extends Grouping {
 
           StageWrapper wrapper = null;
 
-          if (null != execution.service && !execution.service.isEmpty() && null != execution.component && !execution.component.isEmpty()) {
+          if (null != execution.service && !execution.service.isEmpty() &&
+              null != execution.component && !execution.component.isEmpty()) {
 
             HostsType hosts = m_resolver.getMasterAndHosts(execution.service, execution.component);
 

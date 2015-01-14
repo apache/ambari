@@ -708,7 +708,8 @@ CREATE TABLE upgrade (
   upgrade_id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
   request_id BIGINT NOT NULL,
-  state VARCHAR(255) DEFAULT 'NONE' NOT NULL,
+  from_version VARCHAR(255) DEFAULT '' NOT NULL,
+  to_version VARCHAR(255) DEFAULT '' NOT NULL,
   PRIMARY KEY (upgrade_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
   FOREIGN KEY (request_id) REFERENCES request(request_id)

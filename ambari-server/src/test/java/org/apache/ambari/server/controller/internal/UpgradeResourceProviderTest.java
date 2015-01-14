@@ -58,6 +58,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.easymock.EasyMock;
@@ -116,13 +117,21 @@ public class UpgradeResourceProviderTest {
     ViewRegistry.initInstance(new ViewRegistry());
 
     RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
-    repoVersionEntity.setDisplayName("My New Version");
+    repoVersionEntity.setDisplayName("My New Version 1");
+    repoVersionEntity.setOperatingSystems("");
+    repoVersionEntity.setStack("HDP-2.1.1");
+    repoVersionEntity.setUpgradePackage("upgrade_test");
+    repoVersionEntity.setVersion("2.2.2.1");
+    repoVersionDao.create(repoVersionEntity);
+
+    repoVersionEntity = new RepositoryVersionEntity();
+    repoVersionEntity.setDisplayName("My New Version 2");
     repoVersionEntity.setOperatingSystems("");
     repoVersionEntity.setStack("HDP-2.1.1");
     repoVersionEntity.setUpgradePackage("upgrade_test");
     repoVersionEntity.setVersion("2.2.2.2");
-
     repoVersionDao.create(repoVersionEntity);
+
 
     clusters = injector.getInstance(Clusters.class);
     clusters.addCluster("c1");
@@ -148,11 +157,12 @@ public class UpgradeResourceProviderTest {
     service.persist();
 
     ServiceComponent component = service.addServiceComponent("ZOOKEEPER_SERVER");
-    component.addServiceComponentHost("h1");
+    ServiceComponentHost sch = component.addServiceComponentHost("h1");
+    sch.setVersion("2.2.2.1");
 
     component = service.addServiceComponent("ZOOKEEPER_CLIENT");
-    component.addServiceComponentHost("h1");
-
+    sch = component.addServiceComponentHost("h1");
+    sch.setVersion("2.2.2.1");
   }
 
   @After
@@ -163,7 +173,6 @@ public class UpgradeResourceProviderTest {
 
   public org.apache.ambari.server.controller.spi.RequestStatus testCreateResources() throws Exception {
 
-
     Cluster cluster = clusters.getCluster("c1");
 
     List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
@@ -171,7 +180,7 @@ public class UpgradeResourceProviderTest {
 
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.2.2");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.2.1");
 
     ResourceProvider upgradeResourceProvider = createProvider(amc);
 
@@ -186,7 +195,6 @@ public class UpgradeResourceProviderTest {
 
     List<UpgradeGroupEntity> upgradeGroups = entity.getUpgradeGroups();
     assertEquals(4, upgradeGroups.size());
-
 
     UpgradeGroupEntity group = upgradeGroups.get(1);
     assertEquals(4, group.getItems().size());
@@ -320,9 +328,56 @@ public class UpgradeResourceProviderTest {
 
     assertEquals("Validate Partial Upgrade", res.getPropertyValue("UpgradeItem/context"));
     assertTrue(res.getPropertyValue("UpgradeItem/text").toString().startsWith("Please run"));
-
   }
 
+  @Test
+  public void testCreatePartialDowngrade() throws Exception {
+
+    clusters.addHost("h2");
+    Host host = clusters.getHost("h2");
+    Map<String, String> hostAttributes = new HashMap<String, String>();
+    hostAttributes.put("os_family", "redhat");
+    hostAttributes.put("os_release_version", "6.3");
+    host.setHostAttributes(hostAttributes);
+    host.persist();
+
+    clusters.mapHostToCluster("h2", "c1");
+    Cluster cluster = clusters.getCluster("c1");
+    Service service = cluster.getService("ZOOKEEPER");
+
+    // this should get skipped
+    ServiceComponent component = service.getServiceComponent("ZOOKEEPER_SERVER");
+    ServiceComponentHost sch = component.addServiceComponentHost("h2");
+    sch.setVersion("2.2.2.2");
+
+    List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(0, upgrades.size());
+
+    Map<String, Object> requestProps = new HashMap<String, Object>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.2.1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_FORCE_DOWNGRADE, "true");
+
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    upgradeResourceProvider.createResources(request);
+
+    upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(1, upgrades.size());
+
+
+    UpgradeEntity entity = upgrades.get(0);
+    assertEquals(cluster.getClusterId(), entity.getClusterId().longValue());
+
+    List<UpgradeGroupEntity> upgradeGroups = entity.getUpgradeGroups();
+    assertEquals(4, upgradeGroups.size());
+
+    UpgradeGroupEntity group = upgradeGroups.get(2);
+    assertEquals("ZOOKEEPER", group.getName());
+    assertEquals(4, group.getItems().size());
+
+  }
 
 
 

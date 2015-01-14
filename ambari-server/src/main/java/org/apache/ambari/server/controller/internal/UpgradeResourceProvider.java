@@ -97,6 +97,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   protected static final String UPGRADE_VERSION = "Upgrade/repository_version";
   protected static final String UPGRADE_REQUEST_ID = "Upgrade/request_id";
   protected static final String UPGRADE_FORCE_DOWNGRADE = "Upgrade/force_downgrade";
+  protected static final String UPGRADE_FROM_VERSION = "Upgrade/from_version";
+  protected static final String UPGRADE_TO_VERSION = "Upgrade/to_version";
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
       Arrays.asList(UPGRADE_REQUEST_ID, UPGRADE_CLUSTER_NAME));
@@ -140,6 +142,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     PROPERTY_IDS.add(UPGRADE_VERSION);
     PROPERTY_IDS.add(UPGRADE_REQUEST_ID);
     PROPERTY_IDS.add(UPGRADE_FORCE_DOWNGRADE);
+    PROPERTY_IDS.add(UPGRADE_FROM_VERSION);
+    PROPERTY_IDS.add(UPGRADE_TO_VERSION);
 
     // !!! boo
     for (String requestPropertyId : RequestResourceProvider.PROPERTY_IDS) {
@@ -289,6 +293,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     setResourceProperty(resource, UPGRADE_CLUSTER_NAME, clusterName, requestedIds);
     setResourceProperty(resource, UPGRADE_REQUEST_ID, entity.getRequestId(), requestedIds);
+    setResourceProperty(resource, UPGRADE_FROM_VERSION, entity.getFromVersion(), requestedIds);
+    setResourceProperty(resource, UPGRADE_TO_VERSION, entity.getToVersion(), requestedIds);
 
     return resource;
   }
@@ -379,7 +385,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     Cluster cluster = getManagementController().getClusters().getCluster(clusterName);
     ConfigHelper configHelper = getManagementController().getConfigHelper();
 
-    MasterHostResolver mhr = new MasterHostResolver(cluster);
     String forceDowngrade = (String) requestMap.get(UPGRADE_FORCE_DOWNGRADE);
 
     List<UpgradeGroupHolder> groups = null;
@@ -388,8 +393,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     final String version = (String) requestMap.get(UPGRADE_VERSION);
 
     if (null != forceDowngrade && Boolean.parseBoolean(forceDowngrade)) {
+      MasterHostResolver mhr = new MasterHostResolver(cluster, version);
       groups = s_upgradeHelper.createDowngrade(mhr, pack, version);
     } else {
+      MasterHostResolver mhr = new MasterHostResolver(cluster);
       groups = s_upgradeHelper.createUpgrade(mhr, pack, version);
     }
 
@@ -450,6 +457,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
 
     UpgradeEntity entity = new UpgradeEntity();
+    // !!! FIXME not quite right here, upcoming patch is supposed to get this right
+    entity.setFromVersion(cluster.getCurrentClusterVersion().getRepositoryVersion().getVersion());
+    entity.setToVersion(version);
     entity.setUpgradeGroups(groupEntities);
     entity.setClusterId(Long.valueOf(cluster.getClusterId()));
 

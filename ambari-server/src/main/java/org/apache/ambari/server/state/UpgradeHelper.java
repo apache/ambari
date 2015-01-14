@@ -179,7 +179,8 @@ public class UpgradeHelper {
 
     for (Grouping group : upgradePack.getGroups()) {
       if (ClusterGrouping.class.isInstance(group)) {
-        UpgradeGroupHolder groupHolder = getClusterGroupHolder(cluster, (ClusterGrouping) group);
+        UpgradeGroupHolder groupHolder = getClusterGroupHolder(
+            cluster, (ClusterGrouping) group, forUpgrade ? null : version);
         if (null != groupHolder) {
           groups.add(groupHolder);
           idx++;
@@ -471,14 +472,18 @@ public class UpgradeHelper {
   }
 
   /**
-   * Special handling for ClusterGrouping.
-   * @param cluster the cluster
-   * @param grouping the grouping
+   * Special handling for ClusterGrouping that is used for tasks that are
+   * to run on a specific targeted HostComponent.
+   *
+   * @param cluster   the cluster
+   * @param grouping  the grouping
+   * @param version   the version used to create a {@link MasterHostResolver}
    * @return the holder, or {@code null} if there are no clustergrouping tasks.
    */
-  private UpgradeGroupHolder getClusterGroupHolder(Cluster cluster, ClusterGrouping grouping) {
+  private UpgradeGroupHolder getClusterGroupHolder(Cluster cluster,
+      ClusterGrouping grouping, String version) {
 
-    grouping.getBuilder().setHelpers(cluster);
+    grouping.getBuilder().setHelpers(new MasterHostResolver(cluster, version));
     List<StageWrapper> wrappers = grouping.getBuilder().build();
 
     if (wrappers.size() > 0) {

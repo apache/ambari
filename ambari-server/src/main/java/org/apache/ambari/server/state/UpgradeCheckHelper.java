@@ -270,13 +270,15 @@ public class UpgradeCheckHelper {
     public void perform(UpgradeCheck upgradeCheck, PreUpgradeCheckRequest request) throws AmbariException {
       final String clusterName = request.getClusterName();
       final Cluster cluster = clustersProvider.get().getCluster(clusterName);
-      final MasterHostResolver masterHostResolver = new MasterHostResolver(cluster);
+      final MasterHostResolver masterHostResolver = new MasterHostResolver(cluster,
+          request.getRepositoryVersion());
       final Set<String> hostsWithMasterComponent = new HashSet<String>();
       for (Entry<String, Service> serviceEntry: cluster.getServices().entrySet()) {
         final Service service = serviceEntry.getValue();
         for (Entry<String, ServiceComponent> serviceComponentEntry: service.getServiceComponents().entrySet()) {
           final ServiceComponent serviceComponent = serviceComponentEntry.getValue();
-          final HostsType hostsType = masterHostResolver.getMasterAndHosts(service.getName(), serviceComponent.getName());
+          final HostsType hostsType = masterHostResolver.getMasterAndHosts(
+              service.getName(), serviceComponent.getName());
           if (hostsType != null && hostsType.master != null) {
             hostsWithMasterComponent.add(hostsType.master);
           }

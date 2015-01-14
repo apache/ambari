@@ -25,7 +25,10 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.utils.HTTPUtils;
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
@@ -38,12 +41,14 @@ public class MasterHostResolver {
 
   private static Logger LOG = LoggerFactory.getLogger(MasterHostResolver.class);
 
-  private Cluster cluster;
+  private Cluster m_cluster;
+  private String m_version;
 
   enum Service {
     HDFS,
     HBASE,
-    YARN
+    YARN,
+    OTHER
   }
 
   /**
@@ -54,8 +59,29 @@ public class MasterHostResolver {
     STANDBY
   }
 
+  /**
+   * Create a resolver that does not consider HostComponents' version when
+   * resolving hosts.  Common use case is creating an upgrade that should
+   * include an entire cluster.
+   *
+   * @param cluster the cluster
+   */
   public MasterHostResolver(Cluster cluster) {
-    this.cluster = cluster;
+    this(cluster, null);
+  }
+
+  /**
+   * Create a resolver that compares HostComponents' version when calculating
+   * hosts for the stage.  Common use case is for downgrades when only some
+   * HostComponents need to be downgraded, and HostComponents already at the
+   * correct version are skipped.
+   *
+   * @param cluster the cluster
+   * @param version the version, or {@code null} to not compare versions
+   */
+  public MasterHostResolver(Cluster cluster, String version) {
+    m_cluster = cluster;
+    m_version = version;
   }
 
   /**
@@ -65,7 +91,7 @@ public class MasterHostResolver {
    * @return the cluster (not {@code null}).
    */
   public Cluster getCluster() {
-    return cluster;
+    return m_cluster;
   }
 
   /**
@@ -81,19 +107,18 @@ public class MasterHostResolver {
       return null;
     }
 
-    Set<String> componentHosts = cluster.getHosts(serviceName, componentName);
+    Set<String> componentHosts = m_cluster.getHosts(serviceName, componentName);
     if (0 == componentHosts.size()) {
       return null;
     }
 
     hostsType.hosts = componentHosts;
 
-    Service s = null;
+    Service s = Service.OTHER;
     try {
       s = Service.valueOf(serviceName.toUpperCase());
     } catch (Exception e) {
       // !!! nothing to do
-      return hostsType;
     }
 
     switch (s) {
@@ -106,21 +131,74 @@ public class MasterHostResolver {
           } else {
             hostsType.master = componentHosts.iterator().next();
           }
+        } else {
+          hostsType = filterSameVersion(hostsType, serviceName, componentName);
         }
         break;
       case YARN:
         if (componentName.equalsIgnoreCase("RESOURCEMANAGER")) {
           resolveResourceManagers(hostsType);
+        } else {
+          hostsType = filterSameVersion(hostsType, serviceName, componentName);
         }
         break;
       case HBASE:
         if (componentName.equalsIgnoreCase("HBASE_MASTER")) {
           resolveHBaseMasters(hostsType);
+        } else {
+          hostsType = filterSameVersion(hostsType, serviceName, componentName);
         }
+        break;
+      case OTHER:
+        hostsType = filterSameVersion(hostsType, serviceName, componentName);
         break;
     }
     return hostsType;
   }
+
+  /**
+   * Compares the versions of a HostComponent to the version for the resolver.
+   * If version is unspecified for the object, the {@link HostsType} object is
+   * returned without change.
+   *
+   * @param hostsType the hosts to resolve
+   * @param service   the service name
+   * @param component the component name
+   * @return the modified hosts instance, or {@code null} if the filtering
+   *        results in no hosts to upgrade
+   */
+  private HostsType filterSameVersion(HostsType hostsType, String service, String component) {
+    if (null == m_version) {
+      return hostsType;
+    }
+
+    try {
+      org.apache.ambari.server.state.Service svc = m_cluster.getService(service);
+      ServiceComponent sc = svc.getServiceComponent(component);
+
+      Set<String> toUpgrade = new LinkedHashSet<String>();
+
+      for (String host : hostsType.hosts) {
+        ServiceComponentHost sch = sc.getServiceComponentHost(host);
+        if (null == sch.getVersion() || !sch.getVersion().equals(m_version)) {
+          toUpgrade.add(host);
+        }
+      }
+
+      if (toUpgrade.isEmpty()) {
+        return null;
+      } else {
+        hostsType.hosts = toUpgrade;
+        return hostsType;
+      }
+
+    } catch (AmbariException e) {
+      // !!! better not
+      LOG.warn("Could not determine host components to upgrade. Defaulting to saved hosts.", e);
+      return hostsType;
+    }
+  }
+
 
   /**
    * Get mapping of the HDFS Namenodes from the state ("active" or "standby") to the hostname.
