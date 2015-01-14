@@ -38,6 +38,8 @@ class SqoopClient(Script):
     env.set_params(params)
     sqoop(type='client')
 
+    self.save_component_version_to_structured_out(params.stack_name)
+
   def status(self, env):
     raise ClientComponentHasNoStatus()
 

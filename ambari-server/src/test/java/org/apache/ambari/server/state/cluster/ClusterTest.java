@@ -893,6 +893,7 @@ public class ClusterTest {
     checkStackVersionState(stack, version, RepositoryVersionState.INSTALLED);
 
     assertStateException(stack, version, RepositoryVersionState.CURRENT, RepositoryVersionState.INSTALLED);
+    assertStateException(stack, version, RepositoryVersionState.UPGRADED, RepositoryVersionState.INSTALLED);
     assertStateException(stack, version, RepositoryVersionState.UPGRADE_FAILED, RepositoryVersionState.INSTALLED);
     assertStateException(stack, version, RepositoryVersionState.INSTALL_FAILED, RepositoryVersionState.INSTALLED);
 

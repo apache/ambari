@@ -36,6 +36,8 @@ class FalconClient(Script):
     env.set_params(params)
     falcon('client', action='config')
 
+    self.save_component_version_to_structured_out(params.stack_name)
+
   def status(self, env):
     raise ClientComponentHasNoStatus()
 
@@ -49,7 +51,7 @@ class FalconClient(Script):
       return
 
     Logger.info("Executing Falcon Client Rolling Upgrade pre-restart")
-    Execute(format("hdp-select set falcon-client {version}"))
+    Execute(format("hdp-select set hadoop-client {version}"))
 
   def security_status(self, env):
     import status_params

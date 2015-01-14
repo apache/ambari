@@ -25,9 +25,6 @@ from tez import tez
 
 class TezClient(Script):
 
-  def get_stack_to_component(self):
-    return {"HDP": "hadoop-client"}
-
   def pre_rolling_restart(self, env):
     import params
     env.set_params(params)

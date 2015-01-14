@@ -85,42 +85,14 @@ class Script(object):
   4 path to file with structured command output (file will be created)
   """
   structuredOut = {}
-  
+  command_data_file = ""
+  basedir = ""
+  stroutfile = ""
+  logging_level = ""
+
   # Class variable
   tmp_dir = ""
-  
-  def __init__(self, argv=None):
-    """
-    Parses arguments and initializes variables and logging
-    """
-    # parse arguments
-    self.logger, self.chout, self.cherr = Logger.initialize_logger()
 
-    args = argv if argv else sys.argv
-    if len(args) < 7:
-      self.logger.error("Script expects at least 6 arguments, %d given" % len(args))
-      print USAGE.format(os.path.basename(args[0])) # print to stdout
-      sys.exit(1)
-
-    self.command_name = str.lower(args[1])
-    self.command_data_file = args[2]
-    self.basedir = args[3]
-    self.stroutfile = args[4]
-    self.load_structured_out()
-    self.logging_level = args[5]
-    Script.tmp_dir = args[6]
-
-    self.logging_level_str = logging._levelNames[self.logging_level]
-    self.chout.setLevel(self.logging_level_str)
-    self.logger.setLevel(self.logging_level_str)
-    
-  def load_structured_out(self):
-    Script.structuredOut = {}
-    if os.path.exists(self.stroutfile):
-      with open(self.stroutfile, 'r') as fp:
-        Script.structuredOut = json.load(fp)
-        self.logger.debug("Loaded structured out from file: %s" % str(self.stroutfile))
-  
   def get_stack_to_component(self):
     """
     To be overridden by subclasses.
@@ -129,15 +101,12 @@ class Script(object):
     return {}
 
   def put_structured_out(self, sout):
-    self.logger.debug("Adding content to structured out file: %s. New data: %s" % (str(self.stroutfile), str(sout)))
-    curr_content = Script.structuredOut.copy()
     Script.structuredOut.update(sout)
     try:
       with open(self.stroutfile, 'w') as fp:
         json.dump(Script.structuredOut, fp)
-    except IOError, err:
-      self.logger.error("Failed to write new content to structured out file: %s. Error: %s" % (str(self.stroutfile)), str(err))
-      Script.structuredOut = curr_content.copy()
+    except IOError:
+      Script.structuredOut.update({"errMsg" : "Unable to write to " + self.stroutfile})
 
   def save_component_version_to_structured_out(self, stack_name):
     """
@@ -158,8 +127,27 @@ class Script(object):
 
   def execute(self):
     """
-    Executes method relevant to command type
+    Sets up logging;
+    Parses command parameters and executes method relevant to command type
     """
+    logger, chout, cherr = Logger.initialize_logger()
+    
+    # parse arguments
+    if len(sys.argv) < 7:
+     logger.error("Script expects at least 6 arguments")
+     print USAGE.format(os.path.basename(sys.argv[0])) # print to stdout
+     sys.exit(1)
+
+    command_name = str.lower(sys.argv[1])
+    self.command_data_file = sys.argv[2]
+    self.basedir = sys.argv[3]
+    self.stroutfile = sys.argv[4]
+    self.logging_level = sys.argv[5]
+    Script.tmp_dir = sys.argv[6]
+
+    logging_level_str = logging._levelNames[self.logging_level]
+    chout.setLevel(logging_level_str)
+    logger.setLevel(logging_level_str)
 
     # on windows we need to reload some of env variables manually because there is no default paths for configs(like
     # /etc/something/conf on linux. When this env vars created by one of the Script execution, they can not be updated
@@ -174,34 +162,23 @@ class Script(object):
         #load passwords here(used on windows to impersonate different users)
         Script.passwords = {}
         for k, v in _PASSWORD_MAP.iteritems():
-          if get_path_form_configuration(k, Script.config) and get_path_form_configuration(v, Script.config):
-            Script.passwords[get_path_form_configuration(k, Script.config)] = get_path_form_configuration(v, Script.config)
+          if get_path_form_configuration(k,Script.config) and get_path_form_configuration(v,Script.config ):
+            Script.passwords[get_path_form_configuration(k,Script.config)] = get_path_form_configuration(v,Script.config)
 
     except IOError:
-      self.logger.exception("Can not read json file with command parameters: ")
+      logger.exception("Can not read json file with command parameters: ")
       sys.exit(1)
-
     # Run class method depending on a command type
     try:
-      method = self.choose_method_to_execute(self.command_name)
+      method = self.choose_method_to_execute(command_name)
       with Environment(self.basedir) as env:
         method(env)
-
-        # For start actions, try to advertise the component's version
-        if self.command_name == "start" or self.command_name == "install":
-          try:
-            import params
-            # This is to support older stacks
-            if hasattr(params, "stack_name"):
-              self.save_component_version_to_structured_out(params.stack_name)
-          except ImportError:
-            self.logger.error("Executing command %s could not import params" % str(self.command_name))
     except ClientComponentHasNoStatus or ComponentIsNotRunning:
       # Support of component status checks.
       # Non-zero exit code is interpreted as an INSTALLED status of a component
       sys.exit(1)
     except Fail:
-      self.logger.exception("Error while executing command '{0}':".format(self.command_name))
+      logger.exception("Error while executing command '{0}':".format(command_name))
       sys.exit(1)
 
 
@@ -355,14 +332,6 @@ class Script(object):
 
       if rolling_restart:
         self.post_rolling_restart(env)
-
-    try:
-      import params
-      if hasattr(params, "stack_name"):
-        self.save_component_version_to_structured_out(params.stack_name)
-    except ImportError:
-      self.logger.error("Restart command could not import params")
-
 
   def post_rolling_restart(self, env):
     """

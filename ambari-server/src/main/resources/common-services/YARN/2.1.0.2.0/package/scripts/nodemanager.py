@@ -58,6 +58,8 @@ class Nodemanager(Script):
     self.configure(env) # FOR SECURITY
     service('nodemanager',action='start')
 
+    self.save_component_version_to_structured_out(params.stack_name)
+
   def post_rolling_restart(self, env):
     Logger.info("Executing NodeManager Rolling Upgrade post-restart")
     import params

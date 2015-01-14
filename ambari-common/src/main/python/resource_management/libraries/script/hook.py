@@ -26,7 +26,7 @@ import sys
 
 class Hook(Script):
   """
-  Executes a hook for a command for custom service. stdout and stderr are written to
+  Executes a hook for acommand for custom service. stdout and stderr are written to
   tmpoutfile and to tmperrfile respectively.
   """
 

@@ -64,6 +64,8 @@ class JournalNode(Script):
       create_log_dir=True
     )
 
+    self.save_component_version_to_structured_out(params.stack_name)
+
   def stop(self, env, rolling_restart=False):
     import params
 

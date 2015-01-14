@@ -72,6 +72,8 @@ class NameNode(Script):
     self.configure(env)
     namenode(action="start", rolling_restart=rolling_restart, env=env)
 
+    self.save_component_version_to_structured_out(params.stack_name)
+
   def post_rolling_restart(self, env):
     Logger.info("Executing Rolling Upgrade post-restart")
     import params

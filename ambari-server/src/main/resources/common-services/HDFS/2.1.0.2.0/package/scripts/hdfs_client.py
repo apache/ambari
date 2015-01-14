@@ -26,10 +26,6 @@ from utils import service
 
 
 class HdfsClient(Script):
-
-  def get_stack_to_component(self):
-    return {"HDP": "hadoop-client"}
-
   def install(self, env):
     import params
 
@@ -59,6 +55,7 @@ class HdfsClient(Script):
   def config(self, env):
     import params
     hdfs()
+    pass
 
   def security_status(self, env):
     import status_params

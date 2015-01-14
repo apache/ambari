@@ -71,9 +71,15 @@ class PythonExecutor:
     Timeout meaning: how many seconds should pass before script execution
     is forcibly terminated
     override_output_files option defines whether stdout/stderr files will be
-    recreated or appended.
-    The structured out file, however, is preserved during multiple invocations that use the same file.
+    recreated or appended
     """
+    # need to remove this file for the following case:
+    # status call 1 does not write to file; call 2 writes to file;
+    # call 3 does not write to file, so contents are still call 2's result
+    try:
+      os.unlink(tmpstructedoutfile)
+    except OSError:
+      pass # no error
 
     script_params += [tmpstructedoutfile, logger_level, tmp_dir]
     pythonCommand = self.python_command(script, script_params)
