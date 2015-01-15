@@ -24,7 +24,7 @@ from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def check_service_status(name):
   if name=='collector':
-    pid_file = format("{ams_monitor_pid_dir}/ambari-metrics-collector.pid")
+    pid_file = format("{ams_collector_pid_dir}/ambari-metrics-collector.pid")
   elif name == 'monitor':
     pid_file = format("{ams_monitor_pid_dir}/ambari-metrics-monitor.pid")
   check_process_status(pid_file)
