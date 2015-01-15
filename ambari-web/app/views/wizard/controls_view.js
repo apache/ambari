@@ -1031,9 +1031,26 @@ App.CheckDBConnectionView = Ember.View.extend({
       data: {
         kdcHostname: this.get('masterHostName')
       },
-      success: 'onCreateActionSuccess',
+      success: 'onRunKDCCheckSuccess',
       error: 'onCreateActionError'
     });
+  },
+
+  /**
+   *
+   * @param data
+   */
+  onRunKDCCheckSuccess: function(data) {
+    var statusCode = {
+      success: 'REACHABLE',
+      failed: 'UNREACHABLE'
+    };
+    if (data == statusCode['success']) {
+      this.setResponseStatus('success');
+    } else {
+      this.setResponseStatus('failed');
+    }
+    this.set('responseFromServer', data);
   },
 
   /**

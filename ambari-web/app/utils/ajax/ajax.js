@@ -1407,11 +1407,10 @@ var urls = {
   'admin.kerberos_security.test_connection': {
     'real': '/kdc_check/{kdcHostname}',
     'mock': '',
-    'format': function (data) {
+    'format': function () {
       return {
-        type: 'POST',
-        data: JSON.stringify(data)
-      }
+        dataType: 'text'
+      };
     }
   },
 
