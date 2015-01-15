@@ -19,6 +19,8 @@
 package org.apache.ambari.server.api.services;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -167,6 +169,81 @@ public class ClusterService extends BaseService {
 
     hasPermission(Request.Type.DELETE, clusterName);
     return handleRequest(headers, null, ui, Request.Type.DELETE, createClusterResource(clusterName));
+  }
+
+  /**
+   * Handles: GET /clusters/{clusterID}/artifacts
+   * Get all artifacts associated with the cluster.
+   *
+   * @param body         request body
+   * @param headers      http headers
+   * @param ui           uri info
+   * @param clusterName  cluster name
+   *
+   * @return artifact collection resource representation
+   */
+  @GET
+  @Path("{clusterName}/artifacts")
+  @Produces("text/plain")
+  public Response getClusterArtifacts(String body,
+                                      @Context HttpHeaders headers,
+                                      @Context UriInfo ui,
+                                      @PathParam("clusterName") String clusterName) {
+
+    hasPermission(Request.Type.GET, clusterName);
+    return handleRequest(headers, body, ui, Request.Type.GET,
+        createArtifactResource(clusterName, null));
+  }
+
+  /**
+   * Handles: GET /clusters/{clusterID}/artifacts/{artifactName}
+   * Get an artifact resource instance.
+   *
+   * @param body          request body
+   * @param headers       http headers
+   * @param ui            uri info
+   * @param clusterName   cluster name
+   * @param artifactName  artifact name
+   *
+   * @return  artifact instance resource representation
+   */
+  @GET
+  @Path("{clusterName}/artifacts/{artifactName}")
+  @Produces("text/plain")
+  public Response getClusterArtifact(String body,
+                                      @Context HttpHeaders headers,
+                                      @Context UriInfo ui,
+                                      @PathParam("clusterName") String clusterName,
+                                      @PathParam("artifactName") String artifactName) {
+
+    hasPermission(Request.Type.GET, clusterName);
+    return handleRequest(headers, body, ui, Request.Type.GET,
+        createArtifactResource(clusterName, artifactName));
+  }
+
+  /**
+   * Handles: POST /clusters/{clusterID}/artifacts/{artifactName}
+   * Create a cluster artifact.
+   *
+   * @param body          request body
+   * @param headers       http headers
+   * @param ui            uri info
+   * @param clusterName   cluster name
+   * @param artifactName  artifact name
+   * @return
+   */
+  @POST
+  @Path("{clusterName}/artifacts/{artifactName}")
+  @Produces("text/plain")
+  public Response createClusterArtifact(String body,
+                                      @Context HttpHeaders headers,
+                                      @Context UriInfo ui,
+                                      @PathParam("clusterName") String clusterName,
+                                      @PathParam("artifactName") String artifactName) {
+
+    hasPermission(Request.Type.POST, clusterName);
+    return handleRequest(headers, body, ui, Request.Type.POST,
+        createArtifactResource(clusterName, artifactName));
   }
 
   /**
@@ -434,7 +511,7 @@ public class ClusterService extends BaseService {
    * Gets the services for upgrades.
    *
    * @param request the request
-   * @param cluserName the cluster name
+   * @param clusterName the cluster name
    *
    * @return the upgrade services
    */
@@ -473,6 +550,22 @@ public class ClusterService extends BaseService {
   ResourceInstance createClusterResource(String clusterName) {
     return createResource(Resource.Type.Cluster,
         Collections.singletonMap(Resource.Type.Cluster, clusterName));
+  }
+
+  /**
+   * Create an artifact resource instance.
+   *
+   * @param clusterName  cluster name
+   * @param artifactName artifact name
+   *
+   * @return an artifact resource instance
+   */
+  ResourceInstance createArtifactResource(String clusterName, String artifactName) {
+    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.put(Resource.Type.Cluster, clusterName);
+    mapIds.put(Resource.Type.Artifact, artifactName);
+
+    return createResource(Resource.Type.Artifact, mapIds);
   }
 
   /**

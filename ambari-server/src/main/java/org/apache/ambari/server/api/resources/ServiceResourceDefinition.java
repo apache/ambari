@@ -50,6 +50,9 @@ public class ServiceResourceDefinition extends BaseResourceDefinition {
     Set<SubResourceDefinition> subs = new HashSet<SubResourceDefinition>();
     subs.add(new SubResourceDefinition(Resource.Type.Component));
     subs.add(new SubResourceDefinition(Resource.Type.Alert));
+    //todo: dynamic sub-resource definition
+    subs.add(new SubResourceDefinition(Resource.Type.Artifact));
+
     return subs;
   }
 }

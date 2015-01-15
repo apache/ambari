@@ -58,6 +58,7 @@ public class MinimalRendererTest {
     // schema expectations
     expect(schemaFactory.getSchema(Resource.Type.Component)).andReturn(schema).anyTimes();
     expect(schemaFactory.getSchema(Resource.Type.Alert)).andReturn(schema).anyTimes();
+    expect(schemaFactory.getSchema(Resource.Type.Artifact)).andReturn(schema).anyTimes();
     expect(schema.getKeyPropertyId(Resource.Type.Component)).andReturn("ServiceComponentInfo/component_name").anyTimes();
 
     replay(schemaFactory, schema);
@@ -70,7 +71,7 @@ public class MinimalRendererTest {
     TreeNode<Set<String>> propertyTree = renderer.finalizeProperties(queryTree, false);
     // no properties should have been added
     assertTrue(propertyTree.getObject().isEmpty());
-    assertEquals(2, propertyTree.getChildren().size());
+    assertEquals(3, propertyTree.getChildren().size());
 
     TreeNode<Set<String>> componentNode = propertyTree.getChild("Component");
     assertEquals(1, componentNode.getObject().size());

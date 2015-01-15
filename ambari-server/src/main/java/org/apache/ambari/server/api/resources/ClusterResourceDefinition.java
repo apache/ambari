@@ -70,6 +70,8 @@ public class ClusterResourceDefinition extends BaseStacksResourceDefinition {
     setChildren.add(new SubResourceDefinition(Resource.Type.AlertDefinition));
     setChildren.add(new SubResourceDefinition(Resource.Type.Alert));
     setChildren.add(new SubResourceDefinition(Resource.Type.ClusterStackVersion));
+    //todo: dynamic sub-resource definition
+    setChildren.add(new SubResourceDefinition(Resource.Type.Artifact));
 
     return setChildren;
   }

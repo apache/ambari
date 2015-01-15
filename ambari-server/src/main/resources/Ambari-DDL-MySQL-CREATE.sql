@@ -517,6 +517,12 @@ CREATE TABLE repo_version (
   PRIMARY KEY(repo_version_id)
 );
 
+CREATE TABLE artifact (
+  artifact_name VARCHAR(255) NOT NULL,
+  foreign_keys LONGTEXT NOT NULL,
+  artifact_data VARCHAR(4096) NOT NULL,
+  PRIMARY KEY(artifact_name, foreign_keys));
+
 -- altering tables by creating unique constraints----------
 ALTER TABLE users ADD CONSTRAINT UNQ_users_0 UNIQUE (user_name, ldap_user);
 ALTER TABLE groups ADD CONSTRAINT UNQ_groups_0 UNIQUE (group_name, ldap_group);

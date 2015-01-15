@@ -50,7 +50,7 @@ public class ClusterResourceDefinitionTest {
     ResourceDefinition resource = new ClusterResourceDefinition();
     Set<SubResourceDefinition> subResources = resource.getSubResourceDefinitions();
 
-    assertEquals(11, subResources.size());
+    assertEquals(12, subResources.size());
     assertTrue(includesType(subResources, Resource.Type.Service));
     assertTrue(includesType(subResources, Resource.Type.Host));
     assertTrue(includesType(subResources, Resource.Type.Configuration));
@@ -62,6 +62,7 @@ public class ClusterResourceDefinitionTest {
     assertTrue(includesType(subResources, Resource.Type.ClusterPrivilege));
     assertTrue(includesType(subResources, Resource.Type.Alert));
     assertTrue(includesType(subResources, Resource.Type.ClusterStackVersion));
+    assertTrue(includesType(subResources, Resource.Type.Artifact));
   }
 
   @Test

@@ -63,6 +63,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
   private static final String ALERT_TARGET_TABLE = "alert_target";
   private static final String ALERT_TARGET_STATES_TABLE = "alert_target_states";
   private static final String ALERT_CURRENT_TABLE = "alert_current";
+  private static final String ARTIFACT_TABLE = "artifact";
 
   /**
    * {@inheritDoc}
@@ -107,6 +108,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
   protected void executeDDLUpdates() throws AmbariException, SQLException {
     prepareRollingUpgradesDDL();
     executeAlertDDLUpdates();
+    createArtifactTable();
 
     // add security_state to various tables
     dbAccessor.addColumn("hostcomponentdesiredstate", new DBColumnInfo(
@@ -253,6 +255,14 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     dbAccessor.createTable("upgrade_item", columns, "upgrade_item_id");
     dbAccessor.addFKConstraint("upgrade_item", "fk_upgrade_item_upgrade_group_id", "upgrade_group_id", "upgrade_group", "upgrade_group_id", false);
     dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('upgrade_item_id_seq', 0)", false);
+  }
+
+  private void createArtifactTable() throws SQLException {
+    ArrayList<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
+    columns.add(new DBColumnInfo("artifact_name", String.class, 255, null, false));
+    columns.add(new DBColumnInfo("foreign_keys", String.class, null, null, false));
+    columns.add(new DBColumnInfo("artifact_data", char[].class, null, null, false));
+    dbAccessor.createTable(ARTIFACT_TABLE, columns, "artifact_name", "foreign_keys");
   }
 
   // ----- UpgradeCatalog ----------------------------------------------------

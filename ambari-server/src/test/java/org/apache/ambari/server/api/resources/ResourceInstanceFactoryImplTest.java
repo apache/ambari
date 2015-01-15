@@ -37,4 +37,14 @@ public class ResourceInstanceFactoryImplTest {
     assertEquals("artifacts", resourceDefinition.getPluralName());
     assertEquals(Resource.Type.StackArtifact, resourceDefinition.getType());
   }
+
+  @Test
+  public void testGetArtifactDefinition() {
+    ResourceDefinition resourceDefinition = ResourceInstanceFactoryImpl.getResourceDefinition(
+        Resource.Type.Artifact, null);
+
+    assertEquals("artifact", resourceDefinition.getSingularName());
+    assertEquals("artifacts", resourceDefinition.getPluralName());
+    assertEquals(Resource.Type.Artifact, resourceDefinition.getType());
+  }
 }

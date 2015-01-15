@@ -200,6 +200,79 @@ public class ServiceService extends BaseService {
   }
 
   /**
+   * Handles: POST /clusters/{clusterId}/services/{serviceId}/artifacts/{artifactName}
+   * Create a service artifact instance.
+   *
+   * @param body          http body
+   * @param headers       http headers
+   * @param ui            uri info
+   * @param serviceName   service name
+   * @param artifactName  artifact name
+   *
+   * @return information regarding the created artifact
+   */
+  @POST
+  @Path("{serviceName}/artifacts/{artifactName}")
+  @Produces("text/plain")
+  public Response createArtifact(String body,
+                                 @Context HttpHeaders headers,
+                                 @Context UriInfo ui,
+                                 @PathParam("serviceName") String serviceName,
+                                 @PathParam("artifactName") String artifactName) {
+
+    return handleRequest(headers, body, ui, Request.Type.POST,
+        createArtifactResource(m_clusterName, serviceName, artifactName));
+  }
+
+  /**
+   * Handles: GET /clusters/{clusterId}/services/{serviceId}/artifacts
+   * Get all service artifacts.
+   *
+   * @param body          http body
+   * @param headers       http headers
+   * @param ui            uri info
+   * @param serviceName   service name
+   *
+   * @return artifact collection resource representation
+   */
+  @GET
+  @Path("{serviceName}/artifacts")
+  @Produces("text/plain")
+  public Response getArtifacts(String body,
+                              @Context HttpHeaders headers,
+                              @Context UriInfo ui,
+                              @PathParam("serviceName") String serviceName) {
+
+    return handleRequest(headers, body, ui, Request.Type.GET,
+        createArtifactResource(m_clusterName, serviceName, null));
+  }
+
+  /**
+   * Handles: GET /clusters/{clusterId}/services/{serviceId}/artifacts/{artifactName}
+   * Gat a service artifact instance.
+   *
+   * @param body          http body
+   * @param headers       http headers
+   * @param ui            uri info
+   * @param serviceName   service name
+   * @param artifactName  artifact name
+   *
+   * @return artifact instance resource representation
+   */
+  @GET
+  @Path("{serviceName}/artifacts/{artifactName}")
+  @Produces("text/plain")
+  public Response getArtifact(String body,
+                                 @Context HttpHeaders headers,
+                                 @Context UriInfo ui,
+                                 @PathParam("serviceName") String serviceName,
+                                 @PathParam("artifactName") String artifactName) {
+
+    return handleRequest(headers, body, ui, Request.Type.GET,
+        createArtifactResource(m_clusterName, serviceName, artifactName));
+  }
+
+  /**
    * Gets the alert history service
    *
    * @param request
@@ -220,7 +293,6 @@ public class ServiceService extends BaseService {
   /**
    * Create a service resource instance.
    *
-   *
    * @param clusterName  cluster name
    * @param serviceName  service name
    *
@@ -232,5 +304,23 @@ public class ServiceService extends BaseService {
     mapIds.put(Resource.Type.Service, serviceName);
 
     return createResource(Resource.Type.Service, mapIds);
+  }
+
+  /**
+   * Create an artifact resource instance.
+   *
+   * @param clusterName   cluster name
+   * @param serviceName   service name
+   * @param artifactName  artifact name
+   *
+   * @return an artifact resource instance
+   */
+  ResourceInstance createArtifactResource(String clusterName, String serviceName, String artifactName) {
+    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.put(Resource.Type.Cluster, clusterName);
+    mapIds.put(Resource.Type.Service, serviceName);
+    mapIds.put(Resource.Type.Artifact, artifactName);
+
+    return createResource(Resource.Type.Artifact, mapIds);
   }
 }

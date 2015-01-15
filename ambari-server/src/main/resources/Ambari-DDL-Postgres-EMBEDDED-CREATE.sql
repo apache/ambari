@@ -449,6 +449,13 @@ GRANT ALL PRIVILEGES ON TABLE ambari.hostgroup_component TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.blueprint_configuration TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.hostgroup_configuration TO :username;
 
+CREATE TABLE ambari.artifact (
+  artifact_name VARCHAR(255) NOT NULL,
+  artifact_data TEXT NOT NULL,
+  foreign_keys VARCHAR(4096) NOT NULL,
+  PRIMARY KEY (artifact_name, foreign_keys));
+GRANT ALL PRIVILEGES ON TABLE ambari.artifact TO :username;
+
 CREATE TABLE ambari.viewmain (
   view_name VARCHAR(255) NOT NULL,
   label VARCHAR(255),

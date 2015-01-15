@@ -23,6 +23,7 @@ import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
@@ -131,6 +132,7 @@ public class UpgradeCatalog200Test {
     Capture<DBAccessor.DBColumnInfo> valueColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> dataValueColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<List<DBAccessor.DBColumnInfo>> alertTargetStatesCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
+    Capture<List<DBAccessor.DBColumnInfo>> artifactCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
 
     Capture<List<DBAccessor.DBColumnInfo>> upgradeCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
     Capture<List<DBAccessor.DBColumnInfo>> upgradeGroupCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
@@ -199,6 +201,9 @@ public class UpgradeCatalog200Test {
     // Upgrade item
     dbAccessor.createTable(eq("upgrade_item"), capture(upgradeItemCapture), eq("upgrade_item_id"));
 
+    // artifact
+    dbAccessor.createTable(eq("artifact"), capture(artifactCapture),
+        eq("artifact_name"), eq("foreign_keys"));
 
     setViewInstancePropertyExpectations(dbAccessor, valueColumnCapture);
     setViewInstanceDataExpectations(dbAccessor, dataValueColumnCapture);
@@ -263,6 +268,11 @@ public class UpgradeCatalog200Test {
 
     verifyViewParameterColumns(viewparameterLabelColumnCapture, viewparameterPlaceholderColumnCapture,
         viewparameterDefaultValueColumnCapture);
+
+    // verify artifact columns
+    List<DBAccessor.DBColumnInfo> artifactColumns = artifactCapture.getValue();
+    testCreateArtifactTable(artifactColumns);
+
 
     // Verify capture group sizes
     assertEquals(7, clusterVersionCapture.getValue().size());
@@ -528,5 +538,32 @@ public class UpgradeCatalog200Test {
     assertEquals(String.class, column.getType());
     assertNull(column.getDefaultValue());
     assertTrue(column.isNullable());
+  }
+
+  /**
+   * assert artifact table creation
+   *
+   * @param artifactColumns artifact table columns
+   */
+  private void testCreateArtifactTable(List<DBColumnInfo> artifactColumns) {
+    assertEquals(3, artifactColumns.size());
+    for (DBColumnInfo column : artifactColumns) {
+      if (column.getName().equals("artifact_name")) {
+        assertNull(column.getDefaultValue());
+        assertEquals(String.class, column.getType());
+        assertEquals(255, (int) column.getLength());
+        assertEquals(false, column.isNullable());
+      } else if (column.getName().equals("foreign_keys")) {
+        assertNull(column.getDefaultValue());
+        assertEquals(String.class, column.getType());
+        assertEquals(false, column.isNullable());
+      } else if (column.getName().equals("artifact_data")) {
+        assertNull(column.getDefaultValue());
+        assertEquals(char[].class, column.getType());
+        assertEquals(false, column.isNullable());
+      } else {
+        fail("unexpected column name");
+      }
+    }
   }
 }

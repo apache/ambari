@@ -356,6 +356,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         };
         break;
 
+      case Artifact:
+        resourceDefinition = new SimpleResourceDefinition(Resource.Type.Artifact, "artifact", "artifacts");
+        break;
+
       default:
         throw new IllegalArgumentException("Unsupported resource type: " + type);
     }

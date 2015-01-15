@@ -136,7 +136,8 @@ public interface Resource {
     UpgradeItem,
     PreUpgradeCheck,
     Stage,
-    StackArtifact;
+    StackArtifact,
+    Artifact;
 
     /**
      * Get the {@link Type} that corresponds to this InternalType.
@@ -234,6 +235,7 @@ public interface Resource {
     public static final Type PreUpgradeCheck = InternalType.PreUpgradeCheck.getType();
     public static final Type Stage = InternalType.Stage.getType();
     public static final Type StackArtifact = InternalType.StackArtifact.getType();
+    public static final Type Artifact = InternalType.Artifact.getType();
 
     /**
      * The type name.
