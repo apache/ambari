@@ -25,7 +25,7 @@ App.KerberosWizardStep3View = App.KerberosProgressPageView.extend({
 
   noticeCompleted: Em.I18n.t('admin.kerberos.wizard.step3.notice.completed'),
 
-  submitButtonText: Em.I18n.t('common.next'),
+  submitButtonText: Em.I18n.t('common.next') + '&rarr;',
 
   showBackButton: true
 

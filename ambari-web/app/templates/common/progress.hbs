@@ -69,6 +69,6 @@
     {{#if view.showBackButton}}
       <button class="btn pull-left" {{bindAttr disabled="controller.isBackButtonDisabled"}} {{action back target="controller"}}>&larr; {{t common.back}}</button>
     {{/if}}
-    <button class="btn btn-success pull-right" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action done target="controller"}}>{{view.submitButtonText}}</button>
+    <button class="btn btn-success pull-right" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action done target="controller"}}>{{{view.submitButtonText}}}</button>
   </div>
 </div>
