@@ -59,7 +59,7 @@ App.AlertDefinition = DS.Model.extend({
    *      count: 0,
    *      maintenanceCount: 0
    *    },
-   *    "WARN": {
+   *    "WARNING": {
    *      count: 1,
    *      maintenanceCount: 1
    *    }
@@ -185,12 +185,13 @@ App.AlertDefinition = DS.Model.extend({
   }.property('type'),
 
   /**
-   * if this definition is in state: CRIT / WARNING, if true, will show up in alerts fast access popup
+   * if this definition is in state: CRITICAL / WARNING, if true, will show up in alerts fast access popup
+   * instances with maintenance mode ON are ignored
    * @type {boolean}
    */
   isCriticalOrWarning: function () {
-    return this.get('isCritical') || this.get('isWarning');
-  }.property('isCritical', 'isWarning'),
+    return !!(this.get('summary.CRITICAL.count') || this.get('summary.WARNING.count'));
+  }.property('summary'),
 
   /**
    * if this definition is in state: CRIT

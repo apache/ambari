@@ -76,6 +76,8 @@ describe('App.AlertDefinition', function () {
 
     Em.A([
       {summary: {CRITICAL: {count: 1, maintenanceCount: 0}}, e: true},
+      {summary: {CRITICAL: {count: 0, maintenanceCount: 1}}, e: false},
+      {summary: {CRITICAL: {count: 1, maintenanceCount: 1}}, e: true},
       {summary: {WARNING: {count: 1, maintenanceCount: 0}}, e: true},
       {summary: {OK: {count: 1, maintenanceCount: 0}}, e: false},
       {summary: {UNKNOWN: {count: 1, maintenanceCount: 0}}, e: false},
