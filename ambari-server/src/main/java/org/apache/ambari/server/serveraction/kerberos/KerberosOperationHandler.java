@@ -178,10 +178,11 @@ public abstract class KerberosOperationHandler {
    *
    * @param principal a String containing the principal to add
    * @param password  a String containing the password to use when creating the principal
+   * @param service a boolean value indicating whether the principal is to be created as a service principal or not
    * @return an Integer declaring the generated key number
    * @throws KerberosOperationException
    */
-  public abstract Integer createServicePrincipal(String principal, String password)
+  public abstract Integer createPrincipal(String principal, String password, boolean service)
       throws KerberosOperationException;
 
   /**
@@ -206,7 +207,7 @@ public abstract class KerberosOperationHandler {
    * @return true if the principal was successfully removed; otherwise false
    * @throws KerberosOperationException
    */
-  public abstract boolean removeServicePrincipal(String principal)
+  public abstract boolean removePrincipal(String principal)
       throws KerberosOperationException;
 
   /**
@@ -218,6 +219,10 @@ public abstract class KerberosOperationHandler {
    *                                    administrator credentials
    */
   public boolean testAdministratorCredentials() throws KerberosOperationException {
+    if (!isOpen()) {
+      throw new KerberosOperationException("This operation handler has not been opened");
+    }
+
     KerberosCredential credentials = getAdministratorCredentials();
     if (credentials == null) {
       throw new KerberosOperationException("Missing KDC administrator credentials");

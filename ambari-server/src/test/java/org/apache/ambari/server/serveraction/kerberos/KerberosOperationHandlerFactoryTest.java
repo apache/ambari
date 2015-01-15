@@ -36,4 +36,8 @@ public class KerberosOperationHandlerFactoryTest {
       new KerberosOperationHandlerFactory().getKerberosOperationHandler(KDCType.ACTIVE_DIRECTORY).getClass());
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void testForNull() {
+    Assert.assertNull(new KerberosOperationHandlerFactory().getKerberosOperationHandler(null));
+  }
 }

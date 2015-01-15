@@ -51,6 +51,8 @@ public class MITKerberosOperationHandlerTest extends EasyMockSupport {
     try {
       handler.setPrincipalPassword(DEFAULT_ADMIN_PRINCIPAL, "");
       Assert.fail("KerberosOperationException not thrown for empty password");
+      handler.createPrincipal("", "1234", false);
+      Assert.fail("AmbariException not thrown for empty principal");
     } catch (Throwable t) {
       Assert.assertEquals(KerberosOperationException.class, t.getClass());
     }
@@ -76,28 +78,28 @@ public class MITKerberosOperationHandlerTest extends EasyMockSupport {
     handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM);
 
     try {
-      handler.createServicePrincipal(DEFAULT_ADMIN_PRINCIPAL, null);
+      handler.createPrincipal(DEFAULT_ADMIN_PRINCIPAL, null, false);
       Assert.fail("KerberosOperationException not thrown for null password");
     } catch (Throwable t) {
       Assert.assertEquals(KerberosOperationException.class, t.getClass());
     }
 
     try {
-      handler.createServicePrincipal(DEFAULT_ADMIN_PRINCIPAL, "");
+      handler.createPrincipal(DEFAULT_ADMIN_PRINCIPAL, "", false);
       Assert.fail("KerberosOperationException not thrown for empty password");
     } catch (Throwable t) {
       Assert.assertEquals(KerberosOperationException.class, t.getClass());
     }
 
     try {
-      handler.createServicePrincipal(null, DEFAULT_ADMIN_PASSWORD);
+      handler.createPrincipal(null, DEFAULT_ADMIN_PASSWORD, false);
       Assert.fail("KerberosOperationException not thrown for null principal");
     } catch (Throwable t) {
       Assert.assertEquals(KerberosOperationException.class, t.getClass());
     }
 
     try {
-      handler.createServicePrincipal("", DEFAULT_ADMIN_PASSWORD);
+      handler.createPrincipal("", DEFAULT_ADMIN_PASSWORD, false);
       Assert.fail("KerberosOperationException not thrown for empty principal");
     } catch (Throwable t) {
       Assert.assertEquals(KerberosOperationException.class, t.getClass());

@@ -29,17 +29,17 @@ public class KerberosPrincipalDescriptorTest {
   public static final String JSON_VALUE =
       "{" +
           "\"value\": \"service/_HOST@_REALM\"," +
-          "\"type\": \"service\"," +
           "\"configuration\": \"service-site/service.component.kerberos.principal\"," +
+          "\"type\": \"service\"," +
           "\"local_username\": \"localUser\"" +
           "}";
 
   public static final Map<String, Object> MAP_VALUE =
       new HashMap<String, Object>() {
         {
-          put("value", "HTTP/_HOST@_REALM");
-          put("type", "service");
+          put("value", "user@_REALM");
           put("configuration", "service-site/service.component.kerberos.https.principal");
+          put("type", "user");
           put("local_username", null);
         }
       };
@@ -49,21 +49,24 @@ public class KerberosPrincipalDescriptorTest {
     Assert.assertFalse(principalDescriptor.isContainer());
     Assert.assertEquals("service/_HOST@_REALM", principalDescriptor.getValue());
     Assert.assertEquals("service-site/service.component.kerberos.principal", principalDescriptor.getConfiguration());
+    Assert.assertEquals(KerberosPrincipalType.SERVICE, principalDescriptor.getType());
     Assert.assertEquals("localUser", principalDescriptor.getLocalUsername());
   }
 
   public static void validateFromMap(KerberosPrincipalDescriptor principalDescriptor) {
     Assert.assertNotNull(principalDescriptor);
     Assert.assertFalse(principalDescriptor.isContainer());
-    Assert.assertEquals("HTTP/_HOST@_REALM", principalDescriptor.getValue());
+    Assert.assertEquals("user@_REALM", principalDescriptor.getValue());
     Assert.assertEquals("service-site/service.component.kerberos.https.principal", principalDescriptor.getConfiguration());
+    Assert.assertEquals(KerberosPrincipalType.USER, principalDescriptor.getType());
     Assert.assertNull(principalDescriptor.getLocalUsername());
   }
 
   public static void validateUpdatedData(KerberosPrincipalDescriptor principalDescriptor) {
     Assert.assertNotNull(principalDescriptor);
-    Assert.assertEquals("HTTP/_HOST@_REALM", principalDescriptor.getValue());
+    Assert.assertEquals("user@_REALM", principalDescriptor.getValue());
     Assert.assertEquals("service-site/service.component.kerberos.https.principal", principalDescriptor.getConfiguration());
+    Assert.assertEquals(KerberosPrincipalType.USER, principalDescriptor.getType());
     Assert.assertEquals("localUser", principalDescriptor.getLocalUsername());
   }
 

@@ -145,7 +145,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
   @Override
   public boolean principalExists(String principal) throws KerberosOperationException {
     if (!isOpen()) {
-      throw new KerberosOperationException("This operation handler has not be opened");
+      throw new KerberosOperationException("This operation handler has not been opened");
     }
     if (principal == null) {
       throw new KerberosOperationException("principal is null");
@@ -154,7 +154,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     try {
       searchResultEnum = ldapContext.search(
           principalContainerDn,
-          "(cn=" + principal + ")",
+          "(userPrincipalName=" + principal + ")",
           searchControls);
       if (searchResultEnum.hasMore()) {
         return true;
@@ -180,21 +180,36 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
    *
    * @param principal a String containing the principal to add
    * @param password  a String containing the password to use when creating the principal
+   * @param service   a boolean value indicating whether the principal is to be created as a service principal or not
    * @return an Integer declaring the generated key number
    * @throws KerberosOperationException
    */
   @Override
-  public Integer createServicePrincipal(String principal, String password)
+  public Integer createPrincipal(String principal, String password, boolean service)
       throws KerberosOperationException {
     if (!isOpen()) {
-      throw new KerberosOperationException("This operation handler has not be opened");
+      throw new KerberosOperationException("This operation handler has not been opened");
     }
+
     if (principal == null) {
       throw new KerberosOperationException("principal is null");
     }
     if (password == null) {
       throw new KerberosOperationException("principal password is null");
     }
+
+    // TODO: (rlevas) pass components and realm in separately (AMBARI-9122)
+    String realm = getDefaultRealm();
+    int atIndex = principal.indexOf("@");
+    if (atIndex >= 0) {
+      realm = principal.substring(atIndex + 1);
+      principal = principal.substring(0, atIndex);
+    }
+
+    if (realm == null) {
+      realm = "";
+    }
+
     Attributes attributes = new BasicAttributes();
 
     Attribute objectClass = new BasicAttribute("objectClass");
@@ -206,12 +221,14 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     attributes.put(cn);
 
     Attribute upn = new BasicAttribute("userPrincipalName");
-    upn.add(String.format("%s@%s", principal, getDefaultRealm().toLowerCase()));
+    upn.add(String.format("%s@%s", principal, realm.toLowerCase()));
     attributes.put(upn);
 
-    Attribute spn = new BasicAttribute("servicePrincipalName");
-    spn.add(principal);
-    attributes.put(spn);
+    if (service) {
+      Attribute spn = new BasicAttribute("servicePrincipalName");
+      spn.add(principal);
+      attributes.put(spn);
+    }
 
     Attribute uac = new BasicAttribute("userAccountControl");  // userAccountControl
     uac.add("512");
@@ -248,7 +265,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
   @Override
   public Integer setPrincipalPassword(String principal, String password) throws KerberosOperationException {
     if (!isOpen()) {
-      throw new KerberosOperationException("This operation handler has not be opened");
+      throw new KerberosOperationException("This operation handler has not been opened");
     }
     if (principal == null) {
       throw new KerberosOperationException("principal is null");
@@ -289,9 +306,9 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
    * @throws KerberosOperationException
    */
   @Override
-  public boolean removeServicePrincipal(String principal) throws KerberosOperationException {
+  public boolean removePrincipal(String principal) throws KerberosOperationException {
     if (!isOpen()) {
-      throw new KerberosOperationException("This operation handler has not be opened");
+      throw new KerberosOperationException("This operation handler has not been opened");
     }
     if (principal == null) {
       throw new KerberosOperationException("principal is null");
@@ -310,6 +327,16 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
       throw new KerberosOperationException("Can not remove principal: " + principal);
     }
 
+    return true;
+  }
+
+  @Override
+  public boolean testAdministratorCredentials() throws KerberosOperationException {
+    if (!isOpen()) {
+      throw new KerberosOperationException("This operation handler has not been opened");
+    }
+    // If this KerberosOperationHandler was successfully opened, successful authentication has
+    // already occurred.
     return true;
   }
 

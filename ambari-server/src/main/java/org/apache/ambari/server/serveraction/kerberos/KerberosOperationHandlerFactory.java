@@ -27,32 +27,27 @@ import com.google.inject.Singleton;
 public class KerberosOperationHandlerFactory {
 
   /**
-   * Gets a relevant KerberosOperationHandler give some KDCType.
+   * Gets the relevant KerberosOperationHandler for some KDCType.
    * <p/>
    * If no KDCType is specified, {@link org.apache.ambari.server.serveraction.kerberos.KDCType#MIT_KDC}
    * will be assumed.
    *
    * @param kdcType the relevant KDCType
    * @return a KerberosOperationHandler
+   * @throws java.lang.IllegalArgumentException if kdcType is null or the KDCType is an unexpected value
    */
   public KerberosOperationHandler getKerberosOperationHandler(KDCType kdcType) {
-    KerberosOperationHandler handler = null;
-
-    // If not specified, use KDCType.MIT_KDC as a default
     if (kdcType == null) {
-      kdcType = KDCType.MIT_KDC;
+      throw new IllegalArgumentException("kdcType may not be null");
     }
 
     switch (kdcType) {
-
       case MIT_KDC:
-        handler = new MITKerberosOperationHandler();
-        break;
+        return new MITKerberosOperationHandler();
       case ACTIVE_DIRECTORY:
-        handler = new ADKerberosOperationHandler();
-        break;
+        return new ADKerberosOperationHandler();
+      default:
+        throw new IllegalArgumentException(String.format("Unexpected kdcType value: %s", kdcType.name()));
     }
-
-    return handler;
   }
 }

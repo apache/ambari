@@ -114,7 +114,8 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
           }
         } else {
           LOG.debug("Creating new principal - {}", evaluatedPrincipal);
-          Integer keyNumber = operationHandler.createServicePrincipal(evaluatedPrincipal, password);
+          boolean servicePrincipal = "service".equalsIgnoreCase(identityRecord.get(KerberosActionDataFile.PRINCIPAL_TYPE));
+          Integer keyNumber = operationHandler.createPrincipal(evaluatedPrincipal, password, servicePrincipal);
 
           if (keyNumber != null) {
             principalPasswordMap.put(evaluatedPrincipal, password);

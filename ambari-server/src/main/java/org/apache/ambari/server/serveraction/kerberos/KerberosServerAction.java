@@ -70,6 +70,18 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   public static final String KDC_TYPE = "kdc_type";
 
   /**
+   * A (command parameter) property name used to hold the URL for the LDAP interface to the KDC.
+   * This value may be null.
+   */
+  public static final String KDC_LDAP_URL = "kdc_ldap_url";
+
+  /**
+   * A (command parameter) property name used to hold the distinguished name (DN) of the container
+   * in which to store principals within the KDC.  This value may be null.
+   */
+  public static final String KDC_PRINCIPAL_CONTAINER_DN = "kdc_principal_container_dn";
+
+  /**
    * The prefix to use for the data directory name.
    */
   public static final String DATA_DIRECTORY_PREFIX = ".ambari_";
@@ -360,11 +372,20 @@ public abstract class KerberosServerAction extends AbstractServerAction {
               throw new AmbariException(message);
             }
 
+            String ldapUrl = getCommandParameterValue(KDC_LDAP_URL);
+            String principalContainerDn = getCommandParameterValue(KDC_PRINCIPAL_CONTAINER_DN);
+            try {
+              handler.open(administratorCredential, defaultRealm, ldapUrl, principalContainerDn);
+            } catch (KerberosOperationException e) {
+              String message = String.format("Failed to process the identities, could not properly open the KDC operation handler: %s",
+                  e.getMessage());
+              LOG.error(message);
+              throw new AmbariException(message, e);
+            }
+
             // Create the data file reader to parse and iterate through the records
             KerberosActionDataFileReader reader = null;
             try {
-              handler.open(administratorCredential, defaultRealm);
-
               reader = new KerberosActionDataFileReader(indexFile);
               for (Map<String, String> record : reader) {
                 // Process the current record
@@ -376,7 +397,9 @@ public abstract class KerberosServerAction extends AbstractServerAction {
                   break;
                 }
               }
-            } catch (KerberosOperationException e) {
+            } catch (AmbariException e) {
+              // Catch this separately from IOException since the reason it was thrown was not the same
+              // Note: AmbariException is an IOException, so there may be some confusion
               throw new AmbariException(e.getMessage(), e);
             } catch (IOException e) {
               String message = String.format("Failed to process the identities, cannot read the index file: %s",

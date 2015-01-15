@@ -38,11 +38,11 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 
 public class ADKerberosOperationHandlerTest extends EasyMockSupport {
-  private static final String DEFAULT_ADMIN_PRINCIPAL = "admin@example.com";
-  private static final String DEFAULT_ADMIN_PASSWORD = "hadoop";
-  private static final String DEFAULT_LDAP_URL = "ldaps://ad.example.com";
-  private static final String DEFAULT_PRINCIPAL_CONTAINER_DN = "ou=cluster,dc=example,dc=com";
-  private static final String DEFAULT_REALM = "EXAMPLE.COM";
+  private static final String DEFAULT_ADMIN_PRINCIPAL = "cluser_admin@HDP01.LOCAL";
+  private static final String DEFAULT_ADMIN_PASSWORD = "Hadoop12345";
+  private static final String DEFAULT_LDAP_URL = "ldaps://10.0.100.4";
+  private static final String DEFAULT_PRINCIPAL_CONTAINER_DN = "ou=HDP,DC=HDP01,DC=LOCAL";
+  private static final String DEFAULT_REALM = "HDP01.LOCAL";
 
   @Test(expected = KerberosKDCConnectionException.class)
   public void testOpenExceptionLdapUrlNotProvided() throws Exception {
@@ -220,21 +220,23 @@ public class ADKerberosOperationHandlerTest extends EasyMockSupport {
     }
 
     if (containerDN == null) {
-      containerDN = "";
+      containerDN = DEFAULT_PRINCIPAL_CONTAINER_DN;
     }
 
     KerberosCredential credentials = new KerberosCredential(principal, password, null);
 
     handler.open(credentials, realm, ldapUrl, containerDN);
 
+    System.out.println("Test Admin Credentials: " + handler.testAdministratorCredentials());
     // does the principal already exist?
     System.out.println("Principal exists: " + handler.principalExists("nn/c1508.ambari.apache.org"));
 
     //create principal
-    handler.createServicePrincipal("nn/c1508.ambari.apache.org", "welcome");
+    handler.createPrincipal("nn/c1508.ambari.apache.org@" + DEFAULT_REALM.toLowerCase(), handler.createSecurePassword(), true);
+    handler.createPrincipal("nn/c1508.ambari.apache.org", handler.createSecurePassword(), true);
 
     //update the password
-    handler.setPrincipalPassword("nn/c1508.ambari.apache.org", "welcome10");
+    handler.setPrincipalPassword("nn/c1508.ambari.apache.org", handler.createSecurePassword());
 
     // remove the principal
     // handler.removeServicePrincipal("nn/c1508.ambari.apache.org");

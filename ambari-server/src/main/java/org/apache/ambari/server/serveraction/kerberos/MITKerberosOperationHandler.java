@@ -26,6 +26,7 @@ import java.io.File;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -79,7 +80,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
       throws KerberosOperationException {
 
     if (!isOpen()) {
-      throw new KerberosOperationException("This operation handler has not be opened");
+      throw new KerberosOperationException("This operation handler has not been opened");
     }
 
     if (principal == null) {
@@ -112,6 +113,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
    *
    * @param principal a String containing the principal add
    * @param password  a String containing the password to use when creating the principal
+   * @param service a boolean value indicating whether the principal is to be created as a service principal or not
    * @return an Integer declaring the generated key number
    * @throws KerberosKDCConnectionException       if a connection to the KDC cannot be made
    * @throws KerberosAdminAuthenticationException if the administrator credentials fail to authenticate
@@ -119,11 +121,11 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
    * @throws KerberosOperationException           if an unexpected error occurred
    */
   @Override
-  public Integer createServicePrincipal(String principal, String password)
+  public Integer createPrincipal(String principal, String password, boolean service)
       throws KerberosOperationException {
 
     if (!isOpen()) {
-      throw new KerberosOperationException("This operation handler has not be opened");
+      throw new KerberosOperationException("This operation handler has not been opened");
     }
 
     if ((principal == null) || principal.isEmpty()) {
@@ -168,7 +170,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
   @Override
   public Integer setPrincipalPassword(String principal, String password) throws KerberosOperationException {
     if (!isOpen()) {
-      throw new KerberosOperationException("This operation handler has not be opened");
+      throw new KerberosOperationException("This operation handler has not been opened");
     }
 
     if ((principal == null) || principal.isEmpty()) {
@@ -201,9 +203,9 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
    * @throws KerberosOperationException           if an unexpected error occurred
    */
   @Override
-  public boolean removeServicePrincipal(String principal) throws KerberosOperationException {
+  public boolean removePrincipal(String principal) throws KerberosOperationException {
     if (!isOpen()) {
-      throw new KerberosOperationException("This operation handler has not be opened");
+      throw new KerberosOperationException("This operation handler has not been opened");
     }
 
     if ((principal == null) || principal.isEmpty()) {
@@ -237,7 +239,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
    */
   private Integer getKeyNumber(String principal) throws KerberosOperationException {
     if (!isOpen()) {
-      throw new KerberosOperationException("This operation handler has not be opened");
+      throw new KerberosOperationException("This operation handler has not been opened");
     }
 
     if ((principal == null) || principal.isEmpty()) {
@@ -357,8 +359,36 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
       result = executeCommand(command.toArray(new String[command.size()]));
 
       if (!result.isSuccessful()) {
-        String message = String.format("Failed to execute kadmin:\n\tExitCode: %s\n\tSTDOUT: %s\n\tSTDERR: %s",
-            result.getExitCode(), result.getStdout(), result.getStderr());
+        // Build command string, replacing administrator password with "********"
+        StringBuilder cleanCommand = new StringBuilder();
+        Iterator<String> iterator = command.iterator();
+
+        if(iterator.hasNext())
+          cleanCommand.append(iterator.next());
+
+        while(iterator.hasNext()){
+          String part = iterator.next();
+
+          cleanCommand.append(' ');
+
+          if(part.contains(" ")) {
+            cleanCommand.append('"');
+            cleanCommand.append(part);
+            cleanCommand.append('"');
+          }
+          else {
+            cleanCommand.append(part);
+          }
+
+          if("-w".equals(part)) {
+            // Skip the password and use "********" instead
+            if(iterator.hasNext())
+              iterator.next();
+            cleanCommand.append(" ********");
+          }
+        }
+        String message = String.format("Failed to execute kadmin:\n\tCommand: %s\n\tExitCode: %s\n\tSTDOUT: %s\n\tSTDERR: %s",
+            cleanCommand.toString(), result.getExitCode(), result.getStdout(), result.getStderr());
         LOG.warn(message);
 
         // Test STDERR to see of any "expected" error conditions were encountered...

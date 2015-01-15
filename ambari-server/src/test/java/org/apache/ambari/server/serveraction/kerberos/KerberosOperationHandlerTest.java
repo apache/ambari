@@ -220,7 +220,7 @@ public abstract class KerberosOperationHandlerTest {
       }
 
       @Override
-      public Integer createServicePrincipal(String principal, String password) throws KerberosOperationException {
+      public Integer createPrincipal(String principal, String password, boolean serivce) throws KerberosOperationException{
         return 0;
       }
 
@@ -230,7 +230,7 @@ public abstract class KerberosOperationHandlerTest {
       }
 
       @Override
-      public boolean removeServicePrincipal(String principal) throws KerberosOperationException {
+      public boolean removePrincipal(String principal) throws KerberosOperationException {
         return false;
       }
     };
