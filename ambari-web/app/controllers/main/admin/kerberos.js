@@ -104,7 +104,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
 
   startKerberosWizard: function () {
     this.setAddSecurityWizardStatus('RUNNING');
-    App.router.transitionTo('adminAddKerberos');
+    App.router.transitionTo('adminKerberos.adminAddKerberos');
   },
 
   /**

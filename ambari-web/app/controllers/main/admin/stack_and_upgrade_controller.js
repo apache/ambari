@@ -134,7 +134,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
           if (currentVersion) {
             self.set('currentVersion', {
               repository_version: currentVersion.get('repositoryVersion.repositoryVersion'),
-              repository_name: currentVersion.get('repositoryVersion.displayName'),
+              repository_name: currentVersion.get('repositoryVersion.displayName')
             });
           }
           dfd.resolve();

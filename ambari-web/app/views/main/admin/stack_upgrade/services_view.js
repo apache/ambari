@@ -37,7 +37,11 @@ App.MainAdminStackServicesView = Em.View.extend({
    * @param event
    */
   goToAddService: function (event) {
-    App.router.get('addServiceController').set('serviceToInstall', event.context);
-    App.get('router').transitionTo('main.serviceAdd');
+    if (event.context == "KERBEROS") {
+      App.get('router.mainAdminKerberosController').checkAndStartKerberosWizard();
+    } else {
+      App.router.get('addServiceController').set('serviceToInstall', event.context);
+      App.get('router').transitionTo('main.serviceAdd');
+    }
   }
 });
