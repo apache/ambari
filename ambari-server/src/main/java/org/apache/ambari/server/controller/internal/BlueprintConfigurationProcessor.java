@@ -1201,7 +1201,7 @@ public class BlueprintConfigurationProcessor {
     falconStartupPropertiesMap.put("*.falcon.http.authentication.kerberos.principal", new SingleHostTopologyUpdater("FALCON_SERVER"));
 
     // KAFKA
-    kafkaBrokerMap.put("kafka.ganglia.metrics.host", new SingleHostTopologyUpdater("GANGLIA_SERVER"));
+    kafkaBrokerMap.put("kafka.ganglia.metrics.host", new OptionalSingleHostTopologyUpdater("GANGLIA_SERVER"));
 
     // KNOX
     multiCoreSiteMap.put("hadoop.proxyuser.knox.hosts", new MultipleHostTopologyUpdater("KNOX_GATEWAY"));

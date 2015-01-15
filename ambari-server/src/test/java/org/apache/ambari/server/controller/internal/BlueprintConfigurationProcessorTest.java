@@ -1223,7 +1223,7 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
-  public void testStormConfigClusterUpdateWithoutGangliaServer() throws Exception {
+  public void testStormAndKafkaConfigClusterUpdateWithoutGangliaServer() throws Exception {
     final String expectedHostGroupName = "host_group_1";
 
     EasyMockSupport mockSupport = new EasyMockSupport();
@@ -1242,12 +1242,17 @@ public class BlueprintConfigurationProcessorTest {
 
     Map<String, String> stormSiteProperties =
       new HashMap<String, String>();
+    Map<String, String> kafkaBrokerProperties =
+      new HashMap<String, String>();
 
     configProperties.put("storm-site", stormSiteProperties);
+    configProperties.put("kafka-broker", kafkaBrokerProperties);
 
     stormSiteProperties.put("worker.childopts", "localhost");
     stormSiteProperties.put("supervisor.childopts", "localhost");
     stormSiteProperties.put("nimbus.childopts", "localhost");
+
+    kafkaBrokerProperties.put("kafka.ganglia.metrics.host", "localhost");
 
 
     // setup properties that include host information
@@ -1273,11 +1278,14 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals("nimbus startup settings not properly handled by cluster create",
       "localhost", stormSiteProperties.get("nimbus.childopts"));
 
+    assertEquals("Kafka ganglia host property not properly handled by cluster create",
+      "localhost", kafkaBrokerProperties.get("kafka.ganglia.metrics.host"));
+
     mockSupport.verifyAll();
   }
 
   @Test
-  public void testStormConfigClusterUpdateWithGangliaServer() throws Exception {
+  public void testStormandKafkaConfigClusterUpdateWithGangliaServer() throws Exception {
     final String expectedHostName = "c6401.apache.ambari.org";
     final String expectedHostGroupName = "host_group_1";
 
@@ -1297,13 +1305,17 @@ public class BlueprintConfigurationProcessorTest {
 
     Map<String, String> stormSiteProperties =
       new HashMap<String, String>();
+    Map<String, String> kafkaBrokerProperties =
+      new HashMap<String, String>();
 
     configProperties.put("storm-site", stormSiteProperties);
+    configProperties.put("kafka-broker", kafkaBrokerProperties);
 
     stormSiteProperties.put("worker.childopts", "localhost");
     stormSiteProperties.put("supervisor.childopts", "localhost");
     stormSiteProperties.put("nimbus.childopts", "localhost");
 
+    kafkaBrokerProperties.put("kafka.ganglia.metrics.host", "localhost");
 
     // setup properties that include host information
 
@@ -1327,6 +1339,9 @@ public class BlueprintConfigurationProcessorTest {
 
     assertEquals("nimbus startup settings not properly handled by cluster create",
       expectedHostName, stormSiteProperties.get("nimbus.childopts"));
+
+    assertEquals("Kafka ganglia host property not properly handled by cluster create",
+      expectedHostName, kafkaBrokerProperties.get("kafka.ganglia.metrics.host"));
 
     mockSupport.verifyAll();
   }
