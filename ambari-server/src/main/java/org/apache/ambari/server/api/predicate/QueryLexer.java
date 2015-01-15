@@ -58,7 +58,7 @@ public class QueryLexer {
       new HashMap<Token.TYPE, List<TokenHandler>>();
 
   /**
-   * Set of property names to ignore.
+   * Static set of property names to ignore.
    */
   private static final Set<String> SET_IGNORE = new HashSet<String>();
 
@@ -108,8 +108,23 @@ public class QueryLexer {
    * @throws InvalidQueryException if the query is invalid
    */
   public Token[] tokens(String exp) throws InvalidQueryException {
+    return tokens(exp, Collections.<String>emptySet());
+  }
 
+  /**
+   * Scan the provided query and generate a token stream to be used by the query parser.
+   *
+   * @param exp               the query expression to scan
+   * @param ignoreProperties  property names which should be ignored
+   *
+   * @return an array of tokens
+   * @throws InvalidQueryException if the query is invalid
+   */
+  public Token[] tokens(String exp, Set<String> ignoreProperties) throws InvalidQueryException {
     ScanContext ctx = new ScanContext();
+    ctx.addPropertiesToIgnore(SET_IGNORE);
+    ctx.addPropertiesToIgnore(ignoreProperties);
+
     for (String tok : parseStringTokens(exp)) {
       List<TokenHandler> listHandlers = TOKEN_HANDLERS.get(ctx.getLastTokenType());
       boolean            processed    = false;
@@ -214,6 +229,11 @@ public class QueryLexer {
     private Token.TYPE m_ignoreSegmentEndToken = null;
 
     /**
+     * Property names which are to be ignored.
+     */
+    private Set<String> m_propertiesToIgnore = new HashSet<String>();
+
+    /**
      * Constructor.
      */
     private ScanContext() {
@@ -289,6 +309,26 @@ public class QueryLexer {
     public List<Token> getTokenList() {
       return m_listTokens;
     }
+
+    /**
+     * Get the set of property names that are to be ignored.
+     *
+     * @return set of property names to ignore
+     */
+    public Set<String> getPropertiesToIgnore() {
+      return m_propertiesToIgnore;
+    }
+
+    /**
+     * Add property names to the set of property names to ignore.
+     *
+     * @param ignoredProperties set of property names to ignore
+     */
+    public void addPropertiesToIgnore(Set<String> ignoredProperties) {
+      if (ignoredProperties != null) {
+        m_propertiesToIgnore.addAll(ignoredProperties);
+      }
+    }
   }
 
   /**
@@ -350,7 +390,7 @@ public class QueryLexer {
     @Override
     public void _handleToken(String token, ScanContext ctx) throws InvalidQueryException {
       //don't add prop name token until after operator token
-      if (! SET_IGNORE.contains(token)) {
+      if (! ctx.getPropertiesToIgnore().contains(token)) {
         ctx.setPropertyOperand(token);
       } else {
         if (!ctx.getTokenList().isEmpty() ) {

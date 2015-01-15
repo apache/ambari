@@ -22,7 +22,11 @@ package org.apache.ambari.server.api.predicate;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 import static org.junit.Assert.*;
 
 /**
@@ -299,6 +303,30 @@ public class QueryLexerTest {
 
     QueryLexer lexer = new QueryLexer();
     Token[] tokens = lexer.tokens("foo=1&fields=a/b,c&_=123&bar=2");
+
+    assertArrayEquals(listTokens.toArray(new Token[listTokens.size()]), tokens);
+  }
+
+  @Test
+  public void testTokens_ignore__userDefined() throws InvalidQueryException {
+    List<Token> listTokens = new ArrayList<Token>();
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "="));
+    listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
+    listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "1"));
+    listTokens.add(new Token(Token.TYPE.LOGICAL_OPERATOR, "&"));
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "="));
+    listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "bar"));
+    listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "2"));
+
+    QueryLexer lexer = new QueryLexer();
+    Set<String> propertiesToIgnore = new HashSet<String>();
+    propertiesToIgnore.add("ignore1");
+    propertiesToIgnore.add("otherIgnore");
+    propertiesToIgnore.add("ba");
+    propertiesToIgnore.add("ple");
+
+    Token[] tokens = lexer.tokens("ba=gone&foo=1&ignore1=pleaseIgnoreMe&fields=a/b&bar=2&otherIgnore=byebye",
+        propertiesToIgnore);
 
     assertArrayEquals(listTokens.toArray(new Token[listTokens.size()]), tokens);
   }
