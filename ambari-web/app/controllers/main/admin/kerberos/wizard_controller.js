@@ -32,6 +32,8 @@ App.KerberosWizardController = App.WizardController.extend({
    */
   hideBackButton: true,
 
+  kerberosDescriptorConfigs: null,
+
   content: Em.Object.create({
     controllerName: 'kerberosWizardController',
     serviceName: 'KERBEROS',
@@ -41,7 +43,6 @@ App.KerberosWizardController = App.WizardController.extend({
     services: [],
     advancedServiceConfig: null,
     serviceConfigProperties: [],
-    kerberosDescriptorConfigs: null,
     failedTask: null
   }),
 
@@ -89,7 +90,7 @@ App.KerberosWizardController = App.WizardController.extend({
   },
 
   updateClusterEnvData: function (configs) {
-    var kerberosDescriptor = this.get('content.kerberosDescriptorConfigs');
+    var kerberosDescriptor = this.kerberosDescriptorConfigs;
     configs['security_enabled'] = true;
     configs['kerberos_domain'] = kerberosDescriptor.properties.realm;
     return configs;
@@ -166,7 +167,7 @@ App.KerberosWizardController = App.WizardController.extend({
 
   loadKerberosDescriptorConfigs: function () {
     var kerberosDescriptorConfigs = this.getDBProperty('kerberosDescriptorConfigs');
-    this.set('content.kerberosDescriptorConfigs', kerberosDescriptorConfigs);
+    this.kerberosDescriptorConfigs =  kerberosDescriptorConfigs;
   },
 
 
@@ -196,7 +197,7 @@ App.KerberosWizardController = App.WizardController.extend({
 
   saveKerberosDescriptorConfigs: function (kerberosDescriptorConfigs) {
     this.setDBProperty('kerberosDescriptorConfigs',kerberosDescriptorConfigs);
-    this.set('content.kerberosDescriptorConfigs', kerberosDescriptorConfigs);
+    this.kerberosDescriptorConfigs =  kerberosDescriptorConfigs;
   },
 
 

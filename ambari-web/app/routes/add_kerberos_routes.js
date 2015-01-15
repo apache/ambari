@@ -153,6 +153,7 @@ module.exports = App.WizardRoute.extend({
       router.transitionTo('step3');
     }
   }),
+
   step3: Em.Route.extend({
     route: '/step3',
 
@@ -244,9 +245,9 @@ module.exports = App.WizardRoute.extend({
       var stepController = router.get('kerberosWizardStep6Controller');
       controller.setLowerStepsDisable(6);
       controller.dataLoading().done(function () {
+        controller.loadAllPriorSteps();
         controller.getClusterEnvData().done(function (data) {
-          controller.loadAllPriorSteps();
-          var kerberosDescriptor = controller.get('content.kerberosDescriptorConfigs');
+          var kerberosDescriptor = controller.get('kerberosDescriptorConfigs');
           stepController.setRequest(data, kerberosDescriptor);
           controller.connectOutlet('kerberosWizardStep6', controller.get('content'));
         });
@@ -257,7 +258,7 @@ module.exports = App.WizardRoute.extend({
       var controller = router.get('kerberosWizardController');
       controller.getClusterEnvData().done(function (data) {
         var stepController = router.get('kerberosWizardStep6Controller');
-        var kerberosDescriptor = controller.get('content.kerberosDescriptorConfigs');
+        var kerberosDescriptor = controller.get('kerberosDescriptorConfigs');
         stepController.setRequest(data, kerberosDescriptor);
         stepController.loadStep();
       });
