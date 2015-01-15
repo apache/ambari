@@ -20,18 +20,23 @@ limitations under the License.
 
 import datetime
 import glob
+import os
 import re
+import shutil
+import string
 import tempfile
 
-from ambari_commons.os_utils import *
+from ambari_commons.exceptions import FatalException
+from ambari_commons.os_check import OSCheck, OSConst
+from ambari_commons.os_family_impl import OsFamilyImpl
+from ambari_commons.os_utils import run_os_command, search_file
 from ambari_commons.logging_utils import print_warning_msg, print_info_msg, print_error_msg
 from properties import Properties
 
-if OSCheck.is_windows_family():
-  from serverConfiguration_windows import *
-else:
-  # MacOS not supported
-  from serverConfiguration_linux import *
+
+OS_VERSION = OSCheck().get_os_major_version()
+OS_TYPE = OSCheck.get_os_type()
+OS_FAMILY = OSCheck.get_os_family()
 
 
 # Non-root user setup commands
@@ -72,6 +77,9 @@ JAVA_HOME_PROPERTY = "java.home"
 JDK_NAME_PROPERTY = "jdk.name"
 JCE_NAME_PROPERTY = "jce.name"
 
+DEFAULT_JDK16_LOCATION = "/usr/jdk64/jdk1.6.0_31"
+JDK_NAMES = ["jdk-7u67-linux-x64.tar.gz", "jdk-6u31-linux-x64.bin"]
+
 #JCE Policy files
 JCE_POLICY_FILENAMES = ["UnlimitedJCEPolicyJDK7.zip", "jce_policy-6.zip"]
 JCE_DOWNLOAD_CMD = "curl -o {0} {1}"
@@ -80,10 +88,11 @@ JCE_MIN_FILESIZE = 5000
 # JDBC
 #TODO property used incorrectly in local case, it was meant to be dbms name, not postgres database name,
 # has workaround for now, as we don't need dbms name if persistence_type=local
-JDBC_DATABASE_PROPERTY = "server.jdbc.database"
+JDBC_DATABASE_PROPERTY = "server.jdbc.database"                 # E.g., embedded|oracle|mysql|postgres|sqlserver
+JDBC_DATABASE_NAME_PROPERTY = "server.jdbc.database_name"       # E.g., ambari. Not used on Windows.
 JDBC_HOSTNAME_PROPERTY = "server.jdbc.hostname"
 JDBC_PORT_PROPERTY = "server.jdbc.port"
-JDBC_SCHEMA_PROPERTY = "server.jdbc.schema"
+JDBC_POSTGRES_SCHEMA_PROPERTY = "server.jdbc.postgres.schema"   # Only for postgres, defaults to same value as DB name
 
 JDBC_USER_NAME_PROPERTY = "server.jdbc.user.name"
 JDBC_PASSWORD_PROPERTY = "server.jdbc.user.passwd"
@@ -110,6 +119,30 @@ JDBC_RCA_PASSWORD_FILE_PROPERTY = "server.jdbc.rca.user.passwd"
 
 JDBC_RCA_PASSWORD_ALIAS = "ambari.db.password"
 
+#Windows-specific settings
+METRICS_DATABASE_NAME = "HadoopMetrics"
+
+JDBC_USE_INTEGRATED_AUTH_PROPERTY = "server.jdbc.use.integrated.auth"
+
+JDBC_RCA_USE_INTEGRATED_AUTH_PROPERTY = "server.jdbc.rca.use.integrated.auth"
+
+JDBC_METRICS_USE_INTEGRATED_AUTH_PROPERTY = "scom.sink.db.use.integrated.auth"
+
+METRICS_PERSISTENCE_TYPE_PROPERTY = "metrics.persistence.type"
+
+JDBC_METRICS_DATABASE_PROPERTY = "scom.sink.db.database"
+JDBC_METRICS_HOSTNAME_PROPERTY = "scom.sink.db.hostname"
+JDBC_METRICS_PORT_PROPERTY = "scom.sink.db.port"
+JDBC_METRICS_SCHEMA_PROPERTY = "scom.sink.db.schema"
+
+JDBC_METRICS_DRIVER_PROPERTY = "scom.sink.db.driver"
+JDBC_METRICS_URL_PROPERTY = "scom.sink.db.url"
+JDBC_METRICS_USER_NAME_PROPERTY = "scom.sink.db.username"
+JDBC_METRICS_PASSWORD_PROPERTY = "scom.sink.db.password"
+JDBC_METRICS_PASSWORD_FILENAME = "scom_password.dat"
+
+JDBC_METRICS_PASSWORD_ALIAS = "scom.db.password"
+
 # resources repo configuration
 RESOURCES_DIR_PROPERTY = "resources.dir"
 RESOURCES_DIR_DEFAULT = "resources"
@@ -128,8 +161,142 @@ SETUP_OR_UPGRADE_MSG = "- If this is a new setup, then run the \"ambari-server s
 
 DEFAULT_DB_NAME = "ambari"
 
-# configuration backup
-back_up_file_path = None
+
+class ServerConfigDefaults(object):
+  def __init__(self):
+    self.JAVA_SHARE_PATH = "/usr/share/java"
+    self.OUT_DIR = os.sep + os.path.join("var", "log", "ambari-server")
+    self.SERVER_OUT_FILE = os.path.join(self.OUT_DIR, "ambari-server.out")
+    self.SERVER_LOG_FILE = os.path.join(self.OUT_DIR, "ambari-server.log")
+    self.ROOT_FS_PATH = os.sep
+
+    self.JDK_INSTALL_DIR = ""
+    self.JDK_SEARCH_PATTERN = ""
+    self.JAVA_EXE_SUBPATH = ""
+
+    # Configuration defaults
+    self.DEFAULT_CONF_DIR = ""
+    self.PID_DIR = os.sep + os.path.join("var", "run", "ambari-server")
+    self.DEFAULT_LIBS_DIR = ""
+
+    # ownership/permissions mapping
+    # path - permissions - user - group - recursive
+    # Rules are executed in the same order as they are listed
+    # {0} in user/group will be replaced by customized ambari-server username
+    self.NR_ADJUST_OWNERSHIP_LIST = []
+
+    self.MASTER_KEY_FILE_PERMISSIONS = "600"
+    self.CREDENTIALS_STORE_FILE_PERMISSIONS = "600"
+    self.TRUST_STORE_LOCATION_PERMISSIONS = "600"
+
+    self.DEFAULT_DB_NAME = "ambari"
+
+    self.DEFAULT_VIEWS_DIR = ""
+
+    #keytool commands
+    self.keytool_bin = ""
+
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class ServerConfigDefaultsWindows(ServerConfigDefaults):
+  def __init__(self):
+    super(ServerConfigDefaultsWindows, self).__init__()
+    self.JDK_INSTALL_DIR = "C:\\"
+    self.JDK_SEARCH_PATTERN = "j[2se|dk|re]*"
+    self.JAVA_EXE_SUBPATH = "bin\\java.exe"
+
+    # Configuration defaults
+    self.DEFAULT_CONF_DIR = "conf"
+    self.DEFAULT_LIBS_DIR = "lib"
+
+    # ownership/permissions mapping
+    # path - permissions - user - group - recursive
+    # Rules are executed in the same order as they are listed
+    # {0} in user/group will be replaced by customized ambari-server username
+    # The permissions are icacls
+    self.NR_ADJUST_OWNERSHIP_LIST = [
+      (self.OUT_DIR, "M", "{0}", True),  #0110-0100-0100 rw-r-r
+      (self.OUT_DIR, "F", "{0}", False), #0111-0101-0101 rwx-rx-rx
+      (self.PID_DIR, "M", "{0}", True),
+      (self.PID_DIR, "F", "{0}", False),
+      ("bootstrap", "F", "{0}", False),
+      ("ambari-env.cmd", "F", "{0}", False),
+      ("keystore", "M", "{0}", True),
+      ("keystore", "F", "{0}", False),
+      ("keystore\\db", "700", "{0}", False),
+      ("keystore\\db\\newcerts", "700", "{0}", False),
+      ("resources\\stacks", "755", "{0}", True),
+      ("resources\\custom_actions", "755", "{0}", True),
+      ("conf", "644", "{0}", True),
+      ("conf", "755", "{0}", False),
+      ("conf\\password.dat", "640", "{0}", False),
+      # Also, /etc/ambari-server/conf/password.dat
+      # is generated later at store_password_file
+    ]
+
+    self.DEFAULT_VIEWS_DIR = "resources\\views"
+
+    #keytool commands
+    self.keytool_bin = "keytool.exe"
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class ServerConfigDefaultsLinux(ServerConfigDefaults):
+  def __init__(self):
+    super(ServerConfigDefaultsLinux, self).__init__()
+    # JDK
+    self.JDK_INSTALL_DIR = "/usr/jdk64"
+    self.JDK_SEARCH_PATTERN = "jdk*"
+    self.JAVA_EXE_SUBPATH = "bin/java"
+
+    # Configuration defaults
+    self.DEFAULT_CONF_DIR = "/etc/ambari-server/conf"
+    self.DEFAULT_LIBS_DIR = "/usr/lib/ambari-server"
+
+    # ownership/permissions mapping
+    # path - permissions - user - group - recursive
+    # Rules are executed in the same order as they are listed
+    # {0} in user/group will be replaced by customized ambari-server username
+    self.NR_ADJUST_OWNERSHIP_LIST = [
+      ("/var/log/ambari-server", "644", "{0}", True),
+      ("/var/log/ambari-server", "755", "{0}", False),
+      ("/var/run/ambari-server", "644", "{0}", True),
+      ("/var/run/ambari-server", "755", "{0}", False),
+      ("/var/run/ambari-server/bootstrap", "755", "{0}", False),
+      ("/var/lib/ambari-server/ambari-env.sh", "700", "{0}", False),
+      ("/var/lib/ambari-server/keys", "600", "{0}", True),
+      ("/var/lib/ambari-server/keys", "700", "{0}", False),
+      ("/var/lib/ambari-server/keys/db", "700", "{0}", False),
+      ("/var/lib/ambari-server/keys/db/newcerts", "700", "{0}", False),
+      ("/var/lib/ambari-server/keys/.ssh", "700", "{0}", False),
+      ("/var/lib/ambari-server/resources/stacks/", "755", "{0}", True),
+      ("/var/lib/ambari-server/resources/custom_actions/", "755", "{0}", True),
+      ("/var/lib/ambari-server/resources/host_scripts/", "755", "{0}", True),
+      ("/var/lib/ambari-server/resources/views", "644", "{0}", True),
+      ("/var/lib/ambari-server/resources/views", "755", "{0}", False),
+      ("/var/lib/ambari-server/resources/views/work", "755", "{0}", True),
+      ("/etc/ambari-server/conf", "644", "{0}", True),
+      ("/etc/ambari-server/conf", "755", "{0}", False),
+      ("/etc/ambari-server/conf/password.dat", "640", "{0}", False),
+      ("/var/lib/ambari-server/keys/pass.txt", "640", "{0}", False),
+      ("/etc/ambari-server/conf/ldap-password.dat", "640", "{0}", False),
+      ("/var/run/ambari-server/stack-recommendations/", "644", "{0}", True),
+      ("/var/run/ambari-server/stack-recommendations/", "755", "{0}", False),
+      ("/var/lib/ambari-server/data/tmp/", "644", "{0}", True),
+      ("/var/lib/ambari-server/data/tmp/", "755", "{0}", False),
+      # Also, /etc/ambari-server/conf/password.dat
+      # is generated later at store_password_file
+    ]
+
+    self.DEFAULT_VIEWS_DIR = "/var/lib/ambari-server/resources/views"
+
+    #keytool commands
+    self.keytool_bin = "keytool"
+
+configDefaults = ServerConfigDefaults()
+
+
+SCHEMA_UPGRADE_HELPER_CMD = "{0} -cp {1} " + \
+                            "org.apache.ambari.server.upgrade.SchemaUpgradeHelper" + \
+                            " > " + configDefaults.SERVER_OUT_FILE + " 2>&1"
 
 
 def get_conf_dir():
@@ -137,7 +304,7 @@ def get_conf_dir():
     conf_dir = os.environ[AMBARI_CONF_VAR]
     return conf_dir
   except KeyError:
-    default_conf_dir = DEFAULT_CONF_DIR
+    default_conf_dir = configDefaults.DEFAULT_CONF_DIR
     print AMBARI_CONF_VAR + " is not set, using default " + default_conf_dir
     return default_conf_dir
 
@@ -191,54 +358,18 @@ def get_value_from_properties(properties, key, default=""):
     return default
   return value
 
-def get_prompt_default(defaultStr=None):
-  if not defaultStr or defaultStr == "":
-    return ""
-  else:
-    return '(' + defaultStr + ')'
-
 # Copy file to /tmp and save with file.# (largest # is latest file)
 def backup_file_in_temp(filePath):
-  global back_up_file_path
-  if filePath is not None and back_up_file_path is None:
+  if filePath is not None:
     tmpDir = tempfile.gettempdir()
     back_up_file_count = len(glob.glob1(tmpDir, AMBARI_PROPERTIES_FILE + "*"))
-    back_up_file_path = os.path.join(tmpDir, AMBARI_PROPERTIES_FILE + "." + str(back_up_file_count + 1))
     try:
-      shutil.copyfile(filePath, back_up_file_path)
+      shutil.copyfile(filePath, tmpDir + os.sep +
+                      AMBARI_PROPERTIES_FILE + "." + str(back_up_file_count + 1))
     except (Exception), e:
       print_error_msg('Could not backup file in temp "%s": %s' % (str(
         back_up_file_count, e)))
   return 0
-
-def check_database_name_property():
-  properties = get_ambari_properties()
-  if properties == -1:
-    print_error_msg("Error getting ambari properties")
-    return -1
-
-  dbname = properties[JDBC_DATABASE_PROPERTY]
-  if dbname is None or dbname == "":
-    err = "DB Name property not set in config file.\n" + SETUP_OR_UPGRADE_MSG
-    raise FatalException(-1, err)
-
-def update_database_name_property():
-  try:
-    check_database_name_property()
-  except FatalException:
-    properties = get_ambari_properties()
-    if properties == -1:
-      err = "Error getting ambari properties"
-      raise FatalException(-1, err)
-    print_warning_msg(JDBC_DATABASE_PROPERTY + " property isn't set in " +
-                      AMBARI_PROPERTIES_FILE + ". Setting it to default value - " + DEFAULT_DB_NAME)
-    properties.process_pair(JDBC_DATABASE_PROPERTY, DEFAULT_DB_NAME)
-    conf_file = find_properties_file()
-    try:
-      properties.store(open(conf_file, "w"))
-    except Exception, e:
-      err = 'Could not write ambari config file "%s": %s' % (conf_file, e)
-      raise FatalException(-1, err)
 
 
 def is_alias_string(passwdStr):
@@ -249,54 +380,6 @@ def is_alias_string(passwdStr):
     return True
   else:
     return False
-
-
-# Load database connection properties from conf file
-def parse_properties_file(args):
-  properties = get_ambari_properties()
-  if properties == -1:
-    print_error_msg("Error getting ambari properties")
-    return -1
-
-  # args.server_version_file_path = properties[SERVER_VERSION_FILE_PATH]
-  args.persistence_type = properties[PERSISTENCE_TYPE_PROPERTY]
-  args.jdbc_url = properties[JDBC_URL_PROPERTY]
-
-  if not args.persistence_type:
-    args.persistence_type = "local"
-
-  if args.persistence_type == 'remote':
-    args.dbms = properties[JDBC_DATABASE_PROPERTY]
-    args.database_host = properties[JDBC_HOSTNAME_PROPERTY]
-    args.database_port = properties[JDBC_PORT_PROPERTY]
-    args.database_name = properties[JDBC_SCHEMA_PROPERTY]
-  else:
-    #TODO incorrect property used!! leads to bunch of troubles. Workaround for now
-    args.database_name = properties[JDBC_DATABASE_PROPERTY]
-
-  args.database_username = properties[JDBC_USER_NAME_PROPERTY]
-  args.database_password_file = properties[JDBC_PASSWORD_PROPERTY]
-  if args.database_password_file:
-    if not is_alias_string(args.database_password_file):
-      args.database_password = open(properties[JDBC_PASSWORD_PROPERTY]).read()
-    else:
-      args.database_password = args.database_password_file
-  return 0
-
-
-def run_schema_upgrade():
-  jdk_path = find_jdk()
-  if jdk_path is None:
-    print_error_msg("No JDK found, please run the \"setup\" "
-                    "command to install a JDK automatically or install any "
-                    "JDK manually to " + JDK_INSTALL_DIR)
-    return 1
-  command = SCHEMA_UPGRADE_HELPER_CMD.format(jdk_path, get_conf_dir(), get_ambari_classpath())
-  (retcode, stdout, stderr) = run_os_command(command)
-  print_info_msg("Return code from schema upgrade command, retcode = " + str(retcode))
-  if retcode > 0:
-    print_error_msg("Error executing schema upgrade, please check the server logs.")
-  return retcode
 
 
 def update_ambari_properties():
@@ -518,7 +601,7 @@ def get_ambari_jars():
     conf_dir = os.environ[AMBARI_SERVER_LIB]
     return conf_dir
   except KeyError:
-    default_jar_location = DEFAULT_LIBS_DIR
+    default_jar_location = configDefaults.DEFAULT_LIBS_DIR
     print_info_msg(AMBARI_SERVER_LIB + " is not set, using default "
                  + default_jar_location)
     return default_jar_location
@@ -526,8 +609,8 @@ def get_ambari_jars():
 def get_share_jars():
   share_jars = ""
   file_list = []
-  file_list.extend(glob.glob(JAVA_SHARE_PATH + os.sep + "*mysql*"))
-  file_list.extend(glob.glob(JAVA_SHARE_PATH + os.sep + "*ojdbc*"))
+  file_list.extend(glob.glob(configDefaults.JAVA_SHARE_PATH + os.sep + "*mysql*"))
+  file_list.extend(glob.glob(configDefaults.JAVA_SHARE_PATH + os.sep + "*ojdbc*"))
   if len(file_list) > 0:
     share_jars = string.join(file_list, os.pathsep)
   return share_jars
@@ -568,7 +651,7 @@ def get_JAVA_HOME():
 def validate_jdk(jdk_path):
   if jdk_path:
     if os.path.exists(jdk_path):
-      java_exe_path = os.path.join(jdk_path, JAVA_EXE_SUBPATH)
+      java_exe_path = os.path.join(jdk_path, configDefaults.JAVA_EXE_SUBPATH)
       if os.path.exists(java_exe_path) and os.path.isfile(java_exe_path):
         return True
   return False
@@ -581,8 +664,8 @@ def find_jdk():
   if jdkPath:
     if validate_jdk(jdkPath):
       return jdkPath
-  print "Looking for available JDKs at " + JDK_INSTALL_DIR
-  jdks = glob.glob(JDK_INSTALL_DIR + os.sep + JDK_SEARCH_PATTERN)
+  print "Looking for available JDKs at " + configDefaults.JDK_INSTALL_DIR
+  jdks = glob.glob(os.path.join(configDefaults.JDK_INSTALL_DIR, configDefaults.JDK_SEARCH_PATTERN))
   #[fbarca] Use the newest JDK
   jdks.sort(None, None, True)
   print "Found: " + str(jdks)

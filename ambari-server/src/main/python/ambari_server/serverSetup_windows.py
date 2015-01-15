@@ -32,8 +32,8 @@ from ambari_commons.exceptions import *
 from ambari_commons.logging_utils import *
 from ambari_commons.os_windows import run_powershell_script, UserHelper, CHECK_FIREWALL_SCRIPT
 from ambari_server.dbConfiguration import DBMSConfig
+from ambari_server.dbConfiguration_windows import JDBC_METRICS_URL_PROPERTY
 from ambari_server.serverConfiguration import *
-from ambari_server.serverConfiguration_windows import OUT_DIR
 from ambari_server.userInput import get_validated_string_input
 
 # Non-root user setup commands
@@ -195,7 +195,7 @@ def os_install_jdk(java_inst_file, java_home_dir):
 
   if java_inst_file.endswith(".exe"):
     (dirname, filename) = os.path.split(java_inst_file)
-    installLogFilePath = os.path.join(OUT_DIR, filename + "-install.log")
+    installLogFilePath = os.path.join(configDefaults.OUT_DIR, filename + "-install.log")
     #jre7u67.exe /s INSTALLDIR=<dir> STATIC=1 WEB_JAVA=0 /L \\var\\log\\ambari-server\\jre7u67.exe-install.log
     installCmd = [
       java_inst_file,

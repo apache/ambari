@@ -38,6 +38,7 @@ with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
     with patch.object(utils, "get_postgre_hba_dir"):
       ambari_server = __import__('ambari-server')
 
+      from ambari_server.serverConfiguration import update_ambari_properties
 
 class TestOSCheck(TestCase):
   @patch.object(OSCheck, "os_distribution")
@@ -182,8 +183,9 @@ class TestOSCheck(TestCase):
       self.assertEquals("Cannot detect os release name. Exiting...", str(e))
       pass
 
-  @patch.object(ambari_server, "get_conf_dir")
+  @patch("ambari_server.serverConfiguration.get_conf_dir")
   def test_update_ambari_properties_os(self, get_conf_dir_mock):
+    from ambari_server import serverConfiguration   # need to modify constants inside the module
 
     properties = ["server.jdbc.user.name=ambari-server\n",
                   "server.jdbc.database_name=ambari\n",
@@ -194,24 +196,24 @@ class TestOSCheck(TestCase):
                   "server.os_type=old_sys_os6\n",
                   "java.home=/usr/jdk64/jdk1.6.0_31\n"]
 
-    ambari_server.OS_FAMILY = "family_of_trolls"
-    ambari_server.OS_VERSION = "666"
+    serverConfiguration.OS_FAMILY = "family_of_trolls"
+    serverConfiguration.OS_VERSION = "666"
 
     get_conf_dir_mock.return_value = '/etc/ambari-server/conf'
 
     (tf1, fn1) = tempfile.mkstemp()
     (tf2, fn2) = tempfile.mkstemp()
-    ambari_server.AMBARI_PROPERTIES_RPMSAVE_FILE = fn1
-    ambari_server.AMBARI_PROPERTIES_FILE = fn2
+    serverConfiguration.AMBARI_PROPERTIES_BACKUP_FILE = fn1
+    serverConfiguration.AMBARI_PROPERTIES_FILE = fn2
 
-    with open(ambari_server.AMBARI_PROPERTIES_RPMSAVE_FILE, 'w') as f:
+    with open(serverConfiguration.AMBARI_PROPERTIES_BACKUP_FILE, 'w') as f:
       for line in properties:
         f.write(line)
 
     #Call tested method
-    ambari_server.update_ambari_properties()
+    update_ambari_properties()
 
-    with open(ambari_server.AMBARI_PROPERTIES_FILE, 'r') as f:
+    with open(serverConfiguration.AMBARI_PROPERTIES_FILE, 'r') as f:
       ambari_properties_content = f.readlines()
 
     count = 0
@@ -225,7 +227,7 @@ class TestOSCheck(TestCase):
 
     self.assertEquals(count, 8)
     # Command should not fail if *.rpmsave file is missing
-    result = ambari_server.update_ambari_properties()
+    result = update_ambari_properties()
     self.assertEquals(result, 0)
 
   @patch.object(OSCheck, "os_distribution")

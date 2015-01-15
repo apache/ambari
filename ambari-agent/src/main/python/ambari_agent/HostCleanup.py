@@ -475,14 +475,6 @@ class HostCleanup:
     (stdoutdata, stderrdata) = process.communicate()
     return process.returncode, stdoutdata, stderrdata
 
-
-  def search_file(self, filename, search_path, pathsep=os.pathsep):
-    """ Given a search path, find file with requested name """
-    for path in string.split(search_path, pathsep):
-      candidate = os.path.join(path, filename)
-      if os.path.exists(candidate): return os.path.abspath(candidate)
-    return None
-
 # Copy file and save with file.# (timestamp)
 def backup_file(filePath):
   if filePath is not None and os.path.exists(filePath):

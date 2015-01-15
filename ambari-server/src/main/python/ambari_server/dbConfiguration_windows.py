@@ -18,18 +18,32 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import os
 import socket
 import string
-import win32api
 
-from ambari_commons.exceptions import *
-from ambari_commons.logging_utils import print_warning_msg
-from ambari_commons.os_utils import search_file
-from ambari_commons.os_windows import *
+from ambari_commons.exceptions import FatalException
+from ambari_commons.logging_utils import print_info_msg, print_warning_msg
+from ambari_commons.os_utils import search_file, run_os_command
+from ambari_commons.os_windows import WinServiceController
 from ambari_commons.str_utils import compress_backslashes, ensure_double_backslashes
-from ambari_server.setupSecurity import SECURITY_IS_ENCRYPTION_ENABLED, encrypt_password, store_password_file
-from serverConfiguration import *
-from dbConfiguration import *
+from ambari_server.serverConfiguration import JDBC_DRIVER_PROPERTY, JDBC_DRIVER_PATH_PROPERTY, JDBC_URL_PROPERTY, \
+  JDBC_DATABASE_PROPERTY, JDBC_DATABASE_NAME_PROPERTY, \
+  JDBC_HOSTNAME_PROPERTY, JDBC_PORT_PROPERTY, JDBC_USE_INTEGRATED_AUTH_PROPERTY, JDBC_USER_NAME_PROPERTY, JDBC_PASSWORD_PROPERTY, \
+  JDBC_PASSWORD_FILENAME, \
+  JDBC_RCA_DRIVER_PROPERTY, JDBC_RCA_URL_PROPERTY, JDBC_RCA_DATABASE_PROPERTY, JDBC_RCA_SCHEMA_PROPERTY, \
+  JDBC_RCA_HOSTNAME_PROPERTY, JDBC_RCA_PORT_PROPERTY, JDBC_RCA_USE_INTEGRATED_AUTH_PROPERTY, \
+  JDBC_RCA_USER_NAME_PROPERTY, JDBC_RCA_PASSWORD_FILE_PROPERTY, JDBC_RCA_PASSWORD_FILENAME, JDBC_RCA_PASSWORD_ALIAS, \
+  PERSISTENCE_TYPE_PROPERTY, \
+  JDBC_METRICS_DRIVER_PROPERTY, JDBC_METRICS_URL_PROPERTY, \
+  JDBC_METRICS_DATABASE_PROPERTY, METRICS_DATABASE_NAME, JDBC_METRICS_SCHEMA_PROPERTY, \
+  JDBC_METRICS_HOSTNAME_PROPERTY, JDBC_METRICS_PORT_PROPERTY, \
+  JDBC_METRICS_USE_INTEGRATED_AUTH_PROPERTY, JDBC_METRICS_USER_NAME_PROPERTY, JDBC_METRICS_PASSWORD_PROPERTY, \
+  JDBC_METRICS_PASSWORD_FILENAME, JDBC_METRICS_PASSWORD_ALIAS, \
+  METRICS_PERSISTENCE_TYPE_PROPERTY, \
+  PRESS_ENTER_MSG
+from ambari_server.setupSecurity import encrypt_password, store_password_file
+from dbConfiguration import DBMSConfig, DB_STATUS_RUNNING_DEFAULT
 from userInput import get_validated_string_input
 
 #Import the SQL Server libraries
@@ -42,8 +56,6 @@ DATABASE_DBMS = "sqlserver"
 DATABASE_DRIVER_NAME = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
 LOCAL_DATABASE_SERVER = "localhost\\SQLEXPRESS"
 AMBARI_DATABASE_NAME = "ambari"
-
-METRICS_DATABASE_NAME = "HadoopMetrics"
 
 
 class DbPropKeys:
@@ -352,7 +364,7 @@ class SQLServerAmbariDBConfig(SQLServerConfig):
       JDBC_DRIVER_PROPERTY,
       JDBC_HOSTNAME_PROPERTY,
       JDBC_PORT_PROPERTY,
-      JDBC_SCHEMA_PROPERTY,
+      JDBC_DATABASE_NAME_PROPERTY,
       JDBC_URL_PROPERTY)
     self.dbAuthKeys = AuthenticationKeys(
       JDBC_USE_INTEGRATED_AUTH_PROPERTY,

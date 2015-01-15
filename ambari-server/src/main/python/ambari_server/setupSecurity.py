@@ -19,18 +19,33 @@ limitations under the License.
 '''
 import datetime
 import fileinput
+import os
 import random
+import re
+import shutil
 import socket
 import stat
+import string
 import sys
 import tempfile
 import urllib2
 
-from ambari_commons.exceptions import *
-from ambari_commons.os_utils import run_os_command
-from serverConfiguration import *
-from setupActions import *
-from userInput import *
+from ambari_commons.exceptions import NonFatalException, FatalException
+from ambari_commons.logging_utils import get_silent, print_warning_msg, print_error_msg, print_info_msg
+from ambari_commons.os_check import OSCheck, OSConst
+from ambari_commons.os_utils import copy_file, is_root, is_valid_filepath, remove_file, set_file_permissions, \
+  run_os_command, search_file
+from ambari_server.serverConfiguration import configDefaults, get_ambari_properties, read_ambari_user, \
+  get_value_from_properties, find_jdk, get_ambari_classpath, get_conf_dir, is_alias_string, find_properties_file, \
+  update_properties_2, \
+  JDBC_USE_INTEGRATED_AUTH_PROPERTY, JDBC_PASSWORD_PROPERTY, JDBC_PASSWORD_FILENAME, \
+  JDBC_RCA_PASSWORD_FILE_PROPERTY, JDBC_RCA_PASSWORD_ALIAS, \
+  JDBC_METRICS_USE_INTEGRATED_AUTH_PROPERTY, JDBC_METRICS_PASSWORD_PROPERTY, JDBC_METRICS_PASSWORD_FILENAME, \
+  JDBC_METRICS_PASSWORD_ALIAS, \
+  BOOTSTRAP_DIR_PROPERTY, GET_FQDN_SERVICE_URL, BLIND_PASSWORD
+from setupActions import SETUP_ACTION, LDAP_SETUP_ACTION
+from ambari_server.userInput import get_YN_input, get_validated_string_input, get_validated_filepath_input, \
+  get_prompt_default
 
 
 SSL_PASSWORD_FILE = "pass.txt"
@@ -59,19 +74,19 @@ SECURITY_PROVIDER_GET_CMD = "{0}" + os.sep + "bin" + os.sep + java_bin + " -cp {
                           os.pathsep + "{2} " +\
                           "org.apache.ambari.server.security.encryption" +\
                           ".CredentialProvider GET {3} {4} {5} " +\
-                          "> " + SERVER_OUT_FILE + " 2>&1"
+                          "> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
 
 SECURITY_PROVIDER_PUT_CMD = "{0}" + os.sep + "bin" + os.sep + java_bin + " -cp {1}" +\
                           os.pathsep + "{2} " +\
                           "org.apache.ambari.server.security.encryption" +\
                           ".CredentialProvider PUT {3} {4} {5} " +\
-                          "> " + SERVER_OUT_FILE + " 2>&1"
+                          "> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
 
 SECURITY_PROVIDER_KEY_CMD = "{0}" + os.sep + "bin" + os.sep + java_bin + " -cp {1}" +\
                           os.pathsep + "{2} " +\
                           "org.apache.ambari.server.security.encryption" +\
                           ".MasterKeyServiceImpl {3} {4} {5} " +\
-                          "> " + SERVER_OUT_FILE + " 2>&1"
+                          "> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
 
 SSL_KEY_DIR = 'security.server.keys_dir'
 SSL_API_PORT = 'client.api.ssl.port'
@@ -127,32 +142,6 @@ REGEX_TRUE_FALSE = "^(true|false)?$"
 REGEX_ANYTHING = ".*"
 
 CLIENT_SECURITY_KEY = "client.security"
-
-# ownership/permissions mapping
-# path - permissions - user - group - recursive
-# Rules are executed in the same order as they are listed
-# {0} in user/group will be replaced by customized ambari-server username
-NR_ADJUST_OWNERSHIP_LIST = [
-
-  ("/var/log/ambari-server", "644", "{0}", True),
-  ("/var/log/ambari-server", "755", "{0}", False),
-  ("/var/run/ambari-server", "644", "{0}", True),
-  ("/var/run/ambari-server", "755", "{0}", False),
-  ("/var/run/ambari-server/bootstrap", "755", "{0}", False),
-  ("/var/lib/ambari-server/ambari-env.sh", "700", "{0}", False),
-  ("/var/lib/ambari-server/keys", "600", "{0}", True),
-  ("/var/lib/ambari-server/keys", "700", "{0}", False),
-  ("/var/lib/ambari-server/keys/db", "700", "{0}", False),
-  ("/var/lib/ambari-server/keys/db/newcerts", "700", "{0}", False),
-  ("/var/lib/ambari-server/keys/.ssh", "700", "{0}", False),
-  ("/var/lib/ambari-server/resources/stacks/", "755", "{0}", True),
-  ("/var/lib/ambari-server/resources/custom_actions/", "755", "{0}", True),
-  ("/etc/ambari-server/conf", "644", "{0}", True),
-  ("/etc/ambari-server/conf", "755", "{0}", False),
-  ("/etc/ambari-server/conf/password.dat", "640", "{0}", False),
-  # Also, /etc/ambari-server/conf/password.dat
-  # is generated later at store_password_file
-]
 
 
 def is_valid_https_port(port):
@@ -502,15 +491,6 @@ def get_encrypted_password(alias, password, properties):
 
   return password
 
-def is_alias_string(passwdStr):
-  regex = re.compile("\$\{alias=[\w\.]+\}")
-  # Match implies string at beginning of word
-  r = regex.match(passwdStr)
-  if r is not None:
-    return True
-  else:
-    return False
-
 def get_alias_string(alias):
   return "${alias=" + alias + "}"
 
@@ -523,7 +503,7 @@ def read_passwd_for_alias(alias, masterKey=""):
     if jdk_path is None:
       print_error_msg("No JDK found, please run the \"setup\" "
                       "command to install a JDK automatically or install any "
-                      "JDK manually to " + JDK_INSTALL_DIR)
+                      "JDK manually to " + configDefaults.JDK_INSTALL_DIR)
       return 1
 
     tempFileName = "ambari.passwd"
@@ -576,7 +556,7 @@ def save_passwd_for_alias(alias, passwd, masterKey=""):
     if jdk_path is None:
       print_error_msg("No JDK found, please run the \"setup\" "
                       "command to install a JDK automatically or install any "
-                      "JDK manually to " + JDK_INSTALL_DIR)
+                      "JDK manually to " + configDefaults.JDK_INSTALL_DIR)
       return 1
 
     if masterKey is None or masterKey == "":
@@ -681,7 +661,7 @@ def save_master_key(master_key, key_location, persist=True):
     if jdk_path is None:
       print_error_msg("No JDK found, please run the \"setup\" "
                       "command to install a JDK automatically or install any "
-                      "JDK manually to " + JDK_INSTALL_DIR)
+                      "JDK manually to " + configDefaults.JDK_INSTALL_DIR)
       return 1
     command = SECURITY_PROVIDER_KEY_CMD.format(jdk_path,
       get_ambari_classpath(), get_conf_dir(), master_key, key_location, persist)
@@ -729,15 +709,15 @@ def adjust_directory_permissions(ambari_user):
   keyLocation = get_master_key_location(properties)
   masterKeyFile = search_file(SECURITY_MASTER_KEY_FILENAME, keyLocation)
   if masterKeyFile:
-    NR_ADJUST_OWNERSHIP_LIST.append((masterKeyFile, MASTER_KEY_FILE_PERMISSIONS, "{0}", "{0}", False))
+    configDefaults.NR_ADJUST_OWNERSHIP_LIST.append((masterKeyFile, configDefaults.MASTER_KEY_FILE_PERMISSIONS, "{0}", "{0}", False))
   credStoreFile = get_credential_store_location(properties)
   if os.path.exists(credStoreFile):
-    NR_ADJUST_OWNERSHIP_LIST.append((credStoreFile, CREDENTIALS_STORE_FILE_PERMISSIONS, "{0}", "{0}", False))
+    configDefaults.NR_ADJUST_OWNERSHIP_LIST.append((credStoreFile, configDefaults.CREDENTIALS_STORE_FILE_PERMISSIONS, "{0}", "{0}", False))
   trust_store_location = properties[SSL_TRUSTSTORE_PATH_PROPERTY]
   if trust_store_location:
-    NR_ADJUST_OWNERSHIP_LIST.append((trust_store_location, TRUST_STORE_LOCATION_PERMISSIONS, "{0}", "{0}", False))
+    configDefaults.NR_ADJUST_OWNERSHIP_LIST.append((trust_store_location, configDefaults.TRUST_STORE_LOCATION_PERMISSIONS, "{0}", "{0}", False))
   print "Adjusting ambari-server permissions and ownership..."
-  for pack in NR_ADJUST_OWNERSHIP_LIST:
+  for pack in configDefaults.NR_ADJUST_OWNERSHIP_LIST:
     file = pack[0]
     mod = pack[1]
     user = pack[2].format(ambari_user)
@@ -831,7 +811,7 @@ def setup_component_https(component, command, property, alias):
     if jdk_path is None:
       err = "No JDK found, please run the \"ambari-server setup\" " \
                       "command to install a JDK automatically or install any " \
-                      "JDK manually to " + JDK_INSTALL_DIR
+                      "JDK manually to " + configDefaults.JDK_INSTALL_DIR
       raise FatalException(1, err)
 
     properties = get_ambari_properties()

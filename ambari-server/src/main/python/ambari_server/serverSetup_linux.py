@@ -23,13 +23,14 @@ import optparse
 import os
 import re
 import socket
+import subprocess
+import time
 
 from ambari_commons.exceptions import *
 from ambari_commons.logging_utils import *
-from ambari_commons.os_linux import run_os_command
+from ambari_commons.os_utils import run_os_command, copy_files
 from ambari_server.dbConfiguration_linux import SERVICE_CMD, PG_HBA_CONF_FILE_BACKUP
 from ambari_server.serverConfiguration import *
-from ambari_server.serverConfiguration_linux import JAVA_SHARE_PATH
 from ambari_server.setupSecurity import *
 from ambari_server.userInput import get_YN_input, get_validated_string_input
 from ambari_server import utils
@@ -342,7 +343,7 @@ def os_check_jdbc_options(options):
 def os_find_jdbc_driver(args):
   if args.dbms in JDBC_PATTERNS.keys():
     drivers = []
-    drivers.extend(glob.glob(JAVA_SHARE_PATH + os.sep + JDBC_PATTERNS[args.dbms]))
+    drivers.extend(glob.glob(configDefaults.JAVA_SHARE_PATH + os.sep + JDBC_PATTERNS[args.dbms]))
     if drivers:
       return drivers
     return -1
@@ -354,7 +355,7 @@ def os_setup_jdbc_drivers(args):
   msg = 'Before starting Ambari Server, ' \
         'you must copy the {0} JDBC driver JAR file to {1}.'.format(
         DATABASE_FULL_NAMES[args.dbms],
-        JAVA_SHARE_PATH)
+        configDefaults.JAVA_SHARE_PATH)
 
   if result == -1:
     if get_silent():
@@ -379,7 +380,7 @@ def os_setup_jdbc_drivers(args):
 
     db_name = DATABASE_FULL_NAMES[args.dbms].lower()
     jdbc_symlink = os.path.join(resources_dir, db_name + "-jdbc-driver.jar")
-    db_default_driver_path = os.path.join(JAVA_SHARE_PATH, JDBC_DB_DEFAULT_DRIVER[db_name])
+    db_default_driver_path = os.path.join(configDefaults.JAVA_SHARE_PATH, JDBC_DB_DEFAULT_DRIVER[db_name])
 
     if os.path.lexists(jdbc_symlink):
       os.remove(jdbc_symlink)
@@ -709,7 +710,7 @@ def os_store_local_properties(args):
 
   isSecure = get_is_secure(properties)
 
-  properties.removeOldProp(JDBC_SCHEMA_PROPERTY)
+  properties.removeOldProp(JDBC_POSTGRES_SCHEMA_PROPERTY)
   properties.removeOldProp(JDBC_HOSTNAME_PROPERTY)
   properties.removeOldProp(JDBC_RCA_DRIVER_PROPERTY)
   properties.removeOldProp(JDBC_RCA_URL_PROPERTY)
@@ -746,7 +747,7 @@ def os_store_remote_properties(args):
   properties.process_pair(JDBC_DATABASE_PROPERTY, args.dbms)
   properties.process_pair(JDBC_HOSTNAME_PROPERTY, args.database_host)
   properties.process_pair(JDBC_PORT_PROPERTY, args.database_port)
-  properties.process_pair(JDBC_SCHEMA_PROPERTY, args.database_name)
+  properties.process_pair(JDBC_POSTGRES_SCHEMA_PROPERTY, args.database_name)
 
   properties.process_pair(JDBC_DRIVER_PROPERTY, DATABASE_DRIVER_NAMES[DATABASE_INDEX])
   # fully qualify the hostname to make sure all the other hosts can connect

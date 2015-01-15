@@ -19,22 +19,32 @@ limitations under the License.
 '''
 
 import optparse
+import os
+import sys
 import subprocess
 
-from ambari_commons.ambari_service import AmbariService, ENV_PYTHON_PATH
-from ambari_commons.logging_utils import get_verbose, set_verbose, get_silent, set_silent, get_debug_mode, set_debug_mode
+from ambari_commons.ambari_service import AmbariService
+from ambari_commons.exceptions import FatalException, NonFatalException
+from ambari_commons.logging_utils import print_info_msg, print_warning_msg, print_error_msg, \
+  get_verbose, set_verbose, get_silent, set_silent, get_debug_mode, set_debug_mode
+from ambari_commons.os_utils import remove_file, set_open_files_limit
 from ambari_commons.os_windows import SvcStatusCallback
 
 from ambari_server import utils
 from ambari_server.dbConfiguration import DBMSConfig
 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
-from ambari_server.serverConfiguration import *
+from ambari_server.serverConfiguration import find_jdk, get_ambari_classpath, get_ambari_properties, get_conf_dir, \
+  get_value_from_properties, configDefaults, DEBUG_MODE_KEY, RESOURCES_DIR_DEFAULT, RESOURCES_DIR_PROPERTY, \
+  SERVER_OUT_FILE_KEY, STACK_LOCATION_DEFAULT, STACK_LOCATION_KEY, SUSPEND_START_MODE_KEY, VERBOSE_OUTPUT_KEY
 from ambari_server.serverSetup import setup, reset, is_server_running, upgrade
-from ambari_server.setupActions import *
-from ambari_server.setupSecurity import *
 from ambari_server.serverSetup_windows import SERVICE_PASSWORD_KEY, SERVICE_USERNAME_KEY
+from ambari_server.setupActions import SETUP_ACTION, START_ACTION, PSTART_ACTION, STOP_ACTION, RESET_ACTION, \
+  STATUS_ACTION, UPGRADE_ACTION, UPGRADE_STACK_ACTION, LDAP_SETUP_ACTION, SETUP_SECURITY_ACTION, ACTION_REQUIRE_RESTART
+from ambari_server.setupSecurity import setup_ambari_krb5_jaas, setup_https, setup_ldap, setup_master_key
+from ambari_server.userInput import get_validated_string_input
 
 # debug settings
+
 SERVER_START_DEBUG = False
 SUSPEND_START_MODE = False
 
@@ -98,6 +108,12 @@ class AmbariServerService(AmbariService):
     self.options.debug = get_value_from_properties(properties, DEBUG_MODE_KEY, self.options.debug)
     self.options.suspend_start = get_value_from_properties(properties, SUSPEND_START_MODE_KEY, self.options.suspend_start)
 
+    # set verbose
+    set_verbose(self.options.verbose)
+
+    # set silent
+    set_silent(self.options.silent)
+
     self.redirect_output_streams()
 
     childProc = server_process_main(self.options, scmStatus)
@@ -105,7 +121,7 @@ class AmbariServerService(AmbariService):
     if not self._StopOrWaitForChildProcessToFinish(childProc):
       return
 
-    pid_file_path = PID_DIR + os.sep + PID_NAME
+    pid_file_path = os.path.join(configDefaults.PID_DIR, PID_NAME)
     remove_file(pid_file_path)
     pass
 
@@ -117,7 +133,7 @@ class AmbariServerService(AmbariService):
 
     outFilePath = properties[SERVER_OUT_FILE_KEY]
     if (outFilePath is None or outFilePath == ""):
-      outFilePath = SERVER_OUT_FILE
+      outFilePath = configDefaults.SERVER_OUT_FILE
 
     self._RedirectOutputStreamsToFile(outFilePath)
     pass
@@ -152,7 +168,7 @@ def start(options):
 
   childProc.wait()
 
-  pid_file_path = PID_DIR + os.sep + PID_NAME
+  pid_file_path = os.path.join(configDefaults.PID_DIR, PID_NAME)
   remove_file(pid_file_path)
 
 #
@@ -166,18 +182,6 @@ def svcstart():
   pass
 
 def server_process_main(options, scmStatus=None):
-  # set verbose
-  try:
-    set_verbose(options.verbose)
-  except AttributeError:
-    pass
-
-  # set silent
-  try:
-    set_silent(options.silent)
-  except AttributeError:
-    pass
-
   # debug mode
   try:
     set_debug_mode(options.debug)
@@ -205,7 +209,7 @@ def server_process_main(options, scmStatus=None):
   if jdk_path is None:
     err = "No JDK found, please run the \"ambari-server setup\" " \
                     "command to install a JDK automatically or install any " \
-                    "JDK manually to " + JDK_INSTALL_DIR
+                    "JDK manually to " + configDefaults.JDK_INSTALL_DIR
     raise FatalException(1, err)
 
   # Preparations
@@ -232,13 +236,13 @@ def server_process_main(options, scmStatus=None):
   if conf_dir.find(' ') != -1:
     conf_dir = '"' + conf_dir + '"'
 
-  java_exe = jdk_path + os.sep + JAVA_EXE_SUBPATH
-  pidfile = PID_DIR + os.sep + PID_NAME
+  java_exe = jdk_path + os.sep + configDefaults.JAVA_EXE_SUBPATH
+  pidfile = os.path.join(configDefaults.PID_DIR, PID_NAME)
   command_base = SERVER_START_CMD_DEBUG if (get_debug_mode() or SERVER_START_DEBUG) else SERVER_START_CMD
   suspend_mode = 'y' if SUSPEND_START_MODE else 'n'
   command = command_base.format(conf_dir, suspend_mode)
-  if not os.path.exists(PID_DIR):
-    os.makedirs(PID_DIR, 0755)
+  if not os.path.exists(configDefaults.PID_DIR):
+    os.makedirs(configDefaults.PID_DIR, 0755)
 
   set_open_files_limit(get_ulimit_open_files());
 
@@ -256,18 +260,18 @@ def server_process_main(options, scmStatus=None):
   if pidJava <= 0:
     procJava.terminate()
     exitcode = procJava.returncode
-    exitfile = os.path.join(PID_DIR, EXITCODE_NAME)
+    exitfile = os.path.join(configDefaults.PID_DIR, EXITCODE_NAME)
     utils.save_pid(exitcode, exitfile)
 
     if scmStatus is not None:
       scmStatus.reportStopPending()
 
-    raise FatalException(-1, AMBARI_SERVER_DIE_MSG.format(exitcode, SERVER_OUT_FILE))
+    raise FatalException(-1, AMBARI_SERVER_DIE_MSG.format(exitcode, configDefaults.SERVER_OUT_FILE))
   else:
     utils.save_pid(pidJava, pidfile)
     print "Server PID at: "+pidfile
-    print "Server out at: "+SERVER_OUT_FILE
-    print "Server log at: "+SERVER_LOG_FILE
+    print "Server out at: "+configDefaults.SERVER_OUT_FILE
+    print "Server log at: "+configDefaults.SERVER_LOG_FILE
 
   if scmStatus is not None:
     scmStatus.reportStarted()
@@ -499,6 +503,12 @@ def main():
 
   elif not are_cmd_line_db_args_valid(options):
     parser.error('All database options should be set. Please see help for the options.')
+
+  # set verbose
+  set_verbose(options.verbose)
+
+  # set silent
+  set_silent(options.silent)
 
   ## jdbc driver and db options validation
   #if options.jdbc_driver is None and options.jdbc_db is not None:

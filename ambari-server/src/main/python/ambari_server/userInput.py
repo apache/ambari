@@ -106,3 +106,9 @@ def get_validated_filepath_input(prompt, description, default=None):
       else:
         print description
         input = False
+
+def get_prompt_default(defaultStr=None):
+  if not defaultStr or defaultStr == "":
+    return ""
+  else:
+    return '(' + defaultStr + ')'

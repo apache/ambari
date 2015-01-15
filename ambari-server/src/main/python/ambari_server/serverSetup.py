@@ -23,6 +23,7 @@ import sys
 import urllib2
 from ambari_commons.inet_utils import force_download_file
 from ambari_commons.logging_utils import print_warning_msg, print_error_msg
+from ambari_commons.os_utils import is_root
 
 from serverConfiguration import *
 from setupSecurity import adjust_directory_permissions, get_is_secure, store_password_file, encrypt_password, \
@@ -35,10 +36,6 @@ if OSCheck.is_windows_family():
 else:
   # MacOS not supported
   from serverSetup_linux import *
-
-OS_VERSION = OSCheck().get_os_major_version()
-OS_TYPE = OSCheck.get_os_type()
-OS_FAMILY = OSCheck.get_os_family()
 
 JDK_INDEX = 0
 
@@ -93,6 +90,84 @@ def create_custom_user():
   return os_create_custom_user()
 
 
+# Load database connection properties from conf file
+def parse_properties_file(args):
+  properties = get_ambari_properties()
+  if properties == -1:
+    print_error_msg("Error getting ambari properties")
+    return -1
+
+  # args.server_version_file_path = properties[SERVER_VERSION_FILE_PATH]
+  args.persistence_type = properties[PERSISTENCE_TYPE_PROPERTY]
+  args.jdbc_url = properties[JDBC_URL_PROPERTY]
+
+  if not args.persistence_type:
+    args.persistence_type = "local"
+
+  if args.persistence_type == 'remote':
+    args.dbms = properties[JDBC_DATABASE_PROPERTY]
+    args.database_host = properties[JDBC_HOSTNAME_PROPERTY]
+    args.database_port = properties[JDBC_PORT_PROPERTY]
+    args.database_name = properties[JDBC_POSTGRES_SCHEMA_PROPERTY]
+  else:
+    #TODO incorrect property used!! leads to bunch of troubles. Workaround for now
+    args.database_name = properties[JDBC_DATABASE_PROPERTY]
+
+  args.database_username = properties[JDBC_USER_NAME_PROPERTY]
+  args.database_password_file = properties[JDBC_PASSWORD_PROPERTY]
+  if args.database_password_file:
+    if not is_alias_string(args.database_password_file):
+      args.database_password = open(properties[JDBC_PASSWORD_PROPERTY]).read()
+    else:
+      args.database_password = args.database_password_file
+  return 0
+
+def check_database_name_property():
+  properties = get_ambari_properties()
+  if properties == -1:
+    print_error_msg("Error getting ambari properties")
+    return -1
+
+  dbname = properties[JDBC_DATABASE_PROPERTY]
+  if dbname is None or dbname == "":
+    err = "DB Name property not set in config file.\n" + SETUP_OR_UPGRADE_MSG
+    raise FatalException(-1, err)
+
+def update_database_name_property():
+  try:
+    check_database_name_property()
+  except FatalException:
+    properties = get_ambari_properties()
+    if properties == -1:
+      err = "Error getting ambari properties"
+      raise FatalException(-1, err)
+    print_warning_msg(JDBC_DATABASE_PROPERTY + " property isn't set in " +
+                      AMBARI_PROPERTIES_FILE + ". Setting it to default value - " + DEFAULT_DB_NAME)
+    properties.process_pair(JDBC_DATABASE_PROPERTY, DEFAULT_DB_NAME)
+    conf_file = find_properties_file()
+    try:
+      properties.store(open(conf_file, "w"))
+    except Exception, e:
+      err = 'Could not write ambari config file "%s": %s' % (conf_file, e)
+      raise FatalException(-1, err)
+
+
+def run_schema_upgrade():
+  jdk_path = find_jdk()
+  if jdk_path is None:
+    print_error_msg("No JDK found, please run the \"setup\" "
+                    "command to install a JDK automatically or install any "
+                    "JDK manually to " + configDefaults.JDK_INSTALL_DIR)
+    return 1
+  command = SCHEMA_UPGRADE_HELPER_CMD.format(os.path.join(jdk_path, configDefaults.JAVA_EXE_SUBPATH),
+                                             get_conf_dir() + os.pathsep + get_ambari_classpath())
+  (retcode, stdout, stderr) = run_os_command(command)
+  print_info_msg("Return code from schema upgrade command, retcode = " + str(retcode))
+  if retcode > 0:
+    print_error_msg("Error executing schema upgrade, please check the server logs.")
+  return retcode
+
+
 # ## JDK ###
 
 #
@@ -126,7 +201,7 @@ def download_and_install_jdk(args):
                   "please make sure JCE Unlimited Strength Jurisdiction Policy Files are valid on all hosts."
 
   if args.java_home:
-    if not os.path.exists(args.java_home) or not os.path.isfile(os.path.join(args.java_home, JAVA_EXE_SUBPATH)):
+    if not os.path.exists(args.java_home) or not os.path.isfile(os.path.join(args.java_home, configDefaults.JAVA_EXE_SUBPATH)):
       err = "Path to java home " + args.java_home + " or java binary file does not exists"
       raise FatalException(1, err)
 
