@@ -55,3 +55,7 @@ hbase.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelin
 hbase.sink.timeline.period=10
 hbase.sink.timeline.collector={{ams_collector_host_single}}:{{metric_collector_port}}
 hbase.sink.timeline.serviceName-prefix=ams
+
+# Switch off metrics generation on a per region basis
+*.source.filter.class=org.apache.hadoop.metrics2.filter.GlobFilter
+hbase.*.source.filter.exclude=*Regions*

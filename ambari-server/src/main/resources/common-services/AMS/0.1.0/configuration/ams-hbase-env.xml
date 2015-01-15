@@ -74,10 +74,6 @@ export HBASE_CONF_DIR=${HBASE_CONF_DIR:-{{hbase_conf_dir}}}
 # Extra Java CLASSPATH elements. Optional.
 export HBASE_CLASSPATH=${HBASE_CLASSPATH}
 
-if [ -f "/usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar" ]; then
-  export HBASE_CLASSPATH=${HBASE_CLASSPATH}:/usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar
-fi
-
 # The maximum amount of heap to use, in MB. Default is 1000.
 export HBASE_HEAPSIZE={{hbase_heapsize}}
 
