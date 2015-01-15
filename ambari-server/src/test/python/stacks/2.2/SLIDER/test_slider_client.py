@@ -116,3 +116,5 @@ class TestSliderClient(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertResourceCalled("Execute", "hdp-select set slider-client 2.2.1.0-2067")
+    self.assertResourceCalled("Execute", "hdp-select set hadoop-client 2.2.1.0-2067")
+    self.assertNoMoreResources()
