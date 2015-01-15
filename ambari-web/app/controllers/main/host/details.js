@@ -614,19 +614,44 @@ App.MainHostDetailsController = Em.Controller.extend({
     configs['webhcat-site']['templeton.hive.properties'] = configs['webhcat-site']['templeton.hive.properties'].replace(/thrift.+[0-9]{2,},/i, hiveMSHosts.join('\\,') + ",");
     configs['core-site']['hadoop.proxyuser.' + hiveUser + '.hosts'] = hiveMasterHosts;
     configs['core-site']['hadoop.proxyuser.' + webhcatUser + '.hosts'] = hiveMasterHosts;
+    var groups = [
+      {
+        'hive-site': configs['hive-site'],
+        'webhcat-site': configs['webhcat-site'],
+        'hive-env': configs['hive-env']
+      },
+      {'core-site': configs['core-site']}
+    ];
+    this.saveConfigsBatch(groups);
+  },
 
-    for (var site in configs) {
-      if (!configs.hasOwnProperty(site)) continue;
-      App.ajax.send({
-        name: 'reassign.save_configs',
-        sender: this,
-        data: {
-          siteName: site,
-          properties: configs[site],
-          service_config_version_note: Em.I18n.t('hosts.host.hive.configs.save.note')
-        }
-      });
-    }
+  /**
+   * save configs' sites in batch
+   * @param groups
+   */
+  saveConfigsBatch: function (groups) {
+    groups.forEach(function (configs) {
+      var desiredConfigs = [];
+      var tag = 'version' + (new Date).getTime();
+      for (var site in configs) {
+        if (!configs.hasOwnProperty(site)) continue;
+        desiredConfigs.push({
+          "type": site,
+          "tag": tag,
+          "properties": configs[site],
+          "service_config_version_note": Em.I18n.t('hosts.host.hive.configs.save.note')
+        });
+      }
+      if (desiredConfigs.length > 0) {
+        App.ajax.send({
+          name: 'common.service.configurations',
+          sender: this,
+          data: {
+            desired_config: desiredConfigs
+          }
+        });
+      }
+    }, this);
   },
 
   /**
@@ -782,19 +807,14 @@ App.MainHostDetailsController = Em.Controller.extend({
     var zks = this.getZkServerHosts();
     var zksWithPort = this.concatZkNames(zks);
     this.setZKConfigs(configs, zksWithPort, zks);
-
-    for (var site in configs) {
-      if (!configs.hasOwnProperty(site)) continue;
-      App.ajax.send({
-        name: 'reassign.save_configs',
-        sender: this,
-        data: {
-          siteName: site,
-          properties: configs[site],
-          service_config_version_note: Em.I18n.t('hosts.host.zooKeeper.configs.save.note')
-        }
-      });
-    }
+    var groups = [
+      {
+        'hive-site': configs['hive-site'],
+        'webhcat-site': configs['webhcat-site']
+      },
+      {'yarn-site': configs['yarn-site']}
+    ];
+    this.saveConfigsBatch(groups);
   },
   /**
    *

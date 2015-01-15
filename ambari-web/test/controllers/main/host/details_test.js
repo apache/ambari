@@ -718,41 +718,34 @@ describe('App.MainHostDetailsController', function () {
       sinon.stub(controller, "getZkServerHosts", Em.K);
       sinon.stub(controller, "concatZkNames", Em.K);
       sinon.stub(controller, "setZKConfigs", Em.K);
+      sinon.stub(controller, 'saveConfigsBatch', Em.K);
     });
     afterEach(function () {
       controller.getZkServerHosts.restore();
       controller.concatZkNames.restore();
       controller.setZKConfigs.restore();
+      controller.saveConfigsBatch.restore();
     });
 
-    it('data.items is empty', function () {
+    it('call saveConfigsBatch()', function () {
       var data = {items: []};
       controller.saveZkConfigs(data);
+      expect(controller.saveConfigsBatch.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#saveConfigsBatch()", function() {
+    it("no groups", function() {
+      controller.saveConfigsBatch([]);
       expect(App.ajax.send.called).to.be.false;
     });
-    it('data.items has one item', function () {
-      var data = {items: [
-        {
-          type: 'type1',
-          properties: {}
-        }
-      ]};
-      controller.saveZkConfigs(data);
-      expect(App.ajax.send.calledOnce).to.be.true;
+    it("configs is empty", function() {
+      controller.saveConfigsBatch([{}]);
+      expect(App.ajax.send.called).to.be.false;
     });
-    it('data.items has two items', function () {
-      var data = {items: [
-        {
-          type: 'type1',
-          properties: {}
-        },
-        {
-          type: 'type2',
-          properties: {}
-        }
-      ]};
-      controller.saveZkConfigs(data);
-      expect(App.ajax.send.calledTwice).to.be.true;
+    it("configs is correct", function() {
+      controller.saveConfigsBatch([{'site': {}}]);
+      expect(App.ajax.send.calledOnce).to.be.true;
     });
   });
 
