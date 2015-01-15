@@ -25,7 +25,7 @@ describe('App.WizardStep4Controller', function () {
 
   var services = [
     'HDFS', 'NAGIOS', 'GANGLIA', 'OOZIE', 'HIVE', 'HBASE', 'PIG', 'SCOOP', 'ZOOKEEPER',
-    'YARN', 'MAPREDUCE2', 'FALCON', 'TEZ', 'STORM'
+    'YARN', 'MAPREDUCE2', 'FALCON', 'TEZ', 'STORM', 'AMS'
   ];
 
   var controller = App.WizardStep4Controller.create();
@@ -227,50 +227,100 @@ describe('App.WizardStep4Controller', function () {
 
   describe('#validate()', function() {
     var tests = [
-      {
-        services: ['HDFS','ZOOKEEPER'],
-        errorsExpected: []
-      },
-      {
-        services: ['ZOOKEEPER'],
-        errorsExpected: []
-      },
-      {
-        services: ['HDFS'],
-        errorsExpected: ['serviceCheck_ZOOKEEPER']
-      },
-      {
-        services: ['HDFS', 'TEZ', 'ZOOKEEPER'],
-        errorsExpected: ['serviceCheck_YARN']
-      },
-      {
-        services: ['HDFS', 'ZOOKEEPER', 'FALCON', 'NAGIOS'],
-        errorsExpected: ['serviceCheck_OOZIE']
-      },
-      {
-        services: ['HDFS', 'ZOOKEEPER', 'GANGLIA', 'NAGIOS', 'HIVE'],
-        errorsExpected: ['serviceCheck_YARN']
-      },
-      {
-        services: ['HDFS', 'GLUSTERFS', 'ZOOKEEPER', 'HIVE'],
-        errorsExpected: ['serviceCheck_YARN', 'multipleDFS']
-      },
-      {
-        services: ['HDFS','ZOOKEEPER', 'NAGIOS', 'GANGLIA'],
-        errorsExpected: []
-      }
-    ];
+        {
+          services: ['HDFS','ZOOKEEPER'],
+          errorsExpected: ['ambariMetricsCheck']
+        },
+        {
+          services: ['ZOOKEEPER'],
+          errorsExpected: ['ambariMetricsCheck']
+        },
+        {
+          services: ['HDFS'],
+          errorsExpected: ['serviceCheck_ZOOKEEPER', 'ambariMetricsCheck']
+        },
+        {
+          services: ['HDFS', 'TEZ', 'ZOOKEEPER'],
+          errorsExpected: ['serviceCheck_YARN', 'ambariMetricsCheck']
+        },
+        {
+          services: ['HDFS', 'ZOOKEEPER', 'FALCON', 'NAGIOS'],
+          errorsExpected: ['serviceCheck_OOZIE', 'ambariMetricsCheck']
+        },
+        {
+          services: ['HDFS', 'ZOOKEEPER', 'GANGLIA', 'NAGIOS', 'HIVE'],
+          errorsExpected: ['serviceCheck_YARN', 'ambariMetricsCheck']
+        },
+        {
+          services: ['HDFS', 'GLUSTERFS', 'ZOOKEEPER', 'HIVE'],
+          errorsExpected: ['serviceCheck_YARN', 'multipleDFS', 'ambariMetricsCheck']
+        },
+        {
+          services: ['HDFS','ZOOKEEPER', 'NAGIOS', 'GANGLIA'],
+          errorsExpected: ['ambariMetricsCheck']
+        },
+        {
+          services: ['HDFS','ZOOKEEPER', 'AMS'],
+          errorsExpected: []
+        },
+        {
+          services: ['ZOOKEEPER', 'AMS'],
+          errorsExpected: []
+        },
+        {
+          services: ['HDFS', 'AMS'],
+          errorsExpected: ['serviceCheck_ZOOKEEPER']
+        },
+        {
+          services: ['HDFS', 'TEZ', 'ZOOKEEPER', 'AMS'],
+          errorsExpected: ['serviceCheck_YARN']
+        },
+        {
+          services: ['HDFS', 'ZOOKEEPER', 'FALCON', 'NAGIOS', 'AMS'],
+          errorsExpected: ['serviceCheck_OOZIE']
+        },
+        {
+          services: ['HDFS', 'ZOOKEEPER', 'GANGLIA', 'NAGIOS', 'HIVE', 'AMS'],
+          errorsExpected: ['serviceCheck_YARN']
+        },
+        {
+          services: ['HDFS', 'GLUSTERFS', 'ZOOKEEPER', 'HIVE', 'AMS'],
+          errorsExpected: ['serviceCheck_YARN', 'multipleDFS']
+        },
+        {
+          services: ['HDFS','ZOOKEEPER', 'NAGIOS', 'GANGLIA', 'AMS'],
+          errorsExpected: []
+        }
+      ],
+      controllerNames = ['installerController', 'addServiceController'],
+      wizardNames = {
+        installerController: 'Install Wizard',
+        addServiceController: 'Add Service Wizard'
+      };
 
-    tests.forEach(function(test) {
-      var message = '{0} selected validation should be {1}, errors with ids: {2} present'
-        .format(test.services.join(','), !!test.validationPassed ? 'passed' : 'failed', test.errorsExpected.join(','));
-      it(message, function() {
-        controller.clear();
-        controller.set('content', generateSelectedServicesContent(test.services));
-        controller.validate();
-        expect(controller.get('errorStack').mapProperty('id')).to.be.eql(test.errorsExpected);
-      });
-    })
+    controllerNames.forEach(function (name) {
+      tests.forEach(function(test) {
+        var errorsExpected = test.errorsExpected;
+        if (name != 'installerController') {
+          errorsExpected = test.errorsExpected.without('ambariMetricsCheck');
+        }
+        var message = '{0}, {1} selected validation should be {2}, errors: {3}'
+          .format(wizardNames[name], test.services.join(','), errorsExpected.length ? 'passed' : 'failed',
+            errorsExpected.length ? errorsExpected.join(',') : 'absent');
+        it(message, function() {
+          controller.clear();
+          controller.setProperties({
+            content: generateSelectedServicesContent(test.services),
+            wizardController: Em.Object.create({
+              name: name
+            })
+          });
+          controller.validate();
+          expect(controller.get('errorStack').mapProperty('id')).to.eql(errorsExpected.toArray());
+        });
+      })
+    });
+
   });
 
   describe('#onPrimaryPopupCallback()', function() {
@@ -465,6 +515,45 @@ describe('App.WizardStep4Controller', function () {
         expect(dependentServicesTest).to.be.eql(test.dependencies);
       });
     })
+  });
+
+  describe('#ambariMetricsValidation', function () {
+
+    var cases = [
+      {
+        services: ['HDFS'],
+        isAmbariMetricsWarning: false,
+        title: 'Ambari Metrics not available'
+      },
+      {
+        services: ['AMS'],
+        isAmbariMetricsSelected: false,
+        isAmbariMetricsWarning: true,
+        title: 'Ambari Metrics not selected'
+      },
+      {
+        services: ['AMS'],
+        isAmbariMetricsSelected: true,
+        isAmbariMetricsWarning: false,
+        title: 'Ambari Metrics selected'
+      }
+    ];
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        controller.clear();
+        controller.set('content', generateSelectedServicesContent(item.services));
+        var ams = controller.findProperty('serviceName', 'AMS');
+        if (item.services.contains('AMS')) {
+          ams.set('isSelected', item.isAmbariMetricsSelected);
+        } else {
+          controller.removeObject(ams);
+        }
+        controller.ambariMetricsValidation();
+        expect(controller.get('errorStack').mapProperty('id').contains('ambariMetricsCheck')).to.equal(item.isAmbariMetricsWarning);
+      });
+    });
+
   });
 
 });

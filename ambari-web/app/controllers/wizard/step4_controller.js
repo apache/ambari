@@ -78,6 +78,24 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   },
 
   /**
+   * Check whether user selected Ambari Metrics service to install and go to next step
+   * @method ambariMetricsValidation
+   */
+  ambariMetricsValidation: function () {
+    //TODO Change 'AMS' to the actual serviceName after it's changed
+    var ambariMetricsService = this.findProperty('serviceName', 'AMS');
+    if (ambariMetricsService) {
+      if (!ambariMetricsService.get('isSelected')) {
+        this.addValidationError({
+          id: 'ambariMetricsCheck',
+          type: 'WARNING',
+          callback: this.ambariMetricsCheckPopup
+        });
+      }
+    }
+  },
+
+  /**
    * Onclick handler for <code>Next</code> button.
    * @method submit
    */
@@ -111,6 +129,9 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   validate: function() {
     this.serviceDependencyValidation();
     this.fileSystemServiceValidation();
+    if (this.get('wizardController.name') == 'installerController') {
+      this.ambariMetricsValidation();
+    }
     if (!!this.get('errorStack').filterProperty('isShown', false).length) {
       this.showError(this.get('errorStack').findProperty('isShown', false));
       return false;
@@ -322,6 +343,23 @@ App.WizardStep4Controller = Em.ArrayController.extend({
         this.hide();
       }
     });
-  }
+  },
 
+  /**
+   * Show popup with info about not selected Ambari Metrics service
+   * @return {App.ModalPopup}
+   * @method ambariMetricsCheckPopup
+   */
+  ambariMetricsCheckPopup: function () {
+    var self = this;
+    return App.ModalPopup.show({
+      header: Em.I18n.t('installer.step4.ambariMetricsCheck.popup.header'),
+      body: Em.I18n.t('installer.step4.ambariMetricsCheck.popup.body'),
+      primary: Em.I18n.t('common.proceedAnyway'),
+      onPrimary: function () {
+        self.onPrimaryPopupCallback();
+        this.hide();
+      }
+    });
+  }
 });

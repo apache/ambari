@@ -104,6 +104,8 @@ module.exports = App.WizardRoute.extend({
       controller.set('hideBackButton', true);
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
+        var wizardStep4Controller = router.get('wizardStep4Controller');
+        wizardStep4Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep4', controller.get('content.services').filterProperty('isInstallable', true));
       });
     },

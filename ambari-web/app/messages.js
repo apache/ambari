@@ -651,8 +651,8 @@ Em.I18n.translations = {
   'installer.step4.multipleDFS.popup.body':'You selected more than one file system. We will automatically select only {0}. Is this OK?',
   'installer.step4.serviceCheck.popup.header':'{0} Needed',
   'installer.step4.serviceCheck.popup.body':'You did not select {0}, but it is needed by other services you selected. We will automatically add {0}. Is this OK?',
-  'installer.step4.monitoringCheck.popup.header':'Limited Functionality Warning',
-  'installer.step4.monitoringCheck.popup.body':'You did not select {0}. If {1} is not selected, monitoring and alerts will not function properly. Is this OK?',
+  'installer.step4.ambariMetricsCheck.popup.header':'Limited Functionality Warning',
+  'installer.step4.ambariMetricsCheck.popup.body':'Ambari Metrics collects metrics from the cluster and makes them available to Ambari.  If you do not install Ambari Metrics service, metrics will not be accessible from Ambari.  Are you sure you want to proceed without Ambari Metrics?',
 
   'installer.step5.header':'Assign Masters',
   'installer.step5.reassign.header':'Select Target Host',

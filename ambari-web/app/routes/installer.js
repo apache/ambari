@@ -237,6 +237,8 @@ module.exports = Em.Route.extend({
       var controller = router.get('installerController');
       controller.setCurrentStep('4');
       controller.loadAllPriorSteps().done(function () {
+        var wizardStep4Controller = router.get('wizardStep4Controller');
+        wizardStep4Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep4', App.StackService.find().filterProperty('isInstallable', true));
       });
     },
