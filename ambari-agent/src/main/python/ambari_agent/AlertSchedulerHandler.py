@@ -224,12 +224,12 @@ class AlertSchedulerHandler():
     definitions = []
     
     all_commands = None
+    alerts_definitions_path = os.path.join(self.cachedir, self.FILENAME)
     try:
-      with open(os.path.join(self.cachedir, self.FILENAME)) as fp:
+      with open(alerts_definitions_path) as fp:
         all_commands = json.load(fp)
     except:
-      if (logger.isEnabledFor(logging.DEBUG)):
-        traceback.print_exc()
+      logger.warning('Alert definitions file was not found under "{0}". No alerts will be scheduled.'.format(alerts_definitions_path))
       return definitions
     
     for command_json in all_commands:
