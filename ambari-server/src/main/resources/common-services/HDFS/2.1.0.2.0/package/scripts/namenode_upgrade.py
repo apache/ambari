@@ -23,7 +23,6 @@ from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.format import format
 from resource_management.core.shell import call
 from resource_management.core.exceptions import Fail
-from resource_management.libraries.functions.decorator import retry
 
 
 class SAFEMODE:
@@ -34,7 +33,6 @@ class SAFEMODE:
 safemode_to_instruction = {SAFEMODE.ON: "enter",
                            SAFEMODE.OFF: "leave"}
 
-@retry(times=3, sleep_time=6, err_class=Fail)
 def reach_safemode_state(user, safemode_state, in_ha):
   """
   Enter or leave safemode for the Namenode.
@@ -68,6 +66,7 @@ def reach_safemode_state(user, safemode_state, in_ha):
 def prepare_rolling_upgrade():
   """
   Rolling Upgrade for HDFS Namenode requires the following.
+  0. Namenode must be up
   1. Leave safemode if the safemode status is not OFF
   2. Execute a rolling upgrade "prepare"
   3. Execute a rolling upgrade "query"
@@ -83,7 +82,7 @@ def prepare_rolling_upgrade():
 
   safemode_transition_successful = reach_safemode_state(user, SAFEMODE.OFF, True)
   if not safemode_transition_successful:
-    raise Fail("Could leave safemode")
+    raise Fail("Could not transition to safemode state %s. Please check logs to make sure namenode is up." % str(SAFEMODE.OFF))
 
   prepare = "hdfs dfsadmin -rollingUpgrade prepare"
   query = "hdfs dfsadmin -rollingUpgrade query"

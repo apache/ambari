@@ -27,6 +27,7 @@ from resource_management.libraries.functions.security_commons import build_expec
 
 from utils import service
 from hdfs import hdfs
+import journalnode_upgrade
 
 
 class JournalNode(Script):
@@ -63,6 +64,12 @@ class JournalNode(Script):
       create_pid_dir=True,
       create_log_dir=True
     )
+
+  def post_rolling_restart(self, env):
+    Logger.info("Executing Rolling Upgrade post-restart")
+    import params
+    env.set_params(params)
+    journalnode_upgrade.post_upgrade_check()
 
   def stop(self, env, rolling_restart=False):
     import params

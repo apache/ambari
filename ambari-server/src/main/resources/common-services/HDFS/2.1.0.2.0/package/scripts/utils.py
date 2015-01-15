@@ -18,6 +18,8 @@ limitations under the License.
 """
 import os
 import re
+import urllib2
+import json
 
 from resource_management import *
 from resource_management.libraries.functions.format import format
@@ -83,7 +85,7 @@ def failover_namenode():
     else:
       Execute(check_standby_cmd,
               user=params.hdfs_user,
-              tries=30,
+              tries=50,
               try_sleep=6,
               logoutput=True)
 
@@ -216,6 +218,39 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
     )
 
 
+def get_jmx_data(nn_address, modeler_type, metric, encrypted=False):
+  """
+  :param nn_address: Namenode Address, e.g., host:port, ** MAY ** be preceded with "http://" or "https://" already.
+  If not preceded, will use the encrypted param to determine.
+  :param modeler_type: Modeler type to query using startswith function
+  :param metric: Metric to return
+  :return: Return an object representation of the metric, or None if it does not exist
+  """
+  if not nn_address or not modeler_type or not metric:
+    return None
+
+  nn_address = nn_address.strip()
+  if not nn_address.startswith("http"):
+    nn_address = ("https://" if encrypted else "http://") + nn_address
+  if not nn_address.endswith("/"):
+    nn_address = nn_address + "/"
+
+  nn_address = nn_address + "jmx"
+  Logger.info("Retrieve modeler: %s, metric: %s from JMX endpoint %s" % (modeler_type, metric, nn_address))
+
+  data = urllib2.urlopen(nn_address).read()
+  data_dict = json.loads(data)
+  my_data = None
+  if data_dict:
+    for el in data_dict['beans']:
+      if el is not None and el['modelerType'] is not None and el['modelerType'].startswith(modeler_type):
+        if metric in el:
+          my_data = el[metric]
+          if my_data:
+            my_data = json.loads(str(my_data))
+            break
+  return my_data
+
 def get_port(address):
   """
   Extracts port from the address like 0.0.0.0:1019
@@ -223,7 +258,7 @@ def get_port(address):
   if address is None:
     return None
   m = re.search(r'(?:http(?:s)?://)?([\w\d.]*):(\d{1,5})', address)
-  if m is not None:
+  if m is not None and len(m.groups()) >= 2:
     return int(m.group(2))
   else:
     return None
