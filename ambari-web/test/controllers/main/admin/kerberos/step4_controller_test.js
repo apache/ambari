@@ -22,13 +22,10 @@ describe('App.KerberosWizardStep4Controller', function() {
   
   describe('#isSubmitDisabled', function() {
     var controller = App.KerberosWizardStep4Controller.create({});
-    var configCategories = Em.A([
-      App.ServiceConfigCategory.create({ name: 'Advanced', displayName: 'Advanced'})
-    ]);
     var configs = Em.A([
-      App.ServiceConfigProperty.create({ name: 'prop1', value: 'someVal1', category: 'Advanced'})
+      App.ServiceConfigProperty.create({ name: 'prop1', value: 'someVal1', identityType: 'user', category: 'Ambari Principals'})
     ]);
-    controller.set('stepConfigs', [controller.createServiceConfig(configCategories, configs)]);
+    controller.set('stepConfigs', controller.createServiceConfig(configs));
     
     it('configuration errors are absent, submit should be not disabled', function() {
       expect(controller.get('stepConfigs')[0].get('errorCount')).to.be.eql(0);
@@ -46,7 +43,9 @@ describe('App.KerberosWizardStep4Controller', function() {
   describe('#createServiceConfig', function() {
     var controller = App.KerberosWizardStep4Controller.create({});
     it('should create instance of App.ServiceConfig', function() {
-      expect(controller.createServiceConfig([], [])).be.instanceof(App.ServiceConfig);
+      controller.createServiceConfig([], []).forEach(function(item){
+        expect(item).be.instanceof(App.ServiceConfig);
+      });
     });
   });
 
@@ -75,32 +74,33 @@ describe('App.KerberosWizardStep4Controller', function() {
     var properties = Em.A([
       Em.Object.create({ name: 'realm', value: '', serviceName: 'Cluster' }),
       Em.Object.create({ name: 'spnego_keytab', value: 'spnego_keytab_value', serviceName: 'Cluster' }),
-      Em.Object.create({ name: 'hdfs_keytab', value: '', serviceName: 'HDFS', observesValueFrom: 'spnego_keytab' }),
+      Em.Object.create({ name: 'hdfs_keytab', value: '', serviceName: 'HDFS', identityType: 'user', observesValueFrom: 'spnego_keytab' }),
       Em.Object.create({ name: 'falcon_keytab', value: 'falcon_keytab_value', serviceName: 'FALCON' }),
       Em.Object.create({ name: 'mapreduce_keytab', value: 'mapreduce_keytab_value', serviceName: 'MAPREDUCE2' }),
-      Em.Object.create({ name: 'hdfs_principal', value: 'hdfs_principal_value', serviceName: 'HDFS' })
+      Em.Object.create({ name: 'hdfs_principal', value: 'hdfs_principal_value', identityType: 'user', serviceName: 'HDFS' })
     ]);
     
     var propertyValidationCases = [
       {
         property: 'spnego_keytab',
         e: [
-          { key: 'category', value: 'General' },
-          { key: 'observesValueFrom', absent: true },
+          { key: 'category', value: 'Global' },
+          { key: 'observesValueFrom', absent: true }
         ]
       },
       {
         property: 'realm',
         e: [
-          { key: 'category', value: 'General' },
-          { key: 'value', value: 'realm_value' },
+          { key: 'category', value: 'Global' },
+          { key: 'value', value: 'realm_value' }
         ]
       },
       {
         property: 'hdfs_keytab',
         e: [
+          {key: 'category', value: 'Ambari Principals'},
           { key: 'value', value: 'spnego_keytab_value' },
-          { key: 'observesValueFrom', value: 'spnego_keytab' },
+          { key: 'observesValueFrom', value: 'spnego_keytab' }
         ]
       }
     ];
@@ -144,7 +144,7 @@ describe('App.KerberosWizardStep4Controller', function() {
           }),
           Em.Object.create({
             serviceName: 'HDFS',
-            configCategories: [],
+            configCategories: []
           }),
           Em.Object.create({
             serviceName: 'MAPREDUCE2'
@@ -167,13 +167,13 @@ describe('App.KerberosWizardStep4Controller', function() {
               return Em.A([
                 Em.Object.create({ name: 'realm', value: 'realm_value' }),
                 Em.Object.create({ name: 'admin_principal', value: 'some_val1', defaultValue: 'some_val1', filename: 'krb5-conf.xml' }),
-                Em.Object.create({ name: 'admin_password', value: 'some_password', defaultValue: 'some_password', filename: 'krb5-conf.xml' }),
+                Em.Object.create({ name: 'admin_password', value: 'some_password', defaultValue: 'some_password', filename: 'krb5-conf.xml' })
               ]);
             }
           })
         });
         controller.setStepConfigs(properties);
-        this.result = controller.get('stepConfigs')[0].get('configs');
+        this.result = controller.get('stepConfigs')[0].get('configs').concat(controller.get('stepConfigs')[1].get('configs'));
       });
 
       after(function() {
@@ -199,7 +199,7 @@ describe('App.KerberosWizardStep4Controller', function() {
       ];
       
       propertiesEditableTests.forEach(function(test) {
-        it('Add Service: property `{0}` should be {1}editable'.format(test.name, !!test.e ? '' : 'not '), function() {
+        it('Add Service: property `{0}` should be {1} editable'.format(test.name, !!test.e ? '' : 'not '), function() {
           expect(this.result.findProperty('name', test.name).get('isEditable')).to.eql(test.e);
         });
       });

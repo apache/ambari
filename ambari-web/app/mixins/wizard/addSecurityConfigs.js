@@ -407,9 +407,15 @@ App.AddSecurityConfigs = Em.Mixin.create({
     // generate configs for root level identities object, currently spnego property
     clusterConfigs = clusterConfigs.concat(this.createConfigsByIdentities(kerberosDescriptor.identities, 'Cluster'));
     clusterConfigs.setEach('serviceName', 'Cluster');
-    // generate properties for services object
     kerberosDescriptor.services.forEach(function (service) {
       var serviceName = service.name;
+      // generate configs for service level identity objects
+      if (service.identities) {
+        var serviceIdentityConfigs = self.createConfigsByIdentities(service.identities, serviceName);
+        serviceIdentityConfigs.setEach('serviceName', serviceName);
+        configs = configs.concat(serviceIdentityConfigs);
+      }
+      // generate configs for service component level identity  object
       service.components.forEach(function (component) {
         var componentName = component.name;
         if (component.identities) {
@@ -446,9 +452,9 @@ App.AddSecurityConfigs = Em.Mixin.create({
         isVisible: true,
         isSecureConfig: true,
         componentName: componentName,
-        name: identity.name
+        name: identity.name,
+        identityType: identity.principal && identity.principal.type
       };
-
       self.parseIdentityObject(identity).forEach(function (item) {
         configs.push(App.ServiceConfigProperty.create($.extend({}, defaultObject, item)));
       });

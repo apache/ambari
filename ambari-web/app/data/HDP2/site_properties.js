@@ -4502,6 +4502,43 @@ module.exports =
       "filename": "ams-site.xml",
       "category": "MetricCollector",
       "index" : 3
+    },
+  /************************************************Kerberos Descriptor******************************************/
+    {
+      "name": "smokeuser_principal_name",
+      "displayName": "Smokeuser principal",
+      "category": "Ambari Principals",
+      "index" : 1
+    },
+    {
+      "name": "smokeuser_keytab",
+      "displayName": "Smokeuser keytab",
+      "category": "Ambari Principals",
+      "index" : 2
+    },
+    {
+      "name": "hdfs_principal_name",
+      "displayName": "HDFS user principal",
+      "category": "Ambari Principals",
+      "index" : 3
+    },
+    {
+      "name": "hdfs_user_keytab",
+      "displayName": "HDFS user keytab",
+      "category": "Ambari Principals",
+      "index" : 4
+    },
+    {
+      "name": "hbase_principal_name",
+      "displayName": "HBase user principal",
+      "category": "Ambari Principals",
+      "index" : 5
+    },
+    {
+      "name": "hbase_user_keytab",
+      "displayName": "HBase user keytab",
+      "category": "Ambari Principals",
+      "index" : 6
     }
   ]
 };

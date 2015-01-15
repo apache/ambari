@@ -22,7 +22,7 @@ require('controllers/wizard/step7_controller');
 App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecurityConfigs, {
   name: 'kerberosWizardStep4Controller',
 
-  adminPropertyNames: ['admin_principal', 'admin_password'],
+  adminPropertyNames: [{name: 'admin_principal', displayName: 'Admin principal'}, {name: 'admin_password', displayName: 'Admin password'}],
   
   clearStep: function() {
     this.set('isRecommendedLoaded', false);
@@ -42,20 +42,45 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
   /**
    * Create service config object for Kerberos service.
    *
-   * @param {Em.Object[]} configCategories
    * @param {App.ServiceConfigProperty[]} configs
    * @returns {Em.Object} 
    */
-  createServiceConfig: function(configCategories, configs) {
-    return App.ServiceConfig.create({
-      displayName: 'Kerberos Descriptor',
-      name: 'KERBEROS',
-      serviceName: 'KERBEROS',
-      configCategories: configCategories,
-      configs: configs,
+  createServiceConfig: function(configs) {
+    // Identity configs related to user principal
+    var userConfigs = configs.filterProperty('identityType','user');
+    var nonUserConfig = configs.rejectProperty('identityType','user');
+    var categoryForUserConfigs = [
+      App.ServiceConfigCategory.create({ name: 'Ambari Principals', displayName: 'Ambari Principals'})
+    ];
+    var categoryForNonUserConfigs =  [
+      App.ServiceConfigCategory.create({ name: 'Global', displayName: 'Global'})
+    ].concat(this.createCategoryForServices());
+    return [
+      App.ServiceConfig.create({
+      displayName: 'General',
+      name: 'GENERAL',
+      serviceName: 'KERBEROS_GENERAL',
+      configCategories: categoryForUserConfigs,
+      configs: userConfigs,
       showConfig: true,
       selected: true
-    });
+    }),
+      App.ServiceConfig.create({
+        displayName: 'Advanced',
+        name: 'ADVANCED',
+        serviceName: 'KERBEROS_ADVANCED',
+        configCategories: categoryForNonUserConfigs,
+        configs: nonUserConfig,
+        showConfig: true,
+        selected: false
+      })
+    ];
+  },
+
+  createCategoryForServices: function() {
+    return App.Service.find().mapProperty('serviceName').map(function(item) {
+      return App.ServiceConfigCategory.create({ name: item, displayName: App.Service.find().findProperty('serviceName',item).get('displayName')});
+    })
   },
 
   /**
@@ -64,19 +89,17 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
    * @param {App.ServiceConfigProperty[]} configs
    */
   setStepConfigs: function(configs) {
-    var selectedService = App.StackService.find().findProperty('serviceName', 'KERBEROS');
-    var configCategories = selectedService.get('configCategories');
     var configProperties = this.prepareConfigProperties(configs);
     if (this.get('wizardController.name') == 'addServiceController') {
       // config properties for installed services should be disabled on Add Service Wizard
       configProperties.forEach(function(item) {
-        if (this.get('adminPropertyNames').contains(item.get('name'))) return;
+        if (this.get('adminPropertyNames').mapProperty('name').contains(item.get('name'))) return;
         if (this.get('installedServiceNames').contains(item.get('serviceName')) || item.get('serviceName') == 'Cluster') {
           item.set('isEditable', false);
         }
       }, this);
     }
-    this.get('stepConfigs').pushObject(this.createServiceConfig(configCategories, configProperties));
+    this.get('stepConfigs').pushObjects(this.createServiceConfig(configProperties));
     this.set('selectedService', this.get('stepConfigs')[0]);
   },
 
@@ -97,12 +120,13 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     var installedServiceNames = ['Cluster'].concat(App.Service.find().mapProperty('serviceName'));
     var adminProps = [];
     var configProperties = configs.slice(0);
+    var siteProperties = App.config.get('preDefinedSiteProperties');
     if (this.get('wizardController.name') == 'addServiceController') {
       installedServiceNames = installedServiceNames.concat(this.get('selectedServiceNames'));
       this.get('adminPropertyNames').forEach(function(item) {
-        var property = storedServiceConfigs.filterProperty('filename', 'krb5-conf.xml').findProperty('name', item);
+        var property = storedServiceConfigs.filterProperty('filename', 'krb5-conf.xml').findProperty('name', item.name);
         if (!!property) {
-          var _prop = App.ServiceConfigProperty.create($.extend({}, property, { value: '', defaultValue: '', serviceName: 'Cluster', displayName: item }));
+          var _prop = App.ServiceConfigProperty.create($.extend({}, property, { name: item.name, value: '', defaultValue: '', serviceName: 'Cluster', displayName: item.displayName}));
           _prop.validate();
           adminProps.push(_prop);
         }
@@ -125,8 +149,23 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
         property.set('value', observedValue);
         property.set('defaultValue', observedValue);
       }
-      if (property.get('serviceName') == 'Cluster') property.set('category', 'General');
-      else property.set('category', 'Advanced');
+      if (property.get('serviceName') == 'Cluster') {
+        property.set('category', 'Global');
+      }
+      else {
+        property.set('category', property.get('serviceName'));
+      }
+      // All user identity should be grouped under "Ambari Principals" category
+      if (property.get('identityType') == 'user') property.set('category', 'Ambari Principals');
+      var siteProperty = siteProperties.findProperty('name', property.get('name'));
+      if (siteProperty) {
+        if (siteProperty.category === property.get('category')) {
+          property.set('displayName',siteProperty.displayName);
+          if (siteProperty.index) {
+            property.set('index', siteProperty.index);
+          }
+        }
+      }
     });
 
     return configProperties;
@@ -139,7 +178,8 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
    */
   spnegoPropertiesObserver: function(configProperty) {
     var self = this;
-    this.get('stepConfigs')[0].get('configs').forEach(function(config) {
+    var stepConfig =  this.get('stepConfigs').findProperty('name', 'ADVANCED');
+    stepConfig.get('configs').forEach(function(config) {
       if (config.get('observesValueFrom') == configProperty.get('name')) {
         Em.run.once(self, function() {
           config.set('value', configProperty.get('value'));
@@ -156,7 +196,10 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
   
   saveConfigurations: function() {
     var kerberosDescriptor = this.get('kerberosDescriptor');
-    var configs = this.get('stepConfigs')[0].get('configs');
+    var configs = [];
+    this.get('stepConfigs').forEach(function(_stepConfig){
+      configs = configs.concat(_stepConfig.get('configs'));
+    });
     this.updateKerberosDescriptor(kerberosDescriptor, configs);
     this.get('wizardController').saveKerberosDescriptorConfigs(kerberosDescriptor);
   }

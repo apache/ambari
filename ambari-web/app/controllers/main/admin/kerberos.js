@@ -153,13 +153,34 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
    */
   prepareConfigProperties: function(configs) {
     var configProperties = configs.slice(0);
+    var siteProperties = App.config.get('preDefinedSiteProperties');
     var installedServiceNames = ['Cluster'].concat(App.Service.find().mapProperty('serviceName'));
     configProperties = configProperties.filter(function(item) {
       return installedServiceNames.contains(item.get('serviceName'));
     });
-    configProperties.forEach(function(item) {
-      if (item.get('serviceName') == 'Cluster') item.set('category', 'General');
-      else item.set('category', 'Advanced');
+    configProperties.setEach('isSecureConfig', false);
+    configProperties.forEach(function(property, item, allConfigs) {
+      if (property.get('observesValueFrom')) {
+        var observedValue = allConfigs.findProperty('name', property.get('observesValueFrom')).get('value');
+        property.set('value', observedValue);
+        property.set('defaultValue', observedValue);
+      }
+      if (property.get('serviceName') == 'Cluster') {
+        property.set('category', 'Global');
+      } else {
+        property.set('category', property.get('serviceName'));
+      }
+      // All user identity should be grouped under "Ambari Principals" category
+      if (property.get('identityType') == 'user') property.set('category', 'Ambari Principals');
+      var siteProperty = siteProperties.findProperty('name', property.get('name'));
+      if (siteProperty) {
+        if (siteProperty.category === property.get('category')) {
+          property.set('displayName',siteProperty.displayName);
+          if (siteProperty.index) {
+            property.set('index', siteProperty.index);
+          }
+        }
+      }
     });
     configProperties.setEach('isEditable', false);
     return configProperties;
