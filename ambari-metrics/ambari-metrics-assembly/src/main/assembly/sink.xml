@@ -38,6 +38,10 @@
       <directory>${storm-sink.dir}/src/main/conf</directory>
       <outputDirectory>hadoop-sink/conf</outputDirectory>
     </fileSet>
+    <fileSet>
+      <directory>${kafka-sink.dir}/target/lib</directory>
+      <outputDirectory>hadoop-sink/lib</outputDirectory>
+    </fileSet>
   </fileSets>
 
   <files>
@@ -51,6 +55,10 @@
     </file>
     <file>
       <source>${storm-sink.dir}/target/ambari-metrics-storm-sink-with-common-${project.version}.jar</source>
+      <outputDirectory>hadoop-sink</outputDirectory>
+    </file>
+    <file>
+      <source>${kafka-sink.dir}/target/ambari-metrics-kafka-sink-with-common-${project.version}.jar</source>
       <outputDirectory>hadoop-sink</outputDirectory>
     </file>
   </files>
