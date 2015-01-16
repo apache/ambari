@@ -28,6 +28,7 @@
       <includes>
         <include>org.apache.ambari:ambari-metrics-common</include>
         <include>org.apache.ambari:ambari-metrics-storm-sink</include>
+        <include>org.codehaus.jackson:jackson-mapper-asl</include> <!--missing in storm classpath-->
       </includes>
     </dependencySet>
   </dependencySets>

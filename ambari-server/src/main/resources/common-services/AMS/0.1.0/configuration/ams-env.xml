@@ -21,7 +21,7 @@
 <configuration>
   <property>
     <name>ams_user</name>
-    <value>root</value>
+    <value>ams</value>
     <property-type>USER</property-type>
     <description>AMS User Name.</description>
   </property>

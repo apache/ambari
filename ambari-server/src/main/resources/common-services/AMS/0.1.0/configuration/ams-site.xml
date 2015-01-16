@@ -28,7 +28,6 @@
       Service Operation modes:
       1) embedded: Metrics stored on local FS, HBase in Standalone mode
       2) distributed: HBase daemons writing to HDFS
-      3) external: External HBase storage backend
     </description>
   </property>
   <property>

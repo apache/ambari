@@ -35,6 +35,8 @@ AMS_LOG_DIR=/var/log/ambari-metrics-collector
 
 STOP_TIMEOUT=5
 
+DISTRIBUTED_HBASE=false
+
 function hbase_daemon
 {
     local daemon=$1
@@ -156,6 +158,10 @@ while [[ -z "${_ams_configs_done}" ]]; do
         exit 1
       fi
     ;;
+    --distributed)
+      DISTRIBUTED_HBASE=true
+      shift
+    ;;
     *)
       _ams_configs_done=true
     ;;
@@ -186,12 +192,18 @@ case "$1" in
 	start)
 		hadoop_java_setup
 
-		#hbase_daemon "zookeeper" "start"
 
-		hbase_daemon "master" "start"
-		#hbase_daemon "regionserver" "start"
+#     hbase_daemon "zookeeper" "start"
+#		  hbase_daemon "master" "start"
+#		  hbase_daemon "regionserver" "start"
+    if [ !"${DISTRIBUTED_HBASE}" ]; then
+      hbase_daemon "master" "start"
+    else
+      echo "Launching in distributed mode. Assuming Hbase daemons up and running."
+    fi
 
-    sleep 30
+#    sleep 30
+#TODO check issue fixed
 
 		CLASS='org.apache.hadoop.yarn.server.applicationhistoryservice.ApplicationHistoryServer'
 		# YARN_OPTS="${YARN_OPTS} ${YARN_TIMELINESERVER_OPTS}"
@@ -257,9 +269,9 @@ case "$1" in
       fi
 
       #stop hbase daemons
-      #hbase_daemon "zookeeper" "stop"
-      hbase_daemon "master" "stop"
-      #hbase_daemon "regionserver" "stop"
+      if [ ! "${DISTRIBUTED_HBASE}" ]; then
+        hbase_daemon "master" "stop"
+      fi
 
 
     ;;

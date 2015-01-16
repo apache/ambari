@@ -34,20 +34,12 @@ if rpm_version is not None:
   #RPM versioning support
   rpm_version = default("/configurations/hadoop-env/rpm_version", None)
 
-if rpm_version is not None:
-  hadoop_native_lib = format("/usr/hdp/current/hadoop-client/lib/native/")
-  hadoop_bin_dir = format("/usr/hdp/current/hadoop/bin")
-  daemon_script = format('/usr/hdp/current/hbase/bin/hbase-daemon.sh')
-  region_mover = format('/usr/hdp/current/hbase/bin/region_mover.rb')
-  region_drainer = format('/usr/hdp/current/hbase/bin/draining_servers.rb')
-  hbase_cmd = format('/usr/hdp/current/hbase/bin/hbase')
-else:
-  hadoop_native_lib = format("/usr/lib/hadoop/lib/native")
-  hadoop_bin_dir = "/usr/bin"
-  daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
-  region_mover = "/usr/lib/hbase/bin/region_mover.rb"
-  region_drainer = "/usr/lib/hbase/bin/draining_servers.rb"
-  hbase_cmd = "/usr/lib/hbase/bin/hbase"
+hadoop_native_lib = format("/usr/lib/hadoop/lib/native")
+hadoop_bin_dir = "/usr/bin"
+daemon_script = "/usr/lib/ams-hbase/bin/hbase-daemon.sh"
+region_mover = "/usr/lib/ams-hbase/bin/region_mover.rb"
+region_drainer = "/usr/lib/ams-hbase/bin/draining_servers.rb"
+hbase_cmd = "/usr/lib/ams-hbase/bin/hbase"
 
 hadoop_conf_dir = "/etc/hadoop/conf"
 hbase_conf_dir = "/etc/ams-hbase/conf"

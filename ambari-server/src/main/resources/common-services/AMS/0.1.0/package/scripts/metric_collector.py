@@ -49,9 +49,7 @@ class AmsCollector(Script):
         import params
         env.set_params(params)
 
-        ams_service( 'collector',
-                       action = 'stop'
-        )
+        ams_service( 'collector', action = 'stop')
 
     def status(self, env):
         import status_params

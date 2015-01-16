@@ -158,6 +158,29 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
   if params.security_enabled:
     hbase_TemplateConfig( format("hbase_{name}_jaas.conf"), user=params.hbase_user)
   
+  if name in ["master","regionserver"]:
+
+    if params.is_hbase_distributed:
+
+      params.HdfsDirectory(params.hbase_root_dir,
+                           action="create_delayed",
+                           owner=params.hbase_user,
+                           mode=0775
+      )
+      params.HdfsDirectory(None, action="create")
+
+    else:
+
+      local_root_dir = params.hbase_root_dir
+      #cut protocol name
+      if local_root_dir.startswith("file://"):
+        local_root_dir = local_root_dir[7:]
+        #otherwise assume dir name is provided as is
+
+      Directory(local_root_dir,
+                owner = params.hbase_user,
+                recursive = True)
+
   if name != "client":
     Directory( params.hbase_pid_dir,
       owner = params.hbase_user,
@@ -169,14 +192,14 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
       recursive = True
     )
 
-  if (params.hbase_log4j_props != None):
+  if params.hbase_log4j_props is not None:
     File(format("{params.hbase_conf_dir}/log4j.properties"),
          mode=0644,
          group=params.user_group,
          owner=params.hbase_user,
          content=params.hbase_log4j_props
     )
-  elif (os.path.exists(format("{params.hbase_conf_dir}/log4j.properties"))):
+  elif os.path.exists(format("{params.hbase_conf_dir}/log4j.properties")):
     File(format("{params.hbase_conf_dir}/log4j.properties"),
       mode=0644,
       group=params.user_group,

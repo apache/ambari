@@ -21,6 +21,7 @@ limitations under the License.
 from resource_management import *
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from hbase_service import hbase_service
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def ams_service(name, action):
@@ -38,6 +39,12 @@ def ams_service(name, action):
     cmd = format("{ams_collector_script} --config {ams_collector_conf_dir}")
     pid_file = format("{ams_collector_pid_dir}/ambari-metrics-collector.pid")
     no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
+
+    if params.is_hbase_distributed:
+      hbase_service('zookeeper', action=action)
+      hbase_service('master', action=action)
+      hbase_service('regionserver', action=action)
+      cmd = format("{cmd} --distributed")
 
     if action == 'start':
       daemon_cmd = format("{cmd} start")

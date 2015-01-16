@@ -254,8 +254,10 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     if not propertyName in properties:
       return self.getErrorItem("Value should be set")
     dir = properties[propertyName]
-    if not dir.startswith("hdfs://"):
-      dir = re.sub("^file://", "", dir, count=1)
+    if dir.startswith("hdfs://"):
+      return None #TODO following code fails for hdfs://, is this valid check for hdfs?
+
+    dir = re.sub("^file://", "", dir, count=1)
     mountPoints = {}
     for mountPoint in hostInfo["disk_info"]:
       mountPoints[mountPoint["mountpoint"]] = to_number(mountPoint["available"])

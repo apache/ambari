@@ -180,6 +180,11 @@ def ams(name=None):
               recursive=True
     )
 
+    Directory(format("{ams_monitor_dir}/psutil/build"),
+              owner=params.ams_user,
+              group=params.user_group,
+              recursive=True)
+
     TemplateConfig(
       format("{ams_monitor_conf_dir}/metric_monitor.ini"),
       owner=params.ams_user,

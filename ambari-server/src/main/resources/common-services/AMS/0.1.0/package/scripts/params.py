@@ -61,8 +61,9 @@ hbase_included_hosts = config['commandParams']['included_hosts']
 
 hbase_user = status_params.hbase_user
 smokeuser = config['configurations']['cluster-env']['smokeuser']
-hbase_hdfs_root_dir = config['configurations']['ams-hbase-site']['hbase.rootdir']
-is_hbase_distributed = hbase_hdfs_root_dir.startswith('hdfs://')
+hbase_root_dir = config['configurations']['ams-hbase-site']['hbase.rootdir']
+
+is_hbase_distributed = hbase_root_dir.startswith('hdfs://')
 
 # security is disabled for embedded mode, when HBase is backed by file
 security_enabled = False if not is_hbase_distributed else config['configurations']['cluster-env']['security_enabled'] 
@@ -140,18 +141,19 @@ hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+
 import functools
-#create partial functions with common arguments for every HdfsDirectory call
-#to create hdfs directory we need to call params.HdfsDirectory in code
-# HdfsDirectory = functools.partial(
-#   HdfsDirectory,
-#   conf_dir=hadoop_conf_dir,
-#   hdfs_user=hdfs_user,
-#   security_enabled = security_enabled,
-#   keytab = hdfs_user_keytab,
-#   kinit_path_local = kinit_path_local,
-#   bin_dir = hadoop_bin_dir
-# )
+# create partial functions with common arguments for every HdfsDirectory call
+# to create hdfs directory we need to call params.HdfsDirectory in code
+HdfsDirectory = functools.partial(
+  HdfsDirectory,
+  conf_dir=hadoop_conf_dir,
+  hdfs_user=hdfs_user,
+  security_enabled = security_enabled,
+  keytab = hdfs_user_keytab,
+  kinit_path_local = kinit_path_local,
+  bin_dir = hadoop_bin_dir
+)
 
 
 

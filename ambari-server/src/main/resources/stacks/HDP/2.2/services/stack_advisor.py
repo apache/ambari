@@ -101,7 +101,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                "hadoop-env": self.validateHDFSConfigurationsEnv},
       "MAPREDUCE2": {"mapred-site": self.validateMapReduce2Configurations},
       "AMS": {"ams-hbase-site": self.validateAmsHbaseSiteConfigurations,
-              "ams-hbase-env": self.validateAmsHbaseEnvConfigurations},
+              "ams-hbase-env": self.validateAmsHbaseEnvConfigurations,
+              "ams-site": self.validateAmsSiteConfigurations},
       "TEZ": {"tez-site": self.validateTezConfigurations}
     }
     parentValidators.update(childValidators)
@@ -114,9 +115,23 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                         {"config-name": 'tez.runtime.unordered.output.buffer.size-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.runtime.unordered.output.buffer.size-mb')},]
     return self.toConfigurationValidationProblems(validationItems, "tez-site")
 
+  def validateAmsSiteConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = []
+
+    op_mode = properties.get("timeline.metrics.service.operation.mode")
+    correct_op_mode_item = None
+    if op_mode not in ("embedded", "distributed"):
+      correct_op_mode_item = self.getErrorItem("Correct value should be set.")
+      pass
+
+    validationItems.extend([{"config-name":'timeline.metrics.service.operation.mode', "item": correct_op_mode_item }])
+    return self.toConfigurationValidationProblems(validationItems, "ams-site")
+
   def validateAmsHbaseSiteConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
 
     amsCollectorHosts = self.getComponentHostNames(services, "AMS", "METRIC_COLLECTOR")
+    ams_site = getSiteProperties(configurations, "ams-site")
+
     recommendedDiskSpace = 10485760
     # TODO validate configuration for multiple AMS collectors
     if len(amsCollectorHosts) > 1:
@@ -137,6 +152,21 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
         if host["Hosts"]["host_name"] == collectorHostName:
           validationItems.extend([ {"config-name": 'hbase.rootdir', "item": self.validatorEnoughDiskSpace(properties, 'hbase.rootdir', host["Hosts"], recommendedDiskSpace)}])
           break
+
+    rootdir_item = None
+    op_mode = ams_site.get("timeline.metrics.service.operation.mode")
+    hbase_rootdir = properties.get("hbase.rootdir")
+    if op_mode == "distributed" and not hbase_rootdir.startswith("hdfs://"):
+      rootdir_item = self.getWarnItem("In distributed mode hbase.rootdir should point to HDFS. Collector will operate in embedded mode otherwise.")
+      pass
+
+    distributed_item = None
+    distributed = properties.get("hbase.cluster.distributed")
+    if hbase_rootdir.startswith("hdfs://") and not distributed.lower() == "true":
+      distributed_item = self.getErrorItem("Distributed property should be set to true if hbase.rootdir points to HDFS.")
+
+    validationItems.extend([{"config-name":'hbase.rootdir', "item": rootdir_item },
+                            {"config-name":'hbase.cluster.distributed', "item": distributed_item }])
 
     return self.toConfigurationValidationProblems(validationItems, "ams-hbase-site")
 
