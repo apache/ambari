@@ -63,6 +63,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.easymock.EasyMock;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -379,8 +380,49 @@ public class UpgradeResourceProviderTest {
 
   }
 
+  @Test
+  public void testDowngradeToBase() throws Exception {
+    Cluster cluster = clusters.getCluster("c1");
 
+    Map<String, Object> requestProps = new HashMap<String, Object>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.2.1");
 
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    org.apache.ambari.server.controller.spi.RequestStatus status = upgradeResourceProvider.createResources(request);
+
+    List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(1, upgrades.size());
+
+    requestProps = new HashMap<String, Object>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2");
+    request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    try {
+      status = upgradeResourceProvider.createResources(request);
+      Assert.fail("Expected an exception going downgrade with no upgrade pack");
+    } catch (Exception e) {
+      // !!! expected
+    }
+
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_FORCE_DOWNGRADE, "true");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_FROM_VERSION, "2.2.2.1");
+    request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    status = upgradeResourceProvider.createResources(request);
+    assertEquals(1, status.getAssociatedResources().size());
+    Resource r = status.getAssociatedResources().iterator().next();
+    String id = r.getPropertyValue("Upgrade/request_id").toString();
+
+    UpgradeEntity entity = upgradeDao.findUpgrade(Long.parseLong(id));
+    assertNotNull(entity);
+    assertEquals("2.1.1", entity.getFromVersion());
+    assertEquals("2.2", entity.getToVersion());
+
+  }
 
   /**
    * @param amc

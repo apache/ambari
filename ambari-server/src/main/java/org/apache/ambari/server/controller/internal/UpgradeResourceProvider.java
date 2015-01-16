@@ -309,6 +309,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private UpgradePack validateRequest(Map<String, Object> requestMap) throws AmbariException {
     String clusterName = (String) requestMap.get(UPGRADE_CLUSTER_NAME);
     String version = (String) requestMap.get(UPGRADE_VERSION);
+    String forceDowngrade = (String) requestMap.get(UPGRADE_FORCE_DOWNGRADE);
+    String versionForUpgradePack = (String) requestMap.get(UPGRADE_FROM_VERSION);
+
+    boolean forDowngrade = (null != forceDowngrade && Boolean.parseBoolean(forceDowngrade));
 
     if (null == clusterName) {
       throw new AmbariException(String.format("%s is required", UPGRADE_CLUSTER_NAME));
@@ -320,12 +324,19 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     Cluster cluster = getManagementController().getClusters().getCluster(clusterName);
     StackId stack = cluster.getDesiredStackVersion();
+
+    String repoVersion = version;
+
+    if (forDowngrade && null != versionForUpgradePack) {
+      repoVersion = versionForUpgradePack;
+    }
+
     RepositoryVersionEntity versionEntity = m_repoVersionDAO.findByStackAndVersion(
-        stack.getStackId(), version);
+        stack.getStackId(), repoVersion);
 
     if (null == versionEntity) {
       throw new AmbariException(String.format("Version %s for stack %s was not found",
-          version, stack.getStackVersion()));
+          repoVersion, stack.getStackVersion()));
     }
 
     Map<String, UpgradePack> packs = m_metaProvider.get().getUpgradePacks(
@@ -335,7 +346,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     if (null == up) {
       throw new AmbariException(String.format(
-          "Upgrade pack %s not found", versionEntity.getUpgradePackage()));
+          "Upgrade pack %s for version %s not found", versionEntity.getUpgradePackage(),
+            repoVersion));
     }
 
     // !!! validate all hosts have the version installed
