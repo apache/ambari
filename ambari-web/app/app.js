@@ -76,7 +76,7 @@ module.exports = Em.Application.create({
    * @return {boolean}
    */
   isAccessible: function (type) {
-    if (!App.get('supports.opsDuringRollingUpgrade') && this.get('upgradeState') !== 'INIT' && !type.contains('upgrade_')) {
+    if (!App.get('supports.opsDuringRollingUpgrade') && !['INIT', 'COMPLETED'].contains(this.get('upgradeState')) && !type.contains('upgrade_')) {
       return false;
     }
 
