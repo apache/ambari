@@ -16,6 +16,9 @@
 * limitations under the License.
 }}
 
+<div class="alert alert-info">
+  {{t admin.stackVersions.editRepositories.info}}
+</div>
 
 <div class="row-fluid">
   <div class="span2"><strong>{{t common.os}}</strong></div>
@@ -25,15 +28,15 @@
   </div>
 </div>
 {{#each os in view.content.operatingSystems}}
-  <div class="row-fluid">
+  <div class="row-fluid os-block">
     <div class="span2">
-      {{os.osType}}
+      {{view Ember.Checkbox class="align-checkbox" checkedBinding="os.isSelected"}}&nbsp;{{os.osType}}
     </div>
     <div class="span10">
       {{#each repository in os.repositories}}
         <div class="row-fluid">
           <div class="span3">{{repository.repoName}}</div>
-          <div class="span9">{{view Ember.TextField}}</div>
+          <div class="span9">{{view Ember.TextField valueBinding="repository.baseUrl"}}</div>
         </div>
       {{/each}}
     </div>
@@ -41,6 +44,7 @@
 {{/each}}
 
 <div>
-  {{view Ember.Checkbox checkedBinding="view.skipValidation"}}&nbsp;
-  {{t installer.step1.advancedRepo.skipValidation.message}}
+  <label>{{view Ember.Checkbox checkedBinding="view.skipValidation" class="align-checkbox"}}{{t installer.step1.advancedRepo.skipValidation.message}}
+    <i class="icon-question-sign" rel="skip-validation-tooltip"
+       data-toggle="tooltip" {{translateAttr title="installer.step1.advancedRepo.skipValidation.tooltip"}}></i></label>
 </div>

@@ -1296,9 +1296,21 @@ Em.I18n.translations = {
   'admin.misc.header': 'Service Users and Groups',
   'admin.misc.nothingToShow': 'No user accounts to display',
 
-  'admin.stackVersions.filter.notInstalled': "Not Installed",
-  'admin.stackVersions.filter.upgradeReady': "Upgrade Ready",
+  'admin.stackVersions.filter.notInstalled': "Not Installed ({0})",
+  'admin.stackVersions.filter.all': "All ({0})",
+  'admin.stackVersions.filter.upgradeReady': "Upgrade Ready ({0})",
+  'admin.stackVersions.filter.installed': "Installed ({0})",
+  'admin.stackVersions.filter.current': "Current ({0})",
+
+  'admin.stackVersions.editRepositories.info': 'Provide Base URLs for the Operating Systems you are configuring. Uncheck all other Operating Systems.',
+  'admin.stackVersions.version.install.confirm': 'You are about to install version {0} on all hosts.',
+  'admin.stackVersions.version.linkTooltip': 'Click to Edit Repositories',
+  'admin.stackVersions.version.hostsTooltip': 'Click to List Hosts',
+  'admin.stackVersions.version.notInstalled': "Not Installed",
   'admin.stackVersions.manageVersions': "Manage Versions",
+  'admin.stackVersions.manageVersions.popup.body': 'You are about to leave the <b>Cluster Management</b> interface' +
+    ' and go to the <b>Ambari Administration</b> interface. You can return to cluster management by using the' +
+    ' “Go to Dashboard” link in the Ambari Administration > Clusters section.',
   'admin.stackVersions.version.installNow': "Install Now",
   'admin.stackVersions.version.performUpgrade': "Perform Upgrade",
   'admin.stackVersions.version.upgrade.pause': "Upgrade: Action Required",

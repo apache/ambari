@@ -6306,7 +6306,10 @@ i.icon-asterisks {
 
 #stack-upgrade-page {
   .version-box {
-    border: 1px black solid;
+    background: none repeat scroll 0 0 #e6f1f6;
+    border: 1px solid #d2d9dd;
+    box-shadow: 0 8px 6px -6px black;
+    height: 165px;
     margin: 15px 15px 0 0;
     padding: 5px;
     a.not-active:hover {
@@ -6315,6 +6318,7 @@ i.icon-asterisks {
     .state {
       margin: 15px 0;
       line-height: 30px;
+      padding-top: 5px;
       i {
         color: #0088cc;
         font-size: 16px;
@@ -6325,7 +6329,38 @@ i.icon-asterisks {
       }
     }
     .host-link a {
-      color: black;
+      color: #0088cc;
+      font-size: 14px;
+      font-weight: normal;
+    }
+    .version {
+      color: #000;
+      text-align: center;
+      font-weight: 500;
+      font-size: 20px;
+      line-height: 20px;
+      padding-top: 5px;
+      .pull-right .not-active {
+        font-size: 15px;
+        color: #0088cc;
+        line-height: 20px;
+      }
+    }
+    .hosts-section {
+      margin-top: 20px;
+      width: 305px;
+      text-align: center;
+      background: #f8f8f8;
+      border-top: 1px solid #e4e4e4;
+      margin-left: -5px;
+      padding-bottom: 3px
+    }
+    .hosts-section .hosts-bar {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .hosts-section .host-link {
+      font-size: 12px;
     }
   }
 }
@@ -6369,6 +6404,20 @@ i.icon-asterisks {
   .task-list-main-warp i {
     font-size: 16px;
   }
+}
+
+.repository-list {
+  .os-block {
+    border-top: 1px solid #dddddd;
+    padding-top: 10px
+  }
+  input[type="text"] {
+    width: 100%;
+  }
+}
+
+input[type="checkbox"].align-checkbox {
+  margin: -2px 5px 0 0;
 }
 
 #config-group-select-create-dialog {

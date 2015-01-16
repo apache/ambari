@@ -18,9 +18,26 @@
 
 
 <div>
-  {{view view.filterView}}
+  <div class="btn-group display-inline-block">
+    <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+      <span class="filters-label">{{t common.filter}}: </span>
+            <span>
+              {{view.selectedCategory.label}}
+              <span class="caret"></span>
+            </span>
+    </a>
+    <ul class="dropdown-menu">
+      {{#each category in view.categories}}
+          <li>
+            <a {{action selectCategory category target="view"}} href="#">
+              {{category.label}}
+            </a>
+          </li>
+      {{/each}}
+    </ul>
+  </div>
   {{#isAccessible upgrade_ONLY_ADMIN}}
-    <button class="btn pull-right" {{action goToVersions target="view"}}>{{t admin.stackVersions.manageVersions}}</button>
+    <button class="btn btn-primary pull-right" {{action goToVersions target="view"}}><i class="icon-external-link"></i>&nbsp;{{t admin.stackVersions.manageVersions}}</button>
   {{/isAccessible}}
 </div>
 <div class="row-fluid">

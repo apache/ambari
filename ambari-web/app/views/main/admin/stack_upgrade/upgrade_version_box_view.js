@@ -66,7 +66,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
     } else if (['INIT', 'INSTALL_FAILED', 'OUT_OF_SYNC'].contains(this.get('content.status'))) {
       element.set('isButton', true);
       element.set('text', Em.I18n.t('admin.stackVersions.version.installNow'));
-      element.set('action', 'installRepoVersion');
+      element.set('action', 'installRepoVersionConfirmation');
     } else if (this.get('content.status') === 'INSTALLING') {
       element.set('iconClass', 'icon-cog');
       element.set('isLink', true);
@@ -96,6 +96,11 @@ App.UpgradeVersionBoxView = Em.View.extend({
     return element;
   }.property('content.status'),
 
+  didInsertElement: function(){
+    App.tooltip($('.link-tooltip'), {title: Em.I18n.t('admin.stackVersions.version.linkTooltip')});
+    App.tooltip($('.hosts-tooltip'), {title: Em.I18n.t('admin.stackVersions.version.hostsTooltip')});
+  },
+
   /**
    * run custom action of controller
    * @param {object} event
@@ -113,13 +118,35 @@ App.UpgradeVersionBoxView = Em.View.extend({
    */
   editRepositories: function () {
     var self = this;
-    var repo = App.RepositoryVersion.find(this.get('content.id'));
+    var repoRecord = App.RepositoryVersion.find(this.get('content.id'));
+    //make deep copy of repoRecord
+    var repo = Em.Object.create({
+      displayName: repoRecord.get('displayName'),
+      repositoryVersion: repoRecord.get('displayName'),
+      operatingSystems: repoRecord.get('operatingSystems').map(function(os){
+        return Em.Object.create({
+          osType: os.get('osType'),
+          isSelected: true,
+          repositories: os.get('repositories').map(function (repository) {
+            return Em.Object.create({
+              repoName: repository.get('repoName'),
+              repoId: repository.get('repoId'),
+              baseUrl: repository.get('baseUrl')
+            });
+          })
+        });
+      })
+    });
 
     return App.ModalPopup.show({
+      classNames: ['modal-690px-width', 'repository-list'],
       bodyClass: Ember.View.extend({
         content: repo,
         templateName: require('templates/main/admin/stack_upgrade/edit_repositories'),
-        skipValidation: false
+        skipValidation: false,
+        didInsertElement: function() {
+          App.tooltip($("[rel=skip-validation-tooltip]"), { placement: 'right'});
+        }
       }),
       header: Em.I18n.t('common.repositories'),
       primary: Em.I18n.t('common.save'),
@@ -146,7 +173,8 @@ App.UpgradeVersionBoxView = Em.View.extend({
       return App.ModalPopup.show({
         bodyClass: Ember.View.extend({
           title: Em.I18n.t('admin.stackVersions.hosts.popup.title').format(version, status.label, hosts.length),
-          template: Em.Handlebars.compile('<h4>{{view.title}}</h4><span class="limited-height-2">' + hosts.join('<br/>') + '</span>')
+          hosts: hosts,
+          template: Em.Handlebars.compile('<h4>{{view.title}}</h4><div class="limited-height-2">{{#each view.hosts}}<div>{{this}}</div>{{/each}}</div>')
         }),
         header: Em.I18n.t('admin.stackVersions.hosts.popup.header').format(status.label),
         primary: Em.I18n.t('admin.stackVersions.hosts.popup.primary'),

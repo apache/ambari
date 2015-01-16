@@ -33,45 +33,63 @@ App.MainAdminStackVersionsView = Em.View.extend({
   /**
    * @type {Array}
    */
-  filterContent: [
-    {
-      label: Em.I18n.t('common.all'),
-      value: ''
-    },
-    {
-      label: Em.I18n.t('admin.stackVersions.filter.notInstalled'),
-      value: 'NOT_INSTALLED'
-    },
-    {
-      label: Em.I18n.t('common.installed'),
-      value: 'INSTALLED'
-    },
-    {
-      label: Em.I18n.t('admin.stackVersions.filter.upgradeReady'),
-      value: 'UPGRADE_READY'
-    },
-    {
-      label: Em.I18n.t('common.current'),
-      value: 'CURRENT'
-    }
+  categories: [
+    Em.Object.create({
+      labelKey: 'admin.stackVersions.filter.all',
+      value: '',
+      isSelected: true
+    }),
+    Em.Object.create({
+      labelKey: 'admin.stackVersions.filter.notInstalled',
+      value: 'NOT_INSTALLED',
+      isSelected: false
+    }),
+    Em.Object.create({
+      labelKey: 'admin.stackVersions.filter.installed',
+      value: 'INSTALLED',
+      isSelected: false
+    }),
+    Em.Object.create({
+      labelKey: 'admin.stackVersions.filter.upgradeReady',
+      value: 'UPGRADE_READY',
+      isSelected: false
+    }),
+    Em.Object.create({
+      labelKey: 'admin.stackVersions.filter.current',
+      value: 'CURRENT',
+      isSelected: false
+    })
   ],
+
+  didInsertElement: function () {
+    this.observesCategories();
+  },
+
+  /**
+   * update categories labels
+   */
+  observesCategories: function() {
+    var versions = this.get('versions');
+    this.get('categories').forEach(function (category) {
+      category.set('label', Em.I18n.t(category.labelKey).format(this.filterBy(versions, category).length));
+    }, this);
+  }.observes('versions.@each.status'),
+
+  /**
+   * select category
+   * @param event
+   */
+  selectCategory: function (event) {
+    this.get('categories').filterProperty('isSelected').setEach('isSelected', false);
+    event.context.set('isSelected', true);
+  },
 
   /**
    * @type {object}
-   * @default null
    */
-  filterSelected: null,
-
-  /**
-   * @type {Ember.Select}
-   * @class
-   */
-  filterView: Ember.Select.extend({
-    selectionBinding: 'parentView.filterSelected',
-    contentBinding: 'parentView.filterContent',
-    optionValuePath: "content.value",
-    optionLabelPath: "content.label"
-  }),
+  selectedCategory: function(){
+    return this.get('categories').findProperty('isSelected');
+  }.property('categories.@each.isSelected'),
 
   /**
    * @type {Em.Array}
@@ -84,10 +102,10 @@ App.MainAdminStackVersionsView = Em.View.extend({
   stackVersions: App.StackVersion.find(),
 
   /**
+   * formatted versions
    * @type {Array}
    */
-  filteredVersions: function () {
-    var filter = this.get('filterSelected');
+  versions: function () {
     var currentVersion = this.get('controller.currentVersion');
     var versions = this.get('repoVersions').map(function (version) {
       var versionFormatted = Em.Object.create({
@@ -113,26 +131,47 @@ App.MainAdminStackVersionsView = Em.View.extend({
     versions.sort(function (a, b) {
       return stringUtils.compareVersions(a.get('repositoryVersion'), b.get('repositoryVersion'));
     });
+    return versions;
+  }.property('repoVersions.length', 'stackVersions.@each.state'),
 
-    if (filter && filter.value) {
+  /**
+   * @type {Array}
+   */
+  filteredVersions: function () {
+    return this.filterBy(this.get('versions'), this.get('selectedCategory'))
+  }.property('selectedCategory', 'versions.@each.status'),
+
+  /**
+   * filter versions by category
+   * @param versions
+   * @param filter
+   * @return {Array}
+   */
+  filterBy: function (versions, filter) {
+    if (filter && filter.get('value')) {
       return versions.filter(function (version) {
-        if (version.get('status') === 'INSTALLED' && filter.value === 'UPGRADE_READY') {
+        if (version.get('status') === 'INSTALLED' && filter.get('value') === 'UPGRADE_READY') {
           return stringUtils.compareVersions(version.get('repositoryVersion'), currentVersion.repository_version) === 1;
-        } else if (filter.value === 'NOT_INSTALLED') {
+        } else if (filter.get('value') === 'NOT_INSTALLED') {
           return ['INIT', 'INSTALL_FAILED', 'INSTALLING', 'OUT_OF_SYNC'].contains(version.get('status'));
         } else {
-          return version.get('status') === filter.value;
+          return version.get('status') === filter.get('value');
         }
       }, this);
     }
     return versions;
-  }.property('filterSelected', 'repoVersions.length', 'stackVersions.@each.state'),
+  },
 
   /**
    * route to versions in Admin View
    */
   goToVersions: function () {
-    window.location.replace('/views/ADMIN_VIEW/1.0.0/INSTANCE/#/stackVersions');
+    App.showConfirmationPopup(function () {
+      window.location.replace('/views/ADMIN_VIEW/1.0.0/INSTANCE/#/stackVersions');
+    },
+    Em.I18n.t('admin.stackVersions.manageVersions.popup.body'),
+    null,
+    Em.I18n.t('admin.stackVersions.manageVersions'));
   },
 
   /**

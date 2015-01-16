@@ -428,4 +428,38 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       });
     });
   });
+
+  describe("#installRepoVersionConfirmation()", function () {
+    before(function () {
+      sinon.stub(controller, 'installRepoVersion', Em.K);
+    });
+    after(function () {
+      controller.installRepoVersion.restore();
+    });
+    it("show popup", function () {
+      var repo = Em.Object.create({'displayName': 'HDP-2.2'});
+      var popup = controller.installRepoVersionConfirmation(repo);
+      popup.onPrimary();
+      expect(controller.installRepoVersion.calledWith(repo)).to.be.true;
+    });
+  });
+
+  describe("#installRepoVersion()", function () {
+    before(function () {
+      sinon.stub(App.ajax, 'send', Em.K);
+    });
+    after(function () {
+      App.ajax.send.restore();
+    });
+    it("make ajax call", function () {
+      var repo = Em.Object.create({
+        stackVersionType: 'HDP',
+        stackVersionNumber: '2.2',
+        repositoryVersion: '2.2.1',
+        repoId: 1
+      });
+      controller.installRepoVersion(repo);
+      expect(App.ajax.send.calledOnce).to.be.true;
+    });
+  });
 });

@@ -359,6 +359,18 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   },
 
   /**
+   * confirmation popup before install repository version
+   */
+  installRepoVersionConfirmation: function (repo) {
+    var self = this;
+    return App.showConfirmationPopup(function () {
+        self.installRepoVersion(repo);
+      },
+      Em.I18n.t('admin.stackVersions.version.install.confirm').format(repo.get('displayName'))
+    );
+  },
+
+  /**
    * sends request to install repoVersion to the cluster
    * and create clusterStackVersion resourse
    * @param {Em.Object} repo

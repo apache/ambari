@@ -16,9 +16,9 @@
 * limitations under the License.
 }}
 
-<p class="align-center">
-  <strong>{{view.content.displayName}}</strong>
-  <a class="pull-right not-active" {{action editRepositories target="view"}}>
+<p class="version">
+  {{view.content.displayName}}
+  <a class="pull-right not-active link-tooltip" {{action editRepositories target="view"}}>
     <i class="icon-edit"></i>
   </a>
 </p>
@@ -36,23 +36,27 @@
     <a href="#" {{action runAction view.stateElement target="view"}}>{{view.stateElement.text}}</a>
   {{/if}}
 </p>
-<div class="row-fluid host-link">
-  <div class="span4 align-center">
-    <div><a href="#" class="not-active"
-      {{action showHosts view.versionStateMap.not_installed view.content.repositoryVersion view.content.notInstalledHosts target="view"}}>
-      {{view.content.notInstalledHosts.length}}</a></div>
-    <div>{{t admin.stackVersions.filter.notInstalled}}</div>
-  </div>
-  <div class="span4 align-center">
-    <div><a href="#" class="not-active"
-      {{action showHosts view.versionStateMap.installed view.content.repositoryVersion view.content.installedHosts target="view"}}>
-      {{view.content.installedHosts.length}}</a></div>
-    <div>{{t common.installed}}</div>
-  </div>
-  <div class="span4 align-center">
-    <div><a href="#" class="not-active"
-      {{action showHosts view.versionStateMap.current view.content.repositoryVersion view.content.currentHosts target="view"}}>
-      {{view.content.currentHosts.length}}</a></div>
-    <div>{{t common.current}}</div>
+
+<div class="hosts-section">
+  <div class="hosts-bar">{{t common.hosts}}</div>
+  <div class="row-fluid host-link">
+    <div class="span4 align-center">
+      <div><a href="#" class="not-active hosts-tooltip"
+        {{action showHosts view.versionStateMap.not_installed view.content.repositoryVersion view.content.notInstalledHosts target="view"}}>
+        {{view.content.notInstalledHosts.length}}</a></div>
+      <div>{{t admin.stackVersions.version.notInstalled}}</div>
+    </div>
+    <div class="span4 align-center">
+      <div><a href="#" class="not-active hosts-tooltip"
+        {{action showHosts view.versionStateMap.installed view.content.repositoryVersion view.content.installedHosts target="view"}}>
+        {{view.content.installedHosts.length}}</a></div>
+      <div>{{t common.installed}}</div>
+    </div>
+    <div class="span4 align-center">
+      <div><a href="#" class="not-active hosts-tooltip"
+        {{action showHosts view.versionStateMap.current view.content.repositoryVersion view.content.currentHosts target="view"}}>
+        {{view.content.currentHosts.length}}</a></div>
+      <div>{{t common.current}}</div>
+    </div>
   </div>
 </div>
