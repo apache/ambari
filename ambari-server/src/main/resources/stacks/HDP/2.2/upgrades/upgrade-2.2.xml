@@ -203,6 +203,12 @@
           <task xsi:type="restart" />
         </upgrade>
       </component>
+
+      <component name="ZOOKEEPER_CLIENT">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
     </service>
 
     <service name="HDFS">

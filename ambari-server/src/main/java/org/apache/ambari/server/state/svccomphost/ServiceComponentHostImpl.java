@@ -1736,11 +1736,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       }
     }
 
-    //TODO hack: clients' states are not updated, probably we should check the state of master components
+    // ZKFC is special because it is does not receive a RESTART action during a Rolling Upgrade.
     final Collection<HostComponentStateEntity> nonUpgradedHostComponents = CollectionUtils.subtract(allHostComponents, upgradedHostComponents);
     for (HostComponentStateEntity hostComponentStateEntity: nonUpgradedHostComponents) {
-      final Service service = cluster.getService(hostComponentStateEntity.getServiceName());
-      if (service.getServiceComponent(hostComponentStateEntity.getComponentName()).isClientComponent()) {
+      if (hostComponentStateEntity.getComponentName().equalsIgnoreCase("ZKFC")) {
         upgradedHostComponents.add(hostComponentStateEntity);
       }
     }

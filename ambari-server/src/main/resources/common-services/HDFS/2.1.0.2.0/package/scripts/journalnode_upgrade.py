@@ -47,9 +47,7 @@ def post_upgrade_check():
     raise Fail("Need at least 3 Journalnodes to maintain a quorum")
 
   # TODO, test with HTTPS
-  policy = default("/configurations/hdfs-site/dfs.http.policy", None)
-  if not policy:
-    raise Fail("Could not retrieve dfs.http.policy")
+  policy = default("/configurations/hdfs-site/dfs.http.policy", "HTTP_ONLY")
   encrypted = policy.upper == "HTTPS_ONLY"
 
   nn_address = default("/configurations/hdfs-site/dfs.namenode.https-address", None) if encrypted else \
@@ -136,10 +134,10 @@ def ensure_jns_have_new_txn(nodes, last_txn_id):
       if data:
         actual_txn_ids[node] = int(data)
         if actual_txn_ids[node] >= last_txn_id:
-          Logger.info("Journalnode %s has a higher transaction id: %s" + str(data))
+          Logger.info("Journalnode %s has a higher transaction id: %s" % (node, str(data)))
           jns_updated += 1
         else:
-          Logger.info("Journalnode %s is still on transaction id: %s" + str(data))
+          Logger.info("Journalnode %s is still on transaction id: %s" % (node, str(data)))
 
     Logger.info("Sleeping for %d secs" % step_time_secs)
     time.sleep(step_time_secs)

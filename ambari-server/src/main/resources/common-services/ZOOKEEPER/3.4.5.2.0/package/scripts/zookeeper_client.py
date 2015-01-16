@@ -21,6 +21,8 @@ Ambari Agent
 
 import sys
 from resource_management import *
+from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions.format import format
 
 from zookeeper import zookeeper
 
@@ -38,6 +40,25 @@ class ZookeeperClient(Script):
     env.set_params(params)
 
     zookeeper(type='client')
+
+  def pre_rolling_restart(self, env):
+    Logger.info("Executing Rolling Upgrade pre-restart")
+    import params
+    env.set_params(params)
+
+    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      Execute(format("hdp-select set zookeeper-client {version}"))
+
+  def start(self, env, rolling_restart=False):
+    import params
+    env.set_params(params)
+    self.configure(env)
+    pass
+
+  def stop(self, env, rolling_restart=False):
+    import params
+    env.set_params(params)
+    pass
 
   def status(self, env):
     raise ClientComponentHasNoStatus()
