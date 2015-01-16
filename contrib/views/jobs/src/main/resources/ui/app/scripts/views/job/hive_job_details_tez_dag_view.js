@@ -781,7 +781,7 @@ App.MainHiveJobDetailsTezDagView = Em.View.extend({
     App.tooltip($('.svg-tooltip'), {
       container: 'body',
       html: true,
-      placement: 'left',
+      placement: 'bottom',
       template: '<div class="tooltip jobs-tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
     });
 
