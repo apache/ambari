@@ -55,7 +55,7 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.goToCluster = function() {
-    window.location.replace('/#/main/admin/versions/' + this.repo.id);
+    window.location.replace('/#/main/admin/stack/versions');
   };
 
   $scope.clearFilters = function () {
