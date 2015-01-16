@@ -105,13 +105,9 @@ App.MainMenuView = Em.CollectionView.extend({
       }
       App.router.route('main/' + event.context);
     },
-    goToCategory: function (event) {
-      var itemName = this.get('content').routing;
-      // route to correct category of current menu item
-      if (itemName == 'admin') {
-        App.router.route('main/admin/' + event.context);
-      }
-    },
+
+    selectedAdminItemBinding: 'App.router.mainAdminController.category',
+
     dropdownCategories: function () {
       var itemName = this.get('content').routing;
       var categories = [];
@@ -145,6 +141,22 @@ App.MainMenuView = Em.CollectionView.extend({
         }
       }
       return categories;
-    }.property('')
+    }.property(''),
+
+    AdminDropdownItemView: Ember.View.extend({
+      tagName: 'li',
+      classNameBindings: 'isActive:active'.w(),
+      isActive: function () {
+        return this.get('item').toLowerCase().contains(this.get('parentView.selectedAdminItem').toLowerCase());
+      }.property('item', 'parentView.selectedAdminItem'),
+
+      goToCategory: function (event) {
+        var itemName = this.get('parentView').get('content').routing;
+        // route to correct category of current menu item
+        if (itemName == 'admin') {
+          App.router.route('main/admin/' + event.context);
+        }
+      }
+    })
   })
 });

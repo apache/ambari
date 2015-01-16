@@ -33,7 +33,9 @@
 {{#if view.isAdminItem}}
   <ul class="top-nav-dropdown-menu">
     {{#each category in view.dropdownCategories}}
-        <li><a href="#" {{action "goToCategory" category.url target="view"}}>{{category.label}}</a></li>
+      {{#view view.AdminDropdownItemView itemBinding="category.name" }}
+        <a href="#" {{action "goToCategory" category.url target="view"}}>{{category.label}}</a>
+      {{/view}}
     {{/each}}
   </ul>
 {{/if}}
