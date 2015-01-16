@@ -179,7 +179,14 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
    */
   getDataFromProgressController: function () {
     var data = this.get('hostsData');
-    var tasksData = this.get('progressController.logs');
+    var tasksData = [];
+    var stageId = this.get('stageId');
+    // If the progress page is broken into stages then update host with only stage's tasks
+    if (!!stageId) {
+      tasksData = this.get('progressController.logs').filterProperty('Tasks.stage_id',stageId);
+    } else {
+      tasksData = this.get('progressController.logs');
+    }
     if (tasksData.length) {
       var tasks = [];
       tasksData.forEach(function (logs) {
