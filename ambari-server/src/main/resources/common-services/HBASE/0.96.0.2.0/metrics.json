@@ -819,6 +819,11 @@
             "pointInTime": true,
             "temporal": true
           },
+          "metrics/hbase/regionserver/blockCacheHitPercent": {
+            "metric": "regionserver.Server.blockCountHitPercent",
+            "pointInTime": true,
+            "temporal": true
+          },
           "metrics/rpc/createTable_avg_time": {
             "metric": "rpc.rpc.createTable_avg_time",
             "pointInTime": true,
