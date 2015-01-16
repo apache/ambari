@@ -98,7 +98,14 @@
       <service name="KAFKA">
         <component>KAFKA_BROKER</component>
       </service>
-   </group>
+    </group>
+
+    <group name="KNOX" title="Knox">
+      <skippable>true</skippable>
+      <service name="KNOX">
+        <component>KNOX_GATEWAY</component>
+      </service>
+    </group>
 
     <group name="STORM" title="Storm">
       <skippable>true</skippable>
@@ -419,6 +426,14 @@
 
     <service name="KAFKA">
       <component name="KAFKA_BROKER">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="KNOX">
+      <component name="KNOX_GATEWAY">
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>

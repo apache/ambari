@@ -29,6 +29,8 @@ tmp_dir = Script.get_tmp_dir()
 
 stack_name = default("/hostLevelParams/stack_name", None)
 
+version = default("/commandParams/version", None)
+
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
@@ -36,10 +38,14 @@ if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
   knox_bin = '/usr/hdp/current/knox-server/bin/gateway.sh'
   ldap_bin = '/usr/hdp/current/knox-server/bin/ldap.sh'
   knox_client_bin = '/usr/hdp/current/knox-server/bin/knoxcli.sh'
+  knox_data_dir = '/usr/hdp/current/knox-server/data'
+  knox_conf_dir = '/usr/hdp/current/knox-server/conf'
 else:
   knox_bin = '/usr/bin/gateway'
   ldap_bin = '/usr/lib/knox/bin/ldap.sh'
   knox_client_bin = '/usr/lib/knox/bin/knoxcli.sh'
+  knox_data_dir = '/usr/lib/knox/data'
+  knox_conf_dir = '/usr/lib/knox/conf'
 
 namenode_hosts = default("/clusterHostInfo/namenode_host", None)
 if type(namenode_hosts) is list:

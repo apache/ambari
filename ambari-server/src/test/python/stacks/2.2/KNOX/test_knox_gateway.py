@@ -197,3 +197,19 @@ class TestKnoxGateway(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
+
+  @patch("tarfile.open")
+  @patch("os.path.isdir")
+  def test_pre_rolling_restart(self, isdir_mock, tarfile_open_mock):
+    isdir_mock.return_value = True
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/knox_gateway.py",
+                       classname = "KnoxGateway",
+                       command = "pre_rolling_restart",
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES)
+
+    self.assertTrue(tarfile_open_mock.called)
+
+    self.assertResourceCalled("Execute", "hdp-select set knox-server 2.2.1.0-2067")

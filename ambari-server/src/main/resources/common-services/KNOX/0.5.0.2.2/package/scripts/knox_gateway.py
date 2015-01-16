@@ -22,6 +22,7 @@ from resource_management.libraries.functions.security_commons import build_expec
   cached_kinit_executor, validate_security_config_properties, get_params_from_filesystem, \
   FILE_TYPE_XML
 import sys
+import upgrade
 
 from knox import knox
 from ldap import ldap
@@ -46,7 +47,16 @@ class KnoxGateway(Script):
     knox()
     ldap()
 
-  def start(self, env):
+  def pre_rolling_restart(self, env):
+    import params
+    env.set_params(params)
+
+    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      upgrade.backup_data()
+      Execute(format("hdp-select set knox-server {version}"))
+
+
+  def start(self, env, rolling_restart=False):
     import params
     env.set_params(params)
     self.configure(env)
@@ -58,7 +68,7 @@ class KnoxGateway(Script):
             not_if=no_op_test
     )
 
-  def stop(self, env):
+  def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
     self.configure(env)
