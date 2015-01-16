@@ -29,6 +29,7 @@
     </group>
 
     <group name="CORE_MASTER" title="Core Masters">
+      <service-check>false</service-check>
       <service name="HDFS">
         <component>JOURNALNODE</component>
         <component>NAMENODE</component>
@@ -46,9 +47,20 @@
       <service name="HBASE">
         <component>HBASE_MASTER</component>
       </service>
+      
     </group>
-
+    
+    <group name="SERVICE_CHECK" title="Full Service Check" xsi:type="service-check">
+      <priority>
+        <service>HDFS</service>
+        <service>MAPREDUCE2</service>
+        <service>YARN</service>
+        <service>HBASE</service>
+      </priority>
+    </group>
+    
     <group name="CORE_SLAVES" title="Core Slaves" xsi:type="colocated">
+      <service-check>false</service-check>
       <service name="HDFS">
         <component>DATANODE</component>
       </service>
@@ -57,7 +69,7 @@
         <component>HBASE_REGIONSERVER</component>
       </service>
 
-     <service name="YARN">
+      <service name="YARN">
         <component>NODEMANAGER</component>
       </service>
 
@@ -66,6 +78,14 @@
         <summary>Verfication Required</summary>
         <message>Core Services have been upgraded. You are advised to perform tests against your cluster to ensure proper operation before proceeding with upgrade of remaining services.</message>
       </batch>
+    </group>
+    
+    <group name="SERVICE_CHECK" title="Full Service Check" xsi:type="service-check">
+      <priority>
+        <service>HDFS</service>
+        <service>YARN</service>
+        <service>HBASE</service>
+      </priority>
     </group>
 
     <group name="HIVE" title="Hive">
@@ -91,6 +111,45 @@
         <component>FALCON_SERVER</component>
         <component>FALCON_CLIENT</component>
       </service>
+    </group>
+
+    <group name="CLIENTS" title="Client Components">
+      <service name="HDFS">
+        <component>HDFS_CLIENT</component>
+      </service>
+
+      <service name="YARN">
+        <component>YARN_CLIENT</component>
+      </service>
+
+      <service name="MAPREDUCE2">
+        <component>MAPREDUCE2_CLIENT</component>
+      </service>
+
+      <service name="TEZ">
+        <component>TEZ_CLIENT</component>
+      </service>
+
+      <service name="HBASE">
+        <component>HBASE_CLIENT</component>
+      </service>
+
+      <service name="PIG">
+        <component>PIG</component>
+      </service>
+
+      <service name="HIVE">
+        <component>HIVE_CLIENT</component>
+        <component>HCAT</component>
+      </service>
+    </group>
+
+    <group name="SERVICE_CHECK" title="Full Service Check" xsi:type="service-check">
+      <priority>
+        <service>HDFS</service>
+        <service>YARN</service>
+        <service>HBASE</service>
+      </priority>
     </group>
 
     <group name="KAFKA" title="Kafka">
@@ -132,36 +191,6 @@
       </service>
     </group>
 
-    <group name="CLIENTS" title="Client Components">
-      <service name="HDFS">
-        <component>HDFS_CLIENT</component>
-      </service>
-
-      <service name="YARN">
-        <component>YARN_CLIENT</component>
-      </service>
-
-      <service name="MAPREDUCE2">
-        <component>MAPREDUCE2_CLIENT</component>
-      </service>
-
-      <service name="TEZ">
-        <component>TEZ_CLIENT</component>
-      </service>
-
-      <service name="HBASE">
-        <component>HBASE_CLIENT</component>
-      </service>
-
-      <service name="PIG">
-        <component>PIG</component>
-      </service>
-
-      <service name="HIVE">
-        <component>HIVE_CLIENT</component>
-        <component>HCAT</component>
-      </service>
-    </group>
 
     <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize Upgrade">
       <skippable>true</skippable>

@@ -24,6 +24,7 @@ import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -32,7 +33,6 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.hamcrest.CoreMatchers.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -6973,15 +6973,15 @@ public class AmbariManagementControllerTest {
     } catch (StackAccessException e) {
       // do nothing
     }
-    
+
     // test that a stack response has upgrade packs
     requestWithParams = new StackVersionRequest(STACK_NAME, "2.1.1");
     responsesWithParams = controller.getStackVersions(Collections.singleton(requestWithParams));
-    
+
     Assert.assertEquals(1, responsesWithParams.size());
     StackVersionResponse resp = responsesWithParams.iterator().next();
     assertNotNull(resp.getUpgradePacks());
-    assertEquals(2, resp.getUpgradePacks().size());
+    assertEquals(3, resp.getUpgradePacks().size());
     assertTrue(resp.getUpgradePacks().contains("upgrade_test"));
   }
 
@@ -9106,7 +9106,7 @@ public class AmbariManagementControllerTest {
       componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "DATANODE", "host2", "DISABLED"));
       updateHostComponents(amc, componentHostRequests, mapRequestProps, false);
       org.junit.Assert.assertEquals(State.DISABLED, sch.getState());
-      
+
       // State should not be changed if componentHostRequests are empty
       componentHostRequests.clear();
       mapRequestProps.put(RequestOperationLevel.OPERATION_CLUSTER_ID,"c1");

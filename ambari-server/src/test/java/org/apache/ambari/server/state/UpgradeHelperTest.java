@@ -108,7 +108,7 @@ public class UpgradeHelperTest {
     UpgradePack upgrade = upgrades.get("upgrade_test");
     assertNotNull(upgrade);
 
-    Cluster cluster = makeCluster();
+    makeCluster();
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createUpgrade(
         m_masterHostResolver, upgrade, UPGRADE_VERSION);
@@ -136,15 +136,12 @@ public class UpgradeHelperTest {
 
   @Test
   public void testDowngradeOrchestration() throws Exception {
-    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("foo", "bar");
-    assertTrue(upgrades.isEmpty());
-
-    upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
     assertTrue(upgrades.containsKey("upgrade_test"));
     UpgradePack upgrade = upgrades.get("upgrade_test");
     assertNotNull(upgrade);
 
-    Cluster cluster = makeCluster();
+    makeCluster();
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createDowngrade(
         m_masterHostResolver, upgrade, DOWNGRADE_VERSION);
@@ -174,15 +171,12 @@ public class UpgradeHelperTest {
 
   @Test
   public void testBuckets() throws Exception {
-    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("foo", "bar");
-    assertTrue(upgrades.isEmpty());
-
-    upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
     assertTrue(upgrades.containsKey("upgrade_bucket_test"));
     UpgradePack upgrade = upgrades.get("upgrade_bucket_test");
     assertNotNull(upgrade);
 
-    Cluster cluster = makeCluster();
+    makeCluster();
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createUpgrade(
         m_masterHostResolver, upgrade, UPGRADE_VERSION);
@@ -195,15 +189,12 @@ public class UpgradeHelperTest {
 
   @Test
   public void testManualTaskPostProcessing() throws Exception {
-    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("foo", "bar");
-    assertTrue(upgrades.isEmpty());
-
-    upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
     assertTrue(upgrades.containsKey("upgrade_test"));
     UpgradePack upgrade = upgrades.get("upgrade_test");
     assertNotNull(upgrade);
 
-    Cluster cluster = makeCluster();
+    makeCluster();
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createUpgrade(
         m_masterHostResolver, upgrade, UPGRADE_VERSION);
@@ -220,6 +211,34 @@ public class UpgradeHelperTest {
         "This is a manual task with a placeholder of placeholder-rendered-properly",
         manualTask.message);
   }
+
+
+  @Test
+  public void testServiceCheckStages() throws Exception {
+
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    assertTrue(upgrades.containsKey("upgrade_test_checks"));
+    UpgradePack upgrade = upgrades.get("upgrade_test_checks");
+    assertNotNull(upgrade);
+
+    makeCluster();
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createUpgrade(
+        m_masterHostResolver, upgrade, UPGRADE_VERSION);
+
+    assertEquals(7, groups.size());
+
+    // grab the manual task out of ZK which has placeholder text
+    UpgradeGroupHolder zookeeperGroup = groups.get(1);
+    assertEquals("ZOOKEEPER", zookeeperGroup.name);
+    ManualTask manualTask = (ManualTask) zookeeperGroup.items.get(0).getTasks().get(
+        0).getTasks().get(0);
+
+    assertEquals(
+        "This is a manual task with a placeholder of placeholder-rendered-properly",
+        manualTask.message);
+  }
+
 
   /**
    * Create an HA cluster

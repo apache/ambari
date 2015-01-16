@@ -35,7 +35,7 @@ import org.apache.commons.lang.StringUtils;
 /**
  *
  */
-@XmlSeeAlso(value = { ColocatedGrouping.class, ClusterGrouping.class })
+@XmlSeeAlso(value = { ColocatedGrouping.class, ClusterGrouping.class, ServiceCheckGrouping.class })
 public class Grouping {
 
   @XmlAttribute(name="name")
@@ -53,18 +53,27 @@ public class Grouping {
   @XmlElement(name="service")
   public List<UpgradePack.OrderService> services = new ArrayList<UpgradePack.OrderService>();
 
+  @XmlElement(name="service-check", defaultValue="true")
+  public boolean performServiceCheck = true;
+
+
   /**
    * Gets the default builder.
    */
   public StageWrapperBuilder getBuilder() {
-    return new DefaultBuilder();
+    return new DefaultBuilder(performServiceCheck);
   }
 
 
   private static class DefaultBuilder extends StageWrapperBuilder {
 
-    private List<StageWrapper> stages = new ArrayList<StageWrapper>();
-    private Set<String> serviceChecks = new HashSet<String>();
+    private List<StageWrapper> m_stages = new ArrayList<StageWrapper>();
+    private Set<String> m_servicesToCheck = new HashSet<String>();
+    private boolean m_serviceCheck = true;
+
+    private DefaultBuilder(boolean serviceCheck) {
+      m_serviceCheck = serviceCheck;
+    }
 
     /**
      * Add stages where the restart stages are ordered
@@ -86,7 +95,7 @@ public class Grouping {
             getStageText("Preparing", pc.name, preTasksEffectiveHosts),
             preTasks
             );
-        stages.add(stage);
+        m_stages.add(stage);
       }
 
       // !!! FIXME upgrade definition have only one step, and it better be a restart
@@ -98,7 +107,7 @@ public class Grouping {
                 StageWrapper.Type.RESTART,
                 getStageText("Restarting", pc.name, Collections.singleton(hostName)),
                 new TaskWrapper(service, pc.name, Collections.singleton(hostName), t));
-            stages.add(stage);
+            m_stages.add(stage);
           }
         }
       }
@@ -112,11 +121,11 @@ public class Grouping {
             getStageText("Completing", pc.name, postTasksEffectiveHosts),
             postTasks
             );
-        stages.add(stage);
+        m_stages.add(stage);
       }
 
       if (!clientOnly) {
-        serviceChecks.add(service);
+        m_servicesToCheck.add(service);
       }
     }
 
@@ -124,22 +133,22 @@ public class Grouping {
     public List<StageWrapper> build() {
 
       List<TaskWrapper> tasks = new ArrayList<TaskWrapper>();
-      for (String service : serviceChecks) {
+      for (String service : m_servicesToCheck) {
         tasks.add(new TaskWrapper(
             service, "", Collections.<String>emptySet(), new ServiceCheckTask()));
       }
 
-      if (serviceChecks.size() > 0) {
+      if (m_serviceCheck && m_servicesToCheck.size() > 0) {
         StageWrapper wrapper = new StageWrapper(
             StageWrapper.Type.SERVICE_CHECK,
-            "Service Check " + StringUtils.join(serviceChecks, ", "),
+            "Service Check " + StringUtils.join(m_servicesToCheck, ", "),
             tasks.toArray(new TaskWrapper[0])
             );
 
-        stages.add(wrapper);
+        m_stages.add(wrapper);
       }
 
-      return stages;
+      return m_stages;
     }
   }
 

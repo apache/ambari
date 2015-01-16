@@ -28,6 +28,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.internal.RequestResourceProvider;
 import org.apache.ambari.server.controller.internal.StageResourceProvider;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
@@ -50,6 +51,7 @@ import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
+import org.apache.ambari.server.state.stack.upgrade.ServiceCheckGrouping;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapperBuilder;
 import org.apache.ambari.server.state.stack.upgrade.Task;
@@ -111,6 +113,9 @@ public class UpgradeHelper {
   @Inject
   private Provider<ConfigHelper> m_configHelper;
 
+  @Inject
+  private Provider<AmbariMetaInfo> m_ambariMetaInfo;
+
   /**
    * Generates a list of UpgradeGroupHolder items that are used to execute a
    * downgrade
@@ -171,21 +176,40 @@ public class UpgradeHelper {
   private List<UpgradeGroupHolder> createSequence(MasterHostResolver mhr,
       UpgradePack upgradePack, String version, boolean forUpgrade)
       throws AmbariException {
+
     Cluster cluster = mhr.getCluster();
     Map<String, Map<String, ProcessingComponent>> allTasks = upgradePack.getTasks();
     List<UpgradeGroupHolder> groups = new ArrayList<UpgradeGroupHolder>();
 
-    int idx = 0;
 
-    for (Grouping group : upgradePack.getGroups()) {
+    for (Grouping group : upgradePack.getGroups(forUpgrade)) {
       if (ClusterGrouping.class.isInstance(group)) {
         UpgradeGroupHolder groupHolder = getClusterGroupHolder(
             cluster, (ClusterGrouping) group, forUpgrade ? null : version);
+
         if (null != groupHolder) {
           groups.add(groupHolder);
-          idx++;
-          continue;
         }
+
+        continue;
+      } else if (ServiceCheckGrouping.class.isInstance(group)) {
+        ServiceCheckGrouping scg = (ServiceCheckGrouping) group;
+
+        scg.getBuilder().setHelpers(cluster, m_ambariMetaInfo.get());
+
+        List<StageWrapper> wrappers = scg.getBuilder().build();
+
+        if (!wrappers.isEmpty()) {
+          UpgradeGroupHolder groupHolder = new UpgradeGroupHolder();
+          groupHolder.name = group.name;
+          groupHolder.title = group.title;
+          groupHolder.skippable = group.skippable;
+          groupHolder.allowRetry = group.allowRetry;
+          groupHolder.items = wrappers;
+          groups.add(groupHolder);
+        }
+
+        continue;
       }
 
       UpgradeGroupHolder groupHolder = new UpgradeGroupHolder();
@@ -257,11 +281,7 @@ public class UpgradeHelper {
 
       if (!proxies.isEmpty()) {
         groupHolder.items = proxies;
-        if (forUpgrade) {
-          groups.add(groupHolder);
-        } else {
-          groups.add(idx, groupHolder);
-        }
+        groups.add(groupHolder);
       }
     }
 

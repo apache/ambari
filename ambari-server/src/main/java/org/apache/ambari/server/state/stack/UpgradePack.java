@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.state.stack;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +31,9 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
+import org.apache.ambari.server.state.stack.upgrade.ServiceCheckGrouping;
 import org.apache.ambari.server.state.stack.upgrade.Task;
 
 /**
@@ -55,6 +59,8 @@ public class UpgradePack {
   private Map<String, List<String>> m_orders = null;
   @XmlTransient
   private Map<String, Map<String, ProcessingComponent>> m_process = null;
+  @XmlTransient
+  private boolean m_resolvedGroups = false;
 
   /**
    * @return the target version for the upgrade pack
@@ -63,8 +69,75 @@ public class UpgradePack {
     return target;
   }
 
-  public List<Grouping> getGroups() {
-    return groups;
+  /**
+   * Gets the groups defined for the upgrade pack
+   * @param upgrade {@code true} if returning the groups in proper order for an upgrade
+   * @return the list of groups
+   */
+  public List<Grouping> getGroups(boolean upgrade) {
+    return upgrade ? groups : getDowngradeGroups();
+  }
+
+  /**
+   * Calculates the group orders when performing a downgrade
+   * <ul>
+   *   <li>ClusterGroupings must remain at the same positions (first/last).</li>
+   *   <li>When there is a ServiceCheck group, it must ALWAYS follow the same</li>
+   *       preceding group, whether for an upgrade or a downgrade.</li>
+   *   <li>All other groups must follow the reverse order.</li>
+   * </ul>
+   * For example, give the following order of groups:
+   * <ol>
+   *   <li>PRE_CLUSTER</li>
+   *   <li>ZK</li>
+   *   <li>CORE_MASTER</li>
+   *   <li>SERVICE_CHECK_1</li>
+   *   <li>CLIENTS</li>
+   *   <li>FLUME</li>
+   *   <li>SERVICE_CHECK_2</li>
+   *   <li>POST_CLUSTER</li>
+   * </ol>
+   * The reverse would be:
+   * <ol>
+   *   <li>PRE_CLUSTER</li>
+   *   <li>FLUME</li>
+   *   <li>SERVICE_CHECK_2</li>
+   *   <li>CLIENTS</li>
+   *   <li>CORE_MASTER</li>
+   *   <li>SERVICE_CHECK_1</li>
+   *   <li>ZK</li>
+   *   <li>POST_CLUSTER</li>
+   * </ol>
+   * @return the list of groups, reversed appropriately for a downgrade.
+   */
+  private List<Grouping> getDowngradeGroups() {
+    List<Grouping> reverse = new ArrayList<Grouping>();
+
+    int idx = 0;
+    int iter = 0;
+    Iterator<Grouping> it = groups.iterator();
+
+    while (it.hasNext()) {
+      Grouping g = it.next();
+      if (ClusterGrouping.class.isInstance(g)) {
+        reverse.add(g);
+        idx++;
+      } else {
+        if (iter+1 < groups.size()) {
+          Grouping peek = groups.get(iter+1);
+          if (ServiceCheckGrouping.class.isInstance(peek)) {
+            reverse.add(idx, it.next());
+            reverse.add(idx, g);
+            iter++;
+          } else {
+            reverse.add(idx, g);
+          }
+        }
+      }
+      iter++;
+    }
+
+    return reverse;
   }
 
   /**

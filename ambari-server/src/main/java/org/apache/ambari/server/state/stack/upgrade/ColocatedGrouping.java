@@ -49,20 +49,22 @@ public class ColocatedGrouping extends Grouping {
 
   @Override
   public StageWrapperBuilder getBuilder() {
-    return new MultiHomedBuilder(batch);
+    return new MultiHomedBuilder(batch, performServiceCheck);
   }
 
   private static class MultiHomedBuilder extends StageWrapperBuilder {
 
-    private Batch batch;
+    private Batch m_batch;
+    private boolean m_serviceCheck = true;
 
     // !!! host -> list of tasks
     private Map<String, List<TaskProxy>> initialBatch = new LinkedHashMap<String, List<TaskProxy>>();
     private Map<String, List<TaskProxy>> finalBatches = new LinkedHashMap<String, List<TaskProxy>>();
 
 
-    private MultiHomedBuilder(Batch batch) {
-      this.batch = batch;
+    private MultiHomedBuilder(Batch batch, boolean serviceCheck) {
+      this.m_batch = batch;
+      m_serviceCheck = serviceCheck;
     }
 
     @Override
@@ -70,7 +72,7 @@ public class ColocatedGrouping extends Grouping {
         boolean forUpgrade, boolean clientOnly, ProcessingComponent pc) {
 
       int count = Double.valueOf(Math.ceil(
-          (double) batch.percent / 100 * hostsType.hosts.size())).intValue();
+          (double) m_batch.percent / 100 * hostsType.hosts.size())).intValue();
 
       int i = 0;
       for (String host : hostsType.hosts) {
@@ -143,8 +145,8 @@ public class ColocatedGrouping extends Grouping {
 
       // !!! TODO when manual tasks are ready
       ManualTask task = new ManualTask();
-      task.summary = batch.summary;
-      task.message = batch.message;
+      task.summary = m_batch.summary;
+      task.message = m_batch.message;
 
       StageWrapper wrapper = new StageWrapper(
           StageWrapper.Type.SERVER_SIDE_ACTION,
@@ -192,7 +194,7 @@ public class ColocatedGrouping extends Grouping {
 
       }
 
-      if (serviceChecks.size() > 0) {
+      if (m_serviceCheck && serviceChecks.size() > 0) {
         // !!! add the service check task
         List<TaskWrapper> tasks = new ArrayList<TaskWrapper>();
         for (String service : serviceChecks) {

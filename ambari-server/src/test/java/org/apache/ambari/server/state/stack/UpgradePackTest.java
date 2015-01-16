@@ -32,6 +32,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
+import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.RestartTask;
 import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.junit.After;
@@ -137,6 +138,47 @@ public class UpgradePackTest {
     assertEquals(1, pc.postTasks.size());
     assertNotNull(pc.tasks);
     assertEquals(1, pc.tasks.size());
+  }
+
+  @Test
+  public void testGroupOrders() {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    assertTrue(upgrades.size() > 0);
+    assertTrue(upgrades.containsKey("upgrade_test_checks"));
+
+    UpgradePack up = upgrades.get("upgrade_test_checks");
+
+    List<String> expected_up = Arrays.asList(
+        "PRE_CLUSTER",
+        "ZOOKEEPER",
+        "CORE_MASTER",
+        "SERVICE_CHECK_1",
+        "CORE_SLAVES",
+        "SERVICE_CHECK_2",
+        "POST_CLUSTER");
+
+    List<String> expected_down = Arrays.asList(
+        "PRE_CLUSTER",
+        "CORE_SLAVES",
+        "SERVICE_CHECK_2",
+        "CORE_MASTER",
+        "SERVICE_CHECK_1",
+        "ZOOKEEPER",
+        "POST_CLUSTER");
+
+    int i = 0;
+    List<Grouping> groups = up.getGroups(true);
+    for (Grouping g : groups) {
+      assertEquals(expected_up.get(i), g.name);
+      i++;
+    }
+
+    i = 0;
+    groups = up.getGroups(false);
+    for (Grouping g : groups) {
+      assertEquals(expected_down.get(i), g.name);
+      i++;
+    }
   }
 
 
