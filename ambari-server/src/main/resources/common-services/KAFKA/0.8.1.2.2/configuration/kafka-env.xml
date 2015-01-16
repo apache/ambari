@@ -50,12 +50,6 @@
 # The java implementation to use.
 export JAVA_HOME={{java64_home}}
 export PATH=$PATH:$JAVA_HOME/bin
-
-# Add kafka sink to classpath and related depenencies
-if [ -e "/usr/lib/ambari-metrics-kafka-sink/ambari-metrics-kafka-sink.jar" ]; then
-  export CLASSPATH=$CLASSPATH:/usr/lib/ambari-metrics-kafka-sink/ambari-metrics-kafka-sink.jar
-  export CLASSPATH=$CLASSPATH:/usr/lib/ambari-metrics-kafka-sink/lib/*
-fi
     </value>
   </property>
 </configuration>

@@ -35,9 +35,6 @@ def kafka():
     kafka_server_config = mutable_config_dict(params.config['configurations']['kafka-broker'])
     kafka_server_config['broker.id'] = brokerid
     kafka_server_config['host.name'] = params.hostname
-    kafka_server_config['kafka.timeline.metrics.host'] = params.metric_collector_host
-    kafka_server_config['kafka.timeline.metrics.port'] = params.metric_collector_port
-    kafka_server_config['kafka.metrics.reporters'] = params.kafka_metrics_reporters
     kafka_data_dir = kafka_server_config['log.dirs']
     Directory(filter(None,kafka_data_dir.split(",")),
               owner=params.kafka_user,

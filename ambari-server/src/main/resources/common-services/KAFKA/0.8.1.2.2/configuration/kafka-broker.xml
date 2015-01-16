@@ -101,7 +101,7 @@
     <name>num.partitions</name>
     <value>1</value>
     <description>
-        The default number of partitions per topic.
+       	The default number of partitions per topic.
     </description>
   </property>
   <property>
@@ -291,9 +291,9 @@
   </property>
   <property>
     <name>kafka.metrics.reporters</name>
-    <value>{{kafka_metrics_reporters}}</value>
+    <value>kafka.ganglia.KafkaGangliaMetricsReporter</value>
     <description>
-      kafka ganglia metrics reporter and kafka timeline metrics reporter
+      kafka ganglia metrics reporter
     </description>
   </property>
   <property>
@@ -317,30 +317,5 @@
     <name>kafka.ganglia.metrics.group</name>
     <value>kafka</value>
     <description>Ganglia group name </description>
-  </property>
-  <property>
-    <name>kafka.timeline.metrics.reporter.enabled</name>
-    <value>true</value>
-    <description>Kafka timeline metrics reporter enable</description>
-  </property>
-  <property>
-    <name>kafka.timeline.metrics.host</name>
-    <value>{{metric_collector_host}}</value>
-    <description>Timeline host</description>
-  </property>
-  <property>
-    <name>kafka.timeline.metrics.port</name>
-    <value>{{metric_collector_port}}</value>
-    <description>Timeline port</description>
-  </property>
-  <property>
-    <name>kafka.timeline.metrics.reporter.sendInterval</name>
-    <value>5900</value>
-    <description>Timeline metrics reporter send interval</description>
-  </property>
-    <property>
-    <name>kafka.timeline.metrics.maxRowCacheSize</name>
-    <value>10000</value>
-    <description>Timeline metrics reporter send interval</description>
   </property>
 </configuration>
