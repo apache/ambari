@@ -166,7 +166,6 @@
             <exclude>src/main/resources/stacks/HDP/2.1.GlusterFS/services/YARN/package/templates/exclude_hosts_list.j2</exclude>
             <exclude>src/main/windows/ambari-server.cmd</exclude>
             <exclude>src/main/windows/ambari-server.ps1</exclude>
-            <exclude>src/main/resources/common-services/AMS/0.1.0/package/templates/smoketest_metrics.json.j2</exclude>
             <exclude>src/main/resources/common-services/HDFS/2.1.0.2.0/package/scripts/balancer-emulator/balancer-err.log</exclude>
             <exclude>src/main/resources/common-services/HDFS/2.1.0.2.0/package/scripts/balancer-emulator/balancer.log</exclude>
             <exclude>src/main/resources/stacks/BIGTOP/0.8/services/HDFS/package/scripts/balancer-emulator/balancer.log</exclude>
