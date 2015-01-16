@@ -1325,6 +1325,7 @@ Em.I18n.translations = {
 
   'admin.stackVersions.details.install.hosts.popup.title': "Install {0} version",
 
+  'admin.stackUpgrade.doThisLater': "Do This Later",
   'admin.stackUpgrade.downgrade.proceed': "Proceed with Downgrade",
   'admin.stackUpgrade.downgrade.title': "Downgrade to {0}",
   'admin.stackUpgrade.downgrade.body': "Are you sure you wish to abort the upgrade process and downgrade to {0}",

@@ -106,7 +106,6 @@ App.MainAdminStackVersionsView = Em.View.extend({
    * @type {Array}
    */
   versions: function () {
-    var currentVersion = this.get('controller.currentVersion');
     var versions = this.get('repoVersions').map(function (version) {
       var versionFormatted = Em.Object.create({
         id: version.get('id'),
@@ -148,6 +147,7 @@ App.MainAdminStackVersionsView = Em.View.extend({
    * @return {Array}
    */
   filterBy: function (versions, filter) {
+    var currentVersion = this.get('controller.currentVersion');
     if (filter && filter.get('value')) {
       return versions.filter(function (version) {
         if (version.get('status') === 'INSTALLED' && filter.get('value') === 'UPGRADE_READY') {
