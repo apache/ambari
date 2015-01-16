@@ -25,6 +25,9 @@ config = Script.get_config()
 
 stack_name = default("/hostLevelParams/stack_name", None)
 
+# New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
+version = default("/commandParams/version", None)
+
 user_group = config['configurations']['cluster-env']['user_group']
 proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
 

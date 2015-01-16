@@ -17,12 +17,15 @@ limitations under the License.
 
 """
 
+import flume_upgrade
+
 from flume import flume
 from flume import get_desired_state
 
 from resource_management import *
 from resource_management.libraries.functions.flume_agent_helper import find_expected_agent_names
 from resource_management.libraries.functions.flume_agent_helper import get_flume_status
+from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 
 class FlumeHandler(Script):
 
@@ -49,6 +52,9 @@ class FlumeHandler(Script):
     env.set_params(params)
 
     flume(action='stop')
+
+    if rolling_restart:
+      flume_upgrade.post_stop_backup()
 
   def configure(self, env):
     import params
@@ -78,6 +84,19 @@ class FlumeHandler(Script):
           raise ComponentIsNotRunning()
     elif len(expected_agents) == 0 and 'INSTALLED' == get_desired_state():
       raise ComponentIsNotRunning()
+
+  def pre_rolling_restart(self, env):
+    import params
+    env.set_params(params)
+
+    # this function should not execute if the version can't be determined or
+    # is not at least HDP 2.2.0.0
+    if not params.version or compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') < 0:
+      return
+
+    Logger.info("Executing Flume Rolling Upgrade pre-restart")
+    Execute(format("hdp-select set flume-server {version}"))
+    flume_upgrade.pre_start_restore()
 
 if __name__ == "__main__":
   FlumeHandler().execute()

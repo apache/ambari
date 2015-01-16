@@ -410,6 +410,17 @@ class TestFlumeHandler(RMFTestCase):
                               owner="flume",
                               content=content)
 
+  def test_pre_rolling_restart(self):
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/flume_handler.py",
+                       classname = "FlumeHandler",
+                       command = "pre_rolling_restart",
+                       config_file="flume_22.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES)
+
+    self.assertResourceCalled("Execute", "hdp-select set flume-server 2.2.1.0-2067")
+
+
 def build_flume(content):
   result = {}
   agent_names = []
