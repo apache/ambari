@@ -32,6 +32,7 @@ require('views/common/modal_popups/confirmation_popup');
 require('views/common/modal_popups/prompt_popup');
 require('views/common/modal_popups/reload_popup');
 require('views/common/modal_popups/cluster_check_popup');
+require('views/common/modal_popups/invalid_KDC_popup');
 require('views/common/editable_list');
 require('views/common/rolling_restart_view');
 require('views/common/select_custom_date_view');

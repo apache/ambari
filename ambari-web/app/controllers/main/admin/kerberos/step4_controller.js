@@ -201,6 +201,6 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
       configs = configs.concat(_stepConfig.get('configs'));
     });
     this.updateKerberosDescriptor(kerberosDescriptor, configs);
-    this.get('wizardController').saveKerberosDescriptorConfigs(kerberosDescriptor);
+    App.get('router.kerberosWizardController').saveKerberosDescriptorConfigs(kerberosDescriptor);
   }
 });

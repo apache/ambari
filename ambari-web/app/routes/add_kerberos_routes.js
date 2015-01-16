@@ -300,7 +300,7 @@ module.exports = App.WizardRoute.extend({
         localdb: App.db.data
       }, {
         alwaysCallback: function () {
-          self.hide();
+          controller.get('popup').hide();
           App.router.transitionTo('adminKerberos.index');
         }
       });

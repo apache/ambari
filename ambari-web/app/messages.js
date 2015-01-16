@@ -322,6 +322,11 @@ Em.I18n.translations = {
   'popup.clusterCheck.Security.title': 'Security Requirements Not Met',
   'popup.clusterCheck.Security.alert': 'You must meet the following requirements before you can enable security.',
 
+  'popup.invalid.KDC.header': 'Admin session expiration error',
+  'popup.invalid.KDC.msg': 'Missing or invalid KDC administrator credentials. Please enter admin principal and password',
+  'popup.invalid.KDC.admin.principal': 'Admin principal',
+  'popup.invalid.KDC.admin.password': 'Admin password',
+
   'login.header':'Sign in',
   'login.username':'Username',
   'login.loginButton':'Sign in',

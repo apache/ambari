@@ -317,4 +317,31 @@ describe('App.clusterController', function () {
     });
   });
 
+  describe("#createKerberosAdminSession()", function() {
+    before(function () {
+      sinon.stub(App.ajax, 'send', function() {
+        return {success: Em.K}
+      });
+    });
+    after(function () {
+      App.ajax.send.restore();
+    });
+    it("make ajax call", function() {
+      controller.createKerberosAdminSession("admin", "pass", {});
+      expect(App.ajax.send.getCall(0).args[0]).to.eql({
+        name: 'common.cluster.update',
+        sender: controller,
+        data: {
+          clusterName: App.get('clusterName'),
+          data: [{
+            session_attributes: {
+              kerberos_admin: {principal: "admin", password: "pass"}
+            }
+          }]
+        }
+      });
+    });
+  });
+
+
 });

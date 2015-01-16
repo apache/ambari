@@ -414,5 +414,33 @@ App.ClusterController = Em.Controller.extend({
 
   getHostNamesError: function () {
     console.error('failed to load hostNames');
+  },
+
+
+  /**
+   * puts kerberos admin credentials in the live cluster session
+   * and resend ajax request
+   * @param adminPrincipalValue
+   * @param adminPasswordValue
+   * @param ajaxOpt
+   * @returns {$.ajax}
+   */
+  createKerberosAdminSession: function (adminPrincipalValue, adminPasswordValue, ajaxOpt) {
+    return App.ajax.send({
+      name: 'common.cluster.update',
+      sender: this,
+      data: {
+        clusterName: App.get('clusterName'),
+        data: [{
+          session_attributes: {
+            kerberos_admin: {principal: adminPrincipalValue, password: adminPasswordValue}
+          }
+        }]
+      }
+    }).success(function () {
+      if (ajaxOpt) {
+        $.ajax(ajaxOpt);
+      }
+    });
   }
 });

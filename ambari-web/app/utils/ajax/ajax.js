@@ -2218,6 +2218,10 @@ var formatRequest = function (data) {
   return opt;
 };
 
+var specialMsg = {
+  "missingKDC": "java.lang.IllegalArgumentException: Missing KDC administrator credentials.",
+  "invalidKDC": "java.lang.IllegalArgumentException: Invalid KDC administrator credentials."
+};
 /**
  * Wrapper for all ajax requests
  *
@@ -2278,7 +2282,9 @@ var ajax = Em.Object.extend({
       }
     };
     opt.error = function (request, ajaxOptions, error) {
-      if (config.error) {
+      if (this.isKDCError(request)) {
+        this.defaultErrorKDCHandler(opt);
+      } else if (config.error) {
         config.sender[config.error](request, ajaxOptions, error, opt, params);
       } else {
         this.defaultErrorHandler(request, opt.url, opt.type);
@@ -2331,6 +2337,27 @@ var ajax = Em.Object.extend({
         })
       }));
     }
+  },
+
+  /**
+   * defines if it's admin session expiration error
+   * @param jqXHR
+   * @returns {boolean}
+   */
+  isKDCError: function(jqXHR) {
+    try {
+      var message = $.parseJSON(jqXHR.responseText).message;
+    } catch (err) {}
+    return jqXHR.status === 400 && message && (message.contains(specialMsg.missingKDC) || message.contains(specialMsg.invalidKDC))
+  },
+
+  /**
+   * default handler for admin session expiration error
+   * @param opt
+   * @returns {*}
+   */
+  defaultErrorKDCHandler: function(opt) {
+    return App.showInvalidKDCPopup(opt);
   }
 
 });
