@@ -27,7 +27,7 @@ from hbase import hbase
 from hbase_service import hbase_service
 from hbase_decommission import hbase_decommission
 import upgrade
-
+from setup_ranger_hbase import setup_ranger_hbase
          
 class HbaseMaster(Script):
 
@@ -36,6 +36,7 @@ class HbaseMaster(Script):
 
   def install(self, env):
     self.install_packages(env)
+    setup_ranger_hbase(env)
     
   def configure(self, env):
     import params
@@ -52,7 +53,7 @@ class HbaseMaster(Script):
     import params
     env.set_params(params)
     self.configure(env) # for security
-
+    setup_ranger_hbase(env)  
     hbase_service( 'master',
       action = 'start'
     )

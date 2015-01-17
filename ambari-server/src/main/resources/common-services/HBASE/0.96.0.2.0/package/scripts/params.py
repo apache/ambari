@@ -162,3 +162,16 @@ if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
     region_mover = format("/usr/hdp/current/hbase-{role_root}/bin/region_mover.rb")
     region_drainer = format("/usr/hdp/current/hbase-{role_root}/bin/draining_servers.rb")
     hbase_cmd = format("/usr/hdp/current/hbase-{role_root}/bin/hbase")
+
+if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
+  # Setting Flag value for ranger hbase plugin
+  enable_ranger_hbase = False
+  user_input = config['configurations']['ranger-hbase-plugin-properties']['ranger-hbase-plugin-enabled']
+  if user_input.lower() == 'yes':
+    enable_ranger_hbase = True
+  elif user_input.lower() == 'no':
+    enable_ranger_hbase = False
+
+# ranger host
+ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
+has_ranger_admin = not len(ranger_admin_hosts) == 0    

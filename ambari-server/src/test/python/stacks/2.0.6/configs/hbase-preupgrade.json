@@ -82,6 +82,9 @@
             "hbase_regionserver_heapsize": "1024m", 
             "hbase_log_dir": "/var/log/hbase"
         }, 
+        "ranger-hbase-plugin-properties": {
+            "ranger-hbase-plugin-enabled":"yes"
+        },        
         "cluster-env": {
             "security_enabled": "false", 
             "hive_tar_source": "/usr/hdp/current/hive-client/hive.tar.gz", 
