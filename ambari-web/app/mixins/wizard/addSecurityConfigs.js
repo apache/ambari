@@ -299,8 +299,8 @@ App.AddSecurityConfigs = Em.Mixin.create({
       var configs = this.get('configs').findProperty('name', templateName[index]);
       var configValue = templateName[index] == 'hive_metastore' ?
         configs.value.map(function (hostName) {
-        return 'thrift://' + hostName + ':9083';
-      }).join(',') : configs.value;
+          return 'thrift://' + hostName + ':9083';
+        }).join(',') : configs.value;
 
       if (!!value) {
         value = (configs) ? App.config.replaceConfigValues(name, _express, value, configValue) : null;
@@ -562,39 +562,90 @@ App.AddSecurityConfigs = Em.Mixin.create({
    */
   updateKerberosDescriptor: function (kerberosDescriptor, configs) {
     configs.forEach(function (_config) {
-      if (Object.keys(kerberosDescriptor.properties).contains(_config.name)) {
-        for (var key in kerberosDescriptor.properties) {
-          if (key === _config.name) {
-            kerberosDescriptor.properties[key] = _config.value;
-          }
-        }
-      } else if (_config.name.endsWith('_principal') || _config.name.endsWith('_keytab')) {
-        var identities = kerberosDescriptor.identities;
-        identities.forEach(function (_identity) {
-          if (_config.name.startsWith(_identity.name)) {
-            if (_config.name.endsWith('_principal')) {
-              _identity.principal.value = _config.value;
-            } else if (_config.name.endsWith('_keytab')) {
-              _identity.keytab.file = _config.value;
-            }
-          }
-        }, this);
-      } else {
+      var isConfigUpdated;
+      var isStackResouce = true;
+      isConfigUpdated = this.updateResourceIdentityConfigs(kerberosDescriptor, _config, isStackResouce);
+      if (!isConfigUpdated) {
         kerberosDescriptor.services.forEach(function (_service) {
-          _service.components.forEach(function (_component) {
-            if (_component.identities) {
-              _component.identities.forEach(function (_identity) {
-                if (_identity.principal && _identity.principal.configuration && _identity.principal.configuration.endsWith(_config.name)) {
-                  _identity.principal.value = _config.value;
-                } else if (_identity.keytab && _identity.keytab.configuration && _identity.keytab.configuration.endsWith(_config.name)) {
-                  _identity.keytab.file = _config.value;
-                }
-              }, this);
-            }
-          }, this);
+          isConfigUpdated = this.updateResourceIdentityConfigs(_service, _config);
+          if (!isConfigUpdated) {
+            _service.components.forEach(function (_component) {
+              isConfigUpdated = this.updateResourceIdentityConfigs(_component, _config);
+            }, this);
+          }
         }, this);
       }
     }, this);
+  },
+
+  /**
+   * Updates the identity configs or configurations at a resource. A resource could be
+   * 1) Stack
+   * 2) Service
+   * 3) Component
+   * @param resource
+   * @param config
+   * @param isStackResource
+   * @return boolean
+   */
+  updateResourceIdentityConfigs: function (resource, config, isStackResource) {
+    var isConfigUpdated;
+    var identities = resource.identities;
+    var properties = !!isStackResource ? resource.properties : resource.configurations;
+    isConfigUpdated = this.updateDescriptorConfigs(properties, config);
+    if (!isConfigUpdated) {
+      if (identities) {
+        isConfigUpdated = this.updateDescriptorIdentityConfig(identities, config);
+      }
+    }
+    return isConfigUpdated;
+  },
+
+  /**
+   *
+   * @param configurations
+   * @param config
+   * @return boolean
+   */
+  updateDescriptorConfigs: function (configurations, config) {
+    var isConfigUpdated;
+    if (!!configurations) {
+      if (Array.isArray(configurations)) {
+        configurations.forEach(function (_configuration) {
+          for (var key in _configuration) {
+            if (Object.keys(_configuration[key]).contains(config.name)) {
+              _configuration[key][config.name] = config.value;
+              isConfigUpdated = true
+            }
+          }
+        }, this);
+      } else if (Object.keys(configurations).contains(config.name)) {
+        configurations[config.name] = config.value;
+        isConfigUpdated = true
+      }
+    }
+    return isConfigUpdated;
+  },
+
+
+  /**
+   *
+   * @param identities
+   * @param config
+   * @return boolean
+   */
+  updateDescriptorIdentityConfig: function (identities, config) {
+    var isConfigUpdated = false;
+    identities.forEach(function (identity) {
+      if (identity.keytab && identity.keytab.configuration && identity.keytab.configuration.endsWith(config.name)) {
+        identity.keytab.file = config.value;
+        isConfigUpdated = true
+      } else if (identity.principal && identity.principal.configuration && identity.principal.configuration.endsWith(config.name)) {
+        identity.principal.value = config.value;
+        isConfigUpdated = true
+      }
+    }, this);
+    return isConfigUpdated;
   },
 
   /**
