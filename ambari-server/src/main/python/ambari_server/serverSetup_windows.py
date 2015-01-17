@@ -32,7 +32,6 @@ from ambari_commons.exceptions import *
 from ambari_commons.logging_utils import *
 from ambari_commons.os_windows import run_powershell_script, UserHelper, CHECK_FIREWALL_SCRIPT
 from ambari_server.dbConfiguration import DBMSConfig
-from ambari_server.dbConfiguration_windows import JDBC_METRICS_URL_PROPERTY
 from ambari_server.serverConfiguration import *
 from ambari_server.userInput import get_validated_string_input
 
@@ -78,8 +77,6 @@ DATABASE_DBMS = "sqlserver"
 DATABASE_NAME = "ambari"
 DATABASE_SERVER = "localhost\\\\SQLEXPRESS"
 DATABASE_DRIVER_NAME = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
-
-METRICS_DATABASE_NAME = "HadoopMetrics"
 
 JDBC_PATTERNS = {"sqlserver": "sqljdbc*.jar"}
 DATABASE_FULL_NAMES = {"sqlserver": "SQL Server"}
@@ -152,7 +149,7 @@ def os_create_custom_user():
   print_info_msg("User configuration is done.")
   print_warning_msg("When using non SYSTEM user make sure that your user have read\write access to log directories and "
                     "all server directories. In case of integrated authentication for SQL Server make sure that your "
-                    "user properly configured to use ambari and metric database.")
+                    "user properly configured to use ambari database.")
   #storing username and password in os.environ temporary to pass them to service
   os.environ[SERVICE_USERNAME_KEY] = user
   os.environ[SERVICE_PASSWORD_KEY] = password
@@ -271,15 +268,11 @@ def os_setup_database(options):
   #By default, use the same server for Metrics
   options.default_database_host = dbmsAmbari.database_host
 
-  dbmsMetrics = DBMSConfig.create(options, properties, "Metrics")
-  resultM = dbmsMetrics.configure_database(options, properties)
-
   # Now save the properties file
-  if resultA or resultM:
+  if resultA:
     update_properties(properties)
 
     dbmsAmbari.setup_database()
-    dbmsMetrics.setup_database()
 
 def os_reset_database(options):
   properties = get_ambari_properties()
@@ -287,8 +280,7 @@ def os_reset_database(options):
     raise FatalException(-1, "Error getting ambari properties")
 
   if not (properties.getPropertyDict().has_key(JDBC_URL_PROPERTY) and
-            properties.getPropertyDict().has_key(JDBC_RCA_URL_PROPERTY) and
-            properties.getPropertyDict().has_key(JDBC_METRICS_URL_PROPERTY)):
+            properties.getPropertyDict().has_key(JDBC_RCA_URL_PROPERTY)):
     raise FatalException(-1, "Ambari Server not set up yet. Nothing to reset.")
 
   empty_options = optparse.Values()
@@ -301,13 +293,8 @@ def os_reset_database(options):
   empty_options.database_password = ""
   empty_options.init_db_script_file = ""
   empty_options.cleanup_db_script_file = ""
-  empty_options.init_metrics_db_script_file = ""
-  empty_options.cleanup_metrics_db_script_file = ""
 
   #Only support SQL Server
   dbmsAmbari = DBMSConfig.create(empty_options, properties, "Ambari")
   dbmsAmbari.reset_database()
-
-  dbmsMetrics = DBMSConfig.create(empty_options, properties, "Metrics")
-  dbmsMetrics.reset_database()
   pass

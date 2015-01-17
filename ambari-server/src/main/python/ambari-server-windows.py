@@ -291,11 +291,6 @@ def ensure_dbms_is_running(options, properties, scmStatus):
 
   dbms.ensure_dbms_is_running(options, properties, scmStatus)
 
-  dbms2 = DBMSConfig.create(options, properties, "Metrics")
-  if dbms2.database_host.lower() != dbms.database_host.lower():
-    dbms2.ensure_dbms_is_running(options, properties, scmStatus)
-  pass
-
 def ensure_resources_are_organized(properties):
   resources_location = get_resources_location(properties)
   resource_files_keeper = ResourceFilesKeeper(resources_location)
@@ -399,25 +394,6 @@ def init_options_parser():
                     help="Database user login")
   parser.add_option('-p', '--databasepassword', dest="database_password", default=None,
                     help="Database user password")
-
-  parser.add_option('-t', '--init-metrics-script-file', dest="init_metrics_db_script_file", default=None,
-                    help="File with metrics database setup script")
-  parser.add_option('-c', '--drop-metrics-script-file', dest="cleanup_metrics_db_script_file", default=None,
-                    help="File with metrics database cleanup script")
-
-  parser.add_option('-m', '--metricsdatabasehost', dest="metrics_database_host", default=None,
-                    help="Hostname of metrics database server")
-  parser.add_option('-o', '--metricsdatabaseport', dest="metrics_database_port", default=None,
-                    help="Metrics database server listening port")
-  parser.add_option('-e', '--metricsdatabasename', dest="metrics_database_name", default=None,
-                    help="Metrics database/Schema/Service name or ServiceID")
-  parser.add_option('-z', '--metricswindowsauth', action="store_true", dest="metrics_database_windows_auth", default=None,
-                    help="Integrated Windows authentication for the metrics database")
-  parser.add_option('-q', '--metricsdatabaseusername', dest="metrics_database_username", default=None,
-                    help="Metrics database user login")
-  parser.add_option('-l', '--metricsdatabasepassword', dest="metrics_database_password", default=None,
-                    help="Metrics database user password")
-
   parser.add_option('--jdbc-driver', default=None, dest="jdbc_driver",
                     help="Specifies the path to the JDBC driver JAR file for the " \
                          "database type specified with the --jdbc-db option. Used only with --jdbc-db option.")
@@ -430,12 +406,7 @@ def are_cmd_line_db_args_blank(options):
     and options.database_name is None \
     and options.database_windows_auth is None \
     and options.database_username is None \
-    and options.database_password is None \
-    and options.metrics_database_host is None \
-    and options.metrics_database_name is None \
-    and options.metrics_database_windows_auth is None \
-    and options.metrics_database_username is None \
-    and options.metrics_database_password is None):
+    and options.database_password is None):
     return True
   return False
 
@@ -453,12 +424,7 @@ def are_cmd_line_db_args_valid(options):
       #and options.database_name is not None \         # ambari by default is ok
       and are_db_auth_options_ok(options.database_windows_auth,
                                options.database_username,
-                               options.database_password) \
-    and options.metrics_database_host is not None and options.metrics_database_host is not "" \
-    #and options.metrics_database_name is not None \  # HadoopMetrics by default is ok
-    and are_db_auth_options_ok(options.metrics_database_windows_auth,
-                               options.metrics_database_username,
-                               options.metrics_database_password)):
+                               options.database_password)):
     return True
   return False
 

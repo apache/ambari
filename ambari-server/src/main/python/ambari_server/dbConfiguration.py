@@ -95,8 +95,6 @@ class DBMSConfig(object):
     #if OSCheck.is_windows_family():
     if dbId == "Ambari":
       return SQLServerAmbariDBConfig(options, properties)
-    elif dbId == "Metrics":
-      return SQLServerMetricsDBConfig(options, properties)
     else:
       raise FatalException(-1, "Invalid database requested: " + str(dbId))
     #else:
@@ -208,6 +206,6 @@ class DBMSConfig(object):
     pass
 
 if OSCheck.is_windows_family():
-  from ambari_server.dbConfiguration_windows import SQLServerAmbariDBConfig, SQLServerMetricsDBConfig
+  from ambari_server.dbConfiguration_windows import SQLServerAmbariDBConfig
 #else:
 #  from ambari_server.dbConfiguration_linux import PostgreSQLConfig #and potentially MySQLConfig, OracleConfig

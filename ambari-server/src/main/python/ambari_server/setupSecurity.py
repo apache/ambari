@@ -39,10 +39,7 @@ from ambari_server.serverConfiguration import configDefaults, get_ambari_propert
   get_value_from_properties, find_jdk, get_ambari_classpath, get_conf_dir, is_alias_string, find_properties_file, \
   update_properties_2, \
   JDBC_USE_INTEGRATED_AUTH_PROPERTY, JDBC_PASSWORD_PROPERTY, JDBC_PASSWORD_FILENAME, \
-  JDBC_RCA_PASSWORD_FILE_PROPERTY, JDBC_RCA_PASSWORD_ALIAS, \
-  JDBC_METRICS_USE_INTEGRATED_AUTH_PROPERTY, JDBC_METRICS_PASSWORD_PROPERTY, JDBC_METRICS_PASSWORD_FILENAME, \
-  JDBC_METRICS_PASSWORD_ALIAS, \
-  BOOTSTRAP_DIR_PROPERTY, GET_FQDN_SERVICE_URL, BLIND_PASSWORD
+  JDBC_RCA_PASSWORD_FILE_PROPERTY, JDBC_RCA_PASSWORD_ALIAS, BOOTSTRAP_DIR_PROPERTY, GET_FQDN_SERVICE_URL, BLIND_PASSWORD
 from setupActions import SETUP_ACTION, LDAP_SETUP_ACTION
 from ambari_server.userInput import get_YN_input, get_validated_string_input, get_validated_filepath_input, \
   get_prompt_default
@@ -607,10 +604,6 @@ def get_original_master_key(properties):
     alias = JDBC_RCA_PASSWORD_ALIAS
 
   alias = None
-  property = properties.get_property(JDBC_METRICS_PASSWORD_PROPERTY)
-  if property and is_alias_string(property):
-    alias = JDBC_METRICS_PASSWORD_ALIAS
-
   if not alias:
     property = properties.get_property(LDAP_MGR_PASSWORD_PROPERTY)
     if property and is_alias_string(property):
@@ -884,14 +877,6 @@ def setup_master_key():
     with open(db_password, 'r') as passwdfile:
       db_password = passwdfile.read()
 
-  # Read clear text metrics password from file
-  db_metrics_windows_auth_prop = properties.get_property(JDBC_METRICS_USE_INTEGRATED_AUTH_PROPERTY)
-  db_metrics_sql_auth = False if db_metrics_windows_auth_prop and db_metrics_windows_auth_prop.lower() == 'true' else True
-  metrics_password = properties.get_property(JDBC_METRICS_PASSWORD_PROPERTY)
-  if db_metrics_sql_auth and not is_alias_string(metrics_password) and os.path.isfile(metrics_password):
-    with open(metrics_password, 'r') as passwdfile:
-      metrics_password = passwdfile.read()
-
   ldap_password = properties.get_property(LDAP_MGR_PASSWORD_PROPERTY)
   ts_password = properties.get_property(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
   resetKey = False
@@ -922,8 +907,6 @@ def setup_master_key():
               " password and call 'encrypt-passwords' again."
         if db_sql_auth and db_password and is_alias_string(db_password):
           print err.format('- Database password', "'" + SETUP_ACTION + "'")
-        if db_metrics_sql_auth and metrics_password and is_alias_string(metrics_password):
-            print err.format('- Metrics Database password', "'" + SETUP_ACTION + "'")
         if ldap_password and is_alias_string(ldap_password):
           print err.format('- LDAP manager password', "'" + LDAP_SETUP_ACTION + "'")
         if ts_password and is_alias_string(ts_password):
@@ -937,8 +920,6 @@ def setup_master_key():
   # Read back any encrypted passwords
   if db_sql_auth  and db_password and is_alias_string(db_password):
     db_password = read_passwd_for_alias(JDBC_RCA_PASSWORD_ALIAS, masterKey)
-  if db_metrics_sql_auth and metrics_password and is_alias_string(metrics_password):
-      metrics_password = read_passwd_for_alias(JDBC_METRICS_PASSWORD_ALIAS, masterKey)
   if ldap_password and is_alias_string(ldap_password):
     ldap_password = read_passwd_for_alias(LDAP_MGR_PASSWORD_ALIAS, masterKey)
   if ts_password and is_alias_string(ts_password):
@@ -984,15 +965,6 @@ def setup_master_key():
       remove_password_file(JDBC_PASSWORD_FILENAME)
       if properties.get_property(JDBC_RCA_PASSWORD_FILE_PROPERTY):
         propertyMap[JDBC_RCA_PASSWORD_FILE_PROPERTY] = get_alias_string(JDBC_RCA_PASSWORD_ALIAS)
-  pass
-
-  if metrics_password and not is_alias_string(metrics_password):
-    retCode = save_passwd_for_alias(JDBC_METRICS_PASSWORD_ALIAS, metrics_password, masterKey)
-    if retCode != 0:
-      print 'Failed to save secure metrics database password.'
-    else:
-      propertyMap[JDBC_METRICS_PASSWORD_PROPERTY] = get_alias_string(JDBC_METRICS_PASSWORD_ALIAS)
-      remove_password_file(JDBC_METRICS_PASSWORD_FILENAME)
   pass
 
   if ldap_password and not is_alias_string(ldap_password):

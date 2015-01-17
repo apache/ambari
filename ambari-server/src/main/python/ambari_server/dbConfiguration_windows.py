@@ -35,12 +35,6 @@ from ambari_server.serverConfiguration import JDBC_DRIVER_PROPERTY, JDBC_DRIVER_
   JDBC_RCA_HOSTNAME_PROPERTY, JDBC_RCA_PORT_PROPERTY, JDBC_RCA_USE_INTEGRATED_AUTH_PROPERTY, \
   JDBC_RCA_USER_NAME_PROPERTY, JDBC_RCA_PASSWORD_FILE_PROPERTY, JDBC_RCA_PASSWORD_FILENAME, JDBC_RCA_PASSWORD_ALIAS, \
   PERSISTENCE_TYPE_PROPERTY, \
-  JDBC_METRICS_DRIVER_PROPERTY, JDBC_METRICS_URL_PROPERTY, \
-  JDBC_METRICS_DATABASE_PROPERTY, METRICS_DATABASE_NAME, JDBC_METRICS_SCHEMA_PROPERTY, \
-  JDBC_METRICS_HOSTNAME_PROPERTY, JDBC_METRICS_PORT_PROPERTY, \
-  JDBC_METRICS_USE_INTEGRATED_AUTH_PROPERTY, JDBC_METRICS_USER_NAME_PROPERTY, JDBC_METRICS_PASSWORD_PROPERTY, \
-  JDBC_METRICS_PASSWORD_FILENAME, JDBC_METRICS_PASSWORD_ALIAS, \
-  METRICS_PERSISTENCE_TYPE_PROPERTY, \
   PRESS_ENTER_MSG
 from ambari_server.setupSecurity import encrypt_password, store_password_file
 from dbConfiguration import DBMSConfig, DB_STATUS_RUNNING_DEFAULT
@@ -56,7 +50,6 @@ DATABASE_DBMS = "sqlserver"
 DATABASE_DRIVER_NAME = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
 LOCAL_DATABASE_SERVER = "localhost\\SQLEXPRESS"
 AMBARI_DATABASE_NAME = "ambari"
-
 
 class DbPropKeys:
   def __init__(self, i_dbms_key, i_driver_key, i_server_key, i_port_key, i_db_name_key, i_db_url_key):
@@ -418,48 +411,6 @@ class SQLServerAmbariDBConfig(SQLServerConfig):
 
     properties.process_pair(JDBC_RCA_URL_PROPERTY, self.database_url)
     pass
-
-
-# SQL Server Metrics database configuration and setup
-class SQLServerMetricsDBConfig(SQLServerConfig):
-  def __init__(self, options, properties):
-    self.dbPropKeys = DbPropKeys(
-      JDBC_METRICS_DATABASE_PROPERTY,
-      JDBC_METRICS_DRIVER_PROPERTY,
-      JDBC_METRICS_HOSTNAME_PROPERTY,
-      JDBC_METRICS_PORT_PROPERTY,
-      JDBC_METRICS_SCHEMA_PROPERTY,
-      JDBC_METRICS_URL_PROPERTY)
-    self.dbAuthKeys = AuthenticationKeys(
-      JDBC_METRICS_USE_INTEGRATED_AUTH_PROPERTY,
-      JDBC_METRICS_USER_NAME_PROPERTY,
-      JDBC_METRICS_PASSWORD_PROPERTY,
-      JDBC_METRICS_PASSWORD_ALIAS,
-      JDBC_METRICS_PASSWORD_FILENAME
-    )
-
-    super(SQLServerMetricsDBConfig, self).__init__(options, properties)
-
-    self.database_name = METRICS_DATABASE_NAME
-
-    self.persistence_property = METRICS_PERSISTENCE_TYPE_PROPERTY
-
-    self.db_title = "metrics"
-
-    self.env_var_db_name ='METRICSDBNAME'
-    self.env_var_db_log_name = 'METRICSDBLOGNAME'
-    self.env_var_db_owner = 'METRICSDBOWNER'
-
-    if options.init_metrics_db_script_file is not None and options.init_metrics_db_script_file is not "":
-      self.init_script_file = compress_backslashes(options.init_db_script_file)
-    else:
-      self.init_script_file = "resources" + os.sep + "Hadoop-Metrics-SQLServer-CREATE.sql"
-    if options.cleanup_metrics_db_script_file is not None and options.cleanup_metrics_db_script_file is not "":
-      self.drop_tables_script_file = compress_backslashes(options.cleanup_db_script_file)
-    else:
-      self.drop_tables_script_file = "resources" + os.sep + "Hadoop-Metrics-SQLServer-DROP.sql"
-    pass
-
 
 # SQL Server database
 class SQLServerDatabase:

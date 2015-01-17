@@ -176,11 +176,6 @@ public class Configuration {
   public static final String SERVER_JDBC_RCA_USER_PASSWD_KEY = "server.jdbc.rca.user.passwd";
   public static final String SERVER_JDBC_RCA_DRIVER_KEY = "server.jdbc.rca.driver";
   public static final String SERVER_JDBC_RCA_URL_KEY = "server.jdbc.rca.url";
-  public static final String SCOM_JDBC_SINK_USER_NAME_KEY = "scom.sink.db.username";
-  public static final String SCOM_JDBC_SINK_USER_PASSWD_KEY = "scom.sink.db.password";
-  public static final String SCOM_JDBC_SINK_DRIVER_KEY = "scom.sink.db.driver";
-  public static final String SCOM_JDBC_SINK_URL_KEY = "scom.sink.db.url";
-  public static final String SCOM_JDBC_SINK_INT_AUTH_KEY = "scom.sink.db.use.integrated.auth";
   public static final String SERVER_JDBC_GENERATE_TABLES_KEY = "server.jdbc.generateTables";
   public static final String JDBC_UNIT_NAME = "ambari-server";
   public static final String JDBC_LOCAL_URL = "jdbc:postgresql://localhost/";
@@ -821,33 +816,6 @@ public class Configuration {
       }
     }
     return readPasswordFromFile(passwdProp, SERVER_JDBC_RCA_USER_PASSWD_DEFAULT);
-  }
-
-  public String getSinkDatabaseDriver() {
-    return properties.getProperty(SCOM_JDBC_SINK_DRIVER_KEY);
-  }
-
-  public String getSinkDatabaseUrl() {
-    return properties.getProperty(SCOM_JDBC_SINK_URL_KEY);
-  }
-
-  public boolean getSinkUseIntegratedAuth() {
-      return "true".equalsIgnoreCase(properties.getProperty(SCOM_JDBC_SINK_INT_AUTH_KEY));
-  }
-
-  public String getSinkDatabaseUser() {
-    return properties.getProperty(SCOM_JDBC_SINK_USER_NAME_KEY, SCOM_JDBC_SINK_USER_NAME_DEFAULT);
-  }
-
-  public String getSinkDatabasePassword() {
-    String passwdProp = properties.getProperty(SCOM_JDBC_SINK_USER_PASSWD_KEY);
-    if (passwdProp != null) {
-      String dbpasswd = readPasswordFromStore(passwdProp);
-      if (dbpasswd != null) {
-        return dbpasswd;
-      }
-    }
-    return readPasswordFromFile(passwdProp, SCOM_JDBC_SINK_USER_PASSWD_DEFAULT);
   }
 
   private String readPasswordFromFile(String filePath, String defaultPassword) {

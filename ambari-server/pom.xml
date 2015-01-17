@@ -1375,11 +1375,6 @@
           <version>1.4.0-incubating</version>
           <scope>test</scope>
         </dependency>
-        <dependency>
-          <groupId>${pom.groupId}</groupId>
-          <artifactId>metrics-sink</artifactId>
-          <version>1.0.0</version>
-        </dependency>
       </dependencies>
     </profile>
     <profile>

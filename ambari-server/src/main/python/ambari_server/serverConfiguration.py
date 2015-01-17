@@ -120,28 +120,11 @@ JDBC_RCA_PASSWORD_FILE_PROPERTY = "server.jdbc.rca.user.passwd"
 JDBC_RCA_PASSWORD_ALIAS = "ambari.db.password"
 
 #Windows-specific settings
-METRICS_DATABASE_NAME = "HadoopMetrics"
 
 JDBC_USE_INTEGRATED_AUTH_PROPERTY = "server.jdbc.use.integrated.auth"
 
 JDBC_RCA_USE_INTEGRATED_AUTH_PROPERTY = "server.jdbc.rca.use.integrated.auth"
 
-JDBC_METRICS_USE_INTEGRATED_AUTH_PROPERTY = "scom.sink.db.use.integrated.auth"
-
-METRICS_PERSISTENCE_TYPE_PROPERTY = "metrics.persistence.type"
-
-JDBC_METRICS_DATABASE_PROPERTY = "scom.sink.db.database"
-JDBC_METRICS_HOSTNAME_PROPERTY = "scom.sink.db.hostname"
-JDBC_METRICS_PORT_PROPERTY = "scom.sink.db.port"
-JDBC_METRICS_SCHEMA_PROPERTY = "scom.sink.db.schema"
-
-JDBC_METRICS_DRIVER_PROPERTY = "scom.sink.db.driver"
-JDBC_METRICS_URL_PROPERTY = "scom.sink.db.url"
-JDBC_METRICS_USER_NAME_PROPERTY = "scom.sink.db.username"
-JDBC_METRICS_PASSWORD_PROPERTY = "scom.sink.db.password"
-JDBC_METRICS_PASSWORD_FILENAME = "scom_password.dat"
-
-JDBC_METRICS_PASSWORD_ALIAS = "scom.db.password"
 
 # resources repo configuration
 RESOURCES_DIR_PROPERTY = "resources.dir"

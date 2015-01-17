@@ -68,22 +68,6 @@
       <outputDirectory>ambari-server-${project.version}/</outputDirectory>
     </file>
     <file>
-      <source>${basedir}/../contrib/ambari-scom/metrics-sink/db/Hadoop-Metrics-SQLServer-CREATE.sql</source>
-      <outputDirectory>/ambari-server-${project.version}/resources</outputDirectory>
-    </file>
-    <file>
-      <source>${basedir}/../contrib/ambari-scom/metrics-sink/db/Hadoop-Metrics-SQLServer-CREATELOCAL.sql</source>
-      <outputDirectory>/ambari-server-${project.version}/resources</outputDirectory>
-    </file>
-    <file>
-      <source>${basedir}/../contrib/ambari-scom/metrics-sink/db/Hadoop-Metrics-SQLServer-DROP.sql</source>
-      <outputDirectory>/ambari-server-${project.version}/resources</outputDirectory>
-    </file>
-    <file>
-      <source>${basedir}/../contrib/ambari-scom/metrics-sink/target/metrics-sink-1.0.0.jar</source>
-      <outputDirectory>/ambari-server-${project.version}/resources</outputDirectory>
-    </file>
-    <file>
       <source>${basedir}/src/main/package/msi/ambari-server.wxs</source>
       <outputDirectory>../../</outputDirectory>
       <filtered>true</filtered>
