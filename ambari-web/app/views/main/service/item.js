@@ -162,6 +162,13 @@ App.MainServiceItemView = Em.View.extend({
        isHidden: !App.get('isHadoop22Stack')
       },
       {
+       cssClass: 'icon-plus',
+       'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.hive.server2')),
+       service: 'HIVE',
+       component: 'HIVE_SERVER',
+       isHidden: !App.get('isHadoop22Stack')
+      },
+      {
         cssClass: 'icon-plus',
         'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.zookeeper.server')),
         service: 'ZOOKEEPER',

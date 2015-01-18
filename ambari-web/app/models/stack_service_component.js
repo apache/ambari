@@ -190,7 +190,7 @@ App.StackServiceComponent = DS.Model.extend({
 
   /** @property {Boolean} showAddBtnInInstall - show add button for this component on Assign Masters  **/
   showAddBtnInInstall: function() {
-    var doNotShowList = ['HIVE_METASTORE'];
+    var doNotShowList = ['HIVE_METASTORE', 'HIVE_SERVER'];
     return !doNotShowList.contains(this.get('componentName'));
   }.property('componentName')
 
