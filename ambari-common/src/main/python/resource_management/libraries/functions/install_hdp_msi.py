@@ -46,6 +46,9 @@ HDFS_NAMENODE_DATA_DIR={hdp_data_dir}\\hdpdatann
 
 #Datanode Data directory
 HDFS_DATANODE_DATA_DIR={hdp_data_dir}\\hdpdatadn
+
+IS_SLIDER=yes
+IS_PHOENIX=yes
 """
 cluster_properties = """#Log directory
 HDP_LOG_DIR={hdp_log_dir}
@@ -91,7 +94,7 @@ OOZIE_DB_PASSWORD=oozie
 
 INSTALL_MSI_CMD = 'cmd /C start /wait msiexec /qn /i  {hdp_msi_path} /lv {hdp_log_path} MSIUSEREALADMINDETECTION=1 ' \
                   'HDP_LAYOUT={hdp_layout_path} DESTROY_DATA=yes HDP_USER_PASSWORD={hadoop_password_arg} HDP=yes ' \
-                  'KNOX=yes KNOX_MASTER_SECRET="AmbariHDP2Windows" FALCON=yes STORM=yes HBase=yes STORM=yes FLUME=yes RANGER=no'
+                  'KNOX=yes KNOX_MASTER_SECRET="AmbariHDP2Windows" FALCON=yes STORM=yes HBase=yes STORM=yes FLUME=yes SLIDER=yes PHOENIX=yes RANGER=no'
 CREATE_SERVICE_SCRIPT = os.path.abspath("sbin\createservice.ps1")
 CREATE_SERVICE_CMD = 'cmd /C powershell -File "{script}" -username hadoop -password "{password}" -servicename ' \
                      '{servicename} -hdpresourcesdir "{resourcedir}" -servicecmdpath "{servicecmd}"'

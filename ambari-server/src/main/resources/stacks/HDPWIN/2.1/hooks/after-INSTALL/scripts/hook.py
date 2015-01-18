@@ -45,5 +45,17 @@ class AfterInstallHook(Hook):
            mode="f"
     )
 
+    File(format("{params.hadoop_install_root}/Run-SmokeTests.cmd"),
+         content=Template("Run-SmokeTests.cmd"),
+         owner=params.hdfs_user,
+         mode="f"
+    )
+
+    File(format("{params.hadoop_install_root}/Run-SmokeTests.ps1"),
+         content=Template("Run-SmokeTests.ps1"),
+         owner=params.hdfs_user,
+         mode="f"
+    )
+
 if __name__ == "__main__":
   AfterInstallHook().execute()
