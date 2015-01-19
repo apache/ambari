@@ -108,19 +108,18 @@ public class DistributeRepositoriesActionListener {
       LOG.debug(event.toString());
     }
 
-    RepositoryVersionState newHostState;
+    RepositoryVersionState newHostState = RepositoryVersionState.INSTALL_FAILED;
+    Long clusterId = event.getClusterId();
+    if (clusterId == null) {
+      LOG.error("Distribute Repositories expected a cluster Id for host " + event.getHostname());
+      return;
+    }
+
 
     String repositoryVersion = null;
-    Long clusterId = event.getClusterId();
-
+    
     if (event.getCommandReport() == null) {
-      // Something has gone wrong on host
-      // That's why we mark all host stack versions that are at
-      // INSTALLING state as failed
-      // This decision should not be a problem because there should not be more
-      // then 1 concurrent host stack version installation
-      LOG.warn("Command report is null, marking action as INSTALL_FAILED");
-      newHostState = RepositoryVersionState.INSTALL_FAILED;
+      LOG.error("Command report is null, marking action as INSTALL_FAILED");
     } else {
       // Parse structured output
       try {
@@ -129,48 +128,34 @@ public class DistributeRepositoriesActionListener {
                 DistributeRepositoriesStructuredOutput.class);
         if (event.getCommandReport().getStatus().equals(HostRoleStatus.COMPLETED.toString())) {
           newHostState = RepositoryVersionState.INSTALLED;
-        } else {
-          newHostState = RepositoryVersionState.INSTALL_FAILED;
         }
         repositoryVersion = structuredOutput.getInstalledRepositoryVersion();
       } catch (JsonSyntaxException e) {
         LOG.error("Can not parse structured output %s", e);
-        newHostState = RepositoryVersionState.INSTALL_FAILED;
       }
     }
-    List<HostVersionEntity> hostVersions = hostVersionDAO.get().findByHost(event.getHostname());
-    for (HostVersionEntity hostVersion : hostVersions) {
-      if (repositoryVersion != null && ! hostVersion.getRepositoryVersion().getVersion().equals(repositoryVersion)) {
-        // Are we going to update state of a concrete host stack version?
-        continue;
-      }
-      // Typically, there will be single execution of code below
-      if (hostVersion.getState() == RepositoryVersionState.INSTALLING) {
-        hostVersion.setState(newHostState);
 
-        if (clusterId != null) { // Update state of a cluster stack version
-          try {
-            Cluster cluster = clusters.get().getClusterById(clusterId);
-            cluster.recalculateClusterVersionState(hostVersion.getRepositoryVersion().getVersion());
-          } catch (AmbariException e) {
-            LOG.error("Can not get cluster with Id " + clusterId, e);
-          }
-        } else {
-          LOG.warn("Can not determine cluster for stack version state update");
-          // Recalculate state of all clusters to ensure consistency
-          try {
-            Set<Cluster> clustersForHost = clusters.get().getClustersForHost(event.getHostname());
-            for (Cluster cluster : clustersForHost) {
-              cluster.recalculateClusterVersionState(hostVersion.getRepositoryVersion().getVersion());
-            }
-          } catch (AmbariException e) {
-            LOG.error("Can not update state of clusters", e);
-          }
+    if (repositoryVersion != null) {
+      List<HostVersionEntity> hostVersions = hostVersionDAO.get().findByHost(event.getHostname());
+      HostVersionEntity foundHostVersion = null;
+
+      for (HostVersionEntity hostVersion : hostVersions) {
+        if (hostVersion.getRepositoryVersion().getVersion().equals(repositoryVersion)) {
+          foundHostVersion = hostVersion;
+          break;
         }
-      } else {
-        LOG.error(
-                "Can not transition host stack version state from {} to {} for " +
-                                "host {}", hostVersion.getState(), newHostState, event.getHostname());
+      }
+
+      if (foundHostVersion != null && foundHostVersion.getState() == RepositoryVersionState.INSTALLING) {
+        foundHostVersion.setState(newHostState);
+
+        // Update state of a cluster stack version
+        try {
+          Cluster cluster = clusters.get().getClusterById(clusterId);
+          cluster.recalculateClusterVersionState(foundHostVersion.getRepositoryVersion().getVersion());
+        } catch (AmbariException e) {
+          LOG.error("Cannot get cluster with Id " + clusterId.toString(), e);
+        }
       }
     }
   }

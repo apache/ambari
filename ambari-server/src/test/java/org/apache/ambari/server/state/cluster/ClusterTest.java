@@ -160,22 +160,33 @@ public class ClusterTest {
     c1 = clusters.getCluster("c1");
     Assert.assertEquals("c1", c1.getClusterName());
     Assert.assertEquals(1, c1.getClusterId());
+
     clusters.addHost("h1");
-    Host host = clusters.getHost("h1");
-    host.setIPv4("ipv4");
-    host.setIPv6("ipv6");
+    clusters.addHost("h2");
+    Host host1 = clusters.getHost("h1");
+    host1.setIPv4("ipv4");
+    host1.setIPv6("ipv6");
+
+    Host host2 = clusters.getHost("h2");
+    host2.setIPv4("ipv4");
+    host2.setIPv6("ipv6");
 
     Map<String, String> hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "5.9");
-    host.setHostAttributes(hostAttributes);
+    host1.setHostAttributes(hostAttributes);
+    host2.setHostAttributes(hostAttributes);
 
-    host.persist();
+    host1.persist();
+    host2.persist();
+
     StackId stackId = new StackId("HDP-0.1");
     c1.setDesiredStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId.getStackId(), "1.0-2086");
-    c1.createClusterVersion(stackId.getStackId(), "1.0-2086", "admin", RepositoryVersionState.CURRENT);
+    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
+    c1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+    c1.transitionClusterVersion(stackId.getStackName(), stackId.getStackVersion(), RepositoryVersionState.CURRENT);
     clusters.mapHostToCluster("h1", "c1");
+    clusters.mapHostToCluster("h2", "c1");
     ClusterVersionDAOMock.failOnCurrentVersionState = false;
   }
 
@@ -186,10 +197,10 @@ public class ClusterTest {
 
   @Test
   public void testAddHost() throws AmbariException {
-    clusters.addHost("h2");
+    clusters.addHost("h3");
 
     try {
-      clusters.addHost("h2");
+      clusters.addHost("h3");
       fail("Duplicate add should fail");
     }
     catch (AmbariException e) {
@@ -544,20 +555,20 @@ public class ClusterTest {
     ClusterResponse r = c1.convertToResponse();
     Assert.assertEquals(c1.getClusterId(), r.getClusterId().longValue());
     Assert.assertEquals(c1.getClusterName(), r.getClusterName());
-    Assert.assertEquals(Integer.valueOf(1), r.getTotalHosts());
+    Assert.assertEquals(Integer.valueOf(2), r.getTotalHosts());
     Assert.assertEquals(0, r.getClusterHealthReport().getAlertStatusHosts());
     Assert.assertEquals(0, r.getClusterHealthReport().getHealthyStatusHosts());
     Assert.assertEquals(0, r.getClusterHealthReport().getUnhealthyStatusHosts());
-    Assert.assertEquals(1, r.getClusterHealthReport().getUnknownStatusHosts());
+    Assert.assertEquals(2, r.getClusterHealthReport().getUnknownStatusHosts());
     Assert.assertEquals(0, r.getClusterHealthReport().getStaleConfigsHosts());
     Assert.assertEquals(0, r.getClusterHealthReport().getMaintenanceStateHosts());
     Assert.assertEquals(0, r.getClusterHealthReport().getHealthyStateHosts());
     Assert.assertEquals(0, r.getClusterHealthReport().getHeartbeatLostStateHosts());
-    Assert.assertEquals(1, r.getClusterHealthReport().getInitStateHosts());
+    Assert.assertEquals(2, r.getClusterHealthReport().getInitStateHosts());
     Assert.assertEquals(0, r.getClusterHealthReport().getUnhealthyStateHosts());
 
-    clusters.addHost("h2");
-    Host host = clusters.getHost("h2");
+    clusters.addHost("h3");
+    Host host = clusters.getHost("h3");
     host.setIPv4("ipv4");
     host.setIPv6("ipv6");
 
@@ -570,20 +581,20 @@ public class ClusterTest {
     host.setStatus(host.getHealthStatus().getHealthStatus().name());
     host.persist();
     c1.setDesiredStackVersion(new StackId("HDP-2.0.6"));
-    clusters.mapHostToCluster("h2", "c1");
+    clusters.mapHostToCluster("h3", "c1");
 
     r = c1.convertToResponse();
 
-    Assert.assertEquals(Integer.valueOf(2), r.getTotalHosts());
+    Assert.assertEquals(Integer.valueOf(3), r.getTotalHosts());
     Assert.assertEquals(0, r.getClusterHealthReport().getAlertStatusHosts());
     Assert.assertEquals(1, r.getClusterHealthReport().getHealthyStatusHosts());
     Assert.assertEquals(0, r.getClusterHealthReport().getUnhealthyStatusHosts());
-    Assert.assertEquals(1, r.getClusterHealthReport().getUnknownStatusHosts());
+    Assert.assertEquals(2, r.getClusterHealthReport().getUnknownStatusHosts());
     Assert.assertEquals(0, r.getClusterHealthReport().getStaleConfigsHosts());
     Assert.assertEquals(0, r.getClusterHealthReport().getMaintenanceStateHosts());
     Assert.assertEquals(1, r.getClusterHealthReport().getHealthyStateHosts());
     Assert.assertEquals(0, r.getClusterHealthReport().getHeartbeatLostStateHosts());
-    Assert.assertEquals(1, r.getClusterHealthReport().getInitStateHosts());
+    Assert.assertEquals(2, r.getClusterHealthReport().getInitStateHosts());
     Assert.assertEquals(0, r.getClusterHealthReport().getUnhealthyStateHosts());
 
     // TODO write unit tests for debug dump
@@ -951,16 +962,20 @@ public class ClusterTest {
 
   @Test
   public void testTransitionClusterVersionTransactionFail() throws AmbariException {
-    ClusterVersionDAOMock.failOnCurrentVersionState = true;
     helper.getOrCreateRepositoryVersion("HDP", "0.2");
     c1.createClusterVersion("HDP", "0.2", "admin", RepositoryVersionState.INSTALLING);
     c1.transitionClusterVersion("HDP", "0.2", RepositoryVersionState.INSTALLED);
     c1.transitionClusterVersion("HDP", "0.2", RepositoryVersionState.UPGRADING);
     c1.transitionClusterVersion("HDP", "0.2", RepositoryVersionState.UPGRADED);
     try {
+      ClusterVersionDAOMock.failOnCurrentVersionState = true;
       c1.transitionClusterVersion("HDP", "0.2", RepositoryVersionState.CURRENT);
       Assert.fail();
-    } catch (AmbariException e) {}
+    } catch (AmbariException e) {
+
+    } finally {
+      ClusterVersionDAOMock.failOnCurrentVersionState = false;
+    }
 
     // There must be CURRENT state for cluster
     assertNotNull(c1.getCurrentClusterVersion());
@@ -1021,42 +1036,126 @@ public class ClusterTest {
   public void testRecalculateClusterVersionState() throws AmbariException {
     Host h1 = clusters.getHost("h1");
     h1.setState(HostState.HEALTHY);
+
+    Host h2 = clusters.getHost("h2");
+    h2.setState(HostState.HEALTHY);
+
+    // Phase 1: Install bits during distribution
     StackId stackId = new StackId("HDP-0.1");
+    final String stackVersion = "1.0-1000";
     RepositoryVersionEntity repositoryVersionEntity = helper.getOrCreateRepositoryVersion(stackId.getStackId(),
-        "1.0-1000");
-    c1.createClusterVersion(stackId.getStackId(), "1.0-1000", "admin", RepositoryVersionState.INSTALLING);
+        stackVersion);
+    // Because the cluster already has a Cluster Version, an additional stack must init with INSTALLING
+    c1.createClusterVersion(stackId.getStackId(), stackVersion, "admin", RepositoryVersionState.INSTALLING);
     c1.setCurrentStackVersion(stackId);
-    c1.recalculateClusterVersionState("1.0-1000");
-    checkStackVersionState(stackId.getStackId(), "1.0-1000", RepositoryVersionState.OUT_OF_SYNC);
 
-    helper.createHostVersion("h1", repositoryVersionEntity, RepositoryVersionState.INSTALLING);
-    c1.recalculateClusterVersionState("1.0-1000");
-    checkStackVersionState(stackId.getStackId(), "1.0-1000", RepositoryVersionState.INSTALLING);
+    HostVersionEntity hv1 = helper.createHostVersion("h1", repositoryVersionEntity, RepositoryVersionState.INSTALLING);
+    HostVersionEntity hv2 = helper.createHostVersion("h2", repositoryVersionEntity, RepositoryVersionState.INSTALLING);
 
-    h1.setState(HostState.UNHEALTHY);
-    c1.recalculateClusterVersionState("1.0-1000");
-    checkStackVersionState(stackId.getStackId(), "1.0-1000", RepositoryVersionState.OUT_OF_SYNC);
+    c1.recalculateClusterVersionState(stackVersion);
+    //Should remain in its current state
+    checkStackVersionState(stackId.getStackId(), stackVersion, RepositoryVersionState.INSTALLING);
 
-    c1.recalculateClusterVersionState("1.0-2086");
-    checkStackVersionState(stackId.getStackId(), "1.0-2086", RepositoryVersionState.CURRENT);
+    h2.setState(HostState.UNHEALTHY);
+    c1.recalculateClusterVersionState(stackVersion);
+    checkStackVersionState(stackId.getStackId(), stackVersion, RepositoryVersionState.OUT_OF_SYNC);
+    // Retry by going back to INSTALLING
+    c1.transitionClusterVersion(stackId.getStackId(), stackVersion, RepositoryVersionState.INSTALLING);
+
+    h2.setState(HostState.HEALTHY);
+    hv2.setState(RepositoryVersionState.INSTALLED);
+    hostVersionDAO.merge(hv2);
+    c1.recalculateClusterVersionState(stackVersion);
+    checkStackVersionState(stackId.getStackId(), stackVersion, RepositoryVersionState.INSTALLING);
+
+    // Make one host fail
+    hv1.setState(RepositoryVersionState.INSTALL_FAILED);
+    hostVersionDAO.merge(hv1);
+    c1.recalculateClusterVersionState(stackVersion);
+    checkStackVersionState(stackId.getStackId(), stackVersion, RepositoryVersionState.INSTALL_FAILED);
+    // Retry by going back to INSTALLING
+    c1.transitionClusterVersion(stackId.getStackId(), stackVersion, RepositoryVersionState.INSTALLING);
+
+    // Now, all hosts are in INSTALLED
+    hv1.setState(RepositoryVersionState.INSTALLED);
+    hostVersionDAO.merge(hv1);
+    c1.recalculateClusterVersionState(stackVersion);
+    checkStackVersionState(stackId.getStackId(), stackVersion, RepositoryVersionState.INSTALLED);
+
+    // Phase 2: Upgrade stack
+    hv1.setState(RepositoryVersionState.UPGRADING);
+    hostVersionDAO.merge(hv1);
+    c1.recalculateClusterVersionState(stackVersion);
+    checkStackVersionState(stackId.getStackId(), stackVersion, RepositoryVersionState.UPGRADING);
+
+    hv2.setState(RepositoryVersionState.UPGRADING);
+    hostVersionDAO.merge(hv2);
+    c1.recalculateClusterVersionState(stackVersion);
+    checkStackVersionState(stackId.getStackId(), stackVersion, RepositoryVersionState.UPGRADING);
+
+    hv2.setState(RepositoryVersionState.UPGRADE_FAILED);
+    hostVersionDAO.merge(hv2);
+    c1.recalculateClusterVersionState(stackVersion);
+    checkStackVersionState(stackId.getStackId(), stackVersion, RepositoryVersionState.UPGRADE_FAILED);
+    // Retry by going back to UPGRADING
+    c1.transitionClusterVersion(stackId.getStackId(), stackVersion, RepositoryVersionState.UPGRADING);
+
+    hv2.setState(RepositoryVersionState.UPGRADED);
+    hostVersionDAO.merge(hv2);
+    c1.recalculateClusterVersionState(stackVersion);
+    checkStackVersionState(stackId.getStackId(), stackVersion, RepositoryVersionState.UPGRADING);
+
+    // Now both hosts are UPGRADED
+    hv1.setState(RepositoryVersionState.UPGRADED);
+    hostVersionDAO.merge(hv1);
+    c1.recalculateClusterVersionState(stackVersion);
+    checkStackVersionState(stackId.getStackId(), stackVersion, RepositoryVersionState.UPGRADED);
+
+    // Set both hosts to CURRENT
+    hv1.setState(RepositoryVersionState.CURRENT);
+    hostVersionDAO.merge(hv1);
+    hv2.setState(RepositoryVersionState.CURRENT);
+    hostVersionDAO.merge(hv2);
+    c1.recalculateClusterVersionState(stackVersion);
+    checkStackVersionState(stackId.getStackId(), stackVersion, RepositoryVersionState.CURRENT);
   }
 
   @Test
   public void testRecalculateAllClusterVersionStates() throws AmbariException {
     Host h1 = clusters.getHost("h1");
     h1.setState(HostState.HEALTHY);
+
+    Host h2 = clusters.getHost("h2");
+    h2.setState(HostState.HEALTHY);
+
     StackId stackId = new StackId("HDP-0.1");
     RepositoryVersionEntity repositoryVersionEntity = helper.getOrCreateRepositoryVersion(stackId.getStackId(),
         "1.0-1000");
     c1.createClusterVersion(stackId.getStackId(), "1.0-1000", "admin", RepositoryVersionState.INSTALLING);
     c1.setCurrentStackVersion(stackId);
     c1.recalculateAllClusterVersionStates();
-    checkStackVersionState(stackId.getStackId(), "1.0-1000", RepositoryVersionState.OUT_OF_SYNC);
+    checkStackVersionState(stackId.getStackId(), "1.0-1000", RepositoryVersionState.INSTALLING);
     checkStackVersionState(stackId.getStackId(), "1.0-2086", RepositoryVersionState.CURRENT);
 
-    helper.createHostVersion("h1", repositoryVersionEntity, RepositoryVersionState.INSTALLING);
+    HostVersionEntity hv1 = helper.createHostVersion("h1", repositoryVersionEntity, RepositoryVersionState.INSTALLING);
+    HostVersionEntity hv2 = helper.createHostVersion("h2", repositoryVersionEntity, RepositoryVersionState.INSTALLING);
+
     c1.recalculateAllClusterVersionStates();
     checkStackVersionState(stackId.getStackId(), "1.0-1000", RepositoryVersionState.INSTALLING);
+    checkStackVersionState(stackId.getStackId(), "1.0-2086", RepositoryVersionState.CURRENT);
+
+    hv1.setState(RepositoryVersionState.INSTALL_FAILED);
+    hostVersionDAO.merge(hv1);
+    c1.recalculateAllClusterVersionStates();
+    checkStackVersionState(stackId.getStackId(), "1.0-1000", RepositoryVersionState.INSTALL_FAILED);
+    checkStackVersionState(stackId.getStackId(), "1.0-2086", RepositoryVersionState.CURRENT);
+    // Retry by going back to INSTALLING
+    c1.transitionClusterVersion(stackId.getStackId(), "1.0-1000", RepositoryVersionState.INSTALLING);
+
+    hv1.setState(RepositoryVersionState.CURRENT);
+    hostVersionDAO.merge(hv1);
+    c1.recalculateAllClusterVersionStates();
+    checkStackVersionState(stackId.getStackId(), "1.0-1000", RepositoryVersionState.OUT_OF_SYNC);
     checkStackVersionState(stackId.getStackId(), "1.0-2086", RepositoryVersionState.CURRENT);
   }
 }

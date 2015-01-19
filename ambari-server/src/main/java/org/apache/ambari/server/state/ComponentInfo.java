@@ -35,6 +35,16 @@ public class ComponentInfo {
   private String cardinality;
 
   /**
+   * By default, all Components should advertise a version through a mechanism like hdp-select.
+   * The version must be present the structured output.in the {"version": "#.#.#.#-###"}
+   * For example, Masters will typically advertise the version upon a RESTART.
+   * Whereas clients will advertise the version when INSTALLED.
+   * Some components do not need to advertise a version because it is either redundant, or they don't have a mechanism
+   * at the moment. For instance, ZKFC has the same version as NameNode, while AMS and KERBEROS do not have a mechanism.
+   */
+  private boolean advertiseVersion = true;
+
+  /**
   * Added at schema ver 2
   */
   private CommandScriptDefinition commandScript;
@@ -89,6 +99,7 @@ public class ComponentInfo {
     category = prototype.category;
     deleted = prototype.deleted;
     cardinality = prototype.cardinality;
+    advertiseVersion = prototype.advertiseVersion;
     clientsToUpdateConfigs = prototype.clientsToUpdateConfigs;
     commandScript = prototype.commandScript;
     customCommands = prototype.customCommands;
@@ -223,6 +234,14 @@ public class ComponentInfo {
     return cardinality;
   }
 
+  public void setAdvertiseVersion(boolean advertiseVersion) {
+    this.advertiseVersion = advertiseVersion;
+  }
+
+  public boolean isAdvertiseVersion() {
+    return advertiseVersion;
+  }
+
   public List<String> getClientsToUpdateConfigs() {
     return clientsToUpdateConfigs;
   }
@@ -241,6 +260,7 @@ public class ComponentInfo {
     if (deleted != that.deleted) return false;
     if (autoDeploy != null ? !autoDeploy.equals(that.autoDeploy) : that.autoDeploy != null) return false;
     if (cardinality != null ? !cardinality.equals(that.cardinality) : that.cardinality != null) return false;
+    if (advertiseVersion != that.advertiseVersion) return false;
     if (category != null ? !category.equals(that.category) : that.category != null) return false;
     if (clientConfigFiles != null ? !clientConfigFiles.equals(that.clientConfigFiles) : that.clientConfigFiles != null)
       return false;
@@ -265,6 +285,7 @@ public class ComponentInfo {
     result = 31 * result + (category != null ? category.hashCode() : 0);
     result = 31 * result + (deleted ? 1 : 0);
     result = 31 * result + (cardinality != null ? cardinality.hashCode() : 0);
+    result = 31 * result + (advertiseVersion ? 1 : 0);
     result = 31 * result + (commandScript != null ? commandScript.hashCode() : 0);
     result = 31 * result + (clientConfigFiles != null ? clientConfigFiles.hashCode() : 0);
     result = 31 * result + (customCommands != null ? customCommands.hashCode() : 0);

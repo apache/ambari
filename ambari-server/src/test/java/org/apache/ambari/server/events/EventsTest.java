@@ -114,7 +114,7 @@ public class EventsTest {
     StackId stackId = new StackId("HDP", "2.0.6");
     m_cluster.setDesiredStackVersion(stackId);
     m_helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    m_cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
+    m_cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
 
     m_clusters.mapHostToCluster(HOSTNAME, m_clusterName);
   }

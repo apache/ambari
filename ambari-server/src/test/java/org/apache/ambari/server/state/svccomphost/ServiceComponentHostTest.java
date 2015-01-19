@@ -113,7 +113,7 @@ public class ServiceComponentHostTest {
     Cluster c1 = clusters.getCluster("C1");
     c1.setDesiredStackVersion(stackId);
     helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    c1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
+    c1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
     metaInfo.init();
     clusters.mapHostToCluster("h1","C1");
   }
@@ -721,7 +721,7 @@ public class ServiceComponentHostTest {
     StackId stackId = new StackId(stackVersion);
     c2.setDesiredStackVersion(stackId);
     helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    c2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
+    c2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
     metaInfo.init();
     clusters.mapHostToCluster(hostName, clusterName);
 
@@ -948,7 +948,7 @@ public class ServiceComponentHostTest {
     StackId stackId = new StackId(stackVersion);
     c2.setDesiredStackVersion(stackId);
     helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    c2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
+    c2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
 
     metaInfo.init();
     clusters.mapHostToCluster(hostName, clusterName);
@@ -1083,7 +1083,7 @@ public class ServiceComponentHostTest {
     StackId stackId = new StackId(stackVersion);
     c2.setDesiredStackVersion(stackId);
     helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    c2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
+    c2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
     metaInfo.init();
     clusters.mapHostToCluster(hostName, clusterName);
 
@@ -1127,7 +1127,7 @@ public class ServiceComponentHostTest {
     StackId stackId = new StackId(stackVersion);
     c2.setDesiredStackVersion(stackId);
     helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    c2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
+    c2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
     metaInfo.init();
     clusters.mapHostToCluster(hostName, clusterName);
 

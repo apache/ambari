@@ -87,7 +87,7 @@ public class StackDefinedPropertyProviderTest {
     StackId stackId = new StackId("HDP-2.0.5");
     cluster.setDesiredStackVersion(stackId);
     helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.CURRENT);
+    cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
 
     clusters.addHost("h1");
     Host host = clusters.getHost("h1");

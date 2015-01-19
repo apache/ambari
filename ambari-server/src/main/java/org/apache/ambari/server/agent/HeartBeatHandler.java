@@ -411,7 +411,6 @@ public class HeartBeatHandler {
     }
     Collection<HostRoleCommand> commands = actionManager.getTasks(taskIds);
 
-    Set<ServiceComponentHost> scHostsRequireRecalculation = new HashSet<ServiceComponentHost>();
     Iterator<HostRoleCommand> hostRoleCommandIterator = commands.iterator();
     for (CommandReport report : reports) {
 
@@ -485,7 +484,8 @@ public class HeartBeatHandler {
                   if (previousVersion != null && !previousVersion.equals("UNKNOWN")) {
                     scHost.setUpgradeState(UpgradeState.COMPLETE);
                   }
-                  scHostsRequireRecalculation.add(scHost);
+                  String repoVersion = scHost.recalculateHostVersionState();
+                  cl.recalculateClusterVersionState(repoVersion);
                 }
               }
             }
@@ -558,10 +558,7 @@ public class HeartBeatHandler {
         }
       }
     }
-    //Recalculate host versions
-    for (ServiceComponentHost serviceComponentHost : scHostsRequireRecalculation) {
-      serviceComponentHost.recalculateHostVersionState();
-    }
+
     //Update state machines from reports
     actionManager.processTaskResponse(hostname, reports, commands);
   }

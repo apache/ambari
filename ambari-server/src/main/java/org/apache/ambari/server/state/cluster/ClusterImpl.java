@@ -631,10 +631,10 @@ public class ClusterImpl implements Cluster {
           throw new ConfigGroupNotFoundException(getClusterName(), id.toString());
         }
         LOG.debug("Deleting Config group"
-          + ", clusterName = " + getClusterName()
-          + ", groupName = " + configGroup.getName()
-          + ", groupId = " + configGroup.getId()
-          + ", tag = " + configGroup.getTag());
+            + ", clusterName = " + getClusterName()
+            + ", groupName = " + configGroup.getName()
+            + ", groupId = " + configGroup.getId()
+            + ", tag = " + configGroup.getTag());
 
         configGroup.delete();
         clusterConfigGroups.remove(id);
@@ -848,9 +848,9 @@ public class ClusterImpl implements Cluster {
 
         if (schToRemove == null) {
           LOG.warn("Unavailable in per host cache. ServiceComponentHost"
-            + ", serviceName=" + serviceName
-            + ", serviceComponentName" + componentName
-            + ", hostname= " + hostname);
+              + ", serviceName=" + serviceName
+              + ", serviceComponentName" + componentName
+              + ", hostname= " + hostname);
         }
 
         if (LOG.isDebugEnabled()) {
@@ -1131,6 +1131,13 @@ public class ClusterImpl implements Cluster {
     return clusterVersionDAO.findByCluster(this.getClusterName());
   }
 
+  /**
+   * During the Finalize Action, want to transition all Host Versions from UPGRADED to CURRENT, and the last CURRENT one to INSTALLED.
+   * @param hostNames Collection of host names
+   * @param currentClusterVersion Entity that contains the cluster's current stack (with its name and version)
+   * @param desiredState Desired state must be {@link RepositoryVersionState#CURRENT} or {@link RepositoryVersionState#UPGRADING}
+   * @throws AmbariException
+   */
   @Override
   public void mapHostVersions(Set<String> hostNames, ClusterVersionEntity currentClusterVersion, RepositoryVersionState desiredState) throws AmbariException {
     if (currentClusterVersion == null) {
@@ -1139,7 +1146,6 @@ public class ClusterImpl implements Cluster {
 
     final Set<RepositoryVersionState> validStates = new HashSet<RepositoryVersionState>(){{
       add(RepositoryVersionState.CURRENT);
-      add(RepositoryVersionState.UPGRADING);
     }};
 
     if (!validStates.contains(desiredState)) {
@@ -1195,6 +1201,13 @@ public class ClusterImpl implements Cluster {
     }
   }
 
+  /**
+   * Because this is a top-down approach, it should only be called for the purposes of bootstrapping data, such as
+   * installing a brand new cluster or initiating an Upgrade.
+   * @param sourceClusterVersion cluster version to be queried for a stack name/version info and desired RepositoryVersionState.
+   * The only valid state of this cluster version is {@link RepositoryVersionState#INSTALLING}
+   * @throws AmbariException
+   */
   @Override
   public void inferHostVersions(ClusterVersionEntity sourceClusterVersion) throws AmbariException {
     if (sourceClusterVersion == null) {
@@ -1252,17 +1265,71 @@ public class ClusterImpl implements Cluster {
     }
   }
 
-  private RepositoryVersionState getWorstState(RepositoryVersionState currentState, RepositoryVersionState newState) {
-    return currentState.getPriority() < newState.getPriority() ? currentState : newState;
+  /**
+   * Calculate the effective Cluster Version State based on the state of its hosts.
+   *
+   * CURRENT: all hosts are CURRENT
+   * UPGRADE_FAILED: at least one host in UPGRADE_FAILED
+   * UPGRADED: all hosts are UPGRADED
+   * UPGRADING: at least one host is UPGRADING, and the rest in UPGRADING|INSTALLED
+   * INSTALLED: all hosts in INSTALLED
+   * INSTALL_FAILED: at least one host in INSTALL_FAILED
+   * INSTALLING: all hosts in INSTALLING. Notice that if one host is CURRENT and another is INSTALLING, then the
+   * effective version will be OUT_OF_SYNC.
+   * OUT_OF_SYNC: otherwise
+   * @param stateToHosts Map from state to the collection of hosts with that state
+   * @return Return the effective Cluster Version State
+   */
+  private RepositoryVersionState getEffectiveState(Map<RepositoryVersionState, Set<String>> stateToHosts) {
+    if (stateToHosts == null || stateToHosts.keySet().size() < 1) {
+      return null;
+    }
+
+    int totalHosts = 0;
+    for (Set<String> hosts : stateToHosts.values()) {
+      totalHosts += hosts.size();
+    }
+
+    if (stateToHosts.containsKey(RepositoryVersionState.CURRENT) && stateToHosts.get(RepositoryVersionState.CURRENT).size() == totalHosts) {
+      return RepositoryVersionState.CURRENT;
+    }
+    if (stateToHosts.containsKey(RepositoryVersionState.UPGRADE_FAILED) && !stateToHosts.get(RepositoryVersionState.UPGRADE_FAILED).isEmpty()) {
+      return RepositoryVersionState.UPGRADE_FAILED;
+    }
+    if (stateToHosts.containsKey(RepositoryVersionState.UPGRADED) && stateToHosts.get(RepositoryVersionState.UPGRADED).size() == totalHosts) {
+      return RepositoryVersionState.UPGRADED;
+    }
+    if (stateToHosts.containsKey(RepositoryVersionState.UPGRADING) && !stateToHosts.get(RepositoryVersionState.UPGRADING).isEmpty()) {
+      return RepositoryVersionState.UPGRADING;
+    }
+    if (stateToHosts.containsKey(RepositoryVersionState.INSTALLED) && stateToHosts.get(RepositoryVersionState.INSTALLED).size() == totalHosts) {
+      return RepositoryVersionState.INSTALLED;
+    }
+    if (stateToHosts.containsKey(RepositoryVersionState.INSTALL_FAILED) && !stateToHosts.get(RepositoryVersionState.INSTALL_FAILED).isEmpty()) {
+      return RepositoryVersionState.INSTALL_FAILED;
+    }
+
+    final int totalINSTALLING = stateToHosts.containsKey(RepositoryVersionState.INSTALLING) ? stateToHosts.get(RepositoryVersionState.INSTALLING).size() : 0;
+    final int totalINSTALLED = stateToHosts.containsKey(RepositoryVersionState.INSTALLED) ? stateToHosts.get(RepositoryVersionState.INSTALLED).size() : 0;
+    if (totalINSTALLING + totalINSTALLED == totalHosts) {
+      return RepositoryVersionState.INSTALLING;
+    }
+
+    // Also returns when have a mix of CURRENT and INSTALLING|INSTALLED|UPGRADING|UPGRADED
+    return RepositoryVersionState.OUT_OF_SYNC;
   }
 
   @Override
   public void recalculateClusterVersionState(String repositoryVersion) throws AmbariException {
+    if (repositoryVersion == null) {
+      return;
+    }
+
     clusterGlobalLock.readLock().lock();
     try {
       readWriteLock.writeLock().lock();
       try {
-        Map<String, Host> hosts = clusters.getHostsForCluster(this.getClusterName());
+        // Part 1, bootstrap cluster version if necessary.
         StackId stackId = getCurrentStackVersion();
 
         ClusterVersionEntity clusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(this.getClusterName(),
@@ -1270,6 +1337,7 @@ public class ClusterImpl implements Cluster {
 
         if (clusterVersion == null) {
           if (clusterVersionDAO.findByCluster(getClusterName()).isEmpty()) {
+            // During an Ambari Upgrade from 1.7.0 -> 2.0.0, the Cluster Version will not exist, so bootstrap it.
             createClusterVersionInternal(stackId.getStackId(), repositoryVersion, AuthorizationHelper.getAuthenticatedName(configuration.getAnonymousAuditName()), RepositoryVersionState.UPGRADING);
             clusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(this.getClusterName(), stackId.getStackId(), repositoryVersion);
           } else {
@@ -1277,7 +1345,8 @@ public class ClusterImpl implements Cluster {
           }
         }
 
-        RepositoryVersionState worstState;
+        // Ignore if cluster version is CURRENT or UPGRADE_FAILED
+        RepositoryVersionState lowestPriorityState;
         if (clusterVersion.getState() != RepositoryVersionState.INSTALL_FAILED &&
                 clusterVersion.getState() != RepositoryVersionState.OUT_OF_SYNC &&
                 clusterVersion.getState() != RepositoryVersionState.INSTALLING &&
@@ -1287,32 +1356,46 @@ public class ClusterImpl implements Cluster {
           // anything else is not supported as of now
           return;
         }
-        worstState = RepositoryVersionState.CURRENT;
+
+        // Part 2, check for transitions.
+        Map<String, Host> hosts = clusters.getHostsForCluster(this.getClusterName());
+
+        Map<RepositoryVersionState, Set<String>> stateToHosts = new HashMap<RepositoryVersionState, Set<String>>();
         for (Host host : hosts.values()) {
           String hostName = host.getHostName();
-          if (host.getState() != HostState.HEALTHY) {
-            worstState = getWorstState(worstState, RepositoryVersionState.OUT_OF_SYNC);
-            LOG.warn(String.format("Host %s is in unhealthy state, treating as %s",
-                    hostName, worstState));
-          }
-
           HostVersionEntity hostVersion = hostVersionDAO.findByClusterStackVersionAndHost(this.getClusterName(), stackId.getStackId(), repositoryVersion, hostName);
-          if (clusterVersionDAO.findByClusterAndStateCurrent(getClusterName()) != null) { //TODO workaround to skip this check during clean install
-            if (hostVersion == null) {
-              LOG.warn(String.format("Repo version %s is not installed on host %s",
-                      repositoryVersion, hostName));
-              worstState = getWorstState(worstState, RepositoryVersionState.OUT_OF_SYNC);
-            } else {
-              worstState = getWorstState(worstState, hostVersion.getState());
-            }
+          if (hostVersion == null) {
+            // It is likely that the services are still being installed on the cluster, so not all agents
+            // have had a chance to heartbeat and insert their own Host Version as part of recalculateHostVersionState().
+            // Therefore, we should not allow any transitions yet.
+            LOG.debug("Skipping transitioning the cluster version because host " + hostName + " does not have a version yet.");
+            return;
+          }
+
+          RepositoryVersionState hostState = hostVersion.getState();
+          if (host.getState() != HostState.HEALTHY) {
+            hostState = RepositoryVersionState.OUT_OF_SYNC;
+            LOG.warn(String.format("Host %s is in unhealthy state, treating as %s", hostName, hostState));
+          }
+
+          if (stateToHosts.containsKey(hostState)) {
+            stateToHosts.get(hostState).add(hostName);
+          } else {
+            Set<String> hostsInState = new HashSet<String>();
+            hostsInState.add(hostName);
+            stateToHosts.put(hostState, hostsInState);
           }
         }
-        if (worstState != clusterVersion.getState()) {
-          // Any mismatch will be catched while transitioning
-          transitionClusterVersion(stackId.getStackId(), repositoryVersion, worstState);
-        }
-        clusterVersionDAO.merge(clusterVersion);
 
+        RepositoryVersionState effectiveClusterVersionState = getEffectiveState(stateToHosts);
+        if (effectiveClusterVersionState != null && effectiveClusterVersionState != clusterVersion.getState()) {
+          // Any mismatch will be caught while transitioning, and raise an exception.
+          try {
+            transitionClusterVersion(stackId.getStackId(), repositoryVersion, effectiveClusterVersionState);
+          } catch (AmbariException e) {
+            ;
+          }
+        }
       } finally {
         readWriteLock.writeLock().unlock();
       }
@@ -1367,13 +1450,12 @@ public class ClusterImpl implements Cluster {
     Set<RepositoryVersionState> allowedStates = new HashSet<RepositoryVersionState>();
     Collection<ClusterVersionEntity> allClusterVersions = getAllClusterVersions();
     if (allClusterVersions == null || allClusterVersions.isEmpty()) {
-      allowedStates.add(RepositoryVersionState.CURRENT);
       allowedStates.add(RepositoryVersionState.UPGRADING);
     } else {
       allowedStates.add(RepositoryVersionState.INSTALLING);
     }
 
-    if (! allowedStates.contains(state)) {
+    if (!allowedStates.contains(state)) {
       throw new AmbariException("The allowed state for a new cluster version must be within " + allowedStates);
     }
 
@@ -1430,7 +1512,6 @@ public class ClusterImpl implements Cluster {
             case INSTALLED:
               allowedStates.add(RepositoryVersionState.INSTALLING);
               allowedStates.add(RepositoryVersionState.UPGRADING);
-              allowedStates.add(RepositoryVersionState.UPGRADED);
               allowedStates.add(RepositoryVersionState.OUT_OF_SYNC);
               break;
             case OUT_OF_SYNC:

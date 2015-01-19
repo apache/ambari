@@ -255,7 +255,7 @@ public class UpgradeHelperTest {
     helper.getOrCreateRepositoryVersion(c.getDesiredStackVersion().getStackName(),
         c.getDesiredStackVersion().getStackVersion());
     c.createClusterVersion(c.getDesiredStackVersion().getStackName(),
-        c.getDesiredStackVersion().getStackVersion(), "admin", RepositoryVersionState.CURRENT);
+        c.getDesiredStackVersion().getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
     for (int i = 0; i < 3; i++) {
       String hostName = "h" + (i+1);
       clusters.addHost(hostName);

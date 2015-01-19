@@ -386,8 +386,8 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
         // Move CSV into INSTALLING state (retry installation)
         cluster.transitionClusterVersion(stackId, desiredRepoVersion, RepositoryVersionState.INSTALLING);
       }
+      // Will also initialize all Host Versions in an INSTALLING state.
       cluster.inferHostVersions(existingCSVer);
-      cluster.recalculateClusterVersionState(desiredRepoVersion);
 
       req.persist();
 

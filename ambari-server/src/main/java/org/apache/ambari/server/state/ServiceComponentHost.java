@@ -203,9 +203,9 @@ public interface ServiceComponentHost {
 
   /**
    * Changes host version state according to state of the components installed on the host.
-   *
+   * @return The version number associated with that component in the host
    * @throws AmbariException if host is detached from the cluster
    */
-  public void recalculateHostVersionState() throws AmbariException;
+  public String recalculateHostVersionState() throws AmbariException;
 
 }

@@ -59,6 +59,9 @@ public class StackServiceComponentResourceProvider extends
   private static final String CARDINALITY_ID = PropertyHelper.getPropertyId(
       "StackServiceComponents", "cardinality");
 
+  private static final String ADVERTISE_VERSION_ID = PropertyHelper.getPropertyId(
+      "StackServiceComponents", "advertise_version");
+
   private static final String CUSTOM_COMMANDS_PROPERTY_ID = PropertyHelper.getPropertyId(
       "StackServiceComponents", "custom_commands");
 
@@ -134,6 +137,9 @@ public class StackServiceComponentResourceProvider extends
 
       setResourceProperty(resource, CARDINALITY_ID,
           response.getCardinality(), requestedIds);
+
+      setResourceProperty(resource, ADVERTISE_VERSION_ID,
+          response.isAdvertiseVersion(), requestedIds);
 
       setResourceProperty(resource, CUSTOM_COMMANDS_PROPERTY_ID,
           response.getCustomCommands(), requestedIds);

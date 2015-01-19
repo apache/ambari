@@ -76,6 +76,11 @@ public class StackServiceComponentResponse {
   private String cardinality;
 
   /**
+   * does the component need to advertise a version
+   */
+  private boolean advertiseVersion;
+
+  /**
    * auto deploy information
    */
   private AutoDeployInfo autoDeploy;
@@ -99,6 +104,7 @@ public class StackServiceComponentResponse {
     isClient = component.isClient();
     isMaster = component.isMaster();
     cardinality = component.getCardinality();
+    advertiseVersion = component.isAdvertiseVersion();
     autoDeploy = component.getAutoDeploy();
 
     // the custom command names defined for this component
@@ -275,6 +281,26 @@ public class StackServiceComponentResponse {
   public void setCardinality(String cardinality) {
     this.cardinality = cardinality;
   }
+
+
+  /**
+   * Get whether the components needs to advertise a version.
+   *
+   * @return Whether the components needs to advertise a version
+   */
+  public boolean isAdvertiseVersion() {
+    return advertiseVersion;
+  }
+
+  /**
+   * Set whether the component needs to advertise a version.
+   *
+   * @param advertiseVersion whether the component needs to advertise a version
+   */
+  public void setAdvertiseVersion(boolean advertiseVersion) {
+    this.advertiseVersion = advertiseVersion;
+  }
+
 
   /**
    * Get auto deploy information.
