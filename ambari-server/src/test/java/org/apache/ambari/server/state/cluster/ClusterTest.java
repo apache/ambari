@@ -981,12 +981,12 @@ public class ClusterTest {
     assertNotNull(entityHDP2);
 
     List<HostVersionEntity> hostVersionsH1Before = hostVersionDAO.findByClusterAndHost("c1", "h1");
-    assertEquals(1, hostVersionsH1Before.size());
+    assertEquals(0, hostVersionsH1Before.size());
 
     c1.inferHostVersions(entityHDP2);
 
     List<HostVersionEntity> hostVersionsH1After = hostVersionDAO.findByClusterAndHost("c1", "h1");
-    assertEquals(2, hostVersionsH1After.size());
+    assertEquals(1, hostVersionsH1After.size());
 
     boolean checked = false;
     for (HostVersionEntity entity : hostVersionsH1After) {
@@ -1003,7 +1003,7 @@ public class ClusterTest {
     c1.inferHostVersions(entityHDP2);
 
     hostVersionsH1After = hostVersionDAO.findByClusterAndHost("c1", "h1");
-    assertEquals(2, hostVersionsH1After.size());
+    assertEquals(1, hostVersionsH1After.size());
 
     checked = false;
     for (HostVersionEntity entity : hostVersionsH1After) {

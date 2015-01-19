@@ -33,6 +33,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AlertDefinitionCommand;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.events.AlertHashInvalidationEvent;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
@@ -70,6 +71,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.ServiceComponentHostEventType;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
@@ -78,7 +80,9 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
+import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,6 +127,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   Clusters clusters;
   @Inject
   ConfigHelper helper;
+  @Inject
+  AmbariMetaInfo ambariMetaInfo;
+  @Inject
+  RepositoryVersionHelper repositoryVersionHelper;
 
   /**
    * Used for creating commands to send to the agents when alert definitions are
@@ -1708,6 +1716,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   @Override
   public void recalculateHostVersionState() throws AmbariException {
     final String version = getVersion();
+    if (version.equals("UNKNOWN")) {
+      // recalculate only if some particular version is set
+      return;
+    }
     final String hostName = getHostName();
     final HostEntity host = hostDAO.findByName(hostName);
     final Set<Cluster> clustersForHost = clusters.getClustersForHost(hostName);
@@ -1716,27 +1728,37 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     }
     final Cluster cluster = clustersForHost.iterator().next();
     final StackId stack = cluster.getDesiredStackVersion();
-    final RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(stack.getStackId(), version);
+    final StackInfo stackInfo = ambariMetaInfo.getStack(stack.getStackName(), stack.getStackVersion());
+    RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(stack.getStackId(), version);
     if (repositoryVersion == null) {
-      LOG.debug("Repository version for stack " + stack.getStackId() + " for version " + version + " was not found");
-      return;
+      LOG.info("Creating new repository version " + stack.getStackName() + "-" + version);
+      repositoryVersion = repositoryVersionDAO.create(stack.getStackId(), version, stack.getStackName() + "-" + version,
+          repositoryVersionHelper.getUpgradePackageNameSafe(stack.getStackName(), stack.getStackVersion(), version),
+          repositoryVersionHelper.serializeOperatingSystems(stackInfo.getRepositories()));
     }
-    final HostVersionEntity hostVersionEntity = hostVersionDAO.findByClusterStackVersionAndHost(cluster.getClusterName(), repositoryVersion.getStack(), repositoryVersion.getVersion(), hostName);
+    HostVersionEntity hostVersionEntity = hostVersionDAO.findByClusterStackVersionAndHost(cluster.getClusterName(), repositoryVersion.getStack(), repositoryVersion.getVersion(), hostName);
     if (hostVersionEntity == null) {
-      LOG.debug(String.format("Host version version for host %s on cluster %s with stack %s and repository version %s was not found",
-          hostName, cluster.getClusterName(), repositoryVersion.getStack(), repositoryVersion.getVersion()));
-      return;
+      // there is no host version but we have a component on the host of that version. It implies that we have some repo version installed on that host
+      // and we can treat the host as being upgrading to that version
+      hostVersionEntity = new HostVersionEntity(hostName, repositoryVersion, RepositoryVersionState.UPGRADING);
+      hostVersionEntity.setHostEntity(host);
+      hostVersionDAO.create(hostVersionEntity);
     }
 
     final Collection<HostComponentStateEntity> allHostComponents = host.getHostComponentStateEntities();
     final Collection<HostComponentStateEntity> upgradedHostComponents = new HashSet<HostComponentStateEntity>();
+    final Collection<HostComponentStateEntity> versionedHostComponents = new HashSet<HostComponentStateEntity>();
     for (HostComponentStateEntity hostComponentStateEntity: allHostComponents) {
-      if (hostComponentStateEntity.getUpgradeState().equals(UpgradeState.COMPLETE) && !hostComponentStateEntity.getVersion().equals("UNKNOWN")) {
-        upgradedHostComponents.add(hostComponentStateEntity);
+      if (!hostComponentStateEntity.getVersion().equals("UNKNOWN")) {
+        versionedHostComponents.add(hostComponentStateEntity);
+        if (hostComponentStateEntity.getUpgradeState().equals(UpgradeState.COMPLETE) ) {
+          upgradedHostComponents.add(hostComponentStateEntity);
+        }
       }
     }
 
     // ZKFC is special because it is does not receive a RESTART action during a Rolling Upgrade.
+    @SuppressWarnings("unchecked")
     final Collection<HostComponentStateEntity> nonUpgradedHostComponents = CollectionUtils.subtract(allHostComponents, upgradedHostComponents);
     for (HostComponentStateEntity hostComponentStateEntity: nonUpgradedHostComponents) {
       if (hostComponentStateEntity.getComponentName().equalsIgnoreCase("ZKFC")) {
@@ -1744,17 +1766,41 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       }
     }
 
-    if (allHostComponents.size() == upgradedHostComponents.size() &&
+    if (allHostComponents.size() == upgradedHostComponents.size() && // all components are upgraded
+        haveSameVersion(upgradedHostComponents) && //have the same version
         (hostVersionEntity.getState().equals(RepositoryVersionState.INSTALLED) || hostVersionEntity.getState().equals(RepositoryVersionState.UPGRADING))) {
       hostVersionEntity.setState(RepositoryVersionState.UPGRADED);
       hostVersionDAO.merge(hostVersionEntity);
-    }
-
-    if (!upgradedHostComponents.isEmpty() && upgradedHostComponents.size() < allHostComponents.size()) {
+    } else if (allHostComponents.size() == versionedHostComponents.size() && haveSameVersion(versionedHostComponents) && //all components have same version
+        hostVersionDAO.findByHostAndStateCurrent(cluster.getClusterName(), hostName) == null) { //and no CURRENT version exists
+      hostVersionEntity.setState(RepositoryVersionState.CURRENT);
+      hostVersionDAO.merge(hostVersionEntity);
+    } else if (!upgradedHostComponents.isEmpty() && upgradedHostComponents.size() < allHostComponents.size()) {
       hostVersionEntity.setState(RepositoryVersionState.UPGRADING);
       hostVersionDAO.merge(hostVersionEntity);
     }
 
     cluster.recalculateClusterVersionState(version);
+  }
+
+  /**
+   * Checks that every component has the same version.
+   *
+   * @param hostComponents host components
+   * @return true if components have the same version
+   */
+  private boolean haveSameVersion(Collection<HostComponentStateEntity> hostComponents) {
+    if (hostComponents.isEmpty()) {
+      // should never happen
+      // but just in case: no components passed -> do not change host version
+      return false;
+    }
+    final String version = hostComponents.iterator().next().getVersion();
+    for (HostComponentStateEntity hostComponent : hostComponents) {
+      if (!StringUtils.equals(version, hostComponent.getVersion())) {
+        return false;
+      }
+    }
+    return true;
   }
 }

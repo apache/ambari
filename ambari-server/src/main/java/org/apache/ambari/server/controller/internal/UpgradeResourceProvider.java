@@ -469,7 +469,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
 
     UpgradeEntity entity = new UpgradeEntity();
-    // !!! FIXME not quite right here, upcoming patch is supposed to get this right
     entity.setFromVersion(cluster.getCurrentClusterVersion().getRepositoryVersion().getVersion());
     entity.setToVersion(version);
     entity.setUpgradeGroups(groupEntities);

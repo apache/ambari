@@ -516,7 +516,6 @@ public class ClustersImpl implements Clusters {
       }
 
       mapHostClusterEntities(hostname, cluster.getClusterId());
-      cluster.mapHostVersions(Sets.newHashSet(hostname), currentClusterVersion, RepositoryVersionState.CURRENT);
 
       host.refresh();
       cluster.refresh();

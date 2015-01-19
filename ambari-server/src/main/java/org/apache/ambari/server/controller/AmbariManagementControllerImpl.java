@@ -75,7 +75,6 @@ import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.internal.RepositoryVersionResourceProvider;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
@@ -98,7 +97,6 @@ import org.apache.ambari.server.security.ldap.LdapSyncDto;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Config;
@@ -125,7 +123,6 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
-import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
@@ -207,8 +204,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private AmbariLdapDataPopulator ldapDataPopulator;
   @Inject
   private RepositoryVersionDAO repositoryVersionDAO;
-  @Inject
-  private RepositoryVersionHelper repositoryVersionHelper;
 
   private MaintenanceStateHelper maintenanceStateHelper;
 
@@ -366,20 +361,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       StackId newStackId = new StackId(request.getStackVersion());
       c.setDesiredStackVersion(newStackId);
       clusters.setCurrentStackVersion(request.getClusterName(), newStackId);
-
-      try {
-        // Because Ambari may eventually support multiple clusters, it may be possible that a previously installed cluster
-        // already inserted the Repository Version for this stack and version.
-        RepositoryVersionEntity existingRepositoryVersion = repositoryVersionDAO.findByStackAndVersion(newStackId.getStackId(), newStackId.getStackVersion());
-        if (existingRepositoryVersion == null) {
-          repositoryVersionDAO.create(newStackId.getStackId(), newStackId.getStackVersion(), newStackId.getStackId(),
-              repositoryVersionHelper.getUpgradePackageNameSafe(newStackId.getStackId(), newStackId.getStackVersion(), newStackId.getStackVersion()),
-              repositoryVersionHelper.serializeOperatingSystems(stackInfo.getRepositories()));
-        }
-        c.createClusterVersion(stackId.getStackId(), stackId.getStackVersion(), getAuthName(), RepositoryVersionState.CURRENT);
-      } catch (Exception e) {
-        throw new AmbariException("Unable to create Repository Version and/or Cluster Version for Stack " + stackId.toString() + ". Error: " + e.getMessage());
-      }
     }
 
     if (request.getHostNames() != null) {

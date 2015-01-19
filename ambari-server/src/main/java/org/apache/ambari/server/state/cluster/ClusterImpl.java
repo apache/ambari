@@ -44,6 +44,7 @@ import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariSessionManager;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ConfigurationResponse;
@@ -79,6 +80,7 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ClusterHealthReport;
@@ -224,6 +226,9 @@ public class ClusterImpl implements Cluster {
 
   @Inject
   private RepositoryVersionDAO repositoryVersionDAO;
+
+  @Inject
+  private Configuration configuration;
 
   @Inject
   private AmbariSessionManager sessionManager;
@@ -1258,13 +1263,18 @@ public class ClusterImpl implements Cluster {
       readWriteLock.writeLock().lock();
       try {
         Map<String, Host> hosts = clusters.getHostsForCluster(this.getClusterName());
-        String stackId = this.getCurrentStackVersion().getStackId();
+        StackId stackId = getCurrentStackVersion();
+
         ClusterVersionEntity clusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(this.getClusterName(),
-            stackId, repositoryVersion);
+            stackId.getStackId(), repositoryVersion);
 
         if (clusterVersion == null) {
-          throw new AmbariException(String.format("Repository version %s not found for cluster %s",
-                  repositoryVersion, getClusterName()));
+          if (clusterVersionDAO.findByCluster(getClusterName()).isEmpty()) {
+            createClusterVersionInternal(stackId.getStackId(), repositoryVersion, AuthorizationHelper.getAuthenticatedName(configuration.getAnonymousAuditName()), RepositoryVersionState.UPGRADING);
+            clusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(this.getClusterName(), stackId.getStackId(), repositoryVersion);
+          } else {
+            throw new AmbariException(String.format("Repository version %s not found for cluster %s", repositoryVersion, getClusterName()));
+          }
         }
 
         RepositoryVersionState worstState;
@@ -1277,7 +1287,7 @@ public class ClusterImpl implements Cluster {
           // anything else is not supported as of now
           return;
         }
-        worstState = RepositoryVersionState.UPGRADED;
+        worstState = RepositoryVersionState.CURRENT;
         for (Host host : hosts.values()) {
           String hostName = host.getHostName();
           if (host.getState() != HostState.HEALTHY) {
@@ -1286,19 +1296,20 @@ public class ClusterImpl implements Cluster {
                     hostName, worstState));
           }
 
-          HostVersionEntity hostVersion = hostVersionDAO.findByClusterStackVersionAndHost(this.getClusterName(),
-                  stackId, repositoryVersion, hostName);
-          if (hostVersion == null) {
-            LOG.warn(String.format("Repo version %s is not installed on host %s",
-                    repositoryVersion, hostName));
-            worstState = getWorstState(worstState, RepositoryVersionState.OUT_OF_SYNC);
-          } else {
-            worstState = getWorstState(worstState, hostVersion.getState());
+          HostVersionEntity hostVersion = hostVersionDAO.findByClusterStackVersionAndHost(this.getClusterName(), stackId.getStackId(), repositoryVersion, hostName);
+          if (clusterVersionDAO.findByClusterAndStateCurrent(getClusterName()) != null) { //TODO workaround to skip this check during clean install
+            if (hostVersion == null) {
+              LOG.warn(String.format("Repo version %s is not installed on host %s",
+                      repositoryVersion, hostName));
+              worstState = getWorstState(worstState, RepositoryVersionState.OUT_OF_SYNC);
+            } else {
+              worstState = getWorstState(worstState, hostVersion.getState());
+            }
           }
         }
         if (worstState != clusterVersion.getState()) {
           // Any mismatch will be catched while transitioning
-          transitionClusterVersion(stackId, repositoryVersion, worstState);
+          transitionClusterVersion(stackId.getStackId(), repositoryVersion, worstState);
         }
         clusterVersionDAO.merge(clusterVersion);
 
@@ -1332,53 +1343,53 @@ public class ClusterImpl implements Cluster {
     }
   }
 
-  /**
-   * Create a cluster version for the given stack and version, whose initial state must either
-   * be either {@link org.apache.ambari.server.state.RepositoryVersionState#CURRENT} (if no other cluster version exists) or
-   * {@link org.apache.ambari.server.state.RepositoryVersionState#INSTALLING} (if at exactly one CURRENT cluster version already exists).
-   * @param stack Stack name
-   * @param version Stack version
-   * @param userName User performing the operation
-   * @param state Initial state
-   * @throws AmbariException
-   */
   @Override
   public void createClusterVersion(String stack, String version, String userName, RepositoryVersionState state) throws AmbariException {
     clusterGlobalLock.readLock().lock();
     try {
       readWriteLock.writeLock().lock();
       try {
-        Set<RepositoryVersionState> allowedStates = new HashSet<RepositoryVersionState>();
-        Collection<ClusterVersionEntity> allClusterVersions = getAllClusterVersions();
-        if (allClusterVersions == null || allClusterVersions.isEmpty()) {
-          allowedStates.add(RepositoryVersionState.CURRENT);
-        } else {
-          allowedStates.add(RepositoryVersionState.INSTALLING);
-        }
-
-        if (! allowedStates.contains(state)) {
-          throw new AmbariException("The allowed state for a new cluster version must be within " + allowedStates);
-        }
-
-        ClusterVersionEntity existing = clusterVersionDAO.findByClusterAndStackAndVersion(this.getClusterName(), stack, version);
-        if (existing != null) {
-          throw new DuplicateResourceException("Duplicate item, a cluster version with stack=" + stack + ", version=" +
-              version + " for cluster " + this.getClusterName() + " already exists");
-        }
-
-        RepositoryVersionEntity repositoryVersionEntity = repositoryVersionDAO.findByStackAndVersion(stack, version);
-        if (repositoryVersionEntity == null) {
-          throw new AmbariException("Could not find repository version for stack=" + stack + ", version=" + version );
-        }
-
-        ClusterVersionEntity clusterVersionEntity = new ClusterVersionEntity(this.clusterEntity, repositoryVersionEntity, state, System.currentTimeMillis(), System.currentTimeMillis(), userName);
-        clusterVersionDAO.create(clusterVersionEntity);
+        createClusterVersionInternal(stack, version, userName, state);
       } finally {
         readWriteLock.writeLock().unlock();
       }
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
+  }
+
+  /**
+   * See {@link #createClusterVersion}
+   *
+   * This method is intended to be called only when cluster lock is already acquired.
+   */
+  private void createClusterVersionInternal(String stack, String version, String userName, RepositoryVersionState state) throws AmbariException {
+    Set<RepositoryVersionState> allowedStates = new HashSet<RepositoryVersionState>();
+    Collection<ClusterVersionEntity> allClusterVersions = getAllClusterVersions();
+    if (allClusterVersions == null || allClusterVersions.isEmpty()) {
+      allowedStates.add(RepositoryVersionState.CURRENT);
+      allowedStates.add(RepositoryVersionState.UPGRADING);
+    } else {
+      allowedStates.add(RepositoryVersionState.INSTALLING);
+    }
+
+    if (! allowedStates.contains(state)) {
+      throw new AmbariException("The allowed state for a new cluster version must be within " + allowedStates);
+    }
+
+    ClusterVersionEntity existing = clusterVersionDAO.findByClusterAndStackAndVersion(this.getClusterName(), stack, version);
+    if (existing != null) {
+      throw new DuplicateResourceException("Duplicate item, a cluster version with stack=" + stack + ", version=" +
+          version + " for cluster " + this.getClusterName() + " already exists");
+    }
+
+    RepositoryVersionEntity repositoryVersionEntity = repositoryVersionDAO.findByStackAndVersion(stack, version);
+    if (repositoryVersionEntity == null) {
+      throw new AmbariException("Could not find repository version for stack=" + stack + ", version=" + version );
+    }
+
+    ClusterVersionEntity clusterVersionEntity = new ClusterVersionEntity(this.clusterEntity, repositoryVersionEntity, state, System.currentTimeMillis(), System.currentTimeMillis(), userName);
+    clusterVersionDAO.create(clusterVersionEntity);
   }
 
   /**
@@ -1428,6 +1439,9 @@ public class ClusterImpl implements Cluster {
             case UPGRADING:
               allowedStates.add(RepositoryVersionState.UPGRADED);
               allowedStates.add(RepositoryVersionState.UPGRADE_FAILED);
+              if (clusterVersionDAO.findByClusterAndStateCurrent(getClusterName()) == null) {
+                allowedStates.add(RepositoryVersionState.CURRENT);
+              }
               break;
             case UPGRADED:
               allowedStates.add(RepositoryVersionState.CURRENT);
@@ -1441,15 +1455,13 @@ public class ClusterImpl implements Cluster {
             throw new AmbariException("Invalid cluster version transition from " + existingClusterVersion.getState() + " to " + state);
           }
 
-          // There must be exactly one cluster version whose state is CURRENT at all times.
+          // There must be at most one cluster version whose state is CURRENT at all times.
           if (state == RepositoryVersionState.CURRENT) {
             ClusterVersionEntity currentVersion = clusterVersionDAO.findByClusterAndStateCurrent(this.getClusterName());
-            if (currentVersion == null) {
-              throw new AmbariException("Unable to find CURRENT cluster version for cluster " + this.getClusterName());
+            if (currentVersion != null) {
+              currentVersion.setState(RepositoryVersionState.INSTALLED);
+              clusterVersionDAO.merge(currentVersion);
             }
-
-            currentVersion.setState(RepositoryVersionState.INSTALLED);
-            clusterVersionDAO.merge(currentVersion);
           }
 
           existingClusterVersion.setState(state);

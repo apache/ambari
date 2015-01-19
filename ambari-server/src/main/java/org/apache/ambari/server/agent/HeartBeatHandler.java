@@ -73,6 +73,7 @@ import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -470,19 +471,22 @@ public class HeartBeatHandler {
 
             // Reading component version if it is present
             if (StringUtils.isNotBlank(report.getStructuredOut())) {
+              ComponentVersionStructuredOut structuredOutput = null;
               try {
-                final ComponentVersionStructuredOut structuredOutput = gson.fromJson(report.getStructuredOut(), ComponentVersionStructuredOut.class);
+                structuredOutput = gson.fromJson(report.getStructuredOut(), ComponentVersionStructuredOut.class);
+              } catch (JsonSyntaxException ex) {
+                //Json structure for component version was incorrect
+                //do nothing, pass this data further for processing
+              }
+              if (structuredOutput != null && StringUtils.isNotBlank(structuredOutput.getVersion())) {
                 final String previousVersion = scHost.getVersion();
-                if (StringUtils.isNotBlank(structuredOutput.getVersion()) && !StringUtils.equals(previousVersion, structuredOutput.getVersion())) {
+                if (!StringUtils.equals(previousVersion, structuredOutput.getVersion())) {
                   scHost.setVersion(structuredOutput.getVersion());
                   if (previousVersion != null && !previousVersion.equals("UNKNOWN")) {
                     scHost.setUpgradeState(UpgradeState.COMPLETE);
                   }
                   scHostsRequireRecalculation.add(scHost);
                 }
-              } catch (JsonSyntaxException ex) {
-                //Json structure for component version was incorrect
-                //do nothing, pass this data further for processing
               }
             }
 

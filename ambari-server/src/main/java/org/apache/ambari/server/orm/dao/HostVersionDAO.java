@@ -26,7 +26,10 @@ import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.state.RepositoryVersionState;
+
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
 import javax.persistence.TypedQuery;
 
 import java.util.List;
@@ -122,6 +125,31 @@ public class HostVersionDAO {
     query.setParameter("state", state);
 
     return daoUtils.selectList(query);
+  }
+
+  /**
+   * Retrieve the single host version whose state is {@link org.apache.ambari.server.state.RepositoryVersionState#CURRENT}, of which there should be exactly one at all times
+   * for the given host.
+   *
+   * @param clusterName Cluster name
+   * @param hostName Host name
+   * @return Returns the single host version for this host whose state is {@link org.apache.ambari.server.state.RepositoryVersionState#CURRENT}, or {@code null} otherwise.
+   */
+  @RequiresSession
+  public HostVersionEntity findByHostAndStateCurrent(String clusterName, String hostName) {
+    try {
+      List<?> results = findByClusterHostAndState(clusterName, hostName, RepositoryVersionState.CURRENT);
+      if (results.isEmpty()) {
+        return null;
+      } else {
+        if (results.size() == 1) {
+          return (HostVersionEntity) results.get(0);
+        }
+      }
+      throw new NonUniqueResultException();
+    } catch (NoResultException ignored) {
+      return null;
+    }
   }
 
   /**
