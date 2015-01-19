@@ -17,7 +17,7 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
-import com.google.common.collect.Maps;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.phoenix.hbase.index.write.IndexWriterUtils;
 import org.apache.phoenix.query.BaseTest;
@@ -36,6 +36,8 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.LOG;
 import static org.apache.phoenix.util.TestUtil.TEST_PROPERTIES;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -110,4 +112,26 @@ public abstract class AbstractMiniHBaseClusterTest extends BaseTest {
     conn.close();
   }
 
+  protected PhoenixHBaseAccessor createTestableHBaseAccessor() {
+    Configuration metricsConf = new Configuration();
+    metricsConf.set(
+        TimelineMetricConfiguration.HBASE_COMPRESSION_SCHEME, "NONE");
+
+    return
+        new PhoenixHBaseAccessor(
+            new Configuration(),
+            metricsConf,
+            new ConnectionProvider() {
+              @Override
+              public Connection getConnection() {
+                Connection connection = null;
+                try {
+                  connection = DriverManager.getConnection(getUrl());
+                } catch (SQLException e) {
+                  LOG.warn("Unable to connect to HBase store using Phoenix.", e);
+                }
+                return connection;
+              }
+            });
+  }
 }

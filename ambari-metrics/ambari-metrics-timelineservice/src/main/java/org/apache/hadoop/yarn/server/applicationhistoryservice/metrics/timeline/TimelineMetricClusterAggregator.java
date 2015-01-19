@@ -93,7 +93,7 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
   @Override
   protected Condition prepareMetricQueryCondition(long startTime, long endTime) {
     Condition condition = new DefaultCondition(null, null, null, null, startTime,
-      endTime, null, true);
+      endTime, null, null, true);
     condition.setNoLimit();
     condition.setFetchSize(resultsetFetchSize);
     condition.setStatement(String.format(GET_METRIC_SQL,

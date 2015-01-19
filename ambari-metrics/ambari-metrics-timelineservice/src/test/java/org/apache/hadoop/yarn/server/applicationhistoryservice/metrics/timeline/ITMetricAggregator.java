@@ -25,10 +25,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -41,11 +39,11 @@ import static junit.framework.Assert.fail;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.Condition;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.DefaultCondition;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.GET_METRIC_AGGREGATE_ONLY_SQL;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.LOG;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.METRICS_AGGREGATE_HOURLY_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.NATIVE_TIME_RANGE_DELTA;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.createEmptyTimelineMetric;
 
 public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
   private Connection conn;
@@ -86,7 +84,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     hdb.insertMetricRecords(metricsSent);
 
     Condition queryCondition = new DefaultCondition(null, "local", null, null,
-      startTime, startTime + (15 * 60 * 1000), null, false);
+      startTime, startTime + (15 * 60 * 1000), null, null, false);
     TimelineMetrics recordRead = hdb.getMetricRecords(queryCondition);
 
     // THEN
@@ -122,7 +120,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
 
     //THEN
     Condition condition = new DefaultCondition(null, null, null, null, startTime,
-      endTime, null, true);
+      endTime, null, null, true);
     condition.setStatement(String.format(GET_METRIC_AGGREGATE_ONLY_SQL,
       PhoenixTransactSQL.getNaiveTimeRangeHint(startTime, NATIVE_TIME_RANGE_DELTA),
       METRICS_AGGREGATE_MINUTE_TABLE_NAME));
@@ -131,7 +129,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
       (conn, condition);
     ResultSet rs = pstmt.executeQuery();
     MetricHostAggregate expectedAggregate =
-      createMetricHostAggregate(2.0, 0.0, 20, 15.0);
+      MetricTestHelper.createMetricHostAggregate(2.0, 0.0, 20, 15.0);
 
     int count = 0;
     while (rs.next()) {
@@ -172,7 +170,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     long startTime = System.currentTimeMillis();
 
     MetricHostAggregate expectedAggregate =
-      createMetricHostAggregate(2.0, 0.0, 20, 15.0);
+        MetricTestHelper.createMetricHostAggregate(2.0, 0.0, 20, 15.0);
     Map<TimelineMetric, MetricHostAggregate>
       aggMap = new HashMap<TimelineMetric,
       MetricHostAggregate>();
@@ -201,7 +199,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
 
     //THEN
     Condition condition = new DefaultCondition(null, null, null, null, startTime,
-      endTime, null, true);
+      endTime, null, null, true);
     condition.setStatement(String.format(GET_METRIC_AGGREGATE_ONLY_SQL,
       PhoenixTransactSQL.getNaiveTimeRangeHint(startTime, NATIVE_TIME_RANGE_DELTA),
       METRICS_AGGREGATE_HOURLY_TABLE_NAME));
@@ -224,52 +222,6 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
         assertEquals(15.0 / 20, currentHostAggregate.getAvg());
       }
     }
-  }
-
-  private TimelineMetric createEmptyTimelineMetric(long startTime) {
-    TimelineMetric metric = new TimelineMetric();
-    metric.setMetricName("disk_used");
-    metric.setAppId("test_app");
-    metric.setHostName("test_host");
-    metric.setTimestamp(startTime);
-
-    return metric;
-  }
-
-  private MetricHostAggregate
-  createMetricHostAggregate(double max, double min, int numberOfSamples,
-                            double sum) {
-    MetricHostAggregate expectedAggregate =
-      new MetricHostAggregate();
-    expectedAggregate.setMax(max);
-    expectedAggregate.setMin(min);
-    expectedAggregate.setNumberOfSamples(numberOfSamples);
-    expectedAggregate.setSum(sum);
-
-    return expectedAggregate;
-  }
-
-  private PhoenixHBaseAccessor createTestableHBaseAccessor() {
-    Configuration metricsConf = new Configuration();
-    metricsConf.set(
-      TimelineMetricConfiguration.HBASE_COMPRESSION_SCHEME, "NONE");
-
-    return
-      new PhoenixHBaseAccessor(
-        new Configuration(),
-        metricsConf,
-        new ConnectionProvider() {
-          @Override
-          public Connection getConnection() {
-            Connection connection = null;
-            try {
-              connection = DriverManager.getConnection(getUrl());
-            } catch (SQLException e) {
-              LOG.warn("Unable to connect to HBase store using Phoenix.", e);
-            }
-            return connection;
-          }
-        });
   }
 
   private final static Comparator<TimelineMetric> TIME_IGNORING_COMPARATOR =

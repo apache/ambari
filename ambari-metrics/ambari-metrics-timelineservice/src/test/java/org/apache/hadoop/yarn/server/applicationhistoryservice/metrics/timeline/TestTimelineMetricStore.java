@@ -30,7 +30,7 @@ public class TestTimelineMetricStore implements TimelineMetricStore {
   @Override
   public TimelineMetrics getTimelineMetrics(List<String> metricNames,
       String hostname, String applicationId, String instanceId, Long startTime,
-      Long endTime, Integer limit, boolean groupedByHost) throws SQLException,
+      Long endTime, Precision precision, Integer limit, boolean groupedByHost) throws SQLException,
     IOException {
     TimelineMetrics timelineMetrics = new TimelineMetrics();
     List<TimelineMetric> metricList = new ArrayList<TimelineMetric>();
@@ -67,7 +67,7 @@ public class TestTimelineMetricStore implements TimelineMetricStore {
   @Override
   public TimelineMetric getTimelineMetric(String metricName, String hostname,
       String applicationId, String instanceId, Long startTime, Long endTime,
-      Integer limit) throws SQLException, IOException {
+      Precision precision, Integer limit) throws SQLException, IOException {
 
     return null;
   }
