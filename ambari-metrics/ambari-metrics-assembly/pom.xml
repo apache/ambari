@@ -36,6 +36,7 @@
     <hadoop-sink.dir>${project.basedir}/../ambari-metrics-hadoop-sink</hadoop-sink.dir>
     <storm-sink.dir>${project.basedir}/../ambari-metrics-storm-sink</storm-sink.dir>
     <flume-sink.dir>${project.basedir}/../ambari-metrics-flume-sink</flume-sink.dir>
+    <kafka-sink.dir>${project.basedir}/../ambari-metrics-kafka-sink</kafka-sink.dir>
     <python.ver>python &gt;= 2.6</python.ver>
     <python.devel>python-devel</python.devel>
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
@@ -44,6 +45,7 @@
     <hadoop.sink.jar>ambari-metrics-hadoop-sink-with-common-${project.version}.jar</hadoop.sink.jar>
     <storm.sink.jar>ambari-metrics-storm-sink-with-common-${project.version}.jar</storm.sink.jar>
     <flume.sink.jar>ambari-metrics-flume-sink-with-common-${project.version}.jar</flume.sink.jar>
+    <kafka.sink.jar>ambari-metrics-kafka-sink-with-common-${project.version}.jar</kafka.sink.jar>
   </properties>
 
   <build>
@@ -448,7 +450,6 @@
                           <location>${hadoop-sink.dir}/target/ambari-metrics-hadoop-sink-with-common-${project.version}.jar</location>
                         </source>
                       </sources>
-
                     </mapping>
                     <mapping>
                       <directory>/usr/lib/flume/lib</directory>
@@ -463,6 +464,22 @@
                       <sources>
                         <source>
                           <location>${storm-sink.dir}/target/ambari-metrics-storm-sink-with-common-${project.version}.jar</location>
+                        </source>
+                      </sources>
+                    </mapping>
+                    <mapping>
+                      <directory>/usr/lib/ambari-metrics-kafka-sink</directory>
+                      <sources>
+                        <source>
+                          <location>${kafka-sink.dir}/target/${kafka.sink.jar}</location>
+                        </source>
+                      </sources>
+                    </mapping>
+                     <mapping>
+                      <directory>/usr/lib/ambari-metrics-kafka-sink/lib</directory>
+                      <sources>
+                        <source>
+                          <location>${kafka-sink.dir}/target/lib</location>
                         </source>
                       </sources>
                     </mapping>
@@ -596,6 +613,7 @@
                     <path>/var/log/ambari-metrics-collector</path>
                     <path>/var/lib/ambari-metrics-collector</path>
                     <path>/usr/lib/ambari-metrics-hadoop-sink</path>
+                    <path>/usr/lib/ambari-metrics-kafka-sink</path>
                     <path>/usr/lib/flume/lib</path>
                     <path>/usr/lib/storm/lib</path>
                   </paths>
@@ -772,6 +790,28 @@
                   </mapper>
                 </data>
 
+                <!-- kafka sink -->
+
+                <data>
+                  <src>${kafka-sink.dir}/target/${kafka.sink.jar}</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>644</filemode>
+                    <dirmode>755</dirmode>
+                    <prefix>/usr/lib/ambari-metrics-kafka-sink</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${kafka-sink.dir}/target/lib</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>644</filemode>
+                    <dirmode>755</dirmode>
+                    <prefix>/usr/lib/ambari-metrics-kafka-sink/lib</prefix>
+                  </mapper>
+                </data>
               </dataSet>
             </configuration>
           </plugin>
@@ -1060,6 +1100,11 @@
     <dependency>
       <groupId>org.apache.ambari</groupId>
       <artifactId>ambari-metrics-storm-sink</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ambari</groupId>
+      <artifactId>ambari-metrics-kafka-sink</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
