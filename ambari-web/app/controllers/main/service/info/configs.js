@@ -2366,6 +2366,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @method loadStep
    */
   doCancel: function () {
+    this.set('preSelectedConfigVersion', null);
     Em.run.once(this, 'onConfigGroupChange');
   },
 

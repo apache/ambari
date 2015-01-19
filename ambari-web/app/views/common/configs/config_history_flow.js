@@ -500,6 +500,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
       },
       onDiscard: function () {
         this.hide();
+        self.set('controller.preSelectedConfigVersion', null);
         self.get('controller').loadStep();
       },
       onCancel: function () {
