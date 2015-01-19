@@ -26,6 +26,7 @@ import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.api.resources.ViewExternalSubResourceDefinition;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.ViewExternalSubResourceService;
 import org.apache.ambari.server.api.services.ViewSubResourceService;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
@@ -57,6 +58,7 @@ import org.apache.ambari.server.orm.entities.ViewParameterEntity;
 import org.apache.ambari.server.orm.entities.ViewResourceEntity;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
+import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.ambari.server.view.configuration.EntityConfig;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.server.view.configuration.ParameterConfig;
@@ -80,6 +82,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 import java.beans.IntrospectionException;
 import java.io.File;
@@ -110,6 +113,7 @@ public class ViewRegistry {
   private static final String ALL_VIEWS_REG_EXP = ".*";
   protected static final int DEFAULT_REQUEST_CONNECT_TIMEOUT = 5000;
   protected static final int DEFAULT_REQUEST_READ_TIMEOUT    = 10000;
+  private static final String VIEW_AMBARI_VERSION_REGEXP = "^((\\d+\\.)?)*(\\*|\\d+)$";
 
   /**
    * Thread pool
@@ -202,6 +206,12 @@ public class ViewRegistry {
    */
   @Inject
   ResourceTypeDAO resourceTypeDAO;
+
+  /**
+   * Ambari meta info.
+   */
+  @Inject
+  Provider<AmbariMetaInfo> ambariMetaInfo;
 
   /**
    * Ambari configuration.
@@ -826,9 +836,10 @@ public class ViewRegistry {
   }
 
   // setup the given view definition
-  protected ViewEntity setupViewDefinition(ViewEntity viewDefinition, ViewConfig viewConfig,
-                                           ClassLoader cl)
+  protected ViewEntity setupViewDefinition(ViewEntity viewDefinition, ClassLoader cl)
       throws ClassNotFoundException, IntrospectionException {
+
+    ViewConfig viewConfig = viewDefinition.getConfiguration();
 
     viewDefinition.setClassLoader(cl);
 
@@ -1275,6 +1286,8 @@ public class ViewRegistry {
 
           Set<Runnable> extractionRunnables = new HashSet<Runnable>();
 
+          final String serverVersion = ambariMetaInfo.get().getServerVersion();
+
           for (final File archiveFile : files) {
             if (!archiveFile.isDirectory()) {
 
@@ -1302,13 +1315,13 @@ public class ViewRegistry {
                 // always load system views up front
                 if (systemView || !useExecutor || extractedArchiveDirFile.exists()) {
                   // if the archive is already extracted then load the view now
-                  readViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile);
+                  readViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile, serverVersion);
                 } else {
                   // if the archive needs to be extracted then create a runnable to do it
                   extractionRunnables.add(new Runnable() {
                     @Override
                     public void run() {
-                      readViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile);
+                      readViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile, serverVersion);
                     }
                   });
                 }
@@ -1340,7 +1353,8 @@ public class ViewRegistry {
   // read a view archive
   private void readViewArchive(ViewEntity viewDefinition,
                                File archiveFile,
-                               File extractedArchiveDirFile) {
+                               File extractedArchiveDirFile,
+                               String serverVersion) {
 
     setViewStatus(viewDefinition, ViewEntity.ViewStatus.DEPLOYING, "Deploying " + extractedArchiveDirFile + ".");
 
@@ -1353,25 +1367,78 @@ public class ViewRegistry {
       ViewConfig viewConfig = archiveUtility.getViewConfigFromExtractedArchive(extractedArchiveDirPath,
           configuration.isViewValidationEnabled());
 
-      setupViewDefinition(viewDefinition, viewConfig, cl);
+      viewDefinition.setConfiguration(viewConfig);
 
-      Set<ViewInstanceEntity> instanceDefinitions = new HashSet<ViewInstanceEntity>();
+      if (checkViewVersions(viewDefinition, serverVersion)) {
+        setupViewDefinition(viewDefinition, cl);
 
-      for (InstanceConfig instanceConfig : viewConfig.getInstances()) {
-        ViewInstanceEntity instanceEntity = createViewInstanceDefinition(viewConfig, viewDefinition, instanceConfig);
-        instanceEntity.setXmlDriven(true);
-        instanceDefinitions.add(instanceEntity);
+        Set<ViewInstanceEntity> instanceDefinitions = new HashSet<ViewInstanceEntity>();
+
+        for (InstanceConfig instanceConfig : viewConfig.getInstances()) {
+          ViewInstanceEntity instanceEntity = createViewInstanceDefinition(viewConfig, viewDefinition, instanceConfig);
+          instanceEntity.setXmlDriven(true);
+          instanceDefinitions.add(instanceEntity);
+        }
+        persistView(viewDefinition, instanceDefinitions);
+
+        setViewStatus(viewDefinition, ViewEntity.ViewStatus.DEPLOYED, "Deployed " + extractedArchiveDirPath + ".");
       }
-      persistView(viewDefinition, instanceDefinitions);
-
-      setViewStatus(viewDefinition, ViewEntity.ViewStatus.DEPLOYED, "Deployed " + extractedArchiveDirPath + ".");
-
     } catch (Exception e) {
       String msg = "Caught exception loading view " + viewDefinition.getName();
 
       setViewStatus(viewDefinition, ViewEntity.ViewStatus.ERROR, msg + " : " + e.getMessage());
       LOG.error(msg, e);
     }
+  }
+
+  /**
+   * Check the configured view max and min Ambari versions for the given view entity
+   * against the given Ambari server version.
+   *
+   * @param view           the view
+   * @param serverVersion  the server version
+   *
+   * @return true if the given server version >= min version && <= max version for the given view
+   */
+  protected boolean checkViewVersions(ViewEntity view, String serverVersion) {
+    ViewConfig config = view.getConfiguration();
+
+    return checkViewVersion(view, config.getMinAmbariVersion(), serverVersion, "minimum", 1, "less than") &&
+           checkViewVersion(view, config.getMaxAmbariVersion(), serverVersion, "maximum", -1, "greater than");
+
+  }
+
+  // check the given version against the actual Ambari server version
+  private boolean checkViewVersion(ViewEntity view, String version, String serverVersion, String label,
+                                   int errValue, String errMsg) {
+
+    if (version != null && !version.isEmpty()) {
+
+      // make sure that the given version is a valid version string
+      if (!version.matches(VIEW_AMBARI_VERSION_REGEXP)) {
+        String msg = "The configured " + label + " Ambari version " + version + " for view " +
+            view.getName() + " is not valid.";
+
+        setViewStatus(view, ViewEntity.ViewStatus.ERROR, msg);
+        LOG.error(msg);
+        return false;
+      }
+
+      int index = version.indexOf('*');
+
+      int compVal = index == -1 ? VersionUtils.compareVersions(version, serverVersion) :
+                    index > 0 ? VersionUtils.compareVersions(version.substring(0, index), serverVersion, index) : 0;
+
+      if (compVal == errValue) {
+        String msg = "The Ambari server version " + serverVersion + " is " + errMsg + " the configured " + label +
+            " Ambari version " + version + " for view " + view.getName();
+
+        setViewStatus(view, ViewEntity.ViewStatus.ERROR, msg);
+        LOG.error(msg);
+        return false;
+      }
+    }
+    return true;
   }
 
   // persist the given view and its instances

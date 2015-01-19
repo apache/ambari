@@ -235,6 +235,16 @@
             <xs:documentation>The version of the view.</xs:documentation>
           </xs:annotation>
         </xs:element>
+        <xs:element type="xs:string" name="min-ambari-version" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation>The minimum version of Ambari server required to run this view.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element type="xs:string" name="max-ambari-version" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation>The maximum version of Ambari server that can run this view.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
         <xs:element type="xs:string" name="description" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>The description of the view.</xs:documentation>

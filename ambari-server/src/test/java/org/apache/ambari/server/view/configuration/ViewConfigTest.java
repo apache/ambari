@@ -139,6 +139,14 @@ public class ViewConfigTest {
       "    <system>false</system>\n" +
       "</view>";
 
+  private static String with_ambari_versions = "<view>\n" +
+      "    <name>MY_VIEW</name>\n" +
+      "    <label>My View!</label>\n" +
+      "    <version>1.0.0</version>\n" +
+      "    <min-ambari-version>1.6.1</min-ambari-version>\n" +
+      "    <max-ambari-version>2.0.0</max-ambari-version>\n" +
+      "</view>";
+
   @Test
   public void testGetName() throws Exception {
     ViewConfig config = getConfig();
@@ -245,6 +253,24 @@ public class ViewConfigTest {
 
     config = getConfig(non_system_xml);
     Assert.assertFalse(config.isSystem());
+  }
+
+  @Test
+  public void testGetMinAmbariVersion() throws Exception {
+    ViewConfig config = getConfig();
+    Assert.assertNull(config.getMinAmbariVersion());
+
+    config = getConfig(with_ambari_versions);
+    Assert.assertEquals("1.6.1", config.getMinAmbariVersion());
+  }
+
+  @Test
+  public void testGetMaxAmbariVersion() throws Exception {
+    ViewConfig config = getConfig();
+    Assert.assertNull(config.getMaxAmbariVersion());
+
+    config = getConfig(with_ambari_versions);
+    Assert.assertEquals("2.0.0", config.getMaxAmbariVersion());
   }
 
   public static  ViewConfig getConfig() throws JAXBException {

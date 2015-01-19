@@ -161,7 +161,7 @@ public class ViewEntity implements ViewDefinition {
    * The associated view configuration.
    */
   @Transient
-  private final ViewConfig configuration;
+  private ViewConfig configuration;
 
   /**
    * The Ambari configuration properties.
@@ -682,6 +682,15 @@ public class ViewEntity implements ViewDefinition {
    */
   public Set<Resource.Type> getViewResourceTypes() {
     return resourceProviders.keySet();
+  }
+
+  /**
+   * Set the view configuration.
+   *
+   * @param configuration  the view configuration
+   */
+  public void setConfiguration(ViewConfig configuration) {
+    this.configuration = configuration;
   }
 
   /**

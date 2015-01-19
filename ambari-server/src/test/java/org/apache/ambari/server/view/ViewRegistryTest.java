@@ -50,8 +50,9 @@ import java.util.jar.JarInputStream;
 
 import javax.xml.bind.JAXBException;
 
-import junit.framework.TestListener;
+import com.google.inject.Provider;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
@@ -172,15 +173,16 @@ public class ViewRegistryTest {
   private static final SecurityHelper securityHelper = createNiceMock(SecurityHelper.class);
   private static final Configuration configuration = createNiceMock(Configuration.class);
   private static final ViewInstanceHandlerList handlerList = createNiceMock(ViewInstanceHandlerList.class);
+  private static final AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
 
 
   @Before
   public void resetGlobalMocks() {
     ViewRegistry.initInstance(getRegistry(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO,
-        resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, null));
+        resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, null, ambariMetaInfo));
 
     reset(viewDAO, resourceDAO, viewInstanceDAO, userDAO, memberDAO,
-        privilegeDAO, resourceTypeDAO, securityHelper, configuration, handlerList);
+        privilegeDAO, resourceTypeDAO, securityHelper, configuration, handlerList, ambariMetaInfo);
   }
 
   @Test
@@ -333,7 +335,7 @@ public class ViewRegistryTest {
     TestViewArchiveUtility archiveUtility = new TestViewArchiveUtility(viewConfigs, files, outputStreams, jarFiles);
 
     ViewRegistry registry = getRegistry(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO,
-        resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, archiveUtility);
+        resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, archiveUtility, ambariMetaInfo);
 
     registry.readViewArchives();
 
@@ -501,7 +503,7 @@ public class ViewRegistryTest {
     TestViewArchiveUtility archiveUtility = new TestViewArchiveUtility(viewConfigs, files, outputStreams, jarFiles);
 
     ViewRegistry registry = getRegistry(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO,
-        resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, archiveUtility);
+        resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, archiveUtility, ambariMetaInfo);
 
     registry.readViewArchives();
 
@@ -603,7 +605,9 @@ public class ViewRegistryTest {
 
     ViewRegistry registry = ViewRegistry.getInstance();
 
-    registry.setupViewDefinition(viewDefinition, config, getClass().getClassLoader());
+    viewDefinition.setConfiguration(config);
+
+    registry.setupViewDefinition(viewDefinition, getClass().getClassLoader());
 
     Map<Resource.Type, ResourceProvider> providerMap = registry.getResourceProviders();
 
@@ -682,7 +686,9 @@ public class ViewRegistryTest {
 
     ViewRegistry registry = ViewRegistry.getInstance();
 
-    registry.setupViewDefinition(viewDefinition, config, getClass().getClassLoader());
+    viewDefinition.setConfiguration(config);
+
+    registry.setupViewDefinition(viewDefinition, getClass().getClassLoader());
 
     Set<SubResourceDefinition> subResourceDefinitions =
         registry.getSubResourceDefinitions(viewDefinition.getCommonName(), viewDefinition.getVersion());
@@ -1245,6 +1251,117 @@ public class ViewRegistryTest {
   }
 
   @Test
+  public void testCheckViewVersions() {
+    ViewRegistry registry = ViewRegistry.getInstance();
+    ViewEntity viewEntity = createNiceMock(ViewEntity.class);
+
+    ViewConfig config = createNiceMock(ViewConfig.class);
+
+    expect(viewEntity.getConfiguration()).andReturn(config).anyTimes();
+
+    // null, null
+    expect(config.getMinAmbariVersion()).andReturn(null);
+    expect(config.getMaxAmbariVersion()).andReturn(null);
+
+    // 1.0.0, 3.0.0
+    expect(config.getMinAmbariVersion()).andReturn("1.0.0");
+    expect(config.getMaxAmbariVersion()).andReturn("3.0.0");
+
+    // 1.0.0, 1.5
+    expect(config.getMinAmbariVersion()).andReturn("1.0.0");
+    expect(config.getMaxAmbariVersion()).andReturn("1.5");
+
+    // 2.5
+    expect(config.getMinAmbariVersion()).andReturn("2.5");
+
+    // null, 3.0.0
+    expect(config.getMinAmbariVersion()).andReturn(null);
+    expect(config.getMaxAmbariVersion()).andReturn("3.0.0");
+
+    // 1.0.0, null
+    expect(config.getMinAmbariVersion()).andReturn("1.0.0");
+    expect(config.getMaxAmbariVersion()).andReturn(null);
+
+    // 1.0.0, *
+    expect(config.getMinAmbariVersion()).andReturn("1.0.0");
+    expect(config.getMaxAmbariVersion()).andReturn("*");
+
+    // *, 3.0.0
+    expect(config.getMinAmbariVersion()).andReturn("*");
+    expect(config.getMaxAmbariVersion()).andReturn("3.0.0");
+
+    // 1.0.0, 2.*
+    expect(config.getMinAmbariVersion()).andReturn("1.0.0");
+    expect(config.getMaxAmbariVersion()).andReturn("2.*");
+
+    // 1.*, 3.0.0
+    expect(config.getMinAmbariVersion()).andReturn("1.*");
+    expect(config.getMaxAmbariVersion()).andReturn("3.0.0");
+
+    // 1.0.0, 2.1.*
+    expect(config.getMinAmbariVersion()).andReturn("1.0.0");
+    expect(config.getMaxAmbariVersion()).andReturn("2.1.*");
+
+    // 1.5.*, 3.0.0
+    expect(config.getMinAmbariVersion()).andReturn("1.5.*");
+    expect(config.getMaxAmbariVersion()).andReturn("3.0.0");
+
+    // 1.0.0, 1.9.9.*
+    expect(config.getMinAmbariVersion()).andReturn("1.0.0");
+    expect(config.getMaxAmbariVersion()).andReturn("1.9.9.*");
+
+    // 2.0.0.1.*, 3.0.0
+    expect(config.getMinAmbariVersion()).andReturn("2.0.0.1.*");
+
+    replay(viewEntity, config);
+
+    // null, null
+    Assert.assertTrue(registry.checkViewVersions(viewEntity, "2.0.0"));
+
+    // 1.0.0, 3.0.0
+    Assert.assertTrue(registry.checkViewVersions(viewEntity, "2.0.0"));
+
+    // 1.0.0, 1.5
+    Assert.assertFalse(registry.checkViewVersions(viewEntity, "2.0.0"));
+
+    // 2.5, 3.0.0
+    Assert.assertFalse(registry.checkViewVersions(viewEntity, "2.0.0"));
+
+    // null, 3.0.0
+    Assert.assertTrue(registry.checkViewVersions(viewEntity, "2.0.0"));
+
+    // 1.0.0, null
+    Assert.assertTrue(registry.checkViewVersions(viewEntity, "2.0.0"));
+
+    // 1.0.0, *
+    Assert.assertTrue(registry.checkViewVersions(viewEntity, "2.0.0"));
+
+    // *, 3.0.0
+    Assert.assertTrue(registry.checkViewVersions(viewEntity, "2.0.0"));
+
+    // 1.0.0, 2.*
+    Assert.assertTrue(registry.checkViewVersions(viewEntity, "2.0.0"));
+
+    // 1.*, 3.0.0
+    Assert.assertTrue(registry.checkViewVersions(viewEntity, "2.0.0"));
+
+    // 1.0.0, 2.1.*
+    Assert.assertTrue(registry.checkViewVersions(viewEntity, "2.0.0"));
+
+    // 1.5.*, 3.0.0
+    Assert.assertTrue(registry.checkViewVersions(viewEntity, "2.0.0"));
+
+    // 1.0.0, 1.9.9.*
+    Assert.assertFalse(registry.checkViewVersions(viewEntity, "2.0.0"));
+
+    // 2.0.0.1.*, 3.0.0
+    Assert.assertFalse(registry.checkViewVersions(viewEntity, "2.0.0"));
+
+    verify(viewEntity, config);
+
+  }
+
+  @Test
   public void testExtractViewArchive() throws Exception {
 
     File viewDir = createNiceMock(File.class);
@@ -1436,7 +1553,9 @@ public class ViewRegistryTest {
                                          PrivilegeDAO privilegeDAO, ResourceDAO resourceDAO,
                                          ResourceTypeDAO resourceTypeDAO, SecurityHelper securityHelper,
                                          ViewInstanceHandlerList handlerList,
-                                         ViewExtractor viewExtractor, ViewArchiveUtility archiveUtility) {
+                                         ViewExtractor viewExtractor,
+                                         ViewArchiveUtility archiveUtility,
+                                         AmbariMetaInfo ambariMetaInfo) {
 
     ViewRegistry instance = new ViewRegistry();
 
@@ -1454,6 +1573,14 @@ public class ViewRegistryTest {
     instance.archiveUtility = archiveUtility == null ? new ViewArchiveUtility() : archiveUtility;
     instance.extractor.archiveUtility = instance.archiveUtility;
 
+    final AmbariMetaInfo finalMetaInfo = ambariMetaInfo;
+    instance.ambariMetaInfo = new Provider<AmbariMetaInfo>() {
+      @Override
+      public AmbariMetaInfo get() {
+        return finalMetaInfo;
+      }
+    };
+
     return instance;
   }
 
@@ -1461,11 +1588,11 @@ public class ViewRegistryTest {
                                      ClassLoader cl, String archivePath) throws Exception{
 
     ViewRegistry registry = getRegistry(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO,
-        resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, null);
+        resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, null, null);
 
     ViewEntity viewDefinition = new ViewEntity(viewConfig, ambariConfig, archivePath);
 
-    registry.setupViewDefinition(viewDefinition, viewConfig, cl);
+    registry.setupViewDefinition(viewDefinition, cl);
 
     return viewDefinition;
   }
@@ -1473,7 +1600,7 @@ public class ViewRegistryTest {
   public static ViewInstanceEntity getViewInstanceEntity(ViewEntity viewDefinition, InstanceConfig instanceConfig) throws Exception {
 
     ViewRegistry registry = getRegistry(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO,
-        resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, null);
+        resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, null, null);
 
     ViewInstanceEntity viewInstanceDefinition =
         new ViewInstanceEntity(viewDefinition, instanceConfig);

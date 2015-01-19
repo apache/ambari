@@ -59,6 +59,18 @@ public class ViewConfig {
   private String version;
 
   /**
+   * The minimum Ambari version.
+   */
+  @XmlElement(name="min-ambari-version")
+  private String minAmbariVersion;
+
+  /**
+   * The maximum Ambari version.
+   */
+  @XmlElement(name="max-ambari-version")
+  private String maxAmbariVersion;
+
+  /**
    * The icon path in the view archive.
    */
   private String icon;
@@ -170,6 +182,24 @@ public class ViewConfig {
    */
   public String getVersion() {
     return version;
+  }
+
+  /**
+   * Get the minimum version of Ambari required to run this view.
+   *
+   * @return the minimum Ambari version
+   */
+  public String getMinAmbariVersion() {
+    return minAmbariVersion;
+  }
+
+  /**
+   * Get the maximum version of Ambari that can run this view.
+   *
+   * @return the maximum Ambari version
+   */
+  public String getMaxAmbariVersion() {
+    return maxAmbariVersion;
   }
 
   /**

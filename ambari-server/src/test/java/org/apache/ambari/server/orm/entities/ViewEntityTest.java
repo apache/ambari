@@ -47,6 +47,13 @@ import static org.easymock.EasyMock.verify;
  */
 public class ViewEntityTest {
 
+  private static String with_ambari_versions = "<view>\n" +
+      "    <name>MY_VIEW</name>\n" +
+      "    <label>My View!</label>\n" +
+      "    <version>1.0.0</version>\n" +
+      "    <min-ambari-version>1.6.1</min-ambari-version>\n" +
+      "    <max-ambari-version>2.0.0</max-ambari-version>\n" +
+      "</view>";
 
   public static ViewEntity getViewEntity() throws Exception {
     return getViewEntity(ViewConfigTest.getConfig());
@@ -122,10 +129,14 @@ public class ViewEntityTest {
   }
 
   @Test
-  public void testGetConfiguration() throws Exception {
+  public void testSetGetConfiguration() throws Exception {
     ViewConfig viewConfig = ViewConfigTest.getConfig();
     ViewEntity viewDefinition = getViewEntity(viewConfig);
     Assert.assertEquals(viewConfig, viewDefinition.getConfiguration());
+
+    ViewConfig newViewConfig = ViewConfigTest.getConfig(with_ambari_versions);
+    viewDefinition.setConfiguration(newViewConfig);
+    Assert.assertEquals(newViewConfig, viewDefinition.getConfiguration());
   }
 
   @Test
