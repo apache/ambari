@@ -69,6 +69,10 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    
+    putHbaseSiteProperty = self.putProperty(configurations, "hbase-site")
+    putHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", '0.4')
+    
     if 'ranger-hbase-plugin-properties' in services['configurations']:
       rangerPluginEnabled = services['configurations']['ranger-hbase-plugin-properties']['properties']['ranger-hbase-plugin-enabled']
       if ("RANGER" in servicesList) and (rangerPluginEnabled.lower() == "Yes".lower()):
@@ -422,6 +426,24 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
   def validateHBASEConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     hbase_site = properties
     validationItems = [] 
+    
+    prop_name1 = 'hbase.regionserver.global.memstore.upperLimit'
+    prop_name2 = 'hfile.block.cache.size'
+    props_max_sum = 0.8
+
+    if not is_number(hbase_site[prop_name1]):
+      validationItems.append({"config-name": prop_name1,
+                              "item": self.getWarnItem(
+                              "{0} should be float value".format(prop_name1))})
+    elif not is_number(hbase_site[prop_name2]):
+      validationItems.append({"config-name": prop_name2,
+                              "item": self.getWarnItem(
+                              "{0} should be float value".format(prop_name2))})
+    elif float(hbase_site[prop_name1]) + float(hbase_site[prop_name2]) > props_max_sum:
+      validationItems.append({"config-name": prop_name1,
+                              "item": self.getWarnItem(
+                              "{0} and {1} sum should not exceed {2}".format(prop_name1, prop_name2, props_max_sum))})
+      
     #Adding Ranger Plugin logic here 
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hbase-plugin-properties")
     ranger_plugin_enabled = ranger_plugin_properties['ranger-hbase-plugin-enabled']
@@ -474,3 +496,12 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     result = super(HDP22StackAdvisor, self).getComponentLayoutSchemes()
     result['METRIC_COLLECTOR'] = {"else": 2}
     return result
+  
+def is_number(s):
+  try:
+    float(s)
+    return True
+  except ValueError:
+    pass
+
+  return False
