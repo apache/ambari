@@ -148,10 +148,10 @@ App.MainAdminStackVersionsView = Em.View.extend({
    */
   filterBy: function (versions, filter) {
     var currentVersion = this.get('controller.currentVersion');
-    if (filter && filter.get('value')) {
+    if (filter && filter.get('value') && this.get('controller.isLoaded')) {
       return versions.filter(function (version) {
         if (version.get('status') === 'INSTALLED' && filter.get('value') === 'UPGRADE_READY') {
-          return stringUtils.compareVersions(version.get('repositoryVersion'), currentVersion.repository_version) === 1;
+          return stringUtils.compareVersions(version.get('repositoryVersion'), Em.get(currentVersion, 'repository_version')) === 1;
         } else if (filter.get('value') === 'NOT_INSTALLED') {
           return ['INIT', 'INSTALL_FAILED', 'INSTALLING', 'OUT_OF_SYNC'].contains(version.get('status'));
         } else {
