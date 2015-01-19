@@ -2305,6 +2305,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     :return: Validates that installation for each database type correctly stores the database type, database name,
     and optionally the postgres schema name.
     """
+    from ambari_server import serverConfiguration
+
     _ambari_server_.PROMPT_DATABASE_OPTIONS = True
     gyni_mock.return_value = True
     rp_mock.return_value = "password"
@@ -2337,17 +2339,18 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     tempdir = tempfile.gettempdir()
     os.environ[_ambari_server_.AMBARI_CONF_VAR] = tempdir
+    prop_file = os.path.join(tempdir, "ambari.properties")
 
     for i in range(1, 5):
         # Use the expected path of the ambari.properties file to delete it if it exists, and then create a new one
         # during each use case.
-        prop_file = os.path.join(tempdir, "ambari.properties")
         if os.path.exists(prop_file):
           os.remove(prop_file)
         with open(prop_file, "w") as f:
           f.write("server.jdbc.database_name=oldDBName")
         f.close()
-        _ambari_server_.AMBARI_PROPERTIES_FILE = prop_file
+
+        serverConfiguration.AMBARI_PROPERTIES_FILE = prop_file
 
         args = MagicMock()
         _ambari_server_.load_default_db_properties(args)
