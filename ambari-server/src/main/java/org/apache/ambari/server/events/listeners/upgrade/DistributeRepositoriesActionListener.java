@@ -169,9 +169,8 @@ public class DistributeRepositoriesActionListener {
         }
       } else {
         LOG.error(
-                String.format("Can not transition host stack version state from %s to %s for" +
-                                "host %s",
-                        hostVersion.getState(), newHostState, event.getHostname()));
+                "Can not transition host stack version state from {} to {} for " +
+                                "host {}", hostVersion.getState(), newHostState, event.getHostname());
       }
     }
   }

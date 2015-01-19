@@ -22,6 +22,7 @@ Ambari Agent
 
 import json
 import sys
+import re
 import traceback
 from resource_management import *
 from resource_management.libraries.functions.list_ambari_managed_repos import list_ambari_managed_repos
@@ -85,7 +86,8 @@ class InstallPackages(Script):
         packages_installed_before = [package[0] for package in packages_installed_before]
         packages_were_checked = True
         for package in package_list:
-          Package(package['name'], use_repos=list(current_repo_files) if OSCheck.is_ubuntu_family() else current_repositories)
+          name = self.format_package_name(package['name'], repository_version)
+          Package(name, use_repos=list(current_repo_files) if OSCheck.is_ubuntu_family() else current_repositories)
         package_install_result = True
       except Exception, err:
         print "Can not install packages."
@@ -144,6 +146,21 @@ class InstallPackages(Script):
       components = ubuntu_components,  # ubuntu specific
     )
     return repo['repoName'], file_name
+
+  def format_package_name(self, package_name, repo_id):
+    """
+    This method overcomes problems at SLES SP3. Zypper here behaves differently
+    than at SP1, and refuses to install packages by mask if there is any installed package that
+    matches this mask.
+    So we preppend concrete HDP version to mask under Suse
+    """
+    if OSCheck.is_suse_family() and '*' in package_name:
+      mask_version = re.search(r'((_\d+)*(_)?\*)', package_name).group(0)
+      formatted_version = '_' + repo_id.replace('.', '_').replace('-', '_') + '*'
+      return package_name.replace(mask_version, formatted_version)
+    else:
+      return package_name
+
 
 if __name__ == "__main__":
   InstallPackages().execute()

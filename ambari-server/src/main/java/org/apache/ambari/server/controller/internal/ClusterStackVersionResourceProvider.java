@@ -88,7 +88,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   protected static final String CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID   = PropertyHelper.getPropertyId("ClusterStackVersions", "repository_version");
 
   protected static final String INSTALL_PACKAGES_ACTION = "install_packages";
-  protected static final String INSTALL_PACKAGES_FULL_NAME = "Distribute repositories/install packages";
+  protected static final String INSTALL_PACKAGES_FULL_NAME = "Install version";
 
   @SuppressWarnings("serial")
   private static Set<String> pkPropertyIds = new HashSet<String>() {

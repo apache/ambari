@@ -86,7 +86,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
   protected static final String HOST_STACK_VERSION_REPO_VERSION_PROPERTY_ID    = PropertyHelper.getPropertyId("HostStackVersions", "repository_version");
 
   protected static final String INSTALL_PACKAGES_ACTION = "install_packages";
-  protected static final String INSTALL_PACKAGES_FULL_NAME = "Distribute repositories/install packages";
+  protected static final String INSTALL_PACKAGES_FULL_NAME = "Install version";
 
 
   @SuppressWarnings("serial")
