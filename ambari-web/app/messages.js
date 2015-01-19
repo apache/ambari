@@ -1330,6 +1330,11 @@ Em.I18n.translations = {
 
   'admin.stackVersions.details.install.hosts.popup.title': "Install {0} version",
 
+  'admin.stackUpgrade.finalize.later': "Finalize Later",
+  'admin.stackUpgrade.finalize.message': "Your cluster version has been upgraded. " +
+  "Click on <b>Finalize</b> when you are ready to finalize the upgrade and commit to the new version." +
+  " You are strongly encouraged to run tests on your cluster to ensure it is fully operational before finalizing." +
+  " <b>You cannot go back to the original version once the upgrade is finalized.</b>",
   'admin.stackUpgrade.doThisLater': "Do This Later",
   'admin.stackUpgrade.downgrade.proceed': "Proceed with Downgrade",
   'admin.stackUpgrade.downgrade.title': "Downgrade to {0}",

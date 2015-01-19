@@ -138,14 +138,6 @@ App.upgradeWizardView = Em.View.extend({
   }.property('failedItem.status'),
 
   /**
-   * indicate whether failed item can be skipped or retried in order to continue Upgrade
-   * @type {boolean}
-   */
-  isSkipable: function () {
-    return this.get('failedItem.skippable');
-  }.property('failedItem.skippable'),
-
-  /**
    * @type {boolean}
    */
   isManualDone: false,
@@ -164,6 +156,14 @@ App.upgradeWizardView = Em.View.extend({
   manualItem: function () {
     return this.get('activeGroup.upgradeItems') && this.get('activeGroup.upgradeItems').findProperty('status', 'HOLDING');
   }.property('activeGroup.upgradeItems.@each.status'),
+
+  /**
+   * indicate whether the step is Finalize
+   * @type {boolean}
+   */
+  isFinalizeItem: function () {
+    return this.get('manualItem.context') === 'Confirm Finalize';
+  }.property('manualItem.context'),
 
   /**
    * label of Upgrade status
