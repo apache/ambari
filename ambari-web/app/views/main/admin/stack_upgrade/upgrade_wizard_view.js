@@ -27,12 +27,12 @@ App.upgradeWizardView = Em.View.extend({
   /**
    * @type {Array}
    */
-  failedStatuses: ['HOLDING_FAILED', 'HOLDING_TIMED_OUT', 'FAILED', 'TIMED_OUT'],
+  failedStatuses: ['HOLDING_FAILED', 'HOLDING_TIMEDOUT', 'FAILED', 'TIMED_OUT'],
 
   /**
    * @type {Array}
    */
-  activeStatuses: ['HOLDING_FAILED', 'HOLDING_TIMED_OUT', 'FAILED', 'TIMED_OUT', 'HOLDING', 'IN_PROGRESS'],
+  activeStatuses: ['HOLDING_FAILED', 'HOLDING_TIMEDOUT', 'FAILED', 'TIMED_OUT', 'HOLDING', 'IN_PROGRESS'],
 
   /**
    * update timer
@@ -178,10 +178,10 @@ App.upgradeWizardView = Em.View.extend({
       case 'COMPLETED':
         return Em.I18n.t('admin.stackUpgrade.state.completed');
       case 'ABORTED':
-      case 'TIMED_OUT':
+      case 'TIMEDOUT':
       case 'FAILED':
       case 'HOLDING_FAILED':
-      case 'HOLDING_TIMED_OUT':
+      case 'HOLDING_TIMEDOUT':
       case 'HOLDING':
         return Em.I18n.t('admin.stackUpgrade.state.paused');
       default:

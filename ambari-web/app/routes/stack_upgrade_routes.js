@@ -24,6 +24,12 @@ module.exports = App.WizardRoute.extend({
   enter: function (router) {
     console.log('in /admin/stack/upgrade:enter');
     Ember.run.next(function () {
+      //if upgrade id is absent then upgrade is completed
+      if (Em.isNone(App.db.get('MainAdminStackAndUpgrade', 'upgradeId'))) {
+        router.transitionTo('main.admin.stackAndUpgrade.versions');
+        return null;
+      }
+
       App.router.get('updateController').set('isWorking', false);
 
       return App.ModalPopup.show({

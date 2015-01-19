@@ -77,7 +77,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     it("", function() {
       var data = {
         "Upgrade": {
-          "request_status": "COMPLETED"
+          "request_status": "UPGRADED"
         },
         "upgrade_groups": [
           {
@@ -88,7 +88,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           }
         ]};
       controller.loadUpgradeDataSuccessCallback(data);
-      expect(App.get('upgradeState')).to.equal('COMPLETED');
+      expect(App.get('upgradeState')).to.equal('UPGRADED');
       expect(controller.updateUpgradeData.called).to.be.true;
     });
   });
@@ -236,11 +236,13 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       sinon.stub(App.clusterStatus, 'setClusterStatus', Em.K);
       sinon.stub(controller, 'openUpgradeDialog', Em.K);
       sinon.stub(controller, 'setDBProperty', Em.K);
+      sinon.stub(controller, 'load', Em.K);
     });
     after(function () {
       App.clusterStatus.setClusterStatus.restore();
       controller.openUpgradeDialog.restore();
       controller.setDBProperty.restore();
+      controller.load.restore();
     });
     it("open upgrade dialog", function() {
       var data = {
@@ -255,7 +257,9 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       controller.upgradeSuccessCallback(data, {}, {label: 'HDP-2.2.1'});
       expect(controller.setDBProperty.calledWith('upgradeId', 1)).to.be.true;
       expect(controller.setDBProperty.calledWith('upgradeVersion', 'HDP-2.2.1')).to.be.true;
+      expect(controller.load.calledOnce).to.be.true;
       expect(controller.get('upgradeVersion')).to.equal('HDP-2.2.1');
+      expect(controller.get('upgradeData')).to.be.null;
       expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
       expect(controller.openUpgradeDialog.calledOnce).to.be.true;
     });
@@ -368,7 +372,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
   });
 
-  describe("#finish()", function() {
+  describe.skip("#finish()", function() {
     before(function () {
       sinon.stub(App.clusterStatus, 'setClusterStatus', Em.K);
       sinon.stub(controller, 'setDBProperty', Em.K);
@@ -377,14 +381,20 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       App.clusterStatus.setClusterStatus.restore();
       controller.setDBProperty.restore();
     });
-    it("reset upgrade info", function() {
+    it("upgradeState is COMPLETED", function() {
+      App.set('upgradeState', 'COMPLETED');
       controller.finish();
-      expect(controller.get('upgradeId')).to.be.null;
       expect(controller.setDBProperty.calledWith('upgradeId', undefined)).to.be.true;
-      expect(App.get('upgradeState')).to.equal('INIT');
-      expect(controller.get('upgradeVersion')).to.be.null;
       expect(controller.setDBProperty.calledWith('upgradeVersion', undefined)).to.be.true;
-      expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
+      expect(controller.setDBProperty.calledWith('upgradeState', 'INIT')).to.be.true;
+      expect(controller.setDBProperty.calledWith('currentVersion', undefined)).to.be.true;
+      expect(App.get('upgradeState')).to.equal('INIT');
+      expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.false;
+    });
+    it("upgradeState is not COMPLETED", function() {
+      App.set('upgradeState', 'UPGRADING');
+      controller.finish();
+      expect(App.clusterStatus.setClusterStatus.called).to.be.false;
     });
   });
 

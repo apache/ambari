@@ -304,6 +304,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @param {object} data
    */
   upgradeSuccessCallback: function (data, opt, params) {
+    this.set('upgradeData', null);
     this.set('upgradeId', data.resources[0].Upgrade.request_id);
     this.set('upgradeVersion', params.label);
     this.setDBProperty('upgradeVersion', params.label);
@@ -314,6 +315,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       wizardControllerName: this.get('name'),
       localdb: App.db.data
     });
+    this.load();
     this.openUpgradeDialog();
   },
 
@@ -423,29 +425,21 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   },
 
   /**
-   * make call to finish upgrade process
-   */
-  finalize: function () {
-    //TODO execute finalize
-    this.finish();
-  },
-
-  /**
-   * finish upgrade wizard
-   * clean auxiliary data
+   * reset upgradeState to INIT when upgrade is COMPLETED
+   * and clean auxiliary data
    */
   finish: function () {
-    this.set('upgradeId', null);
-    this.setDBProperty('upgradeId', undefined);
-    this.setDBProperty('upgradeState', 'INIT');
-    App.set('upgradeState', 'INIT');
-    this.set('upgradeVersion', null);
-    this.setDBProperty('upgradeVersion', undefined);
-    this.setDBProperty('currentVersion', undefined);
-    App.clusterStatus.setClusterStatus({
-      localdb: App.db.data
-    });
-  },
+    if (App.get('upgradeState') === 'COMPLETED') {
+      this.setDBProperty('upgradeId', undefined);
+      this.setDBProperty('upgradeState', 'INIT');
+      this.setDBProperty('upgradeVersion', undefined);
+      this.setDBProperty('currentVersion', undefined);
+      App.clusterStatus.setClusterStatus({
+        localdb: App.db.data
+      });
+      App.set('upgradeState', 'INIT');
+    }
+  }.observes('App.upgradeState'),
 
   /**
    * show dialog with tasks of upgrade

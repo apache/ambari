@@ -752,7 +752,8 @@ App.registerBoundHelper('statusIcon', Em.View.extend({
     'IN_PROGRESS': 'icon-cogs in_progress',
     'HOLDING': 'icon-pause',
     'ABORTED': 'icon-minus aborted',
-    'TIMED_OUT': 'icon-time timedout'
+    'TIMEDOUT': 'icon-time timedout',
+    'HOLDING_TIMEDOUT': 'icon-time timedout'
   },
 
   classNameBindings: ['iconClass'],

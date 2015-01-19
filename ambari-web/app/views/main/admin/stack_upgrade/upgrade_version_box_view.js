@@ -79,17 +79,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       element.set('text', Em.I18n.t('hosts.host.stackVersions.status.installing'));
       element.set('action', 'showProgressPopup');
     } else if (this.get('content.status') === 'INSTALLED') {
-      if (this.get('content.displayName') === upgradeVersion) {
-        element.set('isLink', true);
-        element.set('action', 'openUpgradeDialog');
-        if (['HOLDING', 'HOLDING_FAILED'].contains(App.get('upgradeState'))) {
-          element.set('iconClass', 'icon-pause');
-          element.set('text', Em.I18n.t('admin.stackVersions.version.upgrade.pause'));
-        } else {
-          element.set('iconClass', 'icon-cog');
-          element.set('text', Em.I18n.t('admin.stackVersions.version.upgrade.running'));
-        }
-      } else if (stringUtils.compareVersions(this.get('content.repositoryVersion'), currentVersion.repository_version) === 1) {
+      if (stringUtils.compareVersions(this.get('content.repositoryVersion'), currentVersion.repository_version) === 1) {
         element.set('isButton', true);
         element.set('text', Em.I18n.t('admin.stackVersions.version.performUpgrade'));
         element.set('action', 'runPreUpgradeCheck');
@@ -97,6 +87,16 @@ App.UpgradeVersionBoxView = Em.View.extend({
         element.set('iconClass', 'icon-ok');
         element.set('isLink', true);
         element.set('text', Em.I18n.t('common.installed'));
+      }
+    } else if (['UPGRADING', 'UPGRADE_FAILED', 'UPGRADED'].contains(this.get('content.status'))) {
+      element.set('isLink', true);
+      element.set('action', 'openUpgradeDialog');
+      if (['HOLDING', 'HOLDING_FAILED', 'HOLDING_TIMEDOUT'].contains(App.get('upgradeState'))) {
+        element.set('iconClass', 'icon-pause');
+        element.set('text', Em.I18n.t('admin.stackVersions.version.upgrade.pause'));
+      } else {
+        element.set('iconClass', 'icon-cog');
+        element.set('text', Em.I18n.t('admin.stackVersions.version.upgrade.running'));
       }
     }
     return element;
