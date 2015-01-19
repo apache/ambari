@@ -37,6 +37,7 @@
     <storm-sink.dir>${project.basedir}/../ambari-metrics-storm-sink</storm-sink.dir>
     <flume-sink.dir>${project.basedir}/../ambari-metrics-flume-sink</flume-sink.dir>
     <python.ver>python &gt;= 2.6</python.ver>
+    <python.devel>python-devel</python.devel>
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
     <deb.architecture>amd64</deb.architecture>
     <deb.dependency.list>${deb.python.ver},python-dev,gcc</deb.dependency.list>
@@ -198,7 +199,7 @@
                   <requires>
                     <require>${python.ver}</require>
                     <require>gcc</require>
-                    <require>python-devel</require>
+                    <require>${python.devel}</require>
                   </requires>
                   <preremoveScriptlet>
                     <scriptFile>src/main/package/rpm/preremove.sh</scriptFile>
