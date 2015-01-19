@@ -264,7 +264,9 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     mountPoint = getMountPointForDir(dir, mountPoints.keys())
 
     if mountPoints[mountPoint] < reqiuredDiskSpace:
-      return self.getWarnItem("Recommended disk space for partition {0} is {1}k".format(mountPoint, reqiuredDiskSpace))
+      msg = "Ambari Metrics disk space requirements not met. \n" \
+            "Recommended disk space for partition {0} is {1}G"
+      return self.getWarnItem(msg.format(mountPoint, reqiuredDiskSpace/1048576)) # in Gb
     return None
 
   def validatorLessThenDefaultValue(self, properties, recommendedDefaults, propertyName):
