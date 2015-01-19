@@ -102,4 +102,182 @@ describe('App.ServiceConfigsByCategoryView', function () {
     })
   });
 
+  describe('#filteredCategoryConfigs', function () {
+
+    var view,
+      cases = [
+        {
+          filter: '',
+          serviceConfigs: [],
+          propertyToChange: null,
+          isCollapsed: false,
+          expectedIsCollapsed: true,
+          title: 'no filter, empty category, initial rendering'
+        },
+        {
+          filter: '',
+          serviceConfigs: [],
+          propertyToChange: 'categoryConfigs',
+          isCollapsed: false,
+          expectedIsCollapsed: false,
+          title: 'no filter, new property added'
+        },
+        {
+          filter: '',
+          serviceConfigs: [
+            Em.Object.create({
+              category: 'c',
+              isVisible: true,
+              isHiddenByFilter: false
+            })
+          ],
+          propertyToChange: null,
+          isCollapsed: false,
+          expectedIsCollapsed: false,
+          title: 'no filter, initial rendering, not empty category'
+        },
+        {
+          filter: '',
+          serviceConfigs: [],
+          propertyToChange: null,
+          isCollapsed: false,
+          collapsedByDefault: true,
+          expectedIsCollapsed: true,
+          title: 'no filter, restore after filtering'
+        },
+        {
+          filter: 'n',
+          serviceConfigs: [
+            Em.Object.create({
+              name: 'nm',
+              category: 'c',
+              isVisible: true
+            })
+          ],
+          propertyToChange: null,
+          isCollapsed: false,
+          expectedIsCollapsed: false,
+          title: 'filtering by name, not empty category'
+        },
+        {
+          filter: 'd',
+          serviceConfigs: [
+            Em.Object.create({
+              displayName: 'dn',
+              category: 'c',
+              isVisible: true
+            })
+          ],
+          propertyToChange: null,
+          isCollapsed: false,
+          expectedIsCollapsed: false,
+          title: 'filtering by display name, not empty category'
+        },
+        {
+          filter: 'd',
+          serviceConfigs: [
+            Em.Object.create({
+              description: 'desc',
+              category: 'c',
+              isVisible: true
+            })
+          ],
+          propertyToChange: null,
+          isCollapsed: false,
+          expectedIsCollapsed: false,
+          title: 'filtering by description, not empty category'
+        },
+        {
+          filter: 'd',
+          serviceConfigs: [
+            Em.Object.create({
+              defaultValue: 'dv',
+              category: 'c',
+              isVisible: true
+            })
+          ],
+          propertyToChange: null,
+          isCollapsed: false,
+          expectedIsCollapsed: false,
+          title: 'filtering by default value, not empty category'
+        },
+        {
+          filter: 'v',
+          serviceConfigs: [
+            Em.Object.create({
+              value: 'val',
+              category: 'c',
+              isVisible: true
+            })
+          ],
+          propertyToChange: null,
+          isCollapsed: false,
+          expectedIsCollapsed: false,
+          title: 'filtering by value, not empty category'
+        },
+        {
+          filter: 'v',
+          serviceConfigs: [
+            Em.Object.create({
+              category: 'c',
+              isVisible: true,
+              overrides: [
+                Em.Object.create({
+                  value: 'val'
+                })
+              ]
+            })
+          ],
+          propertyToChange: null,
+          isCollapsed: false,
+          expectedIsCollapsed: false,
+          title: 'filtering by overridden property value, not empty category'
+        },
+        {
+          filter: 'n',
+          serviceConfigs: [
+            Em.Object.create({
+              category: 'c',
+              isVisible: true,
+              overrides: [
+                Em.Object.create({
+                  group: {
+                    name: 'nm'
+                  }
+                })
+              ]
+            })
+          ],
+          propertyToChange: null,
+          isCollapsed: false,
+          expectedIsCollapsed: false,
+          title: 'filtering by overridden property name, not empty category'
+        }
+      ];
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        view = App.ServiceConfigsByCategoryView.create({
+          parentView: {
+            filter: item.filter,
+            columns: []
+          },
+          category: {
+            name: 'c',
+            isCollapsed: item.isCollapsed,
+            collapsedByDefault: item.collapsedByDefault
+          },
+          serviceConfigs: item.serviceConfigs
+        });
+        if (item.propertyToChange) {
+          view.propertyDidChange(item.propertyToChange);
+        } else {
+          view.filteredCategoryConfigs();
+        }
+        expect(view.get('category.isCollapsed')).to.equal(item.expectedIsCollapsed);
+      });
+    });
+
+  });
+
 });

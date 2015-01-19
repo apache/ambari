@@ -265,6 +265,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, {
     var filter = this.get('parentView.filter').toLowerCase();
     var selectedFilters = this.get('parentView.columns').filterProperty('selected');
     var filteredResult = this.get('categoryConfigs');
+    var isInitialRendering = !arguments.length || arguments[1] != 'categoryConfigs';
 
     if (selectedFilters.length > 0 || filter.length > 0 || this.get('state') === 'inDOM') {
       filteredResult.forEach(function (config) {
@@ -300,24 +301,22 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, {
     filteredResult = this.sortByIndex(filteredResult);
     filteredResult = filteredResult.filterProperty('isHiddenByFilter', false);
 
-    if (filter && filteredResult.length) {
-      if (typeof this.get('category.collapsedByDefault') === 'undefined') {
+    if (filter) {
+      if (filteredResult.length && typeof this.get('category.collapsedByDefault') === 'undefined') {
         // Save state
         this.set('category.collapsedByDefault', this.get('category.isCollapsed'));
       }
-      this.set('category.isCollapsed', false);
-    }
-    else if (filter && !filteredResult.length) {
-      this.set('category.isCollapsed', true);
-    }
-    else if (!filter && typeof this.get('category.collapsedByDefault') !== 'undefined') {
+      this.set('category.isCollapsed', !filteredResult.length);
+    } else if (typeof this.get('category.collapsedByDefault') !== 'undefined') {
       // If user clear filter -- restore defaults
       this.set('category.isCollapsed', this.get('category.collapsedByDefault'));
       this.set('category.collapsedByDefault', undefined);
+    } else if (isInitialRendering && !filteredResult.length) {
+      this.set('category.isCollapsed', true);
     }
 
     var categoryBlock = $('.' + this.get('category.name').split(' ').join('.') + '>.accordion-body');
-    filteredResult.length && !this.get('category.isCollapsed') ? categoryBlock.show() : categoryBlock.hide();
+    this.get('category.isCollapsed') ? categoryBlock.hide() : categoryBlock.show();
   }.observes('categoryConfigs', 'parentView.filter', 'parentView.columns.@each.selected'),
 
   /**
