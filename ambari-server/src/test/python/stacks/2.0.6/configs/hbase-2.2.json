@@ -533,9 +533,6 @@
             "hbase_regionserver_heapsize": "1024m", 
             "hbase_log_dir": "/var/log/hbase"
         }, 
-        "ranger-hbase-plugin-properties": {
-            "ranger-hbase-plugin-enabled":"yes"
-        },        
         "ganglia-env": {
             "gmond_user": "nobody", 
             "ganglia_runtime_dir": "/var/run/ganglia/hdp", 

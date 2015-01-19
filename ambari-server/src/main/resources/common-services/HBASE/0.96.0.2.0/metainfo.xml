@@ -137,7 +137,6 @@
         <config-type>hbase-site</config-type>
         <config-type>hbase-env</config-type>
         <config-type>hbase-log4j</config-type>
-        <config-type>ranger-hbase-plugin-properties</config-type>
       </configuration-dependencies>
 
     </service>

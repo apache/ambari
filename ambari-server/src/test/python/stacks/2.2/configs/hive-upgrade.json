@@ -400,9 +400,6 @@
             "pig_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/pig/",
             "sink.dbpassword": "",
             "sink_database": "Existing MSSQL Server database with sql auth"
-        },
-        "ranger-hive-plugin-properties" : {
-            "ranger-hive-plugin-enabled":"yes"
         }
     },
     "configurationTags": {
