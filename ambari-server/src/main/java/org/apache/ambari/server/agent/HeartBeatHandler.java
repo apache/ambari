@@ -42,7 +42,6 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.bootstrap.DistributeRepositoriesStructuredOutput;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.events.ActionFinalReportReceivedEvent;
@@ -51,14 +50,6 @@ import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
-import org.apache.ambari.server.orm.dao.HostDAO;
-import org.apache.ambari.server.orm.dao.HostVersionDAO;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
-import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.serveraction.kerberos.KerberosActionDataFile;
 import org.apache.ambari.server.serveraction.kerberos.KerberosActionDataFileReader;
 import org.apache.ambari.server.serveraction.kerberos.KerberosServerAction;
@@ -82,7 +73,6 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
@@ -103,8 +93,8 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -120,8 +110,12 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class HeartBeatHandler {
+  /**
+   * Logger.
+   */
+  private static final Logger LOG = LoggerFactory.getLogger(HeartBeatHandler.class);
+
   private static final Pattern DOT_PATTERN = Pattern.compile("\\.");
-  private static Log LOG = LogFactory.getLog(HeartBeatHandler.class);
   private final Clusters clusterFsm;
   private final ActionQueue actionQueue;
   private final ActionManager actionManager;
@@ -272,16 +266,15 @@ public class HeartBeatHandler {
 
   /**
    * Extracts all of the {@link Alert}s from the heartbeat and fires
-   * {@link AlertEvent}s for each one.
+   * {@link AlertEvent}s for each one. If there is a problem looking up the
+   * cluster, then alerts will not be processed.
    *
    * @param heartbeat
    *          the heartbeat to process.
    * @param hostname
    *          the host that the heartbeat is for.
-   * @throws AmbariException
    */
-  protected void processAlerts(HeartBeat heartbeat, String hostname)
-      throws AmbariException {
+  protected void processAlerts(HeartBeat heartbeat, String hostname) {
 
     if (null == hostname || null == heartbeat) {
       return;
@@ -293,9 +286,16 @@ public class HeartBeatHandler {
           alert.setHost(hostname);
         }
 
-        Cluster cluster = clusterFsm.getCluster(alert.getCluster());
-        AlertEvent event = new AlertReceivedEvent(cluster.getClusterId(), alert);
-        alertEventPublisher.publish(event);
+        try {
+          Cluster cluster = clusterFsm.getCluster(alert.getCluster());
+          AlertEvent event = new AlertReceivedEvent(cluster.getClusterId(),
+              alert);
+          alertEventPublisher.publish(event);
+        } catch (AmbariException ambariException) {
+          LOG.warn(
+              "Unable to process alerts because the cluster {} does not exist",
+              alert.getCluster());
+        }
       }
     }
   }

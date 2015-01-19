@@ -65,17 +65,17 @@ public class HeartBeat {
   public void setHostname(String hostname) {
     this.hostname = hostname;
   }
-  
+
   @JsonProperty("reports")
   public List<CommandReport> getReports() {
-    return this.reports;
+    return reports;
   }
-  
+
   @JsonProperty("reports")
   public void setReports(List<CommandReport> reports) {
     this.reports = reports;
   }
-  
+
   public HostStatus getNodeStatus() {
     return nodeStatus;
   }
@@ -83,11 +83,11 @@ public class HeartBeat {
   public void setNodeStatus(HostStatus nodeStatus) {
     this.nodeStatus = nodeStatus;
   }
-  
+
   public AgentEnv getAgentEnv() {
     return agentEnv;
   }
-  
+
   public void setAgentEnv(AgentEnv env) {
     agentEnv = env;
   }
@@ -104,16 +104,20 @@ public class HeartBeat {
 
   @JsonProperty("mounts")
   public List<DiskInfo> getMounts() {
-    return this.mounts;
+    return mounts;
   }
 
   @JsonProperty("mounts")
   public void setMounts(List<DiskInfo> mounts) {
     this.mounts = mounts;
   }
-  
+
   public List<Alert> getAlerts() {
     return alerts;
+  }
+
+  public void setAlerts(List<Alert> alerts) {
+    this.alerts = alerts;
   }
 
   @Override

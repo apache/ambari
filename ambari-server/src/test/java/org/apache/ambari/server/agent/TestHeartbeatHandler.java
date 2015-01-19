@@ -32,8 +32,12 @@ import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS_CLIENT;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.NAMENODE;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.SECONDARY_NAMENODE;
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -76,13 +80,14 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.state.Alert;
+import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -2328,5 +2333,76 @@ public class TestHeartbeatHandler {
     ServiceComponentHost sch = hdfs.getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1);
 
     Assert.assertEquals(Integer.valueOf(0), Integer.valueOf(sch.getProcesses().size()));
+  }
+
+  /**
+   * Tests that if there is an invalid cluster in heartbeat data, the heartbeat
+   * doesn't fail.
+   *
+   * @throws Exception
+   */
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testHeartBeatWithAlertAndInvalidCluster() throws Exception {
+    ActionManager am = getMockActionManager();
+
+    expect(am.getTasks(anyObject(List.class))).andReturn(
+        new ArrayList<HostRoleCommand>());
+
+    replay(am);
+
+    Cluster cluster = getDummyCluster();
+
+    @SuppressWarnings("serial")
+    Set<String> hostNames = new HashSet<String>() {
+      {
+        add(DummyHostname1);
+      }
+    };
+    clusters.mapHostsToCluster(hostNames, DummyCluster);
+
+    Clusters fsm = clusters;
+    Host hostObject = clusters.getHost(DummyHostname1);
+    hostObject.setIPv4("ipv4");
+    hostObject.setIPv6("ipv6");
+    hostObject.setOsType(DummyOsType);
+
+    ActionQueue aq = new ActionQueue();
+
+    HeartBeatHandler handler = new HeartBeatHandler(fsm, aq, am, injector);
+    Register reg = new Register();
+    HostInfo hi = new HostInfo();
+    hi.setHostName(DummyHostname1);
+    hi.setOS(DummyOs);
+    hi.setOSRelease(DummyOSRelease);
+    reg.setHostname(DummyHostname1);
+    reg.setHardwareProfile(hi);
+    reg.setAgentVersion(metaInfo.getServerVersion());
+    handler.handleRegistration(reg);
+
+    hostObject.setState(HostState.UNHEALTHY);
+
+    ExecutionCommand execCmd = new ExecutionCommand();
+    execCmd.setCommandId("2-34");
+    execCmd.setHostname(DummyHostname1);
+    aq.enqueue(DummyHostname1, new ExecutionCommand());
+
+    HeartBeat hb = new HeartBeat();
+    HostStatus hs = new HostStatus(Status.HEALTHY, DummyHostStatus);
+
+    hb.setResponseId(0);
+    hb.setNodeStatus(hs);
+    hb.setHostname(DummyHostname1);
+
+    Alert alert = new Alert("foo", "bar", "baz", "foobar", "foobarbaz",
+        AlertState.OK);
+
+    alert.setCluster("BADCLUSTER");
+
+    List<Alert> alerts = Collections.singletonList(alert);
+    hb.setAlerts(alerts);
+
+    // should NOT throw AmbariException from alerts.
+    handler.handleHeartBeat(hb);
   }
 }
