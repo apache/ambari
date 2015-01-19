@@ -109,6 +109,7 @@ public class Role {
   public static final Role KERBEROS_SERVICE_CHECK = valueOf("KERBEROS_SERVICE_CHECK");
   public static final Role METRIC_COLLECTOR = valueOf("METRIC_COLLECTOR");
   public static final Role METRIC_MONITOR = valueOf("METRIC_MONITOR");
+  public static final Role AMS_SERVICE_CHECK = valueOf("AMS_SERVICE_CHECK");
 
   private String name = null;
   
