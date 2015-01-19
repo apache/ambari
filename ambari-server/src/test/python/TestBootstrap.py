@@ -360,8 +360,8 @@ class TestBootstrap(TestCase):
     self.assertEquals(res, expected)
     command = str(init_mock.call_args[0][3])
     self.assertEqual(command,
-                     "[ -d /var/lib/ambari-agent/data/tmp ] || sudo mkdir -p /var/lib/ambari-agent/data/tmp ; "
-                     "sudo chown root /var/lib/ambari-agent/data/tmp")
+                     "sudo mkdir -p /var/lib/ambari-agent/data/tmp ; "
+                     "sudo chown -R root /var/lib/ambari-agent/data/tmp")
 
   @patch.object(Bootstrap, "getOsCheckScript")
   @patch.object(Bootstrap, "getOsCheckScriptRemoteLocation")

@@ -243,7 +243,7 @@ class Bootstrap(threading.Thread):
     params = self.shared_state
     user = params.user
 
-    command = "[ -d {0} ] || sudo mkdir -p {0} ; sudo chown {1} {0}".format(self.TEMP_FOLDER,params.user)
+    command = "sudo mkdir -p {0} ; sudo chown -R {1} {0}".format(self.TEMP_FOLDER,params.user)
 
     ssh = SSH(params.user, params.sshkey_file, self.host, command,
               params.bootdir, self.host_log)
