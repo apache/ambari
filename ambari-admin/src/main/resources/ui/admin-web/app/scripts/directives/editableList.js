@@ -36,6 +36,22 @@ angular.module('ambariAdminConsole')
         });
       };
 
+      var isIE = function () {
+        var ua = window.navigator.userAgent
+        var msie = ua.indexOf("MSIE ")
+
+        // If Internet Explorer, return version number
+        if (msie > 0)
+          return !!parseInt(ua.substring(msie + 5, ua.indexOf(".", msie)))
+
+        // If Internet Explorer 11 handling differently becaue UserAgent string updated by Microsoft
+        else if (!!navigator.userAgent.match(/Trident\/7\./))
+          return true;
+        else
+        //If another browser just returning  0
+          return false
+      };
+
       $scope.$watch(function() {
         return $scope.input;
       }, function(newValue) {
@@ -55,13 +71,25 @@ angular.module('ambariAdminConsole')
               range = document.createRange();
           elem.innerHTML = '\u00a0';
           range.selectNodeContents(elem);
-          selection.removeAllRanges();
+
+          if(!isIE())
+            selection.removeAllRanges();
+
           selection.addRange(range);
           document.execCommand('delete', false, null);
         }, 0);
       };
 
-      $editBox.on('input', readInput);
+      if(isIE()) {
+        $editBox.keypress(function(e) {
+          $scope.$apply(function() {
+            $scope.input = $editBox.text() + e.char;
+          })
+        });
+      }else{
+        $editBox.on('input', readInput);
+      }
+
       $editBox.on('keydown', function(e) {
         switch(e.which){
           case 27: // ESC
