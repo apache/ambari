@@ -2713,9 +2713,50 @@ def upgrade(args):
         os.remove(jdbc_symlink)
       os.symlink(os.path.join(resources_dir,JDBC_DB_DEFAULT_DRIVER[db_name]), jdbc_symlink)
 
+  # Move *.py files from custom_actions to custom_actions/scripts
+  # This code exists for historic reasons in which custom action python scripts location changed from Ambari 1.7.0 to 2.0.0
+  ambari_version = get_ambari_version(properties)
+  if ambari_version is None:
+    args.warnings.append("*.py files were not moved from custom_actions to custom_actions/scripts.")
+  elif compare_versions(ambari_version, "2.0.0") == 0:
+    move_user_custom_actions()
+
+
   # check if ambari has obsolete LDAP configuration
   if properties.get_property(LDAP_PRIMARY_URL_PROPERTY) and not properties.get_property(IS_LDAP_CONFIGURED):
     args.warnings.append("Existing LDAP configuration is detected. You must run the \"ambari-server setup-ldap\" command to adjust existing LDAP configuration.")
+
+
+def move_user_custom_actions():
+  print_info_msg('Moving *.py files from custom_actions to custom_actions/scripts')
+  properties = get_ambari_properties()
+  if properties == -1:
+    err = "Error getting ambari properties"
+    print_error_msg(err)
+    raise FatalException(-1, err)
+
+  try:
+    resources_dir = properties[RESOURCES_DIR_PROPERTY]
+  except (KeyError), e:
+    conf_file = properties.fileName
+    err = 'Property ' + str(e) + ' is not defined at ' + conf_file
+    print_error_msg(err)
+    raise FatalException(1, err)
+
+  custom_actions_dir_path = os.path.join(resources_dir, 'custom_actions')
+  custom_actions_scripts_dir_path = os.path.join(custom_actions_dir_path, 'scripts')
+  print_info_msg('Moving *.py files from %s to %s' % (custom_actions_dir_path, custom_actions_scripts_dir_path))
+
+  try:
+    for custom_action_file_name in os.listdir(custom_actions_dir_path):
+      custom_action_file_path = os.path.join(custom_actions_dir_path, custom_action_file_name)
+      if os.path.isfile(custom_action_file_path) and custom_action_file_path.endswith('.py'):
+        print_info_msg('Moving %s to %s' % (custom_action_file_path, custom_actions_scripts_dir_path))
+        shutil.move(custom_action_file_path, custom_actions_scripts_dir_path)
+  except (OSError, shutil.Error) as e:
+    err = 'Upgrade failed. Can not move *.py files from %s to %s. ' % (custom_actions_dir_path, custom_actions_scripts_dir_path) + str(e)
+    print_error_msg(err)
+    raise FatalException(1, err)
 
 
 #

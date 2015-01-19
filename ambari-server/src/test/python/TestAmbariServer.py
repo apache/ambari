@@ -22,7 +22,7 @@ import os
 import datetime
 import errno
 import json
-from mock.mock import patch, MagicMock, create_autospec
+from mock.mock import patch, MagicMock, create_autospec, call
 import operator
 from optparse import OptionParser
 import platform
@@ -3060,6 +3060,24 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(run_stack_upgrade_mock.called)
     run_stack_upgrade_mock.assert_called_with("HDP", "2.0", None, None)
 
+  @patch.object(_ambari_server_, "get_ambari_properties")
+  @patch("os.listdir")
+  @patch("os.path.isfile")
+  @patch("shutil.move")
+  def test_move_user_custom_actions(self, shutil_move_mock, os_path_isfile_mock, os_listdir_mock, get_ambari_properties_mock):
+    properties = _ambari_server_.Properties()
+    properties.process_pair(_ambari_server_.RESOURCES_DIR_PROPERTY, 'some/test/fake/resources/dir/path')
+    get_ambari_properties_mock.return_value = properties
+    os_listdir_mock.return_value = ['sometestdir', 'sometestfile.md', 'sometestfile.py', 'sometestfile2.java', 'sometestfile2.py', 'sometestdir2.py']
+    os_path_isfile_mock.side_effect = [False, True, True, True, True, False]
+
+    _ambari_server_.move_user_custom_actions()
+
+    custom_actions_scripts_dir = os.path.join('some/test/fake/resources/dir/path', 'custom_actions', 'scripts')
+    shutil_move_mock.assert_has_calls([call(os.path.join('some/test/fake/resources/dir/path', 'custom_actions', 'sometestfile.py'), custom_actions_scripts_dir),
+                                       call(os.path.join('some/test/fake/resources/dir/path', 'custom_actions', 'sometestfile2.py'), custom_actions_scripts_dir)])
+    self.assertEqual(shutil_move_mock.call_count, 2)
+
   @patch.object(_ambari_server_, "get_conf_dir")
   @patch.object(_ambari_server_, "get_ambari_classpath")
   @patch.object(_ambari_server_, "run_os_command")
@@ -3278,12 +3296,14 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(_ambari_server_, "is_root")
   @patch.object(_ambari_server_, "get_ambari_version")
   @patch.object(_ambari_server_, "get_ambari_properties")
-  def test_upgrade_from_161(self, get_ambari_properties_mock, get_ambari_version_mock, is_root_mock, find_properties_file_mock,
-                            write_property_mock):
+  @patch.object(_ambari_server_, "move_user_custom_actions")
+  def test_upgrade_from_161(self, move_user_custom_actions, get_ambari_properties_mock, get_ambari_version_mock,
+                            is_root_mock, find_properties_file_mock, write_property_mock):
     args = MagicMock()
     args.dbms = "postgres"
     is_root_mock.return_value = True
     get_ambari_version_mock.return_value = "1.7.0"
+    move_user_custom_actions.return_value = None
 
     # Local Postgres
     # In Ambari 1.6.1 for an embedded postgres database, the "server.jdbc.database" property stored the DB name,
@@ -3299,6 +3319,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       self.fail("Did not expect failure: " + str(fe))
     else:
       self.assertTrue(write_property_mock.called)
+      self.assertFalse(move_user_custom_actions.called)
 
     # External Postgres
     # In Ambari 1.6.1 for an external postgres database, the "server.jdbc.database" property stored the
@@ -3317,6 +3338,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       self.fail("Did not expect failure: " + str(fe))
     else:
       self.assertTrue(write_property_mock.called)
+      self.assertFalse(move_user_custom_actions.called)
 
     # External Postgres missing DB type, so it should be set based on the JDBC URL.
     write_property_mock.reset_mock()
@@ -3332,6 +3354,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       self.fail("Did not expect failure: " + str(fe))
     else:
       self.assertTrue(write_property_mock.call_count == 2)
+      self.assertFalse(move_user_custom_actions.called)
 
     # External MySQL
     # In Ambari 1.6.1 for an external MySQL database, the "server.jdbc.database" property stored the DB type ("mysql"),
@@ -3349,6 +3372,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       self.fail("Did not expect failure: " + str(fe))
     else:
       self.assertTrue(write_property_mock.called)
+      self.assertFalse(move_user_custom_actions.called)
 
     # External MySQL missing DB type, so it should be set based on the JDBC URL.
     write_property_mock.reset_mock()
@@ -3364,6 +3388,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       self.fail("Did not expect failure: " + str(fe))
     else:
       self.assertTrue(write_property_mock.call_count == 2)
+      self.assertFalse(move_user_custom_actions.called)
 
 
   @patch("__builtin__.open")
@@ -3383,7 +3408,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(_ambari_server_, "is_root")
   @patch.object(_ambari_server_, "get_ambari_properties")
   @patch.object(_ambari_server_, "upgrade_local_repo")
-  def test_upgrade(self, upgrade_local_repo_mock,
+  @patch.object(_ambari_server_, "move_user_custom_actions")
+  def test_upgrade(self, move_user_custom_actions, upgrade_local_repo_mock,
                    get_ambari_properties_mock, is_root_mock, get_ambari_version_mock,
                    parse_properties_file_mock,
                    update_ambari_properties_mock, run_schema_upgrade_mock,
@@ -3398,6 +3424,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     run_schema_upgrade_mock.return_value = 0
     isfile_mock.return_value = False
     get_ambari_version_mock.return_value = CURR_AMBARI_VERSION
+    move_user_custom_actions.return_value = None
 
     # Testing call under non-root
     is_root_mock.return_value = False
@@ -3420,6 +3447,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     warning_args = print_warning_msg_mock.call_args[0][0]
     self.assertTrue("custom ambari user" in warning_args)
     self.assertTrue(upgrade_local_repo_mock.called)
+    self.assertTrue(move_user_custom_actions.called)
 
     # Testing with defined custom user
     read_ambari_user_mock.return_value = "ambari-custom-user"
@@ -3430,12 +3458,28 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_ambari_properties_mock.return_value = properties
     run_schema_upgrade_mock.return_value = 0
     parse_properties_file_mock.called = False
+    move_user_custom_actions.called = False
     retcode = _ambari_server_.upgrade(args)
     self.assertTrue(get_ambari_properties_mock.called)
 
     self.assertNotEqual(-1, retcode)
     self.assertTrue(parse_properties_file_mock.called)
     self.assertTrue(run_schema_upgrade_mock.called)
+    self.assertTrue(move_user_custom_actions.called)
+
+    # Assert that move_user_custom_actions is called on upgrade to Ambari == 2.0.0
+    get_ambari_version_mock.return_value = '2.0.0'
+    move_user_custom_actions.called = False
+    _ambari_server_.upgrade(args)
+    self.assertTrue(move_user_custom_actions.called)
+
+    # Assert that move_user_custom_actions is not called on upgrade to Ambari < 2.0.0
+    get_ambari_version_mock.return_value = '1.6.0'
+    move_user_custom_actions.called = False
+    _ambari_server_.upgrade(args)
+    self.assertFalse(move_user_custom_actions.called)
+
+    get_ambari_version_mock.return_value = CURR_AMBARI_VERSION
 
     # test getAmbariProperties failed
     get_ambari_properties_mock.return_value = -1
