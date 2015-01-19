@@ -135,4 +135,39 @@ public abstract class AbstractServerAction implements ServerAction {
     }
   }
 
+  /**
+   * Attempts to safely retrieve a property with the specified name from the this action's relevant
+   * command parameters Map.
+   *
+   * @param propertyName a String declaring the name of the item from commandParameters to retrieve
+   * @return the value of the requested property, or null if not found or set
+   */
+  protected String getCommandParameterValue(String propertyName) {
+    Map<String, String> commandParameters = getCommandParameters();
+    return (commandParameters == null) ? null : commandParameters.get(propertyName);
+  }
+
+  /**
+   * Returns the configurations value from the ExecutionCommand
+   * <p/>
+   * The returned map should be assumed to be read-only.
+   *
+   * @return the (assumed read-only) configurations value from the ExecutionCommand
+   */
+  protected Map<String, Map<String, String>> getConfigurations() {
+    return (executionCommand == null) ? Collections.<String, Map<String, String>>emptyMap() : executionCommand.getConfigurations();
+  }
+
+  /**
+   * Returns the requested configuration Map from the ExecutionCommand
+   * <p/>
+   * The returned map should be assumed to be read-only.
+   *
+   * @param configurationName a String indicating the name of the configuration data to retrieve
+   * @return the (assumed read-only) configuration Map from the ExecutionCommand, or null if not available
+   */
+  protected Map<String, String> getConfiguration(String configurationName) {
+    return getConfigurations().get(configurationName);
+  }
+
 }

@@ -768,6 +768,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         new ServiceComponentHostServerActionEvent(StageUtils.getHostName(), System.currentTimeMillis()),
         commandParams,
         itemDetail,
+        null,
         Integer.valueOf(1200),
         allowRtery);
 

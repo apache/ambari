@@ -88,9 +88,9 @@ public class ConfigHelper {
   public Map<String, Map<String, String>> getEffectiveDesiredTags(
       Cluster cluster, String hostName) throws AmbariException {
 
-    Host host = clusters.getHost(hostName);
-
-    return getEffectiveDesiredTags(cluster, host.getDesiredHostConfigs(cluster));
+    Host host = (hostName == null) ? null : clusters.getHost(hostName);
+    Map<String, HostConfig> desiredHostConfigs = (host == null) ? null : host.getDesiredHostConfigs(cluster);
+    return getEffectiveDesiredTags(cluster, desiredHostConfigs);
   }
 
   /**

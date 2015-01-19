@@ -581,7 +581,7 @@ public class TestActionDBAccessorImpl {
     Stage s = new Stage(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
         "", "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
-    s.addServerActionCommand(serverActionName, Role.AMBARI_SERVER_ACTION, RoleCommand.ACTIONEXECUTE, clusterName, null, null, "command details", 300, false);
+    s.addServerActionCommand(serverActionName, Role.AMBARI_SERVER_ACTION, RoleCommand.ACTIONEXECUTE, clusterName, null, null, "command details", null, 300, false);
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
     final RequestResourceFilter resourceFilter = new RequestResourceFilter("AMBARI", "SERVER", Arrays.asList(hostname));

@@ -19,16 +19,31 @@
 package org.apache.ambari.server.serveraction.kerberos;
 
 
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.exception.MethodInvocationException;
+import org.apache.velocity.exception.ParseErrorException;
+import org.apache.velocity.exception.ResourceNotFoundException;
 
 import javax.naming.*;
 import javax.naming.directory.*;
 import javax.naming.ldap.Control;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapContext;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Type;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Implementation of <code>KerberosOperationHandler</code> to created principal in Active Directory
@@ -37,46 +52,76 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
 
   private static Log LOG = LogFactory.getLog(ADKerberosOperationHandler.class);
 
+  /**
+   * Regular expression to parse the different principal formats:
+   * primary/instance@REALM
+   * primary@REALM
+   * primary/instance
+   * primary
+   */
+  private static Pattern PATTERN_PRINCIPAL = Pattern.compile("^(([^ /@]+)(?:/([^ /@]+))?)(?:@(.+)?)?$");
+
   private static final String LDAP_CONTEXT_FACTORY_CLASS = "com.sun.jndi.ldap.LdapCtxFactory";
 
-  private String ldapUrl;
-  private String principalContainerDn;
-
-  private static final int ONE_LEVEL_SCOPE = SearchControls.ONELEVEL_SCOPE;
-  private static final String LDAP_ATUH_MECH_SIMPLE = "simple";
-
-  private LdapContext ldapContext;
-  private SearchControls searchControls;
+  public final static String KERBEROS_ENV_LDAP_URL = "ldap_url";
+  public final static String KERBEROS_ENV_PRINCIPAL_CONTAINER_DN = "container_dn";
+  public final static String KERBEROS_ENV_CREATE_ATTRIBUTES_TEMPLATE = "create_attributes_template";
 
   /**
-   * Prepares and creates resources to be used by this KerberosOperationHandler.
-   * This method in this class would always throw <code>KerberosOperationException</code> reporting
-   * ldapUrl is not provided.
-   * Use <code>open(KerberosCredential administratorCredentials, String defaultRealm,
-   * String ldapUrl, String principalContainerDn)</code> for successful operation.
-   * <p/>
-   * It is expected that this KerberosOperationHandler will not be used before this call.
-   *
-   * @param administratorCredentials a KerberosCredential containing the administrative credentials
-   *                                 for the relevant KDC
-   * @param realm                    a String declaring the  Kerberos realm (or domain)
+   * A String containing the URL for the LDAP interface for the relevant Active Directory
    */
-  @Override
-  public void open(KerberosCredential administratorCredentials, String realm)
-      throws KerberosOperationException {
-    open(administratorCredentials, realm, null, null);
-  }
+  private String ldapUrl = null;
+
+  /**
+   * A String containing the DN of the container to create new account in
+   */
+  private String principalContainerDn = null;
+
+  /**
+   * A String containing the Velocity template to use to generate the JSON structure declaring the
+   * attributes to use to create new Active Directory accounts.
+   * <p/>
+   * If this value is null, a default template will be used.
+   */
+  private String createTemplate = null;
+
+  /**
+   * The relevant LDAP context, created upon opening this KerberosOperationHandler
+   */
+  private LdapContext ldapContext = null;
+
+  /**
+   * The relevant SearchControls, created upon opening this KerberosOperationHandler
+   */
+  private SearchControls searchControls = null;
+
+  /**
+   * VelocityEngine used to process the "create principal template" that is expected to generate
+   * a JSON structure declaring the attributes of the Active Directory account
+   */
+  private VelocityEngine velocityEngine = null;
+
+  /**
+   * The Gson instance to use to convert the template-generated JSON structure to a Map of attribute
+   * names to values.
+   */
+  private Gson gson = new Gson();
 
   /**
    * Prepares and creates resources to be used by this KerberosOperationHandler
    * <p/>
    * It is expected that this KerberosOperationHandler will not be used before this call.
+   * <p/>
+   * It is expected that the kerberosConfiguration Map has the following properties:
+   * <ul>
+   * <li>ldap_url - ldapUrl of ldap back end where principals would be created</li>
+   * <li>container_dn - DN of the container in ldap back end where principals would be created</li>
+   * </il>
    *
    * @param administratorCredentials a KerberosCredential containing the administrative credentials
    *                                 for the relevant KDC
    * @param realm                    a String declaring the default Kerberos realm (or domain)
-   * @param ldapUrl                  ldapUrl of ldap back end where principals would be created
-   * @param principalContainerDn     DN of the container in ldap back end where principals would be created
+   * @param kerberosConfiguration    a Map of key/value pairs containing data from the kerberos-env configuration set
    * @throws KerberosKDCConnectionException       if a connection to the KDC cannot be made
    * @throws KerberosAdminAuthenticationException if the administrator credentials fail to authenticate
    * @throws KerberosRealmException               if the realm does not map to a KDC
@@ -84,33 +129,44 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
    */
   @Override
   public void open(KerberosCredential administratorCredentials, String realm,
-                   String ldapUrl, String principalContainerDn)
-      throws KerberosOperationException {
+                   Map<String, String> kerberosConfiguration) throws KerberosOperationException {
 
     if (isOpen()) {
       close();
     }
 
     if (administratorCredentials == null) {
-      throw new KerberosAdminAuthenticationException("administrator Credential not provided");
+      throw new KerberosAdminAuthenticationException("administrator credentials not provided");
     }
     if (realm == null) {
       throw new KerberosRealmException("realm not provided");
     }
-    if (ldapUrl == null) {
+    if (kerberosConfiguration == null) {
+      throw new KerberosRealmException("kerberos-env configuration may not be null");
+    }
+
+    this.ldapUrl = kerberosConfiguration.get(KERBEROS_ENV_LDAP_URL);
+    if (this.ldapUrl == null) {
       throw new KerberosKDCConnectionException("ldapUrl not provided");
     }
-    if (principalContainerDn == null) {
+
+    this.principalContainerDn = kerberosConfiguration.get(KERBEROS_ENV_PRINCIPAL_CONTAINER_DN);
+    if (this.principalContainerDn == null) {
       throw new KerberosLDAPContainerException("principalContainerDn not provided");
     }
 
     setAdministratorCredentials(administratorCredentials);
     setDefaultRealm(realm);
 
-    this.ldapUrl = ldapUrl;
-    this.principalContainerDn = principalContainerDn;
     this.ldapContext = createLdapContext();
     this.searchControls = createSearchControls();
+
+    this.createTemplate = kerberosConfiguration.get(KERBEROS_ENV_CREATE_ATTRIBUTES_TEMPLATE);
+
+    this.velocityEngine = new VelocityEngine();
+    this.velocityEngine.init();
+
+    this.gson = new Gson();
 
     setOpen(true);
   }
@@ -122,11 +178,18 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
    */
   @Override
   public void close() throws KerberosOperationException {
-    if (ldapContext != null) {
+    this.searchControls = null;
+    this.velocityEngine = null;
+
+    this.gson = null;
+
+    if (this.ldapContext != null) {
       try {
-        ldapContext.close();
+        this.ldapContext.close();
       } catch (NamingException e) {
         throw new KerberosOperationException("Unexpected error", e);
+      } finally {
+        this.ldapContext = null;
       }
     }
 
@@ -199,52 +262,75 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     }
 
     // TODO: (rlevas) pass components and realm in separately (AMBARI-9122)
-    String realm = getDefaultRealm();
-    int atIndex = principal.indexOf("@");
-    if (atIndex >= 0) {
-      realm = principal.substring(atIndex + 1);
-      principal = principal.substring(0, atIndex);
+    String realm = null;
+    String principal_primary = null;
+    String principal_instance = null;
+
+    Matcher matcher = PATTERN_PRINCIPAL.matcher(principal);
+    if (matcher.matches()) {
+      principal = matcher.group(1);
+      principal_primary = matcher.group(2);
+      principal_instance = matcher.group(3);
+      realm = matcher.group(4);
     }
 
-    if (realm == null) {
-      realm = "";
+    if ((realm == null) || realm.isEmpty()) {
+      realm = getDefaultRealm();
     }
+
+    Map<String, Object> context = new HashMap<String, Object>();
+    context.put("principal", principal);
+    context.put("principal_primary", principal_primary);
+    context.put("principal_instance", principal_instance);
+    context.put("realm", realm);
+    context.put("realm_lowercase", (realm == null) ? null : realm.toLowerCase());
+    context.put("password", password);
+    context.put("is_service", service);
+    context.put("container_dn", this.principalContainerDn);
+
+    Map<String, Object> data = processCreateTemplate(context);
 
     Attributes attributes = new BasicAttributes();
+    String cn = null;
 
-    Attribute objectClass = new BasicAttribute("objectClass");
-    objectClass.add("user");
-    attributes.put(objectClass);
+    if (data != null) {
+      for (Map.Entry<String, Object> entry : data.entrySet()) {
+        String key = entry.getKey();
+        Object value = entry.getValue();
 
-    Attribute cn = new BasicAttribute("cn");
-    cn.add(principal);
-    attributes.put(cn);
+        if ("unicodePwd".equals(key)) {
+          if (value instanceof String) {
+            Attribute passwordAttr = new BasicAttribute("unicodePwd");  // password
+            try {
+              passwordAttr.add(((String) value).getBytes("UTF-16LE"));
+            } catch (UnsupportedEncodingException ue) {
+              throw new KerberosOperationException("Can not encode password with UTF-16LE", ue);
+            }
+            attributes.put(passwordAttr);
+          }
+        } else {
+          Attribute attribute = new BasicAttribute(key);
+          if (value instanceof Collection) {
+            for (Object object : (Collection) value) {
+              attribute.add(object);
+            }
+          } else {
+            attribute.add(value);
 
-    Attribute upn = new BasicAttribute("userPrincipalName");
-    upn.add(String.format("%s@%s", principal, realm.toLowerCase()));
-    attributes.put(upn);
-
-    if (service) {
-      Attribute spn = new BasicAttribute("servicePrincipalName");
-      spn.add(principal);
-      attributes.put(spn);
+            if ("cn".equals(key) && (value != null)) {
+              cn = value.toString();
+            }
+          }
+          attributes.put(attribute);
+        }
+      }
     }
 
-    Attribute uac = new BasicAttribute("userAccountControl");  // userAccountControl
-    uac.add("512");
-    attributes.put(uac);
-
-    Attribute passwordAttr = new BasicAttribute("unicodePwd");  // password
-    String quotedPasswordVal = "\"" + password + "\"";
-    try {
-      passwordAttr.add(quotedPasswordVal.getBytes("UTF-16LE"));
-    } catch (UnsupportedEncodingException ue) {
-      throw new KerberosOperationException("Can not encode password with UTF-16LE", ue);
+    if (cn == null) {
+      cn = String.format("%s@%s", principal, realm);
     }
-    attributes.put(passwordAttr);
-
     try {
-      Name name = new CompositeName().add("cn=" + principal + "," + principalContainerDn);
+      Name name = new CompositeName().add(String.format("cn=%s,%s", cn, principalContainerDn));
       ldapContext.createSubcontext(name, attributes);
     } catch (NamingException ne) {
       throw new KerberosOperationException("Can not create principal : " + principal, ne);
@@ -357,7 +443,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     properties.put(Context.PROVIDER_URL, ldapUrl);
     properties.put(Context.SECURITY_PRINCIPAL, administratorCredentials.getPrincipal());
     properties.put(Context.SECURITY_CREDENTIALS, administratorCredentials.getPassword());
-    properties.put(Context.SECURITY_AUTHENTICATION, LDAP_ATUH_MECH_SIMPLE);
+    properties.put(Context.SECURITY_AUTHENTICATION, "simple");
     properties.put(Context.REFERRAL, "follow");
     properties.put("java.naming.ldap.factory.socket", TrustingSSLSocketFactory.class.getName());
 
@@ -413,9 +499,71 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
    */
   protected SearchControls createSearchControls() {
     SearchControls searchControls = new SearchControls();
-    searchControls.setSearchScope(ONE_LEVEL_SCOPE);
+    searchControls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
     searchControls.setReturningAttributes(new String[]{"cn"});
     return searchControls;
+  }
+
+  /**
+   * Processes a Velocity template to generate a map of attributes and values to use to create
+   * Active Directory accounts.
+   * <p/>
+   * If a template was not set, a default template will be used.
+   *
+   * @param context a map of properties to pass to the Velocity engine
+   * @return a Map of attribute names and values to use for creating an Active Directory account
+   * @throws KerberosOperationException if an error occurs processing the template.
+   */
+  protected Map<String, Object> processCreateTemplate(Map<String, Object> context)
+      throws KerberosOperationException {
+
+    if (velocityEngine == null) {
+      throw new KerberosOperationException("The Velocity Engine must not be null");
+    }
+    if (gson == null) {
+      throw new KerberosOperationException("The JSON parser must not be null");
+    }
+
+    Map<String, Object> data = null;
+    String template;
+    StringWriter stringWriter = new StringWriter();
+
+    if ((createTemplate == null) || createTemplate.isEmpty()) {
+      template = "{" +
+          "\"objectClass\": [\"top\", \"person\", \"organizationalPerson\", \"user\"]," +
+          "\"cn\": \"$principal\"," +
+          "#if( $is_service )" +
+          "  \"servicePrincipalName\": \"$principal\"," +
+          "#end" +
+          "\"userPrincipalName\": \"$principal@$realm.toLowerCase()\"," +
+          "\"unicodePwd\": \"\\\"$password\\\"\"," +
+          "\"accountExpires\": \"0\"," +
+          "\"userAccountControl\": \"512\"" +
+          "}";
+    } else {
+      template = createTemplate;
+    }
+
+    try {
+      if (velocityEngine.evaluate(new VelocityContext(context), stringWriter, "Active Directory principal create template", template)) {
+        String json = stringWriter.toString();
+        Type type = new TypeToken<Map<String, Object>>() {
+        }.getType();
+
+        data = gson.fromJson(json, type);
+      }
+    } catch (ParseErrorException e) {
+      LOG.warn("Failed to parse Active Directory create principal template", e);
+      throw new KerberosOperationException("Failed to parse Active Directory create principal template", e);
+    } catch (MethodInvocationException e) {
+      LOG.warn("Failed to process Active Directory create principal template", e);
+      throw new KerberosOperationException("Failed to process Active Directory create principal template", e);
+    } catch (ResourceNotFoundException e) {
+      LOG.warn("Failed to process Active Directory create principal template", e);
+      throw new KerberosOperationException("Failed to process Active Directory create principal template", e);
+    }
+
+    return data;
   }
 
 }

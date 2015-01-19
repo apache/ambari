@@ -135,8 +135,8 @@ public class KerberosServerActionTest {
 
   @Test
   public void testGetCommandParameterValueStatic() throws Exception {
-    Assert.assertNull(action.getCommandParameterValue("nonexistingvalue"));
-    Assert.assertEquals("REALM.COM", action.getCommandParameterValue(KerberosServerAction.DEFAULT_REALM));
+    Assert.assertNull(KerberosServerAction.getCommandParameterValue(commandParams, "nonexistingvalue"));
+    Assert.assertEquals("REALM.COM", KerberosServerAction.getCommandParameterValue(commandParams, KerberosServerAction.DEFAULT_REALM));
   }
 
   @Test
@@ -168,13 +168,6 @@ public class KerberosServerActionTest {
   public void testGetPrincipalPasswordMapStatic() throws Exception {
     ConcurrentMap<String, Object> sharedMap = new ConcurrentHashMap<String, Object>();
     Assert.assertNotNull(KerberosServerAction.getPrincipalPasswordMap(sharedMap));
-  }
-
-  @Test
-  public void testGetCommandParameterValue() throws Exception {
-    Assert.assertNull(action.getCommandParameterValue("invalid_parameter"));
-    Assert.assertEquals(commandParams.get(KerberosServerAction.DEFAULT_REALM),
-        action.getCommandParameterValue(KerberosServerAction.DEFAULT_REALM));
   }
 
   @Test

@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public abstract class KerberosOperationHandlerTest {
@@ -204,7 +205,7 @@ public abstract class KerberosOperationHandlerTest {
     KerberosOperationHandler handler = new KerberosOperationHandler() {
 
       @Override
-      public void open(KerberosCredential administratorCredentials, String defaultRealm) throws KerberosOperationException {
+      public void open(KerberosCredential administratorCredentials, String defaultRealm, Map<String, String> kerberosConfiguration) throws KerberosOperationException {
         setAdministratorCredentials(administratorCredentials);
         setDefaultRealm(defaultRealm);
       }
@@ -220,7 +221,7 @@ public abstract class KerberosOperationHandlerTest {
       }
 
       @Override
-      public Integer createPrincipal(String principal, String password, boolean serivce) throws KerberosOperationException{
+      public Integer createPrincipal(String principal, String password, boolean service) throws KerberosOperationException {
         return 0;
       }
 
@@ -235,7 +236,7 @@ public abstract class KerberosOperationHandlerTest {
       }
     };
 
-    handler.open(new KerberosCredential("admin/admin", "hadoop", null), "EXAMPLE.COM");
+    handler.open(new KerberosCredential("admin/admin", "hadoop", null), "EXAMPLE.COM", null);
     return handler;
   }
 }

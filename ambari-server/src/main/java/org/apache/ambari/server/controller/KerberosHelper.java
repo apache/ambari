@@ -219,18 +219,12 @@ public class KerberosHelper {
         kdcType = KDCType.MIT_KDC;
       }
 
-      KDCDetails kdcDetails = new KDCDetails(
-          kdcType,
-          (kerberosEnvProperties == null) ? null : kerberosEnvProperties.get("ldap_url"),
-          (kerberosEnvProperties == null) ? null : kerberosEnvProperties.get("container_dn")
-      );
-
       if ("true".equalsIgnoreCase(securityEnabled)) {
         LOG.info("Configuring Kerberos for realm {} on cluster, {}", defaultRealm, cluster.getClusterName());
-        requestStageContainer = handle(cluster, kerberosDescriptor, defaultRealm, kdcDetails, requestStageContainer, enableKerberosHandler);
+        requestStageContainer = handle(cluster, kerberosDescriptor, defaultRealm, kdcType, kerberosEnvProperties, requestStageContainer, enableKerberosHandler);
       } else if ("false".equalsIgnoreCase(securityEnabled)) {
         LOG.info("Disabling Kerberos from cluster, {}", cluster.getClusterName());
-        requestStageContainer = handle(cluster, kerberosDescriptor, defaultRealm, kdcDetails, requestStageContainer, disableKerberosHandler);
+        requestStageContainer = handle(cluster, kerberosDescriptor, defaultRealm, kdcType, kerberosEnvProperties, requestStageContainer, disableKerberosHandler);
       } else {
         String message = String.format("Invalid value for `security_enabled` property of cluster-env: %s", securityEnabled);
         LOG.error(message);
@@ -253,7 +247,8 @@ public class KerberosHelper {
    * @param cluster               the relevant Cluster
    * @param kerberosDescriptor    the (derived) KerberosDescriptor
    * @param realm                 the default Kerberos realm for the Cluster
-   * @param kdcDetails            a KDCDetails containing information about relevant KDC
+   * @param kdcType               a KDCType declaring the type of the relevant KDC
+   * @param kerberosEnvProperties a MAp of key/value pairs from the kerberos-env configuration
    * @param requestStageContainer a RequestStageContainer to place generated stages, if needed -
    *                              if null a new RequestStageContainer will be created.
    * @return the updated or a new RequestStageContainer containing the stages that need to be
@@ -263,8 +258,8 @@ public class KerberosHelper {
   @Transactional
   private RequestStageContainer handle(Cluster cluster,
                                        KerberosDescriptor kerberosDescriptor,
-                                       String realm, KDCDetails kdcDetails,
-                                       RequestStageContainer requestStageContainer,
+                                       String realm, KDCType kdcType,
+                                       Map<String, String> kerberosEnvProperties, RequestStageContainer requestStageContainer,
                                        Handler handler) throws AmbariException {
 
     Map<String, Service> services = cluster.getServices();
@@ -425,7 +420,7 @@ public class KerberosHelper {
                       "}"
               );
             } else {
-              KerberosOperationHandler operationHandler = kerberosOperationHandlerFactory.getKerberosOperationHandler(kdcDetails.getKdcType());
+              KerberosOperationHandler operationHandler = kerberosOperationHandlerFactory.getKerberosOperationHandler(kdcType);
 
               if (operationHandler == null) {
                 throw new AmbariException("Failed to get an appropriate Kerberos operation handler.");
@@ -434,7 +429,7 @@ public class KerberosHelper {
                 KerberosCredential kerberosCredentials = KerberosCredential.decrypt(credentials, key);
 
                 try {
-                  operationHandler.open(kerberosCredentials, realm, kdcDetails.getLdapUrl(), kdcDetails.getPrincipalContainerDn());
+                  operationHandler.open(kerberosCredentials, realm, kerberosEnvProperties);
                   if (!operationHandler.testAdministratorCredentials()) {
                     throw new IllegalArgumentException(
                         "Invalid KDC administrator credentials.\n" +
@@ -526,7 +521,7 @@ public class KerberosHelper {
 
         // Use the handler implementation to setup the relevant stages.
         int lastStageId = handler.createStages(cluster, hosts, kerberosConfigurations,
-            clusterHostInfoJson, hostParamsJson, event, roleCommandOrder, realm, kdcDetails,
+            clusterHostInfoJson, hostParamsJson, event, roleCommandOrder, realm, kdcType,
             dataDirectory, requestStageContainer, serviceComponentHostsToProcess);
 
         // Add the cleanup stage...
@@ -892,7 +887,7 @@ public class KerberosHelper {
                                         Class<? extends ServerAction> actionClass,
                                         ServiceComponentHostServerActionEvent event,
                                         Map<String, String> commandParameters, String commandDetail,
-                                        Integer timeout) {
+                                        Integer timeout) throws AmbariException {
 
     Stage stage = createNewStage(id, cluster, requestId, requestContext, clusterHostInfo, commandParams, hostParams);
     stage.addServerActionCommand(actionClass.getName(),
@@ -902,6 +897,7 @@ public class KerberosHelper {
         event,
         commandParameters,
         commandDetail,
+        ambariManagementController.findConfigurationTagsWithOverrides(cluster, null),
         timeout, false);
 
     return stage;
@@ -1017,7 +1013,7 @@ public class KerberosHelper {
      * @param event                  a ServiceComponentHostServerActionEvent to pass to any created tasks
      * @param roleCommandOrder       the RoleCommandOrder to use to generate the RoleGraph for any newly created Stages
      * @param realm                  a String declaring the cluster's Kerberos realm
-     * @param kdcDetails             a KDCDetails containing the information about the relevant KDC
+     * @param kdcType                a KDCType declaring the type of the relevant KDC
      * @param dataDirectory          a File pointing to the (temporary) data directory
      * @param requestStageContainer  a RequestStageContainer to store the new stages in, if null a
      *                               new RequestStageContainer will be created
@@ -1030,7 +1026,7 @@ public class KerberosHelper {
                      String clusterHostInfo, String hostParams,
                      ServiceComponentHostServerActionEvent event,
                      RoleCommandOrder roleCommandOrder,
-                     String realm, KDCDetails kdcDetails, File dataDirectory,
+                     String realm, KDCType kdcType, File dataDirectory,
                      RequestStageContainer requestStageContainer,
                      List<ServiceComponentHost> serviceComponentHosts)
         throws AmbariException;
@@ -1083,7 +1079,7 @@ public class KerberosHelper {
                             Map<String, Map<String, String>> kerberosConfigurations,
                             String clusterHostInfoJson, String hostParamsJson,
                             ServiceComponentHostServerActionEvent event,
-                            RoleCommandOrder roleCommandOrder, String realm, KDCDetails kdcDetails,
+                            RoleCommandOrder roleCommandOrder, String realm, KDCType kdcType,
                             File dataDirectory, RequestStageContainer requestStageContainer,
                             List<ServiceComponentHost> serviceComponentHosts)
         throws AmbariException {
@@ -1145,9 +1141,7 @@ public class KerberosHelper {
       Map<String, String> commandParameters = new HashMap<String, String>();
       commandParameters.put(KerberosServerAction.DATA_DIRECTORY, dataDirectory.getAbsolutePath());
       commandParameters.put(KerberosServerAction.DEFAULT_REALM, realm);
-      commandParameters.put(KerberosServerAction.KDC_TYPE, kdcDetails.getKdcType().name());
-      commandParameters.put(KerberosServerAction.KDC_LDAP_URL, kdcDetails.getLdapUrl());
-      commandParameters.put(KerberosServerAction.KDC_PRINCIPAL_CONTAINER_DN, kdcDetails.getPrincipalContainerDn());
+      commandParameters.put(KerberosServerAction.KDC_TYPE, kdcType.name());
       commandParameters.put(KerberosServerAction.ADMINISTRATOR_CREDENTIAL, getEncryptedAdministratorCredentials(cluster));
 
       // *****************************************************************
@@ -1284,7 +1278,7 @@ public class KerberosHelper {
                             Map<String, Map<String, String>> kerberosConfigurations,
                             String clusterHostInfoJson, String hostParamsJson,
                             ServiceComponentHostServerActionEvent event,
-                            RoleCommandOrder roleCommandOrder, String realm, KDCDetails kdcDetails,
+                            RoleCommandOrder roleCommandOrder, String realm, KDCType kdcType,
                             File dataDirectory, RequestStageContainer requestStageContainer,
                             List<ServiceComponentHost> serviceComponentHosts) {
       // TODO (rlevas): If there are principals, keytabs, and configurations to process, setup the following sages:
@@ -1293,35 +1287,6 @@ public class KerberosHelper {
       //  3) update configurations
       //  3) restart services
       return -1;
-    }
-  }
-
-
-  /**
-   * KDCDetails is a helper class to hold the details of the relevant KDC so they may be passed
-   * around more easily.
-   */
-  private static class KDCDetails {
-    private final KDCType kdcType;
-    private final String ldapUrl;
-    private final String principalContainerDn;
-
-    public KDCDetails(KDCType kdcType, String ldapUrl, String principalContainerDn) {
-      this.kdcType = kdcType;
-      this.ldapUrl = ldapUrl;
-      this.principalContainerDn = principalContainerDn;
-    }
-
-    public KDCType getKdcType() {
-      return kdcType;
-    }
-
-    public String getLdapUrl() {
-      return ldapUrl;
-    }
-
-    public String getPrincipalContainerDn() {
-      return principalContainerDn;
     }
   }
 }

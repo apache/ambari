@@ -328,6 +328,8 @@ public class Stage {
    *                      empty or null if no data is relevant
    * @param commandDetail a String declaring a descriptive name to pass to the action - null or an
    *                      empty string indicates no value is to be set
+   * @param configTags    a Map of configuration tags to set for this command - if null, no
+   *                      configurations will be available for the command
    * @param timeout       an Integer declaring the timeout for this action - if null, a default
    * @param retryAllowed   indicates whether retry after failure is allowed
    */
@@ -335,11 +337,12 @@ public class Stage {
                                                   String clusterName, ServiceComponentHostServerActionEvent event,
                                                   @Nullable Map<String, String> commandParams,
                                                   @Nullable String commandDetail,
+                                                  @Nullable Map<String, Map<String,String>> configTags,
                                                   @Nullable Integer timeout,
                                                   boolean retryAllowed) {
 
-    addServerActionCommand(actionName, role, command,
-        clusterName, StageUtils.getHostName(), event, commandParams, commandDetail, timeout, retryAllowed);
+    addServerActionCommand(actionName, role, command, clusterName, StageUtils.getHostName(), event,
+        commandParams, commandDetail, configTags, timeout, retryAllowed);
   }
 
   /**
@@ -363,14 +366,17 @@ public class Stage {
    *                      empty or null if no data is relevant
    * @param commandDetail a String declaring a descriptive name to pass to the action - null or an
    *                      empty string indicates no value is to be set
+   * @param configTags    a Map of configuration tags to set for this command - if null, no
+   *                      configurations will be available for the command
    * @param timeout       an Integer declaring the timeout for this action - if null, a default
-   * @param retryAllowed   indicates whether retry after failure is allowed
+   * @param retryAllowed  indicates whether retry after failure is allowed
    */
   public synchronized void addServerActionCommand(String actionName, Role role, RoleCommand command,
                                                   String clusterName, String hostName,
                                                   ServiceComponentHostServerActionEvent event,
                                                   @Nullable Map<String, String> commandParams,
                                                   @Nullable String commandDetail,
+                                                  @Nullable Map<String, Map<String,String>> configTags,
                                                   @Nullable Integer timeout, boolean retryAllowed) {
     ExecutionCommandWrapper commandWrapper =
         addGenericExecutionCommand(clusterName, hostName, role, command, event, retryAllowed);
@@ -385,6 +391,17 @@ public class Stage {
       cmdParams.put(ExecutionCommand.KeyNames.COMMAND_TIMEOUT, Long.toString(timeout));
     }
     cmd.setCommandParams(cmdParams);
+
+    Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
+    cmd.setConfigurations(configurations);
+
+    Map<String, Map<String, Map<String, String>>> configurationAttributes = new TreeMap<String, Map<String, Map<String, String>>>();
+    cmd.setConfigurationAttributes(configurationAttributes);
+
+    if (configTags == null) {
+      configTags = new TreeMap<String, Map<String, String>>();
+    }
+    cmd.setConfigurationTags(configTags);
 
     Map<String, String> roleParams = new HashMap<String, String>();
     roleParams.put(ServerAction.ACTION_NAME, actionName);

@@ -70,18 +70,6 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   public static final String KDC_TYPE = "kdc_type";
 
   /**
-   * A (command parameter) property name used to hold the URL for the LDAP interface to the KDC.
-   * This value may be null.
-   */
-  public static final String KDC_LDAP_URL = "kdc_ldap_url";
-
-  /**
-   * A (command parameter) property name used to hold the distinguished name (DN) of the container
-   * in which to store principals within the KDC.  This value may be null.
-   */
-  public static final String KDC_PRINCIPAL_CONTAINER_DN = "kdc_principal_container_dn";
-
-  /**
    * The prefix to use for the data directory name.
    */
   public static final String DATA_DIRECTORY_PREFIX = ".ambari_";
@@ -294,17 +282,6 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   }
 
   /**
-   * Attempts to safely retrieve a property with the specified name from the this action's relevant
-   * command parameters Map.
-   *
-   * @param propertyName a String declaring the name of the item from commandParameters to retrieve
-   * @return the value of the requested property, or null if not found or set
-   */
-  protected String getCommandParameterValue(String propertyName) {
-    return getCommandParameterValue(getCommandParameters(), propertyName);
-  }
-
-  /**
    * Attempts to safely retrieve the "data_directory" property from the this action's relevant
    * command parameters Map.
    *
@@ -372,10 +349,8 @@ public abstract class KerberosServerAction extends AbstractServerAction {
               throw new AmbariException(message);
             }
 
-            String ldapUrl = getCommandParameterValue(KDC_LDAP_URL);
-            String principalContainerDn = getCommandParameterValue(KDC_PRINCIPAL_CONTAINER_DN);
             try {
-              handler.open(administratorCredential, defaultRealm, ldapUrl, principalContainerDn);
+              handler.open(administratorCredential, defaultRealm, getConfiguration("kerberos-env"));
             } catch (KerberosOperationException e) {
               String message = String.format("Failed to process the identities, could not properly open the KDC operation handler: %s",
                   e.getMessage());

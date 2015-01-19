@@ -88,7 +88,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(kerberosOperationHandlerFactory.getKerberosOperationHandler(KDCType.MIT_KDC))
         .andReturn(new KerberosOperationHandler() {
           @Override
-          public void open(KerberosCredential administratorCredentials, String defaultRealm) throws KerberosOperationException {
+          public void open(KerberosCredential administratorCredentials, String defaultRealm, Map<String, String> kerberosConfiguration) throws KerberosOperationException {
             setAdministratorCredentials(administratorCredentials);
             setDefaultRealm(defaultRealm);
             setOpen(true);

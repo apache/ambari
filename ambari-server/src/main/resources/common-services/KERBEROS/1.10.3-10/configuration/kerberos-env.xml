@@ -36,4 +36,25 @@
     </description>
     <value></value>
   </property>
+
+  <property require-input="true">
+    <name>create_attributes_template</name>
+    <description>
+      A Velocity template to use to generate a JSON-formatted document containing the set of
+      attribute names and values needed to create a new Kerberos identity in the relevant KDC.
+    </description>
+    <value>
+{
+  "objectClass": ["top", "person", "organizationalPerson", "user"],
+  "cn": "$principal",
+  #if( $is_service )
+  "servicePrincipalName": "$principal",
+  #end
+  "userPrincipalName": "$principal@$realm.toLowerCase()",
+  "unicodePwd": "\"$password\"",
+  "accountExpires": "0",
+  "userAccountControl": "512"
+}
+    </value>
+  </property>
 </configuration>

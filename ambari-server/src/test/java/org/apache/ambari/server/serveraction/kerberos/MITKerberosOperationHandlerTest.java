@@ -39,7 +39,7 @@ public class MITKerberosOperationHandlerTest extends EasyMockSupport {
   @Test
   public void testSetPrincipalPasswordExceptions() throws Exception {
     MITKerberosOperationHandler handler = new MITKerberosOperationHandler();
-    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM);
+    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM, null);
 
     try {
       handler.setPrincipalPassword(DEFAULT_ADMIN_PRINCIPAL, null);
@@ -75,7 +75,7 @@ public class MITKerberosOperationHandlerTest extends EasyMockSupport {
   @Test
   public void testCreateServicePrincipalExceptions() throws Exception {
     MITKerberosOperationHandler handler = new MITKerberosOperationHandler();
-    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM);
+    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM, null);
 
     try {
       handler.createPrincipal(DEFAULT_ADMIN_PRINCIPAL, null, false);
@@ -134,7 +134,7 @@ public class MITKerberosOperationHandlerTest extends EasyMockSupport {
 
     replayAll();
 
-    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM);
+    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM, null);
     handler.testAdministratorCredentials();
     handler.close();
   }
@@ -167,7 +167,7 @@ public class MITKerberosOperationHandlerTest extends EasyMockSupport {
 
     replayAll();
 
-    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM);
+    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM, null);
     handler.testAdministratorCredentials();
     handler.close();
   }
@@ -200,7 +200,7 @@ public class MITKerberosOperationHandlerTest extends EasyMockSupport {
 
     replayAll();
 
-    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM);
+    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM, null);
     handler.testAdministratorCredentials();
     handler.close();
   }
@@ -233,7 +233,7 @@ public class MITKerberosOperationHandlerTest extends EasyMockSupport {
 
     replayAll();
 
-    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM);
+    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM, null);
     handler.testAdministratorCredentials();
     handler.close();
   }
@@ -266,7 +266,7 @@ public class MITKerberosOperationHandlerTest extends EasyMockSupport {
 
     replayAll();
 
-    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM);
+    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM, null);
     Assert.assertFalse(handler.testAdministratorCredentials());
     handler.close();
   }
@@ -319,7 +319,7 @@ public class MITKerberosOperationHandlerTest extends EasyMockSupport {
 
     replayAll();
 
-    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM);
+    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM, null);
     handler.testAdministratorCredentials();
     handler.close();
   }
@@ -346,7 +346,7 @@ public class MITKerberosOperationHandlerTest extends EasyMockSupport {
 
     KerberosCredential credentials = new KerberosCredential(principal, password, null);
 
-    handler.open(credentials, realm);
+    handler.open(credentials, realm, null);
     handler.testAdministratorCredentials();
     handler.close();
   }

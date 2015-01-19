@@ -28,6 +28,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -49,10 +50,28 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
   private final static Logger LOG = LoggerFactory.getLogger(MITKerberosOperationHandler.class);
 
 
+  /**
+   * Prepares and creates resources to be used by this KerberosOperationHandler
+   * <p/>
+   * It is expected that this KerberosOperationHandler will not be used before this call.
+   * <p/>
+   * The kerberosConfiguration Map is not being used.
+   *
+   * @param administratorCredentials a KerberosCredential containing the administrative credentials
+   *                                 for the relevant KDC
+   * @param realm                    a String declaring the default Kerberos realm (or domain)
+   * @param kerberosConfiguration    a Map of key/value pairs containing data from the kerberos-env configuration set
+   * @throws KerberosKDCConnectionException       if a connection to the KDC cannot be made
+   * @throws KerberosAdminAuthenticationException if the administrator credentials fail to authenticate
+   * @throws KerberosRealmException               if the realm does not map to a KDC
+   * @throws KerberosOperationException           if an unexpected error occurred
+   */
   @Override
-  public void open(KerberosCredential administratorCredentials, String defaultRealm) throws KerberosOperationException {
+  public void open(KerberosCredential administratorCredentials, String realm,
+                   Map<String, String> kerberosConfiguration)
+      throws KerberosOperationException {
     setAdministratorCredentials(administratorCredentials);
-    setDefaultRealm(defaultRealm);
+    setDefaultRealm(realm);
     setOpen(true);
   }
 

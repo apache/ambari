@@ -769,7 +769,7 @@ public class TestActionScheduler {
         RoleCommand.EXECUTE, "cluster1",
         new ServiceComponentHostServerActionEvent(serverHostname, System.currentTimeMillis()),
         payload,
-        null, timeout, false);
+        null, null, timeout, false);
 
     return stage;
   }

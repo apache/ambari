@@ -120,18 +120,6 @@ public abstract class KerberosOperationHandler {
   }
 
   /**
-   * Prepares and creates resources to be used by this KerberosOperationHandler
-   * <p/>
-   * It is expected that this KerberosOperationHandler will not be used before this call.
-   *
-   * @param administratorCredentials a KerberosCredential containing the administrative credentials
-   *                                 for the relevant KDC
-   * @param defaultRealm             a String declaring the default Kerberos realm (or domain)
-   */
-  public abstract void open(KerberosCredential administratorCredentials, String defaultRealm)
-      throws KerberosOperationException;
-
-  /**
    * Prepares and creates resources to be used by this KerberosOperationHandler.
    * Implementation in this class is ignoring parameters ldapUrl and principalContainerDn and delegate to
    * <code>open(KerberosCredential administratorCredentials, String defaultRealm)</code>
@@ -142,14 +130,10 @@ public abstract class KerberosOperationHandler {
    * @param administratorCredentials a KerberosCredential containing the administrative credentials
    *                                 for the relevant KDC
    * @param defaultRealm             a String declaring the default Kerberos realm (or domain)
-   * @param ldapUrl                  ldapUrl of ldap back end where principals would be created
-   * @param principalContainerDn     DN of the container in ldap back end where principals would be created
+   * @param kerberosConfiguration    a Map of key/value pairs containing data from the kerberos-env configuration set
    */
-  public void open(KerberosCredential administratorCredentials, String defaultRealm,
-                   String ldapUrl, String principalContainerDn)
-      throws KerberosOperationException {
-    open(administratorCredentials, defaultRealm);
-  }
+  public abstract void open(KerberosCredential administratorCredentials, String defaultRealm, Map<String, String> kerberosConfiguration)
+      throws KerberosOperationException;
 
   /**
    * Closes and cleans up any resources used by this KerberosOperationHandler
@@ -178,7 +162,7 @@ public abstract class KerberosOperationHandler {
    *
    * @param principal a String containing the principal to add
    * @param password  a String containing the password to use when creating the principal
-   * @param service a boolean value indicating whether the principal is to be created as a service principal or not
+   * @param service   a boolean value indicating whether the principal is to be created as a service principal or not
    * @return an Integer declaring the generated key number
    * @throws KerberosOperationException
    */
