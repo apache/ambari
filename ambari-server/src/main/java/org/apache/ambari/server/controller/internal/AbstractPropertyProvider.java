@@ -128,7 +128,7 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
   }
 
   protected void getPropertyInfoMap(String componentName, String propertyId, Map<String, PropertyInfo> propertyInfoMap) {
-    Map<String, PropertyInfo> componentMetricMap = componentMetrics.get(componentName);
+    Map<String, PropertyInfo> componentMetricMap = getComponentMetrics().get(componentName);
 
     propertyInfoMap.clear();
 

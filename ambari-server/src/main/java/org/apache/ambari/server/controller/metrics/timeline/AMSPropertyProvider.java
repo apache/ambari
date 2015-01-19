@@ -25,6 +25,7 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
@@ -33,10 +34,10 @@ import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectReader;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.text.DecimalFormat;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,6 +48,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static org.apache.ambari.server.Role.HBASE_MASTER;
+import static org.apache.ambari.server.Role.HBASE_REGIONSERVER;
+import static org.apache.ambari.server.Role.METRIC_COLLECTOR;
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.TIMELINE_METRICS;
 import static org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
@@ -58,9 +63,9 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
   private static final int COLLECTOR_DEFAULT_PORT = 6188;
 
   static {
-    TIMELINE_APPID_MAP.put("HBASE_MASTER", "HBASE");
-    TIMELINE_APPID_MAP.put("HBASE_REGIONSERVER", "HBASE");
-    TIMELINE_APPID_MAP.put("METRIC_COLLECTOR", "AMS-HBASE");
+    TIMELINE_APPID_MAP.put(HBASE_MASTER.name(), "HBASE");
+    TIMELINE_APPID_MAP.put(HBASE_REGIONSERVER.name(), "HBASE");
+    TIMELINE_APPID_MAP.put(METRIC_COLLECTOR.name(), "AMS-HBASE");
 
     mapper = new ObjectMapper();
     AnnotationIntrospector introspector = new JaxbAnnotationIntrospector();
@@ -338,6 +343,36 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
     return resources;
   }
 
+  /**
+   * Return a propertyInfoMap for all metrics. Handles special case for
+   * METRIC_COLLECTOR metrics by returning HBase metrics.
+   */
+  @Override
+  public Map<String, Map<String, PropertyInfo>> getComponentMetrics() {
+    if (super.getComponentMetrics().containsKey(METRIC_COLLECTOR.name())) {
+      return super.getComponentMetrics();
+    }
+
+    Map<String, Map<String, PropertyInfo>> metricPropertyIds;
+    if (this.hostNamePropertyId != null) {
+      metricPropertyIds = PropertyHelper.getMetricPropertyIds(Resource.Type.HostComponent);
+    } else {
+      metricPropertyIds = PropertyHelper.getMetricPropertyIds(Resource.Type.Component);
+    }
+    Map<String, PropertyInfo> amsMetrics = new HashMap<String, PropertyInfo>();
+    if (metricPropertyIds.containsKey(HBASE_MASTER.name())) {
+      amsMetrics.putAll(metricPropertyIds.get(HBASE_MASTER.name()));
+    }
+    if (metricPropertyIds.containsKey(HBASE_REGIONSERVER.name())) {
+      amsMetrics.putAll(metricPropertyIds.get(HBASE_REGIONSERVER.name()));
+    }
+    if (!amsMetrics.isEmpty()) {
+      super.getComponentMetrics().putAll(Collections.singletonMap(METRIC_COLLECTOR.name(), amsMetrics));
+    }
+
+    return super.getComponentMetrics();
+  }
+
   private Map<String, Map<TemporalInfo, MetricsRequest>> getMetricsRequests(
               Set<Resource> resources, Request request, Set<String> ids) throws SystemException {
 
@@ -371,8 +406,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
         Map<String, PropertyInfo> componentMetricMap = getComponentMetrics().get(componentName);
 
         // Not all components have metrics
-        if (componentMetricMap != null &&
-            !componentMetricMap.containsKey(id)) {
+        if (componentMetricMap != null && !componentMetricMap.containsKey(id)) {
           updateComponentMetricMap(componentMetricMap, id);
         }
 

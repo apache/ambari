@@ -9304,17 +9304,17 @@
         "temporal":true
       },
       "metrics/hbase/regionserver/readRequestsCount":{
-        "metric":"hbase.regionserver.readRequestsCount",
+        "metric":"regionserver.Server.readRequestCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/regions":{
-        "metric":"hbase.regionserver.regions",
+        "metric":"regionserver.Server.regionCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/requests":{
-        "metric":"hbase.regionserver.requests",
+        "metric":"regionserver.Server.totalRequestCount",
         "pointInTime":true,
         "temporal":true
       },

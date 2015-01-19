@@ -57,6 +57,7 @@ public class AMSPropertyProviderTest {
   private static final String MULTIPLE_COMPONENT_METRICS_FILE_PATH = FILE_PATH_PREFIX + "multiple_component_metrics.json";
   private static final String CLUSTER_REPORT_METRICS_FILE_PATH = FILE_PATH_PREFIX + "cluster_report_metrics.json";
   private static final String MULTIPLE_COMPONENT_REGEXP_METRICS_FILE_PATH = FILE_PATH_PREFIX + "multiple_component_regexp_metrics.json";
+  private static final String EMBEDDED_METRICS_FILE_PATH = FILE_PATH_PREFIX + "embedded_host_metric.json";
 
   @Test
   public void testPopulateResourcesForSingleHostMetric() throws Exception {
@@ -324,6 +325,48 @@ public class AMSPropertyProviderTest {
     Assert.assertEquals(uriBuilder.toString(), streamProvider.getLastSpec());
     Number[][] val = (Number[][]) res.getPropertyValue(propertyId);
     Assert.assertEquals(238, val.length);
+  }
+
+  @Test
+  public void testPopulateMetricsForEmbeddedHBase() throws Exception {
+    TestStreamProvider streamProvider = new TestStreamProvider(EMBEDDED_METRICS_FILE_PATH);
+    TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
+    ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
+
+    Map<String, Map<String, PropertyInfo>> propertyIds =
+      PropertyHelper.getMetricPropertyIds(Resource.Type.Component);
+
+    AMSPropertyProvider propertyProvider = new AMSComponentPropertyProvider(
+      propertyIds,
+      streamProvider,
+      sslConfiguration,
+      metricHostProvider,
+      CLUSTER_NAME_PROPERTY_ID,
+      COMPONENT_NAME_PROPERTY_ID
+    );
+
+    String propertyId = PropertyHelper.getPropertyId("metrics/hbase/regionserver", "requests");
+    Resource resource = new ResourceImpl(Resource.Type.Component);
+    resource.setProperty(HOST_NAME_PROPERTY_ID, "h1");
+    resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "METRIC_COLLECTOR");
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    temporalInfoMap.put(propertyId, new TemporalInfoImpl(1421694000L, 1421697600L, 1L));
+    Request request = PropertyHelper.getReadRequest(
+      Collections.singleton(propertyId), temporalInfoMap);
+    Set<Resource> resources =
+      propertyProvider.populateResources(Collections.singleton(resource), request, null);
+    Assert.assertEquals(1, resources.size());
+    Resource res = resources.iterator().next();
+    Map<String, Object> properties = PropertyHelper.getProperties(resources.iterator().next());
+    Assert.assertNotNull(properties);
+    URIBuilder uriBuilder = AMSPropertyProvider.getAMSUriBuilder("localhost", 8188);
+    uriBuilder.addParameter("metricNames", "regionserver.Server.totalRequestCount");
+    uriBuilder.addParameter("appId", "AMS-HBASE");
+    uriBuilder.addParameter("startTime", "1421694000");
+    uriBuilder.addParameter("endTime", "1421697600");
+    Assert.assertEquals(uriBuilder.toString(), streamProvider.getLastSpec());
+    Number[][] val = (Number[][]) res.getPropertyValue(propertyId);
+    Assert.assertEquals(188, val.length);
   }
 
   public static class TestMetricHostProvider implements MetricHostProvider {
