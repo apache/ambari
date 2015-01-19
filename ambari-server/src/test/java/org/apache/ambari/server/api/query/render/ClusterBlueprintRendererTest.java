@@ -31,8 +31,10 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackInfo;
 import org.junit.Test;
 
+import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -45,6 +47,7 @@ import java.util.Set;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -102,14 +105,14 @@ public class ClusterBlueprintRendererTest {
   public void testFinalizeResult() throws Exception{
 
     AmbariManagementController controller = createMock(AmbariManagementController.class);
-    AmbariMetaInfo stackInfo = createNiceMock(AmbariMetaInfo.class);
-    ServiceInfo hdfsService = new ServiceInfo();
-    hdfsService.setName("HDFS");
-    ServiceInfo mrService = new ServiceInfo();
-    mrService.setName("MAPREDUCE");
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    StackInfo stack = new StackInfo();
+    stack.setName("HDP");
+    stack.setVersion("1.3.3");
 
-    expect(stackInfo.getService("HDP", "1.3.3", "HDFS")).andReturn(hdfsService);
-    expect(stackInfo.getService("HDP", "1.3.3", "MAPREDUCE")).andReturn(mrService);
+    expect(controller.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(ambariMetaInfo.getStack("HDP", "1.3.3")).andReturn(stack).anyTimes();
+    replay(controller, ambariMetaInfo);
 
     Result result = new ResultImpl(true);
     createClusterResultTree(result.getResultTree());

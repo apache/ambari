@@ -830,7 +830,7 @@ App.config = Em.Object.create({
     var properties = [];
     if (data.items.length) {
       data.items.forEach(function (item) {
-        item.StackLevelConfigurations.property_type = item.StackConfigurations.property_type || [];
+        item.StackLevelConfigurations.property_type = item.StackLevelConfigurations.property_type || [];
         item.StackLevelConfigurations.service_name = 'MISC';
         var property = this.createAdvancedPropertyObject(item.StackLevelConfigurations);
         if (property) properties.push(property);

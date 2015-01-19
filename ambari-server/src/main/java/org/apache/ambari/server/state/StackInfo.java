@@ -55,6 +55,8 @@ public class StackInfo implements Comparable<StackInfo>{
 
   private String upgradesFolder = null;
 
+  private volatile Map<String, PropertyInfo> requiredProperties;
+
   public String getName() {
     return name;
   }
@@ -325,5 +327,25 @@ public class StackInfo implements Comparable<StackInfo>{
     String myId = name + "-" + version;
     String oId = o.name + "-" + o.version;
     return myId.compareTo(oId);
+  }
+
+  //todo: ensure that required properties are never modified...
+  public Map<String, PropertyInfo> getRequiredProperties() {
+    Map<String, PropertyInfo> result = requiredProperties;
+    if (result == null) {
+      synchronized(this) {
+        result = requiredProperties;
+        if (result == null) {
+          requiredProperties = result = new HashMap<String, PropertyInfo>();
+          List<PropertyInfo> properties = getProperties();
+          for (PropertyInfo propertyInfo : properties) {
+            if (propertyInfo.isRequireInput()) {
+              result.put(propertyInfo.getName(), propertyInfo);
+            }
+          }
+        }
+      }
+    }
+    return result;
   }
 }

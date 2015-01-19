@@ -58,7 +58,7 @@ public class StackLevelConfigurationResourceProvider extends
       .getPropertyId("StackLevelConfigurations", "property_description");
   
   public static final String PROPERTY_PROPERTY_TYPE_PROPERTY_ID = PropertyHelper
-      .getPropertyId("StackConfigurations", "property_type");
+      .getPropertyId("StackLevelConfigurations", "property_type");
 
   public static final String PROPERTY_TYPE_PROPERTY_ID = PropertyHelper
       .getPropertyId("StackLevelConfigurations", "type");

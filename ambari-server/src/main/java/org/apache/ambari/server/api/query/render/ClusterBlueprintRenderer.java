@@ -41,6 +41,7 @@ import org.apache.ambari.server.state.PropertyInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackInfo;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -175,12 +176,25 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
    * @param stackVersion  stack version
    */
   private void determinePropertiesToStrip(TreeNode<Resource> servicesNode, String stackName, String stackVersion) {
-    AmbariMetaInfo stackInfo = getController().getAmbariMetaInfo();
+    AmbariMetaInfo ambariMetaInfo = getController().getAmbariMetaInfo();
+    StackInfo stack;
+    try {
+      stack = ambariMetaInfo.getStack(stackName, stackVersion);
+    } catch (AmbariException e) {
+      // shouldn't ever happen.
+      // Exception indicates that stack is not defined
+      // but we are getting the stack name from a running cluster.
+      throw new RuntimeException("Unexpected exception occurred while generating a blueprint. "  +
+          "The stack '" + stackName + ":" + stackVersion + "' does not exist");
+    }
+    Map<String, PropertyInfo> requiredStackProperties = stack.getRequiredProperties();
+    updatePropertiesToStrip(requiredStackProperties);
+
     for (TreeNode<Resource> serviceNode : servicesNode.getChildren()) {
       String name = (String) serviceNode.getObject().getPropertyValue("ServiceInfo/service_name");
       ServiceInfo service;
       try {
-        service = stackInfo.getService(stackName, stackVersion, name);
+        service = ambariMetaInfo.getService(stackName, stackVersion, name);
       } catch (AmbariException e) {
         // shouldn't ever happen.
         // Exception indicates that service is not in the stack
@@ -190,20 +204,30 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
       }
 
       Map<String, PropertyInfo> requiredProperties = service.getRequiredProperties();
-      for (Map.Entry<String, PropertyInfo> entry : requiredProperties.entrySet()) {
-        String propertyName = entry.getKey();
-        PropertyInfo propertyInfo = entry.getValue();
-        String configCategory = propertyInfo.getFilename();
-        if (configCategory.endsWith(".xml")) {
-          configCategory = configCategory.substring(0, configCategory.indexOf(".xml"));
-        }
-        Collection<String> categoryProperties = propertiesToStrip.get(configCategory);
-        if (categoryProperties == null) {
-          categoryProperties = new ArrayList<String>();
-          propertiesToStrip.put(configCategory, categoryProperties);
-        }
-        categoryProperties.add(propertyName);
+      updatePropertiesToStrip(requiredProperties);
+    }
+  }
+
+  /**
+   * Helper method to update propertiesToStrip with properties that are marked as required
+   *
+   * @param requiredProperties  Properties marked as required
+   */
+  private void updatePropertiesToStrip(Map<String, PropertyInfo> requiredProperties) {
+
+    for (Map.Entry<String, PropertyInfo> entry : requiredProperties.entrySet()) {
+      String propertyName = entry.getKey();
+      PropertyInfo propertyInfo = entry.getValue();
+      String configCategory = propertyInfo.getFilename();
+      if (configCategory.endsWith(".xml")) {
+        configCategory = configCategory.substring(0, configCategory.indexOf(".xml"));
       }
+      Collection<String> categoryProperties = propertiesToStrip.get(configCategory);
+      if (categoryProperties == null) {
+        categoryProperties = new ArrayList<String>();
+        propertiesToStrip.put(configCategory, categoryProperties);
+      }
+      categoryProperties.add(propertyName);
     }
   }
 

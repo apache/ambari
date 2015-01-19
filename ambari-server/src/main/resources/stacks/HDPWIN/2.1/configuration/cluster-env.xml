@@ -21,40 +21,48 @@
 -->
 
 <configuration>
-    <property>
-      <name>hadoop.user.name</name>
-      <value>hadoop</value>
-    </property>
-    <property>
-        <name>security_enabled</name>
-        <value>false</value>
-        <description>Hadoop Security</description>
-    </property>
-    <property>
-        <name>kerberos_domain</name>
-        <value>EXAMPLE.COM</value>
-        <description>Kerberos realm.</description>
-    </property>
-    <property>
-        <name>ignore_groupsusers_create</name>
-        <value>false</value>
-        <description>Whether to ignore failures on users and group creation</description>
-    </property>
-    <property>
-        <name>smokeuser</name>
-        <value>ambari-qa</value>
-        <property-type>USER</property-type>
-        <description>User executing service checks</description>
-    </property>
-    <property>
-        <name>smokeuser_keytab</name>
-        <value>/etc/security/keytabs/smokeuser.headless.keytab</value>
-        <description>Path to smoke test user keytab file</description>
-    </property>
-    <property>
-        <name>user_group</name>
-        <value>hadoop</value>
-        <property-type>GROUP</property-type>
-        <description>Hadoop user group.</description>
-    </property>
+  <property>
+    <name>hadoop.user.name</name>
+    <value>hadoop</value>
+    <property-type>USER</property-type>
+    <description>User to run Hadoop services under</description>
+  </property>
+  <property require-input="true">
+    <name>hadoop.user.password</name>
+    <value> </value>
+    <property-type>PASSWORD</property-type>
+    <description>Password for hadoop user</description>
+  </property>
+  <property>
+    <name>security_enabled</name>
+    <value>false</value>
+    <description>Hadoop Security</description>
+  </property>
+  <property>
+    <name>kerberos_domain</name>
+    <value>EXAMPLE.COM</value>
+    <description>Kerberos realm.</description>
+  </property>
+  <property>
+    <name>ignore_groupsusers_create</name>
+    <value>false</value>
+    <description>Whether to ignore failures on users and group creation</description>
+  </property>
+  <property>
+    <name>smokeuser</name>
+    <value>ambari-qa</value>
+    <property-type>USER</property-type>
+    <description>User executing service checks</description>
+  </property>
+  <property>
+    <name>smokeuser_keytab</name>
+    <value>/etc/security/keytabs/smokeuser.headless.keytab</value>
+    <description>Path to smoke test user keytab file</description>
+  </property>
+  <property>
+    <name>user_group</name>
+    <value>hadoop</value>
+    <property-type>GROUP</property-type>
+    <description>Hadoop user group.</description>
+  </property>
 </configuration>

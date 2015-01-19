@@ -420,7 +420,7 @@
         "StackLevelConfigurations/property_description",
         "StackLevelConfigurations/type",
         "StackLevelConfigurations/final",
-        "StackConfigurations/property_type",
+        "StackLevelConfigurations/property_type",
         "_"
     ]
 }

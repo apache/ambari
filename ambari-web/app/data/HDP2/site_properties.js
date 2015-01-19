@@ -18,9 +18,7 @@
 
 var App = require('app');
 
-module.exports =
-{
-  "configProperties": [
+var hdp2properties = [
   //***************************************** HDP stack **************************************
   /**********************************************HDFS***************************************/
     {
@@ -45,37 +43,6 @@ module.exports =
       "serviceName": "HDFS",
       "filename": "hdfs-site.xml",
       "index": 3
-    },
-    {
-      "id": "puppet var",
-      "name": "hadoop.user.name",
-      "displayName": "Hadoop User Name",
-      "description": "User to run Hadoop services under",
-      "defaultValue": "hadoop",
-      "isReconfigurable": false,
-      "displayType": "user",
-      "isOverridable": false,
-      "isVisible": App.get('isHadoopWindowsStack'),
-      "serviceName": "MISC",
-      "filename": "cluster-env.xml",
-      "category": "Users and Groups",
-      "belongsToService": ["HDFS"],
-      "index": 0
-    },
-    {
-      "id": "puppet var",
-      "name": "hadoop.user.password",
-      "displayName": "Hadoop User Password",
-      "description": "Password for hadoop user",
-      "isReconfigurable": false,
-      "displayType": "password",
-      "isOverridable": false,
-      "isVisible": App.get('isHadoopWindowsStack'),
-      "serviceName": "MISC",
-      "filename": "cluster-env.xml",
-      "category": "Users and Groups",
-      "belongsToService": ["HDFS"],
-      "index": 1
     },
     {
       "id": "site property",
@@ -4540,5 +4507,44 @@ module.exports =
       "category": "Ambari Principals",
       "index" : 6
     }
-  ]
+  ];
+if (App.get('isHadoopWindowsStack')) {
+  hdp2properties.push(
+    {
+      "id": "puppet var",
+      "name": "hadoop.user.name",
+      "displayName": "Hadoop User Name",
+      "description": "User to run Hadoop services under",
+      "defaultValue": "hadoop",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "isOverridable": false,
+      "isVisible": App.get('isHadoopWindowsStack'),
+      "serviceName": "MISC",
+      "filename": "cluster-env.xml",
+      "category": "Users and Groups",
+      "belongsToService": ["HDFS"],
+      "index": 0
+    },
+    {
+      "id": "puppet var",
+      "name": "hadoop.user.password",
+      "displayName": "Hadoop User Password",
+      "description": "Password for hadoop user",
+      "isReconfigurable": false,
+      "displayType": "password",
+      "isOverridable": false,
+      "isVisible": App.get('isHadoopWindowsStack'),
+      "serviceName": "MISC",
+      "filename": "cluster-env.xml",
+      "category": "Users and Groups",
+      "belongsToService": ["HDFS"],
+      "index": 1
+    }
+  );
+}
+
+module.exports =
+{
+  "configProperties": hdp2properties
 };
