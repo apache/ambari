@@ -395,7 +395,8 @@ describe('App.AddSecurityConfigs', function () {
   });
 
   describe('#expandKerberosStackDescriptorProps', function() {
-    var result = controller.expandKerberosStackDescriptorProps(stackDescriptor.properties);
+    var serviceName = 'Cluster';
+    var result = controller.expandKerberosStackDescriptorProps(stackDescriptor.properties, serviceName);
     var testCases = [
       {
         property: 'realm',

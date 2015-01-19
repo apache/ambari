@@ -403,29 +403,19 @@ App.AddSecurityConfigs = Em.Mixin.create({
     var kerberosDescriptor = items.Versions.kerberos_descriptor;
     this.set('kerberosDescriptor', kerberosDescriptor);
     // generate configs for root level properties object, currently realm, keytab_dir
-    clusterConfigs = clusterConfigs.concat(this.expandKerberosStackDescriptorProps(kerberosDescriptor.properties));
+    clusterConfigs = clusterConfigs.concat(this.expandKerberosStackDescriptorProps(kerberosDescriptor.properties, 'Cluster'));
     // generate configs for root level identities object, currently spnego property
     clusterConfigs = clusterConfigs.concat(this.createConfigsByIdentities(kerberosDescriptor.identities, 'Cluster'));
-    clusterConfigs.setEach('serviceName', 'Cluster');
     kerberosDescriptor.services.forEach(function (service) {
       var serviceName = service.name;
       // generate configs for service level identity objects
-      if (service.identities) {
-        var serviceIdentityConfigs = self.createConfigsByIdentities(service.identities, serviceName);
-        serviceIdentityConfigs.setEach('serviceName', serviceName);
-        configs = configs.concat(serviceIdentityConfigs);
-      }
+      configs = configs.concat(self.createResourceConfigs(service,serviceName));
       // generate configs for service component level identity  object
       service.components.forEach(function (component) {
-        var componentName = component.name;
-        if (component.identities) {
-          var identityConfigs = self.createConfigsByIdentities(component.identities, componentName);
-          identityConfigs.setEach('serviceName', serviceName);
-          configs = configs.concat(identityConfigs);
-        }
+        configs = configs.concat(self.createResourceConfigs(component,serviceName));
       });
     });
-    // unite cluster and service configs
+    // unite cluster, service and component configs
     configs = configs.concat(clusterConfigs);
     self.processConfigReferences(kerberosDescriptor, configs);
     // return configs with uniq names
@@ -436,13 +426,36 @@ App.AddSecurityConfigs = Em.Mixin.create({
   },
 
   /**
+   *
+   * @param {Object} resource
+   * @param {String} serviceName
+   * @return {Array}
+   */
+  createResourceConfigs: function(resource, serviceName) {
+    var identityConfigs = [];
+    var resourceConfigs  = [];
+    if (resource.identities) {
+      identityConfigs = this.createConfigsByIdentities(resource.identities, serviceName);
+    }
+    if (resource.configurations) {
+      resource.configurations.forEach(function(_configuration){
+        for (var key in _configuration) {
+          resourceConfigs = resourceConfigs.concat(this.expandKerberosStackDescriptorProps(_configuration[key], serviceName));
+        }
+      },this);
+
+    }
+    return identityConfigs.concat(resourceConfigs);
+  },
+
+  /**
    * Create service properties based on component identity
    *
    * @param {object[]} identities
-   * @param {string} componentName
+   * @param {string} serviceName
    * @returns {App.ServiceConfigProperty[]}
    */
-  createConfigsByIdentities: function (identities, componentName) {
+  createConfigsByIdentities: function (identities, serviceName) {
     var self = this;
     var configs = [];
 
@@ -451,7 +464,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
         isOverridable: false,
         isVisible: true,
         isSecureConfig: true,
-        componentName: componentName,
+        serviceName: serviceName,
         name: identity.name,
         identityType: identity.principal && identity.principal.type
       };
@@ -497,9 +510,10 @@ App.AddSecurityConfigs = Em.Mixin.create({
    * Wrap kerberos properties to App.ServiceConfigProperty model class instances.
    *
    * @param {object} kerberosProperties
+   * @param {string} serviceName
    * @returns {App.ServiceConfigProperty[]}
    */
-  expandKerberosStackDescriptorProps: function (kerberosProperties) {
+  expandKerberosStackDescriptorProps: function (kerberosProperties, serviceName) {
     var configs = [];
 
     for (var propertyName in kerberosProperties) {
@@ -507,7 +521,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
         name: propertyName,
         value: kerberosProperties[propertyName],
         defaultValue: kerberosProperties[propertyName],
-        serviceName: 'Cluster',
+        serviceName: serviceName,
         displayName: propertyName,
         isOverridable: false,
         isEditable: propertyName != 'realm',
