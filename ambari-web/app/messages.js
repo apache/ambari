@@ -1976,6 +1976,7 @@ Em.I18n.translations = {
   'hosts.host.serviceNotAvailable': 'Service not available on this host',
 
   'hosts.host.menu.stackVersions': 'Versions',
+  'hosts.host.stackVersions.table.allVersions': 'All Versions',
   'hosts.host.stackVersions.table.noVersions': 'No versions',
   'hosts.host.stackVersions.table.filteredInfo': '{0} of {1} versions showing',
   'hosts.host.stackVersions.status.init': 'Uninstalled',
@@ -1983,6 +1984,7 @@ Em.I18n.translations = {
   'hosts.host.stackVersions.status.install_failed': 'Install Failed',
   'hosts.host.stackVersions.status.installing': 'Installing',
   'hosts.host.stackVersions.status.current': 'Current',
+  'hosts.host.stackVersions.status.out_of_sync': 'Out of sync',
 
   'hosts.host.metrics.dataUnavailable':'Data Unavailable',
   'hosts.host.metrics.cpu':'CPU Usage',

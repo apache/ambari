@@ -118,7 +118,7 @@ App.MainHostStackVersionsView = App.TableView.extend({
       return [
         {
           value: '',
-          label: Em.I18n.t('common.all')
+          label: Em.I18n.t('hosts.host.stackVersions.table.allVersions')
         }
       ].concat(this.get('parentView.content').mapProperty('repoVersion').uniq().map(function (version) {
         return {

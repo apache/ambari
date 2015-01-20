@@ -57,6 +57,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     return this.get('dataSource').filterProperty('isRequested');
   }.property('dataSource.@each.isRequested'),
 
+  allHostStackVersions: App.HostStackVersion.find(),
   /**
    * filterProperties support follow types of filter:
    * MATCH - match of RegExp
@@ -123,8 +124,13 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
       type: 'MULTIPLE'
     },
     {
-      name: 'stackVersions',
-      key: 'stack_versions/HostStackVersions',
+      name: 'repositoryVersion',
+      key: 'stack_versions/repository_versions/RepositoryVersions/repository_version',
+      type: 'EQUAL'
+    },
+    {
+      name: 'hostStackVersionState',
+      key: 'stack_versions/HostStackVersions/state',
       type: 'EQUAL'
     }
   ],
@@ -931,7 +937,9 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     associations[8] = 'componentsWithStaleConfigsCount';
     associations[9] = 'componentsInPassiveStateCount';
     associations[10] = 'selected';
-    associations[11] = 'stackVersions.repoVersion';
+    associations[11] = 'hostStackVersion';
+    associations[12] = 'repositoryVersion';
+    associations[13] = 'hostStackVersionState';
     return associations;
   }.property()
 

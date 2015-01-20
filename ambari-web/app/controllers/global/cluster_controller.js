@@ -286,6 +286,9 @@ App.ClusterController = Em.Controller.extend({
       self.updateLoadStatus('stackComponents');
       updater.updateServices(function () {
         self.updateLoadStatus('services');
+        //force clear filters  for hosts page to load all data
+        App.db.setFilterConditions('mainHostController', null);
+
         updater.updateHost(function () {
           self.updateLoadStatus('hosts');
         });
