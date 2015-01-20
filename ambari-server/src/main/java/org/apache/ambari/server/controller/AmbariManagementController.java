@@ -376,8 +376,16 @@ public interface AmbariManagementController {
    *
    * @throws AmbariException
    */
-  void updateRespositories(Set<RepositoryRequest> requests) throws AmbariException;
+  public void updateRepositories(Set<RepositoryRequest> requests) throws AmbariException;
 
+  /**
+   * Verifies repositories' base urls.
+   *
+   * @param requests the repositories
+   *
+   * @throws AmbariException if verification of any of urls fails
+   */
+  public void verifyRepositories(Set<RepositoryRequest> requests) throws AmbariException;
 
   /**
    * Get repositories by stack name, version.

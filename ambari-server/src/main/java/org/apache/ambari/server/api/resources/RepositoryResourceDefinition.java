@@ -17,9 +17,15 @@
  */
 package org.apache.ambari.server.api.resources;
 
+import java.util.Collection;
+
 import org.apache.ambari.server.controller.spi.Resource;
 
+import com.google.common.collect.Sets;
+
 public class RepositoryResourceDefinition extends BaseStacksResourceDefinition {
+
+  public static String VALIDATE_ONLY_DIRECTIVE = "validate_only";
 
   public RepositoryResourceDefinition() {
     super(Resource.Type.Repository);
@@ -33,6 +39,11 @@ public class RepositoryResourceDefinition extends BaseStacksResourceDefinition {
   @Override
   public String getSingularName() {
     return "repository";
+  }
+
+  @Override
+  public Collection<String> getCreateDirectives() {
+    return Sets.newHashSet(VALIDATE_ONLY_DIRECTIVE);
   }
 
 }

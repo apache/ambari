@@ -69,4 +69,13 @@ public class RepositoryRequest extends OperatingSystemRequest {
     verify = verifyUrl;
   }
 
+  @Override
+  public String toString() {
+    return "RepositoryRequest [repoId=" + repoId + ", baseUrl=" + baseUrl
+        + ", verify=" + verify + ", getOsType()=" + getOsType()
+        + ", getRepositoryVersionId()=" + getRepositoryVersionId()
+        + ", getStackVersion()=" + getStackVersion() + ", getStackName()="
+        + getStackName() + "]";
+  }
+
 }

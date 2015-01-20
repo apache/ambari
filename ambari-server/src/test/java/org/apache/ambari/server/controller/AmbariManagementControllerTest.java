@@ -8139,7 +8139,7 @@ public class AmbariManagementControllerTest {
 
     // test bad url
     try {
-      controller.updateRespositories(requests);
+      controller.updateRepositories(requests);
       Assert.fail("Expected a bad URL to throw an exception");
     } catch (Exception e) {
       assertNotNull(e);
@@ -8147,7 +8147,7 @@ public class AmbariManagementControllerTest {
     }
     // test bad url, but allow to set anyway
     request.setVerifyBaseUrl(false);
-    controller.updateRespositories(requests);
+    controller.updateRepositories(requests);
     Assert.assertEquals(request.getBaseUrl(), repo.getBaseUrl());
 
     requests.clear();
@@ -8156,7 +8156,7 @@ public class AmbariManagementControllerTest {
     requests.add(request);
     // test bad url
     try {
-      controller.updateRespositories(requests);
+      controller.updateRepositories(requests);
     } catch (Exception e) {
       System.err.println(e.getMessage());
       assertTrue(e.getMessage().contains(IOException.class.getName()));
@@ -8168,7 +8168,7 @@ public class AmbariManagementControllerTest {
     requests.add(request);
     // test bad url
     try {
-      controller.updateRespositories(requests);
+      controller.updateRepositories(requests);
     } catch (Exception e) {
       assertTrue(e.getMessage().contains(MalformedURLException.class.getName()));
     }
@@ -8179,7 +8179,7 @@ public class AmbariManagementControllerTest {
     requests.add(request);
     // test bad url
     try {
-      controller.updateRespositories(requests);
+      controller.updateRepositories(requests);
     } catch (Exception e) {
       String exceptionMsg = e.getMessage();
       assertTrue(exceptionMsg.contains(UnknownHostException.class.getName())
@@ -8191,7 +8191,7 @@ public class AmbariManagementControllerTest {
     request = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
     request.setBaseUrl(repo.getDefaultBaseUrl());
     requests.add(request);
-    controller.updateRespositories(requests);
+    controller.updateRepositories(requests);
     Assert.assertEquals(repo.getBaseUrl(), repo.getDefaultBaseUrl());
 
     String baseUrl = repo.getDefaultBaseUrl();
@@ -8203,35 +8203,35 @@ public class AmbariManagementControllerTest {
     backingProperties.setProperty(Configuration.REPO_SUFFIX_KEY_UBUNTU, "/repodata/repomd.xml");
     Assert.assertTrue(baseUrl.endsWith("/") && configuration.getRepoValidationSuffixes("ubuntu12")[0].startsWith("/"));
     request.setBaseUrl(baseUrl);
-    controller.updateRespositories(requests);
+    controller.updateRepositories(requests);
     Assert.assertEquals(baseUrl, repo.getBaseUrl());
 
     // variation #2: url with trailing slash, suffix no preceding slash
     backingProperties.setProperty(Configuration.REPO_SUFFIX_KEY_DEFAULT, "repodata/repomd.xml");
     Assert.assertTrue(baseUrl.endsWith("/") && !configuration.getRepoValidationSuffixes("redhat6")[0].startsWith("/"));
     request.setBaseUrl(baseUrl);
-    controller.updateRespositories(requests);
+    controller.updateRepositories(requests);
     Assert.assertEquals(baseUrl, repo.getBaseUrl());
 
     baseUrl = baseUrl.substring(0, baseUrl.length()-1);
     // variation #3: url with no trailing slash, suffix no prededing slash
     Assert.assertTrue(!baseUrl.endsWith("/") && !configuration.getRepoValidationSuffixes("redhat6")[0].startsWith("/"));
     request.setBaseUrl(baseUrl);
-    controller.updateRespositories(requests);
+    controller.updateRepositories(requests);
     Assert.assertEquals(baseUrl, repo.getBaseUrl());
 
     // variation #4: url with no trailing slash, suffix preceding slash
     backingProperties.setProperty(Configuration.REPO_SUFFIX_KEY_DEFAULT, "/repodata/repomd.xml");
     Assert.assertTrue(!baseUrl.endsWith("/") && configuration.getRepoValidationSuffixes("suse11")[0].startsWith("/"));
     request.setBaseUrl(baseUrl);
-    controller.updateRespositories(requests);
+    controller.updateRepositories(requests);
     Assert.assertEquals(baseUrl, repo.getBaseUrl());
 
     // variation #5: multiple suffix tests
     backingProperties.setProperty(Configuration.REPO_SUFFIX_KEY_UBUNTU, "/foo/bar.xml,/repodata/repomd.xml");
     Assert.assertTrue(configuration.getRepoValidationSuffixes("ubuntu12").length > 1);
     request.setBaseUrl(baseUrl);
-    controller.updateRespositories(requests);
+    controller.updateRepositories(requests);
     Assert.assertEquals(baseUrl, repo.getBaseUrl());
 
   }

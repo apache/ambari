@@ -128,7 +128,7 @@ public class RepositoryResourceProviderTest {
 
     // set expectations
     expect(managementController.getRepositories(EasyMock.<Set<RepositoryRequest>>anyObject())).andReturn(allResponse).times(1);
-    managementController.updateRespositories(EasyMock.<Set<RepositoryRequest>>anyObject());
+    managementController.updateRepositories(EasyMock.<Set<RepositoryRequest>>anyObject());
 
     // replay
     replay(managementController);

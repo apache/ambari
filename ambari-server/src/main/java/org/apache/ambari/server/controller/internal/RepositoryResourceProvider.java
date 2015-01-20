@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.resources.RepositoryResourceDefinition;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RepositoryRequest;
 import org.apache.ambari.server.controller.RepositoryResponse;
@@ -41,6 +42,7 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.commons.lang.BooleanUtils;
 
 public class RepositoryResourceProvider extends AbstractControllerResourceProvider {
 
@@ -115,7 +117,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
     modifyResources(new Command<Void>() {
       @Override
       public Void invoke() throws AmbariException {
-        getManagementController().updateRespositories(requests);
+        getManagementController().updateRepositories(requests);
         return null;
       }
     });
@@ -171,10 +173,29 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
   }
 
   @Override
-  public RequestStatus createResources(Request request) throws SystemException,
-      UnsupportedPropertyException, ResourceAlreadyExistsException,
-      NoSuchParentResourceException {
-    throw new SystemException("Cannot create repositories.", null);
+  public RequestStatus createResources(Request request) throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException, NoSuchParentResourceException {
+    final String validateOnlyProperty = request.getRequestInfoProperties().get(RepositoryResourceDefinition.VALIDATE_ONLY_DIRECTIVE);
+    if (BooleanUtils.toBoolean(validateOnlyProperty)) {
+      final Set<RepositoryRequest> requests = new HashSet<RepositoryRequest>();
+      final Iterator<Map<String,Object>> iterator = request.getProperties().iterator();
+      if (iterator.hasNext()) {
+        for (Map<String, Object> propertyMap : request.getProperties()) {
+          requests.add(getRequest(propertyMap));
+        }
+      }
+      createResources(new Command<Void>() {
+
+        @Override
+        public Void invoke() throws AmbariException {
+          getManagementController().verifyRepositories(requests);
+          return null;
+        }
+
+      });
+      return getRequestStatus(null);
+    } else {
+      throw new SystemException("Cannot create repositories.", null);
+    }
   }
 
   @Override

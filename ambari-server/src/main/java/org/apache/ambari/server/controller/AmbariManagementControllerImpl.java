@@ -3004,7 +3004,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
-  public void updateRespositories(Set<RepositoryRequest> requests) throws AmbariException {
+  public void updateRepositories(Set<RepositoryRequest> requests) throws AmbariException {
     for (RepositoryRequest rr : requests) {
       if (null == rr.getStackName() || rr.getStackName().isEmpty()) {
         throw new AmbariException("Stack name must be specified.");
@@ -3023,60 +3023,70 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
 
       if (null != rr.getBaseUrl()) {
-        if (!rr.isVerifyBaseUrl()) {
-          if (rr.getRepositoryVersionId() != null) {
-            throw new AmbariException("Can't directly update repositories in repository_version, update the repository_version instead");
-          }
-          ambariMetaInfo.updateRepoBaseURL(rr.getStackName(),
-              rr.getStackVersion(), rr.getOsType(), rr.getRepoId(),
-              rr.getBaseUrl());
-        } else {
-          URLStreamProvider usp = new URLStreamProvider(REPO_URL_CONNECT_TIMEOUT,
-              REPO_URL_READ_TIMEOUT, null, null, null);
-
-          RepositoryInfo repositoryInfo = ambariMetaInfo.getRepository(rr.getStackName(), rr.getStackVersion(), rr.getOsType(), rr.getRepoId());
-          String repoName = repositoryInfo.getRepoName();
-
-          boolean bFound = true;
-          String errorMessage = null;
-
-          String[] suffixes = configs.getRepoValidationSuffixes(rr.getOsType());
-          for (String suffix : suffixes) {
-            String formatted_suffix = String.format(suffix, repoName);
-            String spec = rr.getBaseUrl();
-
-            if (spec.charAt(spec.length() - 1) != '/' && formatted_suffix.charAt(0) != '/') {
-              spec = rr.getBaseUrl() + "/" + formatted_suffix;
-            } else if (spec.charAt(spec.length() - 1) == '/' && formatted_suffix.charAt(0) == '/') {
-              spec = rr.getBaseUrl() + formatted_suffix.substring(1);
-            } else {
-              spec = rr.getBaseUrl() + formatted_suffix;
-            }
-
-            try {
-              IOUtils.readLines(usp.readFrom(spec));
-            } catch (IOException ioe) {
-              errorMessage = "Could not access base url . " + rr.getBaseUrl() + " . ";
-              if (LOG.isDebugEnabled()) {
-                errorMessage += ioe;
-              } else {
-                errorMessage += ioe.getMessage();
-              }
-              bFound = false;
-              break;
-            }
-          }
-
-          if (bFound) {
-            ambariMetaInfo.updateRepoBaseURL(rr.getStackName(),
-                rr.getStackVersion(), rr.getOsType(), rr.getRepoId(),
-                rr.getBaseUrl());
-          } else {
-            LOG.error(errorMessage);
-            throw new IllegalArgumentException(errorMessage);
-          }
+        if (rr.isVerifyBaseUrl()) {
+          verifyRepository(rr);
         }
+        if (rr.getRepositoryVersionId() != null) {
+          throw new AmbariException("Can't directly update repositories in repository_version, update the repository_version instead");
+        }
+        ambariMetaInfo.updateRepoBaseURL(rr.getStackName(), rr.getStackVersion(), rr.getOsType(), rr.getRepoId(), rr.getBaseUrl());
       }
+    }
+  }
+
+  @Override
+  public void verifyRepositories(Set<RepositoryRequest> requests) throws AmbariException {
+    for (RepositoryRequest request: requests) {
+      if (request.getBaseUrl() == null) {
+        throw new AmbariException("Base url is missing for request " + request);
+      }
+      verifyRepository(request);
+    }
+  }
+
+  /**
+   * Verifies single repository, see {{@link #verifyRepositories(Set)}.
+   *
+   * @param request request
+   * @throws AmbariException if verification fails
+   */
+  private void verifyRepository(RepositoryRequest request) throws AmbariException {
+    URLStreamProvider usp = new URLStreamProvider(REPO_URL_CONNECT_TIMEOUT, REPO_URL_READ_TIMEOUT, null, null, null);
+
+    RepositoryInfo repositoryInfo = ambariMetaInfo.getRepository(request.getStackName(), request.getStackVersion(), request.getOsType(), request.getRepoId());
+    String repoName = repositoryInfo.getRepoName();
+
+    String errorMessage = null;
+
+    String[] suffixes = configs.getRepoValidationSuffixes(request.getOsType());
+    for (String suffix : suffixes) {
+      String formatted_suffix = String.format(suffix, repoName);
+      String spec = request.getBaseUrl();
+
+      if (spec.charAt(spec.length() - 1) != '/' && formatted_suffix.charAt(0) != '/') {
+        spec = request.getBaseUrl() + "/" + formatted_suffix;
+      } else if (spec.charAt(spec.length() - 1) == '/' && formatted_suffix.charAt(0) == '/') {
+        spec = request.getBaseUrl() + formatted_suffix.substring(1);
+      } else {
+        spec = request.getBaseUrl() + formatted_suffix;
+      }
+
+      try {
+        IOUtils.readLines(usp.readFrom(spec));
+      } catch (IOException ioe) {
+        errorMessage = "Could not access base url . " + request.getBaseUrl() + " . ";
+        if (LOG.isDebugEnabled()) {
+          errorMessage += ioe;
+        } else {
+          errorMessage += ioe.getMessage();
+        }
+        break;
+      }
+    }
+
+    if (errorMessage != null) {
+      LOG.error(errorMessage);
+      throw new IllegalArgumentException(errorMessage);
     }
   }
 
