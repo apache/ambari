@@ -40,8 +40,7 @@
   <property require-input="true">
     <name>create_attributes_template</name>
     <description>
-      A Velocity template to use to generate a JSON-formatted document containing the set of
-      attribute names and values needed to create a new Kerberos identity in the relevant KDC.
+      Customizable JSON document representing the LDAP attributes needed to create a new Kerberos entity in the KDC (Velocity template engine).
     </description>
     <value>
 {
