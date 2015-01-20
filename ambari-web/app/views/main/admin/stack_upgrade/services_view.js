@@ -26,7 +26,8 @@ App.MainAdminStackServicesView = Em.View.extend({
    * @type {Array}
    */
   services: function() {
-    return App.StackService.find().map(function(s) {
+    var services = App.supports.installGanglia ? App.StackService.find() : App.StackService.find().without(App.StackService.find('GANGLIA'));
+    return services.map(function(s) {
       s.set('isInstalled', App.Service.find().someProperty('serviceName', s.get('serviceName')));
       return s;
     });
