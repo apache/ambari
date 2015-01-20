@@ -18,38 +18,24 @@
 
 package org.apache.ambari.server.api.resources;
 
-import org.apache.ambari.server.api.query.render.DefaultRenderer;
-import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.controller.spi.Resource;
 
+import java.util.Arrays;
+import java.util.Collections;
 
 /**
- * Client configuration resource definition.
+ * Upgrade resource definition.
  */
-public class ClientConfigResourceDefinition extends BaseResourceDefinition {
+public class UpgradeResourceDefinition extends SimpleResourceDefinition {
+
+  public static String DOWNGRADE_DIRECTIVE           = "downgrade";
+  public static String SKIP_SERVICE_CHECKS_DIRECTIVE = "skip_service_checks";
+
   /**
    * Constructor.
    */
-  public ClientConfigResourceDefinition() {
-    super(Resource.Type.ClientConfig);
-  }
-
-  @Override
-  public String getPluralName() {
-    return "configurations";
-  }
-
-  @Override
-  public String getSingularName() {
-    return "configuration";
-  }
-
-  @Override
-  public Renderer getRenderer(String name) {
-    if (name != null && name.equals("client_config_tar")) {
-      return new DefaultRenderer();
-    } else {
-      return super.getRenderer(name);
-    }
+  public UpgradeResourceDefinition() {
+    super(Resource.Type.Upgrade, "upgrade", "upgrades", Collections.singleton(Resource.Type.UpgradeGroup),
+        Arrays.asList(DOWNGRADE_DIRECTIVE, SKIP_SERVICE_CHECKS_DIRECTIVE));
   }
 }

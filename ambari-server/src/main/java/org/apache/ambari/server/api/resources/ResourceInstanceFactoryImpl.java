@@ -318,9 +318,7 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         break;
 
       case Upgrade:
-        resourceDefinition = new SimpleResourceDefinition(
-            Resource.Type.Upgrade, "upgrade", "upgrades",
-            Resource.Type.UpgradeGroup);
+        resourceDefinition = new UpgradeResourceDefinition();
         break;
 
       case UpgradeGroup:

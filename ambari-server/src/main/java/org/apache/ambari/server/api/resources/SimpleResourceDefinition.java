@@ -20,6 +20,9 @@ package org.apache.ambari.server.api.resources;
 
 import org.apache.ambari.server.controller.spi.Resource;
 
+import java.util.Collection;
+import java.util.Set;
+
 /**
  * Simple concrete resource definition.
  */
@@ -54,6 +57,22 @@ public class SimpleResourceDefinition extends BaseResourceDefinition {
     this.pluralName   = pluralName;
   }
 
+  /**
+   * Constructor.
+   * @param resourceType      the resource type
+   * @param singularName      the resource singular name
+   * @param pluralName        the resource plural name
+   * @param subTypes          the sub-resource types
+   * @param createDirectives  the set of create directives for the resource
+   */
+  public SimpleResourceDefinition(Resource.Type resourceType, String singularName, String pluralName,
+                                  Set<Resource.Type> subTypes,
+                                  Collection<String> createDirectives) {
+    super(resourceType, subTypes, createDirectives);
+
+    this.singularName = singularName;
+    this.pluralName   = pluralName;
+  }
 
   // ----- ResourceDefinition ------------------------------------------------
 

@@ -34,6 +34,7 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.RequestStatus;
 import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.api.resources.UpgradeResourceDefinition;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -357,11 +358,13 @@ public class UpgradeResourceProviderTest {
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.2.1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_FORCE_DOWNGRADE, "true");
+
+    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    requestInfoProperties.put(UpgradeResourceDefinition.DOWNGRADE_DIRECTIVE, "true");
 
     ResourceProvider upgradeResourceProvider = createProvider(amc);
 
-    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), requestInfoProperties);
     upgradeResourceProvider.createResources(request);
 
     upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
@@ -409,9 +412,12 @@ public class UpgradeResourceProviderTest {
 
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_FORCE_DOWNGRADE, "true");
     requestProps.put(UpgradeResourceProvider.UPGRADE_FROM_VERSION, "2.2.2.1");
-    request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+
+    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    requestInfoProperties.put(UpgradeResourceDefinition.DOWNGRADE_DIRECTIVE, "true");
+
+    request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), requestInfoProperties);
     status = upgradeResourceProvider.createResources(request);
     assertEquals(1, status.getAssociatedResources().size());
     Resource r = status.getAssociatedResources().iterator().next();

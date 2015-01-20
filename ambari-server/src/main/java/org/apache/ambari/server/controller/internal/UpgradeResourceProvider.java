@@ -42,6 +42,7 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.api.resources.UpgradeResourceDefinition;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ActionExecutionContext;
 import org.apache.ambari.server.controller.AmbariActionExecutionHelper;
@@ -96,6 +97,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   protected static final String UPGRADE_CLUSTER_NAME = "Upgrade/cluster_name";
   protected static final String UPGRADE_VERSION = "Upgrade/repository_version";
   protected static final String UPGRADE_REQUEST_ID = "Upgrade/request_id";
+  // TODO : Get rid of the UPGRADE_FORCE_DOWNGRADE property... should use downgrade create directive
   protected static final String UPGRADE_FORCE_DOWNGRADE = "Upgrade/force_downgrade";
   protected static final String UPGRADE_FROM_VERSION = "Upgrade/from_version";
   protected static final String UPGRADE_TO_VERSION = "Upgrade/to_version";
@@ -182,13 +184,14 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     // !!! above check ensures only one
     final Map<String, Object> requestMap = requestMaps.iterator().next();
+    final Map<String, String> requestInfoProps = request.getRequestInfoProperties();
 
     UpgradeEntity entity = createResources(new Command<UpgradeEntity>() {
         @Override
         public UpgradeEntity invoke() throws AmbariException {
-          UpgradePack up = validateRequest(requestMap);
+          UpgradePack up = validateRequest(requestMap, requestInfoProps);
 
-          return createUpgrade(up, requestMap);
+          return createUpgrade(up, requestMap, requestInfoProps);
         }
       });
 
@@ -306,13 +309,18 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * @return the validated upgrade pack
    * @throws AmbariException
    */
-  private UpgradePack validateRequest(Map<String, Object> requestMap) throws AmbariException {
+  private UpgradePack validateRequest(Map<String, Object> requestMap, Map<String, String> requestInfoProps)
+      throws AmbariException {
     String clusterName = (String) requestMap.get(UPGRADE_CLUSTER_NAME);
     String version = (String) requestMap.get(UPGRADE_VERSION);
-    String forceDowngrade = (String) requestMap.get(UPGRADE_FORCE_DOWNGRADE);
     String versionForUpgradePack = (String) requestMap.get(UPGRADE_FROM_VERSION);
 
-    boolean forDowngrade = (null != forceDowngrade && Boolean.parseBoolean(forceDowngrade));
+    String forceDowngrade = requestInfoProps.get(UpgradeResourceDefinition.DOWNGRADE_DIRECTIVE);
+
+    // check the property if the directive is not specified...
+    if (forceDowngrade == null) {
+      forceDowngrade = (String) requestMap.get(UPGRADE_FORCE_DOWNGRADE);
+    }
 
     if (null == clusterName) {
       throw new AmbariException(String.format("%s is required", UPGRADE_CLUSTER_NAME));
@@ -327,7 +335,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     String repoVersion = version;
 
-    if (forDowngrade && null != versionForUpgradePack) {
+    if (Boolean.valueOf(forceDowngrade) && null != versionForUpgradePack) {
       repoVersion = versionForUpgradePack;
     }
 
@@ -385,8 +393,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
   }
 
-  private UpgradeEntity createUpgrade(UpgradePack pack, Map<String, Object> requestMap)
-    throws AmbariException {
+  private UpgradeEntity createUpgrade(UpgradePack pack,
+                                      Map<String, Object> requestMap,
+                                      Map<String, String> requestInfoProps) throws AmbariException {
 
     String clusterName = (String) requestMap.get(UPGRADE_CLUSTER_NAME);
 
@@ -397,14 +406,19 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     Cluster cluster = getManagementController().getClusters().getCluster(clusterName);
     ConfigHelper configHelper = getManagementController().getConfigHelper();
 
-    String forceDowngrade = (String) requestMap.get(UPGRADE_FORCE_DOWNGRADE);
+    String forceDowngrade = requestInfoProps.get(UpgradeResourceDefinition.DOWNGRADE_DIRECTIVE);
+
+    // check the property if the directive is not specified...
+    if (forceDowngrade == null) {
+      forceDowngrade = (String) requestMap.get(UPGRADE_FORCE_DOWNGRADE);
+    }
 
     List<UpgradeGroupHolder> groups = null;
 
     // the version being upgraded or downgraded to (ie hdp-2.2.1.0-1234)
     final String version = (String) requestMap.get(UPGRADE_VERSION);
 
-    if (null != forceDowngrade && Boolean.parseBoolean(forceDowngrade)) {
+    if (Boolean.valueOf(forceDowngrade)) {
       MasterHostResolver mhr = new MasterHostResolver(cluster, version);
       groups = s_upgradeHelper.createDowngrade(mhr, pack, version);
     } else {
@@ -459,7 +473,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           // upgrade items match a stage
           createStage(cluster, req, version, itemEntity, wrapper, skippable, allowRetry);
         }
-
       }
 
       groupEntity.setItems(itemEntities);
@@ -508,12 +521,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         makeActionStage(cluster, request, version, entity, wrapper, skippable, allowRetry);
         break;
       case SERVICE_CHECK:
-        makeServiceCheckStage(cluster, request, version, entity, wrapper, skippable, allowRetry);
+          makeServiceCheckStage(cluster, request, version, entity, wrapper, skippable, allowRetry);
         break;
       default:
         break;
     }
-
   }
 
   private void makeActionStage(Cluster cluster, RequestStageContainer request, final String version,

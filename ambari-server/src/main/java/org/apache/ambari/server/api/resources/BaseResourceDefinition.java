@@ -52,6 +52,11 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
   private final Set<SubResourceDefinition> subResourceDefinitions;
 
   /**
+   * The set of create directives for the resource which can be modified by sub resources.
+   */
+  private final Collection<String> createDirectives = new HashSet<String>();
+
+  /**
    * Constructor.
    *
    * @param resourceType resource type
@@ -74,6 +79,25 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
     for (Resource.Type subType : subTypes) {
       subResourceDefinitions.add(new SubResourceDefinition(subType));
     }
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param resourceType      the resource type
+   * @param subTypes          the sub-resource types
+   * @param createDirectives  the set of create directives for the resource
+   */
+  public BaseResourceDefinition(Resource.Type resourceType,
+                                Set<Resource.Type> subTypes,
+                                Collection<String> createDirectives) {
+    m_type = resourceType;
+    subResourceDefinitions =  new HashSet<SubResourceDefinition>();
+
+    for (Resource.Type subType : subTypes) {
+      subResourceDefinitions.add(new SubResourceDefinition(subType));
+    }
+    this.createDirectives.addAll(createDirectives);
   }
 
   @Override
@@ -112,7 +136,7 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
   @Override
   public Collection<String> getCreateDirectives() {
     // return a collection which can be modified by sub resources
-    return new HashSet<String>();
+    return createDirectives;
   }
 
   @Override

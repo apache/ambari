@@ -20,6 +20,10 @@ package org.apache.ambari.server.api.resources;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -41,5 +45,19 @@ public class SimpleResourceDefinitionTest {
         new SimpleResourceDefinition(Resource.Type.Stage, "stage", "stages", Resource.Type.Task);
 
     assertEquals("stage", resourceDefinition.getSingularName());
+  }
+
+  @Test
+  public void testGetCreateDirectives() {
+    ResourceDefinition resourceDefinition =
+        new SimpleResourceDefinition(Resource.Type.Stage, "stage", "stages", Resource.Type.Task);
+
+    assertEquals(Collections.EMPTY_SET, resourceDefinition.getCreateDirectives());
+
+    resourceDefinition = new SimpleResourceDefinition(Resource.Type.Stage, "stage", "stages",
+            Collections.singleton(Resource.Type.Task), Arrays.asList("do_something", "do_something_else"));
+
+    assertEquals(new HashSet<String>() {{add("do_something"); add("do_something_else");}},
+        resourceDefinition.getCreateDirectives());
   }
 }

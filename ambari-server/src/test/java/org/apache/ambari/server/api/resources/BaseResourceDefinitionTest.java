@@ -23,6 +23,7 @@ import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.anyObject;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -47,6 +48,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -135,8 +139,34 @@ public class BaseResourceDefinitionTest {
     }
   }
 
+  @Test
+  public void testGetCreateDirectives() {
+    ResourceDefinition resource = getResourceDefinition();
+
+    assertEquals(Collections.EMPTY_SET, resource.getCreateDirectives());
+
+    resource = getResourceDefinition("do_something", "do_something_else");
+
+    assertEquals(new HashSet<String>() {{add("do_something"); add("do_something_else");}}, resource.getCreateDirectives());
+  }
+
   private BaseResourceDefinition getResourceDefinition() {
     return new BaseResourceDefinition(Resource.Type.Service) {
+      @Override
+      public String getPluralName() {
+        return "pluralName";
+      }
+
+      @Override
+      public String getSingularName() {
+        return "singularName";
+      }
+    };
+  }
+
+  private BaseResourceDefinition getResourceDefinition(String ... createDirectives) {
+    return new BaseResourceDefinition(Resource.Type.Service,
+        Collections.<Resource.Type>emptySet(), new HashSet<String>(Arrays.asList(createDirectives))) {
       @Override
       public String getPluralName() {
         return "pluralName";
