@@ -20,6 +20,12 @@ limitations under the License.
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from resource_management.libraries.functions.default import default
 from resource_management import *
+from ambari_commons import OSCheck
+
+if OSCheck.is_windows_family():
+  from params_windows import *
+else:
+  from params_linux import *
 
 config = Script.get_config()
 
@@ -46,15 +52,9 @@ else:
   flume_hive_home = '/usr/lib/hive'
   flume_hcat_home = '/usr/lib/hive-hcatalog'
 
-flume_conf_dir = '/etc/flume/conf'
 java_home = config['hostLevelParams']['java_home']
 flume_log_dir = '/var/log/flume'
 flume_run_dir = '/var/run/flume'
-flume_user = 'flume'
-flume_group = 'flume'
-
-if 'flume-env' in config['configurations'] and 'flume_user' in config['configurations']['flume-env']:
-  flume_user = config['configurations']['flume-env']['flume_user']
 
 if (('flume-conf' in config['configurations']) and('content' in config['configurations']['flume-conf'])):
   flume_conf_content = config['configurations']['flume-conf']['content']
