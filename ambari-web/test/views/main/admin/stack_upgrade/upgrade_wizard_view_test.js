@@ -26,7 +26,8 @@ describe('App.upgradeWizardView', function () {
   });
   view.reopen({
     controller: Em.Object.create({
-      loadUpgradeData: Em.K
+      loadUpgradeData: Em.K,
+      setUpgradeItemStatus: Em.K
     }),
     activeGroup: Em.Object.create()
   });
@@ -124,87 +125,40 @@ describe('App.upgradeWizardView', function () {
 
   describe("#continue()", function () {
     before(function () {
-      sinon.stub(view, 'setUpgradeItemStatus', Em.K);
+      sinon.stub(view.get('controller'), 'setUpgradeItemStatus', Em.K);
     });
     after(function () {
-      view.setUpgradeItemStatus.restore();
+      view.get('controller').setUpgradeItemStatus.restore();
     });
     it("", function () {
       view.continue({context: Em.Object.create({'status': 'HOLDING_FAILED'})});
-      expect(view.setUpgradeItemStatus.calledWith(Em.Object.create({'status': 'HOLDING_FAILED'}), 'FAILED')).to.be.true;
+      expect(view.get('controller').setUpgradeItemStatus.calledWith(Em.Object.create({'status': 'HOLDING_FAILED'}), 'FAILED')).to.be.true;
     });
   });
 
   describe("#complete()", function () {
     before(function () {
-      sinon.stub(view, 'setUpgradeItemStatus', Em.K);
+      sinon.stub(view.get('controller'), 'setUpgradeItemStatus', Em.K);
     });
     after(function () {
-      view.setUpgradeItemStatus.restore();
+      view.get('controller').setUpgradeItemStatus.restore();
     });
     it("", function () {
       view.complete({context: Em.Object.create({'status': 'FAILED'})});
-      expect(view.setUpgradeItemStatus.calledWith(Em.Object.create({'status': 'FAILED'}), 'COMPLETED')).to.be.true;
+      expect(view.get('controller').setUpgradeItemStatus.calledWith(Em.Object.create({'status': 'FAILED'}), 'COMPLETED')).to.be.true;
     });
   });
 
   describe("#retry()", function () {
     before(function () {
-      sinon.stub(view, 'setUpgradeItemStatus', Em.K);
+      sinon.stub(view.get('controller'), 'setUpgradeItemStatus', Em.K);
     });
     after(function () {
-      view.setUpgradeItemStatus.restore();
+      view.get('controller').setUpgradeItemStatus.restore();
     });
     it("", function () {
       view.retry({context: Em.Object.create({'status': 'FAILED'})});
-      expect(view.setUpgradeItemStatus.calledWith(Em.Object.create({'status': 'FAILED'}), 'PENDING')).to.be.true;
-    });
-  });
-
-  describe("#cancel()", function () {
-    before(function () {
-      sinon.stub(view, 'setUpgradeItemStatus', Em.K);
-    });
-    after(function () {
-      view.setUpgradeItemStatus.restore();
-    });
-    it("cabcel request", function () {
-      view.cancel({context: Em.Object.create({'status': 'HOLDING_FAILED'})});
-      expect(view.setUpgradeItemStatus.calledWith(Em.Object.create({'status': 'HOLDING_FAILED'}), 'FAILED')).to.be.true;
-    });
-  });
-
-  describe("#setUpgradeItemStatus()", function () {
-    before(function () {
-      sinon.stub(App.ajax, 'send', function () {
-        return {
-          done: function (callback) {
-            callback();
-          }
-        }
-      });
-    });
-    after(function () {
-      App.ajax.send.restore();
-    });
-    it("", function () {
-      var item = Em.Object.create({
-        request_id: 1,
-        stage_id: 1,
-        group_id: 1
-      })
-      view.setUpgradeItemStatus(item, 'PENDING');
-      expect(App.ajax.send.getCall(0).args[0]).to.eql({
-        name: 'admin.upgrade.upgradeItem.setState',
-        sender: view,
-        data: {
-          upgradeId: 1,
-          itemId: 1,
-          groupId: 1,
-          status: 'PENDING'
-        }
-      });
-      expect(item.get('status')).to.equal('PENDING');
+      expect(view.get('controller').setUpgradeItemStatus.calledWith(Em.Object.create({'status': 'FAILED'}), 'PENDING')).to.be.true;
     });
   });
 

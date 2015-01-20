@@ -254,13 +254,14 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
 
   /**
    * downgrade confirmation popup
+   * @param {object} event
    */
-  confirmDowngrade: function () {
+  confirmDowngrade: function (event) {
     var self = this;
     var currentVersion = this.get('currentVersion');
     return App.showConfirmationPopup(
       function() {
-        self.downgrade.call(self, currentVersion);
+        self.downgrade.call(self, currentVersion, event);
       },
       Em.I18n.t('admin.stackUpgrade.downgrade.body').format(currentVersion.repository_name),
       null,
@@ -271,9 +272,11 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
 
   /**
    * make call to start downgrade process
-   * @params {object} currentVersion
+   * @param {object} currentVersion
+   * @param {object} event
    */
-  downgrade: function (currentVersion) {
+  downgrade: function (currentVersion, event) {
+    this.setUpgradeItemStatus(event.context, 'FAILED');
     App.ajax.send({
       name: 'admin.downgrade.start',
       sender: this,
@@ -497,5 +500,25 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       }
     });
     return dfd.promise();
+  },
+
+  /**
+   * set status to Upgrade item
+   * @param item
+   * @param status
+   */
+  setUpgradeItemStatus: function(item, status) {
+    return App.ajax.send({
+      name: 'admin.upgrade.upgradeItem.setState',
+      sender: this,
+      data: {
+        upgradeId: item.get('request_id'),
+        itemId: item.get('stage_id'),
+        groupId: item.get('group_id'),
+        status: status
+      }
+    }).done(function () {
+      item.set('status', status);
+    });
   }
 });

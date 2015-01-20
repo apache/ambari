@@ -236,32 +236,12 @@ App.upgradeWizardView = Em.View.extend({
   },
 
   /**
-   * set status to Upgrade item
-   * @param item
-   * @param status
-   */
-  setUpgradeItemStatus: function(item, status) {
-    return App.ajax.send({
-      name: 'admin.upgrade.upgradeItem.setState',
-      sender: this,
-      data: {
-        upgradeId: item.get('request_id'),
-        itemId: item.get('stage_id'),
-        groupId: item.get('group_id'),
-        status: status
-      }
-    }).done(function () {
-        item.set('status', status);
-      });
-  },
-
-  /**
    * set current upgrade item state to FAILED (for HOLDING_FAILED) or TIMED_OUT (for HOLDING_TIMED_OUT)
    * in order to ignore fail and continue Upgrade
    * @param {object} event
    */
   continue: function (event) {
-    this.setUpgradeItemStatus(event.context, event.context.get('status').slice(8));
+    this.get('controller').setUpgradeItemStatus(event.context, event.context.get('status').slice(8));
   },
 
   /**
@@ -269,7 +249,7 @@ App.upgradeWizardView = Em.View.extend({
    * @param {object} event
    */
   retry: function (event) {
-    this.setUpgradeItemStatus(event.context, 'PENDING');
+    this.get('controller').setUpgradeItemStatus(event.context, 'PENDING');
   },
 
   /**
@@ -277,14 +257,6 @@ App.upgradeWizardView = Em.View.extend({
    * @param {object} event
    */
   complete: function (event) {
-    this.setUpgradeItemStatus(event.context, 'COMPLETED');
-  },
-
-  /**
-   * set current upgrade item state to FAILED in order to cancel upgrade
-   * @param {object} event
-   */
-  cancel: function (event) {
-    this.setUpgradeItemStatus(event.context, 'FAILED');
+    this.get('controller').setUpgradeItemStatus(event.context, 'COMPLETED');
   }
 });

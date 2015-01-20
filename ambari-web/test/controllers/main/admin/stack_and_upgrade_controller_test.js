@@ -418,15 +418,18 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   describe("#downgrade()", function() {
     before(function () {
       sinon.stub(App.ajax, 'send', Em.K);
+      sinon.stub(controller, 'setUpgradeItemStatus');
     });
     after(function () {
       App.ajax.send.restore();
+      controller.setUpgradeItemStatus.restore();
     });
     it("make ajax call", function() {
       controller.downgrade(Em.Object.create({
         repository_version: '2.2',
         repository_name: 'HDP-2.2'
-      }));
+      }), {context: 'context'});
+      expect(controller.setUpgradeItemStatus.calledWith('context', 'FAILED')).to.be.true;
       expect(App.ajax.send.getCall(0).args[0]).to.eql({
         name: 'admin.downgrade.start',
         sender: controller,
@@ -470,6 +473,40 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       });
       controller.installRepoVersion(repo);
       expect(App.ajax.send.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#setUpgradeItemStatus()", function () {
+    before(function () {
+      sinon.stub(App.ajax, 'send', function () {
+        return {
+          done: function (callback) {
+            callback();
+          }
+        }
+      });
+    });
+    after(function () {
+      App.ajax.send.restore();
+    });
+    it("", function () {
+      var item = Em.Object.create({
+        request_id: 1,
+        stage_id: 1,
+        group_id: 1
+      });
+      controller.setUpgradeItemStatus(item, 'PENDING');
+      expect(App.ajax.send.getCall(0).args[0]).to.eql({
+        name: 'admin.upgrade.upgradeItem.setState',
+        sender: controller,
+        data: {
+          upgradeId: 1,
+          itemId: 1,
+          groupId: 1,
+          status: 'PENDING'
+        }
+      });
+      expect(item.get('status')).to.equal('PENDING');
     });
   });
 });
