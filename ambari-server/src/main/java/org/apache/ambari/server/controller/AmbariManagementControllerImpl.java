@@ -2823,12 +2823,31 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       actionExecutionHelper.validateAction(actionRequest);
     }
 
+    long requestId = actionManager.getNextRequestId();
+    RequestStageContainer requestStageContainer = new RequestStageContainer(
+        requestId,
+        null,
+        requestFactory,
+        actionManager,
+        actionRequest);
+
+    // If the request is to perform the Kerberos service check, set up the stages to
+    // ensure that the (cluster-level) smoke user principal and keytab is available on all hosts
+    if (Role.KERBEROS_SERVICE_CHECK.name().equals(actionRequest.getCommandName())) {
+      Map<String, Collection<String>> serviceComponentFilter = new HashMap<String, Collection<String>>();
+      Collection<String> identityFilter = Arrays.asList("/smokeuser");
+
+      serviceComponentFilter.put("KERBEROS", null);
+
+      requestStageContainer = kerberosHelper.ensureIdentities(cluster, null, serviceComponentFilter,
+          identityFilter, requestStageContainer);
+    }
+
     ExecuteCommandJson jsons = customCommandExecutionHelper.getCommandJson(
         actionExecContext, cluster);
 
-    Stage stage = createNewStage(0, cluster, actionManager.getNextRequestId(), requestContext,
-      jsons.getClusterHostInfo(), jsons.getCommandParamsForStage(),
-        jsons.getHostParamsForStage());
+    Stage stage = createNewStage(requestStageContainer.getLastStageId(), cluster, requestId, requestContext,
+        jsons.getClusterHostInfo(), jsons.getCommandParamsForStage(), jsons.getHostParamsForStage());
 
     if (actionRequest.isCommand()) {
       customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, requestProperties, false);
@@ -2848,11 +2867,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     List<Stage> stages = rg.getStages();
 
     if (stages != null && !stages.isEmpty()) {
-      actionManager.sendActions(stages, actionRequest);
-      return getRequestStatusResponse(stage.getRequestId());
-    } else {
-      throw new AmbariException("Stage was not created");
+      requestStageContainer.addStages(stages);
     }
+
+    requestStageContainer.persist();
+    return requestStageContainer.getRequestStatusResponse();
   }
 
   @Override

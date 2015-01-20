@@ -25,6 +25,7 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ShortTaskStatus;
 import org.apache.ambari.server.state.State;
@@ -62,6 +63,8 @@ public class RequestStageContainer {
 
   private String requestContext = null;
 
+  private ExecuteActionRequest actionRequest = null;
+
   /**
    * Logger
    */
@@ -77,10 +80,25 @@ public class RequestStageContainer {
    * @param manager  action manager
    */
   public RequestStageContainer(Long id, List<Stage> stages, RequestFactory factory, ActionManager manager) {
+    this(id, stages, factory, manager, null);
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param id            request id
+   * @param stages        stages
+   * @param factory       request factory
+   * @param manager       action manager
+   * @param actionRequest action request
+   */
+  public RequestStageContainer(Long id, List<Stage> stages, RequestFactory factory, ActionManager manager,
+                               ExecuteActionRequest actionRequest) {
     this.id = id;
     this.stages = stages == null ? new ArrayList<Stage>() : stages;
     this.requestFactory = factory;
     this.actionManager = manager;
+    this.actionRequest = actionRequest;
   }
 
   /**
@@ -193,7 +211,7 @@ public class RequestStageContainer {
         if (LOG.isDebugEnabled()) {
           LOG.debug(String.format("Triggering Action Manager, request=%s", request));
         }
-        actionManager.sendActions(request, null);
+        actionManager.sendActions(request, actionRequest);
       }
     }
   }
