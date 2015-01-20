@@ -26,6 +26,95 @@
 /************************************************************************
 * Health status(service/host/host component health)icon colors ends
 ***********************************************************************/
+@space-s: 5px;
+@space-m: 10px;
+@space-l: 20px;
+@green: #69BE28;
+@blue: #0572ff;
+
+@-webkit-keyframes orangePulse {
+  from { background-color: #fdb82f; }
+  50% { background-color: #fd910e; }
+  to { background-color: #fdb82f; }
+}
+
+@-moz-keyframes orangePulse {
+  from { background-color: #fdb82f; }
+  50% { background-color: #fd910e; }
+  to { background-color: #fdb82f; }
+}
+
+@keyframes orangePulse
+{
+  0% { background-color: #fdb82f; }
+  50% { background-color: #fd910e; }
+  100% { background-color: #fdb82f; }
+}
+
+@-webkit-keyframes greenPulse {
+  from { background-color: #118fff; }
+  50% { background-color: #006DCC; }
+  to { background-color: #118fff; }
+}
+
+@-moz-keyframes greenPulse {
+  from { background-color: #118fff; }
+  50% { background-color: #006DCC; }
+  to { background-color: #118fff; }
+}
+
+@keyframes greenPulse
+{
+  0% { background-color: #118fff; }
+  50% { background-color: #006DCC; }
+  100% { background-color: #118fff; }
+}
+
+@-webkit-keyframes greenPulseInner {
+  from { color: #118fff; }
+  50% { color: #006DCC; }
+  to { color: #118fff; }
+}
+
+@-moz-keyframes greenPulseInner {
+  from { color: #118fff; }
+  50% { color: #006DCC; }
+  to { color: #118fff; }
+}
+
+@keyframes greenPulseInner
+{
+  0% { color: #118fff; }
+  50% { color: #006DCC; }
+  100% { color: #118fff; }
+}
+
+.gradient(@color: #FAFAFA, @start: #FFFFFF, @stop: #F2F2F2) {
+  background: @color;
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0, @start), color-stop(1, @stop));
+  background: -ms-linear-gradient(top, @start, @stop);
+  background: -moz-linear-gradient(center top, @start 0%, @stop 100%);
+  filter: progid:dximagetransform.microsoft.gradient(startColorstr= @start, endColorstr= @stop, GradientType=0); // for IE9-
+}
+
+
+@footer-height: 100px;
+
+@restart-indicator-color: #FDB82F;
+
+@top-nav-bg-color-from: #555555;
+@top-nav-bg-color-to: #333333;
+@top-nav-brand-color: #ffffff;
+@top-nav-ops-count-color: #ffffff;
+@top-nav-ops-count-bg-color: #c3c3c3;
+@top-nav-menu-active-text-color: #333333;
+@top-nav-menu-active-bg-color: #ffffff;
+@top-nav-menu-text-color: #c3c3c3;
+@top-nav-menu-text-hover-color: #ffffff;
+@top-nav-menu-dropdown-border-color: #c3c3c3;
+@top-nav-menu-dropdown-bg-color: #ffffff;
+@top-nav-menu-dropdown-text-color: #333333;
+@default-font-size: 14px;
 
 .editable-list-container.well{
   padding: 10px;

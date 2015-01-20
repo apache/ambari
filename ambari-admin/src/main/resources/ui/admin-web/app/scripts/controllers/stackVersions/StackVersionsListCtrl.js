@@ -88,11 +88,7 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.fillClusters = function (clusters) {
-    $scope.dropDownClusters = [{
-      Clusters: {
-        cluster_name: 'Configure on...'
-      }
-    }].concat(clusters);
+    $scope.dropDownClusters = [].concat(clusters);
     $scope.selectedCluster = $scope.dropDownClusters[0];
     angular.forEach(clusters, function (cluster) {
       var options = [{label: "All", value: ''}];

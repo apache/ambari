@@ -415,7 +415,7 @@ a.gotoinstance{
   margin-top: 1px;
   margin-bottom: -12px;
 }
-.navbar-views-dropdown .dropdown-menu{
+.navbar-views-dropdown .dropdown-menu, .verison-label-row .dropdown-menu {
   margin-top: -2px;
 }
 
@@ -1312,4 +1312,7 @@ accordion .panel-group .panel{
 
 .name-label-adjust {
   width: 20.7%;
+}
+.verison-label-row .label {
+  font-size: 100%;
 }

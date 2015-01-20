@@ -114,15 +114,21 @@ App.MainAdminStackVersionsView = Em.View.extend({
         stackVersionType: version.get('stackVersionType'),
         stackVersionNumber: version.get('stackVersionNumber'),
         status: 'INIT',
-        notInstalledHosts: [],
+        notInstalledHosts: App.get('allHostNames'),
         installedHosts: [],
-        currentHosts: []
+        currentHosts: [],
+        noInstalledHosts: true,
+        noCurrentHosts: true,
+        noInitHosts: false
       });
       if (version.get('stackVersion')) {
         versionFormatted.set('status', version.get('stackVersion.state'));
         versionFormatted.set('notInstalledHosts', version.get('stackVersion.notInstalledHosts'));
         versionFormatted.set('installedHosts', version.get('stackVersion.installedHosts'));
         versionFormatted.set('currentHosts', version.get('stackVersion.currentHosts'));
+        versionFormatted.set('noInstalledHosts', version.get('stackVersion.noInstalledHosts'));
+        versionFormatted.set('noCurrentHosts', version.get('stackVersion.noCurrentHosts'));
+        versionFormatted.set('noInitHosts', version.get('stackVersion.noInitHosts'));
       }
       return versionFormatted;
     });

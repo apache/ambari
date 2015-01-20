@@ -1,0 +1,503 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@import 'common.less';
+/*90% width modal window start*/
+.full-width-modal {
+  .modal {
+    .modal-body {
+      div.error{
+        color: #b94a48;
+        .help-inline{
+          color: #b94a48;
+        }
+      }
+
+      div.error input{
+        border-color: #b94a48;
+        -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+        -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+      }
+      .add-cluster-1{
+        width: 100%;
+        height : 500px;
+        margin: 0 auto;
+
+        .each-row{
+          margin-top: 10px;
+        }
+
+        .add-cluster-1-1{
+          width: 100%;
+          height : 100%;
+          float: left;
+        }
+        .add-cluster-1-3{
+          width: 45%;
+          height : 100%;
+          float: left;
+        }
+        .add-cluster-1-2{
+          width: 10%;
+          height : 100%;
+          float: left;
+
+          .add-cluster-1-2-1{
+            width: 100%;
+            height : 40%;
+          }
+          .add-cluster-1-2-2{
+            width: 100%;
+            height : 10%;
+          }
+          .add-cluster-1-2-3{
+            width: 100%;
+            height : 50%;
+          }
+          .middle-line{
+            width : 2%;
+            margin : 0 auto;
+            height : 100%;
+            background-color: #000000;
+          }
+          .add-cluster-center-most-div{
+            height : 30%;
+            text-align: center;
+            position: relative;
+            top: 30%;
+          }
+        }
+      }
+
+
+
+    }
+  }
+
+  .clear {
+    clear: both;
+  }
+  > div > .dataTable {
+    border: 1px solid silver;
+    th {
+      border-top: none;
+    }
+  }
+  .content {
+    padding: 0;
+  }
+
+  //fix stripped in inner table
+  .table-striped tbody tr:nth-child(odd)
+  td .table-striped tbody
+  tr:nth-child(odd) td,
+  tr:nth-child(even) th {
+    background-color: none;
+  }
+
+}
+
+/*90% width modal window end*/
+
+/*700px width modal window start*/
+.modal-690px-width {
+  .modal {
+    width: 690px;
+    margin: 0 0 0 -345px;
+    max-height: 544px;
+    top: 5%;
+  }
+
+  .modal-body {
+    max-height: 403px;
+  }
+}
+/*700px width modal window end*/
+
+/*60% width modal window start*/
+.sixty-percent-width-modal.hideCloseLink{
+  .modal-header{
+    .close{
+      display:none
+    }
+  }
+}
+.sixty-percent-width-modal-edit-widget {
+  .modal {
+    width: 60%;
+    margin: 0 0 0 -30%;
+    max-height: 544px;
+    top: 5%;
+  }
+  .modal-header{
+    min-width: 650px;
+  }
+  .modal-footer{
+    min-width: 650px;
+  }
+
+  .modal-body {
+
+    max-height: 403px;
+    min-width: 650px;
+
+    #slider-range {
+      margin-top: 40px;
+      margin-bottom: 20px;
+      margin-left: 38px;
+      max-width: 630px;
+      max-height: 15px;
+    }
+    #min-height-limit .span9{
+      min-height: 15px;
+    }
+    #min-height-limit .progress{
+      margin-left: 40px;
+      .bar-success {
+        background-image: linear-gradient(to bottom, @health-status-green, @health-status-green);
+        background-repeat: repeat-x;
+        filter: progid:dximagetransform.microsoft.gradient(startColorstr='#5AB400', endColorstr='#5AB400', GradientType=0);
+      }
+      .bar-warning {
+        background-image: linear-gradient(to bottom,@health-status-orange, @health-status-orange);
+        background-repeat: repeat-x;
+        filter: progid:dximagetransform.microsoft.gradient(startColorstr='#FF8E00', endColorstr='#FF8E00', GradientType=0);
+      }
+      .bar-danger {
+        background-image: linear-gradient(to bottom, @health-status-red, @health-status-red);
+        background-repeat: repeat-x;
+        filter: progid:dximagetransform.microsoft.gradient(startColorstr='#ff0000', endColorstr='#ff0000', GradientType=0);
+      }
+    }
+
+    .value-on-slider{
+      max-height: 100px;
+      margin-bottom: 40px;
+      margin-top: 10px;
+      text-align: center;
+    }
+    #slider-value1{
+      max-width: 65px;
+    }
+    #slider-value2{
+      max-width: 250px;
+    }
+    #slider-value3{
+      max-width: 250px;
+    }
+    #slider-value4{
+      max-width: 65px;
+    }
+    .slider-error{
+      color: #b94a48;
+      .help-inline{
+        color: #b94a48;
+      }
+    }
+    .slider-error input{
+      border-color: #b94a48;
+      -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+      -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+      box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+    }
+  }
+}
+.sixty-percent-width-modal {
+
+  .modal {
+    width: 60%;
+    margin: 0 0 0 -30%;
+    max-height: 563px;
+    min-width: 590px;
+    top: 5%;
+  }
+  .long-popup-list {
+    height: 280px;
+    overflow: auto;
+    width: 100%;
+  }
+  .modal-footer {
+    #footer-checkbox {
+      text-align: left;
+      padding-top: 3px;
+      margin-left: 22px;
+      float: left;
+      .checkbox {
+        margin: 0px;
+      }
+    }
+  }
+
+  .modal-body {
+
+    max-height: 403px;
+
+    .form-horizontal{
+
+
+      .add-cluster-1{
+        width: 100%;
+        height : auto;
+        min-height : 350px;
+        margin: 0 auto;
+
+        .each-row{
+          margin-top: 10px;
+        }
+
+        .add-cluster-1-1{
+          width: 100%;
+          height : 100%;
+          float: left;
+          div.error{
+            color: #b94a48;
+            .help-inline{
+              color: #b94a48;
+            }
+          }
+
+          div.error input{
+            border-color: #b94a48;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+          }
+        }
+        .add-cluster-1-3{
+          width: 45%;
+          height : 100%;
+          float: right;
+        }
+        .add-cluster-1-2{
+          width: 10%;
+          height : 100%;
+          float: left;
+
+          .add-cluster-1-2-1{
+            width: 100%;
+            height : 40%;
+          }
+          .add-cluster-1-2-2{
+            width: 100%;
+            height : 10%;
+          }
+          .add-cluster-1-2-3{
+            width: 100%;
+            height : 50%;
+          }
+          .middle-line{
+            width : 2%;
+            margin : 0 auto;
+            height : 100%;
+            background-color: #000000;
+          }
+          .add-cluster-center-most-div{
+            height : 30%;
+            text-align: center;
+            position: relative;
+            top: 30%;
+          }
+        }
+      }
+
+      .add-cluster-2{
+        margin : 0 auto;
+        height : auto;
+        min-height : 350px;
+        table{
+          width : 60%;
+          margin : 0 20%;
+
+          .spacer{
+            height: 20px;
+          }
+
+          tr.error{
+            color: #b94a48;
+            .help-inline{
+              color: #b94a48;
+            }
+
+            input{
+              border-color: #b94a48;
+              -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+              -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+              box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            }
+          }
+
+          td {
+            width : 50%;
+            a.btn-success{
+              margin-left: 30%;
+            }
+          }
+
+        }
+
+      }
+
+
+      .add-data-set{
+        width: 80%;
+        margin: 0 auto;
+        table{
+          width: 100%;
+        }
+        tr.error{
+          color: #b94a48;
+          .help-inline{
+            color: #b94a48;
+          }
+        }
+
+        div.error{
+          color: #b94a48;
+          .help-inline{
+            color: #b94a48;
+          }
+        }
+
+        div.error input{
+          border-color: #b94a48;
+          -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+          -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+          box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+        }
+
+        td.percent25 {
+          width: 25%;
+        }
+        td.spacer{
+          height: 10px;
+        }
+        td{
+          .btn-group{
+            display : inline;
+            span.caret{
+              float : right;
+            }
+            ul.dropdown-menu{
+              margin-top:15px;
+            }
+          }
+          .ember-view{
+            display : inline;
+          }
+
+        }
+
+        input.hyper-mini{
+          width: 20px;
+        }
+
+        .targetClusterDD{
+          min-width : 170px;
+        }
+
+      }
+      .each-row{
+        margin-top: 10px;
+      }
+      .each-row.control-label{
+        float:left;
+        clear:both;
+      }
+      .override-controls{
+        .icon-ok-sign {
+          color: #5AB400;
+        }
+        #filter-dropdown-div {
+          .dropdown-menu {
+            right: 0;
+            left: auto;
+          }
+        }
+        #component-dropdown-div {
+          vertical-align: top;
+          padding-left: 5px;
+          .dropdown-menu {
+            right: 0;
+            left: auto;
+          }
+        }
+        .input-append{
+          input{
+            -webkit-border-radius: 4px 0 0 4px;
+            -moz-border-radius: 4px 0 0 4px;
+            border-radius: 4px 0 0 4px;
+          }
+          .btn-group{
+            display: inline-block;
+            margin-left: -1px;
+            .btn{
+              -webkit-border-radius: 0 4px 4px 0;
+              -moz-border-radius: 0 4px 4px 0;
+              border-radius: 0 4px 4px 0;
+            }
+          }
+        }
+        .hosts-table-container{
+          width:100%;
+          height: 225px;
+          max-height: 225px;
+          overflow: auto;
+          border: 1px solid #eee;
+        }
+        table{
+          th {
+            background-color: #d9edf7;
+          }
+          margin: 0 auto;
+        }
+        .message{
+          color: #777;
+        }
+      }
+      .control-label{
+        width:auto;
+      }
+      .overrideSelectBox {
+        width:100%;
+      }
+    }
+  }
+
+  .clear {
+    clear: both;
+  }
+  > div > .dataTable {
+    border: 1px solid silver;
+    th {
+      border-top: none;
+    }
+  }
+  .content {
+    padding: 0;
+  }
+
+  //fix stripped in inner table
+  .table-striped tbody tr:nth-child(odd)
+  td .table-striped tbody
+  tr:nth-child(odd) td,
+  tr:nth-child(even) th {
+    background-color: none;
+  }
+
+}
+/*60% width modal window end*/

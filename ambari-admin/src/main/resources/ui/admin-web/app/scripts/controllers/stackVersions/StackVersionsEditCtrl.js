@@ -161,7 +161,8 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.delete = function () {
-    ConfirmationModal.show('Delete Version', 'Are you sure you want to delete version "'+ $scope.versionName +'"?').then(function() {
+    ConfirmationModal.show('Deregister Version', { "url": 'views/modals/BodyForDeregisterVersion.html',
+      "scope": {"repoVersionFullName": $scope.repoVersionFullName }}).then(function() {
       Stack.deleteRepo($scope.stackName, $scope.stackVersion, $scope.id).then( function () {
         $location.path('/stackVersions');
       }).catch(function (data) {

@@ -34,7 +34,7 @@
     <tr>
       <th class="col-medium">
         <label>Version</label>
-        <input type="text" class="form-control" ng-change="resetPagination()" ng-model="filter.version">
+        <input type="text" class="form-control" ng-change="resetPagination()" ng-model="filter.version" placeholder="Any">
       </th>
       <th class="col-small">
         <label>Cluster</label>
@@ -56,18 +56,30 @@
         <a href="/#/main/admin/stack/versions" ng-show="repo.cluster">
           {{repo.cluster}}
         </a>
-        <select ng-show="!repo.cluster"
-                ng-change="goToCluster()"
-                ng-model="selectedCluster"
-                ng-options="cluster.Clusters.cluster_name for cluster in dropDownClusters">
-        </select>
+        <span ng-show="!repo.cluster">
+          None
+        </span>
       </td>
-      <td>
+      <td class="verison-label-row">
         <div ng-show="repo.status == 'current'">
           <span class="label {{'status-' + repo.status}}">Current:&nbsp;{{repo.currentHosts}}/{{repo.totalHosts}}</span>
         </div>
         <div ng-show="repo.status == 'installed'">
           <span class="label {{'status-' + repo.status}}">Installed:&nbsp;{{repo.installedHosts}}/{{repo.totalHosts}}</span>
+        </div>
+        <div ng-show="!repo.cluster">
+          <div class="btn-group display-inline-block" dropdown is-open="viewsdropdown.isopen" ng-mouseover="viewsdropdown.isopen=true" ng-mouseout="viewsdropdown.isopen=false" ng-init="viewsdropdown.isopen=false">
+            <a class="btn dropdown-toggle">
+              <span>Install on...</span>
+            </a>
+            <ul class="dropdown-menu" ng-show="viewsdropdown.isopen">
+              <li ng-repeat="cluster in dropDownClusters">
+                <a href="javascript:void(null)" ng-click="goToCluster()">
+                    <span>{{cluster.Clusters.cluster_name}}</span>
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
       </td>
     </tr>

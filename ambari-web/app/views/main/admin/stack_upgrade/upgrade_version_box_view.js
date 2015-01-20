@@ -23,6 +23,12 @@ var stringUtils = require('utils/string_utils');
 App.UpgradeVersionBoxView = Em.View.extend({
   templateName: require('templates/main/admin/stack_upgrade/upgrade_version_box'),
   classNames: ['span4', 'version-box'],
+  classNameBindings: ['versionClass'],
+
+  versionClass: function() {
+    return this.get('content.status') == 'CURRENT'
+      ? 'current-version-box' : '';
+  }.property('content.stackVersion.state'),
 
   /**
    * map containing version (id, label)
@@ -99,8 +105,14 @@ App.UpgradeVersionBoxView = Em.View.extend({
   didInsertElement: function(){
     App.tooltip($('.link-tooltip'), {title: Em.I18n.t('admin.stackVersions.version.linkTooltip')});
     App.tooltip($('.hosts-tooltip'), {title: Em.I18n.t('admin.stackVersions.version.hostsTooltip')});
+    App.tooltip($('.emply-hosts-tooltip'), {title: Em.I18n.t('admin.stackVersions.version.emptyHostsTooltip')});
   },
 
+  willDestroyElement: function() {
+    if ($('.tooltip').length > 0) {
+      $('.tooltip').remove();
+    }
+  },
   /**
    * run custom action of controller
    * @param {object} event
@@ -127,6 +139,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
         return Em.Object.create({
           osType: os.get('osType'),
           isSelected: true,
+          isDisabled: Ember.computed.not('isSelected'),
           repositories: os.get('repositories').map(function (repository) {
             return Em.Object.create({
               repoName: repository.get('repoName'),
@@ -139,7 +152,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
     });
 
     return App.ModalPopup.show({
-      classNames: ['modal-690px-width', 'repository-list'],
+      classNames: ['repository-list', 'sixty-percent-width-modal'],
       bodyClass: Ember.View.extend({
         content: repo,
         templateName: require('templates/main/admin/stack_upgrade/edit_repositories'),

@@ -608,7 +608,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
      */
     versionlabels: function () {
       return this.get('content.stackVersions').filterProperty('isCurrent', false).map(function (version) {
-        return Em.I18n.t('hosts.host.stackVersions.table.labels').format(version.get('repoVersion'), version.get('displayStatus'));
+        return version.get('repoVersion');
       }).join("<br />");
     }.property('content.stackVersions.length'),
 

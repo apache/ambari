@@ -57,7 +57,7 @@ angular.module('ambariAdminConsole')
       var stackName = $scope.upgradeStack.selected.stack_name;
       Alert.success('Created version ' +
       '<a href="#/stackVersions/' + stackName + '/' + versionName + '/edit">'
-        + stackName + versionName +
+        + stackName + "-" + versionName +
       '</a>');
       $location.path('/stackVersions');
     })

@@ -1,0 +1,276 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@import 'common.less';
+
+#advancedRepoAccordion{
+  .accordion-heading {
+    background-color: #f0f0f0;
+    a:hover {
+      text-decoration: none;
+    }
+  }
+  .accordion-body {
+    .repositories-table {
+      overflow: auto;
+      margin-bottom: 10px;
+      div {
+        float: left;
+        min-height: 1px;
+      }
+      .thead {
+        width: 100%;
+        .th {
+          font-weight: bold;
+        }
+        .first-th {
+          width: 4%;
+        }
+        .os-th {
+          width: 13%;
+        }
+        .name-th {
+          width: 17%;
+        }
+        .url-th {
+          width: 66%;
+        }
+      }
+      .tbody {
+        width: 100%;
+        .trow {
+          width: 100%;
+          border-top: 1px solid #dddddd;
+          padding-top: 10px;
+          .os-td {
+            width: 17%;
+          }
+          .sub-trow {
+            width: 100%;
+            .name-td {
+              width: 16%;
+            }
+            .validation-td {
+              width: 4%;
+            }
+            .url-td {
+              width: 63%;
+              .ember-text-field {
+                width: 100%;
+              }
+            }
+            .clear-td {
+              width: 4%;
+              padding-top: 5px;
+              padding-left: 12px;
+              a {
+                cursor: pointer;
+                text-decoration: none;
+              }
+              .icon-remove-sign {
+                color: #808080;
+              }
+            }
+            .actions-td {
+              width: 10%;
+              padding-top: 5px;
+              a {
+                cursor: pointer;
+              }
+              .icon-undo {
+                color: rgb(243, 178, 11);
+                margin-right: 2px;
+              }
+            }
+          }
+        }
+      }
+      .textfield-error input {
+        border-color: #b94a48;
+        -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+        -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+      }
+      .disabled-textfield input {
+        color: #808080;
+        disabled: disabled;
+        pointer-events: none;
+        cursor: default;
+        background: #E4E4E4;
+      }
+      .disabled-label {
+        color: #808080;
+      }
+    }
+    #skip-validation {
+      .checkbox {
+        margin-left: 3px;
+        margin-right: 8px;
+        margin-top: 0px;
+      }
+      .icon-question-sign {
+        color: @blue;
+      }
+    }
+  }
+}
+
+#stack-upgrade-page {
+  div.current-version-box {
+    background: none repeat scroll 0 0 #e6f1f6;
+    box-shadow: 0 8px 6px -6px black;
+  }
+  .version-box {
+    background: none repeat scroll 0 0 #fff;
+    border: 1px solid #d2d9dd;
+    height: 168px;
+    margin: 15px 15px 0 0;
+    padding: 5px 0px;
+    a.not-active:hover {
+      text-decoration: none;
+    }
+    .state {
+      margin: 15px 0;
+      line-height: 30px;
+      padding-top: 5px;
+      i {
+        color: #0088cc;
+        font-size: 16px;
+      }
+      .label {
+        padding: 5px 20px;
+        font-size: 14px;
+      }
+    }
+    .host-link a {
+      color: #0088cc;
+      font-size: 14px;
+      font-weight: normal;
+    }
+    .version {
+      color: #000;
+      text-align: center;
+      font-weight: 500;
+      font-size: 20px;
+      line-height: 20px;
+      padding: 5px 5px 0px 5px;
+      span {
+        margin-left: 20px;
+      }
+      .pull-right .not-active {
+        font-size: 15px;
+        color: #0088cc;
+        line-height: 20px;
+      }
+    }
+    .hosts-section {
+      margin-top: 20px;
+      width: 100%;
+      text-align: center;
+      background: #f8f8f8;
+      border-top: 1px solid #e4e4e4;
+      padding-bottom: 3px
+    }
+    .hosts-section .hosts-bar {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .hosts-section .host-link {
+      font-size: 12px;
+    }
+  }
+}
+
+#stack-upgrade-dialog {
+  .details-box {
+    padding: 5px;
+    margin-left: 15px;
+    margin-right: 95px;
+    .button-row {
+      text-align: right;
+      padding: 5px;
+    }
+    input[type="checkbox"] {
+      margin: 0;
+    }
+    .message {
+      line-height: 30px;
+    }
+  }
+  .task-details {
+    .manage-controls a {
+      cursor: pointer;
+      margin-right: 12px;
+    }
+    textarea {
+      width: 100%;
+      min-height: 100px;
+    }
+  }
+  .task-list {
+    overflow-x: hidden;
+    .progress {
+      margin-bottom: 0;
+    }
+    padding-left: 20px;
+    i {
+      margin-right: 5px;
+    }
+  }
+  .task-list-main-warp i {
+    font-size: 16px;
+  }
+}
+
+.repository-list {
+  .modal {
+    padding: 10px!important;
+  }
+  .os-block {
+    border-top: 1px solid #dddddd;
+    padding-top: 10px;
+  }
+  input[type="text"] {
+    width: 100%;
+  }
+}
+
+#stack-upgrade {
+  .content {
+    padding: 25px;
+    background-color: #fff;
+  }
+  .box {
+    padding: 5px;
+  }
+  table th {
+    vertical-align: middle;
+  }
+  .btn-area {
+    margin-top: 30px;
+  }
+  .service {
+    .info {
+      line-height: 30px;
+    }
+    .row {
+      margin-left: 0;
+    }
+  }
+}
+
+

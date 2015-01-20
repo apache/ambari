@@ -15,14 +15,4 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 -->
-<div class="modal-header">
-    <h3 class="modal-title">{{header}}</h3>
-</div>
-<div class="modal-body">
-  <div class="default-body" ng-show="!isTempalte">{{body}}</div>
-  <div ng-show="isTempalte" ng-include="body.url"></div>
-</div>
-<div class="modal-footer">
-    <button class="btn btn-default" ng-click="cancel()">{{cancelText}}</button>
-    <button class="btn btn-primary" ng-click="ok()">{{confirmText}}</button>
-</div>
+Are you sure you want to deregister version <strong>{{innerScope.repoVersionFullName}}</strong> ?

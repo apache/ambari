@@ -28,8 +28,10 @@ angular.module('ambariAdminConsole')
 				templateUrl: 'views/modals/ConfirmationModal.html',
 				controller: ['$scope', '$modalInstance', function($scope, $modalInstance) {
 					$scope.header = header;
+          $scope.isTempalte = !!body.url;
 					$scope.body = body;
-          $scope.confirmText = confirmText || "Ok";
+          $scope.innerScope = body.scope;
+          $scope.confirmText = confirmText || "OK";
           $scope.cancelText = cancelText || "Cancel";
 
 					$scope.ok = function() {

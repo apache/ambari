@@ -1308,9 +1308,10 @@ Em.I18n.translations = {
   'admin.stackVersions.filter.current': "Current ({0})",
 
   'admin.stackVersions.editRepositories.info': 'Provide Base URLs for the Operating Systems you are configuring. Uncheck all other Operating Systems.',
-  'admin.stackVersions.version.install.confirm': 'You are about to install version {0} on all hosts.',
+  'admin.stackVersions.version.install.confirm': 'You are about to install version <strong>{0}</strong> on all hosts.',
   'admin.stackVersions.version.linkTooltip': 'Click to Edit Repositories',
   'admin.stackVersions.version.hostsTooltip': 'Click to List Hosts',
+  'admin.stackVersions.version.emptyHostsTooltip': 'No Hosts to List',
   'admin.stackVersions.version.notInstalled': "Not Installed",
   'admin.stackVersions.manageVersions': "Manage Versions",
   'admin.stackVersions.manageVersions.popup.body': 'You are about to leave the <b>Cluster Management</b> interface' +
@@ -1977,7 +1978,6 @@ Em.I18n.translations = {
   'hosts.host.menu.stackVersions': 'Versions',
   'hosts.host.stackVersions.table.noVersions': 'No versions',
   'hosts.host.stackVersions.table.filteredInfo': '{0} of {1} versions showing',
-  'hosts.host.stackVersions.table.labels': '{0} ({1})',
   'hosts.host.stackVersions.status.init': 'Uninstalled',
   'hosts.host.stackVersions.status.installed': 'Installed',
   'hosts.host.stackVersions.status.install_failed': 'Install Failed',

@@ -36,7 +36,7 @@
       {{#each repository in os.repositories}}
         <div class="row-fluid">
           <div class="span3">{{repository.repoName}}</div>
-          <div class="span9">{{view Ember.TextField valueBinding="repository.baseUrl"}}</div>
+          <div class="span9">{{view Ember.TextField valueBinding="repository.baseUrl" disabledBinding="os.isDisabled"}}</div>
         </div>
       {{/each}}
     </div>
