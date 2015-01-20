@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,25 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.state.stack.upgrade;
+package org.apache.ambari.server.state.stack;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Contains information about performed upgrade check.
+ * Contains information about performed prerequisite check.
  *
  */
-public class UpgradeCheck {
+public class PrerequisiteCheck {
   private final String id;
   private final String description;
-  private final UpgradeCheckType type;
+  private final PrereqCheckType type;
   private final String clusterName;
-  private UpgradeCheckStatus status = UpgradeCheckStatus.PASS;
+  private PrereqCheckStatus status = PrereqCheckStatus.PASS;
   private String failReason = "";
   private List<String> failedOn = new ArrayList<String>();
 
-  public UpgradeCheck(String id, String description, UpgradeCheckType type, String clusterName) {
+  public PrerequisiteCheck(String id, String description, PrereqCheckType type, String clusterName) {
     this.id = id;
     this.description = description;
     this.type = type;
@@ -48,11 +48,11 @@ public class UpgradeCheck {
     return description;
   }
 
-  public UpgradeCheckStatus getStatus() {
+  public PrereqCheckStatus getStatus() {
     return status;
   }
 
-  public void setStatus(UpgradeCheckStatus status) {
+  public void setStatus(PrereqCheckStatus status) {
     this.status = status;
   }
 
@@ -72,7 +72,7 @@ public class UpgradeCheck {
     this.failedOn = failedOn;
   }
 
-  public UpgradeCheckType getType() {
+  public PrereqCheckType getType() {
     return type;
   }
 

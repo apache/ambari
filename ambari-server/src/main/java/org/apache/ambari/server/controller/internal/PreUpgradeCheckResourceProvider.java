@@ -21,10 +21,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
 
 import org.apache.ambari.server.StaticallyInject;
+import org.apache.ambari.server.checks.*;
+import org.apache.ambari.server.state.CheckHelper;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.PreUpgradeCheckRequest;
+import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -34,8 +38,7 @@ import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.state.UpgradeCheckHelper;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeCheck;
+import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 
 import com.google.inject.Inject;
 
@@ -55,6 +58,44 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
   public static final String UPGRADE_CHECK_CHECK_TYPE_PROPERTY_ID         = PropertyHelper.getPropertyId("UpgradeChecks", "check_type");
   public static final String UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID       = PropertyHelper.getPropertyId("UpgradeChecks", "cluster_name");
   public static final String UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("UpgradeChecks", "repository_version");
+
+  @Inject
+  private static ServicesMaintenanceModeCheck servicesMaintenanceModeCheck;
+  @Inject
+  private static HostsMasterMaintenanceCheck hostsMasterMaintenanceCheck;
+  @Inject
+  private static HostsRepositoryVersionCheck hostsRepositoryVersionCheck;
+  @Inject
+  private static ServicesNamenodeHighAvailabilityCheck servicesNamenodeHighAvailabilityCheck;
+  @Inject
+  private static ServicesYarnWorkPreservingCheck servicesYarnWorkPreservingCheck;
+  @Inject
+  private static ServicesDecommissionCheck servicesDecommissionCheck;
+  @Inject
+  private static ServicesJobsDistributedCacheCheck servicesJobsDistributedCacheCheck;
+  @Inject
+  private static HostsHeartbeatCheck heartbeatCheck;
+  @Inject
+  private static ServicesUpCheck servicesUpCheck;
+
+
+  /**
+   * List of the registered upgrade checks
+   */
+  @SuppressWarnings("serial")
+  private final List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<AbstractCheckDescriptor>() {
+    {
+      add(hostsMasterMaintenanceCheck);
+      add(hostsRepositoryVersionCheck);
+      add(servicesMaintenanceModeCheck);
+      add(servicesNamenodeHighAvailabilityCheck);
+      add(servicesYarnWorkPreservingCheck);
+      add(servicesDecommissionCheck);
+      add(servicesJobsDistributedCacheCheck);
+      add(heartbeatCheck);
+      add(servicesUpCheck);
+    }
+  };
 
   @SuppressWarnings("serial")
   private static Set<String> pkPropertyIds = new HashSet<String>() {
@@ -86,7 +127,7 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
   };
 
   @Inject
-  private static UpgradeCheckHelper upgradeChecks;
+  private static CheckHelper checkHelper;
 
   /**
    * Constructor.
@@ -107,26 +148,25 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
 
     for (Map<String, Object> propertyMap: propertyMaps) {
       final String clusterName = propertyMap.get(UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID).toString();
-      final PreUpgradeCheckRequest upgradeCheckRequest = new PreUpgradeCheckRequest(clusterName);
+      final PrereqCheckRequest upgradeCheckRequest = new PrereqCheckRequest(clusterName);
       if (propertyMap.containsKey(UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID)) {
         upgradeCheckRequest.setRepositoryVersion(propertyMap.get(UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID).toString());
       }
-      for (UpgradeCheck upgradeCheck: upgradeChecks.performPreUpgradeChecks(upgradeCheckRequest)) {
+      for (PrerequisiteCheck prerequisiteCheck : checkHelper.performChecks(upgradeCheckRequest, updateChecksRegistry)) {
         final Resource resource = new ResourceImpl(Resource.Type.PreUpgradeCheck);
-        setResourceProperty(resource, UPGRADE_CHECK_ID_PROPERTY_ID, upgradeCheck.getId(), requestedIds);
-        setResourceProperty(resource, UPGRADE_CHECK_CHECK_PROPERTY_ID, upgradeCheck.getDescription(), requestedIds);
-        setResourceProperty(resource, UPGRADE_CHECK_STATUS_PROPERTY_ID, upgradeCheck.getStatus(), requestedIds);
-        setResourceProperty(resource, UPGRADE_CHECK_REASON_PROPERTY_ID, upgradeCheck.getFailReason(), requestedIds);
-        setResourceProperty(resource, UPGRADE_CHECK_FAILED_ON_PROPERTY_ID, upgradeCheck.getFailedOn(), requestedIds);
-        setResourceProperty(resource, UPGRADE_CHECK_CHECK_TYPE_PROPERTY_ID, upgradeCheck.getType(), requestedIds);
-        setResourceProperty(resource, UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID, upgradeCheck.getClusterName(), requestedIds);
+        setResourceProperty(resource, UPGRADE_CHECK_ID_PROPERTY_ID, prerequisiteCheck.getId(), requestedIds);
+        setResourceProperty(resource, UPGRADE_CHECK_CHECK_PROPERTY_ID, prerequisiteCheck.getDescription(), requestedIds);
+        setResourceProperty(resource, UPGRADE_CHECK_STATUS_PROPERTY_ID, prerequisiteCheck.getStatus(), requestedIds);
+        setResourceProperty(resource, UPGRADE_CHECK_REASON_PROPERTY_ID, prerequisiteCheck.getFailReason(), requestedIds);
+        setResourceProperty(resource, UPGRADE_CHECK_FAILED_ON_PROPERTY_ID, prerequisiteCheck.getFailedOn(), requestedIds);
+        setResourceProperty(resource, UPGRADE_CHECK_CHECK_TYPE_PROPERTY_ID, prerequisiteCheck.getType(), requestedIds);
+        setResourceProperty(resource, UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID, prerequisiteCheck.getClusterName(), requestedIds);
         if (upgradeCheckRequest.getRepositoryVersion() != null) {
           setResourceProperty(resource, UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID, upgradeCheckRequest.getRepositoryVersion(), requestedIds);
         }
         resources.add(resource);
       }
     }
-
     return resources;
   }
 

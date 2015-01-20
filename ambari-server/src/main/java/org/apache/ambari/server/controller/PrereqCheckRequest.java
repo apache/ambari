@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,13 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.state.stack.upgrade;
+package org.apache.ambari.server.controller;
 
 /**
- * Type of upgrade check.
+ * Represents a prerequisite check request.
  */
-public enum UpgradeCheckType {
-  SERVICE,
-  HOST,
-  CLUSTER
+public class PrereqCheckRequest {
+  private final String clusterName;
+  private String repositoryVersion;
+
+  //TODO make repositoryVersionName also final as soon as UI will be changed to always provide it to API
+  public PrereqCheckRequest(String clusterName) {
+    this.clusterName = clusterName;
+  }
+
+  public String getClusterName() {
+    return clusterName;
+  }
+
+  public String getRepositoryVersion() {
+    return repositoryVersion;
+  }
+
+  public void setRepositoryVersion(String repositoryVersion) {
+    this.repositoryVersion = repositoryVersion;
+  }
 }
