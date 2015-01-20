@@ -114,7 +114,7 @@ public class EmailDispatcherTest {
   @Test
   public void testValidateTargetConfig_invalidOnAuthenticationException() throws Exception {
 
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, Object> properties = new HashMap<String, Object>();
     Transport mockedTransport = EasyMock.createNiceMock(Transport.class);
     EmailDispatcher dispatcher = EasyMock.createMockBuilder(EmailDispatcher.class).
         addMockedMethods("getMailTransport").createNiceMock();
@@ -132,7 +132,7 @@ public class EmailDispatcherTest {
   @Test
   public void testValidateTargetConfig_invalidOnMessagingException() throws Exception {
 
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, Object> properties = new HashMap<String, Object>();
     Transport mockedTransport = EasyMock.createNiceMock(Transport.class);
     EmailDispatcher dispatcher = EasyMock.createMockBuilder(EmailDispatcher.class).
         addMockedMethods("getMailTransport").createNiceMock();
@@ -150,7 +150,7 @@ public class EmailDispatcherTest {
   @Test
   public void testValidateTargetConfig_validIfNoErrors() throws Exception {
 
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, Object> properties = new HashMap<String, Object>();
     Transport mockedTransport = EasyMock.createNiceMock(Transport.class);
     EmailDispatcher dispatcher = EasyMock.createMockBuilder(EmailDispatcher.class).
         addMockedMethods("getMailTransport").createNiceMock();

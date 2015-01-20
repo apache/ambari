@@ -421,7 +421,7 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
     }
 
     @Override
-    public ConfigValidationResult validateTargetConfig(Map<String, String> properties) {
+    public ConfigValidationResult validateTargetConfig(Map<String, Object> properties) {
       return null;
     }
 
@@ -468,7 +468,7 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
 
     @Override
     public ConfigValidationResult validateTargetConfig(
-        Map<String, String> properties) {
+        Map<String, Object> properties) {
       return null;
     }
   }

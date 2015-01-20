@@ -59,7 +59,7 @@ public interface NotificationDispatcher {
    * @param properties alert target properties
    * @return ConfigValidationResult with validation status and message
    */
-  public ConfigValidationResult validateTargetConfig(Map<String, String> properties);
+  public ConfigValidationResult validateTargetConfig(Map<String, Object> properties);
 
   public static class ConfigValidationResult {
 

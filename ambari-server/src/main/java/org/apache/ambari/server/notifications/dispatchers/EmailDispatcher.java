@@ -166,7 +166,7 @@ public class EmailDispatcher implements NotificationDispatcher {
    * {@inheritDoc}
    */
   @Override
-  public ConfigValidationResult validateTargetConfig(Map<String, String> properties) {
+  public ConfigValidationResult validateTargetConfig(Map<String, Object> properties) {
     try {
       Transport transport = getMailTransport(properties);
       transport.connect();
@@ -181,15 +181,15 @@ public class EmailDispatcher implements NotificationDispatcher {
     return ConfigValidationResult.valid();
   }
 
-  protected Transport getMailTransport(Map<String, String> properties) throws NoSuchProviderException {
+  protected Transport getMailTransport(Map<String, Object> properties) throws NoSuchProviderException {
     DispatchCredentials credentials = null;
     if (properties.containsKey(AlertNoticeDispatchService.AMBARI_DISPATCH_CREDENTIAL_USERNAME)) {
       credentials = new DispatchCredentials();
-      credentials.UserName = properties.get(AlertNoticeDispatchService.AMBARI_DISPATCH_CREDENTIAL_USERNAME);
-      credentials.Password = properties.get(AlertNoticeDispatchService.AMBARI_DISPATCH_CREDENTIAL_PASSWORD);
+      credentials.UserName = (String) properties.get(AlertNoticeDispatchService.AMBARI_DISPATCH_CREDENTIAL_USERNAME);
+      credentials.Password = (String) properties.get(AlertNoticeDispatchService.AMBARI_DISPATCH_CREDENTIAL_PASSWORD);
     }
     Properties props = new Properties();
-    for (Entry<String, String> entry : properties.entrySet()) {
+    for (Entry<String, Object> entry : properties.entrySet()) {
       props.put(entry.getKey(), entry.getValue());
     }
     Session session = Session.getInstance(props, new EmailAuthenticator(credentials));

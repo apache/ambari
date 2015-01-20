@@ -55,7 +55,7 @@ public class MockDispatcher implements NotificationDispatcher {
   }
 
   @Override
-  public ConfigValidationResult validateTargetConfig(Map<String, String> properties) {
+  public ConfigValidationResult validateTargetConfig(Map<String, Object> properties) {
     return null;
   }
 }

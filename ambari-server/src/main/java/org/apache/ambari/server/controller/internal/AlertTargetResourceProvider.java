@@ -257,7 +257,7 @@ public class AlertTargetResourceProvider extends
             "The type of the alert target is required.");
       }
 
-      Map<String, String> properties = extractProperties(requestMap);
+      Map<String, Object> properties = extractProperties(requestMap);
 
       String propertiesJson = s_gson.toJson(properties);
       if (StringUtils.isEmpty(propertiesJson)) {
@@ -462,8 +462,8 @@ public class AlertTargetResourceProvider extends
    * @return the JSON representing the key/value pairs of all properties, or
    *         {@code null} if none.
    */
-  private Map<String, String> extractProperties(Map<String, Object> requestMap) {
-    Map<String, String> normalizedMap = new HashMap<String, String>(
+  private Map<String, Object> extractProperties(Map<String, Object> requestMap) {
+    Map<String, Object> normalizedMap = new HashMap<String, Object>(
         requestMap.size());
 
     for (Entry<String, Object> entry : requestMap.entrySet()) {
@@ -472,7 +472,7 @@ public class AlertTargetResourceProvider extends
 
       if (propCat.equals(ALERT_TARGET_PROPERTIES)) {
         String propKey = PropertyHelper.getPropertyName(key);
-        normalizedMap.put(propKey, entry.getValue().toString());
+        normalizedMap.put(propKey, entry.getValue());
       }
     }
 
@@ -484,7 +484,7 @@ public class AlertTargetResourceProvider extends
    * @param notificationType type of dispatcher
    * @param properties alert target configuration properties
    */
-  private void validateTargetConfig(String notificationType, Map<String, String> properties) {
+  private void validateTargetConfig(String notificationType, Map<String, Object> properties) {
     NotificationDispatcher dispatcher = dispatchFactory.getDispatcher(notificationType);
     if (dispatcher == null) {
       throw new IllegalArgumentException("Dispatcher for given notification type doesn't exist");

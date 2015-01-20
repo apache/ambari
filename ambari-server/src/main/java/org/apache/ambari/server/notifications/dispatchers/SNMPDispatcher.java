@@ -19,6 +19,7 @@ package org.apache.ambari.server.notifications.dispatchers;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.ambari.server.notifications.Notification;
@@ -123,27 +124,35 @@ public class SNMPDispatcher implements NotificationDispatcher {
    * {@inheritDoc}
    */
   @Override
-  public ConfigValidationResult validateTargetConfig(Map<String, String> properties) {
+  public ConfigValidationResult validateTargetConfig(Map<String, Object> properties) {
+    Map<String, String> stringValuesConfig = new HashMap<String, String>(properties.size());
+    for (Map.Entry<String, Object> propertyEntry : properties.entrySet()) {
+      stringValuesConfig.put(propertyEntry.getKey(), propertyEntry.getValue().toString());
+    }
     try {
-      getDispatchProperty(properties, BODY_OID_PROPERTY);
-      getDispatchProperty(properties, SUBJECT_OID_PROPERTY);
-      getDispatchProperty(properties, TRAP_OID_PROPERTY);
-      getDispatchProperty(properties, PORT_PROPERTY);
-      SnmpVersion snmpVersion = getSnmpVersion(properties);
+      getDispatchProperty(stringValuesConfig, BODY_OID_PROPERTY);
+      getDispatchProperty(stringValuesConfig, SUBJECT_OID_PROPERTY);
+      getDispatchProperty(stringValuesConfig, TRAP_OID_PROPERTY);
+      getDispatchProperty(stringValuesConfig, PORT_PROPERTY);
+      SnmpVersion snmpVersion = getSnmpVersion(stringValuesConfig);
       switch (snmpVersion) {
         case SNMPv3:
-          getDispatchProperty(properties, SECURITY_USERNAME_PROPERTY);
-          TrapSecurity securityLevel = getSecurityLevel(properties);
+          getDispatchProperty(stringValuesConfig, SECURITY_USERNAME_PROPERTY);
+          TrapSecurity securityLevel = getSecurityLevel(stringValuesConfig);
           switch (securityLevel) {
             case AUTH_PRIV:
-              getDispatchProperty(properties, SECURITY_PRIV_PASSPHRASE_PROPERTY);
+              getDispatchProperty(stringValuesConfig, SECURITY_PRIV_PASSPHRASE_PROPERTY);
+              getDispatchProperty(stringValuesConfig, SECURITY_AUTH_PASSPHRASE_PROPERTY);
+              break;
             case AUTH_NOPRIV:
-              getDispatchProperty(properties, SECURITY_AUTH_PASSPHRASE_PROPERTY);
+              getDispatchProperty(stringValuesConfig, SECURITY_AUTH_PASSPHRASE_PROPERTY);
+              break;
           }
           break;
         case SNMPv2c:
         case SNMPv1:
-          getDispatchProperty(properties, COMMUNITY_PROPERTY);
+          getDispatchProperty(stringValuesConfig, COMMUNITY_PROPERTY);
+          break;
       }
     } catch (InvalidSnmpConfigurationException ex) {
       return ConfigValidationResult.invalid(ex.getMessage());
