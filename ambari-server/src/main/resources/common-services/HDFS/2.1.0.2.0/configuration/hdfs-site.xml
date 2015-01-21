@@ -243,12 +243,6 @@
   </property>
 
   <property>
-    <name>dfs.namenode.handler.count</name>
-    <value>40</value>
-    <description>The number of server threads for the namenode.</description>
-  </property>
-
-  <property>
     <name>dfs.datanode.max.transfer.threads</name>
     <value>1024</value>
     <description>Specifies the maximum number of threads to use for transferring data in and out of the datanode.</description>
