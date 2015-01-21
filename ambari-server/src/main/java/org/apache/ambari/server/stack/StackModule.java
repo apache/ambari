@@ -18,6 +18,12 @@
 
 package org.apache.ambari.server.stack;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
@@ -28,12 +34,6 @@ import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
 import org.apache.ambari.server.state.stack.StackMetainfoXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Stack module which provides all functionality related to parsing and fully
@@ -561,6 +561,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> {
 
     if (null != updatedUrl) {
       ri.setBaseUrl(updatedUrl);
+      ri.setBaseUrlFromSaved(true);
     }
 
     if (LOG.isDebugEnabled()) {

@@ -44,17 +44,17 @@ import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.customactions.ActionDefinitionManager;
 import org.apache.ambari.server.events.AlertDefinitionRegistrationEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.AgentAlertDefinitions;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
-import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.stack.StackContext;
 import org.apache.ambari.server.stack.StackDirectory;
+import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.OperatingSystemInfo;
@@ -766,10 +766,12 @@ public class AmbariMetaInfo {
       entity.setMetainfoName(metaKey);
       entity.setMetainfoValue(newBaseUrl);
 
-      if (null != ri.getDefaultBaseUrl() && newBaseUrl.equals(ri.getDefaultBaseUrl())) {
+      // !!! need a way to remove
+      if (newBaseUrl.equals("")) {
         metaInfoDAO.remove(entity);
       } else {
         metaInfoDAO.merge(entity);
+        ri.setBaseUrlFromSaved(true);
       }
     }
   }

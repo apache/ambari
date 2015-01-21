@@ -126,8 +126,7 @@ public class LatestRepoCallable implements Callable<Void> {
               }
 
               ri.setLatestBaseUrl(baseUrl);
-              if (ri.getBaseUrl() != null
-                  && ri.getBaseUrl().equals(ri.getDefaultBaseUrl())) {
+              if (ri.getBaseUrl() != null && !ri.isBaseUrlFromSaved()) {
                 // Override baseUrl with the latestBaseUrl.
                 ri.setBaseUrl(baseUrl);
               }

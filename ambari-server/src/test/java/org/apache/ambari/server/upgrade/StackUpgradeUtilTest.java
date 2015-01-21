@@ -42,57 +42,57 @@ import com.google.inject.persist.PersistService;
 public class StackUpgradeUtilTest {
 
   private Injector injector;
-  
+
   @Before
   public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
   }
-  
+
   @After
   public void teardown() throws Exception {
     injector.getInstance(PersistService.class).stop();
   }
-  
+
   private void reset(String stackName, String stackVersion) throws Exception {
     AmbariMetaInfo ami = injector.getInstance(AmbariMetaInfo.class);
-    
+
     for (Entry<String, List<RepositoryInfo>> entry : ami.getRepository(stackName, stackVersion).entrySet()) {
       for (RepositoryInfo ri : entry.getValue()) {
         if (-1 == ri.getRepoId().indexOf("epel")) {
           ami.updateRepoBaseURL(stackName, stackVersion,
-              ri.getOsType(), ri.getRepoId(), ri.getDefaultBaseUrl());
+              ri.getOsType(), ri.getRepoId(), "");
         }
       }
     }
-    
+
   }
-  
+
   @Test
   public void testUpgradeStack() throws Exception {
     StackUpgradeUtil stackUpgradeUtil = injector.getInstance(StackUpgradeUtil.class);
-    
+
     String stackName = "HDP";
     String stackVersion = "1.3.0";
     String localRepoUrl = "http://foo.bar";
-    
+
     // check updating all
     stackUpgradeUtil.updateLocalRepo(stackName, stackVersion, localRepoUrl, null);
-    
+
     MetainfoDAO dao = injector.getInstance(MetainfoDAO.class);
-    
+
     Collection<MetainfoEntity> entities = dao.findAll();
     Assert.assertTrue(entities.size() > 0);
-    
+
     for (MetainfoEntity entity : entities) {
       Assert.assertTrue(entity.getMetainfoName().startsWith("repo:/HDP/1.3.0/"));
       Assert.assertEquals(localRepoUrl, entity.getMetainfoValue());
     }
-    
+
     reset (stackName, stackVersion);
     entities = dao.findAll();
-    Assert.assertTrue(0 == entities.size());
-    
+    Assert.assertEquals(0, entities.size());
+
     // check updating only centos6
     stackUpgradeUtil.updateLocalRepo(stackName, stackVersion, localRepoUrl, "centos6");
 
@@ -106,7 +106,7 @@ public class StackUpgradeUtilTest {
     reset (stackName, stackVersion);
     entities = dao.findAll();
     Assert.assertTrue(0 == entities.size());
-    
+
     // check updating only centos6 and centos5
     stackUpgradeUtil.updateLocalRepo(stackName, stackVersion, localRepoUrl, "centos6,centos5");
 
@@ -118,7 +118,7 @@ public class StackUpgradeUtilTest {
           entity.getMetainfoName().startsWith("repo:/HDP/1.3.0/centos5"));
       Assert.assertEquals(localRepoUrl, entity.getMetainfoValue());
     }
-    
+
     // verify that a change to centos6 also changes redhat6
     localRepoUrl = "http://newfoo.bar";
     stackUpgradeUtil.updateLocalRepo(stackName, stackVersion, localRepoUrl, "centos6");
@@ -138,8 +138,8 @@ public class StackUpgradeUtilTest {
     }
     Assert.assertTrue(foundCentos6);
     Assert.assertTrue(foundRedhat6);
-    
+
   }
-  
-  
+
+
 }
