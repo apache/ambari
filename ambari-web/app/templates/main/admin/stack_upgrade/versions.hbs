@@ -42,8 +42,10 @@
 </div>
 <div class="row-fluid">
   {{#if isLoaded}}
-    {{#each version in view.filteredVersions}}
-      {{view App.UpgradeVersionBoxView contentBinding="version"}}
+    {{#each version in view.repoVersions}}
+      {{#if version.isVisible}}
+        {{view App.UpgradeVersionBoxView contentBinding="version"}}
+      {{/if}}
     {{/each}}
   {{else}}
     <div class="spinner"></div>

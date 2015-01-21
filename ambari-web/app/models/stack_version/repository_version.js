@@ -19,16 +19,70 @@
 var App = require('app');
 
 App.RepositoryVersion = DS.Model.extend({
-  displayName : DS.attr('string'),
-  repositoryVersion : DS.attr('string'),
-  upgradePack : DS.attr('string'),
-  stackVersionType : DS.attr('string'),
-  stackVersionNumber : DS.attr('string'),
+  displayName: DS.attr('string'),
+  repositoryVersion: DS.attr('string'),
+  upgradePack: DS.attr('string'),
+  stackVersionType: DS.attr('string'),
+  stackVersionNumber: DS.attr('string'),
   operatingSystems: DS.hasMany('App.OS'),
   stackVersion: DS.belongsTo('App.StackVersion'),
-  stack: function() {
+  stack: function () {
     return this.get('stackVersionType') + " " + this.get('stackVersionNumber');
-  }.property('stackVersionType', 'stackVersionNumber')
+  }.property('stackVersionType', 'stackVersionNumber'),
+
+  /**
+   * @type {string}
+   */
+  status: function () {
+    return this.get('stackVersion.state') || 'INIT';
+  }.property('stackVersion.state'),
+
+  /**
+   * @type {Array}
+   */
+  notInstalledHosts: function () {
+    return this.get('stackVersion.notInstalledHosts') || App.get('allHostNames');
+  }.property('stackVersion.notInstalledHosts'),
+
+  /**
+   * @type {Array}
+   */
+  installedHosts: function () {
+    return this.get('stackVersion.installedHosts') || [];
+  }.property('stackVersion.installedHosts'),
+
+  /**
+   * @type {Array}
+   */
+  currentHosts: function () {
+    return this.get('stackVersion.currentHosts') || [];
+  }.property('stackVersion.currentHosts'),
+
+  /**
+   * @type {boolean}
+   */
+  noInstalledHosts: function () {
+    return (this.get('stackVersion')) ? this.get('stackVersion.noInstalledHosts') : true;
+  }.property('stackVersion.noInstalledHosts'),
+
+  /**
+   * @type {boolean}
+   */
+  noCurrentHosts: function () {
+    return (this.get('stackVersion')) ? this.get('stackVersion.noCurrentHosts') : true;
+  }.property('stackVersion.noCurrentHosts'),
+
+  /**
+   * @type {boolean}
+   */
+  noInitHosts: function () {
+    return (this.get('stackVersion')) ? this.get('stackVersion.noInitHosts') : false;
+  }.property('stackVersion.noInitHosts'),
+
+  /**
+   * @type {boolean}
+   */
+  isVisible: true
 });
 
 App.RepositoryVersion.FIXTURES = [];

@@ -68,12 +68,12 @@ App.MainAdminStackVersionsView = Em.View.extend({
   /**
    * update categories labels
    */
-  observesCategories: function() {
-    var versions = this.get('versions');
+  observesCategories: function () {
     this.get('categories').forEach(function (category) {
-      category.set('label', Em.I18n.t(category.labelKey).format(this.filterBy(versions, category).length));
+      category.set('label', Em.I18n.t(category.labelKey).format(this.filterBy(this.get('repoVersions'), category).length));
     }, this);
-  }.observes('versions.@each.status'),
+    this.filterVersions(this.get('selectedCategory'));
+  }.observes('repoVersions.@each.stackVersion.state', 'controller.isLoaded'),
 
   /**
    * select category
@@ -82,12 +82,24 @@ App.MainAdminStackVersionsView = Em.View.extend({
   selectCategory: function (event) {
     this.get('categories').filterProperty('isSelected').setEach('isSelected', false);
     event.context.set('isSelected', true);
+    this.filterVersions(event.context);
+  },
+
+  /**
+   * filter versions that match category
+   * @param {Em.Object} category
+   */
+  filterVersions: function (category) {
+    var filteredVersionIds = this.filterBy(this.get('repoVersions'), category).mapProperty('id');
+    this.get('repoVersions').forEach(function (version) {
+      version.set('isVisible', filteredVersionIds.contains(version.get('id')));
+    });
   },
 
   /**
    * @type {object}
    */
-  selectedCategory: function(){
+  selectedCategory: function () {
     return this.get('categories').findProperty('isSelected');
   }.property('categories.@each.isSelected'),
 
@@ -102,51 +114,6 @@ App.MainAdminStackVersionsView = Em.View.extend({
   stackVersions: App.StackVersion.find(),
 
   /**
-   * formatted versions
-   * @type {Array}
-   */
-  versions: function () {
-    var versions = this.get('repoVersions').map(function (version) {
-      var versionFormatted = Em.Object.create({
-        id: version.get('id'),
-        displayName: version.get('displayName'),
-        repositoryVersion: version.get('repositoryVersion'),
-        stackVersionType: version.get('stackVersionType'),
-        stackVersionNumber: version.get('stackVersionNumber'),
-        status: 'INIT',
-        notInstalledHosts: App.get('allHostNames'),
-        installedHosts: [],
-        currentHosts: [],
-        noInstalledHosts: true,
-        noCurrentHosts: true,
-        noInitHosts: false
-      });
-      if (version.get('stackVersion')) {
-        versionFormatted.set('status', version.get('stackVersion.state'));
-        versionFormatted.set('notInstalledHosts', version.get('stackVersion.notInstalledHosts'));
-        versionFormatted.set('installedHosts', version.get('stackVersion.installedHosts'));
-        versionFormatted.set('currentHosts', version.get('stackVersion.currentHosts'));
-        versionFormatted.set('noInstalledHosts', version.get('stackVersion.noInstalledHosts'));
-        versionFormatted.set('noCurrentHosts', version.get('stackVersion.noCurrentHosts'));
-        versionFormatted.set('noInitHosts', version.get('stackVersion.noInitHosts'));
-      }
-      return versionFormatted;
-    });
-
-    versions.sort(function (a, b) {
-      return stringUtils.compareVersions(a.get('repositoryVersion'), b.get('repositoryVersion'));
-    });
-    return versions;
-  }.property('repoVersions.length', 'stackVersions.@each.state'),
-
-  /**
-   * @type {Array}
-   */
-  filteredVersions: function () {
-    return this.filterBy(this.get('versions'), this.get('selectedCategory'))
-  }.property('selectedCategory', 'versions.@each.status'),
-
-  /**
    * filter versions by category
    * @param versions
    * @param filter
@@ -154,18 +121,19 @@ App.MainAdminStackVersionsView = Em.View.extend({
    */
   filterBy: function (versions, filter) {
     var currentVersion = this.get('controller.currentVersion');
-    if (filter && filter.get('value') && this.get('controller.isLoaded')) {
+    if (filter && filter.get('value')) {
       return versions.filter(function (version) {
-        if (version.get('status') === 'INSTALLED' && filter.get('value') === 'UPGRADE_READY') {
+        var status = version.get('stackVersion.state');
+        if (status === 'INSTALLED' && filter.get('value') === 'UPGRADE_READY') {
           return stringUtils.compareVersions(version.get('repositoryVersion'), Em.get(currentVersion, 'repository_version')) === 1;
         } else if (filter.get('value') === 'NOT_INSTALLED') {
-          return ['INIT', 'INSTALL_FAILED', 'INSTALLING', 'OUT_OF_SYNC'].contains(version.get('status'));
+          return ['INIT', 'INSTALL_FAILED', 'INSTALLING', 'OUT_OF_SYNC'].contains(status);
         } else {
-          return version.get('status') === filter.get('value');
+          return status === filter.get('value');
         }
       }, this);
     }
-    return versions;
+    return versions.toArray();
   },
 
   /**

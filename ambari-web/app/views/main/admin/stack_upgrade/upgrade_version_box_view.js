@@ -25,10 +25,10 @@ App.UpgradeVersionBoxView = Em.View.extend({
   classNames: ['span4', 'version-box'],
   classNameBindings: ['versionClass'],
 
-  versionClass: function() {
+  versionClass: function () {
     return this.get('content.status') == 'CURRENT'
       ? 'current-version-box' : '';
-  }.property('content.stackVersion.state'),
+  }.property('content.status'),
 
   /**
    * map containing version (id, label)
@@ -64,21 +64,22 @@ App.UpgradeVersionBoxView = Em.View.extend({
     var currentVersion = this.get('controller.currentVersion');
     var upgradeVersion = this.get('controller.upgradeVersion');
     var element = Em.Object.create();
+    var status = this.get('content.status');
 
-    if (this.get('content.status') === 'CURRENT') {
+    if (status === 'CURRENT') {
       element.set('isLabel', true);
       element.set('text', Em.I18n.t('common.current'));
       element.set('class', 'label label-success');
-    } else if (['INIT', 'INSTALL_FAILED', 'OUT_OF_SYNC'].contains(this.get('content.status'))) {
+    } else if (['INIT', 'INSTALL_FAILED', 'OUT_OF_SYNC'].contains(status)) {
       element.set('isButton', true);
       element.set('text', Em.I18n.t('admin.stackVersions.version.installNow'));
       element.set('action', 'installRepoVersionConfirmation');
-    } else if (this.get('content.status') === 'INSTALLING') {
+    } else if (status === 'INSTALLING') {
       element.set('iconClass', 'icon-cog');
       element.set('isLink', true);
       element.set('text', Em.I18n.t('hosts.host.stackVersions.status.installing'));
       element.set('action', 'showProgressPopup');
-    } else if (this.get('content.status') === 'INSTALLED') {
+    } else if (status === 'INSTALLED') {
       if (stringUtils.compareVersions(this.get('content.repositoryVersion'), currentVersion.repository_version) === 1) {
         element.set('isButton', true);
         element.set('text', Em.I18n.t('admin.stackVersions.version.performUpgrade'));
@@ -88,7 +89,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
         element.set('isLink', true);
         element.set('text', Em.I18n.t('common.installed'));
       }
-    } else if (['UPGRADING', 'UPGRADE_FAILED', 'UPGRADED'].contains(this.get('content.status'))) {
+    } else if (['UPGRADING', 'UPGRADE_FAILED', 'UPGRADED'].contains(status)) {
       element.set('isLink', true);
       element.set('action', 'openUpgradeDialog');
       if (['HOLDING', 'HOLDING_FAILED', 'HOLDING_TIMEDOUT'].contains(App.get('upgradeState'))) {
@@ -102,17 +103,12 @@ App.UpgradeVersionBoxView = Em.View.extend({
     return element;
   }.property('content.status'),
 
-  didInsertElement: function(){
+  didInsertElement: function () {
     App.tooltip($('.link-tooltip'), {title: Em.I18n.t('admin.stackVersions.version.linkTooltip')});
     App.tooltip($('.hosts-tooltip'), {title: Em.I18n.t('admin.stackVersions.version.hostsTooltip')});
     App.tooltip($('.emply-hosts-tooltip'), {title: Em.I18n.t('admin.stackVersions.version.emptyHostsTooltip')});
   },
 
-  willDestroyElement: function() {
-    if ($('.tooltip').length > 0) {
-      $('.tooltip').remove();
-    }
-  },
   /**
    * run custom action of controller
    * @param {object} event
@@ -135,7 +131,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
     var repo = Em.Object.create({
       displayName: repoRecord.get('displayName'),
       repositoryVersion: repoRecord.get('displayName'),
-      operatingSystems: repoRecord.get('operatingSystems').map(function(os){
+      operatingSystems: repoRecord.get('operatingSystems').map(function (os) {
         return Em.Object.create({
           osType: os.get('osType'),
           isSelected: true,
@@ -157,8 +153,8 @@ App.UpgradeVersionBoxView = Em.View.extend({
         content: repo,
         templateName: require('templates/main/admin/stack_upgrade/edit_repositories'),
         skipValidation: false,
-        didInsertElement: function() {
-          App.tooltip($("[rel=skip-validation-tooltip]"), { placement: 'right'});
+        didInsertElement: function () {
+          App.tooltip($("[rel=skip-validation-tooltip]"), {placement: 'right'});
         }
       }),
       header: Em.I18n.t('common.repositories'),

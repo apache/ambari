@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 var App = require('app');
+var stringUtils = require('utils/string_utils');
 
 App.stackVersionMapper = App.QuickDataMapper.create({
   modelStackVerion: App.StackVersion,
@@ -43,6 +44,9 @@ App.stackVersionMapper = App.QuickDataMapper.create({
     var resultStack = [];
 
     if (json && json.items) {
+      json.items.sort(function (a, b) {
+        return stringUtils.compareVersions(a.repository_versions[0].RepositoryVersions.repository_version, b.repository_versions[0].RepositoryVersions.repository_version);
+      });
       json.items.forEach(function (item) {
         var stack = item.ClusterStackVersions;
         stack.repository_version_id = item.ClusterStackVersions.repository_version;
