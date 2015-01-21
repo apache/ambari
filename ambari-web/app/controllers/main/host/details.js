@@ -591,7 +591,7 @@ App.MainHostDetailsController = Em.Controller.extend({
    */
   onLoadHiveConfigs: function (data) {
     var hiveMSHosts = this.getHiveHosts();
-    var hiveMasterHosts = hiveMSHosts.concat([App.HostComponent.find().findProperty('componentName', 'HIVE_SERVER').get('hostName')]).uniq().sort().join(',');
+    var hiveMasterHosts = hiveMSHosts.concat(App.HostComponent.find().filterProperty('componentName', 'HIVE_SERVER').mapProperty('hostName')).uniq().sort().join(',');
     var configs = {};
     var port = "";
     var hiveUser = "";
