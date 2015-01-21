@@ -26,6 +26,7 @@ import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrereqCheckType;
+import org.apache.commons.lang.BooleanUtils;
 
 import java.util.Map;
 
@@ -61,7 +62,7 @@ public class ServicesYarnWorkPreservingCheck extends AbstractCheckDescriptor {
     final DesiredConfig desiredConfig = desiredConfigs.get(configType);
     final Config config = cluster.getConfig(configType, desiredConfig.getTag());
     if (!config.getProperties().containsKey("yarn.resourcemanager.work-preserving-recovery.enabled") ||
-      !Boolean.getBoolean(config.getProperties().get("yarn.resourcemanager.work-preserving-recovery.enabled"))) {
+      !BooleanUtils.toBoolean(config.getProperties().get("yarn.resourcemanager.work-preserving-recovery.enabled"))) {
       prerequisiteCheck.getFailedOn().add("YARN");
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
       prerequisiteCheck.setFailReason("YARN doesn't have work preserving restart, yarn.resourcemanager.work-preserving-recovery.enabled property is missing");
