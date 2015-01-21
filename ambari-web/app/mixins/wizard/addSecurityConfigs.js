@@ -403,26 +403,22 @@ App.AddSecurityConfigs = Em.Mixin.create({
     var kerberosDescriptor = items.Versions.kerberos_descriptor;
     this.set('kerberosDescriptor', kerberosDescriptor);
     // generate configs for root level properties object, currently realm, keytab_dir
-    clusterConfigs = clusterConfigs.concat(this.expandKerberosStackDescriptorProps(kerberosDescriptor.properties, 'Cluster'));
+    clusterConfigs = clusterConfigs.concat(this.expandKerberosStackDescriptorProps(kerberosDescriptor.properties, 'Cluster', 'stackConfigs'));
     // generate configs for root level identities object, currently spnego property
     clusterConfigs = clusterConfigs.concat(this.createConfigsByIdentities(kerberosDescriptor.identities, 'Cluster'));
     kerberosDescriptor.services.forEach(function (service) {
       var serviceName = service.name;
       // generate configs for service level identity objects
-      configs = configs.concat(self.createResourceConfigs(service,serviceName));
+      configs = configs.concat(self.createResourceConfigs(service, serviceName));
       // generate configs for service component level identity  object
       service.components.forEach(function (component) {
-        configs = configs.concat(self.createResourceConfigs(component,serviceName));
+        configs = configs.concat(self.createResourceConfigs(component, serviceName));
       });
     });
     // unite cluster, service and component configs
     configs = configs.concat(clusterConfigs);
     self.processConfigReferences(kerberosDescriptor, configs);
-    // return configs with uniq names
-    return configs.reduce(function (p, c) {
-      if (!p.findProperty('name', c.get('name'))) p.push(c);
-      return p;
-    }, []);
+    return configs;
   },
 
   /**
@@ -431,19 +427,18 @@ App.AddSecurityConfigs = Em.Mixin.create({
    * @param {String} serviceName
    * @return {Array}
    */
-  createResourceConfigs: function(resource, serviceName) {
+  createResourceConfigs: function (resource, serviceName) {
     var identityConfigs = [];
-    var resourceConfigs  = [];
+    var resourceConfigs = [];
     if (resource.identities) {
       identityConfigs = this.createConfigsByIdentities(resource.identities, serviceName);
     }
     if (resource.configurations) {
-      resource.configurations.forEach(function(_configuration){
+      resource.configurations.forEach(function (_configuration) {
         for (var key in _configuration) {
-          resourceConfigs = resourceConfigs.concat(this.expandKerberosStackDescriptorProps(_configuration[key], serviceName));
+          resourceConfigs = resourceConfigs.concat(this.expandKerberosStackDescriptorProps(_configuration[key], serviceName, key));
         }
-      },this);
-
+      }, this);
     }
     return identityConfigs.concat(resourceConfigs);
   },
@@ -458,7 +453,6 @@ App.AddSecurityConfigs = Em.Mixin.create({
   createConfigsByIdentities: function (identities, serviceName) {
     var self = this;
     var configs = [];
-
     identities.forEach(function (identity) {
       var defaultObject = {
         isOverridable: false,
@@ -511,9 +505,10 @@ App.AddSecurityConfigs = Em.Mixin.create({
    *
    * @param {object} kerberosProperties
    * @param {string} serviceName
+   * @param {string} filename
    * @returns {App.ServiceConfigProperty[]}
    */
-  expandKerberosStackDescriptorProps: function (kerberosProperties, serviceName) {
+  expandKerberosStackDescriptorProps: function (kerberosProperties, serviceName, filename) {
     var configs = [];
 
     for (var propertyName in kerberosProperties) {
@@ -522,6 +517,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
         value: kerberosProperties[propertyName],
         defaultValue: kerberosProperties[propertyName],
         serviceName: serviceName,
+        filename: filename,
         displayName: propertyName,
         isOverridable: false,
         isEditable: propertyName != 'realm',
@@ -627,13 +623,13 @@ App.AddSecurityConfigs = Em.Mixin.create({
       if (Array.isArray(configurations)) {
         configurations.forEach(function (_configuration) {
           for (var key in _configuration) {
-            if (Object.keys(_configuration[key]).contains(config.name)) {
+            if (Object.keys(_configuration[key]).contains(config.name) && config.filename === key) {
               _configuration[key][config.name] = config.value;
               isConfigUpdated = true
             }
           }
         }, this);
-      } else if (Object.keys(configurations).contains(config.name)) {
+      } else if (Object.keys(configurations).contains(config.name) && config.filename === 'stackConfigs') {
         configurations[config.name] = config.value;
         isConfigUpdated = true
       }
@@ -651,13 +647,15 @@ App.AddSecurityConfigs = Em.Mixin.create({
   updateDescriptorIdentityConfig: function (identities, config) {
     var isConfigUpdated = false;
     identities.forEach(function (identity) {
-      if (identity.keytab && identity.keytab.configuration && identity.keytab.configuration.endsWith(config.name)) {
-        identity.keytab.file = config.value;
-        isConfigUpdated = true
-      } else if (identity.principal && identity.principal.configuration && identity.principal.configuration.endsWith(config.name)) {
-        identity.principal.value = config.value;
-        isConfigUpdated = true
-      }
+      var keys = Em.keys(identity).without('name');
+      keys.forEach(function (item) {
+        var prop = identity[item];
+        if (prop.configuration && prop.configuration.split('/')[0] === config.filename &&
+          prop.configuration.split('/')[1] === config.name) {
+          prop[{keytab: 'file', principal: 'value'}[item]] = config.value;
+          isConfigUpdated = true;
+        }
+      });
     }, this);
     return isConfigUpdated;
   },

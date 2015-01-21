@@ -378,10 +378,6 @@ describe('App.AddSecurityConfigs', function () {
       }
     ];
 
-    it('resulted array should have unique properties by name', function() {
-      expect(result.mapProperty('name').length).to.be.eql(result.mapProperty('name').uniq().length);
-    });
-    
     propertyValidationTests.forEach(function(test) {
       it('property {0} should be created'.format(test.property), function() {
         expect(result.findProperty('name', test.property)).to.be.ok;
