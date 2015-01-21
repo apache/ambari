@@ -365,8 +365,7 @@ public class PhoenixHBaseAccessor {
             "metricName = " + metric.getMetricName() + ", " +
             "values: " + metric.getMetricValues());
         }
-        Aggregator agg = new Aggregator();
-        double[] aggregates =  agg.calculateAggregates(
+        double[] aggregates =  AggregatorUtils.calculateAggregates(
           metric.getMetricValues());
 
         metricRecordStmt.setString(1, metric.getMetricName());

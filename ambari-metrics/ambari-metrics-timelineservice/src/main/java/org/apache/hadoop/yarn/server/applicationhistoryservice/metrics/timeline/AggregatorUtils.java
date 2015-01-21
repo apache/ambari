@@ -15,8 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
-  .timeline;
+package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
 
 import java.util.Map;
@@ -24,9 +23,9 @@ import java.util.Map;
 /**
  *
  */
-public class Aggregator {
+public class AggregatorUtils {
 
-  public double[] calculateAggregates(Map<Long, Double> metricValues) {
+  public static double[] calculateAggregates(Map<Long, Double> metricValues) {
     double[] values = new double[4];
     double max = Double.MIN_VALUE;
     double min = Double.MAX_VALUE;

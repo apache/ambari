@@ -15,8 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
-  .timeline;
+package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
 
 import java.sql.Connection;
