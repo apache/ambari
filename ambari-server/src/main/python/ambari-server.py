@@ -81,6 +81,7 @@ UPGRADE_ACTION = "upgrade"
 UPGRADE_STACK_ACTION = "upgradestack"
 STATUS_ACTION = "status"
 SETUP_HTTPS_ACTION = "setup-https"
+SETUP_JCE_ACTION = "setup-jce"
 LDAP_SETUP_ACTION = "setup-ldap"
 LDAP_SYNC_ACTION = "sync-ldap"
 SETUP_GANGLIA_HTTPS_ACTION = "setup-ganglia-https"
@@ -403,6 +404,7 @@ DEFAULT_JDK16_LOCATION = "/usr/jdk64/jdk1.6.0_31"
 JDK_INDEX = 0
 JDK_VERSION_REs = ["(jdk.*)/jre", "Creating (jdk.*)/jre"]
 CUSTOM_JDK_NUMBER = "3"
+IS_CUSTOM_JDK = False
 JDK_MIN_FILESIZE = 5000
 CREATE_JDK_DIR_CMD = "/bin/mkdir -p " + configDefaults.JDK_INSTALL_DIR
 MAKE_FILE_EXECUTABLE_CMD = "chmod a+x {0}"
@@ -1560,6 +1562,7 @@ def install_jce_manualy(args):
 #
 def download_jdk(args):
   global JDK_INDEX
+  global IS_CUSTOM_JDK
   properties = get_ambari_properties()
   if properties == -1:
     err = "Error getting ambari properties"
@@ -1604,6 +1607,7 @@ Enter choice (""" + jdk_num + "):",
     )
 
     if jdk_num == CUSTOM_JDK_NUMBER:
+      IS_CUSTOM_JDK = True
       print_warning_msg("JDK must be installed on all hosts and JAVA_HOME must be valid on all hosts.")
       print_warning_msg(jcePolicyWarn)
       args.java_home = get_validated_string_input("Path to JAVA_HOME: ", None, None, None, False, False)
@@ -2025,6 +2029,174 @@ def verify_setup_allowed():
   return 0
 
 
+def unpack_jce_policy():
+  properties = get_ambari_properties()
+  jdk_path = properties.get_property(JAVA_HOME_PROPERTY)
+  jdk_security_path = jdk_path + os.sep + configDefaults.JDK_SECURITY_DIR
+
+  jce_name = properties.get_property(JCE_NAME_PROPERTY)
+  jce_zip_path = configDefaults.SERVER_RESOURCES_DIR + os.sep + jce_name
+  unpack_cmd = 'unzip -o -j -q {0} -d {1}'.format(jce_zip_path, jdk_security_path)
+
+  if os.path.exists(jdk_security_path) and os.path.exists(jce_zip_path) and validate_jdk(jdk_path):
+    try:
+      retcode, out, err = run_os_command(unpack_cmd)
+      if retcode != 0:
+        raise FatalException(retcode, err)
+    except Exception as e:
+      err = "Fail during the execution of '{0}'. {1}".format(unpack_cmd.format(jce_zip_path, jdk_security_path), e)
+      raise FatalException(1, err)
+  else:
+    err = "Can not execute {0}. The path {1}, {2} or {3} is invalid.".format(unpack_cmd, jdk_security_path, jce_zip_path, jdk_path)
+    raise FatalException(1, err)
+
+#
+# Setup the JCE policy for Ambari Server.
+#
+def setup_jce_policy(path):
+  if os.path.exists(path):
+    copy_cmd = 'cp {0} {1}'.format(path, configDefaults.SERVER_RESOURCES_DIR)
+    try:
+      retcode, out, err = run_os_command(copy_cmd)
+      if retcode != 0:
+        raise FatalException(retcode, err)
+    except Exception as e:
+      err = "Fail during the execution of '{0}'. {1}".format(copy_cmd.format(path, configDefaults.SERVER_RESOURCES_DIR), e)
+      raise FatalException(1, err)
+  else:
+    err = "Can not run 'setup-jce'. Invalid path {0}.".format(path)
+    raise FatalException(1, err)
+  conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
+  properties = get_ambari_properties()
+  zip_name = os.path.split(path)[1]
+  properties.process_pair(JCE_NAME_PROPERTY, zip_name)
+  try:
+    properties.store(open(conf_file, "w"))
+  except Exception, e:
+    print_error_msg('Could not write ambari config file "%s": %s' % (conf_file, e))
+
+  print 'Installing JCE policy...'
+  try:
+    unpack_jce_policy()
+  except FatalException as e:
+    err = 'Installing JCE failed: {0}. Exiting.'.format(e)
+    raise FatalException(e.code, err)
+  print 'NOTE: Restart Ambari Server to apply changes' + \
+        ' ("ambari-server restart|stop|start")'
+
+
+def unpack_jce_policy():
+  properties = get_ambari_properties()
+  jdk_path = properties.get_property(JAVA_HOME_PROPERTY)
+  jdk_security_path = jdk_path + os.sep + configDefaults.JDK_SECURITY_DIR
+
+  jce_name = properties.get_property(JCE_NAME_PROPERTY)
+  jce_zip_path = configDefaults.SERVER_RESOURCES_DIR + os.sep + jce_name
+  unpack_cmd = 'unzip -o -j -q {0} -d {1}'.format(jce_zip_path, jdk_security_path)
+
+  if os.path.exists(jdk_security_path) and os.path.exists(jce_zip_path) and validate_jdk(jdk_path):
+    try:
+      retcode, out, err = run_os_command(unpack_cmd)
+      if retcode != 0:
+        raise FatalException(retcode, err)
+    except Exception as e:
+      err = "Fail during the execution of '{0}'. {1}".format(unpack_cmd.format(jce_zip_path, jdk_security_path), e)
+      raise FatalException(1, err)
+  else:
+    err = "Can not execute {0}. The path {1}, {2} or {3} is invalid.".format(unpack_cmd, jdk_security_path, jce_zip_path, jdk_path)
+    raise FatalException(1, err)
+
+#
+# Setup the JCE policy for Ambari Server.
+#
+def setup_jce_policy(path):
+  if os.path.exists(path):
+    copy_cmd = 'cp {0} {1}'.format(path, configDefaults.SERVER_RESOURCES_DIR)
+    try:
+      retcode, out, err = run_os_command(copy_cmd)
+      if retcode != 0:
+        raise FatalException(retcode, err)
+    except Exception as e:
+      err = "Fail during the execution of '{0}'. {1}".format(copy_cmd.format(path, configDefaults.SERVER_RESOURCES_DIR), e)
+      raise FatalException(1, err)
+  else:
+    err = "Can not run 'setup-jce'. Invalid path {0}.".format(path)
+    raise FatalException(1, err)
+  conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
+  properties = get_ambari_properties()
+  zip_name = os.path.split(path)[1]
+  properties.process_pair(JCE_NAME_PROPERTY, zip_name)
+  try:
+    properties.store(open(conf_file, "w"))
+  except Exception, e:
+    print_error_msg('Could not write ambari config file "%s": %s' % (conf_file, e))
+
+  print 'Installing JCE policy...'
+  try:
+    unpack_jce_policy()
+  except FatalException as e:
+    err = 'Installing JCE failed: {0}. Exiting.'.format(e)
+    raise FatalException(e.code, err)
+  print 'NOTE: Restart Ambari Server to apply changes' + \
+        ' ("ambari-server restart|stop|start")'
+
+
+def unpack_jce_policy():
+  properties = get_ambari_properties()
+  jdk_path = properties.get_property(JAVA_HOME_PROPERTY)
+  jdk_security_path = jdk_path + os.sep + configDefaults.JDK_SECURITY_DIR
+
+  jce_name = properties.get_property(JCE_NAME_PROPERTY)
+  jce_zip_path = configDefaults.SERVER_RESOURCES_DIR + os.sep + jce_name
+  unpack_cmd = 'unzip -o -j -q {0} -d {1}'.format(jce_zip_path, jdk_security_path)
+
+  if os.path.exists(jdk_security_path) and os.path.exists(jce_zip_path) and validate_jdk(jdk_path):
+    try:
+      retcode, out, err = run_os_command(unpack_cmd)
+      if retcode != 0:
+        raise FatalException(retcode, err)
+    except Exception as e:
+      err = "Fail during the execution of '{0}'. {1}".format(unpack_cmd.format(jce_zip_path, jdk_security_path), e)
+      raise FatalException(1, err)
+  else:
+    err = "Can not execute {0}. The path {1}, {2} or {3} is invalid.".format(unpack_cmd, jdk_security_path, jce_zip_path, jdk_path)
+    raise FatalException(1, err)
+
+#
+# Setup the JCE policy for Ambari Server.
+#
+def setup_jce_policy(path):
+  if os.path.exists(path):
+    copy_cmd = 'cp {0} {1}'.format(path, configDefaults.SERVER_RESOURCES_DIR)
+    try:
+      retcode, out, err = run_os_command(copy_cmd)
+      if retcode != 0:
+        raise FatalException(retcode, err)
+    except Exception as e:
+      err = "Fail during the execution of '{0}'. {1}".format(copy_cmd.format(path, configDefaults.SERVER_RESOURCES_DIR), e)
+      raise FatalException(1, err)
+  else:
+    err = "Can not run 'setup-jce'. Invalid path {0}.".format(path)
+    raise FatalException(1, err)
+  conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
+  properties = get_ambari_properties()
+  zip_name = os.path.split(path)[1]
+  properties.process_pair(JCE_NAME_PROPERTY, zip_name)
+  try:
+    properties.store(open(conf_file, "w"))
+  except Exception, e:
+    print_error_msg('Could not write ambari config file "%s": %s' % (conf_file, e))
+
+  print 'Installing JCE policy...'
+  try:
+    unpack_jce_policy()
+  except FatalException as e:
+    err = 'Installing JCE failed: {0}. Exiting.'.format(e)
+    raise FatalException(e.code, err)
+  print 'NOTE: Restart Ambari Server to apply changes' + \
+        ' ("ambari-server restart|stop|start")'
+
+
 #
 # Setup the Ambari Server.
 #
@@ -2082,6 +2254,24 @@ def setup(args):
   except FatalException as e:
     err = 'Downloading or installing JDK failed: {0}. Exiting.'.format(e)
     raise FatalException(e.code, err)
+
+  print 'Installing JCE policy...'
+  try:
+    unpack_jce_policy()
+  except FatalException as e:
+    err = 'Installing JCE failed: {0}. Exiting.'.format(e)
+    raise FatalException(e.code, err)
+
+
+
+  if not IS_CUSTOM_JDK: # If it's not a custom JDK, will also install JCE policy automatically
+    print 'Installing JCE policy...'
+    try:
+      unpack_jce_policy()
+    except FatalException as e:
+      err = 'Installing JCE failed: {0}. Exiting.'.format(e)
+      raise FatalException(e.code, err)
+
 
   print 'Completing setup...'
   retcode = configure_os_settings()
@@ -4223,6 +4413,8 @@ def main():
     possible_args_numbers = [2,4] # OR
   elif action == BACKUP_ACTION or action == RESTORE_ACTION:
     possible_args_numbers = [1,2]
+  elif action == SETUP_JCE_ACTION:
+    possible_args_numbers = [2]
   else:
     possible_args_numbers = [1]
 
@@ -4244,6 +4436,9 @@ def main():
       start(options)
     elif action == STOP_ACTION:
       stop(options)
+    elif action == SETUP_JCE_ACTION:
+      path = args[1]
+      setup_jce_policy(path)
     elif action == RESET_ACTION:
       reset(options)
     elif action == STATUS_ACTION:

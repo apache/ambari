@@ -2418,6 +2418,119 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     result = _ambari_server_.find_jdk()
     self.assertEqual(result, "two")
 
+  @patch.object(_ambari_server_, "get_ambari_properties")
+  @patch("os.path.exists")
+  @patch.object(_ambari_server_, "run_os_command")
+  @patch.object(_ambari_server_, "validate_jdk")
+  def test_unpack_jce_policy(self, validate_jdk_mock, run_os_command_mock, exists_mock, get_ambari_properties_mock):
+    properties = MagicMock()
+    get_ambari_properties_mock.return_value = properties
+    exists_mock.return_value = True
+    run_os_command_mock.return_value = 0 , "", ""
+    validate_jdk_mock.return_value = True
+
+    _ambari_server_.unpack_jce_policy()
+    self.assertTrue(run_os_command_mock.called)
+    self.assertTrue(validate_jdk_mock.called)
+
+    # Testing with bad jdk_security_path or jce_zip_path
+    exists_mock.return_value = False
+    try:
+      _ambari_server_.unpack_jce_policy()
+    except FatalException:
+      self.assertTrue(True)
+    exists_mock.return_value = True
+
+    # Testing with bad jdk path
+    validate_jdk_mock.return_value = False
+    try:
+      _ambari_server_.unpack_jce_policy()
+    except FatalException:
+      self.assertTrue(True)
+    validate_jdk_mock.return_value = True
+
+    # Testing with return code distinct to 0 for run_os_command
+    run_os_command_mock.return_value = 3 , "", ""
+    try:
+      _ambari_server_.unpack_jce_policy()
+    except FatalException:
+      self.assertTrue(True)
+    run_os_command_mock.return_value = 0 , "", ""
+
+    # Testing with an error produced by run_os_command
+    run_os_command_mock.reset_mock()
+    run_os_command_mock.side_effect = FatalException(1, "The command fails.")
+    try:
+      _ambari_server_.unpack_jce_policy()
+    except FatalException:
+      self.assertTrue(True)
+
+  @patch("os.path.exists")
+  @patch.object(_ambari_server_, "run_os_command")
+  @patch("os.path.split")
+  @patch.object(_ambari_server_, "unpack_jce_policy")
+  @patch.object(_ambari_server_, "get_ambari_properties")
+  @patch.object(_ambari_server_, "search_file")
+  @patch("__builtin__.open")
+  def test_setup_jce_policy(self, open_mock, search_file_mock, get_ambari_properties_mock, unpack_jce_policy_mock, split_mock, run_os_command_mock, exists_mock):
+    exists_mock.return_value = True
+    run_os_command_mock.return_value = 0 , "", ""
+    properties = MagicMock()
+    unpack_jce_policy_mock.return_value = 0
+    get_ambari_properties_mock.return_value = properties
+    conf_file = 'etc/ambari-server/conf/ambari.properties'
+    search_file_mock.return_value = conf_file
+    split_mock.return_value = [_ambari_server_.configDefaults.SERVER_RESOURCES_DIR, 'UnlimitedJCEPolicyJDK7.zip']
+
+    path = '/path/to/JCEPolicy.zip'
+    copy_cmd = 'cp {0} {1}'.format(path, _ambari_server_.configDefaults.SERVER_RESOURCES_DIR)
+
+    _ambari_server_.setup_jce_policy(path)
+    run_os_command_mock.assert_called_with(copy_cmd)
+    self.assertTrue(unpack_jce_policy_mock.called)
+    self.assertTrue(get_ambari_properties_mock.called)
+    self.assertTrue(properties.store.called)
+
+    # Testing with bad path
+    exists_mock.return_value = False
+    try:
+      _ambari_server_.setup_jce_policy(path)
+    except FatalException:
+      self.assertTrue(True)
+    exists_mock.return_value = True
+
+    # Testing with return code distinct to 0 for run_os_command
+    run_os_command_mock.return_value = 2, "", "Fail"
+    try:
+      _ambari_server_.setup_jce_policy(path)
+    except FatalException:
+      self.assertTrue(True)
+    run_os_command_mock.return_value = 0, "", ""
+
+    # Testing with an error produced by run_os_command
+    run_os_command_mock.reset_mock()
+    run_os_command_mock.side_effect = FatalException(1, "The command fails.")
+    try:
+      _ambari_server_.setup_jce_policy(path)
+    except FatalException:
+      self.assertTrue(True)
+    run_os_command_mock.return_value = 0, "", ""
+
+    # Testing with an error produced by Properties.store function
+    properties.store.side_effect = Exception("Invalid file.")
+    try:
+      _ambari_server_.setup_jce_policy(path)
+    except Exception:
+      self.assertTrue(True)
+    properties.reset_mock()
+
+    # Testing with an error produced by unpack_jce_policy
+    unpack_jce_policy_mock.side_effect = FatalException(1, "Can not install JCE policy")
+    try:
+      _ambari_server_.setup_jce_policy(path)
+    except FatalException:
+      self.assertTrue(True)
+
   @patch("ambari_commons.firewall.run_os_command")
   @patch.object(OSCheck, "get_os_family")
   @patch.object(OSCheck, "get_os_type")
@@ -2446,7 +2559,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(_ambari_server_, "extract_views")
   @patch.object(_ambari_server_, "adjust_directory_permissions")
   @patch.object(_ambari_server_, 'read_ambari_user')
-  def test_setup(self, read_ambari_user_mock, adjust_dirs_mock, extract_views_mock, proceedJDBCProperties_mock, is_server_runing_mock, is_root_mock, store_local_properties_mock,
+  @patch.object(_ambari_server_, "unpack_jce_policy")
+  def test_setup(self, unpack_jce_policy_mock, read_ambari_user_mock, adjust_dirs_mock, extract_views_mock, proceedJDBCProperties_mock, is_server_runing_mock, is_root_mock, store_local_properties_mock,
                  is_local_database_mock, store_remote_properties_mock,
                  setup_remote_db_mock, check_selinux_mock, check_jdbc_drivers_mock, check_ambari_user_mock,
                  check_postgre_up_mock, setup_db_mock, configure_postgres_mock,
@@ -2465,6 +2579,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
     run_os_command_mock.return_value = 3,"",""
     extract_views_mock.return_value = 0
+    unpack_jce_policy_mock.return_value = 0
 
     def reset_mocks():
       is_jdbc_user_changed_mock.reset_mock()
@@ -2573,6 +2688,19 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(proceedJDBCProperties_mock.called)
     self.assertFalse(check_selinux_mock.called)
     self.assertFalse(check_ambari_user_mock.called)
+
+
+    # Test that unpack_jce_policy is called
+    reset_mocks()
+    _ambari_server_.setup(args)
+    self.assertTrue(unpack_jce_policy_mock.called)
+
+    # Testing with an error produced by unpack_jce_policy
+    unpack_jce_policy_mock.side_effect = FatalException(1, "Can not install JCE policy")
+    try:
+      _ambari_server_.setup(args)
+    except FatalException:
+      self.assertTrue(True)
 
   @patch.object(_ambari_server_, "get_remote_script_line")
   @patch.object(_ambari_server_, "is_server_runing")
@@ -3958,7 +4086,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(_ambari_server_, "configure_os_settings")
   @patch('__builtin__.raw_input')
   @patch.object(_ambari_server_, "check_selinux")
-  def test_setup_remote_db_wo_client(self, check_selinux_mock, raw_input, configure_os_settings_mock,
+  @patch.object(_ambari_server_, "unpack_jce_policy")
+  def test_setup_remote_db_wo_client(self, unpack_jce_policy_mock, check_selinux_mock, raw_input, configure_os_settings_mock,
                                      download_jdk_mock, check_ambari_user_mock, is_root_mock,
                                      check_jdbc_drivers_mock, is_local_db_mock,
                                      store_remote_properties_mock, get_db_cli_tool_mock, get_YN_input,
@@ -3982,6 +4111,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     download_jdk_mock.return_value = 0
     configure_os_settings_mock.return_value = 0
     verify_setup_allowed_method.return_value = 0
+    unpack_jce_policy_mock.return_value = 0
 
     try:
       _ambari_server_.setup(args)
@@ -5407,7 +5537,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(_ambari_server_, "adjust_directory_permissions")
   @patch("sys.exit")
   @patch('__builtin__.raw_input')
-  def test_ambariServerSetupWithCustomDbName(self, raw_input, exit_mock, adjust_dirs_mock, extract_views_mock, store_password_file_mock,
+  @patch.object(_ambari_server_, "unpack_jce_policy")
+  def test_ambariServerSetupWithCustomDbName(self, unpack_jce_policy_mock, raw_input, exit_mock, adjust_dirs_mock, extract_views_mock, store_password_file_mock,
                                              get_is_secure_mock, setup_db_mock, is_root_mock, is_local_database_mock,
                                              check_selinux_mock, check_jdbc_drivers_mock, check_ambari_user_mock,
                                              check_postgre_up_mock, configure_postgres_mock,
@@ -5438,6 +5569,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_os_type_mock.return_value = ""
     get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
     run_os_command_mock.return_value = 3,"",""
+    unpack_jce_policy_mock.return_value = 0
 
     new_db = "newDBName"
     args.dbms = "postgres"

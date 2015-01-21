@@ -156,6 +156,8 @@ class ServerConfigDefaults(object):
     self.JDK_INSTALL_DIR = ""
     self.JDK_SEARCH_PATTERN = ""
     self.JAVA_EXE_SUBPATH = ""
+    self.JDK_SECURITY_DIR = "jre/lib/security"
+    self.SERVER_RESOURCES_DIR = "/var/lib/ambari-server/resources"
 
     # Configuration defaults
     self.DEFAULT_CONF_DIR = ""

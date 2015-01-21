@@ -111,6 +111,10 @@ case "$1" in
         echo -e "Setup ambari-server"
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
+  setup-jce)
+        echo -e "Updating jce policy"
+        $PYTHON /usr/sbin/ambari-server.py $@
+        ;;
   setup-ldap)
         echo -e "Setting up LDAP properties..."
         $PYTHON /usr/sbin/ambari-server.py $@
@@ -137,7 +141,7 @@ case "$1" in
         ;;
   *)
         echo "Usage: /usr/sbin/ambari-server
-        {start|stop|restart|setup|upgrade|status|upgradestack|setup-ldap|sync-ldap|setup-security|refresh-stack-hash|backup|restore} [options]
+        {start|stop|restart|setup|setup-jce|upgrade|status|upgradestack|setup-ldap|sync-ldap|setup-security|refresh-stack-hash|backup|restore} [options]
         Use usr/sbin/ambari-server <action> --help to get details on options available.
         Or, simply invoke ambari-server.py --help to print the options."
         exit 1
