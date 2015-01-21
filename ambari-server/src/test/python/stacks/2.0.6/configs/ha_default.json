@@ -228,6 +228,9 @@
             "ipc.client.connection.maxidletime": "30000", 
             "hadoop.security.auth_to_local": "\n        RULE:[2:$1@$0]([rn]m@.*)s/.*/yarn/\n        RULE:[2:$1@$0](jhs@.*)s/.*/mapred/\n        RULE:[2:$1@$0]([nd]n@.*)s/.*/hdfs/\n        RULE:[2:$1@$0](hm@.*)s/.*/hbase/\n        RULE:[2:$1@$0](rs@.*)s/.*/hbase/\n        DEFAULT"
         }, 
+        "ranger-hdfs-plugin-properties" : {
+            "ranger-hdfs-plugin-enabled":"yes"
+        },
         "hdfs-log4j": {
             "log4j.appender.DRFA.layout": "org.apache.log4j.PatternLayout", 
             "log4j.appender.DRFA.layout.ConversionPattern": "%d{ISO8601} %p %c: %m%n", 

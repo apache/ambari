@@ -3,6 +3,8 @@
   "_comment" : "blockedRole-blockedCommand: [blockerRole1-blockerCommand1, blockerRole2-blockerCommand2, ...]",
   "general_deps" : {
     "_comment" : "dependencies for all cases",
+    "RANGER_SERVICE_CHECK-SERVICE_CHECK" : ["RANGER_ADMIN-START"],
+    "RANGER_SERVICE_CHECK-SERVICE_CHECK" : ["RANGER_USERSYNC-START"],
     "FALCON_SERVER-START": ["NAMENODE-START", "DATANODE-START", "OOZIE_SERVER-START"],
     "METRIC_COLLECTOR-START": ["NAMENODE-START", "DATANODE-START"],
     "AMS_SERVICE_CHECK-SERVICE_CHECK": ["METRIC_COLLECTOR-START", "HDFS_SERVICE_CHECK-SERVICE_CHECK"],

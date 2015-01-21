@@ -36,7 +36,7 @@ from hdfs_namenode import namenode
 from hdfs import hdfs
 import hdfs_rebalance
 from utils import failover_namenode
-
+from setup_ranger_hdfs import setup_ranger_hdfs
 
 class NameNode(Script):
 
@@ -70,6 +70,7 @@ class NameNode(Script):
 
     env.set_params(params)
     self.configure(env)
+    setup_ranger_hdfs(env)
     namenode(action="start", rolling_restart=rolling_restart, env=env)
 
   def post_rolling_restart(self, env):

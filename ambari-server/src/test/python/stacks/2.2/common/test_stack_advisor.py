@@ -159,10 +159,20 @@ class TestHDP22StackAdvisor(TestCase):
       },
       'core-site': {
         'properties': unsecure_cluster_core_site
+      },
+      'ranger-hdfs-plugin-properties':{
+          'properties': {'ranger-hdfs-plugin-enabled':'Yes'}
       }
     }
+    services = {"services":
+                    [{"StackServices":
+                          {"service_name" : "HDFS",
+                           "service_version" : "2.6.0.2.2",
+                           }
+                     }]
+                }
     expected = []  # No warnings
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
     self.assertEquals(validation_problems, expected)
 
     # TEST CASE: Unsecured cluster, unsecure ports
@@ -176,10 +186,22 @@ class TestHDP22StackAdvisor(TestCase):
         },
       'core-site': {
         'properties': unsecure_cluster_core_site
+      },
+      'ranger-hdfs-plugin-properties': {
+          'properties':{
+              'ranger-hdfs-plugin-enabled':'Yes'
+          }
       }
     }
     expected = []  # No warnings
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
+    services = {"services":
+                [{"StackServices":
+                      {"service_name" : "HDFS",
+                       "service_version" : "2.6.0.2.2",
+                       }
+                 }]
+            }
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
     self.assertEquals(validation_problems, expected)
 
     # TEST CASE: Secure cluster, invalid dfs.http.policy value
@@ -194,6 +216,11 @@ class TestHDP22StackAdvisor(TestCase):
       },
       'core-site': {
         'properties': secure_cluster_core_site
+      },
+      'ranger-hdfs-plugin-properties': {
+          'properties':{
+              'ranger-hdfs-plugin-enabled':'Yes'
+          }
       }
     }
     expected = [{'config-name': 'dfs.http.policy',
@@ -201,7 +228,14 @@ class TestHDP22StackAdvisor(TestCase):
                  'level': 'WARN',
                  'message': "Invalid property value: WRONG_VALUE. Valid values are ['HTTP_ONLY', 'HTTPS_ONLY', 'HTTP_AND_HTTPS']",
                  'type': 'configuration'}]
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
+    services = {"services":
+            [{"StackServices":
+                  {"service_name" : "HDFS",
+                   "service_version" : "2.6.0.2.2",
+                   }
+             }]
+        }
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
     self.assertEquals(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, https address not defined
@@ -215,10 +249,22 @@ class TestHDP22StackAdvisor(TestCase):
         },
       'core-site': {
         'properties': secure_cluster_core_site
+      },
+      'ranger-hdfs-plugin-properties': {
+          'properties':{
+              'ranger-hdfs-plugin-enabled':'Yes'
+          }
       }
     }
     expected = [ ]
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
+    services = {"services":
+            [{"StackServices":
+                  {"service_name" : "HDFS",
+                   "service_version" : "2.6.0.2.2",
+                   }
+             }]
+        }
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
     self.assertEquals(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, https address defined and secure
@@ -233,10 +279,22 @@ class TestHDP22StackAdvisor(TestCase):
         },
       'core-site': {
         'properties': secure_cluster_core_site
+      },
+      'ranger-hdfs-plugin-properties': {
+          'properties':{
+              'ranger-hdfs-plugin-enabled':'Yes'
+          }
       }
     }
     expected = []
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
+    services = {"services":
+            [{"StackServices":
+                  {"service_name" : "HDFS",
+                   "service_version" : "2.6.0.2.2",
+                   }
+             }]
+        }
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
     self.assertEquals(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, https address defined and non secure
@@ -251,10 +309,22 @@ class TestHDP22StackAdvisor(TestCase):
       },
       'core-site': {
         'properties': secure_cluster_core_site
+      },
+      'ranger-hdfs-plugin-properties': {
+          'properties':{
+              'ranger-hdfs-plugin-enabled':'Yes'
+          }
       }
     }
     expected = []
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
+    services = {"services":
+            [{"StackServices":
+                  {"service_name" : "HDFS",
+                   "service_version" : "2.6.0.2.2",
+                   }
+             }]
+        }
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
     self.assertEquals(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, non secure dfs port, https property not defined
@@ -268,7 +338,13 @@ class TestHDP22StackAdvisor(TestCase):
       },
       'core-site': {
         'properties': secure_cluster_core_site
+      },
+      'ranger-hdfs-plugin-properties': {
+          'properties':{
+              'ranger-hdfs-plugin-enabled':'Yes'
+          }
       }
+
     }
     expected = [{'config-name': 'dfs.datanode.address',
                  'config-type': 'hdfs-site',
@@ -298,7 +374,7 @@ class TestHDP22StackAdvisor(TestCase):
                             "order to be able to use HTTPS.",
                  'type': 'configuration'}
     ]
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
     self.assertEquals(validation_problems, expected)
 
 
@@ -314,6 +390,11 @@ class TestHDP22StackAdvisor(TestCase):
         },
       'core-site': {
         'properties': secure_cluster_core_site
+      },
+      'ranger-hdfs-plugin-properties': {
+          'properties':{
+              'ranger-hdfs-plugin-enabled':'Yes'
+          }
       }
     }
     expected = [{'config-name': 'dfs.datanode.address',
@@ -343,7 +424,7 @@ class TestHDP22StackAdvisor(TestCase):
                             "able to use HTTPS.",
                  'type': 'configuration'}
     ]
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
     self.assertEquals(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, valid non-root configuration
@@ -359,10 +440,15 @@ class TestHDP22StackAdvisor(TestCase):
       },
       'core-site': {
         'properties': secure_cluster_core_site
+      },
+      'ranger-hdfs-plugin-properties': {
+          'properties':{
+              'ranger-hdfs-plugin-enabled':'Yes'
+          }
       }
     }
     expected = []
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
     self.assertEquals(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTP_ONLY, insecure port
@@ -377,6 +463,11 @@ class TestHDP22StackAdvisor(TestCase):
       },
       'core-site': {
         'properties': secure_cluster_core_site
+      },
+      'ranger-hdfs-plugin-properties': {
+          'properties':{
+              'ranger-hdfs-plugin-enabled':'Yes'
+          }
       }
     }
     expected = [{'config-name': 'dfs.datanode.address',
@@ -398,7 +489,7 @@ class TestHDP22StackAdvisor(TestCase):
                             "['dfs.datanode.address', 'dfs.datanode.http.address'] use secure ports.",
                  'type': 'configuration'}
                 ]
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
     self.assertEquals(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTP_ONLY, valid configuration
@@ -413,10 +504,15 @@ class TestHDP22StackAdvisor(TestCase):
         },
       'core-site': {
         'properties': secure_cluster_core_site
+      },
+      'ranger-hdfs-plugin-properties': {
+          'properties':{
+              'ranger-hdfs-plugin-enabled':'Yes'
+          }
       }
     }
     expected = []
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
     self.assertEquals(validation_problems, expected)
 
     # TEST CASE: Secure cluster, absent dfs.http.policy (typical situation)
@@ -430,10 +526,15 @@ class TestHDP22StackAdvisor(TestCase):
         },
       'core-site': {
         'properties': secure_cluster_core_site
+      },
+      'ranger-hdfs-plugin-properties': {
+          'properties':{
+              'ranger-hdfs-plugin-enabled':'Yes'
+          }
       }
     }
     expected = []
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
     self.assertEquals(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTP_ONLY, misusage of dfs.data.transfer.protection warning
@@ -449,6 +550,11 @@ class TestHDP22StackAdvisor(TestCase):
         },
       'core-site': {
         'properties': secure_cluster_core_site
+      },
+      'ranger-hdfs-plugin-properties': {
+          'properties':{
+              'ranger-hdfs-plugin-enabled':'Yes'
+          }
       }
     }
     expected = [{'config-name': 'dfs.data.transfer.protection',
@@ -457,7 +563,7 @@ class TestHDP22StackAdvisor(TestCase):
                  'message': "dfs.data.transfer.protection property can not be used when dfs.http.policy is "
                             "set to any value other then HTTPS_ONLY. Tip: When dfs.http.policy property is not defined, it defaults to HTTP_ONLY",
                  'type': 'configuration'}]
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
     self.assertEquals(validation_problems, expected)
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, wrong dfs.data.transfer.protection value
@@ -473,6 +579,11 @@ class TestHDP22StackAdvisor(TestCase):
       },
       'core-site': {
         'properties': secure_cluster_core_site
+      },
+      'ranger-hdfs-plugin-properties': {
+          'properties':{
+              'ranger-hdfs-plugin-enabled':'Yes'
+          }
       }
     }
     expected = [{'config-name': 'dfs.data.transfer.protection',
@@ -480,7 +591,7 @@ class TestHDP22StackAdvisor(TestCase):
                  'level': 'WARN',
                  'message': "Invalid property value: WRONG_VALUE. Valid values are ['authentication', 'integrity', 'privacy'].",
                  'type': 'configuration'}]
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
     self.assertEquals(validation_problems, expected)
 
     # TEST CASE: Hadoop wire encryption enabled
@@ -496,10 +607,15 @@ class TestHDP22StackAdvisor(TestCase):
       },
       'core-site': {
         'properties': secure_cluster_core_site
+      },
+      'ranger-hdfs-plugin-properties': {
+          'properties':{
+              'ranger-hdfs-plugin-enabled':'Yes'
+          }
       }
     }
     expected = []  # No warnings
-    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, None, None)
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
     self.assertEquals(validation_problems, expected)
 
   def test_recommendYARNConfigurations(self):
@@ -631,11 +747,22 @@ class TestHDP22StackAdvisor(TestCase):
       'hdfs-site': {
         'properties': {
           'dfs.datanode.max.transfer.threads': '16384'
-        }
+        },
       }
     }
-
-    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, '', '')
+    services = {"services":
+                    [{"StackServices":
+                          {"service_name" : "HDFS",
+                           "service_version" : "2.6.0.2.2",
+                           }
+                     }],
+                "configurations": {
+                    'ranger-hdfs-plugin-properties':{
+                        "properties": {"ranger-hdfs-plugin-enabled":"Yes"}
+                    }
+                }
+                }
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, '')
     self.assertEquals(configurations, expected)
 
   def test_validateHDFSConfigurationsEnv(self):

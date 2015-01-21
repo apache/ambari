@@ -26,6 +26,7 @@ from resource_management.libraries.functions.security_commons import build_expec
 from hbase import hbase
 from hbase_service import hbase_service
 import upgrade
+from setup_ranger_hbase import setup_ranger_hbase
 
          
 class HbaseRegionServer(Script):
@@ -56,7 +57,7 @@ class HbaseRegionServer(Script):
     import params
     env.set_params(params)
     self.configure(env) # for security
-
+    setup_ranger_hbase(env)  
     hbase_service( 'regionserver',
       action = 'start'
     )

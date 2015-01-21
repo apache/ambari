@@ -331,6 +331,9 @@
             "ipc.client.connection.maxidletime": "30000", 
             "ipc.client.connect.max.retries": "50"
         }, 
+        "ranger-hive-plugin-properties" : {
+            "ranger-hive-plugin-enabled":"yes"
+        },
         "hive-site": {
             "hive.enforce.sorting": "true", 
             "javax.jdo.option.ConnectionPassword": "!`\"' 1", 
