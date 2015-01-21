@@ -122,19 +122,19 @@ angular.module('ambariAdminConsole')
       payload.repository_version = stack.stack_version + '.' + repoSubversion;
       payload.display_name = stack.stack_name + '-' + payload.repository_version;
       payloadWrap.operating_systems = [];
-      angular.forEach(osList, function (osItem) {
+      osList.forEach(function (osItem) {
         if (osItem.selected)
         {
           payloadWrap.operating_systems.push({
             "OperatingSystems" : {
-              "os_type" : osItem.os
+              "os_type" : osItem.OperatingSystems.os_type
             },
-            "repositories" : osItem.packages.map(function (pack) {
+            "repositories" : osItem.repositories.map(function (repo) {
               return {
                 "Repositories" : {
-                  "repo_id": (pack.label + '-' + payload.repository_version),
-                  "repo_name": pack.label,
-                  "base_url": pack.value? pack.value : ''
+                  "repo_id": repo.Repositories.repo_id,
+                  "repo_name": repo.Repositories.repo_name,
+                  "base_url": repo.Repositories.base_url
                 }
               };
             })
@@ -197,10 +197,9 @@ angular.module('ambariAdminConsole')
     },
 
     getSupportedOSList: function (stackName, stackVersion) {
-      //http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2?fields=operating_systems
-      var url = Settings.baseUrl + '/stacks/' + stackName + '/versions/' + stackVersion + '?fields=operating_systems'
+      var url = Settings.baseUrl + '/stacks/' + stackName + '/versions/' + stackVersion + '?fields=operating_systems/repositories/Repositories'
       var deferred = $q.defer();
-      $http.get(url, {mock: 'stacks/operatingSystems.json'})
+      $http.get(url, {mock: 'stack/operatingSystems.json'})
       .success(function (data) {
         deferred.resolve(data);
       })
@@ -208,6 +207,51 @@ angular.module('ambariAdminConsole')
         deferred.reject(data);
       });
       return deferred.promise;
+    },
+
+    validateBaseUrls: function(skip, osList, stack) {
+      var deferred = $q.defer(),
+        url = Settings.baseUrl + '/stacks/' + stack.stack_name + '/versions/' + stack.stack_version,
+        totalCalls = 0,
+        invalidUrls = [];
+
+      if (skip) {
+        deferred.resolve(invalidUrls);
+      } else {
+        osList.forEach(function (os) {
+          if (os.selected) {
+            os.repositories.forEach(function (repo) {
+              totalCalls++;
+              $http.post(url + '/operating_systems/' + os.OperatingSystems.os_type + '/repositories/' + repo.Repositories.repo_id + '?validate_only=true',
+                {
+                  "Repositories": {
+                    "base_url": repo.Repositories.base_url
+                  }
+                },
+                {
+                  repo: repo
+                }
+              )
+                .success(function () {
+                  totalCalls--;
+                  if (totalCalls === 0) deferred.resolve(invalidUrls);
+                })
+                .error(function (response, status, callback, params) {
+                  invalidUrls.push(params.repo);
+                  totalCalls--;
+                  if (totalCalls === 0) deferred.resolve(invalidUrls);
+                });
+            });
+          }
+        });
+      }
+      return deferred.promise;
+    },
+
+    highlightInvalidUrls :function(invalidrepos) {
+      invalidrepos.forEach(function(repo) {
+        repo.hasError = true;
+      });
     }
 
   };

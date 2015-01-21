@@ -88,12 +88,12 @@ angular.module('ambariAdminConsole')
     },
     create: {
       url: '/stackVersions/create',
-      templateUrl: 'views/stackVersions/create.html',
+      templateUrl: 'views/stackVersions/stackVersionPage.html',
       controller: 'StackVersionsCreateCtrl'
     },
     edit: {
       url: '/stackVersions/:stackName/:versionId/edit',
-      templateUrl: 'views/stackVersions/edit.html',
+      templateUrl: 'views/stackVersions/stackVersionPage.html',
       controller: 'StackVersionsEditCtrl'
     }
   },
