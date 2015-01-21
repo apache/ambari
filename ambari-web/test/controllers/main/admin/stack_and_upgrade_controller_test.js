@@ -359,16 +359,38 @@ describe('App.MainAdminStackAndUpgradeController', function() {
                     }
                   }
                 ]
+              },
+              {
+                UpgradeItem: {
+                  stage_id: 2
+                },
+                tasks: [
+                  {
+                    Tasks: {
+                      id: 2
+                    }
+                  }
+                ]
               }
+            ]
+          },
+          {
+            UpgradeGroup: {
+              group_id: 2
+            },
+            upgrade_items: [
+
             ]
           }
         ]
       };
       controller.initUpgradeData(newData);
       expect(controller.get('upgradeData.Upgrade.request_id')).to.equal(1);
-      expect(controller.get('upgradeData.upgradeGroups')[0].get('group_id')).to.equal(1);
-      expect(controller.get('upgradeData.upgradeGroups')[0].get('upgradeItems')[0].get('stage_id')).to.equal(1);
-      expect(controller.get('upgradeData.upgradeGroups')[0].get('upgradeItems')[0].get('tasks')[0].get('id')).to.equal(1);
+      expect(controller.get('upgradeData.upgradeGroups')[0].get('group_id')).to.equal(2);
+      expect(controller.get('upgradeData.upgradeGroups')[1].get('group_id')).to.equal(1);
+      expect(controller.get('upgradeData.upgradeGroups')[1].get('upgradeItems')[0].get('stage_id')).to.equal(2);
+      expect(controller.get('upgradeData.upgradeGroups')[1].get('upgradeItems')[1].get('stage_id')).to.equal(1);
+      expect(controller.get('upgradeData.upgradeGroups')[1].get('upgradeItems')[0].get('tasks')[0].get('id')).to.equal(2);
     });
   });
 

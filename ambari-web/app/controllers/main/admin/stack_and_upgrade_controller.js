@@ -243,9 +243,11 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         oldItem.set('tasks', tasks);
         upgradeItems.pushObject(oldItem);
       });
+      upgradeItems.reverse();
       oldGroup.set('upgradeItems', upgradeItems);
       upgradeGroups.pushObject(oldGroup);
     });
+    upgradeGroups.reverse();
     this.set('upgradeData', Em.Object.create({
       upgradeGroups: upgradeGroups,
       Upgrade: newData.Upgrade

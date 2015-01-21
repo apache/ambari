@@ -78,13 +78,7 @@ App.upgradeWizardView = Em.View.extend({
    * @type {Array}
    */
   upgradeGroups: function () {
-    if (Em.isNone(this.get('controller.upgradeData.upgradeGroups'))) return [];
-    var upgradeGroups = this.get('controller.upgradeData.upgradeGroups');
-    upgradeGroups.forEach(function (group) {
-      group.get('upgradeItems').reverse();
-    });
-    upgradeGroups.reverse();
-    return upgradeGroups;
+    return this.get('controller.upgradeData.upgradeGroups') || [];
   }.property('controller.upgradeData.upgradeGroups'),
 
   /**
