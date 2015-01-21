@@ -682,12 +682,13 @@ App.config = Em.Object.create({
         var serviceConfigProperty = App.ServiceConfigProperty.create(_config);
         this.updateHostOverrides(serviceConfigProperty, _config);
         if (!storedConfigs && !serviceConfigProperty.get('hasInitialValue')) {
-          var hiveMetastoreUrisDefault;
-          var hiveMetastoreUrisConfig = serviceConfigs.findProperty('name', 'hive.metastore.uris');
-          if (hiveMetastoreUrisConfig) {
-            hiveMetastoreUrisDefault = hiveMetastoreUrisConfig.defaultValue;
-          }
-          serviceConfigProperty.initialValue(localDB, hiveMetastoreUrisDefault);
+          var hiveMetastoreUrisConfig = configs.filterProperty('filename', 'hive-site.xml').findProperty('name', 'hive.metastore.uris');
+          var clientPortConfig = configs.filterProperty('filename', 'zoo.cfg.xml').findProperty('name', 'clientPort');
+          var dependencies = {
+            'hive.metastore.uris': hiveMetastoreUrisConfig && hiveMetastoreUrisConfig.defaultValue,
+            'clientPort': clientPortConfig && clientPortConfig.defaultValue
+          };
+          serviceConfigProperty.initialValue(localDB, dependencies);
         }
         if (storedConfigs && storedConfigs.filterProperty('name', _config.name).length && !!_config.filename) {
           var storedConfig = storedConfigs.filterProperty('name', _config.name).findProperty('filename', _config.filename);

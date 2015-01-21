@@ -789,6 +789,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     }
     if ((services.someProperty('serviceName', 'YARN') && App.get('isHadoop22Stack')) || App.get('isRMHaEnabled')) {
       urlParams.push('(type=yarn-site&tag=' + data.Clusters.desired_configs['yarn-site'].tag + ')');
+      urlParams.push('(type=zoo.cfg&tag=' + data.Clusters.desired_configs['zoo.cfg'].tag + ')');
     }
     return urlParams;
   },
@@ -805,7 +806,9 @@ App.MainHostDetailsController = Em.Controller.extend({
     }, this);
 
     var zks = this.getZkServerHosts();
-    var zksWithPort = this.concatZkNames(zks);
+    var portValue = configs['zoo.cfg'] && Em.get(configs['zoo.cfg'], 'clientPort');
+    var zkPort = typeof portValue === 'udefined' ? '2181' : portValue;
+    var zksWithPort = this.concatZkNames(zks, zkPort);
     this.setZKConfigs(configs, zksWithPort, zks);
     var groups = [
       {
@@ -842,7 +845,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       configs['storm-site']['storm.zookeeper.servers'] = JSON.stringify(zks).replace(/"/g, "'");
     }
     if (App.get('isRMHaEnabled')) {
-      configs['yarn-site']['yarn.resourcemanager.zk-address'] = zks.join(',');
+      configs['yarn-site']['yarn.resourcemanager.zk-address'] = zksWithPort;
     }
     if (App.get('isHadoop22Stack')) {
       if (configs['hive-site']) {
@@ -858,11 +861,12 @@ App.MainHostDetailsController = Em.Controller.extend({
    * concatenate URLs to ZOOKEEPER hosts with port "2181",
    * as value of config divided by comma
    * @param zks {array}
+   * @param port {string}
    */
-  concatZkNames: function (zks) {
+  concatZkNames: function (zks, port) {
     var zks_with_port = '';
     zks.forEach(function (zk) {
-      zks_with_port += zk + ':2181,';
+      zks_with_port += zk + ':' + port + ',';
     });
     return zks_with_port.slice(0, -1);
   },

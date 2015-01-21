@@ -276,7 +276,7 @@ App.ServiceConfigProperty = Em.Object.extend({
     return result;
   }.property('displayType'),
 
-  initialValue: function (localDB, hiveMetastoreUrisDefault) {
+  initialValue: function (localDB, dependencies) {
     var masterComponentHostsInDB = localDB.masterComponentHosts;
     //console.log("value in initialvalue: " + JSON.stringify(masterComponentHostsInDB));
     var hostsInfo = localDB.hosts; // which we are setting in installerController in step3.
@@ -481,7 +481,7 @@ App.ServiceConfigProperty = Em.Object.extend({
         this.set('value', hiveServerHost).set('defaultValue', hiveServerHost);
         break;
       case 'hive.metastore.uris':
-        var hiveMSUris = this.getHiveMetastoreUris(masterComponentHostsInDB, hiveMetastoreUrisDefault);
+        var hiveMSUris = this.getHiveMetastoreUris(masterComponentHostsInDB, dependencies['hive.metastore.uris']);
         if (hiveMSUris) {
           this.setDefaultValue("(.*)", hiveMSUris);
         }
@@ -540,6 +540,13 @@ App.ServiceConfigProperty = Em.Object.extend({
           this.setDefaultValue("(\\w*)", zkHosts);
         }
         break;
+      case 'yarn.resourcemanager.zk-address':
+        var value = masterComponentHostsInDB.findProperty('component', 'ZOOKEEPER_SERVER').hostName + ':' + dependencies.clientPort;
+        this.setProperties({
+          value: value,
+          defaultValue: value
+        });
+        break;
       case 'zookeeper.connect':
       case 'hive.zookeeper.quorum':
       case 'templeton.zookeeper.hosts':
@@ -558,7 +565,7 @@ App.ServiceConfigProperty = Em.Object.extend({
         this.setDefaultValue("(.*)", zkHostPort);
         break;
       case 'templeton.hive.properties':
-        var hiveMSUris = this.getHiveMetastoreUris(masterComponentHostsInDB, hiveMetastoreUrisDefault).replace(',', '\\,');
+        var hiveMSUris = this.getHiveMetastoreUris(masterComponentHostsInDB, dependencies['hive.metastore.uris']).replace(',', '\\,');
         if (/\/\/localhost:/g.test(this.get('value'))) {
           this.set('defaultValue', this.get('value') + ',hive.metastore.execute.setugi=true');
         }

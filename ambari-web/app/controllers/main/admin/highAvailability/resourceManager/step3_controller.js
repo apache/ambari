@@ -25,6 +25,12 @@ App.RMHighAvailabilityWizardStep3Controller = Em.Controller.extend({
 
   versionLoaded: true,
 
+  isLoaded: false,
+
+  isSubmitDisabled: function () {
+    return !this.get('isLoaded');
+  }.property('isLoaded'),
+
   loadStep: function () {
     this.renderConfigs();
   },
@@ -51,23 +57,66 @@ App.RMHighAvailabilityWizardStep3Controller = Em.Controller.extend({
     }, this);
 
     this.renderConfigProperties(configs, serviceConfig);
-    this.setDynamicConfigValues(serviceConfig);
+    App.ajax.send({
+      name: 'config.tags',
+      sender: this,
+      success: 'loadConfigTagsSuccessCallback',
+      error: 'loadConfigsErrorCallback',
+      data: {
+        serviceConfig: serviceConfig
+      }
+    });
 
-    this.set('selectedService', serviceConfig);
+  },
+
+  loadConfigTagsSuccessCallback: function (data, opt, params) {
+    var urlParams = '(type=zoo.cfg&tag=' + data.Clusters.desired_configs['zoo.cfg'].tag + ')';
+    App.ajax.send({
+      name: 'reassign.load_configs',
+      sender: this,
+      data: {
+        urlParams: urlParams,
+        serviceConfig: params.serviceConfig
+      },
+      success: 'loadConfigsSuccessCallback',
+      error: 'loadConfigsErrorCallback'
+    });
+  },
+
+  loadConfigsSuccessCallback: function (data, opt, params) {
+    var zooCfg = data.items.findProperty('type', 'zoo.cfg');
+    var portValue = zooCfg && Em.get(zooCfg, 'properties.clientPort');
+    var zkPort = typeof portValue === 'undefined' ? '2181' : portValue;
+    this.setDynamicConfigValues(params.serviceConfig, zkPort);
+    this.setProperties({
+      selectedService: params.serviceConfig,
+      isLoaded: true
+    });
+  },
+
+  loadConfigsErrorCallback: function (request, ajaxOptions, error, data, params) {
+    this.setDynamicConfigValues(params.serviceConfig, '2181');
+    this.setProperties({
+      selectedService: params.serviceConfig,
+      isLoaded: true
+    });
   },
 
   /**
    * Set values dependent on host selection
    * @param configs
+   * @param zkPort
    */
-  setDynamicConfigValues: function (configs) {
+  setDynamicConfigValues: function (configs, zkPort) {
     var configProperties = configs.configs;
     var currentRMHost = this.get('content.rmHosts.currentRM');
     var additionalRMHost = this.get('content.rmHosts.additionalRM');
-    var zooKeeperHosts = App.HostComponent.find().filterProperty('componentName', 'ZOOKEEPER_SERVER').mapProperty('host.hostName').join(',');
+    var zooKeeperHostsWithPort = App.HostComponent.find().filterProperty('componentName', 'ZOOKEEPER_SERVER').map(function (item) {
+      return item.get('host.hostName') + ':' + zkPort;
+    }).join(',');
     configProperties.findProperty('name', 'yarn.resourcemanager.hostname.rm1').set('value', currentRMHost).set('defaultValue', currentRMHost);
     configProperties.findProperty('name', 'yarn.resourcemanager.hostname.rm2').set('value', additionalRMHost).set('defaultValue', additionalRMHost);
-    configProperties.findProperty('name', 'yarn.resourcemanager.zk-address').set('value', zooKeeperHosts).set('defaultValue', zooKeeperHosts);
+    configProperties.findProperty('name', 'yarn.resourcemanager.zk-address').set('value', zooKeeperHostsWithPort).set('defaultValue', zooKeeperHostsWithPort);
   },
 
   /**

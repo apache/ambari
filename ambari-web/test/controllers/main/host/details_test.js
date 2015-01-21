@@ -676,15 +676,15 @@ describe('App.MainHostDetailsController', function () {
         id: 'YARN',
         service_name: 'YARN'
       });
-      var data = {Clusters: {desired_configs: {'yarn-site': {tag: 1}}}};
-      expect(controller.constructConfigUrlParams(data)).to.eql(['(type=yarn-site&tag=1)']);
+      var data = {Clusters: {desired_configs: {'yarn-site': {tag: 1}, 'zoo.cfg': {tag: 1}}}};
+      expect(controller.constructConfigUrlParams(data)).to.eql(['(type=yarn-site&tag=1)', '(type=zoo.cfg&tag=1)']);
       App.set('currentStackVersion', 'HDP-2.0.1');
       App.Service.find().clear();
     });
     it('isRMHaEnabled true', function () {
       sinon.stub(App, 'get').withArgs('isRMHaEnabled').returns(true);
-      var data = {Clusters: {desired_configs: {'yarn-site': {tag: 1}}}};
-      expect(controller.constructConfigUrlParams(data)).to.eql(['(type=yarn-site&tag=1)']);
+      var data = {Clusters: {desired_configs: {'yarn-site': {tag: 1}, 'zoo.cfg': {tag: 1}}}};
+      expect(controller.constructConfigUrlParams(data)).to.eql(['(type=yarn-site&tag=1)', '(type=zoo.cfg&tag=1)']);
       App.get.restore();
     });
   });
@@ -831,7 +831,7 @@ describe('App.MainHostDetailsController', function () {
       sinon.stub(App, 'get').withArgs('isRMHaEnabled').returns(true);
       expect(controller.setZKConfigs(configs, 'host1:2181', ['host1', 'host2'])).to.be.true;
       expect(configs).to.eql({"yarn-site": {
-        "yarn.resourcemanager.zk-address": "host1,host2"
+        "yarn.resourcemanager.zk-address": "host1:2181"
       }});
       App.get.restore();
     });
@@ -842,10 +842,10 @@ describe('App.MainHostDetailsController', function () {
       expect(controller.concatZkNames([])).to.equal('');
     });
     it('One ZooKeeper host', function () {
-      expect(controller.concatZkNames(['host1'])).to.equal('host1:2181');
+      expect(controller.concatZkNames(['host1'], '2181')).to.equal('host1:2181');
     });
     it('Two ZooKeeper hosts', function () {
-      expect(controller.concatZkNames(['host1', 'host2'])).to.equal('host1:2181,host2:2181');
+      expect(controller.concatZkNames(['host1', 'host2'], '2181')).to.equal('host1:2181,host2:2181');
     });
   });
 

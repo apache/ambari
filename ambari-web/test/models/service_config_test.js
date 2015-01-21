@@ -797,6 +797,9 @@ describe('App.ServiceConfigProperty', function () {
             }
           ]
         },
+        dependencies: {
+          'hive.metastore.uris': 'thrift://localhost:9083'
+        },
         defaultValue: 'thrift://localhost:9083',
         value: 'thrift://h0:9083,thrift://h1:9083',
         title: 'comma separated list of Metastore hosts with thrift prefix and port'
@@ -814,10 +817,32 @@ describe('App.ServiceConfigProperty', function () {
             }
           ]
         },
-        hiveMSUrisDefaultValue: 'thrift://localhost:9083',
+        dependencies: {
+          'hive.metastore.uris': 'thrift://localhost:9083'
+        },
         defaultValue: 'hive.metastore.local=false,hive.metastore.uris=thrift://localhost:9933,hive.metastore.sasl.enabled=false',
         value: 'hive.metastore.local=false,hive.metastore.uris=thrift://h0:9083\\,thrift://h1:9083,hive.metastore.sasl.enabled=false,hive.metastore.execute.setugi=true',
         title: 'should add relevant hive.metastore.uris value'
+      },
+      'yarn.resourcemanager.zk-address': {
+        localDB: {
+          masterComponentHosts: [
+            {
+              component: 'ZOOKEEPER_SERVER',
+              hostName: 'h0'
+            },
+            {
+              component: 'ZOOKEEPER_SERVER',
+              hostName: 'h1'
+            }
+          ]
+        },
+        dependencies: {
+          clientPort: '2182'
+        },
+        defaultValue: 'localhost:2181',
+        value: 'h0:2182',
+        title: 'should add ZK host and port dynamically'
       }
     };
 
@@ -908,7 +933,7 @@ describe('App.ServiceConfigProperty', function () {
         name: 'hive.metastore.uris',
         defaultValue: cases['hive.metastore.uris'].defaultValue
       });
-      serviceConfigProperty.initialValue(cases['hive.metastore.uris'].localDB, cases['hive.metastore.uris'].defaultValue);
+      serviceConfigProperty.initialValue(cases['hive.metastore.uris'].localDB, cases['hive.metastore.uris'].dependencies);
       expect(serviceConfigProperty.get('value')).to.equal(cases['hive.metastore.uris'].value);
       expect(serviceConfigProperty.get('defaultValue')).to.equal(cases['hive.metastore.uris'].value);
     });
@@ -919,9 +944,19 @@ describe('App.ServiceConfigProperty', function () {
         defaultValue: cases['templeton.hive.properties'].defaultValue,
         value: cases['templeton.hive.properties'].defaultValue
       });
-      serviceConfigProperty.initialValue(cases['templeton.hive.properties'].localDB, cases['templeton.hive.properties'].hiveMSUrisDefaultValue);
+      serviceConfigProperty.initialValue(cases['templeton.hive.properties'].localDB, cases['templeton.hive.properties'].dependencies);
       expect(serviceConfigProperty.get('value')).to.equal(cases['templeton.hive.properties'].value);
       expect(serviceConfigProperty.get('defaultValue')).to.equal(cases['templeton.hive.properties'].value);
+    });
+
+    it(cases['yarn.resourcemanager.zk-address'].title, function () {
+      serviceConfigProperty.setProperties({
+        name: 'yarn.resourcemanager.zk-address',
+        defaultValue: cases['yarn.resourcemanager.zk-address'].defaultValue
+      });
+      serviceConfigProperty.initialValue(cases['yarn.resourcemanager.zk-address'].localDB, cases['yarn.resourcemanager.zk-address'].dependencies);
+      expect(serviceConfigProperty.get('value')).to.equal(cases['yarn.resourcemanager.zk-address'].value);
+      expect(serviceConfigProperty.get('defaultValue')).to.equal(cases['yarn.resourcemanager.zk-address'].value);
     });
 
   });
