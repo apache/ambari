@@ -1,6 +1,6 @@
 {
   "properties": {
-    "realm": "${cluster-env/kerberos_domain}",
+    "realm": "${krb5-conf/realm}",
     "keytab_dir": "/etc/security/keytabs"
   },
   "identities": [

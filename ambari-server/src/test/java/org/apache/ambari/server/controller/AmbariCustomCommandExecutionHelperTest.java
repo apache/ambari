@@ -32,6 +32,7 @@ import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
+import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -61,7 +62,8 @@ import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AmbariCustomCommandExecutionHelperTest {
+public class
+    AmbariCustomCommandExecutionHelperTest {
   private Injector injector;
   private AmbariManagementController controller;
   private AmbariMetaInfo ambariMetaInfo;
@@ -70,7 +72,7 @@ public class AmbariCustomCommandExecutionHelperTest {
   
   private static final String REQUEST_CONTEXT_PROPERTY = "context";
   
-  @Captor ArgumentCaptor<List<Stage>> stagesCaptor;
+  @Captor ArgumentCaptor<Request> requestCapture;
   @Mock ActionManager am;
   
   @Before
@@ -123,12 +125,13 @@ public class AmbariCustomCommandExecutionHelperTest {
       
       controller.createAction(actionRequest, requestProperties);
       
-      Mockito.verify(am, Mockito.times(1)).sendActions(stagesCaptor.capture(), any(ExecuteActionRequest.class));
-      
-      
-      List<Stage> stages = stagesCaptor.getValue();
-      Assert.assertEquals(1, stages.size());
-      Stage stage = stages.get(0);
+      Mockito.verify(am, Mockito.times(1)).sendActions(requestCapture.capture(), any(ExecuteActionRequest.class));
+
+      Request request = requestCapture.getValue();
+      Assert.assertNotNull(request);
+      Assert.assertNotNull(request.getStages());
+      Assert.assertEquals(1, request.getStages().size());
+      Stage stage = request.getStages().iterator().next();
       
       Assert.assertEquals(1, stage.getHosts().size());
       
@@ -175,12 +178,14 @@ public class AmbariCustomCommandExecutionHelperTest {
 
       //clusters.getHost("c6402").setState(HostState.HEARTBEAT_LOST);
 
-      Mockito.verify(am, Mockito.times(1)).sendActions(stagesCaptor.capture(), any(ExecuteActionRequest.class));
+      Mockito.verify(am, Mockito.times(1)).sendActions(requestCapture.capture(), any(ExecuteActionRequest.class));
 
-      List<Stage> stages = stagesCaptor.getValue();
-      Assert.assertEquals(1, stages.size());
+      Request request = requestCapture.getValue();
+      Assert.assertNotNull(request);
+      Assert.assertNotNull(request.getStages());
+      Assert.assertEquals(1, request.getStages().size());
+      Stage stage = request.getStages().iterator().next();
 
-      Stage stage = stages.get(0);
        // Check if was generated command, one for each host
       Assert.assertEquals(2, stage.getHostRoleCommands().size());
     }catch (Exception e) {
@@ -217,12 +222,14 @@ public class AmbariCustomCommandExecutionHelperTest {
 
       controller.createAction(actionRequest, requestProperties);
 
-      Mockito.verify(am, Mockito.times(1)).sendActions(stagesCaptor.capture(), any(ExecuteActionRequest.class));
+      Mockito.verify(am, Mockito.times(1)).sendActions(requestCapture.capture(), any(ExecuteActionRequest.class));
 
-      List<Stage> stages = stagesCaptor.getValue();
-      Assert.assertEquals(1, stages.size());
+      Request request = requestCapture.getValue();
+      Assert.assertNotNull(request);
+      Assert.assertNotNull(request.getStages());
+      Assert.assertEquals(1, request.getStages().size());
+      Stage stage = request.getStages().iterator().next();
 
-      Stage stage = stages.get(0);
       // Check if was generated command for one health host
       Assert.assertEquals(1, stage.getHostRoleCommands().size());
     }catch (Exception e) {
@@ -260,12 +267,14 @@ public class AmbariCustomCommandExecutionHelperTest {
 
       controller.createAction(actionRequest, requestProperties);
 
-      Mockito.verify(am, Mockito.times(1)).sendActions(stagesCaptor.capture(), any(ExecuteActionRequest.class));
+      Mockito.verify(am, Mockito.times(1)).sendActions(requestCapture.capture(), any(ExecuteActionRequest.class));
 
-      List<Stage> stages = stagesCaptor.getValue();
-      Assert.assertEquals(1, stages.size());
+      Request request = requestCapture.getValue();
+      Assert.assertNotNull(request);
+      Assert.assertNotNull(request.getStages());
+      Assert.assertEquals(1, request.getStages().size());
+      Stage stage = request.getStages().iterator().next();
 
-      Stage stage = stages.get(0);
       // Check if was generated command for one health host
       Assert.assertEquals(1, stage.getHostRoleCommands().size());
     }catch (Exception e) {

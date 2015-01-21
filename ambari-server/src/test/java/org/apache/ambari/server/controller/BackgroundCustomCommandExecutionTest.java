@@ -31,6 +31,7 @@ import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
+import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.ExecutionCommand;
@@ -70,7 +71,7 @@ public class BackgroundCustomCommandExecutionTest {
   
   private static final String REQUEST_CONTEXT_PROPERTY = "context";
   
-  @Captor ArgumentCaptor<List<Stage>> stagesCaptor;
+  @Captor ArgumentCaptor<Request> requestCapture;
   @Mock ActionManager am;
   
   @Before
@@ -123,12 +124,13 @@ public class BackgroundCustomCommandExecutionTest {
       
       controller.createAction(actionRequest, requestProperties);
       
-      Mockito.verify(am, Mockito.times(1)).sendActions(stagesCaptor.capture(), any(ExecuteActionRequest.class));
-      
-      
-      List<Stage> stages = stagesCaptor.getValue();
-      Assert.assertEquals(1, stages.size());
-      Stage stage = stages.get(0);
+      Mockito.verify(am, Mockito.times(1)).sendActions(requestCapture.capture(), any(ExecuteActionRequest.class));
+
+      Request request = requestCapture.getValue();
+      Assert.assertNotNull(request);
+      Assert.assertNotNull(request.getStages());
+      Assert.assertEquals(1, request.getStages().size());
+      Stage stage = request.getStages().iterator().next();
       
       System.out.println(stage);
       
