@@ -552,10 +552,11 @@ public class JsonRequestBodyParserTest {
     assertEquals("foo=bar", body.getQueryString());
 
     Map<String, String > mapRequestInfoProps = body.getRequestInfoProperties();
-    assertEquals(3, mapRequestInfoProps.size());
+    assertEquals(4, mapRequestInfoProps.size());
     assertEquals("val1", mapRequestInfoProps.get("prop1"));
     assertEquals("val2", mapRequestInfoProps.get("prop2"));
     assertEquals("foo=bar", mapRequestInfoProps.get("query"));
+    assertEquals(bodyWithRequestInfoProperties, mapRequestInfoProps.get("RAW_REQUEST_BODY"));
 
     //assert body is correct by checking that properties match
     String b = body.getBody();

@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import com.google.gson.Gson;
 import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -105,6 +106,11 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
       new HashMap<String, TypeRegistration>();
 
   /**
+   * serializer used to convert json to map
+   */
+  private static final Gson jsonSerializer = new Gson();
+
+  /**
    * artifact data access object
    */
   @Inject
@@ -181,7 +187,7 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
              NoSuchParentResourceException {
 
     for (Map<String, Object> properties : request.getProperties()) {
-      createResources(getCreateCommand(properties));
+      createResources(getCreateCommand(properties, request.getRequestInfoProperties()));
     }
     notifyCreate(Resource.Type.Artifact, request);
 
@@ -232,11 +238,13 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
   /**
    * Create a command to create the resource.
    *
-   * @param properties  request properties
+   * @param properties        request properties
+   * @param requestInfoProps  request info properties
    *
    * @return a new create command
    */
-  private Command<Void> getCreateCommand(final Map<String, Object> properties) {
+  private Command<Void> getCreateCommand(final Map<String, Object> properties,
+                                         final Map<String, String> requestInfoProps) {
     return new Command<Void>() {
       @Override
       public Void invoke() throws AmbariException {
@@ -255,7 +263,7 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
         LOG.debug("Creating Artifact Resource with name '{}'. Parent information: {}",
             artifactName, getRequestForeignKeys(properties));
 
-        artifactDAO.create(toEntity(properties));
+        artifactDAO.create(toEntity(properties, requestInfoProps.get(Request.REQUEST_INFO_BODY_PROPERTY)));
 
         return null;
       }
@@ -369,7 +377,8 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
    *
    * @return new artifact entity
    */
-  private ArtifactEntity toEntity(Map<String, Object> properties)
+  @SuppressWarnings("unchecked")
+  private ArtifactEntity toEntity(Map<String, Object> properties, String rawRequestBody)
       throws AmbariException {
 
     String name = (String) properties.get(ARTIFACT_NAME_PROPERTY);
@@ -379,16 +388,16 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
 
     ArtifactEntity artifact = new ArtifactEntity();
     artifact.setArtifactName(name);
-    Map<String, Object> dataMap = new HashMap<String, Object>();
-    for (Map.Entry<String, Object> entry : properties.entrySet()) {
-      String key = entry.getKey();
-      //todo: should we handle scalar value?
-      if (key.startsWith(ARTIFACT_DATA_PROPERTY)) {
-        dataMap.put(key.split("/")[1], entry.getValue());
-      }
-    }
-    artifact.setArtifactData(dataMap);
     artifact.setForeignKeys(createForeignKeyMap(properties));
+
+    Map<String, Object> rawBodyMap = jsonSerializer.<Map<String, Object>>fromJson(
+        rawRequestBody, Map.class);
+
+    Object artifactData = rawBodyMap.get(ARTIFACT_DATA_PROPERTY);
+    if (! (artifactData instanceof Map)) {
+      throw new IllegalArgumentException("artifact_data property must be a map");
+    }
+    artifact.setArtifactData((Map<String, Object>) artifactData);
 
     return artifact;
   }

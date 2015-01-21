@@ -144,12 +144,14 @@ public class RequestBody {
 
   /**
    * Set the body from the request.
+   * Also sets the body as a request info property.
    *
    * @param body the request body
    */
   public void setBody(String body) {
     if (body != null && ! body.isEmpty()) {
       m_body = body;
+      m_requestInfoProps.put("RAW_REQUEST_BODY", body);
     }
   }
 

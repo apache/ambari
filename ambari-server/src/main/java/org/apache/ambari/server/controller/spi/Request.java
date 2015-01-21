@@ -26,6 +26,10 @@ import java.util.Set;
  * temporal (date range) information, if any, for each requested property.
  */
 public interface Request {
+  /**
+   * Constant for request info property which contains the raw request body.
+   */
+  public static final String REQUEST_INFO_BODY_PROPERTY = "RAW_REQUEST_BODY";
 
   /**
    * Get the set of property ids being requested.  Used for requests to get

@@ -35,6 +35,7 @@ import javax.persistence.EntityManager;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -62,7 +63,7 @@ public class ArtifactResourceProviderTest {
   private ArtifactDAO dao = createStrictMock(ArtifactDAO.class);
   private EntityManager em = createStrictMock(EntityManager.class);
   private AmbariManagementController controller = createStrictMock(AmbariManagementController.class);
-  private Request request = createStrictMock(Request.class);
+  private Request request = createMock(Request.class);
   private Clusters clusters = createStrictMock(Clusters.class);
   private Cluster cluster = createStrictMock(Cluster.class);
   private ArtifactEntity entity = createMock(ArtifactEntity.class);
@@ -83,7 +84,20 @@ public class ArtifactResourceProviderTest {
     TreeMap<String, String> foreignKeys = new TreeMap<String, String>();
     foreignKeys.put("cluster", "500");
 
-    Map<String, Object> artifact_data = Collections.<String, Object>singletonMap("foo", "bar");
+    Map<String, Object> childMap = new TreeMap<String, Object>();
+    childMap.put("childKey", "childValue");
+    Map<String, Object> child2Map = new TreeMap<String, Object>();
+    childMap.put("child2", child2Map);
+    child2Map.put("child2Key", "child2Value");
+    Map<String, Object> child3Map = new TreeMap<String, Object>();
+    child2Map.put("child3", child3Map);
+    Map<String, Object> child4Map = new TreeMap<String, Object>();
+    child3Map.put("child4", child4Map);
+    child4Map.put("child4Key", "child4Value");
+
+    Map<String, Object> artifact_data = new TreeMap<String, Object>();
+    artifact_data.put("foo", "bar");
+    artifact_data.put("child", childMap);
 
     Map<String, String> responseForeignKeys = new HashMap<String, String>();
     responseForeignKeys.put("cluster", "500");
@@ -113,9 +127,18 @@ public class ArtifactResourceProviderTest {
     Set<Resource> response = resourceProvider.getResources(request, predicate);
     assertEquals(1, response.size());
     Resource resource = response.iterator().next();
+    Map<String, Map<String, Object>> responseProperties = resource.getPropertiesMap();
+    assertEquals(5, responseProperties.size());
+
+    Map<String, Object> artifactDataMap = responseProperties.get("artifact_data");
+    assertEquals("bar", artifactDataMap.get("foo"));
+
     assertEquals("test-artifact", resource.getPropertyValue("Artifacts/artifact_name"));
     assertEquals("test-cluster", resource.getPropertyValue("Artifacts/cluster_name"));
     assertEquals("bar", resource.getPropertyValue("artifact_data/foo"));
+    assertEquals("childValue", resource.getPropertyValue("artifact_data/child/childKey"));
+    assertEquals("child2Value", resource.getPropertyValue("artifact_data/child/child2/child2Key"));
+    assertEquals("child4Value", resource.getPropertyValue("artifact_data/child/child2/child3/child4/child4Key"));
   }
 
   @Test
@@ -183,19 +206,100 @@ public class ArtifactResourceProviderTest {
   @Test
   public void testCreateResource() throws Exception {
     Capture<ArtifactEntity> createEntityCapture = new Capture<ArtifactEntity>();
+    Map<String, Object> outerMap = new TreeMap<String, Object>();
+    Map<String, Object> childMap = new TreeMap<String, Object>();
+    outerMap.put("child", childMap);
+    childMap.put("childKey", "childValue");
+    Map<String, Object> child2Map = new TreeMap<String, Object>();
+    childMap.put("child2", child2Map);
+    child2Map.put("child2Key", "child2Value");
+    Map<String, Object> child3Map = new TreeMap<String, Object>();
+    child2Map.put("child3", child3Map);
+    Map<String, Object> child4Map = new TreeMap<String, Object>();
+    child3Map.put("child4", child4Map);
+    child4Map.put("child4Key", "child4Value");
 
-    Map<String, Object> artifact_data = Collections.<String, Object>singletonMap("foo", "bar");
+    Set<Map<String, Object>> propertySet = new HashSet<Map<String, Object>>();
+    propertySet.add(outerMap);
+    propertySet.add(child4Map);
+
+    Map<String, Object> artifact_data = new TreeMap<String, Object>();
+    artifact_data.put("foo", "bar");
+    artifact_data.put("child", childMap);
+    artifact_data.put("collection", propertySet);
 
     TreeMap<String, String> foreignKeys = new TreeMap<String, String>();
     foreignKeys.put("cluster", "500");
 
+
+    String bodyJson =
+        "{ " +
+        "  \"artifact_data\" : {" +
+        "    \"foo\" : \"bar\"," +
+        "    \"child\" : {" +
+        "      \"childKey\" : \"childValue\"," +
+        "      \"child2\" : {" +
+        "        \"child2Key\" : \"child2Value\"," +
+        "        \"child3\" : {" +
+        "          \"child4\" : {" +
+        "            \"child4Key\" : \"child4Value\"" +
+        "          }" +
+        "        }" +
+        "      }" +
+        "    }," +
+        "    \"collection\" : [" +
+        "      {" +
+        "        \"child\" : {" +
+        "          \"childKey\" : \"childValue\"," +
+        "          \"child2\" : {" +
+        "            \"child2Key\" : \"child2Value\"," +
+        "            \"child3\" : {" +
+        "              \"child4\" : {" +
+        "                \"child4Key\" : \"child4Value\"" +
+        "              }" +
+        "            }" +
+        "          }" +
+        "        }" +
+        "      }," +
+        "      {" +
+        "        \"child4Key\" : \"child4Value\"" +
+        "      } " +
+        "    ]" +
+        "  }" +
+        "}";
+
+    Map<String, String> requestInfoProps = new HashMap<String, String>();
+    requestInfoProps.put(Request.REQUEST_INFO_BODY_PROPERTY, bodyJson);
+
+
+    // map with flattened properties
     Map<String, Object> properties = new HashMap<String, Object>();
     properties.put("Artifacts/artifact_name", "test-artifact");
     properties.put("Artifacts/cluster_name", "test-cluster");
     properties.put("artifact_data/foo", "bar");
+    properties.put("artifact_data/child/childKey", "childValue");
+    properties.put("artifact_data/child/child2/child2Key", "child2Value");
+    properties.put("artifact_data/child/child2/child3/child4/child4Key", "child4Value");
+
+    Collection<Object> collectionProperties = new HashSet<Object>();
+    properties.put("artifact_data/collection", collectionProperties);
+
+    // collection with maps of flattened properties
+    Map<String, Object> map1 = new TreeMap<String, Object>();
+    collectionProperties.add(map1);
+    map1.put("foo", "bar");
+    map1.put("child/childKey", "childValue");
+    map1.put("child/child2/child2Key", "child2Value");
+    map1.put("child/child2/child3/child4/child4Key", "child4Value");
+
+    Map<String, Object> map2 = new TreeMap<String, Object>();
+    collectionProperties.add(map2);
+    map2.put("child4Key", "child4Value");
+
     Set<Map<String, Object>> requestProperties = Collections.singleton(properties);
 
     // expectations
+    expect(request.getRequestInfoProperties()).andReturn(requestInfoProps).anyTimes();
     expect(request.getProperties()).andReturn(requestProperties).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster("test-cluster")).andReturn(cluster).anyTimes();
@@ -215,7 +319,13 @@ public class ArtifactResourceProviderTest {
 
     ArtifactEntity createEntity = createEntityCapture.getValue();
     assertEquals("test-artifact", createEntity.getArtifactName());
-    assertEquals(createEntity.getArtifactData(), artifact_data);
+    Map<String, Object> actualArtifactData = createEntity.getArtifactData();
+    // need to decompose actualArtifactData because actualArtifactData.get("collection") returns a set
+    // implementation that does not equal an identical(same elements) HashSet instance
+    assertEquals(artifact_data.size(), actualArtifactData.size());
+    assertEquals(artifact_data.get("foo"), actualArtifactData.get("foo"));
+    assertEquals(artifact_data.get("child"), actualArtifactData.get("child"));
+    assertEquals(artifact_data.get("collection"), new HashSet(((Collection) actualArtifactData.get("collection"))));
     assertEquals(foreignKeys, createEntity.getForeignKeys());
   }
 
