@@ -27,12 +27,15 @@ import urllib
 import json
 import random
 import time
+import socket
 
 
 class AMSServiceCheck(Script):
 
   AMS_METRICS_POST_URL = "/ws/v1/timeline/metrics/"
   AMS_METRICS_GET_URL = "/ws/v1/timeline/metrics?%s"
+  AMS_CONNECT_TRIES = 3
+  AMS_CONNECT_TIMEOUT = 10
 
   def service_check(self, env):
     import params
@@ -46,13 +49,25 @@ class AMSServiceCheck(Script):
                            current_time=current_time).get_content()
     Logger.info("Generated metrics:\n%s" % metric_json)
 
-    Logger.info("Connecting (POST) to %s:%s%s" % (params.ams_collector_host_single,
-                                                  params.metric_collector_port,
-                                                  self.AMS_METRICS_POST_URL))
     headers = {"Content-type": "application/json"}
 
-    conn = httplib.HTTPConnection(params.ams_collector_host_single,                                      int(params.metric_collector_port))
-    conn.request("POST", self.AMS_METRICS_POST_URL, metric_json, headers)
+    for i in xrange(1,self.AMS_CONNECT_TRIES):
+      try:
+        Logger.info("Connecting (POST) to %s:%s%s" % (params.ams_collector_host_single,
+                                                      params.metric_collector_port,
+                                                      self.AMS_METRICS_POST_URL))
+        conn = httplib.HTTPConnection(params.ams_collector_host_single,
+                                        int(params.metric_collector_port))
+        conn.request("POST", self.AMS_METRICS_POST_URL, metric_json, headers)
+        break
+      except (httplib.HTTPException, socket.error) as ex:
+        if i < self.AMS_CONNECT_TRIES:
+          time.sleep(self.AMS_CONNECT_TIMEOUT)
+          Logger.info("Connection failed. Next retry in %s seconds."
+                      % (self.AMS_CONNECT_TIMEOUT))
+        else:
+          Fail("AMS metrics were not saved. Service check has failed. "
+               "\nConnection failed.")
 
     response = conn.getresponse()
     Logger.info("Http response: %s %s" % (response.status, response.reason))
