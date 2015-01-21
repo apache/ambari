@@ -368,7 +368,7 @@ class TestHostCleanup(TestCase):
 
   @patch.object(HostCleanup.HostCleanup, 'run_os_command')
   @patch.object(OSCheck, "get_os_type")
-  def test_do_earse_packages(self, get_os_type_method, run_os_command_method):
+  def test_do_erase_packages(self, get_os_type_method, run_os_command_method):
     out = StringIO.StringIO()
     sys.stdout = out
 
@@ -398,6 +398,22 @@ class TestHostCleanup(TestCase):
     self.assertEquals(0, retval)
 
     sys.stdout = sys.__stdout__
+
+
+  @patch('os.path.isfile')
+  @patch('os.unlink')
+  def test_do_remove_hdp_select_marker(self, unlink_mock, isfile_mock):
+    out = StringIO.StringIO()
+    sys.stdout = out
+
+    isfile_mock.return_value = True
+
+    self.hostcleanup.do_remove_hdp_select_marker()
+
+    self.assertTrue(unlink_mock.called)
+
+    sys.stdout = sys.__stdout__
+
 
   @patch.object(HostCleanup.HostCleanup, 'get_files_in_dir')
   @patch.object(OSCheck, "get_os_type")
