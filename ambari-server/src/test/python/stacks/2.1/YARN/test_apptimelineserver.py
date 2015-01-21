@@ -161,7 +161,7 @@ class TestAppTimelineServer(RMFTestCase):
                               owner = 'yarn',
                               group = 'hadoop',
                               recursive = True,
-                              recursive_permission = True
+                              cd_access='a'
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
                               owner = 'yarn',

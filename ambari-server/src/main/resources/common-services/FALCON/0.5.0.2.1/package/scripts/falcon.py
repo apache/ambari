@@ -69,7 +69,7 @@ def falcon(type, action = None):
                 group=params.user_group,
                 mode=0775,
                 recursive=True,
-                recursive_permission=True
+                cd_access="a",
       )
 
     if params.falcon_graph_serialize_path:
@@ -78,7 +78,7 @@ def falcon(type, action = None):
                 group=params.user_group,
                 mode=0775,
                 recursive=True,
-                recursive_permission=True
+                cd_access="a",
       )
 
   if type == 'server':
@@ -98,7 +98,7 @@ def falcon(type, action = None):
       Directory(params.falcon_local_dir,
                 owner=params.falcon_user,
                 recursive=True,
-                recursive_permission=True
+                cd_access="a",
       )
       if params.falcon_embeddedmq_enabled == True:
         Directory(os.path.abspath(os.path.join(params.falcon_embeddedmq_data, "..")),

@@ -57,12 +57,15 @@ def setup_java():
   )
   
   Execute(chmod_cmd,
-          not_if = format("test -e {java_exec}"),
-          sudo = True    
+          sudo = True,
   )
 
   Execute(install_cmd,
           not_if = format("test -e {java_exec}")
+  )
+  
+  Execute(("chgrp","-R", params.user_group, params.java_home),
+          sudo = True,          
   )
 
 def install_packages():

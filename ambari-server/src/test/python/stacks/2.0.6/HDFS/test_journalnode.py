@@ -174,7 +174,7 @@ class TestJournalnode(RMFTestCase):
                               owner = 'hdfs',
                               group = 'hadoop',
                               recursive = True,
-                              recursive_permission = True
+                              cd_access='a'
                               )
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
@@ -212,7 +212,7 @@ class TestJournalnode(RMFTestCase):
                               owner = 'hdfs',
                               group = 'hadoop',
                               recursive = True,
-                              recursive_permission = True
+                              cd_access='a'
                               )
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',

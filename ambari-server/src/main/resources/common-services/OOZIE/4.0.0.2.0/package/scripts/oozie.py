@@ -134,7 +134,7 @@ def oozie_server_specific():
     group = params.user_group,
     mode = 0755,
     recursive = True,
-    recursive_permission=True
+    cd_access="a",
   )
   
   Directory(params.oozie_libext_dir,

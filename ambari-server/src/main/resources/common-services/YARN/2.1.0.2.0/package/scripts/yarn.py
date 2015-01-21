@@ -65,7 +65,7 @@ def yarn(name = None):
               owner=params.yarn_user,
               group=params.user_group,
               recursive=True,
-              recursive_permission=True,
+              cd_access="a",
               ignore_failures=True,
               mode=0775
               )
@@ -140,7 +140,7 @@ def yarn(name = None):
        owner=params.yarn_user,
        group=params.user_group,
        recursive=True,
-       recursive_permission=True
+       cd_access="a",
     )
 
   File(params.rm_nodes_exclude_path,

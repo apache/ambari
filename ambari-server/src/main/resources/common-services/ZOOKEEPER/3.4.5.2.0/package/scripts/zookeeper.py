@@ -58,7 +58,7 @@ def zookeeper(type = None):
   Directory(params.zk_data_dir,
             owner=params.zk_user,
             recursive=True,
-            recursive_permission=True,
+            cd_access="a",
             group=params.user_group
   )
 

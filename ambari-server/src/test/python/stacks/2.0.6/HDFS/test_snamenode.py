@@ -235,14 +235,14 @@ class TestSNamenode(RMFTestCase):
                               group = 'hadoop',
                               mode = 0755,
                               recursive = True,
-                              recursive_permission = True
+                              cd_access='a'
                               )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namesecondary2',
                               owner = 'hdfs',
                               group = 'hadoop',
                               mode = 0755,
                               recursive = True,
-                              recursive_permission = True
+                              cd_access='a'
     )
 
   def assert_configure_secured(self):
@@ -281,5 +281,5 @@ class TestSNamenode(RMFTestCase):
                               group = 'hadoop',
                               mode = 0755,
                               recursive = True,
-                              recursive_permission = True
+                              cd_access='a'
                               )

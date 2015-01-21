@@ -36,6 +36,17 @@ class File(Resource):
   # whether to replace files with different content
   replace = ResourceArgument(default=True)
   encoding = ResourceArgument()
+  """
+  Grants x-bit for all the folders up-to the file
+  
+  u - user who is owner
+  g - user from group
+  o - other users
+  a - all
+  
+  The letters can be combined together.
+  """
+  cd_access = ResourceArgument()
 
   actions = Resource.actions + ["create", "delete"]
 
@@ -48,6 +59,17 @@ class Directory(Resource):
   group = ResourceArgument()
   recursive = BooleanArgument(default=False) # this work for 'create', 'delete' is anyway recursive
   recursive_permission = BooleanArgument(default=False) # sets given perms to all non-existent folders which are created recursively
+  """
+  Grants x-bit for all the folders up-to the directory
+  
+  u - user who is owner
+  g - user from group
+  o - other users
+  a - all
+  
+  The letters can be combined together.
+  """
+  cd_access = ResourceArgument()
 
   actions = Resource.actions + ["create", "delete"]
 

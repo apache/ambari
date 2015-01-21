@@ -87,7 +87,7 @@ def setup_users():
                owner = params.hbase_user,
                mode=0775,
                recursive = True,
-               recursive_permission = True
+               cd_access="a",
     )
     set_uid(params.hbase_user, params.hbase_user_dirs)
     

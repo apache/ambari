@@ -128,7 +128,7 @@ def create_name_dirs(directories):
             owner=params.hdfs_user,
             group=params.user_group,
             recursive=True,
-            recursive_permission=True
+            cd_access="a",
   )
 
 

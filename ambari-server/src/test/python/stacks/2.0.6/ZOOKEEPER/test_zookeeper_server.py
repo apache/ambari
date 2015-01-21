@@ -147,7 +147,7 @@ class TestZookeeperServer(RMFTestCase):
       owner = 'zookeeper',
       group = 'hadoop',
       recursive = True,
-      recursive_permission = True
+      cd_access='a'
     )
     self.assertResourceCalled('File', '/hadoop/zookeeper/myid',
       content = '1',
@@ -200,7 +200,7 @@ class TestZookeeperServer(RMFTestCase):
       owner = 'zookeeper',
       group = 'hadoop',
       recursive = True,
-      recursive_permission = True
+      cd_access='a'
     )
     self.assertResourceCalled('File', '/hadoop/zookeeper/myid',
       content = '1',

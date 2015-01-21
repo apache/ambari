@@ -22,6 +22,7 @@ Ambari Agent
 
 from __future__ import with_statement
 
+import re
 import grp
 import os
 import pwd
@@ -57,7 +58,7 @@ def _coerce_gid(group):
   return gid
 
 
-def _ensure_metadata(path, user, group, mode=None):
+def _ensure_metadata(path, user, group, mode=None, cd_access=None):
   stat = os.stat(path)
   
   if mode:
@@ -82,6 +83,17 @@ def _ensure_metadata(path, user, group, mode=None):
       Logger.info(
         "Changing group for %s from %d to %s" % (path, stat.st_gid, group))
       sudo.chown(path, None, group)
+      
+  if cd_access:
+    if not re.match("^[ugoa]+$", cd_access):
+      raise Fail("'cd_acess' value '%s' is not valid" % (cd_access))
+    
+    dir_path = path
+    while dir_path != os.sep:
+      if os.path.isdir(dir_path):
+        sudo.chmod_extended(dir_path, cd_access+"+x")
+        
+      dir_path = os.path.split(dir_path)[0]
 
 
 class FileProvider(Provider):
@@ -119,7 +131,7 @@ class FileProvider(Provider):
       sudo.create_file(path, content)
 
     _ensure_metadata(self.resource.path, self.resource.owner,
-                        self.resource.group, mode=self.resource.mode)
+                        self.resource.group, mode=self.resource.mode, cd_access=self.resource.cd_access)
 
   def action_delete(self):
     path = self.resource.path
@@ -165,7 +177,7 @@ class DirectoryProvider(Provider):
       raise Fail("Applying %s failed, file %s already exists" % (self.resource, path))
     
     _ensure_metadata(path, self.resource.owner, self.resource.group,
-                        mode=self.resource.mode)
+                        mode=self.resource.mode, cd_access=self.resource.cd_access)
 
   @staticmethod
   def makedirs_and_set_permission_recursively(path, owner, group, mode):

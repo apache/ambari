@@ -34,6 +34,9 @@ def chown(path, owner, group):
 def chmod(path, mode):
   shell.checked_call(["chmod", oct(mode), path], sudo=True)
   
+def chmod_extended(path, mode):
+  shell.checked_call(["chmod", mode, path], sudo=True)
+  
 # os.makedirs replacement
 def makedirs(path, mode):
   shell.checked_call(["mkdir", "-p", path], sudo=True)

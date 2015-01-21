@@ -29,7 +29,7 @@ def snamenode(action=None, format=False):
     for fs_checkpoint_dir in params.fs_checkpoint_dirs:
       Directory(fs_checkpoint_dir,
                 recursive=True,
-                recursive_permission=True,
+                cd_access="a",
                 mode=0755,
                 owner=params.hdfs_user,
                 group=params.user_group)

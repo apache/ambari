@@ -42,7 +42,7 @@ def storm():
             owner=params.storm_user,
             group=params.user_group,
             recursive=True,
-            recursive_permission=True
+            cd_access="a",
   )
 
   File(format("{conf_dir}/config.yaml"),
