@@ -2901,7 +2901,7 @@ def get_ldap_event_spec_names(file, specs, new_specs):
       new_spec = new_specs[0]
       with open(file, 'r') as names_file:
         names = names_file.read()
-        new_spec['names'] = ''.join(names.split())
+        new_spec['names'] = names.replace('\n', '').replace('\t', '')
         names_file.close()
         specs += new_specs
     else:

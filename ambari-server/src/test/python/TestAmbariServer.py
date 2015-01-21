@@ -5187,6 +5187,27 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       self.assertTrue("not configured" in fe.reason)
       pass
 
+  @patch("__builtin__.open")
+  @patch("os.path.exists")
+  def test_get_ldap_event_spec_names(self, os_path_exists_mock, open_mock):
+    os_path_exists_mock.return_value = 1
+    f = MagicMock()
+    f.__enter__().read.return_value = "\n\n\t some group, \tanother group, \n\t\tgrp, \ngroup*\n\n\n\n"
+
+    open_mock.return_value = f
+
+    bodies = [{"Event":{"specs":[]}}]
+    body = bodies[0]
+    events = body['Event']
+    specs = events['specs']
+
+    new_specs = [{"principal_type":"groups","sync_type":"specific","names":""}]
+
+    _ambari_server_.get_ldap_event_spec_names("groups.txt", specs, new_specs)
+
+    self.assertEquals("[{'Event': {'specs': [{'principal_type': 'groups', 'sync_type': 'specific', 'names': ' some group, another group, grp, group*'}]}}]", str(bodies))
+    pass
+
   @patch.object(_ambari_server_, "read_password")
   def test_configure_ldap_password(self, read_password_method):
     out = StringIO.StringIO()
