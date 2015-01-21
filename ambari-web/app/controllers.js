@@ -52,7 +52,6 @@ require('controllers/main/admin/highAvailability/resourceManager/step2_controlle
 require('controllers/main/admin/highAvailability/resourceManager/step3_controller');
 require('controllers/main/admin/highAvailability/resourceManager/step4_controller');
 require('controllers/main/admin/stack_and_upgrade_controller');
-require('controllers/main/admin/stack_upgrade_controller');
 require('controllers/main/admin/serviceAccounts_controller');
 require('controllers/main/admin/advanced');
 require('utils/polling');
@@ -142,9 +141,6 @@ require('controllers/wizard/step7_controller');
 require('controllers/wizard/step8_controller');
 require('controllers/wizard/step9_controller');
 require('controllers/wizard/step10_controller');
-require('controllers/wizard/stack_upgrade/step1_controller');
-require('controllers/wizard/stack_upgrade/step2_controller');
-require('controllers/wizard/stack_upgrade/step3_controller');
 require('controllers/global/cluster_controller');
 require('controllers/global/update_controller');
 require('controllers/global/configuration_controller');

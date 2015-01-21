@@ -508,7 +508,6 @@ module.exports = Em.Route.extend({
     }
 
   }),
-  stackUpgrade: require('routes/stack_upgrade'),
 
   services: Em.Route.extend({
     route: '/services',

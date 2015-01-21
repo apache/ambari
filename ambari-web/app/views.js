@@ -117,7 +117,6 @@ require('views/main/admin/highAvailability/resourceManager/step2_view');
 require('views/main/admin/highAvailability/resourceManager/step3_view');
 require('views/main/admin/highAvailability/resourceManager/step4_view');
 require('views/main/admin/serviceAccounts_view');
-require('views/main/admin/stack_upgrade');
 require('views/main/admin/stack_upgrade/upgrade_wizard_view');
 require('views/main/admin/stack_upgrade/upgrade_version_box_view');
 require('views/main/admin/stack_upgrade/upgrade_group_view');
@@ -296,9 +295,6 @@ require('views/wizard/step8_view');
 require('views/wizard/step9_view');
 require('views/wizard/step9/hostLogPopupBody_view');
 require('views/wizard/step10_view');
-require('views/wizard/stack_upgrade/step1_view');
-require('views/wizard/stack_upgrade/step2_view');
-require('views/wizard/stack_upgrade/step3_view');
 require('views/loading');
 
 require('views/experimental');
