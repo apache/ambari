@@ -21,7 +21,7 @@ package org.apache.ambari.server.serveraction.kerberos;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
-import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.velocity.VelocityContext;
@@ -42,8 +42,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Implementation of <code>KerberosOperationHandler</code> to created principal in Active Directory
@@ -51,15 +49,6 @@ import java.util.regex.Pattern;
 public class ADKerberosOperationHandler extends KerberosOperationHandler {
 
   private static Log LOG = LogFactory.getLog(ADKerberosOperationHandler.class);
-
-  /**
-   * Regular expression to parse the different principal formats:
-   * primary/instance@REALM
-   * primary@REALM
-   * primary/instance
-   * primary
-   */
-  private static Pattern PATTERN_PRINCIPAL = Pattern.compile("^(([^ /@]+)(?:/([^ /@]+))?)(?:@(.+)?)?$");
 
   private static final String LDAP_CONTEXT_FACTORY_CLASS = "com.sun.jndi.ldap.LdapCtxFactory";
 
@@ -213,27 +202,14 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     if (principal == null) {
       throw new KerberosOperationException("principal is null");
     }
-    NamingEnumeration<SearchResult> searchResultEnum = null;
+
+    DeconstructedPrincipal deconstructPrincipal = deconstructPrincipal(principal);
+
     try {
-      searchResultEnum = ldapContext.search(
-          principalContainerDn,
-          "(userPrincipalName=" + principal + ")",
-          searchControls);
-      if (searchResultEnum.hasMore()) {
-        return true;
-      }
+      return (findPrincipalDN(deconstructPrincipal.getNormalizedPrincipal()) != null);
     } catch (NamingException ne) {
       throw new KerberosOperationException("can not check if principal exists: " + principal, ne);
-    } finally {
-      try {
-        if (searchResultEnum != null) {
-          searchResultEnum.close();
-        }
-      } catch (NamingException ne) {
-        // ignore, we can not do anything about it
-      }
     }
-    return false;
   }
 
   /**
@@ -262,31 +238,24 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     }
 
     // TODO: (rlevas) pass components and realm in separately (AMBARI-9122)
-    String realm = null;
-    String principal_primary = null;
-    String principal_instance = null;
+    DeconstructedPrincipal deconstructedPrincipal = deconstructPrincipal(principal);
 
-    Matcher matcher = PATTERN_PRINCIPAL.matcher(principal);
-    if (matcher.matches()) {
-      principal = matcher.group(1);
-      principal_primary = matcher.group(2);
-      principal_instance = matcher.group(3);
-      realm = matcher.group(4);
-    }
-
-    if ((realm == null) || realm.isEmpty()) {
-      realm = getDefaultRealm();
+    String realm = deconstructedPrincipal.getRealm();
+    if (realm == null) {
+      realm = "";
     }
 
     Map<String, Object> context = new HashMap<String, Object>();
-    context.put("principal", principal);
-    context.put("principal_primary", principal_primary);
-    context.put("principal_instance", principal_instance);
+    context.put("normalized_principal", deconstructedPrincipal.getNormalizedPrincipal());
+    context.put("principal_name", deconstructedPrincipal.getPrincipalName());
+    context.put("principal_primary", deconstructedPrincipal.getPrimary());
+    context.put("principal_instance", deconstructedPrincipal.getInstance());
     context.put("realm", realm);
-    context.put("realm_lowercase", (realm == null) ? null : realm.toLowerCase());
+    context.put("realm_lowercase", realm.toLowerCase());
     context.put("password", password);
     context.put("is_service", service);
     context.put("container_dn", this.principalContainerDn);
+    context.put("principal_digest", DigestUtils.sha1Hex(deconstructedPrincipal.getNormalizedPrincipal()));
 
     Map<String, Object> data = processCreateTemplate(context);
 
@@ -300,13 +269,11 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
 
         if ("unicodePwd".equals(key)) {
           if (value instanceof String) {
-            Attribute passwordAttr = new BasicAttribute("unicodePwd");  // password
             try {
-              passwordAttr.add(((String) value).getBytes("UTF-16LE"));
+              attributes.put(new BasicAttribute("unicodePwd", String.format("\"%s\"", password).getBytes("UTF-16LE")));
             } catch (UnsupportedEncodingException ue) {
               throw new KerberosOperationException("Can not encode password with UTF-16LE", ue);
             }
-            attributes.put(passwordAttr);
           }
         } else {
           Attribute attribute = new BasicAttribute(key);
@@ -327,7 +294,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     }
 
     if (cn == null) {
-      cn = String.format("%s@%s", principal, realm);
+      cn = deconstructedPrincipal.getNormalizedPrincipal();
     }
     try {
       Name name = new CompositeName().add(String.format("cn=%s,%s", cn, principalContainerDn));
@@ -359,26 +326,27 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     if (password == null) {
       throw new KerberosOperationException("principal password is null");
     }
+
+    DeconstructedPrincipal deconstructPrincipal = deconstructPrincipal(principal);
+
     try {
-      if (!principalExists(principal)) {
-        throw new KerberosOperationException("principal not found : " + principal);
+      String dn = findPrincipalDN(deconstructPrincipal.getNormalizedPrincipal());
+
+      if (dn != null) {
+        ldapContext.modifyAttributes(dn,
+            new ModificationItem[]{
+                new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("unicodePwd", String.format("\"%s\"", password).getBytes("UTF-16LE")))
+            }
+        );
+      } else {
+        throw new KerberosOperationException(String.format("Can not set password for principal %s: Not Found", principal));
       }
-    } catch (KerberosOperationException e) {
-      e.printStackTrace();
+    } catch (NamingException e) {
+      throw new KerberosOperationException(String.format("Can not set password for principal %s: %s", principal, e.getMessage()), e);
+    } catch (UnsupportedEncodingException e) {
+      throw new KerberosOperationException("Unsupported encoding UTF-16LE", e);
     }
-    try {
-      ModificationItem[] mods = new ModificationItem[1];
-      String quotedPasswordVal = "\"" + password + "\"";
-      mods[0] = new ModificationItem(DirContext.REPLACE_ATTRIBUTE,
-          new BasicAttribute("UnicodePwd", quotedPasswordVal.getBytes("UTF-16LE")));
-      ldapContext.modifyAttributes(
-          new CompositeName().add("cn=" + principal + "," + principalContainerDn),
-          mods);
-    } catch (NamingException ne) {
-      throw new KerberosOperationException("Can not set password for principal : " + principal, ne);
-    } catch (UnsupportedEncodingException ue) {
-      throw new KerberosOperationException("Unsupported encoding UTF-16LE", ue);
-    }
+
     return 0;
   }
 
@@ -399,18 +367,17 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     if (principal == null) {
       throw new KerberosOperationException("principal is null");
     }
+
+    DeconstructedPrincipal deconstructPrincipal = deconstructPrincipal(principal);
+
     try {
-      if (!principalExists(principal)) {
-        return false;
+      String dn = findPrincipalDN(deconstructPrincipal.getNormalizedPrincipal());
+
+      if (dn != null) {
+        ldapContext.destroySubcontext(dn);
       }
-    } catch (KerberosOperationException e) {
-      e.printStackTrace();
-    }
-    try {
-      Name name = new CompositeName().add("cn=" + principal + "," + principalContainerDn);
-      ldapContext.destroySubcontext(name);
-    } catch (NamingException ne) {
-      throw new KerberosOperationException("Can not remove principal: " + principal);
+    } catch (NamingException e) {
+      throw new KerberosOperationException(String.format("Can not remove principal %s: %s", principal, e.getMessage()), e);
     }
 
     return true;
@@ -531,14 +498,14 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     if ((createTemplate == null) || createTemplate.isEmpty()) {
       template = "{" +
           "\"objectClass\": [\"top\", \"person\", \"organizationalPerson\", \"user\"]," +
-          "\"cn\": \"$principal\"," +
+          "\"cn\": \"$principal_name\"," +
           "#if( $is_service )" +
-          "  \"servicePrincipalName\": \"$principal\"," +
+          "  \"servicePrincipalName\": \"$principal_name\"," +
           "#end" +
-          "\"userPrincipalName\": \"$principal@$realm.toLowerCase()\"," +
-          "\"unicodePwd\": \"\\\"$password\\\"\"," +
+          "\"userPrincipalName\": \"$normalized_principal.toLowerCase()\"," +
+          "\"unicodePwd\": \"$password\"," +
           "\"accountExpires\": \"0\"," +
-          "\"userAccountControl\": \"512\"" +
+          "\"userAccountControl\": \"66048\"" +
           "}";
     } else {
       template = createTemplate;
@@ -566,4 +533,34 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     return data;
   }
 
+  private String findPrincipalDN(String normalizedPrincipal) throws NamingException, KerberosOperationException {
+    String dn = null;
+
+    if (normalizedPrincipal != null) {
+      NamingEnumeration<SearchResult> results = null;
+
+      try {
+        results = ldapContext.search(
+            principalContainerDn,
+            String.format("(userPrincipalName=%s)", normalizedPrincipal),
+            searchControls
+        );
+
+        if ((results != null) && results.hasMore()) {
+          SearchResult result = results.next();
+          dn = result.getNameInNamespace();
+        }
+      } finally {
+        try {
+          if (results != null) {
+            results.close();
+          }
+        } catch (NamingException ne) {
+          // ignore, we can not do anything about it
+        }
+      }
+    }
+
+    return dn;
+  }
 }

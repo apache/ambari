@@ -19,6 +19,8 @@
 package org.apache.ambari.server.serveraction.kerberos;
 
 import junit.framework.Assert;
+import org.easymock.Capture;
+import org.easymock.CaptureType;
 import org.easymock.EasyMockSupport;
 import org.easymock.IAnswer;
 import org.junit.Ignore;
@@ -26,21 +28,22 @@ import org.junit.Test;
 
 import javax.naming.AuthenticationException;
 import javax.naming.CommunicationException;
+import javax.naming.Name;
 import javax.naming.NamingEnumeration;
+import javax.naming.directory.Attributes;
+import javax.naming.directory.DirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.Control;
 import javax.naming.ldap.LdapContext;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.*;
 
 public class ADKerberosOperationHandlerTest extends EasyMockSupport {
   private static final String DEFAULT_ADMIN_PRINCIPAL = "cluser_admin@HDP01.LOCAL";
@@ -235,32 +238,30 @@ public class ADKerberosOperationHandlerTest extends EasyMockSupport {
       }
     };
 
+    Capture<Name> capturedName = new Capture<Name>(CaptureType.ALL);
+    Capture<Attributes> capturedAttributes = new Capture<Attributes>(CaptureType.ALL);
+
     ADKerberosOperationHandler handler = createMockBuilder(ADKerberosOperationHandler.class)
         .addMockedMethod(ADKerberosOperationHandler.class.getDeclaredMethod("createInitialLdapContext", Properties.class, Control[].class))
         .addMockedMethod(ADKerberosOperationHandler.class.getDeclaredMethod("createSearchControls"))
         .createNiceMock();
 
-    expect(handler.createInitialLdapContext(anyObject(Properties.class), anyObject(Control[].class)))
-        .andAnswer(new IAnswer<LdapContext>() {
-          @Override
-          public LdapContext answer() throws Throwable {
-            LdapContext ldapContext = createNiceMock(LdapContext.class);
-            expect(ldapContext.search(anyObject(String.class), anyObject(String.class), anyObject(SearchControls.class)))
-                .andAnswer(new IAnswer<NamingEnumeration<SearchResult>>() {
-                  @Override
-                  public NamingEnumeration<SearchResult> answer() throws Throwable {
-                    NamingEnumeration<SearchResult> result = createNiceMock(NamingEnumeration.class);
-                    expect(result.hasMore()).andReturn(false).once();
-                    replay(result);
-                    return result;
-                  }
-                })
-                .once();
-            replay(ldapContext);
-            return ldapContext;
-          }
-        })
+    NamingEnumeration<SearchResult> searchResult = createNiceMock(NamingEnumeration.class);
+    expect(searchResult.hasMore()).andReturn(false).once();
+
+    LdapContext ldapContext = createNiceMock(LdapContext.class);
+    expect(ldapContext.search(anyObject(String.class), anyObject(String.class), anyObject(SearchControls.class)))
+        .andReturn(searchResult)
         .once();
+
+    expect(ldapContext.createSubcontext(capture(capturedName), capture(capturedAttributes)))
+        .andReturn(createNiceMock(DirContext.class))
+        .anyTimes();
+
+    expect(handler.createInitialLdapContext(anyObject(Properties.class), anyObject(Control[].class)))
+        .andReturn(ldapContext)
+        .once();
+
     expect(handler.createSearchControls()).andAnswer(new IAnswer<SearchControls>() {
       @Override
       public SearchControls answer() throws Throwable {
@@ -273,45 +274,67 @@ public class ADKerberosOperationHandlerTest extends EasyMockSupport {
     replayAll();
 
     handler.open(kc, DEFAULT_REALM, kerberosEnvMap);
-
-    Map<String, Object> context = new HashMap<String, Object>();
-    context.put("principal", "nn/c6501.ambari.apache.org");
-    context.put("principal_primary", "nn");
-    context.put("principal_instance", "c6501.ambari.apache.org");
-    context.put("realm", "EXAMPLE.COM");
-    context.put("realm_lowercase", "example.com");
-    context.put("password", "secret");
-    context.put("is_service", true);
-    context.put("container_dn", "ou=cluster,DC=EXAMPLE,DC=COM");
-
-    Map<String, Object> data;
-
-    data = handler.processCreateTemplate(context);
-
-    Assert.assertNotNull(data);
-    Assert.assertEquals(7, data.size());
-    Assert.assertEquals(new ArrayList<String>(Arrays.asList("top", "person", "organizationalPerson", "user")), data.get("objectClass"));
-    Assert.assertEquals("nn/c6501.ambari.apache.org", data.get("cn"));
-    Assert.assertEquals("nn/c6501.ambari.apache.org", data.get("servicePrincipalName"));
-    Assert.assertEquals("nn/c6501.ambari.apache.org@example.com", data.get("userPrincipalName"));
-    Assert.assertEquals("\"secret\"", data.get("unicodePwd"));
-    Assert.assertEquals("0", data.get("accountExpires"));
-    Assert.assertEquals("512", data.get("userAccountControl"));
-
-
-    context.put("is_service", false);
-    data = handler.processCreateTemplate(context);
-
-    Assert.assertNotNull(data);
-    Assert.assertEquals(6, data.size());
-    Assert.assertEquals(new ArrayList<String>(Arrays.asList("top", "person", "organizationalPerson", "user")), data.get("objectClass"));
-    Assert.assertEquals("nn/c6501.ambari.apache.org", data.get("cn"));
-    Assert.assertEquals("nn/c6501.ambari.apache.org@example.com", data.get("userPrincipalName"));
-    Assert.assertEquals("\"secret\"", data.get("unicodePwd"));
-    Assert.assertEquals("0", data.get("accountExpires"));
-    Assert.assertEquals("512", data.get("userAccountControl"));
-
+    handler.createPrincipal("nn/c6501.ambari.apache.org", "secret", true);
+    handler.createPrincipal("hdfs@" + DEFAULT_REALM, "secret", false);
     handler.close();
+
+    List<Attributes> attributesList = capturedAttributes.getValues();
+    Attributes attributes;
+
+    attributes = attributesList.get(0);
+    String[] objectClasses = new String[]{"top", "person", "organizationalPerson", "user"};
+
+    Assert.assertNotNull(attributes);
+    Assert.assertEquals(7, attributes.size());
+
+    Assert.assertNotNull(attributes.get("objectClass"));
+    Assert.assertEquals(objectClasses.length, attributes.get("objectClass").size());
+    for (int i = 0; i < objectClasses.length; i++) {
+      Assert.assertEquals(objectClasses[i], attributes.get("objectClass").get(i));
+    }
+
+    Assert.assertNotNull(attributes.get("cn"));
+    Assert.assertEquals("nn/c6501.ambari.apache.org", attributes.get("cn").get());
+
+    Assert.assertNotNull(attributes.get("servicePrincipalName"));
+    Assert.assertEquals("nn/c6501.ambari.apache.org", attributes.get("servicePrincipalName").get());
+
+    Assert.assertNotNull(attributes.get("userPrincipalName"));
+    Assert.assertEquals("nn/c6501.ambari.apache.org@hdp01.local", attributes.get("userPrincipalName").get());
+
+    Assert.assertNotNull(attributes.get("unicodePwd"));
+    Assert.assertEquals("\"secret\"", new String((byte[]) attributes.get("unicodePwd").get(), Charset.forName("UTF-16LE")));
+
+    Assert.assertNotNull(attributes.get("accountExpires"));
+    Assert.assertEquals("0", attributes.get("accountExpires").get());
+
+    Assert.assertNotNull(attributes.get("userAccountControl"));
+    Assert.assertEquals("66048", attributes.get("userAccountControl").get());
+
+    attributes = attributesList.get(1);
+    Assert.assertNotNull(attributes);
+    Assert.assertEquals(6, attributes.size());
+
+    Assert.assertNotNull(attributes.get("objectClass"));
+    Assert.assertEquals(objectClasses.length, attributes.get("objectClass").size());
+    for (int i = 0; i < objectClasses.length; i++) {
+      Assert.assertEquals(objectClasses[i], attributes.get("objectClass").get(i));
+    }
+
+    Assert.assertNotNull(attributes.get("cn"));
+    Assert.assertEquals("hdfs", attributes.get("cn").get());
+
+    Assert.assertNotNull(attributes.get("userPrincipalName"));
+    Assert.assertEquals("hdfs@hdp01.local", attributes.get("userPrincipalName").get());
+
+    Assert.assertNotNull(attributes.get("unicodePwd"));
+    Assert.assertEquals("\"secret\"", new String((byte[]) attributes.get("unicodePwd").get(), Charset.forName("UTF-16LE")));
+
+    Assert.assertNotNull(attributes.get("accountExpires"));
+    Assert.assertEquals("0", attributes.get("accountExpires").get());
+
+    Assert.assertNotNull(attributes.get("userAccountControl"));
+    Assert.assertEquals("66048", attributes.get("userAccountControl").get());
   }
 
   @Test
@@ -321,54 +344,52 @@ public class ADKerberosOperationHandlerTest extends EasyMockSupport {
       {
         put(ADKerberosOperationHandler.KERBEROS_ENV_LDAP_URL, DEFAULT_LDAP_URL);
         put(ADKerberosOperationHandler.KERBEROS_ENV_PRINCIPAL_CONTAINER_DN, DEFAULT_PRINCIPAL_CONTAINER_DN);
-        put(ADKerberosOperationHandler.KERBEROS_ENV_CREATE_ATTRIBUTES_TEMPLATE, "{" +
+        put(ADKerberosOperationHandler.KERBEROS_ENV_CREATE_ATTRIBUTES_TEMPLATE, "" +
+            "#set( $user = \"${principal_primary}-${principal_digest}\" )" +
+            "{" +
             "  \"objectClass\": [" +
             "    \"top\"," +
             "    \"person\"," +
             "    \"organizationalPerson\"," +
             "    \"user\"" +
             "  ]," +
-            "  \"cn\": \"$principal@$realm\"," +
-            "  \"dn\": \"$principal@$realm,$container_dn\"," +
-            "  \"distinguishedName\": \"$principal@$realm,$container_dn\"," +
-            "  \"sAMAccountName\": \"$principal\"," +
+            "  \"cn\": \"$user\"," +
+            "  \"sAMAccountName\": \"$user.substring(0,20)\"," +
             "  #if( $is_service )" +
-            "  \"servicePrincipalName\": \"$principal\"," +
+            "  \"servicePrincipalName\": \"$principal_name\"," +
             "  #end" +
-            "  \"userPrincipalName\": \"$principal@$realm.toLowerCase()\"," +
-            "  \"unicodePwd\": \"`$password`\"," +
+            "  \"userPrincipalName\": \"$normalized_principal.toLowerCase()\"," +
+            "  \"unicodePwd\": \"$password\"," +
             "  \"accountExpires\": \"0\"," +
             "  \"userAccountControl\": \"66048\"" +
             "}");
       }
     };
 
+    Capture<Name> capturedName = new Capture<Name>();
+    Capture<Attributes> capturedAttributes = new Capture<Attributes>();
+
     ADKerberosOperationHandler handler = createMockBuilder(ADKerberosOperationHandler.class)
         .addMockedMethod(ADKerberosOperationHandler.class.getDeclaredMethod("createInitialLdapContext", Properties.class, Control[].class))
         .addMockedMethod(ADKerberosOperationHandler.class.getDeclaredMethod("createSearchControls"))
         .createNiceMock();
 
-    expect(handler.createInitialLdapContext(anyObject(Properties.class), anyObject(Control[].class)))
-        .andAnswer(new IAnswer<LdapContext>() {
-          @Override
-          public LdapContext answer() throws Throwable {
-            LdapContext ldapContext = createNiceMock(LdapContext.class);
-            expect(ldapContext.search(anyObject(String.class), anyObject(String.class), anyObject(SearchControls.class)))
-                .andAnswer(new IAnswer<NamingEnumeration<SearchResult>>() {
-                  @Override
-                  public NamingEnumeration<SearchResult> answer() throws Throwable {
-                    NamingEnumeration<SearchResult> result = createNiceMock(NamingEnumeration.class);
-                    expect(result.hasMore()).andReturn(false).once();
-                    replay(result);
-                    return result;
-                  }
-                })
-                .once();
-            replay(ldapContext);
-            return ldapContext;
-          }
-        })
+    NamingEnumeration<SearchResult> searchResult = createNiceMock(NamingEnumeration.class);
+    expect(searchResult.hasMore()).andReturn(false).once();
+
+    LdapContext ldapContext = createNiceMock(LdapContext.class);
+    expect(ldapContext.search(anyObject(String.class), anyObject(String.class), anyObject(SearchControls.class)))
+        .andReturn(searchResult)
         .once();
+
+    expect(ldapContext.createSubcontext(capture(capturedName), capture(capturedAttributes)))
+        .andReturn(createNiceMock(DirContext.class))
+        .once();
+
+    expect(handler.createInitialLdapContext(anyObject(Properties.class), anyObject(Control[].class)))
+        .andReturn(ldapContext)
+        .once();
+
     expect(handler.createSearchControls()).andAnswer(new IAnswer<SearchControls>() {
       @Override
       public SearchControls answer() throws Throwable {
@@ -381,34 +402,43 @@ public class ADKerberosOperationHandlerTest extends EasyMockSupport {
     replayAll();
 
     handler.open(kc, DEFAULT_REALM, kerberosEnvMap);
-
-
-    Map<String, Object> context = new HashMap<String, Object>();
-    context.put("principal", "nn/c6501.ambari.apache.org");
-    context.put("principal_primary", "nn");
-    context.put("principal_instance", "c6501.ambari.apache.org");
-    context.put("realm", "EXAMPLE.COM");
-    context.put("realm_lowercase", "example.com");
-    context.put("password", "secret");
-    context.put("is_service", true);
-    context.put("container_dn", "ou=cluster,DC=EXAMPLE,DC=COM");
-
-    Map<String, Object> data = handler.processCreateTemplate(context);
-
-    Assert.assertNotNull(data);
-    Assert.assertEquals(10, data.size());
-    Assert.assertEquals(new ArrayList<String>(Arrays.asList("top", "person", "organizationalPerson", "user")), data.get("objectClass"));
-    Assert.assertEquals("nn/c6501.ambari.apache.org@EXAMPLE.COM", data.get("cn"));
-    Assert.assertEquals("nn/c6501.ambari.apache.org", data.get("servicePrincipalName"));
-    Assert.assertEquals("nn/c6501.ambari.apache.org@example.com", data.get("userPrincipalName"));
-    Assert.assertEquals("nn/c6501.ambari.apache.org", data.get("sAMAccountName"));
-    Assert.assertEquals("nn/c6501.ambari.apache.org@EXAMPLE.COM,ou=cluster,DC=EXAMPLE,DC=COM", data.get("distinguishedName"));
-    Assert.assertEquals("nn/c6501.ambari.apache.org@EXAMPLE.COM,ou=cluster,DC=EXAMPLE,DC=COM", data.get("dn"));
-    Assert.assertEquals("`secret`", data.get("unicodePwd"));
-    Assert.assertEquals("0", data.get("accountExpires"));
-    Assert.assertEquals("66048", data.get("userAccountControl"));
-
+    handler.createPrincipal("nn/c6501.ambari.apache.org", "secret", true);
     handler.close();
+
+    Attributes attributes = capturedAttributes.getValue();
+    String[] objectClasses = new String[]{"top", "person", "organizationalPerson", "user"};
+
+    Assert.assertNotNull(attributes);
+    Assert.assertEquals(8, attributes.size());
+
+    Assert.assertNotNull(attributes.get("objectClass"));
+    Assert.assertEquals(objectClasses.length, attributes.get("objectClass").size());
+    for (int i = 0; i < objectClasses.length; i++) {
+      Assert.assertEquals(objectClasses[i], attributes.get("objectClass").get(i));
+    }
+
+    Assert.assertNotNull(attributes.get("cn"));
+    Assert.assertEquals("nn-995e1580db28198e7fda1417ab5d894c877937d2", attributes.get("cn").get());
+
+    Assert.assertNotNull(attributes.get("servicePrincipalName"));
+    Assert.assertEquals("nn/c6501.ambari.apache.org", attributes.get("servicePrincipalName").get());
+
+    Assert.assertNotNull(attributes.get("userPrincipalName"));
+    Assert.assertEquals("nn/c6501.ambari.apache.org@hdp01.local", attributes.get("userPrincipalName").get());
+
+    Assert.assertNotNull(attributes.get("sAMAccountName"));
+    Assert.assertTrue(attributes.get("sAMAccountName").get().toString().length() <= 20);
+    Assert.assertEquals("nn-995e1580db28198e7", attributes.get("sAMAccountName").get());
+
+    Assert.assertNotNull(attributes.get("unicodePwd"));
+    Assert.assertEquals("\"secret\"", new String((byte[]) attributes.get("unicodePwd").get(), Charset.forName("UTF-16LE")));
+
+    Assert.assertNotNull(attributes.get("accountExpires"));
+    Assert.assertEquals("0", attributes.get("accountExpires").get());
+
+    Assert.assertNotNull(attributes.get("userAccountControl"));
+    Assert.assertEquals("66048", attributes.get("userAccountControl").get());
+
   }
 
   /**
@@ -458,31 +488,40 @@ public class ADKerberosOperationHandlerTest extends EasyMockSupport {
     // does the principal already exist?
     System.out.println("Principal exists: " + handler.principalExists("nn/c1508.ambari.apache.org"));
 
-    //create principal
-//    handler.createPrincipal("nn/c1508.ambari.apache.org@" + DEFAULT_REALM, handler.createSecurePassword(), true);
-
     handler.close();
 
-    kerberosEnvMap.put(ADKerberosOperationHandler.KERBEROS_ENV_CREATE_ATTRIBUTES_TEMPLATE, "{" +
-        "\"objectClass\": [\"top\", \"person\", \"organizationalPerson\", \"user\"]," +
-        "\"distinguishedName\": \"CN=$principal@$realm,$container_dn\"," +
-        "#if( $is_service )" +
-        "\"servicePrincipalName\": \"$principal\"," +
-        "#end" +
-        "\"userPrincipalName\": \"$principal@$realm.toLowerCase()\"," +
-        "\"unicodePwd\": \"\\\"$password\\\"\"," +
-        "\"accountExpires\": \"0\"," +
-        "\"userAccountControl\": \"66048\"" +
-        "}");
+    kerberosEnvMap.put(ADKerberosOperationHandler.KERBEROS_ENV_CREATE_ATTRIBUTES_TEMPLATE,
+        "#set( $user = \"${principal_primary}-${principal_digest}\" )" +
+            "{" +
+            "  \"objectClass\": [" +
+            "    \"top\"," +
+            "    \"person\"," +
+            "    \"organizationalPerson\"," +
+            "    \"user\"" +
+            "  ]," +
+            "  \"cn\": \"$user\"," +
+            "  \"sAMAccountName\": \"$user.substring(0,20)\"," +
+            "  #if( $is_service )" +
+            "  \"servicePrincipalName\": \"$principal_name\"," +
+            "  #end" +
+            "  \"userPrincipalName\": \"$normalized_principal.toLowerCase()\"," +
+            "  \"unicodePwd\": \"$password\"," +
+            "  \"accountExpires\": \"0\"," +
+            "  \"userAccountControl\": \"66048\"" +
+            "}"
+    );
 
     handler.open(credentials, realm, kerberosEnvMap);
-    handler.createPrincipal("abcdefg/c1509.ambari.apache.org@" + DEFAULT_REALM, handler.createSecurePassword(), true);
-
-    //update the password
-    handler.setPrincipalPassword("nn/c1508.ambari.apache.org", handler.createSecurePassword());
 
     // remove the principal
-    // handler.removeServicePrincipal("nn/c1508.ambari.apache.org");
+    handler.removePrincipal("abcdefg");
+    handler.removePrincipal("abcdefg/c1509.ambari.apache.org@" + DEFAULT_REALM);
+
+    handler.createPrincipal("abcdefg/c1509.ambari.apache.org@" + DEFAULT_REALM, handler.createSecurePassword(), true);
+    handler.createPrincipal("abcdefg@" + DEFAULT_REALM, handler.createSecurePassword(), false);
+
+    //update the password
+    handler.setPrincipalPassword("abcdefg/c1509.ambari.apache.org@" + DEFAULT_REALM, handler.createSecurePassword());
 
     handler.close();
   }

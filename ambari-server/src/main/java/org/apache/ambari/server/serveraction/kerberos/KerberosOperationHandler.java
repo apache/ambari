@@ -63,7 +63,6 @@ public abstract class KerberosOperationHandler {
   private final static char[] SECURE_PASSWORD_CHARS =
       "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890?.!$%^*()-_+=~".toCharArray();
 
-
   /**
    * The default set of ciphers to use for creating keytab entries
    */
@@ -432,4 +431,13 @@ public abstract class KerberosOperationHandler {
       }
     }
   }
+
+  protected DeconstructedPrincipal deconstructPrincipal(String principal) throws KerberosOperationException {
+    try {
+      return DeconstructedPrincipal.valueOf(principal, getDefaultRealm());
+    } catch (IllegalArgumentException e) {
+      throw new KerberosOperationException(e.getMessage(), e);
+    }
+  }
+
 }
