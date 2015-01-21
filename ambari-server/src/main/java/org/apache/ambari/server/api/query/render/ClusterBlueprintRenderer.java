@@ -239,10 +239,10 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
    *
    * @return cluster configuration
    */
-  private List<Map<String, Map<String, String>>>  processConfigurations(TreeNode<Resource> clusterNode,
+  private List<Map<String, Map<String, Map<String, ?>>>>  processConfigurations(TreeNode<Resource> clusterNode,
                                                                         Collection<HostGroupImpl> hostGroups) {
 
-    List<Map<String, Map<String, String>>> configList = new ArrayList<Map<String, Map<String, String>>>();
+    List<Map<String, Map<String, Map<String, ?>>>> configList = new ArrayList<Map<String, Map<String, Map<String, ?>>>>();
 
     Map<String, Object> desiredConfigMap = clusterNode.getObject().getPropertiesMap().get("Clusters/desired_configs");
     TreeNode<Resource> configNode = clusterNode.getChild("configurations");
@@ -255,7 +255,16 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
 
         BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(properties);
         properties = updater.doUpdateForBlueprintExport(hostGroups);
-        configList.add(properties);
+
+        // build up maps for properties and property attributes
+        Map<String, Map<String, ?>> typeMap =
+          new HashMap<String, Map<String, ?>>();
+        typeMap.put("properties", properties.get(configuration.getType()));
+        if ((configuration.getPropertyAttributes() != null) && !configuration.getPropertyAttributes().isEmpty()) {
+          typeMap.put("properties_attributes", configuration.getPropertyAttributes());
+        }
+
+        configList.add(Collections.singletonMap(configuration.getType(), typeMap));
       }
     }
     return configList;
@@ -566,6 +575,12 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     private Map<String, String> properties = new HashMap<String, String>();
 
     /**
+     * Attributes for the properties in the cluster configuration.
+     */
+    private Map<String, ?> propertyAttributes =
+      new HashMap<String, Object>();
+
+    /**
      * Constructor.
      *
      * @param configNode  configuration node
@@ -578,6 +593,9 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
 
       // property map type is currently <String, Object>
       properties = (Map) configNode.getObject().getPropertiesMap().get("properties");
+
+      // get the property attributes set in this configuration
+      propertyAttributes = (Map) configNode.getObject().getPropertiesMap().get("properties_attributes");
 
       if (properties != null) {
         stripRequiredProperties(properties);
@@ -617,13 +635,23 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
       return properties;
     }
 
+    /**
+     * Get property attributes.
+     *
+     * @return map of property attributes
+     */
+    public Map<String, ?> getPropertyAttributes() {
+      return propertyAttributes;
+    }
+
     @Override
     public boolean equals(Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
 
       Configuration that = (Configuration) o;
-      return tag.equals(that.tag) && type.equals(that.type) && properties.equals(that.properties);
+      return tag.equals(that.tag) && type.equals(that.type) && properties.equals(that.properties)
+        && propertyAttributes.equals(that.propertyAttributes);
     }
 
     @Override
@@ -631,6 +659,7 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
       int result = type.hashCode();
       result = 31 * result + tag.hashCode();
       result = 31 * result + properties.hashCode();
+      result = 31 * result + propertyAttributes.hashCode();
       return result;
     }
 

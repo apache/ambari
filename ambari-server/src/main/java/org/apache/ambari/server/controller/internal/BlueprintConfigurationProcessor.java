@@ -891,7 +891,7 @@ public class BlueprintConfigurationProcessor {
           indexOfEnd = matcher.end();
         }
 
-        if (indexOfEnd < (origValue.length() - 1)) {
+        if ((indexOfEnd > -1) && (indexOfEnd < (origValue.length() - 1))) {
           suffix = origValue.substring(indexOfEnd);
         }
 

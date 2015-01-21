@@ -924,6 +924,29 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
+  public void testDoUpdateForClusterCreate_MultiHostProperty_exportedValues_withPorts_singleHostValue() {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> yarnSiteConfig = new HashMap<String, String>();
+
+    yarnSiteConfig.put("hadoop.registry.zk.quorum", "%HOSTGROUP::host_group_1%:2181");
+    properties.put("yarn-site", yarnSiteConfig);
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("NAMENODE");
+    hgComponents.add("SECONDARY_NAMENODE");
+    hgComponents.add("ZOOKEEPER_SERVER");
+    HostGroup group1 = new TestHostGroup("host_group_1", Collections.singleton("testhost"), hgComponents);
+
+    Map<String, HostGroup> hostGroups = new HashMap<String, HostGroup>();
+    hostGroups.put(group1.getName(), group1);
+
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(properties);
+    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups, null);
+    assertEquals("Multi-host property with single host value was not correctly updated for cluster create.",
+      "testhost:2181", updatedProperties.get("yarn-site").get("hadoop.registry.zk.quorum"));
+  }
+
+  @Test
   public void testDoUpdateForClusterCreate_MultiHostProperty__exportedValues___YAML() {
     Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
     Map<String, String> typeProps = new HashMap<String, String>();

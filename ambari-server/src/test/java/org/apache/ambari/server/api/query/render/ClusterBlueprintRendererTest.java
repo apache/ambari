@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.api.query.render;
 
+import junit.framework.Assert;
 import org.apache.ambari.server.api.query.QueryInfo;
 import org.apache.ambari.server.api.resources.ClusterResourceDefinition;
 import org.apache.ambari.server.api.resources.HostComponentResourceDefinition;
@@ -30,24 +31,23 @@ import org.apache.ambari.server.api.util.TreeNodeImpl;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackInfo;
 import org.junit.Test;
 
-import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -177,17 +177,162 @@ public class ClusterBlueprintRendererTest {
     }
   }
 
+  @Test
+  public void testFinalizeResultWithAttributes() throws Exception{
+
+    AmbariManagementController controller = createMock(AmbariManagementController.class);
+    AmbariMetaInfo stackInfo = createNiceMock(AmbariMetaInfo.class);
+    ServiceInfo hdfsService = new ServiceInfo();
+    hdfsService.setName("HDFS");
+    ServiceInfo mrService = new ServiceInfo();
+    mrService.setName("MAPREDUCE");
+
+    expect(controller.getAmbariMetaInfo()).andReturn(stackInfo).atLeastOnce();
+    expect(stackInfo.getStack("HDP", "1.3.3")).andReturn(new StackInfo()).atLeastOnce();
+
+    replay(controller, stackInfo);
+
+    Result result = new ResultImpl(true);
+    Map<String, Object> testDesiredConfigMap =
+      new HashMap<String, Object>();
+
+    DesiredConfig testDesiredConfig =
+      new DesiredConfig();
+
+    testDesiredConfig.setTag("test-tag-one");
+    testDesiredConfigMap.put("test-type-one", testDesiredConfig);
+
+    createClusterResultTree(result.getResultTree(), testDesiredConfigMap);
+
+    ClusterBlueprintRenderer renderer = new TestBlueprintRenderer(controller);
+    Result blueprintResult = renderer.finalizeResult(result);
+
+    TreeNode<Resource> blueprintTree = blueprintResult.getResultTree();
+    assertNull(blueprintTree.getProperty("isCollection"));
+    assertEquals(1, blueprintTree.getChildren().size());
+
+    TreeNode<Resource> blueprintNode = blueprintTree.getChildren().iterator().next();
+    assertEquals(0, blueprintNode.getChildren().size());
+    Resource blueprintResource = blueprintNode.getObject();
+    Map<String, Map<String, Object>> properties = blueprintResource.getPropertiesMap();
+
+    assertEquals("HDP", properties.get("Blueprints").get("stack_name"));
+    assertEquals("1.3.3", properties.get("Blueprints").get("stack_version"));
+
+    Collection<Map<String, Object>> host_groups = (Collection<Map<String, Object>>) properties.get("").get("host_groups");
+    assertEquals(2, host_groups.size());
+
+    for (Map<String, Object> hostGroupProperties : host_groups) {
+      String host_group_name = (String) hostGroupProperties.get("name");
+      if (host_group_name.equals("host_group_1")) {
+        assertEquals("1", hostGroupProperties.get("cardinality"));
+
+        Collection<Map<String, String>> components = (Collection<Map<String, String>>) hostGroupProperties.get("components");
+        // 4 specified components and ambari server
+        assertEquals(5, components.size());
+
+        Set<String> expectedValues = new HashSet<String>(
+          Arrays.asList("JOBTRACKER", "TASKTRACKER", "NAMENODE", "DATANODE", "AMBARI_SERVER"));
+
+        Set<String> actualValues = new HashSet<String>();
+
+
+        for (Map<String, String> componentProperties : components) {
+          assertEquals(1, componentProperties.size());
+          actualValues.add(componentProperties.get("name"));
+        }
+        assertEquals(expectedValues, actualValues);
+      } else if (host_group_name.equals("host_group_2")) {
+        // cardinality is 2 because 2 hosts share same topology
+        assertEquals("2", hostGroupProperties.get("cardinality"));
+
+        Collection<Map<String, String>> components = (Collection<Map<String, String>>) hostGroupProperties.get("components");
+        assertEquals(2, components.size());
+
+        Set<String> expectedValues = new HashSet<String>(
+          Arrays.asList("TASKTRACKER", "DATANODE"));
+
+        Set<String> actualValues = new HashSet<String>();
+
+
+        for (Map<String, String> componentProperties : components) {
+          assertEquals(1, componentProperties.size());
+          actualValues.add(componentProperties.get("name"));
+        }
+        assertEquals(expectedValues, actualValues);
+      }
+    }
+
+    List<Map<String, Map<String, Map<String, ?>>>> configurationsResult =
+      (List<Map<String, Map<String, Map<String, ?>>>>)blueprintResource.getPropertyValue("configurations");
+
+    assertEquals("Incorrect number of config maps added",
+      1, configurationsResult.size());
+
+    Map<String, Map<String, ?>> configMap =
+      configurationsResult.iterator().next().get("test-type-one");
+
+    assertNotNull("Expected config map was not included", configMap);
+
+    assertEquals("Incorrect number of maps added under expected type",
+      2, configMap.size());
+
+    assertTrue("Expected properties map was not found",
+      configMap.containsKey("properties"));
+    assertTrue("Expected properties_attributes map was not found",
+      configMap.containsKey("properties_attributes"));
+
+    Map<String, ?> propertiesResult =
+      configMap.get("properties");
+    assertEquals("Incorrect number of config properties found",
+      1, propertiesResult.size());
+
+    Map<String, ?> attributesResult =
+      configMap.get("properties_attributes");
+    assertEquals("Incorrect number of config attributes found",
+      1, attributesResult.size());
+
+    // verify the correct properties were added to the exported Blueprint
+    assertEquals("Incorrect property value included",
+      "valueOne", propertiesResult.get("propertyOne"));
+
+    // verify that the expected attributes were added to the exported Blueprint
+    assertNotNull("Expected attribute not found in exported Blueprint",
+      attributesResult.get("final"));
+
+    assertTrue("Attribute type map was not included",
+      attributesResult.get("final") instanceof Map);
+
+    Map<String, ?> finalMap =
+      (Map<String, ?>)attributesResult.get("final");
+
+    assertEquals("Attribute value is not correct",
+        "true", finalMap.get("propertyOne"));
+
+    verify(controller, stackInfo);
+  }
+
   //todo: collection resource
 
-  private void createClusterResultTree(TreeNode<Resource> resultTree) throws Exception{
+  private void createClusterResultTree(TreeNode<Resource> resultTree) throws Exception {
+    createClusterResultTree(resultTree, null);
+  }
+
+  private void createClusterResultTree(TreeNode<Resource> resultTree, final Map<String, Object> desiredConfig) throws Exception{
     Resource clusterResource = new ResourceImpl(Resource.Type.Cluster) {
       @Override
       public Map<String, Map<String, Object>> getPropertiesMap() {
         Map<String, Map<String, Object>> originalMap =
           super.getPropertiesMap();
 
-        // override the properties map for simpler testing
-        originalMap.put("Clusters/desired_configs", Collections.<String, Object>emptyMap());
+        if (desiredConfig == null) {
+          // override the properties map for simpler testing
+          originalMap.put("Clusters/desired_configs", Collections.<String, Object>emptyMap());
+        } else {
+          // allow for unit tests to customize this, needed for attributes export testing
+          originalMap.put("Clusters/desired_configs", desiredConfig);
+        }
+
 
         return originalMap;
       };
@@ -230,14 +375,16 @@ public class ClusterBlueprintRendererTest {
         Map<String, Map<String, Object>> originalMap =
           super.getPropertiesMap();
 
-        // return test properties, to simluate valid configuration entry
+        // return test properties, to simulate valid configuration entry
         originalMap.put("properties", Collections.<String, Object>singletonMap("propertyOne", "valueOne"));
+        originalMap.put("properties_attributes", Collections.<String, Object>singletonMap("final", Collections.singletonMap("propertyOne", "true")));
 
         return originalMap;
       }
     };
 
     resourceTwo.setProperty("type", "test-type-one");
+    resourceTwo.setProperty("tag", "test-tag-one");
 
     configurations.addChild(resourceTwo, "resourceTwo");
 
