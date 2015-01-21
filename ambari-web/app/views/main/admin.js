@@ -57,6 +57,11 @@ App.MainAdminView = Em.View.extend({
     isActive: function () {
       return this.get('item') === this.get('parentView.selected');
     }.property('item', 'parentView.selected')
-  })
+  }),
+
+  willDestroyElement: function () {
+    //reset selected category in Admin sub-menu after leaving admin section
+    this.set('controller.category', null);
+  }
 });
 

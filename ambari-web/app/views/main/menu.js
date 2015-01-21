@@ -147,7 +147,7 @@ App.MainMenuView = Em.CollectionView.extend({
       tagName: 'li',
       classNameBindings: 'isActive:active'.w(),
       isActive: function () {
-        return this.get('item').toLowerCase().contains(this.get('parentView.selectedAdminItem').toLowerCase());
+        return this.get('item') === this.get('parentView.selectedAdminItem');
       }.property('item', 'parentView.selectedAdminItem'),
 
       goToCategory: function (event) {
