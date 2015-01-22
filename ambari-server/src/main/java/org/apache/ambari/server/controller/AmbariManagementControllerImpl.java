@@ -1196,51 +1196,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       cluster.setClusterName(request.getClusterName());
     }
 
-    // ----------------------
-    // Check to see if the security state is being changed... if so, attempt to enable or disable
-    // Kerberos
-    boolean toggleKerberos = false;
-
-    String desiredSecurityState = null;
-    List<ConfigurationRequest> desiredConfig = request.getDesiredConfig();
-    if (desiredConfig != null) {
-      for (ConfigurationRequest configurationRequest : desiredConfig) {
-        if ("cluster-env".equals(configurationRequest.getType())) {
-          Map<String, String> properties = configurationRequest.getProperties();
-
-          if ((properties == null) || properties.isEmpty()) {
-            Config configClusterEnv = cluster.getConfig(configurationRequest.getType(), configurationRequest.getVersionTag());
-            if (configClusterEnv != null) {
-              properties = configClusterEnv.getProperties();
-            }
-          }
-
-          desiredSecurityState = (properties == null) ? null : properties.get("security_enabled");
-        }
-      }
-    }
-
-    if(desiredSecurityState != null) {
-      Config configClusterEnv = cluster.getDesiredConfigByType("cluster-env");
-      if (configClusterEnv == null) {
-        String message = "The 'cluster-env' configuration is not available";
-        LOG.error(message);
-        throw new AmbariException(message);
-      }
-
-      Map<String, String> clusterEnvProperties = configClusterEnv.getProperties();
-      if (clusterEnvProperties == null) {
-        String message = "The 'cluster-env' configuration properties are not available";
-        LOG.error(message);
-        throw new AmbariException(message);
-      }
-
-      toggleKerberos = !desiredSecurityState.equals(clusterEnvProperties.get("security_enabled"));
-    }
-    // ----------------------
-
-
-        // set or create configuration mapping (and optionally create the map of properties)
+    // set or create configuration mapping (and optionally create the map of properties)
     if (null != request.getDesiredConfig()) {
       Set<Config> configs = new HashSet<Config>();
       String note = null;
@@ -1370,15 +1326,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     RequestStageContainer requestStageContainer = null;
-    if(toggleKerberos) {
-      Map<String, Service> services = cluster.getServices();
-      if ((services != null) && services.containsKey("KERBEROS")) {
-        // Handle either adding or removing Kerberos from the cluster. This may generate multiple stages
-        // or not depending the current state of the cluster.  The main configuration used to determine
-        // whether Kerberos is to be added or removed is cluster-config/security_enabled.
-        requestStageContainer = kerberosHelper.toggleKerberos(cluster,
-            request.getKerberosDescriptor(), null);
-      }
+    Map<String, Service> services = cluster.getServices();
+    if ((services != null) && services.containsKey("KERBEROS")) {
+      // Handle either adding or removing Kerberos from the cluster. This may generate multiple stages
+      // or not depending the current state of the cluster.  The main configuration used to determine
+      // whether Kerberos is to be added or removed is cluster-config/security_enabled.
+      requestStageContainer = kerberosHelper.toggleKerberos(cluster,
+          request.getKerberosDescriptor(), null);
     }
 
     if (requestStageContainer != null) {

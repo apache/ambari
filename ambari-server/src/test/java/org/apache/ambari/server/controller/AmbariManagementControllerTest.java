@@ -9369,7 +9369,7 @@ public class AmbariManagementControllerTest {
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper);
-    expect(injector.getInstance(KerberosHelper.class)).andReturn(createStrictMock(KerberosHelper.class));
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
 
     // getServices
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
@@ -9413,7 +9413,7 @@ public class AmbariManagementControllerTest {
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper);
-    expect(injector.getInstance(KerberosHelper.class)).andReturn(createStrictMock(KerberosHelper.class));
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
 
     // getServices
     expect(clusters.getCluster("cluster1")).andReturn(cluster);
@@ -9472,7 +9472,7 @@ public class AmbariManagementControllerTest {
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper);
-    expect(injector.getInstance(KerberosHelper.class)).andReturn(createStrictMock(KerberosHelper.class));
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
 
     // getServices
     expect(clusters.getCluster("cluster1")).andReturn(cluster).times(4);
