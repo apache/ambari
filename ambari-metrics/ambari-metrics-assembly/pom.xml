@@ -614,6 +614,7 @@
                     <path>/var/lib/ambari-metrics-collector</path>
                     <path>/usr/lib/ambari-metrics-hadoop-sink</path>
                     <path>/usr/lib/ambari-metrics-kafka-sink</path>
+                    <path>/usr/lib/ambari-metrics-kafka-sink/lib</path>
                     <path>/usr/lib/flume/lib</path>
                     <path>/usr/lib/storm/lib</path>
                   </paths>
