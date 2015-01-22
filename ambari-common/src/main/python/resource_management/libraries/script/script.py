@@ -412,6 +412,9 @@ class Script(object):
     Generates config files and stores them as an archive in tmp_dir
     based on xml_configs_list and env_configs_list from commandParams
     """
+    import params
+    env.set_params(params)
+    
     config = self.get_config()
 
     xml_configs_list = config['commandParams']['xml_configs_list']
