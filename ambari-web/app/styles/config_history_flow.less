@@ -186,6 +186,12 @@
   .version-info-bar-wrapper {
     position: fixed;
     z-index: 2;
+    width: 747px;
+  }
+  @media (min-width: 1200px) {
+    .version-info-bar-wrapper {
+      width: 960px;
+    }
   }
   .version-info-bar {
     background-image: -moz-linear-gradient(top, @top-nav-bg-color-from, @top-nav-bg-color-to);
@@ -202,7 +208,7 @@
     border-radius: 4px;
     margin: 5px 0;
     padding: 5px;
-    width: 747px;
+    width: 100%;
 
     .icon-remove-circle {
       color: #ffffff;
