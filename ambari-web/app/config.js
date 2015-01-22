@@ -64,7 +64,6 @@ App.supports = {
   alwaysEnableManagedMySQLForHive: false,
   preKerberizeCheck: false,
   automatedKerberos: true,
-  ranger: false,
   customizeAgentUserAccount: false,
   installGanglia: false,
   opsDuringRollingUpgrade: false

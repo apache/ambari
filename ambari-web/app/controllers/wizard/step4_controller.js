@@ -218,7 +218,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @method isDFSStack
    */
   isDFSStack: function () {
-	var bDFSStack = false;
+	  var bDFSStack = false;
     var dfsServices = ['HDFS', 'GLUSTERFS'];
     var availableServices = this.filterProperty('isInstalled',false);
     availableServices.forEach(function(service){
