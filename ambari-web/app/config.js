@@ -61,7 +61,7 @@ App.supports = {
   preUpgradeCheck: true,
   stackUpgrade: true,
   autoRollbackHA: false,
-  alwaysEnableManagedMySQLForHive: true,
+  alwaysEnableManagedMySQLForHive: false,
   preKerberizeCheck: false,
   automatedKerberos: true,
   ranger: false,
