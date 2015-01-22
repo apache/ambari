@@ -151,7 +151,7 @@ class Resource(object):
     pass
 
   def __repr__(self):
-    return "%s['%s']" % (self.__class__.__name__, self.name)
+    return repr(unicode(self))
 
   def __unicode__(self):
     return u"%s['%s']" % (self.__class__.__name__, self.name)

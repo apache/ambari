@@ -196,3 +196,4 @@ class TestUserResource(TestCase):
 
     popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', "/usr/bin/sudo  PATH=/bin -H -E useradd -m mapred"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env={'PATH': '/bin'}, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
+
