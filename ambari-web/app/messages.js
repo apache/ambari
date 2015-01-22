@@ -976,6 +976,9 @@ Em.I18n.translations = {
   'admin.kerberos.wizard.header':'Enable Kerberos Wizard',
   'admin.kerberos.button.enable': 'Enable Kerberos',
   'admin.kerberos.button.disable': 'Disable Kerberos',
+  'admin.kerberos.wizard.exit.msg': 'Enable Security is in progress. You must allow the wizard to complete for Ambari to be in usable state. ' +
+    'If you choose to quit, you must follow manual instructions to activate or disable security as documented in the Ambari User Guide. ' +
+    'Do you really want to exit Kerberos Security Wizard?',
   'admin.kerberos.wizard.step1.header': 'Get Started',
   'admin.kerberos.wizard.step2.header': 'Configure Kerberos',
   'admin.kerberos.wizard.step3.header': 'Install and Test Kerberos',

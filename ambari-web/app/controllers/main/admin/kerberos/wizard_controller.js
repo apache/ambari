@@ -264,7 +264,15 @@ App.KerberosWizardController = App.WizardController.extend({
     this.saveRequestIds(undefined);
     this.saveTasksRequestIds(undefined);
   },
-
+  /**
+   * shows popup with to warn user
+   * @param primary
+   */
+  warnBeforeExitPopup: function(primary) {
+    var primaryText = Em.I18n.t('common.exitAnyway');
+    var msg = Em.I18n.t('admin.kerberos.wizard.exit.msg');
+    return App.showConfirmationPopup(primary, msg, null, null, primaryText)
+  },
   /**
    * Clear all temporary data
    */

@@ -34,39 +34,53 @@ module.exports = App.WizardRoute.extend({
         secondary: null,
 
         onClose: function () {
-          var step2Controller = router.get('kerberosWizardStep2Controller');
-          if (step2Controller.get('testConnectionInProgress')) {
-            step2Controller.showConnectionInProgressPopup(this.exitWizard);
-          } else {
-            this.exitWizard();
+          var self = this;
+          switch(kerberosWizardController.get('currentStep')) {
+            case "1":
+              self.exitWizard();
+              break;
+            case "2":
+              var step2Controller = router.get('kerberosWizardStep2Controller');
+              if (step2Controller.get('testConnectionInProgress')) {
+                step2Controller.showConnectionInProgressPopup(function() {
+                  self.exitWizard();
+                });
+              } else {
+                self.exitWizard();
+              }
+              break;
+            default:
+              kerberosWizardController.warnBeforeExitPopup(function() {
+                self.exitWizard();
+              });
           }
         },
         didInsertElement: function () {
           this.fitHeight();
         },
 
-       exitWizard: function() {
-         var self = this;
-         var kerberosProgressPageController = App.router.get('kerberosProgressPageController');
-         var controller = App.router.get('kerberosWizardController');
-         controller.clearTasksData();
-         controller.finish();
-         App.router.get('updateController').set('isWorking', true);
-         if (App.get('testMode')) {
-           App.router.transitionTo('adminKerberos.index');
-           location.reload();
-         }
-         App.clusterStatus.setClusterStatus({
-           clusterName: App.router.getClusterName(),
-           clusterState: 'DEFAULT',
-           localdb: App.db.data
-         }, {
-           alwaysCallback: function () {
-             self.hide();
-             App.router.transitionTo('adminKerberos.index');
-           }
-         });
-       }
+        exitWizard: function () {
+          var self = this;
+          var kerberosProgressPageController = App.router.get('kerberosProgressPageController');
+          var controller = App.router.get('kerberosWizardController');
+          controller.clearTasksData();
+          controller.finish();
+          App.router.get('updateController').set('isWorking', true);
+          if (App.get('testMode')) {
+            App.router.transitionTo('adminKerberos.index');
+            location.reload();
+          }
+          App.clusterStatus.setClusterStatus({
+            clusterName: App.router.getClusterName(),
+            clusterState: 'DEFAULT',
+            localdb: App.db.data
+          }, {
+            alwaysCallback: function () {
+              self.hide();
+              App.router.transitionTo('adminKerberos.index');
+            }
+          });
+        }
       });
       kerberosWizardController.set('popup', popup);
       var currentClusterStatus = App.clusterStatus.get('value');
