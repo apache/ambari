@@ -61,7 +61,6 @@ class ConfigDefaultsLinux(ConfigDefaults):
 
 configDefaults = ConfigDefaults()
 
-
 config = ConfigParser.RawConfigParser()
 
 CONFIG_FILE_PATH = configDefaults.get_config_file_path()
@@ -83,6 +82,8 @@ START_ACTION = "start"
 STOP_ACTION = "stop"
 RESTART_ACTION = "restart"
 STATUS_ACTION = "status"
+
+AMBARI_AGENT_CONF = '/etc/ambari-agent/conf/ambari-agent.ini'
 
 config_content = """
 [default]
@@ -139,6 +140,7 @@ metric_group_info = """
 }
 """
 
+
 class Configuration:
 
   def __init__(self):
@@ -158,6 +160,13 @@ class Configuration:
         'host_metric_groups': [],
         'process_metric_groups': []
       }
+    pass
+
+    self.hostname_script = None
+    ambari_agent_config = ConfigParser.RawConfigParser()
+    if os.path.exists(AMBARI_AGENT_CONF):
+      ambari_agent_config.read(AMBARI_AGENT_CONF)
+      self.hostname_script = ambari_agent_config.get('agent', 'hostname_script')
     pass
 
   def getConfig(self):
@@ -183,7 +192,10 @@ class Configuration:
     return self.get("default", "metrics_server")
 
   def get_hostname_script(self):
-    return self.get("default", "hostname_script")
+    if self.hostname_script:
+      return self.hostname_script
+    else:
+      return self.get("default", "hostname_script")
 
   def get_log_level(self):
     return self.get("default", "debug_level", "INFO")

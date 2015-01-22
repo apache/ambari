@@ -23,7 +23,6 @@ import psutil
 import os
 from collections import namedtuple
 import platform
-import socket
 import time
 import threading
 import socket
