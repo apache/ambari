@@ -53,6 +53,7 @@ require('views/common/filter_combobox');
 require('views/common/filter_combo_cleanable');
 require('views/common/table_view');
 require('views/common/progress_bar_view');
+require('views/common/controls_view');
 require('views/login');
 require('views/main');
 require('views/main/menu');
@@ -278,7 +279,6 @@ require('views/main/charts/heatmap/heatmap_host_detail');
 require('views/main/views_view');
 
 require('views/installer');
-require('views/wizard/controls_view');
 require('views/wizard/step0_view');
 require('views/wizard/step1_view');
 require('views/wizard/step2_view');

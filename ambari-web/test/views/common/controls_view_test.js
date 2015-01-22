@@ -17,7 +17,7 @@
  */
 
 var App = require('app');
-require('views/wizard/controls_view');
+require('views/common/controls_view');
 
 describe('App.ServiceConfigRadioButtons', function () {
 

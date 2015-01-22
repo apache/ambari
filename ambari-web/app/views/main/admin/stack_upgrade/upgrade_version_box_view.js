@@ -129,6 +129,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
     var repoRecord = App.RepositoryVersion.find(this.get('content.id'));
     //make deep copy of repoRecord
     var repo = Em.Object.create({
+      repoVersionId: repoRecord.get('id'),
       displayName: repoRecord.get('displayName'),
       repositoryVersion: repoRecord.get('displayName'),
       operatingSystems: repoRecord.get('operatingSystems').map(function (os) {
@@ -140,7 +141,8 @@ App.UpgradeVersionBoxView = Em.View.extend({
             return Em.Object.create({
               repoName: repository.get('repoName'),
               repoId: repository.get('repoId'),
-              baseUrl: repository.get('baseUrl')
+              baseUrl: repository.get('baseUrl'),
+              hasError: false
             });
           })
         });
@@ -149,20 +151,48 @@ App.UpgradeVersionBoxView = Em.View.extend({
 
     return App.ModalPopup.show({
       classNames: ['repository-list', 'sixty-percent-width-modal'],
+      skipValidation: false,
+      hasErrors: false,
       bodyClass: Ember.View.extend({
         content: repo,
+        skipCheckBox: Ember.Checkbox.extend({
+          classNames: ["align-checkbox"],
+          change: function() {
+            this.get('parentView.content.operatingSystems').forEach(function(os) {
+              if (Em.get(os, 'repositories.length') > 0) {
+                os.get('repositories').forEach(function(repo) {
+                  Em.set(repo, 'hasError', false);
+                })
+              }
+            });
+          }
+        }),
         templateName: require('templates/main/admin/stack_upgrade/edit_repositories'),
-        skipValidation: false,
         didInsertElement: function () {
           App.tooltip($("[rel=skip-validation-tooltip]"), {placement: 'right'});
-        }
+        },
+        OSCheckBox: Ember.Checkbox.extend({
+          classNames: ["align-checkbox"],
+
+          checkedBinding: "os.isSelected",
+
+          change: function () {
+            this.get('os.repositories').setEach('hasError', false);
+          }
+        })
       }),
       header: Em.I18n.t('common.repositories'),
       primary: Em.I18n.t('common.save'),
       disablePrimary: !(App.get('isAdmin') && !App.get('isOperator')),
       onPrimary: function () {
-        this.hide();
-        self.get('controller').saveRepoOS();
+        var self = this;
+        App.get('router.mainAdminStackAndUpgradeController').saveRepoOS(repo, this.get('skipValidation')).done(function(data){
+          if (data.length > 0) {
+            self.set('hasErrors', true);
+          } else {
+            self.hide();
+          }
+        })
       }
     });
   },

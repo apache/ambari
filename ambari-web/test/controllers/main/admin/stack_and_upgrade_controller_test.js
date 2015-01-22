@@ -531,4 +531,54 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(item.get('status')).to.equal('PENDING');
     });
   });
+
+  describe("#prepareRepoForSaving()", function () {
+    it("prepare date for saving", function () {
+      var repo = Em.Object.create({
+        operatingSystems: [
+          Em.Object.create({
+            osType: "redhat6",
+            isDisabled: Ember.computed.not('isSelected'),
+            repositories: [Em.Object.create({
+                "baseUrl": "111121",
+                "repoId": "HDP-2.2",
+                "repoName": "HDP",
+                hasError: false
+            }),
+              Em.Object.create({
+                "baseUrl": "1",
+                "repoId": "HDP-UTILS-1.1.0.20",
+                "repoName": "HDP-UTILS",
+                hasError: false
+              })]
+           })
+        ]
+      });
+      var result = {
+        "operating_systems": [
+          {
+            "OperatingSystems": {
+              "os_type": "redhat6"
+            },
+            "repositories": [
+              {
+                "Repositories": {
+                  "base_url": "111121",
+                  "repo_id": "HDP-2.2",
+                  "repo_name": "HDP"
+                }
+              },
+              {
+                "Repositories": {
+                  "base_url": "1",
+                  "repo_id": "HDP-UTILS-1.1.0.20",
+                  "repo_name": "HDP-UTILS"
+                }
+              }
+            ]
+          }
+        ]}
+      expect(controller.prepareRepoForSaving(repo)).to.eql(result);
+    });
+  });
 });

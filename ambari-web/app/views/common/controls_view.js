@@ -1206,3 +1206,19 @@ App.CheckDBConnectionView = Ember.View.extend({
   }
 });
 
+/**
+ *
+ * @type {*}
+ */
+App.BaseUrlTextField = Ember.TextField.extend({
+
+  valueBinding: 'repository.baseUrl',
+
+  keyUp: function (event) {
+    if (Em.get(this, 'repository.hasError')) {
+      Em.set(this, 'repository.hasError', false);
+    }
+  }
+
+});
+

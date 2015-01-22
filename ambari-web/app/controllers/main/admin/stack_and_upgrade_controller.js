@@ -401,8 +401,115 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     });
   },
 
-  saveRepoOS: function () {
-    //TODO integrate with API
+  /**
+   * transform repo data into json for
+   * saving changes to repository version
+   * @param {Em.Object} repo
+   * @returns {{operating_systems: Array}}
+   */
+  prepareRepoForSaving: function(repo) {
+    var repoVersion = { "operating_systems": [] };
+
+    repo.get('operatingSystems').forEach(function (os, k) {
+      repoVersion.operating_systems.push({
+        "OperatingSystems": {
+          "os_type": os.get("osType")
+        },
+        "repositories": []
+      });
+      os.get('repositories').forEach(function (repository) {
+        repoVersion.operating_systems[k].repositories.push({
+          "Repositories": {
+            "base_url": repository.get('baseUrl'),
+            "repo_id": repository.get('repoId'),
+            "repo_name": repository.get('repoName')
+          }
+        });
+      });
+    });
+    return repoVersion;
+  },
+
+  /**
+   * perform validation if <code>skip<code> is  false and run save if
+   * validation successfull or run save without validation is <code>skip<code> is true
+   * @param {Em.Object} repo
+   * @param {boolean} skip
+   * @returns {$.Deferred}
+   */
+  saveRepoOS: function (repo, skip) {
+    var self = this;
+    var deferred = $.Deferred();
+    this.validateRepoVersions(repo, skip).done(function(data) {
+      if (data.length > 0) {
+        deferred.resolve(data);
+      } else {
+        var repoVersion = self.prepareRepoForSaving(repo);
+
+        App.ajax.send({
+          name: 'admin.stack_versions.edit.repo',
+          sender: this,
+          data: {
+            stackName: App.get('currentStackName'),
+            stackVersion: App.get('currentStackVersionNumber'),
+            repoVersionId: repo.get('repoVersionId'),
+            repoVersion: repoVersion
+          }
+        }).success(function() {
+          deferred.resolve([]);
+        });
+      }
+    });
+    return deferred.promise();
+  },
+
+  /**
+   * send request for validation for each repository
+   * @param {Em.Object} repo
+   * @param {boolean} skip
+   * @returns {*}
+   */
+  validateRepoVersions: function(repo, skip) {
+    var deferred = $.Deferred(),
+      totalCalls = 0,
+      invalidUrls = [];
+
+    if (skip) {
+      deferred.resolve(invalidUrls);
+    } else {
+      repo.get('operatingSystems').forEach(function (os) {
+        if (os.get('isSelected')) {
+          os.get('repositories').forEach(function (repo) {
+            totalCalls++;
+            App.ajax.send({
+              name: 'admin.stack_versions.validate.repo',
+              sender: this,
+              data: {
+                repo: repo,
+                repoId: repo.get('repoId'),
+                baseUrl: repo.get('baseUrl'),
+                osType: os.get('osType'),
+                stackName: App.get('currentStackName'),
+                stackVersion: App.get('currentStackVersionNumber')
+              }
+            })
+              .success(function () {
+                totalCalls--;
+                if (totalCalls === 0) deferred.resolve(invalidUrls);
+              })
+              .error(function () {
+                repo.set('hasError', true);
+                invalidUrls.push(repo);
+                totalCalls--;
+                if (totalCalls === 0) deferred.resolve(invalidUrls);
+              });
+          });
+        } else {
+          return deferred.resolve(invalidUrls);
+        }
+      });
+    }
+    return deferred.promise();
   },
 
   /**
