@@ -62,6 +62,7 @@ public class QueryLexer {
    */
   private static final Set<String> SET_IGNORE = new HashSet<String>();
 
+
   /**
    * Constructor.
    * Register token handlers.
@@ -88,14 +89,18 @@ public class QueryLexer {
 
     listHandlers = new ArrayList<TokenHandler>();
     listHandlers.add(new CloseBracketTokenHandler());
-    listHandlers.add(new ValueOperandTokenHandler());
+    listHandlers.add(new ComplexValueOperandTokenHandler());
     TOKEN_HANDLERS.put(Token.TYPE.RELATIONAL_OPERATOR_FUNC, listHandlers);
 
     listHandlers = new ArrayList<TokenHandler>();
     listHandlers.add(new CloseBracketTokenHandler());
     listHandlers.add(new LogicalOperatorTokenHandler());
-    TOKEN_HANDLERS.put(Token.TYPE.VALUE_OPERAND, listHandlers);
     TOKEN_HANDLERS.put(Token.TYPE.BRACKET_CLOSE, listHandlers);
+
+    listHandlers = new ArrayList<TokenHandler>(listHandlers);
+    // complex value operands can span multiple tokens
+    listHandlers.add(0, new ComplexValueOperandTokenHandler());
+    TOKEN_HANDLERS.put(Token.TYPE.VALUE_OPERAND, listHandlers);
   }
 
 
@@ -139,6 +144,9 @@ public class QueryLexer {
             tok + "\', previous token type=" + ctx.getLastTokenType());
       }
     }
+
+    ctx.validateEndState();
+
     return ctx.getTokenList().toArray(new Token[ctx.getTokenList().size()]);
   }
 
@@ -232,6 +240,23 @@ public class QueryLexer {
      * Property names which are to be ignored.
      */
     private Set<String> m_propertiesToIgnore = new HashSet<String>();
+
+    /**
+     * Bracket score.  This score is the difference between the number of
+     * opening brackets and the number of closing brackets processed by
+     * a handler.  Only handlers which process values containing brackets
+     * will be interested in this information.
+     */
+    private int bracketScore = 0;
+
+    /**
+     * Intermediate tokens are tokens which are used by a handler which may
+     * process several adjacent tokens.  A handler might push intermediate
+     * tokens and then in subsequent invocations combine/alter/remove/etc
+     * these tokens prior to adding them to the context tokens.
+     */
+    private Deque<Token> m_intermediateTokens = new ArrayDeque<Token>();
+
 
     /**
      * Constructor.
@@ -329,6 +354,86 @@ public class QueryLexer {
         m_propertiesToIgnore.addAll(ignoredProperties);
       }
     }
+
+    /**
+     * Add an intermediate token.
+     *
+     * @param token  the token to add
+     */
+    public void pushIntermediateToken(Token token) {
+      if (m_ignoreSegmentEndToken == null) {
+        m_intermediateTokens.add(token);
+      } else if (token.getType() == m_ignoreSegmentEndToken) {
+        m_ignoreSegmentEndToken = null;
+      }
+    }
+
+    /**
+     * Return the intermediate tokens if any.
+     *
+     * @return the intermediate tokens.  Will never return null.
+     */
+    public Deque<Token> getIntermediateTokens() {
+      return m_intermediateTokens;
+    }
+
+    /**
+     * Move all intermediate tokens to the context tokens.
+     */
+    public void addIntermediateTokens() {
+      m_listTokens.addAll(m_intermediateTokens);
+      m_intermediateTokens.clear();
+    }
+
+    /**
+     * Obtain the bracket score.  This count is the number of outstanding opening brackets.
+     * A value of 0 indicates all opening and closing brackets are matched
+     * @return the current bracket score
+     */
+    public int getBracketScore() {
+      return bracketScore;
+    }
+
+    /**
+     * Increment the bracket score by n.  This indicates that n unmatched opening brackets
+     * have been encountered.
+     *
+     * @param n amount to increment
+     * @return the new bracket score after incrementing
+     */
+    public int incrementBracketScore(int n) {
+      return bracketScore += n;
+    }
+
+    /**
+     * Decrement the bracket score.  This is done when matching a closing bracket with a previously encountered
+     * opening bracket.  If the requested decrement would result in a negative number an exception is thrown
+     * as this isn't a valid state.
+     *
+     * @param decValue  amount to decrement
+     * @return the new bracket score after decrementing
+     * @throws InvalidQueryException if the decrement operation will result in a negative value
+     */
+    public int decrementBracketScore(int decValue) throws InvalidQueryException {
+      bracketScore -= decValue;
+      if (bracketScore < 0) {
+        throw new InvalidQueryException("Unexpected closing bracket.  Last token type: " + getLastTokenType() +
+            ", Current property operand: " + getPropertyOperand() + ", tokens: " + getTokenList());
+      }
+      return bracketScore;
+    }
+
+    //todo: most handlers should implement this
+    /**
+     * Validate the end state of the scan context.
+     * Iterates over each handler associated with the final token type and asks it to validate the context.
+     * @throws InvalidQueryException  if the context is determined to in an invalid end state
+     */
+    public void validateEndState() throws InvalidQueryException {
+      for (TokenHandler handler : TOKEN_HANDLERS.get(getLastTokenType())) {
+        handler.validateEndState(this);
+      }
+    }
   }
 
   /**
@@ -346,12 +451,18 @@ public class QueryLexer {
      * @throws InvalidQueryException  if an invalid token is encountered
      */
     public boolean handleToken(String token, ScanContext ctx) throws InvalidQueryException {
-      if (handles(token, ctx.getLastTokenType())) {
+      if (handles(token, ctx)) {
         _handleToken(token, ctx);
         ctx.setLastTokenType(getType());
         return true;
       } else {
         return false;
+      }
+    }
+
+    public void validateEndState(ScanContext ctx) throws InvalidQueryException {
+      if (! ctx.getIntermediateTokens().isEmpty()) {
+        throw new InvalidQueryException("Unexpected end of expression.");
       }
     }
 
@@ -374,12 +485,12 @@ public class QueryLexer {
     /**
      * Determine if a handler handles a specific token type.
      *
-     * @param token              the token type
-     * @param previousTokenType  the previous token type
      *
+     * @param token  the token type
+     * @param ctx    scan context
      * @return true if the handler handles the specified type; false otherwise
      */
-    public abstract boolean handles(String token, Token.TYPE previousTokenType);
+    public abstract boolean handles(String token, ScanContext ctx);
   }
 
   /**
@@ -411,7 +522,7 @@ public class QueryLexer {
     }
 
     @Override
-    public boolean handles(String token, Token.TYPE previousTokenType) {
+    public boolean handles(String token, ScanContext ctx) {
       return token.matches("[^!&\\|<=|>=|!=|=|<|>\\(\\)]+");
     }
   }
@@ -431,7 +542,7 @@ public class QueryLexer {
     }
 
     @Override
-    public boolean handles(String token, Token.TYPE previousTokenType) {
+    public boolean handles(String token, ScanContext ctx) {
       return token.matches("[^!&\\|<=|>=|!=|=|<|>]+");
     }
   }
@@ -451,7 +562,7 @@ public class QueryLexer {
     }
 
     @Override
-    public boolean handles(String token, Token.TYPE previousTokenType) {
+    public boolean handles(String token, ScanContext ctx) {
       return token.matches("\\(");
     }
   }
@@ -471,7 +582,7 @@ public class QueryLexer {
     }
 
     @Override
-    public boolean handles(String token, Token.TYPE previousTokenType) {
+    public boolean handles(String token, ScanContext ctx) {
       return token.matches("\\)");
     }
   }
@@ -492,7 +603,7 @@ public class QueryLexer {
     }
 
     @Override
-    public boolean handles(String token, Token.TYPE previousTokenType) {
+    public boolean handles(String token, ScanContext ctx) {
       return token.matches("<=|>=|!=|=|<|>");
     }
   }
@@ -514,11 +625,67 @@ public class QueryLexer {
 
     //todo: add a unary relational operator func
     @Override
-    public boolean handles(String token, Token.TYPE previousTokenType) {
+    public boolean handles(String token, ScanContext ctx) {
       return token.matches("\\.[a-zA-Z]+\\(");
     }
   }
 
+  /**
+   * Complex Value Operand token handler.
+   * Supports values that span multiple tokens.
+   */
+  private class ComplexValueOperandTokenHandler extends TokenHandler {
+    @Override
+    public void _handleToken(String token, ScanContext ctx) throws InvalidQueryException {
+      if (token.equals(")")) {
+        ctx.decrementBracketScore(1);
+      } else if (token.endsWith("(")) {
+        // .endsWith() is used because of tokens ".matches(",".in(" and".isEmpty("
+        ctx.incrementBracketScore(1);
+      }
+
+      String tokenValue = token;
+      if (ctx.getBracketScore() > 0) {
+        Deque<Token> intermediateTokens = ctx.getIntermediateTokens();
+        if (! intermediateTokens.isEmpty()) {
+          Token lastToken = intermediateTokens.peek();
+          if (lastToken.getType() == Token.TYPE.VALUE_OPERAND) {
+            intermediateTokens.pop();
+            tokenValue = lastToken.getValue() + token;
+          }
+        }
+        ctx.pushIntermediateToken(new Token(Token.TYPE.VALUE_OPERAND, tokenValue));
+      }
+
+      if (ctx.getBracketScore() == 0) {
+        ctx.addIntermediateTokens();
+        ctx.addToken(new Token(Token.TYPE.BRACKET_CLOSE, ")"));
+      }
+    }
+
+    @Override
+    public Token.TYPE getType() {
+      return Token.TYPE.VALUE_OPERAND;
+    }
+
+    @Override
+    public boolean handles(String token, ScanContext ctx) {
+      Token.TYPE lastTokenType = ctx.getLastTokenType();
+      if (lastTokenType == Token.TYPE.RELATIONAL_OPERATOR_FUNC) {
+        ctx.incrementBracketScore(1);
+        return true;
+      } else {
+        return ctx.getBracketScore() > 0;
+      }
+    }
+
+    @Override
+    public void validateEndState(ScanContext ctx) throws InvalidQueryException {
+      if (ctx.getBracketScore() > 0) {
+        throw new InvalidQueryException("Missing closing bracket for function: " + ctx.getTokenList());
+      }
+    }
+  }
 
   /**
    * Logical Operator token handler.
@@ -535,7 +702,7 @@ public class QueryLexer {
     }
 
     @Override
-    public boolean handles(String token, Token.TYPE previousTokenType) {
+    public boolean handles(String token, ScanContext ctx) {
       return token.matches("[!&\\|]");
     }
   }
@@ -555,7 +722,7 @@ public class QueryLexer {
     }
 
     @Override
-    public boolean handles(String token, Token.TYPE previousTokenType) {
+    public boolean handles(String token, ScanContext ctx) {
       return "!".equals(token);
     }
   }

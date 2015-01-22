@@ -22,7 +22,6 @@ package org.apache.ambari.server.api.predicate;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -360,4 +359,54 @@ public class QueryLexerTest {
       //expected
     }
   }
+
+  @Test
+  public void testTokens_matchesRegexp_simple() throws InvalidQueryException {
+    List<Token> listTokens = new ArrayList<Token>();
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR_FUNC, ".matches("));
+    listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "StackConfigurations/property_type"));
+    listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "(.*USER.*)|(.*GROUP.*)"));
+    listTokens.add(new Token(Token.TYPE.BRACKET_CLOSE, ")"));
+
+    QueryLexer lexer = new QueryLexer();
+    Token[] tokens = lexer.tokens("StackConfigurations/property_type.matches((.*USER.*)|(.*GROUP.*))");
+
+    assertArrayEquals(listTokens.toArray(new Token[listTokens.size()]), tokens);
+  }
+
+  @Test
+  public void testTokens_matchesRegexp() throws InvalidQueryException {
+    List<Token> listTokens = new ArrayList<Token>();
+    listTokens.add(new Token(Token.TYPE.BRACKET_OPEN, "("));
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR_FUNC, ".matches("));
+    listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "StackConfigurations/property_type"));
+    listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "(([^=])|=|!=),.in(&).*USER.*.isEmpty(a).matches(b)"));
+    listTokens.add(new Token(Token.TYPE.BRACKET_CLOSE, ")"));
+    listTokens.add(new Token(Token.TYPE.LOGICAL_OPERATOR, "|"));
+    listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR_FUNC, ".matches("));
+    listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "StackConfigurations/property_type"));
+    listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "fields format to from .*GROUP.*"));
+    listTokens.add(new Token(Token.TYPE.BRACKET_CLOSE, ")"));
+    listTokens.add(new Token(Token.TYPE.BRACKET_CLOSE, ")"));
+
+    QueryLexer lexer = new QueryLexer();
+    Token[] tokens = lexer.tokens("(StackConfigurations/property_type.matches((([^=])|=|!=),.in(&).*USER.*" +
+        ".isEmpty(a).matches(b))|StackConfigurations/property_type.matches(fields format to from .*GROUP.*))");
+
+    assertArrayEquals("All characters between \".matches(\" and corresponding closing \")\" bracket should " +
+        "come to VALUE_OPERAND.", listTokens.toArray(new Token[listTokens.size()]), tokens);
+  }
+
+  @Test(expected = InvalidQueryException.class)
+  public void testTokens_matchesRegexpInvalidQuery() throws InvalidQueryException {
+    QueryLexer lexer = new QueryLexer();
+    lexer.tokens("StackConfigurations/property_type.matches((.*USER.*)|(.*GROUP.*)");
+  }
+
+  @Test(expected = InvalidQueryException.class)
+  public void testTokens_matchesRegexpInvalidQuery2() throws InvalidQueryException {
+    QueryLexer lexer = new QueryLexer();
+    lexer.tokens("StackConfigurations/property_type.matches((.*USER.*)|(.*GROUP.*)|StackConfigurations/property_type.matches(.*GROUP.*)");
+  }
+
 }
