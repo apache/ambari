@@ -29,28 +29,33 @@ describe('#Cluster', function () {
     describe('Test repository subversion input validation', function () {
       it('1 digit', function() {
         var input = "1";
-        var invalidInput = "11";
+        var input2 = "11";
         var regex = scope.subversionPattern;
-        expect(regex.test(input)).toBe(true);
-        expect(regex.test(invalidInput)).toBe(false);
+        expect(regex.test(input)).toBe(false);
+        expect(regex.test(input2)).toBe(false);
       });
 
       it('1 digit dot 1 digit', function() {
         var input = "1.2";
-        var invalidInput = "1.22";
+        var input2 = "1.22";
         var regex = scope.subversionPattern;
         expect(regex.test(input)).toBe(true);
-        expect(regex.test(invalidInput)).toBe(false);
+        expect(regex.test(input2)).toBe(true);
       });
 
-      it('1 digit dot 1 digit dash 3 digits', function() {
-        var input = "1.2-345";
-        var invalidInput = "1.1-abc";
+      it('1 digit dot 1 digit dash 4 digits', function() {
+        var input = "1.2-3456";
+        var input2 = "1000.1000-12345";
+        var input3 = "1.1-123";
+        var invalidInput = "1.1-abcd";
+        var invalidInput2 = "1.2.3";
         var regex = scope.subversionPattern;
         expect(regex.test(input)).toBe(true);
+        expect(regex.test(input2)).toBe(true);
+        expect(regex.test(input3)).toBe(true);
         expect(regex.test(invalidInput)).toBe(false);
+        expect(regex.test(invalidInput2)).toBe(false);
       });
-
     });
   });
 });

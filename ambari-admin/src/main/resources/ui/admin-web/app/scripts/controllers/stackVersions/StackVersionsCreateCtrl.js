@@ -26,7 +26,7 @@ angular.module('ambariAdminConsole')
   $scope.repoSubversion = "";
 
   $scope.clusterName = $routeParams.clusterName;
-  $scope.subversionPattern = /^\d(\.\d)?(\-\d*)?$/;
+  $scope.subversionPattern = /^\d+\.\d+(-\d+)?$/;
   $scope.upgradeStack = {
     selected: null,
     options: []
