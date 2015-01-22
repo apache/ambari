@@ -38,6 +38,7 @@ import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.SocketTimeoutException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -190,14 +191,26 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
             }
 
           } catch (IOException io) {
-            LOG.warn("Error getting timeline metrics.", io);
+            String errorMsg = "Error getting timeline metrics.";
+            if (LOG.isDebugEnabled()) {
+              LOG.error(errorMsg, io);
+            } else {
+              if (io instanceof SocketTimeoutException) {
+                errorMsg += " Can not connect to collector, socket error.";
+              }
+              LOG.error(errorMsg);
+            }
           } finally {
             if (reader != null) {
               try {
                 reader.close();
               } catch (IOException e) {
                 if (LOG.isWarnEnabled()) {
-                  LOG.warn("Unable to close http input steam : spec=" + spec, e);
+                  if (LOG.isDebugEnabled()) {
+                    LOG.warn("Unable to close http input stream : spec=" + spec, e);
+                  } else {
+                    LOG.warn("Unable to close http input stream : spec=" + spec);
+                  }
                 }
               }
             }

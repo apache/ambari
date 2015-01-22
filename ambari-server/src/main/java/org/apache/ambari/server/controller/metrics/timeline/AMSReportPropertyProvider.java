@@ -40,12 +40,12 @@ import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.SocketTimeoutException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.GANGLIA;
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.TIMELINE_METRICS;
 
 public class AMSReportPropertyProvider extends MetricsReportPropertyProvider {
@@ -173,14 +173,26 @@ public class AMSReportPropertyProvider extends MetricsReportPropertyProvider {
         }
 
       } catch (IOException io) {
-        LOG.warn("Error getting timeline metrics.", io);
+        String errorMsg = "Error getting timeline metrics.";
+        if (LOG.isDebugEnabled()) {
+          LOG.error(errorMsg, io);
+        } else {
+          if (io instanceof SocketTimeoutException) {
+            errorMsg += " Can not connect to collector, socket error.";
+          }
+          LOG.error(errorMsg);
+        }
       } finally {
         if (reader != null) {
           try {
             reader.close();
           } catch (IOException e) {
             if (LOG.isWarnEnabled()) {
-              LOG.warn("Unable to close http input steam : spec=" + spec, e);
+              if (LOG.isDebugEnabled()) {
+                LOG.warn("Unable to close http input steam : spec=" + spec, e);
+              } else {
+                LOG.warn("Unable to close http input steam : spec=" + spec);
+              }
             }
           }
         }
