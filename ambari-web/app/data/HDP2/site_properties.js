@@ -3011,12 +3011,12 @@ var hdp2properties = [
         hidden: App.get('isHadoopWindowsStack')
       },
       {
-        displayName: 'Existing MSSQL Server database with integrated authentication',
+        displayName: 'Existing MSSQL Server database with SQL authentication',
         foreignKeys: ['hive_existing_mssql_server_database', 'hive_existing_mssql_server_host'],
         hidden: !App.get('isHadoopWindowsStack')
       },
       {
-        displayName: 'Existing MSSQL Server database with sql auth',
+        displayName: 'Existing MSSQL Server database with integrated authentication',
         foreignKeys: ['hive_existing_mssql_server_2_database', 'hive_existing_mssql_server_2_host'],
         hidden: !App.get('isHadoopWindowsStack')
       }
@@ -3385,7 +3385,7 @@ var hdp2properties = [
     "displayName": "Database Type",
     "value": "",
     "defaultValue": "MSSQL",
-    "description": "Using an existing MSSQL database with integrated authentication for Oozie Metastore",
+    "description": "Using an existing MSSQL database with SQL authentication for Oozie Metastore",
     "displayType": "masterHost",
     "isVisible": false,
     "isReconfigurable": false,
@@ -3401,7 +3401,7 @@ var hdp2properties = [
     "displayName": "Database Type",
     "value": "",
     "defaultValue": "MSSQL",
-    "description": "Using an existing MSSQL database with sql auth for Oozie Metastore",
+    "description": "Using an existing MSSQL database with integrated authentication for Oozie Metastore",
     "displayType": "masterHost",
     "isVisible": false,
     "isReconfigurable": false,
@@ -3439,12 +3439,12 @@ var hdp2properties = [
         hidden: App.get('isHadoopWindowsStack')
       },
       {
-        displayName: 'Existing MSSQL Server database with integrated authentication',
+        displayName: 'Existing MSSQL Server database with SQL authentication',
         foreignKeys: ['oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_host'],
         hidden: !App.get('isHadoopWindowsStack')
       },
       {
-        displayName: 'Existing MSSQL Server database with sql auth',
+        displayName: 'Existing MSSQL Server database with integrated authentication',
         foreignKeys: ['oozie_existing_mssql_server_2_database', 'oozie_existing_mssql_server_2_host'],
         hidden: !App.get('isHadoopWindowsStack')
       }

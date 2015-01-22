@@ -1574,7 +1574,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         configs = configs.without(configs.findProperty('name', 'hive_existing_mssql_server_host'));
         configs = configs.without(configs.findProperty('name', 'hive_existing_mssql_server_2_database'));
         configs = configs.without(configs.findProperty('name', 'hive_existing_mssql_server_2_host'));
-      } else if (hiveDb.value === 'Existing MSSQL Server database with integrated authentication') {
+      } else if (hiveDb.value === 'Existing MSSQL Server database with SQL authentication') {
         var existingMSSQLServerHost = configs.findProperty('name', 'hive_existing_mssql_server_host');
         if (existingMSSQLServerHost) {
           dbHostPropertyName = 'hive_existing_mssql_server_host';
@@ -1588,7 +1588,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         configs = configs.without(configs.findProperty('name', 'hive_existing_oracle_database'));
         configs = configs.without(configs.findProperty('name', 'hive_existing_mssql_server_2_database'));
         configs = configs.without(configs.findProperty('name', 'hive_existing_mssql_server_2_host'));
-      } else if (hiveDb.value === 'Existing MSSQL Server database with sql auth') {
+      } else if (hiveDb.value === 'Existing MSSQL Server database with integrated authentication') {
         var existingMSSQL2ServerHost = configs.findProperty('name', 'hive_existing_mssql_server_2_host');
         if (existingMSSQL2ServerHost) {
           dbHostPropertyName = 'hive_existing_mssql_server_2_host';
@@ -1697,7 +1697,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_host'));
         configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_2_database'));
         configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_2_host'));
-      } else if (oozieDb.value === 'Existing MSSQL Server database with integrated authentication') {
+      } else if (oozieDb.value === 'Existing MSSQL Server database with SQL authentication') {
         var existingMySqlServerHost = configs.findProperty('name', 'oozie_existing_mssql_server_host');
         if (existingMySqlServerHost) {
           dbHostPropertyName = 'oozie_existing_mssql_server_host';
@@ -1713,7 +1713,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_database'));
         configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_2_database'));
         configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_2_host'));
-      } else if (oozieDb.value === 'Existing MSSQL Server database with sql auth') {
+      } else if (oozieDb.value === 'Existing MSSQL Server database with integrated authentication') {
         var existingMySql2ServerHost = configs.findProperty('name', 'oozie_existing_mssql_server_2_host');
         if (existingMySql2ServerHost) {
           dbHostPropertyName = 'oozie_existing_mssql_server_2_host';
@@ -2293,13 +2293,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
     if (serviceName === 'HIVE') {
       var hiveDb = configs.findProperty('name', 'hive_database').value;
-      if (['Existing MySQL Database', 'Existing Oracle Database', 'Existing PostgreSQL Database', 'Existing MSSQL Server database with integrated authentication', 'Existing MSSQL Server database with sql auth'].contains(hiveDb)) {
+      if (['Existing MySQL Database', 'Existing Oracle Database', 'Existing PostgreSQL Database', 'Existing MSSQL Server database with SQL authentication', 'Existing MSSQL Server database with integrated authentication'].contains(hiveDb)) {
         configs.findProperty('name', 'hive_hostname').isVisible = true;
       }
     }
     if (serviceName === 'OOZIE') {
       var oozieDb = configs.findProperty('name', 'oozie_database').value;
-      if (['Existing MySQL Database', 'Existing Oracle Database', 'Existing PostgreSQL Database', 'Existing MSSQL Server database with integrated authentication', 'Existing MSSQL Server database with sql auth'].contains(oozieDb)) {
+      if (['Existing MySQL Database', 'Existing Oracle Database', 'Existing PostgreSQL Database', 'Existing MSSQL Server database with SQL authentication', 'Existing MSSQL Server database with integrated authentication'].contains(oozieDb)) {
         configs.findProperty('name', 'oozie_hostname').isVisible = true;
       }
     }

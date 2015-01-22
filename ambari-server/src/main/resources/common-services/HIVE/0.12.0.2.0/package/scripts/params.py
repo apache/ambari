@@ -106,12 +106,18 @@ hive_jdbc_connection_url = config['configurations']['hive-site']['javax.jdo.opti
 
 hive_metastore_user_passwd = config['configurations']['hive-site']['javax.jdo.option.ConnectionPassword']
 hive_metastore_db_type = config['configurations']['hive-env']['hive_database_type']
+#HACK Temporarily use dbType=azuredb while invoking schematool
+if hive_metastore_db_type == "mssql":
+  hive_metastore_db_type = "azuredb"
 
 #users
 hive_user = config['configurations']['hive-env']['hive_user']
 #JDBC driver jar name
 hive_jdbc_driver = config['configurations']['hive-site']['javax.jdo.option.ConnectionDriverName']
-if hive_jdbc_driver == "com.mysql.jdbc.Driver":
+if hive_jdbc_driver == "com.microsoft.sqlserver.jdbc.SQLServerDriver":
+  jdbc_jar_name = "sqljdbc4.jar"
+  jdbc_symlink_name = "mssql-jdbc-driver.jar"
+elif hive_jdbc_driver == "com.mysql.jdbc.Driver":
   jdbc_jar_name = "mysql-connector-java.jar"
   jdbc_symlink_name = "mysql-jdbc-driver.jar"
 elif hive_jdbc_driver == "org.postgresql.Driver":
@@ -123,7 +129,7 @@ elif hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
 
 check_db_connection_jar_name = "DBConnectionVerification.jar"
 check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar_name}")
-hive_jdbc_drivers_list = ["com.mysql.jdbc.Driver","org.postgresql.Driver","oracle.jdbc.driver.OracleDriver"]
+hive_jdbc_drivers_list = ["com.microsoft.sqlserver.jdbc.SQLServerDriver","com.mysql.jdbc.Driver","org.postgresql.Driver","oracle.jdbc.driver.OracleDriver"]
 downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 prepackaged_ojdbc_symlink = format("{hive_lib}/ojdbc6.jar")
 

@@ -148,7 +148,7 @@ class TestCheckHost(TestCase):
                                                                                     'exit_code': 1}})
     self.assertEquals(format_mock.call_args[0][0],'{java_exec} -cp '\
             '{check_db_connection_path}{class_path_delimiter}{jdbc_path} -Djava.library.path={agent_cache_dir} '\
-            'org.apache.ambari.server.DBConnectionVerification {db_connection_url} '\
+            'org.apache.ambari.server.DBConnectionVerification \"{db_connection_url}\" '\
             '{user_name} {user_passwd!p} {jdbc_driver}')
 
     # test, db connection success

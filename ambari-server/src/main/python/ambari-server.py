@@ -390,7 +390,7 @@ ORACLE_UPGRADE_STACK_ARGS = "-S -L '{0}/{1}@(description=(address=(protocol=TCP)
 
 JDBC_PATTERNS = {"oracle": "*ojdbc*.jar", "mysql": "*mysql*.jar"}
 DATABASE_FULL_NAMES = {"oracle": "Oracle", "mysql": "MySQL", "postgres": "PostgreSQL"}
-JDBC_DB_OPTION_VALUES = ["postgres", "mysql", "oracle"]
+JDBC_DB_OPTION_VALUES = ["postgres", "mysql", "oracle", "mssql"]
 JDBC_DB_DEFAULT_DRIVER = {"postgresql" : "postgresql-jdbc.jar", "mysql" : "mysql-connector-java.jar", "oracle" : "ojdbc6.jar"}
 ORACLE_DB_ID_TYPES = ["Service Name", "SID"]
 

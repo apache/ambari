@@ -102,9 +102,7 @@
             "pig_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/pig/", 
             "user_group": "hadoop", 
             "mapreduce_tar_source": "/usr/hdp/current/hadoop-client/mapreduce.tar.gz", 
-            "sqoop_tar_source": "/usr/hdp/current/sqoop-client/sqoop.tar.gz", 
-            "hadoop.user.password": "", 
-            "hadoop.user.name": "hadoop"
+            "sqoop_tar_source": "/usr/hdp/current/sqoop-client/sqoop.tar.gz"
         }
     }, 
     "commandParams": {

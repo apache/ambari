@@ -904,9 +904,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
       var dbPrefix = database.toLowerCase();
       if (database.toLowerCase() == 'mssql') {
         if (/integrated/gi.test(dbTypeConfig.value)) {
-          dbPrefix = 'mssql_server';
-        } else {
           dbPrefix = 'mssql_server_2';
+        } else {
+          dbPrefix = 'mssql_server';
         }
       }
       var propertyName = propertyPrefix + '_existing_' + dbPrefix + '_host';

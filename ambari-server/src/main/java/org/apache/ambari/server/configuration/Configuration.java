@@ -276,8 +276,6 @@ public class Configuration {
   private static final String SERVER_JDBC_USER_PASSWD_DEFAULT = "bigdata";
   private static final String SERVER_JDBC_RCA_USER_NAME_DEFAULT = "mapred";
   private static final String SERVER_JDBC_RCA_USER_PASSWD_DEFAULT = "mapred";
-  private static final String SCOM_JDBC_SINK_USER_NAME_DEFAULT = "hadoop";
-  private static final String SCOM_JDBC_SINK_USER_PASSWD_DEFAULT = "hadoop";
   private static final String SRVR_TWO_WAY_SSL_DEFAULT = "false";
   private static final String SRVR_KSTR_DIR_DEFAULT = ".";
   private static final String API_CSRF_PREVENTION_DEFAULT = "true";

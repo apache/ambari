@@ -81,6 +81,7 @@ def oozie(is_server=False # TODO: see if see can remove this
   }
 
   if params.jdbc_driver_name == "com.mysql.jdbc.Driver" or \
+     params.jdbc_driver_name == "com.microsoft.sqlserver.jdbc.SQLServerDriver" or \
      params.jdbc_driver_name == "org.postgresql.Driver" or \
      params.jdbc_driver_name == "oracle.jdbc.driver.OracleDriver":
     Execute(format("/bin/sh -c 'cd /usr/lib/ambari-agent/ &&\
@@ -153,7 +154,9 @@ def oozie_server_specific():
     sudo = True,
   )
 
-  if params.jdbc_driver_name=="com.mysql.jdbc.Driver" or params.jdbc_driver_name=="oracle.jdbc.driver.OracleDriver":
+  if params.jdbc_driver_name=="com.mysql.jdbc.Driver" or \
+     params.jdbc_driver_name == "com.microsoft.sqlserver.jdbc.SQLServerDriver" or \
+     params.jdbc_driver_name=="oracle.jdbc.driver.OracleDriver":
 
     environment = {
       "no_proxy": format("{ambari_server_hostname}")

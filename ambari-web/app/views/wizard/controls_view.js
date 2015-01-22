@@ -258,13 +258,13 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
               dbClass.set('value', "oracle.jdbc.driver.OracleDriver");
               Em.set(hiveDbType, 'value', 'oracle');
               break;
-            case 'Existing MSSQL Server database with integrated authentication':
-              connectionUrl.set('value', "jdbc:sqlserver://" + this.get('hostName') + ";databaseName=" + this.get('databaseName') + ";integratedSecurity=true");
+            case 'Existing MSSQL Server database with SQL authentication':
+              connectionUrl.set('value', "jdbc:sqlserver://" + this.get('hostName') + ";databaseName=" + this.get('databaseName'));
               dbClass.set('value', "com.microsoft.sqlserver.jdbc.SQLServerDriver");
               Em.set(hiveDbType, 'value', 'mssql');
               break;
-            case 'Existing MSSQL Server database with sql auth':
-              connectionUrl.set('value', "jdbc:sqlserver://" + this.get('hostName') + ";databaseName=" + this.get('databaseName'));
+            case 'Existing MSSQL Server database with integrated authentication':
+              connectionUrl.set('value', "jdbc:sqlserver://" + this.get('hostName') + ";databaseName=" + this.get('databaseName') + ";integratedSecurity=true");
               dbClass.set('value', "com.microsoft.sqlserver.jdbc.SQLServerDriver");
               Em.set(hiveDbType, 'value', 'mssql');
               break;
@@ -296,12 +296,12 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
               connectionUrl.set('value', "jdbc:oracle:thin:@//" + this.get('hostName') + ":1521/" + this.get('databaseName'));
               dbClass.set('value', "oracle.jdbc.driver.OracleDriver");
               break;
-            case 'Existing MSSQL Server database with integrated authentication':
-              connectionUrl.set('value', "jdbc:sqlserver://" + this.get('hostName') + ";databaseName=" + this.get('databaseName') + ";integratedSecurity=true");
+            case 'Existing MSSQL Server database with SQL authentication':
+              connectionUrl.set('value', "jdbc:sqlserver://" + this.get('hostName') + ";databaseName=" + this.get('databaseName'));
               dbClass.set('value', "com.microsoft.sqlserver.jdbc.SQLServerDriver");
               break;
-            case 'Existing MSSQL Server database with sql auth':
-              connectionUrl.set('value', "jdbc:sqlserver://" + this.get('hostName') + ";databaseName=" + this.get('databaseName'));
+            case 'Existing MSSQL Server database with integrated authentication':
+              connectionUrl.set('value', "jdbc:sqlserver://" + this.get('hostName') + ";databaseName=" + this.get('databaseName') + ";integratedSecurity=true");
               dbClass.set('value', "com.microsoft.sqlserver.jdbc.SQLServerDriver");
               break;
           }
@@ -355,10 +355,10 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
         case 'Existing Oracle Database':
           hostname = this.get('categoryConfigsAll').findProperty('name', 'hive_existing_oracle_host');
           break;
-        case 'Existing MSSQL Server database with integrated authentication':
+        case 'Existing MSSQL Server database with SQL authentication':
           hostname = this.get('categoryConfigsAll').findProperty('name', 'hive_existing_mssql_server_host');
           break;
-        case 'Existing MSSQL Server database with sql auth':
+        case 'Existing MSSQL Server database with integrated authentication':
           hostname = this.get('categoryConfigsAll').findProperty('name', 'hive_existing_mssql_server_2_host');
           break;
       }
@@ -381,10 +381,10 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
         case 'Existing Oracle Database':
           hostname = this.get('categoryConfigsAll').findProperty('name', 'oozie_existing_oracle_host');
           break;
-        case 'Existing MSSQL Server database with integrated authentication':
+        case 'Existing MSSQL Server database with SQL authentication':
           hostname = this.get('categoryConfigsAll').findProperty('name', 'oozie_existing_mssql_server_host');
           break;
-        case 'Existing MSSQL Server database with sql auth':
+        case 'Existing MSSQL Server database with integrated authentication':
           hostname = this.get('categoryConfigsAll').findProperty('name', 'oozie_existing_mssql_server_2_host');
           break;
       }

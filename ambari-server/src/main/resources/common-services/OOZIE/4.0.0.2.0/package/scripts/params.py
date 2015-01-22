@@ -138,7 +138,10 @@ else:
   
 jdbc_driver_name = default("/configurations/oozie-site/oozie.service.JPAService.jdbc.driver", "")
 
-if jdbc_driver_name == "com.mysql.jdbc.Driver":
+if jdbc_driver_name == "com.microsoft.sqlserver.jdbc.SQLServerDriver":
+  jdbc_driver_jar = "sqljdbc4.jar"
+  jdbc_symlink_name = "mssql-jdbc-driver.jar"
+elif jdbc_driver_name == "com.mysql.jdbc.Driver":
   jdbc_driver_jar = "mysql-connector-java.jar"
   jdbc_symlink_name = "mysql-jdbc-driver.jar"
 elif jdbc_driver_name == "org.postgresql.Driver":

@@ -220,12 +220,12 @@ describe('App.ServiceConfigRadioButtons', function () {
         },
         {
           serviceName: 'HIVE',
-          value: 'Existing MSSQL Server database with integrated authentication',
+          value: 'Existing MSSQL Server database with SQL authentication',
           expected: 'h4'
         },
         {
           serviceName: 'HIVE',
-          value: 'Existing MSSQL Server database with sql auth',
+          value: 'Existing MSSQL Server database with integrated authentication',
           expected: 'h5'
         },
         {
@@ -255,12 +255,12 @@ describe('App.ServiceConfigRadioButtons', function () {
         },
         {
           serviceName: 'OOZIE',
-          value: 'Existing MSSQL Server database with integrated authentication',
+          value: 'Existing MSSQL Server database with SQL authentication',
           expected: 'h14'
         },
         {
           serviceName: 'OOZIE',
-          value: 'Existing MSSQL Server database with sql auth',
+          value: 'Existing MSSQL Server database with integrated authentication',
           expected: 'h15'
         },
         {
@@ -356,7 +356,7 @@ describe('App.ServiceConfigRadioButtons', function () {
         },
         {
           serviceName: 'HIVE',
-          serviceConfigValue: 'Existing MSSQL Server database with sql auth',
+          serviceConfigValue: 'Existing MSSQL Server database with SQL authentication',
           databaseName: 'db3',
           hostName: 'h3',
           connectionUrlValue: 'jdbc:sqlserver://h3;databaseName=db3',
@@ -413,7 +413,7 @@ describe('App.ServiceConfigRadioButtons', function () {
         },
         {
           serviceName: 'OOZIE',
-          serviceConfigValue: 'Existing MSSQL Server database with sql auth',
+          serviceConfigValue: 'Existing MSSQL Server database with SQL authentication',
           databaseName: 'db9',
           hostName: 'h9',
           connectionUrlValue: 'jdbc:sqlserver://h9;databaseName=db9',
