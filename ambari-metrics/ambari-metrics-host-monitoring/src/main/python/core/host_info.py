@@ -26,8 +26,11 @@ import platform
 import socket
 import time
 import threading
+import socket
+import subprocess
 
 logger = logging.getLogger()
+cached_hostname = None
 
 def bytes2human(n):
   bytes = float(n)
@@ -35,13 +38,14 @@ def bytes2human(n):
   return '%.2f' % gigabytes
 pass
 
-
 class HostInfo():
-  def __init__(self):
+
+  def __init__(self, config):
     self.__last_network_io_time = 0
     self.__last_network_data = {}
     self.__last_network_lock = threading.Lock()
     self.__host_static_info = self.get_host_static_info()
+    self.__config = config
 
   def get_cpu_times(self):
     """
@@ -245,7 +249,26 @@ class HostInfo():
   pass
 
   def get_hostname(self):
-    return socket.getfqdn()
+    global cached_hostname
+    if cached_hostname is not None:
+      return cached_hostname
+
+    try:
+      hostname_script = self.__config.get_hostname_script()
+      logger.info('hostname_script: %s' % hostname_script)
+      try:
+        osStat = subprocess.Popen([hostname_script], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = osStat.communicate()
+        if (0 == osStat.returncode and 0 != len(out.strip())):
+          cached_hostname = out.strip()
+        else:
+          cached_hostname = socket.getfqdn().lower()
+      except:
+        cached_hostname = socket.getfqdn().lower()
+    except:
+      cached_hostname = socket.getfqdn().lower()
+    logger.info('Cached hostname: %s' % cached_hostname)
+    return cached_hostname
 
   def get_ip_address(self):
     return socket.gethostbyname(socket.getfqdn())

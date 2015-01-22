@@ -61,9 +61,8 @@ def server_process_main(stop_handler, scmStatus=None):
   save_pid(os.getpid(), PID_OUT_FILE)
 
   config = Configuration()
-  controller = Controller(config, stop_handler)
-
   _init_logging(config)
+  controller = Controller(config, stop_handler)
 
   logger.info('Starting Server RPC Thread: %s' % ' '.join(sys.argv))
   controller.start()

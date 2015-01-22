@@ -182,6 +182,9 @@ class Configuration:
   def get_server_address(self):
     return self.get("default", "metrics_server")
 
+  def get_hostname_script(self):
+    return self.get("default", "hostname_script")
+
   def get_log_level(self):
     return self.get("default", "debug_level", "INFO")
 

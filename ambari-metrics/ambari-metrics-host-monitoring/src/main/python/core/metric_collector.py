@@ -34,10 +34,10 @@ class MetricsCollector():
   not required if Timer class is used for metric groups.
   """
 
-  def __init__(self, emit_queue, application_metric_map):
+  def __init__(self, emit_queue, application_metric_map, host_info):
     self.emit_queue = emit_queue
     self.application_metric_map = application_metric_map
-    self.host_info = HostInfo()
+    self.host_info = host_info
   pass
 
   def process_event(self, event):

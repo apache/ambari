@@ -36,7 +36,7 @@ class TestMetricCollector(TestCase):
     amm_mock.return_value = None
     host_info_mock.return_value = {'metric_name' : 'metric_value'}
 
-    metric_collector = MetricsCollector(None, amm_mock)
+    metric_collector = MetricsCollector(None, amm_mock, host_info_mock)
 
     group_config = {'collect_every' : 1, 'metrics' : 'cpu'}
     

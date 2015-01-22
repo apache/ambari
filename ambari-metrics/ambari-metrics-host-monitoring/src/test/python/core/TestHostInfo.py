@@ -22,7 +22,7 @@ import logging
 from host_info import HostInfo
 import platform
 from unittest import TestCase
-from mock.mock import patch
+from mock.mock import patch, MagicMock
 
 logger = logging.getLogger()
 
@@ -41,7 +41,7 @@ class TestHostInfo(TestCase):
     cp.iowait = 0
     cp.irq = 0
     cp.softirq = 0
-    hostinfo = HostInfo()
+    hostinfo = HostInfo(MagicMock())
 
     if platform.system() != "Windows":
       with patch("os.getloadavg") as avg_mock:
@@ -77,7 +77,7 @@ class TestHostInfo(TestCase):
     sw = sw_mock.return_value
     sw.free = 2341234
     
-    hostinfo = HostInfo()
+    hostinfo = HostInfo(MagicMock())
     
     cpu = hostinfo.get_mem_info()
     
@@ -109,7 +109,7 @@ class TestHostInfo(TestCase):
 
     process_iter_mock.return_value = processes
 
-    hostinfo = HostInfo()
+    hostinfo = HostInfo(MagicMock())
 
     procs = hostinfo.get_process_info()
 
@@ -122,7 +122,7 @@ class TestHostInfo(TestCase):
     
     dp_mock.__iter__.return_value = ['a', 'b', 'c']
     
-    hostinfo = HostInfo()
+    hostinfo = HostInfo(MagicMock())
     
     cdu = hostinfo.get_combined_disk_usage()
     self.assertEqual(cdu['disk_total'], "0.00")
