@@ -19,6 +19,8 @@
 package org.apache.ambari.server.stack;
 
 import java.lang.reflect.Type;
+import java.net.MalformedURLException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -28,10 +30,12 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.utils.HTTPUtils;
+import org.apache.ambari.server.utils.HostAndPort;
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +49,7 @@ public class MasterHostResolver {
 
   private Cluster m_cluster;
   private String m_version;
+  private ConfigHelper m_configHelper;
 
   enum Service {
     HDFS,
@@ -65,11 +70,11 @@ public class MasterHostResolver {
    * Create a resolver that does not consider HostComponents' version when
    * resolving hosts.  Common use case is creating an upgrade that should
    * include an entire cluster.
-   *
+   * @param configHelper Configuration Helper
    * @param cluster the cluster
    */
-  public MasterHostResolver(Cluster cluster) {
-    this(cluster, null);
+  public MasterHostResolver(ConfigHelper configHelper, Cluster cluster) {
+    this(configHelper, cluster, null);
   }
 
   /**
@@ -77,17 +82,18 @@ public class MasterHostResolver {
    * hosts for the stage.  Common use case is for downgrades when only some
    * HostComponents need to be downgraded, and HostComponents already at the
    * correct version are skipped.
-   *
+   * @param configHelper Configuration Helper
    * @param cluster the cluster
    * @param version the version, or {@code null} to not compare versions
    */
-  public MasterHostResolver(Cluster cluster, String version) {
+  public MasterHostResolver(ConfigHelper configHelper, Cluster cluster, String version) {
+    m_configHelper = configHelper;
     m_cluster = cluster;
     m_version = version;
   }
 
   /**
-   * Gets the cluster that this instace of the {@link MasterHostResolver} is
+   * Gets the cluster that this instance of the {@link MasterHostResolver} is
    * initialized with.
    *
    * @return the cluster (not {@code null}).
@@ -123,37 +129,45 @@ public class MasterHostResolver {
       // !!! nothing to do
     }
 
-    switch (s) {
-      case HDFS:
-        if (componentName.equalsIgnoreCase("NAMENODE")) {
-          Map<Status, String> pair = getNameNodePair(componentHosts);
-          if (pair != null) {
-            hostsType.master = pair.containsKey(Status.ACTIVE) ? pair.get(Status.ACTIVE) :  null;
-            hostsType.secondary = pair.containsKey(Status.STANDBY) ? pair.get(Status.STANDBY) :  null;
+    try {
+      switch (s) {
+        case HDFS:
+          if (componentName.equalsIgnoreCase("NAMENODE")) {
+            if (componentHosts.size() != 2) {
+              return hostsType;
+            }
+
+            Map<Status, String> pair = getNameNodePair();
+            if (pair != null) {
+              hostsType.master = pair.containsKey(Status.ACTIVE) ? pair.get(Status.ACTIVE) :  null;
+              hostsType.secondary = pair.containsKey(Status.STANDBY) ? pair.get(Status.STANDBY) :  null;
+            } else {
+              hostsType.master = componentHosts.iterator().next();
+            }
           } else {
-            hostsType.master = componentHosts.iterator().next();
+            hostsType = filterSameVersion(hostsType, serviceName, componentName);
           }
-        } else {
+          break;
+        case YARN:
+          if (componentName.equalsIgnoreCase("RESOURCEMANAGER")) {
+            resolveResourceManagers(getCluster(), hostsType);
+          } else {
+            hostsType = filterSameVersion(hostsType, serviceName, componentName);
+          }
+          break;
+        case HBASE:
+          if (componentName.equalsIgnoreCase("HBASE_MASTER")) {
+            resolveHBaseMasters(getCluster(), hostsType);
+          } else {
+            hostsType = filterSameVersion(hostsType, serviceName, componentName);
+          }
+          break;
+        case OTHER:
           hostsType = filterSameVersion(hostsType, serviceName, componentName);
-        }
-        break;
-      case YARN:
-        if (componentName.equalsIgnoreCase("RESOURCEMANAGER")) {
-          resolveResourceManagers(hostsType);
-        } else {
-          hostsType = filterSameVersion(hostsType, serviceName, componentName);
-        }
-        break;
-      case HBASE:
-        if (componentName.equalsIgnoreCase("HBASE_MASTER")) {
-          resolveHBaseMasters(hostsType);
-        } else {
-          hostsType = filterSameVersion(hostsType, serviceName, componentName);
-        }
-        break;
-      case OTHER:
-        hostsType = filterSameVersion(hostsType, serviceName, componentName);
-        break;
+          break;
+      }
+    } catch (Exception err) {
+      LOG.error("Unable to get master and hosts for Component " + componentName + ". Error: " + err.getMessage(), err);
     }
     return hostsType;
   }
@@ -202,40 +216,72 @@ public class MasterHostResolver {
 
   /**
    * Get mapping of the HDFS Namenodes from the state ("active" or "standby") to the hostname.
-   * @param hosts Hosts to lookup.
-   * @return Returns a map from the state ("active" or "standby" to the hostname with that state.
+   * @return Returns a map from the state ("active" or "standby" to the hostname with that state if exactly
+   * one active and one standby host were found, otherwise, return null.
    */
-  private Map<Status, String> getNameNodePair(Set<String> hosts) {
+  private Map<Status, String> getNameNodePair() {
     Map<Status, String> stateToHost = new HashMap<Status, String>();
+    Cluster cluster = getCluster();
 
-    if (hosts != null && hosts.size() == 2) {
-      for (String hostname : hosts) {
-        String state = queryJmxBeanValue(hostname, 50070,
-            "Hadoop:service=NameNode,name=NameNodeStatus", "State", true);
+    String nameService = m_configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.HDFS_SITE, "dfs.nameservices");
+    if (nameService == null || nameService.isEmpty()) {
+      return null;
+    }
 
-        if (null != state &&
-            (state.equalsIgnoreCase(Status.ACTIVE.toString()) ||
-                state.equalsIgnoreCase(Status.STANDBY.toString()))) {
-            Status status = Status.valueOf(state.toUpperCase());
-            stateToHost.put(status, hostname);
-          }
+    String nnUniqueIDstring = m_configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.HDFS_SITE, "dfs.ha.namenodes." + nameService);
+    if (nnUniqueIDstring == null || nnUniqueIDstring.isEmpty()) {
+      return null;
+    }
+
+    String[] nnUniqueIDs = nnUniqueIDstring.split(",");
+    if (nnUniqueIDs == null || nnUniqueIDs.length != 2) {
+      return null;
+    }
+
+    String policy = m_configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.HDFS_SITE, "dfs.http.policy");
+    boolean encrypted = (policy != null && policy.equalsIgnoreCase(ConfigHelper.HTTPS_ONLY));
+
+    String namenodeFragment = "dfs.namenode." + (encrypted ? "https-address" : "http-address") + ".{0}.{1}";
+
+    for (String nnUniqueID : nnUniqueIDs) {
+      String key = MessageFormat.format(namenodeFragment, nameService, nnUniqueID);
+      String value = m_configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.HDFS_SITE, key);
+
+      try {
+        HostAndPort hp = HTTPUtils.getHostAndPortFromProperty(value);
+        if (hp == null) {
+          throw new MalformedURLException("Could not parse host and port from " + value);
         }
 
-      if (stateToHost.containsKey(Status.ACTIVE) && stateToHost.containsKey(Status.STANDBY) && !stateToHost.get(Status.ACTIVE).equalsIgnoreCase(stateToHost.get(Status.STANDBY))) {
-        return stateToHost;
+        String state = queryJmxBeanValue(hp.host, hp.port, "Hadoop:service=NameNode,name=NameNodeStatus", "State", true, encrypted);
+
+        if (null != state && (state.equalsIgnoreCase(Status.ACTIVE.toString()) || state.equalsIgnoreCase(Status.STANDBY.toString()))) {
+          Status status = Status.valueOf(state.toUpperCase());
+          stateToHost.put(status, hp.host);
+        }
+      } catch (MalformedURLException e) {
+        LOG.error(e.getMessage());
       }
     }
 
+    if (stateToHost.containsKey(Status.ACTIVE) && stateToHost.containsKey(Status.STANDBY) && !stateToHost.get(Status.ACTIVE).equalsIgnoreCase(stateToHost.get(Status.STANDBY))) {
+      return stateToHost;
+    }
     return null;
   }
 
-  private void resolveResourceManagers(HostsType hostType) {
-    // !!! for RM, only the master returns jmx
+  private void resolveResourceManagers(Cluster cluster, HostsType hostType) throws MalformedURLException {
     Set<String> orderedHosts = new LinkedHashSet<String>(hostType.hosts);
 
-    for (String hostname : hostType.hosts) {
+    // IMPORTANT, for RM, only the master returns jmx
+    String rmWebAppAddress = m_configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.YARN_SITE, "yarn.resourcemanager.webapp.address");
+    HostAndPort hp = HTTPUtils.getHostAndPortFromProperty(rmWebAppAddress);
+    if (hp == null) {
+      throw new MalformedURLException("Could not parse host and port from " + rmWebAppAddress);
+    }
 
-      String value = queryJmxBeanValue(hostname, 8088,
+    for (String hostname : hostType.hosts) {
+      String value = queryJmxBeanValue(hostname, hp.port,
           "Hadoop:service=ResourceManager,name=RMNMInfo", "modelerType", true);
 
       if (null != value) {
@@ -243,7 +289,7 @@ public class MasterHostResolver {
           hostType.master = hostname;
         }
 
-        // !!! quick and dirty to make sure the master is last in the list
+        // Quick and dirty to make sure the master is last in the list
         orderedHosts.remove(hostname);
         orderedHosts.add(hostname);
       }
@@ -252,11 +298,17 @@ public class MasterHostResolver {
     hostType.hosts = orderedHosts;
   }
 
-  private void resolveHBaseMasters(HostsType hostsType) {
+  private void resolveHBaseMasters(Cluster cluster, HostsType hostsType) throws AmbariException {
+    String hbaseMasterInfoPortProperty = "hbase.master.info.port";
+    String hbaseMasterInfoPortValue = m_configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.HBASE_SITE, hbaseMasterInfoPortProperty);
 
+    if (hbaseMasterInfoPortValue == null || hbaseMasterInfoPortValue.isEmpty()) {
+      throw new AmbariException("Could not find property " + hbaseMasterInfoPortProperty);
+    }
+
+    final int hbaseMasterInfoPort = Integer.parseInt(hbaseMasterInfoPortValue);
     for (String hostname : hostsType.hosts) {
-
-      String value = queryJmxBeanValue(hostname, 60010,
+      String value = queryJmxBeanValue(hostname, hbaseMasterInfoPort,
           "Hadoop:service=HBase,name=Master,sub=Server", "tag.isActiveMaster", false);
 
       if (null != value) {
@@ -272,11 +324,17 @@ public class MasterHostResolver {
   }
 
   private String queryJmxBeanValue(String hostname, int port, String beanName, String attributeName,
-      boolean asQuery) {
+                                   boolean asQuery) {
+    return queryJmxBeanValue(hostname, port, beanName, attributeName, asQuery, false);
+  }
 
-    String endPoint = asQuery ?
-        String.format("http://%s:%s/jmx?qry=%s", hostname, port, beanName) :
-          String.format("http://%s:%s/jmx?get=%s::%s", hostname, port, beanName, attributeName);
+  private String queryJmxBeanValue(String hostname, int port, String beanName, String attributeName,
+      boolean asQuery, boolean encrypted) {
+
+    String protocol = encrypted ? "https://" : "http://";
+    String endPoint = protocol + (asQuery ?
+        String.format("%s:%s/jmx?qry=%s", hostname, port, beanName) :
+        String.format("%s:%s/jmx?get=%s::%s", hostname, port, beanName, attributeName));
 
     String response = HTTPUtils.requestURL(endPoint);
 
@@ -296,8 +354,5 @@ public class MasterHostResolver {
     }
 
     return null;
-
   }
-
-
 }

@@ -25,6 +25,7 @@ import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.PrereqCheckType;
 
@@ -41,7 +42,7 @@ public abstract class AbstractCheckDescriptor {
   Provider<Clusters> clustersProvider;
 
   @Inject
-  Provider<Configuration> configurationProvider;
+  Provider<ConfigHelper> configHelperProvider;
 
   @Inject
   Provider<HostVersionDAO> hostVersionDaoProvider;

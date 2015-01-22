@@ -68,6 +68,17 @@ public class ConfigHelper {
   private static final Logger LOG =
       LoggerFactory.getLogger(ConfigHelper.class);
 
+  /**
+   * List of property prefixes and names. Please keep in alphabetical order.
+   */
+  public static final String HBASE_SITE = "hbase-site";
+  public static final String HDFS_SITE = "hdfs-site";
+  public static final String HIVE_SITE = "hive-site";
+  public static final String YARN_SITE = "yarn-site";
+
+  public static final String HTTP_ONLY = "HTTP_ONLY";
+  public static final String HTTPS_ONLY = "HTTPS_ONLY";
+
   @Inject
   public ConfigHelper(Clusters c, AmbariMetaInfo metaInfo, Configuration configuration, ClusterDAO clusterDAO) {
     clusters = c;
@@ -530,6 +541,11 @@ public class ConfigHelper {
         placeholder.length());
 
     // return the value if it exists, otherwise return the placeholder
+    String value = getValueFromDesiredConfigurations(cluster, configType, propertyName);
+    return value != null ? value : placeholder;
+  }
+
+  public String getValueFromDesiredConfigurations(Cluster cluster, String configType, String propertyName) {
     Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
     DesiredConfig desiredConfig = desiredConfigs.get(configType);
     Config config = cluster.getConfig(configType, desiredConfig.getTag());
@@ -540,8 +556,7 @@ public class ConfigHelper {
         return value;
       }
     }
-
-    return placeholder;
+    return null;
   }
 
   public ServiceInfo getPropertyOwnerService(Cluster cluster, String configType, String propertyName) throws AmbariException {

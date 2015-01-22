@@ -1,0 +1,10 @@
+{
+  "beans" : [ {
+    "name" : "Hadoop:service=NameNode,name=NameNodeStatus",
+    "modelerType" : "org.apache.hadoop.hdfs.server.namenode.NameNode",
+    "State" : "standby",
+    "NNRole" : "NameNode",
+    "HostAndPort" : "c6407.ambari.apache.org:8020",
+    "SecurityEnabled" : true
+  } ]
+}

@@ -77,4 +77,22 @@ public class HTTPUtils {
     }
     return result;
   }
+
+  /**
+   * Given a property like 0.0.0.0:1234 or c6401.ambari.apache.org:50070
+   * will extract the hostname and the port number
+   * @param value Address
+   * @return Return the host and port if it is a valid string, otherwise null.
+   */
+  public static HostAndPort getHostAndPortFromProperty(String value) {
+    if (value == null || value.isEmpty()) return null;
+    value = value.trim();
+    int colonIndex = value.indexOf(":");
+    if (colonIndex > 0 && colonIndex < value.length() - 1) {
+      String host = value.substring(0, colonIndex);
+      int port = Integer.parseInt(value.substring(colonIndex + 1, value.length())); // account for the ":"
+      return new HostAndPort(host, port);
+    }
+    return null;
+  }
 }

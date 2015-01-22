@@ -115,7 +115,7 @@ public class CheckHelperTest {
       @Override
       protected void configure() {
         bind(Clusters.class).toInstance(clusters);
-        bind(Configuration.class).toProvider(Providers.<Configuration>of(null));
+        bind(ConfigHelper.class).toProvider(Providers.<ConfigHelper>of(null));
         bind(HostVersionDAO.class).toProvider(Providers.<HostVersionDAO>of(null));
         bind(RepositoryVersionDAO.class).toProvider(Providers.<RepositoryVersionDAO>of(null));
       }

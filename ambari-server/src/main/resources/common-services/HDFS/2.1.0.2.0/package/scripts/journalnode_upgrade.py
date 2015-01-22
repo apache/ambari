@@ -24,7 +24,7 @@ from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.default import default
 from resource_management.core.exceptions import Fail
 from utils import get_jmx_data
-
+from namenode_ha_state import NAMENODE_STATE, NamenodeHAState
 
 
 def post_upgrade_check():
@@ -35,6 +35,9 @@ def post_upgrade_check():
   import params
   Logger.info("Ensuring Journalnode quorum is established")
 
+  if params.security_enabled:
+    Execute(params.jn_kinit_cmd, user=params.hdfs_user)
+
   time.sleep(5)
   hdfs_roll_edits()
   time.sleep(5)
@@ -44,18 +47,16 @@ def post_upgrade_check():
   if len(all_journal_node_hosts) < 3:
     raise Fail("Need at least 3 Journalnodes to maintain a quorum")
 
-  # TODO, test with HTTPS
-  policy = default("/configurations/hdfs-site/dfs.http.policy", "HTTP_ONLY")
-  encrypted = policy.upper == "HTTPS_ONLY"
+  try:
+    namenode_ha = NamenodeHAState()
+  except ValueError, err:
+    raise Fail("Could not retrieve Namenode HA addresses. Error: " + str(err))
 
-  nn_address = default("/configurations/hdfs-site/dfs.namenode.https-address", None) if encrypted else \
-    default("/configurations/hdfs-site/dfs.namenode.http-address", None)
-
-  if not nn_address:
-    raise Fail("Could not retrieve dfs.namenode.http(s)-address for policy %s" % str(policy))
+  Logger.info(str(namenode_ha))
+  nn_address = namenode_ha.get_address(NAMENODE_STATE.ACTIVE)
 
   nn_data = get_jmx_data(nn_address, 'org.apache.hadoop.hdfs.server.namenode.FSNamesystem', 'JournalTransactionInfo',
-                         encrypted)
+                         namenode_ha.is_encrypted())
   if not nn_data:
     raise Fail("Could not retrieve JournalTransactionInfo from JMX")
 
@@ -73,13 +74,11 @@ def hdfs_roll_edits():
   """
   HDFS_CLIENT needs to be a dependency of JOURNALNODE
   Roll the logs so that Namenode will be able to connect to the Journalnode.
+  Must kinit before calling this command.
   """
   import params
 
   # TODO, this will be to be doc'ed since existing HDP 2.2 clusters will needs HDFS_CLIENT on all JOURNALNODE hosts
-  if params.security_enabled:
-    Execute(params.dn_kinit_cmd, user=params.hdfs_user)
-
   command = 'hdfs dfsadmin -rollEdits'
   Execute(command, user=params.hdfs_user, tries=1)
 

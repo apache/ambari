@@ -79,7 +79,7 @@ class NameNode(Script):
     env.set_params(params)
 
     Execute("hdfs dfsadmin -report -live",
-            user=params.hdfs_principal_name if params.security_enabled else params.hdfs_user
+            user=params.hdfs_user
     )
 
   def stop(self, env, rolling_restart=False):

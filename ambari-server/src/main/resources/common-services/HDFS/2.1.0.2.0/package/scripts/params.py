@@ -151,7 +151,7 @@ hive_user = config['configurations']['hive-env']['hive_user']
 smoke_user =  config['configurations']['cluster-env']['smokeuser']
 smokeuser_principal =  config['configurations']['cluster-env']['smokeuser_principal_name']
 mapred_user = config['configurations']['mapred-env']['mapred_user']
-hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
+hdfs_principal_name = default('/configurations/hadoop-env/hdfs_principal_name', None)
 
 user_group = config['configurations']['cluster-env']['user_group']
 proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
@@ -209,7 +209,7 @@ if dfs_ha_enabled:
       namenode_id = nn_id
       namenode_rpc = nn_host
 
-if dfs_http_policy == "HTTPS_ONLY":
+if dfs_http_policy is not None and dfs_http_policy.upper() == "HTTPS_ONLY":
   https_only = True
   journalnode_address = default('/configurations/hdfs-site/dfs.journalnode.https-address', None)
 else:
@@ -231,10 +231,16 @@ if security_enabled:
   _nn_keytab = config['configurations']['hdfs-site']['dfs.namenode.keytab.file']
   _nn_principal_name = _nn_principal_name.replace('_HOST',hostname.lower())
   
-  nn_kinit_cmd = format("{kinit_path_local} -kt {_nn_keytab} {_nn_principal_name};")  
+  nn_kinit_cmd = format("{kinit_path_local} -kt {_nn_keytab} {_nn_principal_name};")
+
+  _jn_principal_name = config['configurations']['hdfs-site']['dfs.journalnode.kerberos.principal']
+  _jn_principal_name = _jn_principal_name.replace('_HOST', hostname.lower())
+  _jn_keytab = config['configurations']['hdfs-site']['dfs.journalnode.keytab.file']
+  jn_kinit_cmd = format("{kinit_path_local} -kt {_jn_keytab} {_jn_principal_name};")
 else:
   dn_kinit_cmd = ""
-  nn_kinit_cmd = ""  
+  nn_kinit_cmd = ""
+  jn_kinit_cmd = ""
 
 import functools
 #create partial functions with common arguments for every HdfsDirectory call

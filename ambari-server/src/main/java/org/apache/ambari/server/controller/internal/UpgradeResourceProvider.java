@@ -416,7 +416,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     final String version = (String) requestMap.get(UPGRADE_VERSION);
 
     MasterHostResolver resolver = Direction.UPGRADE == direction ?
-        new MasterHostResolver(cluster) : new MasterHostResolver(cluster, version);
+        new MasterHostResolver(configHelper, cluster) : new MasterHostResolver(configHelper, cluster, version);
 
     UpgradeContext ctx = new UpgradeContext(resolver, version, direction);
 

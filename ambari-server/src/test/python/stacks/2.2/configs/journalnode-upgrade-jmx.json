@@ -74,7 +74,7 @@
     "TxnsWritten" : 592,
     "BytesWritten" : 60442,
     "BatchesWrittenWhileLagging" : 0,
-    "LastWrittenTxId" : 4499,
+    "LastWrittenTxId" : 1001,
     "LastPromisedEpoch" : 2,
     "LastWriterEpoch" : 2,
     "CurrentLagTxns" : 0

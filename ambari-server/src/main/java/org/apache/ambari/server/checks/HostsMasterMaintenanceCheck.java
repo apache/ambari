@@ -46,7 +46,7 @@ public class HostsMasterMaintenanceCheck extends AbstractCheckDescriptor {
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
-    final MasterHostResolver masterHostResolver = new MasterHostResolver(cluster);
+    final MasterHostResolver masterHostResolver = new MasterHostResolver(configHelperProvider.get(), cluster);
     final Set<String> hostsWithMasterComponent = new HashSet<String>();
     for (Map.Entry<String, Service> serviceEntry: cluster.getServices().entrySet()) {
       final Service service = serviceEntry.getValue();

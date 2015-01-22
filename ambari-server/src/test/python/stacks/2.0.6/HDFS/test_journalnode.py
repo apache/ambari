@@ -253,18 +253,26 @@ class TestJournalnode(RMFTestCase):
   def test_post_rolling_restart(self, urlopen_mock, time_mock):
     # load the NN and JN JMX files so that the urllib2.urlopen mock has data
     # to return
+    num_journalnodes = 3
     journalnode_jmx_file = os.path.join(RMFTestCase._getStackTestsFolder(),
-      self.UPGRADE_STACK_VERSION, "configs", "journalnode-upgrade-jmx.json" )
+      self.UPGRADE_STACK_VERSION, "configs", "journalnode-upgrade-jmx.json")
 
     namenode_jmx_file = os.path.join(RMFTestCase._getStackTestsFolder(),
-      self.UPGRADE_STACK_VERSION, "configs", "journalnode-upgrade-namenode-jmx.json" )
+      self.UPGRADE_STACK_VERSION, "configs", "journalnode-upgrade-namenode-jmx.json")
+
+    namenode_status_active_file = os.path.join(RMFTestCase._getStackTestsFolder(),
+      self.UPGRADE_STACK_VERSION, "configs", "journalnode-upgrade-namenode-status-active.json")
+
+    namenode_status_standby_file = os.path.join(RMFTestCase._getStackTestsFolder(),
+      self.UPGRADE_STACK_VERSION, "configs", "journalnode-upgrade-namenode-status-standby.json")
 
     journalnode_jmx = open(journalnode_jmx_file, 'r').read()
     namenode_jmx = open(namenode_jmx_file, 'r').read()
+    namenode_status_active = open(namenode_status_active_file, 'r').read()
+    namenode_status_standby = open(namenode_status_standby_file, 'r').read()
 
     url_stream_mock = MagicMock()
-    url_stream_mock.read.side_effect = [namenode_jmx, journalnode_jmx,
-      journalnode_jmx, journalnode_jmx]
+    url_stream_mock.read.side_effect = [namenode_status_active, namenode_status_standby] + (num_journalnodes * [namenode_jmx, journalnode_jmx])
 
     urlopen_mock.return_value = url_stream_mock
 
@@ -277,11 +285,10 @@ class TestJournalnode(RMFTestCase):
 
     # ensure that the mock was called with the http-style version of the URL
     urlopen_mock.assert_called
-    urlopen_mock.assert_called_with( "http://c6403.ambari.apache.org:8480/jmx" )
+    urlopen_mock.assert_called_with("http://c6407.ambari.apache.org:8480/jmx")
 
     url_stream_mock.reset_mock()
-    url_stream_mock.read.side_effect = [namenode_jmx, journalnode_jmx,
-      journalnode_jmx, journalnode_jmx]
+    url_stream_mock.read.side_effect = [namenode_status_active, namenode_status_standby] + (num_journalnodes * [namenode_jmx, journalnode_jmx])
 
     urlopen_mock.return_value = url_stream_mock
 
@@ -294,7 +301,7 @@ class TestJournalnode(RMFTestCase):
 
     # ensure that the mock was called with the http-style version of the URL
     urlopen_mock.assert_called
-    urlopen_mock.assert_called_with( "https://c6403.ambari.apache.org:8481/jmx" )
+    urlopen_mock.assert_called_with("https://c6407.ambari.apache.org:8481/jmx")
 
 
 
