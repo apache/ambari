@@ -42,13 +42,13 @@
         <label class="control-label col-sm-2 repo-version-label">Version</label>
         <div class="col-sm-10">
           <select class="form-control repo-version-select"
-                  ng-model="upgradeStack.selected"
+                  ng-model="$parent.upgradeStack.selected"
                   ng-options="o as o.displayName for o in upgradeStack.options"
                   ng-change="afterStackVersionChange()">
           </select>
           <span class="bold-dot">.</span>
           <div class="form-group" ng-class="{'has-error' : repoRegForm.version.$error.pattern}">
-            <input class="form-control" name="version" type="text" ng-model="repoSubversion" ng-pattern="subversionPattern"
+            <input class="form-control" name="version" type="text" ng-model="$parent.repoSubversion" ng-pattern="subversionPattern"
                    placeholder="Version Name" ng-change="updateCurrentVersionInput()" required/>
             <span class="text-danger" ng-show="repoRegForm.version.$error.pattern">
               &nbsp{{currentVersionInput}} Invalid.

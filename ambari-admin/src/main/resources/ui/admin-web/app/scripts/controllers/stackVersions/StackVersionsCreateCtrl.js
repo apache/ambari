@@ -53,15 +53,13 @@ angular.module('ambariAdminConsole')
   $scope.save = function () {
     return Stack.validateBaseUrls($scope.skipValidation, $scope.osList, $scope.upgradeStack.selected).then(function (invalidUrls) {
       if (invalidUrls.length === 0) {
-        // TODO repoSubversion input out of sync here, could be related to ng-pattern. Need to find out.
-        if (!$scope.repoSubversion) { $scope.repoSubversion = angular.element('[name="version"]')[0].value; }
         Stack.addRepo($scope.upgradeStack.selected, $scope.repoSubversion, $scope.osList)
           .success(function () {
             var versionName = $scope.upgradeStack.selected.stack_version + '.' + $scope.repoSubversion;
             var stackName = $scope.upgradeStack.selected.stack_name;
             Alert.success('Created version ' +
             '<a href="#/stackVersions/' + stackName + '/' + versionName + '/edit">'
-              + stackName + versionName +
+              + stackName + '-' + versionName +
             '</a>');
             $location.path('/stackVersions');
           })
