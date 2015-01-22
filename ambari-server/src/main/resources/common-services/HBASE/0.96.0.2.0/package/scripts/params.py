@@ -105,6 +105,7 @@ else:
   rs_hosts = default('/clusterHostInfo/hbase_rs_hosts', '/clusterHostInfo/all_hosts') 
 
 smoke_test_user = config['configurations']['cluster-env']['smokeuser']
+smokeuser_principal =  config['configurations']['cluster-env']['smokeuser_principal_name']
 smokeuser_permissions = "RWXCA"
 service_check_data = functions.get_unique_id_and_date()
 user_group = config['configurations']['cluster-env']["user_group"]

@@ -76,7 +76,7 @@ class TestServiceCheck(RMFTestCase):
                       hdp_stack_version = self.STACK_VERSION,
                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;',
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM;',
                       user = 'ambari-qa',
     )
     self.assertResourceCalled('ExecuteHadoop', 'fs -rm -r -f /user/ambari-qa/mapredsmokeoutput /user/ambari-qa/mapredsmokeinput',

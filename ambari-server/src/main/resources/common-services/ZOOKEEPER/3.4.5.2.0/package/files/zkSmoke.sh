@@ -27,6 +27,7 @@ client_port=$4
 security_enabled=$5
 kinit_path_local=$6
 smoke_user_keytab=$7
+smokeuser_principal=$8
 export ZOOKEEPER_EXIT_CODE=0
 test_output_file=/tmp/zkSmoke.out
 errors_expr="ERROR|Exception"
@@ -35,7 +36,7 @@ zkhosts=` grep "^\s*server\.[[:digit:]]"  $conf_dir/zoo.cfg  | cut -f 2 -d '=' |
 zk_node1=`echo $zkhosts | tr ' ' '\n' | head -n 1`  
 echo "zk_node1=$zk_node1"
 if [[ $security_enabled == "True" ]]; then
-  kinitcmd="$kinit_path_local -kt $smoke_user_keytab $smoke_user"
+  kinitcmd="$kinit_path_local -kt $smoke_user_keytab $smokeuser_principal"
   sudo su $smoke_user -s /bin/bash - -c "$kinitcmd"
 fi
 

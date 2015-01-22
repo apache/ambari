@@ -41,7 +41,7 @@ def pre_upgrade_deregister():
   Logger.info('HiveServer2 executing "deregister" command in preparation for upgrade...')
 
   if params.security_enabled:
-    kinit_command=format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser}; ")
+    kinit_command=format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal}; ")
     Execute(kinit_command,user=params.smokeuser)
 
   # calculate the current hive server version

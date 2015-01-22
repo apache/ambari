@@ -92,7 +92,7 @@ class TestZookeeperServer(RMFTestCase):
                   not_if = 'ls /var/run/zookeeper/zookeeper_server.pid >/dev/null 2>&1 && ps -p `cat /var/run/zookeeper/zookeeper_server.pid` >/dev/null 2>&1',
                   user = 'zookeeper'
     )
-    self.assertResourceCalled('Execute', "/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;",
+    self.assertResourceCalled('Execute', "/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM;",
                               user="ambari-qa")
     self.assertNoMoreResources()
 

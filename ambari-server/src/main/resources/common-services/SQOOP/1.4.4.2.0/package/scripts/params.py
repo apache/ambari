@@ -47,6 +47,7 @@ else:
 zoo_conf_dir = "/etc/zookeeper"
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 smokeuser = config['configurations']['cluster-env']['smokeuser']
+smokeuser_principal = config['configurations']['cluster-env']['smokeuser_principal_name']
 user_group = config['configurations']['cluster-env']['user_group']
 sqoop_env_sh_template = config['configurations']['sqoop-env']['content']
 

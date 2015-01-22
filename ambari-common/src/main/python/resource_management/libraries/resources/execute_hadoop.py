@@ -31,7 +31,7 @@ class ExecuteHadoop(Resource):
   try_sleep = ResourceArgument(default=0) # seconds
   user = ResourceArgument()
   logoutput = ResourceArgument()
-  principal = ResourceArgument(default=lambda obj: obj.user)
+  principal = ResourceArgument()
   bin_dir = ResourceArgument(default=[]) # appended to $PATH
   environment = ResourceArgument(default={})
   

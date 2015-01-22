@@ -148,6 +148,7 @@ smokeuser = config['configurations']['cluster-env']['smokeuser']
 smoke_test_sql = format("{tmp_dir}/hiveserver2.sql")
 smoke_test_path = format("{tmp_dir}/hiveserver2Smoke.sh")
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
+smokeuser_principal = config['configurations']['cluster-env']['smokeuser_principal_name']
 
 fs_root = config['configurations']['core-site']['fs.defaultFS']
 security_enabled = config['configurations']['cluster-env']['security_enabled']

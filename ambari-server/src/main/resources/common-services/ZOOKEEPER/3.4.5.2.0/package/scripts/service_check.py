@@ -31,9 +31,16 @@ class ZookeeperServiceCheck(Script):
          content=StaticFile('zkSmoke.sh')
     )
 
+    if params.security_enabled:
+      smokeUserKeytab=params.smoke_user_keytab
+      smokeUserPrincipal=params.smokeuser_principal
+    else:
+      smokeUserKeytab= "no_keytab"
+      smokeUserPrincipal="no_principal"
+
+
     cmd_quorum = format("{tmp_dir}/zkSmoke.sh {zk_cli_shell} {smokeuser} {config_dir} {clientPort} "
-                  "{security_enabled} {kinit_path_local} {smokeUserKeytab}",
-                  smokeUserKeytab=params.smoke_user_keytab if params.security_enabled else "no_keytab")
+                  "{security_enabled} {kinit_path_local} {smokeUserKeytab} {smokeUserPrincipal}")
 
     Execute(cmd_quorum,
             tries=3,

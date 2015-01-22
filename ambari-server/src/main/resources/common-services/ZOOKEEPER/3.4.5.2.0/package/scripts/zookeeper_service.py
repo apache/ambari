@@ -35,7 +35,7 @@ def zookeeper_service(action='start'):
     )
 
     if params.security_enabled:
-      kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser};")
+      kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};")
 
       Execute(kinit_cmd,
               user=params.smokeuser

@@ -66,7 +66,7 @@ def execute(parameters=None, host_name=None):
       else:
         return (RESULT_CODE_UNKNOWN, ['The Smokeuser keytab is required when security is enabled.'])
       kinit_path_local = get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
-      kinitcmd = format("{kinit_path_local} -kt {smokeuser_keytab} {smokeuser}; ")
+      kinitcmd = format("{kinit_path_local} -kt {smokeuser_keytab} {smokeuser_principal}; ")
 
       Execute(kinitcmd,
               user=smokeuser,

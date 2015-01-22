@@ -80,7 +80,7 @@ class TestSliderClient(RMFTestCase):
     )
 
     self.assertResourceCalled('Execute',
-                              '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; /usr/lib/slider/bin/slider list',
+                              '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM; /usr/lib/slider/bin/slider list',
                               logoutput=True,
                               tries=3,
                               user='ambari-qa',

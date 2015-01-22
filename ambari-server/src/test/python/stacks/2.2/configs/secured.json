@@ -44,6 +44,7 @@
             "kerberos_domain": "EXAMPLE.COM",
             "user_group": "hadoop",
             "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab",
+            "smokeuser_principal_name": "ambari-qa@EXAMPLE.COM",
             "kinit_path_local": "/usr/bin"
         },
         "webhcat-site": {

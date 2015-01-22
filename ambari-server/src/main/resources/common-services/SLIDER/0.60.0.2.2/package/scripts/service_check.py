@@ -28,7 +28,7 @@ class SliderServiceCheck(Script):
     env.set_params(params)
 
     smokeuser_kinit_cmd = format(
-      "{kinit_path_local} -kt {smokeuser_keytab} {smokeuser};") if params.security_enabled else ""
+      "{kinit_path_local} -kt {smokeuser_keytab} {smokeuser_principal};") if params.security_enabled else ""
 
     servicecheckcmd = format("{smokeuser_kinit_cmd} {slider_cmd} list")
 

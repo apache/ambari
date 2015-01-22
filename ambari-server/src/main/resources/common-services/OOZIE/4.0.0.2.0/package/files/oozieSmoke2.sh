@@ -65,6 +65,7 @@ export smoke_test_user=$5
 export security_enabled=$6
 export smoke_user_keytab=$7
 export kinit_path_local=$8
+export smokeuser_principal=$9
 
 export OOZIE_EXIT_CODE=0
 export JOBTRACKER=`getValueFromField ${hadoop_conf_dir}/yarn-site.xml yarn.resourcemanager.address`
@@ -95,7 +96,7 @@ sudo sed -i "s|jobTracker=localhost:8032|jobTracker=$JOBTRACKER|g" examples/apps
 sudo sed -i "s|oozie.wf.application.path=hdfs://localhost:9000|oozie.wf.application.path=$NAMENODE|g" examples/apps/map-reduce/job.properties
 
 if [[ $security_enabled == "True" ]]; then
-  kinitcmd="${kinit_path_local} -kt ${smoke_user_keytab} ${smoke_test_user}; "
+  kinitcmd="${kinit_path_local} -kt ${smoke_user_keytab} ${smokeuser_principal}; "
 else 
   kinitcmd=""
 fi

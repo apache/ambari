@@ -72,7 +72,7 @@ if config is not None:
     cluster_env = get_property_value(configurations, 'cluster-env')
 
     if cluster_env is not None:
-      smoke_test_principal = get_property_value(cluster_env, 'smokeuser', None, True, None)
+      smoke_test_principal = get_property_value(cluster_env, 'smokeuser_principal_name', None, True, None)
       smoke_test_keytab_file = get_property_value(cluster_env, 'smokeuser_keytab', None, True, None)
 
       default_group = get_property_value(cluster_env, 'user_group')

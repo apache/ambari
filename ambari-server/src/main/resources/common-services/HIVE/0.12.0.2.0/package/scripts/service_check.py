@@ -34,7 +34,7 @@ class HiveServiceCheck(Script):
     port = int(format("{hive_server_port}"))
     print "Test connectivity to hive server"
     if params.security_enabled:
-      kinitcmd=format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser}; ")
+      kinitcmd=format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal}; ")
     else:
       kinitcmd=None
 

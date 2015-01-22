@@ -41,7 +41,7 @@ class ServiceCheck(Script):
     validateStatusCmd = format("{python_executable} {validateStatusFilePath} {component_type} -p {component_address} -s {hadoop_ssl_enabled}")
 
     if params.security_enabled:
-      kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser};")
+      kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};")
       smoke_cmd = format("{kinit_cmd} {validateStatusCmd}")
     else:
       smoke_cmd = validateStatusCmd

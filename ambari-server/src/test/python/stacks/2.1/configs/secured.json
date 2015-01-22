@@ -517,6 +517,7 @@
             "security_enabled": "true",
             "ignore_groupsusers_create": "false",
             "smokeuser": "ambari-qa",
+            "smokeuser_principal_name": "ambari-qa@EXAMPLE.COM",
             "kerberos_domain": "EXAMPLE.COM",
             "user_group": "hadoop",
             "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab",

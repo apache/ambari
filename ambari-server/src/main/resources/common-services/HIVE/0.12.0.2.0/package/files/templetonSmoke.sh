@@ -25,10 +25,11 @@ export smoke_test_user=$2
 export smoke_user_keytab=$3
 export security_enabled=$4
 export kinit_path_local=$5
+export smokeuser_principal=$6
 export ttonurl="http://${ttonhost}:50111/templeton/v1"
 
 if [[ $security_enabled == "true" ]]; then
-  kinitcmd="${kinit_path_local}  -kt ${smoke_user_keytab} ${smoke_test_user}; "
+  kinitcmd="${kinit_path_local}  -kt ${smoke_user_keytab} ${smokeuser_principal}; "
 else
   kinitcmd=""
 fi

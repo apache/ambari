@@ -166,6 +166,7 @@ class TestExecuteHadoopResource(TestCase):
                     kinit_path_local="path",
                     conf_dir="conf_dir",
                     user="user",
+                    principal="principal",
                     tries=1,
                     keytab="keytab",
                     security_enabled=True,
@@ -175,9 +176,9 @@ class TestExecuteHadoopResource(TestCase):
       )
       self.assertEqual(execute_mock.call_count, 2)
       self.assertEqual(str(execute_mock.call_args_list[0][0][0]),
-                       "Execute['path -kt keytab user']")
+                       "Execute['path -kt keytab principal']")
       self.assertEqual(execute_mock.call_args_list[0][0][0].command,
-                       'path -kt keytab user')
+                       'path -kt keytab principal')
       self.assertEqual(execute_mock.call_args_list[0][0][0].arguments,
                        {'path': ['/bin'], 'user': 'user'})
       self.assertEqual(execute_mock.call_args_list[1][0][0].command,

@@ -77,7 +77,7 @@ class TestServiceCheck(RMFTestCase):
                               content = StaticFile('templetonSmoke.sh'),
                               mode = 0755,
                               )
-    self.assertResourceCalled('Execute', '/tmp/templetonSmoke.sh c6402.ambari.apache.org ambari-qa no_keytab false /usr/bin/kinit',
+    self.assertResourceCalled('Execute', '/tmp/templetonSmoke.sh c6402.ambari.apache.org ambari-qa no_keytab false /usr/bin/kinit no_principal',
                               logoutput = True,
                               path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                               tries = 3,
@@ -96,7 +96,7 @@ class TestServiceCheck(RMFTestCase):
                         hdp_stack_version = self.STACK_VERSION,
                         target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; ',
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM; ',
                               user = 'ambari-qa',
                               )
     self.assertResourceCalled('Execute', "! beeline -u 'jdbc:hive2://c6402.ambari.apache.org:10000/;principal=hive/_HOST@EXAMPLE.COM' -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'",
@@ -141,7 +141,7 @@ class TestServiceCheck(RMFTestCase):
                               content = StaticFile('templetonSmoke.sh'),
                               mode = 0755,
                               )
-    self.assertResourceCalled('Execute', '/tmp/templetonSmoke.sh c6402.ambari.apache.org ambari-qa /etc/security/keytabs/smokeuser.headless.keytab true /usr/bin/kinit',
+    self.assertResourceCalled('Execute', '/tmp/templetonSmoke.sh c6402.ambari.apache.org ambari-qa /etc/security/keytabs/smokeuser.headless.keytab true /usr/bin/kinit ambari-qa@EXAMPLE.COM',
                               logoutput = True,
                               path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                               tries = 3,

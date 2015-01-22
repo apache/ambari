@@ -38,6 +38,7 @@ class TestPigServiceCheck(RMFTestCase):
       user = 'ambari-qa',
       conf_dir = '/etc/hadoop/conf',
       security_enabled = False,
+      principal = UnknownConfigurationMock(),
       keytab = UnknownConfigurationMock(),
       bin_dir = '/usr/bin',
       kinit_path_local = '/usr/bin/kinit'
@@ -75,6 +76,7 @@ class TestPigServiceCheck(RMFTestCase):
       try_sleep = 5,
       tries = 3,
       user = 'ambari-qa',
+      principal = 'ambari-qa@EXAMPLE.COM',
       conf_dir = '/etc/hadoop/conf',
       security_enabled = True, 
       keytab = '/etc/security/keytabs/smokeuser.headless.keytab',

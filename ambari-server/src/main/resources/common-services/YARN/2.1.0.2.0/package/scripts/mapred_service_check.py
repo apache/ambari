@@ -36,7 +36,7 @@ class MapReduce2ServiceCheck(Script):
     run_wordcount_job = format("jar {jar_path} wordcount {input_file} {output_file}")
 
     if params.security_enabled:
-      kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser};")
+      kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};")
 
       Execute(kinit_cmd,
               user=params.smokeuser
