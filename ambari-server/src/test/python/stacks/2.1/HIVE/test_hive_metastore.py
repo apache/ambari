@@ -75,7 +75,10 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('Execute', 'sudo kill -9 `cat /var/run/hive/hive.pid`',
                               not_if = '! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1) || ( sleep 5 && ! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1) )',
                               )
-    self.assertResourceCalled('Execute', '! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1)',)
+    self.assertResourceCalled('Execute', '! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1)',
+      tries = 20,
+      try_sleep = 3,
+    )
     self.assertResourceCalled('File', '/var/run/hive/hive.pid',
                               action = ['delete'],
                               )
@@ -130,7 +133,10 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('Execute', 'sudo kill -9 `cat /var/run/hive/hive.pid`',
       not_if = '! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1) || ( sleep 5 && ! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1) )',
     )
-    self.assertResourceCalled('Execute', '! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1)',)
+    self.assertResourceCalled('Execute', '! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1)',
+      tries = 20,
+      try_sleep = 3,
+    )
     self.assertResourceCalled('File', '/var/run/hive/hive.pid',
       action = ['delete'],
     )

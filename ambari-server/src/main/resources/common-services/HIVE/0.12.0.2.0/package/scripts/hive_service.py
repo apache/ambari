@@ -111,7 +111,9 @@ def hive_service(name, action='start', rolling_restart=False):
     )
 
     # check if stopped the process, else fail the task
-    Execute(format("! ({process_id_exists_command})")
+    Execute(format("! ({process_id_exists_command})"),
+      tries=20,
+      try_sleep=3,
     )
 
     File(pid_file,
