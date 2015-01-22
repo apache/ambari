@@ -53,7 +53,9 @@ App.HostStackVersion.statusDefinition = [
   "INSTALLING",
   "INSTALL_FAILED",
   "OUT_OF_SYNC",
-  "CURRENT"
+  "CURRENT",
+  "UPGRADING",
+  "UPGRADE_FAILED"
 ];
 
 /**
@@ -62,7 +64,7 @@ App.HostStackVersion.statusDefinition = [
  * @return {string}
  */
 App.HostStackVersion.formatStatus = function (status) {
-  return status ?
+  return App.HostStackVersion.statusDefinition.contains(status) ?
     Em.I18n.t('hosts.host.stackVersions.status.' + status.toLowerCase()) :
-    Em.I18n.t('common.unknown');
+    status.toCapital();
 };
