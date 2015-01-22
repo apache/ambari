@@ -290,11 +290,11 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
       selectedAlertNotification.get('properties')['ambari.dispatch.recipients'].join(', ') : '');
     inputFields.set('SMTPServer.value', selectedAlertNotification.get('properties')['mail.smtp.host']);
     inputFields.set('SMTPPort.value', selectedAlertNotification.get('properties')['mail.smtp.port']);
-    inputFields.set('SMTPUseAuthentication.value', selectedAlertNotification.get('properties')['mail.smtp.auth']);
+    inputFields.set('SMTPUseAuthentication.value', selectedAlertNotification.get('properties')['mail.smtp.auth'] !== "false");
     inputFields.set('SMTPUsername.value', selectedAlertNotification.get('properties')['ambari.dispatch.credential.username']);
     inputFields.set('SMTPPassword.value', selectedAlertNotification.get('properties')['ambari.dispatch.credential.password']);
     inputFields.set('retypeSMTPPassword.value', selectedAlertNotification.get('properties')['ambari.dispatch.credential.password']);
-    inputFields.set('SMTPSTARTTLS.value', selectedAlertNotification.get('properties')['mail.smtp.starttls.enable']);
+    inputFields.set('SMTPSTARTTLS.value', selectedAlertNotification.get('properties')['mail.smtp.starttls.enable'] !== "false");
     inputFields.set('emailFrom.value', selectedAlertNotification.get('properties')['mail.smtp.from']);
     inputFields.set('version.value', selectedAlertNotification.get('properties')['ambari.dispatch.snmp.version']);
     inputFields.set('OIDs.value', selectedAlertNotification.get('properties')['ambari.dispatch.snmp.oids.trap']);

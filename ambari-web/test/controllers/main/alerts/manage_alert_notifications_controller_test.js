@@ -296,7 +296,7 @@ describe('App.ManageAlertNotificationsController', function () {
           value: '25'
         },
         SMTPUseAuthentication: {
-          value: "true"
+          value: true
         },
         SMTPUsername: {
           value: 'user'
@@ -308,7 +308,7 @@ describe('App.ManageAlertNotificationsController', function () {
           value: 'pass'
         },
         SMTPSTARTTLS: {
-          value: "true"
+          value: true
         },
         emailFrom: {
           value: 'from'
