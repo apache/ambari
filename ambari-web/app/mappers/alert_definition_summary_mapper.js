@@ -23,7 +23,7 @@ App.alertDefinitionSummaryMapper = App.QuickDataMapper.create({
 
   map: function(data) {
     if (!data.alerts_summary_grouped) return;
-    var alertDefinitions = App.AlertDefinition.getAllDefinitions();
+    var alertDefinitions = App.AlertDefinition.find();
     data.alerts_summary_grouped.forEach(function(alertDefinitionSummary) {
       var alertDefinition = alertDefinitions.findProperty('id', alertDefinitionSummary.definition_id);
       if (alertDefinition) {

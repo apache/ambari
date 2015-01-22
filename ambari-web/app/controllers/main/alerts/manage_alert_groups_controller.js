@@ -301,7 +301,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
     if (selectedAlertGroup.get('default')) return [];
     var usedDefinitionsMap = {};
     var availableDefinitions = [];
-    var sharedDefinitions = App.AlertDefinition.getAllDefinitions();
+    var sharedDefinitions = App.AlertDefinition.find();
 
     selectedAlertGroup.get('definitions').forEach(function (def) {
       usedDefinitionsMap[def.name] = true;

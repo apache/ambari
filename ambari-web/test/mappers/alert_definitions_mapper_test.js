@@ -189,22 +189,10 @@ describe('App.alertDefinitionsMapper', function () {
       App.alertDefinitionsMapper.setProperties({
         'model': {},
 
-        'portModel': {},
-        'metricsModel': {},
-        'webModel': {},
-        'aggregateModel': {},
-        'scriptModel': {},
-
         'reportModel': {},
         'metricsSourceModel': {},
         'metricsUriModel': {}
       });
-
-      sinon.stub(App.PortAlertDefinition, 'find', function() {return [];});
-      sinon.stub(App.MetricsAlertDefinition, 'find', function() {return [];});
-      sinon.stub(App.WebAlertDefinition, 'find', function() {return [];});
-      sinon.stub(App.AggregateAlertDefinition, 'find', function() {return [];});
-      sinon.stub(App.ScriptAlertDefinition, 'find', function() {return [];});
 
       sinon.stub(App.alertDefinitionsMapper, 'deleteRecord', Em.K);
 
@@ -229,22 +217,10 @@ describe('App.alertDefinitionsMapper', function () {
       App.alertDefinitionsMapper.setProperties({
         'model': App.AlertDefinition,
 
-        'portModel': App.PortAlertDefinition,
-        'metricsModel': App.MetricsAlertDefinition,
-        'webModel': App.WebAlertDefinition,
-        'aggregateModel': App.AggregateAlertDefinition,
-        'scriptModel': App.ScriptAlertDefinition,
-
         'reportModel': App.AlertReportDefinition,
         'metricsSourceModel': App.AlertMetricsSourceDefinition,
         'metricsUriModel': App.AlertMetricsUriDefinition
       });
-
-      App.PortAlertDefinition.find.restore();
-      App.MetricsAlertDefinition.find.restore();
-      App.WebAlertDefinition.find.restore();
-      App.AggregateAlertDefinition.find.restore();
-      App.ScriptAlertDefinition.find.restore();
 
       App.alertDefinitionsMapper.deleteRecord.restore();
 
@@ -297,7 +273,7 @@ describe('App.alertDefinitionsMapper', function () {
       });
 
       it('parsing metrics model', function() {
-        testHelpers.nestedExpect(expected, App.alertDefinitionsMapper.get('metricsModel.content'));
+        testHelpers.nestedExpect(expected, App.alertDefinitionsMapper.get('model.content'));
       });
 
       it('parse metrics source', function() {
@@ -343,7 +319,7 @@ describe('App.alertDefinitionsMapper', function () {
       });
 
       it('parsing web model', function() {
-        testHelpers.nestedExpect(expected, App.alertDefinitionsMapper.get('webModel.content'));
+        testHelpers.nestedExpect(expected, App.alertDefinitionsMapper.get('model.content'));
       });
 
 
@@ -373,7 +349,7 @@ describe('App.alertDefinitionsMapper', function () {
         ];
       App.alertDefinitionsMapper.map(data);
 
-      testHelpers.nestedExpect(expected, App.alertDefinitionsMapper.get('aggregateModel.content'));
+      testHelpers.nestedExpect(expected, App.alertDefinitionsMapper.get('model.content'));
 
     });
 
@@ -397,7 +373,7 @@ describe('App.alertDefinitionsMapper', function () {
         ];
       App.alertDefinitionsMapper.map(data);
 
-      testHelpers.nestedExpect(expected, App.alertDefinitionsMapper.get('scriptModel.content'));
+      testHelpers.nestedExpect(expected, App.alertDefinitionsMapper.get('model.content'));
 
     });
 
@@ -417,12 +393,12 @@ describe('App.alertDefinitionsMapper', function () {
             "interval":1,
             "type":"PORT",
             "default_port":2181,
-            "uri":"{{zookeeper-env/clientPort}}"
+            "port_uri":"{{zookeeper-env/clientPort}}"
           }
         ];
       App.alertDefinitionsMapper.map(data);
 
-      testHelpers.nestedExpect(expected, App.alertDefinitionsMapper.get('portModel.content'));
+      testHelpers.nestedExpect(expected, App.alertDefinitionsMapper.get('model.content'));
 
     });
 
@@ -438,11 +414,11 @@ describe('App.alertDefinitionsMapper', function () {
 
       App.alertDefinitionsMapper.map(json);
 
-      expect(App.alertDefinitionsMapper.get('portModel.content')[0].groups).to.eql([1, 4]);
-      expect(App.alertDefinitionsMapper.get('metricsModel.content')[0].groups).to.eql([5, 1]);
-      expect(App.alertDefinitionsMapper.get('webModel.content')[0].groups).to.eql([4, 3]);
-      expect(App.alertDefinitionsMapper.get('aggregateModel.content')[0].groups).to.eql([3, 2]);
-      expect(App.alertDefinitionsMapper.get('scriptModel.content')[0].groups).to.eql([2, 5]);
+      expect(App.alertDefinitionsMapper.get('model.content')[0].groups).to.eql([5, 1]);
+      expect(App.alertDefinitionsMapper.get('model.content')[1].groups).to.eql([4, 3]);
+      expect(App.alertDefinitionsMapper.get('model.content')[2].groups).to.eql([3, 2]);
+      expect(App.alertDefinitionsMapper.get('model.content')[3].groups).to.eql([2, 5]);
+      expect(App.alertDefinitionsMapper.get('model.content')[4].groups).to.eql([1, 4]);
 
 
     });
@@ -455,14 +431,14 @@ describe('App.alertDefinitionsMapper', function () {
 
       beforeEach(function () {
 
-        sinon.stub(App.AlertDefinition, 'getAllDefinitions', function () {
+        sinon.stub(App.AlertDefinition, 'find', function () {
           return definitions;
         });
 
       });
 
       afterEach(function() {
-        App.AlertDefinition.getAllDefinitions.restore();
+        App.AlertDefinition.find.restore();
       });
 
       it('should delete PORT alert definition with id 100500', function () {

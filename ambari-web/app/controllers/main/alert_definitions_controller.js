@@ -47,11 +47,7 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
    * </ul>
    * @type {App.AlertDefinition[]}
    */
-  content: function () {
-    var definitions = App.AlertDefinition.getAllDefinitions();
-    definitions.sort(App.AlertDefinition.getSortDefinitionsByStatus(true));
-    return definitions;
-  }.property('mapperTimestamp'),
+  content: App.AlertDefinition.find(),
 
   /**
    * Enable/disable alertDefinition confirmation popup

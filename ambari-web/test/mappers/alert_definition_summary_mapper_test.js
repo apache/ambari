@@ -24,12 +24,12 @@ describe('App.alertDefinitionSummaryMapper', function () {
   describe('#map', function() {
 
     var testModels = [
-        App.PortAlertDefinition.createRecord({id: 1, enabled: true, type: 'PORT'}),
-        App.MetricsAlertDefinition.createRecord({id: 2, enabled: true, type: 'METRICS'}),
-        App.WebAlertDefinition.createRecord({id: 3, enabled: true, type: 'WEB'}),
-        App.AggregateAlertDefinition.createRecord({id: 4, enabled: true, type: 'AGGREGATE'}),
-        App.ScriptAlertDefinition.createRecord({id: 5, enabled: true, type: 'SCRIPT'}),
-        App.ScriptAlertDefinition.createRecord({id: 6, enabled: false, type: 'SCRIPT', summary: {OK: 1}})
+        App.AlertDefinition.createRecord({id: 1, enabled: true, type: 'PORT'}),
+        App.AlertDefinition.createRecord({id: 2, enabled: true, type: 'METRICS'}),
+        App.AlertDefinition.createRecord({id: 3, enabled: true, type: 'WEB'}),
+        App.AlertDefinition.createRecord({id: 4, enabled: true, type: 'AGGREGATE'}),
+        App.AlertDefinition.createRecord({id: 5, enabled: true, type: 'SCRIPT'}),
+        App.AlertDefinition.createRecord({id: 6, enabled: false, type: 'SCRIPT', summary: {OK: 1}})
       ],
       dataToMap = {
         alerts_summary_grouped: [
@@ -83,48 +83,40 @@ describe('App.alertDefinitionSummaryMapper', function () {
 
     beforeEach(function() {
 
-      sinon.stub(App.PortAlertDefinition, 'find', function() {return testModels.filterProperty('type', 'PORT');});
-      sinon.stub(App.MetricsAlertDefinition, 'find', function() {return testModels.filterProperty('type', 'METRICS');});
-      sinon.stub(App.WebAlertDefinition, 'find', function() {return testModels.filterProperty('type', 'WEB');});
-      sinon.stub(App.AggregateAlertDefinition, 'find', function() {return testModels.filterProperty('type', 'AGGREGATE');});
-      sinon.stub(App.ScriptAlertDefinition, 'find', function() {return testModels.filterProperty('type', 'SCRIPT');});
+      sinon.stub(App.AlertDefinition, 'find', function() {return testModels;});
 
     });
 
     afterEach(function() {
 
-      App.PortAlertDefinition.find.restore();
-      App.MetricsAlertDefinition.find.restore();
-      App.WebAlertDefinition.find.restore();
-      App.AggregateAlertDefinition.find.restore();
-      App.ScriptAlertDefinition.find.restore();
+      App.AlertDefinition.find.restore();
 
     });
 
     it('should map summary info for each alert', function() {
 
       App.alertDefinitionSummaryMapper.map(dataToMap);
-      expect(App.PortAlertDefinition.find().findProperty('id', 1).get('lastTriggered')).to.equal(2);
-      expect(App.PortAlertDefinition.find().findProperty('id', 1).get('summary')).to.eql({OK: {count: 1, maintenanceCount: 0, latestText : "Connection failed: [Errno 111] Connection refused to c6407.ambari.apache.org:60000"}, WARNING: {count: 1, maintenanceCount: 0, latestText : "Connection failed: [Errno 111] Connection refused to c6407.ambari.apache.org:60000"}, CRITICAL: {count: 0, maintenanceCount: 1}, UNKNOWN: {count: 0, maintenanceCount: 0}});
+      expect(App.AlertDefinition.find().findProperty('id', 1).get('lastTriggered')).to.equal(2);
+      expect(App.AlertDefinition.find().findProperty('id', 1).get('summary')).to.eql({OK: {count: 1, maintenanceCount: 0, latestText : "Connection failed: [Errno 111] Connection refused to c6407.ambari.apache.org:60000"}, WARNING: {count: 1, maintenanceCount: 0, latestText : "Connection failed: [Errno 111] Connection refused to c6407.ambari.apache.org:60000"}, CRITICAL: {count: 0, maintenanceCount: 1}, UNKNOWN: {count: 0, maintenanceCount: 0}});
 
-      expect(App.MetricsAlertDefinition.find().findProperty('id', 2).get('lastTriggered')).to.equal(3);
-      expect(App.MetricsAlertDefinition.find().findProperty('id', 2).get('summary')).to.eql({OK: {count: 1, maintenanceCount: 0, latestText : "HTTP 200 response in 0.000 seconds"}, WARNING: {count: 5, maintenanceCount: 0, latestText : "Connection failed: [Errno 111] Connection refused to c6407.ambari.apache.org:60000"}, CRITICAL: {count: 1, maintenanceCount: 0}, UNKNOWN: {count: 1, maintenanceCount: 0}});
+      expect(App.AlertDefinition.find().findProperty('id', 2).get('lastTriggered')).to.equal(3);
+      expect(App.AlertDefinition.find().findProperty('id', 2).get('summary')).to.eql({OK: {count: 1, maintenanceCount: 0, latestText : "HTTP 200 response in 0.000 seconds"}, WARNING: {count: 5, maintenanceCount: 0, latestText : "Connection failed: [Errno 111] Connection refused to c6407.ambari.apache.org:60000"}, CRITICAL: {count: 1, maintenanceCount: 0}, UNKNOWN: {count: 1, maintenanceCount: 0}});
 
-      expect(App.WebAlertDefinition.find().findProperty('id', 3).get('lastTriggered')).to.equal(4);
-      expect(App.WebAlertDefinition.find().findProperty('id', 3).get('summary')).to.eql({OK: {count: 1, maintenanceCount: 0, latestText : "HTTP 200 response in 0.000 seconds"}, WARNING: {count: 2, maintenanceCount: 2}, CRITICAL: {count: 3, maintenanceCount: 0, latestText : "Connection failed: [Errno 111] Connection refused to c6407.ambari.apache.org:60000"}, UNKNOWN: {count: 4, maintenanceCount: 0}});
+      expect(App.AlertDefinition.find().findProperty('id', 3).get('lastTriggered')).to.equal(4);
+      expect(App.AlertDefinition.find().findProperty('id', 3).get('summary')).to.eql({OK: {count: 1, maintenanceCount: 0, latestText : "HTTP 200 response in 0.000 seconds"}, WARNING: {count: 2, maintenanceCount: 2}, CRITICAL: {count: 3, maintenanceCount: 0, latestText : "Connection failed: [Errno 111] Connection refused to c6407.ambari.apache.org:60000"}, UNKNOWN: {count: 4, maintenanceCount: 0}});
 
-      expect(App.AggregateAlertDefinition.find().findProperty('id', 4).get('lastTriggered')).to.equal(2);
-      expect(App.AggregateAlertDefinition.find().findProperty('id', 4).get('summary')).to.eql({OK: {count: 4, maintenanceCount: 0, latestText : "HTTP 200 response in 0.000 seconds"}, WARNING: {count: 3, maintenanceCount: 0}, CRITICAL: {count: 2, maintenanceCount: 0}, UNKNOWN: {count: 1, maintenanceCount: 0, latestText : "Connection failed: [Errno 111] Connection refused to c6407.ambari.apache.org:60000"}});
+      expect(App.AlertDefinition.find().findProperty('id', 4).get('lastTriggered')).to.equal(2);
+      expect(App.AlertDefinition.find().findProperty('id', 4).get('summary')).to.eql({OK: {count: 4, maintenanceCount: 0, latestText : "HTTP 200 response in 0.000 seconds"}, WARNING: {count: 3, maintenanceCount: 0}, CRITICAL: {count: 2, maintenanceCount: 0}, UNKNOWN: {count: 1, maintenanceCount: 0, latestText : "Connection failed: [Errno 111] Connection refused to c6407.ambari.apache.org:60000"}});
 
-      expect(App.ScriptAlertDefinition.find().findProperty('id', 5).get('lastTriggered')).to.equal(4);
-      expect(App.ScriptAlertDefinition.find().findProperty('id', 5).get('summary')).to.eql({OK: {count: 1, maintenanceCount: 0, latestText : "Connection failed: [Errno 111] Connection refused to c6407.ambari.apache.org:60000"}, WARNING: {count: 1, maintenanceCount: 0}, CRITICAL: {count: 1, maintenanceCount: 0}, UNKNOWN: {count: 1, maintenanceCount: 0}});
+      expect(App.AlertDefinition.find().findProperty('id', 5).get('lastTriggered')).to.equal(4);
+      expect(App.AlertDefinition.find().findProperty('id', 5).get('summary')).to.eql({OK: {count: 1, maintenanceCount: 0, latestText : "Connection failed: [Errno 111] Connection refused to c6407.ambari.apache.org:60000"}, WARNING: {count: 1, maintenanceCount: 0}, CRITICAL: {count: 1, maintenanceCount: 0}, UNKNOWN: {count: 1, maintenanceCount: 0}});
 
     });
 
     it('should clear summary for disabled definitions', function () {
 
       App.alertDefinitionSummaryMapper.map(dataToMap);
-      expect(App.ScriptAlertDefinition.find().findProperty('id', 6).get('summary')).to.eql({});
+      expect(App.AlertDefinition.find().findProperty('id', 6).get('summary')).to.eql({});
 
     });
 

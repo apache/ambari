@@ -26,12 +26,6 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
   metricsSourceModel: App.AlertMetricsSourceDefinition,
   metricsUriModel: App.AlertMetricsUriDefinition,
 
-  portModel: App.PortAlertDefinition,
-  metricsModel: App.MetricsAlertDefinition,
-  webModel: App.WebAlertDefinition,
-  aggregateModel: App.AggregateAlertDefinition,
-  scriptModel: App.ScriptAlertDefinition,
-
   config: {
     id: 'AlertDefinition.id',
     name: 'AlertDefinition.name',
@@ -53,7 +47,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
 
   portConfig: {
     default_port: 'AlertDefinition.source.default_port',
-    uri: 'AlertDefinition.source.uri'
+    port_uri: 'AlertDefinition.source.uri'
   },
 
   aggregateConfig: {
@@ -76,17 +70,13 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
     if (json && json.items) {
 
       var self = this,
-          portAlertDefinitions = [],
-          metricsAlertDefinitions = [],
-          webAlertDefinitions = [],
-          aggregateAlertDefinitions = [],
-          scriptAlertDefinitions = [],
+          alertDefinitions = [],
           alertReportDefinitions = [],
           alertMetricsSourceDefinitions = [],
           alertMetricsUriDefinitions = [],
           alertGroupsMap = App.cache['previousAlertGroupsMap'],
-          alertDefinitions = App.AlertDefinition.getAllDefinitions(),
-          alertDefinitionsToDelete = alertDefinitions.mapProperty('id'),
+          existingAlertDefinitions = App.AlertDefinition.find(),
+          alertDefinitionsToDelete = existingAlertDefinitions.mapProperty('id'),
           rawSourceData = {};
 
       json.items.forEach(function (item) {
@@ -123,7 +113,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
           alertDefinition.groups = alertGroupsMap[alertDefinition.id];
         }
 
-        var oldAlertDefinition = alertDefinitions.findProperty('id', alertDefinition.id);
+        var oldAlertDefinition = existingAlertDefinitions.findProperty('id', alertDefinition.id);
         if (oldAlertDefinition) {
           // new values will be parsed in the another mapper, so for now just use old values
           alertDefinition.summary = oldAlertDefinition.get('summary');
@@ -135,7 +125,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
         // map properties dependent on Alert Definition type
         switch (item.AlertDefinition.source.type) {
           case 'PORT':
-            portAlertDefinitions.push($.extend(alertDefinition, this.parseIt(item, this.get('portConfig'))));
+            alertDefinitions.push($.extend(alertDefinition, this.parseIt(item, this.get('portConfig'))));
             break;
           case 'METRIC':
             // map App.AlertMetricsSourceDefinition's
@@ -162,20 +152,20 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
             alertDefinition.uri_id = item.AlertDefinition.id + 'uri';
             item.AlertDefinition.source.uri.id = alertDefinition.uri_id;
             alertMetricsUriDefinitions.push(this.parseIt(item, this.get('uriConfig')));
-            metricsAlertDefinitions.push(alertDefinition);
+            alertDefinitions.push(alertDefinition);
             break;
           case 'WEB':
             // map App.AlertMetricsUriDefinition
             alertDefinition.uri_id = item.AlertDefinition.id + 'uri';
             item.AlertDefinition.source.uri.id = alertDefinition.uri_id;
             alertMetricsUriDefinitions.push(this.parseIt(item, this.get('uriConfig')));
-            webAlertDefinitions.push(alertDefinition);
+            alertDefinitions.push(alertDefinition);
             break;
           case 'AGGREGATE':
-            aggregateAlertDefinitions.push($.extend(alertDefinition, this.parseIt(item, this.get('aggregateConfig'))));
+            alertDefinitions.push($.extend(alertDefinition, this.parseIt(item, this.get('aggregateConfig'))));
             break;
           case 'SCRIPT':
-            scriptAlertDefinitions.push($.extend(alertDefinition, this.parseIt(item, this.get('scriptConfig'))));
+            alertDefinitions.push($.extend(alertDefinition, this.parseIt(item, this.get('scriptConfig'))));
             break;
           default:
             console.error('Incorrect Alert Definition type:', item.AlertDefinition);
@@ -183,7 +173,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
       }, this);
 
       alertDefinitionsToDelete.forEach(function(definitionId) {
-        self.deleteRecord(alertDefinitions.findProperty('id', definitionId));
+        self.deleteRecord(existingAlertDefinitions.findProperty('id', definitionId));
       });
 
       // load all mapped data to model
@@ -191,11 +181,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
       App.store.loadMany(this.get('metricsSourceModel'), alertMetricsSourceDefinitions);
       this.setMetricsSourcePropertyLists(this.get('metricsSourceModel'), alertMetricsSourceDefinitions);
       App.store.loadMany(this.get('metricsUriModel'), alertMetricsUriDefinitions);
-      App.store.loadMany(this.get('portModel'), portAlertDefinitions);
-      App.store.loadMany(this.get('metricsModel'), metricsAlertDefinitions);
-      App.store.loadMany(this.get('webModel'), webAlertDefinitions);
-      App.store.loadMany(this.get('aggregateModel'), aggregateAlertDefinitions);
-      App.store.loadMany(this.get('scriptModel'), scriptAlertDefinitions);
+      App.store.loadMany(this.get('model'), alertDefinitions);
       this.setAlertDefinitionsRawSourceData(rawSourceData);
       if (App.router.get('mainAlertDefinitionsController')) {
         App.router.set('mainAlertDefinitionsController.mapperTimestamp', (new Date()).getTime());
@@ -220,7 +206,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
    * @param rawSourceData
    */
   setAlertDefinitionsRawSourceData: function (rawSourceData) {
-    var allDefinitions = App.AlertDefinition.getAllDefinitions();
+    var allDefinitions = App.AlertDefinition.find();
     for (var alertDefinitionId in rawSourceData) {
       if (rawSourceData.hasOwnProperty(alertDefinitionId)) {
         allDefinitions.findProperty('id', +alertDefinitionId).set('rawSourceData', rawSourceData[alertDefinitionId]);

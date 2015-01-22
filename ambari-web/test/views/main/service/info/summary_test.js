@@ -107,7 +107,7 @@ describe('App.MainServiceInfoSummaryView', function() {
   describe('#hasAlertDefinitions', function () {
 
     beforeEach(function () {
-      sinon.stub(App.AlertDefinition, 'getAllDefinitions', function () {
+      sinon.stub(App.AlertDefinition, 'find', function () {
         return [
           {
             serviceName: 'HDFS'
@@ -120,7 +120,7 @@ describe('App.MainServiceInfoSummaryView', function() {
     });
 
     afterEach(function () {
-      App.AlertDefinition.getAllDefinitions.restore();
+      App.AlertDefinition.find.restore();
     });
 
     it('should return true if at least one alert definition for this service exists', function () {

@@ -35,6 +35,19 @@ App.AlertDefinition = DS.Model.extend({
   reporting: DS.hasMany('App.AlertReportDefinition'),
   lastTriggered: DS.attr('number'),
 
+  //relates only to SCRIPT-type alert definition
+  location: DS.attr('string'),
+  //relates only to AGGREGATE-type alert definition
+  alertName: DS.attr('string'),
+  //relates only to WEB and METRIC types of alert definition
+  uri: DS.belongsTo('App.AlertMetricsUriDefinition'),
+  //relates only METRIC-type alert definition
+  jmx: DS.belongsTo('App.AlertMetricsSourceDefinition'),
+  ganglia: DS.belongsTo('App.AlertMetricsSourceDefinition'),
+  //relates only PORT-type alert definition
+  defaultPort: DS.attr('number'),
+  portUri: DS.attr('string'),
+
   /**
    * Raw data from AlertDefinition/source
    * used to format request content for updating alert definition
@@ -280,21 +293,6 @@ App.AlertDefinition = DS.Model.extend({
 App.AlertDefinition.reopenClass({
 
   /**
-   * Get all available AlertDefinitions
-   * @returns {Array|string}
-   * @method getAllDefinitions
-   */
-  getAllDefinitions: function () {
-    return Array.prototype.concat.call(
-        Array.prototype, App.PortAlertDefinition.find().toArray(),
-        App.MetricsAlertDefinition.find().toArray(),
-        App.WebAlertDefinition.find().toArray(),
-        App.AggregateAlertDefinition.find().toArray(),
-        App.ScriptAlertDefinition.find().toArray()
-    )
-  },
-
-  /**
    * Return function to sort list of AlertDefinitions by their status
    * It sorts according to <code>severityOrder</code>
    * @param {boolean} order true - DESC, false - ASC
@@ -339,35 +337,7 @@ App.AlertMetricsUriDefinition = DS.Model.extend({
   httpsPropertyValue: DS.attr('string')
 });
 
-App.PortAlertDefinition = App.AlertDefinition.extend({
-  defaultPort: DS.attr('number'),
-  uri: DS.attr('string')
-});
-
-App.MetricsAlertDefinition = App.AlertDefinition.extend({
-  jmx: DS.belongsTo('App.AlertMetricsSourceDefinition'),
-  ganglia: DS.belongsTo('App.AlertMetricsSourceDefinition'),
-  uri: DS.belongsTo('App.AlertMetricsUriDefinition')
-});
-
-App.WebAlertDefinition = App.AlertDefinition.extend({
-  uri: DS.belongsTo('App.AlertMetricsUriDefinition')
-});
-
-App.AggregateAlertDefinition = App.AlertDefinition.extend({
-  alertName: DS.attr('string')
-});
-
-App.ScriptAlertDefinition = App.AlertDefinition.extend({
-  location: DS.attr('string')
-});
-
 App.AlertDefinition.FIXTURES = [];
 App.AlertReportDefinition.FIXTURES = [];
 App.AlertMetricsSourceDefinition.FIXTURES = [];
-App.PortAlertDefinition.FIXTURES = [];
 App.AlertMetricsUriDefinition.FIXTURES = [];
-App.MetricsAlertDefinition.FIXTURES = [];
-App.WebAlertDefinition.FIXTURES = [];
-App.AggregateAlertDefinition.FIXTURES = [];
-App.ScriptAlertDefinition.FIXTURES = [];

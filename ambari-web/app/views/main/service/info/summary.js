@@ -257,7 +257,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
    * @type {Boolean}
    */
   hasAlertDefinitions: function () {
-    return App.AlertDefinition.getAllDefinitions().someProperty('serviceName', this.get('controller.content.serviceName'));
+    return App.AlertDefinition.find().someProperty('serviceName', this.get('controller.content.serviceName'));
   }.property('controller.content.serviceName'),
 
   restartRequiredHostsAndComponents:function () {

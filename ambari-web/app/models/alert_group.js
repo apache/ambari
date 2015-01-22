@@ -44,40 +44,7 @@ App.AlertGroup = DS.Model.extend({
   /**
    * @type {App.AlertDefinition[]}
    */
-  definitions: function () {
-    return Array.prototype.concat.call(
-      Array.prototype, this.get('portAlertDefinitions').toArray(),
-      this.get('metricsAlertDefinitions').toArray(),
-      this.get('webAlertDefinitions').toArray(),
-      this.get('aggregateAlertDefinitions').toArray(),
-      this.get('scriptAlertDefinitions').toArray()
-    );
-  }.property('portAlertDefinitions.length', 'metricsAlertDefinitions.length', 'webAlertDefinitions.length', 'aggregateAlertDefinitions.length', 'scriptAlertDefinitions.length'),
-
-  /**
-   * @type {App.PortAlertDefinition[]}
-   */
-  portAlertDefinitions: DS.hasMany('App.PortAlertDefinition'),
-
-  /**
-   * @type {App.MetricsAlertDefinition[]}
-   */
-  metricsAlertDefinitions: DS.hasMany('App.MetricsAlertDefinition'),
-
-  /**
-   * @type {App.WebAlertDefinition[]}
-   */
-  webAlertDefinitions: DS.hasMany('App.WebAlertDefinition'),
-
-  /**
-   * @type {App.AggregateAlertDefinition[]}
-   */
-  aggregateAlertDefinitions: DS.hasMany('App.AggregateAlertDefinition'),
-
-  /**
-   * @type {App.ScriptAlertDefinition[]}
-   */
-  scriptAlertDefinitions: DS.hasMany('App.ScriptAlertDefinition'),
+  definitions: App.AlertDefinition.find(),
 
   /**
    * @type {App.AlertNotification[]}

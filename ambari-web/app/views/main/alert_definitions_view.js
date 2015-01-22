@@ -26,7 +26,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
   templateName: require('templates/main/alerts'),
 
   content: function() {
-    return this.get('controller.content');
+    return this.get('controller.content') ? this.get('controller.content').toArray().sort(App.AlertDefinition.getSortDefinitionsByStatus(true)) : [];
   }.property('controller.content.@each'),
 
   willInsertElement: function () {
@@ -503,7 +503,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
     Em.run.next(this, function () {
       App.tooltip($(".enable-disable-button, .timeago"));
     });
-  }.observes('pageContent.@each'),
+  }.observes('pageContent.@each.enabled', 'pageContent.@each.lastTriggeredFormatted'),
 
   updateFilter: function (iColumn, value, type) {
     if (!this.get('isInitialRendering')) {
