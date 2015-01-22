@@ -22,6 +22,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +43,9 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.predicate.QueryLexer;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.message.BasicNameValuePair;
 
 /**
  * Service for stacks management.
@@ -426,23 +430,38 @@ public class StacksService extends BaseService {
       return m_delegate.getPathSegments(b);
     }
 
+    /**
+     * Converts the new corrected property names to the old names for the backend.
+     * Because both the /stacks and /stacks2 api use the same underlying classes, we
+     * need to convert the new corrected property names to the old names for the backend.
+     * This should be removed when /stacks2 is removed and we can change the property names
+     * in the resource definitions to the new form.
+     */
+    private String normalizeComponentNames(String value) {
+      if (value == null) {
+        return null;
+      }
+      value = value.replaceAll("services/", "stackServices/");
+      value = value.replaceAll("components/", "serviceComponents/");
+      value = value.replaceAll("operating_systems/", "operatingSystems/");
+      return value;
+    }
+
     @Override
     public URI getRequestUri() {
-      String uri;
-      try {
-        uri = URLDecoder.decode(m_delegate.getRequestUri().toASCIIString(), "UTF-8");
-      } catch (UnsupportedEncodingException e) {
-        throw new RuntimeException("Unable to decode URI: " + e, e);
+      String uriPath = m_delegate.getRequestUri().getPath();
+      UriBuilder uriBuilder = UriBuilder.fromUri(m_delegate.getRequestUri());
+      List<NameValuePair> parametersList = URLEncodedUtils.parse(m_delegate.getRequestUri(), "UTF-8");
+      List<NameValuePair> newQuery = new ArrayList<NameValuePair>();
+      for (NameValuePair nameValuePair : parametersList) {
+        newQuery.add(new BasicNameValuePair(normalizeComponentNames(nameValuePair.getName()),
+            normalizeComponentNames(nameValuePair.getValue())));
       }
-      uri = uri.replaceAll("services/", "stackServices/");
-      uri = uri.replaceAll("components/", "serviceComponents/");
-      uri = uri.replaceAll("operating_systems/", "operatingSystems/");
 
-      try {
-        return new URI(uri);
-      } catch (URISyntaxException e) {
-        throw new RuntimeException("Unable to create modified stacks URI: " + e, e);
-      }
+      uriBuilder.replacePath(normalizeComponentNames(uriPath));
+      uriBuilder.replaceQuery(URLEncodedUtils.format(newQuery, "UTF-8"));
+
+      return uriBuilder.build();
     }
 
     @Override

@@ -61,7 +61,18 @@ public class ResultPostProcessorImpl implements ResultPostProcessor {
 
   @Override
   public void process(Result result) {
-    processNode(result.getResultTree(), m_request.getURI());
+    // Decode query string only
+    // Path should not be decoded here (username can contain '?')
+    String href = m_request.getURI();
+    int pos = href.indexOf('?');
+    if (pos != -1) {
+      try {
+        href = href.substring(0, pos + 1) + URLDecoder.decode(href.substring(pos + 1), "UTF-8");
+      } catch (UnsupportedEncodingException e) {
+        throw new RuntimeException("Unable to decode URI: " + e, e);
+      }
+    }
+    processNode(result.getResultTree(), href);
   }
 
   /**

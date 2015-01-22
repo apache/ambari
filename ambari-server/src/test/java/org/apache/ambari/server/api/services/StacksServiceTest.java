@@ -21,16 +21,21 @@ package org.apache.ambari.server.api.services;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+import org.easymock.EasyMock;
+import org.junit.Test;
+
 
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-
 import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+
 
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.notNull;
@@ -214,5 +219,17 @@ public class StacksServiceTest extends BaseServiceTest {
   protected void assertCreateRequest(ServiceTestInvocation testMethod) {
     expect(requestFactory.createRequest(same(httpHeaders), same(requestBody), (UriInfo) notNull(),
         same(testMethod.getRequestType()), same(resourceInstance))).andReturn(request);
+  }
+
+  @Test
+  public void testStackUriInfo() throws URISyntaxException {
+
+    UriInfo delegate = new LocalUriInfo("http://host/services/?fields=*");
+    StacksService.StackUriInfo sui = new StacksService.StackUriInfo(delegate);
+    assertEquals(new URI("http://host/stackServices/?fields=*"), sui.getRequestUri());
+
+    delegate = new LocalUriInfo("http://host/?condition1=true&condition2=true&services/service.matches(A%7CB)");
+    sui = new StacksService.StackUriInfo(delegate);
+    assertEquals(new URI("http://host/?condition1=true&condition2=true&stackServices%2Fservice.matches%28A%7CB%29"), sui.getRequestUri());
   }
 }
