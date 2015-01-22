@@ -614,7 +614,9 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-For MockJax 1.6.0 (contrib/views/slider/src/main/resources/ui/app/assets/javascripts/jquery.mockjax.js):
+For MockJax 1.6.0 (contrib/views/slider/src/main/resources/ui/app/assets/javascripts/jquery.mockjax.js,
+/contrib/views/files/src/main/resources/ui/app/assets/javascripts/jquery.mockjax.js,
+/contrib/views/pig/src/main/resources/ui/pig-web/app/assets/static/javascripts/jquery.mockjax.js):
 
 MockJax - jQuery Plugin to Mock Ajax requests
 
