@@ -56,7 +56,10 @@ BOOTSTRAP_DIR_PROPERTY = "bootstrap.dir"
 
 AMBARI_CONF_VAR = "AMBARI_CONF_DIR"
 AMBARI_PROPERTIES_FILE = "ambari.properties"
-AMBARI_PROPERTIES_BACKUP_FILE = "ambari.properties.backup"
+if OSCheck.is_windows_family():
+  AMBARI_PROPERTIES_BACKUP_FILE = "ambari.properties.backup"
+else:
+  AMBARI_PROPERTIES_BACKUP_FILE = "ambari.properties.rpmsave"
 
 GET_FQDN_SERVICE_URL = "server.fqdn.service.url"
 
