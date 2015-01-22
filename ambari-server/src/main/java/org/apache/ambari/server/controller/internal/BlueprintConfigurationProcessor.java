@@ -1162,7 +1162,7 @@ public class BlueprintConfigurationProcessor {
     multiCoreSiteMap.put("hadoop.proxyuser.hive.hosts", new MultipleHostTopologyUpdater("HIVE_SERVER"));
     multiCoreSiteMap.put("hadoop.proxyuser.HTTP.hosts", new MultipleHostTopologyUpdater("WEBHCAT_SERVER"));
     multiCoreSiteMap.put("hadoop.proxyuser.hcat.hosts", new MultipleHostTopologyUpdater("WEBHCAT_SERVER"));
-    multiWebhcatSiteMap.put("templeton.hive.properties", new MultipleHostTopologyUpdater("HIVE_SERVER"));
+    multiWebhcatSiteMap.put("templeton.hive.properties", new SingleHostTopologyUpdater("HIVE_METASTORE"));
     multiWebhcatSiteMap.put("templeton.kerberos.principal", new MultipleHostTopologyUpdater("WEBHCAT_SERVER"));
     hiveEnvMap.put("hive_hostname", new SingleHostTopologyUpdater("HIVE_SERVER"));
     multiHiveSiteMap.put("hive.zookeeper.quorum", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));

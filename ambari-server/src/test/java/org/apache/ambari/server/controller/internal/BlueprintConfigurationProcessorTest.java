@@ -1246,6 +1246,147 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
+  public void testHiveConfigClusterUpdateCustomValue() throws Exception {
+    final String expectedHostGroupName = "host_group_1";
+
+    final String expectedPropertyValue =
+      "hive.metastore.local=false,hive.metastore.uris=thrift://headnode0.ivantestcluster2-ssh.d1.internal.cloudapp.net:9083,hive.user.install.directory=/user";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+
+    expect(mockHostGroupOne.getComponents()).andReturn(Collections.singleton("HIVE_METASTORE")).atLeastOnce();
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Collections.singleton("test-host-one")).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> webHCatSiteProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("webhcat-site", webHCatSiteProperties);
+
+    // setup properties that include host information
+    webHCatSiteProperties.put("templeton.hive.properties",
+      expectedPropertyValue);
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    Map<String, HostGroup> mapOfHostGroups =
+      new HashMap<String, HostGroup>();
+    mapOfHostGroups.put(expectedHostGroupName, mockHostGroupOne);
+
+    // call top-level cluster config update method
+    configProcessor.doUpdateForClusterCreate(mapOfHostGroups, null);
+
+    assertEquals("Unexpected config update for templeton.hive.properties",
+      expectedPropertyValue,
+      webHCatSiteProperties.get("templeton.hive.properties"));
+
+
+    mockSupport.verifyAll();
+
+  }
+
+  @Test
+  public void testHiveConfigClusterUpdateDefaultValue() throws Exception {
+    final String expectedHostGroupName = "host_group_1";
+    final String expectedHostName = "c6401.ambari.apache.org";
+
+    final String expectedPropertyValue =
+      "hive.metastore.local=false,hive.metastore.uris=thrift://localhost:9933,hive.metastore.sasl.enabled=false";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+    expect(mockHostGroupOne.getComponents()).andReturn(Collections.singleton("HIVE_METASTORE")).atLeastOnce();
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Collections.singleton(expectedHostName)).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> webHCatSiteProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("webhcat-site", webHCatSiteProperties);
+
+    // setup properties that include host information
+    webHCatSiteProperties.put("templeton.hive.properties",
+      expectedPropertyValue);
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    Map<String, HostGroup> mapOfHostGroups =
+      new HashMap<String, HostGroup>();
+    mapOfHostGroups.put(expectedHostGroupName, mockHostGroupOne);
+
+    // call top-level cluster config update method
+    configProcessor.doUpdateForClusterCreate(mapOfHostGroups, null);
+
+    // verify that the host name for the metastore.uris property has been updated
+    assertEquals("Unexpected config update for templeton.hive.properties",
+      "hive.metastore.local=false,hive.metastore.uris=thrift://" + expectedHostName + ":9933,hive.metastore.sasl.enabled=false",
+      webHCatSiteProperties.get("templeton.hive.properties"));
+
+    mockSupport.verifyAll();
+
+  }
+
+  @Test
+  public void testHiveConfigClusterUpdateExportedHostGroupValue() throws Exception {
+    final String expectedHostGroupName = "host_group_1";
+    final String expectedHostName = "c6401.ambari.apache.org";
+
+    // simulate the case of this property coming from an exported Blueprint
+    final String expectedPropertyValue =
+      "hive.metastore.local=false,hive.metastore.uris=thrift://%HOSTGROUP::host_group_1%:9083,hive.metastore.sasl.enabled=false,hive.metastore.execute.setugi=true";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Collections.singleton(expectedHostName)).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> webHCatSiteProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("webhcat-site", webHCatSiteProperties);
+
+    // setup properties that include host information
+    webHCatSiteProperties.put("templeton.hive.properties",
+      expectedPropertyValue);
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    Map<String, HostGroup> mapOfHostGroups =
+      new HashMap<String, HostGroup>();
+    mapOfHostGroups.put(expectedHostGroupName, mockHostGroupOne);
+
+    // call top-level cluster config update method
+    configProcessor.doUpdateForClusterCreate(mapOfHostGroups, null);
+
+    // verify that the host name for the metastore.uris property has been updated
+    assertEquals("Unexpected config update for templeton.hive.properties",
+      "hive.metastore.local=false,hive.metastore.uris=thrift://" + expectedHostName + ":9083,hive.metastore.sasl.enabled=false,hive.metastore.execute.setugi=true",
+      webHCatSiteProperties.get("templeton.hive.properties"));
+
+    mockSupport.verifyAll();
+
+  }
+
+  @Test
   public void testStormAndKafkaConfigClusterUpdateWithoutGangliaServer() throws Exception {
     final String expectedHostGroupName = "host_group_1";
 
