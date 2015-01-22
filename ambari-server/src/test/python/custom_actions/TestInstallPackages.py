@@ -51,6 +51,7 @@ class TestInstallPackages(RMFTestCase):
     self.assertEquals(put_structured_out.call_args[0][0],
                       {'package_installation_result': 'SUCCESS',
                        'installed_repository_version': u'2.2.0.1-885',
+                       'stack_id': 'HDP-2.2',
                        'ambari_repositories': []})
     self.assertResourceCalled('Repository', 'HDP-UTILS-2.2.0.1-885',
                               base_url=u'http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0',
@@ -97,6 +98,7 @@ class TestInstallPackages(RMFTestCase):
     self.assertEquals(put_structured_out.call_args[0][0],
                       {'package_installation_result': 'SUCCESS',
                        'installed_repository_version': u'2.2.0.1-885',
+                       'stack_id': 'HDP-2.2',
                        'ambari_repositories': ["HDP-UTILS-2.2.0.1-885"]})
     self.assertResourceCalled('Repository', 'HDP-UTILS-2.2.0.1-885',
                               base_url=u'http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0',
@@ -160,6 +162,7 @@ class TestInstallPackages(RMFTestCase):
     self.assertEquals(put_structured_out.call_args[0][0],
                       {'package_installation_result': 'FAIL',
                        'installed_repository_version': u'2.2.0.1-885',
+                       'stack_id': 'HDP-2.2',
                        'ambari_repositories': []})
     self.assertResourceCalled('Repository', 'HDP-UTILS-2.2.0.1-885',
                               base_url=u'http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0',
@@ -201,6 +204,7 @@ class TestInstallPackages(RMFTestCase):
     self.assertEquals(put_structured_out.call_args[0][0],
                       {'package_installation_result': 'SUCCESS',
                        'installed_repository_version': u'2.2.0.1-885',
+                       'stack_id': 'HDP-2.2',
                        'ambari_repositories': []})
     self.assertResourceCalled('Repository', 'HDP-UTILS-2.2.0.1-885',
                               base_url=u'http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0',

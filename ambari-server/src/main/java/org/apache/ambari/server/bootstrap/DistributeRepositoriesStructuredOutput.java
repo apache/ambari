@@ -19,9 +19,9 @@
 
 package org.apache.ambari.server.bootstrap;
 
-import com.google.gson.annotations.SerializedName;
-
 import java.util.List;
+
+import com.google.gson.annotations.SerializedName;
 
 /**
  * This class is used for mapping json of structured output for
@@ -47,7 +47,20 @@ public class DistributeRepositoriesStructuredOutput {
   @SerializedName("package_installation_result")
   private String packageInstallationResult;
 
+  /**
+   * The actual version returned
+   */
+  @SerializedName("actual_version")
+  private String actualVersion;
+
+  /**
+   * The stack id used to look up version
+   */
+  @SerializedName("stack_id")
+  private String stackId;
+
   public String getInstalledRepositoryVersion() {
+
     return installedRepositoryVersion;
   }
 
@@ -57,5 +70,13 @@ public class DistributeRepositoriesStructuredOutput {
 
   public String getPackageInstallationResult() {
     return packageInstallationResult;
+  }
+
+  public String getActualVersion() {
+    return actualVersion;
+  }
+
+  public String getStackId() {
+    return stackId;
   }
 }

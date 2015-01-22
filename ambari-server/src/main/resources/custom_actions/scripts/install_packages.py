@@ -28,6 +28,7 @@ from resource_management import *
 from resource_management.libraries.functions.list_ambari_managed_repos import list_ambari_managed_repos
 from ambari_commons.os_check import OSCheck, OSConst
 from resource_management.libraries.functions.packages_analyzer import allInstalledPackages
+from resource_management.core.shell import call
 
 
 class InstallPackages(Script):
@@ -53,16 +54,20 @@ class InstallPackages(Script):
       repository_version = config['roleParams']['repository_version']
       base_urls = json.loads(config['roleParams']['base_urls'])
       package_list = json.loads(config['roleParams']['package_list'])
+      stack_id = config['roleParams']['stack_id']
     except KeyError:
       # Last try
       repository_version = config['commandParams']['repository_version']
       base_urls = json.loads(config['commandParams']['base_urls'])
       package_list = json.loads(config['commandParams']['package_list'])
+      stack_id = config['commandParams']['stack_id']
 
     # Install/update repositories
     installed_repositories = []
     current_repositories = ['base']  # Some our packages are installed from the base repo
     current_repo_files = set(['base'])
+    old_versions = self.hdp_versions()
+    
     try:
       append_to_file = False
       for url_info in base_urls:
@@ -108,8 +113,16 @@ class InstallPackages(Script):
     structured_output = {
       'ambari_repositories': installed_repositories,
       'installed_repository_version': repository_version,
+      'stack_id': stack_id,
       'package_installation_result': 'SUCCESS' if package_install_result else 'FAIL'
     }
+
+    if package_install_result:
+      new_versions = self.hdp_versions()
+      deltas = set(new_versions) - set(old_versions)
+      if 1 == len(deltas):
+        structured_output['actual_version'] = next(iter(deltas))
+
     self.put_structured_out(structured_output)
 
     # Provide correct exit code
@@ -160,6 +173,17 @@ class InstallPackages(Script):
       return package_name.replace(mask_version, formatted_version)
     else:
       return package_name
+
+  def hdp_versions(self):
+    code, out = call("hdp-select versions")
+    if 0 == code:
+      versions = []
+      for line in out.splitlines():
+        versions.append(line.rstrip('\n'))
+      return versions
+    else:
+      return []
+
 
 
 if __name__ == "__main__":

@@ -29,8 +29,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
-import com.google.gson.Gson;
-import com.google.inject.Provider;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.RequestFactory;
@@ -66,10 +64,12 @@ import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.StageUtils;
 
+import com.google.gson.Gson;
 import com.google.inject.Inject;
-import org.apache.ambari.server.state.StackId;
+import com.google.inject.Provider;
 
 /**
  * Resource provider for cluster stack versions resources.
@@ -263,7 +263,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       throw new NoSuchParentResourceException(e.getMessage(), e);
     }
 
-    String stackId;
+    final String stackId;
     if (propertyMap.containsKey(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID) &&
             propertyMap.containsKey(CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID)) {
       stackName = (String) propertyMap.get(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID);
@@ -347,6 +347,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       final String repoList = gson.toJson(repoInfo);
 
       Map<String, String> params = new HashMap<String, String>() {{
+        put("stack_id", stackId);
         put("repository_version", desiredRepoVersion);
         put("base_urls", repoList);
         put("package_list", packageList);

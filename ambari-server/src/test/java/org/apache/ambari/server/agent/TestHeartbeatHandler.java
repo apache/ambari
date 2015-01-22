@@ -79,6 +79,8 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
@@ -105,6 +107,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.JsonObject;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -2199,8 +2202,8 @@ public class TestHeartbeatHandler {
     StackId stackId = new StackId(DummyStackId);
     cluster.setDesiredStackVersion(stackId);
     cluster.setCurrentStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+    helper.getOrCreateRepositoryVersion(stackId.getStackId(), stackId.getStackVersion());
+    cluster.createClusterVersion(stackId.getStackId(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
     return cluster;
   }
 
@@ -2404,5 +2407,67 @@ public class TestHeartbeatHandler {
 
     // should NOT throw AmbariException from alerts.
     handler.handleHeartBeat(hb);
+  }
+
+  @Test
+  public void testInstallPackagesWithVersion() throws Exception {
+
+    final HostRoleCommand command = new HostRoleCommand(DummyHostname1,
+        Role.DATANODE, null, null);
+
+    ActionManager am = getMockActionManager();
+    expect(am.getTasks(anyObject(List.class))).andReturn(
+        Collections.singletonList(command)).anyTimes();
+    replay(am);
+
+    Cluster cluster = getDummyCluster();
+
+    @SuppressWarnings("serial")
+    Set<String> hostNames = new HashSet<String>() {{
+      add(DummyHostname1);
+    }};
+    clusters.mapHostsToCluster(hostNames, DummyCluster);
+
+
+    HeartBeatHandler handler = getHeartBeatHandler(am, new ActionQueue());
+    HeartBeat hb = new HeartBeat();
+
+    JsonObject json = new JsonObject();
+    json.addProperty("actual_version", "2.2.1.0-2222");
+    json.addProperty("package_installation_result", "SUCCESS");
+    json.addProperty("installed_repository_version", "0.1");
+    json.addProperty("stack_id", cluster.getDesiredStackVersion().getStackId());
+
+
+    CommandReport cmdReport = new CommandReport();
+    cmdReport.setActionId(StageUtils.getActionId(requestId, stageId));
+    cmdReport.setTaskId(1);
+    cmdReport.setCustomCommand("install_packages");
+    cmdReport.setStructuredOut(json.toString());
+    cmdReport.setRoleCommand(RoleCommand.ACTIONEXECUTE.name());
+    cmdReport.setStatus(HostRoleStatus.COMPLETED.name());
+    cmdReport.setRole("install_packages");
+    cmdReport.setClusterName(DummyCluster);
+
+    hb.setReports(Collections.singletonList(cmdReport));
+    hb.setTimestamp(0L);
+    hb.setResponseId(0);
+    hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    hb.setHostname(DummyHostname1);
+    hb.setComponentStatus(new ArrayList<ComponentStatus>());
+
+
+    RepositoryVersionDAO dao = injector.getInstance(RepositoryVersionDAO.class);
+    RepositoryVersionEntity entity = dao.findByStackAndVersion("HDP-0.1", "0.1");
+    Assert.assertNotNull(entity);
+
+    handler.handleHeartBeat(hb);
+
+    entity = dao.findByStackAndVersion("HDP-0.1", "0.1");
+    Assert.assertNull(entity);
+
+    entity = dao.findByStackAndVersion("HDP-0.1", "2.2.1.0-2222");
+    Assert.assertNotNull(entity);
+
   }
 }

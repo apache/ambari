@@ -17,46 +17,30 @@
  */
 package org.apache.ambari.server.events.listeners.upgrade;
 
-import com.google.common.eventbus.AllowConcurrentEvents;
+import java.util.List;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.EagerSingleton;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.bootstrap.DistributeRepositoriesStructuredOutput;
+import org.apache.ambari.server.events.ActionFinalReportReceivedEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.orm.dao.HostVersionDAO;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.utils.StageUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.eventbus.Subscribe;
 import com.google.gson.JsonSyntaxException;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.EagerSingleton;
-import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.bootstrap.DistributeRepositoriesStructuredOutput;
-import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
-import org.apache.ambari.server.events.ActionFinalReportReceivedEvent;
-import org.apache.ambari.server.events.AlertReceivedEvent;
-import org.apache.ambari.server.events.AlertStateChangeEvent;
-import org.apache.ambari.server.events.publishers.AlertEventPublisher;
-import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
-import org.apache.ambari.server.orm.dao.AlertsDAO;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
-import org.apache.ambari.server.orm.dao.HostVersionDAO;
-import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
-import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
-import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
-import org.apache.ambari.server.state.Alert;
-import org.apache.ambari.server.state.AlertState;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.RepositoryVersionState;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.utils.StageUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * The {@link org.apache.ambari.server.events.listeners.upgrade.DistributeRepositoriesActionListener} class
@@ -80,9 +64,7 @@ public class DistributeRepositoriesActionListener {
   private Provider<Clusters> clusters;
 
   @Inject
-  private Provider<ClusterVersionDAO> clusterVersionDAO;
-
-  private AmbariEventPublisher publisher;
+  private RepositoryVersionDAO repoVersionDAO;
 
 
   /**
@@ -92,7 +74,6 @@ public class DistributeRepositoriesActionListener {
    */
   @Inject
   public DistributeRepositoriesActionListener(AmbariEventPublisher publisher) {
-    this.publisher = publisher;
     publisher.register(this);
   }
 
@@ -115,9 +96,8 @@ public class DistributeRepositoriesActionListener {
       return;
     }
 
-
     String repositoryVersion = null;
-    
+
     if (event.getCommandReport() == null) {
       LOG.error("Command report is null, marking action as INSTALL_FAILED");
     } else {
@@ -126,10 +106,47 @@ public class DistributeRepositoriesActionListener {
         DistributeRepositoriesStructuredOutput structuredOutput = StageUtils.getGson().fromJson(
                 event.getCommandReport().getStructuredOut(),
                 DistributeRepositoriesStructuredOutput.class);
+
+        repositoryVersion = structuredOutput.getInstalledRepositoryVersion();
+
         if (event.getCommandReport().getStatus().equals(HostRoleStatus.COMPLETED.toString())) {
           newHostState = RepositoryVersionState.INSTALLED;
+
+          if (null != structuredOutput.getActualVersion() &&
+              null != structuredOutput.getInstalledRepositoryVersion() &&
+              null != structuredOutput.getStackId() &&
+              !structuredOutput.getActualVersion().equals(structuredOutput.getInstalledRepositoryVersion())) {
+
+            // !!! getInstalledRepositoryVersion() from the agent is the one
+            // entered in the UI.  getActualVersion() is computed.
+
+            RepositoryVersionEntity version = repoVersionDAO.findByStackAndVersion(
+                structuredOutput.getStackId(), structuredOutput.getInstalledRepositoryVersion());
+
+            if (null != version) {
+              LOG.info("Repository version {} was found, but {} is the actual value",
+                  structuredOutput.getInstalledRepositoryVersion(),
+                  structuredOutput.getActualVersion());
+              // !!! the entered version is not correct
+              version.setVersion(structuredOutput.getActualVersion());
+              repoVersionDAO.merge(version);
+              repositoryVersion = structuredOutput.getActualVersion();
+            } else {
+              // !!! extra check that the actual version is correct
+              version = repoVersionDAO.findByStackAndVersion(
+                  structuredOutput.getStackId(), structuredOutput.getActualVersion());
+
+              LOG.debug("Repository version {} was not found, check for {}.  Found={}",
+                  structuredOutput.getInstalledRepositoryVersion(),
+                  structuredOutput.getActualVersion(),
+                  Boolean.valueOf(null != version));
+
+              if (null != version) {
+                repositoryVersion = structuredOutput.getActualVersion();
+              }
+            }
+          }
         }
-        repositoryVersion = structuredOutput.getInstalledRepositoryVersion();
       } catch (JsonSyntaxException e) {
         LOG.error("Can not parse structured output %s", e);
       }
