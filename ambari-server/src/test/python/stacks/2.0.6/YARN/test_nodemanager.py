@@ -438,6 +438,7 @@ class TestNodeManager(RMFTestCase):
                               mode = 0775,
                               cd_access='a'
                               )
+    self.assertResourceCalled('Execute', 'chown -R ambari-qa /hadoop/yarn/local/usercache/ambari-qa')
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
       owner = 'yarn',
       group = 'hadoop',
