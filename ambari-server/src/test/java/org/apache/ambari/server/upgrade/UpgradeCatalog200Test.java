@@ -556,6 +556,7 @@ public class UpgradeCatalog200Test {
       } else if (column.getName().equals("foreign_keys")) {
         assertNull(column.getDefaultValue());
         assertEquals(String.class, column.getType());
+        assertEquals(255, (int) column.getLength());
         assertEquals(false, column.isNullable());
       } else if (column.getName().equals("artifact_data")) {
         assertNull(column.getDefaultValue());

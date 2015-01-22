@@ -452,7 +452,7 @@ GRANT ALL PRIVILEGES ON TABLE ambari.hostgroup_configuration TO :username;
 CREATE TABLE ambari.artifact (
   artifact_name VARCHAR(255) NOT NULL,
   artifact_data TEXT NOT NULL,
-  foreign_keys VARCHAR(4096) NOT NULL,
+  foreign_keys VARCHAR(255) NOT NULL,
   PRIMARY KEY (artifact_name, foreign_keys));
 GRANT ALL PRIVILEGES ON TABLE ambari.artifact TO :username;
 

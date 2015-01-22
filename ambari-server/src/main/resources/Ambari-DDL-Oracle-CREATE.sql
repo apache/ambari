@@ -509,8 +509,8 @@ CREATE TABLE repo_version (
 
 CREATE TABLE artifact (
   artifact_name VARCHAR2(255) NOT NULL,
-  foreign_keys CLOB NOT NULL,
-  artifact_data VARCHAR2(4096) NOT NULL,
+  foreign_keys VARCHAR2(255) NOT NULL,
+  artifact_data CLOB NOT NULL,
   PRIMARY KEY(artifact_name, foreign_keys));
 
 --------altering tables by creating unique constraints----------

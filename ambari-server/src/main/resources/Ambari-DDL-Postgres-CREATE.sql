@@ -508,6 +508,12 @@ CREATE TABLE repo_version (
   PRIMARY KEY(repo_version_id)
 );
 
+CREATE TABLE ambari.artifact (
+  artifact_name VARCHAR(255) NOT NULL,
+  artifact_data TEXT NOT NULL,
+  foreign_keys VARCHAR(255) NOT NULL,
+  PRIMARY KEY (artifact_name, foreign_keys));
+
 --------altering tables by creating unique constraints----------
 ALTER TABLE clusterconfig ADD CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, type_name, version_tag);
 ALTER TABLE clusterconfig ADD CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version);

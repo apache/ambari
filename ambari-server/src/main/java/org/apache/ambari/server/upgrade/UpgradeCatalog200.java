@@ -260,7 +260,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
   private void createArtifactTable() throws SQLException {
     ArrayList<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBColumnInfo("artifact_name", String.class, 255, null, false));
-    columns.add(new DBColumnInfo("foreign_keys", String.class, null, null, false));
+    columns.add(new DBColumnInfo("foreign_keys", String.class, 255, null, false));
     columns.add(new DBColumnInfo("artifact_data", char[].class, null, null, false));
     dbAccessor.createTable(ARTIFACT_TABLE, columns, "artifact_name", "foreign_keys");
   }
