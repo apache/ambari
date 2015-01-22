@@ -23,6 +23,12 @@ from resource_management.libraries.functions.version import format_hdp_stack_ver
 from resource_management.libraries.functions.default import default
 from resource_management import *
 import status_params
+from ambari_commons import OSCheck
+
+if OSCheck.is_windows_family():
+  from params_windows import *
+else:
+  from params_linux import *
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -33,19 +39,6 @@ version = default("/commandParams/version", None)
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
-
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
-  knox_bin = '/usr/hdp/current/knox-server/bin/gateway.sh'
-  ldap_bin = '/usr/hdp/current/knox-server/bin/ldap.sh'
-  knox_client_bin = '/usr/hdp/current/knox-server/bin/knoxcli.sh'
-  knox_data_dir = '/usr/hdp/current/knox-server/data'
-  knox_conf_dir = '/usr/hdp/current/knox-server/conf'
-else:
-  knox_bin = '/usr/bin/gateway'
-  ldap_bin = '/usr/lib/knox/bin/ldap.sh'
-  knox_client_bin = '/usr/lib/knox/bin/knoxcli.sh'
-  knox_data_dir = '/usr/lib/knox/data'
-  knox_conf_dir = '/usr/lib/knox/conf'
 
 namenode_hosts = default("/clusterHostInfo/namenode_host", None)
 if type(namenode_hosts) is list:
@@ -117,17 +110,10 @@ if has_oozie:
 
 
 # server configurations
-knox_conf_dir = '/etc/knox/conf'
-knox_data_dir = '/var/lib/knox/data'
-knox_logs_dir = '/var/log/knox'
 knox_pid_dir = status_params.knox_pid_dir
-knox_user = default("/configurations/knox-env/knox_user", "knox")
-knox_group = default("/configurations/knox-env/knox_group", "knox")
 knox_pid_file = status_params.knox_pid_file
 ldap_pid_file = status_params.ldap_pid_file
 knox_master_secret = config['configurations']['knox-env']['knox_master_secret']
-knox_master_secret_path = '/var/lib/knox/data/security/master'
-knox_cert_store_path = '/var/lib/knox/data/security/keystores/gateway.jks'
 knox_host_name = config['clusterHostInfo']['knox_gateway_hosts'][0]
 knox_host_name_in_cluster = config['hostname']
 knox_host_port = config['configurations']['gateway-site']['gateway.port']

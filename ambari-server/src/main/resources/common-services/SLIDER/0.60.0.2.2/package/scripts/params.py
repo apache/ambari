@@ -21,6 +21,12 @@ limitations under the License.
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from resource_management.libraries.functions.default import default
 from resource_management import *
+from ambari_commons import OSCheck
+
+if OSCheck.is_windows_family():
+  from params_windows import *
+else:
+  from params_linux import *
 
 # server configurations
 config = Script.get_config()
@@ -39,7 +45,6 @@ if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
 else:
   slider_bin_dir = "/usr/lib/slider/bin"
 
-slider_conf_dir = "/etc/slider/conf"
 hadoop_conf_dir = "/etc/hadoop/conf"
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 smokeuser_principal = config['configurations']['cluster-env']['smokeuser_principal_name']
@@ -51,5 +56,3 @@ slider_env_sh_template = config['configurations']['slider-env']['content']
 java64_home = config['hostLevelParams']['java_home']
 log4j_props = config['configurations']['slider-log4j']['content']
 slider_cmd = format("{slider_bin_dir}/slider")
-storm_slider_conf_dir= '/usr/hdp/current/storm-slider-client/conf'
-slider_home_dir= '/usr/hdp/current/slider-client'

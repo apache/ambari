@@ -115,10 +115,13 @@ def _ensure_services_created(hadoop_password):
 
 
 # creating symlinks to services folders to avoid using stack-dependent paths
-def _create_symlinks():
+def _create_symlinks(stack_version):
   # folders
   Execute("cmd /c mklink /d %HADOOP_NODE%\\hadoop %HADOOP_HOME%")
   Execute("cmd /c mklink /d %HADOOP_NODE%\\hive %HIVE_HOME%")
+  hdp_stack_version = format_hdp_stack_version(stack_version)
+  if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
+    Execute("cmd /c mklink /d %HADOOP_NODE%\\knox %KNOX_HOME%")
   # files pairs (symlink_path, path_template_to_target_file), use * to replace file version
   links_pairs = [
     ("%HADOOP_HOME%\\share\\hadoop\\tools\\lib\\hadoop-streaming.jar",
@@ -192,7 +195,7 @@ def install_windows_msi(msi_url, save_dir, save_file, hadoop_password, stack_ver
     reload_windows_env()
     # create additional services manually due to hdp.msi limitaitons
     _ensure_services_created(hadoop_password)
-    _create_symlinks()
+    _create_symlinks(stack_version)
     # finalizing install
     _write_marker()
     _validate_msi_install()

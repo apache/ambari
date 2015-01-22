@@ -1,3 +1,4 @@
+# !/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -17,23 +18,5 @@ limitations under the License.
 
 """
 
-import os
-from resource_management import *
-
-def ldap():
-    import params
-
-    File(os.path.join(params.knox_conf_dir, 'ldap-log4j.properties'),
-         mode=params.mode,
-         group=params.knox_group,
-         owner=params.knox_user,
-         content=params.ldap_log4j
-    )
-
-    File(os.path.join(params.knox_conf_dir, 'users.ldif'),
-         mode=params.mode,
-         group=params.knox_group,
-         owner=params.knox_user,
-         content=params.users_ldif
-    )
-
+knox_geteway_win_service_name = "gateway"
+knox_ldap_win_service_name = "ldap"

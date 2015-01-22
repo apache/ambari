@@ -467,7 +467,7 @@ function Run-KnoxSmokeTest
         return
     }
 
-    $url = "https://${ENV:KNOX_HOST}:8443/gateway/sandbox/webhdfs/v1/?op=GETHOMEDIRECTORY"
+    $url = "https://${ENV:KNOX_HOST}:8443/gateway/default/webhdfs/v1/?op=GETHOMEDIRECTORY"
     $req = [System.Net.WebRequest]::Create( $url )
     # Set the HTTP basic auth credentials to use for the request
     $req.Credentials = New-Object Net.NetworkCredential( "guest", "guest-password" )

@@ -19,14 +19,23 @@ limitations under the License.
 """
 
 from resource_management import *
-
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 class SliderServiceCheck(Script):
+
+  @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
   def service_check(self, env):
     import params
-
     env.set_params(params)
+    smoke_cmd = os.path.join(params.hdp_root, "Run-SmokeTests.cmd")
+    service = "SLIDER"
+    Execute(format("cmd /C {smoke_cmd} {service}"), logoutput=True, user=params.hdfs_user)
 
+  @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
+  def service_check(self, env):
+    import params
+    env.set_params(params)
     smokeuser_kinit_cmd = format(
       "{kinit_path_local} -kt {smokeuser_keytab} {smokeuser_principal};") if params.security_enabled else ""
 

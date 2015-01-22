@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -17,23 +18,25 @@ limitations under the License.
 
 """
 
-import os
 from resource_management import *
+import os
 
-def ldap():
-    import params
+# server configurations
+config = Script.get_config()
 
-    File(os.path.join(params.knox_conf_dir, 'ldap-log4j.properties'),
-         mode=params.mode,
-         group=params.knox_group,
-         owner=params.knox_user,
-         content=params.ldap_log4j
-    )
+hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"],".."))
+knox_home = os.environ['KNOX_HOME']
+knox_conf_dir = os.environ['KNOX_CONF_DIR']
+knox_logs_dir = os.environ['KNOX_LOG_DIR']
+knox_bin = os.path.join(knox_home, 'bin', 'gateway.exe')
+ldap_bin = os.path.join(knox_home, 'bin', 'ldap.exe')
+knox_client_bin = os.path.join(knox_home, 'bin', 'knoxcli.cmd')
+knox_data_dir = os.path.join(knox_home, 'data')
 
-    File(os.path.join(params.knox_conf_dir, 'users.ldif'),
-         mode=params.mode,
-         group=params.knox_group,
-         owner=params.knox_user,
-         content=params.users_ldif
-    )
+knox_master_secret_path = os.path.join(knox_data_dir, 'security', 'master')
+knox_cert_store_path = os.path.join(knox_data_dir, 'security', 'keystores', 'gateway.jks')
 
+knox_user = 'hadoop'
+hdfs_user = "hadoop"
+knox_group = None
+mode = None

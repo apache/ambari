@@ -19,10 +19,30 @@ Ambari Agent
 
 """
 import os
-
 from resource_management import *
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def slider():
+  import params
+
+  slider_client_config = params.config['configurations']['slider-client'] if 'configurations' in params.config and 'slider-client' in params.config['configurations'] else {}
+
+  XmlConfig("slider-client.xml",
+            conf_dir=params.slider_conf_dir,
+            configurations=slider_client_config
+  )
+
+  if (params.log4j_props != None):
+    File(os.path.join(params.slider_conf_dir, "log4j.properties"),
+         content=params.log4j_props
+    )
+  elif (os.path.exists(os.path.join(params.slider_conf_dir, "log4j.properties"))):
+    File(os.path.join(params.slider_conf_dir, "log4j.properties"))
 
 
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def slider():
   import params
 

@@ -17,23 +17,14 @@ limitations under the License.
 
 """
 
-import os
+from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
+from resource_management.libraries.functions.default import default
 from resource_management import *
+from ambari_commons import OSCheck
 
-def ldap():
-    import params
+# server configurations
+config = Script.get_config()
 
-    File(os.path.join(params.knox_conf_dir, 'ldap-log4j.properties'),
-         mode=params.mode,
-         group=params.knox_group,
-         owner=params.knox_user,
-         content=params.ldap_log4j
-    )
-
-    File(os.path.join(params.knox_conf_dir, 'users.ldif'),
-         mode=params.mode,
-         group=params.knox_group,
-         owner=params.knox_user,
-         content=params.users_ldif
-    )
-
+slider_conf_dir = "/etc/slider/conf"
+storm_slider_conf_dir = '/usr/hdp/current/storm-slider-client/conf'
+slider_home_dir = '/usr/hdp/current/slider-client'

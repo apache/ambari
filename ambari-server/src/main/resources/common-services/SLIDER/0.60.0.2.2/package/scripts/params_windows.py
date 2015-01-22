@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -17,23 +18,17 @@ limitations under the License.
 
 """
 
-import os
 from resource_management import *
+import os
 
-def ldap():
-    import params
+# server configurations
+config = Script.get_config()
 
-    File(os.path.join(params.knox_conf_dir, 'ldap-log4j.properties'),
-         mode=params.mode,
-         group=params.knox_group,
-         owner=params.knox_user,
-         content=params.ldap_log4j
-    )
+hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"],".."))
+slider_home = os.environ['SLIDER_HOME']
+slider_conf_dir = os.path.join(slider_home, 'conf')
+storm_slider_conf_dir = os.path.join(os.environ['STORM_HOME'], 'conf')
+slider_home_dir = slider_home
 
-    File(os.path.join(params.knox_conf_dir, 'users.ldif'),
-         mode=params.mode,
-         group=params.knox_group,
-         owner=params.knox_user,
-         content=params.users_ldif
-    )
-
+slider_user = 'hadoop'
+hdfs_user = "hadoop"
