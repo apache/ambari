@@ -95,7 +95,7 @@ App.Service = DS.Model.extend({
    * actual_configs, then a restart is required.
    */
   isRestartRequired: function () {
-    var rhc = this.get('hostComponents').filterProperty('staleConfigs', true);
+    var rhc = App.HostComponent.find().filterProperty('service.serviceName', this.get('serviceName')).filterProperty('staleConfigs', true);
     var hc = {};
     rhc.forEach(function(_rhc) {
       var hostName = _rhc.get('hostName');

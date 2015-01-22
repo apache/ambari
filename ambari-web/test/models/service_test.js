@@ -140,7 +140,9 @@ var service,
     ],
     [
       {
-        serviceName: 'HIVE',
+        service: {
+          serviceName: 'HIVE'
+        },
         staleConfigs: false
       }
     ]
@@ -148,6 +150,9 @@ var service,
   hostComponentsDataTrue = [
     [
       Em.Object.create({
+        service: {
+          serviceName: 'HDFS'
+        },
         staleConfigs: true,
         displayName: 'service0'
       })
@@ -156,6 +161,9 @@ var service,
       Em.Object.create({
         host: {
           publicHostName: 'host0'
+        },
+        service: {
+          serviceName: 'HDFS'
         },
         staleConfigs: true,
         displayName: 'service1'
@@ -214,19 +222,28 @@ describe('App.Service', function () {
   });
 
   describe('#isRestartRequired', function () {
+    var mockHostComponentModel = function (mock) {
+      sinon.stub(App.HostComponent, 'find', function () {
+        return mock;
+      });
+    }
+    beforeEach(function () {
+      service.reopen({
+        serviceName: 'HDFS'
+      });
+    });
+    afterEach(function () {
+      App.HostComponent.find.restore();
+    });
     hostComponentsDataFalse.forEach(function (item) {
       it('should be false', function () {
-        service.reopen({
-          hostComponents: item
-        });
+        mockHostComponentModel(item);
         expect(service.get('isRestartRequired')).to.be.false;
       });
     });
     hostComponentsDataTrue.forEach(function (item) {
       it('should be true', function () {
-        service.reopen({
-          hostComponents: item
-        });
+        mockHostComponentModel(item);
         expect(service.get('isRestartRequired')).to.be.true;
       });
     });
