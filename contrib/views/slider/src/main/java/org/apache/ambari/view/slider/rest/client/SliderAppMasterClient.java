@@ -30,7 +30,6 @@ import java.util.Set;
 
 import org.apache.ambari.view.URLStreamProvider;
 import org.apache.ambari.view.ViewContext;
-import org.apache.ambari.view.slider.GangliaMetric;
 import org.apache.ambari.view.slider.MetricsHolder;
 import org.apache.ambari.view.slider.SliderAppType;
 import org.apache.ambari.view.slider.SliderAppTypeComponent;
@@ -158,26 +157,29 @@ public class SliderAppMasterClient extends BaseHttpClient {
     return configsMap;
   }
 
-  public Map<String, Number[][]> getGangliaMetrics(String gangliaUrl,
-                                                   Set<String> metricsRequested,
-                                                   TemporalInfo temporalInfo,
-                                                   ViewContext context,
-                                                   SliderAppType appType,
-                                                   MetricsHolder metricsHolder) {
+  public Map<String, Number[][]> getMetrics(String metricsUrl,
+                                            Set<String> metricsRequested,
+                                            TemporalInfo temporalInfo,
+                                            ViewContext context,
+                                            SliderAppType appType,
+                                            MetricsHolder metricsHolder) {
     Map<String, Number[][]> retVal = new HashMap<String, Number[][]>();
 
-    if (appType == null || metricsHolder == null || metricsHolder.getGangliaMetrics() == null) {
-      logger.info("AppType must be provided and it must contain ganglia_metrics.json to extract jmx properties");
+    if (appType == null || metricsHolder == null
+        || metricsHolder.getTimelineMetrics() == null) {
+      logger.info("AppType must be provided and it must contain "
+          + "timeline_metrics.json to extract jmx properties");
       return retVal;
     }
 
-    Map<String, GangliaMetric> receivedMetrics = null;
+    Map<String, Number[][]> receivedMetrics = null;
     List<String> components = new ArrayList<String>();
     for (SliderAppTypeComponent appTypeComponent : appType.getTypeComponents()) {
       components.add(appTypeComponent.getName());
     }
 
-    Map<String, Map<String, Map<String, Metric>>> metrics = metricsHolder.getGangliaMetrics();
+    Map<String, Map<String, Map<String, Metric>>> metrics = metricsHolder
+        .getTimelineMetrics();
     Map<String, Metric> relevantMetrics = getRelevantMetrics(metrics, components);
     Set<String> metricsToRead = new HashSet<String>();
     Map<String, String> reverseNameLookup = new HashMap<String, String>();
@@ -191,7 +193,8 @@ public class SliderAppMasterClient extends BaseHttpClient {
 
     if (metricsToRead.size() != 0) {
       try {
-        String specWithParams = SliderAppGangliaHelper.getSpec(gangliaUrl, metricsToRead, temporalInfo);
+        String specWithParams = SliderAppMetricsHelper.getUrlWithParams(
+            metricsUrl, metricsToRead, temporalInfo);
         logger.info("Using spec: " + specWithParams);
         if (specWithParams != null) {
 
@@ -206,17 +209,18 @@ public class SliderAppMasterClient extends BaseHttpClient {
             logger.info(e.toString());
           }
 
-          receivedMetrics = SliderAppGangliaHelper.getGangliaMetrics(context, spec, params);
+          receivedMetrics = SliderAppMetricsHelper.getMetrics(context, spec,
+              params);
         }
       } catch (Exception e) {
-        logger.warn("Unable to retrieve ganglia metrics. " + e.getMessage());
+        logger.warn("Unable to retrieve metrics. " + e.getMessage());
       }
     }
 
     if (receivedMetrics != null) {
-      for (GangliaMetric metric : receivedMetrics.values()) {
-        if (reverseNameLookup.containsKey(metric.getMetric_name())) {
-          retVal.put(reverseNameLookup.get(metric.getMetric_name()), metric.getDatapoints());
+      for (Map.Entry<String, Number[][]> metric : receivedMetrics.entrySet()) {
+        if (reverseNameLookup.containsKey(metric.getKey())) {
+          retVal.put(reverseNameLookup.get(metric.getKey()), metric.getValue());
         }
       }
     }

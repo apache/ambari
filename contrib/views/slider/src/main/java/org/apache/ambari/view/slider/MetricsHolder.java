@@ -24,7 +24,7 @@ import java.util.Map;
 
 public class MetricsHolder {
   private Map<String, Map<String, Map<String, Metric>>> jmxMetrics;
-  private Map<String, Map<String, Map<String, Metric>>> gangliaMetrics;
+  private Map<String, Map<String, Map<String, Metric>>> timelineMetrics;
 
   public Map<String, Map<String, Map<String, Metric>>> getJmxMetrics() {
     return jmxMetrics;
@@ -34,11 +34,11 @@ public class MetricsHolder {
     this.jmxMetrics = jmxMetrics;
   }
 
-  public Map<String, Map<String, Map<String, Metric>>> getGangliaMetrics() {
-    return gangliaMetrics;
+  public Map<String, Map<String, Map<String, Metric>>> getTimelineMetrics() {
+    return timelineMetrics;
   }
 
-  public void setGangliaMetrics(Map<String, Map<String, Map<String, Metric>>> gangliaMetrics) {
-    this.gangliaMetrics = gangliaMetrics;
+  public void setTimelineMetrics(Map<String, Map<String, Map<String, Metric>>> timelineMetrics) {
+    this.timelineMetrics = timelineMetrics;
   }
 }
