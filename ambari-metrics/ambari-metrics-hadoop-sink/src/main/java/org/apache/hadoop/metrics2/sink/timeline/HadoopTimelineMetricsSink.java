@@ -164,7 +164,7 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
         timelineMetric.setType(ClassUtils.getShortCanonicalName(value, "Number"));
         timelineMetric.getMetricValues().put(startTime, value.doubleValue());
         // Put intermediate values into the cache until it is time to send
-        metricsCache.putTimelineMetric(timelineMetric);
+        metricsCache.putTimelineMetric(timelineMetric, metric.type());
 
         // Retrieve all values from cache if it is time to send
         TimelineMetric cachedMetric = metricsCache.getTimelineMetric(name);

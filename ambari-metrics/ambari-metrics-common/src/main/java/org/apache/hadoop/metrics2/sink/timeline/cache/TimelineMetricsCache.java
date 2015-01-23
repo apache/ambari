@@ -17,15 +17,18 @@
  */
 package org.apache.hadoop.metrics2.sink.timeline.cache;
 
+import com.google.common.base.Optional;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.metrics2.MetricType;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 @InterfaceAudience.Public
 @InterfaceStability.Evolving
@@ -37,6 +40,7 @@ public class TimelineMetricsCache {
   public static final int MAX_EVICTION_TIME_MILLIS = 59000; // ~ 1 min
   private final int maxRecsPerName;
   private final int maxEvictionTimeInMillis;
+  private final Map<String, Double> counterMetricLastValue = new HashMap<String, Double>();
 
   public TimelineMetricsCache(int maxRecsPerName, int maxEvictionTimeInMillis) {
     this.maxRecsPerName = maxRecsPerName;
@@ -150,5 +154,27 @@ public class TimelineMetricsCache {
 
   public void putTimelineMetric(TimelineMetric timelineMetric) {
     timelineMetricCache.put(timelineMetric.getMetricName(), timelineMetric);
+  }
+
+  private void transformMetricValuesToDerivative(TimelineMetric timelineMetric) {
+    String metricName = timelineMetric.getMetricName();
+    double firstValue = timelineMetric.getMetricValues().size() > 0
+        ? timelineMetric.getMetricValues().entrySet().iterator().next().getValue() : 0;
+    double previousValue = Optional.fromNullable(counterMetricLastValue.get(metricName)).or(firstValue);
+    Map<Long, Double> metricValues = timelineMetric.getMetricValues();
+    Map<Long, Double>   newMetricValues = new TreeMap<Long, Double>();
+    for (Map.Entry<Long, Double> entry : metricValues.entrySet()) {
+      newMetricValues.put(entry.getKey(), entry.getValue() - previousValue);
+      previousValue = entry.getValue();
+    }
+    timelineMetric.setMetricValues(newMetricValues);
+    counterMetricLastValue.put(metricName, previousValue);
+  }
+
+  public void putTimelineMetric(TimelineMetric timelineMetric, MetricType type) {
+    if (type == MetricType.COUNTER) {
+      transformMetricValuesToDerivative(timelineMetric);
+    }
+    putTimelineMetric(timelineMetric);
   }
 }
