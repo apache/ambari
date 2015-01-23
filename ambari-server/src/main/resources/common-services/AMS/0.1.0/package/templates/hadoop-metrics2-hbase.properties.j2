@@ -51,6 +51,7 @@ rpc.period=10
 rpc.collector={{ams_collector_host_single}}:{{metric_collector_port}}
 
 *.timeline.plugin.urls=file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar
+*.sink.timeline.slave.host.name={{hostname}}
 hbase.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 hbase.sink.timeline.period=10
 hbase.sink.timeline.collector={{ams_collector_host_single}}:{{metric_collector_port}}
