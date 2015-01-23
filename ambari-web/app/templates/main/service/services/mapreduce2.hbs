@@ -22,9 +22,9 @@
     <i class="pull-left icon-empty"></i>
     {{view App.MainDashboardServiceHealthView serviceBinding="view.service"}}
     <a {{action selectService view.service href=true}}>{{view.service.displayName}}</a>
-    {{#if view.criticalAlertsCount}}
+    {{#if view.alertsCount}}
       <a href="#" class="label label-important" {{action "showAlertsPopup" view.service target="view.parentView"}}>
-        {{view.criticalAlertsCount}}
+        {{view.alertsCount}}
       </a>
     {{/if}}
   </div>

@@ -460,14 +460,17 @@
 }
 
 .service-block .summary-box-header {
-  .alerts-count-label,.no-alerts-label {
+  .alerts-crit-count, .alerts-warn-count, .no-alerts-label {
     padding: 4px 5px;
     margin: 4px;
     font-size: 14px;
     cursor: pointer;
   }
-  .alerts-count-label {
+  .alerts-crit-count {
     background: @health-status-red;
+  }
+  .alerts-warn-count {
+    background: @health-status-orange;
   }
   .no-alerts-label {
     background: @health-status-green;

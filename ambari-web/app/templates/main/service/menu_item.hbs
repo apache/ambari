@@ -18,7 +18,7 @@
 
 <a {{bindAttr href="view.link"}}>
   {{#if view.alertsCount}}
-    <span class="label operations-count">
+    <span {{bindAttr class=":label :alerts-count view.hasCriticalAlerts:alerts-crit-count:alerts-warn-count"}}>
       {{view.alertsCount}}
     </span>
   {{/if}}

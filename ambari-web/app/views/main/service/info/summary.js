@@ -240,17 +240,13 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
   componentsCount: null,
   hostsCount: null,
 
-  /*
-   * alerts label on summary box header. no alerts/ {cnt} alerts
-   */
-  alertsCountLabel: function () {
-    var cnt = this.get('controller.content.criticalAlertsCount');
-    return cnt? Em.I18n.t('services.service.summary.alerts.alertsExist').format(cnt) :
-      Em.I18n.t('services.service.summary.alerts.noAlerts');
-  }.property('controller.content.criticalAlertsCount'),
   alertsCount: function () {
-    return !!this.get('controller.content.criticalAlertsCount');
-  }.property('controller.content.criticalAlertsCount'),
+    return this.get('controller.content.alertsCount');
+  }.property('controller.content.alertsCount'),
+
+  hasCriticalAlerts: function () {
+    return this.get('controller.content.hasCriticalAlerts');
+  }.property('controller.content.alertsCount'),
 
   /**
    * Define if service has alert definitions defined

@@ -90,15 +90,24 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
   },
 
   /**
-   * Calculate critical/warning count for each service, to show up the label on services menu
+   * Calculate critical count for each service, to show up the label on services menu
    * @method getCriticalAlertsCountForService
    * @return {number}
    */
   getCriticalAlertsCountForService: function (service) {
     var alertsForService = this.get('content').filterProperty('service', service);
-    return alertsForService.filterProperty('isCriticalOrWarning').get('length');
+    return alertsForService.filterProperty('isCritical').get('length');
   },
 
+  /**
+   * Calculate critical/warning count for each service, to show up the label on services menu
+   * @method getCriticalOrWarningAlertsCountForService
+   * @return {number}
+   */
+  getCriticalOrWarningAlertsCountForService: function (service) {
+    var alertsForService = this.get('content').filterProperty('service', service);
+    return alertsForService.filterProperty('isCriticalOrWarning').get('length');
+  },
 
   /**
    *  ========================== alerts popup dialog =========================

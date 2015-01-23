@@ -257,12 +257,17 @@ footer {
         .label {
           padding: 0 0 0 3px;
         }
-        .operations-count {
-          background: @health-status-red;
+        .alerts-count {
           padding: 1px 4px;
           float: right;
           margin-right: 5px;
           margin-top: 3px;
+          &.alerts-crit-count {
+            background: @health-status-red;
+          }
+          &.alerts-warn-count {
+            background: @health-status-orange;
+          }
         }
       }
       .top-nav-dropdown-menu > li{
@@ -2219,12 +2224,18 @@ a:focus {
       .label {
         padding: 0 0 0 3px;
       }
-      .label.operations-count {
+      .label.alerts-count {
         padding: 1px 4px;
         background: @health-status-red;
         float: right;
         margin-right: 5px;
         margin-top: 3px;
+        &.alerts-crit-count {
+          background: @health-status-red;
+        }
+        &.alerts-warn-count {
+          background: @health-status-orange;
+        }
       }
     }
 

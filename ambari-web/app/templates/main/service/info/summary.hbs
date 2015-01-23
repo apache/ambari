@@ -50,7 +50,14 @@
       <div class="box-header summary-box-header">
         <h4>{{controller.content.label}} {{t services.service.info.menu.summary}}</h4>
         {{#if view.hasAlertDefinitions}}
-          <span {{action "showServiceAlertsPopup" controller.content target="controller"}}{{bindAttr class=":pull-right view.alertsCount:alerts-count-label:no-alerts-label :label"}}>{{view.alertsCountLabel}}</span>
+          {{#if view.alertsCount}}
+            <span {{action "showServiceAlertsPopup" controller.content target="controller"}}
+              {{bindAttr class=":label :pull-right view.hasCriticalAlerts:alerts-crit-count:alerts-warn-count"}}>
+              {{view.alertsCount}} {{pluralize view.alertsCount singular="alert" plural="alerts"}}</span>
+          {{else}}
+            <span {{action "showServiceAlertsPopup" controller.content target="controller"}}
+              class="label pull-right no-alerts-label">{{t services.service.summary.alerts.noAlerts}}</span>
+          {{/if}}
         {{/if}}
       </div>
       <div class="service-content">

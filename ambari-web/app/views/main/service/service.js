@@ -142,9 +142,13 @@ App.MainDashboardServiceView = Em.View.extend({
     return (value || value == 0) ? value : this.t('services.service.summary.notAvailable');
   },
 
-  criticalAlertsCount: function () {
-    return this.get('service.criticalAlertsCount');
-  }.property('service.criticalAlertsCount'),
+  alertsCount: function () {
+    return this.get('service.alertsCount');
+  }.property('service.alertsCount'),
+
+  hasCriticalAlerts: function () {
+    return this.get('service.hasCriticalAlerts');
+  }.property('service.hasCriticalAlerts'),
 
   isCollapsed: false,
 

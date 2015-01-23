@@ -71,8 +71,12 @@ App.MainServiceMenuView = Em.CollectionView.extend({
     }.property('parentView.activeServiceId'),
 
     alertsCount: function () {
-      return this.get('content.criticalAlertsCount');
-    }.property('content.criticalAlertsCount'),
+      return this.get('content.alertsCount');
+    }.property('content.alertsCount'),
+
+    hasCriticalAlerts: function () {
+      return this.get('content.hasCriticalAlerts');
+    }.property('content.hasCriticalAlerts'),
 
     isConfigurable: function () {
       return !App.get('services.noConfigTypes').contains(this.get('content.serviceName'));
@@ -169,8 +173,12 @@ App.TopNavServiceMenuView = Em.CollectionView.extend({
     }.property('parentView.activeServiceId'),
 
     alertsCount: function () {
-      return this.get('content.criticalAlertsCount');
-    }.property('content.criticalAlertsCount'),
+      return this.get('content.alertsCount');
+    }.property('content.alertsCount'),
+
+    hasCriticalAlerts: function () {
+      return this.get('content.hasCriticalAlerts');
+    }.property('content.hasCriticalAlerts'),
 
     isConfigurable: function () {
       return !App.get('services.noConfigTypes').contains(this.get('content.serviceName'));
