@@ -38,7 +38,9 @@ def ams_service(name, action):
   if name == 'collector':
     cmd = format("{ams_collector_script} --config {ams_collector_conf_dir}")
     pid_file = format("{ams_collector_pid_dir}/ambari-metrics-collector.pid")
-    no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
+    #no_op_test should be much more complex to work with cumulative status of collector
+    #removing as startup script handle it also
+    #no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
 
     if params.is_hbase_distributed:
       hbase_service('zookeeper', action=action)
@@ -49,7 +51,6 @@ def ams_service(name, action):
     if action == 'start':
       daemon_cmd = format("{cmd} start")
       Execute(daemon_cmd,
-              not_if=no_op_test,
               user=params.ams_user
       )
 

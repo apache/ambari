@@ -218,7 +218,7 @@ case "$1" in
     daemon_status "${PIDFILE}"
     if [[ $? == 0  ]]; then
         echo "AMS is running as process $(cat "${PIDFILE}"). Exiting"
-        exit 1
+        exit 0
     else
         # stale pid file, so just remove it and continue on
         rm -f "${PIDFILE}" >/dev/null 2>&1
