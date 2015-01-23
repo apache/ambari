@@ -405,9 +405,12 @@ public class ViewContextImpl implements ViewContext, ViewController {
    * @throws ParseErrorException if original string cannot be parsed by Velocity
    */
   private String parameterize(String raw) throws ParseErrorException {
-    Writer templateWriter = new StringWriter();
-    Velocity.evaluate(velocityContext, templateWriter, raw, raw);
-    return templateWriter.toString();
+    if (raw != null) {
+      Writer templateWriter = new StringWriter();
+      Velocity.evaluate(velocityContext, templateWriter, raw, raw);
+      return templateWriter.toString();
+    }
+    return null;
   }
 
   /**

@@ -121,11 +121,12 @@ public class ViewContextImplTest {
     viewInstanceDefinition.putProperty("p5", "/path/to/${incorrect_parameter");
     viewInstanceDefinition.putProperty("p6", "/path/to/\\${username}");
     viewInstanceDefinition.putProperty("p7", "/path/to/\\$viewName");
+    viewInstanceDefinition.putProperty("p8", null);
 
     ViewContextImpl viewContext = new ViewContextImpl(viewInstanceDefinition, viewRegistry);
 
     Map<String, String> properties = viewContext.getProperties();
-    Assert.assertEquals(7, properties.size());
+    Assert.assertEquals(8, properties.size());
     Assert.assertEquals("/tmp/some/path/User", properties.get("p1"));
     Assert.assertEquals("/tmp/path/View", properties.get("p2"));
     Assert.assertEquals("/path/Instance", properties.get("p3"));
@@ -133,9 +134,10 @@ public class ViewContextImplTest {
     Assert.assertEquals("/path/to/${incorrect_parameter", properties.get("p5"));
     Assert.assertEquals("/path/to/${username}", properties.get("p6"));
     Assert.assertEquals("/path/to/$viewName", properties.get("p7"));
+    Assert.assertNull(properties.get("p8"));
 
     properties = viewContext.getProperties();
-    Assert.assertEquals(7, properties.size());
+    Assert.assertEquals(8, properties.size());
     Assert.assertEquals("/tmp/some/path/User2", properties.get("p1"));
     Assert.assertEquals("/tmp/path/View", properties.get("p2"));
     Assert.assertEquals("/path/Instance", properties.get("p3"));
@@ -143,6 +145,7 @@ public class ViewContextImplTest {
     Assert.assertEquals("/path/to/${incorrect_parameter", properties.get("p5"));
     Assert.assertEquals("/path/to/${username}", properties.get("p6"));
     Assert.assertEquals("/path/to/$viewName", properties.get("p7"));
+    Assert.assertNull(properties.get("p8"));
   }
 
   @Test
