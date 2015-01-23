@@ -331,7 +331,8 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
         desiredRepoVersion, stackId, hostName));
     }
     if (hostVersEntity.getState() != RepositoryVersionState.INSTALLED &&
-            hostVersEntity.getState() != RepositoryVersionState.INSTALL_FAILED) {
+            hostVersEntity.getState() != RepositoryVersionState.INSTALL_FAILED &&
+            hostVersEntity.getState() != RepositoryVersionState.OUT_OF_SYNC) {
       throw new UnsupportedOperationException(String.format("Repo version %s for stack %s " +
         "for host %s is in %s state. Can not transition to INSTALLING state",
               desiredRepoVersion, stackId, hostName, hostVersEntity.getState().toString()));

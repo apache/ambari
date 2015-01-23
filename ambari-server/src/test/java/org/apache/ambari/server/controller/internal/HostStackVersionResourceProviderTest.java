@@ -226,6 +226,109 @@ public class HostStackVersionResourceProviderTest {
     verify(managementController, response, clusters);
   }
 
+  @Test
+  public void testCreateResources_in_out_of_sync_state() throws Exception {
+    Resource.Type type = Resource.Type.HostStackVersion;
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    StackId stackId = new StackId("HDP", "2.0.1");
+
+    final Host host1 = createNiceMock("host1", Host.class);
+    expect(host1.getHostName()).andReturn("host1").anyTimes();
+    expect(host1.getOsFamily()).andReturn("redhat6").anyTimes();
+    replay(host1);
+    Map<String, Host> hostsForCluster = new HashMap<String, Host>() {{
+      put(host1.getHostName(), host1);
+    }};
+
+    ServiceComponentHost sch = createMock(ServiceComponentHost.class);
+    List<ServiceComponentHost> schs = Collections.singletonList(sch);
+
+    RepositoryVersionEntity repoVersion = new RepositoryVersionEntity();
+    repoVersion.setOperatingSystems(operatingSystemsJson);
+
+    ServiceOsSpecific.Package hivePackage = new ServiceOsSpecific.Package();
+    hivePackage.setName("hive");
+    List<ServiceOsSpecific.Package> packages = Collections.singletonList(hivePackage);
+
+    ActionManager actionManager = createNiceMock(ActionManager.class);
+
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+    ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
+    ResourceProvider csvResourceProvider = createNiceMock(ClusterStackVersionResourceProvider.class);
+
+    HostVersionEntity hostVersionEntityMock = createNiceMock(HostVersionEntity.class);
+
+    AbstractControllerResourceProvider.init(resourceProviderFactory);
+
+    Map<String, Map<String, String>> hostConfigTags = new HashMap<String, Map<String, String>>();
+    expect(configHelper.getEffectiveDesiredTags(anyObject(ClusterImpl.class), anyObject(String.class))).andReturn(hostConfigTags);
+
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
+    expect(managementController.getJdkResourceUrl()).andReturn("/JdkResourceUrl").anyTimes();
+    expect(managementController.getPackagesForServiceHost(anyObject(ServiceInfo.class),
+            (Map<String, String>) anyObject(List.class), anyObject(String.class))).andReturn(packages).anyTimes();
+
+    expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class), anyObject(Map.class),
+            eq(managementController))).andReturn(csvResourceProvider).anyTimes();
+
+    expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
+    expect(clusters.getHost(anyObject(String.class))).andReturn(host1);
+
+    expect(cluster.getCurrentStackVersion()).andReturn(stackId);
+    expect(cluster.getServiceComponentHosts(anyObject(String.class))).andReturn(schs).anyTimes();
+
+    expect(sch.getServiceName()).andReturn("HIVE").anyTimes();
+
+    expect(repositoryVersionDAOMock.findByStackAndVersion(anyObject(String.class),
+            anyObject(String.class))).andReturn(repoVersion);
+
+
+    expect(hostVersionDAOMock.findByClusterStackVersionAndHost(anyObject(String.class),
+            anyObject(String.class), anyObject(String.class), anyObject(String.class))).andReturn(hostVersionEntityMock);
+    expect(hostVersionEntityMock.getState()).andReturn(RepositoryVersionState.OUT_OF_SYNC).anyTimes();
+
+    expect(actionManager.getRequestTasks(anyLong())).andReturn(Collections.<HostRoleCommand>emptyList()).anyTimes();
+
+    // replay
+    replay(managementController, response, clusters, resourceProviderFactory, csvResourceProvider,
+            cluster, repositoryVersionDAOMock, configHelper, sch, actionManager, hostVersionEntityMock, hostVersionDAOMock);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+            type,
+            PropertyHelper.getPropertyIds(type),
+            PropertyHelper.getKeyPropertyIds(type),
+            managementController);
+
+    injector.injectMembers(provider);
+
+    // add the property map to a set for the request.  add more maps for multiple creates
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+
+    // add properties to the request map
+    properties.put(HostStackVersionResourceProvider.HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    properties.put(HostStackVersionResourceProvider.HOST_STACK_VERSION_REPO_VERSION_PROPERTY_ID, "2.2.0.1-885");
+    properties.put(HostStackVersionResourceProvider.HOST_STACK_VERSION_STACK_PROPERTY_ID, "HDP");
+    properties.put(HostStackVersionResourceProvider.HOST_STACK_VERSION_VERSION_PROPERTY_ID, "2.0.1");
+    properties.put(HostStackVersionResourceProvider.HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID, "host1");
+
+    propertySet.add(properties);
+
+    // create the request
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
+
+    provider.createResources(request);
+
+    // verify
+    verify(managementController, response, clusters);
+  }
+
   public class MockModule extends AbstractModule {
     @Override
     protected void configure() {
