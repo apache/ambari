@@ -20,7 +20,7 @@
   <services>
     <service>
       <name>KNOX</name>
-      <extends>common-services/KNOX/0.5.0</extends>
+      <extends>common-services/KNOX/0.5.0.2.2</extends>
     </service>
   </services>
 </metainfo>

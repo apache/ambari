@@ -22,7 +22,7 @@
     <service>
       <name>STORM</name>
       <displayName>Storm</displayName>
-      <version>0.9.3</version>
+      <version>0.9.3.2.2</version>
       <components>
         <component>
           <name>STORM_REST_API</name>

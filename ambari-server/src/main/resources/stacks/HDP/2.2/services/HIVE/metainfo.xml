@@ -20,7 +20,7 @@
   <services>
     <service>
       <name>HIVE</name>
-      <version>0.14.0</version>
+      <version>0.14.0.2.2</version>
       <components>
         <component>
             <name>HIVE_METASTORE</name>

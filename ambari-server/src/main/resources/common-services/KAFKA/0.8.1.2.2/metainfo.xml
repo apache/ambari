@@ -19,39 +19,30 @@
   <schemaVersion>2.0</schemaVersion>
   <services>
     <service>
-      <name>KNOX</name>
-      <displayName>Knox</displayName>
-      <comment>Provides a single point of authentication and access for Apache Hadoop services in a cluster</comment>
-      <version>0.5.0</version>
+      <name>KAFKA</name>
+      <displayName>Kafka</displayName>
+      <comment>A high-throughput distributed messaging system</comment>
+      <version>0.8.1.2.2</version>
       <components>
         <component>
-          <name>KNOX_GATEWAY</name>
-          <displayName>Knox Gateway</displayName>
+          <name>KAFKA_BROKER</name>
+          <displayName>Kafka Broker</displayName>
           <category>MASTER</category>
           <cardinality>1+</cardinality>
+          <dependencies>
+            <dependency>
+              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
           <commandScript>
-            <script>scripts/knox_gateway.py</script>
+            <script>scripts/kafka_broker.py</script>
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
-            <customCommands>
-                <customCommand>
-                    <name>STARTDEMOLDAP</name>
-                    <commandScript>
-                        <script>scripts/demo_ldap.py</script>
-                        <scriptType>PYTHON</scriptType>
-                        <timeout>600</timeout>
-                    </commandScript>
-                </customCommand>
-                <customCommand>
-                    <name>STOPDEMOLDAP</name>
-                    <commandScript>
-                        <script>scripts/demo_ldap.py</script>
-                        <scriptType>PYTHON</scriptType>
-                        <timeout>600</timeout>
-                    </commandScript>
-                </customCommand>
-            </customCommands>
         </component>
       </components>
       <osSpecifics>
@@ -59,7 +50,7 @@
           <osFamily>redhat5,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>knox_2_2_*</name>
+              <name>kafka_2_2_*</name>
             </package>
           </packages>
         </osSpecific>
@@ -67,7 +58,7 @@
           <osFamily>ubuntu12</osFamily>
           <packages>
             <package>
-              <name>knox-2-2-.*</name>
+              <name>kafka-2-2-.*</name>
             </package>
           </packages>
         </osSpecific>
@@ -77,12 +68,15 @@
         <scriptType>PYTHON</scriptType>
         <timeout>300</timeout>
       </commandScript>
+      <requiredServices>
+        <service>ZOOKEEPER</service>
+      </requiredServices>
       <configuration-dependencies>
-        <config-type>gateway-site</config-type>
-        <config-type>gateway-log4j</config-type>
-        <config-type>topology</config-type>
-        <config-type>ranger-knox-plugin-properties</config-type>
+        <config-type>kafka-broker</config-type>
+        <config-type>kafka-env</config-type>
+        <config-type>kafka-log4j</config-type>
       </configuration-dependencies>
+      <restartRequiredAfterChange>true</restartRequiredAfterChange>
     </service>
   </services>
 </metainfo>

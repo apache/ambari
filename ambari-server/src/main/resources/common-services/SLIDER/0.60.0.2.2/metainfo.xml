@@ -22,7 +22,7 @@
       <name>SLIDER</name>
       <displayName>Slider</displayName>
       <comment>A framework for deploying, managing and monitoring existing distributed applications on YARN.</comment>
-      <version>0.60.0</version>
+      <version>0.60.0.2.2</version>
       <components>
         <component>
           <name>SLIDER</name>
