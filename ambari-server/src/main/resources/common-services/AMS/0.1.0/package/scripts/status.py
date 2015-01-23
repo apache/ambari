@@ -25,9 +25,13 @@ from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 def check_service_status(name):
   if name=='collector':
     pid_file = format("{ams_collector_pid_dir}/ambari-metrics-collector.pid")
+    check_process_status(pid_file)
+    pid_file = format("{hbase_pid_dir}/hbase-{hbase_user}-master.pid")
+    check_process_status(pid_file)
+
   elif name == 'monitor':
     pid_file = format("{ams_monitor_pid_dir}/ambari-metrics-monitor.pid")
-  check_process_status(pid_file)
+    check_process_status(pid_file)
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def check_service_status(name):
