@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.Condition;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.LikeCondition;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.DefaultCondition;
 
 public class HBaseTimelineMetricStore extends AbstractService
     implements TimelineMetricStore {
@@ -107,7 +107,7 @@ public class HBaseTimelineMetricStore extends AbstractService
       Long startTime, Long endTime, Precision precision, Integer limit,
       boolean groupedByHosts) throws SQLException, IOException {
 
-    Condition condition = new LikeCondition(metricNames, hostname, applicationId,
+    Condition condition = new DefaultCondition(metricNames, hostname, applicationId,
       instanceId, startTime, endTime, precision, limit, groupedByHosts);
 
     if (hostname == null) {
@@ -124,7 +124,7 @@ public class HBaseTimelineMetricStore extends AbstractService
       throws SQLException, IOException {
 
     TimelineMetrics metrics = hBaseAccessor.getMetricRecords(
-      new LikeCondition(Collections.singletonList(metricName), hostname,
+      new DefaultCondition(Collections.singletonList(metricName), hostname,
         applicationId, instanceId, startTime, endTime, precision, limit, true)
     );
 

@@ -561,7 +561,7 @@ public class PhoenixTransactSQL {
     void setPrecision(Precision precision);
     String getAppId();
     String getInstanceId();
-    String getConditionClause();
+    StringBuilder getConditionClause();
     String getOrderByClause();
     String getStatement();
     Long getStartTime();
@@ -614,34 +614,47 @@ public class PhoenixTransactSQL {
       return metricNames == null || metricNames.isEmpty() ? null : metricNames;
     }
 
-    String getMetricsClause() {
-      StringBuilder sb = new StringBuilder("(");
-      if (metricNames != null) {
-        for (String name : getMetricNames()) {
-          if (sb.length() != 1) {
-            sb.append(", ");
-          }
-          sb.append("?");
-        }
-        sb.append(")");
-        return sb.toString();
-      } else {
-        return null;
-      }
-    }
-
-    public String getConditionClause() {
+    public StringBuilder getConditionClause() {
       StringBuilder sb = new StringBuilder();
       boolean appendConjunction = false;
+      StringBuilder metricsLike = new StringBuilder();
+      StringBuilder metricsIn = new StringBuilder();
 
       if (getMetricNames() != null) {
-        if (appendConjunction) {
-          sb.append(" AND");
+        for (String name : getMetricNames()) {
+          if (name.contains("%")) {
+            if (metricsLike.length() > 1) {
+              metricsLike.append(" OR ");
+            }
+            metricsLike.append("METRIC_NAME LIKE ?");
+          } else {
+            if (metricsIn.length() > 0) {
+              metricsIn.append(", ");
+            }
+            metricsIn.append("?");
+          }
         }
 
-        sb.append("METRIC_NAME IN ");
-        sb.append(getMetricsClause());
-        appendConjunction = true;
+        if (metricsIn.length()>0) {
+          sb.append("(METRIC_NAME IN (");
+          sb.append(metricsIn);
+          sb.append(")");
+          appendConjunction = true;
+        }
+
+        if (metricsLike.length() > 0) {
+          if (appendConjunction) {
+            sb.append(" OR ");
+          } else {
+            sb.append("(");
+          }
+          sb.append(metricsLike);
+          appendConjunction = true;
+        }
+
+        if (appendConjunction) {
+          sb.append(")");
+        }
       }
 
       appendConjunction = append(sb, appendConjunction, getHostname(), " HOSTNAME = ?");
@@ -650,7 +663,7 @@ public class PhoenixTransactSQL {
       appendConjunction = append(sb, appendConjunction, getStartTime(), " SERVER_TIME >= ?");
       append(sb, appendConjunction, getEndTime(), " SERVER_TIME < ?");
 
-      return sb.toString();
+      return sb;
     }
 
     protected static boolean append(StringBuilder sb,
@@ -791,44 +804,6 @@ public class PhoenixTransactSQL {
     }
   }
 
-  static class LikeCondition extends DefaultCondition {
-
-    LikeCondition(List<String> metricNames, String hostname,
-                  String appId, String instanceId, Long startTime,
-                  Long endTime, Precision precision, Integer limit,
-                  boolean grouped) {
-      super(metricNames, hostname, appId, instanceId, startTime, endTime,
-        precision, limit, grouped);
-    }
-
-    @Override
-    public String getConditionClause() {
-      StringBuilder sb = new StringBuilder();
-      boolean appendConjunction = false;
-
-      if (getMetricNames() != null) {
-        sb.append("(");
-        for (String name : getMetricNames()) {
-          if (sb.length() > 1) {
-            sb.append(" OR ");
-          }
-          sb.append("METRIC_NAME LIKE ?");
-        }
-
-        sb.append(")");
-        appendConjunction = true;
-      }
-
-      appendConjunction = append(sb, appendConjunction, getHostname(), " HOSTNAME = ?");
-      appendConjunction = append(sb, appendConjunction, getAppId(), " APP_ID = ?");
-      appendConjunction = append(sb, appendConjunction, getInstanceId(), " INSTANCE_ID = ?");
-      appendConjunction = append(sb, appendConjunction, getStartTime(), " SERVER_TIME >= ?");
-      append(sb, appendConjunction, getEndTime(), " SERVER_TIME < ?");
-
-      return sb.toString();
-    }
-  }
-
   static class SplitByMetricNamesCondition implements Condition {
     private final Condition adaptee;
     private String currentMetric;
@@ -888,7 +863,7 @@ public class PhoenixTransactSQL {
     }
 
     @Override
-    public String getConditionClause() {
+    public StringBuilder getConditionClause() {
       StringBuilder sb = new StringBuilder();
       boolean appendConjunction = false;
 
@@ -914,7 +889,7 @@ public class PhoenixTransactSQL {
       DefaultCondition.append(sb, appendConjunction, getEndTime(),
         " SERVER_TIME < ?");
 
-      return sb.toString();
+      return sb;
     }
 
     @Override

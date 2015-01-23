@@ -29,7 +29,6 @@ import java.util.Collections;
 
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.Condition;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.DefaultCondition;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.LikeCondition;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.SplitByMetricNamesCondition;
 
 import static org.easymock.EasyMock.createNiceMock;
@@ -46,8 +45,8 @@ public class TestPhoenixTransactSQL {
       Arrays.asList("cpu_user", "mem_free"), "h1", "a1", "i1",
         1407959718L, 1407959918L, null, null, false);
 
-    String preparedClause = condition.getConditionClause();
-    String expectedClause = "METRIC_NAME IN (?, ?) AND HOSTNAME = ? AND " +
+    String preparedClause = condition.getConditionClause().toString();
+    String expectedClause = "(METRIC_NAME IN (?, ?)) AND HOSTNAME = ? AND " +
       "APP_ID = ? AND INSTANCE_ID = ? AND SERVER_TIME >= ? AND SERVER_TIME < ?";
 
     Assert.assertNotNull(preparedClause);
@@ -63,7 +62,7 @@ public class TestPhoenixTransactSQL {
     SplitByMetricNamesCondition condition = new SplitByMetricNamesCondition(c);
     condition.setCurrentMetric(c.getMetricNames().get(0));
 
-    String preparedClause = condition.getConditionClause();
+    String preparedClause = condition.getConditionClause().toString();
     String expectedClause = "METRIC_NAME = ? AND HOSTNAME = ? AND " +
       "APP_ID = ? AND INSTANCE_ID = ? AND SERVER_TIME >= ? AND SERVER_TIME < ?";
 
@@ -73,23 +72,23 @@ public class TestPhoenixTransactSQL {
 
   @Test
   public void testLikeConditionClause() throws Exception {
-    Condition condition = new LikeCondition(
-        Arrays.asList("cpu_user", "mem_free"), "h1", "a1", "i1",
+    Condition condition = new DefaultCondition(
+        Arrays.asList("cpu_user", "some=%.metric"), "h1", "a1", "i1",
         1407959718L, 1407959918L, null, null, false);
 
-    String preparedClause = condition.getConditionClause();
-    String expectedClause = "(METRIC_NAME LIKE ? OR METRIC_NAME LIKE ?) AND HOSTNAME = ? AND " +
+    String preparedClause = condition.getConditionClause().toString();
+    String expectedClause = "(METRIC_NAME IN (?) OR METRIC_NAME LIKE ?) AND HOSTNAME = ? AND " +
         "APP_ID = ? AND INSTANCE_ID = ? AND SERVER_TIME >= ? AND SERVER_TIME < ?";
 
     Assert.assertNotNull(preparedClause);
     Assert.assertEquals(expectedClause, preparedClause);
 
 
-    condition = new LikeCondition(
+    condition = new DefaultCondition(
         Collections.<String>emptyList(), "h1", "a1", "i1",
         1407959718L, 1407959918L, null, null, false);
 
-    preparedClause = condition.getConditionClause();
+    preparedClause = condition.getConditionClause().toString();
     expectedClause = " HOSTNAME = ? AND " +
         "APP_ID = ? AND INSTANCE_ID = ? AND SERVER_TIME >= ? AND SERVER_TIME < ?";
 
@@ -97,11 +96,11 @@ public class TestPhoenixTransactSQL {
     Assert.assertEquals(expectedClause, preparedClause);
 
 
-    condition = new LikeCondition(
+    condition = new DefaultCondition(
         null, "h1", "a1", "i1",
         1407959718L, 1407959918L, null, null, false);
 
-    preparedClause = condition.getConditionClause();
+    preparedClause = condition.getConditionClause().toString();
     expectedClause = " HOSTNAME = ? AND " +
         "APP_ID = ? AND INSTANCE_ID = ? AND SERVER_TIME >= ? AND SERVER_TIME < ?";
 
@@ -109,11 +108,11 @@ public class TestPhoenixTransactSQL {
     Assert.assertEquals(expectedClause, preparedClause);
 
 
-    condition = new LikeCondition(
-        Arrays.asList("cpu_user"), "h1", "a1", "i1",
+    condition = new DefaultCondition(
+        Arrays.asList("some=%.metric"), "h1", "a1", "i1",
         1407959718L, 1407959918L, null, null, false);
 
-    preparedClause = condition.getConditionClause();
+    preparedClause = condition.getConditionClause().toString();
     expectedClause = "(METRIC_NAME LIKE ?) AND HOSTNAME = ? AND " +
         "APP_ID = ? AND INSTANCE_ID = ? AND SERVER_TIME >= ? AND SERVER_TIME < ?";
 
@@ -121,11 +120,11 @@ public class TestPhoenixTransactSQL {
     Assert.assertEquals(expectedClause, preparedClause);
 
 
-    condition = new LikeCondition(
-        Arrays.asList("cpu_user", "mem_free", "cpu_aidle"), "h1", "a1", "i1",
+    condition = new DefaultCondition(
+        Arrays.asList("some=%.metric1", "some=%.metric2", "some=%.metric3"), "h1", "a1", "i1",
         1407959718L, 1407959918L, null, null, false);
 
-    preparedClause = condition.getConditionClause();
+    preparedClause = condition.getConditionClause().toString();
     expectedClause = "(METRIC_NAME LIKE ? OR METRIC_NAME LIKE ? OR METRIC_NAME LIKE ?) AND HOSTNAME = ? AND " +
         "APP_ID = ? AND INSTANCE_ID = ? AND SERVER_TIME >= ? AND SERVER_TIME < ?";
 
