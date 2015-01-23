@@ -45,7 +45,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     'WEBHCAT_SERVER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM'],
     'HIVE_SERVER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM'],
     'HIVE_METASTORE': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM'],
-    'MYSQL_SERVER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM'],
+    'MYSQL_SERVER': ['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM']
   },
 
   /**
@@ -476,13 +476,12 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
       case 'OOZIE_SERVER':
         urlParams.push('(type=oozie-site&tag=' + data.Clusters.desired_configs['oozie-site'].tag + ')');
         break;
-      case 'WEBHCAT_SERVER':
-        urlParams.push('(type=webhcat-site&tag=' + data.Clusters.desired_configs['webhcat-site'].tag + ')');
       case 'HIVE_SERVER':
-        urlParams.push('(type=hive-site&tag=' + data.Clusters.desired_configs['hive-site'].tag + ')');
-        break;
       case 'HIVE_METASTORE':
         urlParams.push('(type=hive-site&tag=' + data.Clusters.desired_configs['hive-site'].tag + ')');
+        urlParams.push('(type=webhcat-site&tag=' + data.Clusters.desired_configs['webhcat-site'].tag + ')');
+        urlParams.push('(type=hive-env&tag=' + data.Clusters.desired_configs['hive-env'].tag + ')');
+        urlParams.push('(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')');
         break;
       case 'MYSQL_SERVER':
         urlParams.push('(type=hive-site&tag=' + data.Clusters.desired_configs['hive-site'].tag + ')');
@@ -524,6 +523,10 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
 
     if (componentName === 'RESOURCEMANAGER') {
       this.setSpecificResourceMangerConfigs(configs, targetHostName);
+    }
+
+    if (componentName === 'HIVE_METASTORE' || componentName === 'HIVE_SERVER') {
+      this.setSpecificHiveConfigs(configs, targetHostName);
     }
 
     this.saveClusterStatus(secureConfigs, this.getComponentDir(configs, componentName));
@@ -620,6 +623,34 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         configs['yarn-site']['yarn.resourcemanager.hostname.rm2'] = targetHostName;
       }
     }
+  },
+
+  /**
+   * set specific configs which applies only to Hive related configs
+   * @param configs
+   * @param targetHostName
+   */
+  setSpecificHiveConfigs: function (configs, targetHostName) {
+    var sourceHostName = this.get('content.reassignHosts.source');
+    var hiveMSHosts = App.HostComponent.find().filterProperty('componentName', 'HIVE_METASTORE').mapProperty('hostName');
+    if (this.get('content.reassign.component_name') === 'HIVE_METASTORE') hiveMSHosts = hiveMSHosts.removeObject(sourceHostName).addObject(targetHostName);
+    var hiveServerHosts = App.HostComponent.find().filterProperty('componentName', 'HIVE_SERVER').mapProperty('hostName');
+    if (this.get('content.reassign.component_name') === 'HIVE_SERVER') hiveServerHosts = hiveServerHosts.removeObject(sourceHostName).addObject(targetHostName);
+    var hiveMasterHosts = hiveMSHosts.concat(hiveServerHosts).uniq().join(',');
+    var hiveUser = configs['hive-env']['hive_user'];
+    var webhcatUser = configs['hive-env']['webhcat_user'];
+
+    var port = configs['hive-site']['hive.metastore.uris'].match(/:[0-9]{2,4}/);
+    port = port ? port[0].slice(1) : "9083";
+
+    for (var i = 0; i < hiveMSHosts.length; i++) {
+      hiveMSHosts[i] = "thrift://" + hiveMSHosts[i] + ":" + port;
+    }
+
+    configs['hive-site']['hive.metastore.uris'] = hiveMSHosts.join(',');
+    configs['webhcat-site']['templeton.hive.properties'] = configs['webhcat-site']['templeton.hive.properties'].replace(/thrift.+[0-9]{2,},/i, hiveMSHosts.join('\\,') + ",");
+    configs['core-site']['hadoop.proxyuser.' + hiveUser + '.hosts'] = hiveMasterHosts;
+    configs['core-site']['hadoop.proxyuser.' + webhcatUser + '.hosts'] = hiveMasterHosts;
   },
 
   /**
