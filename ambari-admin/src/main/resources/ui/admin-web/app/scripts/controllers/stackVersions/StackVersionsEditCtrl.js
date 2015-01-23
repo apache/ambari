@@ -158,7 +158,11 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.fetchRepoClusterStatus = function () {
-    var clusterName = $scope.clusters[0].Clusters.cluster_name; // only support one cluster at the moment
+    var clusterName = ($scope.clusters && $scope.clusters.length > 0)
+      ? $scope.clusters[0].Clusters.cluster_name : null; // only support one cluster at the moment
+    if (!clusterName) {
+      return null;
+    }
     return Cluster.getRepoVersionStatus(clusterName, $scope.id).then(function (response) {
       $scope.repoStatus = response.status;
     });
