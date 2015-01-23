@@ -20,7 +20,7 @@
   <services>
     <service>
       <name>SLIDER</name>
-      <extends>common-services/SLIDER/0.60.0.2.2</extends>
+      <extends>common-services/SLIDER/0.60.0</extends>
     </service>
   </services>
 </metainfo>
