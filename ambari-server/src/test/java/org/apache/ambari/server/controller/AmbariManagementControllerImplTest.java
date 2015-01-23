@@ -507,11 +507,12 @@ public class AmbariManagementControllerImplTest {
     // requests
     Set<ClusterRequest> setRequests = Collections.singleton(clusterRequest);
 
+    KerberosHelper kerberosHelper = createStrictMock(KerberosHelper.class);
     // expectations
     injector.injectMembers(capture(controllerCapture));
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
-    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(kerberosHelper);
     expect(clusterRequest.getClusterName()).andReturn("clusterNew").times(4);
     expect(clusterRequest.getClusterId()).andReturn(1L).times(6);
     expect(clusters.getClusterById(1L)).andReturn(cluster).times(2);
@@ -522,6 +523,47 @@ public class AmbariManagementControllerImplTest {
 
     cluster.setClusterName("clusterNew");
     expectLastCall();
+
+    // replay mocks
+    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager);
+
+    // test
+    AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, injector);
+    controller.updateClusters(setRequests, null);
+
+    // assert and verify
+    assertSame(controller, controllerCapture.getValue());
+    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager);
+  }
+
+  /**
+   * Ensure that when the cluster is updated KerberosHandler.toggleKerberos is not invoked unless
+   * the security state is altered
+   */
+  @Test
+  public void testUpdateClustersToggleKerberosNotInvoked() throws Exception {
+    // member state mocks
+    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Injector injector = createStrictMock(Injector.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    ActionManager actionManager = createNiceMock(ActionManager.class);
+    ClusterRequest clusterRequest = createNiceMock(ClusterRequest.class);
+
+    // requests
+    Set<ClusterRequest> setRequests = Collections.singleton(clusterRequest);
+
+    KerberosHelper kerberosHelper = createStrictMock(KerberosHelper.class);
+    // expectations
+    injector.injectMembers(capture(controllerCapture));
+    expect(injector.getInstance(Gson.class)).andReturn(null);
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(kerberosHelper);
+    expect(clusterRequest.getClusterId()).andReturn(1L).times(6);
+    expect(clusters.getClusterById(1L)).andReturn(cluster).times(2);
+    expect(cluster.getClusterName()).andReturn("cluster").times(2);
+
+    cluster.addSessionAttributes(anyObject(Map.class));
+    expectLastCall().once();
 
     // replay mocks
     replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager);
