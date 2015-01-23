@@ -36,28 +36,22 @@ App.MainAdminStackVersionsView = Em.View.extend({
   categories: [
     Em.Object.create({
       labelKey: 'admin.stackVersions.filter.all',
-      value: '',
       isSelected: true
     }),
     Em.Object.create({
       labelKey: 'admin.stackVersions.filter.notInstalled',
-      value: 'NOT_INSTALLED',
-      isSelected: false
-    }),
-    Em.Object.create({
-      labelKey: 'admin.stackVersions.filter.installed',
-      value: 'INSTALLED',
-      isSelected: false
+      isSelected: false,
+      statuses: ["INIT", "INSTALLING", "INSTALL_FAILED", "OUT_OF_SYNC"]
     }),
     Em.Object.create({
       labelKey: 'admin.stackVersions.filter.upgradeReady',
-      value: 'UPGRADE_READY',
-      isSelected: false
+      isSelected: false,
+      statuses: ["INSTALLED"]
     }),
     Em.Object.create({
       labelKey: 'admin.stackVersions.filter.current',
-      value: 'CURRENT',
-      isSelected: false
+      isSelected: false,
+      statuses: ["CURRENT"]
     })
   ],
 
@@ -121,15 +115,12 @@ App.MainAdminStackVersionsView = Em.View.extend({
    */
   filterBy: function (versions, filter) {
     var currentVersion = this.get('controller.currentVersion');
-    if (filter && filter.get('value')) {
+    if (filter && filter.get('statuses')) {
       return versions.filter(function (version) {
-        var status = version.get('stackVersion.state');
-        if (status === 'INSTALLED' && filter.get('value') === 'UPGRADE_READY') {
+        if (version.get('status') === 'INSTALLED' && filter.get('statuses').contains("INSTALLED")) {
           return stringUtils.compareVersions(version.get('repositoryVersion'), Em.get(currentVersion, 'repository_version')) === 1;
-        } else if (filter.get('value') === 'NOT_INSTALLED') {
-          return ['INIT', 'INSTALL_FAILED', 'INSTALLING', 'OUT_OF_SYNC'].contains(status);
         } else {
-          return status === filter.get('value');
+          return filter.get('statuses').contains(version.get('status'));
         }
       }, this);
     }
