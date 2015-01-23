@@ -930,6 +930,12 @@ public class ViewRegistryTest {
     registry.addDefinition(viewEntity);
     registry.installViewInstance(viewInstanceEntity);
 
+    Assert.assertTrue(viewInstanceEntity.isVisible());
+
+    updateInstance.setLabel("new label");
+    updateInstance.setDescription("new description");
+    updateInstance.setVisible(false);
+
     registry.updateViewInstance(updateInstance);
 
     Collection<ViewInstanceEntity> viewInstanceDefinitions = registry.getInstanceDefinitions(viewEntity);
@@ -938,6 +944,9 @@ public class ViewRegistryTest {
 
     ViewInstanceEntity instanceEntity = viewInstanceDefinitions.iterator().next();
     Assert.assertEquals("v2-1", instanceEntity.getProperty("p2").getValue() );
+    Assert.assertEquals("new label", instanceEntity.getLabel() );
+    Assert.assertEquals("new description", instanceEntity.getDescription() );
+    Assert.assertFalse(instanceEntity.isVisible());
 
     Assert.assertEquals(viewInstanceEntity, viewInstanceDefinitions.iterator().next());
 

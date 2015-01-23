@@ -1197,6 +1197,9 @@ public class ViewRegistry {
 
   // sync a given view instance entity with another given view instance entity
   private void syncViewInstance(ViewInstanceEntity instance1, ViewInstanceEntity instance2) {
+    instance1.setLabel(instance2.getLabel());
+    instance1.setDescription(instance2.getDescription());
+    instance1.setVisible(instance2.isVisible());
     instance1.setResource(instance2.getResource());
     instance1.setViewInstanceId(instance2.getViewInstanceId());
     instance1.setData(instance2.getData());
