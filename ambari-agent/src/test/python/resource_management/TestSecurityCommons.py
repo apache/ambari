@@ -142,27 +142,20 @@ class TestSecurityCommons(TestCase):
     }
 
     result = get_params_from_filesystem(conf_dir, config_file)
+    expected = {
+      'test_jaas': {
+        'Client': {
+          'keyTab': '/etc/security/keytabs/hbase.service.keytab',
+          'useTicketCache': 'false',
+          'storeKey': 'true',
+          'com.sun.security.auth.module.Krb5LoginModule': 'required',
+          'useKeyTab': 'true',
+          'principal': 'hbase/vp-ambari-ranger-med-0120-2.cs1cloud.internal@EXAMPLE.COM'
+        }
+      }
+    }
 
-    self.assertIn('test_jaas', result)
-    self.assertIn('Client', result['test_jaas'])
-
-    self.assertIn('com.sun.security.auth.module.Krb5LoginModule', result['test_jaas']['Client'])
-    self.assertEquals('required', result['test_jaas']['Client']['com.sun.security.auth.module.Krb5LoginModule'])
-
-    self.assertIn('useKeyTab', result['test_jaas']['Client'])
-    self.assertEquals('true', result['test_jaas']['Client']['useKeyTab'])
-
-    self.assertIn('storeKey', result['test_jaas']['Client'])
-    self.assertEquals('true', result['test_jaas']['Client']['storeKey'])
-
-    self.assertIn('useTicketCache', result['test_jaas']['Client'])
-    self.assertEquals('false', result['test_jaas']['Client']['useTicketCache'])
-
-    self.assertIn('keyTab', result['test_jaas']['Client'])
-    self.assertEquals('/etc/security/keytabs/hbase.service.keytab', result['test_jaas']['Client']['keyTab'])
-
-    self.assertIn('principal', result['test_jaas']['Client'])
-    self.assertEquals('hbase/vp-ambari-ranger-med-0120-2.cs1cloud.internal@EXAMPLE.COM', result['test_jaas']['Client']['principal'])
+    self.assertEquals(expected, result)
 
     os.unlink(jaas_file_path)
 
