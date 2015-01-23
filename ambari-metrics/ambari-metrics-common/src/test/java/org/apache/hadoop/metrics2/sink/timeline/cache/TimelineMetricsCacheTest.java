@@ -17,14 +17,14 @@
  */
 package org.apache.hadoop.metrics2.sink.timeline.cache;
 
-import static com.sun.tools.javac.util.Assert.assertEquals;
-
 import org.apache.hadoop.metrics2.MetricType;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.junit.Test;
 
 import java.util.Map;
 import java.util.TreeMap;
+
+import static org.junit.Assert.assertEquals;
 
 public class TimelineMetricsCacheTest {
 
