@@ -1268,15 +1268,22 @@ var urls = {
       }
     }
   },
-  'admin.kerberos.kerberos_descriptor': {
-    // @todo: replace with real URL after API implementation
-    //        /clusters/{clusterName}?fields=Clusters/kerberos_descriptor
-    'real': '/stacks/{stackName}/versions/{stackVersionNumber}?fields=Versions/kerberos_descriptor',
+  'get.cluster.artifact': {
+    'real': '/clusters/{clusterName}/artifacts/{artifactName}?fields=artifact_data',
     'mock': '/data/wizard/kerberos/stack_descriptors.json'
   },
   'admin.kerberize.stack_descriptor': {
-    'real': '/stacks/{stackName}/versions/{stackVersionNumber}?fields=Versions/kerberos_descriptor',
+    'real': '/stacks/{stackName}/versions/{stackVersionNumber}/artifacts/kerberos_descriptor?fields=artifact_data',
     'mock': '/data/wizard/kerberos/stack_descriptors.json'
+  },
+  'create.cluster.artifact': {
+    'type': 'POST',
+    'real': '/clusters/{clusterName}/artifacts/{artifactName}',
+    'format' : function (data) {
+      return {
+        data: JSON.stringify(data.data)
+      }
+    }
   },
   'admin.poll.kerberize.cluster.request': {
     'real': '/clusters/{clusterName}/requests/{requestId}?fields=stages/Stage/context,stages/Stage/status,stages/Stage/progress_percent,stages/tasks/*,Requests/*',

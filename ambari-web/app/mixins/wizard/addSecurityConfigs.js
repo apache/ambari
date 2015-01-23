@@ -400,7 +400,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
     var self = this;
     var configs = [];
     var clusterConfigs = [];
-    var kerberosDescriptor = items.Versions.kerberos_descriptor;
+    var kerberosDescriptor = items.artifact_data;
     this.set('kerberosDescriptor', kerberosDescriptor);
     // generate configs for root level properties object, currently realm, keytab_dir
     clusterConfigs = clusterConfigs.concat(this.expandKerberosStackDescriptorProps(kerberosDescriptor.properties, 'Cluster', 'stackConfigs'));

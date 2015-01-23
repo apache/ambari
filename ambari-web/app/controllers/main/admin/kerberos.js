@@ -136,9 +136,9 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   loadStackDescriptorConfigs: function () {
     return App.ajax.send({
       sender: this,
-      name: 'admin.kerberos.kerberos_descriptor',
+      name: 'get.cluster.artifact',
       data: {
-        stackName: App.get('currentStackName'),
+        artifactName: 'kerberos_descriptor',
         stackVersionNumber: App.get('currentStackVersionNumber')
       }
     });
