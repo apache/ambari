@@ -40,12 +40,16 @@
           {{#if this.isCurrent}}
             <span class="label label-success">{{t common.current}}</span>
           {{else}}
-            {{this.displayStatus}}
+            {{#if this.isInstalling}}
+              <a href="#" {{action showInstallProgress this target="view"}}><i class="icon-cog in_progress"></i>&nbsp;{{this.displayStatus}}</a>
+            {{else}}
+              {{this.displayStatus}}
+            {{/if}}
           {{/if}}
         </td>
         <td class="install-repo-version align-center">
           {{#isAccessible ADMIN}}
-            <button class="btn" {{action installVersion this target="controller"}} {{bindAttr disabled="this.installDisabled"}}><i class="icon-off"></i>&nbsp;{{t common.install}}</button>
+            <button class="btn" {{action installVersionConfirmation this target="controller"}} {{bindAttr disabled="this.installDisabled"}}><i class="icon-off"></i>&nbsp;{{t common.install}}</button>
           {{/isAccessible}}
         </td>
       </tr>

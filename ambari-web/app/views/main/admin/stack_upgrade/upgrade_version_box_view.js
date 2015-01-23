@@ -25,6 +25,22 @@ App.UpgradeVersionBoxView = Em.View.extend({
   classNames: ['span4', 'version-box'],
   classNameBindings: ['versionClass'],
 
+  /**
+   * @type {string}
+   * @constant
+   */
+  PROGRESS_STATUS: 'IN_PROGRESS',
+
+  /**
+   * progress of version installation
+   * @type {number}
+   */
+  installProgress: function() {
+    var requestId = App.get('testMode') ? 1 : App.db.get('repoVersionInstall', 'id')[0];
+    var installRequest = App.router.get('backgroundOperationsController.services').findProperty('id', requestId);
+    return (installRequest) ? installRequest.get('progress') : 0;
+  }.property('App.router.backgroundOperationsController.services.@each.progress'),
+
   versionClass: function () {
     return this.get('content.status') == 'CURRENT'
       ? 'current-version-box' : '';
@@ -63,8 +79,13 @@ App.UpgradeVersionBoxView = Em.View.extend({
   stateElement: function () {
     var currentVersion = this.get('controller.currentVersion');
     var upgradeVersion = this.get('controller.upgradeVersion');
-    var element = Em.Object.create();
     var status = this.get('content.status');
+    var element = Em.Object.create({
+      status: status,
+      isInstalling: function () {
+        return this.get('status') === 'INSTALLING';
+      }.property('status')
+    });
 
     if (status === 'CURRENT') {
       element.set('isLabel', true);
@@ -88,6 +109,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
         element.set('iconClass', 'icon-ok');
         element.set('isLink', true);
         element.set('text', Em.I18n.t('common.installed'));
+        element.set('action', null);
       }
     } else if (['UPGRADING', 'UPGRADE_FAILED', 'UPGRADED'].contains(status)) {
       element.set('isLink', true);
@@ -136,7 +158,6 @@ App.UpgradeVersionBoxView = Em.View.extend({
         return Em.Object.create({
           osType: os.get('osType'),
           isSelected: true,
-          isDisabled: Ember.computed.not('isSelected'),
           repositories: os.get('repositories').map(function (repository) {
             return Em.Object.create({
               repoName: repository.get('repoName'),
@@ -152,6 +173,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
     return App.ModalPopup.show({
       classNames: ['repository-list', 'sixty-percent-width-modal'],
       skipValidation: false,
+      autoHeight: false,
       hasErrors: false,
       bodyClass: Ember.View.extend({
         content: repo,
@@ -170,16 +192,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
         templateName: require('templates/main/admin/stack_upgrade/edit_repositories'),
         didInsertElement: function () {
           App.tooltip($("[rel=skip-validation-tooltip]"), {placement: 'right'});
-        },
-        OSCheckBox: Ember.Checkbox.extend({
-          classNames: ["align-checkbox"],
-
-          checkedBinding: "os.isSelected",
-
-          change: function () {
-            this.get('os.repositories').setEach('hasError', false);
-          }
-        })
+        }
       }),
       header: Em.I18n.t('common.repositories'),
       primary: Em.I18n.t('common.save'),

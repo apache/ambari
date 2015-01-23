@@ -70,6 +70,7 @@ App.hostsMapper = App.QuickDataMapper.create({
     stack: 'HostStackVersions.stack',
     repo_id: 'repository_versions[0].RepositoryVersions.id',
     repo_version: 'repository_versions[0].RepositoryVersions.repository_version',
+    display_name: 'repository_versions[0].RepositoryVersions.display_name',
     version: 'HostStackVersions.version',
     status: 'HostStackVersions.state',
     host_name: 'host_name',

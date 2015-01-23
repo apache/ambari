@@ -127,4 +127,24 @@ describe('App.HostStackVersion', function () {
       expect(App.HostStackVersion.find(1).get('isCurrent')).to.be.false;
     });
   });
+
+  describe("#isInstalling", function () {
+    afterEach(function () {
+      App.HostStackVersion.find().clear();
+    });
+    it("status is INSTALLING", function () {
+      App.store.load(App.HostStackVersion, {
+        id: 1,
+        status: 'INSTALLING'
+      });
+      expect(App.HostStackVersion.find(1).get('isInstalling')).to.be.true;
+    });
+    it("status is not INSTALLING", function () {
+      App.store.load(App.HostStackVersion, {
+        id: 1,
+        status: 'INSTALLED'
+      });
+      expect(App.HostStackVersion.find(1).get('isInstalling')).to.be.false;
+    });
+  });
 });

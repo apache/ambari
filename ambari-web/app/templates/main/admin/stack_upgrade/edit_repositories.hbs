@@ -32,13 +32,13 @@
 {{#each os in view.content.operatingSystems}}
   <div class="row-fluid os-block">
     <div class="span2">
-      {{view view.OSCheckBox osBinding="os"}}&nbsp;{{os.osType}}
+      {{os.osType}}
     </div>
   <div class="span10">
   {{#each repository in os.repositories}}
     <div class="row-fluid">
       <div class="span3">{{repository.repoName}}</div>
-      <div {{bindAttr class="repository.hasError:error :control-group :span9"}}>{{view App.BaseUrlTextField repositoryBinding="repository" disabledBinding="os.isDisabled"}}</div>
+      <div {{bindAttr class="repository.hasError:error :control-group :span9"}}>{{view App.BaseUrlTextField repositoryBinding="repository"}}</div>
         </div>
       {{/each}}
     </div>

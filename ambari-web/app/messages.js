@@ -1992,6 +1992,7 @@ Em.I18n.translations = {
   'hosts.host.stackVersions.status.out_of_sync': 'Out of sync',
   'hosts.host.stackVersions.status.upgrading': 'Upgrading',
   'hosts.host.stackVersions.status.upgrade_failed': 'Upgrade Failed',
+  'hosts.host.stackVersions.install.confirmation': 'You are about to install version <b>{0}</b> on this host.',
 
   'hosts.host.metrics.dataUnavailable':'Data Unavailable',
   'hosts.host.metrics.cpu':'CPU Usage',

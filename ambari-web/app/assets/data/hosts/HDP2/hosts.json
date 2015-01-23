@@ -27,7 +27,8 @@
             {
               "RepositoryVersions" : {
                 "id" : 1,
-                "repository_version" : "2.2.0.1-885"
+                "repository_version" : "2.2.0.1-885",
+                "display_name" : "HDP-2.2.0.1-885"
               }
             }
           ]
@@ -45,7 +46,8 @@
             {
               "RepositoryVersions" : {
                 "id" : 2,
-                "repository_version" : "2.2.1.1-885"
+                "repository_version" : "2.2.1.1-885",
+                "display_name" : "HDP-2.2.1.1-885"
               }
             }
           ]
@@ -56,14 +58,15 @@
             "host_name" : "dev01.hortonworks.com",
             "id" : 3,
             "stack" : "HDP",
-            "state" : "INIT",
+            "state" : "OUT_OF_SYNC",
             "version" : "2.2"
           },
           "repository_versions" : [
             {
               "RepositoryVersions" : {
                 "id" : 3,
-                "repository_version" : "2.2.2.1-885"
+                "repository_version" : "2.2.2.1-885",
+                "display_name" : "HDP-2.2.2.1-885"
               }
             }
           ]
@@ -81,7 +84,8 @@
             {
               "RepositoryVersions" : {
                 "id" : 4,
-                "repository_version" : "2.2.3.1-885"
+                "repository_version" : "2.2.3.1-885",
+                "display_name" : "HDP-2.2.3.1-885"
               }
             }
           ]
@@ -99,7 +103,8 @@
             {
               "RepositoryVersions" : {
                 "id" : 6,
-                "repository_version" : "2.2.4.1-885"
+                "repository_version" : "2.2.4.1-885",
+                "display_name" : "HDP-2.2.4.1-885"
               }
             }
           ]

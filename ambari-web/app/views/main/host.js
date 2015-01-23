@@ -1014,7 +1014,6 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
       value: [],
 
       versionSelectView: filters.createSelectView({
-        column: 12,
         classNames: ['notActive'],
         fieldType: 'filter-input-width',
         content: function () {
@@ -1035,7 +1034,6 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
         }
       }),
       statusSelectView: filters.createSelectView({
-        column: 13,
         classNames: ['notActive'],
         fieldType: 'filter-input-width',
         content: function () {
@@ -1062,10 +1060,19 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
         this._super();
         var self = this;
         var filterProperties = [];
-        var filters = [];
-        filters.pushObject({ iColumn: 12, value: this.get('selectedVersion')});
-        filters.pushObject({ iColumn: 13, value: this.get('selectedStatus')});
-        this.get('parentView.parentView').updateFilters(filters);
+        if (this.get('selectedVersion')) {
+          filterProperties.push({
+            property: 'repository_versions/RepositoryVersions/repository_version',
+            value: this.get('selectedVersion')
+          });
+        }
+        if (this.get('selectedStatus')) {
+          filterProperties.push({
+            property: 'HostStackVersions/state',
+            value: this.get('selectedStatus')
+          });
+        }
+        self.set('value', filterProperties);
       },
       /**
        * Clear filter to initial state
@@ -1077,6 +1084,9 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
         });
       }
     }),
+    onChangeValue: function () {
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'sub-resource');
+    },
     clearFilter: function () {
       this._super();
       this.get('childViews').forEach(function (view) {

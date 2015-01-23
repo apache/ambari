@@ -2286,6 +2286,27 @@ describe('App.MainHostDetailsController', function () {
     });
   });
 
+  describe('#installVersionConfirmation()', function () {
+
+    beforeEach(function () {
+      sinon.spy(App, "showConfirmationPopup");
+      sinon.stub(controller, 'installVersion', Em.K);
+    });
+    afterEach(function () {
+      App.showConfirmationPopup.restore();
+      controller.installVersion.restore();
+    });
+
+    it('confirm popup should be displayed', function () {
+      var event = {context: Em.Object.create({displayName: 'displayName'})};
+      var popup = controller.installVersionConfirmation(event);
+      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+      popup.onPrimary();
+      expect(controller.installVersion.calledWith(event)).to.be.true;
+    });
+  });
+
+
   describe("#installVersion()", function() {
     it("call App.ajax.send", function() {
       controller.set('content.hostName', 'host1');
@@ -2305,9 +2326,13 @@ describe('App.MainHostDetailsController', function () {
   describe("#installVersionSuccessCallback()", function () {
     before(function () {
       this.mock = sinon.stub(App.HostStackVersion, 'find');
+      sinon.stub(App.db, 'set', Em.K);
+      sinon.stub(App.clusterStatus, 'setClusterStatus', Em.K);
     });
     after(function () {
       this.mock.restore();
+      App.db.set.restore();
+      App.clusterStatus.setClusterStatus.restore();
     });
     it("", function () {
       var version = Em.Object.create({
@@ -2315,8 +2340,10 @@ describe('App.MainHostDetailsController', function () {
         status: 'INIT'
       });
       this.mock.returns(version);
-      controller.installVersionSuccessCallback({}, {}, {version: version});
+      controller.installVersionSuccessCallback({Requests:{id: 1}}, {}, {version: version});
       expect(version.get('status')).to.equal('INSTALLING');
+      expect(App.db.set.calledWith('repoVersionInstall', 'id', [1])).to.be.true;
+      expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
     });
   });
 });

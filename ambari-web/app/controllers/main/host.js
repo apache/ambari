@@ -124,13 +124,8 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
       type: 'MULTIPLE'
     },
     {
-      name: 'repositoryVersion',
-      key: 'stack_versions/repository_versions/RepositoryVersions/repository_version',
-      type: 'EQUAL'
-    },
-    {
-      name: 'hostStackVersionState',
-      key: 'stack_versions/HostStackVersions/state',
+      name: 'hostStackVersion',
+      key: 'stack_versions',
       type: 'EQUAL'
     }
   ],
@@ -938,8 +933,6 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     associations[9] = 'componentsInPassiveStateCount';
     associations[10] = 'selected';
     associations[11] = 'hostStackVersion';
-    associations[12] = 'repositoryVersion';
-    associations[13] = 'hostStackVersionState';
     return associations;
   }.property()
 

@@ -1299,7 +1299,7 @@ accordion .panel-group .panel{
 }
 
 .status-installed {
-  background-color: orangered;
+  background-color: #999;
 }
 
 .repo-version-select {

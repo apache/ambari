@@ -1833,6 +1833,20 @@ App.MainHostDetailsController = Em.Controller.extend({
   },
 
   /**
+   * show popup confirmation of version installation
+   * @param event
+   */
+  installVersionConfirmation: function (event) {
+    var self = this;
+
+    return App.showConfirmationPopup(function () {
+        self.installVersion(event);
+      },
+      Em.I18n.t('hosts.host.stackVersions.install.confirmation').format(event.context.get('displayName'))
+    );
+  },
+
+  /**
    * install HostStackVersion on host
    * @param {object} event
    */
@@ -1857,5 +1871,10 @@ App.MainHostDetailsController = Em.Controller.extend({
    */
   installVersionSuccessCallback: function (data, opt, params) {
     App.HostStackVersion.find(params.version.get('id')).set('status', 'INSTALLING');
+    App.db.set('repoVersionInstall', 'id', [data.Requests.id]);
+    App.clusterStatus.setClusterStatus({
+      wizardControllerName: this.get('name'),
+      localdb: App.db.data
+    });
   }
 });

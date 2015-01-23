@@ -23,19 +23,40 @@ App.HostStackVersion = DS.Model.extend({
   version: DS.attr('string'),
   repo: DS.belongsTo('App.Repository'),
   repoVersion: DS.attr('string'),
+  displayName: DS.attr('string'),
 
   /**
    * possible property value defined at App.HostStackVersion.statusDefinition
+   * @type {string}
    */
   status: DS.attr('string'),
   host: DS.belongsTo('App.Host'),
   hostName: DS.attr('string'),
+
+  /**
+   * @type {boolean}
+   */
   isCurrent: function () {
     return this.get('status') === 'CURRENT'
   }.property('status'),
+
+  /**
+   * @type {boolean}
+   */
+  isInstalling: function () {
+    return this.get('status') === 'INSTALLING';
+  }.property('status'),
+
+  /**
+   * @type {string}
+   */
   displayStatus: function() {
     return App.HostStackVersion.formatStatus(this.get('status'));
   }.property('status'),
+
+  /**
+   * @type {boolean}
+   */
   installEnabled: function () {
     return ['OUT_OF_SYNC', 'INSTALL_FAILED'].contains(this.get('status'));
   }.property('status'),

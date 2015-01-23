@@ -159,6 +159,13 @@ App.MainHostStackVersionsView = App.TableView.extend({
   }),
 
   /**
+   * show progress of installation of version on host
+   */
+  showInstallProgress: function (event) {
+    App.router.get('mainAdminStackAndUpgradeController').showProgressPopup(event.context);
+  },
+
+  /**
    * @type {Array}
    */
   colPropAssoc: function () {

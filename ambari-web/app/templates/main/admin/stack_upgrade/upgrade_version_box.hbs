@@ -22,7 +22,7 @@
     <i class="icon-edit"></i>
   </a>
 </p>
-<p class="align-center state">
+<div {{bindAttr class="view.stateElement.isInstalling:installing :align-center :state"}}>
   {{#if view.stateElement.isButton}}
     <button class="btn btn-primary" {{action runAction view.stateElement target="view"}}>{{view.stateElement.text}}</button>
   {{/if}}
@@ -34,8 +34,14 @@
       <i {{bindAttr class="view.stateElement.iconClass"}}></i>
     {{/if}}
     <a href="#" {{action runAction view.stateElement target="view"}}>{{view.stateElement.text}}</a>
+    {{#if view.stateElement.isInstalling}}
+      {{view App.ProgressBarView
+        progressBinding="view.installProgress"
+        statusBinding="view.PROGRESS_STATUS"
+      }}
+    {{/if}}
   {{/if}}
-</p>
+</div>
 
 <div class="hosts-section">
   <div class="hosts-bar">{{t common.hosts}}</div>

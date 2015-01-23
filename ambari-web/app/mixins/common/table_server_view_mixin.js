@@ -65,26 +65,7 @@ App.TableServerViewMixin = Em.Mixin.create({
       return a.get('index') - b.get('index');
     });
   }.property('filteredContent'),
-  /**
-   * compute applied filters and run content update from server
-   * @param filterObjects
-   */
-  updateFilters: function(filterObjects) {
-    this.set('controller.resetStartIndex', false);
-    filterObjects.forEach(function(filterObject) {
-      this.saveFilterConditions(filterObject.iColumn, filterObject.value, filterObject.type, false);
-    }, this);
-    if (!this.get('filteringComplete')) {
-      clearTimeout(this.get('timeOut'));
-      this.set('timeOut', setTimeout(function () {
-        self.updateFilters(filterObjects);
-      }, this.get('filterWaitingTime')));
-    } else {
-      clearTimeout(this.get('timeOut'));
-      this.set('controller.resetStartIndex', true);
-      this.refresh();
-    }
-  },
+
   /**
    * compute applied filter and run content update from server
    * @param iColumn
