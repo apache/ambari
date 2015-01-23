@@ -1428,7 +1428,6 @@ describe('App.MainHostDetailsController', function () {
       lastComponents: [],
       masterComponents: [],
       runningComponents: [],
-      notDecommissionedComponents: [],
       nonDeletableComponents: [],
       unknownComponents: []
     };
@@ -1504,38 +1503,6 @@ describe('App.MainHostDetailsController', function () {
         displayName: 'ZK1'
       })]});
       expect(controller.getHostComponentsInfo().runningComponents).to.eql(['ZK1']);
-      App.HostComponent.find.restore();
-    });
-    it('content.hostComponents has notDecommissioned running component', function () {
-      sinon.stub(App.HostComponent, 'find', function() {
-        return [{
-          id: 'DATANODE_host1',
-          componentName: 'DATANODE'
-        }];
-      });
-      controller.set('content', {hostComponents: [Em.Object.create({
-        componentName: 'DATANODE',
-        workStatus: 'STARTED',
-        displayName: 'DataNode',
-        adminState: 'INSERVICE'
-      })]});
-      expect(controller.getHostComponentsInfo().notDecommissionedComponents).to.eql(['DataNode']);
-      App.HostComponent.find.restore();
-    });
-    it('content.hostComponents has notDecommissioned running component', function () {
-      sinon.stub(App.HostComponent, 'find', function() {
-        return [{
-          id: 'DATANODE_host1',
-          componentName: 'DATANODE'
-        }];
-      });
-      controller.set('content', {hostComponents: [Em.Object.create({
-        componentName: 'DATANODE',
-        workStatus: 'INSTALLED',
-        displayName: 'DataNode',
-        adminState: 'INSERVICE'
-      })]});
-      expect(controller.getHostComponentsInfo().notDecommissionedComponents).to.eql(['DataNode']);
       App.HostComponent.find.restore();
     });
     it('content.hostComponents has non-deletable component', function () {
@@ -1618,8 +1585,7 @@ describe('App.MainHostDetailsController', function () {
       controller.set('mockHostComponentsInfo', {
         masterComponents: [],
         nonDeletableComponents: [],
-        runningComponents: [{}],
-        notDecommissionedComponents: []
+        runningComponents: [{}]
       });
       controller.validateAndDeleteHost();
       expect(controller.raiseDeleteComponentsError.calledWith([{}], 'runningList')).to.be.true;
@@ -1629,7 +1595,6 @@ describe('App.MainHostDetailsController', function () {
         masterComponents: [],
         nonDeletableComponents: [],
         runningComponents: [],
-        notDecommissionedComponents: [],
         unknownComponents: [],
         lastComponents: [],
         zkServerInstalled: true
@@ -1644,7 +1609,6 @@ describe('App.MainHostDetailsController', function () {
         masterComponents: [],
         nonDeletableComponents: [],
         runningComponents: [],
-        notDecommissionedComponents: [],
         unknownComponents: [],
         lastComponents: [],
         zkServerInstalled: false
