@@ -815,7 +815,11 @@ App.SlaveComponentChangeGroupNameView = Ember.View.extend(App.ServiceConfigCalcu
 App.CheckDBConnectionView = Ember.View.extend({
   templateName: require('templates/common/form/check_db_connection'),
   /** @property {string} btnCaption - text for button **/
-  btnCaption: Em.I18n.t('services.service.config.database.btn.idle'),
+  btnCaption: function() {
+    return this.get('parentView.service.serviceName') === 'KERBEROS'
+      ? Em.I18n.t('services.service.config.kdc.btn.idle')
+      : Em.I18n.t('services.service.config.database.btn.idle')
+  }.property('parentView.service.serviceName'),
   /** @property {string} responseCaption - text for status link **/
   responseCaption: null,
   /** @property {boolean} isConnecting - is request to server activated **/

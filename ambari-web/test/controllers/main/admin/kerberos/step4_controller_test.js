@@ -23,7 +23,7 @@ describe('App.KerberosWizardStep4Controller', function() {
   describe('#isSubmitDisabled', function() {
     var controller = App.KerberosWizardStep4Controller.create({});
     var configs = Em.A([
-      App.ServiceConfigProperty.create({ name: 'prop1', value: 'someVal1', identityType: 'user', category: 'Ambari Principals'})
+      App.ServiceConfigProperty.create({ name: 'prop1', value: 'someVal1', identityType: 'user', category: 'Ambari Principals', serviceName: 'Cluster'})
     ]);
     controller.set('stepConfigs', controller.createServiceConfig(configs));
     

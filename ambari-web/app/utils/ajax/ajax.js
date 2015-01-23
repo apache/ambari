@@ -2244,9 +2244,14 @@ var formatRequest = function (data) {
   return opt;
 };
 
+/**
+ * Error messages for KDC administrator credentials error
+ * is used for checking if error message is caused by bad KDC credentials
+ * @type {{missingKDC: string, invalidKDC: string}}
+ */
 var specialMsg = {
-  "missingKDC": "java.lang.IllegalArgumentException: Missing KDC administrator credentials.",
-  "invalidKDC": "java.lang.IllegalArgumentException: Invalid KDC administrator credentials."
+  "missingKDC": "Missing KDC administrator credentials.",
+  "invalidKDC": "Invalid KDC administrator credentials."
 };
 /**
  * Wrapper for all ajax requests
@@ -2308,8 +2313,9 @@ var ajax = Em.Object.extend({
       }
     };
     opt.error = function (request, ajaxOptions, error) {
-      if (this.isKDCError(request)) {
-        this.defaultErrorKDCHandler(opt);
+      var KDCErrorMsg = this.getKDCErrorMgs(request);
+      if (!Em.isNone(KDCErrorMsg)) {
+        this.defaultErrorKDCHandler(opt, KDCErrorMsg);
       } else if (config.error) {
         config.sender[config.error](request, ajaxOptions, error, opt, params);
       } else {
@@ -2367,23 +2373,31 @@ var ajax = Em.Object.extend({
 
   /**
    * defines if it's admin session expiration error
+   * and if so returns short error message
    * @param jqXHR
-   * @returns {boolean}
+   * @returns {string|null}
    */
-  isKDCError: function(jqXHR) {
+  getKDCErrorMgs: function(jqXHR) {
     try {
       var message = $.parseJSON(jqXHR.responseText).message;
     } catch (err) {}
-    return jqXHR.status === 400 && message && (message.contains(specialMsg.missingKDC) || message.contains(specialMsg.invalidKDC))
+    if (jqXHR.status === 400 && message) {
+      return message.contains(specialMsg.missingKDC) ? specialMsg.missingKDC
+        : message.contains(specialMsg.invalidKDC) ? specialMsg.invalidKDC : null;
+    } else {
+      return null;
+    }
+
   },
 
   /**
    * default handler for admin session expiration error
-   * @param opt
+   * @param {object} opt
+   * @param {string} msg
    * @returns {*}
    */
-  defaultErrorKDCHandler: function(opt) {
-    return App.showInvalidKDCPopup(opt);
+  defaultErrorKDCHandler: function(opt, msg) {
+    return App.showInvalidKDCPopup(opt, msg);
   }
 
 });

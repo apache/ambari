@@ -323,7 +323,7 @@ Em.I18n.translations = {
   'popup.clusterCheck.Security.alert': 'You must meet the following requirements before you can enable security.',
 
   'popup.invalid.KDC.header': 'Admin session expiration error',
-  'popup.invalid.KDC.msg': 'Missing or invalid KDC administrator credentials. Please enter admin principal and password',
+  'popup.invalid.KDC.msg': ' Please enter admin principal and password.',
   'popup.invalid.KDC.admin.principal': 'Admin principal',
   'popup.invalid.KDC.admin.password': 'Admin password',
 
@@ -981,7 +981,7 @@ Em.I18n.translations = {
     'Do you really want to exit Kerberos Security Wizard?',
   'admin.kerberos.wizard.step1.header': 'Get Started',
   'admin.kerberos.wizard.step2.header': 'Configure Kerberos',
-  'admin.kerberos.wizard.step3.header': 'Install and Test Kerberos',
+  'admin.kerberos.wizard.step3.header': 'Install and Test Kerberos Client',
   'admin.kerberos.wizard.step4.header': 'Configure Identities',
   'admin.kerberos.wizard.step5.header': 'Stop Services',
   'admin.kerberos.wizard.step6.header': 'Kerberize Cluster',
@@ -997,8 +997,8 @@ Em.I18n.translations = {
   'admin.kerberos.wizard.step1.option.ad.condition.2': 'Java Cryptography Extension (JCE) is installed on ambari server host.',
   'admin.kerberos.wizard.step1.prerequisites.label': 'Following prerequisites needs to be checked to progress ahead in the wizard.',
   'admin.kerberos.wizard.step2.info.body': 'Please configure kerberos related properties.',
-  'admin.kerberos.wizard.step3.task0.title': 'Install Kerberos',
-  'admin.kerberos.wizard.step3.task1.title': 'Test Kerberos',
+  'admin.kerberos.wizard.step3.task0.title': 'Install Kerberos Client',
+  'admin.kerberos.wizard.step3.task1.title': 'Test Kerberos Client',
   'admin.kerberos.wizard.step3.notice.inProgress': 'Please wait while kerberos is being installed and tested.',
   'admin.kerberos.wizard.step3.notice.completed': 'Kerberos service has been installed and tested successfully.',
   'admin.kerberos.wizard.progressPage.notice.inProgress': 'Please wait while cluster is being kerberized',
@@ -1007,7 +1007,7 @@ Em.I18n.translations = {
   'admin.kerberos.wizard.step5.notice.inProgress': 'Please wait while services are being stopped.',
   'admin.kerberos.wizard.step5.notice.completed': 'Services have been successfully stopped.',
   'admin.kerberos.wizard.step6.notice.inProgress': 'Please wait while cluster is being kerberized.',
-  'admin.kerberos.wizard.step6.notice.completed': 'Cluster has been successfully kerberized.',
+  'admin.kerberos.wizard.step6.notice.completed': 'Kerberos has successfully be enabled on the cluster.',
   'admin.kerberos.wizard.step7.notice.inProgress': 'Please wait while services are being started and tested.',
   'admin.kerberos.wizard.step7.notice.completed': 'Services have been successfully tested with kerberos environment.',
   'admin.kerberos.wizard.step7.task0.title' : 'Start and Test Services',
@@ -1652,6 +1652,7 @@ Em.I18n.translations = {
   'services.service.config.database.connection.failed': 'Connection Failed',
   'services.service.config.connection.exitPopup.msg': 'Test connection is in progress. It\'s recommended to wait until it wil be complete. Are you sure you want to exit Enable Kerberos Wizard?',
   'services.service.config.database.btn.idle': 'Test Connection',
+  'services.service.config.kdc.btn.idle': 'Test KDC Connection',
   'services.service.config.database.btn.connecting': 'Connecting...',
   'services.service.config.database.msg.jdbcSetup': 'Be sure you have run:<br/>' +
     '<b>ambari-server setup --jdbc-db={0} --jdbc-driver=/path/to/{1}/driver.jar</b> ' +

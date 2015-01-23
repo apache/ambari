@@ -79,7 +79,6 @@ App.Router = Em.Router.extend({
     this.get('installerController').clear();
     this.get('addHostController').clear();
     this.get('addServiceController').clear();
-    this.get('stackUpgradeController').clear();
     this.get('backgroundOperationsController').clear();
     for (var i = 1; i < 11; i++) {
       this.set('wizardStep' + i + 'Controller.hasSubmitted', false);
@@ -352,9 +351,6 @@ App.Router = Em.Router.extend({
           } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('addServiceController.name')) {
             // if wizardControllerName == "addHostController", then it means someone closed the browser or the browser was crashed when we were last in Add Hosts wizard
             route = 'main.serviceAdd';
-          } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('stackUpgradeController.name')) {
-            // if wizardControllerName == "stackUpgradeController", then it means someone closed the browser or the browser was crashed when we were last in Stack Upgrade wizard
-            route = 'main.stackUpgrade';
           } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('reassignMasterController.name')) {
             // if wizardControllerName == "reassignMasterController", then it means someone closed the browser or the browser was crashed when we were last in Reassign Master wizard
             route = 'main.reassign';

@@ -47,39 +47,36 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
    */
   createServiceConfig: function(configs) {
     // Identity configs related to user principal
-    var userConfigs = configs.filterProperty('identityType','user');
-    var nonUserConfig = configs.rejectProperty('identityType','user');
-    var categoryForUserConfigs = [
+    var clusterConfigs = configs.filterProperty('serviceName','Cluster');
+    var nonClusterConfigs = configs.rejectProperty('serviceName','Cluster');
+    var categoryForClusterConfigs = [
+      App.ServiceConfigCategory.create({ name: 'Global', displayName: 'Global'}),
       App.ServiceConfigCategory.create({ name: 'Ambari Principals', displayName: 'Ambari Principals'})
     ];
-    var categoryForNonUserConfigs =  [
-      App.ServiceConfigCategory.create({ name: 'Global', displayName: 'Global'})
-    ].concat(this.createCategoryForServices());
+    var categoryForNonClusterConfigs = this.createCategoryForServices();
     return [
       App.ServiceConfig.create({
       displayName: 'General',
       name: 'GENERAL',
       serviceName: 'KERBEROS_GENERAL',
-      configCategories: categoryForUserConfigs,
-      configs: userConfigs,
-      showConfig: true,
-      selected: true
+      configCategories: categoryForClusterConfigs,
+      configs: clusterConfigs,
+      showConfig: true
     }),
       App.ServiceConfig.create({
         displayName: 'Advanced',
         name: 'ADVANCED',
         serviceName: 'KERBEROS_ADVANCED',
-        configCategories: categoryForNonUserConfigs,
-        configs: nonUserConfig,
-        showConfig: true,
-        selected: false
+        configCategories: categoryForNonClusterConfigs,
+        configs: nonClusterConfigs,
+        showConfig: true
       })
     ];
   },
 
   createCategoryForServices: function() {
     return App.Service.find().mapProperty('serviceName').map(function(item) {
-      return App.ServiceConfigCategory.create({ name: item, displayName: App.Service.find().findProperty('serviceName',item).get('displayName')});
+      return App.ServiceConfigCategory.create({ name: item, displayName: App.Service.find().findProperty('serviceName',item).get('displayName'), collapsedByDefault: true});
     })
   },
 

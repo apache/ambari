@@ -487,8 +487,8 @@ describe('App.AddSecurityConfigs', function () {
           {
             property: 'spnego_principal',
             e: [
-              { key: 'displayName', value: 'spnego_principal' },
-              { key: 'filename', value: 'cluster-env' },
+              { key: 'displayName', value: 'Spnego Principal' },
+              { key: 'filename', value: 'cluster-env' }
             ]
           }
         ]
@@ -499,8 +499,8 @@ describe('App.AddSecurityConfigs', function () {
           {
             property: 'spnego_keytab',
             e: [
-              { key: 'displayName', value: 'spnego_keytab' },
-              { key: 'filename', value: 'cluster-env' },
+              { key: 'displayName', value: 'Spnego Keytab' },
+              { key: 'filename', value: 'cluster-env' }
             ]
           }
         ]

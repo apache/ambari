@@ -30,7 +30,7 @@ App.showInvalidKDCPopup = function (ajaxOpt, message) {
     principal: "",
     password: "",
     bodyClass: Em.View.extend({
-      warningMsg: message || Em.I18n.t('popup.invalid.KDC.msg'),
+      warningMsg: message + Em.I18n.t('popup.invalid.KDC.msg'),
       templateName: require('templates/common/modal_popups/invalid_KDC_popup')
     }),
     onPrimary: function () {
