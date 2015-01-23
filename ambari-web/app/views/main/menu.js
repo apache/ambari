@@ -74,6 +74,10 @@ App.MainMenuView = Em.CollectionView.extend({
       return App.router.get('mainHostController.hostsCountMap.health-status-WITH-ALERTS');
     }.property('App.router.mainHostController.hostsCountMap'),
 
+    hasCriticalAlerts: function () {
+      return App.router.get('mainHostController.hostsCountMap.health-status-CRITICAL') > 0;
+    }.property('content.hasAlertsLabel', 'alertsCount'),
+
     hasAlertsLabel: function () {
       return this.get('content.hasAlertsLabel') && this.get('alertsCount') > 0;
     }.property('content.hasAlertsLabel', 'alertsCount'),

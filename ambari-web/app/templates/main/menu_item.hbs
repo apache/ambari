@@ -20,7 +20,7 @@
 <a href="#" {{action goToSection view.content.routing target="view"}}>
   {{{unbound view.content.label}}}
   {{#if view.hasAlertsLabel}}
-    <span class="label alerts-count">
+    <span {{bindAttr class=":label view.hasCriticalAlerts:alerts-crit-count:alerts-warn-count"}}>
       {{view.alertsCount}}
     </span>
   {{/if}}
