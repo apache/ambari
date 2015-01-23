@@ -149,6 +149,7 @@ webhcat_user = config['configurations']['hive-env']['hcat_user']
 hcat_user = config['configurations']['hive-env']['hcat_user']
 hive_user = config['configurations']['hive-env']['hive_user']
 smoke_user =  config['configurations']['cluster-env']['smokeuser']
+smokeuser_principal =  config['configurations']['cluster-env']['smokeuser_principal_name']
 mapred_user = config['configurations']['mapred-env']['mapred_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 

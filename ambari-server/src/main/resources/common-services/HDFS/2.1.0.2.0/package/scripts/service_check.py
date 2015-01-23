@@ -41,7 +41,7 @@ class HdfsServiceCheck(Script):
       "{cleanup_cmd}; hadoop --config {hadoop_conf_dir} fs -put /etc/passwd {tmp_file}")
     test_cmd = format("fs -test -e {tmp_file}")
     if params.security_enabled:
-      Execute(format("{kinit_path_local} -kt {smoke_user_keytab} {smoke_user}"),
+      Execute(format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal}"),
         user=params.smoke_user
       )
     ExecuteHadoop(safemode_command,

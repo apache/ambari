@@ -76,7 +76,7 @@ def hive_service(name, action='start', rolling_restart=False):
       is_service_socket_valid = False
       print "Waiting for the Hive server to start..."
       if params.security_enabled:
-        kinitcmd=format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser}; ")
+        kinitcmd=format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal}; ")
       else:
         kinitcmd=None
       while time.time() < end_time:
