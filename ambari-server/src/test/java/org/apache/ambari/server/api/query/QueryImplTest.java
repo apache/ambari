@@ -20,7 +20,11 @@
 package org.apache.ambari.server.api.query;
 
 
+import static org.easymock.EasyMock.anyBoolean;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
@@ -31,10 +35,13 @@ import static org.junit.Assert.fail;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.api.query.render.DefaultRenderer;
+import org.apache.ambari.server.api.query.render.Renderer;
+import org.apache.ambari.server.api.resources.ClusterResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceDefinition;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.resources.StackResourceDefinition;
@@ -42,17 +49,23 @@ import org.apache.ambari.server.api.resources.StackVersionResourceDefinition;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.util.TreeNode;
+import org.apache.ambari.server.api.util.TreeNodeImpl;
 import org.apache.ambari.server.controller.internal.ClusterControllerImpl;
 import org.apache.ambari.server.controller.internal.ClusterControllerImplTest;
 import org.apache.ambari.server.controller.internal.PageRequestImpl;
+import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.PageRequest;
 import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.QueryResponse;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.Schema;
+import org.apache.ambari.server.controller.spi.SortRequest;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
+import org.easymock.Capture;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -243,6 +256,99 @@ public class QueryImplTest {
     Assert.assertEquals(Resource.Type.OperatingSystem, opSystemNode.getObject().getType());
 
     Assert.assertEquals("centos5", osResource.getPropertyValue("OperatingSystems/os_type"));
+  }
+
+  @Test
+  public void testExecute_NoSuchResourceException() throws Exception {
+    ResourceDefinition resourceDefinition = new ClusterResourceDefinition();
+
+    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.put(Resource.Type.Cluster, "c1");
+
+    ClusterController clusterController = createNiceMock(ClusterController.class);
+    QueryResponse queryResponse = createNiceMock(QueryResponse.class);
+    Schema schema = createNiceMock(Schema.class);
+    Renderer renderer = createNiceMock(Renderer.class);
+
+    expect(clusterController.getSchema(Resource.Type.Cluster)).andReturn(schema).anyTimes();
+
+    expect(clusterController.getResources(eq(Resource.Type.Cluster),
+        anyObject(org.apache.ambari.server.controller.spi.Request.class), anyObject(Predicate.class))).
+        andReturn(queryResponse);
+
+    // Always return an empty set of resources.
+    expect(queryResponse.getResources()).andReturn(Collections.<Resource>emptySet()).anyTimes();
+
+    expect(schema.getKeyPropertyId(Resource.Type.Cluster)).andReturn("Clusters/cluster_name").anyTimes();
+
+    TreeNode<Set<String>> treeNode = new TreeNodeImpl<Set<String>>(null, Collections.EMPTY_SET, null);
+    expect(renderer.finalizeProperties(anyObject(TreeNode.class), anyBoolean())).andReturn(treeNode).anyTimes();
+
+    replay(clusterController, queryResponse, schema, renderer);
+
+    //test
+    QueryImpl query = new TestQuery(mapIds, resourceDefinition, clusterController);
+    query.setRenderer(renderer);
+
+    try {
+      query.execute();
+      fail("Expected NoSuchResourceException!");
+
+    } catch (NoSuchResourceException e) {
+      //expected
+    }
+    verify(clusterController, queryResponse, schema, renderer);
+  }
+
+  @Test
+  public void testExecute_collection_NoSuchResourceException() throws Exception {
+    ResourceDefinition resourceDefinition = new ClusterResourceDefinition();
+
+    ClusterController clusterController = createNiceMock(ClusterController.class);
+    QueryResponse queryResponse = createNiceMock(QueryResponse.class);
+    Schema schema = createNiceMock(Schema.class);
+    Renderer renderer = createNiceMock(Renderer.class);
+    Iterable<Resource> iterable = createNiceMock(Iterable.class);
+    Iterator<Resource> iterator = createNiceMock(Iterator.class);
+
+    expect(clusterController.getSchema(Resource.Type.Cluster)).andReturn(schema).anyTimes();
+
+    expect(clusterController.getResources(eq(Resource.Type.Cluster),
+        anyObject(org.apache.ambari.server.controller.spi.Request.class), anyObject(Predicate.class))).
+        andReturn(queryResponse);
+
+    expect(clusterController.getIterable(eq(Resource.Type.Cluster), anyObject(QueryResponse.class),
+        anyObject(org.apache.ambari.server.controller.spi.Request.class), anyObject(Predicate.class),
+        anyObject(PageRequest.class), anyObject(SortRequest.class))).andReturn(iterable).anyTimes();
+
+    expect(iterable.iterator()).andReturn(iterator).anyTimes();
+
+    expect(iterator.hasNext()).andReturn(false).anyTimes();
+
+    // Always return an empty set of resources.
+    expect(queryResponse.getResources()).andReturn(Collections.<Resource>emptySet()).anyTimes();
+
+    expect(schema.getKeyPropertyId(Resource.Type.Cluster)).andReturn("Clusters/cluster_name").anyTimes();
+
+    TreeNode<Set<String>> treeNode = new TreeNodeImpl<Set<String>>(null, Collections.<String>emptySet(), null);
+    expect(renderer.finalizeProperties(anyObject(TreeNode.class), anyBoolean())).andReturn(treeNode).anyTimes();
+
+    Capture<Result> resultCapture = new Capture<Result>();
+
+    expect(renderer.finalizeResult(capture(resultCapture))).andReturn(null);
+
+    replay(clusterController, queryResponse, schema, renderer, iterable, iterator);
+
+    //test
+    QueryImpl query = new TestQuery(new HashMap<Resource.Type, String>(), resourceDefinition, clusterController);
+    query.setRenderer(renderer);
+
+    query.execute();
+
+    TreeNode<Resource> tree = resultCapture.getValue().getResultTree();
+    Assert.assertEquals(0, tree.getChildren().size());
+
+    verify(clusterController, queryResponse, schema, renderer, iterable, iterator);
   }
 
   @Test
@@ -666,6 +772,11 @@ public class QueryImplTest {
   public static class TestQuery extends QueryImpl {
     public TestQuery(Map<Resource.Type, String> mapIds, ResourceDefinition resourceDefinition) {
       super(mapIds, resourceDefinition, new ClusterControllerImpl(new ClusterControllerImplTest.TestProviderModule()));
+      setRenderer(new DefaultRenderer());
+    }
+
+    public TestQuery(Map<Resource.Type, String> mapIds, ResourceDefinition resourceDefinition, ClusterController clusterController) {
+      super(mapIds, resourceDefinition, clusterController);
       setRenderer(new DefaultRenderer());
     }
   }

@@ -372,13 +372,13 @@ public class QueryImpl implements Query, ResourceInstance {
 
     Request request = createRequest();
 
-    // use linked hashsets so that we maintain inseration and traversal order
+    // use linked hash sets so that we maintain insertion and traversal order
     // in the event that the resource provider already gave us a sorted set
     // back
     Set<Resource> resourceSet = new LinkedHashSet<Resource>();
     Set<Resource> providerResourceSet = new LinkedHashSet<Resource>();
 
-    QueryResponse queryResponse = doQuery(resourceType, request, queryPredicate);
+    QueryResponse queryResponse = doQuery(resourceType, request, queryPredicate, true);
 
     // If there is a page request and the predicate does not contain properties
     // that need to be set
@@ -431,7 +431,9 @@ public class QueryImpl implements Query, ResourceInstance {
           Set<Resource> resourceSet    = new LinkedHashSet<Resource>();
 
           try {
-            Set<Resource> queryResources = subResource.doQuery(resourceType, request, queryPredicate).getResources();
+            Set<Resource> queryResources =
+                subResource.doQuery(resourceType, request, queryPredicate, false).getResources();
+
             providerResourceSet.addAll(queryResources);
             resourceSet.addAll(queryResources);
           } catch (NoSuchResourceException e) {
@@ -450,8 +452,17 @@ public class QueryImpl implements Query, ResourceInstance {
 
   /**
    * Query the cluster controller for the resources.
+   *
+   * @param type                the resource type
+   * @param request             the request information
+   * @param predicate           the predicate
+   * @param checkEmptyResponse  true if an empty query response can trigger a NoSuchResourceException
+   *
+   * @return the result of the cluster controller query
+   *
+   * @throws NoSuchResourceException if a specific resource was asked for and not found and checkEmptyResponse == true
    */
-  private QueryResponse doQuery(Resource.Type type, Request request, Predicate predicate)
+  private QueryResponse doQuery(Resource.Type type, Request request, Predicate predicate, boolean checkEmptyResponse)
       throws UnsupportedPropertyException,
       SystemException,
       NoSuchResourceException,
@@ -461,7 +472,18 @@ public class QueryImpl implements Query, ResourceInstance {
       LOG.debug("Executing resource query: " + request + " where " + predicate);
     }
 
-    return clusterController.getResources(type, request, predicate);
+    QueryResponse queryResponse = clusterController.getResources(type, request, predicate);
+
+    if (checkEmptyResponse && queryResponse.getResources().isEmpty()) {
+
+      // If this is not a collection request then we must throw
+      // NoSuchResourceException (404 response) for an empty query result
+      if(!isCollectionResource()) {
+        throw new NoSuchResourceException(
+            "The requested resource doesn't exist: " + type.toString() + " not found where " + predicate + ".");
+      }
+    }
+    return queryResponse;
   }
 
   /**

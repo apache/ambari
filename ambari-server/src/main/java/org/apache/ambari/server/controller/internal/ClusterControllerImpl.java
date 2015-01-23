@@ -130,13 +130,6 @@ public class ClusterControllerImpl implements ClusterController {
 
       // get the resources
       queryResponse = provider.queryForResources(request, predicate);
-
-      // if a specific resource was asked for and not found then throw exception
-      if (predicate != null &&
-          (queryResponse == null || queryResponse.getResources() == null || queryResponse.getResources().isEmpty())) {
-        throw new NoSuchResourceException(
-            "The requested resource doesn't exist: " + type.toString() + " not found, " + predicate);
-      }
     }
     return queryResponse == null ? new QueryResponseImpl(Collections.<Resource>emptySet()) : queryResponse;
   }
