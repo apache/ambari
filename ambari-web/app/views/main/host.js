@@ -217,8 +217,6 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
     this.addObserver('controller.clearFilters', this, this.clearFiltersObs);
     this.clearFiltersObs();
     this.addObserver('selectAllHosts', this, this.toggleAllHosts);
-    this.set('controller.isCountersUpdating', true);
-    this.get('controller').updateStatusCounters();
     this.addObserver('filteringComplete', this, this.overlayObserver);
     this.addObserver('startIndex', this, 'updatePagination');
     this.addObserver('displayLength', this, 'updatePagination');
@@ -231,10 +229,6 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
       this.refresh();
     }
   }.observes('tableFilteringComplete'),
-
-  willDestroyElement: function() {
-    this.set('controller.isCountersUpdating', false);
-  },
 
   /**
    * Set <code>selected</code> property for each App.Host

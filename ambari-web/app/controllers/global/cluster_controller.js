@@ -230,7 +230,6 @@ App.ClusterController = Em.Controller.extend({
     var hostsController = App.router.get('mainHostController');
     hostsController.set('isCountersUpdating', true);
     hostsController.updateStatusCounters();
-    hostsController.set('isCountersUpdating', false);
 
     App.HttpClient.get(racksUrl, App.racksMapper, {
       complete: function (jqXHR, textStatus) {

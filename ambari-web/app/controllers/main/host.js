@@ -299,7 +299,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
 
       setTimeout(function () {
         self.updateStatusCounters();
-      }, App.get('componentsUpdateInterval'));
+      }, App.get('hostStatusCountersUpdateInterval'));
     }
   },
 
