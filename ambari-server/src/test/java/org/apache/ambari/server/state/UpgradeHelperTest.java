@@ -38,6 +38,7 @@ import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
 import org.apache.ambari.server.state.stack.UpgradePack;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.easymock.EasyMock;
@@ -110,8 +111,10 @@ public class UpgradeHelperTest {
 
     makeCluster();
 
-    List<UpgradeGroupHolder> groups = m_upgradeHelper.createUpgrade(
-        m_masterHostResolver, upgrade, UPGRADE_VERSION);
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver,
+        UPGRADE_VERSION, Direction.UPGRADE);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
     assertEquals(5, groups.size());
 
@@ -143,8 +146,10 @@ public class UpgradeHelperTest {
 
     makeCluster();
 
-    List<UpgradeGroupHolder> groups = m_upgradeHelper.createDowngrade(
-        m_masterHostResolver, upgrade, DOWNGRADE_VERSION);
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver,
+        DOWNGRADE_VERSION, Direction.DOWNGRADE);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
     assertEquals(5, groups.size());
 
@@ -178,8 +183,10 @@ public class UpgradeHelperTest {
 
     makeCluster();
 
-    List<UpgradeGroupHolder> groups = m_upgradeHelper.createUpgrade(
-        m_masterHostResolver, upgrade, UPGRADE_VERSION);
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver,
+        UPGRADE_VERSION, Direction.UPGRADE);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
     assertEquals(1, groups.size());
     UpgradeGroupHolder group = groups.iterator().next();
@@ -196,8 +203,10 @@ public class UpgradeHelperTest {
 
     makeCluster();
 
-    List<UpgradeGroupHolder> groups = m_upgradeHelper.createUpgrade(
-        m_masterHostResolver, upgrade, UPGRADE_VERSION);
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver,
+        UPGRADE_VERSION, Direction.UPGRADE);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
     assertEquals(5, groups.size());
 
@@ -223,8 +232,10 @@ public class UpgradeHelperTest {
 
     makeCluster();
 
-    List<UpgradeGroupHolder> groups = m_upgradeHelper.createUpgrade(
-        m_masterHostResolver, upgrade, UPGRADE_VERSION);
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver,
+        UPGRADE_VERSION, Direction.UPGRADE);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
     assertEquals(7, groups.size());
 

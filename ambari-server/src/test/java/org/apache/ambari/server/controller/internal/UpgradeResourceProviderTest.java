@@ -47,8 +47,10 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
@@ -68,6 +70,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.gson.Gson;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -195,6 +198,15 @@ public class UpgradeResourceProviderTest {
 
     UpgradeEntity entity = upgrades.get(0);
     assertEquals(cluster.getClusterId(), entity.getClusterId().longValue());
+
+    StageDAO stageDAO = injector.getInstance(StageDAO.class);
+    List<StageEntity> stageEntities = stageDAO.findByRequestId(entity.getRequestId());
+    Gson gson = new Gson();
+    for (StageEntity se : stageEntities) {
+      Map<String, String> map = (Map<String, String>) gson.fromJson(se.getCommandParamsStage(), Map.class);
+      assertTrue(map.containsKey("upgrade_direction"));
+      assertEquals("upgrade", map.get("upgrade_direction"));
+    }
 
     List<UpgradeGroupEntity> upgradeGroups = entity.getUpgradeGroups();
     assertEquals(4, upgradeGroups.size());
@@ -384,6 +396,7 @@ public class UpgradeResourceProviderTest {
 
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   public void testDowngradeToBase() throws Exception {
     Cluster cluster = clusters.getCluster("c1");
@@ -428,6 +441,17 @@ public class UpgradeResourceProviderTest {
     assertNotNull(entity);
     assertEquals("2.1.1", entity.getFromVersion());
     assertEquals("2.2", entity.getToVersion());
+
+    StageDAO dao = injector.getInstance(StageDAO.class);
+    List<StageEntity> stages = dao.findByRequestId(entity.getRequestId());
+
+    Gson gson = new Gson();
+    for (StageEntity se : stages) {
+      Map<String, String> map = gson.fromJson(se.getCommandParamsStage(), Map.class);
+      assertTrue(map.containsKey("upgrade_direction"));
+      assertEquals("downgrade", map.get("upgrade_direction"));
+    }
+
 
   }
 

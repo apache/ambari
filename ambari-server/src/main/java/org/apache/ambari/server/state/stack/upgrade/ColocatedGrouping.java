@@ -30,6 +30,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 import org.apache.ambari.server.stack.HostsType;
+import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -133,7 +134,7 @@ public class ColocatedGrouping extends Grouping {
 
 
     @Override
-    public List<StageWrapper> build() {
+    public List<StageWrapper> build(UpgradeContext ctx) {
       List<StageWrapper> results = new ArrayList<StageWrapper>();
 
       if (LOG.isDebugEnabled()) {

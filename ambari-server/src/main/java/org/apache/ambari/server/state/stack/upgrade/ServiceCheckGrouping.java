@@ -36,6 +36,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 
 /**
@@ -62,15 +63,6 @@ public class ServiceCheckGrouping extends Grouping {
     private Cluster m_cluster;
     private AmbariMetaInfo m_metaInfo;
 
-    /**
-     * Sets the helpers needed to determine service check validity
-     * @param cluster   the cluster
-     * @param metaInfo  the metainfo instance to determine command script availability
-     */
-    public void setHelpers(Cluster cluster, AmbariMetaInfo metaInfo) {
-      m_cluster = cluster;
-      m_metaInfo = metaInfo;
-    }
 
     @Override
     public void add(HostsType hostsType, String service, boolean forUpgrade, boolean clientOnly,
@@ -79,7 +71,10 @@ public class ServiceCheckGrouping extends Grouping {
     }
 
     @Override
-    public List<StageWrapper> build() {
+    public List<StageWrapper> build(UpgradeContext ctx) {
+      m_cluster = ctx.getCluster();
+      m_metaInfo = ctx.getAmbariMetaInfo();
+
       List<StageWrapper> result = new ArrayList<StageWrapper>();
 
       Map<String, Service> serviceMap = m_cluster.getServices();

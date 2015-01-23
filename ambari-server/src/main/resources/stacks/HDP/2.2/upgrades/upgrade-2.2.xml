@@ -114,6 +114,7 @@
     </group>
 
     <group name="CLIENTS" title="Client Components">
+      <service-check>false</service-check>
       <service name="HDFS">
         <component>HDFS_CLIENT</component>
       </service>

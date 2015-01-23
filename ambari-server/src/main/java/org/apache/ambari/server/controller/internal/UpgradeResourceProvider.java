@@ -70,10 +70,12 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
 import org.apache.ambari.server.state.stack.upgrade.ServerSideActionTask;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
@@ -106,6 +108,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       Arrays.asList(UPGRADE_REQUEST_ID, UPGRADE_CLUSTER_NAME));
   private static final Set<String> PROPERTY_IDS = new HashSet<String>();
 
+  private static final String COMMAND_PARAM_VERSION = "version";
+  private static final String COMMAND_PARAM_CLUSTER_NAME = "clusterName";
+  private static final String COMMAND_PARAM_DIRECTION = "upgrade_direction";
+  private static final String COMMAND_PARAM_RESTART_TYPE = "restart_type";
+  private static final String COMMAND_PARAM_TASKS = "tasks";
 
   private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<Resource.Type, String>();
 
@@ -189,9 +196,19 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     UpgradeEntity entity = createResources(new Command<UpgradeEntity>() {
         @Override
         public UpgradeEntity invoke() throws AmbariException {
-          UpgradePack up = validateRequest(requestMap, requestInfoProps);
+          String forceDowngrade = requestInfoProps.get(UpgradeResourceDefinition.DOWNGRADE_DIRECTIVE);
 
-          return createUpgrade(up, requestMap, requestInfoProps);
+          // check the property if the directive is not specified...
+          if (forceDowngrade == null) {
+            forceDowngrade = (String) requestMap.get(UPGRADE_FORCE_DOWNGRADE);
+          }
+
+          Direction direction = Boolean.parseBoolean(forceDowngrade) ?
+              Direction.DOWNGRADE : Direction.UPGRADE;
+
+          UpgradePack up = validateRequest(direction, requestMap);
+
+          return createUpgrade(direction, up, requestMap);
         }
       });
 
@@ -265,24 +282,14 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
-
-    modifyResources(new Command<Void>() {
-      @Override
-      public Void invoke() throws AmbariException {
-        return null;
-      }
-    });
-
-    notifyUpdate(Resource.Type.Upgrade, request, predicate);
-
-    return getRequestStatus(null);
+    throw new SystemException("Cannot update Upgrades");
   }
 
   @Override
   public RequestStatus deleteResources(Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
-    throw new SystemException("Cannot delete upgrades");
+    throw new SystemException("Cannot delete Upgrades");
   }
 
   @Override
@@ -309,18 +316,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * @return the validated upgrade pack
    * @throws AmbariException
    */
-  private UpgradePack validateRequest(Map<String, Object> requestMap, Map<String, String> requestInfoProps)
+  private UpgradePack validateRequest(Direction direction, Map<String, Object> requestMap)
       throws AmbariException {
     String clusterName = (String) requestMap.get(UPGRADE_CLUSTER_NAME);
     String version = (String) requestMap.get(UPGRADE_VERSION);
     String versionForUpgradePack = (String) requestMap.get(UPGRADE_FROM_VERSION);
 
-    String forceDowngrade = requestInfoProps.get(UpgradeResourceDefinition.DOWNGRADE_DIRECTIVE);
-
-    // check the property if the directive is not specified...
-    if (forceDowngrade == null) {
-      forceDowngrade = (String) requestMap.get(UPGRADE_FORCE_DOWNGRADE);
-    }
 
     if (null == clusterName) {
       throw new AmbariException(String.format("%s is required", UPGRADE_CLUSTER_NAME));
@@ -335,7 +336,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     String repoVersion = version;
 
-    if (Boolean.valueOf(forceDowngrade) && null != versionForUpgradePack) {
+    if (direction == Direction.DOWNGRADE && null != versionForUpgradePack) {
       repoVersion = versionForUpgradePack;
     }
 
@@ -354,8 +355,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     if (null == up) {
       throw new AmbariException(String.format(
-          "Upgrade pack %s for version %s not found", versionEntity.getUpgradePackage(),
-            repoVersion));
+          "Unable to perform %s.  Could not locate upgrade pack %s for version %s",
+          direction == Direction.DOWNGRADE ? "downgrade" : "upgrade",
+          versionEntity.getUpgradePackage(),
+          repoVersion));
     }
 
     // !!! validate all hosts have the version installed
@@ -393,9 +396,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
   }
 
-  private UpgradeEntity createUpgrade(UpgradePack pack,
-                                      Map<String, Object> requestMap,
-                                      Map<String, String> requestInfoProps) throws AmbariException {
+  private UpgradeEntity createUpgrade(Direction direction, UpgradePack pack,
+                                      Map<String, Object> requestMap) throws AmbariException {
 
     String clusterName = (String) requestMap.get(UPGRADE_CLUSTER_NAME);
 
@@ -406,25 +408,14 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     Cluster cluster = getManagementController().getClusters().getCluster(clusterName);
     ConfigHelper configHelper = getManagementController().getConfigHelper();
 
-    String forceDowngrade = requestInfoProps.get(UpgradeResourceDefinition.DOWNGRADE_DIRECTIVE);
-
-    // check the property if the directive is not specified...
-    if (forceDowngrade == null) {
-      forceDowngrade = (String) requestMap.get(UPGRADE_FORCE_DOWNGRADE);
-    }
-
-    List<UpgradeGroupHolder> groups = null;
-
     // the version being upgraded or downgraded to (ie hdp-2.2.1.0-1234)
     final String version = (String) requestMap.get(UPGRADE_VERSION);
 
-    if (Boolean.valueOf(forceDowngrade)) {
-      MasterHostResolver mhr = new MasterHostResolver(cluster, version);
-      groups = s_upgradeHelper.createDowngrade(mhr, pack, version);
-    } else {
-      MasterHostResolver mhr = new MasterHostResolver(cluster);
-      groups = s_upgradeHelper.createUpgrade(mhr, pack, version);
-    }
+    UpgradeContext ctx = new UpgradeContext(direction == Direction.UPGRADE ?
+        new MasterHostResolver(cluster) : new MasterHostResolver(cluster, version),
+        version, direction);
+
+    List<UpgradeGroupHolder> groups = s_upgradeHelper.createSequence(pack, ctx);
 
     if (groups.isEmpty()) {
       throw new AmbariException("There are no upgrade groupings available");
@@ -458,7 +449,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
               injectVariables(configHelper, cluster, itemEntity);
 
-              makeServerSideStage(cluster, req, version, itemEntity, (ServerSideActionTask) task, skippable, allowRetry);
+              makeServerSideStage(ctx, req, itemEntity, (ServerSideActionTask) task, skippable, allowRetry);
             }
           }
         } else {
@@ -471,7 +462,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           injectVariables(configHelper, cluster, itemEntity);
 
           // upgrade items match a stage
-          createStage(cluster, req, version, itemEntity, wrapper, skippable, allowRetry);
+          createStage(ctx, req, itemEntity, wrapper, skippable, allowRetry);
         }
       }
 
@@ -509,26 +500,26 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     return requestStages;
   }
 
-  private void createStage(Cluster cluster, RequestStageContainer request, final String version,
+  private void createStage(UpgradeContext context, RequestStageContainer request,
       UpgradeItemEntity entity, StageWrapper wrapper, boolean skippable, boolean allowRetry)
       throws AmbariException {
 
     switch (wrapper.getType()) {
       case RESTART:
-        makeRestartStage(cluster, request, version, entity, wrapper, skippable, allowRetry);
+        makeRestartStage(context, request, entity, wrapper, skippable, allowRetry);
         break;
       case RU_TASKS:
-        makeActionStage(cluster, request, version, entity, wrapper, skippable, allowRetry);
+        makeActionStage(context, request, entity, wrapper, skippable, allowRetry);
         break;
       case SERVICE_CHECK:
-          makeServiceCheckStage(cluster, request, version, entity, wrapper, skippable, allowRetry);
+        makeServiceCheckStage(context, request, entity, wrapper, skippable, allowRetry);
         break;
       default:
         break;
     }
   }
 
-  private void makeActionStage(Cluster cluster, RequestStageContainer request, final String version,
+  private void makeActionStage(UpgradeContext context, RequestStageContainer request,
                                UpgradeItemEntity entity, StageWrapper wrapper,
                                boolean skippable, boolean allowRetry) throws AmbariException {
 
@@ -537,13 +528,16 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           String.format("Cannot create action for '%s' with no hosts", wrapper.getText()));
     }
 
+    Cluster cluster = context.getCluster();
+
     // add each host to this stage
     RequestResourceFilter filter = new RequestResourceFilter("", "",
         new ArrayList<String>(wrapper.getHosts()));
 
     Map<String, String> params = new HashMap<String, String>();
-    params.put("tasks", entity.getTasks());
-    params.put("version", version);
+    params.put(COMMAND_PARAM_TASKS, entity.getTasks());
+    params.put(COMMAND_PARAM_VERSION, context.getVersion());
+    params.put(COMMAND_PARAM_DIRECTION, context.getDirection().name().toLowerCase());
 
     // Because custom task may end up calling a script/function inside a service, it is necessary to set the
     // service_package_folder and hooks_folder params.
@@ -602,9 +596,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     request.addStages(Collections.singletonList(stage));
   }
 
-  private void makeRestartStage(Cluster cluster, RequestStageContainer request, final String version,
+  private void makeRestartStage(UpgradeContext context, RequestStageContainer request,
                                 UpgradeItemEntity entity, StageWrapper wrapper,
                                 boolean skippable, boolean allowRetry) throws AmbariException {
+
+    Cluster cluster = context.getCluster();
 
     List<RequestResourceFilter> filters = new ArrayList<RequestResourceFilter>();
 
@@ -615,8 +611,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
 
     Map<String, String> restartCommandParams = new HashMap<String, String>();
-    restartCommandParams.put("restart_type", "rolling_upgrade");
-    restartCommandParams.put("version", version);
+    restartCommandParams.put(COMMAND_PARAM_RESTART_TYPE, "rolling_upgrade");
+    restartCommandParams.put(COMMAND_PARAM_VERSION, context.getVersion());
+    restartCommandParams.put(COMMAND_PARAM_DIRECTION, context.getDirection().name().toLowerCase());
 
     ActionExecutionContext actionContext = new ActionExecutionContext(
         cluster.getClusterName(), "RESTART",
@@ -655,7 +652,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     request.addStages(Collections.singletonList(stage));
   }
 
-  private void makeServiceCheckStage(Cluster cluster, RequestStageContainer request, String version,
+  private void makeServiceCheckStage(UpgradeContext context, RequestStageContainer request,
                                      UpgradeItemEntity entity, StageWrapper wrapper,
                                      boolean skippable, boolean allowRetry) throws AmbariException {
 
@@ -665,8 +662,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       filters.add(new RequestResourceFilter(tw.getService(), "", Collections.<String>emptyList()));
     }
 
+    Cluster cluster = context.getCluster();
+
     Map<String, String> commandParams = new HashMap<String, String>();
-    commandParams.put("version", version);
+    commandParams.put(COMMAND_PARAM_VERSION, context.getVersion());
+    commandParams.put(COMMAND_PARAM_DIRECTION, context.getDirection().name().toLowerCase());
 
     ActionExecutionContext actionContext = new ActionExecutionContext(
         cluster.getClusterName(), "SERVICE_CHECK",
@@ -702,13 +702,16 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     request.addStages(Collections.singletonList(stage));
   }
 
-  private void makeServerSideStage(Cluster cluster, RequestStageContainer request, String version,
+  private void makeServerSideStage(UpgradeContext context, RequestStageContainer request,
                                    UpgradeItemEntity entity, ServerSideActionTask task,
                                    boolean skippable, boolean allowRtery) throws AmbariException {
 
+    Cluster cluster = context.getCluster();
+
     Map<String, String> commandParams = new HashMap<String, String>();
-    commandParams.put("clusterName", cluster.getClusterName());
-    commandParams.put("version", version);
+    commandParams.put(COMMAND_PARAM_CLUSTER_NAME, cluster.getClusterName());
+    commandParams.put(COMMAND_PARAM_VERSION, context.getVersion());
+    commandParams.put(COMMAND_PARAM_DIRECTION, context.getDirection().name().toLowerCase());
 
     String itemDetail = entity.getText();
     String stageText = StringUtils.abbreviate(entity.getText(), 255);

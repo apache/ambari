@@ -28,6 +28,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
 import org.apache.ambari.server.stack.HostsType;
+import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.commons.lang.StringUtils;
@@ -130,7 +131,7 @@ public class Grouping {
     }
 
     @Override
-    public List<StageWrapper> build() {
+    public List<StageWrapper> build(UpgradeContext ctx) {
 
       List<TaskWrapper> tasks = new ArrayList<TaskWrapper>();
       for (String service : m_servicesToCheck) {

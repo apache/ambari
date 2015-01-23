@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.ambari.server.stack.HostsType;
+import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 
 /**
@@ -42,8 +43,10 @@ public abstract class StageWrapperBuilder {
 
   /**
    * Builds the stage wrappers.
+   * @param ctx the upgrade context
+   * @return a list of stages, never {@code null}
    */
-  public abstract List<StageWrapper> build();
+  public abstract List<StageWrapper> build(UpgradeContext ctx);
 
   /**
    * Consistently formats a string.

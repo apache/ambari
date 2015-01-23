@@ -48,10 +48,9 @@ import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
-import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
-import org.apache.ambari.server.state.stack.upgrade.ServiceCheckGrouping;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapperBuilder;
 import org.apache.ambari.server.state.stack.upgrade.Task;
@@ -116,101 +115,30 @@ public class UpgradeHelper {
   @Inject
   private Provider<AmbariMetaInfo> m_ambariMetaInfo;
 
-  /**
-   * Generates a list of UpgradeGroupHolder items that are used to execute a
-   * downgrade
-   *
-   * @param mhr
-   *          Master Host Resolver needed to get master and secondary hosts of
-   *          several components like NAMENODE
-   * @param upgradePack
-   *          the upgrade pack
-   * @param version
-   *          the version of the stack that the downgrade to, such as
-   *          {@code 2.2.0.0-2041}.
-   * @return the list of holders
-   */
-  public List<UpgradeGroupHolder> createDowngrade(MasterHostResolver mhr,
-      UpgradePack upgradePack, String version) throws AmbariException {
-    return createSequence(mhr, upgradePack, version, false);
-  }
 
   /**
-   * Generates a list of UpgradeGroupHolder items that are used to execute an
-   * upgrade
+   * Generates a list of UpgradeGroupHolder items that are used to execute either
+   * an upgrade or a downgrade.
    *
-   * @param mhr
-   *          Master Host Resolver needed to get master and secondary hosts of
-   *          several components like NAMENODE
    * @param upgradePack
    *          the upgrade pack
-   * @param version
-   *          the version of the stack that the upgrade is to, such as
-   *          {@code 2.2.0.0-2041}.
+   * @param context
+   *          the context that wraps key fields required to perform an upgrade
    * @return the list of holders
    */
-  public List<UpgradeGroupHolder> createUpgrade(MasterHostResolver mhr,
-      UpgradePack upgradePack, String version) throws AmbariException {
-    return createSequence(mhr, upgradePack, version, true);
-  }
+  public List<UpgradeGroupHolder> createSequence(UpgradePack upgradePack,
+      UpgradeContext context) throws AmbariException {
 
+    context.setAmbariMetaInfo(m_ambariMetaInfo.get());
+    Cluster cluster = context.getCluster();
+    boolean forUpgrade = context.getDirection() == Direction.UPGRADE;
+    MasterHostResolver mhr = context.getResolver();
+    String version = context.getVersion();
 
-  /**
-   * Generates a list of UpgradeGroupHolder items that are used to execute an
-   * upgrade
-   *
-   * @param mhr
-   *          Master Host Resolver needed to get master and secondary hosts of
-   *          several components like NAMENODE
-   * @param upgradePack
-   *          the upgrade pack
-   * @param version
-   *          the version of the stack that the upgrade or downgrade is to, such
-   *          as {@code 2.2.0.0-2041}.
-   * @param forUpgrade
-   *          {@code true} if the sequence is for an upgrade, {@code false} if
-   *          for a downgrade
-   * @return the list of holders
-   *
-   */
-  private List<UpgradeGroupHolder> createSequence(MasterHostResolver mhr,
-      UpgradePack upgradePack, String version, boolean forUpgrade)
-      throws AmbariException {
-
-    Cluster cluster = mhr.getCluster();
     Map<String, Map<String, ProcessingComponent>> allTasks = upgradePack.getTasks();
     List<UpgradeGroupHolder> groups = new ArrayList<UpgradeGroupHolder>();
 
-
     for (Grouping group : upgradePack.getGroups(forUpgrade)) {
-      if (ClusterGrouping.class.isInstance(group)) {
-        UpgradeGroupHolder groupHolder = getClusterGroupHolder(
-            cluster, (ClusterGrouping) group, forUpgrade ? null : version);
-
-        if (null != groupHolder) {
-          groups.add(groupHolder);
-        }
-
-        continue;
-      } else if (ServiceCheckGrouping.class.isInstance(group)) {
-        ServiceCheckGrouping scg = (ServiceCheckGrouping) group;
-
-        scg.getBuilder().setHelpers(cluster, m_ambariMetaInfo.get());
-
-        List<StageWrapper> wrappers = scg.getBuilder().build();
-
-        if (!wrappers.isEmpty()) {
-          UpgradeGroupHolder groupHolder = new UpgradeGroupHolder();
-          groupHolder.name = group.name;
-          groupHolder.title = group.title;
-          groupHolder.skippable = group.skippable;
-          groupHolder.allowRetry = group.allowRetry;
-          groupHolder.items = wrappers;
-          groups.add(groupHolder);
-        }
-
-        continue;
-      }
 
       UpgradeGroupHolder groupHolder = new UpgradeGroupHolder();
       groupHolder.name = group.name;
@@ -222,12 +150,13 @@ public class UpgradeHelper {
 
       List<UpgradePack.OrderService> services = group.services;
 
-      if (!forUpgrade) {
+      if (context.getDirection() == Direction.DOWNGRADE && !services.isEmpty()) {
         List<UpgradePack.OrderService> reverse = new ArrayList<UpgradePack.OrderService>(services);
         Collections.reverse(reverse);
         services = reverse;
       }
 
+      // !!! cluster and service checks are empty here
       for (UpgradePack.OrderService service : services) {
 
         if (!allTasks.containsKey(service.serviceName)) {
@@ -274,7 +203,7 @@ public class UpgradeHelper {
         }
       }
 
-      List<StageWrapper> proxies = builder.build();
+      List<StageWrapper> proxies = builder.build(context);
 
       // post process all of the tasks
       postProcessTasks(proxies, mhr, version);
@@ -489,35 +418,6 @@ public class UpgradeHelper {
     }
 
     return resources.iterator().next();
-  }
-
-  /**
-   * Special handling for ClusterGrouping that is used for tasks that are
-   * to run on a specific targeted HostComponent.
-   *
-   * @param cluster   the cluster
-   * @param grouping  the grouping
-   * @param version   the version used to create a {@link MasterHostResolver}
-   * @return the holder, or {@code null} if there are no clustergrouping tasks.
-   */
-  private UpgradeGroupHolder getClusterGroupHolder(Cluster cluster,
-      ClusterGrouping grouping, String version) {
-
-    grouping.getBuilder().setHelpers(new MasterHostResolver(cluster, version));
-    List<StageWrapper> wrappers = grouping.getBuilder().build();
-
-    if (wrappers.size() > 0) {
-      UpgradeGroupHolder holder = new UpgradeGroupHolder();
-      holder.name = grouping.name;
-      holder.title = grouping.title;
-      holder.items = wrappers;
-
-      return holder;
-    }
-
-
-    return null;
-
   }
 
 }

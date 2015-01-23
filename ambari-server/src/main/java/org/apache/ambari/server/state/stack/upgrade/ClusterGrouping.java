@@ -32,7 +32,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 import org.apache.ambari.server.stack.HostsType;
-import org.apache.ambari.server.stack.MasterHostResolver;
+import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 
 /**
@@ -79,14 +79,6 @@ public class ClusterGrouping extends Grouping {
   }
 
   public class ClusterBuilder extends StageWrapperBuilder {
-    private MasterHostResolver m_resolver = null;
-
-    /**
-     * @param resolver  the resolver to use
-     */
-    public void setHelpers(MasterHostResolver resolver) {
-      m_resolver = resolver;
-    }
 
     @Override
     public void add(HostsType hostsType, String service,
@@ -95,7 +87,7 @@ public class ClusterGrouping extends Grouping {
     }
 
     @Override
-    public List<StageWrapper> build() {
+    public List<StageWrapper> build(UpgradeContext ctx) {
       if (null == ClusterGrouping.this.executionStages) {
         return Collections.emptyList();
       }
@@ -111,7 +103,8 @@ public class ClusterGrouping extends Grouping {
           if (null != execution.service && !execution.service.isEmpty() &&
               null != execution.component && !execution.component.isEmpty()) {
 
-            HostsType hosts = m_resolver.getMasterAndHosts(execution.service, execution.component);
+            HostsType hosts = ctx.getResolver().getMasterAndHosts(
+                execution.service, execution.component);
 
             if (null == hosts) {
               continue;
