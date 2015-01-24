@@ -31,7 +31,7 @@ import tempfile
 from ambari_commons.exceptions import FatalException
 from ambari_commons.os_check import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
-from ambari_commons.os_utils import run_os_command, search_file
+from ambari_commons.os_utils import run_os_command, search_file, set_file_permissions
 from ambari_commons.logging_utils import get_debug_mode, print_info_msg, print_warning_msg, print_error_msg, \
   set_debug_mode
 from ambari_server.properties import Properties
@@ -48,8 +48,6 @@ PID_NAME = "ambari-server.pid"
 # Non-root user setup commands
 NR_USER_PROPERTY = "ambari-server.user"
 
-# constants
-STACK_NAME_VER_SEP = "-"
 BLIND_PASSWORD = "*****"
 
 # Common messages
@@ -207,9 +205,10 @@ class ServerConfigDefaults(object):
     self.DEFAULT_VIEWS_DIR = ""
 
     #keytool commands
-    self.keytool_bin = ""
+    self.keytool_bin_subpath = ""
 
     #Standard messages
+    self.MESSAGE_SERVER_RUNNING_AS_ROOT = ""
     self.MESSAGE_ERROR_SETUP_NOT_ROOT = ""
     self.MESSAGE_ERROR_RESET_NOT_ROOT = ""
     self.MESSAGE_ERROR_UPGRADE_NOT_ROOT = ""
@@ -260,9 +259,10 @@ class ServerConfigDefaultsWindows(ServerConfigDefaults):
     self.DEFAULT_VIEWS_DIR = "resources\\views"
 
     #keytool commands
-    self.keytool_bin = "keytool.exe"
+    self.keytool_bin_subpath = "bin\\keytool.exe"
 
     #Standard messages
+    self.MESSAGE_SERVER_RUNNING_AS_ROOT = "Ambari Server running with 'root' privileges."
     self.MESSAGE_ERROR_SETUP_NOT_ROOT = "Ambari-server setup must be run with administrator-level privileges"
     self.MESSAGE_ERROR_RESET_NOT_ROOT = "Ambari-server reset must be run with administrator-level privileges"
     self.MESSAGE_ERROR_UPGRADE_NOT_ROOT = "Ambari-server upgrade must be run with administrator-level privileges"
@@ -325,9 +325,10 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
     self.DEFAULT_VIEWS_DIR = "/var/lib/ambari-server/resources/views"
 
     #keytool commands
-    self.keytool_bin = "keytool"
+    self.keytool_bin_subpath = "bin/keytool"
 
     #Standard messages
+    self.MESSAGE_SERVER_RUNNING_AS_ROOT = "Ambari Server running with administrator privileges."
     self.MESSAGE_ERROR_SETUP_NOT_ROOT = "Ambari-server setup should be run with root-level privileges"
     self.MESSAGE_ERROR_RESET_NOT_ROOT = "Ambari-server reset should be run with root-level privileges"
     self.MESSAGE_ERROR_UPGRADE_NOT_ROOT = "Ambari-server upgrade must be run with root-level privileges"
@@ -543,6 +544,31 @@ def update_database_name_property(upgrade=False):
       raise FatalException(-1, err)
 
 
+def encrypt_password(alias, password):
+  properties = get_ambari_properties()
+  if properties == -1:
+    raise FatalException(1, None)
+  return get_encrypted_password(alias, password, properties)
+
+def get_encrypted_password(alias, password, properties):
+  isSecure = get_is_secure(properties)
+  (isPersisted, masterKeyFile) = get_is_persisted(properties)
+  if isSecure:
+    masterKey = None
+    if not masterKeyFile:
+      # Encryption enabled but no master key file found
+      masterKey = get_original_master_key(properties)
+
+    retCode = save_passwd_for_alias(alias, password, masterKey)
+    if retCode != 0:
+      print 'Failed to save secure password!'
+      return password
+    else:
+      return get_alias_string(alias)
+
+  return password
+
+
 def is_alias_string(passwdStr):
   regex = re.compile("\$\{alias=[\w\.]+\}")
   # Match implies string at beginning of word
@@ -551,6 +577,12 @@ def is_alias_string(passwdStr):
     return True
   else:
     return False
+
+def get_alias_string(alias):
+  return "${alias=" + alias + "}"
+
+def get_alias_from_alias_string(aliasStr):
+  return aliasStr[8:-1]
 
 def read_passwd_for_alias(alias, masterKey=""):
   if alias:
@@ -600,6 +632,59 @@ def decrypt_password_for_alias(properties, alias):
     return read_passwd_for_alias(alias, masterKey)
   else:
     return alias
+
+def save_passwd_for_alias(alias, passwd, masterKey=""):
+  if alias and passwd:
+    jdk_path = find_jdk()
+    if jdk_path is None:
+      print_error_msg("No JDK found, please run the \"setup\" "
+                      "command to install a JDK automatically or install any "
+                      "JDK manually to " + configDefaults.JDK_INSTALL_DIR)
+      return 1
+
+    if masterKey is None or masterKey == "":
+      masterKey = "None"
+
+    command = SECURITY_PROVIDER_PUT_CMD.format(get_java_exe_path(),
+                                               get_full_ambari_classpath(), alias, passwd, masterKey)
+    (retcode, stdout, stderr) = run_os_command(command)
+    print_info_msg("Return code from credential provider save passwd: " +
+                   str(retcode))
+    return retcode
+  else:
+    print_error_msg("Alias or password is unreadable.")
+
+
+def get_pass_file_path(conf_file, filename):
+  return os.path.join(os.path.dirname(conf_file), filename)
+
+def store_password_file(password, filename):
+  conf_file = find_properties_file()
+  passFilePath = get_pass_file_path(conf_file, filename)
+
+  with open(passFilePath, 'w+') as passFile:
+    passFile.write(password)
+  print_info_msg("Adjusting filesystem permissions")
+  ambari_user = read_ambari_user()
+  set_file_permissions(passFilePath, "660", ambari_user, False)
+
+  #Windows paths need double backslashes, otherwise the Ambari server deserializer will think the single \ are escape markers
+  return passFilePath.replace('\\', '\\\\')
+
+def remove_password_file(filename):
+  conf_file = find_properties_file()
+  passFilePath = os.path.join(os.path.dirname(conf_file),
+                              filename)
+
+  if os.path.exists(passFilePath):
+    try:
+      os.remove(passFilePath)
+    except Exception, e:
+      print_warning_msg('Unable to remove password file: ' + str(e))
+      return 1
+  pass
+  return 0
+
 
 def get_original_master_key(properties):
   input = True
@@ -739,8 +824,6 @@ def update_properties(propertyMap):
       print_error_msg('Could not read "%s": %s' % (conf_file, e))
       return -1
 
-    #for key in propertyMap.keys():
-      #properties[key] = propertyMap[key]
     for key in propertyMap.keys():
       properties.removeOldProp(key)
       properties.process_pair(key, str(propertyMap[key]))
@@ -765,7 +848,7 @@ def update_properties_2(properties, propertyMap):
       pass
 
     with open(conf_file, 'w') as file:
-      properties.store(file)
+      properties.store_ordered(file)
     pass
   pass
 
@@ -993,20 +1076,6 @@ def get_java_exe_path():
     java_exe = os.path.join(jdkPath, configDefaults.JAVA_EXE_SUBPATH)
     return java_exe
   return
-
-#
-# JDBC
-#
-
-#Check if required jdbc drivers present
-def find_jdbc_driver(args):
-  if args.dbms in JDBC_PATTERNS.keys():
-    drivers = []
-    drivers.extend(glob.glob(os.path.join(configDefaults.JAVA_SHARE_PATH, JDBC_PATTERNS[args.dbms])))
-    if drivers:
-      return drivers
-    return -1
-  return 0
 
 
 #

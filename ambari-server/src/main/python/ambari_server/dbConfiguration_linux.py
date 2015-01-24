@@ -30,7 +30,7 @@ import time
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.logging_utils import get_silent, get_verbose, print_error_msg, print_info_msg, print_warning_msg
 from ambari_commons.exceptions import NonFatalException, FatalException
-from ambari_commons.os_utils import copy_files, remove_file, run_os_command, find_in_path
+from ambari_commons.os_utils import copy_files, find_in_path, is_root, remove_file, run_os_command
 from ambari_server.dbConfiguration import DBMSConfig, USERNAME_PATTERN, SETUP_DB_CONNECT_ATTEMPTS, \
     SETUP_DB_CONNECT_TIMEOUT, STORAGE_TYPE_LOCAL, DEFAULT_USERNAME, DEFAULT_PASSWORD
 from ambari_server.serverConfiguration import get_ambari_properties, get_value_from_properties, configDefaults, \
@@ -41,9 +41,8 @@ from ambari_server.serverConfiguration import get_ambari_properties, get_value_f
     JDBC_DRIVER_PROPERTY, JDBC_URL_PROPERTY, \
     JDBC_RCA_USER_NAME_PROPERTY, JDBC_RCA_PASSWORD_ALIAS, JDBC_RCA_PASSWORD_FILE_PROPERTY, \
     JDBC_RCA_DRIVER_PROPERTY, JDBC_RCA_URL_PROPERTY, \
-    PERSISTENCE_TYPE_PROPERTY
-from ambari_server.setupSecurity import read_password, store_password_file, encrypt_password
-from ambari_server.userInput import get_YN_input, get_validated_string_input
+    PERSISTENCE_TYPE_PROPERTY, encrypt_password, store_password_file
+from ambari_server.userInput import get_YN_input, get_validated_string_input, read_password
 from ambari_server.utils import get_postgre_hba_dir, get_postgre_running_status
 
 ORACLE_DB_ID_TYPES = ["Service Name", "SID"]
@@ -365,6 +364,17 @@ class PGConfig(LinuxDBMSConfig):
   #
   # Public methods
   #
+  def ensure_dbms_is_running(self, options, properties, scmStatus=None):
+    if self._is_local_database():
+      if is_root():
+        (pg_status, retcode, out, err) = PGConfig._check_postgre_up()
+        if not retcode == 0:
+          err = 'Unable to start PostgreSQL server. Status {0}. {1}. Exiting'.format(pg_status, err)
+          raise FatalException(retcode, err)
+      else:
+        print "Unable to check PostgreSQL server status when starting " \
+              "without root privileges."
+        print "Please do not forget to start PostgreSQL server."
 
   #
   # Private implementation

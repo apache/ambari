@@ -42,7 +42,7 @@ $AMBARI_LOG_DIR="\var\log\ambari-server"
 $OUTFILE_STDOUT=Join-Path -path $AMBARI_LOG_DIR -childpath "ambari-server.stdout"
 $OUTFILE_STDERR=Join-Path -path $AMBARI_LOG_DIR -childpath "ambari-server.stderr"
 $LOGFILE=Join-Path -path $AMBARI_LOG_DIR -childpath "ambari-server.log"
-$AMBARI_SERVER_PY_SCRIPT=Join-Path -path $PSScriptRoot -childpath "sbin\ambari-server-windows.py"
+$AMBARI_SERVER_PY_SCRIPT=Join-Path -path $PSScriptRoot -childpath "sbin\ambari-server.py"
 if($AMBARI_SERVER_PY_SCRIPT.Contains(' '))
 {
   $AMBARI_SERVER_PY_SCRIPT = """" + $AMBARI_SERVER_PY_SCRIPT + """"

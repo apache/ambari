@@ -350,6 +350,9 @@
                   <location>src/main/python/ambari-server.py</location>
                 </source>
                 <source>
+                  <location>src/main/python/ambari_server_main.py</location>
+                </source>
+                <source>
                   <location>sbin/ambari-server</location>
                   <filter>true</filter>
                 </source>

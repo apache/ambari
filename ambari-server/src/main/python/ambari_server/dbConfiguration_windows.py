@@ -26,17 +26,16 @@ from ambari_commons.logging_utils import print_info_msg, print_warning_msg
 from ambari_commons.os_utils import search_file, run_os_command
 from ambari_commons.os_windows import WinServiceController
 from ambari_commons.str_utils import compress_backslashes, ensure_double_backslashes
-from ambari_server.dbConfiguration import AMBARI_DATABASE_NAME, DEFAULT_USERNAME, DBMSConfig, DbPropKeys, DbAuthenticationKeys
+from ambari_server.dbConfiguration import AMBARI_DATABASE_NAME, DEFAULT_USERNAME, DEFAULT_PASSWORD, \
+  DBMSConfig, DbPropKeys, DbAuthenticationKeys
 from ambari_server.serverConfiguration import JDBC_DRIVER_PROPERTY, JDBC_DRIVER_PATH_PROPERTY, JDBC_URL_PROPERTY, \
   JDBC_DATABASE_PROPERTY, JDBC_DATABASE_NAME_PROPERTY, \
   JDBC_HOSTNAME_PROPERTY, JDBC_PORT_PROPERTY, JDBC_USE_INTEGRATED_AUTH_PROPERTY, JDBC_USER_NAME_PROPERTY, JDBC_PASSWORD_PROPERTY, \
   JDBC_PASSWORD_FILENAME, \
-  JDBC_RCA_DRIVER_PROPERTY, JDBC_RCA_URL_PROPERTY, JDBC_RCA_DATABASE_PROPERTY, JDBC_RCA_SCHEMA_PROPERTY, \
-  JDBC_RCA_HOSTNAME_PROPERTY, JDBC_RCA_PORT_PROPERTY, JDBC_RCA_USE_INTEGRATED_AUTH_PROPERTY, \
-  JDBC_RCA_USER_NAME_PROPERTY, JDBC_RCA_PASSWORD_FILE_PROPERTY, JDBC_RCA_PASSWORD_FILENAME, JDBC_RCA_PASSWORD_ALIAS, \
+  JDBC_RCA_DRIVER_PROPERTY, JDBC_RCA_URL_PROPERTY, JDBC_RCA_HOSTNAME_PROPERTY, JDBC_RCA_PORT_PROPERTY, \
+  JDBC_RCA_USE_INTEGRATED_AUTH_PROPERTY, JDBC_RCA_USER_NAME_PROPERTY, JDBC_RCA_PASSWORD_FILE_PROPERTY, JDBC_RCA_PASSWORD_ALIAS, \
   PERSISTENCE_TYPE_PROPERTY, \
-  get_value_from_properties, configDefaults
-from ambari_server.setupSecurity import encrypt_password, store_password_file
+  get_value_from_properties, configDefaults, encrypt_password, store_password_file
 from ambari_server.userInput import get_validated_string_input
 
 
@@ -339,15 +338,10 @@ class SQLServerAmbariDBConfig(SQLServerConfig):
     self.env_var_db_owner = 'AMBARIDBOWNER'
 
     # The values from options supersede the values from properties
-    if options.init_db_script_file is not None and options.init_db_script_file is not "":
-      self.init_script_file = compress_backslashes(options.init_db_script_file)
-    else:
-      self.init_script_file = "resources" + os.path.sep + "Ambari-DDL-SQLServer-CREATE.sql"
-    if options.cleanup_db_script_file is not None and options.cleanup_db_script_file is not "":
-      self.drop_tables_script_file = compress_backslashes(options.cleanup_db_script_file)
-    else:
-      self.drop_tables_script_file = "resources" + os.path.sep + "Ambari-DDL-SQLServer-DROP.sql"
-    pass
+    self.init_script_file = compress_backslashes(DBMSConfig._init_member_with_default(options, "init_db_script_file",
+        "resources" + os.path.sep + "Ambari-DDL-SQLServer-CREATE.sql"))
+    self.drop_tables_script_file = compress_backslashes(DBMSConfig._init_member_with_default(options, "cleanup_db_script_file",
+        "resources" + os.path.sep + "Ambari-DDL-SQLServer-DROP.sql"))
 
   def _setup_remote_server(self, properties):
     super(SQLServerAmbariDBConfig, self)._setup_remote_server(properties)

@@ -24,7 +24,7 @@ import re
 import shutil
 import sys
 
-from ambari_commons.exceptions import FatalException, NonFatalException
+from ambari_commons.exceptions import FatalException
 from ambari_commons.firewall import Firewall
 from ambari_commons.inet_utils import force_download_file
 from ambari_commons.logging_utils import get_silent, print_info_msg, print_warning_msg, print_error_msg
@@ -38,11 +38,14 @@ from ambari_server.serverConfiguration import configDefaults, JDKRelease, \
   read_ambari_user, update_properties, validate_jdk, write_property, \
   JAVA_HOME, JAVA_HOME_PROPERTY, JCE_NAME_PROPERTY, JDBC_RCA_URL_PROPERTY, JDBC_URL_PROPERTY, \
   JDK_NAME_PROPERTY, JDK_RELEASES, NR_USER_PROPERTY, OS_FAMILY, OS_FAMILY_PROPERTY, OS_TYPE, OS_TYPE_PROPERTY, OS_VERSION, \
-  RESOURCES_DIR_PROPERTY, SERVICE_PASSWORD_KEY, SERVICE_USERNAME_KEY, VIEWS_DIR_PROPERTY, PID_NAME, get_is_secure, \
+  RESOURCES_DIR_PROPERTY, SERVICE_PASSWORD_KEY, SERVICE_USERNAME_KEY, VIEWS_DIR_PROPERTY, get_is_secure, \
   get_is_persisted
+from ambari_server.serverUtils import is_server_runing
 from ambari_server.setupSecurity import adjust_directory_permissions
 from ambari_server.userInput import get_YN_input, get_validated_string_input
 from ambari_server.utils import locate_file
+
+
 
 
 # selinux commands
@@ -937,15 +940,12 @@ def setup(options):
 #
 # Resets the Ambari Server.
 #
-def reset(options, serviceClass=None):
+def reset(options):
   if not is_root():
     err = configDefaults.MESSAGE_ERROR_RESET_NOT_ROOT
     raise FatalException(4, err)
 
-  if serviceClass:
-    status, stateDesc = is_server_running(serviceClass)
-  else:
-    status, stateDesc = is_server_runing()
+  status, stateDesc = is_server_runing()
   if status:
     err = 'Ambari-server must be stopped to reset'
     raise FatalException(1, err)
@@ -970,44 +970,3 @@ def reset(options, serviceClass=None):
 
   _reset_database(options)
   pass
-
-
-def is_server_running(serviceClass):
-  from ambari_commons.os_windows import SERVICE_STATUS_STARTING, SERVICE_STATUS_RUNNING, SERVICE_STATUS_STOPPING, \
-    SERVICE_STATUS_STOPPED, SERVICE_STATUS_NOT_INSTALLED
-
-  statusStr = serviceClass.QueryStatus()
-  if statusStr in(SERVICE_STATUS_STARTING, SERVICE_STATUS_RUNNING, SERVICE_STATUS_STOPPING):
-    return True, ""
-  elif statusStr == SERVICE_STATUS_STOPPED:
-    return False, SERVICE_STATUS_STOPPED
-  elif statusStr == SERVICE_STATUS_NOT_INSTALLED:
-    return False, SERVICE_STATUS_NOT_INSTALLED
-  else:
-    return False, None
-
-def is_server_runing():
-  pid_file_path = os.path.join(configDefaults.PID_DIR, PID_NAME)
-
-  if os.path.exists(pid_file_path):
-    try:
-      f = open(pid_file_path, "r")
-    except IOError, ex:
-      raise FatalException(1, str(ex))
-
-    pid = f.readline().strip()
-
-    if not pid.isdigit():
-      err = "%s is corrupt. Removing" % (pid_file_path)
-      f.close()
-      run_os_command("rm -f " + pid_file_path)
-      raise NonFatalException(err)
-
-    f.close()
-    retcode, out, err = run_os_command("ps -p " + pid)
-    if retcode == 0:
-      return True, int(pid)
-    else:
-      return False, None
-  else:
-    return False, None

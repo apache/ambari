@@ -17,86 +17,37 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import datetime
+import base64
 import fileinput
+import json
 import os
-import random
 import re
 import shutil
-import socket
-import string
-import tempfile
 import urllib2
 import time
+import sys
 
-from ambari_commons.exceptions import NonFatalException, FatalException
-from ambari_commons.logging_utils import get_silent, print_warning_msg, print_error_msg, print_info_msg
-from ambari_commons.os_check import OSCheck
-from ambari_commons.os_utils import copy_file, is_root, is_valid_filepath, remove_file, set_file_permissions, \
-  run_os_command, search_file
-from ambari_server.serverConfiguration import configDefaults, get_ambari_properties, read_ambari_user, \
-  get_value_from_properties, find_jdk, get_conf_dir, is_alias_string, find_properties_file, \
-  update_properties_2, \
-  JDBC_USE_INTEGRATED_AUTH_PROPERTY, JDBC_PASSWORD_PROPERTY, JDBC_PASSWORD_FILENAME, \
-  JDBC_RCA_PASSWORD_FILE_PROPERTY, JDBC_RCA_PASSWORD_ALIAS, \
-  BOOTSTRAP_DIR_PROPERTY, GET_FQDN_SERVICE_URL, BLIND_PASSWORD, get_full_ambari_classpath, LDAP_MGR_PASSWORD_ALIAS, \
-  LDAP_MGR_PASSWORD_PROPERTY, LDAP_MGR_USERNAME_PROPERTY, decrypt_password_for_alias, read_passwd_for_alias, \
-  get_is_secure, get_master_key_location, get_credential_store_location, get_is_persisted, get_original_master_key, \
-  get_java_exe_path, SECURITY_PROVIDER_KEY_CMD, SECURITY_PROVIDER_PUT_CMD, SECURITY_IS_ENCRYPTION_ENABLED, \
-  SECURITY_KERBEROS_JASS_FILENAME, SECURITY_KEY_ENV_VAR_NAME, SECURITY_MASTER_KEY_FILENAME, \
-  SSL_TRUSTSTORE_PASSWORD_ALIAS, SSL_TRUSTSTORE_PASSWORD_PROPERTY, SSL_TRUSTSTORE_PATH_PROPERTY, SSL_TRUSTSTORE_TYPE_PROPERTY
-from setupActions import SETUP_ACTION, LDAP_SETUP_ACTION
-from ambari_server.userInput import get_YN_input, get_validated_string_input, get_validated_filepath_input, \
-  get_prompt_default
+from ambari_commons.exceptions import FatalException, NonFatalException
+from ambari_commons.logging_utils import print_warning_msg, print_error_msg, print_info_msg, get_verbose
+from ambari_commons.os_check import OSConst
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_commons.os_utils import is_root, set_file_permissions, \
+  run_os_command, search_file, is_valid_filepath
+from ambari_server.serverConfiguration import configDefaults, \
+  encrypt_password, find_jdk, find_properties_file, get_alias_string, get_ambari_properties, get_conf_dir, \
+  get_credential_store_location, get_full_ambari_classpath, get_is_persisted, get_is_secure, get_master_key_location, \
+  get_original_master_key, get_value_from_properties, get_java_exe_path, is_alias_string, read_ambari_user, \
+  read_passwd_for_alias, remove_password_file, save_passwd_for_alias, store_password_file, update_properties_2, \
+  BLIND_PASSWORD, BOOTSTRAP_DIR_PROPERTY, IS_LDAP_CONFIGURED, JDBC_PASSWORD_FILENAME, JDBC_PASSWORD_PROPERTY, \
+  JDBC_RCA_PASSWORD_ALIAS, JDBC_RCA_PASSWORD_FILE_PROPERTY, JDBC_USE_INTEGRATED_AUTH_PROPERTY, \
+  LDAP_MGR_PASSWORD_ALIAS, LDAP_MGR_PASSWORD_FILENAME, LDAP_MGR_PASSWORD_PROPERTY, LDAP_MGR_USERNAME_PROPERTY, \
+  LDAP_PRIMARY_URL_PROPERTY, SECURITY_IS_ENCRYPTION_ENABLED, SECURITY_KEY_ENV_VAR_NAME, SECURITY_KERBEROS_JASS_FILENAME, \
+  SECURITY_PROVIDER_KEY_CMD, SECURITY_MASTER_KEY_FILENAME, SSL_TRUSTSTORE_PASSWORD_ALIAS, \
+  SSL_TRUSTSTORE_PASSWORD_PROPERTY, SSL_TRUSTSTORE_PATH_PROPERTY, SSL_TRUSTSTORE_TYPE_PROPERTY
+from ambari_server.serverUtils import is_server_runing
+from ambari_server.setupActions import SETUP_ACTION, LDAP_SETUP_ACTION
+from ambari_server.userInput import get_validated_string_input, get_prompt_default, read_password, get_YN_input
 
-
-SSL_PASSWORD_FILE = "pass.txt"
-SSL_PASSIN_FILE = "passin.txt"
-
-# openssl command
-VALIDATE_KEYSTORE_CMD = "openssl pkcs12 -info -in '{0}' -password file:'{1}' -passout file:'{2}'"
-EXPRT_KSTR_CMD = "openssl pkcs12 -export -in '{0}' -inkey '{1}' -certfile '{0}' -out '{4}' -password file:'{2}' -passin file:'{3}'"
-CHANGE_KEY_PWD_CND = 'openssl rsa -in {0} -des3 -out {0}.secured -passout pass:{1}'
-GET_CRT_INFO_CMD = 'openssl x509 -dates -subject -in {0}'
-
-#keytool commands
-keytool_bin = "keytool"
-if OSCheck.is_windows_family():
-  keytool_bin = "keytool.exe"
-
-KEYTOOL_IMPORT_CERT_CMD = "{0}" + os.sep + "bin" + os.sep + keytool_bin + " -import -alias '{1}' -storetype '{2}' -file '{3}' -storepass '{4}' -noprompt"
-KEYTOOL_DELETE_CERT_CMD = "{0}" + os.sep + "bin" + os.sep + keytool_bin + " -delete -alias '{1}' -storepass '{2}' -noprompt"
-KEYTOOL_KEYSTORE = " -keystore '{0}'"
-
-SSL_KEY_DIR = 'security.server.keys_dir'
-SSL_API_PORT = 'client.api.ssl.port'
-SSL_API = 'api.ssl'
-SSL_SERVER_CERT_NAME = 'client.api.ssl.cert_name'
-SSL_SERVER_KEY_NAME = 'client.api.ssl.key_name'
-SSL_CERT_FILE_NAME = "https.crt"
-SSL_KEY_FILE_NAME = "https.key"
-SSL_KEYSTORE_FILE_NAME = "https.keystore.p12"
-SSL_KEY_PASSWORD_FILE_NAME = "https.pass.txt"
-SSL_KEY_PASSWORD_LENGTH = 50
-DEFAULT_SSL_API_PORT = 8443
-SSL_DATE_FORMAT = '%b  %d %H:%M:%S %Y GMT'
-
-#SSL certificate metainfo
-COMMON_NAME_ATTR = 'CN'
-NOT_BEFORE_ATTR = 'notBefore'
-NOT_AFTER_ATTR = 'notAfter'
-
-SRVR_TWO_WAY_SSL_PORT_PROPERTY = "security.server.two_way_ssl.port"
-SRVR_TWO_WAY_SSL_PORT = "8441"
-
-SRVR_ONE_WAY_SSL_PORT_PROPERTY = "security.server.one_way_ssl.port"
-SRVR_ONE_WAY_SSL_PORT = "8440"
-
-GANGLIA_HTTPS = 'ganglia.https'
-NAGIOS_HTTPS = 'nagios.https'
-
-DEFAULT_PASSWORD = "bigdata"
-PASSWORD_PATTERN = "^[a-zA-Z0-9_-]*$"
 
 REGEX_IP_ADDRESS = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
 REGEX_HOSTNAME = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
@@ -106,380 +57,12 @@ REGEX_ANYTHING = ".*"
 
 CLIENT_SECURITY_KEY = "client.security"
 
+# api properties
+SERVER_API_HOST = '127.0.0.1'
+SERVER_API_PROTOCOL = 'http'
+SERVER_API_PORT = '8080'
+SERVER_API_LDAP_URL = '/api/v1/ldap_sync_events'
 
-def is_valid_https_port(port):
-  properties = get_ambari_properties()
-  if properties == -1:
-    print "Error getting ambari properties"
-    return False
-
-  one_way_port = properties[SRVR_ONE_WAY_SSL_PORT_PROPERTY]
-  if not one_way_port:
-    one_way_port = SRVR_ONE_WAY_SSL_PORT
-
-  two_way_port = properties[SRVR_TWO_WAY_SSL_PORT_PROPERTY]
-  if not two_way_port:
-    two_way_port = SRVR_TWO_WAY_SSL_PORT
-
-  if port.strip() == one_way_port.strip():
-    print "Port for https can't match the port for one way authentication port(" + one_way_port + ")"
-    return False
-
-  if port.strip() == two_way_port.strip():
-    print "Port for https can't match the port for two way authentication port(" + two_way_port + ")"
-    return False
-
-  return True
-
-def run_component_https_cmd(cmd):
-  retcode, out, err = run_os_command(cmd)
-
-  if not retcode == 0:
-    err = 'Error occured during truststore setup ! :' + out + " : " + err
-    raise FatalException(1, err)
-
-def get_cert_info(path):
-  retcode, out, err = run_os_command(GET_CRT_INFO_CMD.format(path))
-
-  if retcode != 0:
-    print 'Error getting Certificate info'
-    print err
-    return None
-
-  if out:
-    certInfolist = out.split(os.linesep)
-  else:
-    print 'Empty Certificate info'
-    return None
-
-  notBefore = None
-  notAfter = None
-  subject = None
-
-  for item in range(len(certInfolist)):
-
-    if certInfolist[item].startswith('notAfter='):
-      notAfter = certInfolist[item].split('=')[1]
-
-    if certInfolist[item].startswith('notBefore='):
-      notBefore = certInfolist[item].split('=')[1]
-
-    if certInfolist[item].startswith('subject='):
-      subject = certInfolist[item].split('=', 1)[1]
-
-  #Convert subj to dict
-  pattern = re.compile(r"[A-Z]{1,2}=[\w.-]{1,}")
-  if subject:
-    subjList = pattern.findall(subject)
-    keys = [item.split('=')[0] for item in subjList]
-    values = [item.split('=')[1] for item in subjList]
-    subjDict = dict(zip(keys, values))
-
-    result = subjDict
-    result['notBefore'] = notBefore
-    result['notAfter'] = notAfter
-    result['subject'] = subject
-
-    return result
-  else:
-    return {}
-
-def is_valid_cert_exp(certInfoDict):
-  if certInfoDict.has_key(NOT_BEFORE_ATTR):
-    notBefore = certInfoDict[NOT_BEFORE_ATTR]
-  else:
-    print_warning_msg('There is no Not Before value in Certificate')
-    return False
-
-  if certInfoDict.has_key(NOT_AFTER_ATTR):
-    notAfter = certInfoDict['notAfter']
-  else:
-    print_warning_msg('There is no Not After value in Certificate')
-    return False
-
-  notBeforeDate = datetime.datetime.strptime(notBefore, SSL_DATE_FORMAT)
-  notAfterDate = datetime.datetime.strptime(notAfter, SSL_DATE_FORMAT)
-
-  currentDate = datetime.datetime.now()
-
-  if currentDate > notAfterDate:
-    print_warning_msg('Certificate expired on: ' + str(notAfterDate))
-    return False
-
-  if currentDate < notBeforeDate:
-    print_warning_msg('Certificate will be active from: ' + str(notBeforeDate))
-    return False
-
-  return True
-
-def is_valid_cert_host(certInfoDict):
-  if certInfoDict.has_key(COMMON_NAME_ATTR):
-   commonName = certInfoDict[COMMON_NAME_ATTR]
-  else:
-    print_warning_msg('There is no Common Name in Certificate')
-    return False
-
-  fqdn = get_fqdn()
-
-  if not fqdn:
-    print_warning_msg('Failed to get server FQDN')
-    return False
-
-  if commonName != fqdn:
-    print_warning_msg('Common Name in Certificate: ' + commonName + ' does not match the server FQDN: ' + fqdn)
-    return False
-
-  return True
-
-def generate_random_string(length=SSL_KEY_PASSWORD_LENGTH):
-  chars = string.digits + string.ascii_letters
-  return ''.join(random.choice(chars) for x in range(length))
-
-def import_cert_and_key(security_server_keys_dir):
-  import_cert_path = get_validated_filepath_input(\
-                    "Enter path to Certificate: ",\
-                    "Certificate not found")
-  import_key_path  =  get_validated_filepath_input(\
-                      "Enter path to Private Key: ", "Private Key not found")
-  pem_password = get_validated_string_input("Please enter password for Private Key: ", "", None, None, True)
-
-  certInfoDict = get_cert_info(import_cert_path)
-
-  if not certInfoDict:
-    print_warning_msg('Unable to get Certificate information')
-  else:
-    #Validate common name of certificate
-    if not is_valid_cert_host(certInfoDict):
-      print_warning_msg('Unable to validate Certificate hostname')
-
-    #Validate issue and expirations dates of certificate
-    if not is_valid_cert_exp(certInfoDict):
-      print_warning_msg('Unable to validate Certificate issue and expiration dates')
-
-  #jetty requires private key files with non-empty key passwords
-  retcode = 0
-  err = ''
-  if not pem_password:
-    print 'Generating random password for HTTPS keystore...done.'
-    pem_password = generate_random_string()
-    retcode, out, err = run_os_command(CHANGE_KEY_PWD_CND.format(
-      import_key_path, pem_password))
-    import_key_path += '.secured'
-
-  if retcode == 0:
-    keystoreFilePath = os.path.join(security_server_keys_dir,\
-                                    SSL_KEYSTORE_FILE_NAME)
-    keystoreFilePathTmp = os.path.join(tempfile.gettempdir(),\
-                                       SSL_KEYSTORE_FILE_NAME)
-    passFilePath = os.path.join(security_server_keys_dir,\
-                                SSL_KEY_PASSWORD_FILE_NAME)
-    passFilePathTmp = os.path.join(tempfile.gettempdir(),\
-      SSL_KEY_PASSWORD_FILE_NAME)
-    passinFilePath = os.path.join(tempfile.gettempdir(),\
-                                   SSL_PASSIN_FILE)
-    passwordFilePath = os.path.join(tempfile.gettempdir(),\
-                                   SSL_PASSWORD_FILE)
-
-    with open(passFilePathTmp, 'w+') as passFile:
-      passFile.write(pem_password)
-      passFile.close
-      pass
-
-    set_file_permissions(passFilePath, "660", read_ambari_user(), False)
-
-    copy_file(passFilePathTmp, passinFilePath)
-    copy_file(passFilePathTmp, passwordFilePath)
-
-    retcode, out, err = run_os_command(EXPRT_KSTR_CMD.format(import_cert_path,\
-    import_key_path, passwordFilePath, passinFilePath, keystoreFilePathTmp))
-  if retcode == 0:
-   print 'Importing and saving Certificate...done.'
-   import_file_to_keystore(keystoreFilePathTmp, keystoreFilePath)
-   import_file_to_keystore(passFilePathTmp, passFilePath)
-
-   import_file_to_keystore(import_cert_path, os.path.join(\
-                          security_server_keys_dir, SSL_CERT_FILE_NAME))
-   import_file_to_keystore(import_key_path, os.path.join(\
-                          security_server_keys_dir, SSL_KEY_FILE_NAME))
-
-   #Validate keystore
-   retcode, out, err = run_os_command(VALIDATE_KEYSTORE_CMD.format(keystoreFilePath,\
-   passwordFilePath, passinFilePath))
-
-   remove_file(passinFilePath)
-   remove_file(passwordFilePath)
-
-   if not retcode == 0:
-     print 'Error during keystore validation occured!:'
-     print err
-     return False
-
-   return True
-  else:
-   print_error_msg('Could not import Certificate and Private Key.')
-   print 'SSL error on exporting keystore: ' + err.rstrip() + \
-         '.\nPlease ensure that provided Private Key password is correct and ' +\
-         're-import Certificate.'
-
-   return False
-
-def import_cert_and_key_action(security_server_keys_dir, properties):
-  if import_cert_and_key(security_server_keys_dir):
-   properties.process_pair(SSL_SERVER_CERT_NAME, SSL_CERT_FILE_NAME)
-   properties.process_pair(SSL_SERVER_KEY_NAME, SSL_KEY_FILE_NAME)
-   properties.process_pair(SSL_API, "true")
-   return True
-  else:
-   return False
-
-def get_delete_cert_command(jdk_path, alias, truststore_path, truststore_password):
-  cmd = KEYTOOL_DELETE_CERT_CMD.format(jdk_path, alias, truststore_password)
-  if truststore_path:
-    cmd += KEYTOOL_KEYSTORE.format(truststore_path)
-  return cmd
-
-def get_import_cert_command(jdk_path, alias, truststore_type, import_cert_path, truststore_path, truststore_password):
-  cmd = KEYTOOL_IMPORT_CERT_CMD.format(jdk_path, alias, truststore_type, import_cert_path, truststore_password)
-  if truststore_path:
-    cmd += KEYTOOL_KEYSTORE.format(truststore_path)
-  return cmd
-
-def import_file_to_keystore(source, destination):
-  shutil.copy(source, destination)
-  set_file_permissions(destination, "660", read_ambari_user(), False)
-
-def get_truststore_type(properties):
-
-  truststore_type = properties.get_property(SSL_TRUSTSTORE_TYPE_PROPERTY)
-  if not truststore_type:
-    SSL_TRUSTSTORE_TYPE_DEFAULT = get_value_from_properties(properties, SSL_TRUSTSTORE_TYPE_PROPERTY, "jks")
-
-    truststore_type = get_validated_string_input(
-      "TrustStore type [jks/jceks/pkcs12] {0}:".format(get_prompt_default(SSL_TRUSTSTORE_TYPE_DEFAULT)),
-      SSL_TRUSTSTORE_TYPE_DEFAULT,
-      "^(jks|jceks|pkcs12)?$", "Wrong type", False)
-
-    if truststore_type:
-      properties.process_pair(SSL_TRUSTSTORE_TYPE_PROPERTY, truststore_type)
-
-  return truststore_type
-
-def get_truststore_path(properties):
-
-  truststore_path = properties.get_property(SSL_TRUSTSTORE_PATH_PROPERTY)
-  if not truststore_path:
-    SSL_TRUSTSTORE_PATH_DEFAULT = get_value_from_properties(properties, SSL_TRUSTSTORE_PATH_PROPERTY)
-
-    while not truststore_path:
-      truststore_path = get_validated_string_input(
-        "Path to TrustStore file {0}:".format(get_prompt_default(SSL_TRUSTSTORE_PATH_DEFAULT)),
-        SSL_TRUSTSTORE_PATH_DEFAULT,
-        ".*", False, False)
-
-    if truststore_path:
-      properties.process_pair(SSL_TRUSTSTORE_PATH_PROPERTY, truststore_path)
-
-  return truststore_path
-
-def get_truststore_password(properties):
-  truststore_password = properties.get_property(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
-  isSecure = get_is_secure(properties)
-  if truststore_password:
-    if isSecure:
-      truststore_password = decrypt_password_for_alias(properties, SSL_TRUSTSTORE_PASSWORD_ALIAS)
-  else:
-    truststore_password = read_password("", ".*", "Password for TrustStore:", "Invalid characters in password")
-    if truststore_password:
-      encrypted_password = get_encrypted_password(SSL_TRUSTSTORE_PASSWORD_ALIAS, truststore_password, properties)
-      properties.process_pair(SSL_TRUSTSTORE_PASSWORD_PROPERTY, encrypted_password)
-
-  return truststore_password
-
-def get_pass_file_path(conf_file, filename):
-  return os.path.join(os.path.dirname(conf_file), filename)
-
-def read_password(passwordDefault=DEFAULT_PASSWORD,
-                  passwordPattern=PASSWORD_PATTERN,
-                  passwordPrompt=None,
-                  passwordDescr=None):
-
-  input = True
-  while(input):
-    # setup password
-    if passwordPrompt is None:
-      passwordPrompt = 'Password (' + passwordDefault + '): '
-
-    if passwordDescr is None:
-      passwordDescr = "Invalid characters in password. Use only alphanumeric or " \
-                      "_ or - characters"
-
-    password = get_validated_string_input(passwordPrompt, passwordDefault,
-                                          passwordPattern, passwordDescr, True)
-    if not password:
-      print 'Password cannot be blank.'
-      continue
-
-    if password != passwordDefault:
-      password1 = get_validated_string_input("Re-enter password: ",
-                                             passwordDefault, passwordPattern, passwordDescr, True)
-      if password != password1:
-        print "Passwords do not match"
-        continue
-
-    input = False
-
-  return password
-
-def encrypt_password(alias, password):
-  properties = get_ambari_properties()
-  if properties == -1:
-    raise FatalException(1, None)
-  return get_encrypted_password(alias, password, properties)
-
-def get_encrypted_password(alias, password, properties):
-  isSecure = get_is_secure(properties)
-  (isPersisted, masterKeyFile) = get_is_persisted(properties)
-  if isSecure:
-    masterKey = None
-    if not masterKeyFile:
-      # Encryption enabled but no master key file found
-      masterKey = get_original_master_key(properties)
-
-    retCode = save_passwd_for_alias(alias, password, masterKey)
-    if retCode != 0:
-      print 'Failed to save secure password!'
-      return password
-    else:
-      return get_alias_string(alias)
-
-  return password
-
-def get_alias_string(alias):
-  return "${alias=" + alias + "}"
-
-def get_alias_from_alias_string(aliasStr):
-  return aliasStr[8:-1]
-
-def save_passwd_for_alias(alias, passwd, masterKey=""):
-  if alias and passwd:
-    jdk_path = find_jdk()
-    if jdk_path is None:
-      print_error_msg("No JDK found, please run the \"setup\" "
-                      "command to install a JDK automatically or install any "
-                      "JDK manually to " + configDefaults.JDK_INSTALL_DIR)
-      return 1
-
-    if masterKey is None or masterKey == "":
-      masterKey = "None"
-
-    command = SECURITY_PROVIDER_PUT_CMD.format(get_java_exe_path(),
-      get_full_ambari_classpath(), alias, passwd, masterKey)
-    (retcode, stdout, stderr) = run_os_command(command)
-    print_info_msg("Return code from credential provider save passwd: " +
-                   str(retcode))
-    return retcode
-  else:
-    print_error_msg("Alias or password is unreadable.")
 
 def read_master_key(isReset=False):
   passwordPattern = ".*"
@@ -526,32 +109,6 @@ def save_master_key(master_key, key_location, persist=True):
   else:
     print_error_msg("Master key cannot be None.")
 
-def store_password_file(password, filename):
-  conf_file = find_properties_file()
-  passFilePath = get_pass_file_path(conf_file, filename)
-
-  with open(passFilePath, 'w+') as passFile:
-    passFile.write(password)
-  print_info_msg("Adjusting filesystem permissions")
-  ambari_user = read_ambari_user()
-  set_file_permissions(passFilePath, "660", ambari_user, False)
-
-  #Windows paths need double backslashes, otherwise the Ambari server deserializer will think the single \ are escape markers
-  return passFilePath.replace('\\', '\\\\')
-
-def remove_password_file(filename):
-  conf_file = find_properties_file()
-  passFilePath = os.path.join(os.path.dirname(conf_file),
-    filename)
-
-  if os.path.exists(passFilePath):
-    try:
-      os.remove(passFilePath)
-    except Exception, e:
-      print_warning_msg('Unable to remove password file: ' + str(e))
-      return 1
-  pass
-  return 0
 
 def adjust_directory_permissions(ambari_user):
   properties = get_ambari_properties()
@@ -594,21 +151,6 @@ def adjust_directory_permissions(ambari_user):
     recursive = pack[3]
     set_file_permissions(file, mod, user, recursive)
 
-def get_fqdn():
-  properties = get_ambari_properties()
-  if properties == -1:
-    print "Error reading ambari properties"
-    return None
-
-  get_fqdn_service_url = properties[GET_FQDN_SERVICE_URL]
-  try:
-    handle = urllib2.urlopen(get_fqdn_service_url, '', 2)
-    str = handle.read()
-    handle.close()
-    return str
-  except Exception:
-    return socket.getfqdn()
-
 def configure_ldap_password():
   passwordDefault = ""
   passwordPrompt = 'Enter Manager Password* : '
@@ -620,117 +162,176 @@ def configure_ldap_password():
 
   return password
 
-def setup_https(args):
+#
+# Get the principal names from the given CSV file and set them on the given LDAP event specs.
+#
+def get_ldap_event_spec_names(file, specs, new_specs):
+
+  try:
+    if os.path.exists(file):
+      new_spec = new_specs[0]
+      with open(file, 'r') as names_file:
+        names = names_file.read()
+        new_spec['names'] = names.replace('\n', '').replace('\t', '')
+        names_file.close()
+        specs += new_specs
+    else:
+      err = 'Sync event creation failed. File ' + file + ' not found.'
+      raise FatalException(1, err)
+  except Exception as exception:
+    err = 'Caught exception reading file ' + file + ' : ' + str(exception)
+    raise FatalException(1, err)
+
+
+class LdapSyncOptions:
+  def __init__(self, options):
+    try:
+      self.ldap_sync_all = options.ldap_sync_all
+    except AttributeError:
+      self.ldap_sync_all = False
+
+    try:
+      self.ldap_sync_existing = options.ldap_sync_existing
+    except AttributeError:
+      self.ldap_sync_existing = False
+
+    try:
+      self.ldap_sync_users = options.ldap_sync_users
+    except AttributeError:
+      self.ldap_sync_users = None
+
+    try:
+      self.ldap_sync_groups = options.ldap_sync_groups
+    except AttributeError:
+      self.ldap_sync_groups = None
+
+  def no_ldap_sync_options_set(self):
+    return not self.ldap_sync_all and not self.ldap_sync_existing and self.ldap_sync_users is None and self.ldap_sync_groups is None
+
+
+#
+# Sync users and groups with configured LDAP
+#
+def sync_ldap(options):
   if not is_root():
-    err = 'ambari-server setup-https should be run with ' \
+    err = 'Ambari-server sync-ldap should be run with ' \
           'root-level privileges'
     raise FatalException(4, err)
-  args.exit_message = None
-  if not get_silent():
-    properties = get_ambari_properties()
+
+  server_status, pid = is_server_runing()
+  if not server_status:
+    err = 'Ambari Server is not running.'
+    raise FatalException(1, err)
+
+  ldap_configured = get_ambari_properties().get_property(IS_LDAP_CONFIGURED)
+  if ldap_configured != 'true':
+    err = "LDAP is not configured. Run 'ambari-server setup-ldap' first."
+    raise FatalException(1, err)
+
+  # set ldap sync options
+  ldap_sync_options = LdapSyncOptions(options)
+
+  if ldap_sync_options.no_ldap_sync_options_set():
+    err = 'Must specify a sync option.  Please see help for more information.'
+    raise FatalException(1, err)
+
+  admin_login = get_validated_string_input(prompt="Enter Ambari Admin login: ", default=None,
+                                           pattern=None, description=None,
+                                           is_pass=False, allowEmpty=False)
+  admin_password = get_validated_string_input(prompt="Enter Ambari Admin password: ", default=None,
+                                              pattern=None, description=None,
+                                              is_pass=True, allowEmpty=False)
+
+  url = '{0}://{1}:{2!s}{3}'.format(SERVER_API_PROTOCOL, SERVER_API_HOST, SERVER_API_PORT, SERVER_API_LDAP_URL)
+  admin_auth = base64.encodestring('%s:%s' % (admin_login, admin_password)).replace('\n', '')
+  request = urllib2.Request(url)
+  request.add_header('Authorization', 'Basic %s' % admin_auth)
+  request.add_header('X-Requested-By', 'ambari')
+
+  if ldap_sync_options.ldap_sync_all:
+    sys.stdout.write('Syncing all.')
+    bodies = [{"Event":{"specs":[{"principal_type":"users","sync_type":"all"},{"principal_type":"groups","sync_type":"all"}]}}]
+  elif ldap_sync_options.ldap_sync_existing:
+    sys.stdout.write('Syncing existing.')
+    bodies = [{"Event":{"specs":[{"principal_type":"users","sync_type":"existing"},{"principal_type":"groups","sync_type":"existing"}]}}]
+  else:
+    sys.stdout.write('Syncing specified users and groups.')
+    bodies = [{"Event":{"specs":[]}}]
+    body = bodies[0]
+    events = body['Event']
+    specs = events['specs']
+
+    if ldap_sync_options.ldap_sync_users is not None:
+      new_specs = [{"principal_type":"users","sync_type":"specific","names":""}]
+    if ldap_sync_options.ldap_sync_groups is not None:
+      new_specs = [{"principal_type":"groups","sync_type":"specific","names":""}]
+      get_ldap_event_spec_names(ldap_sync_options.ldap_sync_groups, specs, new_specs)
+
+  if get_verbose():
+    sys.stdout.write('\nCalling API ' + SERVER_API_LDAP_URL + ' : ' + str(bodies) + '\n')
+
+  request.add_data(json.dumps(bodies))
+  request.get_method = lambda: 'POST'
+
+  try:
+    response = urllib2.urlopen(request)
+  except Exception as e:
+    err = 'Sync event creation failed. Error details: %s' % e
+    raise FatalException(1, err)
+
+  response_status_code = response.getcode()
+  if response_status_code != 201:
+    err = 'Error during syncing. Http status code - ' + str(response_status_code)
+    raise FatalException(1, err)
+  response_body = json.loads(response.read())
+
+  url = response_body['resources'][0]['href']
+  request = urllib2.Request(url)
+  request.add_header('Authorization', 'Basic %s' % admin_auth)
+  request.add_header('X-Requested-By', 'ambari')
+  body = [{"LDAP":{"synced_groups":"*","synced_users":"*"}}]
+  request.add_data(json.dumps(body))
+  request.get_method = lambda: 'GET'
+  request_in_progress = True
+
+  while request_in_progress:
+    sys.stdout.write('.')
+    sys.stdout.flush()
+
     try:
-      security_server_keys_dir = properties.get_property(SSL_KEY_DIR)
-      client_api_ssl_port = DEFAULT_SSL_API_PORT if properties.get_property(SSL_API_PORT) in ("")\
-                            else properties.get_property(SSL_API_PORT)
-      api_ssl = properties.get_property(SSL_API) in ['true']
-      cert_was_imported = False
-      cert_must_import = True
-      if api_ssl:
-       if get_YN_input("Do you want to disable HTTPS [y/n] (n)? ", False):
-        properties.process_pair(SSL_API, "false")
-        cert_must_import=False
-       else:
-        properties.process_pair(SSL_API_PORT, \
-                                get_validated_string_input(\
-                                "SSL port ["+str(client_api_ssl_port)+"] ? ",\
-                                str(client_api_ssl_port),\
-                                "^[0-9]{1,5}$", "Invalid port.", False, validatorFunction = is_valid_https_port))
-        cert_was_imported = import_cert_and_key_action(security_server_keys_dir, properties)
-      else:
-       if get_YN_input("Do you want to configure HTTPS [y/n] (y)? ", True):
-        properties.process_pair(SSL_API_PORT,\
-        get_validated_string_input("SSL port ["+str(client_api_ssl_port)+"] ? ",\
-        str(client_api_ssl_port), "^[0-9]{1,5}$", "Invalid port.", False, validatorFunction = is_valid_https_port))
-        cert_was_imported = import_cert_and_key_action(security_server_keys_dir, properties)
-       else:
-        return False
-
-      if cert_must_import and not cert_was_imported:
-        print 'Setup of HTTPS failed. Exiting.'
-        return False
-
-      conf_file = find_properties_file()
-      f = open(conf_file, 'w')
-      properties.store(f, "Changed by 'ambari-server setup-https' command")
-
-      ambari_user = read_ambari_user()
-      if ambari_user:
-        adjust_directory_permissions(ambari_user)
-      return True
-    except (KeyError), e:
-      err = 'Property ' + str(e) + ' is not defined'
-      raise FatalException(1, err)
-  else:
-    warning = "setup-https is not enabled in silent mode."
-    raise NonFatalException(warning)
-
-def setup_component_https(component, command, property, alias):
-
-  if not get_silent():
-    jdk_path = find_jdk()
-    if jdk_path is None:
-      err = "No JDK found, please run the \"ambari-server setup\" " \
-                      "command to install a JDK automatically or install any " \
-                      "JDK manually to " + configDefaults.JDK_INSTALL_DIR
+      response = urllib2.urlopen(request)
+    except Exception as e:
+      request_in_progress = False
+      err = 'Sync event check failed. Error details: %s' % e
       raise FatalException(1, err)
 
-    properties = get_ambari_properties()
+    response_status_code = response.getcode()
+    if response_status_code != 200:
+      err = 'Error during syncing. Http status code - ' + str(response_status_code)
+      raise FatalException(1, err)
+    response_body = json.loads(response.read())
+    sync_info = response_body['Event']
 
-    use_https = properties.get_property(property) in ['true']
-
-    if use_https:
-      if get_YN_input("Do you want to disable HTTPS for " + component + " [y/n] (n)? ", False):
-
-        truststore_path = get_truststore_path(properties)
-        truststore_password = get_truststore_password(properties)
-
-        run_component_https_cmd(get_delete_cert_command(jdk_path, alias, truststore_path, truststore_password))
-
-        properties.process_pair(property, "false")
-
-      else:
-        return
+    if sync_info['status'] == 'ERROR':
+      raise FatalException(1, str(sync_info['status_detail']))
+    elif sync_info['status'] == 'COMPLETE':
+      print '\n\nCompleted LDAP Sync.'
+      print 'Summary:'
+      for principal_type, summary in sync_info['summary'].iteritems():
+        print '  {0}:'.format(principal_type)
+        for action, amount in summary.iteritems():
+          print '    {0} = {1!s}'.format(action, amount)
+      request_in_progress = False
     else:
-      if get_YN_input("Do you want to configure HTTPS for " + component + " [y/n] (y)? ", True):
+      time.sleep(1)
 
-        truststore_type = get_truststore_type(properties)
-        truststore_path = get_truststore_path(properties)
-        truststore_password = get_truststore_password(properties)
-
-        run_os_command(get_delete_cert_command(jdk_path, alias, truststore_path, truststore_password))
-
-        import_cert_path = get_validated_filepath_input(\
-                          "Enter path to " + component + " Certificate: ",\
-                          "Certificate not found")
-
-        run_component_https_cmd(get_import_cert_command(jdk_path, alias, truststore_type, import_cert_path, truststore_path, truststore_password))
-
-        properties.process_pair(property, "true")
-
-      else:
-        return
-
-    conf_file = find_properties_file()
-    f = open(conf_file, 'w')
-    properties.store(f, "Changed by 'ambari-server " + command + "' command")
-
-  else:
-    print command + " is not enabled in silent mode."
+  sys.stdout.write('\n')
+  sys.stdout.flush()
 
 def setup_master_key():
   if not is_root():
-    err = 'Ambari-server setup should be run with '\
-                     'root-level privileges'
+    err = 'Ambari-server setup should be run with ' \
+          'root-level privileges'
     raise FatalException(4, err)
 
   properties = get_ambari_properties()
@@ -749,12 +350,18 @@ def setup_master_key():
   isSecure = get_is_secure(properties)
   (isPersisted, masterKeyFile) = get_is_persisted(properties)
 
-  # Read clear text password from file
+  # Read clear text DB password from file
   if db_sql_auth and not is_alias_string(db_password) and os.path.isfile(db_password):
     with open(db_password, 'r') as passwdfile:
       db_password = passwdfile.read()
 
   ldap_password = properties.get_property(LDAP_MGR_PASSWORD_PROPERTY)
+  if ldap_password:
+    # Read clear text LDAP password from file
+    if not is_alias_string(ldap_password) and os.path.isfile(ldap_password):
+      with open(ldap_password, 'r') as passwdfile:
+        ldap_password = passwdfile.read()
+
   ts_password = properties.get_property(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
   resetKey = False
   masterKey = None
@@ -804,15 +411,15 @@ def setup_master_key():
   # Read master key, if non-secure or reset is true
   if resetKey or not isSecure:
     masterKey = read_master_key(resetKey)
-    persist = get_YN_input("Do you want to persist master key. If you choose "\
-                           "not to persist, you need to provide the Master "\
-                           "Key while starting the ambari server as an env "\
-                           "variable named " + SECURITY_KEY_ENV_VAR_NAME +\
+    persist = get_YN_input("Do you want to persist master key. If you choose " \
+                           "not to persist, you need to provide the Master " \
+                           "Key while starting the ambari server as an env " \
+                           "variable named " + SECURITY_KEY_ENV_VAR_NAME + \
                            " or the start will prompt for the master key."
                            " Persist [y/n] (y)? ", True)
     if persist:
       save_master_key(masterKey, get_master_key_location(properties) + os.sep +
-                                 SECURITY_MASTER_KEY_FILENAME, persist)
+                      SECURITY_MASTER_KEY_FILENAME, persist)
     elif not persist and masterKeyFile:
       try:
         os.remove(masterKeyFile)
@@ -850,6 +457,7 @@ def setup_master_key():
       print 'Failed to save secure LDAP password.'
     else:
       propertyMap[LDAP_MGR_PASSWORD_PROPERTY] = get_alias_string(LDAP_MGR_PASSWORD_ALIAS)
+      remove_password_file(LDAP_MGR_PASSWORD_FILENAME)
   pass
 
   if ts_password and not is_alias_string(ts_password):
@@ -873,15 +481,15 @@ def setup_master_key():
 def setup_ambari_krb5_jaas():
   jaas_conf_file = search_file(SECURITY_KERBEROS_JASS_FILENAME, get_conf_dir())
   if os.path.exists(jaas_conf_file):
-    print 'Setting up Ambari kerberos JAAS configuration to access ' +\
+    print 'Setting up Ambari kerberos JAAS configuration to access ' + \
           'secured Hadoop daemons...'
     principal = get_validated_string_input('Enter ambari server\'s kerberos '
-                  'principal name (ambari@EXAMPLE.COM): ', 'ambari@EXAMPLE.COM', '.*', '', False,
-                  False)
+                                           'principal name (ambari@EXAMPLE.COM): ', 'ambari@EXAMPLE.COM', '.*', '', False,
+                                           False)
     keytab = get_validated_string_input('Enter keytab path for ambari '
-                  'server\'s kerberos principal: ',
-                  '/etc/security/keytabs/ambari.keytab', '.*', False, False,
-                  validatorFunction=is_valid_filepath)
+                                        'server\'s kerberos principal: ',
+                                        '/etc/security/keytabs/ambari.keytab', '.*', False, False,
+                                        validatorFunction=is_valid_filepath)
 
     for line in fileinput.FileInput(jaas_conf_file, inplace=1):
       line = re.sub('keyTab=.*$', 'keyTab="' + keytab + '"', line)
@@ -892,6 +500,45 @@ def setup_ambari_krb5_jaas():
     raise NonFatalException('No jaas config file found at location: ' +
                             jaas_conf_file)
 
+
+class LdapPropTemplate:
+  def __init__(self, properties, i_prop_name, i_prop_val_pattern, i_prompt_regex, i_allow_empty_prompt, i_prop_name_default=None):
+    self.prop_name = i_prop_name
+    self.ldap_prop_name = get_value_from_properties(properties, i_prop_name, i_prop_name_default)
+    self.ldap_prop_val_prompt = i_prop_val_pattern.format(get_prompt_default(self.ldap_prop_name))
+    self.prompt_regex = i_prompt_regex
+    self.allow_empty_prompt = i_allow_empty_prompt
+
+@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
+def init_ldap_properties_list_reqd(properties):
+  # python2.x dict is not ordered
+  ldap_properties = [
+    LdapPropTemplate(properties, "authentication.ldap.primaryUrl", "Primary URL* {{host:port}} {0}: ", REGEX_HOSTNAME_PORT, False),
+    LdapPropTemplate(properties, "authentication.ldap.secondaryUrl", "Secondary URL {{host:port}} {0}: ", REGEX_HOSTNAME_PORT, True),
+    LdapPropTemplate(properties, "authentication.ldap.useSSL", "Use SSL* [true/false] {0}: ", REGEX_TRUE_FALSE, False, "false"),
+    LdapPropTemplate(properties, "authentication.ldap.usernameAttribute", "User name attribute* {0}: ", REGEX_ANYTHING, False, "uid"),
+    LdapPropTemplate(properties, "authentication.ldap.baseDn", "Base DN* {0}: ", REGEX_ANYTHING, False),
+    LdapPropTemplate(properties, "authentication.ldap.bindAnonymously" "Bind anonymously* [true/false] {0}: ", REGEX_TRUE_FALSE, False, "false")
+  ]
+  return ldap_properties
+
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
+def init_ldap_properties_list_reqd(properties):
+  ldap_properties = [
+    LdapPropTemplate(properties, LDAP_PRIMARY_URL_PROPERTY, "Primary URL* {{host:port}} {0}: ", REGEX_HOSTNAME_PORT, False),
+    LdapPropTemplate(properties, "authentication.ldap.secondaryUrl", "Secondary URL {{host:port}} {0}: ", REGEX_HOSTNAME_PORT, True),
+    LdapPropTemplate(properties, "authentication.ldap.useSSL", "Use SSL* [true/false] {0}: ", REGEX_TRUE_FALSE, False, "false"),
+    LdapPropTemplate(properties, "authentication.ldap.userObjectClass", "User object class* {0}: ", REGEX_ANYTHING, False, "posixAccount"),
+    LdapPropTemplate(properties, "authentication.ldap.usernameAttribute", "User name attribute* {0}: ", REGEX_ANYTHING, False, "uid"),
+    LdapPropTemplate(properties, "authentication.ldap.groupObjectClass", "Group object class* {0}: ", REGEX_ANYTHING, False, "posixGroup"),
+    LdapPropTemplate(properties, "authentication.ldap.groupNamingAttr", "Group name attribute* {0}: ", REGEX_ANYTHING, False, "cn"),
+    LdapPropTemplate(properties, "authentication.ldap.groupMembershipAttr", "Group member attribute* {0}: ", REGEX_ANYTHING, False, "memberUid"),
+    LdapPropTemplate(properties, "authentication.ldap.dnAttribute", "Distinguished name attribute* {0}: ", REGEX_ANYTHING, False, "dn"),
+    LdapPropTemplate(properties, "authentication.ldap.baseDn", "Base DN* {0}: ", REGEX_ANYTHING, False),
+    LdapPropTemplate(properties, "authentication.ldap.bindAnonymously", "Bind anonymously* [true/false] {0}: ", REGEX_TRUE_FALSE, False, "false")
+  ]
+  return ldap_properties
+
 def setup_ldap():
   if not is_root():
     err = 'Ambari-server setup-ldap should be run with ' \
@@ -900,19 +547,14 @@ def setup_ldap():
 
   properties = get_ambari_properties()
   isSecure = get_is_secure(properties)
-  # python2.x dict is not ordered
-  ldap_property_list_reqd = ["authentication.ldap.primaryUrl",
-                        "authentication.ldap.secondaryUrl",
-                        "authentication.ldap.useSSL",
-                        "authentication.ldap.usernameAttribute",
-                        "authentication.ldap.baseDn",
-                        "authentication.ldap.bindAnonymously"]
+
+  ldap_property_list_reqd = init_ldap_properties_list_reqd(properties)
 
   ldap_property_list_opt = ["authentication.ldap.managerDn",
-                             LDAP_MGR_PASSWORD_PROPERTY,
-                             SSL_TRUSTSTORE_TYPE_PROPERTY,
-                             SSL_TRUSTSTORE_PATH_PROPERTY,
-                             SSL_TRUSTSTORE_PASSWORD_PROPERTY]
+                            LDAP_MGR_PASSWORD_PROPERTY,
+                            SSL_TRUSTSTORE_TYPE_PROPERTY,
+                            SSL_TRUSTSTORE_PATH_PROPERTY,
+                            SSL_TRUSTSTORE_PASSWORD_PROPERTY]
 
   ldap_property_list_truststore=[SSL_TRUSTSTORE_TYPE_PROPERTY,
                                  SSL_TRUSTSTORE_PATH_PROPERTY,
@@ -921,40 +563,18 @@ def setup_ldap():
   ldap_property_list_passwords=[LDAP_MGR_PASSWORD_PROPERTY,
                                 SSL_TRUSTSTORE_PASSWORD_PROPERTY]
 
-  LDAP_PRIMARY_URL_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[0])
-  LDAP_SECONDARY_URL_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[1])
-  LDAP_USE_SSL_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[2], "false")
-  LDAP_USER_ATT_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[3], "uid")
-  LDAP_BASE_DN_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[4])
-  LDAP_BIND_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[5], "false")
   LDAP_MGR_DN_DEFAULT = get_value_from_properties(properties, ldap_property_list_opt[0])
+
   SSL_TRUSTSTORE_TYPE_DEFAULT = get_value_from_properties(properties, SSL_TRUSTSTORE_TYPE_PROPERTY, "jks")
   SSL_TRUSTSTORE_PATH_DEFAULT = get_value_from_properties(properties, SSL_TRUSTSTORE_PATH_PROPERTY)
 
 
-  ldap_properties_map_reqd =\
-  {
-    ldap_property_list_reqd[0]:(LDAP_PRIMARY_URL_DEFAULT, "Primary URL* {{host:port}} {0}: ".format(get_prompt_default(LDAP_PRIMARY_URL_DEFAULT)), False),\
-    ldap_property_list_reqd[1]:(LDAP_SECONDARY_URL_DEFAULT, "Secondary URL {{host:port}} {0}: ".format(get_prompt_default(LDAP_SECONDARY_URL_DEFAULT)), True),\
-    ldap_property_list_reqd[2]:(LDAP_USE_SSL_DEFAULT, "Use SSL* [true/false] {0}: ".format(get_prompt_default(LDAP_USE_SSL_DEFAULT)), False),\
-    ldap_property_list_reqd[3]:(LDAP_USER_ATT_DEFAULT, "User name attribute* {0}: ".format(get_prompt_default(LDAP_USER_ATT_DEFAULT)), False),\
-    ldap_property_list_reqd[4]:(LDAP_BASE_DN_DEFAULT, "Base DN* {0}: ".format(get_prompt_default(LDAP_BASE_DN_DEFAULT)), False),\
-    ldap_property_list_reqd[5]:(LDAP_BIND_DEFAULT, "Bind anonymously* [true/false] {0}: ".format(get_prompt_default(LDAP_BIND_DEFAULT)), False)\
-  }
-
   ldap_property_value_map = {}
-  for idx, key in enumerate(ldap_property_list_reqd):
-    if idx in [0, 1]:
-      pattern = REGEX_HOSTNAME_PORT
-    elif idx in [2, 5]:
-      pattern = REGEX_TRUE_FALSE
-    else:
-      pattern = REGEX_ANYTHING
-    input = get_validated_string_input(ldap_properties_map_reqd[key][1],
-      ldap_properties_map_reqd[key][0], pattern,
-      "Invalid characters in the input!", False, ldap_properties_map_reqd[key][2])
+  for ldap_prop in ldap_property_list_reqd:
+    input = get_validated_string_input(ldap_prop.ldap_prop_val_prompt, ldap_prop.ldap_prop_name, ldap_prop.prompt_regex,
+                                       "Invalid characters in the input!", False, ldap_prop.allow_empty_prompt)
     if input is not None and input != "":
-      ldap_property_value_map[key] = input
+      ldap_property_value_map[ldap_prop.prop_name] = input
 
   bindAnonymously = ldap_property_value_map["authentication.ldap.bindAnonymously"]
   anonymous = (bindAnonymously and bindAnonymously.lower() == 'true')
@@ -963,7 +583,7 @@ def setup_ldap():
   if not anonymous:
     username = get_validated_string_input("Manager DN* {0}: ".format(
       get_prompt_default(LDAP_MGR_DN_DEFAULT)), LDAP_MGR_DN_DEFAULT, ".*",
-                "Invalid characters in the input!", False, False)
+                                          "Invalid characters in the input!", False, False)
     ldap_property_value_map[LDAP_MGR_USERNAME_PROPERTY] = username
     mgr_password = configure_ldap_password()
     ldap_property_value_map[LDAP_MGR_PASSWORD_PROPERTY] = mgr_password
@@ -1041,6 +661,9 @@ def setup_ldap():
     pass
 
     # Persisting values
+    ldap_property_value_map[IS_LDAP_CONFIGURED] = "true"
+    if mgr_password:
+      ldap_property_value_map[LDAP_MGR_PASSWORD_PROPERTY] = store_password_file(mgr_password, LDAP_MGR_PASSWORD_FILENAME)
     update_properties_2(properties, ldap_property_value_map)
     print 'Saving...done'
 

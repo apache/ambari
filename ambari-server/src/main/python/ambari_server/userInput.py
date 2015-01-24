@@ -119,3 +119,36 @@ def get_prompt_default(defaultStr=None):
     return ""
   else:
     return '(' + defaultStr + ')'
+
+
+def read_password(passwordDefault,
+                  passwordPattern,
+                  passwordPrompt=None,
+                  passwordDescr=None):
+
+  input = True
+  while(input):
+    # setup password
+    if passwordPrompt is None:
+      passwordPrompt = 'Password (' + passwordDefault + '): '
+
+    if passwordDescr is None:
+      passwordDescr = "Invalid characters in password. Use only alphanumeric or " \
+                      "_ or - characters"
+
+    password = get_validated_string_input(passwordPrompt, passwordDefault,
+                                          passwordPattern, passwordDescr, True)
+    if not password:
+      print 'Password cannot be blank.'
+      continue
+
+    if password != passwordDefault:
+      password1 = get_validated_string_input("Re-enter password: ",
+                                             passwordDefault, passwordPattern, passwordDescr, True)
+      if password != password1:
+        print "Passwords do not match"
+        continue
+
+    input = False
+
+  return password

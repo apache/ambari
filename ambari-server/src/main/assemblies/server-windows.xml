@@ -44,7 +44,15 @@
       <outputDirectory>/ambari-server-${project.version}/keystore</outputDirectory>
     </file>
     <file>
-      <source>${basedir}/src/main/python/ambari-server-windows.py</source>
+      <source>${basedir}/src/main/python/ambari-server.py</source>
+      <outputDirectory>/ambari-server-${project.version}/sbin</outputDirectory>
+    </file>
+    <file>
+      <source>${basedir}/src/main/python/ambari_server_main.py</source>
+      <outputDirectory>/ambari-server-${project.version}/sbin</outputDirectory>
+    </file>
+    <file>
+      <source>${basedir}/src/main/python/ambari_windows_service.py</source>
       <outputDirectory>/ambari-server-${project.version}/sbin</outputDirectory>
     </file>
     <file>

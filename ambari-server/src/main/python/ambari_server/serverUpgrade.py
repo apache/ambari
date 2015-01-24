@@ -34,10 +34,9 @@ from ambari_server.serverConfiguration import configDefaults, \
   AMBARI_PROPERTIES_FILE, IS_LDAP_CONFIGURED, LDAP_PRIMARY_URL_PROPERTY, RESOURCES_DIR_PROPERTY, \
   SETUP_OR_UPGRADE_MSG
 from ambari_server.setupSecurity import adjust_directory_permissions
-
-# constants
 from ambari_server.utils import compare_versions
 
+# constants
 STACK_NAME_VER_SEP = "-"
 
 SCHEMA_UPGRADE_HELPER_CMD = "{0} -cp {1} " + \
@@ -53,12 +52,28 @@ STACK_UPGRADE_HELPER_CMD = "{0} -cp {1} " + \
 # Stack upgrade
 #
 
-def upgrade_stack(args, stack_id, repo_url=None, repo_url_os=None):
+def upgrade_stack(args):
   if not is_root():
     err = 'Ambari-server upgradestack should be run with ' \
           'root-level privileges'
     raise FatalException(4, err)
   check_database_name_property()
+
+  try:
+    stack_id = args[1]
+  except IndexError:
+    #stack_id is mandatory
+    raise FatalException("Invalid number of stack upgrade arguments")
+
+  try:
+    repo_url = args[2]
+  except IndexError:
+    repo_url = None
+
+  try:
+    repo_url_os = args[3]
+  except IndexError:
+    repo_url_os = None
 
   stack_name, stack_version = stack_id.split(STACK_NAME_VER_SEP)
   retcode = run_stack_upgrade(stack_name, stack_version, repo_url, repo_url_os)

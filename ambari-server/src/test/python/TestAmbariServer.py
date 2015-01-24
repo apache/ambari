@@ -70,15 +70,24 @@ with patch("platform.linux_distribution", return_value = os_distro_value):
           RESOURCES_DIR_PROPERTY, JDBC_RCA_PASSWORD_ALIAS, JDBC_RCA_SCHEMA_PROPERTY, IS_LDAP_CONFIGURED, \
           LDAP_MGR_PASSWORD_PROPERTY, LDAP_MGR_PASSWORD_ALIAS, JDBC_PASSWORD_FILENAME, NR_USER_PROPERTY, SECURITY_KEY_IS_PERSISTED, \
           SSL_TRUSTSTORE_PASSWORD_PROPERTY, SECURITY_IS_ENCRYPTION_ENABLED, SSL_TRUSTSTORE_PASSWORD_ALIAS, \
-          SECURITY_MASTER_KEY_LOCATION, SECURITY_KEYS_DIR
+          SECURITY_MASTER_KEY_LOCATION, SECURITY_KEYS_DIR, LDAP_PRIMARY_URL_PROPERTY, store_password_file, \
+          get_pass_file_path, GET_FQDN_SERVICE_URL, JDBC_USE_INTEGRATED_AUTH_PROPERTY, SECURITY_KEY_ENV_VAR_NAME
+        from ambari_server.serverUtils import is_server_runing, refresh_stack_hash
         from ambari_server.serverSetup import check_selinux, check_ambari_user, proceedJDBCProperties, SE_STATUS_DISABLED, SE_MODE_ENFORCING, configure_os_settings, \
           download_and_install_jdk, prompt_db_properties, setup, \
-          AmbariUserChecks, AmbariUserChecksLinux, AmbariUserChecksWindows, JDKSetup, reset, is_server_runing
+          AmbariUserChecks, AmbariUserChecksLinux, AmbariUserChecksWindows, JDKSetup, reset
         from ambari_server.serverUpgrade import upgrade, upgrade_local_repo, change_objects_owner, upgrade_stack, \
           run_stack_upgrade, run_metainfo_upgrade, run_schema_upgrade, move_user_custom_actions
-        from ambari_server.setupSecurity import get_pass_file_path, store_password_file, read_password, \
-          adjust_directory_permissions, get_alias_string
-        from ambari_server.userInput import get_YN_input, get_choice_string_input, get_validated_string_input
+        from ambari_server.setupHttps import is_valid_https_port, setup_https, import_cert_and_key_action, get_fqdn, \
+          generate_random_string, get_cert_info, COMMON_NAME_ATTR, is_valid_cert_exp, NOT_AFTER_ATTR, NOT_BEFORE_ATTR, \
+          SSL_DATE_FORMAT, import_cert_and_key, is_valid_cert_host, setup_component_https, \
+          SRVR_ONE_WAY_SSL_PORT_PROPERTY, SRVR_TWO_WAY_SSL_PORT_PROPERTY, GANGLIA_HTTPS
+        from ambari_server.setupSecurity import adjust_directory_permissions, get_alias_string, get_ldap_event_spec_names, sync_ldap, LdapSyncOptions, \
+          configure_ldap_password, setup_ldap, REGEX_HOSTNAME_PORT, REGEX_TRUE_FALSE, REGEX_ANYTHING, setup_master_key, \
+          setup_ambari_krb5_jaas
+        from ambari_server.userInput import get_YN_input, get_choice_string_input, get_validated_string_input, \
+          read_password
+        from ambari_server_main import get_ulimit_open_files, ULIMIT_OPEN_FILES_KEY, ULIMIT_OPEN_FILES_DEFAULT
 
 CURR_AMBARI_VERSION = "2.0.0"
 
@@ -247,7 +256,7 @@ class TestAmbariServer(TestCase):
     self.assertEquals("/etc/ambari/password.dat", result)
     pass
 
-
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(_ambari_server_, "setup_security")
   @patch("optparse.OptionParser")
   def test_main_test_setup_security(self, OptionParserMock,
@@ -268,40 +277,41 @@ class TestAmbariServer(TestCase):
     self.assertFalse(False, get_silent())
     pass
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(_ambari_server_, "setup_ambari_krb5_jaas")
   @patch.object(_ambari_server_, "setup_master_key")
-  @patch.object(_ambari_server_, "setup_component_https")
+  @patch("ambari_server.setupHttps.setup_component_https")
   @patch.object(_ambari_server_, "setup_https")
   @patch.object(_ambari_server_, "get_validated_string_input")
-  def test_setup_security(self, get_validated_string_input_mock, setup_https,
-                          setup_component_https, setup_master_key,
-                          setup_ambari_krb5_jaas):
+  def test_setup_security(self, get_validated_string_input_mock, setup_https_mock,
+                          setup_component_https_mock, setup_master_key_mock,
+                          setup_ambari_krb5_jaas_mock):
 
     args = {}
     get_validated_string_input_mock.return_value = '1'
     _ambari_server_.setup_security(args)
-    self.assertTrue(setup_https.called)
+    self.assertTrue(setup_https_mock.called)
 
     get_validated_string_input_mock.return_value = '2'
     _ambari_server_.setup_security(args)
-    self.assertTrue(setup_component_https.called)
-    setup_component_https.assert_called_with("Ganglia", "setup-ganglia-https",
-                          _ambari_server_.GANGLIA_HTTPS, "ganglia_cert")
+    self.assertTrue(setup_component_https_mock.called)
+    setup_component_https_mock.assert_called_with("Ganglia", "setup-ganglia-https",
+                          GANGLIA_HTTPS, "ganglia_cert")
 
     get_validated_string_input_mock.return_value = '3'
     _ambari_server_.setup_security(args)
-    self.assertTrue(setup_master_key.called)
+    self.assertTrue(setup_master_key_mock.called)
 
     get_validated_string_input_mock.return_value = '4'
     _ambari_server_.setup_security(args)
-    self.assertTrue(setup_ambari_krb5_jaas.called)
+    self.assertTrue(setup_ambari_krb5_jaas_mock.called)
     pass
 
 
   @patch("re.sub")
   @patch("fileinput.FileInput")
-  @patch.object(_ambari_server_, "get_validated_string_input")
-  @patch.object(_ambari_server_, "search_file")
+  @patch("ambari_server.setupSecurity.get_validated_string_input")
+  @patch("ambari_server.setupSecurity.search_file")
   @patch("os.path.exists")
   def test_setup_ambari_krb5_jaas(self, exists_mock, search_mock,
                                   get_validated_string_input_mock,
@@ -312,7 +322,7 @@ class TestAmbariServer(TestCase):
 
     # Negative case
     try:
-      _ambari_server_.setup_ambari_krb5_jaas()
+      setup_ambari_krb5_jaas()
       self.fail("Should throw exception")
     except NonFatalException as fe:
       # Expected
@@ -327,7 +337,7 @@ class TestAmbariServer(TestCase):
 
     fileinput_mock.return_value = [ 'keyTab=xyz', 'principal=xyz' ]
 
-    _ambari_server_.setup_ambari_krb5_jaas()
+    setup_ambari_krb5_jaas()
 
     self.assertTrue(fileinput_mock.called)
     self.assertTrue(re_sub_mock.called)
@@ -335,6 +345,7 @@ class TestAmbariServer(TestCase):
                                                  ('pathtokeytab')])
     pass
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(_ambari_server_, "setup")
   @patch.object(_ambari_server_, "start")
   @patch.object(_ambari_server_, "stop")
@@ -360,7 +371,7 @@ class TestAmbariServer(TestCase):
     self.assertFalse(False, get_silent())
     pass
 
-
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(_ambari_server_, "setup")
   @patch.object(_ambari_server_, "start")
   @patch.object(_ambari_server_, "stop")
@@ -386,7 +397,7 @@ class TestAmbariServer(TestCase):
     self.assertFalse(False, get_silent())
     pass
 
-
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(_ambari_server_, "setup")
   @patch.object(_ambari_server_, "start")
   @patch.object(_ambari_server_, "stop")
@@ -412,7 +423,7 @@ class TestAmbariServer(TestCase):
     self.assertTrue(get_debug_mode())
     pass
 
-
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(_ambari_server_, "setup")
   @patch.object(_ambari_server_, "start")
   @patch.object(_ambari_server_, "stop")
@@ -437,6 +448,7 @@ class TestAmbariServer(TestCase):
     self.assertTrue(get_debug_mode())
     pass
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(_ambari_server_, "setup")
   @patch.object(_ambari_server_, "start")
   @patch.object(_ambari_server_, "stop")
@@ -466,6 +478,7 @@ class TestAmbariServer(TestCase):
     self.assertFalse(False, get_silent())
     pass
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(_ambari_server_, "setup")
   @patch.object(_ambari_server_, "start")
   @patch.object(_ambari_server_, "stop")
@@ -495,17 +508,22 @@ class TestAmbariServer(TestCase):
     self.assertFalse(False, get_silent())
     pass
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(_ambari_server_, "setup")
   @patch.object(_ambari_server_, "start")
-  @patch.object(_ambari_server_, "stop")
+  @patch.object(_ambari_server_, "is_server_runing")
   @patch.object(_ambari_server_, "reset")
   @patch("optparse.OptionParser")
-  def test_main_test_stop(self, optionParserMock, reset_method, stop_method,
+  def test_main_test_stop(self, optionParserMock, reset_method, is_server_runing_method,
                           start_method, setup_method):
     opm = optionParserMock.return_value
     options = MagicMock()
+    del options.exit_message
+
     args = ["stop"]
     opm.parse_args.return_value = (options, args)
+
+    is_server_runing_method.return_value = (False, None)
 
     options.dbms = None
     options.sid_or_sname = "sid"
@@ -514,14 +532,16 @@ class TestAmbariServer(TestCase):
 
     self.assertFalse(setup_method.called)
     self.assertFalse(start_method.called)
-    self.assertTrue(stop_method.called)
+    self.assertTrue(is_server_runing_method.called)
     self.assertFalse(reset_method.called)
 
     self.assertFalse(False, get_verbose())
     self.assertFalse(False, get_silent())
+
+    self.assertIsNone(options.exit_message)
     pass
 
-
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(_ambari_server_, "setup")
   @patch.object(_ambari_server_, "start")
   @patch.object(_ambari_server_, "stop")
@@ -823,7 +843,7 @@ class TestAmbariServer(TestCase):
     self.assertEqual(0, rcode)
     self.assertTrue(run_os_command_mock.called)
     self.assertTrue(getYNInput_mock.called)
-
+    pass
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch("ambari_server.serverConfiguration.print_info_msg")
@@ -838,6 +858,7 @@ class TestAmbariServer(TestCase):
     result = get_ambari_jars()
     self.assertEqual("/usr/lib/ambari-server", result)
     self.assertTrue(printInfoMsg_mock.called)
+    pass
 
   @only_for_platform(PLATFORM_WINDOWS)
   @patch("ambari_server.serverConfiguration.print_info_msg")
@@ -852,7 +873,7 @@ class TestAmbariServer(TestCase):
     result = get_ambari_jars()
     self.assertEqual("libs", result)
     self.assertTrue(printInfoMsg_mock.called)
-
+    pass
 
   @patch("glob.glob")
   @patch("ambari_server.serverConfiguration.print_info_msg")
@@ -865,7 +886,7 @@ class TestAmbariServer(TestCase):
     expected = ""
     result = get_share_jars()
     self.assertEqual(expected, result)
-
+    pass
 
   @patch("glob.glob")
   @patch("ambari_server.serverConfiguration.print_info_msg")
@@ -879,7 +900,7 @@ class TestAmbariServer(TestCase):
     result = get_ambari_classpath()
     self.assertTrue(get_ambari_jars() in result)
     self.assertFalse(":" in result)
-
+    pass
 
   @patch("ambari_server.serverConfiguration.print_info_msg")
   def test_get_conf_dir(self, printInfoMsg_mock):
@@ -891,7 +912,7 @@ class TestAmbariServer(TestCase):
     del os.environ[AMBARI_CONF_VAR]
     result = get_conf_dir()
     self.assertEqual("/etc/ambari-server/conf", result)
-
+    pass
 
   def test_search_file(self):
     path = os.path.dirname(__file__)
@@ -901,7 +922,7 @@ class TestAmbariServer(TestCase):
 
     result = search_file("non_existent_file", path)
     self.assertEqual(None, result)
-
+    pass
 
   @patch("ambari_server.serverConfiguration.search_file")
   def test_find_properties_file(self, search_file_mock):
@@ -920,7 +941,7 @@ class TestAmbariServer(TestCase):
     search_file_mock.return_value = value
     result = find_properties_file()
     self.assertTrue(result is value)
-
+    pass
 
   @patch("ambari_server.serverConfiguration.find_properties_file")
   @patch("__builtin__.open")
@@ -936,7 +957,7 @@ class TestAmbariServer(TestCase):
     properties_mock.return_value.__getitem__.return_value = None
     user = read_ambari_user()
     self.assertEquals(user, None)
-
+    pass
 
   @patch("os.path.exists")
   @patch("ambari_server.setupSecurity.set_file_permissions")
@@ -972,7 +993,7 @@ class TestAmbariServer(TestCase):
       self.assertEquals(set_file_permissions_mock.call_args_list[1][0][3], False)
     finally:
       configDefaults.NR_ADJUST_OWNERSHIP_LIST = old_list
-
+    pass
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch("os.path.exists")
@@ -1050,7 +1071,7 @@ class TestAmbariServer(TestCase):
 
     run_os_command_mock.reset_mock()
     print_warning_msg_mock.reset_mock()
-
+    pass
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("ambari_server.serverSetup.get_validated_string_input")
@@ -1089,7 +1110,7 @@ class TestAmbariServer(TestCase):
     result = userChecks._create_custom_user()
     self.assertTrue(print_warning_msg_mock.called)
     self.assertEquals(result, (1, None))
-
+    pass
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("ambari_server.serverSetup.read_ambari_user")
@@ -1221,18 +1242,19 @@ class TestAmbariServer(TestCase):
     self.assertTrue(write_property_mock.call_args[0][1] == "root")
     self.assertTrue(adjust_directory_permissions_mock.called)
     self.assertEqual(result, 0)
-
+    pass
 
   @patch("ambari_server.serverConfiguration.search_file")
   @patch("__builtin__.open")
-  @patch("ambari_server.setupSecurity.read_ambari_user")
-  @patch("ambari_server.setupSecurity.set_file_permissions")
+  @patch("ambari_server.serverConfiguration.read_ambari_user")
+  @patch("ambari_server.serverConfiguration.set_file_permissions")
   def test_store_password_file(self, set_file_permissions_mock,
                                read_ambari_user_mock, open_mock, search_file_mock):
     search_file_mock.return_value = "/etc/ambari-server/conf/ambari.properties"
     open_mock.return_value = MagicMock()
     store_password_file("password", "passfile")
     self.assertTrue(set_file_permissions_mock.called)
+    pass
 
   @patch("subprocess.Popen")
   @patch.object(OSCheck, "get_os_family")
@@ -1295,19 +1317,20 @@ class TestAmbariServer(TestCase):
     p.returncode = 3
     self.assertFalse(firewall_obj.check_iptables())
     self.assertEqual("err", firewall_obj.stderrdata)
+    pass
 
-  @patch.object(_ambari_server_, "get_validated_filepath_input")
-  @patch.object(_ambari_server_, "run_os_command")
-  @patch.object(_ambari_server_, "get_truststore_type")
+  @patch("ambari_server.setupHttps.get_validated_filepath_input")
+  @patch("ambari_server.setupHttps.run_os_command")
+  @patch("ambari_server.setupHttps.get_truststore_type")
   @patch("__builtin__.open")
-  @patch.object(_ambari_server_, "find_properties_file")
-  @patch.object(_ambari_server_, "run_component_https_cmd")
-  @patch.object(_ambari_server_, "get_delete_cert_command")
-  @patch.object(_ambari_server_, "get_truststore_password")
-  @patch.object(_ambari_server_, "get_truststore_path")
-  @patch.object(_ambari_server_, "get_YN_input")
-  @patch.object(_ambari_server_, "get_ambari_properties")
-  @patch.object(_ambari_server_, "find_jdk")
+  @patch("ambari_server.setupHttps.find_properties_file")
+  @patch("ambari_server.setupHttps.run_component_https_cmd")
+  @patch("ambari_server.setupHttps.get_delete_cert_command")
+  @patch("ambari_server.setupHttps.get_truststore_password")
+  @patch("ambari_server.setupHttps.get_truststore_path")
+  @patch("ambari_server.setupHttps.get_YN_input")
+  @patch("ambari_server.setupHttps.get_ambari_properties")
+  @patch("ambari_server.setupHttps.find_jdk")
   def test_setup_component_https(self, find_jdk_mock, get_ambari_properties_mock, get_YN_input_mock,
                                  get_truststore_path_mock, get_truststore_password_mock,
                                  get_delete_cert_command_mock, run_component_https_cmd_mock,
@@ -1322,7 +1345,7 @@ class TestAmbariServer(TestCase):
     alias = "alias"
     #Silent mode
     set_silent(True)
-    _ambari_server_.setup_component_https(component, command, property, alias)
+    setup_component_https(component, command, property, alias)
     self.assertEqual('command is not enabled in silent mode.\n', out.getvalue())
     sys.stdout = sys.__stdout__
     #Verbouse mode and jdk_path is None
@@ -1332,7 +1355,7 @@ class TestAmbariServer(TestCase):
     p.get_property.side_effect = ["true"]
     # Dont disable ssl
     get_YN_input_mock.side_effect = [False]
-    _ambari_server_.setup_component_https(component, command, property, alias)
+    setup_component_https(component, command, property, alias)
     self.assertTrue(p.get_property.called)
     self.assertTrue(get_YN_input_mock.called)
     p.get_property.reset_mock()
@@ -1341,7 +1364,7 @@ class TestAmbariServer(TestCase):
     p.get_property.side_effect = ["false"]
     # Dont enable ssl
     get_YN_input_mock.side_effect = [False]
-    _ambari_server_.setup_component_https(component, command, property, alias)
+    setup_component_https(component, command, property, alias)
     self.assertTrue(p.get_property.called)
     self.assertTrue(get_YN_input_mock.called)
     p.get_property.reset_mock()
@@ -1349,7 +1372,7 @@ class TestAmbariServer(TestCase):
     # Cant find jdk
     find_jdk_mock.return_value = None
     try:
-        _ambari_server_.setup_component_https(component, command, property, alias)
+        setup_component_https(component, command, property, alias)
         self.fail("Should throw exception")
     except FatalException as fe:
         # Expected
@@ -1363,7 +1386,7 @@ class TestAmbariServer(TestCase):
     get_truststore_path_mock.return_value = "/truststore_path"
     get_truststore_password_mock.return_value = "/truststore_password"
     get_delete_cert_command_mock.return_value = "rm -f"
-    _ambari_server_.setup_component_https(component, command, property, alias)
+    setup_component_https(component, command, property, alias)
 
     self.assertTrue(p.process_pair.called)
     self.assertTrue(get_truststore_path_mock.called)
@@ -1384,7 +1407,7 @@ class TestAmbariServer(TestCase):
     #Verbouse mode and jdk_path is not None (use_https = false) and import cert
     p.get_property.side_effect = ["false"]
     get_YN_input_mock.side_effect = [True]
-    _ambari_server_.setup_component_https(component, command, property, alias)
+    setup_component_https(component, command, property, alias)
 
     self.assertTrue(p.process_pair.called)
     self.assertTrue(get_truststore_type_mock.called)
@@ -1408,24 +1431,23 @@ class TestAmbariServer(TestCase):
     p.store.reset_mock()
     run_os_command_mock.reset_mock()
     get_validated_filepath_input_mock.reset_mock()
+    pass
 
-  @patch.object(_ambari_server_, "adjust_directory_permissions")
-  @patch.object(_ambari_server_, "read_ambari_user")
-  @patch.object(_ambari_server_, "get_validated_string_input")
-  @patch.object(_ambari_server_, "find_properties_file")
-  @patch.object(_ambari_server_, "get_ambari_properties")
-  @patch.object(_ambari_server_, "is_server_runing")
-  @patch.object(_ambari_server_, "import_cert_and_key_action")
-  @patch.object(_ambari_server_, "get_YN_input")
+  @patch("ambari_server.setupHttps.adjust_directory_permissions")
+  @patch("ambari_server.setupHttps.read_ambari_user")
+  @patch("ambari_server.setupHttps.get_validated_string_input")
+  @patch("ambari_server.setupHttps.find_properties_file")
+  @patch("ambari_server.setupHttps.get_ambari_properties")
+  @patch("ambari_server.setupHttps.import_cert_and_key_action")
+  @patch("ambari_server.setupHttps.get_YN_input")
   @patch("__builtin__.open")
-  @patch("ambari-server.Properties")
-  @patch.object(_ambari_server_, "is_root")
-  @patch.object(_ambari_server_, "is_valid_cert_host")
-  @patch.object(_ambari_server_, "is_valid_cert_exp")
+  @patch("ambari_server.setupHttps.is_root")
+  @patch("ambari_server.setupHttps.is_valid_cert_host")
+  @patch("ambari_server.setupHttps.is_valid_cert_exp")
   def test_setup_https(self, is_valid_cert_exp_mock, is_valid_cert_host_mock, \
-                       is_root_mock, Properties_mock, open_Mock, get_YN_input_mock, \
+                       is_root_mock, open_Mock, get_YN_input_mock, \
                        import_cert_and_key_action_mock,
-                       is_server_runing_mock, get_ambari_properties_mock, \
+                       get_ambari_properties_mock, \
                        find_properties_file_mock, \
                        get_validated_string_input_mock, read_ambari_user_method, \
                        adjust_directory_permissions_mock):
@@ -1439,7 +1461,7 @@ class TestAmbariServer(TestCase):
     # Testing call under non-root
     is_root_mock.return_value = False
     try:
-      _ambari_server_.setup_https(args)
+      setup_https(args)
       self.fail("Should throw exception")
     except FatalException as fe:
       # Expected
@@ -1459,7 +1481,7 @@ class TestAmbariServer(TestCase):
                             " call('client.api.ssl.port'),\n call('api.ssl')]"
     process_pair_expected = "[call('client.api.ssl.port', '4444')]"
     set_silent(False)
-    _ambari_server_.setup_https(args)
+    setup_https(args)
 
     self.assertTrue(p.process_pair.called)
     self.assertTrue(p.get_property.call_count == 4)
@@ -1480,7 +1502,7 @@ class TestAmbariServer(TestCase):
     get_property_expected = "[call('security.server.keys_dir'),\n" + \
                             " call('client.api.ssl.port'),\n call('api.ssl')]"
     process_pair_expected = "[call('api.ssl', 'false')]"
-    _ambari_server_.setup_https(args)
+    setup_https(args)
 
     self.assertTrue(p.process_pair.called)
     self.assertTrue(p.get_property.call_count == 3)
@@ -1502,7 +1524,7 @@ class TestAmbariServer(TestCase):
     get_property_expected = "[call('security.server.keys_dir'),\n" + \
                             " call('client.api.ssl.port'),\n call('api.ssl')]"
     process_pair_expected = "[call('client.api.ssl.port', '4444')]"
-    _ambari_server_.setup_https(args)
+    setup_https(args)
 
     self.assertTrue(p.process_pair.called)
     self.assertTrue(p.get_property.call_count == 3)
@@ -1524,7 +1546,7 @@ class TestAmbariServer(TestCase):
     get_property_expected = "[call('security.server.keys_dir'),\n" + \
                             " call('client.api.ssl.port'),\n call('api.ssl')]"
     process_pair_expected = "[]"
-    _ambari_server_.setup_https(args)
+    setup_https(args)
 
     self.assertFalse(p.process_pair.called)
     self.assertTrue(p.get_property.call_count == 3)
@@ -1546,7 +1568,7 @@ class TestAmbariServer(TestCase):
     get_property_expected = "[call('security.server.keys_dir'),\n" + \
                             " call('client.api.ssl.port'),\n call('api.ssl')]"
     process_pair_expected = "[call('client.api.ssl.port', '4444')]"
-    self.assertFalse(_ambari_server_.setup_https(args))
+    self.assertFalse(setup_https(args))
     self.assertTrue(p.process_pair.called)
     self.assertTrue(p.get_property.call_count == 3)
     self.assertEqual(str(p.get_property.call_args_list), get_property_expected)
@@ -1562,7 +1584,7 @@ class TestAmbariServer(TestCase):
     #Case #6: if silent mode is enabled
     set_silent(True)
     try:
-      _ambari_server_.setup_https(args)
+      setup_https(args)
       self.fail("Should throw exception")
     except NonFatalException as fe:
       self.assertTrue("setup-https is not enabled in silent mode" in fe.reason)
@@ -1577,14 +1599,13 @@ class TestAmbariServer(TestCase):
     find_properties_file_mock.return_value = "propertyFile"
     p.get_property.side_effect = KeyError("Failed to read property")
     try:
-        _ambari_server_.setup_https(args)
+        setup_https(args)
         self.fail("Should throw exception")
     except FatalException as fe:
         self.assertTrue("Failed to read property" in fe.reason)
+    pass
 
-
-
-  @patch.object(_ambari_server_, "import_cert_and_key")
+  @patch("ambari_server.setupHttps.import_cert_and_key")
   def test_import_cert_and_key_action(self, import_cert_and_key_mock):
     import_cert_and_key_mock.return_value = True
     properties = MagicMock()
@@ -1593,24 +1614,25 @@ class TestAmbariServer(TestCase):
     expect_process_pair = "[call('client.api.ssl.cert_name', 'https.crt'),\n" + \
                           " call('client.api.ssl.key_name', 'https.key'),\n" + \
                           " call('api.ssl', 'true')]"
-    _ambari_server_.import_cert_and_key_action("key_dir", properties)
+    import_cert_and_key_action("key_dir", properties)
 
     self.assertEqual(str(properties.process_pair.call_args_list), \
                      expect_process_pair)
+    pass
 
-  @patch.object(_ambari_server_, "remove_file")
-  @patch.object(_ambari_server_, "copy_file")
-  @patch.object(_ambari_server_, "read_ambari_user")
-  @patch.object(_ambari_server_, "set_file_permissions")
-  @patch.object(_ambari_server_, "import_file_to_keystore")
+  @patch("ambari_server.setupHttps.remove_file")
+  @patch("ambari_server.setupHttps.copy_file")
+  @patch("ambari_server.setupHttps.read_ambari_user")
+  @patch("ambari_server.setupHttps.set_file_permissions")
+  @patch("ambari_server.setupHttps.import_file_to_keystore")
   @patch("__builtin__.open")
-  @patch.object(_ambari_server_, "run_os_command")
+  @patch("ambari_server.setupHttps.run_os_command")
   @patch("os.path.join")
   @patch("os.path.isfile")
   @patch("__builtin__.raw_input")
-  @patch.object(_ambari_server_, "get_validated_string_input")
-  @patch.object(_ambari_server_, "is_valid_cert_host")
-  @patch.object(_ambari_server_, "is_valid_cert_exp")
+  @patch("ambari_server.setupHttps.get_validated_string_input")
+  @patch("ambari_server.setupHttps.is_valid_cert_host")
+  @patch("ambari_server.setupHttps.is_valid_cert_exp")
   def test_import_cert_and_key(self, is_valid_cert_exp_mock, \
                                is_valid_cert_host_mock, \
                                get_validated_string_input_mock, \
@@ -1642,27 +1664,28 @@ class TestAmbariServer(TestCase):
                                      " call('key_file_path'," + \
                                      " 'keystore_cert_key_file_path')]"
 
-    _ambari_server_.import_cert_and_key("key_dir")
+    import_cert_and_key("key_dir")
     self.assertTrue(raw_input_mock.call_count == 2)
     self.assertTrue(get_validated_string_input_mock.called)
     self.assertEqual(os_path_join_mock.call_count, 8)
     self.assertTrue(set_file_permissions_mock.call_count == 1)
     self.assertEqual(str(import_file_to_keystore_mock.call_args_list), \
                      expect_import_file_to_keystore)
+    pass
 
-  @patch.object(_ambari_server_, "remove_file")
-  @patch.object(_ambari_server_, "copy_file")
-  @patch.object(_ambari_server_, "generate_random_string")
-  @patch.object(_ambari_server_, "read_ambari_user")
-  @patch.object(_ambari_server_, "set_file_permissions")
-  @patch.object(_ambari_server_, "import_file_to_keystore")
+  @patch("ambari_server.setupHttps.remove_file")
+  @patch("ambari_server.setupHttps.copy_file")
+  @patch("ambari_server.setupHttps.generate_random_string")
+  @patch("ambari_server.setupHttps.read_ambari_user")
+  @patch("ambari_server.setupHttps.set_file_permissions")
+  @patch("ambari_server.setupHttps.import_file_to_keystore")
   @patch("__builtin__.open")
-  @patch.object(_ambari_server_, "run_os_command")
+  @patch("ambari_server.setupHttps.run_os_command")
   @patch("os.path.join")
-  @patch.object(_ambari_server_, "get_validated_filepath_input")
-  @patch.object(_ambari_server_, "get_validated_string_input")
-  @patch.object(_ambari_server_, "is_valid_cert_host")
-  @patch.object(_ambari_server_, "is_valid_cert_exp")
+  @patch("ambari_server.setupHttps.get_validated_filepath_input")
+  @patch("ambari_server.setupHttps.get_validated_string_input")
+  @patch("ambari_server.setupHttps.is_valid_cert_host")
+  @patch("ambari_server.setupHttps.is_valid_cert_exp")
   def test_import_cert_and_key_with_empty_password(self, \
                                                    is_valid_cert_exp_mock, is_valid_cert_host_mock,
                                                    get_validated_string_input_mock, get_validated_filepath_input_mock, \
@@ -1692,7 +1715,7 @@ class TestAmbariServer(TestCase):
                                      " call('key_file_path.secured'," + \
                                      " 'keystore_cert_key_file_path')]"
 
-    _ambari_server_.import_cert_and_key("key_dir")
+    import_cert_and_key("key_dir")
     self.assertEquals(get_validated_filepath_input_mock.call_count, 2)
     self.assertTrue(get_validated_string_input_mock.called)
     self.assertEquals(os_path_join_mock.call_count, 8)
@@ -1700,17 +1723,18 @@ class TestAmbariServer(TestCase):
     self.assertEqual(str(import_file_to_keystore_mock.call_args_list), \
                      expect_import_file_to_keystore)
     self.assertTrue(generate_random_string_mock.called)
+    pass
 
   @patch("__builtin__.open")
-  @patch.object(_ambari_server_, "copy_file")
-  @patch.object(_ambari_server_, "is_root")
-  @patch.object(_ambari_server_, "read_ambari_user")
-  @patch.object(_ambari_server_, "set_file_permissions")
-  @patch.object(_ambari_server_, "import_file_to_keystore")
-  @patch.object(_ambari_server_, "run_os_command")
+  @patch("ambari_server.setupHttps.copy_file")
+  @patch("ambari_server.setupHttps.is_root")
+  @patch("ambari_server.setupHttps.read_ambari_user")
+  @patch("ambari_server.setupHttps.set_file_permissions")
+  @patch("ambari_server.setupHttps.import_file_to_keystore")
+  @patch("ambari_server.setupHttps.run_os_command")
   @patch("os.path.join")
-  @patch.object(_ambari_server_, "get_validated_filepath_input")
-  @patch.object(_ambari_server_, "get_validated_string_input")
+  @patch("ambari_server.setupHttps.get_validated_filepath_input")
+  @patch("ambari_server.setupHttps.get_validated_string_input")
   def test_import_cert_and_key_with_incorrect_password(self,
                                                        get_validated_string_input_mock, \
                                                        get_validated_filepath_input_mock, \
@@ -1733,110 +1757,111 @@ class TestAmbariServer(TestCase):
     #provided password doesn't match, openssl command returns an error
     run_os_command_mock.return_value = (1, "", "Some error message")
 
-    self.assertFalse(_ambari_server_.import_cert_and_key_action(*["key_dir", None]))
-    self.assertFalse(_ambari_server_.import_cert_and_key("key_dir"))
+    self.assertFalse(import_cert_and_key_action(*["key_dir", None]))
+    self.assertFalse(import_cert_and_key("key_dir"))
+    pass
 
   def test_is_valid_cert_exp(self):
-
     #No data in certInfo
     certInfo = {}
-    is_valid = _ambari_server_.is_valid_cert_exp(certInfo)
+    is_valid = is_valid_cert_exp(certInfo)
     self.assertFalse(is_valid)
 
     #Issued in future
-    issuedOn = (datetime.datetime.now() + datetime.timedelta(hours=1000)).strftime(_ambari_server_.SSL_DATE_FORMAT)
-    expiresOn = (datetime.datetime.now() + datetime.timedelta(hours=2000)).strftime(_ambari_server_.SSL_DATE_FORMAT)
-    certInfo = {_ambari_server_.NOT_BEFORE_ATTR: issuedOn,
-                _ambari_server_.NOT_AFTER_ATTR: expiresOn}
-    is_valid = _ambari_server_.is_valid_cert_exp(certInfo)
+    issuedOn = (datetime.datetime.now() + datetime.timedelta(hours=1000)).strftime(SSL_DATE_FORMAT)
+    expiresOn = (datetime.datetime.now() + datetime.timedelta(hours=2000)).strftime(SSL_DATE_FORMAT)
+    certInfo = {NOT_BEFORE_ATTR: issuedOn,
+                NOT_AFTER_ATTR: expiresOn}
+    is_valid = is_valid_cert_exp(certInfo)
     self.assertFalse(is_valid)
 
     #Was expired
-    issuedOn = (datetime.datetime.now() - datetime.timedelta(hours=2000)).strftime(_ambari_server_.SSL_DATE_FORMAT)
-    expiresOn = (datetime.datetime.now() - datetime.timedelta(hours=1000)).strftime(_ambari_server_.SSL_DATE_FORMAT)
-    certInfo = {_ambari_server_.NOT_BEFORE_ATTR: issuedOn,
-                _ambari_server_.NOT_AFTER_ATTR: expiresOn}
-    is_valid = _ambari_server_.is_valid_cert_exp(certInfo)
+    issuedOn = (datetime.datetime.now() - datetime.timedelta(hours=2000)).strftime(SSL_DATE_FORMAT)
+    expiresOn = (datetime.datetime.now() - datetime.timedelta(hours=1000)).strftime(SSL_DATE_FORMAT)
+    certInfo = {NOT_BEFORE_ATTR: issuedOn,
+                NOT_AFTER_ATTR: expiresOn}
+    is_valid = is_valid_cert_exp(certInfo)
     self.assertFalse(is_valid)
 
     #Valid
-    issuedOn = (datetime.datetime.now() - datetime.timedelta(hours=2000)).strftime(_ambari_server_.SSL_DATE_FORMAT)
-    expiresOn = (datetime.datetime.now() + datetime.timedelta(hours=1000)).strftime(_ambari_server_.SSL_DATE_FORMAT)
-    certInfo = {_ambari_server_.NOT_BEFORE_ATTR: issuedOn,
-                _ambari_server_.NOT_AFTER_ATTR: expiresOn}
-    is_valid = _ambari_server_.is_valid_cert_exp(certInfo)
+    issuedOn = (datetime.datetime.now() - datetime.timedelta(hours=2000)).strftime(SSL_DATE_FORMAT)
+    expiresOn = (datetime.datetime.now() + datetime.timedelta(hours=1000)).strftime(SSL_DATE_FORMAT)
+    certInfo = {NOT_BEFORE_ATTR: issuedOn,
+                NOT_AFTER_ATTR: expiresOn}
+    is_valid = is_valid_cert_exp(certInfo)
     self.assertTrue(is_valid)
+    pass
 
-  @patch.object(_ambari_server_, "get_fqdn")
+  @patch("ambari_server.setupHttps.get_fqdn")
   def test_is_valid_cert_host(self, get_fqdn_mock):
 
     #No data in certInfo
     certInfo = {}
-    is_valid = _ambari_server_.is_valid_cert_host(certInfo)
+    is_valid = is_valid_cert_host(certInfo)
     self.assertFalse(is_valid)
 
     #Failed to get FQDN
     get_fqdn_mock.return_value = None
-    is_valid = _ambari_server_.is_valid_cert_host(certInfo)
+    is_valid = is_valid_cert_host(certInfo)
     self.assertFalse(is_valid)
 
     #FQDN and Common name in certificated don't correspond
     get_fqdn_mock.return_value = 'host1'
-    certInfo = {_ambari_server_.COMMON_NAME_ATTR: 'host2'}
-    is_valid = _ambari_server_.is_valid_cert_host(certInfo)
+    certInfo = {COMMON_NAME_ATTR: 'host2'}
+    is_valid = is_valid_cert_host(certInfo)
     self.assertFalse(is_valid)
 
     #FQDN and Common name in certificated correspond
     get_fqdn_mock.return_value = 'host1'
-    certInfo = {_ambari_server_.COMMON_NAME_ATTR: 'host1'}
-    is_valid = _ambari_server_.is_valid_cert_host(certInfo)
+    certInfo = {COMMON_NAME_ATTR: 'host1'}
+    is_valid = is_valid_cert_host(certInfo)
     self.assertTrue(is_valid)
+    pass
 
-
-  @patch.object(_ambari_server_, "get_ambari_properties")
+  @patch("ambari_server.setupHttps.get_ambari_properties")
   def test_is_valid_https_port(self, get_ambari_properties_mock):
 
     #No ambari.properties
     get_ambari_properties_mock.return_value = -1
-    is_valid = _ambari_server_.is_valid_https_port(1111)
+    is_valid = is_valid_https_port(1111)
     self.assertEqual(is_valid, False)
 
     #User entered port used by one way auth
     portOneWay = "1111"
     portTwoWay = "2222"
     validPort = "3333"
-    get_ambari_properties_mock.return_value = {_ambari_server_.SRVR_ONE_WAY_SSL_PORT_PROPERTY: portOneWay,
-                                               _ambari_server_.SRVR_TWO_WAY_SSL_PORT_PROPERTY: portTwoWay}
-    is_valid = _ambari_server_.is_valid_https_port(portOneWay)
+    get_ambari_properties_mock.return_value = {SRVR_ONE_WAY_SSL_PORT_PROPERTY: portOneWay,
+                                               SRVR_TWO_WAY_SSL_PORT_PROPERTY: portTwoWay}
+    is_valid = is_valid_https_port(portOneWay)
     self.assertEqual(is_valid, False)
 
     #User entered port used by two way auth
-    is_valid = _ambari_server_.is_valid_https_port(portTwoWay)
+    is_valid = is_valid_https_port(portTwoWay)
     self.assertEqual(is_valid, False)
 
     #User entered valid port
-    get_ambari_properties_mock.return_value = {_ambari_server_.SRVR_ONE_WAY_SSL_PORT_PROPERTY: portOneWay,
-                                               _ambari_server_.SRVR_TWO_WAY_SSL_PORT_PROPERTY: portTwoWay}
-    is_valid = _ambari_server_.is_valid_https_port(validPort)
+    get_ambari_properties_mock.return_value = {SRVR_ONE_WAY_SSL_PORT_PROPERTY: portOneWay,
+                                               SRVR_TWO_WAY_SSL_PORT_PROPERTY: portTwoWay}
+    is_valid = is_valid_https_port(validPort)
     self.assertEqual(is_valid, True)
+    pass
 
   @patch("socket.getfqdn")
   @patch("urllib2.urlopen")
-  @patch.object(_ambari_server_, "get_ambari_properties")
+  @patch("ambari_server.setupHttps.get_ambari_properties")
   def test_get_fqdn(self, get_ambari_properties_mock, url_open_mock, getfqdn_mock):
-
     #No ambari.properties
     get_ambari_properties_mock.return_value = -1
-    fqdn = _ambari_server_.get_fqdn()
+    fqdn = get_fqdn()
     self.assertEqual(fqdn, None)
 
     #Check mbari_server.GET_FQDN_SERVICE_URL property name (AMBARI-2612)
     #property name should be server.fqdn.service.url
-    self.assertEqual(_ambari_server_.GET_FQDN_SERVICE_URL, "server.fqdn.service.url")
+    self.assertEqual(GET_FQDN_SERVICE_URL, "server.fqdn.service.url")
 
     #Read FQDN from service
     p = MagicMock()
-    p[_ambari_server_.GET_FQDN_SERVICE_URL] = 'someurl'
+    p[GET_FQDN_SERVICE_URL] = 'someurl'
     get_ambari_properties_mock.return_value = p
 
     u = MagicMock()
@@ -1844,57 +1869,49 @@ class TestAmbariServer(TestCase):
     u.read.return_value = host
     url_open_mock.return_value = u
 
-    fqdn = _ambari_server_.get_fqdn()
+    fqdn = get_fqdn()
     self.assertEqual(fqdn, host)
 
     #Failed to read FQDN from service, getting from socket
     u.reset_mock()
     u.side_effect = Exception("Failed to read FQDN from service")
     getfqdn_mock.return_value = host
-    fqdn = _ambari_server_.get_fqdn()
+    fqdn = get_fqdn()
     self.assertEqual(fqdn, host)
+    pass
 
-
-  @patch("ambari_server.serverConfiguration.find_properties_file")
-  def test_get_ulimit_open_files(self, find_properties_file_mock):
-
+  def test_get_ulimit_open_files(self):
     # 1 - No ambari.properties
-    find_properties_file_mock.return_value = None
-    open_files = _ambari_server_.get_fqdn()
-    self.assertEqual(open_files, None)
+    p = Properties()
+
+    open_files = get_ulimit_open_files(p)
+    self.assertEqual(open_files, ULIMIT_OPEN_FILES_DEFAULT)
 
     # 2 - With ambari.properties - ok
-    tf1 = tempfile.NamedTemporaryFile()
     prop_value = 65000
-    with open(tf1.name, 'w') as fout:
-      fout.write(_ambari_server_.ULIMIT_OPEN_FILES_KEY + '=' + str(prop_value))
-    fout.close()
-    find_properties_file_mock.return_value = tf1.name
-    open_files = _ambari_server_.get_ulimit_open_files()
+    p.process_pair(ULIMIT_OPEN_FILES_KEY, str(prop_value))
+    open_files = get_ulimit_open_files(p)
     self.assertEqual(open_files, 65000)
 
     # 2 - With ambari.properties - default
     tf1 = tempfile.NamedTemporaryFile()
     prop_value = 0
-    with open(tf1.name, 'w') as fout:
-      fout.write(_ambari_server_.ULIMIT_OPEN_FILES_KEY + '=' + str(prop_value))
-    fout.close()
-    find_properties_file_mock.return_value = tf1.name
-    open_files = _ambari_server_.get_ulimit_open_files()
-    self.assertEqual(open_files, _ambari_server_.ULIMIT_OPEN_FILES_DEFAULT)
+    p.process_pair(ULIMIT_OPEN_FILES_KEY, str(prop_value))
+    open_files = get_ulimit_open_files(p)
+    self.assertEqual(open_files, ULIMIT_OPEN_FILES_DEFAULT)
+    pass
 
-
-  @patch.object(_ambari_server_, "run_os_command")
+  @patch("ambari_server.setupHttps.run_os_command")
   def test_get_cert_info(self, run_os_command_mock):
     # Error running openssl command
     path = 'path/to/certificate'
     run_os_command_mock.return_value = -1, None, None
-    cert_info = _ambari_server_.get_cert_info(path)
+    cert_info = get_cert_info(path)
     self.assertEqual(cert_info, None)
 
     #Empty result of openssl command
     run_os_command_mock.return_value = 0, None, None
-    cert_info = _ambari_server_.get_cert_info(path)
+    cert_info = get_cert_info(path)
     self.assertEqual(cert_info, None)
 
     #Positive scenario
@@ -1922,14 +1939,14 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     """
     out = out_pattern.format(notAfter=notAfter, notBefore=notBefore, subject=subject)
     run_os_command_mock.return_value = 0, out, None
-    cert_info = _ambari_server_.get_cert_info(path)
+    cert_info = get_cert_info(path)
     self.assertEqual(cert_info['notAfter'], notAfter)
     self.assertEqual(cert_info['notBefore'], notBefore)
     self.assertEqual(cert_info['subject'], subject)
     self.assertEqual(cert_info[attr1_key], attr1_value)
     self.assertEqual(cert_info[attr2_key], attr2_value)
     self.assertEqual(cert_info[attr3_key], attr3_value)
-
+    pass
 
   @patch("__builtin__.raw_input")
   def test_get_validated_string_input(self, raw_input_mock):
@@ -1951,9 +1968,10 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     input = get_validated_string_input(prompt, default_value, None,
                                                      description, False, False, validator)
     self.assertEqual(inputed_value2, input)
+    pass
 
-
-  @patch("ambari_server.serverSetup.run_os_command")
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch("ambari_server.serverUtils.run_os_command")
   @patch("__builtin__.open")
   @patch("os.path.exists")
   def test_is_server_runing(self, os_path_exists_mock, open_mock, \
@@ -1968,9 +1986,10 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     os_path_exists_mock.return_value = False
     status, pid = is_server_runing()
     self.assertFalse(status)
+    pass
 
-
-  @patch("ambari_server.serverSetup.run_os_command")
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch("ambari_server.serverUtils.run_os_command")
   @patch("__builtin__.open")
   @patch("os.path.exists")
   def test_is_server_runing_bad_file(self, os_path_exists_mock, open_mock, \
@@ -1983,7 +2002,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     open_mock.side_effect = IOError('[Errno 13] Permission denied: /var/run/ambari-server/ambari-server.pid')
     self.assertRaises(FatalException, is_server_runing)
-
+    pass
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("os.path.exists")
@@ -2001,7 +2020,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     except FatalException:
       failed = True
     self.assertTrue(failed)
-
+    pass
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("os.stat")
@@ -2204,7 +2223,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     except FatalException as fe:
       self.assertTrue("Path to java home somewhere or java binary file does not exists" in fe.reason)
       pass
-
+    pass
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch("ambari_server.dbConfiguration_linux.run_os_command")
@@ -2217,7 +2236,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     run_os_command_mock.return_value = (1, "wrong", None)
     pg_status, retcode, out, err = PGConfig._get_postgre_status()
     self.assertEqual(None, pg_status)
-
+    pass
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch("time.sleep")
@@ -2246,7 +2265,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_postgre_status_mock.return_value = "stopped", 0, "", ""
     pg_status, retcode, out, err = PGConfig._check_postgre_up()
     self.assertEqual(4, retcode)
-
+    pass
 
   @patch("platform.linux_distribution")
   @patch("platform.system")
@@ -2275,6 +2294,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEqual(2, write_property_mock.call_count)
     self.assertEquals(write_property_mock.call_args_list[0][0][0], "server.os_family")
     self.assertEquals(write_property_mock.call_args_list[1][0][0], "server.os_type")
+    pass
 
 
   @patch("__builtin__.open")
@@ -2294,6 +2314,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     Properties_mock.return_value = p
     result = get_JAVA_HOME()
     self.assertEqual(expected, result)
+    pass
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   def test_prompt_db_properties_default(self):
@@ -2312,6 +2333,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     prompt_db_properties(args)
 
     self.assertEqual(args.database_index, 0)
+    pass
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
@@ -3054,55 +3076,81 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
-  @patch.object(_ambari_server_, "looking_for_pid")
-  @patch.object(_ambari_server_, "wait_for_pid")
-  @patch.object(_ambari_server_, "save_main_pid_ex")
-  @patch.object(_ambari_server_, "check_exitcode")
+  @patch("sys.stdout.flush")
+  @patch("sys.stdout.write")
+  @patch("ambari_server_main.looking_for_pid")
+  @patch("ambari_server_main.wait_for_pid")
+  @patch("ambari_server_main.save_main_pid_ex")
+  @patch("ambari_server_main.check_exitcode")
   @patch("os.makedirs")
-  @patch.object(_ambari_server_, "locate_file")
+  @patch("ambari_server_main.locate_file")
   @patch.object(_ambari_server_, "is_server_runing")
   @patch("os.chown")
-  @patch.object(_ambari_server_, "get_master_key_location")
-  @patch.object(_ambari_server_, "save_master_key")
-  @patch.object(_ambari_server_, "get_is_persisted")
-  @patch.object(_ambari_server_, "get_is_secure")
+  @patch("ambari_server.setupSecurity.get_master_key_location")
+  @patch("ambari_server_main.save_master_key")
+  @patch("ambari_server_main.get_is_persisted")
+  @patch("ambari_server_main.get_is_secure")
   @patch('os.chmod', autospec=True)
+  @patch("ambari_server.serverConfiguration.write_property")
   @patch("ambari_server.serverConfiguration.get_validated_string_input")
   @patch("os.environ")
+  @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.serverUtils.get_ambari_properties")
   @patch("ambari_server.serverSetup.get_ambari_properties")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
-  @patch.object(_ambari_server_, "get_ambari_properties")
+  @patch("ambari_server_main.get_ambari_properties")
   @patch("os.path.exists")
   @patch("__builtin__.open")
   @patch("subprocess.Popen")
-  @patch.object(_ambari_server_, "print_info_msg")
-  @patch.object(_ambari_server_, "search_file")
-  @patch.object(_ambari_server_, "find_jdk")
-  @patch.object(_ambari_server_, "print_error_msg")
+  @patch("ambari_server.serverConfiguration.search_file")
+  @patch("ambari_server_main.check_database_name_property")
+  @patch("ambari_server_main.find_jdk")
+  @patch("ambari_server_main.print_warning_msg")
+  @patch("ambari_server_main.print_info_msg")
   @patch.object(PGConfig, "_check_postgre_up")
-  @patch.object(_ambari_server_, "parse_properties_file")
-  @patch.object(_ambari_server_, "read_ambari_user")
-  @patch.object(_ambari_server_, "is_root")
-  @patch.object(_ambari_server_, "find_jdbc_driver")
+  @patch("ambari_server_main.read_ambari_user")
+  @patch("ambari_server.dbConfiguration_linux.is_root")
+  @patch("ambari_server_main.is_root")
+  @patch.object(LinuxDBMSConfig, "_find_jdbc_driver")
   @patch("getpass.getuser")
   @patch("os.chdir")
   @patch.object(ResourceFilesKeeper, "perform_housekeeping")
-  def test_start(self, perform_housekeeping_mock, chdir_mock, getuser_mock,
-                 find_jdbc_driver_mock, is_root_mock, read_ambari_user_mock,
-                 parse_properties_file_mock, check_postgre_up_mock,
-                 print_error_msg_mock, find_jdk_mock, search_file_mock,
-                 print_info_msg_mock, popenMock, openMock, pexistsMock,
-                 get_ambari_properties_mock, get_ambari_properties_2_mock, get_ambari_properties_3_mock, os_environ_mock,
-                 get_validated_string_input_method, os_chmod_method, get_is_secure_mock, get_is_persisted_mock,
+  def test_start(self, perform_housekeeping_mock, chdir_mock, getuser_mock, find_jdbc_driver_mock,
+                 is_root_mock, is_root_2_mock, read_ambari_user_mock,
+                 check_postgre_up_mock, print_info_msg_mock, print_warning_msg_mock,
+                 find_jdk_mock, check_database_name_property_mock, search_file_mock,
+                 popenMock, openMock, pexistsMock,
+                 get_ambari_properties_mock, get_ambari_properties_2_mock, get_ambari_properties_3_mock,
+                 get_ambari_properties_4_mock, get_ambari_properties_5_mock, os_environ_mock,
+                 get_validated_string_input_method, write_property_method,
+                 os_chmod_method, get_is_secure_mock, get_is_persisted_mock,
                  save_master_key_method, get_master_key_location_method,
                  os_chown_mock, is_server_running_mock, locate_file_mock,
                  os_makedirs_mock, check_exitcode_mock, save_main_pid_ex_mock,
-                 wait_for_pid_mock, looking_for_pid_mock):
+                 wait_for_pid_mock, looking_for_pid_mock, stdout_write_mock, stdout_flush_mock):
 
-    args = MagicMock()
+    def reset_mocks():
+      args = MagicMock()
+      del args.dbms
+      del args.database_index
+      del args.database_host
+      del args.database_port
+      del args.database_name
+      del args.database_username
+      del args.database_password
+      del args.persistence_type
+      del args.sid_or_sname
+      del args.jdbc_url
+      del args.debug
+      del args.suspend_start
+
+      return args
+
+    args = reset_mocks()
+
     locate_file_mock.side_effect = lambda *args: '/bin/su' if args[0] == 'su' else '/bin/sh'
     f = MagicMock()
-    f.readline.return_value = 42
+    f.readline.return_value = '42'
     openMock.return_value = f
 
     looking_for_pid_mock.return_value = [{
@@ -3113,12 +3161,12 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     wait_for_pid_mock.return_value = 1
     check_exitcode_mock.return_value = 0
 
-    p = get_ambari_properties_mock.return_value
-    p.get_property.return_value = 'False'
-    p = get_ambari_properties_2_mock.return_value
-    p.get_property.return_value = 'False'
-    p = get_ambari_properties_3_mock.return_value
-    p.get_property.return_value = 'False'
+    p = Properties()
+    p.process_pair(SECURITY_IS_ENCRYPTION_ENABLED, 'False')
+
+    get_ambari_properties_5_mock.return_value = get_ambari_properties_4_mock.return_value = \
+      get_ambari_properties_3_mock.return_value = get_ambari_properties_2_mock.return_value = \
+      get_ambari_properties_mock.return_value = p
     get_is_secure_mock.return_value = False
     get_is_persisted_mock.return_value = (False, None)
     search_file_mock.return_value = None
@@ -3134,89 +3182,96 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
         getpwnam_mock.return_value = pw
 
     try:
-     _ambari_server_.start(args)
-     self.fail("Should fail with 'Server is running'")
-    except FatalException:
-     # Expected
-     pass
+      _ambari_server_.start(args)
+      self.fail("Should fail with 'Server is running'")
+    except FatalException as e:
+      # Expected
+      self.assertTrue('Ambari Server is already running.' in e.reason)
 
-    parse_properties_file_mock.reset_mock()
+    args = reset_mocks()
 
+    is_server_running_mock.return_value = (False, 0)
     pexistsMock.return_value = False
 
     # Checking situation when ambari user is not set up
     read_ambari_user_mock.return_value = None
     try:
-     _ambari_server_.start(args)
-     self.fail("Should fail with 'Can not detect a system user for Ambari'")
+      _ambari_server_.start(args)
+      self.fail("Should fail with 'Can not detect a system user for Ambari'")
     except FatalException as e:
-     # Expected
-     self.assertTrue('Unable to detect a system user for Ambari Server.' in e.reason)
-
-    parse_properties_file_mock.reset_mock()
+      # Expected
+      self.assertTrue('Unable to detect a system user for Ambari Server.' in e.reason)
 
     # Checking start from non-root when current user is not the same as a
     # custom user
+    args = reset_mocks()
     read_ambari_user_mock.return_value = "dummy-user"
     getuser_mock.return_value = "non_custom_user"
-    is_root_mock.return_value = False
+    is_root_2_mock.return_value = is_root_mock.return_value = False
     try:
-     _ambari_server_.start(args)
-     self.fail("Should fail with 'Can not start ambari-server as user...'")
+      _ambari_server_.start(args)
+      self.fail("Should fail with 'Can not start ambari-server as user...'")
     except FatalException as e:
-     # Expected
-     self.assertTrue('Unable to start Ambari Server as user' in e.reason)
-     self.assertFalse(parse_properties_file_mock.called)
-
-    parse_properties_file_mock.reset_mock()
+      # Expected
+      self.assertTrue('Unable to start Ambari Server as user' in e.reason)
+      #self.assertFalse(parse_properties_file_mock.called)
 
     # Checking "jdk not found"
-    is_root_mock.return_value = True
+    args = reset_mocks()
+    is_root_2_mock.return_value = is_root_mock.return_value = True
     find_jdk_mock.return_value = None
-    is_server_running_mock.return_value = (False, 0)
 
     try:
-     _ambari_server_.start(args)
-     self.fail("Should fail with 'No JDK found'")
+      _ambari_server_.start(args)
+      self.fail("Should fail with 'No JDK found'")
     except FatalException as e:
-     # Expected
-     self.assertTrue('No JDK found' in e.reason)
+      # Expected
+      self.assertTrue('No JDK found' in e.reason)
 
+    args = reset_mocks()
     find_jdk_mock.return_value = "somewhere"
 
-    parse_properties_file_mock.reset_mock()
-
     ## Testing workflow under root
-    is_root_mock.return_value = True
+    is_root_2_mock.return_value = is_root_mock.return_value = True
 
     # Remote DB
-    args.persistence_type = "remote"
-    args.dbms = "oracle"
-    del args.sid_or_sname
-    del args.jdbc_url
+    p.process_pair(JDBC_DATABASE_PROPERTY, 'oracle')
+    p.process_pair(PERSISTENCE_TYPE_PROPERTY, 'remote')
 
     # Case when jdbc driver is not used
     find_jdbc_driver_mock.return_value = -1
     try:
-     _ambari_server_.start(args)
-     self.fail("Should fail with exception")
+      _ambari_server_.start(args)
+      self.fail("Should fail with exception")
     except FatalException as e:
-     self.assertTrue('Before starting Ambari Server' in e.reason)
+      self.assertTrue('Before starting Ambari Server' in e.reason)
+
+    args = reset_mocks()
+
+    # Remote DB
+    p.process_pair(JDBC_DATABASE_PROPERTY, 'oracle')
+    p.process_pair(PERSISTENCE_TYPE_PROPERTY, 'remote')
 
     find_jdbc_driver_mock.reset_mock()
     find_jdbc_driver_mock.return_value = 0
     try:
-     _ambari_server_.start(args)
+      _ambari_server_.start(args)
     except FatalException as e:
-     # Ignored
-     pass
+      # Ignored
+      pass
+
+    args = reset_mocks()
+
+    # Remote DB
+    p.process_pair(JDBC_DATABASE_PROPERTY, 'oracle')
+    p.process_pair(PERSISTENCE_TYPE_PROPERTY, 'remote')
 
     # Test exception handling on resource files housekeeping
     perform_housekeeping_mock.reset_mock()
     perform_housekeeping_mock.side_effect = KeeperException("some_reason")
     try:
-     _ambari_server_.start(args)
-     self.fail("Should fail with exception")
+      _ambari_server_.start(args)
+      self.fail("Should fail with exception")
     except FatalException as e:
       self.assertTrue('some_reason' in e.reason)
     self.assertTrue(perform_housekeeping_mock.called)
@@ -3226,23 +3281,29 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertFalse('Unable to start PostgreSQL server' in e.reason)
     self.assertFalse(check_postgre_up_mock.called)
 
-    check_postgre_up_mock.reset_mock()
-    parse_properties_file_mock.reset_mock()
+    args = reset_mocks()
 
     # Local DB
-    args.persistence_type = "local"
+    p.process_pair(JDBC_DATABASE_PROPERTY, 'postgres')
+    p.process_pair(PERSISTENCE_TYPE_PROPERTY, 'local')
+
+    check_postgre_up_mock.reset_mock()
 
     # case: postgres failed to start
     check_postgre_up_mock.return_value = None, 1, "Unable to start PostgreSQL serv", "error"
     try:
-     _ambari_server_.start(args)
-     self.fail("Should fail with 'Unable to start PostgreSQL server'")
+      _ambari_server_.start(args)
+      self.fail("Should fail with 'Unable to start PostgreSQL server'")
     except FatalException as e:
-     # Expected
-     self.assertTrue('Unable to start PostgreSQL server' in e.reason)
-     self.assertTrue(check_postgre_up_mock.called)
+      # Expected
+      self.assertTrue('Unable to start PostgreSQL server' in e.reason)
+      self.assertTrue(check_postgre_up_mock.called)
 
-    parse_properties_file_mock.reset_mock()
+    args = reset_mocks()
+
+    # Local DB
+    p.process_pair(JDBC_DATABASE_PROPERTY, 'postgres')
+    p.process_pair(PERSISTENCE_TYPE_PROPERTY, 'local')
 
     check_postgre_up_mock.return_value = "running", 0, "success", ""
 
@@ -3253,10 +3314,15 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     popen_arg = popenMock.call_args[0][0]
     self.assertTrue(popen_arg[0] == "/bin/sh")
     self.assertTrue(perform_housekeeping_mock.called)
+
+    args = reset_mocks()
+
+    # Local DB
+    p.process_pair(JDBC_DATABASE_PROPERTY, 'postgres')
+    p.process_pair(PERSISTENCE_TYPE_PROPERTY, 'local')
+
     perform_housekeeping_mock.reset_mock()
     popenMock.reset_mock()
-
-    parse_properties_file_mock.reset_mock()
 
     # Case: custom user is  not "root"
     read_ambari_user_mock.return_value = "not-root-user"
@@ -3266,35 +3332,40 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     popen_arg = popenMock.call_args_list[0][0][0]
     self.assertTrue(popen_arg[0] == "/bin/su")
     self.assertTrue(perform_housekeeping_mock.called)
-    check_postgre_up_mock.reset_mock()
 
+    args = reset_mocks()
+
+    # Local DB
+    p.process_pair(JDBC_DATABASE_PROPERTY, 'postgres')
+    p.process_pair(PERSISTENCE_TYPE_PROPERTY, 'local')
+
+    check_postgre_up_mock.reset_mock()
     popenMock.reset_mock()
-    parse_properties_file_mock.reset_mock()
 
     ## Testing workflow under non-root
-    is_root_mock.return_value = False
+    is_root_2_mock.return_value = is_root_mock.return_value = False
     read_ambari_user_mock.return_value = "not-root-user"
     getuser_mock.return_value = read_ambari_user_mock.return_value
 
-    parse_properties_file_mock.reset_mock()
-
-    # Local DB
-    args.persistence_type = "local"
-
     _ambari_server_.start(args)
 
     self.assertFalse(check_postgre_up_mock.called)
 
-    parse_properties_file_mock.reset_mock()
+    args = reset_mocks()
 
     # Remote DB
-    args.persistence_type = "remote"
+    p.process_pair(JDBC_DATABASE_PROPERTY, 'postgres')
+    p.process_pair(PERSISTENCE_TYPE_PROPERTY, 'remote')
 
     _ambari_server_.start(args)
 
     self.assertFalse(check_postgre_up_mock.called)
 
-    parse_properties_file_mock.reset_mock()
+    args = reset_mocks()
+
+    # Remote DB
+    p.process_pair(JDBC_DATABASE_PROPERTY, 'postgres')
+    p.process_pair(PERSISTENCE_TYPE_PROPERTY, 'remote')
 
     # Checking call
     _ambari_server_.start(args)
@@ -3302,27 +3373,32 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     popen_arg = popenMock.call_args[0][0]
     self.assertTrue(popen_arg[0] == "/bin/sh")
 
-    parse_properties_file_mock.reset_mock()
+    args = reset_mocks()
+
+    # Remote DB
+    p.process_pair(JDBC_DATABASE_PROPERTY, 'postgres')
+    p.process_pair(PERSISTENCE_TYPE_PROPERTY, 'remote')
 
     # Test start under wrong user
     read_ambari_user_mock.return_value = "not-root-user"
     getuser_mock.return_value = "non_custom_user"
     try:
-     _ambari_server_.start(args)
-     self.fail("Can not start ambari-server as user non_custom_user.")
+      _ambari_server_.start(args)
+      self.fail("Can not start ambari-server as user non_custom_user.")
     except FatalException as e:
-     # Expected
-     self.assertTrue('Unable to start Ambari Server as user' in e.reason)
+      # Expected
+      self.assertTrue('Unable to start Ambari Server as user' in e.reason)
 
-    parse_properties_file_mock.reset_mock()
+    args = reset_mocks()
 
     # Check environ master key is set
     popenMock.reset_mock()
     os_environ_mock.copy.return_value = {"a": "b",
-                                        _ambari_server_.SECURITY_KEY_ENV_VAR_NAME: "masterkey"}
-    args.persistence_type = "local"
+                                        SECURITY_KEY_ENV_VAR_NAME: "masterkey"}
+    p.process_pair(JDBC_DATABASE_PROPERTY, 'postgres')
+    p.process_pair(PERSISTENCE_TYPE_PROPERTY, 'local')
     read_ambari_user_mock.return_value = "root"
-    is_root_mock.return_value = True
+    is_root_2_mock.return_value = is_root_mock.return_value = True
 
     _ambari_server_.start(args)
 
@@ -3331,16 +3407,17 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     popen_arg = popenMock.call_args[1]['env']
     self.assertEquals(os_environ_mock.copy.return_value, popen_arg)
 
-    parse_properties_file_mock.reset_mock()
+    args = reset_mocks()
 
     # Check environ master key is not set
     popenMock.reset_mock()
     os_environ_mock.reset_mock()
-    p.get_property.return_value = 'True'
+    p.process_pair(SECURITY_IS_ENCRYPTION_ENABLED, 'True')
     os_environ_mock.copy.return_value = {"a": "b"}
-    args.persistence_type = "local"
+    p.process_pair(JDBC_DATABASE_PROPERTY, 'postgres')
+    p.process_pair(PERSISTENCE_TYPE_PROPERTY, 'local')
     read_ambari_user_mock.return_value = "root"
-    is_root_mock.return_value = True
+    is_root_2_mock.return_value = is_root_mock.return_value = True
     get_validated_string_input_method.return_value = "masterkey"
     os_chmod_method.return_value = None
     get_is_secure_mock.return_value = True
@@ -3372,25 +3449,29 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
   @patch.object(_ambari_server_, "BackupRestore_main")
   def test_backup(self, bkrestore_mock):
-    _ambari_server_.backup("/some/path/file.zip")
+    args = ["", "/some/path/file.zip"]
+    _ambari_server_.backup(args)
     self.assertTrue(bkrestore_mock.called)
     pass
 
   @patch.object(_ambari_server_, "BackupRestore_main")
   def test_backup_no_path(self, bkrestore_mock):
-    _ambari_server_.backup(None)
+    args = [""]
+    _ambari_server_.backup(args)
     self.assertTrue(bkrestore_mock.called)
     pass
 
   @patch.object(_ambari_server_, "BackupRestore_main")
   def test_restore(self, bkrestore_mock):
-    _ambari_server_.restore("/some/path/file.zip")
+    args = ["", "/some/path/file.zip"]
+    _ambari_server_.restore(args)
     self.assertTrue(bkrestore_mock.called)
     pass
 
   @patch.object(_ambari_server_, "BackupRestore_main")
   def test_restore_no_path(self, bkrestore_mock):
-    _ambari_server_.restore(None)
+    args = [""]
+    _ambari_server_.restore(args)
     self.assertTrue(bkrestore_mock.called)
     pass
 
@@ -3399,13 +3480,12 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch("ambari_server.serverUpgrade.run_stack_upgrade")
   def test_upgrade_stack(self, run_stack_upgrade_mock,
                          check_database_name_property_mock, is_root_mock):
-    args = MagicMock()
-    args.persistence_type = "local"
-
     # Testing call under non-root
     is_root_mock.return_value = False
+
+    args = ['', 'HDP-2.0']
     try:
-      upgrade_stack(args, 'HDP-2.0')
+      upgrade_stack(args)
       self.fail("Should throw exception")
     except FatalException as fe:
       # Expected
@@ -3415,7 +3495,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     # Testing calls under root
     is_root_mock.return_value = True
     run_stack_upgrade_mock.return_value = 0
-    upgrade_stack(args, 'HDP-2.0')
+    upgrade_stack(args)
 
     self.assertTrue(run_stack_upgrade_mock.called)
     run_stack_upgrade_mock.assert_called_with("HDP", "2.0", None, None)
@@ -4088,6 +4168,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEqual(4, len(get_choice_string_input_mock.call_args_list[0][0]))
     pass
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(_ambari_server_, "setup")
   def test_main_db_options(self, setup_mock):
     base_args = ["ambari-server.py", "setup"]
@@ -4298,7 +4379,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     for line in properties:
       if (line == "agent.fqdn.service.url=URL\n"):
-        if (not _ambari_server_.GET_FQDN_SERVICE_URL + "=URL\n" in ambari_properties_content) and (
+        if (not GET_FQDN_SERVICE_URL + "=URL\n" in ambari_properties_content) and (
           line in ambari_properties_content):
           self.fail()
       else:
@@ -4907,19 +4988,19 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
 
   @patch("os.path.exists")
-  @patch.object(_ambari_server_, "get_is_secure")
-  @patch.object(_ambari_server_, "get_is_persisted")
-  @patch.object(_ambari_server_, "remove_password_file")
-  @patch.object(_ambari_server_, "save_passwd_for_alias")
-  @patch.object(_ambari_server_, "read_master_key")
-  @patch.object(_ambari_server_, "read_ambari_user")
-  @patch.object(_ambari_server_, "get_master_key_location")
-  @patch.object(_ambari_server_, "update_properties")
-  @patch.object(_ambari_server_, "save_master_key")
-  @patch.object(_ambari_server_, "get_YN_input")
-  @patch.object(_ambari_server_, "search_file")
-  @patch.object(_ambari_server_, "get_ambari_properties")
-  @patch.object(_ambari_server_, "is_root")
+  @patch("ambari_server.setupSecurity.get_is_secure")
+  @patch("ambari_server.setupSecurity.get_is_persisted")
+  @patch("ambari_server.setupSecurity.remove_password_file")
+  @patch("ambari_server.setupSecurity.save_passwd_for_alias")
+  @patch("ambari_server.setupSecurity.read_master_key")
+  @patch("ambari_server.setupSecurity.read_ambari_user")
+  @patch("ambari_server.setupSecurity.get_master_key_location")
+  @patch("ambari_server.setupSecurity.update_properties_2")
+  @patch("ambari_server.setupSecurity.save_master_key")
+  @patch("ambari_server.setupSecurity.get_YN_input")
+  @patch("ambari_server.setupSecurity.search_file")
+  @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.is_root")
   def test_setup_master_key_not_persist(self, is_root_method,
                                         get_ambari_properties_method, search_file_message,
                                         get_YN_input_method, save_master_key_method,
@@ -4929,8 +5010,15 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                                         get_is_persisted_method, get_is_secure_method, exists_mock):
 
     is_root_method.return_value = True
-    p = get_ambari_properties_method.return_value
-    p.get_property.side_effect = ["fakepasswd", "fakepasswd", "fakepasswd", "fakepasswd"]
+
+    p = Properties()
+    FAKE_PWD_STRING = "fakepasswd"
+    p.process_pair(JDBC_PASSWORD_PROPERTY, FAKE_PWD_STRING)
+    p.process_pair(LDAP_MGR_PASSWORD_PROPERTY, FAKE_PWD_STRING)
+    p.process_pair(SSL_TRUSTSTORE_PASSWORD_PROPERTY, FAKE_PWD_STRING)
+    p.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY, FAKE_PWD_STRING)
+    get_ambari_properties_method.return_value = p
+
     read_master_key_method.return_value = "aaa"
     get_YN_input_method.return_value = False
     read_ambari_user_method.return_value = None
@@ -4939,7 +5027,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_is_secure_method.return_value = False
     exists_mock.return_value = False
 
-    _ambari_server_.setup_master_key()
+    setup_master_key()
 
     self.assertTrue(get_YN_input_method.called)
     self.assertTrue(read_master_key_method.called)
@@ -4951,13 +5039,13 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(remove_password_file_method.called)
 
     result_expected = {JDBC_PASSWORD_PROPERTY:
-                         _ambari_server_.get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
+                         get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
                        JDBC_RCA_PASSWORD_FILE_PROPERTY:
-                         _ambari_server_.get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
+                         get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
                        LDAP_MGR_PASSWORD_PROPERTY:
-                         _ambari_server_.get_alias_string(LDAP_MGR_PASSWORD_ALIAS),
+                         get_alias_string(LDAP_MGR_PASSWORD_ALIAS),
                        SSL_TRUSTSTORE_PASSWORD_PROPERTY:
-                         _ambari_server_.get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS),
+                         get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS),
                        SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
 
     sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
@@ -4967,19 +5055,19 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     pass
 
 
-  @patch.object(_ambari_server_, "save_passwd_for_alias")
+  @patch("ambari_server.setupSecurity.save_passwd_for_alias")
   @patch("os.path.exists")
-  @patch.object(_ambari_server_, "get_is_secure")
-  @patch.object(_ambari_server_, "get_is_persisted")
-  @patch.object(_ambari_server_, "read_master_key")
-  @patch.object(_ambari_server_, "read_ambari_user")
-  @patch.object(_ambari_server_, "get_master_key_location")
-  @patch.object(_ambari_server_, "update_properties")
-  @patch.object(_ambari_server_, "save_master_key")
-  @patch.object(_ambari_server_, "get_YN_input")
+  @patch("ambari_server.setupSecurity.get_is_secure")
+  @patch("ambari_server.setupSecurity.get_is_persisted")
+  @patch("ambari_server.setupSecurity.read_master_key")
+  @patch("ambari_server.setupSecurity.read_ambari_user")
+  @patch("ambari_server.setupSecurity.get_master_key_location")
+  @patch("ambari_server.setupSecurity.update_properties_2")
+  @patch("ambari_server.setupSecurity.save_master_key")
+  @patch("ambari_server.setupSecurity.get_YN_input")
   @patch("ambari_server.serverConfiguration.search_file")
-  @patch.object(_ambari_server_, "get_ambari_properties")
-  @patch.object(_ambari_server_, "is_root")
+  @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.is_root")
   def test_setup_master_key_persist(self, is_root_method,
                                     get_ambari_properties_method, search_file_message,
                                     get_YN_input_method, save_master_key_method,
@@ -4989,8 +5077,12 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                                     save_passwd_for_alias_method):
 
     is_root_method.return_value = True
-    p = get_ambari_properties_method.return_value
-    p.get_property.side_effect = ["fakepasswd", None, None, None]
+
+    p = Properties()
+    FAKE_PWD_STRING = "fakepasswd"
+    p.process_pair(JDBC_PASSWORD_PROPERTY, FAKE_PWD_STRING)
+    get_ambari_properties_method.return_value = p
+
     read_master_key_method.return_value = "aaa"
     get_YN_input_method.side_effect = [True, False]
     read_ambari_user_method.return_value = None
@@ -4999,7 +5091,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     exists_mock.return_value = False
     save_passwd_for_alias_method.return_value = 0
 
-    _ambari_server_.setup_master_key()
+    setup_master_key()
 
     self.assertTrue(get_YN_input_method.called)
     self.assertTrue(read_master_key_method.called)
@@ -5008,8 +5100,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(save_master_key_method.called)
 
     result_expected = {JDBC_PASSWORD_PROPERTY:
-                         _ambari_server_.get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
-                       _ambari_server_.SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
+                        get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
+                        SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
 
     sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
     sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
@@ -5018,34 +5110,33 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     pass
 
 
-  @patch.object(_ambari_server_, "read_master_key")
-  @patch.object(_ambari_server_, "remove_password_file")
+  @patch("ambari_server.setupSecurity.read_master_key")
+  @patch("ambari_server.setupSecurity.remove_password_file")
   @patch("os.path.exists")
-  @patch.object(_ambari_server_, "read_ambari_user")
-  @patch.object(_ambari_server_, "get_master_key_location")
-  @patch("ambari-server.Properties")
-  @patch.object(_ambari_server_, "save_passwd_for_alias")
-  @patch.object(_ambari_server_, "read_passwd_for_alias")
-  @patch.object(_ambari_server_, "update_properties")
-  @patch.object(_ambari_server_, "save_master_key")
-  @patch.object(_ambari_server_, "get_validated_string_input")
-  @patch.object(_ambari_server_, "get_YN_input")
-  @patch.object(_ambari_server_, "search_file")
-  @patch.object(_ambari_server_, "get_ambari_properties")
-  @patch.object(_ambari_server_, "is_root")
+  @patch("ambari_server.setupSecurity.read_ambari_user")
+  @patch("ambari_server.setupSecurity.get_master_key_location")
+  @patch("ambari_server.setupSecurity.save_passwd_for_alias")
+  @patch("ambari_server.setupSecurity.read_passwd_for_alias")
+  @patch("ambari_server.setupSecurity.update_properties_2")
+  @patch("ambari_server.setupSecurity.save_master_key")
+  @patch("ambari_server.setupSecurity.get_validated_string_input")
+  @patch("ambari_server.setupSecurity.get_YN_input")
+  @patch("ambari_server.setupSecurity.search_file")
+  @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.is_root")
   def test_reset_master_key_persisted(self, is_root_method,
                                       get_ambari_properties_method, search_file_message,
                                       get_YN_input_method, get_validated_string_input_method,
                                       save_master_key_method, update_properties_method,
                                       read_passwd_for_alias_method, save_passwd_for_alias_method,
-                                      Properties_mock, get_master_key_location_method,
+                                      get_master_key_location_method,
                                       read_ambari_user_method, exists_mock,
                                       remove_password_file_method, read_master_key_method):
 
     # Testing call under non-root
     is_root_method.return_value = False
     try:
-      _ambari_server_.setup_master_key()
+      setup_master_key()
       self.fail("Should throw exception")
     except FatalException as fe:
       # Expected
@@ -5057,10 +5148,14 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     search_file_message.return_value = "filepath"
     read_ambari_user_method.return_value = None
-    p = get_ambari_properties_method.return_value
-    p.get_property.side_effect = ['true', '${alias=fakealias}',
-                                  '${alias=fakealias}',
-                                  '${alias=fakealias}', '${alias=fakealias}']
+
+    p = Properties()
+    FAKE_PWD_STRING = '${alias=fakealias}'
+    p.process_pair(JDBC_PASSWORD_PROPERTY, FAKE_PWD_STRING)
+    p.process_pair(LDAP_MGR_PASSWORD_PROPERTY, FAKE_PWD_STRING)
+    p.process_pair(SSL_TRUSTSTORE_PASSWORD_PROPERTY, FAKE_PWD_STRING)
+    p.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY, FAKE_PWD_STRING)
+    get_ambari_properties_method.return_value = p
 
     get_YN_input_method.side_effect = [True, True]
     read_master_key_method.return_value = "aaa"
@@ -5068,7 +5163,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     save_passwd_for_alias_method.return_value = 0
     exists_mock.return_value = False
 
-    _ambari_server_.setup_master_key()
+    setup_master_key()
 
     self.assertTrue(save_master_key_method.called)
     self.assertTrue(get_YN_input_method.called)
@@ -5079,14 +5174,14 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(3, save_passwd_for_alias_method.call_count)
 
     result_expected = {JDBC_PASSWORD_PROPERTY:
-                         _ambari_server_.get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
+                         get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
                        JDBC_RCA_PASSWORD_FILE_PROPERTY:
-                         _ambari_server_.get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
+                         get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
                        LDAP_MGR_PASSWORD_PROPERTY:
-                         _ambari_server_.get_alias_string(LDAP_MGR_PASSWORD_ALIAS),
-                       _ambari_server_.SSL_TRUSTSTORE_PASSWORD_PROPERTY:
-                         _ambari_server_.get_alias_string(_ambari_server_.SSL_TRUSTSTORE_PASSWORD_ALIAS),
-                       _ambari_server_.SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
+                         get_alias_string(LDAP_MGR_PASSWORD_ALIAS),
+                       SSL_TRUSTSTORE_PASSWORD_PROPERTY:
+                         get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS),
+                       SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
 
     sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
     sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
@@ -5095,28 +5190,27 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     pass
 
 
-  @patch.object(_ambari_server_, "get_is_persisted")
-  @patch.object(_ambari_server_, "get_is_secure")
-  @patch.object(_ambari_server_, "remove_password_file")
+  @patch("ambari_server.setupSecurity.get_is_persisted")
+  @patch("ambari_server.setupSecurity.get_is_secure")
+  @patch("ambari_server.setupSecurity.remove_password_file")
   @patch("os.path.exists")
-  @patch.object(_ambari_server_, "read_ambari_user")
-  @patch.object(_ambari_server_, "get_master_key_location")
-  @patch("ambari-server.Properties")
-  @patch.object(_ambari_server_, "save_passwd_for_alias")
-  @patch.object(_ambari_server_, "read_passwd_for_alias")
-  @patch.object(_ambari_server_, "update_properties")
-  @patch.object(_ambari_server_, "save_master_key")
-  @patch.object(_ambari_server_, "get_validated_string_input")
-  @patch.object(_ambari_server_, "get_YN_input")
-  @patch.object(_ambari_server_, "search_file")
-  @patch.object(_ambari_server_, "get_ambari_properties")
-  @patch.object(_ambari_server_, "is_root")
+  @patch("ambari_server.setupSecurity.read_ambari_user")
+  @patch("ambari_server.setupSecurity.get_master_key_location")
+  @patch("ambari_server.setupSecurity.save_passwd_for_alias")
+  @patch("ambari_server.setupSecurity.read_passwd_for_alias")
+  @patch("ambari_server.setupSecurity.update_properties_2")
+  @patch("ambari_server.setupSecurity.save_master_key")
+  @patch("ambari_server.setupSecurity.get_validated_string_input")
+  @patch("ambari_server.setupSecurity.get_YN_input")
+  @patch("ambari_server.setupSecurity.search_file")
+  @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.is_root")
   def test_reset_master_key_not_persisted(self, is_root_method,
                                           get_ambari_properties_method,
                                           search_file_message, get_YN_input_method,
                                           get_validated_string_input_method, save_master_key_method,
                                           update_properties_method, read_passwd_for_alias_method,
-                                          save_passwd_for_alias_method, Properties_mock,
+                                          save_passwd_for_alias_method,
                                           get_master_key_location_method, read_ambari_user_method,
                                           exists_mock, remove_password_file_method, get_is_secure_method,
                                           get_is_persisted_method):
@@ -5124,9 +5218,14 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     is_root_method.return_value = True
     search_file_message.return_value = False
     read_ambari_user_method.return_value = None
-    p = get_ambari_properties_method.return_value
-    p.get_property.side_effect = ['${alias=fakealias}', '${alias=fakealias}',
-                                  '${alias=fakealias}', '${alias=fakealias}']
+
+    p = Properties()
+    FAKE_PWD_STRING = '${alias=fakealias}'
+    p.process_pair(JDBC_PASSWORD_PROPERTY, FAKE_PWD_STRING)
+    p.process_pair(LDAP_MGR_PASSWORD_PROPERTY, FAKE_PWD_STRING)
+    p.process_pair(SSL_TRUSTSTORE_PASSWORD_PROPERTY, FAKE_PWD_STRING)
+    p.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY, FAKE_PWD_STRING)
+    get_ambari_properties_method.return_value = p
 
     get_YN_input_method.side_effect = [True, False]
     get_validated_string_input_method.return_value = "aaa"
@@ -5136,7 +5235,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_is_secure_method.return_value = True
     get_is_persisted_method.return_value = (True, "filePath")
 
-    _ambari_server_.setup_master_key()
+    setup_master_key()
 
     self.assertFalse(save_master_key_method.called)
     self.assertTrue(get_YN_input_method.called)
@@ -5148,14 +5247,14 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertFalse(save_master_key_method.called)
 
     result_expected = {JDBC_PASSWORD_PROPERTY:
-                         _ambari_server_.get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
+                         get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
                        JDBC_RCA_PASSWORD_FILE_PROPERTY:
-                         _ambari_server_.get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
+                         get_alias_string(JDBC_RCA_PASSWORD_ALIAS),
                        LDAP_MGR_PASSWORD_PROPERTY:
-                         _ambari_server_.get_alias_string(LDAP_MGR_PASSWORD_ALIAS),
-                       _ambari_server_.SSL_TRUSTSTORE_PASSWORD_PROPERTY:
-                         _ambari_server_.get_alias_string(_ambari_server_.SSL_TRUSTSTORE_PASSWORD_ALIAS),
-                       _ambari_server_.SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
+                         get_alias_string(LDAP_MGR_PASSWORD_ALIAS),
+                       SSL_TRUSTSTORE_PASSWORD_PROPERTY:
+                         get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS),
+                       SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
 
     sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
     sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
@@ -5163,13 +5262,14 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEquals(sorted_x, sorted_y)
     pass
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("__builtin__.raw_input")
-  @patch.object(_ambari_server_, "get_is_secure")
-  @patch.object(_ambari_server_, "get_YN_input")
-  @patch.object(_ambari_server_, "update_properties")
-  @patch.object(_ambari_server_, "search_file")
-  @patch.object(_ambari_server_, "get_ambari_properties")
-  @patch.object(_ambari_server_, "is_root")
+  @patch("ambari_server.setupSecurity.get_is_secure")
+  @patch("ambari_server.setupSecurity.get_YN_input")
+  @patch("ambari_server.setupSecurity.update_properties_2")
+  @patch("ambari_server.setupSecurity.search_file")
+  @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.is_root")
   def test_setup_ldap_invalid_input(self, is_root_method, get_ambari_properties_method,
                                     search_file_message,
                                     update_properties_method,
@@ -5191,11 +5291,11 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     set_silent(False)
     get_YN_input_method.return_value = True
 
-    _ambari_server_.setup_ldap()
+    setup_ldap()
 
     ldap_properties_map = \
       {
-        "authentication.ldap.primaryUrl": "a:3",
+        LDAP_PRIMARY_URL_PROPERTY: "a:3",
         "authentication.ldap.secondaryUrl": "b:2",
         "authentication.ldap.useSSL": "false",
         "authentication.ldap.userObjectClass": "user",
@@ -5220,11 +5320,11 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     raw_input_mock.reset_mock()
     raw_input_mock.side_effect = ['a:3', '', 'b:2', 'false', 'user', 'uid', 'group', 'cn', 'member', 'dn', 'base', 'true']
 
-    _ambari_server_.setup_ldap()
+    setup_ldap()
 
     ldap_properties_map = \
       {
-        "authentication.ldap.primaryUrl": "a:3",
+        LDAP_PRIMARY_URL_PROPERTY: "a:3",
         "authentication.ldap.useSSL": "false",
         "authentication.ldap.userObjectClass": "user",
         "authentication.ldap.usernameAttribute": "uid",
@@ -5247,21 +5347,21 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     sys.stdout = sys.__stdout__
     pass
 
-  @patch.object(_ambari_server_, "get_is_secure")
-  @patch.object(_ambari_server_, "encrypt_password")
-  @patch.object(_ambari_server_, "save_passwd_for_alias")
-  @patch.object(_ambari_server_, "get_YN_input")
-  @patch.object(_ambari_server_, "update_properties")
-  @patch.object(_ambari_server_, "configure_ldap_password")
-  @patch.object(_ambari_server_, "get_validated_string_input")
-  @patch.object(_ambari_server_, "setup_master_key")
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch("ambari_server.setupSecurity.get_is_secure")
+  @patch("ambari_server.setupSecurity.encrypt_password")
+  @patch("ambari_server.setupSecurity.save_passwd_for_alias")
+  @patch("ambari_server.setupSecurity.get_YN_input")
+  @patch("ambari_server.setupSecurity.update_properties_2")
+  @patch("ambari_server.setupSecurity.configure_ldap_password")
+  @patch("ambari_server.setupSecurity.get_validated_string_input")
   @patch("ambari_server.serverConfiguration.search_file")
-  @patch.object(_ambari_server_, "get_ambari_properties")
-  @patch.object(_ambari_server_, "is_root")
-  @patch.object(_ambari_server_, "read_password")
+  @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.is_root")
+  @patch("ambari_server.setupSecurity.read_password")
   @patch("os.path.exists")
   def test_setup_ldap(self, exists_method, read_password_method, is_root_method, get_ambari_properties_method,
-                      search_file_message, setup_master_key_method,
+                      search_file_message,
                       get_validated_string_input_method,
                       configure_ldap_password_method, update_properties_method,
                       get_YN_input_method, save_passwd_for_alias_method,
@@ -5273,7 +5373,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     # Testing call under non-root
     is_root_method.return_value = False
     try:
-      _ambari_server_.setup_ldap()
+      setup_ldap()
       self.fail("Should throw exception")
     except FatalException as fe:
       # Expected
@@ -5292,9 +5392,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     get_ambari_properties_method.return_value = configs
     configure_ldap_password_method.return_value = "password"
-    setup_master_key_method.return_value = (None, True, True)
     save_passwd_for_alias_method.return_value = 0
-    encrypt_password_method.return_value = _ambari_server_.get_alias_string(LDAP_MGR_PASSWORD_ALIAS)
+    encrypt_password_method.return_value = get_alias_string(LDAP_MGR_PASSWORD_ALIAS)
 
     def yn_input_side_effect(*args, **kwargs):
       if 'TrustStore' in args[0]:
@@ -5315,7 +5414,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     get_validated_string_input_method.side_effect = valid_input_side_effect
 
-    _ambari_server_.setup_ldap()
+    setup_ldap()
 
     ldap_properties_map = \
       {
@@ -5380,7 +5479,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_YN_input_method.side_effect = [True, True]
     update_properties_method.reset_mock()
 
-    _ambari_server_.setup_ldap()
+    setup_ldap()
 
     self.assertTrue(read_password_method.called)
 
@@ -5398,7 +5497,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
         "ssl.trustStore.type": "test",
         "ssl.trustStore.path": "valid",
         "ssl.trustStore.password": "password",
-        LDAP_MGR_PASSWORD_PROPERTY: _ambari_server_.get_alias_string(LDAP_MGR_PASSWORD_ALIAS)
+        LDAP_MGR_PASSWORD_PROPERTY: get_alias_string(LDAP_MGR_PASSWORD_ALIAS)
       }
 
     sorted_x = sorted(ldap_properties_map.iteritems(), key=operator.itemgetter(0))
@@ -5409,10 +5508,10 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     pass
 
   @patch("urllib2.urlopen")
-  @patch.object(_ambari_server_, "get_validated_string_input")
-  @patch.object(_ambari_server_, "get_ambari_properties")
-  @patch.object(_ambari_server_, "is_server_runing")
-  @patch.object(_ambari_server_, "is_root")
+  @patch("ambari_server.setupSecurity.get_validated_string_input")
+  @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.is_server_runing")
+  @patch("ambari_server.setupSecurity.is_root")
   def test_ldap_sync_all(self, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
       get_validated_string_input_mock, urlopen_mock):
 
@@ -5431,84 +5530,94 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     urlopen_mock.return_value = response
 
-    _ambari_server_.LDAP_SYNC_ALL = True
+    options = MagicMock()
+    options.ldap_sync_all = True
+    options.ldap_sync_existing = False
+    options.ldap_sync_users = None
+    options.ldap_sync_groups = None
 
-    _ambari_server_.sync_ldap()
-
-    _ambari_server_.LDAP_SYNC_ALL = False
+    sync_ldap(options)
 
     self.assertTrue(response.getcode.called)
     self.assertTrue(response.read.called)
     pass
 
   @patch("urllib2.urlopen")
-  @patch.object(_ambari_server_, "get_validated_string_input")
-  @patch.object(_ambari_server_, "get_ambari_properties")
-  @patch.object(_ambari_server_, "is_server_runing")
-  @patch.object(_ambari_server_, "is_root")
+  @patch("ambari_server.setupSecurity.get_validated_string_input")
+  @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.is_server_runing")
+  @patch("ambari_server.setupSecurity.is_root")
   def test_ldap_sync_existing(self, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
                          get_validated_string_input_mock, urlopen_mock):
 
-      is_root_method.return_value = True
-      is_server_runing_mock.return_value = (True, 0)
-      properties = Properties()
-      properties.process_pair(IS_LDAP_CONFIGURED, 'true')
-      get_ambari_properties_mock.return_value = properties
-      get_validated_string_input_mock.side_effect = ['admin', 'admin']
+    is_root_method.return_value = True
+    is_server_runing_mock.return_value = (True, 0)
+    properties = Properties()
+    properties.process_pair(IS_LDAP_CONFIGURED, 'true')
+    get_ambari_properties_mock.return_value = properties
+    get_validated_string_input_mock.side_effect = ['admin', 'admin']
 
-      response = MagicMock()
-      response.getcode.side_effect = [201, 200, 200]
-      response.read.side_effect = ['{"resources" : [{"href" : "http://c6401.ambari.apache.org:8080/api/v1/ldap_sync_events/16","Event" : {"id" : 16}}]}',
-                                   '{"Event":{"status" : "RUNNING","summary" : {"groups" : {"created" : 0,"removed" : 0,"updated" : 0},"memberships" : {"created" : 0,"removed" : 0},"users" : {"created" : 0,"removed" : 0,"updated" : 0}}}}',
-                                   '{"Event":{"status" : "COMPLETE","summary" : {"groups" : {"created" : 1,"removed" : 0,"updated" : 0},"memberships" : {"created" : 5,"removed" : 0},"users" : {"created" : 5,"removed" : 0,"updated" : 0}}}}']
+    response = MagicMock()
+    response.getcode.side_effect = [201, 200, 200]
+    response.read.side_effect = ['{"resources" : [{"href" : "http://c6401.ambari.apache.org:8080/api/v1/ldap_sync_events/16","Event" : {"id" : 16}}]}',
+                                 '{"Event":{"status" : "RUNNING","summary" : {"groups" : {"created" : 0,"removed" : 0,"updated" : 0},"memberships" : {"created" : 0,"removed" : 0},"users" : {"created" : 0,"removed" : 0,"updated" : 0}}}}',
+                                 '{"Event":{"status" : "COMPLETE","summary" : {"groups" : {"created" : 1,"removed" : 0,"updated" : 0},"memberships" : {"created" : 5,"removed" : 0},"users" : {"created" : 5,"removed" : 0,"updated" : 0}}}}']
 
-      urlopen_mock.return_value = response
+    urlopen_mock.return_value = response
 
-      _ambari_server_.LDAP_SYNC_EXISTING = True
+    options = MagicMock()
+    options.ldap_sync_all = False
+    options.ldap_sync_existing = True
+    options.ldap_sync_users = None
+    options.ldap_sync_groups = None
 
-      _ambari_server_.sync_ldap()
+    sync_ldap(options)
 
-      _ambari_server_.LDAP_SYNC_EXISTING = False
-
-      self.assertTrue(response.getcode.called)
-      self.assertTrue(response.read.called)
-  pass
+    self.assertTrue(response.getcode.called)
+    self.assertTrue(response.read.called)
+    pass
 
   @patch("urllib2.urlopen")
-  @patch.object(_ambari_server_, "get_validated_string_input")
-  @patch.object(_ambari_server_, "get_ambari_properties")
-  @patch.object(_ambari_server_, "is_server_runing")
-  @patch.object(_ambari_server_, "is_root")
+  @patch("ambari_server.setupSecurity.get_validated_string_input")
+  @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.is_server_runing")
+  @patch("ambari_server.setupSecurity.is_root")
   def test_ldap_sync_no_sync_mode(self, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
                      get_validated_string_input_mock, urlopen_mock):
 
-      is_root_method.return_value = True
-      is_server_runing_mock.return_value = (True, 0)
-      properties = Properties()
-      properties.process_pair(IS_LDAP_CONFIGURED, 'true')
-      get_ambari_properties_mock.return_value = properties
-      get_validated_string_input_mock.side_effect = ['admin', 'admin']
+    is_root_method.return_value = True
+    is_server_runing_mock.return_value = (True, 0)
+    properties = Properties()
+    properties.process_pair(IS_LDAP_CONFIGURED, 'true')
+    get_ambari_properties_mock.return_value = properties
+    get_validated_string_input_mock.side_effect = ['admin', 'admin']
 
-      response = MagicMock()
-      response.getcode.side_effect = [201, 200, 200]
-      response.read.side_effect = ['{"resources" : [{"href" : "http://c6401.ambari.apache.org:8080/api/v1/ldap_sync_events/16","Event" : {"id" : 16}}]}',
-                                   '{"Event":{"status" : "RUNNING","summary" : {"groups" : {"created" : 0,"removed" : 0,"updated" : 0},"memberships" : {"created" : 0,"removed" : 0},"users" : {"created" : 0,"removed" : 0,"updated" : 0}}}}',
-                                   '{"Event":{"status" : "COMPLETE","summary" : {"groups" : {"created" : 1,"removed" : 0,"updated" : 0},"memberships" : {"created" : 5,"removed" : 0},"users" : {"created" : 5,"removed" : 0,"updated" : 0}}}}']
+    response = MagicMock()
+    response.getcode.side_effect = [201, 200, 200]
+    response.read.side_effect = ['{"resources" : [{"href" : "http://c6401.ambari.apache.org:8080/api/v1/ldap_sync_events/16","Event" : {"id" : 16}}]}',
+                                 '{"Event":{"status" : "RUNNING","summary" : {"groups" : {"created" : 0,"removed" : 0,"updated" : 0},"memberships" : {"created" : 0,"removed" : 0},"users" : {"created" : 0,"removed" : 0,"updated" : 0}}}}',
+                                 '{"Event":{"status" : "COMPLETE","summary" : {"groups" : {"created" : 1,"removed" : 0,"updated" : 0},"memberships" : {"created" : 5,"removed" : 0},"users" : {"created" : 5,"removed" : 0,"updated" : 0}}}}']
 
-      urlopen_mock.return_value = response
+    urlopen_mock.return_value = response
 
-      try:
-          _ambari_server_.sync_ldap()
-          self.fail("Should fail with exception")
-      except FatalException as e:
-          pass
-  pass
+    options = MagicMock()
+    del options.ldap_sync_all
+    del options.ldap_sync_existing
+    del options.ldap_sync_users
+    del options.ldap_sync_groups
+
+    try:
+      sync_ldap(options)
+      self.fail("Should fail with exception")
+    except FatalException as e:
+      pass
+    pass
 
   @patch("urllib2.urlopen")
-  @patch.object(_ambari_server_, "get_validated_string_input")
-  @patch.object(_ambari_server_, "get_ambari_properties")
-  @patch.object(_ambari_server_, "is_server_runing")
-  @patch.object(_ambari_server_, "is_root")
+  @patch("ambari_server.setupSecurity.get_validated_string_input")
+  @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.is_server_runing")
+  @patch("ambari_server.setupSecurity.is_root")
   def test_ldap_sync_error_status(self, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
       get_validated_string_input_mock, urlopen_mock):
 
@@ -5526,8 +5635,14 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     urlopen_mock.return_value = response
 
+    options = MagicMock()
+    options.ldap_sync_all = False
+    options.ldap_sync_existing = False
+    options.ldap_sync_users = None
+    options.ldap_sync_groups = None
+
     try:
-      _ambari_server_.sync_ldap()
+      sync_ldap(options)
       self.fail("Should fail with exception")
     except FatalException as e:
       pass
@@ -5536,17 +5651,23 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch("urllib2.urlopen")
   @patch("urllib2.Request")
   @patch("base64.encodestring")
-  @patch.object(_ambari_server_, "is_root")
-  @patch.object(_ambari_server_, "is_server_runing")
-  @patch.object(_ambari_server_, "get_ambari_properties")
-  @patch.object(_ambari_server_, "get_validated_string_input")
+  @patch("ambari_server.setupSecurity.is_root")
+  @patch("ambari_server.setupSecurity.is_server_runing")
+  @patch("ambari_server.setupSecurity.get_ambari_properties")
+  @patch("ambari_server.setupSecurity.get_validated_string_input")
   def test_sync_ldap_forbidden(self, get_validated_string_input_method, get_ambari_properties_method,
                                 is_server_runing_method, is_root_method,
                                 encodestring_method, request_constructor, urlopen_method):
 
+    options = MagicMock()
+    options.ldap_sync_all = True
+    options.ldap_sync_existing = False
+    options.ldap_sync_users = None
+    options.ldap_sync_groups = None
+
     is_root_method.return_value = False
     try:
-      _ambari_server_.sync_ldap()
+      sync_ldap(options)
       self.fail("Should throw exception if not root")
     except FatalException as fe:
       # Expected
@@ -5556,7 +5677,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     is_server_runing_method.return_value = (None, None)
     try:
-      _ambari_server_.sync_ldap()
+      sync_ldap(options)
       self.fail("Should throw exception if ambari is stopped")
     except FatalException as fe:
       # Expected
@@ -5568,7 +5689,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     configs.get_property.return_value = None
     get_ambari_properties_method.return_value = configs
     try:
-      _ambari_server_.sync_ldap()
+      sync_ldap(options)
       self.fail("Should throw exception if ldap is not configured")
     except FatalException as fe:
       # Expected
@@ -5586,7 +5707,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     urlopen_method.return_value = response
 
     try:
-      _ambari_server_.sync_ldap()
+      sync_ldap(options)
       self.fail("Should throw exception if return code != 200")
     except FatalException as fe:
       # Expected
@@ -5594,11 +5715,18 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       pass
     pass
 
-  @patch.object(_ambari_server_, "is_root")
+  @patch("ambari_server.setupSecurity.is_root")
   def test_sync_ldap_ambari_stopped(self, is_root_method):
     is_root_method.return_value = False
+
+    options = MagicMock()
+    options.ldap_sync_all = True
+    options.ldap_sync_existing = False
+    options.ldap_sync_users = None
+    options.ldap_sync_groups = None
+
     try:
-      _ambari_server_.sync_ldap()
+      sync_ldap(options)
       self.fail("Should throw exception if not root")
     except FatalException as fe:
       # Expected
@@ -5606,13 +5734,20 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       pass
     pass
 
-  @patch.object(_ambari_server_, "is_root")
-  @patch.object(_ambari_server_, "is_server_runing")
+  @patch("ambari_server.setupSecurity.is_root")
+  @patch("ambari_server.setupSecurity.is_server_runing")
   def test_sync_ldap_ambari_stopped(self, is_server_runing_method, is_root_method):
     is_root_method.return_value = True
     is_server_runing_method.return_value = (None, None)
+
+    options = MagicMock()
+    options.ldap_sync_all = True
+    options.ldap_sync_existing = False
+    options.ldap_sync_users = None
+    options.ldap_sync_groups = None
+
     try:
-      _ambari_server_.sync_ldap()
+      sync_ldap(options)
       self.fail("Should throw exception if ambari is stopped")
     except FatalException as fe:
       # Expected
@@ -5620,9 +5755,9 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       pass
     pass
 
-  @patch.object(_ambari_server_, "is_root")
-  @patch.object(_ambari_server_, "is_server_runing")
-  @patch.object(_ambari_server_, "get_ambari_properties")
+  @patch("ambari_server.setupSecurity.is_root")
+  @patch("ambari_server.setupSecurity.is_server_runing")
+  @patch("ambari_server.setupSecurity.get_ambari_properties")
   def test_sync_ldap_not_configured(self, get_ambari_properties_method,
                      is_server_runing_method, is_root_method):
     is_root_method.return_value = True
@@ -5631,8 +5766,15 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     configs = MagicMock()
     configs.get_property.return_value = None
     get_ambari_properties_method.return_value = configs
+
+    options = MagicMock()
+    options.ldap_sync_all = True
+    del options.ldap_sync_existing
+    del options.ldap_sync_users
+    del options.ldap_sync_groups
+
     try:
-      _ambari_server_.sync_ldap()
+      sync_ldap(options)
       self.fail("Should throw exception if ldap is not configured")
     except FatalException as fe:
       # Expected
@@ -5656,25 +5798,25 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     new_specs = [{"principal_type":"groups","sync_type":"specific","names":""}]
 
-    _ambari_server_.get_ldap_event_spec_names("groups.txt", specs, new_specs)
+    get_ldap_event_spec_names("groups.txt", specs, new_specs)
 
     self.assertEquals("[{'Event': {'specs': [{'principal_type': 'groups', 'sync_type': 'specific', 'names': ' some group, another group, grp, group*'}]}}]", str(bodies))
     pass
 
-  @patch.object(_ambari_server_, "read_password")
+  @patch("ambari_server.setupSecurity.read_password")
   def test_configure_ldap_password(self, read_password_method):
     out = StringIO.StringIO()
     sys.stdout = out
     read_password_method.return_value = "blah"
 
-    _ambari_server_.configure_ldap_password()
+    configure_ldap_password()
 
     self.assertTrue(read_password_method.called)
 
     sys.stdout = sys.__stdout__
     pass
 
-  @patch("ambari_server.setupSecurity.get_validated_string_input")
+  @patch("ambari_server.userInput.get_validated_string_input")
   def test_read_password(self, get_validated_string_input_method):
     out = StringIO.StringIO()
     sys.stdout = out
@@ -5709,10 +5851,10 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
   def test_generate_random_string(self):
     random_str_len = 100
-    str1 = _ambari_server_.generate_random_string(random_str_len)
+    str1 = generate_random_string(random_str_len)
     self.assertTrue(len(str1) == random_str_len)
 
-    str2 = _ambari_server_.generate_random_string(random_str_len)
+    str2 = generate_random_string(random_str_len)
     self.assertTrue(str1 != str2)
     pass
 
@@ -5730,7 +5872,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     update_properties_2(properties, propertyMap)
 
-    properties.store.assert_called_with(f.__enter__.return_value)
+    properties.store_ordered.assert_called_with(f.__enter__.return_value)
     backup_file_in_temp_mock.assert_called_with(conf_file)
     self.assertEquals(2, properties.removeOldProp.call_count)
     self.assertEquals(2, properties.process_pair.call_count)
@@ -5740,7 +5882,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     open_mock.reset_mock()
 
     update_properties_2(properties, None)
-    properties.store.assert_called_with(f.__enter__.return_value)
+    properties.store_ordered.assert_called_with(f.__enter__.return_value)
     backup_file_in_temp_mock.assert_called_with(conf_file)
     self.assertFalse(properties.removeOldProp.called)
     self.assertFalse(properties.process_pair.called)
@@ -5749,35 +5891,35 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
 
   def test_regexps(self):
-    res = re.search(_ambari_server_.REGEX_HOSTNAME_PORT, "")
+    res = re.search(REGEX_HOSTNAME_PORT, "")
     self.assertTrue(res is None)
-    res = re.search(_ambari_server_.REGEX_HOSTNAME_PORT, "ddd")
+    res = re.search(REGEX_HOSTNAME_PORT, "ddd")
     self.assertTrue(res is None)
-    res = re.search(_ambari_server_.REGEX_HOSTNAME_PORT, "gg:ff")
+    res = re.search(REGEX_HOSTNAME_PORT, "gg:ff")
     self.assertTrue(res is None)
-    res = re.search(_ambari_server_.REGEX_HOSTNAME_PORT, "gg:55444325")
+    res = re.search(REGEX_HOSTNAME_PORT, "gg:55444325")
     self.assertTrue(res is None)
-    res = re.search(_ambari_server_.REGEX_HOSTNAME_PORT, "gg:555")
+    res = re.search(REGEX_HOSTNAME_PORT, "gg:555")
     self.assertTrue(res is not None)
 
-    res = re.search(_ambari_server_.REGEX_TRUE_FALSE, "")
+    res = re.search(REGEX_TRUE_FALSE, "")
     self.assertTrue(res is not None)
-    res = re.search(_ambari_server_.REGEX_TRUE_FALSE, "t")
+    res = re.search(REGEX_TRUE_FALSE, "t")
     self.assertTrue(res is None)
-    res = re.search(_ambari_server_.REGEX_TRUE_FALSE, "trrrr")
+    res = re.search(REGEX_TRUE_FALSE, "trrrr")
     self.assertTrue(res is None)
-    res = re.search(_ambari_server_.REGEX_TRUE_FALSE, "true|false")
+    res = re.search(REGEX_TRUE_FALSE, "true|false")
     self.assertTrue(res is None)
-    res = re.search(_ambari_server_.REGEX_TRUE_FALSE, "true")
+    res = re.search(REGEX_TRUE_FALSE, "true")
     self.assertTrue(res is not None)
-    res = re.search(_ambari_server_.REGEX_TRUE_FALSE, "false")
+    res = re.search(REGEX_TRUE_FALSE, "false")
     self.assertTrue(res is not None)
 
-    res = re.search(_ambari_server_.REGEX_ANYTHING, "")
+    res = re.search(REGEX_ANYTHING, "")
     self.assertTrue(res is not None)
-    res = re.search(_ambari_server_.REGEX_ANYTHING, "t")
+    res = re.search(REGEX_ANYTHING, "t")
     self.assertTrue(res is not None)
-    res = re.search(_ambari_server_.REGEX_ANYTHING, "trrrr")
+    res = re.search(REGEX_ANYTHING, "trrrr")
     self.assertTrue(res is not None)
     pass
 
@@ -5961,21 +6103,21 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertFalse(is_valid_filepath(''))
     pass
 
-  @patch.object(_ambari_server_, "search_file")
-  @patch.object(_ambari_server_, "get_validated_string_input")
+  @patch("ambari_server.setupSecurity.search_file")
+  @patch("ambari_server.setupSecurity.get_validated_string_input")
   def test_setup_ambari_krb5_jaas(self, get_validated_string_input_mock,
                                   search_file_mock):
     search_file_mock.return_value = ''
 
     # Should raise exception if jaas_conf_file isn't an existing file
-    self.assertRaises(NonFatalException, _ambari_server_.setup_ambari_krb5_jaas)
+    self.assertRaises(NonFatalException, setup_ambari_krb5_jaas)
 
     temp_file = tempfile.NamedTemporaryFile(mode='r')
     search_file_mock.return_value = temp_file.name
     get_validated_string_input_mock.side_effect = ['adm@EXAMPLE.COM', temp_file]
 
     # setup_ambari_krb5_jaas() should return None if everything is OK
-    self.assertEqual(None, _ambari_server_.setup_ambari_krb5_jaas())
+    self.assertEqual(None, setup_ambari_krb5_jaas())
     self.assertTrue(get_validated_string_input_mock.called)
     self.assertEqual(get_validated_string_input_mock.call_count, 2)
     pass
@@ -6054,16 +6196,12 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     run_metainfo_upgrade_mock.assert_called_with({})
     pass
 
-  @patch.object(_ambari_server_, "get_ambari_properties")
   @patch.object(ResourceFilesKeeper, "perform_housekeeping")
   def test_refresh_stack_hash(self,
-    perform_housekeeping_mock,
-    get_ambari_properties_mock):
+    perform_housekeeping_mock):
 
     properties = Properties()
-    get_ambari_properties_mock.return_value = properties
-
-    _ambari_server_.refresh_stack_hash()
+    refresh_stack_hash(properties)
 
     self.assertTrue(perform_housekeeping_mock.called)
     pass

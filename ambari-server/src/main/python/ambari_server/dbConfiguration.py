@@ -17,6 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+import glob
 import os
 
 from ambari_commons import OSConst
@@ -26,7 +27,7 @@ from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_server.serverConfiguration import decrypt_password_for_alias, get_value_from_properties, get_is_secure, \
   is_alias_string, \
   JDBC_PASSWORD_PROPERTY, JDBC_RCA_PASSWORD_ALIAS, PRESS_ENTER_MSG, get_ambari_properties, update_properties, \
-  RESOURCES_DIR_PROPERTY
+  RESOURCES_DIR_PROPERTY, JDBC_PATTERNS, configDefaults
 from ambari_server.userInput import get_validated_string_input
 
 
@@ -273,6 +274,9 @@ class DBMSConfigFactory(object):
     """
     pass
 
+  def get_supported_dbms(self):
+    return []
+
 #
 # Database configuration factory for Windows
 #
@@ -299,6 +303,9 @@ class DBMSConfigFactoryWindows(DBMSConfigFactory):
     """
     from ambari_server.dbConfiguration_windows import createSQLServerConfig
     return createSQLServerConfig(options, properties, STORAGE_TYPE_REMOTE, dbId)
+
+  def get_supported_dbms(self):
+    return self.DBMS_KEYS_LIST
 
   def get_supported_jdbc_drivers(self):
     return self.DBMS_KEYS_LIST
@@ -481,3 +488,26 @@ def check_jdbc_drivers(args):
       db_idx += 1
   finally:
     args.database_index = db_idx_orig
+
+
+#Check the JDBC driver status
+#If not found abort
+#Get SQL Server service status from SCM
+#If 'stopped' then start it
+#Wait until the status is 'started' or a configured timeout elapses
+#If the timeout has been reached, bail out with exception
+def ensure_dbms_is_running(options, properties, scmStatus=None):
+  factory = DBMSConfigFactory()
+  dbms = factory.create(options, properties)
+  result = dbms._is_jdbc_driver_installed(properties)
+  if result == -1:
+    raise FatalException(-1, "JDBC driver is not installed. Run ambari-server setup and try again.")
+  dbms.ensure_dbms_is_running(options, properties, scmStatus)
+
+
+def ensure_jdbc_driver_is_installed(options, properties):
+  factory = DBMSConfigFactory()
+  dbms = factory.create(options, properties)
+  result = dbms._is_jdbc_driver_installed(properties)
+  if result == -1:
+    raise FatalException(-1, dbms.JDBC_DRIVER_INSTALL_MSG)
