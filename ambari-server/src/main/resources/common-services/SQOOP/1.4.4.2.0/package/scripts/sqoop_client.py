@@ -20,6 +20,7 @@ limitations under the License.
 
 import sys
 from resource_management import *
+from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 
 from sqoop import sqoop
 
@@ -28,6 +29,13 @@ class SqoopClient(Script):
 
   def get_stack_to_component(self):
     return {"HDP": "sqoop-client"}
+
+  def pre_rolling_restart(self, env):
+    import params
+    env.set_params(params)
+
+    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      Execute(format("hdp-select set sqoop-client {version}"))
 
   def install(self, env):
     self.install_packages(env)

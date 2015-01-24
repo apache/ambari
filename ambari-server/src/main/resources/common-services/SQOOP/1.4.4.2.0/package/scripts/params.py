@@ -28,6 +28,9 @@ stack_name = default("/hostLevelParams/stack_name", None)
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
+# New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
+version = default("/commandParams/version", None)
+
 #hadoop params
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
   sqoop_conf_dir = '/etc/sqoop/conf'

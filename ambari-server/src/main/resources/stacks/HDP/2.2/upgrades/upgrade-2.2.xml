@@ -138,6 +138,10 @@
         <component>PIG</component>
       </service>
 
+      <service name="SQOOP">
+        <component>SQOOP</component>
+      </service>
+
       <service name="HIVE">
         <component>HIVE_CLIENT</component>
         <component>HCAT</component>
@@ -372,6 +376,14 @@
       </component>
     </service>
 
+    <service name="SQOOP">
+      <component name="SQOOP">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+    </service>
+
     <service name="HIVE">
       <component name="HIVE_METASTORE">
         <pre-upgrade>
@@ -424,6 +436,12 @@
       </component>
 
       <component name="HIVE_CLIENT">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+
+      <component name="HCAT">
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
