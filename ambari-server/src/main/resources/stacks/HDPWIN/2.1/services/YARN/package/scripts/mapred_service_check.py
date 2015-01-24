@@ -40,11 +40,11 @@ class MapReduce2ServiceCheck(Script):
     validateStatusFileName = "validateYarnComponentStatus.py"
     validateStatusFilePath = os.path.join(os.path.dirname(params.hadoop_home), "temp", validateStatusFileName)
     python_executable = sys.executable
-    validateStatusCmd = "{} {} {} -p {} -s {}".format(
+    validateStatusCmd = "{0} {1} {2} -p {3} -s {4}".format(
       python_executable, validateStatusFilePath, component_type, component_address, params.hadoop_ssl_enabled)
 
     if params.security_enabled:
-      kinit_cmd = "{} -kt {} {};".format(params.kinit_path_local, params.smoke_user_keytab, params.smokeuser)
+      kinit_cmd = "{0} -kt {1} {2};".format(params.kinit_path_local, params.smoke_user_keytab, params.smokeuser)
       smoke_cmd = kinit_cmd + validateStatusCmd
     else:
       smoke_cmd = validateStatusCmd

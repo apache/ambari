@@ -30,10 +30,12 @@ REFRESH_STACK_HASH_ACTION = "refresh-stack-hash"
 STATUS_ACTION = "status"
 SETUP_HTTPS_ACTION = "setup-https"
 LDAP_SETUP_ACTION = "setup-ldap"
+LDAP_SYNC_ACTION = "sync-ldap"
 SETUP_GANGLIA_HTTPS_ACTION = "setup-ganglia-https"
-SETUP_NAGIOS_HTTPS_ACTION = "setup-nagios-https"
 ENCRYPT_PASSWORDS_ACTION = "encrypt-passwords"
 SETUP_SECURITY_ACTION = "setup-security"
+BACKUP_ACTION = "backup"
+RESTORE_ACTION = "restore"
 
 ACTION_REQUIRE_RESTART = [RESET_ACTION, UPGRADE_ACTION, UPGRADE_STACK_ACTION,
                           SETUP_SECURITY_ACTION, LDAP_SETUP_ACTION]

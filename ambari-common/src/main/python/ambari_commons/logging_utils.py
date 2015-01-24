@@ -20,7 +20,7 @@ limitations under the License.
 
 _VERBOSE = False
 _SILENT = False
-_DEBUG_MODE = False
+_DEBUG_MODE = 0
 
 # terminal styles
 BOLD_ON = '\033[1m'
@@ -49,6 +49,20 @@ def get_debug_mode():
 def set_debug_mode(newVal):
   global _DEBUG_MODE
   _DEBUG_MODE = newVal
+
+def set_debug_mode_from_options(options):
+  debug_mode = 0
+  try:
+    if options.debug:
+      debug_mode = 1
+  except AttributeError:
+    pass
+  try:
+    if options.suspend_start:
+      debug_mode = debug_mode | 2
+  except AttributeError:
+    pass
+  set_debug_mode(debug_mode)
 
 #
 # Prints an "info" messsage.

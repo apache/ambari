@@ -17,12 +17,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+import os
 
-from ambari_commons import OSCheck
+from ambari_commons import OSConst
 from ambari_commons.exceptions import FatalException
-from ambari_commons.logging_utils import print_error_msg
-from ambari_server.setupSecurity import SECURITY_IS_ENCRYPTION_ENABLED
-from serverConfiguration import get_ambari_properties
+from ambari_commons.logging_utils import get_silent, print_error_msg, print_info_msg, print_warning_msg, set_silent
+from ambari_commons.os_family_impl import OsFamilyImpl
+from ambari_server.serverConfiguration import decrypt_password_for_alias, get_value_from_properties, get_is_secure, \
+  is_alias_string, \
+  JDBC_PASSWORD_PROPERTY, JDBC_RCA_PASSWORD_ALIAS, PRESS_ENTER_MSG, get_ambari_properties, update_properties, \
+  RESOURCES_DIR_PROPERTY
+from ambari_server.userInput import get_validated_string_input
 
 
 #Database settings
@@ -31,77 +36,76 @@ DB_STATUS_RUNNING_DEFAULT = "running"
 SETUP_DB_CONNECT_TIMEOUT = 5
 SETUP_DB_CONNECT_ATTEMPTS = 3
 
-DATABASE_INDEX = 0
 USERNAME_PATTERN = "^[a-zA-Z_][a-zA-Z0-9_\-]*$"
 PASSWORD_PATTERN = "^[a-zA-Z0-9_-]*$"
 DATABASE_NAMES = ["postgres", "oracle", "mysql"]
-DATABASE_STORAGE_NAMES = ["Database", "Service", "Database"]
-DATABASE_PORTS = ["5432", "1521", "3306"]
-DATABASE_DRIVER_NAMES = ["org.postgresql.Driver", "oracle.jdbc.driver.OracleDriver", "com.mysql.jdbc.Driver"]
-DATABASE_CONNECTION_STRINGS = [
-                  "jdbc:postgresql://{0}:{1}/{2}",
-                  "jdbc:oracle:thin:@{0}:{1}/{2}",
-                  "jdbc:mysql://{0}:{1}/{2}"]
-DATABASE_CONNECTION_STRINGS_ALT = [
-                  "jdbc:postgresql://{0}:{1}/{2}",
-                  "jdbc:oracle:thin:@{0}:{1}:{2}",
-                  "jdbc:mysql://{0}:{1}/{2}"]
-ORACLE_SID_PATTERN = "jdbc:oracle:thin:@.+:.+/.+"
-ORACLE_SNAME_PATTERN = "jdbc:oracle:thin:@.+:.+:.+"
+DATABASE_FULL_NAMES = {"oracle": "Oracle", "mysql": "MySQL", "postgres": "PostgreSQL"}
 
-DATABASE_CLI_TOOLS = [["psql"], ["sqlplus", "sqlplus64"], ["mysql"]]
-DATABASE_CLI_TOOLS_DESC = ["psql", "sqlplus", "mysql"]
-DATABASE_CLI_TOOLS_USAGE = ['su -postgres --command=psql -f {0} -v username=\'"{1}"\' -v password="\'{2}\'"',
-                            'sqlplus {1}/{2} < {0} ',
-                            'mysql --user={1} --password={2} {3}<{0}']
+AMBARI_DATABASE_NAME = "ambari"
+AMBARI_DATABASE_TITLE = "ambari"
 
-MYSQL_INIT_SCRIPT = '/var/lib/ambari-server/resources/Ambari-DDL-MySQL-CREATE.sql'
-DATABASE_INIT_SCRIPTS = ['/var/lib/ambari-server/resources/Ambari-DDL-Postgres-CREATE.sql',
-                         '/var/lib/ambari-server/resources/Ambari-DDL-Oracle-CREATE.sql',
-                         MYSQL_INIT_SCRIPT]
-DATABASE_DROP_SCRIPTS = ['/var/lib/ambari-server/resources/Ambari-DDL-Postgres-DROP.sql',
-                         '/var/lib/ambari-server/resources/Ambari-DDL-Oracle-DROP.sql',
-                         '/var/lib/ambari-server/resources/Ambari-DDL-MySQL-DROP.sql']
+STORAGE_TYPE_LOCAL = 'local'
+STORAGE_TYPE_REMOTE = 'remote'
+
+DEFAULT_USERNAME = "ambari"
+DEFAULT_PASSWORD = "bigdata"
+
+#
+# Database configuration helper classes
+#
+class DBMSDesc:
+  def __init__(self, i_dbms_key, i_storage_key, i_dbms_name, i_storage_name, i_fn_create_config):
+    self.dbms_key = i_dbms_key
+    self.storage_key = i_storage_key
+    self.dbms_name = i_dbms_name
+    self.storage_name = i_storage_name
+    self.fn_create_config = i_fn_create_config
+
+  def create_config(self, options, properties, dbId):
+    return self.fn_create_config(options, properties, self.storage_key, dbId)
+
+class DbPropKeys:
+  def __init__(self, i_dbms_key, i_driver_key, i_server_key, i_port_key, i_db_name_key, i_db_url_key):
+    self.dbms_key = i_dbms_key
+    self.driver_key = i_driver_key
+    self.server_key = i_server_key
+    self.port_key = i_port_key
+    self.db_name_key = i_db_name_key
+    self.db_url_key = i_db_url_key
+
+class DbAuthenticationKeys:
+  def __init__(self, i_user_name_key, i_password_key, i_password_alias, i_password_filename):
+    self.user_name_key = i_user_name_key
+    self.password_key = i_password_key
+    self.password_alias = i_password_alias
+    self.password_filename = i_password_filename
+
 #
 # Database configuration base class
 #
 class DBMSConfig(object):
-  def __init__(self, options, properties):
+  def __init__(self, options, properties, storage_type):
     """
     #Just load the defaults. The derived classes will be able to modify them later
     """
-    self.persistence_type = 'remote'
+    self.persistence_type = storage_type
     self.dbms = ""
-    self.driver_name = ""
+    self.driver_class_name = ""
+    self.driver_file_name = ""
+    self.driver_symlink_name = ""
     self.database_host = ""
     self.database_port = ""
     self.database_name = ""
     self.database_username = ""
-    self.password_file = None
 
-    self.silent = options.silent
+    self.db_title = AMBARI_DATABASE_TITLE
 
-    isSecureProp = properties.get_property(SECURITY_IS_ENCRYPTION_ENABLED)
-    self.isSecure = True if isSecureProp and isSecureProp.lower() == 'true' else False
+    self.must_set_database_options = DBMSConfig._init_member_with_default(options, "must_set_database_options", False)
+
+    self.JDBC_DRIVER_INSTALL_MSG = 'Before starting Ambari Server, you must install the JDBC driver.'
+
+    self.isSecure = get_is_secure(properties)
     pass
-
-
-  @staticmethod
-  # properties = property bag that will ultimately define the type of database. Since
-  #   right now in Windows we only support SQL Server, this argument is not yet used.
-  # dbId = additional information, that helps distinguish between various database connections
-  #   (Ambari vs. Metrics is a prime example)
-  def create(options, properties, dbId = "Ambari"):
-    #if OSCheck.is_windows_family():
-    if dbId == "Ambari":
-      return SQLServerAmbariDBConfig(options, properties)
-    else:
-      raise FatalException(-1, "Invalid database requested: " + str(dbId))
-    #else:
-    #  go the classic Linux way
-    #return PGConfig(properties, dbId)
-    #return MySQLConfig(properties, dbId)
-    #return OracleConfig(properties, dbId)
 
 
   #
@@ -111,7 +115,7 @@ class DBMSConfig(object):
   #
   # Main method. Configures the database according to the options and the existing properties.
   #
-  def configure_database(self, args, properties):
+  def configure_database(self, properties):
     result = self._prompt_db_properties()
     if result:
       #DB setup should be done last after doing any setup.
@@ -122,7 +126,7 @@ class DBMSConfig(object):
     return result
 
   def setup_database(self):
-    print 'Configuring {} database...'.format(self.db_title)
+    print 'Configuring {0} database...'.format(self.db_title)
 
     #DB setup should be done last after doing any setup.
     if self._is_local_database():
@@ -132,43 +136,71 @@ class DBMSConfig(object):
     pass
 
   def reset_database(self):
-    print 'Resetting {} database...'.format(self.db_title)
-
     if self._is_local_database():
       self._reset_local_database()
     else:
       self._reset_remote_database()
     pass
 
-  def ensure_jdbc_driver_installed(self, args, properties):
-    result = self._is_jdbc_driver_installed(properties)
+  def ensure_jdbc_driver_installed(self, properties):
+    (result, msg) = self._prompt_jdbc_driver_install(properties)
     if result == -1:
-      (result, msg) = self._prompt_jdbc_driver_install(properties)
-      if result == -1:
-        print_error_msg(msg)
-        raise FatalException(-1, msg)
+      print_error_msg(msg)
+      raise FatalException(-1, msg)
 
     if result != 1:
-      if self._install_jdbc_driver(args, properties):
+      if self._install_jdbc_driver(properties, result):
         return True
     return False
 
+  def change_db_files_owner(self):
+    if self._is_local_database():
+      retcode = self._change_db_files_owner()
+      if not retcode == 0:
+        raise FatalException(20, 'Unable to change owner of database objects')
 
   #
   # Private implementation
   #
 
+  @staticmethod
+  def _read_password_from_properties(properties):
+    database_password = DEFAULT_PASSWORD
+    password_file = get_value_from_properties(properties, JDBC_PASSWORD_PROPERTY, "")
+    if password_file:
+      if is_alias_string(password_file):
+        database_password = decrypt_password_for_alias(properties, JDBC_RCA_PASSWORD_ALIAS)
+      else:
+        if os.path.isabs(password_file) and os.path.exists(password_file):
+          with open(password_file, 'r') as file:
+            database_password = file.read()
+    return database_password
+
+  @staticmethod
+  def _init_member_with_default(options, attr_name, default_val):
+    options_val = getattr(options, attr_name, None)
+    val = options_val if options_val is not None and options_val is not "" else default_val
+    return val
+
+  @staticmethod
+  def _init_member_with_properties(options, attr_name, properties, property_key):
+    options_val = getattr(options, attr_name, None)
+    if options_val is None or options_val is "":
+      options_val = get_value_from_properties(properties, property_key, None)
+    return options_val
+
+  @staticmethod
+  def _init_member_with_prop_default(options, attr_name, properties, property_key, default_val):
+    val = DBMSConfig._init_member_with_properties(options, attr_name, properties, property_key)
+    if val is None or val is "":
+      val = default_val
+    return val
+
   #
   # Checks if options determine local DB configuration
   #
   def _is_local_database(self):
-    return self.persistence_type == 'local'
-
-  def _is_jdbc_driver_installed(self, properties):
-    return 1
-
-  def configure_database_password(showDefault=True):
-    pass
+    return self.persistence_type == STORAGE_TYPE_LOCAL
 
   def _prompt_db_properties(self):
     #if WINDOWS
@@ -197,15 +229,255 @@ class DBMSConfig(object):
     pass
 
   def _prompt_jdbc_driver_install(self, properties):
-    return (False, "")
+    result = self._is_jdbc_driver_installed(properties)
+    if result == -1:
+      if get_silent():
+        print_error_msg(self.JDBC_DRIVER_INSTALL_MSG)
+      else:
+        print_warning_msg(self.JDBC_DRIVER_INSTALL_MSG)
+        raw_input(PRESS_ENTER_MSG)
+        result = self._is_jdbc_driver_installed(properties)
+    return (result, self.JDBC_DRIVER_INSTALL_MSG)
 
-  def _install_jdbc_driver(self, options, properties):
+  def _is_jdbc_driver_installed(self, properties):
+    return 1
+
+  def _install_jdbc_driver(self, properties, files_list):
     return False
 
   def ensure_dbms_is_running(self, options, properties, scmStatus=None):
     pass
 
-if OSCheck.is_windows_family():
-  from ambari_server.dbConfiguration_windows import SQLServerAmbariDBConfig
-#else:
-#  from ambari_server.dbConfiguration_linux import PostgreSQLConfig #and potentially MySQLConfig, OracleConfig
+  def _change_db_files_owner(self, args):
+    return 0
+
+
+#
+# Database configuration factory base class
+#
+class DBMSConfigFactory(object):
+  def select_dbms(self, options):
+    '''
+    # Base declaration of the DBMS selection method.
+    :return: DBMS index in the descriptor table
+    '''
+    pass
+
+  def create(self, options, properties, dbId = "Ambari"):
+    """
+    # Base declaration of the factory method. The outcome of the derived implementations
+    #  is expected to be a subclass of DBMSConfig.
+    # properties = property bag that will ultimately define the type of database. Since
+    #   right now in Windows we only support SQL Server, this argument is not yet used.
+    # dbId = additional information, that helps distinguish between various database connections, if applicable
+    """
+    pass
+
+#
+# Database configuration factory for Windows
+#
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class DBMSConfigFactoryWindows(DBMSConfigFactory):
+  def __init__(self):
+    from ambari_server.dbConfiguration_windows import DATABASE_DBMS_SQLSERVER
+
+    self.DBMS_KEYS_LIST = [
+      DATABASE_DBMS_SQLSERVER
+    ]
+
+  def select_dbms(self, options):
+    # For now, we only support SQL Server in Windows, in remote mode.
+    return 0
+
+  def create(self, options, properties, dbId = "Ambari"):
+    """
+    # Windows implementation of the factory method. The outcome of the derived implementations
+    #  is expected to be a subclass of DBMSConfig.
+    # properties = property bag that will ultimately define the type of database. Since
+    #   right now in Windows we only support SQL Server, this argument is not yet used.
+    # dbId = additional information, that helps distinguish between various database connections, if applicable
+    """
+    from ambari_server.dbConfiguration_windows import createSQLServerConfig
+    return createSQLServerConfig(options, properties, STORAGE_TYPE_REMOTE, dbId)
+
+  def get_supported_jdbc_drivers(self):
+    return self.DBMS_KEYS_LIST
+
+#
+# Database configuration factory for Linux
+#
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class DBMSConfigFactoryLinux(DBMSConfigFactory):
+  def __init__(self):
+    from ambari_server.dbConfiguration_linux import createPGConfig, createOracleConfig, createMySQLConfig
+
+    self.DBMS_KEYS_LIST = [
+      'embedded',
+      'oracle',
+      'mysql',
+      'postgres'
+    ]
+
+    self.DRIVER_KEYS_LIST = [
+      'oracle',
+      'mysql',
+      'postgres',
+      'mssql'
+    ]
+
+    self.DBMS_LIST = [
+      DBMSDesc(self.DBMS_KEYS_LIST[3], STORAGE_TYPE_LOCAL, 'PostgreSQL', 'Embedded', createPGConfig),
+      DBMSDesc(self.DBMS_KEYS_LIST[1], STORAGE_TYPE_REMOTE, 'Oracle', '', createOracleConfig),
+      DBMSDesc(self.DBMS_KEYS_LIST[2], STORAGE_TYPE_REMOTE, 'MySQL', '', createMySQLConfig),
+      DBMSDesc(self.DBMS_KEYS_LIST[3], STORAGE_TYPE_REMOTE, 'PostgreSQL', '', createPGConfig)
+    ]
+
+    self.DBMS_DICT = \
+    {
+      '-' : 0,
+      '-' + STORAGE_TYPE_LOCAL : 0,
+      self.DBMS_KEYS_LIST[0] + '-' : 0,
+      self.DBMS_KEYS_LIST[2] + '-'  : 2,
+      self.DBMS_KEYS_LIST[2] + '-' + STORAGE_TYPE_REMOTE : 2,
+      self.DBMS_KEYS_LIST[1] + '-' : 1,
+      self.DBMS_KEYS_LIST[1] + '-' + STORAGE_TYPE_REMOTE : 1,
+      self.DBMS_KEYS_LIST[3] + '-' : 3,
+      self.DBMS_KEYS_LIST[3] + '-' + STORAGE_TYPE_LOCAL : 0,
+      self.DBMS_KEYS_LIST[3] + '-' + STORAGE_TYPE_REMOTE : 3,
+    }
+
+    self.DBMS_PROMPT_PATTERN = "[{0}] - {1}{2}\n"
+    self.DBMS_CHOICE_PROMPT_PATTERN = "==============================================================================\n" \
+                                      "Enter choice ({0}): "
+    self.JDK_VALID_CHOICES_PATTERN = "^[{0}]$"
+
+  def select_dbms(self, options):
+    try:
+      dbms_index = options.database_index
+    except AttributeError:
+      dbms_index = self._get_default_dbms_index(options)
+
+    if options.must_set_database_options:
+      n_dbms = 1
+      dbms_choice_prompt = "==============================================================================\n" \
+                           "Choose one of the following options:\n"
+      dbms_choices = ''
+      for desc in self.DBMS_LIST:
+        if len(desc.storage_name) > 0:
+          dbms_storage = " ({0})".format(desc.storage_name)
+        else:
+          dbms_storage = ""
+        dbms_choice_prompt += self.DBMS_PROMPT_PATTERN.format(n_dbms, desc.dbms_name, dbms_storage)
+        dbms_choices += str(n_dbms)
+        n_dbms += 1
+
+      database_num = str(dbms_index + 1)
+      dbms_choice_prompt += self.DBMS_CHOICE_PROMPT_PATTERN.format(database_num)
+      dbms_valid_choices = self.JDK_VALID_CHOICES_PATTERN.format(dbms_choices)
+
+      database_num = get_validated_string_input(
+        dbms_choice_prompt,
+        database_num,
+        dbms_valid_choices,
+        "Invalid number.",
+        False
+      )
+
+      dbms_index = int(database_num) - 1
+      if dbms_index >= n_dbms:
+        print_info_msg('Unknown db option, default to {0} {1}.'.format(
+          self.DBMS_LIST[0].storage_name, self.DBMS_LIST[0].dbms_name))
+        dbms_index = 0
+
+    return dbms_index
+
+  def create(self, options, properties, dbId = "Ambari"):
+    """
+    # Linux implementation of the factory method. The outcome of the derived implementations
+    #  is expected to be a subclass of DBMSConfig.
+    # properties = property bag that will ultimately define the type of database. Supported types are
+    #   MySQL, Oracle and PostgreSQL.
+    # dbId = additional information, that helps distinguish between various database connections, if applicable
+    """
+
+    try:
+      index = options.database_index
+    except AttributeError:
+      index = options.database_index = self._get_default_dbms_index(options)
+
+    desc = self.DBMS_LIST[index]
+    options.persistence_type = desc.storage_key
+    dbmsConfig = desc.create_config(options, properties, dbId)
+    return dbmsConfig
+
+  def get_supported_dbms(self):
+    return self.DBMS_KEYS_LIST
+
+  def get_supported_jdbc_drivers(self):
+    return self.DRIVER_KEYS_LIST
+
+  def _get_default_dbms_index(self, options):
+    try:
+      dbms_name = options.dbms
+      if not dbms_name:
+        dbms_name = ""
+    except AttributeError:
+      dbms_name = ""
+    try:
+      persistence_type = options.persistence_type
+      if not persistence_type:
+        persistence_type = ""
+    except AttributeError:
+      persistence_type = ""
+
+    try:
+      def_index = self.DBMS_DICT[dbms_name + "-" + persistence_type]
+    except KeyError:
+      # Unsupported database type (e.g. local Oracle or MySQL)
+      raise FatalException(15, "Invalid database selection: {0} {1}".format(
+          getattr(options, "persistence_type", ""), getattr(options, "options.dbms", "")))
+
+    return def_index
+
+
+def check_jdbc_drivers(args):
+  # create jdbc symlinks if jdbc drivers are available in resources
+  properties = get_ambari_properties()
+  if properties == -1:
+    err = "Error getting ambari properties"
+    print_error_msg(err)
+    raise FatalException(-1, err)
+  conf_file = properties.fileName
+
+  try:
+    resources_dir = properties[RESOURCES_DIR_PROPERTY]
+  except (KeyError), e:
+    err = 'Property ' + str(e) + ' is not defined at ' + conf_file
+    raise FatalException(1, err)
+
+  try:
+    db_idx_orig = args.database_index
+  except AttributeError:
+    db_idx_orig = None
+
+  factory = DBMSConfigFactory()
+
+  # AMBARI-5696 Validate the symlinks for each supported driver, in case various back-end HDP services happen to
+  #  use different DBMSes
+  # This is skipped on Windows
+  db_idx = 1
+
+  try:
+    while db_idx < len(factory.get_supported_dbms()):
+      args.database_index = db_idx
+      dbms = factory.create(args, properties)
+      if dbms.driver_symlink_name:
+        jdbc_file_path = os.path.join(resources_dir, dbms.driver_file_name)
+        if os.path.isfile(jdbc_file_path):
+          jdbc_symlink = os.path.join(resources_dir, dbms.driver_symlink_name)
+          if os.path.lexists(jdbc_symlink):
+            os.remove(jdbc_symlink)
+          os.symlink(jdbc_file_path, jdbc_symlink)
+      db_idx += 1
+  finally:
+    args.database_index = db_idx_orig

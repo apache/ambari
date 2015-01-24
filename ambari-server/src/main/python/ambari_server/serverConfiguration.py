@@ -23,21 +23,27 @@ import glob
 import os
 import re
 import shutil
+import stat
 import string
+import sys
 import tempfile
 
 from ambari_commons.exceptions import FatalException
 from ambari_commons.os_check import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons.os_utils import run_os_command, search_file
-from ambari_commons.logging_utils import print_warning_msg, print_info_msg, print_error_msg
-from properties import Properties
+from ambari_commons.logging_utils import get_debug_mode, print_info_msg, print_warning_msg, print_error_msg, \
+  set_debug_mode
+from ambari_server.properties import Properties
+from ambari_server.userInput import get_validated_string_input
+from ambari_server.utils import compare_versions, locate_file
 
 
 OS_VERSION = OSCheck().get_os_major_version()
 OS_TYPE = OSCheck.get_os_type()
 OS_FAMILY = OSCheck.get_os_family()
 
+PID_NAME = "ambari-server.pid"
 
 # Non-root user setup commands
 NR_USER_PROPERTY = "ambari-server.user"
@@ -56,10 +62,6 @@ BOOTSTRAP_DIR_PROPERTY = "bootstrap.dir"
 
 AMBARI_CONF_VAR = "AMBARI_CONF_DIR"
 AMBARI_PROPERTIES_FILE = "ambari.properties"
-if OSCheck.is_windows_family():
-  AMBARI_PROPERTIES_BACKUP_FILE = "ambari.properties.backup"
-else:
-  AMBARI_PROPERTIES_BACKUP_FILE = "ambari.properties.rpmsave"
 
 GET_FQDN_SERVICE_URL = "server.fqdn.service.url"
 
@@ -85,10 +87,10 @@ JDK_NAMES = ["jdk-7u67-linux-x64.tar.gz", "jdk-6u31-linux-x64.bin"]
 
 #JCE Policy files
 JCE_POLICY_FILENAMES = ["UnlimitedJCEPolicyJDK7.zip", "jce_policy-6.zip"]
-JCE_DOWNLOAD_CMD = "curl -o {0} {1}"
-JCE_MIN_FILESIZE = 5000
 
 # JDBC
+JDBC_PATTERNS = {"oracle": "*ojdbc*.jar", "mysql": "*mysql*.jar"}
+
 #TODO property used incorrectly in local case, it was meant to be dbms name, not postgres database name,
 # has workaround for now, as we don't need dbms name if persistence_type=local
 JDBC_DATABASE_PROPERTY = "server.jdbc.database"                 # E.g., embedded|oracle|mysql|postgres|sqlserver
@@ -104,6 +106,8 @@ JDBC_RCA_PASSWORD_FILENAME = "rca_password.dat"
 
 CLIENT_API_PORT_PROPERTY = "client.api.port"
 CLIENT_API_PORT = "8080"
+
+SERVER_VERSION_FILE_PATH = "server.version.file"
 
 PERSISTENCE_TYPE_PROPERTY = "server.persistence.type"
 JDBC_DRIVER_PROPERTY = "server.jdbc.driver"
@@ -122,12 +126,16 @@ JDBC_RCA_PASSWORD_FILE_PROPERTY = "server.jdbc.rca.user.passwd"
 
 JDBC_RCA_PASSWORD_ALIAS = "ambari.db.password"
 
-#Windows-specific settings
+### # Windows-specific # ###
 
 JDBC_USE_INTEGRATED_AUTH_PROPERTY = "server.jdbc.use.integrated.auth"
 
 JDBC_RCA_USE_INTEGRATED_AUTH_PROPERTY = "server.jdbc.rca.use.integrated.auth"
 
+### # End Windows-specific # ###
+
+SERVICE_USERNAME_KEY = "TMP_AMBARI_USERNAME"
+SERVICE_PASSWORD_KEY = "TMP_AMBARI_PASSWORD"
 
 # resources repo configuration
 RESOURCES_DIR_PROPERTY = "resources.dir"
@@ -135,10 +143,25 @@ RESOURCES_DIR_DEFAULT = "resources"
 
 # stack repo upgrade
 STACK_LOCATION_KEY = 'metadata.path'
-STACK_LOCATION_DEFAULT = "resources" + os.sep + "stacks"
+
+# LDAP security
+IS_LDAP_CONFIGURED = "ambari.ldap.isConfigured"
+LDAP_MGR_PASSWORD_ALIAS = "ambari.ldap.manager.password"
+LDAP_MGR_PASSWORD_PROPERTY = "authentication.ldap.managerPassword"
+LDAP_MGR_PASSWORD_FILENAME = "ldap-password.dat"
+LDAP_MGR_USERNAME_PROPERTY = "authentication.ldap.managerDn"
+LDAP_PRIMARY_URL_PROPERTY = "authentication.ldap.primaryUrl"
+
+# SSL truststore
+SSL_TRUSTSTORE_PASSWORD_ALIAS = "ambari.ssl.trustStore.password"
+SSL_TRUSTSTORE_PATH_PROPERTY = "ssl.trustStore.path"
+SSL_TRUSTSTORE_PASSWORD_PROPERTY = "ssl.trustStore.password"
+SSL_TRUSTSTORE_TYPE_PROPERTY = "ssl.trustStore.type"
 
 # JDK
 JDK_RELEASES="java.releases"
+
+VIEWS_DIR_PROPERTY = "views.dir"
 
 #Common setup or upgrade message
 SETUP_OR_UPGRADE_MSG = "- If this is a new setup, then run the \"ambari-server setup\" command to create the user\n" \
@@ -146,7 +169,6 @@ SETUP_OR_UPGRADE_MSG = "- If this is a new setup, then run the \"ambari-server s
                        "Refer to the Ambari documentation for more information on setup and upgrade."
 
 DEFAULT_DB_NAME = "ambari"
-
 
 class ServerConfigDefaults(object):
   def __init__(self):
@@ -165,11 +187,14 @@ class ServerConfigDefaults(object):
     self.PID_DIR = os.sep + os.path.join("var", "run", "ambari-server")
     self.DEFAULT_LIBS_DIR = ""
 
+    self.AMBARI_PROPERTIES_BACKUP_FILE = ""
+
     # ownership/permissions mapping
     # path - permissions - user - group - recursive
     # Rules are executed in the same order as they are listed
     # {0} in user/group will be replaced by customized ambari-server username
     self.NR_ADJUST_OWNERSHIP_LIST = []
+    self.NR_USERADD_CMD = ""
 
     self.MASTER_KEY_FILE_PERMISSIONS = "600"
     self.CREDENTIALS_STORE_FILE_PERMISSIONS = "600"
@@ -177,10 +202,18 @@ class ServerConfigDefaults(object):
 
     self.DEFAULT_DB_NAME = "ambari"
 
+    self.STACK_LOCATION_DEFAULT = ""
+
     self.DEFAULT_VIEWS_DIR = ""
 
     #keytool commands
     self.keytool_bin = ""
+
+    #Standard messages
+    self.MESSAGE_ERROR_SETUP_NOT_ROOT = ""
+    self.MESSAGE_ERROR_RESET_NOT_ROOT = ""
+    self.MESSAGE_ERROR_UPGRADE_NOT_ROOT = ""
+    self.MESSAGE_CHECK_FIREWALL = ""
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class ServerConfigDefaultsWindows(ServerConfigDefaults):
@@ -193,6 +226,8 @@ class ServerConfigDefaultsWindows(ServerConfigDefaults):
     # Configuration defaults
     self.DEFAULT_CONF_DIR = "conf"
     self.DEFAULT_LIBS_DIR = "lib"
+
+    self.AMBARI_PROPERTIES_BACKUP_FILE = "ambari.properties.backup"
 
     # ownership/permissions mapping
     # path - permissions - user - group - recursive
@@ -218,11 +253,20 @@ class ServerConfigDefaultsWindows(ServerConfigDefaults):
       # Also, /etc/ambari-server/conf/password.dat
       # is generated later at store_password_file
     ]
+    self.NR_USERADD_CMD = "cmd /C net user {0} {1} /ADD"
+
+    self.STACK_LOCATION_DEFAULT = "resources\\stacks"
 
     self.DEFAULT_VIEWS_DIR = "resources\\views"
 
     #keytool commands
     self.keytool_bin = "keytool.exe"
+
+    #Standard messages
+    self.MESSAGE_ERROR_SETUP_NOT_ROOT = "Ambari-server setup must be run with administrator-level privileges"
+    self.MESSAGE_ERROR_RESET_NOT_ROOT = "Ambari-server reset must be run with administrator-level privileges"
+    self.MESSAGE_ERROR_UPGRADE_NOT_ROOT = "Ambari-server upgrade must be run with administrator-level privileges"
+    self.MESSAGE_CHECK_FIREWALL = "Checking firewall status..."
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class ServerConfigDefaultsLinux(ServerConfigDefaults):
@@ -236,6 +280,8 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
     # Configuration defaults
     self.DEFAULT_CONF_DIR = "/etc/ambari-server/conf"
     self.DEFAULT_LIBS_DIR = "/usr/lib/ambari-server"
+
+    self.AMBARI_PROPERTIES_BACKUP_FILE = "ambari.properties.rpmsave"
 
     # ownership/permissions mapping
     # path - permissions - user - group - recursive
@@ -271,18 +317,48 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
       # Also, /etc/ambari-server/conf/password.dat
       # is generated later at store_password_file
     ]
+    self.NR_USERADD_CMD = 'useradd -M --comment "{1}" ' \
+                 '--shell %s -d /var/lib/ambari-server/keys/ {0}' % locate_file('nologin', '/sbin')
+
+    self.STACK_LOCATION_DEFAULT = "/var/lib/ambari-server/resources/stacks"
 
     self.DEFAULT_VIEWS_DIR = "/var/lib/ambari-server/resources/views"
 
     #keytool commands
     self.keytool_bin = "keytool"
 
+    #Standard messages
+    self.MESSAGE_ERROR_SETUP_NOT_ROOT = "Ambari-server setup should be run with root-level privileges"
+    self.MESSAGE_ERROR_RESET_NOT_ROOT = "Ambari-server reset should be run with root-level privileges"
+    self.MESSAGE_ERROR_UPGRADE_NOT_ROOT = "Ambari-server upgrade must be run with root-level privileges"
+    self.MESSAGE_CHECK_FIREWALL = "Checking iptables..."
+
 configDefaults = ServerConfigDefaults()
 
+# Security
+SECURITY_KEYS_DIR = "security.server.keys_dir"
+SECURITY_MASTER_KEY_LOCATION = "security.master.key.location"
+SECURITY_KEY_IS_PERSISTED = "security.master.key.ispersisted"
+SECURITY_KEY_ENV_VAR_NAME = "AMBARI_SECURITY_MASTER_KEY"
+SECURITY_MASTER_KEY_FILENAME = "master"
+SECURITY_IS_ENCRYPTION_ENABLED = "security.passwords.encryption.enabled"
+SECURITY_KERBEROS_JASS_FILENAME = "krb5JAASLogin.conf"
 
-SCHEMA_UPGRADE_HELPER_CMD = "{0} -cp {1} " + \
-                            "org.apache.ambari.server.upgrade.SchemaUpgradeHelper" + \
-                            " > " + configDefaults.SERVER_OUT_FILE + " 2>&1"
+SECURITY_PROVIDER_GET_CMD = "{0} -cp {1}" + \
+                            "org.apache.ambari.server.security.encryption" + \
+                            ".CredentialProvider GET {2} {3} {4} " + \
+                            "> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
+
+SECURITY_PROVIDER_PUT_CMD = "{0} -cp {1}" + \
+                            "org.apache.ambari.server.security.encryption" + \
+                            ".CredentialProvider PUT {2} {3} {4} " + \
+                            "> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
+
+SECURITY_PROVIDER_KEY_CMD = "{0} -cp {1}" + \
+                            "org.apache.ambari.server.security.encryption" + \
+                            ".MasterKeyServiceImpl {2} {3} {4} " + \
+                            "> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
+
 
 
 def get_conf_dir():
@@ -322,18 +398,12 @@ def read_ambari_user():
   '''
   Reads ambari user from properties file
   '''
-  conf_file = find_properties_file()
-  try:
-    properties = Properties()
-    properties.load(open(conf_file))
+  properties = get_ambari_properties()
+  if properties != -1:
     user = properties[NR_USER_PROPERTY]
     if user:
       return user
-    else:
-      return None
-  except Exception, e:
-    print_error_msg('Could not read "%s": %s' % (conf_file, e))
-    return None
+  return None
 
 def get_value_from_properties(properties, key, default=""):
   try:
@@ -344,6 +414,32 @@ def get_value_from_properties(properties, key, default=""):
     return default
   return value
 
+def get_is_secure(properties):
+  isSecure = properties.get_property(SECURITY_IS_ENCRYPTION_ENABLED)
+  isSecure = True if isSecure and isSecure.lower() == 'true' else False
+  return isSecure
+
+def get_is_persisted(properties):
+  keyLocation = get_master_key_location(properties)
+  masterKeyFile = search_file(SECURITY_MASTER_KEY_FILENAME, keyLocation)
+  isPersisted = True if masterKeyFile else False
+
+  return (isPersisted, masterKeyFile)
+
+def get_credential_store_location(properties):
+  store_loc = properties[SECURITY_KEYS_DIR]
+  if store_loc is None or store_loc == "":
+    store_loc = "/var/lib/ambari-server/keys/credentials.jceks"
+  else:
+    store_loc += os.sep + "credentials.jceks"
+  return store_loc
+
+def get_master_key_location(properties):
+  keyLocation = properties[SECURITY_MASTER_KEY_LOCATION]
+  if keyLocation is None or keyLocation == "":
+    keyLocation = properties[SECURITY_KEYS_DIR]
+  return keyLocation
+
 # Copy file to /tmp and save with file.# (largest # is latest file)
 def backup_file_in_temp(filePath):
   if filePath is not None:
@@ -353,9 +449,98 @@ def backup_file_in_temp(filePath):
       shutil.copyfile(filePath, tmpDir + os.sep +
                       AMBARI_PROPERTIES_FILE + "." + str(back_up_file_count + 1))
     except (Exception), e:
-      print_error_msg('Could not backup file in temp "%s": %s' % (str(
-        back_up_file_count, e)))
+      print_error_msg('Could not backup file in temp "%s": %s' % (
+        back_up_file_count, str(e)))
   return 0
+
+def get_ambari_version(properties):
+  """
+  :param properties: Ambari properties
+  :return: Return a string of the ambari version. When comparing versions, please use "compare_versions" function.
+  """
+  version = None
+  try:
+    server_version_file_path = properties[SERVER_VERSION_FILE_PATH]
+    if server_version_file_path and os.path.exists(server_version_file_path):
+      with open(server_version_file_path, 'r') as file:
+        version = file.read().strip()
+  except:
+    print_error_msg("Error getting ambari version")
+  return version
+
+def get_db_type(properties):
+  db_type = None
+  if properties[JDBC_URL_PROPERTY]:
+    jdbc_url = properties[JDBC_URL_PROPERTY].lower()
+    if "postgres" in jdbc_url:
+      db_type = "postgres"
+    elif "oracle" in jdbc_url:
+      db_type = "oracle"
+    elif "mysql" in jdbc_url:
+      db_type = "mysql"
+    elif "derby" in jdbc_url:
+      db_type = "derby"
+
+  return db_type
+
+def check_database_name_property(upgrade=False):
+  """
+  :param upgrade: If Ambari is being upgraded.
+  :return:
+  """
+  properties = get_ambari_properties()
+  if properties == -1:
+    print_error_msg("Error getting ambari properties")
+    return -1
+
+  version = get_ambari_version(properties)
+  if upgrade and compare_versions(version, "1.7.0") == 0:
+    # This code exists for historic reasons in which property names changed from Ambari 1.6.1 to 1.7.0
+    persistence_type = properties[PERSISTENCE_TYPE_PROPERTY]
+    if persistence_type == "remote":
+      db_name = properties["server.jdbc.schema"]  # this was a property in Ambari 1.6.1, but not after 1.7.0
+      if db_name:
+        write_property(JDBC_DATABASE_NAME_PROPERTY, db_name)
+
+      # If DB type is missing, attempt to reconstruct it from the JDBC URL
+      db_type = properties[JDBC_DATABASE_PROPERTY]
+      if db_type is None or db_type.strip().lower() not in ["postgres", "oracle", "mysql", "derby"]:
+        db_type = get_db_type(properties)
+        if db_type:
+          write_property(JDBC_DATABASE_PROPERTY, db_type)
+
+      properties = get_ambari_properties()
+    elif persistence_type == "local":
+      # Ambari 1.6.1, had "server.jdbc.database" as the DB name, and the
+      # DB type was assumed to be "postgres" if was embedded ("local")
+      db_name = properties[JDBC_DATABASE_PROPERTY]
+      if db_name:
+        write_property(JDBC_DATABASE_NAME_PROPERTY, db_name)
+        write_property(JDBC_DATABASE_PROPERTY, "postgres")
+        properties = get_ambari_properties()
+
+  dbname = properties[JDBC_DATABASE_NAME_PROPERTY]
+  if dbname is None or dbname == "":
+    err = "DB Name property not set in config file.\n" + SETUP_OR_UPGRADE_MSG
+    raise FatalException(-1, err)
+
+def update_database_name_property(upgrade=False):
+  try:
+    check_database_name_property(upgrade)
+  except FatalException:
+    properties = get_ambari_properties()
+    if properties == -1:
+      err = "Error getting ambari properties"
+      raise FatalException(-1, err)
+    print_warning_msg(JDBC_DATABASE_NAME_PROPERTY + " property isn't set in " +
+                      AMBARI_PROPERTIES_FILE + ". Setting it to default value - " + configDefaults.DEFAULT_DB_NAME)
+    properties.process_pair(JDBC_DATABASE_NAME_PROPERTY, configDefaults.DEFAULT_DB_NAME)
+    conf_file = find_properties_file()
+    try:
+      properties.store(open(conf_file, "w"))
+    except Exception, e:
+      err = 'Could not write ambari config file "%s": %s' % (conf_file, e)
+      raise FatalException(-1, err)
 
 
 def is_alias_string(passwdStr):
@@ -367,9 +552,127 @@ def is_alias_string(passwdStr):
   else:
     return False
 
+def read_passwd_for_alias(alias, masterKey=""):
+  if alias:
+    jdk_path = find_jdk()
+    if jdk_path is None:
+      print_error_msg("No JDK found, please run the \"setup\" "
+                      "command to install a JDK automatically or install any "
+                      "JDK manually to " + configDefaults.JDK_INSTALL_DIR)
+      return 1
+
+    tempFileName = "ambari.passwd"
+    passwd = ""
+    tempDir = tempfile.gettempdir()
+    #create temporary file for writing
+    tempFilePath = tempDir + os.sep + tempFileName
+    file = open(tempFilePath, 'w+')
+    os.chmod(tempFilePath, stat.S_IREAD | stat.S_IWRITE)
+    file.close()
+
+    if masterKey is None or masterKey == "":
+      masterKey = "None"
+
+    command = SECURITY_PROVIDER_GET_CMD.format(get_java_exe_path(),
+                                               get_full_ambari_classpath(), alias, tempFilePath, masterKey)
+    (retcode, stdout, stderr) = run_os_command(command)
+    print_info_msg("Return code from credential provider get passwd: " +
+                   str(retcode))
+    if retcode != 0:
+      print 'ERROR: Unable to read password from store. alias = ' + alias
+    else:
+      passwd = open(tempFilePath, 'r').read()
+      # Remove temporary file
+    os.remove(tempFilePath)
+    return passwd
+  else:
+    print_error_msg("Alias is unreadable.")
+
+def decrypt_password_for_alias(properties, alias):
+  isSecure = get_is_secure(properties)
+  if isSecure:
+    masterKey = None
+    (isPersisted, masterKeyFile) = get_is_persisted(properties)
+    if not masterKeyFile:
+      # Encryption enabled but no master key file found
+      masterKey = get_original_master_key(properties)
+
+    return read_passwd_for_alias(alias, masterKey)
+  else:
+    return alias
+
+def get_original_master_key(properties):
+  input = True
+  while(input):
+    try:
+      masterKey = get_validated_string_input('Enter current Master Key: ',
+                                             "", ".*", "", True, False)
+    except KeyboardInterrupt:
+      print 'Exiting...'
+      sys.exit(1)
+
+    # Find an alias that exists
+    alias = None
+    property = properties.get_property(JDBC_PASSWORD_PROPERTY)
+    if property and is_alias_string(property):
+      alias = JDBC_RCA_PASSWORD_ALIAS
+
+    if not alias:
+      property = properties.get_property(LDAP_MGR_PASSWORD_PROPERTY)
+      if property and is_alias_string(property):
+        alias = LDAP_MGR_PASSWORD_ALIAS
+
+    if not alias:
+      property = properties.get_property(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
+      if property and is_alias_string(property):
+        alias = SSL_TRUSTSTORE_PASSWORD_ALIAS
+
+    # Decrypt alias with master to validate it, if no master return
+    if alias and masterKey:
+      password = read_passwd_for_alias(alias, masterKey)
+      if not password:
+        print "ERROR: Master key does not match."
+        continue
+
+    input = False
+
+  return masterKey
+
+
+# Load database connection properties from conf file
+def parse_properties_file(args):
+  properties = get_ambari_properties()
+  if properties == -1:
+    print_error_msg("Error getting ambari properties")
+    return -1
+
+  args.server_version_file_path = properties[SERVER_VERSION_FILE_PATH]
+  args.persistence_type = properties[PERSISTENCE_TYPE_PROPERTY]
+  args.jdbc_url = properties[JDBC_URL_PROPERTY]
+
+  args.dbms = properties[JDBC_DATABASE_PROPERTY]
+  if not args.persistence_type:
+    args.persistence_type = "local"
+
+  if args.persistence_type == 'remote':
+    args.database_host = properties[JDBC_HOSTNAME_PROPERTY]
+    args.database_port = properties[JDBC_PORT_PROPERTY]
+
+  args.database_name = properties[JDBC_DATABASE_NAME_PROPERTY]
+  args.database_username = properties[JDBC_USER_NAME_PROPERTY]
+  args.postgres_schema = properties[JDBC_POSTGRES_SCHEMA_PROPERTY] \
+    if JDBC_POSTGRES_SCHEMA_PROPERTY in properties.propertyNames() else None
+  args.database_password_file = properties[JDBC_PASSWORD_PROPERTY]
+  if args.database_password_file:
+    if not is_alias_string(args.database_password_file):
+      args.database_password = open(properties[JDBC_PASSWORD_PROPERTY]).read()
+    else:
+      args.database_password = args.database_password_file
+  return 0
+
 
 def update_ambari_properties():
-  prev_conf_file = search_file(AMBARI_PROPERTIES_BACKUP_FILE, get_conf_dir())
+  prev_conf_file = search_file(configDefaults.AMBARI_PROPERTIES_BACKUP_FILE, get_conf_dir())
   conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
 
   # Previous config file does not exist
@@ -482,27 +785,31 @@ def write_property(key, value):
     return -1
   return 0
 
-def remove_property(key):
-  conf_file = find_properties_file()
-  properties = Properties()
-  try:
-    properties.load(open(conf_file))
-  except Exception, e:
-    print_error_msg('Could not read ambari config file "%s": %s' % (conf_file, e))
-    return -1
-  properties.removeOldProp(key)
-  try:
-    properties.store(open(conf_file, "w"))
-  except Exception, e:
-    print_error_msg('Could not write ambari config file "%s": %s' % (conf_file, e))
-    return -1
-  return 0
-
 #
 # Checks if options determine local DB configuration
 #
 def is_local_database(args):
-  return hasattr(args, 'persistence_type') and args.persistence_type == 'local'
+  try:
+    return args.persistence_type == 'local'
+  except AttributeError:
+    return False
+
+
+def update_debug_mode():
+  debug_mode = get_debug_mode()
+  # The command-line settings supersede the ones in ambari.properties
+  if not debug_mode & 1:
+    properties = get_ambari_properties()
+    if properties == -1:
+      print_error_msg("Error getting ambari properties")
+      return -1
+
+    if get_value_from_properties(properties, DEBUG_MODE_KEY, False):
+      debug_mode = debug_mode | 1
+    if get_value_from_properties(properties, SUSPEND_START_MODE_KEY, False):
+      debug_mode = debug_mode | 2
+
+    set_debug_mode(debug_mode)
 
 #
 ### JDK ###
@@ -520,7 +827,7 @@ class JDKRelease:
   dest_jcpol_file = ""
   inst_dir = ""
 
-  def __init__(self, i_name, i_desc, i_url, i_dest_file, i_jcpol_url, i_dest_jcpol_file, i_inst_dir):
+  def __init__(self, i_name, i_desc, i_url, i_dest_file, i_jcpol_url, i_dest_jcpol_file, i_inst_dir, i_reg_exp):
     if i_name is None or i_name is "":
       raise FatalException(-1, "Invalid JDK name: " + (i_desc or ""))
     self.name = i_name
@@ -542,14 +849,17 @@ class JDKRelease:
     else:
       self.dest_jcpol_file = i_dest_jcpol_file
     if i_inst_dir is None or i_inst_dir is "":
-      self.inst_dir = "C:\\" + i_desc
+      self.inst_dir = os.path.join(configDefaults.JDK_INSTALL_DIR, i_desc)
     else:
       self.inst_dir = i_inst_dir
+    if i_reg_exp is None or i_reg_exp is "":
+      raise FatalException(-1, "Invalid output parsing regular expression for JDK " + i_name)
+    self.reg_exp = i_reg_exp
 
   @classmethod
   def from_properties(cls, properties, section_name):
-    (desc, url, dest_file, jcpol_url, jcpol_file, inst_dir) = JDKRelease.__load_properties(properties, section_name)
-    cls = JDKRelease(section_name, desc, url, dest_file, jcpol_url, jcpol_file, inst_dir)
+    (desc, url, dest_file, jcpol_url, jcpol_file, inst_dir, reg_exp) = JDKRelease.__load_properties(properties, section_name)
+    cls = JDKRelease(section_name, desc, url, dest_file, jcpol_url, jcpol_file, inst_dir, reg_exp)
     return cls
 
   @staticmethod
@@ -563,6 +873,9 @@ class JDKRelease:
     if not properties.has_key(section_name + ".url"):
       raise FatalException(-1, "Invalid JDK URL in the properties section: " + section_name)
     url = properties[section_name + ".url"]      #Required
+    if not properties.has_key(section_name + ".re"):
+      raise FatalException(-1, "Invalid JDK output parsing regular expression in the properties section: " + section_name)
+    reg_exp = properties[section_name + ".re"]      #Required
     if(properties.has_key(section_name + ".dest-file")):   #Not critical
       dest_file = properties[section_name + ".dest-file"]
     else:
@@ -579,7 +892,7 @@ class JDKRelease:
       inst_dir = properties[section_name + ".home"]
     else:
       inst_dir = "C:\\" + section_name
-    return (desc, url, dest_file, jcpol_url, jcpol_file, inst_dir)
+    return (desc, url, dest_file, jcpol_url, jcpol_file, inst_dir, reg_exp)
   pass
 
 def get_ambari_jars():
@@ -617,6 +930,14 @@ def get_ambari_classpath():
   if len(share_cp) > 0:
     ambari_cp = ambari_cp + os.pathsep + share_cp
   return ambari_cp
+
+def get_full_ambari_classpath(conf_dir = None):
+  if conf_dir is None:
+    conf_dir = get_conf_dir()
+  cp = conf_dir + os.pathsep + get_ambari_classpath()
+  if cp.find(' ') != -1:
+    cp = '"' + cp + '"'
+  return cp
 
 def get_JAVA_HOME():
   properties = get_ambari_properties()
@@ -665,3 +986,35 @@ def find_jdk():
     else:
       print "JDK {0} is invalid".format(jdkPath)
   return
+
+def get_java_exe_path():
+  jdkPath = find_jdk()
+  if jdkPath:
+    java_exe = os.path.join(jdkPath, configDefaults.JAVA_EXE_SUBPATH)
+    return java_exe
+  return
+
+#
+# JDBC
+#
+
+#Check if required jdbc drivers present
+def find_jdbc_driver(args):
+  if args.dbms in JDBC_PATTERNS.keys():
+    drivers = []
+    drivers.extend(glob.glob(os.path.join(configDefaults.JAVA_SHARE_PATH, JDBC_PATTERNS[args.dbms])))
+    if drivers:
+      return drivers
+    return -1
+  return 0
+
+
+#
+# Stack upgrade
+#
+
+def get_stack_location(properties):
+  stack_location = properties[STACK_LOCATION_KEY]
+  if stack_location is None:
+    stack_location = configDefaults.STACK_LOCATION_DEFAULT
+  return stack_location

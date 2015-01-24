@@ -41,21 +41,28 @@ def get_choice_string_input(prompt, default, firstChoice, secondChoice):
   if get_silent():
     print(prompt)
     return default
-  choice = raw_input(prompt).lower()
-  if choice in firstChoice:
-    return True
-  elif choice in secondChoice:
-    return False
-  elif choice is "":  # Just enter pressed
-    return default
-  else:
-    print "input not recognized, please try again: "
-    return get_choice_string_input(prompt, default, firstChoice, secondChoice)
+
+  input = True
+  result = default
+  while input:
+    choice = raw_input(prompt).lower()
+    if choice in firstChoice:
+      result = True
+      input = False
+    elif choice in secondChoice:
+      result = False
+      input = False
+    elif choice is "":  # Just enter pressed
+      result = default
+      input = False
+    else:
+      print "input not recognized, please try again: "
+
+  return result
 
 
 def get_validated_string_input(prompt, default, pattern, description,
                                is_pass, allowEmpty=True, validatorFunction=None):
-
   input = ""
   while not input:
     if get_silent():

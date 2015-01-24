@@ -38,7 +38,8 @@ with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
     with patch.object(utils, "get_postgre_hba_dir"):
       ambari_server = __import__('ambari-server')
 
-      from ambari_server.serverConfiguration import update_ambari_properties
+      from ambari_server.serverConfiguration import update_ambari_properties, configDefaults
+
 
 class TestOSCheck(TestCase):
   @patch.object(OSCheck, "os_distribution")
@@ -203,10 +204,10 @@ class TestOSCheck(TestCase):
 
     (tf1, fn1) = tempfile.mkstemp()
     (tf2, fn2) = tempfile.mkstemp()
-    serverConfiguration.AMBARI_PROPERTIES_BACKUP_FILE = fn1
+    configDefaults.AMBARI_PROPERTIES_BACKUP_FILE = fn1
     serverConfiguration.AMBARI_PROPERTIES_FILE = fn2
 
-    with open(serverConfiguration.AMBARI_PROPERTIES_BACKUP_FILE, 'w') as f:
+    with open(configDefaults.AMBARI_PROPERTIES_BACKUP_FILE, 'w') as f:
       for line in properties:
         f.write(line)
 

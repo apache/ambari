@@ -26,18 +26,19 @@ import subprocess
 from ambari_commons.ambari_service import AmbariService
 from ambari_commons.exceptions import FatalException, NonFatalException
 from ambari_commons.logging_utils import print_info_msg, print_warning_msg, print_error_msg, \
-  get_verbose, set_verbose, get_silent, set_silent, get_debug_mode, set_debug_mode
+  get_verbose, set_verbose, get_silent, set_silent, get_debug_mode, set_debug_mode_from_options
 from ambari_commons.os_utils import remove_file, set_open_files_limit
 from ambari_commons.os_windows import SvcStatusCallback
 
 from ambari_server import utils
-from ambari_server.dbConfiguration import DBMSConfig
+from ambari_server.dbConfiguration import DBMSConfigFactory
 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
 from ambari_server.serverConfiguration import find_jdk, get_ambari_classpath, get_ambari_properties, get_conf_dir, \
   get_value_from_properties, configDefaults, DEBUG_MODE_KEY, RESOURCES_DIR_DEFAULT, RESOURCES_DIR_PROPERTY, \
-  SERVER_OUT_FILE_KEY, STACK_LOCATION_DEFAULT, STACK_LOCATION_KEY, SUSPEND_START_MODE_KEY, VERBOSE_OUTPUT_KEY
-from ambari_server.serverSetup import setup, reset, is_server_running, upgrade
-from ambari_server.serverSetup_windows import SERVICE_PASSWORD_KEY, SERVICE_USERNAME_KEY
+  SERVER_OUT_FILE_KEY, SERVICE_PASSWORD_KEY, SERVICE_USERNAME_KEY, \
+  SUSPEND_START_MODE_KEY, VERBOSE_OUTPUT_KEY, PID_NAME, get_java_exe_path
+from ambari_server.serverSetup import setup, reset, is_server_running
+from ambari_server.serverUpgrade import upgrade
 from ambari_server.setupActions import SETUP_ACTION, START_ACTION, PSTART_ACTION, STOP_ACTION, RESET_ACTION, \
   STATUS_ACTION, UPGRADE_ACTION, UPGRADE_STACK_ACTION, LDAP_SETUP_ACTION, SETUP_SECURITY_ACTION, ACTION_REQUIRE_RESTART
 from ambari_server.setupSecurity import setup_ambari_krb5_jaas, setup_https, setup_ldap, setup_master_key
@@ -73,15 +74,11 @@ SERVER_START_CMD_DEBUG = \
                        " -Xdebug -Xrunjdwp:transport=dt_socket,address=5005,"\
                        "server=y,suspend={1} -cp {0}" +\
                        " org.apache.ambari.server.controller.AmbariServer"
-SERVER_SEARCH_PATTERN = "org.apache.ambari.server.controller.AmbariServer"
 
 SERVER_INIT_TIMEOUT = 5
 SERVER_START_TIMEOUT = 10
 
-PID_NAME = "ambari-server.pid"
 EXITCODE_NAME = "ambari-server.exitcode"
-
-SERVER_VERSION_FILE_PATH = "server.version.file"
 
 # linux open-file limit
 ULIMIT_OPEN_FILES_KEY = 'ulimit.open.files'
@@ -182,16 +179,9 @@ def svcstart():
   pass
 
 def server_process_main(options, scmStatus=None):
-  # debug mode
+  # debug mode, including stop Java process at startup
   try:
-    set_debug_mode(options.debug)
-  except AttributeError:
-    pass
-
-  # stop Java process at startup?
-  try:
-    global SUSPEND_START_MODE
-    SUSPEND_START_MODE = options.suspend_start
+    set_debug_mode_from_options(options)
   except AttributeError:
     pass
 
@@ -236,10 +226,15 @@ def server_process_main(options, scmStatus=None):
   if conf_dir.find(' ') != -1:
     conf_dir = '"' + conf_dir + '"'
 
-  java_exe = jdk_path + os.sep + configDefaults.JAVA_EXE_SUBPATH
+  java_exe = get_java_exe_path()
   pidfile = os.path.join(configDefaults.PID_DIR, PID_NAME)
-  command_base = SERVER_START_CMD_DEBUG if (get_debug_mode() or SERVER_START_DEBUG) else SERVER_START_CMD
-  suspend_mode = 'y' if SUSPEND_START_MODE else 'n'
+
+  debug_mode = get_debug_mode()
+  debug_start = (debug_mode & 1) or SERVER_START_DEBUG
+  suspend_start = (debug_mode & 2) or SUSPEND_START_MODE
+
+  command_base = SERVER_START_CMD_DEBUG if debug_start else SERVER_START_CMD
+  suspend_mode = 'y' if suspend_start else 'n'
   command = command_base.format(conf_dir, suspend_mode)
   if not os.path.exists(configDefaults.PID_DIR):
     os.makedirs(configDefaults.PID_DIR, 0755)
@@ -285,7 +280,8 @@ def server_process_main(options, scmStatus=None):
 #Wait until the status is 'started' or a configured timeout elapses
 #If the timeout has been reached, bail out with exception
 def ensure_dbms_is_running(options, properties, scmStatus):
-  dbms = DBMSConfig.create(options, properties, "Ambari")
+  factory = DBMSConfigFactory()
+  dbms = factory.create(options, properties, "Ambari")
   if not dbms._is_jdbc_driver_installed(properties):
     raise FatalException(-1, "JDBC driver is not installed. Run ambari-server setup and try again.")
 
@@ -317,21 +313,11 @@ def svcstop():
 
 ### Stack upgrade ###
 
-#def upgrade_stack(args, stack_id, repo_url=None, repo_url_os=None):
-
-
 def get_resources_location(properties):
   res_location = properties[RESOURCES_DIR_PROPERTY]
   if res_location is None:
     res_location = RESOURCES_DIR_DEFAULT
   return res_location
-#  pass
-
-def get_stack_location(properties):
-  stack_location = properties[STACK_LOCATION_KEY]
-  if stack_location is None:
-    stack_location = STACK_LOCATION_DEFAULT
-  return stack_location
 #  pass
 
 
@@ -465,7 +451,6 @@ def main():
 
   if are_cmd_line_db_args_blank(options):
     options.must_set_database_options = True
-    #TODO Silent is invalid here, right?
 
   elif not are_cmd_line_db_args_valid(options):
     parser.error('All database options should be set. Please see help for the options.')

@@ -192,7 +192,7 @@ class CheckHost(Script):
         install_cmd = format("mkdir -p {java_dir} ; cd {java_dir} ; tar -xf {jdk_download_target} > /dev/null 2>&1")
         install_path = ["/bin","/usr/bin/"]
       elif jdk_name.endswith(".exe"):
-        install_cmd = "{} /s INSTALLDIR={} STATIC=1 WEB_JAVA=0 /L \\var\\log\\ambari-agent".format(
+        install_cmd = "{0} /s INSTALLDIR={1} STATIC=1 WEB_JAVA=0 /L \\var\\log\\ambari-agent".format(
           os_utils.quote_path(jdk_download_target), os_utils.quote_path(java64_home),
         )
         install_path = [java_dir]

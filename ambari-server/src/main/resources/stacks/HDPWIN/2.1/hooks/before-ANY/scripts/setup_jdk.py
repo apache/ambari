@@ -24,7 +24,7 @@ from ambari_commons.inet_utils import download_file
 from resource_management import *
 
 
-_install_cmd = '{} /s INSTALLDIR={} ADDLOCAL="ToolsFeature,SourceFeature"'
+_install_cmd = '{0} /s INSTALLDIR={1} ADDLOCAL="ToolsFeature,SourceFeature"'
 
 
 def _check_installed():
@@ -42,7 +42,7 @@ def setup_jdk():
   if not os.path.exists(params.java_home):
     os.makedirs(params.java_home)
   jdk_setup_savepath = os.path.join(params.java_home, params.jdk_name)
-  jdk_download_url = "{}/{}".format(params.jdk_location, params.jdk_name)
+  jdk_download_url = "{0}/{1}".format(params.jdk_location, params.jdk_name)
   download_file(jdk_download_url, jdk_setup_savepath)
   Execute(_install_cmd.format(jdk_setup_savepath, params.java_home))
   if not _check_installed():

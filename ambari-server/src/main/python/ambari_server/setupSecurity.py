@@ -24,22 +24,27 @@ import random
 import re
 import shutil
 import socket
-import stat
 import string
-import sys
 import tempfile
 import urllib2
+import time
 
 from ambari_commons.exceptions import NonFatalException, FatalException
 from ambari_commons.logging_utils import get_silent, print_warning_msg, print_error_msg, print_info_msg
-from ambari_commons.os_check import OSCheck, OSConst
+from ambari_commons.os_check import OSCheck
 from ambari_commons.os_utils import copy_file, is_root, is_valid_filepath, remove_file, set_file_permissions, \
   run_os_command, search_file
 from ambari_server.serverConfiguration import configDefaults, get_ambari_properties, read_ambari_user, \
-  get_value_from_properties, find_jdk, get_ambari_classpath, get_conf_dir, is_alias_string, find_properties_file, \
+  get_value_from_properties, find_jdk, get_conf_dir, is_alias_string, find_properties_file, \
   update_properties_2, \
   JDBC_USE_INTEGRATED_AUTH_PROPERTY, JDBC_PASSWORD_PROPERTY, JDBC_PASSWORD_FILENAME, \
-  JDBC_RCA_PASSWORD_FILE_PROPERTY, JDBC_RCA_PASSWORD_ALIAS, BOOTSTRAP_DIR_PROPERTY, GET_FQDN_SERVICE_URL, BLIND_PASSWORD
+  JDBC_RCA_PASSWORD_FILE_PROPERTY, JDBC_RCA_PASSWORD_ALIAS, \
+  BOOTSTRAP_DIR_PROPERTY, GET_FQDN_SERVICE_URL, BLIND_PASSWORD, get_full_ambari_classpath, LDAP_MGR_PASSWORD_ALIAS, \
+  LDAP_MGR_PASSWORD_PROPERTY, LDAP_MGR_USERNAME_PROPERTY, decrypt_password_for_alias, read_passwd_for_alias, \
+  get_is_secure, get_master_key_location, get_credential_store_location, get_is_persisted, get_original_master_key, \
+  get_java_exe_path, SECURITY_PROVIDER_KEY_CMD, SECURITY_PROVIDER_PUT_CMD, SECURITY_IS_ENCRYPTION_ENABLED, \
+  SECURITY_KERBEROS_JASS_FILENAME, SECURITY_KEY_ENV_VAR_NAME, SECURITY_MASTER_KEY_FILENAME, \
+  SSL_TRUSTSTORE_PASSWORD_ALIAS, SSL_TRUSTSTORE_PASSWORD_PROPERTY, SSL_TRUSTSTORE_PATH_PROPERTY, SSL_TRUSTSTORE_TYPE_PROPERTY
 from setupActions import SETUP_ACTION, LDAP_SETUP_ACTION
 from ambari_server.userInput import get_YN_input, get_validated_string_input, get_validated_filepath_input, \
   get_prompt_default
@@ -62,28 +67,6 @@ if OSCheck.is_windows_family():
 KEYTOOL_IMPORT_CERT_CMD = "{0}" + os.sep + "bin" + os.sep + keytool_bin + " -import -alias '{1}' -storetype '{2}' -file '{3}' -storepass '{4}' -noprompt"
 KEYTOOL_DELETE_CERT_CMD = "{0}" + os.sep + "bin" + os.sep + keytool_bin + " -delete -alias '{1}' -storepass '{2}' -noprompt"
 KEYTOOL_KEYSTORE = " -keystore '{0}'"
-
-java_bin = "java"
-if OSCheck.is_windows_family():
-  java_bin = "java.exe"
-
-SECURITY_PROVIDER_GET_CMD = "{0}" + os.sep + "bin" + os.sep + java_bin + " -cp {1}" +\
-                          os.pathsep + "{2} " +\
-                          "org.apache.ambari.server.security.encryption" +\
-                          ".CredentialProvider GET {3} {4} {5} " +\
-                          "> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
-
-SECURITY_PROVIDER_PUT_CMD = "{0}" + os.sep + "bin" + os.sep + java_bin + " -cp {1}" +\
-                          os.pathsep + "{2} " +\
-                          "org.apache.ambari.server.security.encryption" +\
-                          ".CredentialProvider PUT {3} {4} {5} " +\
-                          "> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
-
-SECURITY_PROVIDER_KEY_CMD = "{0}" + os.sep + "bin" + os.sep + java_bin + " -cp {1}" +\
-                          os.pathsep + "{2} " +\
-                          "org.apache.ambari.server.security.encryption" +\
-                          ".MasterKeyServiceImpl {3} {4} {5} " +\
-                          "> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
 
 SSL_KEY_DIR = 'security.server.keys_dir'
 SSL_API_PORT = 'client.api.ssl.port'
@@ -109,28 +92,11 @@ SRVR_TWO_WAY_SSL_PORT = "8441"
 SRVR_ONE_WAY_SSL_PORT_PROPERTY = "security.server.one_way_ssl.port"
 SRVR_ONE_WAY_SSL_PORT = "8440"
 
-SECURITY_KEYS_DIR = "security.server.keys_dir"
-SECURITY_MASTER_KEY_LOCATION = "security.master.key.location"
-SECURITY_KEY_IS_PERSISTED = "security.master.key.ispersisted"
-SECURITY_KEY_ENV_VAR_NAME = "AMBARI_SECURITY_MASTER_KEY"
-SECURITY_MASTER_KEY_FILENAME = "master"
-SECURITY_IS_ENCRYPTION_ENABLED = "security.passwords.encryption.enabled"
-SECURITY_KERBEROS_JASS_FILENAME = "krb5JAASLogin.conf"
-
 GANGLIA_HTTPS = 'ganglia.https'
 NAGIOS_HTTPS = 'nagios.https'
 
-SSL_TRUSTSTORE_PASSWORD_ALIAS = "ambari.ssl.trustStore.password"
-SSL_TRUSTSTORE_PATH_PROPERTY = "ssl.trustStore.path"
-SSL_TRUSTSTORE_PASSWORD_PROPERTY = "ssl.trustStore.password"
-SSL_TRUSTSTORE_TYPE_PROPERTY = "ssl.trustStore.type"
-
 DEFAULT_PASSWORD = "bigdata"
 PASSWORD_PATTERN = "^[a-zA-Z0-9_-]*$"
-
-LDAP_MGR_PASSWORD_ALIAS = "ambari.ldap.manager.password"
-LDAP_MGR_PASSWORD_PROPERTY = "authentication.ldap.managerPassword"
-LDAP_MGR_USERNAME_PROPERTY = "authentication.ldap.managerDn"
 
 REGEX_IP_ADDRESS = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
 REGEX_HOSTNAME = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
@@ -420,7 +386,7 @@ def get_truststore_password(properties):
   isSecure = get_is_secure(properties)
   if truststore_password:
     if isSecure:
-      truststore_password = decrypt_password_for_alias(SSL_TRUSTSTORE_PASSWORD_ALIAS)
+      truststore_password = decrypt_password_for_alias(properties, SSL_TRUSTSTORE_PASSWORD_ALIAS)
   else:
     truststore_password = read_password("", ".*", "Password for TrustStore:", "Invalid characters in password")
     if truststore_password:
@@ -429,40 +395,40 @@ def get_truststore_password(properties):
 
   return truststore_password
 
+def get_pass_file_path(conf_file, filename):
+  return os.path.join(os.path.dirname(conf_file), filename)
+
 def read_password(passwordDefault=DEFAULT_PASSWORD,
                   passwordPattern=PASSWORD_PATTERN,
                   passwordPrompt=None,
                   passwordDescr=None):
-  # setup password
-  if passwordPrompt is None:
-    passwordPrompt = 'Password (' + passwordDefault + '): '
 
-  if passwordDescr is None:
-    passwordDescr = "Invalid characters in password. Use only alphanumeric or " \
-                    "_ or - characters"
+  input = True
+  while(input):
+    # setup password
+    if passwordPrompt is None:
+      passwordPrompt = 'Password (' + passwordDefault + '): '
 
-  password = get_validated_string_input(passwordPrompt, passwordDefault,
-                                        passwordPattern, passwordDescr, True)
+    if passwordDescr is None:
+      passwordDescr = "Invalid characters in password. Use only alphanumeric or " \
+                      "_ or - characters"
 
-  if not password:
-    print 'Password cannot be blank.'
-    return read_password(passwordDefault, passwordPattern, passwordPrompt,
-                   passwordDescr)
+    password = get_validated_string_input(passwordPrompt, passwordDefault,
+                                          passwordPattern, passwordDescr, True)
+    if not password:
+      print 'Password cannot be blank.'
+      continue
 
-  if password != passwordDefault:
-    password1 = get_validated_string_input("Re-enter password: ",
-                                           passwordDefault, passwordPattern, passwordDescr, True)
-    if password != password1:
-      print "Passwords do not match"
-      return read_password(passwordDefault, passwordPattern, passwordPrompt,
-                      passwordDescr)
+    if password != passwordDefault:
+      password1 = get_validated_string_input("Re-enter password: ",
+                                             passwordDefault, passwordPattern, passwordDescr, True)
+      if password != password1:
+        print "Passwords do not match"
+        continue
+
+    input = False
 
   return password
-
-def get_is_secure(properties):
-  isSecure = properties.get_property(SECURITY_IS_ENCRYPTION_ENABLED)
-  isSecure = True if isSecure and isSecure.lower() == 'true' else False
-  return isSecure
 
 def encrypt_password(alias, password):
   properties = get_ambari_properties()
@@ -494,59 +460,6 @@ def get_alias_string(alias):
 def get_alias_from_alias_string(aliasStr):
   return aliasStr[8:-1]
 
-def read_passwd_for_alias(alias, masterKey=""):
-  if alias:
-    jdk_path = find_jdk()
-    if jdk_path is None:
-      print_error_msg("No JDK found, please run the \"setup\" "
-                      "command to install a JDK automatically or install any "
-                      "JDK manually to " + configDefaults.JDK_INSTALL_DIR)
-      return 1
-
-    tempFileName = "ambari.passwd"
-    passwd = ""
-    tempDir = tempfile.gettempdir()
-    #create temporary file for writing
-    tempFilePath = tempDir + os.sep + tempFileName
-    file = open(tempFilePath, 'w+')
-    os.chmod(tempFilePath, stat.S_IREAD | stat.S_IWRITE)
-    file.close()
-
-    if masterKey is None or masterKey == "":
-      masterKey = "None"
-
-    command = SECURITY_PROVIDER_GET_CMD.format(jdk_path,
-      get_conf_dir(), get_ambari_classpath(), alias, tempFilePath, masterKey)
-    (retcode, stdout, stderr) = run_os_command(command)
-    print_info_msg("Return code from credential provider get passwd: " +
-                   str(retcode))
-    if retcode != 0:
-      print 'ERROR: Unable to read password from store. alias = ' + alias
-    else:
-      passwd = open(tempFilePath, 'r').read()
-      # Remove temporary file
-    os.remove(tempFilePath)
-    return passwd
-  else:
-    print_error_msg("Alias is unreadable.")
-
-def decrypt_password_for_alias(alias):
-  properties = get_ambari_properties()
-  if properties == -1:
-    raise FatalException(1, None)
-
-  isSecure = get_is_secure(properties)
-  (isPersisted, masterKeyFile) = get_is_persisted(properties)
-  if isSecure:
-    masterKey = None
-    if not masterKeyFile:
-      # Encryption enabled but no master key file found
-      masterKey = get_original_master_key(properties)
-
-    return read_passwd_for_alias(alias, masterKey)
-  else:
-    return alias
-
 def save_passwd_for_alias(alias, passwd, masterKey=""):
   if alias and passwd:
     jdk_path = find_jdk()
@@ -559,69 +472,14 @@ def save_passwd_for_alias(alias, passwd, masterKey=""):
     if masterKey is None or masterKey == "":
       masterKey = "None"
 
-    command = SECURITY_PROVIDER_PUT_CMD.format(jdk_path, get_conf_dir(),
-      get_ambari_classpath(), alias, passwd, masterKey)
+    command = SECURITY_PROVIDER_PUT_CMD.format(get_java_exe_path(),
+      get_full_ambari_classpath(), alias, passwd, masterKey)
     (retcode, stdout, stderr) = run_os_command(command)
     print_info_msg("Return code from credential provider save passwd: " +
                    str(retcode))
     return retcode
   else:
     print_error_msg("Alias or password is unreadable.")
-
-def get_is_persisted(properties):
-  keyLocation = get_master_key_location(properties)
-  masterKeyFile = search_file(SECURITY_MASTER_KEY_FILENAME, keyLocation)
-  isPersisted = True if masterKeyFile else False
-
-  return (isPersisted, masterKeyFile)
-
-def get_credential_store_location(properties):
-  store_loc = properties[SECURITY_KEYS_DIR]
-  if store_loc is None or store_loc == "":
-    store_loc = "/var/lib/ambari-server/keys/credentials.jceks"
-  else:
-    store_loc += os.sep + "credentials.jceks"
-  return store_loc
-
-def get_master_key_location(properties):
-  keyLocation = properties[SECURITY_MASTER_KEY_LOCATION]
-  if keyLocation is None or keyLocation == "":
-    keyLocation = properties[SECURITY_KEYS_DIR]
-  return keyLocation
-
-def get_original_master_key(properties):
-  try:
-    masterKey = get_validated_string_input('Enter current Master Key: ',
-                                             "", ".*", "", True, False)
-  except KeyboardInterrupt:
-    print 'Exiting...'
-    sys.exit(1)
-
-  # Find an alias that exists
-  alias = None
-  property = properties.get_property(JDBC_PASSWORD_PROPERTY)
-  if property and is_alias_string(property):
-    alias = JDBC_RCA_PASSWORD_ALIAS
-
-  alias = None
-  if not alias:
-    property = properties.get_property(LDAP_MGR_PASSWORD_PROPERTY)
-    if property and is_alias_string(property):
-      alias = LDAP_MGR_PASSWORD_ALIAS
-
-  if not alias:
-    property = properties.get_property(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
-    if property and is_alias_string(property):
-      alias = SSL_TRUSTSTORE_PASSWORD_ALIAS
-
-  # Decrypt alias with master to validate it, if no master return
-  if alias and masterKey:
-    password = read_passwd_for_alias(alias, masterKey)
-    if not password:
-      print "ERROR: Master key does not match."
-      return get_original_master_key(properties)
-
-  return masterKey
 
 def read_master_key(isReset=False):
   passwordPattern = ".*"
@@ -632,19 +490,23 @@ def read_master_key(isReset=False):
   if isReset:
     passwordPrompt = "Enter new Master Key: "
 
-  masterKey = get_validated_string_input(passwordPrompt, passwordDefault,
-                            passwordPattern, passwordDescr, True, True)
+  input = True
+  while(input):
+    masterKey = get_validated_string_input(passwordPrompt, passwordDefault,
+                              passwordPattern, passwordDescr, True, True)
 
-  if not masterKey:
-    print "Master Key cannot be empty!"
-    return read_master_key()
+    if not masterKey:
+      print "Master Key cannot be empty!"
+      continue
 
-  masterKey2 = get_validated_string_input("Re-enter master key: ",
-      passwordDefault, passwordPattern, passwordDescr, True, True)
+    masterKey2 = get_validated_string_input("Re-enter master key: ",
+        passwordDefault, passwordPattern, passwordDescr, True, True)
 
-  if masterKey != masterKey2:
-    print "Master key did not match!"
-    return read_master_key()
+    if masterKey != masterKey2:
+      print "Master key did not match!"
+      continue
+
+    input = False
 
   return masterKey
 
@@ -656,8 +518,8 @@ def save_master_key(master_key, key_location, persist=True):
                       "command to install a JDK automatically or install any "
                       "JDK manually to " + configDefaults.JDK_INSTALL_DIR)
       return 1
-    command = SECURITY_PROVIDER_KEY_CMD.format(jdk_path,
-      get_ambari_classpath(), get_conf_dir(), master_key, key_location, persist)
+    command = SECURITY_PROVIDER_KEY_CMD.format(get_java_exe_path(),
+      get_full_ambari_classpath(), master_key, key_location, persist)
     (retcode, stdout, stderr) = run_os_command(command)
     print_info_msg("Return code from credential provider save KEY: " +
                    str(retcode))
@@ -666,8 +528,7 @@ def save_master_key(master_key, key_location, persist=True):
 
 def store_password_file(password, filename):
   conf_file = find_properties_file()
-  passFilePath = os.path.join(os.path.dirname(conf_file),
-    filename)
+  passFilePath = get_pass_file_path(conf_file, filename)
 
   with open(passFilePath, 'w+') as passFile:
     passFile.write(password)
@@ -694,10 +555,25 @@ def remove_password_file(filename):
 
 def adjust_directory_permissions(ambari_user):
   properties = get_ambari_properties()
-  bootstrap_dir = get_value_from_properties(properties, BOOTSTRAP_DIR_PROPERTY)
+
+  bootstrap_dir = os.path.abspath(get_value_from_properties(properties, BOOTSTRAP_DIR_PROPERTY))
   print_info_msg("Cleaning bootstrap directory ({0}) contents...".format(bootstrap_dir))
+
   shutil.rmtree(bootstrap_dir, True) #Ignore the non-existent dir error
-  os.makedirs(bootstrap_dir)
+  #Protect against directories lingering around
+  del_attempts = 0
+  while os.path.exists(bootstrap_dir) and del_attempts < 100:
+    time.sleep(50)
+    del_attempts += 1
+  if not os.path.exists(bootstrap_dir):
+    try:
+      os.makedirs(bootstrap_dir)
+    except Exception, ex:
+      print_warning_msg("Failed recreating the bootstrap directory: {0}".format(str(ex)))
+      pass
+  else:
+    print_warning_msg("Bootstrap directory lingering around after 5s. Unable to complete the cleanup.")
+
   # Add master key and credential store if exists
   keyLocation = get_master_key_location(properties)
   masterKeyFile = search_file(SECURITY_MASTER_KEY_FILENAME, keyLocation)
@@ -710,6 +586,7 @@ def adjust_directory_permissions(ambari_user):
   if trust_store_location:
     configDefaults.NR_ADJUST_OWNERSHIP_LIST.append((trust_store_location, configDefaults.TRUST_STORE_LOCATION_PERMISSIONS, "{0}", "{0}", False))
   print "Adjusting ambari-server permissions and ownership..."
+
   for pack in configDefaults.NR_ADJUST_OWNERSHIP_LIST:
     file = pack[0]
     mod = pack[1]
