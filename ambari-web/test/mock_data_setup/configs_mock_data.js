@@ -495,6 +495,48 @@ module.exports = {
           "stack_version" : "2.2",
           "type" : "cluster-env.xml"
         }
+      },
+      {
+        "StackLevelConfigurations" : {
+          "final" : "false",
+          "property_description" : "",
+          "property_name" : "smokeuser",
+          "property_type" : [
+            "USER"
+          ],
+          "property_value" : "ambari-qa",
+          "stack_name" : "HDP",
+          "stack_version" : "2.2",
+          "type" : "cluster-env.xml"
+        }
+      },
+      {
+        "StackLevelConfigurations" : {
+          "final" : "false",
+          "property_description" : "",
+          "property_name" : "zk_user",
+          "property_type" : [
+            "USER"
+          ],
+          "property_value" : "zookeeper",
+          "stack_name" : "HDP",
+          "stack_version" : "2.2",
+          "type" : "cluster-env.xml"
+        }
+      },
+      {
+        "StackLevelConfigurations" : {
+          "final" : "false",
+          "property_description" : "",
+          "property_name" : "mapred_user",
+          "property_type" : [
+            "USER"
+          ],
+          "property_value" : "mapreduce",
+          "stack_name" : "HDP",
+          "stack_version" : "2.2",
+          "type" : "cluster-env.xml"
+        }
       }
     ]
   }

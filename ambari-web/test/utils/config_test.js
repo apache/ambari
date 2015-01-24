@@ -668,6 +668,37 @@ describe('App.config', function () {
           {
             key: 'index',
             e: 30
+          },
+          {
+            key: 'displayName',
+            e: 'Hadoop Group'
+          }
+        ]
+      },
+      {
+        name: 'zk_user',
+        cases: [
+          {
+            key: 'displayName',
+            e: 'ZooKeeper User'
+          }
+        ]
+      },
+      {
+        name: 'mapred_user',
+        cases: [
+          {
+            key: 'displayName',
+            e: 'MapReduce User'
+          }
+        ]
+      },
+      {
+        name: 'smokeuser',
+        cases: [
+          {
+            key: 'displayName',
+            e: 'Smoke Test User'
           }
         ]
       }

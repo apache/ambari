@@ -1147,12 +1147,13 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
    */
   activateSpecialConfigs: function () {
     if (this.get('addMiscTabToPage')) {
+      var serviceToShow = this.get('selectedServiceNames').concat('MISC');
       var miscConfigs = this.get('stepConfigs').findProperty('serviceName', 'MISC').configs;
       if (this.get('wizardController.name') == "addServiceController") {
         miscConfigs.findProperty('name', 'smokeuser').set('value', this.get('content.smokeuser')).set('isEditable', false);
         miscConfigs.findProperty('name', 'user_group').set('value', this.get('content.group')).set('isEditable', false);
       }
-      App.config.miscConfigVisibleProperty(miscConfigs, this.get('selectedServiceNames'));
+      App.config.miscConfigVisibleProperty(miscConfigs, serviceToShow);
     }
     var wizardController = this.get('wizardController');
     if (wizardController.get('name') === "kerberosWizardController")  {

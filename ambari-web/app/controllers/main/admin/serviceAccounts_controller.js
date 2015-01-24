@@ -79,7 +79,7 @@ App.MainAdminServiceAccountsController = App.MainServiceInfoConfigsController.ex
     var configSet = App.config.mergePreDefinedWithLoaded(serverConfigs, advancedConfigs, this.get('serviceConfigTags'), this.get('selectedService'));
     var miscConfigs = configSet.configs.filterProperty('serviceName', this.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true).rejectProperty('displayType', 'password').rejectProperty('displayType', 'checkbox');
 
-    miscConfigs = App.config.miscConfigVisibleProperty(miscConfigs, App.Service.find().mapProperty('serviceName'));
+    miscConfigs = App.config.miscConfigVisibleProperty(miscConfigs, App.Service.find().mapProperty('serviceName').concat('MISC'));
 
     this.set('users', miscConfigs.filterProperty('isVisible'));
     this.set('dataIsLoaded', true);

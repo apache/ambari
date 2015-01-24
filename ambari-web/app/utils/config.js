@@ -968,7 +968,12 @@ App.config = Em.Object.create({
   advancedConfigIdentityData: function(config) {
     var propertyData = {};
     var proxyUserGroupServices = ['HIVE', 'OOZIE', 'FALCON'];
-
+    var nameToDisplayNameMap = {
+      'smokeuser': 'Smoke Test User',
+      'user_group': 'Hadoop Group',
+      'mapred_user': 'MapReduce User',
+      'zk_user': 'ZooKeeper User'
+    };
     if (config.property_type.contains('USER') || config.property_type.contains('GROUP')) {
       propertyData.id = "puppet var";
       propertyData.category = 'Users and Groups';
@@ -976,7 +981,7 @@ App.config = Em.Object.create({
       propertyData.serviceName = 'MISC';
       propertyData.isOverridable = false;
       propertyData.isReconfigurable = false;
-      propertyData.displayName = App.format.normalizeName(config.property_name);
+      propertyData.displayName = nameToDisplayNameMap[config.property_name] || App.format.normalizeName(config.property_name);
       propertyData.displayType = 'user';
       if (config.service_name) {
         var propertyIndex = config.service_name == 'MISC' ? 30 : App.StackService.find().mapProperty('serviceName').indexOf(config.service_name);
