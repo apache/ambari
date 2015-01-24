@@ -602,10 +602,10 @@ describe('App.AddHostController', function () {
       controller.getClientsToInstall.restore();
     });
     it("", function () {
-      controller.set('content.services', [Em.Object.create({'isSelected': true})]);
+      controller.set('content.services', [Em.Object.create({'isSelected': true, 'isInstallable': true})]);
       controller.saveClients();
       expect(controller.getClientsToInstall.calledWith(
-        [Em.Object.create({'isSelected': true})],
+        [Em.Object.create({'isSelected': true, 'isInstallable': true})],
         'StackServiceComponent'
       )).to.be.true;
       expect(controller.setDBProperty.calledWith('clientInfo', ['client'])).to.be.true;
