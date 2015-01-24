@@ -261,6 +261,16 @@ module.exports = Em.Route.extend({
 
       exit: function (router) {
         router.set('mainAlertInstancesController.isUpdating', false);
+      },
+
+      unroutePath: function (router, context) {
+        var controller = router.get('mainAlertDefinitionDetailsController');
+        if (!controller.get('forceTransition') && controller.get('isEditing')) {
+          controller.showSavePopup(context);
+        } else {
+          controller.set('forceTransition', false);
+          this._super(router, context);
+        }
       }
     }),
 

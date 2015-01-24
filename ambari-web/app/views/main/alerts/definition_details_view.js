@@ -43,6 +43,7 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
   }.property('controller.alerts.@each'),
 
   willInsertElement: function () {
+    this.get('controller').clearStep();
     var self = this,
       updater = App.router.get('updateController');
     if (self.get('controller.content.isLoaded')) {
@@ -56,7 +57,7 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
             self.set('isLoaded', true);
             // App.AlertDefinition doesn't represents real models
             // Real model (see AlertDefinition types) should be used
-            self.set('controller.content', App.AlertDefinition.getAllDefinitions().findProperty('id', parseInt(self.get('controller.content.id'))));
+            self.set('controller.content', App.AlertDefinition.find().findProperty('id', parseInt(self.get('controller.content.id'))));
             self.get('controller').loadAlertInstances();
           });
         });

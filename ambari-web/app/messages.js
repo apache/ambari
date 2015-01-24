@@ -915,6 +915,7 @@ Em.I18n.translations = {
   'alerts.table.state.disabled.confirm.btn': 'Confirm Enable',
   'alerts.filters.filteredAlertsInfo': '{0} of {1} definitions showing',
   'alerts.definition.name': 'Alert Definition Name',
+  'alerts.saveChanges': 'You have unsaved changes',
 
   'alerts.definition.details.enable': 'Enable',
   'alerts.definition.details.disable': 'Disable',

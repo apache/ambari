@@ -25,7 +25,6 @@ describe('App.MainAlertDefinitionDetailsController', function () {
   beforeEach(function () {
     controller = App.MainAlertDefinitionDetailsController.create({
       content: Em.Object.create({
-        description: 'description',
         label: 'label'
       })
     });
@@ -36,15 +35,6 @@ describe('App.MainAlertDefinitionDetailsController', function () {
     it('should set editing.label.isError to true', function () {
       controller.set('editing.label.value', ' ');
       expect(controller.get('editing.label.isError')).to.be.true;
-    });
-
-  });
-
-  describe('#descriptionValidation()', function () {
-
-    it('should set editing.description.isError to true', function () {
-      controller.set('editing.description.value', ' ');
-      expect(controller.get('editing.description.isError')).to.be.true;
     });
 
   });

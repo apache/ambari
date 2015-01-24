@@ -25,7 +25,7 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
         .filterProperty('definitionId', this.get('content.id'));
   }.property('App.router.mainAlertInstancesController.isLoaded', 'App.router.mainAlertInstancesController.reload'),
 
-  // stores object with editing form data (label, description, thresholds)
+  // stores object with editing form data (label)
   editing: Em.Object.create({
     label: Em.Object.create({
       name: 'label',
@@ -34,14 +34,6 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
       originalValue: '',
       isError: false,
       bindingValue: 'content.label'
-    }),
-    description: Em.Object.create({
-      name: 'description',
-      isEditing: false,
-      value: '',
-      originalValue: '',
-      isError: false,
-      bindingValue: 'content.description'
     })
   }),
 
@@ -50,6 +42,12 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
    * @type {Object}
    */
   lastDayAlertsCount: null,
+
+  /**
+   * Define if let user leave the page
+   * @type {Boolean}
+   */
+  forceTransition: false,
 
   /**
    * List of all group names related to alert definition
@@ -68,12 +66,14 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
   }.observes('editing.label.value'),
 
   /**
-   * Validation function to define if description field populated correctly
-   * @method descriptionValidation
+   * Set init values for variables
    */
-  descriptionValidation: function () {
-    this.set('editing.description.isError', !this.get('editing.description.value').trim());
-  }.observes('editing.description.value'),
+  clearStep: function () {
+    var editing = this.get('editing');
+    Em.keys(editing).forEach(function (key) {
+      editing.get(key).set('isEditing', false);
+    });
+  },
 
   /**
    * Load alert instances for current alertDefinition
@@ -144,7 +144,7 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
   },
 
   /**
-   * Save button handler, could save label/description/thresholds of alert definition
+   * Save button handler, could save label of alert definition
    * @param {object} event
    * @returns {$.ajax}
    * @method saveEdit
@@ -166,6 +166,22 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
         data: data
       }
     });
+  },
+
+  /**
+   * Onclick handler for save button on Save popup
+   * Save changes of label and configs
+   */
+  saveLabelAndConfigs: function () {
+    var configsController = App.router.get('mainAlertDefinitionConfigsController');
+    if (configsController.get('canEdit')) {
+      configsController.saveConfigs();
+    }
+    if (this.get('editing.label.isEditing')) {
+      this.saveEdit({
+        context: this.get('editing.label')
+      });
+    }
   },
 
   /**
@@ -267,5 +283,48 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
       App.router.get('mainHostDetailsController').set('referer', App.router.location.lastSetURL);
       App.router.transitionTo('main.hosts.hostDetails.alerts', event.context);
     }
+  },
+
+  /**
+   * Define if label or configs are in edit mode
+   * @type {Boolean}
+   */
+  isEditing: function () {
+    return this.get('editing.label.isEditing') || App.router.get('mainAlertDefinitionConfigsController.canEdit');
+  }.property('editing.label.isEditing', 'App.router.mainAlertDefinitionConfigsController.canEdit'),
+
+  /**
+   * If some configs or label are changed and user navigates away, show this popup with propose to save changes
+   * @param {String} path
+   * @method showSavePopup
+   */
+  showSavePopup: function (path) {
+    var self = this;
+    return App.ModalPopup.show({
+      header: Em.I18n.t('common.warning'),
+      bodyClass: Em.View.extend({
+        template: Ember.Handlebars.compile('{{t alerts.saveChanges}}')
+      }),
+      primary: Em.I18n.t('common.save'),
+      secondary: Em.I18n.t('common.discard'),
+      third: Em.I18n.t('common.cancel'),
+      disablePrimary: function () {
+        return App.router.get('mainAlertDefinitionDetailsController.editing.label.isError') || App.router.get('mainAlertDefinitionConfigsController.hasErrors');
+      }.property('App.router.mainAlertDefinitionDetailsController.editing.label.isError', 'App.router.mainAlertDefinitionConfigsController.hasErrors'),
+      onPrimary: function () {
+        self.saveLabelAndConfigs();
+        self.set('forceTransition', true);
+        App.router.route(path);
+        this.hide();
+      },
+      onSecondary: function () {
+        self.set('forceTransition', true);
+        App.router.route(path);
+        this.hide();
+      },
+      onThird: function () {
+        this.hide();
+      }
+    });
   }
 });
