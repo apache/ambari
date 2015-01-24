@@ -705,14 +705,25 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
           this.setSecureConfigs(serviceConfigObj, serviceName);
         }
       }, this);
-      // Remove SNameNode if HA is enabled
+      // if HA is enabled -> Remove SNameNode, hbase.rootdir should use Name Service ID
       if (App.get('isHaEnabled')) {
-        var c = serviceConfigs.findProperty('serviceName', 'HDFS').configs;
-        var removedConfigs = c.filterProperty('category', 'SECONDARY_NAMENODE');
+        var c = serviceConfigs.findProperty('serviceName', 'HDFS').configs,
+          nameServiceId = c.findProperty('name', 'dfs.nameservices'),
+          removedConfigs = c.filterProperty('category', 'SECONDARY_NAMENODE');
         removedConfigs.map(function (config) {
           c = c.without(config);
         });
         serviceConfigs.findProperty('serviceName', 'HDFS').configs = c;
+
+        if(this.get('selectedServiceNames').contains('HBASE') && nameServiceId){
+          var hRootDir = serviceConfigs.findProperty('serviceName', 'HBASE').configs.findProperty('name','hbase.rootdir'),
+            valueToChange = hRootDir.get('value').replace(/\/\/.*:/i, '//' + nameServiceId.get('value') + ':');
+
+          hRootDir.setProperties({
+            'value':  valueToChange,
+            'defaultValue' : valueToChange
+          });
+        }
       }
     }
 
