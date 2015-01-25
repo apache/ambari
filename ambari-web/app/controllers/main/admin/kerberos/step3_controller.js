@@ -24,6 +24,11 @@ App.KerberosWizardStep3Controller = App.KerberosProgressPageController.extend({
 
   commands: ['installKerberos', 'testKerberos'],
 
+  loadStep: function () {
+    this._super();
+    this.enableDisablePreviousSteps();
+  },
+
   installKerberos: function() {
     var self = this;
     this.getKerberosClientState().done(function(data) {
@@ -71,6 +76,18 @@ App.KerberosWizardStep3Controller = App.KerberosProgressPageController.extend({
         'actionName': this.serviceName + '_SERVICE_CHECK'
       }
     });
-  }
+  },
+
+  /**
+   * Enable or disable previous steps according to tasks statuses
+   */
+  enableDisablePreviousSteps: function () {
+    var wizardController = App.router.get(this.get('content.controllerName'));
+    if (this.get('tasks').someProperty('status', 'FAILED')) {
+      wizardController.setStepsEnable();
+    } else {
+      wizardController.setLowerStepsDisable(3);
+    }
+  }.observes('tasks.@each.status')
 });
 
