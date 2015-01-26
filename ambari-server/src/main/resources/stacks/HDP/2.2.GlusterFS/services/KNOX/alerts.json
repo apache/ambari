@@ -4,7 +4,7 @@
     "KNOX_GATEWAY": [
       {
         "name": "knox_gateway_process",
-        "label": "Know Gateway Process",
+        "label": "Knox Gateway Process",
         "interval": 1,
         "scope": "HOST",
         "source": {

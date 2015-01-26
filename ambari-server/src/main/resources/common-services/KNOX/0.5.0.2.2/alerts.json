@@ -4,7 +4,7 @@
     "KNOX_GATEWAY": [
       {
         "name": "knox_gateway_process",
-        "label": "Know Gateway Process",
+        "label": "Knox Gateway Process",
         "description": "This host-level alert is triggered if the Knox Gateway cannot be determined to be up.",
         "interval": 1,
         "scope": "HOST",
