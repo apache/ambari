@@ -796,3 +796,38 @@ class TestHDP22StackAdvisor(TestCase):
 
     res = self.stackAdvisor.validateHDFSConfigurationsEnv(properties, recommendedDefaults, configurations, '', '')
     self.assertEquals(res, res_expected)
+
+  def test_validateMR2XmxOptsEnv(self):
+
+    recommendedDefaults = {'mapreduce.map.java.opts': '-Xmx500m',
+                           'mapreduce.reduce.java.opts': '-Xmx600m',
+                           'mapreduce.task.io.sort.mb': '100',
+                           'mapreduce.map.memory.mb': '200',
+                           'mapreduce.reduce.memory.mb': '300',
+                           'yarn.app.mapreduce.am.resource.mb': '400',
+                           'yarn.app.mapreduce.am.command-opts': '-Xmx546m -Dhdp.version=${hdp.version}'}
+    properties = {'mapreduce.map.java.opts': '-Xmxm',
+                  'mapreduce.reduce.java.opts': '-Xmx0m',
+                  'mapreduce.task.io.sort.mb': '110',
+                  'mapreduce.map.memory.mb': '210',
+                  'mapreduce.reduce.memory.mb': '310',
+                  'yarn.app.mapreduce.am.resource.mb': '410',
+                  'yarn.app.mapreduce.am.command-opts': '-Xmx545m -Dhdp.version=${hdp.version}'}
+    res_expected = [{'config-type': 'mapred-site',
+                     'message': 'Invalid value format',
+                     'type': 'configuration',
+                     'config-name': 'mapreduce.map.java.opts',
+                     'level': 'ERROR'},
+                    {'config-type': 'mapred-site',
+                     'message': 'Value is less than the recommended default of -Xmx600m',
+                     'type': 'configuration',
+                     'config-name': 'mapreduce.reduce.java.opts',
+                     'level': 'WARN'},
+                    {'config-type': 'mapred-site',
+                     'message': 'Value is less than the recommended default of -Xmx546m',
+                     'type': 'configuration',
+                     'config-name': 'yarn.app.mapreduce.am.command-opts',
+                     'level': 'WARN'}]
+
+    res = self.stackAdvisor.validateMapReduce2Configurations(properties, recommendedDefaults, {}, '', '')
+    self.assertEquals(res, res_expected)
