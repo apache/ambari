@@ -298,7 +298,13 @@ class ActionScheduler implements Runnable {
         //Schedule what we have so far
 
         for (ExecutionCommand cmd : commandsToSchedule) {
-            processHostRole(stage, cmd, commandsToStart, commandsToUpdate);
+
+          // Hack - Remove passwords from configs
+          if (cmd.getRole().equals(Role.HIVE_CLIENT.toString()) &&
+                  cmd.getConfigurations().containsKey(Configuration.HIVE_CONFIG_TAG)) {
+            cmd.getConfigurations().get(Configuration.HIVE_CONFIG_TAG).remove(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY);
+          }
+          processHostRole(stage, cmd, commandsToStart, commandsToUpdate);
         }
 
         LOG.debug("==> Commands to start: {}", commandsToStart.size());

@@ -891,10 +891,18 @@ public class TestActionScheduler {
     when(scomp.getServiceComponentHosts()).thenReturn(hosts);
 
     List<Stage> stages = new ArrayList<Stage>();
-    stages.add(
-            getStageWithSingleTask(
-                    hostname1, "cluster1", Role.DATANODE,
-                    RoleCommand.START, Service.Type.HDFS, 1, 1, 1));
+    Stage stage = getStageWithSingleTask(
+            hostname1, "cluster1", Role.HIVE_CLIENT,
+            RoleCommand.INSTALL, Service.Type.HIVE, 1, 1, 1);
+    Map<String, String> hiveSite = new TreeMap<String, String>();
+    hiveSite.put("javax.jdo.option.ConnectionPassword", "password");
+    hiveSite.put("hive.server2.thrift.port", "10000");
+    Map<String, Map<String, String>> configurations =
+            new TreeMap<String, Map<String, String>>();
+    configurations.put("hive-site", hiveSite);
+    stage.getExecutionCommands(hostname1).get(0).getExecutionCommand().setConfigurations(configurations);
+    stages.add(stage);
+
     stages.add( // Stage with the same hostname, should not be scheduled
         getStageWithSingleTask(
             hostname1, "cluster1", Role.GANGLIA_MONITOR,
@@ -902,8 +910,8 @@ public class TestActionScheduler {
 
     stages.add(
         getStageWithSingleTask(
-            hostname2, "cluster1", Role.DATANODE,
-            RoleCommand.START, Service.Type.HDFS, 3, 3, 3));
+            hostname2, "cluster1", Role.HIVE_CLIENT,
+            RoleCommand.INSTALL, Service.Type.HIVE, 3, 3, 3));
 
     stages.add(
         getStageWithSingleTask(
@@ -937,11 +945,13 @@ public class TestActionScheduler {
 
     scheduler.doWork();
 
-    Assert.assertEquals(HostRoleStatus.QUEUED, stages.get(0).getHostRoleStatus(hostname1, "DATANODE"));
+    Assert.assertEquals(HostRoleStatus.QUEUED, stages.get(0).getHostRoleStatus(hostname1, "HIVE_CLIENT"));
     Assert.assertEquals(HostRoleStatus.PENDING, stages.get(1).getHostRoleStatus(hostname1, "GANGLIA_MONITOR"));
-    Assert.assertEquals(HostRoleStatus.PENDING, stages.get(2).getHostRoleStatus(hostname2, "DATANODE"));
+    Assert.assertEquals(HostRoleStatus.PENDING, stages.get(2).getHostRoleStatus(hostname2, "HIVE_CLIENT"));
     Assert.assertEquals(HostRoleStatus.PENDING, stages.get(3).getHostRoleStatus(hostname3, "DATANODE"));
     Assert.assertEquals(HostRoleStatus.PENDING, stages.get(4).getHostRoleStatus(hostname4, "GANGLIA_MONITOR"));
+    Assert.assertFalse(stages.get(0).getExecutionCommands(hostname1).get(0).getExecutionCommand().
+            getConfigurations().containsKey("javax.jdo.option.ConnectionPassword"));
   }
   /**
    * Verifies that ActionScheduler allows to execute background tasks in parallel
