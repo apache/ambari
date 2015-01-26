@@ -1310,6 +1310,8 @@ Em.I18n.translations = {
   'admin.stackVersions.filter.upgradeReady': "Upgrade Ready ({0})",
   'admin.stackVersions.filter.installed': "Installed ({0})",
   'admin.stackVersions.filter.current': "Current ({0})",
+  'admin.stackVersions.filter.upgrading': "Upgrade In Process ({0})",
+  'admin.stackVersions.filter.upgraded': "Ready to Finalize ({0})",
 
   'admin.stackVersions.editRepositories.info': 'Provide Base URLs for the Operating Systems you are configuring. Uncheck all other Operating Systems.',
   'admin.stackVersions.editRepositories.validation.warning': 'Some of the repositories failed validation. Make changes to the base url or skip validation if you are sure that urls are correct',
@@ -1990,7 +1992,7 @@ Em.I18n.translations = {
   'hosts.host.stackVersions.status.install_failed': 'Install Failed',
   'hosts.host.stackVersions.status.installing': 'Installing',
   'hosts.host.stackVersions.status.current': 'Current',
-  'hosts.host.stackVersions.status.out_of_sync': 'Out of sync',
+  'hosts.host.stackVersions.status.out_of_sync': 'Out of Sync',
   'hosts.host.stackVersions.status.upgrading': 'Upgrading',
   'hosts.host.stackVersions.status.upgrade_failed': 'Upgrade Failed',
   'hosts.host.stackVersions.install.confirmation': 'You are about to install version <b>{0}</b> on this host.',

@@ -55,16 +55,18 @@ describe('App.mainAdminStackVersionsView', function () {
         status: "UPGRADING"
       }),
       Em.Object.create({
-        status: "UPGRADE_FAILED"
+        status: "UPGRADED"
       }),
       Em.Object.create({
         status: "CURRENT"
       })
     ];
 
-    var tets = [
+    var testCases = [
       {
-        filter:  Em.Object.create({}),
+        filter:  Em.Object.create({
+          value: ''
+        }),
         filteredVersions: [
           Em.Object.create({
             status: "INIT"
@@ -90,7 +92,7 @@ describe('App.mainAdminStackVersionsView', function () {
             status: "UPGRADING"
           }),
           Em.Object.create({
-            status: "UPGRADE_FAILED"
+            status: "UPGRADED"
           }),
           Em.Object.create({
             status: "CURRENT"
@@ -99,7 +101,7 @@ describe('App.mainAdminStackVersionsView', function () {
       },
       {
         filter:  Em.Object.create({
-          statuses: ["INIT", "INSTALLING", "INSTALL_FAILED", "OUT_OF_SYNC"]
+          value: 'NOT_INSTALLED'
         }),
         filteredVersions: [
           Em.Object.create({
@@ -118,7 +120,18 @@ describe('App.mainAdminStackVersionsView', function () {
       },
       {
         filter:  Em.Object.create({
-          statuses: ["INSTALLED"]
+          value: 'INSTALLED'
+        }),
+        filteredVersions: [
+          Em.Object.create({
+            status: "INSTALLED",
+            repositoryVersion: "2.2.0.1"
+          })
+        ]
+      },
+      {
+        filter:  Em.Object.create({
+          value: 'UPGRADE_READY'
         }),
         filteredVersions: [
           Em.Object.create({
@@ -129,21 +142,40 @@ describe('App.mainAdminStackVersionsView', function () {
       },
       {
         filter:  Em.Object.create({
-          statuses: ["CURRENT"]
+          value: 'CURRENT'
         }),
         filteredVersions: [
           Em.Object.create({
             status: "CURRENT"
           })
         ]
+      },
+      {
+        filter:  Em.Object.create({
+          value: 'UPGRADING'
+        }),
+        filteredVersions: [
+          Em.Object.create({
+            status: "UPGRADING"
+          })
+        ]
+      },
+      {
+        filter:  Em.Object.create({
+          value: 'UPGRADED'
+        }),
+        filteredVersions: [
+          Em.Object.create({
+            status: "UPGRADED"
+          })
+        ]
       }
     ].forEach(function(t) {
-        var msg = t.filter.get('statuses') ? t.filter.get('statuses').toString() : "All";
+        var msg = t.filter.get('value') ? t.filter.get('value') : "All";
         it("filter By " + msg, function () {
+          view.set('controller.currentVersion', {repository_version: '2.2.1.1'});
           expect(view.filterBy(versions, t.filter)).to.eql(t.filteredVersions);
         });
       });
-
   });
-
 });

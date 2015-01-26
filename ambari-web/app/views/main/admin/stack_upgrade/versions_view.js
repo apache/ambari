@@ -31,27 +31,49 @@ App.MainAdminStackVersionsView = Em.View.extend({
   updateTimer: null,
 
   /**
+   * Not Installed = the version is not installed or out of sync
+   * Upgrade Ready = the version is installed and ready for upgrade
+   * Current = the version currently being used
+   * Upgrade in Process = UPGRADING
+   * Ready to Finalize = UPGRADED
+   * Installed = All the versions that are installed BUT cannot be upgraded to (meaning: they are lower than the current)
    * @type {Array}
    */
   categories: [
     Em.Object.create({
       labelKey: 'admin.stackVersions.filter.all',
+      value: '',
       isSelected: true
     }),
     Em.Object.create({
       labelKey: 'admin.stackVersions.filter.notInstalled',
-      isSelected: false,
-      statuses: ["INIT", "INSTALLING", "INSTALL_FAILED", "OUT_OF_SYNC"]
+      value: 'NOT_INSTALLED',
+      isSelected: false
     }),
     Em.Object.create({
       labelKey: 'admin.stackVersions.filter.upgradeReady',
-      isSelected: false,
-      statuses: ["INSTALLED"]
+      value: 'UPGRADE_READY',
+      isSelected: false
     }),
     Em.Object.create({
       labelKey: 'admin.stackVersions.filter.current',
-      isSelected: false,
-      statuses: ["CURRENT"]
+      value: 'CURRENT',
+      isSelected: false
+    }),
+    Em.Object.create({
+      labelKey: 'admin.stackVersions.filter.installed',
+      value: 'INSTALLED',
+      isSelected: false
+    }),
+    Em.Object.create({
+      labelKey: 'admin.stackVersions.filter.upgrading',
+      value: 'UPGRADING',
+      isSelected: false
+    }),
+    Em.Object.create({
+      labelKey: 'admin.stackVersions.filter.upgraded',
+      value: 'UPGRADED',
+      isSelected: false
     })
   ],
 
@@ -115,12 +137,19 @@ App.MainAdminStackVersionsView = Em.View.extend({
    */
   filterBy: function (versions, filter) {
     var currentVersion = this.get('controller.currentVersion');
-    if (filter && filter.get('statuses')) {
+    if (filter && filter.get('value')) {
       return versions.filter(function (version) {
-        if (version.get('status') === 'INSTALLED' && filter.get('statuses').contains("INSTALLED")) {
-          return stringUtils.compareVersions(version.get('repositoryVersion'), Em.get(currentVersion, 'repository_version')) === 1;
+        var status = version.get('status');
+        if (status === 'INSTALLED' && ['UPGRADE_READY', 'INSTALLED'].contains(filter.get('value'))) {
+          if (filter.get('value') === 'UPGRADE_READY') {
+            return stringUtils.compareVersions(version.get('repositoryVersion'), Em.get(currentVersion, 'repository_version')) === 1;
+          } else if (filter.get('value') === 'INSTALLED') {
+            return stringUtils.compareVersions(version.get('repositoryVersion'), Em.get(currentVersion, 'repository_version')) < 1;
+          }
+        } else if (filter.get('value') === 'NOT_INSTALLED') {
+          return ['INIT', 'INSTALL_FAILED', 'INSTALLING', 'OUT_OF_SYNC'].contains(status);
         } else {
-          return filter.get('statuses').contains(version.get('status'));
+          return status === filter.get('value');
         }
       }, this);
     }

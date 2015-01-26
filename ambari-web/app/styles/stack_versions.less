@@ -135,6 +135,7 @@
     box-shadow: 0 8px 6px -6px black;
   }
   .version-box {
+    position: relative;
     background: none repeat scroll 0 0 #fff;
     border: 1px solid #d2d9dd;
     height: 168px;
@@ -142,6 +143,14 @@
     padding: 5px 0px;
     a.not-active:hover {
       text-decoration: none;
+    }
+    .out-of-sync-badge {
+      background-color: transparent;
+      font-size: 30px;
+      top: -8px;
+      position: absolute;
+      left: -8px;
+      color: orange;
     }
     .state {
       margin: 15px 0;

@@ -28,7 +28,7 @@
           "RepositoryVersions": {
             "display_name": "HDP-2.2",
             "id": 1,
-            "repository_version": "2.2",
+            "repository_version": "2.2.0.2",
             "stack_name": "HDP",
             "stack_version": "2.2",
             "upgrade_pack": ""
@@ -312,7 +312,7 @@
         "id": 6,
         "repository_version": 6,
         "stack": "HDP",
-        "state": "INSTALLED",
+        "state": "UPGRADING",
         "version": "2.2",
         "host_states": {
           "CURRENT": [],
@@ -380,7 +380,7 @@
         "id": 7,
         "repository_version": 7,
         "stack": "HDP",
-        "state": "INSTALLED",
+        "state": "OUT_OF_SYNC",
         "version": "2.2",
         "host_states": {
           "CURRENT": [],

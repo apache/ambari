@@ -41,9 +41,19 @@ App.UpgradeVersionBoxView = Em.View.extend({
     return (installRequest) ? installRequest.get('progress') : 0;
   }.property('App.router.backgroundOperationsController.services.@each.progress'),
 
+  /**
+   * @type {string}
+   */
   versionClass: function () {
     return this.get('content.status') == 'CURRENT'
       ? 'current-version-box' : '';
+  }.property('content.status'),
+
+  /**
+   * @type {boolean}
+   */
+  isOutOfSync: function () {
+    return this.get('content.status') == 'OUT_OF_SYNC';
   }.property('content.status'),
 
   /**
@@ -128,7 +138,8 @@ App.UpgradeVersionBoxView = Em.View.extend({
   didInsertElement: function () {
     App.tooltip($('.link-tooltip'), {title: Em.I18n.t('admin.stackVersions.version.linkTooltip')});
     App.tooltip($('.hosts-tooltip'), {title: Em.I18n.t('admin.stackVersions.version.hostsTooltip')});
-    App.tooltip($('.emply-hosts-tooltip'), {title: Em.I18n.t('admin.stackVersions.version.emptyHostsTooltip')});
+    App.tooltip($('.empty-hosts-tooltip'), {title: Em.I18n.t('admin.stackVersions.version.emptyHostsTooltip')});
+    App.tooltip($('.out-of-sync-badge'), {title: Em.I18n.t('hosts.host.stackVersions.status.out_of_sync')});
   },
 
   /**
