@@ -55,13 +55,7 @@ public abstract class BaseStacksResourceDefinition extends BaseResourceDefinitio
         nodeHref = nodeHref.replace("serviceComponents", "components");
         nodeHref = nodeHref.replace("operatingSystems", "operating_systems");
 
-        // The UI currently expects the old sub-resource names so don't do replacement
-        // if the href contains "_=" as only the UI uses this syntax.
-        // UPD: added another hotfix to properly rename subresources for stack_versions and repository_versions,
-        // it is backward compatible with old fix 
-        if (! href.contains("_=") || href.contains("/stack_versions/") || href.contains("/repository_versions/")) {
-          renameChildren(resultNode);
-        }
+        renameChildren(resultNode);
       }
 
       resultNode.setProperty("href", nodeHref);

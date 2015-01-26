@@ -24,6 +24,8 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Test;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
 
 
 /**
@@ -61,6 +63,41 @@ public class BaseStacksResourceDefinitionTest {
     href = "/stacks2/HDP/versions/1.3.2/operatingSystems";
     processor.process(null, node, href);
     assertEquals("/stacks2/HDP/versions/1.3.2/operatingSystems", node.getProperty("href"));
+  }
+
+  @Test
+  public void testRenameChildren() {
+    TestResourceDefinition resourceDefinition = new TestResourceDefinition();
+    ResourceDefinition.PostProcessor processor = resourceDefinition.getPostProcessors().iterator().next();
+
+    TreeNode<Resource> node = new TreeNodeImpl<Resource>(new TreeNodeImpl<Resource>(null, null, null), null, "test");
+
+    TreeNode<Resource> child = new TreeNodeImpl<Resource>(node, null, "stackServices");
+    node.addChild(child);
+    child = new TreeNodeImpl<Resource>(node, null, "serviceComponents");
+    node.addChild(child);
+    child = new TreeNodeImpl<Resource>(node, null, "operatingSystems");
+    node.addChild(child);
+
+    String href = "/stacks/HDP/versions/1.3.2/stackServices/foo";
+
+    assertNotNull(node.getChild("stackServices"));
+    assertNotNull(node.getChild("serviceComponents"));
+    assertNotNull(node.getChild("operatingSystems"));
+
+    assertNull(node.getChild("services"));
+    assertNull(node.getChild("components"));
+    assertNull(node.getChild("operating_systems"));
+
+    processor.process(null, node, href);
+
+    assertNull(node.getChild("stackServices"));
+    assertNull(node.getChild("serviceComponents"));
+    assertNull(node.getChild("operatingSystems"));
+
+    assertNotNull(node.getChild("services"));
+    assertNotNull(node.getChild("components"));
+    assertNotNull(node.getChild("operating_systems"));
   }
 
   private class TestResourceDefinition extends BaseStacksResourceDefinition {
