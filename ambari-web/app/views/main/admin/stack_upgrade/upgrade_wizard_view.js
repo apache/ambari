@@ -252,5 +252,6 @@ App.upgradeWizardView = Em.View.extend({
    */
   complete: function (event) {
     this.get('controller').setUpgradeItemStatus(event.context, 'COMPLETED');
+    this.set('isManualDone', false);
   }
 });

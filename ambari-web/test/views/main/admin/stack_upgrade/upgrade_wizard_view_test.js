@@ -146,6 +146,7 @@ describe('App.upgradeWizardView', function () {
     it("", function () {
       view.complete({context: Em.Object.create({'status': 'FAILED'})});
       expect(view.get('controller').setUpgradeItemStatus.calledWith(Em.Object.create({'status': 'FAILED'}), 'COMPLETED')).to.be.true;
+      expect(view.get('isManualDone')).to.be.false;
     });
   });
 
