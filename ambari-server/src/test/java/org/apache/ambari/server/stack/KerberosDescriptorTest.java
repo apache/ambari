@@ -74,4 +74,23 @@ public class KerberosDescriptorTest {
     Assert.notNull(descriptor.getServices());
     Assert.notNull(descriptor.getService("HBASE"));
   }
+
+  @Test
+  public void testHDP22HDFSServiceDescriptor() throws IOException {
+    File hdfsDirectory = new File(hdp22ServicesDirectory, "HDFS");
+    KerberosDescriptor descriptor = KerberosDescriptor.fromFile(new File(hdfsDirectory, "kerberos.json"));
+    Assert.notNull(descriptor);
+    Assert.notNull(descriptor.getServices());
+    Assert.notNull(descriptor.getService("HDFS"));
+  }
+
+  @Test
+  public void testHDP22YarnServiceDescriptor() throws IOException {
+    File yarnDirectory = new File(hdp22ServicesDirectory, "YARN");
+    KerberosDescriptor descriptor = KerberosDescriptor.fromFile(new File(yarnDirectory, "kerberos.json"));
+    Assert.notNull(descriptor);
+    Assert.notNull(descriptor.getServices());
+    Assert.notNull(descriptor.getService("YARN"));
+    Assert.notNull(descriptor.getService("MAPREDUCE2"));
+  }
 }

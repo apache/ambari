@@ -48,24 +48,6 @@
               }
             },
             {
-              "name": "nodemanager_host",
-              "principal": {
-                "value": "host/_HOST@${realm}",
-                "type" : "service"
-              },
-              "keytab": {
-                "file": "${keytab_dir}/nm.service.keytab",
-                "owner": {
-                  "name": "${yarn-env/yarn_user}",
-                  "access": "r"
-                },
-                "group": {
-                  "name": "${cluster-env/user_group}",
-                  "access": ""
-                }
-              }
-            },
-            {
               "name": "/spnego",
               "principal": {
                 "configuration": "yarn-site/yarn.nodemanager.webapp.spnego-principal"
@@ -108,24 +90,6 @@
               }
             },
             {
-              "name": "resource_manager_host",
-              "principal": {
-                "value": "host/_HOST@${realm}",
-                "type" : "service"
-              },
-              "keytab": {
-                "file": "${keytab_dir}/rm.service.keytab",
-                "owner": {
-                  "name": "${yarn-env/yarn_user}",
-                  "access": "r"
-                },
-                "group": {
-                  "name": "${cluster-env/user_group}",
-                  "access": ""
-                }
-              }
-            },
-            {
               "name": "/spnego",
               "principal": {
                 "configuration": "yarn-site/yarn.resourcemanager.webapp.spnego-principal"
@@ -158,24 +122,6 @@
                   "access": ""
                 },
                 "configuration": "yarn-site/yarn.timeline-service.keytab"
-              }
-            },
-            {
-              "name": "app_timeline_server_host",
-              "principal": {
-                "value": "host/_HOST@${realm}",
-                "type" : "service"
-              },
-              "keytab": {
-                "file": "${keytab_dir}/yarn.service.keytab",
-                "owner": {
-                  "name": "${yarn-env/yarn_user}",
-                  "access": "r"
-                },
-                "group": {
-                  "name": "${cluster-env/user_group}",
-                  "access": ""
-                }
               }
             },
             {
@@ -227,24 +173,6 @@
                   "access": ""
                 },
                 "configuration": "mapred-site/mapreduce.jobhistory.keytab"
-              }
-            },
-            {
-              "name": "history_server_host",
-              "principal": {
-                "value": "host/_HOST@${realm}",
-                "type" : "service"
-              },
-              "keytab": {
-                "file": "${keytab_dir}/jhs.service.keytab",
-                "owner": {
-                  "name": "${mapred-env/mapred_user}",
-                  "access": "r"
-                },
-                "group": {
-                  "name": "${cluster-env/user_group}",
-                  "access": ""
-                }
               }
             },
             {
