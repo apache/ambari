@@ -27,6 +27,8 @@ from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions import format
+from resource_management.libraries.functions import compare_versions
+from resource_management.libraries.functions import format_hdp_stack_version
 
 BACKUP_TEMP_DIR = "oozie-upgrade-backup"
 BACKUP_CONF_ARCHIVE = "oozie-conf-backup.tar"
@@ -110,6 +112,10 @@ def prepare_libext_directory():
   """
   import params
 
+  # some versions of HDP don't need the lzo compression libraries
+  target_version_needs_compression_libraries = compare_versions(
+    format_hdp_stack_version(params.version), '2.2.1.0') >= 0
+
   if not os.path.isdir(params.oozie_libext_customer_dir):
     os.makedirs(params.oozie_libext_customer_dir, 0o777)
 
@@ -118,27 +124,31 @@ def prepare_libext_directory():
 
   # get all hadooplzo* JAR files
   # hdp-select set hadoop-client has not run yet, therefore we cannot use
-  # /usr/hdp/current/hadoop-client ; we must use params.current directly
-  hadoop_lzo_pattern = 'hadoop-lzo*.jar'
-  hadoop_client_new_lib_dir = format("/usr/hdp/{version}/hadoop/lib")
+  # /usr/hdp/current/hadoop-client ; we must use params.version directly
+  # however, this only works when upgrading beyond 2.2.0.0; don't do this
+  # for downgrade to 2.2.0.0 since hadoop-lzo will not be present
+  if params.upgrade_direction == "upgrade" or target_version_needs_compression_libraries:
+    hadoop_lzo_pattern = 'hadoop-lzo*.jar'
+    hadoop_client_new_lib_dir = format("/usr/hdp/{version}/hadoop/lib")
 
-  files = glob.iglob(os.path.join(hadoop_client_new_lib_dir, hadoop_lzo_pattern))
-  if not files:
-    raise Fail("There are no files at {0} matching {1}".format(
-      hadoop_client_new_lib_dir, hadoop_lzo_pattern))
+    files = glob.iglob(os.path.join(hadoop_client_new_lib_dir, hadoop_lzo_pattern))
+    if not files:
+      raise Fail("There are no files at {0} matching {1}".format(
+        hadoop_client_new_lib_dir, hadoop_lzo_pattern))
 
-  # copy files into libext
-  files_copied = False
-  for file in files:
-    if os.path.isfile(file):
-      files_copied = True
-      Logger.info("Copying {0} to {1}".format(str(file), params.oozie_libext_customer_dir))
-      shutil.copy(file, params.oozie_libext_customer_dir)
+    # copy files into libext
+    files_copied = False
+    for file in files:
+      if os.path.isfile(file):
+        files_copied = True
+        Logger.info("Copying {0} to {1}".format(str(file), params.oozie_libext_customer_dir))
+        shutil.copy(file, params.oozie_libext_customer_dir)
 
-  if not files_copied:
-    raise Fail("There are no files at {0} matching {1}".format(
-      hadoop_client_new_lib_dir, hadoop_lzo_pattern))
+    if not files_copied:
+      raise Fail("There are no files at {0} matching {1}".format(
+        hadoop_client_new_lib_dir, hadoop_lzo_pattern))
 
+  # copy ext ZIP to customer dir
   oozie_ext_zip_file = '/usr/share/HDP-oozie/ext-2.2.zip'
   if not os.path.isfile(oozie_ext_zip_file):
     raise Fail("Unable to copy {0} because it does not exist".format(oozie_ext_zip_file))
