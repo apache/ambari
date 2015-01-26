@@ -103,12 +103,14 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -145,7 +147,6 @@ import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
-import org.apache.ambari.server.state.HostComponentAdminState;
 
 @Singleton
 public class AmbariManagementControllerImpl implements AmbariManagementController {
@@ -1160,6 +1161,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private synchronized RequestStatusResponse updateCluster(ClusterRequest request)
       throws AmbariException {
 
+    RequestStageContainer requestStageContainer = null;
+
     if (request.getClusterId() == null
         && (request.getClusterName() == null
         || request.getClusterName().isEmpty())) {
@@ -1169,6 +1172,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     LOG.info("Received a updateCluster request"
         + ", clusterId=" + request.getClusterId()
         + ", clusterName=" + request.getClusterName()
+        + ", securityType=" + request.getSecurityType()
         + ", request=" + request);
 
     final Cluster cluster;
@@ -1195,40 +1199,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
       cluster.setClusterName(request.getClusterName());
     }
-
-    // ----------------------
-    // Check to see if the security state is being changed... if so, attempt to enable or disable
-    // Kerberos
-    boolean toggleKerberos = false;
-
-    String desiredSecurityState = null;
-    List<ConfigurationRequest> desiredConfig = request.getDesiredConfig();
-    if (desiredConfig != null) {
-      for (ConfigurationRequest configurationRequest : desiredConfig) {
-        if ("cluster-env".equals(configurationRequest.getType())) {
-          Map<String, String> properties = configurationRequest.getProperties();
-
-          if ((properties == null) || properties.isEmpty()) {
-            Config configClusterEnv = cluster.getConfig(configurationRequest.getType(), configurationRequest.getVersionTag());
-            if (configClusterEnv != null) {
-              properties = configClusterEnv.getProperties();
-            }
-          }
-
-          desiredSecurityState = (properties == null) ? null : properties.get("security_enabled");
-        }
-      }
-    }
-
-    if(desiredSecurityState != null) {
-      Config configClusterEnv = cluster.getDesiredConfigByType("cluster-env");
-      Map<String, String> clusterEnvProperties = (configClusterEnv == null) ? null : configClusterEnv.getProperties();
-      if (clusterEnvProperties != null) {
-        toggleKerberos = !desiredSecurityState.equals(clusterEnvProperties.get("security_enabled"));
-      }
-    }
-    // ----------------------
-
 
     // set or create configuration mapping (and optionally create the map of properties)
     if (null != request.getDesiredConfig()) {
@@ -1346,7 +1316,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
 
       ClusterResponse clusterResponse =
-          new ClusterResponse(cluster.getClusterId(), cluster.getClusterName(), null, null, null, null, null);
+          new ClusterResponse(cluster.getClusterId(), cluster.getClusterName(), null, null, null, null, null, null);
 
       Map<String, Collection<ServiceConfigVersionResponse>> map =
         new HashMap<String, Collection<ServiceConfigVersionResponse>>();
@@ -1359,16 +1329,22 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       saveClusterUpdate(request, clusterResponse);
     }
 
-    RequestStageContainer requestStageContainer = null;
-    if(toggleKerberos) {
-      Map<String, Service> services = cluster.getServices();
-      if ((services != null) && services.containsKey("KERBEROS")) {
-        // Handle either adding or removing Kerberos from the cluster. This may generate multiple stages
-        // or not depending the current state of the cluster.  The main configuration used to determine
-        // whether Kerberos is to be added or removed is cluster-config/security_enabled.
-        requestStageContainer = kerberosHelper.toggleKerberos(cluster,
-            request.getKerberosDescriptor(), null);
-      }
+    // set the new security type of the cluster if change is requested
+    SecurityType securityType = request.getSecurityType();
+    if((securityType != null) && (cluster.getSecurityType() != securityType) ){
+        LOG.info("Received cluster security type change request from {} to {}",
+            cluster.getSecurityType().name(), securityType.name());
+
+        if ((securityType == SecurityType.KERBEROS) || (securityType == SecurityType.NONE)) {
+          // Since the security state of the cluster has changed, invoke toggleKerberos to handle
+          // adding or removing Kerberos from the cluster. This may generate multiple stages
+          // or not depending the current state of the cluster.
+          requestStageContainer = kerberosHelper.toggleKerberos(cluster, securityType, request.getKerberosDescriptor(), requestStageContainer);
+        } else {
+          throw new IllegalArgumentException(String.format("Unexpected security type encountered: %s", securityType.name()));
+        }
+
+        cluster.setSecurityType(securityType);
     }
 
     if (requestStageContainer != null) {

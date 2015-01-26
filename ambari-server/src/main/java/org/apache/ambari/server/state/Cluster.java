@@ -211,6 +211,20 @@ public interface Cluster {
   public void setProvisioningState(State provisioningState);
 
   /**
+   * Gets the cluster's security type.
+   *
+   * @return this Cluster's security type
+   */
+  public SecurityType getSecurityType();
+
+  /**
+   * Sets this Cluster's security type.
+   *
+   * @param securityType a SecurityType to set
+   */
+  public void setSecurityType(SecurityType securityType);
+
+  /**
    * Gets all configs that match the specified type.  Result is not the
    * DESIRED configuration for a cluster.
    * @param configType  the config type to return

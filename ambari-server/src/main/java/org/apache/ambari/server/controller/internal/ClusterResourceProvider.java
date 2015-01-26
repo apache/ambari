@@ -50,6 +50,7 @@ import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ConfigImpl;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 
@@ -65,6 +66,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
   public static final String CLUSTER_NAME_PROPERTY_ID    = PropertyHelper.getPropertyId("Clusters", "cluster_name");
   protected static final String CLUSTER_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "version");
   protected static final String CLUSTER_PROVISIONING_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "provisioning_state");
+  protected static final String CLUSTER_SECURITY_TYPE_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "security_type");
   protected static final String CLUSTER_DESIRED_CONFIGS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "desired_configs");
   protected static final String CLUSTER_DESIRED_SERVICE_CONFIG_VERSIONS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "desired_service_config_versions");
   protected static final String CLUSTER_TOTAL_HOSTS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "total_hosts");
@@ -105,6 +107,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
     propertyIds.add(CLUSTER_NAME_PROPERTY_ID);
     propertyIds.add(CLUSTER_VERSION_PROPERTY_ID);
     propertyIds.add(CLUSTER_PROVISIONING_STATE_PROPERTY_ID);
+    propertyIds.add(CLUSTER_SECURITY_TYPE_PROPERTY_ID);
     propertyIds.add(CLUSTER_DESIRED_CONFIGS_PROPERTY_ID);
     propertyIds.add(CLUSTER_DESIRED_SERVICE_CONFIG_VERSIONS_PROPERTY_ID);
     propertyIds.add(CLUSTER_TOTAL_HOSTS_PROPERTY_ID);
@@ -200,6 +203,7 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
       setResourceProperty(resource, CLUSTER_ID_PROPERTY_ID, response.getClusterId(), requestedIds);
       setResourceProperty(resource, CLUSTER_NAME_PROPERTY_ID, clusterName, requestedIds);
       setResourceProperty(resource, CLUSTER_PROVISIONING_STATE_PROPERTY_ID, response.getProvisioningState(), requestedIds);
+      setResourceProperty(resource, CLUSTER_SECURITY_TYPE_PROPERTY_ID, response.getSecurityType(), requestedIds);
       setResourceProperty(resource, CLUSTER_DESIRED_CONFIGS_PROPERTY_ID, response.getDesiredConfigs(), requestedIds);
       setResourceProperty(resource, CLUSTER_DESIRED_SERVICE_CONFIG_VERSIONS_PROPERTY_ID,
         response.getDesiredServiceConfigVersions(), requestedIds);
@@ -366,10 +370,23 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
   private ClusterRequest getRequest(Map<String, Object> properties) {
     KerberosDescriptor kerberosDescriptor = new KerberosDescriptor(createKerberosPropertyMap(properties));
 
+    SecurityType securityType;
+    String requestedSecurityType = (String) properties.get(CLUSTER_SECURITY_TYPE_PROPERTY_ID);
+    if(requestedSecurityType == null)
+      securityType = null;
+    else {
+      try {
+        securityType = SecurityType.valueOf(requestedSecurityType.toUpperCase());
+      } catch (IllegalArgumentException e) {
+        throw new IllegalArgumentException(String.format("Cannot set cluster security type to invalid value: %s", requestedSecurityType));
+      }
+    }
+
     ClusterRequest cr = new ClusterRequest(
         (Long) properties.get(CLUSTER_ID_PROPERTY_ID),
         (String) properties.get(CLUSTER_NAME_PROPERTY_ID),
         (String) properties.get(CLUSTER_PROVISIONING_STATE_PROPERTY_ID),
+        securityType,
         (String) properties.get(CLUSTER_VERSION_PROPERTY_ID),
         null,
         kerberosDescriptor,
@@ -904,10 +921,23 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
         // only create one cluster request per service, which includes
         // all the configuration types for that service
         if (clusterRequest == null) {
+          SecurityType securityType;
+          String requestedSecurityType = (String) clusterProperties.get(CLUSTER_SECURITY_TYPE_PROPERTY_ID);
+          if(requestedSecurityType == null)
+            securityType = null;
+          else {
+            try {
+              securityType = SecurityType.valueOf(requestedSecurityType.toUpperCase());
+            } catch (IllegalArgumentException e) {
+              throw new IllegalArgumentException(String.format("Cannot set cluster security type to invalid value: %s", requestedSecurityType));
+            }
+          }
+
           clusterRequest = new ClusterRequest(
             (Long) clusterProperties.get(CLUSTER_ID_PROPERTY_ID),
             (String) clusterProperties.get(CLUSTER_NAME_PROPERTY_ID),
             (String) clusterProperties.get(CLUSTER_PROVISIONING_STATE_PROPERTY_ID),
+            securityType,
             (String) clusterProperties.get(CLUSTER_VERSION_PROPERTY_ID),
             null);
         }

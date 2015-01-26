@@ -45,6 +45,7 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.State;
 import org.junit.After;
 import org.junit.Before;
@@ -178,7 +179,7 @@ public class BackgroundCustomCommandExecutionTest {
   }
 
   private void createCluster(String clusterName) throws AmbariException {
-    ClusterRequest r = new ClusterRequest(null, clusterName, State.INSTALLED.name(), "HDP-2.0.6", null);
+    ClusterRequest r = new ClusterRequest(null, clusterName, State.INSTALLED.name(), SecurityType.NONE, "HDP-2.0.6", null);
     controller.createCluster(r);
   }
   

@@ -23,6 +23,7 @@ CREATE TABLE clusters (
   cluster_info VARCHAR(255) NOT NULL,
   cluster_name VARCHAR(100) NOT NULL UNIQUE,
   provisioning_state VARCHAR(255) NOT NULL DEFAULT 'INIT',
+  security_type VARCHAR(32) NOT NULL DEFAULT 'NONE',
   desired_cluster_state VARCHAR(255) NOT NULL,
   desired_stack_version VARCHAR(255) NOT NULL,
   PRIMARY KEY (cluster_id));

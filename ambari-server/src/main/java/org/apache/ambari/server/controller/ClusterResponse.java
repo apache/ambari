@@ -25,6 +25,7 @@ import java.util.Set;
 
 import com.google.common.collect.Multimap;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.ClusterHealthReport;
 
@@ -41,16 +42,23 @@ public class ClusterResponse {
   private Map<String, DesiredConfig> desiredConfigs;
 
   private Map<String, Collection<ServiceConfigVersionResponse>> desiredServiceConfigVersions;
-  
+
   private String provisioningState;
+
+  /**
+   * The cluster's security.
+   * <p/>
+   * See {@link org.apache.ambari.server.state.SecurityType} for relevant values.
+   */
+  private String securityType;
 
   private Integer totalHosts;
 
   private ClusterHealthReport clusterHealthReport;
-  
+
   public ClusterResponse(Long clusterId, String clusterName,
-    State provisioningState, Set<String> hostNames, Integer totalHosts,
-    String desiredStackVersion, ClusterHealthReport clusterHealthReport) {
+                         State provisioningState, SecurityType securityType, Set<String> hostNames, Integer totalHosts,
+                         String desiredStackVersion, ClusterHealthReport clusterHealthReport) {
 
     super();
     this.clusterId = clusterId;
@@ -59,9 +67,16 @@ public class ClusterResponse {
     this.totalHosts = totalHosts;
     this.desiredStackVersion = desiredStackVersion;
     this.clusterHealthReport = clusterHealthReport;
-    
-    if (null != provisioningState)
+
+    if (null != provisioningState) {
       this.provisioningState = provisioningState.name();
+    }
+
+    if (null == securityType) {
+      this.securityType = SecurityType.NONE.name();
+    } else {
+      this.securityType = securityType.name();
+    }
   }
 
   /**
@@ -84,15 +99,37 @@ public class ClusterResponse {
   public Set<String> getHostNames() {
     return hostNames;
   }
-  
+
   /**
    * Gets whether the cluster is still initializing or has finished with its
    * deployment requests.
-   * 
+   *
    * @return either {@code INIT} or {@code INSTALLED}, never {@code null}.
    */
-  public String getProvisioningState(){
+  public String getProvisioningState() {
     return provisioningState;
+  }
+
+  /**
+   * Gets the cluster's security type.
+   * <p/>
+   * See {@link org.apache.ambari.server.state.SecurityType} for relevant values.
+   *
+   * @return the cluster's security type
+   */
+  public String getSecurityType() {
+    return securityType;
+  }
+
+  /**
+   * Sets the cluster's security type.
+   * <p/>
+   * See {@link org.apache.ambari.server.state.SecurityType} for relevant values.
+   *
+   * @param securityType a String declaring the cluster's security type
+   */
+  public void setSecurityType(String securityType) {
+    this.securityType = securityType;
   }
 
   @Override
@@ -105,7 +142,7 @@ public class ClusterResponse {
         + ", desiredStackVersion=" + desiredStackVersion
         + ", totalHosts=" + totalHosts
         + ", hosts=[");
-    
+
     if (hostNames != null) {
       int i = 0;
       for (String hostName : hostNames) {
@@ -124,8 +161,12 @@ public class ClusterResponse {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     ClusterResponse that = (ClusterResponse) o;
 

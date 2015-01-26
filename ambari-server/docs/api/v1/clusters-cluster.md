@@ -83,6 +83,7 @@ Get information for the cluster "cluster001".
 			"Host/host_status/ALERT" : 0
 		},
 		"provisioning_state" : "INIT",
+		"security_type" : "NONE",
 		"total_hosts" : 3,
 		"version" : "HDP-2.0",
 		"desired_configs" : {

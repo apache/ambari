@@ -36,6 +36,7 @@ import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.entities.LdapSyncSpecEntity;
@@ -47,13 +48,14 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceComponentImpl;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.easymock.Capture;
 import org.junit.Before;
 import org.junit.Test;
@@ -68,11 +70,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.*;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
@@ -538,7 +537,7 @@ public class AmbariManagementControllerImplTest {
 
   /**
    * Ensure that when the cluster is updated KerberosHandler.toggleKerberos is not invoked unless
-   * the security state is altered
+   * the security type is altered
    */
   @Test
   public void testUpdateClustersToggleKerberosNotInvoked() throws Exception {
@@ -566,11 +565,168 @@ public class AmbariManagementControllerImplTest {
     expectLastCall().once();
 
     // replay mocks
-    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager);
+    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper);
 
     // test
     AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, injector);
     controller.updateClusters(setRequests, null);
+
+    // assert and verify
+    assertSame(controller, controllerCapture.getValue());
+    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager);
+  }
+
+  /**
+   * Ensure that when the cluster security type updated from NONE to KERBEROS, KerberosHandler.toggleKerberos
+   * IS invoked
+   */
+  @Test
+  public void testUpdateClustersToggleKerberosEnable() throws Exception {
+    // member state mocks
+    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Injector injector = createStrictMock(Injector.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    ActionManager actionManager = createNiceMock(ActionManager.class);
+    ClusterRequest clusterRequest = createNiceMock(ClusterRequest.class);
+
+    // requests
+    Set<ClusterRequest> setRequests = Collections.singleton(clusterRequest);
+
+    KerberosHelper kerberosHelper = createStrictMock(KerberosHelper.class);
+    // expectations
+    injector.injectMembers(capture(controllerCapture));
+    expect(injector.getInstance(Gson.class)).andReturn(null);
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(kerberosHelper);
+    expect(clusterRequest.getClusterId()).andReturn(1L).times(6);
+    expect(clusterRequest.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
+    expect(clusters.getClusterById(1L)).andReturn(cluster).times(2);
+    expect(cluster.getClusterName()).andReturn("cluster").times(2);
+    expect(cluster.getSecurityType()).andReturn(SecurityType.NONE).anyTimes();
+
+    cluster.addSessionAttributes(anyObject(Map.class));
+    expectLastCall().once();
+
+    expect(kerberosHelper.toggleKerberos(anyObject(Cluster.class), anyObject(SecurityType.class), anyObject(KerberosDescriptor.class), anyObject(RequestStageContainer.class)))
+        .andReturn(null)
+        .once();
+
+    // replay mocks
+    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper);
+
+    // test
+    AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, injector);
+    controller.updateClusters(setRequests, null);
+
+    // assert and verify
+    assertSame(controller, controllerCapture.getValue());
+    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager);
+  }
+
+  /**
+   * Ensure that when the cluster security type updated from KERBEROS to NONE, KerberosHandler.toggleKerberos
+   * IS invoked
+   */
+  @Test
+  public void testUpdateClustersToggleKerberosDisable() throws Exception {
+    // member state mocks
+    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Injector injector = createStrictMock(Injector.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    ActionManager actionManager = createNiceMock(ActionManager.class);
+    ClusterRequest clusterRequest = createNiceMock(ClusterRequest.class);
+
+    // requests
+    Set<ClusterRequest> setRequests = Collections.singleton(clusterRequest);
+
+    KerberosHelper kerberosHelper = createStrictMock(KerberosHelper.class);
+    // expectations
+    injector.injectMembers(capture(controllerCapture));
+    expect(injector.getInstance(Gson.class)).andReturn(null);
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(kerberosHelper);
+    expect(clusterRequest.getClusterId()).andReturn(1L).times(6);
+    expect(clusterRequest.getSecurityType()).andReturn(SecurityType.NONE).anyTimes();
+    expect(clusters.getClusterById(1L)).andReturn(cluster).times(2);
+    expect(cluster.getClusterName()).andReturn("cluster").times(2);
+    expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
+
+    cluster.addSessionAttributes(anyObject(Map.class));
+    expectLastCall().once();
+
+    expect(kerberosHelper.toggleKerberos(anyObject(Cluster.class), anyObject(SecurityType.class), anyObject(KerberosDescriptor.class), anyObject(RequestStageContainer.class)))
+        .andReturn(null)
+        .once();
+
+    // replay mocks
+    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper);
+
+    // test
+    AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, injector);
+    controller.updateClusters(setRequests, null);
+
+    // assert and verify
+    assertSame(controller, controllerCapture.getValue());
+    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager);
+  }
+
+  /**
+   * Ensure that when the cluster security type updated from KERBEROS to NONE, KerberosHandler.toggleKerberos
+   * IS invoked
+   */
+  @Test
+  public void testUpdateClustersToggleKerberosFail() throws Exception {
+    // member state mocks
+    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Injector injector = createStrictMock(Injector.class);
+    Cluster cluster = createMock(Cluster.class);
+    ActionManager actionManager = createNiceMock(ActionManager.class);
+    ClusterRequest clusterRequest = createNiceMock(ClusterRequest.class);
+
+    // requests
+    Set<ClusterRequest> setRequests = Collections.singleton(clusterRequest);
+
+    KerberosHelper kerberosHelper = createStrictMock(KerberosHelper.class);
+    // expectations
+    injector.injectMembers(capture(controllerCapture));
+    expect(injector.getInstance(Gson.class)).andReturn(null);
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(kerberosHelper);
+    expect(clusterRequest.getClusterId()).andReturn(1L).times(6);
+    expect(clusterRequest.getSecurityType()).andReturn(SecurityType.NONE).anyTimes();
+    expect(clusters.getClusterById(1L)).andReturn(cluster).times(2);
+    expect(cluster.getClusterName()).andReturn("cluster").times(2);
+    expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
+    expect(cluster.getCurrentClusterVersion()).andReturn(null).anyTimes();
+    expect(cluster.getCurrentStackVersion()).andReturn(null).anyTimes();
+    expect(cluster.getDesiredStackVersion()).andReturn(null).anyTimes();
+
+    cluster.setCurrentStackVersion(anyObject(StackId.class));
+    expectLastCall().once();
+
+    cluster.setClusterName(anyObject(String.class));
+    expectLastCall().once();
+
+    cluster.addSessionAttributes(anyObject(Map.class));
+    expectLastCall().once();
+
+    expect(kerberosHelper.toggleKerberos(anyObject(Cluster.class), anyObject(SecurityType.class), anyObject(KerberosDescriptor.class), anyObject(RequestStageContainer.class)))
+        .andThrow(new IllegalArgumentException("bad args!"))
+        .once();
+
+    // replay mocks
+    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper);
+
+    // test
+    AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, injector);
+
+    try {
+      controller.updateClusters(setRequests, null);
+      Assert.fail("IllegalArgumentException not thrown");
+    }
+    catch(IllegalArgumentException e) {
+      // This is expected
+    }
 
     // assert and verify
     assertSame(controller, controllerCapture.getValue());

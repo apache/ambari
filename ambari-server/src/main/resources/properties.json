@@ -3,6 +3,7 @@
         "Clusters/cluster_id",
         "Clusters/cluster_name",
         "Clusters/provisioning_state",
+        "Clusters/security_type",
         "Clusters/version",
         "Clusters/state",
         "Clusters/desired_configs",

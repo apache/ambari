@@ -355,7 +355,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         (String) properties.get(SERVICE_CLUSTER_NAME_PROPERTY_ID),
         (String) properties.get(SERVICE_SERVICE_NAME_PROPERTY_ID),
         (String) properties.get(SERVICE_SERVICE_STATE_PROPERTY_ID));
-    
+
     Object o = properties.get(SERVICE_MAINTENANCE_STATE_PROPERTY_ID);
     if (null != o) {
       svcRequest.setMaintenanceState(o.toString());
@@ -678,7 +678,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
             " in the maintenance state of " + s.getMaintenanceState());
         continue;
       }
-      
+
       seenNewStates.add(newState);
 
       if (newState != oldState) {
@@ -878,19 +878,19 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       throws AmbariException {
 
     Clusters clusters    = getManagementController().getClusters();
-    
+
     Set<Service> removable = new HashSet<Service>();
-    
+
     for (ServiceRequest serviceRequest : request) {
       if (StringUtils.isEmpty(serviceRequest.getClusterName()) || StringUtils.isEmpty(serviceRequest.getServiceName())) {
         // FIXME throw correct error
         throw new AmbariException("invalid arguments");
       } else {
-        
+
         Service service = clusters.getCluster(
             serviceRequest.getClusterName()).getService(
                 serviceRequest.getServiceName());
-        
+
         if (!service.getDesiredState().isRemovableState()) {
           throw new AmbariException("Cannot remove " + service.getName() + ". Desired state " +
               service.getDesiredState() + " is not removable.  Service must be stopped or disabled.");
@@ -903,15 +903,15 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
             }
           }
         }
-        
+
         removable.add(service);
       }
     }
-    
+
     for (Service service : removable) {
       service.getCluster().deleteService(service.getName());
     }
-    
+
     return null;
   }
 
@@ -1368,7 +1368,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
             Set<ServiceComponentHostResponse> hostComponentResponses =
                 controller.getHostComponents(Collections.singleton(request));
-            
+
             State state = State.UNKNOWN;
             for (ServiceComponentHostResponse schr : hostComponentResponses) {
               State schState = getHostComponentState(schr);
@@ -1382,7 +1382,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
           LOG.error("Can't determine service state.", e);
         }
       }
-       
+
       return State.UNKNOWN;
     }
   }

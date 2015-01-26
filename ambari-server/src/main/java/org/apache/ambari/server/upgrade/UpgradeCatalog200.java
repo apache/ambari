@@ -45,7 +45,9 @@ import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityP
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.SecurityState;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.UpgradeState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,6 +111,10 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     prepareRollingUpgradesDDL();
     executeAlertDDLUpdates();
     createArtifactTable();
+
+    // add security_type to clusters
+    dbAccessor.addColumn("clusters", new DBColumnInfo(
+        "security_type", String.class, 32, SecurityType.NONE.toString(), false));
 
     // add security_state to various tables
     dbAccessor.addColumn("hostcomponentdesiredstate", new DBColumnInfo(
@@ -276,6 +282,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     removeNagiosService();
     addNewConfigurationsFromXml();
     updateHiveDatabaseType();
+    setSecurityType();
   }
 
   protected void updateHiveDatabaseType() throws AmbariException {
@@ -318,6 +325,43 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
    */
   protected void removeNagiosService() {
     executeInTransaction(new RemoveNagiosRunnable());
+  }
+
+  /**
+   * Processes existing clusters to set it's security type as indicated by it's <code>cluster-env/security_enabled</code> flag.
+   * <p/>
+   * If the <code>cluster-env/security_enabled</code is set to "true", the cluster's security state
+   * will be set to "KERBEROS" since that is the only option. Else, the value will be set to  "NONE".
+   */
+  protected void setSecurityType() {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if (clusterMap != null) {
+        for (final Cluster cluster : clusterMap.values()) {
+          Config configClusterEnv = cluster.getDesiredConfigByType("cluster-env");
+
+          if (configClusterEnv != null) {
+            Map<String, String> properties = configClusterEnv.getProperties();
+
+            if (properties != null) {
+              String securityEnabled = properties.get("security_enabled");
+
+              if ("true".equalsIgnoreCase(securityEnabled)) {
+                // Currently the only security option is Kerberos. If security is enabled, blindly
+                // set security type to SecurityType.KERBEROS
+                cluster.setSecurityType(SecurityType.KERBEROS);
+              } else {
+                cluster.setSecurityType(SecurityType.NONE);
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   /**

@@ -43,6 +43,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.SecurityState;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
@@ -123,39 +124,46 @@ public class KerberosHelper {
   /**
    * Toggles Kerberos security to enable it or remove it depending on the state of the cluster.
    * <p/>
-   * The "cluster-env" configuration set is used to determine the security state of the cluster.
-   * If the "security_enabled" property is set to "true" than an attempt will be make to enable
-   * Kerberos; if "false" an attempt will be made to disable Kerberos.
-   * Also, the "kerberos_domain" is used as the default Kerberos realm for the cluster.
+   * The cluster "security_type" property is used to determine the security state of the cluster.
+   * If the declared security type is KERBEROS, than an attempt will be make to enable Kerberos; if
+   * the security type is NONE, an attempt will be made to disable Kerberos; otherwise, no operations
+   * will be performed.
    * <p/>
-   * The "krb5-conf" configuration type ios used to obtain information about the relevant KDC.
-   * The "kdc_type" property is used to determine what type of KDC is being used so that the
-   * appropriate actions maybe taken in order interact with it properly.
+   * It is expected that the "krb5-conf" configuration type is available.  It is used to obtain
+   * information about the relevant KDC.  For example, the "kdc_type" property is used to determine
+   * what type of KDC is being used so that the appropriate actions maybe taken in order interact
+   * with it properly.
+   * <p/>
+   * It is expected tht the "kerberos-env" configuration type is available.   It is used to obtain
+   * information about the Kerberos configuration, generally specific to the KDC being used.
    * <p/>
    * This process is idempotent such that it may be called several times, each time only affecting
    * items that need to be brought up to date.
    *
    * @param cluster               the relevant Cluster
+   * @param securityType          the SecurityType to handle; this value is expected to be either
+   *                              SecurityType.KERBEROS or SecurityType.NONE
    * @param kerberosDescriptor    a KerberosDescriptor containing updates to the descriptor already
    *                              configured for the cluster
    * @param requestStageContainer a RequestStageContainer to place generated stages, if needed -
-   *                              if null a new RequestStageContainer will be created.
-   * @return the updated or a new RequestStageContainer containing the stages that need to be
-   * executed to complete this task; or null if no stages need to be executed.
+   *                              if null a new RequestStageContainer will be created.   @return the updated or a new RequestStageContainer containing the stages that need to be
+   *                              executed to complete this task; or null if no stages need to be executed.
    * @throws AmbariException
    */
-  public RequestStageContainer toggleKerberos(Cluster cluster, KerberosDescriptor kerberosDescriptor,
+  public RequestStageContainer toggleKerberos(Cluster cluster, SecurityType securityType, KerberosDescriptor kerberosDescriptor,
                                               RequestStageContainer requestStageContainer)
       throws AmbariException {
 
     KerberosDetails kerberosDetails = getKerberosDetails(cluster);
 
-    if (kerberosDetails.isSecurityEnabled()) {
+    if (securityType == SecurityType.KERBEROS) {
       LOG.info("Configuring Kerberos for realm {} on cluster, {}", kerberosDetails.getDefaultRealm(), cluster.getClusterName());
       requestStageContainer = handle(cluster, kerberosDescriptor, kerberosDetails, null, null, requestStageContainer, enableKerberosHandler);
-    } else {
+    } else if (securityType == SecurityType.NONE) {
       LOG.info("Disabling Kerberos from cluster, {}", cluster.getClusterName());
       requestStageContainer = handle(cluster, kerberosDescriptor, kerberosDetails, null, null, requestStageContainer, disableKerberosHandler);
+    } else {
+      throw new AmbariException(String.format("Unexpected security type value: %s", securityType.name()));
     }
 
     return requestStageContainer;
@@ -166,6 +174,14 @@ public class KerberosHelper {
    * <p/>
    * No configurations will be altered as a result of this operation, however principals and keytabs
    * may be updated or created.
+   * <p/>
+   * It is expected that the "krb5-conf" configuration type is available.  It is used to obtain
+   * information about the relevant KDC.  For example, the "kdc_type" property is used to determine
+   * what type of KDC is being used so that the appropriate actions maybe taken in order interact
+   * with it properly.
+   * <p/>
+   * It is expected tht the "kerberos-env" configuration type is available.   It is used to obtain
+   * information about the Kerberos configuration, generally specific to the KDC being used.
    *
    * @param cluster                the relevant Cluster
    * @param kerberosDescriptor     a KerberosDescriptor containing updates to the descriptor already
@@ -466,6 +482,15 @@ public class KerberosHelper {
           }
         }
 
+        // Ensure the cluster-env/security_enabled flag is set properly
+        Map<String, String> clusterEnvProperties = kerberosConfigurations.get("cluster-env");
+        if (clusterEnvProperties == null) {
+          clusterEnvProperties = new HashMap<String, String>();
+          kerberosConfigurations.put("cluster-env", clusterEnvProperties);
+        }
+        clusterEnvProperties.put("security_enabled",
+            (kerberosDetails.getSecurityType() == SecurityType.KERBEROS) ? "true" : "false");
+
         // Always set up the necessary stages to perform the tasks needed to complete the operation.
         // Some stages may be no-ops, this is expected.
         // Gather data needed to create stages and tasks...
@@ -560,37 +585,6 @@ public class KerberosHelper {
       throw new AmbariException(message);
     }
 
-    Config configClusterEnv = cluster.getDesiredConfigByType("cluster-env");
-    if (configClusterEnv == null) {
-      String message = "The 'cluster-env' configuration is not available";
-      LOG.error(message);
-      throw new AmbariException(message);
-    }
-
-    Map<String, String> clusterEnvProperties = configClusterEnv.getProperties();
-    if (clusterEnvProperties == null) {
-      String message = "The 'cluster-env' configuration properties are not available";
-      LOG.error(message);
-      throw new AmbariException(message);
-    }
-
-    String securityEnabled = clusterEnvProperties.get("security_enabled");
-    if ((securityEnabled == null) || securityEnabled.isEmpty()) {
-      String message = "Missing 'securityEnabled' property of cluster-env, unable to determine the cluster's security state";
-      LOG.error(message);
-      throw new AmbariException(message);
-    }
-
-    if ("true".equalsIgnoreCase(securityEnabled)) {
-      kerberosDetails.setSecurityEnabled(true);
-    } else if ("false".equalsIgnoreCase(securityEnabled)) {
-      kerberosDetails.setSecurityEnabled(false);
-    } else {
-      String message = String.format("Invalid value for `security_enabled` property of cluster-env: %s", securityEnabled);
-      LOG.error(message);
-      throw new AmbariException(message);
-    }
-
     Config configKrb5Conf = cluster.getDesiredConfigByType("krb5-conf");
     if (configKrb5Conf == null) {
       String message = "The 'krb5-conf' configuration is not available";
@@ -635,6 +629,7 @@ public class KerberosHelper {
       }
     }
 
+    kerberosDetails.setSecurityType(cluster.getSecurityType());
     kerberosDetails.setDefaultRealm(krb5ConfProperties.get("realm"));
 
     // Set the KDCType to the the MIT_KDC as a fallback.
@@ -1510,19 +1505,10 @@ public class KerberosHelper {
    * configurations so they may be passed around more easily.
    */
   private static class KerberosDetails {
-    private boolean securityEnabled;
     private String defaultRealm;
     private KDCType kdcType;
     private Map<String, String> kerberosEnvProperties;
-
-
-    public void setSecurityEnabled(boolean securityEnabled) {
-      this.securityEnabled = securityEnabled;
-    }
-
-    public boolean isSecurityEnabled() {
-      return securityEnabled;
-    }
+    private SecurityType securityType;
 
     public void setDefaultRealm(String defaultRealm) {
       this.defaultRealm = defaultRealm;
@@ -1546,6 +1532,14 @@ public class KerberosHelper {
 
     public Map<String, String> getKerberosEnvProperties() {
       return kerberosEnvProperties;
+    }
+
+    public void setSecurityType(SecurityType securityType) {
+      this.securityType = securityType;
+    }
+
+    public SecurityType getSecurityType() {
+      return securityType;
     }
   }
 

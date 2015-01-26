@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller;
 
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 
 import java.util.List;
@@ -36,9 +37,16 @@ public class ClusterRequest {
   private String stackVersion; // for CREATE/UPDATE
 
   private String provisioningState; // for GET/CREATE/UPDATE
-  
+
+  /**
+   * The cluster's security type
+   * <p/>
+   * See {@link org.apache.ambari.server.state.SecurityType} for relevant values.
+   */
+  private SecurityType securityType; // for GET/CREATE/UPDATE
+
   Set<String> hostNames; // CREATE/UPDATE
-  
+
   private List<ConfigurationRequest> configs = null;
 
   private ServiceConfigVersionRequest serviceConfigVersionRequest = null;
@@ -58,22 +66,23 @@ public class ClusterRequest {
 
   public ClusterRequest(Long clusterId, String clusterName,
       String stackVersion, Set<String> hostNames) {
-    this(clusterId, clusterName, null, stackVersion, hostNames);
-  }  
-  
-  public ClusterRequest(Long clusterId, String clusterName, 
-      String provisioningState, String stackVersion, Set<String> hostNames) {
-    this(clusterId, clusterName, provisioningState, stackVersion, hostNames, null, null);
+    this(clusterId, clusterName, null, null, stackVersion, hostNames);
   }
 
   public ClusterRequest(Long clusterId, String clusterName,
-                        String provisioningState, String stackVersion,
+      String provisioningState, SecurityType securityType, String stackVersion, Set<String> hostNames) {
+    this(clusterId, clusterName, provisioningState, securityType, stackVersion, hostNames, null, null);
+  }
+
+  public ClusterRequest(Long clusterId, String clusterName,
+                        String provisioningState, SecurityType securityType, String stackVersion,
                         Set<String> hostNames, KerberosDescriptor kerberosDescriptor,
                         Map<String, Object> sessionAttributes) {
     super();
     this.clusterId         = clusterId;
     this.clusterName       = clusterName;
     this.provisioningState = provisioningState;
+    this.securityType      = securityType;
     this.stackVersion      = stackVersion;
     this.hostNames         = hostNames;
     this.sessionAttributes = sessionAttributes;
@@ -96,28 +105,51 @@ public class ClusterRequest {
   public String getClusterName() {
     return clusterName;
   }
-  
+
   /**
    * Gets whether the cluster is still initializing or has finished with its
    * deployment requests.
-   * 
+   *
    * @return either {@code INIT} or {@code INSTALLED} or {@code null} if not set
    *         on the request.
    */
   public String getProvisioningState(){
     return provisioningState;
   }
-  
+
   /**
    * Sets whether the cluster is still initializing or has finished with its
    * deployment requests.
-   * 
+   *
    * @param provisioningState
    *          either {@code INIT} or {@code INSTALLED}, or {@code null} if not
    *          set on the request.
    */
   public void setProvisioningState(String provisioningState) {
     this.provisioningState = provisioningState;
+  }
+
+  /**
+   * Gets the cluster's security type.
+   * <p/>
+   * See {@link org.apache.ambari.server.state.SecurityType} for relevant values.
+   *
+   * @return a SecurityType declaring the security type; or {@code null} if not set set on the request
+   */
+  public SecurityType getSecurityType() {
+    return securityType;
+  }
+
+  /**
+   * Sets the cluster's security type.
+   * <p/>
+   * See {@link org.apache.ambari.server.state.SecurityType} for relevant values.
+   *
+   * @param securityType a SecurityType declaring the cluster's security type; or {@code null} if not
+   *                     set on the request
+   */
+  public void setSecurityType(SecurityType securityType) {
+    this.securityType = securityType;
   }
 
   /**
@@ -155,7 +187,7 @@ public class ClusterRequest {
   public void setHostNames(Set<String> hostNames) {
     this.hostNames = hostNames;
   }
-  
+
   /**
    * Sets the configs requests (if any).
    *
@@ -164,7 +196,7 @@ public class ClusterRequest {
   public void setDesiredConfig(List<ConfigurationRequest> configRequests) {
     configs = configRequests;
   }
-  
+
   /**
    * Gets any configuration-based request (if any).
    * @return the list of configuration requests,
@@ -198,6 +230,7 @@ public class ClusterRequest {
     sb.append("{" + " clusterName=").append(clusterName)
         .append(", clusterId=").append(clusterId)
         .append(", provisioningState=").append(provisioningState)
+        .append(", securityType=").append(securityType)
         .append(", stackVersion=").append(stackVersion)
         .append(", desired_scv=").append(serviceConfigVersionRequest)
         .append(", hosts=[");

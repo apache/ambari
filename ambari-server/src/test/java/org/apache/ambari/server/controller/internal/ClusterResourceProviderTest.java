@@ -76,6 +76,7 @@ import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DependencyInfo;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.State;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -2646,17 +2647,17 @@ public class ClusterResourceProviderTest {
     Clusters clusters = createMock(Clusters.class);
 
     Set<ClusterResponse> allResponse = new HashSet<ClusterResponse>();
-    allResponse.add(new ClusterResponse(100L, "Cluster100", State.INSTALLED, null, null, null, null));
-    allResponse.add(new ClusterResponse(101L, "Cluster101", State.INSTALLED, null, null, null, null));
-    allResponse.add(new ClusterResponse(102L, "Cluster102", State.INSTALLED, null, null, null, null));
-    allResponse.add(new ClusterResponse(103L, "Cluster103", State.INSTALLED, null, null, null, null));
-    allResponse.add(new ClusterResponse(104L, "Cluster104", State.INSTALLED, null, null, null, null));
+    allResponse.add(new ClusterResponse(100L, "Cluster100", State.INSTALLED, SecurityType.NONE, null, null, null, null));
+    allResponse.add(new ClusterResponse(101L, "Cluster101", State.INSTALLED, SecurityType.NONE, null, null, null, null));
+    allResponse.add(new ClusterResponse(102L, "Cluster102", State.INSTALLED, SecurityType.NONE, null, null, null, null));
+    allResponse.add(new ClusterResponse(103L, "Cluster103", State.INSTALLED, SecurityType.NONE, null, null, null, null));
+    allResponse.add(new ClusterResponse(104L, "Cluster104", State.INSTALLED, SecurityType.NONE, null, null, null, null));
 
     Set<ClusterResponse> nameResponse = new HashSet<ClusterResponse>();
-    nameResponse.add(new ClusterResponse(102L, "Cluster102", State.INSTALLED, null, null, null, null));
+    nameResponse.add(new ClusterResponse(102L, "Cluster102", State.INSTALLED, SecurityType.NONE, null, null, null, null));
 
     Set<ClusterResponse> idResponse = new HashSet<ClusterResponse>();
-    idResponse.add(new ClusterResponse(103L, "Cluster103", State.INSTALLED, null, null, null, null));
+    idResponse.add(new ClusterResponse(103L, "Cluster103", State.INSTALLED, SecurityType.NONE, null, null, null, null));
 
     // set expectations
     Capture<Set<ClusterRequest>> captureClusterRequests = new Capture<Set<ClusterRequest>>();
@@ -2737,7 +2738,7 @@ public class ClusterResourceProviderTest {
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
     Set<ClusterResponse> nameResponse = new HashSet<ClusterResponse>();
-    nameResponse.add(new ClusterResponse(102L, "Cluster102", State.INIT, null, null, null, null));
+    nameResponse.add(new ClusterResponse(102L, "Cluster102", State.INIT, SecurityType.NONE, null, null, null, null));
 
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
@@ -2745,11 +2746,11 @@ public class ClusterResourceProviderTest {
     // set expectations
     expect(managementController.getClusters(EasyMock.<Set<ClusterRequest>>anyObject())).andReturn(nameResponse).once();
     expect(managementController.updateClusters(
-        AbstractResourceProviderTest.Matcher.getClusterRequestSet(102L, "Cluster102", State.INSTALLED.name(), "HDP-0.1", null), eq(mapRequestProps))).
+        AbstractResourceProviderTest.Matcher.getClusterRequestSet(102L, "Cluster102", State.INSTALLED.name(), SecurityType.NONE, "HDP-0.1", null), eq(mapRequestProps))).
         andReturn(response).once();
     
     expect(managementController.updateClusters(
-        AbstractResourceProviderTest.Matcher.getClusterRequestSet(103L, null, null, "HDP-0.1", null), eq(mapRequestProps))).
+        AbstractResourceProviderTest.Matcher.getClusterRequestSet(103L, null, null, null, "HDP-0.1", null), eq(mapRequestProps))).
         andReturn(response).once();
 
     expect(managementController.getClusterUpdateResults(anyObject(ClusterRequest.class))).andReturn(null).anyTimes();
@@ -2810,7 +2811,7 @@ public class ClusterResourceProviderTest {
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
     Set<ClusterResponse> nameResponse = new HashSet<ClusterResponse>();
-    nameResponse.add(new ClusterResponse(100L, "Cluster100", State.INSTALLED, null, null, null, null));
+    nameResponse.add(new ClusterResponse(100L, "Cluster100", State.INSTALLED, SecurityType.NONE, null, null, null, null));
 
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");

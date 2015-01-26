@@ -43,6 +43,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.State;
 
 @Table(name = "clusters")
@@ -82,6 +83,11 @@ public class ClusterEntity {
   @Enumerated(value = EnumType.STRING)
   @Column(name = "provisioning_state", insertable = true, updatable = true)
   private State provisioningState = State.INIT;
+
+  @Basic
+  @Enumerated(value = EnumType.STRING)
+  @Column(name = "security_type", nullable = false, insertable = true, updatable = true)
+  private SecurityType securityType = SecurityType.NONE;
 
   @Basic
   @Column(name = "desired_cluster_state", insertable = true, updatable = true)
@@ -191,6 +197,24 @@ public class ClusterEntity {
    */
   public void setProvisioningState(State provisioningState){
     this.provisioningState = provisioningState;
+  }
+
+  /**
+   * Gets this ClusterEntity's security type.
+   *
+   * @return the current SecurityType
+   */
+  public SecurityType getSecurityType() {
+    return securityType;
+  }
+
+  /**
+   * Set's this ClusterEntity's security type
+   *
+   * @param securityType the new SecurityType
+   */
+  public void setSecurityType(SecurityType securityType) {
+    this.securityType = securityType;
   }
 
   @Override

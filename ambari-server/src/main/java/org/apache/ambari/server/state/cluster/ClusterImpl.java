@@ -96,6 +96,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -1113,6 +1114,44 @@ public class ClusterImpl implements Cluster {
     }
   }
 
+  @Override
+  public SecurityType getSecurityType() {
+    clusterGlobalLock.readLock().lock();
+    try {
+      readLock.lock();
+      SecurityType  securityType = null;
+      try {
+        securityType = clusterEntity.getSecurityType();
+
+        if( null == securityType ) {
+          securityType = SecurityType.NONE;
+        }
+
+        return securityType;
+      } finally {
+        readLock.unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }
+
+  @Override
+  public void setSecurityType(SecurityType securityType) {
+    clusterGlobalLock.readLock().lock();
+    try {
+      writeLock.lock();
+      try {
+        clusterEntity.setSecurityType(securityType);
+        clusterDAO.merge(clusterEntity);
+      } finally {
+        writeLock.unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }
+
   /**
    * Get the ClusterVersionEntity object whose state is CURRENT.
    * @return
@@ -1693,7 +1732,7 @@ public class ClusterImpl implements Cluster {
         Map<String, Host> hosts = clusters.getHostsForCluster(getClusterName());
 
         return new ClusterResponse(getClusterId(),
-          getClusterName(), getProvisioningState(), hosts.keySet(), hosts.size(),
+          getClusterName(), getProvisioningState(), getSecurityType(), hosts.keySet(), hosts.size(),
           getDesiredStackVersion().getStackId(), getClusterHealthReport());
       } finally {
         readWriteLock.readLock().unlock();

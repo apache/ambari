@@ -62,6 +62,7 @@ import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.state.SecurityState;
+import org.apache.ambari.server.state.SecurityType;
 import org.easymock.Capture;
 import org.junit.After;
 import org.junit.Assert;
@@ -117,6 +118,7 @@ public class UpgradeCatalog200Test {
     Capture<DBAccessor.DBColumnInfo> alertTargetGlobalColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> hostComponentStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> hostComponentVersionColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> clustersSecurityTypeColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> hostComponentStateSecurityStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> hostComponentDesiredStateSecurityStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> hostRoleCommandRetryColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
@@ -167,6 +169,10 @@ public class UpgradeCatalog200Test {
     // Stage skippable
     dbAccessor.addColumn(eq("stage"),
         capture(stageSkippableColumnCapture));
+
+    // Clusters: security type
+    dbAccessor.addColumn(eq("clusters"),
+        capture(clustersSecurityTypeColumnCapture));
 
     // Host Component State: security State
     dbAccessor.addColumn(eq("hostcomponentstate"),
@@ -261,6 +267,9 @@ public class UpgradeCatalog200Test {
     assertEquals(0, upgradeSkippableColumn.getDefaultValue());
     assertFalse(upgradeSkippableColumn.isNullable());
 
+    // verify security_type column
+    verifyClustersSecurityType(clustersSecurityTypeColumnCapture);
+
     // verify security_state columns
     verifyComponentSecurityStateColumn(hostComponentStateSecurityStateColumnCapture);
     verifyComponentSecurityStateColumn(hostComponentDesiredStateSecurityStateColumnCapture);
@@ -297,9 +306,14 @@ public class UpgradeCatalog200Test {
     Method updateHiveDatabaseType = UpgradeCatalog200.class.getDeclaredMethod("updateHiveDatabaseType");
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod
         ("addNewConfigurationsFromXml");
+    Method setSecurityType = UpgradeCatalog200.class.getDeclaredMethod("setSecurityType");
 
-    UpgradeCatalog200 upgradeCatalog = createMockBuilder(
-        UpgradeCatalog200.class).addMockedMethod(removeNagiosService).addMockedMethod(updateHiveDatabaseType).addMockedMethod(addNewConfigurationsFromXml).createMock();
+    UpgradeCatalog200 upgradeCatalog = createMockBuilder(UpgradeCatalog200.class)
+        .addMockedMethod(removeNagiosService)
+        .addMockedMethod(updateHiveDatabaseType)
+        .addMockedMethod(addNewConfigurationsFromXml)
+        .addMockedMethod(setSecurityType)
+        .createMock();
 
     upgradeCatalog.removeNagiosService();
     expectLastCall().once();
@@ -307,7 +321,8 @@ public class UpgradeCatalog200Test {
     expectLastCall();
     upgradeCatalog.updateHiveDatabaseType();
     expectLastCall().once();
-
+    upgradeCatalog.setSecurityType();
+    expectLastCall().once();
 
     replay(upgradeCatalog);
 
@@ -454,6 +469,20 @@ public class UpgradeCatalog200Test {
     Assert.assertEquals(Integer.valueOf(32), column.getLength());
     Assert.assertEquals(String.class, column.getType());
     Assert.assertEquals("security_state", column.getName());
+  }
+
+  /**
+   * Verifies new security_type column in clusters table
+   *
+   * @param securityTypeColumnCapture
+   */
+  private void verifyClustersSecurityType(
+      Capture<DBAccessor.DBColumnInfo> securityTypeColumnCapture) {
+    DBColumnInfo column = securityTypeColumnCapture.getValue();
+    Assert.assertEquals(SecurityType.NONE.toString(), column.getDefaultValue());
+    Assert.assertEquals(Integer.valueOf(32), column.getLength());
+    Assert.assertEquals(String.class, column.getType());
+    Assert.assertEquals("security_type", column.getName());
   }
 
   /**

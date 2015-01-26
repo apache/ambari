@@ -46,6 +46,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.SecurityState;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -161,7 +162,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     RequestStageContainer requestStageContainer = createNiceMock(RequestStageContainer.class);
 
     replayAll();
-    kerberosHelper.toggleKerberos(cluster, kerberosDescriptor, requestStageContainer);
+    kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, kerberosDescriptor, requestStageContainer);
     verifyAll();
   }
 
@@ -169,39 +170,26 @@ public class KerberosHelperTest extends EasyMockSupport {
   public void testMissingKrb5Conf() throws Exception {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
 
-    final Map<String, String> clusterEnvProperties = createNiceMock(Map.class);
-    expect(clusterEnvProperties.get("security_enabled")).andReturn("true").once();
-
-    final Config clusterEnvConfig = createNiceMock(Config.class);
-    expect(clusterEnvConfig.getProperties()).andReturn(clusterEnvProperties).once();
-
     final Map<String, String> kerberosEnvProperties = createNiceMock(Map.class);
-    expect(clusterEnvProperties.get("ldap_url")).andReturn("").once();
-    expect(clusterEnvProperties.get("container_dn")).andReturn("").once();
+    expect(kerberosEnvProperties.get("ldap_url")).andReturn("").once();
+    expect(kerberosEnvProperties.get("container_dn")).andReturn("").once();
 
     final Config kerberosEnvConfig = createNiceMock(Config.class);
     expect(kerberosEnvConfig.getProperties()).andReturn(kerberosEnvProperties).once();
 
     final Cluster cluster = createNiceMock(Cluster.class);
-    expect(cluster.getDesiredConfigByType("cluster-env")).andReturn(clusterEnvConfig).once();
     expect(cluster.getDesiredConfigByType("kerberos-env")).andReturn(kerberosEnvConfig).once();
 
     final KerberosDescriptor kerberosDescriptor = createNiceMock(KerberosDescriptor.class);
 
     replayAll();
-    kerberosHelper.toggleKerberos(cluster, kerberosDescriptor, null);
+    kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, kerberosDescriptor, null);
     verifyAll();
   }
 
   @Test(expected = AmbariException.class)
   public void testMissingKerberosEnvConf() throws Exception {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
-
-    final Map<String, String> clusterEnvProperties = createNiceMock(Map.class);
-    expect(clusterEnvProperties.get("security_enabled")).andReturn("true").once();
-
-    final Config clusterEnvConfig = createNiceMock(Config.class);
-    expect(clusterEnvConfig.getProperties()).andReturn(clusterEnvProperties).once();
 
     final Map<String, String> krb5ConfProperties = createNiceMock(Map.class);
     expect(krb5ConfProperties.get("kdc_host")).andReturn("10.0.100.1").once();
@@ -212,13 +200,12 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).once();
 
     final Cluster cluster = createNiceMock(Cluster.class);
-    expect(cluster.getDesiredConfigByType("cluster-env")).andReturn(clusterEnvConfig).once();
     expect(cluster.getDesiredConfigByType("krb5-conf")).andReturn(krb5ConfConfig).once();
 
     final KerberosDescriptor kerberosDescriptor = createNiceMock(KerberosDescriptor.class);
 
     replayAll();
-    kerberosHelper.toggleKerberos(cluster, kerberosDescriptor, null);
+    kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, kerberosDescriptor, null);
     verifyAll();
   }
 
@@ -305,12 +292,6 @@ public class KerberosHelperTest extends EasyMockSupport {
     service2.setSecurityState(SecurityState.SECURED_KERBEROS);
     expectLastCall().once();
 
-    final Map<String, String> clusterEnvProperties = createNiceMock(Map.class);
-    expect(clusterEnvProperties.get("security_enabled")).andReturn("true").once();
-
-    final Config clusterEnvConfig = createNiceMock(Config.class);
-    expect(clusterEnvConfig.getProperties()).andReturn(clusterEnvProperties).once();
-
     final Map<String, String> kerberosEnvProperties = createNiceMock(Map.class);
     // TODO: (rlevas) Add when AMBARI 9121 is complete
     // expect(kerberosEnvProperties.get("kdc_type")).andReturn("mit-kdc").once();
@@ -331,7 +312,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         .andReturn(MaintenanceState.OFF).anyTimes();
 
     final Cluster cluster = createNiceMock(Cluster.class);
-    expect(cluster.getDesiredConfigByType("cluster-env")).andReturn(clusterEnvConfig).once();
+    expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).once();
     expect(cluster.getDesiredConfigByType("krb5-conf")).andReturn(krb5ConfConfig).once();
     expect(cluster.getDesiredConfigByType("kerberos-env")).andReturn(kerberosEnvConfig).once();
     expect(cluster.getClusterName()).andReturn("c1").anyTimes();
@@ -501,7 +482,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     // Needed by infrastructure
     injector.getInstance(AmbariMetaInfo.class).init();
 
-    kerberosHelper.toggleKerberos(cluster, kerberosDescriptor, requestStageContainer);
+    kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, kerberosDescriptor, requestStageContainer);
 
     verifyAll();
   }
@@ -538,12 +519,6 @@ public class KerberosHelperTest extends EasyMockSupport {
         .andReturn(Collections.<String, ServiceComponent>emptyMap())
         .once();
 
-    final Map<String, String> clusterEnvProperties = createNiceMock(Map.class);
-    expect(clusterEnvProperties.get("security_enabled")).andReturn("true").once();
-
-    final Config clusterEnvConfig = createNiceMock(Config.class);
-    expect(clusterEnvConfig.getProperties()).andReturn(clusterEnvProperties).once();
-
     final Map<String, String> kerberosEnvProperties = createNiceMock(Map.class);
     // TODO: (rlevas) Add when AMBARI 9121 is complete
     // expect(kerberosEnvProperties.get("kdc_type")).andReturn("mit-kdc").once();
@@ -564,7 +539,6 @@ public class KerberosHelperTest extends EasyMockSupport {
         .andReturn(MaintenanceState.OFF).anyTimes();
 
     final Cluster cluster = createNiceMock(Cluster.class);
-    expect(cluster.getDesiredConfigByType("cluster-env")).andReturn(clusterEnvConfig).once();
     expect(cluster.getDesiredConfigByType("krb5-conf")).andReturn(krb5ConfConfig).once();
     expect(cluster.getDesiredConfigByType("kerberos-env")).andReturn(kerberosEnvConfig).once();
     expect(cluster.getClusterName()).andReturn("c1").anyTimes();

@@ -37,6 +37,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -182,7 +183,7 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
   }
 
   private void createCluster(String clusterName, String stackName) throws AmbariException {
-    ClusterRequest r = new ClusterRequest(null, clusterName, State.INSTALLED.name(), stackName, null);
+    ClusterRequest r = new ClusterRequest(null, clusterName, State.INSTALLED.name(), SecurityType.NONE, stackName, null);
     controller.createCluster(r);
   }
   

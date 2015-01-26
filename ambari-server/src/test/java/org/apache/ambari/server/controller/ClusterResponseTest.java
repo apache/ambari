@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.State;
 import org.junit.Assert;
 import org.junit.Test;
@@ -32,16 +33,18 @@ public class ClusterResponseTest {
     Long clusterId = new Long(10);
     String clusterName = "foo";
     State provisioningState = State.INSTALLED;
+    SecurityType securityType = SecurityType.KERBEROS;
     Set<String> hostNames = new HashSet<String>();
     hostNames.add("h1");
 
     ClusterResponse r1 =
-        new ClusterResponse(clusterId, clusterName, provisioningState,
+        new ClusterResponse(clusterId, clusterName, provisioningState, securityType,
           hostNames, hostNames.size(), "bar", null);
     
     Assert.assertEquals(clusterId, r1.getClusterId());
     Assert.assertEquals(clusterName, r1.getClusterName());
     Assert.assertEquals(provisioningState.name(), r1.getProvisioningState());
+    Assert.assertEquals(securityType.name(), r1.getSecurityType());
     Assert.assertArrayEquals(hostNames.toArray(), r1.getHostNames().toArray());
     Assert.assertEquals(Integer.valueOf(1), r1.getTotalHosts());
     Assert.assertEquals("bar", r1.getDesiredStackVersion());
@@ -50,7 +53,7 @@ public class ClusterResponseTest {
   @Test
   public void testToString() {
     ClusterResponse r =
-      new ClusterResponse(null, null, null, null, null, null, null);
+      new ClusterResponse(null, null, null, null, null, null, null, null);
     r.toString();
   }
 }
