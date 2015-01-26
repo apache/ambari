@@ -47,6 +47,7 @@ import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.events.ActionFinalReportReceivedEvent;
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
+import org.apache.ambari.server.events.HostComponentVersionEvent;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
@@ -481,13 +482,15 @@ public class HeartBeatHandler {
                 final String previousVersion = scHost.getVersion();
                 if (!StringUtils.equals(previousVersion, structuredOutput.getVersion())) {
                   scHost.setVersion(structuredOutput.getVersion());
-                  if (previousVersion != null && !previousVersion.equals("UNKNOWN")) {
+                  if (previousVersion != null && !previousVersion.equalsIgnoreCase(State.UNKNOWN.toString())) {
                     scHost.setUpgradeState(UpgradeState.COMPLETE);
                   }
-                  String repoVersion = scHost.recalculateHostVersionState();
-                  cl.recalculateClusterVersionState(repoVersion);
                 }
               }
+              // Safer to recalculate the version even if we don't detect a difference in the value.
+              // This is useful in case that a manual database edit is done while ambari-server is stopped.
+              HostComponentVersionEvent event = new HostComponentVersionEvent(cl, scHost);
+              ambariEventPublisher.publish(event);
             }
 
             // Updating stack version, if needed

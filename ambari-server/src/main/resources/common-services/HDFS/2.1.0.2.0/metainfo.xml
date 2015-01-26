@@ -141,7 +141,7 @@
           <category>SLAVE</category>
           <!-- TODO: cardinality is conditional on HA topology -->
           <cardinality>0+</cardinality>
-          <advertiseVersion>false</advertiseVersion>
+          <versionAdvertised>false</versionAdvertised>
           <commandScript>
             <script>scripts/zkfc_slave.py</script>
             <scriptType>PYTHON</scriptType>

@@ -139,7 +139,7 @@ public class StackServiceComponentResourceProvider extends
           response.getCardinality(), requestedIds);
 
       setResourceProperty(resource, ADVERTISE_VERSION_ID,
-          response.isAdvertiseVersion(), requestedIds);
+          response.isVersionAdvertised(), requestedIds);
 
       setResourceProperty(resource, CUSTOM_COMMANDS_PROPERTY_ID,
           response.getCustomCommands(), requestedIds);

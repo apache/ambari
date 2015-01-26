@@ -78,7 +78,7 @@ public class StackServiceComponentResponse {
   /**
    * does the component need to advertise a version
    */
-  private boolean advertiseVersion;
+  private boolean versionAdvertised;
 
   /**
    * auto deploy information
@@ -104,7 +104,7 @@ public class StackServiceComponentResponse {
     isClient = component.isClient();
     isMaster = component.isMaster();
     cardinality = component.getCardinality();
-    advertiseVersion = component.isAdvertiseVersion();
+    versionAdvertised = component.isVersionAdvertised();
     autoDeploy = component.getAutoDeploy();
 
     // the custom command names defined for this component
@@ -288,17 +288,17 @@ public class StackServiceComponentResponse {
    *
    * @return Whether the components needs to advertise a version
    */
-  public boolean isAdvertiseVersion() {
-    return advertiseVersion;
+  public boolean isVersionAdvertised() {
+    return versionAdvertised;
   }
 
   /**
    * Set whether the component needs to advertise a version.
    *
-   * @param advertiseVersion whether the component needs to advertise a version
+   * @param versionAdvertised whether the component needs to advertise a version
    */
-  public void setAdvertiseVersion(boolean advertiseVersion) {
-    this.advertiseVersion = advertiseVersion;
+  public void setVersionAdvertised(boolean versionAdvertised) {
+    this.versionAdvertised = versionAdvertised;
   }
 
 

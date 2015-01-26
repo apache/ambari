@@ -78,6 +78,11 @@ public abstract class AmbariEvent {
     HOST_REGISTERED,
 
     /**
+     * A host was registered with the server.
+     */
+    HOST_COMPONENT_VERSION_ADVERTISED,
+
+    /**
      * A host was added to the cluster.
      */
     HOST_ADDED,
@@ -108,7 +113,6 @@ public abstract class AmbariEvent {
    *
    * @param eventType
    *          the type of event (not {@code null}).
-   * @param clusterId
    */
   public AmbariEvent(AmbariEventType eventType) {
     m_eventType = eventType;

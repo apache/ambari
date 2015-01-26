@@ -27,8 +27,11 @@ import java.util.concurrent.locks.ReadWriteLock;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
-import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
+import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.PrivilegeEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 
@@ -161,6 +164,19 @@ public interface Cluster {
    * @throws AmbariException
    */
   void recalculateClusterVersionState(String repositoryVersion) throws AmbariException;
+
+  /**
+   * For a given host, will either either update an existing Host Version Entity for the given version, or create
+   * one if it doesn't exist. The object will be created with a state of
+   * {@link org.apache.ambari.server.state.RepositoryVersionState#UPGRADING}
+   *
+   * @param host Host Entity object
+   * @param repositoryVersion Repository Version that the host is transitioning to
+   * @param stack Stack information with the version
+   * @return Returns either the newly created or the updated Host Version Entity.
+   * @throws AmbariException
+   */
+  public HostVersionEntity transitionHostVersionState(HostEntity host, final RepositoryVersionEntity repositoryVersion, final StackId stack) throws AmbariException;
 
   /**
    * Update state of all cluster stack versions for cluster based on states of host versions.

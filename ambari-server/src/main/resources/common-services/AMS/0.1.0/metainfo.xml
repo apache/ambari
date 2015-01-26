@@ -32,7 +32,7 @@
           <displayName>Metric Collector</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
-          <advertiseVersion>false</advertiseVersion>
+          <versionAdvertised>false</versionAdvertised>
           <dependencies>
             <dependency>
               <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
@@ -53,7 +53,7 @@
           <displayName>Metric Monitor</displayName>
           <category>SLAVE</category>
           <cardinality>ALL</cardinality>
-          <advertiseVersion>false</advertiseVersion>
+          <versionAdvertised>false</versionAdvertised>
           <auto-deploy>
             <enabled>true</enabled>
           </auto-deploy>

@@ -68,10 +68,11 @@ import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
+import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
+import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
@@ -85,8 +86,7 @@ import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ClusterHealthReport;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
@@ -94,8 +94,10 @@ import org.apache.ambari.server.state.ConfigVersionHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
+import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -111,6 +113,7 @@ import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1214,6 +1217,7 @@ public class ClusterImpl implements Cluster {
           // Notice that if any hosts already have the desired stack and version, regardless of the state, we try
           // to be robust and only insert records for the missing hosts.
           if (!intersection.contains(hostname)) {
+            // According to the business logic, we don't create objects in a CURRENT state.
             HostEntity hostEntity = hostDAO.findByName(hostname);
             HostVersionEntity hostVersionEntity = new HostVersionEntity(hostname, currentClusterVersion.getRepositoryVersion(), desiredState);
             hostVersionEntity.setHostEntity(hostEntity);
@@ -1242,7 +1246,7 @@ public class ClusterImpl implements Cluster {
 
   /**
    * Because this is a top-down approach, it should only be called for the purposes of bootstrapping data, such as
-   * installing a brand new cluster or initiating an Upgrade.
+   * installing a brand new cluster (through Blueprints).
    * @param sourceClusterVersion cluster version to be queried for a stack name/version info and desired RepositoryVersionState.
    * The only valid state of this cluster version is {@link RepositoryVersionState#INSTALLING}
    * @throws AmbariException
@@ -1385,7 +1389,6 @@ public class ClusterImpl implements Cluster {
         }
 
         // Ignore if cluster version is CURRENT or UPGRADE_FAILED
-        RepositoryVersionState lowestPriorityState;
         if (clusterVersion.getState() != RepositoryVersionState.INSTALL_FAILED &&
                 clusterVersion.getState() != RepositoryVersionState.OUT_OF_SYNC &&
                 clusterVersion.getState() != RepositoryVersionState.INSTALLING &&
@@ -1399,16 +1402,16 @@ public class ClusterImpl implements Cluster {
         // Part 2, check for transitions.
         Map<String, Host> hosts = clusters.getHostsForCluster(this.getClusterName());
 
+        Set<Host> hostsWithoutHostVersion = new HashSet<Host>();
         Map<RepositoryVersionState, Set<String>> stateToHosts = new HashMap<RepositoryVersionState, Set<String>>();
         for (Host host : hosts.values()) {
           String hostName = host.getHostName();
           HostVersionEntity hostVersion = hostVersionDAO.findByClusterStackVersionAndHost(this.getClusterName(), stackId.getStackId(), repositoryVersion, hostName);
           if (hostVersion == null) {
-            // It is likely that the services are still being installed on the cluster, so not all agents
-            // have had a chance to heartbeat and insert their own Host Version as part of recalculateHostVersionState().
-            // Therefore, we should not allow any transitions yet.
-            LOG.debug("Skipping transitioning the cluster version because host " + hostName + " does not have a version yet.");
-            return;
+            // This host either has not had a chance to heartbeat yet with its installed component, or it has components
+            // that do not advertise a version.
+            hostsWithoutHostVersion.add(host);
+            continue;
           }
 
           RepositoryVersionState hostState = hostVersion.getState();
@@ -1426,6 +1429,27 @@ public class ClusterImpl implements Cluster {
           }
         }
 
+        // Ensure that all of the hosts without a Host Version only have Components that do not advertise a version.
+        // Otherwise, operations are still in progress.
+        for (Host host : hostsWithoutHostVersion) {
+          HostEntity hostEntity = hostDAO.findByName(host.getHostName());
+          final Collection<HostComponentStateEntity> allHostComponents = hostEntity.getHostComponentStateEntities();
+
+          for (HostComponentStateEntity hostComponentStateEntity: allHostComponents) {
+            if (hostComponentStateEntity.getVersion().equalsIgnoreCase(State.UNKNOWN.toString())) {
+              // Some Components cannot advertise a version. E.g., ZKF, AMS, Kerberos
+              ComponentInfo compInfo = ambariMetaInfo.getComponent(
+                  stackId.getStackName(), stackId.getStackVersion(), hostComponentStateEntity.getServiceName(),
+                  hostComponentStateEntity.getComponentName());
+
+              if (compInfo.isVersionAdvertised()) {
+                LOG.debug("Skipping transitioning the cluster version because host " + host.getHostName() + " does not have a version yet.");
+                return;
+              }
+            }
+          }
+        }
+        
         RepositoryVersionState effectiveClusterVersionState = getEffectiveState(stateToHosts);
         if (effectiveClusterVersionState != null && effectiveClusterVersionState != clusterVersion.getState()) {
           // Any mismatch will be caught while transitioning, and raise an exception.
@@ -1441,6 +1465,91 @@ public class ClusterImpl implements Cluster {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
+  }
+
+  /**
+   * Transition the Host Version across states.
+   * If a Host Component has a valid version, then create a Host Version if it does not already exist.
+   * Pre-req is for a Repository Version to exist.
+   * If no no cluster version exists, or exactly one, then potentially transition to CURRENT when no more work is needed.
+   * If in the middle of an upgrade and no more work exists, transition to UPGRADED.
+   * Otherwise, if a mismatch of versions exist, transition to UPGRADING since in the middle of an upgrade.
+   * @param host
+   * @param repositoryVersion
+   * @param stack
+   * @throws AmbariException
+   */
+  @Transactional
+  public HostVersionEntity transitionHostVersionState(HostEntity host, final RepositoryVersionEntity repositoryVersion, final StackId stack) throws AmbariException {
+    HostVersionEntity hostVersionEntity = null;
+    List<HostVersionEntity> hostVersions = hostVersionDAO.findByHost(host.getHostName());
+    if (hostVersions == null || hostVersions.isEmpty()) {
+      // Since the host has no versions, allow bootstrapping a version for it.
+      hostVersionEntity = new HostVersionEntity(host.getHostName(), repositoryVersion, RepositoryVersionState.UPGRADING);
+      hostVersionEntity.setHostEntity(host);
+      hostVersionDAO.create(hostVersionEntity);
+    } else {
+      hostVersionEntity = hostVersionDAO.findByClusterStackVersionAndHost(this.getClusterName(), repositoryVersion.getStack(), repositoryVersion.getVersion(), host.getHostName());
+      if (hostVersionEntity == null) {
+        throw new AmbariException("Host " + host.getHostName() + " is expected to have a Host Version for stack " + repositoryVersion.getStackVersion());
+      }
+    }
+
+    final Collection<HostComponentStateEntity> allHostComponents = host.getHostComponentStateEntities();
+    final Collection<HostComponentStateEntity> versionedHostComponents = new HashSet<HostComponentStateEntity>();
+    final Collection<HostComponentStateEntity> noVersionNeededComponents = new HashSet<HostComponentStateEntity>();
+
+    for (HostComponentStateEntity hostComponentStateEntity: allHostComponents) {
+      if (!hostComponentStateEntity.getVersion().equalsIgnoreCase(State.UNKNOWN.toString())) {
+        versionedHostComponents.add(hostComponentStateEntity);
+      } else {
+        // Some Components cannot advertise a version. E.g., ZKF, AMS, Kerberos
+        ComponentInfo compInfo = ambariMetaInfo.getComponent(
+            stack.getStackName(), stack.getStackVersion(), hostComponentStateEntity.getServiceName(),
+            hostComponentStateEntity.getComponentName());
+
+        if (!compInfo.isVersionAdvertised()) {
+          noVersionNeededComponents.add(hostComponentStateEntity);
+        }
+      }
+    }
+
+    // If 0 or 1 cluster version exists, then a brand new cluster permits the host to transition from UPGRADING->CURRENT
+    // If multiple cluster versions exist, then it means that the change in versions is happening due to an Upgrade,
+    // so should only allow transitioning to UPGRADED or UPGRADING, depending on further circumstances.
+    List<ClusterVersionEntity> clusterVersions = clusterVersionDAO.findByCluster(this.getClusterName());
+    final int versionedPlusNoVersionNeededSize = versionedHostComponents.size() + noVersionNeededComponents.size();
+    if (clusterVersions.size() <= 1) {
+      // Transition from UPGRADING -> CURRENT. This is allowed because Host Version Entity is bootstrapped in an UPGRADING state.
+      // This also covers hosts that do not advertise a version when the cluster was created, and then have another component added
+      // that does advertise a version.
+      if (allHostComponents.size() == versionedPlusNoVersionNeededSize &&
+          (hostVersionEntity.getState().equals(RepositoryVersionState.UPGRADING) || hostVersionEntity.getState().equals(RepositoryVersionState.UPGRADED)) &&
+          ServiceComponentHostImpl.haveSameVersion(versionedHostComponents)) {
+        hostVersionEntity.setState(RepositoryVersionState.CURRENT);
+        hostVersionDAO.merge(hostVersionEntity);
+      }
+    } else {
+      // Transition from UPGRADING -> UPGRADED.
+      // We should never transition directly from INSTALLED -> UPGRADED without first going to UPGRADING because
+      // they belong in different phases (1. distribute bits 2. perform upgrade).
+      if (allHostComponents.size() == versionedPlusNoVersionNeededSize &&
+          hostVersionEntity.getState().equals(RepositoryVersionState.UPGRADING) &&
+          ServiceComponentHostImpl.haveSameVersion(versionedHostComponents)) {
+        hostVersionEntity.setState(RepositoryVersionState.UPGRADED);
+        hostVersionDAO.merge(hostVersionEntity);
+      } else{
+        // HostVersion is INSTALLED and an upgrade is in-progress because at least 2 components have different versions,
+        // Or the host has no components that advertise a version, so still consider it as UPGRADING.
+        if (hostVersionEntity.getState().equals(RepositoryVersionState.INSTALLED) && versionedHostComponents.size() > 0 && 
+          !ServiceComponentHostImpl.haveSameVersion(versionedHostComponents)) {
+          hostVersionEntity.setState(RepositoryVersionState.UPGRADING);
+          hostVersionDAO.merge(hostVersionEntity);
+        }
+      }
+    }
+
+    return hostVersionEntity;
   }
 
   @Override

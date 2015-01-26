@@ -71,7 +71,7 @@ public class ComponentModule extends BaseModule<ComponentModule, ComponentInfo> 
     if (componentInfo.getCardinality() == null) {
       componentInfo.setCardinality(parentInfo.getCardinality());
     }
-    componentInfo.setAdvertiseVersion(parentInfo.isAdvertiseVersion());
+    componentInfo.setVersionAdvertised(parentInfo.isVersionAdvertised());
     if (componentInfo.getAutoDeploy() == null) {
       componentInfo.setAutoDeploy(parentInfo.getAutoDeploy());
     }

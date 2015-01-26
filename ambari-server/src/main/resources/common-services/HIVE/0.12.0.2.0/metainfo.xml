@@ -150,7 +150,7 @@
           <displayName>MySQL Server</displayName>
           <category>MASTER</category>
           <cardinality>0-1</cardinality>
-          <advertiseVersion>false</advertiseVersion>
+          <versionAdvertised>false</versionAdvertised>
           <clientsToUpdateConfigs></clientsToUpdateConfigs>
           <commandScript>
             <script>scripts/mysql_server.py</script>
