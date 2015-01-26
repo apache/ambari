@@ -60,12 +60,12 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   },
 
   getUpdatedSecurityStatus: function () {
-    this.setSecurityStatus();
+    this.getSecurityStatus();
     return this.get('securityEnabled');
   },
 
   /**
-   * performes clustere check before kerbefos security
+   * performs cluster check before kerbefos security
    * wizard starts if <code>preKerberizeCheck<code> supports is true
    * otherwise runs <code>startKerberosWizard<code>
    * @method checkAndStartKerberosWizard
@@ -116,16 +116,48 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
       this.set('dataIsLoaded', true);
     } else {
       //get Security Status From Server
-      var self = this;
-      var tags = [{siteName: 'cluster-env'}];
-      App.router.get('configurationController').getConfigsByTags(tags).done(function (data) {
-        var configs = data[0].properties;
-        if (configs) {
-          self.set('securityEnabled', configs['security_enabled'] === 'true');
-        }
-        self.set('dataIsLoaded', true);
+      this.getSecurityStatus();
+    }
+  },
+
+  getSecurityStatus: function () {
+    if (App.get('testMode')) {
+      this.set('securityEnabled', !App.get('testEnableSecurity'));
+      this.set('dataIsLoaded', true);
+    } else {
+      //get Security Status From Server
+      App.ajax.send({
+        name: 'admin.security_status',
+        sender: this,
+        success: 'getSecurityStatusSuccessCallback',
+        error: 'errorCallback'
       });
     }
+  },
+
+  getSecurityStatusSuccessCallback: function(data) {
+    this.set('dataIsLoaded', true);
+    var securityType = data.Clusters.security_type;
+    this.set('securityEnabled', securityType === 'KERBEROS');
+  },
+
+  errorCallback: function (jqXHR) {
+    this.set('dataIsLoaded', true);
+    // Show the error popup if the API call received a response from the server.
+    // jqXHR.status will be empty when browser cancels the request. Refer to AMBARI-5921 for more info
+    if (!!jqXHR.status) {
+      this.showSecurityErrorPopup();
+    }
+  },
+
+  showSecurityErrorPopup: function () {
+    App.ModalPopup.show({
+      header: Em.I18n.t('common.error'),
+      secondary: false,
+      bodyClass: Ember.View.extend({
+        template: Ember.Handlebars.compile('<p>{{t admin.security.status.error}}</p>')
+      })
+    });
   },
 
   /**

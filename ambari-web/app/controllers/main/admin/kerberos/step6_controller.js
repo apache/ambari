@@ -24,14 +24,14 @@ App.KerberosWizardStep6Controller = App.KerberosProgressPageController.extend({
   commands: [],
   contextForPollingRequest: Em.I18n.t('requestInfo.kerberizeCluster'),
 
-  setRequest: function (data) {
+  setRequest: function () {
     this.set('request', {
       name: 'KERBERIZE_CLUSTER',
       ajaxName: 'admin.kerberize.cluster',
       ajaxData: {
         data: {
           Clusters: {
-            desired_config: data
+            security_type: "KERBEROS"
           }
         }
       }

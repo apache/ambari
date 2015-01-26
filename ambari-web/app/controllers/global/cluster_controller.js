@@ -72,7 +72,7 @@ App.ClusterController = Em.Controller.extend({
 
   doOnClusterLoad: function (item) {
     if (this.get('isLoaded')) {
-      App.router.get('mainAdminSecurityController').getUpdatedSecurityStatus();
+      App.router.get('mainAdminKerberosController').getUpdatedSecurityStatus();
     }
   }.observes('isLoaded'),
 

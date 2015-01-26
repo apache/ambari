@@ -1060,7 +1060,7 @@ var urls = {
     'testInProduction': true
   },
   'admin.security_status': {
-    'real': '/clusters/{clusterName}?fields=Clusters/desired_configs',
+    'real': '/clusters/{clusterName}?fields=Clusters/security_type',
     'mock': '',
     'format': function () {
       return {

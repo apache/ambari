@@ -260,23 +260,19 @@ module.exports = App.WizardRoute.extend({
       controller.dataLoading().done(function () {
         controller.setLowerStepsDisable(6);
         controller.loadAllPriorSteps();
-        controller.getClusterEnvData().done(function (clusterEnvdata) {
-          var kerberosDescriptor = controller.get('kerberosDescriptorConfigs');
-          stepController.postKerberosDescriptor(kerberosDescriptor).always(function(data){
-            stepController.setRequest(clusterEnvdata);
-            controller.connectOutlet('kerberosWizardStep6', controller.get('content'));
-          });
+        var kerberosDescriptor = controller.get('kerberosDescriptorConfigs');
+          stepController.postKerberosDescriptor(kerberosDescriptor).always(function (data) {
+          stepController.setRequest();
+          controller.connectOutlet('kerberosWizardStep6', controller.get('content'));
         });
       });
     },
     retry: function () {
       var router = App.get('router');
       var controller = router.get('kerberosWizardController');
-      controller.getClusterEnvData().done(function (data) {
-        var stepController = router.get('kerberosWizardStep6Controller');
-        stepController.setRequest(data);
-        stepController.loadStep();
-      });
+      var stepController = router.get('kerberosWizardStep6Controller');
+      stepController.setRequest();
+      stepController.loadStep();
     },
     unroutePath: function () {
       return false;
