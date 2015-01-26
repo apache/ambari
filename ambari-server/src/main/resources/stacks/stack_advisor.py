@@ -386,17 +386,23 @@ class DefaultStackAdvisor(StackAdvisor):
       for component in slaveClientComponents:
         componentName = component["StackServiceComponents"]["component_name"]
 
-        if self.isComponentHostsPopulated(component):
-          hostsForComponent = component["StackServiceComponents"]["hostnames"]
-        elif component["StackServiceComponents"]["cardinality"] == "ALL":
+        if component["StackServiceComponents"]["cardinality"] == "ALL":
           hostsForComponent = hostsList
         else:
-          if len(freeHosts) == 0:
+          componentIsPopulated = self.isComponentHostsPopulated(component)
+          if componentIsPopulated:
+            hostsForComponent = component["StackServiceComponents"]["hostnames"]
+          else:
+            hostsForComponent = []
+
+          if self.isSlaveComponent(component):
+            hostsForComponent.extend(freeHosts)
+            hostsForComponent = list(set(hostsForComponent))  # removing duplicates
+          elif self.isClientComponent(component) and not componentIsPopulated:
+            hostsForComponent = freeHosts[0:1]
+
+          if not hostsForComponent:  # hostsForComponent is empty
             hostsForComponent = hostsList[-1:]
-          else: # len(freeHosts) >= 1
-            hostsForComponent = freeHosts
-            if self.isClientComponent(component):
-              hostsForComponent = freeHosts[0:1]
 
         #extend 'hostsComponentsMap' with 'hostsForComponent'
         for hostName in hostsForComponent:
