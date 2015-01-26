@@ -373,80 +373,37 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
   checkServicesChange: function (currentPrefObject) {
     var toDelete = $.extend(true, {}, currentPrefObject);
     var toAdd = [];
-    var self = this;
+    var serviceWidgetsMap = {
+      hdfs_model: ['1', '2', '3', '4', '5', '10', '11'],
+      host_metrics_model: ['6', '7', '8', '9'],
+      hbase_model: ['12', '13', '14', '15', '16'],
+      yarn_model: ['17', '18', '19', '20', '23'],
+      storm_model: ['21'],
+      flume_model: ['22']
+    };
 
     // check each service, find out the newly added service and already deleted service
-    if (this.get('hdfs_model') != null) {
-      var hdfs = ['1', '2', '3', '4', '5', '10', '11'];
-      hdfs.forEach(function (item) {
-        toDelete = self.removeWidget(toDelete, item);
-      }, this);
-    }
+    Em.keys(serviceWidgetsMap).forEach(function (modelName) {
+      if (!Em.isNone(this.get(modelName))) {
+        var ids = serviceWidgetsMap[modelName];
+        var flag = this.containsWidget(toDelete, ids[0]);
+        if (flag) {
+          ids.forEach(function (item) {
+            toDelete = this.removeWidget(toDelete, item);
+          }, this);
+        } else {
+          toAdd = toAdd.concat(ids);
+        }
+      }
+    }, this);
 
-    // Display widgets for host metrics if the stack definition has a host metrics service to display it.
-    if (this.get('host_metrics_model') != null) {
-      var hostMetrics = ['6', '7', '8', '9'];
-      var flag = self.containsWidget(toDelete, hostMetrics[0]);
-      if (flag) {
-        hostMetrics.forEach(function (item) {
-          toDelete = self.removeWidget(toDelete, item);
-        }, this);
-      } else {
-        toAdd = toAdd.concat(hostMetrics);
-      }
-    }
-
-    if (this.get('hbase_model') != null) {
-      var hbase = ['12', '13', '14', '15', '16'];
-      var flag = self.containsWidget(toDelete, hbase[0]);
-      if (flag) {
-        hbase.forEach(function (item) {
-          toDelete = self.removeWidget(toDelete, item);
-        }, this);
-      } else {
-        toAdd = toAdd.concat(hbase);
-      }
-    }
-    if (this.get('yarn_model') != null) {
-      var yarn = ['17', '18', '19', '20', '23'];
-      var flag = self.containsWidget(toDelete, yarn[0]);
-      if (flag) {
-        yarn.forEach(function (item) {
-          toDelete = self.removeWidget(toDelete, item);
-        }, this);
-      } else {
-        toAdd = toAdd.concat(yarn);
-      }
-    }
-    if (this.get('storm_model') != null) {
-      var storm = ['21'];
-      var flag = self.containsWidget(toDelete, storm[0]);
-      if (flag) {
-        storm.forEach(function (item) {
-          toDelete = self.removeWidget(toDelete, item);
-        }, this);
-      } else {
-        toAdd = toAdd.concat(storm);
-      }
-    }
-    if (this.get('flume_model') != null) {
-      var flume = ['22'];
-      var flag = self.containsWidget(toDelete, flume[0]);
-      if (flag) {
-        flume.forEach(function (item) {
-          toDelete = self.removeWidget(toDelete, item);
-        }, this);
-      } else {
-        toAdd = toAdd.concat(flume);
-      }
-    }
     var value = currentPrefObject;
     if (toDelete.visible.length || toDelete.hidden.length) {
       toDelete.visible.forEach(function (item) {
-        value = self.removeWidget(value, item);
+        value = this.removeWidget(value, item);
       }, this);
       toDelete.hidden.forEach(function (item) {
-        value = self.removeWidget(value, item[0]);
+        value = this.removeWidget(value, item[0]);
       }, this);
     }
     if (toAdd.length) {

@@ -451,4 +451,52 @@ describe('App.MainDashboardWidgetsView', function () {
       expect(view.get('gangliaUrl')).to.equal('url/?r=hour&cs=&ce=&m=&s=by+name&c=HDPSlaves&tab=m&vn=');
     });
   });
+
+  describe('#checkServicesChange', function () {
+
+    var emptyCurrentPref = {
+        visible: [],
+        hidden: [],
+        threshold: {}
+      },
+      widgetsMap = {
+        hdfs_model: ['1', '2', '3', '4', '5', '10', '11'],
+        host_metrics_model: ['6', '7', '8', '9'],
+        hbase_model: ['12', '13', '14', '15', '16'],
+        yarn_model: ['17', '18', '19', '20', '23'],
+        storm_model: ['21'],
+        flume_model: ['22']
+      },
+      emptyModelTitle = '{0} absent',
+      notEmptyModelTitle = '{0} present';
+
+    Em.keys(widgetsMap).forEach(function (item, index, array) {
+      it(notEmptyModelTitle.format(item), function () {
+        array.forEach(function (modelName) {
+          view.set(modelName, modelName == item ? {} : null);
+        });
+        expect(view.checkServicesChange(emptyCurrentPref).visible).to.eql(widgetsMap[item]);
+      });
+    });
+
+    Em.keys(widgetsMap).forEach(function (item, index, array) {
+      it(emptyModelTitle.format(item), function () {
+        var expected = [];
+        array.forEach(function (modelName) {
+          if (modelName == item) {
+            view.set(modelName, null);
+          } else {
+            view.set(modelName, {});
+            expected = expected.concat(widgetsMap[modelName]);
+          }
+        });
+        expect(view.checkServicesChange({
+          visible: widgetsMap[item],
+          hidden: [],
+          threshold: {}
+        }).visible).to.eql(expected);
+      });
+    });
+
+  });
 });
