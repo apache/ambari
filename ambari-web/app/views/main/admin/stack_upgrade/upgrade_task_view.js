@@ -67,6 +67,34 @@ App.upgradeTaskView = Em.View.extend({
    */
   taskDetailsProperties: ['status', 'stdout', 'stderr', 'error_log', 'host_name', 'output_log'],
 
+  /**
+   * @type {string}
+   */
+  logTabId: function () {
+    return this.get('elementId') + '-log-tab'
+  }.property(''),
+
+  /**
+   * @type {string}
+   */
+  errorTabId: function () {
+    return this.get('elementId') + '-error-tab'
+  }.property(''),
+
+  /**
+   * @type {string}
+   */
+  logTabIdLink: function () {
+    return '#' + this.get('logTabId');
+  }.property(''),
+
+  /**
+   * @type {string}
+   */
+  errorTabIdLInk: function () {
+    return '#' + this.get('errorTabId');
+  }.property(''),
+
   didInsertElement: function () {
     if (this.get('outsideView')) this.doPolling();
   },

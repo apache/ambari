@@ -27,6 +27,42 @@ describe('App.upgradeTaskView', function () {
   });
   view.removeObserver('content.isExpanded', view, 'doPolling');
 
+  describe("#logTabId", function() {
+    it("", function() {
+      view.reopen({
+        elementId: 'elementId'
+      });
+      expect(view.get('logTabId')).to.equal('elementId-log-tab');
+    });
+  });
+
+  describe("#errorTabId", function() {
+    it("", function() {
+      view.reopen({
+        elementId: 'elementId'
+      });
+      expect(view.get('errorTabId')).to.equal('elementId-error-tab');
+    });
+  });
+
+  describe("#logTabIdLink", function() {
+    it("", function() {
+      view.reopen({
+        logTabId: 'elementId-log-tab'
+      });
+      expect(view.get('logTabIdLink')).to.equal('#elementId-log-tab');
+    });
+  });
+
+  describe("#errorTabIdLInk", function() {
+    it("", function() {
+      view.reopen({
+        errorTabId: 'elementId-error-tab'
+      });
+      expect(view.get('errorTabIdLInk')).to.equal('#elementId-error-tab');
+    });
+  });
+
   describe("#doPolling()", function () {
     beforeEach(function () {
       sinon.stub(view, 'getTaskDetails', Em.K);
