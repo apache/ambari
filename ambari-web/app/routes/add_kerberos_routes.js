@@ -65,9 +65,9 @@ module.exports = App.WizardRoute.extend({
           var controller = App.router.get('kerberosWizardController');
           controller.clearTasksData();
           controller.finish();
-          App.router.get('updateController').set('isWorking', true);
+          App.get('router.updateController').set('isWorking', true);
           if (App.get('testMode')) {
-            App.router.transitionTo('adminKerberos.index');
+            App.get('router').transitionTo('adminKerberos.index');
             location.reload();
           }
           App.clusterStatus.setClusterStatus({
@@ -77,7 +77,7 @@ module.exports = App.WizardRoute.extend({
           }, {
             alwaysCallback: function () {
               self.hide();
-              App.router.transitionTo('adminKerberos.index');
+              App.get('router').transitionTo('adminKerberos.index');
             }
           });
         }
@@ -85,7 +85,7 @@ module.exports = App.WizardRoute.extend({
       kerberosWizardController.set('popup', popup);
       var currentClusterStatus = App.clusterStatus.get('value');
       if (currentClusterStatus) {
-        if (App.testMode) {
+        if (App.get('testMode')) {
           kerberosWizardController.setCurrentStep(App.db.data.KerberosWizard.currentStep);
         } else {
           switch (currentClusterStatus.clusterState) {
@@ -93,7 +93,7 @@ module.exports = App.WizardRoute.extend({
               kerberosWizardController.setCurrentStep(currentClusterStatus.localdb.KerberosWizard.currentStep);
               break;
             default:
-              var currStep = App.router.get('kerberosWizardController.currentStep');
+              var currStep = App.get('router.kerberosWizardController.currentStep');
               kerberosWizardController.setCurrentStep(currStep);
               break;
           }
@@ -232,8 +232,8 @@ module.exports = App.WizardRoute.extend({
     connectOutlets: function (router) {
       console.log('in kerberosWizardController.step5:connectOutlets');
       var controller = router.get('kerberosWizardController');
-      controller.setLowerStepsDisable(5);
       controller.dataLoading().done(function () {
+        controller.setLowerStepsDisable(5);
         controller.loadAllPriorSteps();
         controller.connectOutlet('kerberosWizardStep5', controller.get('content'));
       });
@@ -257,8 +257,8 @@ module.exports = App.WizardRoute.extend({
       console.log('in kerberosWizardController.step6:connectOutlets');
       var controller = router.get('kerberosWizardController');
       var stepController = router.get('kerberosWizardStep6Controller');
-      controller.setLowerStepsDisable(6);
       controller.dataLoading().done(function () {
+        controller.setLowerStepsDisable(6);
         controller.loadAllPriorSteps();
         controller.getClusterEnvData().done(function (clusterEnvdata) {
           var kerberosDescriptor = controller.get('kerberosDescriptorConfigs');
@@ -270,7 +270,7 @@ module.exports = App.WizardRoute.extend({
       });
     },
     retry: function () {
-      var router = App.router;
+      var router = App.get('router');
       var controller = router.get('kerberosWizardController');
       controller.getClusterEnvData().done(function (data) {
         var stepController = router.get('kerberosWizardStep6Controller');
@@ -296,8 +296,8 @@ module.exports = App.WizardRoute.extend({
     connectOutlets: function (router) {
       console.log('in kerberosWizardController.step7:connectOutlets');
       var controller = router.get('kerberosWizardController');
-      controller.setLowerStepsDisable(7);
       controller.dataLoading().done(function () {
+        controller.setLowerStepsDisable(7);
         controller.loadAllPriorSteps();
         controller.connectOutlet('kerberosWizardStep7', controller.get('content'));
       });
@@ -310,13 +310,13 @@ module.exports = App.WizardRoute.extend({
       var controller = router.get('kerberosWizardController');
       controller.finish();
       App.clusterStatus.setClusterStatus({
-        clusterName: App.router.getClusterName(),
+        clusterName: App.get('router').getClusterName(),
         clusterState: 'DEFAULT',
         localdb: App.db.data
       }, {
         alwaysCallback: function () {
           controller.get('popup').hide();
-          App.router.transitionTo('adminKerberos.index');
+          App.get('router').transitionTo('adminKerberos.index');
         }
       });
 

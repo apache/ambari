@@ -48,7 +48,7 @@ App.KerberosWizardController = App.WizardController.extend({
 
   setCurrentStep: function (currentStep, completed) {
     this._super(currentStep, completed);
-    if (App.testMode) {
+    if (App.get('testMode')) {
       return;
     }
     App.clusterStatus.setClusterStatus({
@@ -59,12 +59,23 @@ App.KerberosWizardController = App.WizardController.extend({
     });
   },
 
+  setStepsEnable: function () {
+    for (var i = 1; i <= this.get('totalSteps'); i++) {
+      var step = this.get('isStepDisabled').findProperty('step', i);
+      if (i <= this.get('currentStep') && App.get('router.clusterController.isLoaded')) {
+        step.set('value', false);
+      } else {
+        step.set('value', i != this.get('currentStep'));
+      }
+    }
+  }.observes('currentStep', 'App.router.clusterController.isLoaded'),
+
   /**
    * return new object extended from clusterStatusTemplate
    * @return Object
    */
   getCluster: function () {
-    return jQuery.extend({}, this.get('clusterStatusTemplate'), {name: App.router.getClusterName()});
+    return jQuery.extend({}, this.get('clusterStatusTemplate'), {name: App.get('router').getClusterName()});
   },
 
   /**
@@ -76,7 +87,7 @@ App.KerberosWizardController = App.WizardController.extend({
     var self = this;
     var siteName = 'cluster-env';
     var tags = [{siteName: siteName}];
-    App.router.get('configurationController').getConfigsByTags(tags).done(function (data) {
+    App.get('router.configurationController').getConfigsByTags(tags).done(function (data) {
       var properties = self.updateClusterEnvData(data[0].properties);
       var clusterConfig = {"type": siteName, "tag": 'version' + (new Date).getTime(), "properties": properties};
       var clusterConfigData = {
@@ -214,7 +225,7 @@ App.KerberosWizardController = App.WizardController.extend({
       {
         type: 'sync',
         callback: function () {
-          var kerberosStep2controller = App.router.get('kerberosWizardStep2Controller');
+          var kerberosStep2controller = App.get('router.kerberosWizardStep2Controller');
           this.loadAdvancedConfigs(kerberosStep2controller);
           this.loadServiceConfigProperties();
           this.load('hosts');
@@ -281,6 +292,6 @@ App.KerberosWizardController = App.WizardController.extend({
     this.setCurrentStep('1');
     // kerberos wizard namespace in the localStorage should be emptied
     this.resetDbNamespace();
-    App.router.get('updateController').updateAll();
+    App.get('router.updateController').updateAll();
   }
 });
