@@ -62,25 +62,43 @@ class TestSetupAgent(TestCase):
     call_mock.return_value = 0
     execOsCommand_mock.return_value = {'log': 'log', 'exitstatus': 0}
     # Test if expected_hostname is passed
-    ret = setup_agent.runAgent(passphrase, expected_hostname, "root")
+    ret = setup_agent.runAgent(passphrase, expected_hostname, "root", False)
     cmdStr = str(call_mock.call_args_list[0][0])
     self.assertTrue(expected_hostname in cmdStr)
+    self.assertFalse('-v' in cmdStr)
     self.assertEqual(ret, 0)
     self.assertTrue(sleep_mock.called)
     self.assertEqual(execOsCommand_mock.call_count, 1)
     execOsCommand_mock.reset_mock()
+    call_mock.reset_mock()
+    sleep_mock.reset_mock()
+
+    # Test if verbose=True
+    ret = setup_agent.runAgent(passphrase, expected_hostname, "root", True)
+    self.assertTrue(expected_hostname in cmdStr)
+    cmdStr = str(call_mock.call_args_list[0][0])
+    self.assertTrue('-v' in cmdStr)
+    self.assertEqual(ret, 0)
+    self.assertTrue(sleep_mock.called)
+    self.assertEqual(execOsCommand_mock.call_count, 1)
+    execOsCommand_mock.reset_mock()
+    call_mock.reset_mock()
+    sleep_mock.reset_mock()
+
     # Key 'log' not found
     execOsCommand_mock.return_value = None
-    ret = setup_agent.runAgent(passphrase, expected_hostname, "root")
+    ret = setup_agent.runAgent(passphrase, expected_hostname, "root", False)
     cmdStr = str(call_mock.call_args_list[0][0])
     self.assertTrue(expected_hostname in cmdStr)
     self.assertEqual(ret, 0)
     self.assertEqual(execOsCommand_mock.call_count, 3)
     execOsCommand_mock.reset_mock()
+    call_mock.reset_mock()
+
     # Retcode id not 0
     call_mock.return_value = 2
     execOsCommand_mock.return_value = {'log': 'log', 'exitstatus': 2}
-    ret = setup_agent.runAgent(passphrase, expected_hostname, "root")
+    ret = setup_agent.runAgent(passphrase, expected_hostname, "root", False)
     cmdStr = str(call_mock.call_args_list[0][0])
     self.assertTrue(expected_hostname in cmdStr)
     self.assertEqual(ret, 2)

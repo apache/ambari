@@ -72,11 +72,13 @@ def configureAgent(server_hostname, user_run_as):
   execOsCommand(osCommand)
   return
 
-
-def runAgent(passPhrase, expected_hostname, user_run_as):
+def runAgent(passPhrase, expected_hostname, user_run_as, verbose):
   os.environ[AMBARI_PASSPHRASE_VAR] = passPhrase
-  agent_retcode = subprocess.call("su - %1s -c '/usr/sbin/ambari-agent restart --expected-hostname=%2s'" % (user_run_as, expected_hostname)
-                                  , shell=True)
+  vo = ""
+  if verbose:
+    vo = " -v"
+  cmd = "su - {0} -c '/usr/sbin/ambari-agent restart --expected-hostname={1} {2}'".format(user_run_as, expected_hostname, vo)
+  agent_retcode = subprocess.call(cmd, shell=True)
   for i in range(3):
     time.sleep(1)
     ret = execOsCommand(["tail", "-20", "/var/log/ambari-agent/ambari-agent.log"])
@@ -88,9 +90,15 @@ def runAgent(passPhrase, expected_hostname, user_run_as):
       print log
       return agent_retcode
   return agent_retcode
-
+ 
 def tryStopAgent():
+  verbose = False
+  cmds = ["bash", "-c", "ps aux | grep 'AmbariAgent.py' | grep ' \-v'"]
+  cmdl = ["bash", "-c", "ps aux | grep 'AmbariAgent.py' | grep ' \--verbose'"]
+  if execOsCommand(cmds)["exitstatus"] == 0 or execOsCommand(cmdl)["exitstatus"] == 0:
+    verbose = True
   subprocess.call("/usr/sbin/ambari-agent stop", shell=True)
+  return verbose  
 
 def getOptimalVersion(initialProjectVersion):
   optimalVersion = initialProjectVersion
@@ -202,20 +210,16 @@ def parseArguments(argv=None):
   return expected_hostname, passPhrase, hostname, user_run_as, projectVersion, server_port
 
 
-def main(argv=None):
+def run_setup(argv=None):
   # Parse passed arguments
   expected_hostname, passPhrase, hostname,\
   user_run_as, projectVersion, server_port = parseArguments(argv)
-
   checkServerReachability(hostname, server_port)
   
   if projectVersion == "null" or projectVersion == "{ambariVersion}" or projectVersion == "":
     retcode = getOptimalVersion("")
   else:
     retcode = getOptimalVersion(projectVersion)
-
-  tryStopAgent()
-
   if retcode["exitstatus"] == 0 and retcode["log"] != None and retcode["log"] != "" and retcode["log"][0].strip() != "":
       availiableProjectVersion = retcode["log"].strip()
       if not isAgentPackageAlreadyInstalled(availiableProjectVersion):
@@ -228,10 +232,23 @@ def main(argv=None):
                                         " Repository has following "
                                         "versions of ambari-agent:"+retcode["log"][0].strip()})
   else:
-      sys.exit(retcode)
-  
+       sys.exit(retcode)
+   
   configureAgent(hostname, user_run_as)
-  sys.exit(runAgent(passPhrase, expected_hostname, user_run_as))
+  sys.exit(runAgent(passPhrase, expected_hostname, user_run_as, verbose))
+
+def main(argv=None):
+    #Try stop agent and check --verbose option if agent already run
+  global verbose
+  verbose = tryStopAgent()
+  if verbose:
+      run_setup(argv)
+  else:
+    try:
+        run_setup(argv)
+    except Exception, e:
+      print e
+      sys.exit(-1)
 
 if __name__ == '__main__':
   logging.basicConfig(level=logging.DEBUG)
