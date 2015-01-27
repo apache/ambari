@@ -18,22 +18,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import os
 import glob
-import logging
-import re
-import time
-import subprocess
-import threading
-import shlex
-import platform
 import hostname
-from HostCheckReportFileHandler import HostCheckReportFileHandler
-from Hardware import Hardware
-from ambari_commons import OSCheck, OSConst, Firewall
-from resource_management.libraries.functions import packages_analyzer
+import logging
+import os
+import re
+import shlex
 import socket
+import subprocess
+import time
+
+from ambari_commons import OSCheck, OSConst
+from ambari_commons.firewall import Firewall
 from ambari_commons.os_family_impl import OsFamilyImpl
+
+from resource_management.libraries.functions import packages_analyzer
+from ambari_agent.Hardware import Hardware
+from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
+
 
 logger = logging.getLogger()
 

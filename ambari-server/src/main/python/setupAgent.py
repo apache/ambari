@@ -22,14 +22,11 @@ import socket
 import time
 import sys
 import logging
-import pprint
 import os
 import subprocess
-import threading
-import traceback
-import stat
-from pprint import pformat
+
 from ambari_commons import OSCheck
+
 
 AMBARI_PASSPHRASE_VAR = "AMBARI_PASSPHRASE"
 
@@ -212,8 +209,7 @@ def parseArguments(argv=None):
 
 def run_setup(argv=None):
   # Parse passed arguments
-  expected_hostname, passPhrase, hostname,\
-  user_run_as, projectVersion, server_port = parseArguments(argv)
+  expected_hostname, passPhrase, hostname, user_run_as, projectVersion, server_port = parseArguments(argv)
   checkServerReachability(hostname, server_port)
   
   if projectVersion == "null" or projectVersion == "{ambariVersion}" or projectVersion == "":

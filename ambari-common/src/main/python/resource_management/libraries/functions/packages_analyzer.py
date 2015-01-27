@@ -20,11 +20,11 @@ limitations under the License.
 
 import sys
 import logging
-from ambari_commons import shell
 import subprocess
 from threading import Thread
 import threading
-from ambari_commons import OSCheck, OSConst, Firewall
+from ambari_commons import OSCheck, OSConst
+from ambari_commons import shell
 
 __all__ = ["installedPkgsByName", "allInstalledPackages", "allAvailablePackages", "nameMatch",
            "getInstalledRepos", "getInstalledPkgsByRepo", "getInstalledPkgsByNames", "getPackageDetails"]

@@ -39,14 +39,14 @@ else:
   os_distro_value = ('win2012serverr2','6.3','WindowsServer')
 
 with patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value)):
+  from ambari_commons.firewall import Firewall
+  from ambari_commons.os_check import OSCheck, OSConst
   from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
   from ambari_agent.HostInfo import HostInfo, HostInfoLinux
   from ambari_agent.Hardware import Hardware
   from ambari_agent.AmbariConfig import AmbariConfig
   from resource_management.core.system import System
-  from ambari_commons import OSCheck, Firewall, FirewallChecks, OSConst
   from resource_management.libraries.functions import packages_analyzer
-  import ambari_commons
 
 @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
 class TestHostInfo(TestCase):

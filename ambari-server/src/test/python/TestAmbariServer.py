@@ -50,7 +50,8 @@ with patch("platform.linux_distribution", return_value = os_distro_value):
       with patch("glob.glob", return_value = ['/etc/init.d/postgresql-9.3']):
         _ambari_server_ = __import__('ambari-server')
 
-        from ambari_commons import Firewall, OSCheck, OSConst
+        from ambari_commons.firewall import Firewall
+        from ambari_commons.os_check import OSCheck, OSConst
         from ambari_commons.exceptions import FatalException, NonFatalException
         from ambari_commons.logging_utils import get_verbose, set_verbose, get_silent, set_silent, get_debug_mode, \
           print_info_msg, print_warning_msg, print_error_msg

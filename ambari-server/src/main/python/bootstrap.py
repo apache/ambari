@@ -18,8 +18,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import socket
-from threading import Thread
+# On Linux, the bootstrap process is supposed to run on hosts that may have installed Python 2.4 and above (CentOS 5).
+# Hence, the whole bootstrap code needs to comply with Python 2.4 instead of Python 2.6. Most notably, @-decorators and
+# {}-format() are to be avoided.
+
 import time
 import sys
 import logging
@@ -29,7 +31,6 @@ import subprocess
 import threading
 import traceback
 import re
-from pprint import pformat
 from datetime import datetime
 
 AMBARI_PASSPHRASE_VAR_NAME = "AMBARI_PASSPHRASE"
@@ -40,7 +41,7 @@ MAX_PARALLEL_BOOTSTRAPS = 20
 POLL_INTERVAL_SEC = 1
 DEBUG = False
 DEFAULT_AGENT_TEMP_FOLDER = "/var/lib/ambari-agent/data/tmp"
-PYTHON_ENV="env PYTHONPATH=$PYTHONPATH:{0} ".format(DEFAULT_AGENT_TEMP_FOLDER)
+PYTHON_ENV="env PYTHONPATH=$PYTHONPATH:" + DEFAULT_AGENT_TEMP_FOLDER
 
 
 class HostLog:
@@ -332,8 +333,6 @@ class Bootstrap(threading.Thread):
       retcode2 = ssh.run()
       self.host_log.write("\n")
 
-
-
     self.host_log.write("==========================\n")
     self.host_log.write("Copying setup script file...")
     fileToCopy = params.setup_agent_file
@@ -397,9 +396,9 @@ class Bootstrap(threading.Thread):
     self.host_log.write("==========================\n")
     self.host_log.write("Running OS type check...")
 
-    command = "chmod a+x %s && %s %s" % \
+    command = "chmod a+x %s && %s %s %s" % \
               (self.getOsCheckScriptRemoteLocation(),
-               PYTHON_ENV + self.getOsCheckScriptRemoteLocation(), params.cluster_os_type)
+               PYTHON_ENV, self.getOsCheckScriptRemoteLocation(), params.cluster_os_type)
 
     ssh = SSH(params.user, params.sshkey_file, self.host, command,
               params.bootdir, self.host_log)

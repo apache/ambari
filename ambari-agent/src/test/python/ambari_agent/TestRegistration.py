@@ -26,9 +26,9 @@ from mock.mock import MagicMock
 from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 
 with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
+  from ambari_commons.os_check import OSCheck
   from ambari_agent.Register import Register
   from ambari_agent.AmbariConfig import AmbariConfig
-  from ambari_commons import OSCheck, Firewall, FirewallChecks
   from ambari_agent.Hardware import Hardware
 
 class TestRegistration(TestCase):
