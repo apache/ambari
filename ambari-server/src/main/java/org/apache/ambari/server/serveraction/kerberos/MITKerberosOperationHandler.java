@@ -124,7 +124,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
    *
    * @param principal a String containing the principal add
    * @param password  a String containing the password to use when creating the principal
-   * @param service a boolean value indicating whether the principal is to be created as a service principal or not
+   * @param service   a boolean value indicating whether the principal is to be created as a service principal or not
    * @return an Integer declaring the generated key number
    * @throws KerberosKDCConnectionException       if a connection to the KDC cannot be made
    * @throws KerberosAdminAuthenticationException if the administrator credentials fail to authenticate
@@ -348,27 +348,28 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
         StringBuilder cleanCommand = new StringBuilder();
         Iterator<String> iterator = command.iterator();
 
-        if(iterator.hasNext())
+        if (iterator.hasNext()) {
           cleanCommand.append(iterator.next());
+        }
 
-        while(iterator.hasNext()){
+        while (iterator.hasNext()) {
           String part = iterator.next();
 
           cleanCommand.append(' ');
 
-          if(part.contains(" ")) {
+          if (part.contains(" ")) {
             cleanCommand.append('"');
             cleanCommand.append(part);
             cleanCommand.append('"');
-          }
-          else {
+          } else {
             cleanCommand.append(part);
           }
 
-          if("-w".equals(part)) {
+          if ("-w".equals(part)) {
             // Skip the password and use "********" instead
-            if(iterator.hasNext())
+            if (iterator.hasNext()) {
               iterator.next();
+            }
             cleanCommand.append(" ********");
           }
         }
@@ -387,12 +388,13 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
         // Did we fail to connect to the KDC?
         else if (stdErr.contains("Cannot contact any KDC")) {
           throw new KerberosKDCConnectionException(stdErr);
-        }
-        else if (stdErr.contains("Cannot resolve network address for admin server in requested realm while initializing kadmin interface")) {
+        } else if (stdErr.contains("Cannot resolve network address for admin server in requested realm while initializing kadmin interface")) {
           throw new KerberosKDCConnectionException(stdErr);
         }
         // Was the realm invalid?
         else if (stdErr.contains("Missing parameters in krb5.conf required for kadmin client")) {
+          throw new KerberosRealmException(stdErr);
+        } else if (stdErr.contains("Cannot find KDC for requested realm while initializing kadmin interface")) {
           throw new KerberosRealmException(stdErr);
         } else {
           throw new KerberosOperationException("Unexpected error condition executing the kadmin command");

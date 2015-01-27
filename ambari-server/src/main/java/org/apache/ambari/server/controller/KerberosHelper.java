@@ -444,8 +444,19 @@ public class KerberosHelper {
                       e
                   );
                 } catch (KerberosKDCConnectionException e) {
-                  throw new AmbariException("Failed to connect to KDC - " + e.getMessage() + "\n" +
-                      "Update the KDC settings in krb5-conf and kerberos-env configurations to correct this issue.",
+                  throw new IllegalArgumentException(
+                      "Failed to connect to KDC - " + e.getMessage() + "\n" +
+                          "Update the KDC settings in krb5-conf and kerberos-env configurations to correct this issue.",
+                      e);
+                } catch (KerberosRealmException e) {
+                  throw new IllegalArgumentException(
+                      "Failed to find a KDC for the specified realm - " + e.getMessage() + "\n" +
+                          "Update the KDC settings in krb5-conf and kerberos-env configurations to correct this issue.",
+                      e);
+                } catch (KerberosLDAPContainerException e) {
+                  throw new IllegalArgumentException(
+                      "The principal container was not specified\n" +
+                          "Set the 'container_dn' value in the kerberos-env configuration to correct this issue.",
                       e);
                 } catch (KerberosOperationException e) {
                   throw new AmbariException(e.getMessage(), e);

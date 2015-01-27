@@ -205,6 +205,39 @@ public class MITKerberosOperationHandlerTest extends EasyMockSupport {
     handler.close();
   }
 
+  @Test(expected = KerberosRealmException.class)
+  public void testTestAdministratorCredentialsInvalidRealm2() throws Exception {
+    MITKerberosOperationHandler handler = createMockBuilder(MITKerberosOperationHandler.class)
+        .addMockedMethod(KerberosOperationHandler.class.getDeclaredMethod("executeCommand", String[].class))
+        .createNiceMock();
+
+    expect(handler.executeCommand(anyObject(String[].class)))
+        .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
+          @Override
+          public ShellCommandUtil.Result answer() throws Throwable {
+            ShellCommandUtil.Result result = createMock(ShellCommandUtil.Result.class);
+
+            expect(result.getExitCode()).andReturn(1).anyTimes();
+            expect(result.isSuccessful()).andReturn(false).anyTimes();
+            expect(result.getStderr())
+                .andReturn("kadmin: Cannot find KDC for requested realm while initializing kadmin interface")
+                .anyTimes();
+            expect(result.getStdout())
+                .andReturn("Authenticating as principal admin/admin with password.")
+                .anyTimes();
+
+            replay(result);
+            return result;
+          }
+        });
+
+    replayAll();
+
+    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM, null);
+    handler.testAdministratorCredentials();
+    handler.close();
+  }
+
   @Test(expected = KerberosKDCConnectionException.class)
   public void testTestAdministratorCredentialsKDCConnectionException() throws Exception {
     MITKerberosOperationHandler handler = createMockBuilder(MITKerberosOperationHandler.class)
@@ -221,6 +254,39 @@ public class MITKerberosOperationHandlerTest extends EasyMockSupport {
             expect(result.isSuccessful()).andReturn(false).anyTimes();
             expect(result.getStderr())
                 .andReturn("kadmin: Cannot contact any KDC for requested realm while initializing kadmin interface")
+                .anyTimes();
+            expect(result.getStdout())
+                .andReturn("Authenticating as principal admin/admin with password.")
+                .anyTimes();
+
+            replay(result);
+            return result;
+          }
+        });
+
+    replayAll();
+
+    handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM, null);
+    handler.testAdministratorCredentials();
+    handler.close();
+  }
+
+  @Test(expected = KerberosKDCConnectionException.class)
+  public void testTestAdministratorCredentialsKDCConnectionException2() throws Exception {
+    MITKerberosOperationHandler handler = createMockBuilder(MITKerberosOperationHandler.class)
+        .addMockedMethod(KerberosOperationHandler.class.getDeclaredMethod("executeCommand", String[].class))
+        .createNiceMock();
+
+    expect(handler.executeCommand(anyObject(String[].class)))
+        .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
+          @Override
+          public ShellCommandUtil.Result answer() throws Throwable {
+            ShellCommandUtil.Result result = createMock(ShellCommandUtil.Result.class);
+
+            expect(result.getExitCode()).andReturn(1).anyTimes();
+            expect(result.isSuccessful()).andReturn(false).anyTimes();
+            expect(result.getStderr())
+                .andReturn("kadmin: Cannot resolve network address for admin server in requested realm while initializing kadmin interface")
                 .anyTimes();
             expect(result.getStdout())
                 .andReturn("Authenticating as principal admin/admin with password.")
