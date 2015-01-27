@@ -126,14 +126,22 @@ App.UpgradeVersionBoxView = Em.View.extend({
       element.set('action', 'openUpgradeDialog');
       if (['HOLDING', 'HOLDING_FAILED', 'HOLDING_TIMEDOUT'].contains(App.get('upgradeState'))) {
         element.set('iconClass', 'icon-pause');
-        element.set('text', Em.I18n.t('admin.stackVersions.version.upgrade.pause'));
+        if (this.get('controller.isDowngrade')) {
+          element.set('text', Em.I18n.t('admin.stackVersions.version.downgrade.pause'));
+        } else {
+          element.set('text', Em.I18n.t('admin.stackVersions.version.upgrade.pause'));
+        }
       } else {
         element.set('iconClass', 'icon-cog');
-        element.set('text', Em.I18n.t('admin.stackVersions.version.upgrade.running'));
+        if (this.get('controller.isDowngrade')) {
+          element.set('text', Em.I18n.t('admin.stackVersions.version.downgrade.running'));
+        } else {
+          element.set('text', Em.I18n.t('admin.stackVersions.version.upgrade.running'));
+        }
       }
     }
     return element;
-  }.property('content.status'),
+  }.property('content.status', 'controller.isDowngrade'),
 
   didInsertElement: function () {
     App.tooltip($('.link-tooltip'), {title: Em.I18n.t('admin.stackVersions.version.linkTooltip')});

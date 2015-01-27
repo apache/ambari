@@ -18,9 +18,9 @@
 
 <div id="stack-upgrade-dialog">
   <div {{bindAttr class="view.isLoaded::hidden :row-fluid"}}>
-    <div class="span2 task-list-main-warp">{{statusIcon controller.upgradeData.Upgrade.request_status}}
+    <div class="span3 task-list-main-warp">{{statusIcon controller.upgradeData.Upgrade.request_status}}
       &nbsp;{{view.upgradeStatusLabel}}</div>
-    <div class="span9">
+    <div class="span8">
       {{view App.ProgressBarView
         progressBinding="view.overallProgress"
         statusBinding="controller.upgradeData.Upgrade.request_status"

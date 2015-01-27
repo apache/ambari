@@ -246,20 +246,12 @@ describe('App.upgradeWizardView', function () {
 
   describe("#isDowngradeAvailable", function() {
     it("downgrade available", function() {
-      view.set('controller.upgradeVersion', '2.2.1');
-      view.set('controller.currentVersion', {repository_version: '2.2'});
+      view.set('controller.isDowngrade', false);
       view.propertyDidChange('isDowngradeAvailable');
       expect(view.get('isDowngradeAvailable')).to.be.true;
     });
     it("downgrade unavailable", function() {
-      view.set('controller.upgradeVersion', '2.2');
-      view.set('controller.currentVersion', {repository_version: '2.2'});
-      view.propertyDidChange('isDowngradeAvailable');
-      expect(view.get('isDowngradeAvailable')).to.be.false;
-    });
-    it("downgrade unavailable", function() {
-      view.set('controller.upgradeVersion', '2.2');
-      view.set('controller.currentVersion', {repository_version: '2.2.1'});
+      view.set('controller.isDowngrade', true);
       view.propertyDidChange('isDowngradeAvailable');
       expect(view.get('isDowngradeAvailable')).to.be.false;
     });

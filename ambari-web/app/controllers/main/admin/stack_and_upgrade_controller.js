@@ -45,6 +45,12 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   upgradeVersion: null,
 
   /**
+   * @type {boolean}
+   * @default false
+   */
+  isDowngrade: false,
+
+  /**
    * version that currently applied to server
    * should be plain object, because stored to localStorage
    * @type {object|null}
@@ -60,7 +66,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   /**
    * properties that stored to localStorage to resume wizard progress
    */
-  wizardStorageProperties: ['upgradeId', 'upgradeVersion', 'currentVersion'],
+  wizardStorageProperties: ['upgradeId', 'upgradeVersion', 'currentVersion', 'isDowngrade'],
 
   /**
    * path to the mock json
@@ -284,7 +290,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       sender: this,
       data: {
         value: currentVersion.repository_version,
-        label: currentVersion.repository_name
+        label: currentVersion.repository_name,
+        isDowngrade: true
       },
       success: 'upgradeSuccessCallback'
     });
@@ -312,9 +319,11 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     this.set('upgradeData', null);
     this.set('upgradeId', data.resources[0].Upgrade.request_id);
     this.set('upgradeVersion', params.label);
+    this.set('isDowngrade', !!params.isDowngrade);
     this.setDBProperty('upgradeVersion', params.label);
     this.setDBProperty('upgradeId', data.resources[0].Upgrade.request_id);
     this.setDBProperty('upgradeState', 'PENDING');
+    this.setDBProperty('isDowngrade', !!params.isDowngrade);
     App.set('upgradeState', 'PENDING');
     App.clusterStatus.setClusterStatus({
       wizardControllerName: this.get('name'),
@@ -550,6 +559,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       this.setDBProperty('upgradeState', 'INIT');
       this.setDBProperty('upgradeVersion', undefined);
       this.setDBProperty('currentVersion', undefined);
+      this.setDBProperty('isDowngrade', undefined);
       App.clusterStatus.setClusterStatus({
         localdb: App.db.data
       });

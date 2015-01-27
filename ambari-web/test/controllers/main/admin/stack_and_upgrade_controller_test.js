@@ -254,12 +254,14 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           }
         ]
       };
-      controller.upgradeSuccessCallback(data, {}, {label: 'HDP-2.2.1'});
+      controller.upgradeSuccessCallback(data, {}, {label: 'HDP-2.2.1', isDowngrade: true});
       expect(controller.setDBProperty.calledWith('upgradeId', 1)).to.be.true;
       expect(controller.setDBProperty.calledWith('upgradeVersion', 'HDP-2.2.1')).to.be.true;
+      expect(controller.setDBProperty.calledWith('isDowngrade', true)).to.be.true;
       expect(controller.load.calledOnce).to.be.true;
       expect(controller.get('upgradeVersion')).to.equal('HDP-2.2.1');
       expect(controller.get('upgradeData')).to.be.null;
+      expect(controller.get('isDowngrade')).to.be.true;
       expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
       expect(controller.openUpgradeDialog.calledOnce).to.be.true;
     });
@@ -457,7 +459,8 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         sender: controller,
         data: {
           value: '2.2',
-          label: 'HDP-2.2'
+          label: 'HDP-2.2',
+          isDowngrade: true
         },
         success: 'upgradeSuccessCallback'
       });

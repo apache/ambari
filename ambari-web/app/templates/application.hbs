@@ -45,12 +45,22 @@
                 {{/if}}
               {{/with}}
               {{#if App.upgradeInProgress}}
-                <span class="label upgrade-in-progress" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
-                  <i class="icon-cog"></i> {{t app.upgrade.inProgress}}</span>
+                {{#if App.router.mainAdminStackAndUpgradeController.isDowngrade}}
+                  <span class="label upgrade-in-progress" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
+                     <i class="icon-cog"></i>&nbsp;{{t admin.stackVersions.version.downgrade.running}}</span>
+                {{else}}
+                  <span class="label upgrade-in-progress" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
+                     <i class="icon-cog"></i>&nbsp;{{t admin.stackVersions.version.upgrade.running}}</span>
+                {{/if}}
               {{/if}}
               {{#if App.upgradeHolding}}
-                <span class="label upgrade-holding" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
-                  <i class="icon-pause"></i> {{t app.upgrade.holding}}</span>
+                {{#if App.router.mainAdminStackAndUpgradeController.isDowngrade}}
+                  <span class="label upgrade-holding" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
+                  <i class="icon-pause"></i>&nbsp;{{t admin.stackVersions.version.downgrade.pause}}</span>
+                {{else}}
+                  <span class="label upgrade-holding" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
+                  <i class="icon-pause"></i>&nbsp;{{t admin.stackVersions.version.upgrade.pause}}</span>
+                {{/if}}
               {{/if}}
             </a>
           {{else}}

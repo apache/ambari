@@ -62,8 +62,8 @@ App.upgradeWizardView = Em.View.extend({
    * @type {boolean}
    */
   isDowngradeAvailable: function () {
-    return stringUtils.compareVersions(this.get('controller.upgradeVersion'), this.get('controller.currentVersion.repository_version')) === 1;
-  }.property('controller.currentVersion', 'controller.upgradeVersion'),
+    return !this.get('controller.isDowngrade');
+  }.property('controller.isDowngrade'),
 
   /**
    * progress value is rounded to floor
@@ -164,24 +164,32 @@ App.upgradeWizardView = Em.View.extend({
    * @type {string}
    */
   upgradeStatusLabel: function() {
+    var labelKey = null;
     switch (this.get('controller.upgradeData.Upgrade.request_status')) {
       case 'QUEUED':
       case 'PENDING':
       case 'IN_PROGRESS':
-        return Em.I18n.t('admin.stackUpgrade.state.inProgress');
+        labelKey = 'admin.stackUpgrade.state.inProgress';
+        break;
       case 'COMPLETED':
-        return Em.I18n.t('admin.stackUpgrade.state.completed');
+        labelKey = 'admin.stackUpgrade.state.completed';
+        break;
       case 'ABORTED':
       case 'TIMEDOUT':
       case 'FAILED':
       case 'HOLDING_FAILED':
       case 'HOLDING_TIMEDOUT':
       case 'HOLDING':
-        return Em.I18n.t('admin.stackUpgrade.state.paused');
-      default:
-        return ""
+        labelKey = 'admin.stackUpgrade.state.paused';
+        break;
     }
-  }.property('controller.upgradeData.Upgrade.request_status'),
+    if (labelKey) {
+      labelKey += (this.get('controller.isDowngrade')) ? '.downgrade' : "";
+      return Em.I18n.t(labelKey);
+    } else {
+      return "";
+    }
+  }.property('controller.upgradeData.Upgrade.request_status', 'controller.isDowngrade'),
 
   /**
    * toggle details box
