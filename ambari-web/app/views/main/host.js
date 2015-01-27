@@ -580,21 +580,21 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
 
     /**
      * true if host has only one repoversion
-     * in this case expander in version columnn is hidden
+     * in this case expander in version column is hidden
      * @returns {Boolean}
      */
     hasSingleVersion: function() {
-      return this.get('content.stackVersions.length') == 1;
+      return this.get('content.stackVersions.length') < 2;
     }.property('content.stackVersions.length'),
 
     /**
      * this version is always shown others hidden unless expander is open
+     * host may have no stack versions
      * @returns {String}
      */
     currentVersion: function() {
-      var currentRepoVersion = this.get('content.stackVersions').findProperty('isCurrent');
-      var version = currentRepoVersion ? currentRepoVersion : this.get('content.stackVersions').filterProperty('isCurrent', false)[0];
-      return version.get('repoVersion') + " (" + version.get('displayStatus') + ")";
+      var currentRepoVersion = this.get('content.stackVersions').findProperty('isCurrent') || this.get('content.stackVersions').objectAt(0);
+      return currentRepoVersion ? currentRepoVersion.get('repoVersion') + " (" + currentRepoVersion.get('displayStatus') + ")" : "";
     }.property('content.stackVersions'),
 
     /**
