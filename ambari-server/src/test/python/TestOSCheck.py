@@ -226,7 +226,7 @@ class TestOSCheck(TestCase):
         else:
           pass
 
-    self.assertEquals(count, 8)
+    self.assertEquals(count, 9)
     # Command should not fail if *.rpmsave file is missing
     result = update_ambari_properties()
     self.assertEquals(result, 0)

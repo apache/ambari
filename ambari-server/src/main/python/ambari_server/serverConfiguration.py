@@ -798,6 +798,9 @@ def update_ambari_properties():
     if not JCE_NAME_PROPERTY in new_properties.keys() and isJDK16Installed:
       new_properties.process_pair(JCE_NAME_PROPERTY, JCE_POLICY_FILENAMES[1])
 
+    if not OS_FAMILY_PROPERTY in new_properties.keys():
+      new_properties.process_pair(OS_FAMILY_PROPERTY, OS_FAMILY + OS_VERSION)
+
     new_properties.store(open(conf_file, 'w'))
 
   except Exception, e:

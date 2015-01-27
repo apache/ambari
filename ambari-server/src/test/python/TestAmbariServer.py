@@ -61,7 +61,7 @@ with patch("platform.linux_distribution", return_value = os_distro_value):
         from ambari_server.properties import Properties
         from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
         from ambari_server.serverConfiguration import configDefaults, \
-          check_database_name_property, \
+          check_database_name_property, OS_FAMILY_PROPERTY, \
           find_properties_file, get_ambari_classpath, get_ambari_jars, get_ambari_properties, get_JAVA_HOME, get_share_jars, \
           parse_properties_file, read_ambari_user, update_ambari_properties, update_properties_2, write_property, find_jdk, \
           AMBARI_CONF_VAR, AMBARI_SERVER_LIB, JDBC_DATABASE_PROPERTY, JDBC_RCA_PASSWORD_FILE_PROPERTY, \
@@ -4434,7 +4434,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
 
   @patch("ambari_server.serverConfiguration.get_conf_dir")
-  def test_update_ambari_properties_without_user_property(self, get_conf_dir_mock):
+  def test_update_ambari_properties_without_some_properties(self, get_conf_dir_mock):
     '''
       Checks: update_ambari_properties call should add ambari-server.user property if
       it's absent
@@ -4466,6 +4466,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(NR_USER_PROPERTY in ambari_properties.keys())
     value = ambari_properties[NR_USER_PROPERTY]
     self.assertEqual(value, "root")
+    self.assertTrue(OS_FAMILY_PROPERTY in ambari_properties.keys())
 
     os.unlink(fn2)
     pass
