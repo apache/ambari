@@ -538,7 +538,7 @@ class TestAmbariServer(TestCase):
     self.assertFalse(False, get_verbose())
     self.assertFalse(False, get_silent())
 
-    self.assertIsNone(options.exit_message)
+    self.assertTrue(options.exit_message is None)
     pass
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
@@ -3253,7 +3253,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     p.process_pair(PERSISTENCE_TYPE_PROPERTY, 'remote')
 
     find_jdbc_driver_mock.reset_mock()
-    find_jdbc_driver_mock.return_value = 0
+    find_jdbc_driver_mock.return_value = -1
     try:
       _ambari_server_.start(args)
     except FatalException as e:
@@ -3265,6 +3265,9 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     # Remote DB
     p.process_pair(JDBC_DATABASE_PROPERTY, 'oracle')
     p.process_pair(PERSISTENCE_TYPE_PROPERTY, 'remote')
+
+    find_jdbc_driver_mock.reset_mock()
+    find_jdbc_driver_mock.return_value = 0
 
     # Test exception handling on resource files housekeeping
     perform_housekeeping_mock.reset_mock()
@@ -3309,6 +3312,26 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     # Case: custom user is "root"
     read_ambari_user_mock.return_value = "root"
+
+    # Java failed to start
+    proc = MagicMock()
+    proc.pid = -186
+    popenMock.return_value = proc
+
+    try:
+      _ambari_server_.start(args)
+    except FatalException as e:
+      # Expected
+      self.assertTrue(popenMock.called)
+      self.assertTrue('Ambari Server java process died' in e.reason)
+      self.assertTrue(perform_housekeeping_mock.called)
+
+    args = reset_mocks()
+
+    # Java OK
+    proc.pid = 186
+    popenMock.reset_mock()
+
     _ambari_server_.start(args)
     self.assertTrue(popenMock.called)
     popen_arg = popenMock.call_args[0][0]
