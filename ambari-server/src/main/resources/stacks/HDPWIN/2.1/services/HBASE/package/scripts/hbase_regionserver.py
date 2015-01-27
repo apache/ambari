@@ -33,6 +33,7 @@ class HbaseRegionServer(Script):
 
   def start(self, env):
     import params
+    self.configure(env)
     Service(service_mapping.hbase_regionserver_win_service_name, action="start")
 
   def stop(self, env):
