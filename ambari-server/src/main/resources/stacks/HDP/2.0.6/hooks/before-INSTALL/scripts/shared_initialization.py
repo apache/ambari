@@ -57,6 +57,7 @@ def setup_java():
   )
   
   Execute(chmod_cmd,
+          not_if = format("test -e {java_exec}"),
           sudo = True,
   )
 
