@@ -83,6 +83,12 @@ public class FinalizeKerberosServerAction extends KerberosServerAction {
         for (ServiceComponentHost sch : serviceComponentHosts) {
           SecurityState securityState = sch.getSecurityState();
           if (securityState.isTransitional()) {
+            String message = String.format("Setting securityState for %s/%s on host %s to state %s",
+                sch.getServiceName(), sch.getServiceComponentName(), sch.getHostName(),
+                sch.getDesiredSecurityState().toString());
+            LOG.info(message);
+            actionLog.writeStdOut(message);
+
             sch.setSecurityState(sch.getDesiredSecurityState());
           }
         }
@@ -104,12 +110,13 @@ public class FinalizeKerberosServerAction extends KerberosServerAction {
         } catch (IOException e) {
           // We should log this exception, but don't let it fail the process since if we got to this
           // KerberosServerAction it is expected that the the overall process was a success.
-          LOG.warn(String.format("The data directory (%s) was not deleted due to an error condition - {%s}",
-              dataDirectory.getAbsolutePath(), e.getMessage()), e);
+          String message = String.format("The data directory (%s) was not deleted due to an error condition - {%s}",
+              dataDirectory.getAbsolutePath(), e.getMessage());
+          LOG.warn(message, e);
         }
       }
     }
 
-    return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", null, null);
+    return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
   }
 }

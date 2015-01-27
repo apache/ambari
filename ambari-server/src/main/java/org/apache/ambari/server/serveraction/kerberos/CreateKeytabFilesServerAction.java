@@ -108,11 +108,15 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
     CommandReport commandReport = null;
 
     if (identityRecord != null) {
+      String message = String.format("Creating keytab file for %s", evaluatedPrincipal);
+      LOG.info(message);
+      actionLog.writeStdOut(message);
 
       if (operationHandler == null) {
-        String message = String.format("Failed to create keytab file for %s, missing handler", evaluatedPrincipal);
+        message = String.format("Failed to create keytab file for %s, missing KerberosOperationHandler", evaluatedPrincipal);
+        actionLog.writeStdErr(message);
         LOG.error(message);
-        commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", "", message);
+        commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
       } else {
         Map<String, String> principalPasswordMap = getPrincipalPasswordMap(requestSharedDataContext);
         Map<String, Integer> principalKeyNumberMap = getPrincipalKeyNumberMap(requestSharedDataContext);
@@ -126,9 +130,10 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
           String password = principalPasswordMap.get(evaluatedPrincipal);
 
           if (password == null) {
-            String message = String.format("Failed to create keytab file for %s, missing password", evaluatedPrincipal);
+            message = String.format("Failed to create keytab file for %s, missing password", evaluatedPrincipal);
+            actionLog.writeStdErr(message);
             LOG.error(message);
-            commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", "", message);
+            commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
           } else {
             // Determine where to store the keytab file.  It should go into a host-specific
             // directory under the previously determined data directory.
@@ -141,24 +146,26 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
 
               try {
                 if (operationHandler.createKeytabFile(evaluatedPrincipal, password, keyNumber, keytabFile)) {
-                  LOG.debug("Successfully created keytab file for {} at {}",
-                      evaluatedPrincipal, keytabFile.getAbsolutePath());
+                  message = String.format("Successfully created keytab file for %s at %s", evaluatedPrincipal, keytabFile.getAbsolutePath());
+                  LOG.debug(message);
                 } else {
-                  String message = String.format("Failed to create keytab file for %s at %s",
-                      evaluatedPrincipal, keytabFile.getAbsolutePath());
+                  message = String.format("Failed to create keytab file for %s at %s", evaluatedPrincipal, keytabFile.getAbsolutePath());
+                  actionLog.writeStdErr(message);
                   LOG.error(message);
-                  commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", "", message);
+                  commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
                 }
               } catch (KerberosOperationException e) {
-                String message = String.format("Failed to create keytab file for %s - %s", evaluatedPrincipal, e.getMessage());
+                message = String.format("Failed to create keytab file for %s - %s", evaluatedPrincipal, e.getMessage());
+                actionLog.writeStdErr(message);
                 LOG.error(message, e);
-                commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", "", message);
+                commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
               }
             } else {
-              String message = String.format("Failed to create keytab file for %s, the container directory does not exist: %s",
+              message = String.format("Failed to create keytab file for %s, the container directory does not exist: %s",
                   evaluatedPrincipal, hostDirectory.getAbsolutePath());
+              actionLog.writeStdErr(message);
               LOG.error(message);
-              commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", "", message);
+              commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
             }
           }
         }

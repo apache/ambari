@@ -106,15 +106,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
       return false;
     } else {
       // Create the KAdmin query to execute:
-      String query = String.format("get_principal %s", principal);
-
-      ShellCommandUtil.Result result;
-      try {
-        result = invokeKAdmin(query);
-      } catch (KerberosOperationException e) {
-        LOG.error(String.format("Failed to query for principal %s", principal), e);
-        throw e;
-      }
+      ShellCommandUtil.Result result = invokeKAdmin(String.format("get_principal %s", principal));
 
       // If there is data from STDOUT, see if the following string exists:
       //    Principal: <principal>
@@ -153,13 +145,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
       throw new KerberosOperationException("Failed to create new principal - no password specified");
     } else {
       // Create the kdamin query:  add_principal <-randkey|-pw <password>> <principal>
-      ShellCommandUtil.Result result;
-      try {
-        result = invokeKAdmin(String.format("add_principal -pw %s %s", password, principal));
-      } catch (KerberosOperationException e) {
-        LOG.error(String.format("Failed to create new principal for %s", principal), e);
-        throw e;
-      }
+      ShellCommandUtil.Result result = invokeKAdmin(String.format("add_principal -pw %s %s", password, principal));
 
       // If there is data from STDOUT, see if the following string exists:
       //    Principal "<principal>" created
@@ -198,12 +184,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
       throw new KerberosOperationException("Failed to set password - no password specified");
     } else {
       // Create the kdamin query:  change_password <-randkey|-pw <password>> <principal>
-      try {
-        invokeKAdmin(String.format("change_password -pw %s %s", password, principal));
-      } catch (KerberosOperationException e) {
-        LOG.error(String.format("Failed to set password for %s", principal), e);
-        throw e;
-      }
+      invokeKAdmin(String.format("change_password -pw %s %s", password, principal));
 
       return getKeyNumber(principal);
     }
@@ -230,14 +211,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
     if ((principal == null) || principal.isEmpty()) {
       throw new KerberosOperationException("Failed to remove new principal - no principal specified");
     } else {
-      ShellCommandUtil.Result result;
-
-      try {
-        result = invokeKAdmin(String.format("delete_principal -force %s", principal));
-      } catch (KerberosOperationException e) {
-        LOG.error(String.format("Failed to remove new principal for %s", principal), e);
-        throw e;
-      }
+      ShellCommandUtil.Result result = invokeKAdmin(String.format("delete_principal -force %s", principal));
 
       // If there is data from STDOUT, see if the following string exists:
       //    Principal "<principal>" created
@@ -265,15 +239,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
       throw new KerberosOperationException("Failed to get key number for principal  - no principal specified");
     } else {
       // Create the kdamin query:  get_principal <principal>
-      String query = String.format("get_principal %s", principal);
-
-      ShellCommandUtil.Result result;
-      try {
-        result = invokeKAdmin(query);
-      } catch (KerberosOperationException e) {
-        LOG.error(String.format("Failed to get key number for %s", principal), e);
-        throw e;
-      }
+      ShellCommandUtil.Result result = invokeKAdmin(String.format("get_principal %s", principal));
 
       String stdOut = result.getStdout();
       if (stdOut == null) {
@@ -420,6 +386,9 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
         }
         // Did we fail to connect to the KDC?
         else if (stdErr.contains("Cannot contact any KDC")) {
+          throw new KerberosKDCConnectionException(stdErr);
+        }
+        else if (stdErr.contains("Cannot resolve network address for admin server in requested realm while initializing kadmin interface")) {
           throw new KerberosKDCConnectionException(stdErr);
         }
         // Was the realm invalid?

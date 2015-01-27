@@ -47,6 +47,11 @@ public abstract class AbstractServerAction implements ServerAction {
    */
   private HostRoleCommand hostRoleCommand = null;
 
+  /**
+   * The ActionLog that used to log execution progress of ServerAction
+   */
+  protected ActionLog actionLog = new ActionLog();
+
   @Override
   public ExecutionCommand getExecutionCommand() {
     return this.executionCommand;

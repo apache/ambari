@@ -140,8 +140,10 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
           }
         } catch (IOException e) {
           String message = "Could not update services configs to enable kerberos";
+          actionLog.writeStdErr(message);
           LOG.error(message, e);
-          commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", "", message);
+          commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(),
+              actionLog.getStdErr());
         } finally {
           if (indexReader != null && !indexReader.isClosed()) {
             try {
@@ -162,7 +164,7 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
     }
 
     return (commandReport == null)
-        ? createCommandReport(0, HostRoleStatus.COMPLETED, "{}", null, null)
+        ? createCommandReport(0, HostRoleStatus.COMPLETED, "{}", actionLog.getStdOut(), actionLog.getStdErr())
         : commandReport;
   }
 
@@ -189,7 +191,7 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
     throws AmbariException {
 
     String newTag = "version" + System.currentTimeMillis();
-
+    String message;
     if ((properties != null) && (properties.size() > 0)) {
       Map<String, Config> all = cluster.getConfigsByType(configType);
       if (all == null || !all.containsKey(newTag)) {
@@ -197,8 +199,10 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
         Config oldConfig = cluster.getDesiredConfigByType(configType);
 
         if (oldConfig == null && !createNewConfigType) {
-          LOG.info("Config " + configType + " not found. Assuming service not installed. " +
-            "Skipping configuration properties update");
+          message = String.format("Config %s not found. Assuming service not installed. " +
+              "Skipping configuration properties update", configType);
+          actionLog.writeStdOut(message);
+          LOG.info(message);
           return;
         } else if (oldConfig == null) {
           oldConfigProperties = new HashMap<String, String>();
@@ -211,8 +215,10 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
           mergeProperties(oldConfigProperties, properties, updateIfExists);
 
         if (!Maps.difference(oldConfigProperties, mergedProperties).areEqual()) {
-          LOG.info("Applying configuration with tag '{}' to " +
-            "cluster '{}'", newTag, cluster.getClusterName());
+          message = String.format("Applying configuration with tag '%s' to " +
+              "cluster '%s'", newTag, cluster.getClusterName());
+          actionLog.writeStdOut(message);
+          LOG.info(message);
 
           ConfigurationRequest cr = new ConfigurationRequest();
           cr.setClusterName(cluster.getClusterName());
@@ -228,15 +234,19 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
 
             if (cluster.addDesiredConfig(authName, Collections.singleton(baseConfig)) != null) {
               String oldConfigString = (oldConfig != null) ? " from='" + oldConfig.getTag() + "'" : "";
-              LOG.info("cluster '" + cluster.getClusterName() + "' "
-                + "changed by: '" + authName + "'; "
-                + "type='" + baseConfig.getType() + "' "
-                + "tag='" + baseConfig.getTag() + "'"
-                + oldConfigString);
+              message = "cluster '" + cluster.getClusterName() + "' "
+                  + "changed by: '" + authName + "'; "
+                  + "type='" + baseConfig.getType() + "' "
+                  + "tag='" + baseConfig.getTag() + "'"
+                  + oldConfigString;
+              LOG.info(message);
+              actionLog.writeStdOut(message);
             }
           }
         } else {
-          LOG.info("No changes detected to config " + configType + ". Skipping configuration properties update");
+          message = "No changes detected to config " + configType + ". Skipping configuration properties update";
+          LOG.info(message);
+          actionLog.writeStdOut(message);
         }
       }
     }

@@ -311,6 +311,9 @@ public abstract class KerberosServerAction extends AbstractServerAction {
     CommandReport commandReport = null;
     Map<String, String> commandParameters = getCommandParameters();
 
+    actionLog.writeStdOut("Processing identities...");
+    LOG.info("Processing identities...");
+
     if (commandParameters != null) {
       // Grab the relevant data from this action's command parameters map
       KerberosCredential administratorCredential = getAdministratorCredential(commandParameters);
@@ -326,6 +329,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
           if (!dataDirectory.isDirectory() || !dataDirectory.canRead()) {
             String message = String.format("Failed to process the identities, the data directory is not accessible: %s",
                 dataDirectory.getAbsolutePath());
+            actionLog.writeStdErr(message);
             LOG.error(message);
             throw new AmbariException(message);
           }
@@ -337,6 +341,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
             if (!indexFile.canRead()) {
               String message = String.format("Failed to process the identities, cannot read the index file: %s",
                   indexFile.getAbsolutePath());
+              actionLog.writeStdErr(message);
               LOG.error(message);
               throw new AmbariException(message);
             }
@@ -345,6 +350,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
             if (handler == null) {
               String message = String.format("Failed to process the identities, a KDC operation handler was not found for the KDC type of : %s",
                   kdcType.toString());
+              actionLog.writeStdErr(message);
               LOG.error(message);
               throw new AmbariException(message);
             }
@@ -354,6 +360,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
             } catch (KerberosOperationException e) {
               String message = String.format("Failed to process the identities, could not properly open the KDC operation handler: %s",
                   e.getMessage());
+              actionLog.writeStdErr(message);
               LOG.error(message);
               throw new AmbariException(message, e);
             }
@@ -379,6 +386,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
             } catch (IOException e) {
               String message = String.format("Failed to process the identities, cannot read the index file: %s",
                   indexFile.getAbsolutePath());
+              actionLog.writeStdErr(message);
               LOG.error(message, e);
               throw new AmbariException(message, e);
             } finally {
@@ -405,10 +413,13 @@ public abstract class KerberosServerAction extends AbstractServerAction {
       }
     }
 
+    actionLog.writeStdOut("Processing identities completed.");
+    LOG.info("Processing identities completed.");
+
     // If commandReport is null, we can assume this operation was a success, so return a successful
     // CommandReport; else return the previously created CommandReport.
     return (commandReport == null)
-        ? createCommandReport(0, HostRoleStatus.COMPLETED, "{}", null, null)
+        ? createCommandReport(0, HostRoleStatus.COMPLETED, "{}", actionLog.getStdOut(), actionLog.getStdErr())
         : commandReport;
   }
 
@@ -464,9 +475,14 @@ public abstract class KerberosServerAction extends AbstractServerAction {
       String host = record.get(KerberosActionDataFile.HOSTNAME);
 
       if (principal != null) {
-        // Evaluate the principal "pattern" found in the record to generate the "evaluated p[rincipal"
+        // Evaluate the principal "pattern" found in the record to generate the "evaluated principal"
         // by replacing the _HOST and _REALM variables.
         String evaluatedPrincipal = principal.replace("_HOST", host).replace("_REALM", defaultRealm);
+
+        String message = String.format("Processing identity for %s", evaluatedPrincipal);
+        actionLog.writeStdOut(message);
+        LOG.info(message);
+
         commandReport = processIdentity(record, evaluatedPrincipal, operationHandler, requestSharedDataContext);
       }
     }
