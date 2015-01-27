@@ -156,6 +156,9 @@ public class KerberosHelper {
 
     KerberosDetails kerberosDetails = getKerberosDetails(cluster);
 
+    // Update KerberosDetails with the new security type - the current one in the cluster is the "old" value
+    kerberosDetails.setSecurityType(securityType);
+
     if (securityType == SecurityType.KERBEROS) {
       LOG.info("Configuring Kerberos for realm {} on cluster, {}", kerberosDetails.getDefaultRealm(), cluster.getClusterName());
       requestStageContainer = handle(cluster, kerberosDescriptor, kerberosDetails, null, null, requestStageContainer, enableKerberosHandler);
