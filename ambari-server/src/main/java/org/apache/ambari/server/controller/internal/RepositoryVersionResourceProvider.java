@@ -47,23 +47,15 @@ import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
-import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.OperatingSystemInfo;
-import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
-import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.inject.Inject;
 
 /**
@@ -241,31 +233,32 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
             throw new ObjectNotFoundException("There is no repository version with id " + id);
           }
 
-          if (propertyMap.get(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID) != null) {
-
+          if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID)))) {
             final List<ClusterVersionEntity> clusterVersionEntities =
                 clusterVersionDAO.findByStackAndVersion(entity.getStack(), entity.getVersion());
 
             if (!clusterVersionEntities.isEmpty()) {
               final ClusterVersionEntity firstClusterVersion = clusterVersionEntities.get(0);
-              throw new AmbariException("Repository version can't be updated as it is " +
+              throw new AmbariException("Upgrade pack can't be changed for repository version which is " +
                 firstClusterVersion.getState().name() + " on cluster " + firstClusterVersion.getClusterEntity().getClusterName());
             }
 
-            if (propertyMap.get(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID) != null) {
-              final Object operatingSystems = propertyMap.get(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID);
-              final String operatingSystemsJson = gson.toJson(operatingSystems);
-              try {
-                repositoryVersionHelper.parseOperatingSystems(operatingSystemsJson);
-              } catch (Exception ex) {
-                throw new AmbariException("Json structure for operating systems is incorrect", ex);
-              }
-              entity.setOperatingSystems(operatingSystemsJson);
-            }
-
+            final String upgradePackage = propertyMap.get(REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID).toString();
+            entity.setUpgradePackage(upgradePackage);
           }
 
-          if (propertyMap.get(REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID) != null) {
+          if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID)))) {
+            final Object operatingSystems = propertyMap.get(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID);
+            final String operatingSystemsJson = gson.toJson(operatingSystems);
+            try {
+              repositoryVersionHelper.parseOperatingSystems(operatingSystemsJson);
+            } catch (Exception ex) {
+              throw new AmbariException("Json structure for operating systems is incorrect", ex);
+            }
+            entity.setOperatingSystems(operatingSystemsJson);
+          }
+
+          if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID)))) {
             entity.setDisplayName(propertyMap.get(REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID).toString());
           }
 
