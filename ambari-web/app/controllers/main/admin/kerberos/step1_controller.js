@@ -39,6 +39,10 @@ App.KerberosWizardStep1Controller = Em.Controller.extend({
         Em.Object.create({
           displayText: Em.I18n.t('admin.kerberos.wizard.step1.option.kdc.condition.2'),
           checked: false
+        }),
+        Em.Object.create({
+          displayText: Em.I18n.t('admin.kerberos.wizard.step1.option.kdc.condition.3'),
+          checked: false
         })
       ]
     }),
@@ -52,6 +56,18 @@ App.KerberosWizardStep1Controller = Em.Controller.extend({
         }),
         Em.Object.create({
           displayText: Em.I18n.t('admin.kerberos.wizard.step1.option.ad.condition.2'),
+          checked: false
+        }),
+        Em.Object.create({
+          displayText: Em.I18n.t('admin.kerberos.wizard.step1.option.ad.condition.3'),
+          checked: false
+        }),
+        Em.Object.create({
+          displayText: Em.I18n.t('admin.kerberos.wizard.step1.option.ad.condition.4'),
+          checked: false
+        }),
+        Em.Object.create({
+          displayText: Em.I18n.t('admin.kerberos.wizard.step1.option.ad.condition.5'),
           checked: false
         })
       ]

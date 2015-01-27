@@ -4483,13 +4483,13 @@ var hdp2properties = [
 /************************************************Kerberos Descriptor******************************************/
   {
     "name": "smokeuser_principal_name",
-    "displayName": "Smokeuser principal",
+    "displayName": "Smoke user principal",
     "category": "Ambari Principals",
     "index": 1
   },
   {
     "name": "smokeuser_keytab",
-    "displayName": "Smokeuser keytab",
+    "displayName": "Smoke user keytab",
     "category": "Ambari Principals",
     "index": 2
   },

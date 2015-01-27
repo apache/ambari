@@ -278,11 +278,13 @@ App.KerberosWizardController = App.WizardController.extend({
   /**
    * shows popup with to warn user
    * @param primary
+   * @param isCritical
    */
-  warnBeforeExitPopup: function(primary) {
+  warnBeforeExitPopup: function(primary, isCritical) {
     var primaryText = Em.I18n.t('common.exitAnyway');
-    var msg = Em.I18n.t('admin.kerberos.wizard.exit.msg');
-    return App.showConfirmationPopup(primary, msg, null, null, primaryText)
+    var msg = isCritical ? Em.I18n.t('admin.kerberos.wizard.exit.critical.msg')
+      : Em.I18n.t('admin.kerberos.wizard.exit.warning.msg');
+    return App.showConfirmationPopup(primary, msg, null, null, primaryText, isCritical);
   },
   /**
    * Clear all temporary data

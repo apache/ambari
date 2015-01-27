@@ -36,23 +36,30 @@ module.exports = App.WizardRoute.extend({
         onClose: function () {
           var self = this;
           switch(kerberosWizardController.get('currentStep')) {
-            case "1":
-              self.exitWizard();
-              break;
             case "2":
               var step2Controller = router.get('kerberosWizardStep2Controller');
               if (step2Controller.get('testConnectionInProgress')) {
                 step2Controller.showConnectionInProgressPopup(function() {
-                  self.exitWizard();
+                  kerberosWizardController.warnBeforeExitPopup(function() {
+                    self.exitWizard();
+                  }, false);
                 });
               } else {
-                self.exitWizard();
+                kerberosWizardController.warnBeforeExitPopup(function() {
+                  self.exitWizard();
+                }, false);
               }
+              break;
+            case "6":
+            case "7":
+              kerberosWizardController.warnBeforeExitPopup(function() {
+                self.exitWizard();
+              }, true);
               break;
             default:
               kerberosWizardController.warnBeforeExitPopup(function() {
                 self.exitWizard();
-              });
+              }, false);
           }
         },
         didInsertElement: function () {
