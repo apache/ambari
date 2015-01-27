@@ -81,7 +81,7 @@ export HBASE_HEAPSIZE={{hbase_heapsize}}
 # Below are what we set by default. May only work with SUN JVM.
 # For more on why as well as other possible settings,
 # see http://wiki.apache.org/hadoop/PerformanceTuning
-export HBASE_OPTS="-XX:+UseConcMarkSweepGC -XX:ErrorFile={{hbase_log_dir}}/hs_err_pid%p.log"
+export HBASE_OPTS="-XX:+UseConcMarkSweepGC -XX:ErrorFile={{hbase_log_dir}}/hs_err_pid%p.log -Djava.io.tmpdir={{hbase_tmp_dir}}"
 export SERVER_GC_OPTS="-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:{{hbase_log_dir}}/gc.log-`date +'%Y%m%d%H%M'`"
 # Uncomment below to enable java garbage collection logging.
 # export HBASE_OPTS="$HBASE_OPTS -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:$HBASE_HOME/logs/gc-hbase.log"
