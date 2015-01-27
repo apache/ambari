@@ -698,6 +698,17 @@
               </mapper>
             </data>
             <data>
+              <src>src/main/python/ambari_server_main.py</src>
+              <type>file</type>
+              <mapper>
+                <type>perm</type>
+                <prefix>/usr/sbin</prefix>
+                <user>root</user>
+                <group>root</group>
+                <filemode>755</filemode>
+              </mapper>
+            </data>
+            <data>
               <src>src/main/python/ambari-server.py</src>
               <type>file</type>
               <mapper>
