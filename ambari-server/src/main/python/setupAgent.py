@@ -77,7 +77,7 @@ def runAgent(passPhrase, expected_hostname, user_run_as, verbose):
   vo = ""
   if verbose:
     vo = " -v"
-  cmd = "su - {0} -c '/usr/sbin/ambari-agent restart --expected-hostname={1} {2}'".format(user_run_as, expected_hostname, vo)
+  cmd = "su - %1s -c '/usr/sbin/ambari-agent restart --expected-hostname=%2s %3s'" % (user_run_as, expected_hostname, vo)
   agent_retcode = subprocess.call(cmd, shell=True)
   for i in range(3):
     time.sleep(1)
