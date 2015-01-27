@@ -125,7 +125,7 @@ public class QueryLexer {
    * @return an array of tokens
    * @throws InvalidQueryException if the query is invalid
    */
-  public Token[] tokens(String exp, Set<String> ignoreProperties) throws InvalidQueryException {
+  public Token[] tokens(String exp, Collection<String> ignoreProperties) throws InvalidQueryException {
     ScanContext ctx = new ScanContext();
     ctx.addPropertiesToIgnore(SET_IGNORE);
     ctx.addPropertiesToIgnore(ignoreProperties);
@@ -349,7 +349,7 @@ public class QueryLexer {
      *
      * @param ignoredProperties set of property names to ignore
      */
-    public void addPropertiesToIgnore(Set<String> ignoredProperties) {
+    public void addPropertiesToIgnore(Collection<String> ignoredProperties) {
       if (ignoredProperties != null) {
         m_propertiesToIgnore.addAll(ignoredProperties);
       }

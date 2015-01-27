@@ -144,6 +144,44 @@ public class RequestFactoryTest {
   }
 
   @Test
+  // put with update directive in URI
+  public void testCreate_Put__WithUriDirective() {
+    HttpHeaders headers = createNiceMock(HttpHeaders.class);
+    UriInfo uriInfo = createNiceMock(UriInfo.class);
+    RequestBody body = createNiceMock(RequestBody.class);
+    ResourceInstance resource = createNiceMock(ResourceInstance.class);
+    ResourceDefinition resourceDefinition = createNiceMock(ResourceDefinition.class);
+
+    @SuppressWarnings("unchecked")
+    MultivaluedMap<String, String> mapQueryParams = createMock(MultivaluedMap.class);
+    Map<String, List<String>> mapProps = new HashMap<String, List<String>>();
+    mapProps.put("foo", Collections.singletonList("bar"));
+
+    Map<String, String> requestInfoMap = new HashMap<String, String>();
+
+    //expectations
+    expect(uriInfo.getQueryParameters()).andReturn(mapQueryParams).anyTimes();
+    expect(mapQueryParams.entrySet()).andReturn(mapProps.entrySet()).anyTimes();
+    expect(resource.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
+    expect(resourceDefinition.getUpdateDirectives()).andReturn(Collections.singleton("foo"));
+    expect(body.getQueryString()).andReturn(null);
+    expect(body.getRequestInfoProperties()).andReturn(requestInfoMap).anyTimes();
+
+    replay(headers, uriInfo, body, resource, mapQueryParams, resourceDefinition);
+
+    //test
+    RequestFactory factory = new RequestFactory();
+    Request request = factory.createRequest(headers, body, uriInfo, Request.Type.PUT, resource);
+
+    assertEquals(resource, request.getResource());
+    assertEquals(body, request.getBody());
+    assertEquals(Request.Type.PUT, request.getRequestType());
+    assertEquals("bar", requestInfoMap.get("foo"));
+
+    verify(headers, uriInfo, body, resource, mapQueryParams, resourceDefinition);
+  }
+
+  @Test
   // query post : body contains query string
   public void testCreate_Post__BodyQueryParams() {
     HttpHeaders headers = createNiceMock(HttpHeaders.class);

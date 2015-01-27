@@ -188,4 +188,12 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
       resultNode.setProperty("href", href);
     }
   }
+
+  /**
+   * Returns a collection which can be modified by sub resources
+   */
+  @Override
+  public Collection<String> getUpdateDirectives() {
+    return new HashSet<String>();
+  }
 }

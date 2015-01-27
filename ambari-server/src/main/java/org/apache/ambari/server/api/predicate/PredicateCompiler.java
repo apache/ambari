@@ -20,7 +20,7 @@ package org.apache.ambari.server.api.predicate;
 
 import org.apache.ambari.server.controller.spi.Predicate;
 
-import java.util.Set;
+import java.util.Collection;
 
 /**
  * Compiler which takes a query expression as input and produces a predicate instance as output.
@@ -53,12 +53,12 @@ public class PredicateCompiler {
    * Generate a predicate from a query expression.
    *
    * @param exp               query expression
-   * @param ignoredProperties  set of property names to ignore
+   * @param ignoredProperties  collection of property names to ignore
    *
    * @return a predicate instance
    * @throws InvalidQueryException if unable to compile the expression
    */
-  public Predicate compile(String exp, Set<String> ignoredProperties) throws InvalidQueryException {
+  public Predicate compile(String exp, Collection<String> ignoredProperties) throws InvalidQueryException {
     return parser.parse(lexer.tokens(exp, ignoredProperties));
   }
 }

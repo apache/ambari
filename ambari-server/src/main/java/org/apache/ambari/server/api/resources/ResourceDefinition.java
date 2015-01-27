@@ -107,4 +107,9 @@ public interface ResourceDefinition {
   public interface PostProcessor {
     public void process(Request request, TreeNode<Resource> resultNode, String href);
   }
+
+  /**
+   * Retrieves directives from the URI
+   */
+  public Collection<String> getUpdateDirectives();
 }

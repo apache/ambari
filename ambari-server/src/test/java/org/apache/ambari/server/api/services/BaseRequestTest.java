@@ -125,6 +125,66 @@ public abstract class BaseRequestTest {
   }
 
   @Test
+  public void testProcess_withDirectives() throws Exception {
+    HttpHeaders headers = createNiceMock(HttpHeaders.class);
+    String path = URLEncoder.encode("http://localhost.com:8080/api/v1/clusters/c1", "UTF-8");
+    String query = URLEncoder.encode("foo=foo-value&bar=bar-value", "UTF-8");
+    URI uri = new URI(path + "?" + query);
+    PredicateCompiler compiler = createStrictMock(PredicateCompiler.class);
+    Predicate predicate = createNiceMock(Predicate.class);
+    UriInfo uriInfo = createMock(UriInfo.class);
+    @SuppressWarnings("unchecked")
+    MultivaluedMap<String, String> queryParams = createMock(MultivaluedMap.class);
+    RequestHandler handler = createStrictMock(RequestHandler.class);
+    Result result = createMock(Result.class);
+    ResultStatus resultStatus = createMock(ResultStatus.class);
+    ResultPostProcessor processor = createStrictMock(ResultPostProcessor.class);
+    RequestBody body = createNiceMock(RequestBody.class);
+    ResourceInstance resource = createNiceMock(ResourceInstance.class);
+    ResourceDefinition resourceDefinition = createNiceMock(ResourceDefinition.class);
+    Set<String> directives = new HashSet<String>();
+    directives.add("my_directive");
+    Renderer renderer = new DefaultRenderer();
+
+    Request request = getTestRequest(headers, body, uriInfo, compiler, handler, processor, resource);
+
+    //expectations
+    expect(uriInfo.getQueryParameters()).andReturn(queryParams).anyTimes();
+    expect(queryParams.getFirst(QueryLexer.QUERY_MINIMAL)).andReturn(null);
+    expect(queryParams.getFirst(QueryLexer.QUERY_FORMAT)).andReturn(null);
+    expect(resource.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
+    expect(resourceDefinition.getUpdateDirectives()).andReturn(directives).anyTimes(); // for PUT implementation
+    expect(resourceDefinition.getCreateDirectives()).andReturn(directives).anyTimes(); // for POST implementation
+    expect(resourceDefinition.getRenderer(null)).andReturn(renderer);
+    expect(uriInfo.getRequestUri()).andReturn(uri).anyTimes();
+    expect(body.getQueryString()).andReturn(null);
+    if (request.getRequestType().equals(Request.Type.POST) || request.getRequestType().equals(Request.Type.PUT))
+    {
+      expect(compiler.compile("foo=foo-value&bar=bar-value", directives)).andReturn(predicate);
+    }
+    else
+    {
+      expect(compiler.compile("foo=foo-value&bar=bar-value")).andReturn(predicate); // default case
+    }
+    expect(handler.handleRequest(request)).andReturn(result);
+    expect(result.getStatus()).andReturn(resultStatus).anyTimes();
+    expect(resultStatus.isErrorState()).andReturn(false).anyTimes();
+
+    processor.process(result);
+
+    replay(headers, compiler, uriInfo, handler, queryParams, resource,
+      resourceDefinition, result, resultStatus, processor, predicate, body);
+
+    Result processResult = request.process();
+
+    verify(headers, compiler, uriInfo, handler, queryParams, resource,
+      resourceDefinition, result, resultStatus, processor, predicate, body);
+
+    assertSame(processResult, result);
+    assertSame(predicate, request.getQueryPredicate());
+  }
+
+  @Test
   public void testProcess_WithBody() throws Exception {
     String uriString = "http://localhost.com:8080/api/v1/clusters/c1";
     URI uri = new URI(URLEncoder.encode(uriString, "UTF-8"));
@@ -194,7 +254,7 @@ public abstract class BaseRequestTest {
     expect(uriInfo.getQueryParameters()).andReturn(queryParams).anyTimes();
     expect(queryParams.getFirst(QueryLexer.QUERY_MINIMAL)).andReturn(null);
     expect(queryParams.getFirst(QueryLexer.QUERY_FORMAT)).andReturn(null);
-    expect(resource.getResourceDefinition()).andReturn(resourceDefinition);
+    expect(resource.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
     expect(resourceDefinition.getRenderer(null)).andReturn(renderer);
     expect(uriInfo.getRequestUri()).andReturn(uri).anyTimes();
     expect(body.getQueryString()).andReturn(null);
@@ -241,7 +301,7 @@ public abstract class BaseRequestTest {
     expect(uriInfo.getQueryParameters()).andReturn(queryParams).anyTimes();
     expect(queryParams.getFirst(QueryLexer.QUERY_MINIMAL)).andReturn(null);
     expect(queryParams.getFirst(QueryLexer.QUERY_FORMAT)).andReturn(null);
-    expect(resource.getResourceDefinition()).andReturn(resourceDefinition);
+    expect(resource.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
     expect(resourceDefinition.getRenderer(null)).andReturn(renderer);
     expect(uriInfo.getRequestUri()).andReturn(uri).anyTimes();
     expect(body.getQueryString()).andReturn("foo=bar");
@@ -288,7 +348,7 @@ public abstract class BaseRequestTest {
     expect(uriInfo.getQueryParameters()).andReturn(queryParams).anyTimes();
     expect(queryParams.getFirst(QueryLexer.QUERY_MINIMAL)).andReturn(null);
     expect(queryParams.getFirst(QueryLexer.QUERY_FORMAT)).andReturn(null);
-    expect(resource.getResourceDefinition()).andReturn(resourceDefinition);
+    expect(resource.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
     expect(resourceDefinition.getRenderer(null)).andReturn(renderer);
     expect(uriInfo.getRequestUri()).andReturn(uri).anyTimes();
     expect(body.getQueryString()).andReturn("foo=bar");
@@ -330,7 +390,7 @@ public abstract class BaseRequestTest {
     expect(uriInfo.getQueryParameters()).andReturn(queryParams).anyTimes();
     expect(queryParams.getFirst(QueryLexer.QUERY_MINIMAL)).andReturn(null);
     expect(queryParams.getFirst(QueryLexer.QUERY_FORMAT)).andReturn(null);
-    expect(resource.getResourceDefinition()).andReturn(resourceDefinition);
+    expect(resource.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
     expect(resourceDefinition.getRenderer(null)).andReturn(renderer);
     expect(uriInfo.getRequestUri()).andReturn(uri).anyTimes();
     expect(body.getQueryString()).andReturn("blahblahblah");
@@ -372,7 +432,7 @@ public abstract class BaseRequestTest {
     expect(uriInfo.getQueryParameters()).andReturn(queryParams).anyTimes();
     expect(queryParams.getFirst(QueryLexer.QUERY_MINIMAL)).andReturn(null);
     expect(queryParams.getFirst(QueryLexer.QUERY_FORMAT)).andReturn(null);
-    expect(resource.getResourceDefinition()).andReturn(resourceDefinition);
+    expect(resource.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
     expect(resourceDefinition.getRenderer(null)).andReturn(renderer);
     expect(uriInfo.getRequestUri()).andReturn(uri).anyTimes();
     expect(handler.handleRequest(request)).andReturn(result);
@@ -463,7 +523,7 @@ public abstract class BaseRequestTest {
     //expectations
     expect(uriInfo.getQueryParameters()).andReturn(queryParams).anyTimes();
     expect(queryParams.getFirst(QueryLexer.QUERY_MINIMAL)).andReturn("true");
-    expect(resource.getResourceDefinition()).andReturn(resourceDefinition);
+    expect(resource.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
     expect(resourceDefinition.getRenderer("minimal")).andReturn(renderer);
     expect(uriInfo.getRequestUri()).andReturn(uri).anyTimes();
     expect(handler.handleRequest(request)).andReturn(result);
@@ -505,7 +565,7 @@ public abstract class BaseRequestTest {
     expect(uriInfo.getQueryParameters()).andReturn(queryParams).anyTimes();
     expect(queryParams.getFirst(QueryLexer.QUERY_MINIMAL)).andReturn(null);
     expect(queryParams.getFirst(QueryLexer.QUERY_FORMAT)).andReturn("default");
-    expect(resource.getResourceDefinition()).andReturn(resourceDefinition);
+    expect(resource.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
     expect(resourceDefinition.getRenderer("default")).andReturn(renderer);
     expect(uriInfo.getRequestUri()).andReturn(uri).anyTimes();
     expect(handler.handleRequest(request)).andReturn(result);

@@ -39,13 +39,13 @@ import javax.ws.rs.core.UriInfo;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -303,15 +303,30 @@ public abstract class BaseRequest implements Request {
   private void parseQueryPredicate() throws InvalidQueryException {
     String queryString = m_body.getQueryString();
     if (queryString == null) {
-      String uri     = getURI();
-      int    qsBegin = uri.indexOf("?");
+      String uri = getURI();
+      int qsBegin = uri.indexOf("?");
 
       queryString = (qsBegin == -1) ? null : uri.substring(qsBegin + 1);
     }
 
     if (queryString != null) {
       try {
-        m_predicate = getPredicateCompiler().compile(URLDecoder.decode(queryString, "UTF-8"));
+        Collection<String> ignoredProperties = null;
+        switch (this.getRequestType()) {
+          case PUT:
+            ignoredProperties = m_resource.getResourceDefinition().getUpdateDirectives();
+            break;
+          case POST:
+            ignoredProperties = m_resource.getResourceDefinition().getCreateDirectives();
+            break;
+          default:
+            break;
+        }
+
+
+        m_predicate = (ignoredProperties == null)
+            ? getPredicateCompiler().compile(URLDecoder.decode(queryString, "UTF-8"))
+            : getPredicateCompiler().compile(URLDecoder.decode(queryString, "UTF-8"), ignoredProperties);
       } catch (UnsupportedEncodingException e) {
         throw new RuntimeException("Unable to decode URI: " + e, e);
       }

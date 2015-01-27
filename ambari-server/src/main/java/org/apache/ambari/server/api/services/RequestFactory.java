@@ -48,7 +48,7 @@ public class RequestFactory {
       case GET:
         return new GetRequest(headers, body, uriInfo, resource);
       case PUT:
-        return new PutRequest(headers, body, uriInfo, resource);
+        return createPutRequest(headers, body, uriInfo, resource);
       case DELETE:
         return new DeleteRequest(headers, body, uriInfo, resource);
       case POST:
@@ -70,26 +70,21 @@ public class RequestFactory {
    * @return new post request
    */
   private Request createPostRequest(HttpHeaders headers, RequestBody body, UriInfo uriInfo, ResourceInstance resource) {
-    boolean batchCreate = false;
-    Map<String, String> queryParameters = getQueryParameters(uriInfo, body);
-    if (! queryParameters.isEmpty()) {
-      ResourceDefinition resourceDefinition = resource.getResourceDefinition();
-      Collection<String> directives = resourceDefinition.getCreateDirectives();
-
-      Map<String, String> requestInfoProperties = body.getRequestInfoProperties();
-      for (Map.Entry<String, String> entry : queryParameters.entrySet()) {
-        if (directives.contains(entry.getKey())) {
-          requestInfoProperties.put(entry.getKey(), entry.getValue());
-        } else {
-          batchCreate = true;
-        }
-      }
-    }
+    boolean batchCreate = !applyDirectives(Request.Type.POST, body, uriInfo, resource);;
 
     return (batchCreate) ?
         new QueryPostRequest(headers, body, uriInfo, resource) :
         new PostRequest(headers, body, uriInfo, resource);
   }
+
+  /**
+   * Creates a PUT request. It will apply any eligible directives supplied in the URI
+   */
+  private Request createPutRequest(HttpHeaders headers, RequestBody body, UriInfo uriInfo, ResourceInstance resource) {
+    applyDirectives(Request.Type.PUT, body, uriInfo, resource);
+    return new PutRequest(headers, body, uriInfo, resource);
+  }
+
 
   /**
    * Gather query parameters from uri and body query string.
@@ -116,4 +111,54 @@ public class RequestFactory {
     return queryParameters;
   }
 
+  /**
+   * Applies directives and determines if a query predicate exists or not.
+   * <p/>
+   * Depending on the request type (POST, PUT, etc...), retrieves the appropriate set of directives:
+   * <ul>
+   * <li><code>POST</code> - {@link org.apache.ambari.server.api.resources.ResourceDefinition#getCreateDirectives()}</li>
+   * <li><code>PUT</code> - {@link org.apache.ambari.server.api.resources.ResourceDefinition#getUpdateDirectives()}</li>
+   * </ul>
+   * <p/>
+   * Note: Only <code>POST</code> and <code>PUT</code> are supported.
+   * <p/>
+   * Iterates through the query parameters adding those that are known to be directives to the map
+   * of request info properties from {@link RequestBody#getRequestInfoProperties()}.
+   * <p/>
+   * If a query property is found that is not a directive, a query predicate exists and
+   * <code>false</code> is returned; else all query parameters are directives, leaving no query predicate,
+   * and <code>true</code> is returned.
+   *
+   * @return true if all the directives are supported; false if at least one directive is not supported
+   */
+  private boolean applyDirectives(Request.Type requestType, RequestBody body, UriInfo uriInfo, ResourceInstance resource) {
+    Map<String, String> queryParameters = getQueryParameters(uriInfo, body);
+    Map<String, String> requestInfoProperties;
+    boolean allDirectivesApplicable = true;
+    if (!queryParameters.isEmpty()) {
+      ResourceDefinition resourceDefinition = resource.getResourceDefinition();
+      Collection<String> directives;
+      switch (requestType) {
+        case PUT:
+          directives = resourceDefinition.getUpdateDirectives();
+          break;
+        case POST:
+          directives = resourceDefinition.getCreateDirectives();
+          break;
+        default:
+          // not yet implemented for other types
+          return false;
+      }
+      requestInfoProperties = body.getRequestInfoProperties();
+      for (Map.Entry<String, String> entry : queryParameters.entrySet()) {
+        if (directives.contains(entry.getKey())) {
+          requestInfoProperties.put(entry.getKey(), entry.getValue());
+        }
+        else {
+          allDirectivesApplicable = false;
+        }
+      }
+    }
+    return allDirectivesApplicable;
+  }
 }
