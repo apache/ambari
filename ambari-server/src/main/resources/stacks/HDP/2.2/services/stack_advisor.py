@@ -95,37 +95,25 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putHbaseEnvProperty = self.putProperty(configurations, "ams-hbase-env")
 
     amsCollectorHosts = self.getComponentHostNames(services, "AMS", "METRIC_COLLECTOR")
+    putHbaseEnvProperty("hbase_regionserver_heapsize", "1024m")
+    putAmsHbaseSiteProperty("hfile.block.cache.size", 0.3)
+    putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", 0.5)
+    putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.lowerLimit", 0.4)
+    putTimelineServiceProperty("timeline.metrics.host.aggregator.ttl", 86400)
 
-    # TODO recommend configuration for multiple AMS collectors
+  # TODO recommend configuration for multiple AMS collectors
     if len(amsCollectorHosts) > 1:
       pass
     else:
       totalHostsCount = len(hosts["items"])
-      # TODO Tune values according to performance testing results
       if totalHostsCount > 400:
-        putAmsHbaseSiteProperty("hfile.block.cache.size", 0.3)
-        putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", 0.5)
-        putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.lowerLimit", 0.4)
-        putTimelineServiceProperty("timeline.metrics.host.aggregator.ttl", 86400)
-
-        putHbaseEnvProperty("hbase_master_heapsize", "8096m")
-        putHbaseEnvProperty("hbase_regionserver_heapsize", "8096m")
+        putHbaseEnvProperty("hbase_master_heapsize", "12288m")
       elif totalHostsCount > 100:
-        putAmsHbaseSiteProperty("hfile.block.cache.size", 0.3)
-        putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", 0.5)
-        putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.lowerLimit", 0.4)
-        putTimelineServiceProperty("timeline.metrics.host.aggregator.ttl", 86400)
-
+        putHbaseEnvProperty("hbase_master_heapsize", "6144m")
+      elif totalHostsCount > 50:
         putHbaseEnvProperty("hbase_master_heapsize", "2048m")
-        putHbaseEnvProperty("hbase_regionserver_heapsize", "2048m")
       else:
-        putAmsHbaseSiteProperty("hfile.block.cache.size", 0.3)
-        putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", 0.5)
-        putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.lowerLimit", 0.4)
-        putTimelineServiceProperty("timeline.metrics.host.aggregator.ttl", 86400)
-
         putHbaseEnvProperty("hbase_master_heapsize", "1024m")
-        putHbaseEnvProperty("hbase_regionserver_heapsize", "1024m")
 
   def getServiceConfigurationValidators(self):
     parentValidators = super(HDP22StackAdvisor, self).getServiceConfigurationValidators()
@@ -177,7 +165,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
         recommendedDiskSpace  = 104857600  # * 1k == 100 Gb
       elif totalHostsCount > 100:
         recommendedDiskSpace  = 52428800  # * 1k == 50 Gb
-      elif totalHostsCount > 10:
+      elif totalHostsCount > 50:
         recommendedDiskSpace  = 20971520  # * 1k == 20 Gb
 
 
