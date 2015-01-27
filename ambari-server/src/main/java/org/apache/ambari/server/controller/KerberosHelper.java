@@ -29,8 +29,21 @@ import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
+import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
+import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
+import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.serveraction.kerberos.*;
@@ -64,6 +77,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -75,6 +89,16 @@ public class KerberosHelper {
   private static final String BASE_LOG_DIR = "/tmp/ambari";
 
   private static final Logger LOG = LoggerFactory.getLogger(KerberosHelper.class);
+
+  /**
+   * config type which contains the property used to determine if keberos is enabled
+   */
+  private static final String SECURITY_ENABLED_CONFIG_TYPE = "cluster-env";
+
+  /**
+   * name of property which states whether kerberos is enabled
+   */
+  private static final String SECURITY_ENABLED_PROPERTY_NAME = "security_enabled";
 
   @Inject
   private AmbariCustomCommandExecutionHelper customCommandExecutionHelper;
@@ -105,6 +129,12 @@ public class KerberosHelper {
 
   @Inject
   private KerberosOperationHandlerFactory kerberosOperationHandlerFactory;
+
+  /**
+   * Used to get kerberos descriptors associated with the cluster or stack.
+   * Currently not available via injection.
+   */
+  private static ClusterController clusterController = null;
 
   /**
    * The Handler implementation that provides the logic to enable Kerberos
@@ -158,6 +188,11 @@ public class KerberosHelper {
 
     // Update KerberosDetails with the new security type - the current one in the cluster is the "old" value
     kerberosDetails.setSecurityType(securityType);
+
+    //todo: modify call from cluster state transition to not include descriptor
+    if (kerberosDescriptor == null) {
+      kerberosDescriptor = getClusterDescriptor(cluster);
+    }
 
     if (securityType == SecurityType.KERBEROS) {
       LOG.info("Configuring Kerberos for realm {} on cluster, {}", kerberosDetails.getDefaultRealm(), cluster.getClusterName());
@@ -497,12 +532,12 @@ public class KerberosHelper {
         }
 
         // Ensure the cluster-env/security_enabled flag is set properly
-        Map<String, String> clusterEnvProperties = kerberosConfigurations.get("cluster-env");
+        Map<String, String> clusterEnvProperties = kerberosConfigurations.get(SECURITY_ENABLED_CONFIG_TYPE);
         if (clusterEnvProperties == null) {
           clusterEnvProperties = new HashMap<String, String>();
-          kerberosConfigurations.put("cluster-env", clusterEnvProperties);
+          kerberosConfigurations.put(SECURITY_ENABLED_CONFIG_TYPE, clusterEnvProperties);
         }
-        clusterEnvProperties.put("security_enabled",
+        clusterEnvProperties.put(SECURITY_ENABLED_PROPERTY_NAME,
             (kerberosDetails.getSecurityType() == SecurityType.KERBEROS) ? "true" : "false");
 
         // Always set up the necessary stages to perform the tasks needed to complete the operation.
@@ -653,6 +688,69 @@ public class KerberosHelper {
 
     return kerberosDetails;
   }
+
+  /**
+   * Get the cluster kerberos descriptor that was registered to the
+   * cluster/:clusterName/artifacts/kerberos_descriptor endpoint if
+   * it exists.  If not, obtain the default cluster descriptor which
+   * is available from the endpoint
+   * stacks/:stackName/versions/:version/artifacts/kerberos_descriptor.
+   *
+   * @param cluster  cluster instance
+   *
+   * @return the kerberos descriptor associated with the specified cluster
+   * @throws AmbariException if unable to obtain the descriptor
+   */
+  private KerberosDescriptor getClusterDescriptor(Cluster cluster) throws AmbariException {
+    KerberosDescriptor descriptor;
+    PredicateBuilder pb = new PredicateBuilder();
+    Predicate predicate = pb.begin().property("Artifacts/cluster_name").equals(cluster.getClusterName()).and().
+        property(ArtifactResourceProvider.ARTIFACT_NAME_PROPERTY).equals("kerberos_descriptor").
+        end().toPredicate();
+
+    synchronized (KerberosHelper.class) {
+      if (clusterController == null) {
+        clusterController = ClusterControllerHelper.getClusterController();
+      }
+    }
+
+    ResourceProvider artifactProvider =
+        clusterController.ensureResourceProvider(Resource.Type.Artifact);
+
+    Request request = new RequestImpl(Collections.<String>emptySet(),
+        Collections.<Map<String, Object>>emptySet(), Collections.<String, String>emptyMap(), null);
+
+    Set<Resource> response = null;
+    try {
+      response = artifactProvider.getResources(request, predicate);
+    } catch (SystemException e) {
+      e.printStackTrace();
+      throw new AmbariException("An unknown error occurred while trying to obtain the cluster kerberos descriptor", e);
+    } catch (UnsupportedPropertyException e) {
+      e.printStackTrace();
+      throw new AmbariException("An unknown error occurred while trying to obtain the cluster kerberos descriptor", e);
+    } catch (NoSuchParentResourceException e) {
+      // parent cluster doesn't exist.  shouldn't happen since we have the cluster instance
+      e.printStackTrace();
+      throw new AmbariException("An unknown error occurred while trying to obtain the cluster kerberos descriptor", e);
+    }  catch (NoSuchResourceException e) {
+      // no descriptor registered, use the default from the stack
+    }
+
+    if (response != null && ! response.isEmpty()) {
+      Resource descriptorResource = response.iterator().next();
+      String descriptor_data = (String) descriptorResource.getPropertyValue(
+          ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY);
+
+      descriptor = KerberosDescriptor.fromJSON(descriptor_data);
+    } else {
+      // get default descriptor from stack
+      StackId stackId = cluster.getCurrentStackVersion();
+      descriptor = ambariMetaInfo.getKerberosDescriptor(stackId.getStackName(), stackId.getStackVersion());
+    }
+    return descriptor;
+  }
+
 
   /**
    * Creates a temporary directory within the system temporary directory
@@ -1064,6 +1162,15 @@ public class KerberosHelper {
     return new ArrayList<String>(hostNames);
   }
 
+  /**
+   * Determine if a cluster has kerberos enabled.
+   *
+   * @param cluster  cluster to test
+   * @return true if the provided cluster has kerberos enabled; false otherwise
+   */
+  public boolean isClusterKerberosEnabled(Cluster cluster) {
+    return cluster.getSecurityType() == SecurityType.KERBEROS;
+  }
 
   /**
    * Handler is an interface that needs to be implemented by toggle handler classes to do the
@@ -1429,7 +1536,7 @@ public class KerberosHelper {
       //  2) remove keytab files
       //  3) update configurations
       //  3) restart services
-      return -1;
+      return requestStageContainer == null ? -1 : requestStageContainer.getLastStageId();
     }
   }
 
