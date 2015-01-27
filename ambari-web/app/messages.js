@@ -1014,6 +1014,7 @@ Em.I18n.translations = {
   'admin.kerberos.wizard.step6.notice.completed': 'Kerberos has successfully been enabled on the cluster.',
   'admin.kerberos.wizard.step7.notice.inProgress': 'Please wait while services are being started and tested.',
   'admin.kerberos.wizard.step7.notice.completed': 'Services have been successfully tested with kerberos environment.',
+  'admin.kerberos.wizard.step7.notice.failed': 'Some services failed to start and execute tests successfully. Click Retry to attempt again or click Complete to dismiss the wizard and fix manually.',
   'admin.kerberos.wizard.step7.task0.title' : 'Start and Test Services',
 
   'admin.highAvailability':' High Availability',

@@ -17,7 +17,7 @@
  */
 
 App.KerberosWizardStep7Controller = App.KerberosProgressPageController.extend({
-  name: 'kerberosWizardStep6Controller',
+  name: 'kerberosWizardStep7Controller',
   clusterDeployState: 'KERBEROS_DEPLOY',
   commands: ['startServices'],
 
@@ -35,5 +35,9 @@ App.KerberosWizardStep7Controller = App.KerberosProgressPageController.extend({
       success: 'startPolling',
       error: 'onTaskError'
     });
-  }
+  },
+
+  isSubmitDisabled: function () {
+    return !["COMPLETED", "FAILED"].contains(this.get('status'));
+  }.property('status')
 });

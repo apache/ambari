@@ -23,6 +23,8 @@ App.KerberosWizardStep7View = App.KerberosProgressPageView.extend({
 
   noticeCompleted: Em.I18n.t('admin.kerberos.wizard.step7.notice.completed'),
 
+  noticeFailed: Em.I18n.t('admin.kerberos.wizard.step7.notice.failed'),
+
   submitButtonText: Em.I18n.t('common.complete'),
 
   showBackButton: false
