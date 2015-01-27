@@ -78,10 +78,8 @@ App.repoVersionMapper = App.QuickDataMapper.create({
         if (loadAll || (item.RepositoryVersions && !App.StackVersion.find().someProperty('repositoryVersion.id', item.RepositoryVersions.id))) {
           var repo = item;
           var osArray = [];
-          //TODO iterate over item.operating_systems after API is fixed
-          var operatingSystems = Em.get(item, 'operating_systems') || Em.get(item, 'operatingSystems');
-          if (operatingSystems) {
-            operatingSystems.forEach(function (os) {
+          if (item.operating_systems) {
+            item.operating_systems.forEach(function (os) {
               os.id = item.RepositoryVersions.repository_version + os.OperatingSystems.os_type;
               os.repository_version_id = repo.id;
               var repoArray = [];

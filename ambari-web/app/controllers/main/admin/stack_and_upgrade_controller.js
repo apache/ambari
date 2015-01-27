@@ -79,9 +79,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @type {String}
    */
   realRepoUrl: function () {
-    //TODO correct url after api will be fixed
     return App.get('apiPrefix') + App.get('stackVersionURL') +
-      '/repository_versions?fields=*,operating_systems/*,operating_systems/repositories/*,operatingSystems/*,operatingSystems/repositories/*';
+      '/repository_versions?fields=*,operating_systems/*,operating_systems/repositories/*';
   }.property('App.stackVersionURL'),
 
   /**
@@ -95,9 +94,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @type {String}
    */
   realStackUrl: function () {
-    //TODO correct url after api will be fixed
     return App.apiPrefix + '/clusters/' + App.get('clusterName') +
-      '/stack_versions?fields=*,repository_versions/*,repository_versions/operating_systems/repositories/*,repository_versions/operatingSystems/repositories/*';
+      '/stack_versions?fields=*,repository_versions/*,repository_versions/operating_systems/repositories/*';
   }.property('App.clusterName'),
 
   /**

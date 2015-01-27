@@ -80,9 +80,7 @@ App.stackMapper = App.QuickDataMapper.create({
 
       stack.id = stack.stack_name + "-" + stack.stack_version;
 
-      //TODO iterate over item.operating_systems after API is fixed
-      var opSystems = Em.get(item, 'operating_systems') || Em.get(item, 'operatingSystems');
-      opSystems.forEach(function(ops) {
+      item.operating_systems.forEach(function(ops) {
         var operatingSystems = ops.OperatingSystems;
 
         var repositoriesArray = [];

@@ -76,9 +76,7 @@ angular.module('ambariAdminConsole')
       angular.forEach($scope.osList, function (os) {
         existingOSHash[os.OperatingSystems.os_type] = os;
       });
-      //TODO map data.operating_systems after API is fixed
-      var operatingSystems = data.operating_systems || data.operatingSystems;
-      var osList = operatingSystems.map(function (os) {
+      var osList = data.operating_systems.map(function (os) {
         return existingOSHash[os.OperatingSystems.os_type] || {
           OperatingSystems: {
             os_type : os.OperatingSystems.os_type
