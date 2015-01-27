@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import os
 import socket
 
 from resource_management.libraries.functions.check_process_status import check_process_status
@@ -27,15 +28,14 @@ RESULT_CODE_OK = 'OK'
 RESULT_CODE_CRITICAL = 'CRITICAL'
 RESULT_CODE_UNKNOWN = 'UNKNOWN'
 
-AMS_MONITOR_PID_PATH = '/var/run/ambari-metrics-monitor/ambari-metrics-monitor.pid'
-
+AMS_MONITOR_PID_DIR = '{{ams-env/ams_monitor_pid_dir}}'
 
 def get_tokens():
   """
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return ()
+  return (AMS_MONITOR_PID_DIR,)
 
 
 def is_monitor_process_live(pid_file):
@@ -66,6 +66,11 @@ def execute(parameters=None, host_name=None):
 
   if parameters is None:
     return (RESULT_CODE_UNKNOWN, ['There were no parameters supplied to the script.'])
+
+  if set([AMS_MONITOR_PID_DIR]).issubset(parameters):
+    AMS_MONITOR_PID_PATH = os.path.join(parameters[AMS_MONITOR_PID_DIR], 'ambari-metrics-monitor.pid')
+  else:
+    return (RESULT_CODE_UNKNOWN, ['The ams_monitor_pid_dir is a required parameter.'])
 
   if host_name is None:
     host_name = socket.getfqdn()

@@ -49,22 +49,25 @@
   <property>
     <name>content</name>
     <value>
-      # Set environment variables here.
+# Set environment variables here.
 
-      # The java implementation to use. Java 1.6 required.
-      export JAVA_HOME={{java64_home}}
+# The java implementation to use. Java 1.6 required.
+export JAVA_HOME={{java64_home}}
 
-      # Collector Log directory for log4j
-      export AMS_COLLECTOR_LOG_DIR={{ams_collector_log_dir}}
+# Collector Log directory for log4j
+export AMS_COLLECTOR_LOG_DIR={{ams_collector_log_dir}}
 
-      # Monitor Log directory for outfile
-      export AMS_MONITOR_LOG_DIR={{ams_monitor_log_dir}}
+# Monitor Log directory for outfile
+export AMS_MONITOR_LOG_DIR={{ams_monitor_log_dir}}
 
-      # Collector pid directory
-      export AMS_COLLECTOR_PID_DIR={{ams_collector_pid_dir}}
+# Collector pid directory
+export AMS_COLLECTOR_PID_DIR={{ams_collector_pid_dir}}
 
-      # Monitor pid directory
-      export AMS_MONITOR_PID_DIR={{ams_monitor_pid_dir}}
+# Monitor pid directory
+export AMS_MONITOR_PID_DIR={{ams_monitor_pid_dir}}
+
+# AMS HBase pid directory
+export AMS_HBASE_PID_DIR={{hbase_pid_dir}}
     </value>
   </property>
 

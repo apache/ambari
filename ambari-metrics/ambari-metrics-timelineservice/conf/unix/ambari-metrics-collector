@@ -177,8 +177,14 @@ else
 fi
 
 # set pid dir path
-if [[ -n "${AMS_PID_DIR}" ]]; then
-  PIDFILE=${AMS_PID_DIR}/ambari-metrics-collector.pid
+if [[ -n "${AMS_COLLECTOR_PID_DIR}" ]]; then
+  PIDFILE=${AMS_COLLECTOR_PID_DIR}/ambari-metrics-collector.pid
+fi
+
+if [[ -n "${AMS_HBASE_PID_DIR}" ]]; then
+  HBASE_ZK_PID=${AMS_HBASE_PID_DIR}/hbase-hbase-zookeeper.pid
+  HBASE_MASTER_PID=${AMS_HBASE_PID_DIR}/hbase-hbase-master.pid
+  HBASE_RS_PID=${AMS_HBASE_PID_DIR}/hbase-hbase-regionserver.pid
 fi
 
 # set out file path

@@ -264,12 +264,6 @@
                       <configuration>true</configuration>
                     </mapping>
                     <mapping>
-                      <directory>/var/run/ambari-metrics-monitor</directory>
-                    </mapping>
-                    <mapping>
-                      <directory>/var/log/ambari-metrics-monitor</directory>
-                    </mapping>
-                    <mapping>
                       <directory>/usr/sbin</directory>
                       <filemode>755</filemode>
                       <username>root</username>
@@ -404,12 +398,6 @@
                     </mapping>
                     <mapping>
                       <directory>/var/run/ams-hbase</directory>
-                    </mapping>
-                    <mapping>
-                      <directory>/var/run/ambari-metrics-collector</directory>
-                    </mapping>
-                    <mapping>
-                      <directory>/var/log/ambari-metrics-collector</directory>
                     </mapping>
                     <mapping>
                       <directory>/var/lib/ambari-metrics-collector</directory>
@@ -602,15 +590,11 @@
                 <data>
                   <type>template</type>
                   <paths>
-                    <path>/var/run/ambari-metrics-monitor</path>
-                    <path>/var/log/ambari-metrics-monitor</path>
                     <path>/etc/ambari-metrics-monitor/conf</path>
                     <path>/usr/lib/ambari-metrics-collector</path>
                     <path>/etc/ambari-metrics-collector/conf</path>
                     <path>/etc/ams-hbase/conf</path>
-                    <path>/var/run/ambari-metrics-collector</path>
                     <path>/var/run/ams-hbase</path>
-                    <path>/var/log/ambari-metrics-collector</path>
                     <path>/var/lib/ambari-metrics-collector</path>
                     <path>/usr/lib/ambari-metrics-hadoop-sink</path>
                     <path>/usr/lib/ambari-metrics-kafka-sink</path>

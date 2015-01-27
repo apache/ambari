@@ -239,12 +239,6 @@
               <directory>/var/run/ams-hbase</directory>
             </mapping>
             <mapping>
-              <directory>/var/run/ambari-metrics-collector</directory>
-            </mapping>
-            <mapping>
-              <directory>/var/log/ambari-metrics-collector</directory>
-            </mapping>
-            <mapping>
               <directory>/var/lib/ambari-metrics-collector</directory>
             </mapping>
           </mappings>
