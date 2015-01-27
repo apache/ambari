@@ -369,6 +369,13 @@
   </property>
 
   <property>
+    <name>dfs.journalnode.https-address</name>
+    <value>0.0.0.0:8481</value>
+    <description>The address and port the JournalNode HTTPS server listens on.
+      If the port is 0 then the server will start on a free port. </description>
+  </property>
+
+  <property>
     <name>dfs.journalnode.edits.dir</name>
     <value>/grid/0/hdfs/journal</value>
     <description>The path where the JournalNode daemon will store its local state. </description>

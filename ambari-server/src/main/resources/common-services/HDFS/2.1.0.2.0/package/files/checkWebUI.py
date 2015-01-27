@@ -28,15 +28,17 @@ def main():
   parser = optparse.OptionParser(usage="usage: %prog [options] component ")
   parser.add_option("-m", "--hosts", dest="hosts", help="Comma separated hosts list for WEB UI to check it availability")
   parser.add_option("-p", "--port", dest="port", help="Port of WEB UI to check it availability")
+  parser.add_option("-s", "--https", dest="https", help="\"True\" if value of dfs.http.policy is \"HTTPS_ONLY\"")
 
   (options, args) = parser.parse_args()
   
   hosts = options.hosts.split(',')
   port = options.port
+  https = options.https
 
   for host in hosts:
     try:
-      conn = httplib.HTTPConnection(host, port)
+      conn = httplib.HTTPConnection(host, port) if not https.lower() == "true" else httplib.HTTPSConnection(host, port)
       # This can be modified to get a partial url part to be sent with request
       conn.request("GET", "/")
       httpCode = conn.getresponse().status
@@ -45,9 +47,10 @@ def main():
       httpCode = 404
 
     if httpCode != 200:
-      print "Cannot access WEB UI on: http://" + host + ":" + port
+      if not https:
+        print "Cannot access WEB UI on: http://" + host + ":" + port if not https.lower() == "true" else "Cannot access WEB UI on: https://" + host + ":" + port
+
       exit(1)
-      
 
 if __name__ == "__main__":
   main()

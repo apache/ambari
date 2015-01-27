@@ -209,7 +209,14 @@ if dfs_ha_enabled:
       namenode_id = nn_id
       namenode_rpc = nn_host
 
-journalnode_address = default('/configurations/hdfs-site/dfs.journalnode.http-address', None)
+
+if dfs_http_policy == "HTTPS_ONLY":
+  https_only = True
+  journalnode_address = default('/configurations/hdfs-site/dfs.journalnode.https-address', None)
+else:
+  https_only = False
+  journalnode_address = default('/configurations/hdfs-site/dfs.journalnode.http-address', None)
+
 if journalnode_address:
   journalnode_port = journalnode_address.split(":")[1]
   
