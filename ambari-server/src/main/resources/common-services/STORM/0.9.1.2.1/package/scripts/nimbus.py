@@ -30,6 +30,7 @@ from service import service
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_JAAS_CONF
+from setup_ranger_storm import setup_ranger_storm  
 
 class Nimbus(Script):
 
@@ -57,7 +58,7 @@ class Nimbus(Script):
     import params
     env.set_params(params)
     self.configure(env)
-
+    setup_ranger_storm(env)    
     service("nimbus", action="start")
 
   def stop(self, env, rolling_restart=False):

@@ -120,6 +120,7 @@
       <configuration-dependencies>
         <config-type>storm-site</config-type>
         <config-type>storm-env</config-type>
+        <config-type>ranger-storm-plugin-properties</config-type>
       </configuration-dependencies>
     </service>
   </services>

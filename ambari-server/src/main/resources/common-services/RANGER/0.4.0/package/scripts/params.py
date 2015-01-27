@@ -30,6 +30,7 @@ stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_sta
 
 if stack_is_hdp22_or_further:
 	ranger_home    = '/usr/hdp/current/ranger-admin'
+	ranger_conf    = '/etc/ranger/admin/conf'
 	ranger_stop    = '/usr/bin/ranger-admin-stop'
 	ranger_start   = '/usr/bin/ranger-admin-start'
 	usersync_home  = '/usr/hdp/current/ranger-usersync'
@@ -41,3 +42,14 @@ else:
 java_home = config['hostLevelParams']['java_home']
 unix_user  = default("/configurations/ranger-env/ranger_user", "ranger")
 unix_group = default("/configurations/ranger-env/ranger_group", "ranger")
+
+ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
+
+jdk_location = config['hostLevelParams']['jdk_location']
+java_share_dir = '/usr/share/java'
+jdbc_jar_name = "mysql-connector-java.jar"
+
+downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
+
+driver_curl_source = format("{jdk_location}/{jdbc_jar_name}")
+driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")

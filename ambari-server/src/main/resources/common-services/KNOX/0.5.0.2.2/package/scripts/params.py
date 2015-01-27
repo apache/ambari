@@ -148,14 +148,26 @@ if security_enabled:
 
 # ranger host
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
+user_input = default("/configurations/ranger-knox-plugin-properties/ranger-knox-plugin-enabled", "no")
 has_ranger_admin = not len(ranger_admin_hosts) == 0
 
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
-    # Setting Flag value for ranger hbase plugin
+  # Setting Flag value for ranger hbase plugin
+  enable_ranger_knox = False
+  user_input = config['configurations']['ranger-knox-plugin-properties']['ranger-knox-plugin-enabled']
+  if user_input.lower() == 'yes':
+    enable_ranger_knox = True
+  elif user_input.lower() == 'no':
     enable_ranger_knox = False
-    user_input = config['configurations']['ranger-knox-plugin-properties']['ranger-knox-plugin-enabled']
-    if user_input.lower() == 'yes':
-      enable_ranger_knox = True
-    elif user_input.lower() == 'no':
-      enable_ranger_knox = False
+
+ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
+
+jdk_location = config['hostLevelParams']['jdk_location']
+java_share_dir = '/usr/share/java'
+jdbc_jar_name = "mysql-connector-java.jar"
+
+downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
+
+driver_curl_source = format("{jdk_location}/{jdbc_jar_name}")
+driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")    
       

@@ -24,32 +24,36 @@ from resource_management.core.logger import Logger
 from resource_management.core import shell
 from setup_ranger import setup_usersync
 
+
 class RangerUsersync(Script):
-    def install(self, env):
-        self.install_packages(env)
-        setup_usersync(env)        
+  def install(self, env):
+    self.install_packages(env)
+    setup_usersync(env)
 
-    def stop(self, env):
-        import params
-        Execute(format('{params.usersync_stop}'))
+  def stop(self, env):
+    import params
 
-    def start(self, env):
-        import params
-        setup_usersync(env)
-        Execute(format('{params.usersync_start}'))
-     
-    def status(self, env):
-        cmd = 'ps -ef | grep proc_rangerusersync | grep -v grep'
-        code, output = shell.call(cmd, timeout=20)        
+    Execute(format('{params.usersync_stop}'))
 
-        if code != 0:
-            Logger.debug('Ranger usersync process not running')
-            raise ComponentIsNotRunning()
-        pass
+  def start(self, env):
+    import params
 
-    def configure(self, env):
-        import params
-        env.set_params(params)
+    setup_usersync(env)
+    Execute(format('{params.usersync_start}'))
+
+  def status(self, env):
+    cmd = 'ps -ef | grep proc_rangerusersync | grep -v grep'
+    code, output = shell.call(cmd, timeout=20)
+
+    if code != 0:
+      Logger.debug('Ranger usersync process not running')
+      raise ComponentIsNotRunning()
+    pass
+
+  def configure(self, env):
+    import params
+
+    env.set_params(params)
 
 
 if __name__ == "__main__":

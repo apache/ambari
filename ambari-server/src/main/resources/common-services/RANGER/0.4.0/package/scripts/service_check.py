@@ -23,10 +23,11 @@ from resource_management import *
 class RangerServiceCheck(Script):
   def service_check(self, env):
     import params
+
     env.set_params(params)
     self.check_ranger_admin_service()
     self.check_ranger_usersync_service()
-    
+
   def check_ranger_admin_service(self):
     cmd = 'ps -ef | grep proc_rangeradmin | grep -v grep'
     code, output = shell.call(cmd, timeout=20)
@@ -35,6 +36,7 @@ class RangerServiceCheck(Script):
     else:
       Logger.debug('Ranger admin process not running')
       raise ComponentIsNotRunning()
+
   pass
 
 
@@ -46,6 +48,7 @@ class RangerServiceCheck(Script):
     else:
       Logger.debug('Ranger usersync process not running')
       raise ComponentIsNotRunning()
+
   pass
 
 

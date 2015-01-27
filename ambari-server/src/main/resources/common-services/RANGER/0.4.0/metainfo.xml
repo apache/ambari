@@ -70,6 +70,7 @@
 
             <configuration-dependencies>
                 <config-type>admin-properties</config-type>
+                <config-type>ranger-site</config-type>
                 <config-type>usersync-properties</config-type>
             </configuration-dependencies>
 

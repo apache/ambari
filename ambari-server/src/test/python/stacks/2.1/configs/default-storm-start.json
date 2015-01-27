@@ -213,6 +213,9 @@
             "storm_pid_dir": "/var/run/storm",
             "storm_user": "storm"
         },
+        "ranger-storm-plugin-properties" : {
+            "ranger-storm-plugin-enabled":"no"
+        },
         "core-site": {
             "io.serializations": "org.apache.hadoop.io.serializer.WritableSerialization",
             "fs.trash.interval": "360",

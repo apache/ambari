@@ -26,6 +26,7 @@ import status_params
 
 # server configurations
 config = Script.get_config()
+tmp_dir = Script.get_tmp_dir()
 
 stack_name = default("/hostLevelParams/stack_name", None)
 
@@ -94,3 +95,28 @@ ams_collector_hosts = default("/clusterHostInfo/metric_collector_hosts", [])
 has_metric_collector = not len(ams_collector_hosts) == 0
 if has_metric_collector:
   metric_collector_host = ams_collector_hosts[0]
+
+# ranger host
+ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
+has_ranger_admin = not len(ranger_admin_hosts) == 0
+user_input = default("/configurations/ranger-storm-plugin-properties/ranger-storm-plugin-enabled", "no")
+
+if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
+  # setting flag value for ranger hive plugin
+  enable_ranger_storm = False
+  user_input = config['configurations']['ranger-storm-plugin-properties']['ranger-storm-plugin-enabled']
+  if user_input.lower() == 'yes':
+    enable_ranger_storm = True
+  elif user_input.lower() == 'no':
+    enable_ranger_storm = False
+
+ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
+
+jdk_location = config['hostLevelParams']['jdk_location']
+java_share_dir = '/usr/share/java'
+jdbc_jar_name = "mysql-connector-java.jar"
+
+downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
+
+driver_curl_source = format("{jdk_location}/{jdbc_jar_name}")
+driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")    

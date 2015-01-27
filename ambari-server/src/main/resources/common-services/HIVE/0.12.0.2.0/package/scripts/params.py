@@ -329,12 +329,20 @@ HdfsDirectory = functools.partial(
 
 # ranger host
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
+user_input = default("/configurations/ranger-hive-plugin-properties/ranger-hive-plugin-enabled", "no")
 has_ranger_admin = not len(ranger_admin_hosts) == 0
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >=0:
-    # setting flag value for ranger hive plugin
+  # setting flag value for ranger hive plugin
+  enable_ranger_hive = False
+  user_input = config['configurations']['ranger-hive-plugin-properties']['ranger-hive-plugin-enabled']
+  if  user_input.lower() == 'yes':
+    enable_ranger_hive = True
+  elif user_input.lower() == 'no':
     enable_ranger_hive = False
-    user_input = config['configurations']['ranger-hive-plugin-properties']['ranger-hive-plugin-enabled']
-    if  user_input.lower() == 'yes':
-      enable_ranger_hive = True
-    elif user_input.lower() == 'no':
-      enable_ranger_hive = False
+
+ranger_jdbc_jar_name = "mysql-connector-java.jar"
+
+ranger_downloaded_custom_connector = format("{tmp_dir}/{ranger_jdbc_jar_name}")
+
+ranger_driver_curl_source = format("{jdk_location}/{ranger_jdbc_jar_name}")
+ranger_driver_curl_target = format("{java_share_dir}/{ranger_jdbc_jar_name}")

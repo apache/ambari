@@ -48,14 +48,15 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putHDFSProperty = self.putProperty(configurations, "hadoop-env")
     putHDFSProperty('namenode_opt_maxnewsize', max(int(clusterData['totalAvailableRam'] / 8), 256))
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    if 'ranger-hdfs-plugin-properties' in services['configurations']:
+    if ('ranger-hdfs-plugin-properties' in services['configurations']) and ('ranger-hdfs-plugin-enabled' in services['configurations']['ranger-hdfs-plugin-properties']['properties']):
       rangerPluginEnabled = services['configurations']['ranger-hdfs-plugin-properties']['properties']['ranger-hdfs-plugin-enabled']
       if ("RANGER" in servicesList) and (rangerPluginEnabled.lower() == 'Yes'.lower()):
         putHDFSProperty("dfs.permissions.enabled",'true')
 
   def recommendHIVEConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDP22StackAdvisor, self).recommendHiveConfigurations(configurations, clusterData, services, hosts)
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    if 'ranger-hive-plugin-properties' in services['configurations']:
+    if 'ranger-hive-plugin-properties' in services['configurations'] and ('ranger-hive-plugin-enabled' in services['configurations']['ranger-hive-plugin-properties']['properties']):
       rangerPluginEnabled = services['configurations']['ranger-hive-plugin-properties']['properties']['ranger-hive-plugin-enabled']
       if ("RANGER" in servicesList) :
         if (rangerPluginEnabled.lower() == "Yes".lower()):
@@ -68,16 +69,17 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
           putHiveProperty("hive.security.authenticator.manager", 'org.apache.hadoop.hive.ql.security.HadoopDefaultAuthenticator')
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDP22StackAdvisor, self).recommendHbaseEnvConfigurations(configurations, clusterData, services, hosts)
     putHbaseSiteProperty = self.putProperty(configurations, "hbase-site")
     putHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", '0.4')
 
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    if 'ranger-hbase-plugin-properties' in services['configurations']:
+    if 'ranger-hbase-plugin-properties' in services['configurations'] and ('ranger-hbase-plugin-enabled' in services['configurations']['ranger-hbase-plugin-properties']['properties']):
       rangerPluginEnabled = services['configurations']['ranger-hbase-plugin-properties']['properties']['ranger-hbase-plugin-enabled']
       if ("RANGER" in servicesList) and (rangerPluginEnabled.lower() == "Yes".lower()):
-          putHbaseSiteProperty("hbase.security.authorization", 'true')
-          putHbaseSiteProperty("hbase.coprocessor.master.classes", 'com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor')
-          putHbaseSiteProperty("hbase.coprocessor.region.classes", 'com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor')
+        putHbaseSiteProperty("hbase.security.authorization", 'true')
+        putHbaseSiteProperty("hbase.coprocessor.master.classes", 'com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor')
+        putHbaseSiteProperty("hbase.coprocessor.region.classes", 'com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor')
 
   def recommendTezConfigurations(self, configurations, clusterData, services, hosts):
     putTezProperty = self.putProperty(configurations, "tez-site")
@@ -368,6 +370,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     return self.toConfigurationValidationProblems(validationItems, "hdfs-site")
 
   def validateHIVEConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    super(HDP22StackAdvisor, self).validateHiveConfigurations(properties, recommendedDefaults, configurations, services, hosts)
     hive_server2 = properties
     validationItems = [] 
     #Adding Ranger Plugin logic here 
@@ -411,6 +414,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     return self.toConfigurationValidationProblems(validationItems, "hiveserver2-site")
 
   def validateHBASEConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    super(HDP22StackAdvisor, self).validateHbaseEnvConfigurations(properties, recommendedDefaults, configurations, services, hosts)
     hbase_site = properties
     validationItems = []
 

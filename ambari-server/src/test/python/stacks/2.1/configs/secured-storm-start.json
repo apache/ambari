@@ -223,6 +223,9 @@
             "nimbus_keytab": "/etc/security/keytabs/nimbus.service.keytab", 
             "storm_keytab": "/etc/security/keytabs/storm.service.keytab", 
             "storm_ui_principal_name": "HTTP/_HOST"
+        },
+        "ranger-storm-plugin-properties" : {
+            "ranger-storm-plugin-enabled":"yes"
         }, 
         "core-site": {
             "io.serializations": "org.apache.hadoop.io.serializer.WritableSerialization", 

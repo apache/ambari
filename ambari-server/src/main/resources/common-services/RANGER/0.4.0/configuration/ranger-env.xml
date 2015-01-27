@@ -44,6 +44,20 @@
         <name>ranger_usersync_log_dir</name>
         <value>/var/log/ranger/usersync</value>
         <description></description>
-    </property>    
+    </property>
+
+        <property>
+        <name>ranger_admin_username</name>
+        <value>amb_ranger_admin</value>
+        <property-type>TEXT</property-type>
+        <description></description>
+    </property>
+
+    <property>
+        <name>ranger_admin_password</name>
+        <value>ambari123</value>
+        <property-type>PASSWORD</property-type>
+        <description></description>
+    </property>
 
 </configuration>

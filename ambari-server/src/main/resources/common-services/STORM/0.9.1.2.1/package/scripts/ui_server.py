@@ -30,7 +30,7 @@ from resource_management.libraries.functions.version import compare_versions, fo
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_JAAS_CONF
-
+from setup_ranger_storm import setup_ranger_storm
 
 class UiServer(Script):
 
@@ -58,7 +58,7 @@ class UiServer(Script):
     import params
     env.set_params(params)
     self.configure(env)
-
+    setup_ranger_storm(env)    
     service("ui", action="start")
 
   def stop(self, env, rolling_restart=False):

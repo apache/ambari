@@ -25,33 +25,37 @@ from resource_management.core.logger import Logger
 from resource_management.core import shell
 from setup_ranger import setup_ranger
 
+
 class RangerAdmin(Script):
-    def install(self, env):
-        self.install_packages(env)
-        setup_ranger(env)
+  def install(self, env):
+    self.install_packages(env)
+    setup_ranger(env)
 
-    def stop(self, env):
-        import params
-        env.set_params(params)
-        Execute(format('{params.ranger_stop}'))
+  def stop(self, env):
+    import params
 
-    def start(self, env):
-        import params
-        setup_ranger(env)
-        Execute(format('{params.ranger_start}'))
-     
-    def status(self, env):
-        cmd = 'ps -ef | grep proc_rangeradmin | grep -v grep'
-        code, output = shell.call(cmd, timeout=20)
+    env.set_params(params)
+    Execute(format('{params.ranger_stop}'))
 
-        if code != 0:
-            Logger.debug('Ranger admin process not running')
-            raise ComponentIsNotRunning()
-        pass 
+  def start(self, env):
+    import params
 
-    def configure(self, env):
-        import params
-        env.set_params(params)
+    setup_ranger(env)
+    Execute(format('{params.ranger_start}'))
+
+  def status(self, env):
+    cmd = 'ps -ef | grep proc_rangeradmin | grep -v grep'
+    code, output = shell.call(cmd, timeout=20)
+
+    if code != 0:
+      Logger.debug('Ranger admin process not running')
+      raise ComponentIsNotRunning()
+    pass
+
+  def configure(self, env):
+    import params
+
+    env.set_params(params)
 
 
 if __name__ == "__main__":
