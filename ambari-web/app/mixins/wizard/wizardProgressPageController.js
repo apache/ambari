@@ -42,6 +42,11 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
     return !this.get('isSingleRequestPage');
   }.property('isSingleRequestPage'),
   showRetry: false,
+  /**
+   * Show whether tasks data was loaded
+   * @type {Boolean}
+   */
+  isLoading: false,
 
   k: Em.K,
   /**
@@ -57,12 +62,17 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
       var runningOperations = App.router.get('backgroundOperationsController.services').filterProperty('isRunning');
       var currentOperation = runningOperations.findProperty('name', this.contextForPollingRequest);
       if (!currentOperation) {
-        this.submitRequest().done(function (data) {
+        this.submitRequest().done(function (data, result, request) {
           if (data) {
             self.set('currentPageRequestId', data.Requests.id);
             self.doPollingForPageRequest();
           } else {
             //Step has been successfully completed
+            if (request.status === 200) {
+              self.set('status', 'COMPLETED');
+              self.set('isSubmitDisabled', false);
+              self.set('isLoaded', true);
+            }
           }
         });
       } else {
@@ -98,6 +108,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
     this.set('isBackButtonDisabled', true);
     this.set('tasks', []);
     this.set('currentRequestIds', []);
+    this.set('isLoaded', false);
   },
 
   retry: function () {
@@ -203,6 +214,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
         requestIds: []
       }));
     }
+    this.set('isLoaded', true);
   },
 
   loadTasks: function () {

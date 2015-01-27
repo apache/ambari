@@ -25,7 +25,7 @@
       </a>
     {{/if}}
   </div>
-  {{#if controller.tasks.length}}
+  {{#if controller.isLoaded}}
     {{#each task in controller.tasks}}
       {{#view view.taskView contentBinding="task"}}
         <div class="item">
