@@ -18,18 +18,14 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
-import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.api.resources.RepositoryResourceDefinition;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -49,12 +45,14 @@ import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.OperatingSystemInfo;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 
+import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 
@@ -294,10 +292,17 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
       final List<ClusterVersionEntity> clusterVersionEntities =
           clusterVersionDAO.findByStackAndVersion(entity.getStack(), entity.getVersion());
 
-      if (!clusterVersionEntities.isEmpty()) {
-        final ClusterVersionEntity firstClusterVersion = clusterVersionEntities.get(0);
-        throw new SystemException("Repository version can't be deleted as it is " +
-          firstClusterVersion.getState().name() + " on cluster " + firstClusterVersion.getClusterEntity().getClusterName());
+      final List<RepositoryVersionState> forbiddenToDeleteStates = Lists.newArrayList(
+          RepositoryVersionState.CURRENT,
+          RepositoryVersionState.INSTALLED,
+          RepositoryVersionState.INSTALLING,
+          RepositoryVersionState.UPGRADED,
+          RepositoryVersionState.UPGRADING);
+      for (ClusterVersionEntity clusterVersionEntity : clusterVersionEntities) {
+        if (clusterVersionEntity.getRepositoryVersion().getId().equals(id) && forbiddenToDeleteStates.contains(clusterVersionEntity.getState())) {
+          throw new SystemException("Repository version can't be deleted as it is " +
+              clusterVersionEntity.getState().name() + " on cluster " + clusterVersionEntity.getClusterEntity().getClusterName());
+        }
       }
 
       entitiesToBeRemoved.add(entity);

@@ -44,6 +44,7 @@ import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.OperatingSystemInfo;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.junit.After;
@@ -160,7 +161,14 @@ public class RepositoryVersionResourceProviderTest {
           notEmptyList.add(null);
           return notEmptyList;
         } else {
-          return new ArrayList<ClusterVersionEntity>();
+          final List<ClusterVersionEntity> clusterVersions = new ArrayList<ClusterVersionEntity>();
+          final RepositoryVersionEntity repositoryVersion = new RepositoryVersionEntity();
+          repositoryVersion.setId(1L);
+          final ClusterVersionEntity installFailedVersion = new ClusterVersionEntity();
+          installFailedVersion.setState(RepositoryVersionState.INSTALL_FAILED);
+          installFailedVersion.setRepositoryVersion(repositoryVersion);
+          clusterVersions.add(installFailedVersion);
+          return clusterVersions;
         }
       }
     });
