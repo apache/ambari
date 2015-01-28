@@ -103,7 +103,6 @@ Em.I18n.translations = {
   'sliderApp.flex.message': 'Update the number of desired instances for each component of this application',
 
   'sliderApp.summary.go_to_nagios': 'Go to Nagios',
-  'sliderApp.summary.go_to_ganglia': 'Go to Ganglia',
   'sliderApp.summary.no.components': 'No components are currently running',
 
   'sliderApp.alerts.no.status': 'No component statuses are currently available',

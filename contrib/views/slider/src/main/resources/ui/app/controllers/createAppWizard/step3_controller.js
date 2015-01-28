@@ -34,11 +34,11 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
    * predefined settings of configuration properties
    */
   configSettings: {
-    'site.global.ganglia_server_id': {
-      viewType: 'select'
+    'site.global.metric_collector_host': {
     },
-    'site.global.ganglia_server_port': {
-      readOnly: true
+    'site.global.metric_collector_port': {
+    },
+    'site.global.metric_collector_lib': {
     }
   },
 
@@ -76,24 +76,13 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
    */
   configsSet: [
     {
-      name: 'ganglia_metrics',
+      name: 'ams_metrics',
       trigger: {value: false, label: Em.I18n.t('configs.enable.metrics'), viewType: 'checkbox'},
       isSet: true,
       section: 'global',
-      configNames: ["site.global.ganglia_server_host", "site.global.ganglia_server_id", "site.global.ganglia_server_port"],
+      configNames: ["site.global.metric_collector_host", "site.global.metric_collector_port", "site.global.metric_collector_lib"],
       configs: [],
-      dependencies: [
-        {
-          name: 'App.gangliaClusters',
-          map: [],
-          mapFunction: function (origin, dependent) {
-            if (!origin || !dependent) return false;
-            dependent.set('value', this.map.findBy('name', origin.get('value')).port);
-          },
-          origin: "site.global.ganglia_server_id",
-          dependent: "site.global.ganglia_server_port"
-        }
-      ]
+      dependencies: []
     }
   ],
 
@@ -118,8 +107,7 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
       configs = Em.A(),
       configsSet = $.extend(true, [], this.get('configsSet')),
       allSetConfigs = {},
-      configSettings = this.get('configSettings'),
-      gangliaClusters = App.get('gangliaClusters');
+      configSettings = this.get('configSettings');
 
     configsSet.forEach(function (item) {
       item.configNames.forEach(function (configName) {
@@ -140,16 +128,16 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
         configSetting.value = App.get('javaHome');
       }
 
-      if (key === "site.global.ganglia_server_host" && !!setDefaults && App.get('gangliaHost')) {
-        configSetting.value = App.get('gangliaHost');
+      if (key === "site.global.metric_collector_host" && !!setDefaults && App.get('metricsHost')) {
+        configSetting.value = App.get('metricsHost');
       }
 
-      if (key === "site.global.ganglia_server_id" && gangliaClusters) {
-        configSetting.options = gangliaClusters.mapProperty('name');
-        configSetting.value = gangliaClusters.mapProperty('name')[0];
+      if (key === "site.global.metric_collector_port" && !!setDefaults && App.get('metricsPort')) {
+        configSetting.value = App.get('metricsPort');
       }
-      if (key === "site.global.ganglia_server_port" && gangliaClusters) {
-        configSetting.value = gangliaClusters.mapProperty('port')[0];
+
+      if (key === "site.global.metric_collector_lib" && !!setDefaults && App.get('metricsLibPath')) {
+        configSetting.value = App.get('metricsLibPath');
       }
 
       if (allSetConfigs[key]) {
@@ -162,9 +150,6 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
     configsSet.forEach(function (configSet) {
       if (configSet.configs.length === configSet.configNames.length) {
         delete configSet.configNames;
-        if (configSet.name === 'ganglia_metrics') {
-          configSet.trigger.readOnly = (!App.get('gangliaClusters') || App.get('gangliaClusters').length === 0);
-        }
         configSet.trigger = App.ConfigProperty.create(configSet.trigger);
         this.initConfigSetDependencies(configSet);
         configs.unshift(configSet);
@@ -239,12 +224,12 @@ App.CreateAppWizardStep3Controller = Ember.ObjectController.extend({
    */
   saveConfigs: function () {
     var configsToSet = this.get('configsObject');
-    if (configsToSet['site.global.ganglia_enabled']!=null) {
-      if (configsToSet['site.global.ganglia_server_host']!=null &&
-          configsToSet['site.global.ganglia_server_id']!=null) {
-        configsToSet['site.global.ganglia_enabled'] = "true";
+    if (configsToSet['site.global.metrics_enabled']!=null) {
+      if (configsToSet['site.global.metric_collector_host']!=null &&
+          configsToSet['site.global.metric_collector_port']!=null) {
+        configsToSet['site.global.metrics_enabled'] = "true";
       } else {
-        configsToSet['site.global.ganglia_enabled'] = "false";
+        configsToSet['site.global.metrics_enabled'] = "false";
       }
     }
     this.set('newAppConfigs', configsToSet);

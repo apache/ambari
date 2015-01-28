@@ -27,11 +27,11 @@ moduleForModel('sliderApp', 'App.SliderApp', {
   ],
 
   setup: function () {
-    App.set('gangliaHost', null);
+    App.set('metricsHost', null);
   },
 
   teardown: function () {
-    App.set('gangliaHost', null);
+    App.set('metricsHost', null);
   }
 
 });
@@ -56,13 +56,13 @@ test('showMetrics', function () {
   equal(sliderApp.get('showMetrics'), false, 'should be false if supportedMetricNames is not provided');
 
   Em.run(function () {
-    App.set('gangliaHost', 'some_host');
+    App.set('metricsHost', 'some_host');
     sliderApp.set('supportedMetricNames', 'some');
   });
-  equal(sliderApp.get('showMetrics'), true, 'should be true if App.gangliaHost is provided');
+  equal(sliderApp.get('showMetrics'), true, 'should be true if App.metricsHost is provided');
 
   Em.run(function () {
-    App.set('gangliaHost', null);
+    App.set('metricsHost', null);
     sliderApp.set('status', App.SliderApp.Status.running);
   });
   equal(sliderApp.get('showMetrics'), true, 'should be true if status is RUNNING');

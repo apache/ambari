@@ -167,7 +167,7 @@ App.SliderApp = DS.Model.extend({
    */
   showMetrics: function () {
     if (!this.get('supportedMetricNames.length')) return false;
-    if (App.get('gangliaHost') != null) {
+    if (App.get('metricsHost') != null) {
       return true;
     }
     return App.SliderApp.Status.running === this.get('status');

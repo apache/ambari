@@ -103,16 +103,16 @@ App.initializer({
       viewErrors: [],
 
       /**
-       * Host with Ganglia Server
+       * Host with Metrics Server (AMS)
        * @type {string|null}
        */
-      gangliaHost: null,
+      metricsHost: null,
 
       /**
-       * List of Ganglia clusters
+       * Port of Metrics Server (AMS port)
        * @type {array|null}
        */
-      gangliaClusters: null,
+      metricsPort: null,
 
       /**
        * Last time when mapper ran

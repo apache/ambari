@@ -260,23 +260,26 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
                   new ViewStatus.Validation(
                       "ZooKeeper service is not installed"));
             }
-            if (cluster.getDesiredConfigs().containsKey("ganglia-env")) {
-              Map<String, String> gangliaConfigs = ambariClient.getConfiguration(
-                  cluster, "ganglia-env",
-                  cluster.getDesiredConfigs().get("ganglia-env"));
-              String clustersCsv = gangliaConfigs.get("additional_clusters");
-              AmbariService gangliaService = ambariClient.getService(cluster,
-                  "GANGLIA");
-              List<AmbariHostComponent> hostsList = gangliaService
-                  .getComponentsToHostComponentsMap().get("GANGLIA_SERVER");
+            if (cluster.getDesiredConfigs().containsKey("ams-site")) {
+              Map<String, String> amsConfigs = ambariClient.getConfiguration(cluster, "ams-site", cluster.getDesiredConfigs().get("ams-site"));
+              AmbariService amsService = ambariClient.getService(cluster, "AMS");
+              List<AmbariHostComponent> hostsList = amsService.getComponentsToHostComponentsMap().get("METRIC_COLLECTOR");
               if (hostsList != null && hostsList.size() > 0) {
-                String gangliaHostName = hostsList
-                    .get(0).getHostName();
-                newHadoopConfigs.put(PROPERTY_GANGLIA_SERVER_HOSTNAME, gangliaHostName);
-                status.getParameters().put(PROPERTY_GANGLIA_SERVER_HOSTNAME, gangliaHostName);
+                String collectorHostName = hostsList.get(0).getHostName();
+                newHadoopConfigs.put(PROPERTY_METRICS_SERVER_HOSTNAME, collectorHostName);
+                status.getParameters().put(PROPERTY_METRICS_SERVER_HOSTNAME, collectorHostName);
               }
-              newHadoopConfigs.put(PROPERTY_GANGLIA_CUSTOM_CLUSTERS, clustersCsv);
-              status.getParameters().put(PROPERTY_GANGLIA_CUSTOM_CLUSTERS, clustersCsv);
+              if (amsConfigs != null && amsConfigs.containsKey("timeline.metrics.service.webapp.address")) {
+                String portString = amsConfigs.get("timeline.metrics.service.webapp.address");
+                int sepIndex = portString.indexOf(':');
+                if (sepIndex > -1) {
+                  portString = portString.substring(sepIndex + 1);
+                }
+                newHadoopConfigs.put(PROPERTY_METRICS_SERVER_PORT, portString);
+                status.getParameters().put(PROPERTY_METRICS_SERVER_PORT, portString);
+              }
+              newHadoopConfigs.put(PROPERTY_METRICS_LIBRARY_PATH, "file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar");
+              status.getParameters().put(PROPERTY_METRICS_LIBRARY_PATH, "file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar");
             }
             Validation validateHDFSAccess = validateHDFSAccess(newHadoopConfigs, hdfsServiceInfo);
             if (validateHDFSAccess != null) {

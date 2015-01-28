@@ -104,43 +104,22 @@ App.SliderController = Ember.Controller.extend(App.RunPeriodically, {
         && properties['java.home'] != App.get('javaHome')) {
       App.set('javaHome', properties['java.home']);
     }
-    this.initGangliaProperties();
+    this.initMetricsServerProperties();
     this.finishSliderConfiguration(data);
   },
 
   /**
-   * initialize properties of GANGLIA that required by Slider View
-   * @method initGangliaProperties
+   * initialize properties of Metrics Server that are required by Slider View
+   * @method initMetricsServerProperties
    */
-  initGangliaProperties: function () {
+  initMetricsServerProperties: function () {
     var sliderConfigs = App.SliderApp.store.all('sliderConfig'),
-      gangliaClusters = sliderConfigs.findBy('viewConfigName', 'ganglia.additional.clusters'),
-      gangliaHost = sliderConfigs.findBy('viewConfigName', 'ganglia.server.hostname');
-    App.set('gangliaClusters', this.formatGangliaClusters(gangliaClusters.get('value')));
-    App.set('gangliaHost', gangliaHost.get('value'));
-  },
-
-  /**
-   * Format value for <code>gangliaClusters</code>
-   * @param {string} prop
-   * @returns {Array}
-   * @method formatGangliaClusters
-   */
-  formatGangliaClusters: function(prop) {
-    var gangliaCustomClusters = [];
-    //parse CSV string with cluster names and ports
-    if (!Em.isNone(prop)) {
-      prop.replace(/\'/g, "").split(',').forEach(function(item){
-        var splits = item.split(':');
-        if (splits.length > 1) {
-          gangliaCustomClusters.push({
-            name: splits[0],
-            port: splits[1]
-          })
-        }
-      });
-    }
-    return gangliaCustomClusters;
+      metricsPort = sliderConfigs.findBy('viewConfigName', 'site.global.metric_collector_port'),
+      metricsHost = sliderConfigs.findBy('viewConfigName', 'site.global.metric_collector_host'),
+      metricsLibPath = sliderConfigs.findBy('viewConfigName', 'site.global.metric_collector_lib');
+    App.set('metricsHost', metricsHost.get('value'));
+    App.set('metricsPort', metricsPort.get('value'));
+    App.set('metricsLibPath', metricsLibPath.get('value'));
   },
 
   /**

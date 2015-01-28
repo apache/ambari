@@ -39,8 +39,9 @@ public interface SliderAppsViewController {
   public static final String PARAM_VIEW_PRINCIPAL_KEYTAB= "view.kerberos.principal.keytab";
 
   public static final String PROPERTY_SLIDER_ZK_QUORUM = "slider.zookeeper.quorum";
-  public static final String PROPERTY_GANGLIA_SERVER_HOSTNAME = "ganglia.server.hostname";
-  public static final String PROPERTY_GANGLIA_CUSTOM_CLUSTERS = "ganglia.additional.clusters";
+  public static final String PROPERTY_METRICS_SERVER_HOSTNAME = "site.global.metric_collector_host";
+  public static final String PROPERTY_METRICS_SERVER_PORT = "site.global.metric_collector_port";
+  public static final String PROPERTY_METRICS_LIBRARY_PATH = "site.global.metric_collector_lib";
   public static final String PROPERTY_YARN_RM_WEBAPP_URL = "yarn.rm.webapp.url";
   public static final String PROPERTY_SLIDER_USER = "view.slider.user";
   public static final String PROPERTY_JAVA_HOME = "java.home";

@@ -20,8 +20,9 @@ moduleFor('controller:slider', 'App.SliderController', {
 
   setup: function () {
     App.setProperties({
-      gangliaHost: null,
-      gangliaClusters: null
+      metricsHost: null,
+      metricsPort: null,
+      metricsLibPath: null
     });
     Ember.run(App, App.advanceReadiness);
   },
@@ -34,12 +35,16 @@ moduleFor('controller:slider', 'App.SliderController', {
 
 var properties = [
   Em.Object.create({
-    viewConfigName: 'ganglia.additional.clusters',
-    value: 'h0:8080,h1:3333'
+    viewConfigName: 'site.global.metric_collector_lib',
+    value: 'file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar'
   }),
   Em.Object.create({
-    viewConfigName: 'ganglia.server.hostname',
+    viewConfigName: 'site.global.metric_collector_host',
     value: 'h2'
+  }),
+  Em.Object.create({
+    viewConfigName: 'site.global.metric_collector_port',
+    value: '6188'
   })
 ];
 
@@ -76,30 +81,23 @@ test('getParametersFromViewPropertiesSuccessCallback', function () {
     };
     controller.getParametersFromViewPropertiesSuccessCallback({
       parameters: {
-        'ganglia.additional.clusters': 'h0:8080,h1:3333',
-        'ganglia.server.hostname': 'h2'
+        'site.global.metric_collector_lib': 'file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar',
+        'site.global.metric_collector_host': 'h2',
+        'site.global.metric_collector_port': '6188',
       },
       validations: [{}, {}]
     });
   });
 
-  deepEqual(App.get('gangliaClusters'), [
-    {
-      name: 'h0',
-      port: '8080'
-    },
-    {
-      name: 'h1',
-      port: '3333'
-    }
-  ], 'should set gangliaClusters');
-  equal(App.get('gangliaHost'), 'h2', 'should set gangliaHost');
+  equal(App.get('metricsHost'), 'h2', 'should set metrics server host');
+  equal(App.get('metricsPort'), '6188', 'should set metrics server port');
+  equal(App.get('metricsLibPath'), 'file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar', 'should set metrics lib path');
 
   App.SliderApp.store.set('all', storeAll);
 
 });
 
- test('initGangliaProperties', function () {
+ test('initMetricsServerProperties', function () {
 
    var storeAll = App.SliderApp.store.all,
      controller = this.subject();
@@ -108,72 +106,16 @@ test('getParametersFromViewPropertiesSuccessCallback', function () {
      App.SliderApp.store.all = function () {
        return properties;
      };
-     controller.initGangliaProperties();
+     controller.initMetricsServerProperties();
    });
 
-   deepEqual(App.get('gangliaClusters'), [
-     {
-       name: 'h0',
-       port: '8080'
-     },
-     {
-       name: 'h1',
-       port: '3333'
-     }
-   ], 'should set gangliaClusters');
-   equal(App.get('gangliaHost'), 'h2', 'should set gangliaHost');
+   equal(App.get('metricsHost'), 'h2', 'should set metrics server host');
+   equal(App.get('metricsPort'), '6188', 'should set metrics server port');
+   equal(App.get('metricsLibPath'), 'file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar', 'should set metrics lib path');
 
    App.SliderApp.store.set('all', storeAll);
 
  });
-
-test('formatGangliaClusters', function () {
-
-  var cases = [
-      {
-        prop: null,
-        gangliaCustomClusters: [],
-        title: 'empty value'
-      },
-      {
-        prop: 'h0',
-        gangliaCustomClusters: [],
-        title: 'no port specified'
-      },
-      {
-        prop: 'h1:8080,h2:3333',
-        gangliaCustomClusters: [
-          {
-            name: 'h1',
-            port: '8080'
-          },
-          {
-            name: 'h2',
-            port: '3333'
-          }
-        ],
-        title: 'two items with ports'
-      },
-      {
-        prop: '\'h3\':8080',
-        gangliaCustomClusters: [
-          {
-            name: 'h3',
-            port: '8080'
-          }
-        ],
-        title: 'remove apostrophes'
-      }
-    ],
-    controller = this.subject();
-
-  cases.forEach(function (item) {
-
-    deepEqual(controller.formatGangliaClusters(item.prop), item.gangliaCustomClusters, item.title);
-
-  });
-
-});
 
 test('finishSliderConfiguration', function () {
 

@@ -53,20 +53,6 @@ App.SliderAppSummaryView = Ember.View.extend({
   }.property('graphs.@each.dataExists'),
 
   /**
-   * Ganglia url
-   * If <code>model.quickLinks</code> has `app.ganglia` element, it's used
-   * Otherwise - <code>App.gangliaHost</code> is used
-   * @type {string}
-   */
-  gangliaUrl: function () {
-    var g = this.get('controller.model.quickLinks').findBy('label', 'app.ganglia');
-    if (g) {
-      return g.get('url');
-    }
-    return 'http://' + App.get('gangliaHost') + '/ganglia';
-  }.property('App.gangliaHost', 'controller.model.quickLinks.@each.url'),
-
-  /**
    * Update <code>graphs</code>-list when <code>model</code> is updated
    * New metrics are pushed to <code>graphs</code> (not set new list to <code>graphs</code>!) to prevent page flickering
    * @method updateGraphs
