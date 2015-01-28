@@ -29,17 +29,21 @@ from mock.mock import patch, MagicMock
 from resource_management.core.base import Resource
 from resource_management.core.resources.packaging import Package
 from resource_management.core.exceptions import Fail
+from ambari_commons.os_check import OSCheck
 
 class TestInstallPackages(RMFTestCase):
 
+  @staticmethod
   def _add_packages(arg):
     arg.append(["pkg1", "1.0", "repo"])
     arg.append(["pkg2", "2.0", "repo2"])
 
+  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
+  @patch("resource_management.libraries.functions.packages_analyzer.allInstalledPackages")
   @patch("resource_management.libraries.script.Script.put_structured_out")
-  @patch("resource_management.libraries.functions.packages_analyzer.allInstalledPackages",
-         new=MagicMock(side_effect = _add_packages))
-  def test_normal_flow(self, put_structured_out):
+  def test_normal_flow(self, put_structured_out_mock, allInstalledPackages_mock, list_ambari_managed_repos_mock):
+    allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages
+    list_ambari_managed_repos_mock.return_value=[]
     self.executeScript("scripts/install_packages.py",
                        classname="InstallPackages",
                        command="actionexecute",
@@ -47,8 +51,8 @@ class TestInstallPackages(RMFTestCase):
                        target=RMFTestCase.TARGET_CUSTOM_ACTIONS,
                        os_type=('Redhat', '6.4', 'Final'),
     )
-    self.assertTrue(put_structured_out.called)
-    self.assertEquals(put_structured_out.call_args[0][0],
+    self.assertTrue(put_structured_out_mock.called)
+    self.assertEquals(put_structured_out_mock.call_args[0][0],
                       {'package_installation_result': 'SUCCESS',
                        'installed_repository_version': u'2.2.0.1-885',
                        'stack_id': 'HDP-2.2',
@@ -81,12 +85,15 @@ class TestInstallPackages(RMFTestCase):
     self.assertNoMoreResources()
 
 
-  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos",
-         new=MagicMock(return_value=["HDP-UTILS-2.2.0.1-885"]))
+  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
+  @patch("ambari_commons.os_check.OSCheck.is_redhat_family")
   @patch("resource_management.libraries.script.Script.put_structured_out")
-  @patch("resource_management.libraries.functions.packages_analyzer.allInstalledPackages",
-         new=MagicMock(side_effect = _add_packages))
-  def test_exclude_existing_repo(self, put_structured_out):
+  @patch("resource_management.libraries.functions.packages_analyzer.allInstalledPackages")
+  def test_exclude_existing_repo(self, allInstalledPackages_mock, put_structured_out_mock,
+                                 is_redhat_family_mock, list_ambari_managed_repos_mock):
+    allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages
+    list_ambari_managed_repos_mock.return_value=["HDP-UTILS-2.2.0.1-885"]
+    is_redhat_family_mock.return_value = True
     self.executeScript("scripts/install_packages.py",
                        classname="InstallPackages",
                        command="actionexecute",
@@ -94,8 +101,8 @@ class TestInstallPackages(RMFTestCase):
                        target=RMFTestCase.TARGET_CUSTOM_ACTIONS,
                        os_type=('Redhat', '6.4', 'Final'),
     )
-    self.assertTrue(put_structured_out.called)
-    self.assertEquals(put_structured_out.call_args[0][0],
+    self.assertTrue(put_structured_out_mock.called)
+    self.assertEquals(put_structured_out_mock.call_args[0][0],
                       {'package_installation_result': 'SUCCESS',
                        'installed_repository_version': u'2.2.0.1-885',
                        'stack_id': 'HDP-2.2',
@@ -130,6 +137,7 @@ class TestInstallPackages(RMFTestCase):
 
   _install_failed = False
 
+  @staticmethod
   def _add_packages_with_fail(arg):
     arg.append(["pkg1", "1.0", "repo"])
     arg.append(["pkg2", "2.0", "repo2"])
@@ -145,12 +153,19 @@ class TestInstallPackages(RMFTestCase):
       TestInstallPackages._install_failed = True
       raise Exception()
 
+  @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
+  @patch("ambari_commons.os_check.OSCheck.is_redhat_family")
+  @patch("resource_management.libraries.functions.packages_analyzer.allInstalledPackages")
+  @patch("resource_management.core.resources.packaging.Package.__new__")
   @patch("resource_management.libraries.script.Script.put_structured_out")
-  @patch("resource_management.libraries.functions.packages_analyzer.allInstalledPackages",
-         new=MagicMock(side_effect = _add_packages_with_fail))
-  @patch("resource_management.core.resources.packaging.Package.__new__",
-         new=_new_with_exception)
-  def test_fail(self, put_structured_out):
+  def test_fail(self, put_structured_out_mock, Package__mock, allInstalledPackages_mock,
+                is_redhat_family_mock, list_ambari_managed_repos_mock):
+    allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages_with_fail
+    is_redhat_family_mock.return_value = True
+    list_ambari_managed_repos_mock.return_value = []
+    def side_effect(retcode):
+      raise Exception()
+    Package__mock.side_effect = side_effect
     self.assertRaises(Fail, self.executeScript, "scripts/install_packages.py",
                       classname="InstallPackages",
                       command="actionexecute",
@@ -158,12 +173,9 @@ class TestInstallPackages(RMFTestCase):
                       target=RMFTestCase.TARGET_CUSTOM_ACTIONS,
                       os_type=('Redhat', '6.4', 'Final'))
 
-    self.assertTrue(put_structured_out.called)
-    self.assertEquals(put_structured_out.call_args[0][0],
-                      {'package_installation_result': 'FAIL',
-                       'installed_repository_version': u'2.2.0.1-885',
-                       'stack_id': 'HDP-2.2',
-                       'ambari_repositories': []})
+    self.assertTrue(put_structured_out_mock.called)
+    self.assertEquals(put_structured_out_mock.call_args[0][0],
+                      {'stack_id': 'HDP-2.2', 'installed_repository_version': u'2.2.0.1-885', 'ambari_repositories': [], 'package_installation_result': 'FAIL'})
     self.assertResourceCalled('Repository', 'HDP-UTILS-2.2.0.1-885',
                               base_url=u'http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
@@ -182,17 +194,17 @@ class TestInstallPackages(RMFTestCase):
                               mirror_list=None,
                               append_to_file=True,
                               )
-    self.assertResourceCalled('Package', 'hadoop_2_2_*', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
-    self.assertResourceCalled('Package', 'snappy', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
-    self.assertResourceCalled('Package', 'hadoop_2_2_fake_pkg', action=["remove"])
-    self.assertResourceCalled('Package', 'snappy_fake_pkg', action=["remove"])
     self.assertNoMoreResources()
 
 
+  @patch("ambari_commons.os_check.OSCheck.is_suse_family")
+  @patch("resource_management.core.resources.packaging.Package")
   @patch("resource_management.libraries.script.Script.put_structured_out")
-  @patch("resource_management.libraries.functions.packages_analyzer.allInstalledPackages",
-         new=MagicMock(side_effect = _add_packages))
-  def test_format_package_name(self, put_structured_out):
+  @patch("resource_management.libraries.functions.packages_analyzer.allInstalledPackages")
+  def test_format_package_name(self,allInstalledPackages_mock, put_structured_out_mock,
+                               package_mock, is_suse_family_mock):
+    allInstalledPackages_mock = MagicMock(side_effect = TestInstallPackages._add_packages)
+    is_suse_family_mock.return_value = True
     self.executeScript("scripts/install_packages.py",
                        classname="InstallPackages",
                        command="actionexecute",
@@ -200,8 +212,8 @@ class TestInstallPackages(RMFTestCase):
                        target=RMFTestCase.TARGET_CUSTOM_ACTIONS,
                        os_type=('Suse', '11', 'Final'),
                        )
-    self.assertTrue(put_structured_out.called)
-    self.assertEquals(put_structured_out.call_args[0][0],
+    self.assertTrue(put_structured_out_mock.called)
+    self.assertEquals(put_structured_out_mock.call_args[0][0],
                       {'package_installation_result': 'SUCCESS',
                        'installed_repository_version': u'2.2.0.1-885',
                        'stack_id': 'HDP-2.2',
