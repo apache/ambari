@@ -112,6 +112,7 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostSummary;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1330,37 +1331,20 @@ public class ClusterImpl implements Cluster {
       }
     }
 
-    final Collection<HostComponentStateEntity> allHostComponents = host.getHostComponentStateEntities();
-    final Collection<HostComponentStateEntity> versionedHostComponents = new HashSet<HostComponentStateEntity>();
-    final Collection<HostComponentStateEntity> noVersionNeededComponents = new HashSet<HostComponentStateEntity>();
-
-    for (HostComponentStateEntity hostComponentStateEntity: allHostComponents) {
-      if (!hostComponentStateEntity.getVersion().equalsIgnoreCase(State.UNKNOWN.toString())) {
-        versionedHostComponents.add(hostComponentStateEntity);
-      } else {
-        // Some Components cannot advertise a version. E.g., ZKF, AMS, Kerberos
-        ComponentInfo compInfo = ambariMetaInfo.getComponent(
-            stack.getStackName(), stack.getStackVersion(), hostComponentStateEntity.getServiceName(),
-            hostComponentStateEntity.getComponentName());
-
-        if (!compInfo.isVersionAdvertised()) {
-          noVersionNeededComponents.add(hostComponentStateEntity);
-        }
-      }
-    }
+    final ServiceComponentHostSummary hostSummary = new ServiceComponentHostSummary(ambariMetaInfo, host, stack);
+    final Collection<HostComponentStateEntity> versionedHostComponents = hostSummary.getVersionedHostComponents();
 
     // If 0 or 1 cluster version exists, then a brand new cluster permits the host to transition from UPGRADING->CURRENT
     // If multiple cluster versions exist, then it means that the change in versions is happening due to an Upgrade,
     // so should only allow transitioning to UPGRADED or UPGRADING, depending on further circumstances.
     List<ClusterVersionEntity> clusterVersions = clusterVersionDAO.findByCluster(getClusterName());
-    final int versionedPlusNoVersionNeededSize = versionedHostComponents.size() + noVersionNeededComponents.size();
     if (clusterVersions.size() <= 1) {
       // Transition from UPGRADING -> CURRENT. This is allowed because Host Version Entity is bootstrapped in an UPGRADING state.
       // This also covers hosts that do not advertise a version when the cluster was created, and then have another component added
       // that does advertise a version.
-      if (allHostComponents.size() == versionedPlusNoVersionNeededSize &&
+      if (hostSummary.haveAllComponentsFinishedAdvertisingVersion() &&
           (hostVersionEntity.getState().equals(RepositoryVersionState.UPGRADING) || hostVersionEntity.getState().equals(RepositoryVersionState.UPGRADED)) &&
-          ServiceComponentHostImpl.haveSameVersion(versionedHostComponents)) {
+          ServiceComponentHostSummary.haveSameVersion(versionedHostComponents)) {
         hostVersionEntity.setState(RepositoryVersionState.CURRENT);
         hostVersionDAO.merge(hostVersionEntity);
       }
@@ -1368,16 +1352,16 @@ public class ClusterImpl implements Cluster {
       // Transition from UPGRADING -> UPGRADED.
       // We should never transition directly from INSTALLED -> UPGRADED without first going to UPGRADING because
       // they belong in different phases (1. distribute bits 2. perform upgrade).
-      if (allHostComponents.size() == versionedPlusNoVersionNeededSize &&
+      if (hostSummary.haveAllComponentsFinishedAdvertisingVersion() &&
           hostVersionEntity.getState().equals(RepositoryVersionState.UPGRADING) &&
-          ServiceComponentHostImpl.haveSameVersion(versionedHostComponents)) {
+          ServiceComponentHostSummary.haveSameVersion(versionedHostComponents)) {
         hostVersionEntity.setState(RepositoryVersionState.UPGRADED);
         hostVersionDAO.merge(hostVersionEntity);
       } else{
         // HostVersion is INSTALLED and an upgrade is in-progress because at least 2 components have different versions,
         // Or the host has no components that advertise a version, so still consider it as UPGRADING.
-        if (hostVersionEntity.getState().equals(RepositoryVersionState.INSTALLED) && versionedHostComponents.size() > 0 &&
-          !ServiceComponentHostImpl.haveSameVersion(versionedHostComponents)) {
+        if (hostVersionEntity.getState().equals(RepositoryVersionState.INSTALLED) && versionedHostComponents.size() > 0 && 
+          !ServiceComponentHostSummary.haveSameVersion(versionedHostComponents)) {
           hostVersionEntity.setState(RepositoryVersionState.UPGRADING);
           hostVersionDAO.merge(hostVersionEntity);
         }

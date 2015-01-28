@@ -29,6 +29,11 @@ import static org.apache.commons.lang.StringUtils.defaultString;
 @IdClass(HostComponentStateEntityPK.class)
 @Table(name = "hostcomponentstate")
 @Entity
+@NamedQueries({
+    @NamedQuery(name = "HostComponentStateEntity.findAll", query = "SELECT hcs from HostComponentStateEntity hcs"),
+    @NamedQuery(name = "HostComponentStateEntity.findByHost", query =
+        "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.hostName=:hostName"),
+})
 public class HostComponentStateEntity {
 
   @Id

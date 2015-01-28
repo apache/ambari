@@ -35,6 +35,8 @@ import java.util.List;
 public class HostComponentStateDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
+  @Inject
+  DaoUtils daoUtils;
 
   @RequiresSession
   public HostComponentStateEntity findByPK(HostComponentStateEntityPK primaryKey) {
@@ -43,13 +45,26 @@ public class HostComponentStateDAO {
 
   @RequiresSession
   public List<HostComponentStateEntity> findAll() {
-    TypedQuery<HostComponentStateEntity> query = entityManagerProvider.get()
-      .createQuery("SELECT hsc from HostComponentStateEntity hsc", HostComponentStateEntity.class);
+    final TypedQuery<HostComponentStateEntity> query = entityManagerProvider.get().createNamedQuery("HostComponentStateEntity.findAll", HostComponentStateEntity.class);
     try {
       return query.getResultList();
     } catch (NoResultException ignored) {
     }
     return null;
+  }
+
+  /**
+   * Retrieve all of the Host Component States for the given host.
+   *
+   * @param hostName HOst name
+   * @return Return all of the Host Component States that match the criteria.
+   */
+  @RequiresSession
+  public List<HostComponentStateEntity> findByHost(String hostName) {
+    final TypedQuery<HostComponentStateEntity> query = entityManagerProvider.get().createNamedQuery("HostComponentStateEntity.findByHost", HostComponentStateEntity.class);
+    query.setParameter("hostName", hostName);
+
+    return daoUtils.selectList(query);
   }
 
   @Transactional

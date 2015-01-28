@@ -22,24 +22,27 @@ import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryVersionState;
+import  org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeState;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostSummary;
 import org.apache.commons.lang.StringUtils;
 
 import java.text.MessageFormat;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
@@ -64,6 +67,9 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
   @Inject
   private HostComponentStateDAO hostComponentStateDAO;
 
+  @Inject
+  private AmbariMetaInfo ambariMetaInfo;
+
   @Override
   public CommandReport execute(
       ConcurrentMap<String, Object> requestSharedDataContext)
@@ -82,7 +88,8 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
 
       Cluster cluster = clusters.getCluster(clusterName);
 
-      String stackId = cluster.getCurrentStackVersion().getStackId();
+      StackId stack = cluster.getCurrentStackVersion();
+      String stackId = stack.getStackId();
       ClusterVersionEntity upgradingClusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(clusterName,
           stackId, version);
 
@@ -90,44 +97,80 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
         throw new AmbariException(String.format("Cluster stack version %s not found", version));
       }
 
-      if (! allowedStates.contains(upgradingClusterVersion.getState())) {
-        throw new AmbariException(String.format("The cluster stack version state %s is not allowed to transition directly into %s",
-            upgradingClusterVersion.getState(), RepositoryVersionState.CURRENT.toString()));
-      }
-
-      // Validate that all of the hosts in the cluster have the version being upgraded to, and it is in an allowed state.
-      Map<String, Host> hosts = clusters.getHostsForCluster(clusterName);
+      // Validate that all of the hosts with a version in the cluster have the version being upgraded to, and it is in an allowed state.
       List<HostVersionEntity> hostVersions = hostVersionDAO.findByClusterStackAndVersion(clusterName, stackId, version);
 
-      Set<String> hostWithAllowedVersion = new HashSet<String>();
-      for (HostVersionEntity hostVersion : hostVersions) {
-        if (allowedStates.contains(hostVersion.getState())) {
-          hostWithAllowedVersion.add(hostVersion.getHostName());
-        }
-      }
+      // Will include hosts whose state is UPGRADED, and potentially INSTALLED
+      Set<HostVersionEntity> hostsWithAllowedVersion = new HashSet<HostVersionEntity>();
+      Set<HostVersionEntity> hostsWithoutCorrectVersionState = new HashSet<HostVersionEntity>();
+      Set<String> hostsToUpdate = new HashSet<String>();
+      // If true, then the cluster version is still in UPGRADING and allowed to transition to UPGRADED, and then CURRENT
+      boolean atLeastOneHostInInstalledState = false;
 
-      Set<String> hostsWithoutCorrectVersionState = new HashSet<String>();
-      for (String host : hosts.keySet()) {
-        if (!hostWithAllowedVersion.contains(host)) {
-          hostsWithoutCorrectVersionState.add(host);
+      // It is important to only iterate over the hosts with a version, as opposed to all hosts, since some hosts
+      // may only have components that do not advertise a version, such as AMS.
+      for (HostVersionEntity hostVersion : hostVersions) {
+        boolean isStateCorrect = false;
+
+        if (allowedStates.contains(hostVersion.getState())) {
+          isStateCorrect = true;
+        } else {
+          if (hostVersion.getState() == RepositoryVersionState.INSTALLED) {
+            // It is possible that the host version has a state of INSTALLED and it never changed if the host only has
+            // components that do not advertise a version.
+            HostEntity host = hostVersion.getHostEntity();
+            ServiceComponentHostSummary hostSummary = new ServiceComponentHostSummary(ambariMetaInfo, host, stack);
+            if (hostSummary.haveAllComponentsFinishedAdvertisingVersion()){
+              isStateCorrect = true;
+              atLeastOneHostInInstalledState = true;
+            }
+          }
+        }
+
+        if (isStateCorrect) {
+          hostsWithAllowedVersion.add(hostVersion);
+          hostsToUpdate.add(hostVersion.getHostName());
+        } else {
+          hostsWithoutCorrectVersionState.add(hostVersion);
         }
       }
 
       if (hostsWithoutCorrectVersionState.size() > 0) {
-        throw new AmbariException(String.format("The following host(s) have not been upgraded to version %s. " +
-                "Please install and upgrade the Stack Version on those hosts and try again.",
+        String message = String.format("The following %d host(s) have not been upgraded to version %s. " +
+                "Please install and upgrade the Stack Version on those hosts and try again.\nHosts: %s\n",
+            hostsWithoutCorrectVersionState.size(),
             version,
-            StringUtils.join(hostsWithoutCorrectVersionState, ", ")));
+            StringUtils.join(hostsWithoutCorrectVersionState, ", "));
+        outSB.append(message);
+        throw new AmbariException(message);
       }
 
-      outSB.append(String.format("Will finalize the upgraded state of all host components.\n"));
-      for (HostComponentStateEntity hostComponentStateEntity: hostComponentStateDAO.findAll()) {
-        hostComponentStateEntity.setUpgradeState(UpgradeState.NONE);
-        hostComponentStateDAO.merge(hostComponentStateEntity);
+      // Allow the cluster version to transition from UPGRADING to CURRENT
+      if (atLeastOneHostInInstalledState) {
+        cluster.transitionClusterVersion(stackId, version, RepositoryVersionState.UPGRADED);
+        upgradingClusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(clusterName,
+            stackId, version);
       }
 
-      outSB.append(String.format("Will finalize the version for %d host(s).\n", hosts.keySet().size()));
-      cluster.mapHostVersions(hosts.keySet(), upgradingClusterVersion, RepositoryVersionState.CURRENT);
+      if (!allowedStates.contains(upgradingClusterVersion.getState())) {
+        throw new AmbariException(String.format("The cluster stack version state %s is not allowed to transition directly into %s",
+            upgradingClusterVersion.getState(), RepositoryVersionState.CURRENT.toString()));
+      }
+
+      outSB.append(String.format("Will finalize the upgraded state of host components in %d host(s).\n", hostsWithAllowedVersion.size()));
+
+      for (HostVersionEntity hostVersion : hostsWithAllowedVersion) {
+        Collection<HostComponentStateEntity> hostComponentStates = hostComponentStateDAO.findByHost(hostVersion.getHostName());
+        for (HostComponentStateEntity hostComponentStateEntity: hostComponentStates) {
+          hostComponentStateEntity.setUpgradeState(UpgradeState.NONE);
+          hostComponentStateDAO.merge(hostComponentStateEntity);
+        }
+      }
+
+      outSB.append(String.format("Will finalize the version for %d host(s).\n", hostsWithAllowedVersion.size()));
+
+      // Impacts all hosts that have a version
+      cluster.mapHostVersions(hostsToUpdate, upgradingClusterVersion, RepositoryVersionState.CURRENT);
 
       outSB.append(String.format("Will finalize the version for cluster %s.\n", clusterName));
       cluster.transitionClusterVersion(stackId, version, RepositoryVersionState.CURRENT);

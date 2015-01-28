@@ -1528,30 +1528,5 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     return version;
   }
 
-  /**
-   * Checks that every component has the same version
-   *
-   * @param hostComponents host components
-   * @return true if components have the same version
-   */
-  public static boolean haveSameVersion(Collection<HostComponentStateEntity> hostComponents) {
-    if (hostComponents.isEmpty()) {
-      // should never happen
-      // but just in case: no components passed -> do not change host version
-      return false;
-    }
-    String firstVersion = null;
-    for (HostComponentStateEntity hostComponent : hostComponents) {
-      if (!hostComponent.getVersion().isEmpty()) {
-        if (firstVersion == null) {
-          firstVersion = hostComponent.getVersion();
-        } else {
-          if (!StringUtils.equals(firstVersion, hostComponent.getVersion())) {
-            return false;
-          }
-        }
-      }
-    }
-    return true;
-  }
+
 }
