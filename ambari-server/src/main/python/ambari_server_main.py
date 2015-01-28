@@ -150,6 +150,7 @@ def get_ulimit_open_files(properties):
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
 def generate_child_process_param_list(ambari_user, current_user, java_exe, class_path, debug_start, suspend_mode):
+  conf_dir = class_path
   if class_path.find(' ') != -1:
     conf_dir = '"' + class_path + '"'
   command_base = SERVER_START_CMD_DEBUG_WINDOWS if debug_start else SERVER_START_CMD_WINDOWS

@@ -917,11 +917,13 @@ App.config = Em.Object.create({
 
   loadAdvancedConfigPartialSuccess: function(data, opt, params, request) {
     var properties = [];
-    var configurations = data.items.mapProperty('configurations').reduce(function(p,c) { return p.concat(c); });
-    configurations.forEach(function(item) {
-      var property = this.createAdvancedPropertyObject(item.StackConfigurations);
-      if (property) properties.push(property);
-    }, this);
+    if(data.items.length && data.items.mapProperty('configurations').length) {
+      var configurations = data.items.mapProperty('configurations').reduce(function(p,c) { return p.concat(c); });
+      configurations.forEach(function(item) {
+        var property = this.createAdvancedPropertyObject(item.StackConfigurations);
+        if (property) properties.push(property);
+      }, this);
+    }
     params.callback(properties, request);
   },
 

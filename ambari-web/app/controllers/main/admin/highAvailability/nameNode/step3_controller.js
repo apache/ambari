@@ -127,6 +127,11 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
      var value = this.get('serverConfigData.items').findProperty('type', 'hbase-site').properties['hbase.rootdir'].replace(/\/\/[^\/]*/, '//' + nameServiceId);
      this.setConfigInitialValue(config,value);
     }
+    config = configs.findProperty('name','dfs.journalnode.edits.dir');
+    if (App.get('isHadoopWindowsStack') && App.Service.find().someProperty('serviceName', 'HDFS')) {
+     var value = this.get('serverConfigData.items').findProperty('type', 'hdfs-site').properties['dfs.journalnode.edits.dir'];
+     this.setConfigInitialValue(config, value);
+    }
   },
 
   setConfigInitialValue: function(config,value) {

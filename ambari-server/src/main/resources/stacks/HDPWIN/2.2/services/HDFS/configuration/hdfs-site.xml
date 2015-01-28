@@ -28,10 +28,4 @@
     <description></description>
   </property>
 
-  <property>
-    <name>dfs.journalnode.edits.dir</name>
-    <value>/hadoop/hdfs/journalnode</value>
-    <description>The path where the JournalNode daemon will store its local state. </description>
-  </property>
-
 </configuration>
