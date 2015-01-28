@@ -520,8 +520,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(App.db.set.calledWith('repoVersionInstall', 'id', [1])).to.be.true;
       expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
       expect(App.RepositoryVersion.find.calledWith(1)).to.be.true;
-      expect(mock.set.calledWith('stackVersion.state', 'INSTALLING')).to.be.true;
-    });
+      expect(mock.set.calledWith('defaultStatus', 'INSTALLING')).to.be.true;    });
   });
 
   describe("#setUpgradeItemStatus()", function () {

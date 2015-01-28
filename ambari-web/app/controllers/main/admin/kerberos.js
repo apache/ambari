@@ -175,7 +175,16 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
       }
     });
   },
-
+  
+  /**
+   * Override <code>App.KerberosWizardStep4Controller</code>
+   *
+   * @param {App.ServiceConfigProperty[]} properties
+   */
+  setStepConfigs: function (properties) {
+    this.get('stepConfigs').clear();
+    this._super(properties);
+  },
   
   /**
    * Override <code>App.KerberosWizardStep4Controller</code>
