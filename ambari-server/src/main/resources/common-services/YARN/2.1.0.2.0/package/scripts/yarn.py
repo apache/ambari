@@ -74,7 +74,8 @@ def yarn(name = None):
       smokeuser_directories = [os.path.join(dir, 'usercache' ,params.smokeuser)
                                for dir in params.nm_local_dirs.split(',')]
       for directory in smokeuser_directories:
-        Execute(format("chown -R {params.smokeuser} {directory}"))
+        Execute(format("chown -R {params.smokeuser} {directory}"),
+                only_if=format("test -d {directory}"))
   Directory([params.yarn_pid_dir_prefix, params.yarn_pid_dir, params.yarn_log_dir],
             owner=params.yarn_user,
             group=params.user_group,
