@@ -24,6 +24,8 @@ import urllib2
 from alerts.base_alert import BaseAlert
 from collections import namedtuple
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
+from ambari_commons import OSCheck
+from ambari_commons.inet_utils import resolve_address
 
 logger = logging.getLogger()
 
@@ -93,7 +95,9 @@ class WebAlert(BaseAlert):
     scheme = 'http'
     if alert_uri.is_ssl_enabled is True:
       scheme = 'https'
-
+    if OSCheck.is_windows_family():
+      # on windows 0.0.0.0 is invalid address to connect but on linux it resolved to 127.0.0.1
+      host = resolve_address(host)
     return "{0}://{1}:{2}".format(scheme, host, str(port))
 
 

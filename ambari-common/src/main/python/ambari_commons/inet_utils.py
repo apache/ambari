@@ -24,6 +24,7 @@ import urllib2
 
 from exceptions import *
 from logging_utils import *
+from os_check import OSCheck
 
 def download_file(link, destination, chunk_size=16 * 1024):
   print_info_msg("Downloading {0} to {1}".format(link, destination))
@@ -146,3 +147,15 @@ def force_download_file(link, destination, chunk_size = 16 * 1024, progress_func
     #Windows behavior: rename fails if the destination file exists
     os.unlink(destination)
   os.rename(temp_dest, destination)
+
+def resolve_address(address):
+  """
+  Resolves address to proper one in special cases, for example 0.0.0.0 to 127.0.0.1 on windows os.
+
+  :param address: address to resolve
+  :return: resulting address
+  """
+  if OSCheck.is_windows_family():
+    if address == '0.0.0.0':
+      return '127.0.0.1'
+  return address

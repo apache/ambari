@@ -21,6 +21,11 @@ limitations under the License.
 import collections
 import os
 import platform
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_commons import OSConst
+
+DiskInfo = collections.namedtuple('DiskInfo', 'total used free')
+
 
 def get_tokens():
   """
@@ -28,7 +33,7 @@ def get_tokens():
   to build the dictionary passed into execute
   """
   return None
-  
+
 
 def execute(parameters=None, host_name=None):
   """
@@ -47,30 +52,30 @@ def execute(parameters=None, host_name=None):
 
   if disk_usage is None or disk_usage.total == 0:
     return (('CRITICAL', ['Unable to determine the disk usage']))
-  
+
   result_code = 'OK'
   percent = disk_usage.used / float(disk_usage.total) * 100
   if percent > 50:
     result_code = 'WARNING'
   elif percent > 80:
     result_code = 'CRTICAL'
-    
-  label = 'Capacity Used: [{0:.2f}%, {1}], Capacity Total: [{2}]'.format( 
-      percent, _get_formatted_size(disk_usage.used), 
+
+  label = 'Capacity Used: [{0:.2f}%, {1}], Capacity Total: [{2}]'.format(
+      percent, _get_formatted_size(disk_usage.used),
       _get_formatted_size(disk_usage.total) )
-  
+
   return ((result_code, [label]))
 
-
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def _get_disk_usage(path='/'):
   """
   returns a named tuple that contains the total, used, and free disk space
-  in bytes
+  in bytes. Linux implementation.
   """
   used = 0
   total = 0
   free = 0
-  
+
   if 'statvfs' in dir(os):
     disk_stats = os.statvfs(path)
     free = disk_stats.f_bavail * disk_stats.f_frsize
@@ -78,15 +83,45 @@ def _get_disk_usage(path='/'):
     used = (disk_stats.f_blocks - disk_stats.f_bfree) * disk_stats.f_frsize
   else:
     raise NotImplementedError("{0} is not a supported platform for this alert".format(platform.platform()))
-  
-  DiskInfo = collections.namedtuple('DiskInfo', 'total used free')
+
+  return DiskInfo(total=total, used=used, free=free)
+
+
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def _get_disk_usage(path=None):
+  """
+  returns a named tuple that contains the total, used, and free disk space
+  in bytes. Windows implementation
+  """
+  import string
+  import ctypes
+
+  used = 0
+  total = 0
+  free = 0
+  drives = []
+  bitmask = ctypes.windll.kernel32.GetLogicalDrives()
+  for letter in string.uppercase:
+    if bitmask & 1:
+      drives.append(letter)
+    bitmask >>= 1
+  for drive in drives:
+    free_bytes = ctypes.c_ulonglong(0)
+    total_bytes = ctypes.c_ulonglong(0)
+    ctypes.windll.kernel32.GetDiskFreeSpaceExW(ctypes.c_wchar_p(drive + ":\\"),
+                                               None, ctypes.pointer(total_bytes),
+                                               ctypes.pointer(free_bytes))
+    total += total_bytes.value
+    free += free_bytes.value
+    used += total_bytes.value - free_bytes.value
+
   return DiskInfo(total=total, used=used, free=free)
 
 
 def _get_formatted_size(bytes):
   """
   formats the supplied bytes 
-  """  
+  """
   if bytes < 1000:
     return '%i' % bytes + ' B'
   elif 1000 <= bytes < 1000000:

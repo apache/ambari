@@ -23,7 +23,8 @@ import socket
 import time
 from alerts.base_alert import BaseAlert
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
-
+from ambari_commons import OSCheck
+from ambari_commons.inet_utils import resolve_address
 logger = logging.getLogger()
 
 # default timeouts
@@ -114,6 +115,9 @@ class PortAlert(BaseAlert):
       s.settimeout(self.critical_timeout)
 
       t = time.time()
+      if OSCheck.is_windows_family():
+        # on windows 0.0.0.0 is invalid address to connect but on linux it resolved to 127.0.0.1
+        host = resolve_address(host)
       s.connect((host, port))
       milliseconds = time.time() - t
       seconds = milliseconds/1000.0

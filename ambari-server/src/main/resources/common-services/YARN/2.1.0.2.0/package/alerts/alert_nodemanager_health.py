@@ -21,7 +21,8 @@ limitations under the License.
 import json
 import socket
 import urllib2
-
+from ambari_commons import OSCheck
+from ambari_commons.inet_utils import resolve_address
 RESULT_CODE_OK = 'OK'
 RESULT_CODE_CRITICAL = 'CRITICAL'
 RESULT_CODE_UNKNOWN = 'UNKNOWN'
@@ -92,7 +93,11 @@ def execute(parameters=None, host_name=None):
       host_name = socket.getfqdn()
 
     uri = '{0}:{1}'.format(host_name, NODEMANAGER_DEFAULT_PORT)
-
+  if OSCheck.is_windows_family():
+    uri_host, uri_port = uri.split(':')
+    # on windows 0.0.0.0 is invalid address to connect but on linux it resolved to 127.0.0.1
+    uri_host = resolve_address(uri_host)
+    uri = '{0}:{1}'.format(uri_host, uri_port)
   try:
     query = "{0}://{1}/ws/v1/node/info".format(scheme,uri)
     
