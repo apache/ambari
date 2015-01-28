@@ -31,11 +31,17 @@ App.RepositoryVersion = DS.Model.extend({
   }.property('stackVersionType', 'stackVersionNumber'),
 
   /**
+   * status used until corresponding stack version get created
+   * @type {string}
+   */
+  defaultStatus: 'INIT',
+
+  /**
    * @type {string}
    */
   status: function () {
-    return this.get('stackVersion.state') || 'INIT';
-  }.property('stackVersion.state'),
+    return this.get('stackVersion.state') || this.get('defaultStatus');
+  }.property('stackVersion.state', 'defaultStatus'),
 
   /**
    * @type {Array}

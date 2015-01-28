@@ -501,6 +501,29 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
   });
 
+  describe("#installRepoVersionSuccess()", function() {
+    var mock = {set: Em.K};
+    before(function () {
+      sinon.spy(mock, 'set');
+      sinon.stub(App.db, 'set', Em.K);
+      sinon.stub(App.clusterStatus, 'setClusterStatus', Em.K);
+      sinon.stub(App.RepositoryVersion, 'find').returns(mock);
+    });
+    after(function () {
+      mock.set.restore();
+      App.db.set.restore();
+      App.clusterStatus.setClusterStatus.restore();
+      App.RepositoryVersion.find.restore();
+    });
+    it("", function() {
+      controller.installRepoVersionSuccess({Requests: {id: 1}}, {}, {id: 1});
+      expect(App.db.set.calledWith('repoVersionInstall', 'id', [1])).to.be.true;
+      expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
+      expect(App.RepositoryVersion.find.calledWith(1)).to.be.true;
+      expect(mock.set.calledWith('stackVersion.state', 'INSTALLING')).to.be.true;
+    });
+  });
+
   describe("#setUpgradeItemStatus()", function () {
     before(function () {
       sinon.stub(App.ajax, 'send', function () {
@@ -580,7 +603,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
               }
             ]
           }
-        ]}
+        ]};
       expect(controller.prepareRepoForSaving(repo)).to.eql(result);
     });
   });

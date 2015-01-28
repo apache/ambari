@@ -533,6 +533,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       wizardControllerName: this.get('name'),
       localdb: App.db.data
     });
+    App.RepositoryVersion.find(params.id).set('defaultStatus', 'INSTALLING');
   },
 
   /**
