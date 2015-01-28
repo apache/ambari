@@ -130,6 +130,35 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <id>download-hadoop</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target name="Downloading Hadoop">
+                <mkdir dir="${project.build.directory}/embedded" />
+                <get
+                  src="${hadoop.tar}"
+                  dest="${project.build.directory}/embedded/hadoop.tar.gz"
+                  usetimestamp="true"
+                  />
+                <untar
+                  src="${project.build.directory}/embedded/hadoop.tar.gz"
+                  dest="${project.build.directory}/embedded"
+                  compression="gzip"
+                  />
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
@@ -350,6 +379,14 @@
                             <include>phoenix*.jar</include>
                             <include>antlr*.jar</include>
                           </includes>
+                        </source>
+                      </sources>
+                    </mapping>
+                    <mapping>
+                      <directory>/usr/lib/ams-hbase/lib/hadoop-native/</directory>
+                      <sources>
+                        <source>
+                          <location>${project.build.directory}/ambari-metrics-collector-${project.version}/ambari-metrics-collector-${project.version}/hbase/lib/hadoop-native</location>
                         </source>
                       </sources>
                     </mapping>
@@ -668,6 +705,15 @@
                     <type>perm</type>
                     <filemode>755</filemode>
                     <prefix>/usr/lib/ams-hbase/bin</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${project.build.directory}/ambari-metrics-collector-${project.version}/ambari-metrics-collector-${project.version}/hbase/lib/hadoop-native</src>
+                  <type>directory</type>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>755</filemode>
+                    <prefix>/usr/lib/ams-hbase/lib/hadoop-native</prefix>
                   </mapper>
                 </data>
                 <data>

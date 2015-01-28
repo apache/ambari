@@ -78,9 +78,6 @@
             <package>
               <name>ambari-metrics-hadoop-sink</name>
             </package>
-            <package>
-              <name>hadoop_2_2_*</name>
-            </package>
           </packages>
         </osSpecific>
         <osSpecific>
@@ -88,9 +85,6 @@
           <packages>
             <package>
               <name>ambari-metrics-assembly</name>
-            </package>
-            <package>
-              <name>hadoop-2-2-.*</name>
             </package>
           </packages>
         </osSpecific>

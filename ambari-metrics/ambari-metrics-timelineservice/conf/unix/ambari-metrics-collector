@@ -203,13 +203,11 @@ case "$1" in
 #		  hbase_daemon "master" "start"
 #		  hbase_daemon "regionserver" "start"
     if [ !"${DISTRIBUTED_HBASE}" ]; then
+      echo "Starting HBase."
       hbase_daemon "master" "start"
     else
       echo "Launching in distributed mode. Assuming Hbase daemons up and running."
     fi
-
-#    sleep 30
-#TODO check issue fixed
 
 		CLASS='org.apache.hadoop.yarn.server.applicationhistoryservice.ApplicationHistoryServer'
 		# YARN_OPTS="${YARN_OPTS} ${YARN_TIMELINESERVER_OPTS}"
@@ -275,7 +273,8 @@ case "$1" in
       fi
 
       #stop hbase daemons
-      if [ ! "${DISTRIBUTED_HBASE}" ]; then
+      if [ !"${DISTRIBUTED_HBASE}" ]; then
+        echo "Stopping HBase master"
         hbase_daemon "master" "stop"
       fi
 

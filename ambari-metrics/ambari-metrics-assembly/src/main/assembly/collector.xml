@@ -50,7 +50,33 @@
       <directory>${collector.dir}/target/lib</directory>
       <outputDirectory>lib</outputDirectory>
     </fileSet>
+    <fileSet>
+      <directory>${project.build.directory}/embedded/${hadoop.folder}/lib/native</directory>
+      <outputDirectory>hbase/lib/hadoop-native</outputDirectory>
+      <excludes>
+        <exclude>*.so*</exclude>
+      </excludes>
+    </fileSet>
   </fileSets>
+
+  <!--TODO due to broken symlinks  -->
+  <files>
+    <file>
+      <source>${project.build.directory}/embedded/${hadoop.folder}/lib/native/libsnappy.so.1.1.4</source>
+      <outputDirectory>hbase/lib/hadoop-native</outputDirectory>
+      <destName>libsnappy.so.1</destName>
+    </file>
+    <file>
+      <source>${project.build.directory}/embedded/${hadoop.folder}/lib/native/libhdfs.so.0.0.0</source>
+      <outputDirectory>hbase/lib/hadoop-native</outputDirectory>
+      <destName>libhdfs.so</destName>
+    </file>
+    <file>
+      <source>${project.build.directory}/embedded/${hadoop.folder}/lib/native/libhadoop.so.1.0.0</source>
+      <outputDirectory>hbase/lib/hadoop-native</outputDirectory>
+      <destName>libhadoop.so</destName>
+    </file>
+  </files>
 
   <dependencySets>
     <dependencySet>
