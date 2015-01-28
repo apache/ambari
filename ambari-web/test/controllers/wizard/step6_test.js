@@ -47,11 +47,11 @@ describe('App.WizardStep6Controller', function () {
 
   beforeEach(function () {
     controller = App.WizardStep6Controller.create();
-    controller.set('content', {
+    controller.set('content', Em.Object.create({
       hosts: {},
       masterComponentHosts: {},
       services: services
-    });
+    }));
 
     var h = {}, m = [];
     Em.A(['host0', 'host1', 'host2', 'host3']).forEach(function (hostName) {
@@ -550,6 +550,355 @@ describe('App.WizardStep6Controller', function () {
         expect(r).to.eql(test.e);
       });
     });
+  });
+
+  describe('#callServerSideValidation', function () {
+
+    var cases = [
+        {
+          controllerName: 'installerController',
+          hosts: [
+            {
+              hostName: 'h0'
+            },
+            {
+              hostName: 'h1'
+            }
+          ],
+          expected: [
+            ['c0', 'c6'],
+            ['c1', 'c3', 'c8']
+          ]
+        },
+        {
+          controllerName: 'addServiceController',
+          hosts: [
+            {
+              hostName: 'h0'
+            },
+            {
+              hostName: 'h1'
+            }
+          ],
+          expected: [
+            ['c0', 'c6'],
+            ['c1', 'c3', 'c8']
+          ]
+        },
+        {
+          controllerName: 'addHostController',
+          hosts: [
+            {
+              hostName: 'h0'
+            }
+          ],
+          expected: [
+            ['c0', 'c2', 'c5', 'c6'],
+            ['c1', 'c2', 'c3', 'c5', 'c8']
+          ]
+        }
+      ],
+      expectedHostGroups = [
+        {
+          name: 'host-group-1',
+          fqdn: 'h0'
+        },
+        {
+          name: 'host-group-2',
+          fqdn: 'h1'
+        }
+      ];
+
+    beforeEach(function () {
+      controller.get('content').setProperties({
+        recommendations: {
+          blueprint: {
+            host_groups: [
+              {
+                components: [
+                  {
+                    name: 'c6'
+                  }
+                ],
+                name: 'host-group-1'
+              },
+              {
+                components: [
+                  {
+                    name: 'c8'
+                  }
+                ],
+                name: 'host-group-2'
+              }
+            ]
+          },
+          blueprint_cluster_binding: {
+            host_groups: [
+              {
+                hosts: [
+                  {
+                    fqdn: 'h0'
+                  }
+                ],
+                name: 'host-group-1'
+              },
+              {
+                hosts: [
+                  {
+                    fqdn: 'h1'
+                  }
+                ],
+                name: 'host-group-2'
+              }]
+          }
+        },
+        clients: [
+          {
+            component_name: 'c3'
+          }
+        ]
+      });
+      sinon.stub(App.StackService, 'find', function () {
+        return [
+          Em.Object.create({
+            serviceName: 's0',
+            isSelected: true
+          }),
+          Em.Object.create({
+            serviceName: 's1',
+            isInstalled: true,
+            isSelected: true
+          })
+        ];
+      });
+      sinon.stub(App.StackServiceComponent, 'find', function () {
+        return [
+          Em.Object.create({
+            componentName: 'c0',
+            isSlave: true
+          }),
+          Em.Object.create({
+            componentName: 'c1',
+            isSlave: true,
+            isShownOnInstallerSlaveClientPage: true
+          }),
+          Em.Object.create({
+            componentName: 'c2',
+            isSlave: true,
+            isShownOnInstallerSlaveClientPage: false
+          }),
+          Em.Object.create({
+            componentName: 'c3',
+            isClient: true
+          }),
+          Em.Object.create({
+            componentName: 'c4',
+            isClient: true,
+            isRequiredOnAllHosts: false
+          }),
+          Em.Object.create({
+            componentName: 'c5',
+            isClient: true,
+            isRequiredOnAllHosts: true
+          }),
+          Em.Object.create({
+            componentName: 'c6',
+            isMaster: true,
+            isShownOnInstallerAssignMasterPage: true
+          }),
+          Em.Object.create({
+            componentName: 'c7',
+            isMaster: true,
+            isShownOnInstallerAssignMasterPage: false
+          }),
+          Em.Object.create({
+            componentName: 'c8',
+            isMaster: true,
+            isShownOnAddServiceAssignMasterPage: true
+          }),
+          Em.Object.create({
+            componentName: 'c9',
+            isMaster: true,
+            isShownOnAddServiceAssignMasterPage: false
+          })
+        ];
+      });
+      sinon.stub(controller, 'getCurrentBlueprint', function () {
+        return {
+          blueprint: {
+            host_groups: [
+              {
+                components: [
+                  {
+                    name: 'c0'
+                  }
+                ],
+                name: 'host-group-1'
+              },
+              {
+                components: [
+                  {
+                    name: 'c1'
+                  },
+                  {
+                    name: 'c3'
+                  }
+                ],
+                name: 'host-group-2'
+              }
+            ]
+          },
+          blueprint_cluster_binding: {
+            host_groups: [
+              {
+                hosts: [
+                  {
+                    fqdn: 'h0'
+                  }
+                ],
+                name: 'host-group-1'
+              },
+              {
+                hosts: [
+                  {
+                    fqdn: 'h1'
+                  }
+                ],
+                name: 'host-group-2'
+              }]
+          }
+        };
+      });
+      sinon.stub(controller, 'getCurrentMastersBlueprint', function () {
+        return {
+          blueprint: {
+            host_groups: [
+              {
+                components: [
+                  {
+                    name: 'c6'
+                  }
+                ],
+                name: 'host-group-1'
+              },
+              {
+                components: [
+                  {
+                    name: 'c8'
+                  }
+                ],
+                name: 'host-group-2'
+              }
+            ]
+          },
+          blueprint_cluster_binding: {
+            host_groups: [
+              {
+                hosts: [
+                  {
+                    fqdn: 'h0'
+                  }
+                ],
+                name: 'host-group-1'
+              },
+              {
+                hosts: [
+                  {
+                    fqdn: 'h1'
+                  }
+                ],
+                name: 'host-group-2'
+              }]
+          }
+        };
+      });
+      sinon.stub(App, 'get').withArgs('components.clients').returns(['c3', 'c4']);
+      sinon.stub(controller, 'getCurrentMasterSlaveBlueprint', function () {
+        return {
+          blueprint: {
+            host_groups: [
+              {
+                components: [
+                  {
+                    name: 'c6'
+                  }
+                ],
+                name: 'host-group-1'
+              },
+              {
+                components: [
+                  {
+                    name: 'c8'
+                  }
+                ],
+                name: 'host-group-2'
+              }
+            ]
+          },
+          blueprint_cluster_binding: {
+            host_groups: [
+              {
+                hosts: [
+                  {
+                    fqdn: 'h0'
+                  }
+                ],
+                name: 'host-group-1'
+              },
+              {
+                hosts: [
+                  {
+                    fqdn: 'h1'
+                  }
+                ],
+                name: 'host-group-2'
+              }]
+          }
+        };
+      });
+      sinon.stub(App.Host, 'find', function () {
+        return [
+          {
+            hostName: 'h1'
+          }
+        ];
+      });
+      sinon.stub(App.ajax, 'send', function () {
+        return {
+          then: Em.K
+        };
+      });
+    });
+
+    afterEach(function () {
+      App.StackService.find.restore();
+      App.StackServiceComponent.find.restore();
+      controller.getCurrentBlueprint.restore();
+      controller.getCurrentMastersBlueprint.restore();
+      App.get.restore();
+      controller.getCurrentMasterSlaveBlueprint.restore();
+      App.Host.find.restore();
+      App.ajax.send.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.controllerName, function () {
+        controller.set('hosts', item.hosts);
+        controller.set('content.controllerName', item.controllerName);
+        controller.callServerSideValidation();
+        expect(controller.get('content.recommendationsHostGroups.blueprint.host_groups.length')).to.equal(expectedHostGroups.length);
+        expect(controller.get('content.recommendationsHostGroups.blueprint_cluster_binding.host_groups.length')).to.equal(expectedHostGroups.length);
+        controller.get('content.recommendationsHostGroups.blueprint.host_groups').forEach(function (group, index) {
+          expect(group.components.mapProperty('name').sort()).to.eql(item.expected[index]);
+        });
+        expectedHostGroups.forEach(function (group) {
+          var bpGroup = controller.get('content.recommendationsHostGroups.blueprint_cluster_binding.host_groups').findProperty('name', group.name);
+          expect(bpGroup.hosts).to.have.length(1);
+          expect(bpGroup.hosts[0].fqdn).to.equal(group.fqdn);
+        });
+      });
+    });
+
   });
 
 });

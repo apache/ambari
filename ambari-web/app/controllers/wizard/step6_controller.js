@@ -529,7 +529,10 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
     var hostNames = self.get('hosts').mapProperty('hostName');
     var slaveBlueprint = self.getCurrentBlueprint();
     var masterBlueprint = null;
-    var invisibleSlaves = App.StackServiceComponent.find().filterProperty("isSlave").filterProperty("isShownOnInstallerSlaveClientPage", false).mapProperty("componentName");
+    var invisibleSlavesAndClients = App.StackServiceComponent.find().filter(function (component) {
+      return component.get("isSlave") && component.get("isShownOnInstallerSlaveClientPage") === false ||
+        component.get("isClient") && component.get("isRequiredOnAllHosts");
+    }).mapProperty("componentName");
 
     if (this.get('isInstallerWizard') || this.get('isAddServiceWizard')) {
       masterBlueprint = self.getCurrentMastersBlueprint();
@@ -546,14 +549,14 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
         return selectedClientComponents.contains(c);
       });
 
-      var invisibleComponents = invisibleMasters.concat(invisibleSlaves).concat(alreadyInstalledClients);
+      var invisibleComponents = invisibleMasters.concat(invisibleSlavesAndClients).concat(alreadyInstalledClients);
 
       var invisibleBlueprint = blueprintUtils.filterByComponents(this.get('content.recommendations'), invisibleComponents);
       masterBlueprint = blueprintUtils.mergeBlueprints(masterBlueprint, invisibleBlueprint);
     } else if (this.get('isAddHostWizard')) {
       masterBlueprint = self.getCurrentMasterSlaveBlueprint();
       hostNames = hostNames.concat(App.Host.find().mapProperty("hostName")).uniq();
-      slaveBlueprint = blueprintUtils.addComponentsToBlueprint(slaveBlueprint, invisibleSlaves);
+      slaveBlueprint = blueprintUtils.addComponentsToBlueprint(slaveBlueprint, invisibleSlavesAndClients);
     }
 
     var bluePrintsForValidation = blueprintUtils.mergeBlueprints(masterBlueprint, slaveBlueprint);
