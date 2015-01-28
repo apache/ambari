@@ -45,7 +45,7 @@ angular.module('ambariAdminConsole')
         $(this).remove();
         return false;
       });
-      elem.append('<div class="more">'+moreInfo+'</div>');
+      elem.append('<div class="more">'+moreInfo.replace(/\./g, '.<wbr />')+'</div>');
     }
 
     $('<button type="button" class="close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>')
