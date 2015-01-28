@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -47,26 +46,22 @@ import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -83,7 +78,6 @@ import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -639,58 +633,45 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     }
   }
 
-
   private void resetLastOpInfo() {
-    clusterGlobalLock.readLock().lock();
     try {
-      try {
-        writeLock.lock();
-        setLastOpStartTime(-1);
-        setLastOpLastUpdateTime(-1);
-        setLastOpEndTime(-1);
-      } finally {
-        writeLock.unlock();
-      }
+      writeLock.lock();
+      setLastOpStartTime(-1);
+      setLastOpLastUpdateTime(-1);
+      setLastOpEndTime(-1);
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      writeLock.unlock();
     }
-
   }
 
   private void updateLastOpInfo(ServiceComponentHostEventType eventType,
       long time) {
-    clusterGlobalLock.readLock().lock();
     try {
-      try {
-        writeLock.lock();
-        switch (eventType) {
-          case HOST_SVCCOMP_INSTALL:
-          case HOST_SVCCOMP_START:
-          case HOST_SVCCOMP_STOP:
-          case HOST_SVCCOMP_UNINSTALL:
-          case HOST_SVCCOMP_WIPEOUT:
-          case HOST_SVCCOMP_OP_RESTART:
-            resetLastOpInfo();
-            setLastOpStartTime(time);
-            break;
-          case HOST_SVCCOMP_OP_FAILED:
-          case HOST_SVCCOMP_OP_SUCCEEDED:
-          case HOST_SVCCOMP_STOPPED:
-          case HOST_SVCCOMP_STARTED:
-            setLastOpLastUpdateTime(time);
-            setLastOpEndTime(time);
-            break;
-          case HOST_SVCCOMP_OP_IN_PROGRESS:
-            setLastOpLastUpdateTime(time);
-            break;
-        }
-      } finally {
-        writeLock.unlock();
+      writeLock.lock();
+      switch (eventType) {
+        case HOST_SVCCOMP_INSTALL:
+        case HOST_SVCCOMP_START:
+        case HOST_SVCCOMP_STOP:
+        case HOST_SVCCOMP_UNINSTALL:
+        case HOST_SVCCOMP_WIPEOUT:
+        case HOST_SVCCOMP_OP_RESTART:
+          resetLastOpInfo();
+          setLastOpStartTime(time);
+          break;
+        case HOST_SVCCOMP_OP_FAILED:
+        case HOST_SVCCOMP_OP_SUCCEEDED:
+        case HOST_SVCCOMP_STOPPED:
+        case HOST_SVCCOMP_STARTED:
+          setLastOpLastUpdateTime(time);
+          setLastOpEndTime(time);
+          break;
+        case HOST_SVCCOMP_OP_IN_PROGRESS:
+          setLastOpLastUpdateTime(time);
+          break;
       }
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      writeLock.unlock();
     }
-
   }
 
   @AssistedInject
@@ -777,16 +758,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   public State getState() {
     clusterGlobalLock.readLock().lock();
     try {
-      readLock.lock();
-      try {
-        return stateMachine.getCurrentState();
-      } finally {
-        readLock.unlock();
-      }
+      // there's no reason to lock around the state machine for this SCH since
+      // the state machine is synchronized
+      return stateMachine.getCurrentState();
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
   }
 
   @Override
@@ -808,78 +785,53 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public String getVersion() {
-    clusterGlobalLock.readLock().lock();
+    readLock.lock();
     try {
-      readLock.lock();
-      try {
-        return stateEntity.getVersion();
-      } finally {
-        readLock.unlock();
-      }
+      return stateEntity.getVersion();
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readLock.unlock();
     }
   }
 
   @Override
   public void setVersion(String version) {
-    clusterGlobalLock.readLock().lock();
+    writeLock.lock();
     try {
-      writeLock.lock();
-      try {
-        stateEntity.setVersion(version);
-        saveIfPersisted();
-      } finally {
-        writeLock.unlock();
-      }
+      stateEntity.setVersion(version);
+      saveIfPersisted();
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      writeLock.unlock();
     }
   }
 
   @Override
   public SecurityState getSecurityState() {
-    clusterGlobalLock.readLock().lock();
+    readLock.lock();
     try {
-      readLock.lock();
-      try {
-        return stateEntity.getSecurityState();
-      } finally {
-        readLock.unlock();
-      }
+      return stateEntity.getSecurityState();
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readLock.unlock();
     }
   }
 
   @Override
   public void setSecurityState(SecurityState securityState) {
-    clusterGlobalLock.readLock().lock();
+    writeLock.lock();
     try {
-      writeLock.lock();
-      try {
-        stateEntity.setSecurityState(securityState);
-        saveIfPersisted();
-      } finally {
-        writeLock.unlock();
-      }
+      stateEntity.setSecurityState(securityState);
+      saveIfPersisted();
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      writeLock.unlock();
     }
   }
 
   @Override
   public SecurityState getDesiredSecurityState() {
-    clusterGlobalLock.readLock().lock();
+    readLock.lock();
     try {
-      readLock.lock();
-      try {
-        return desiredStateEntity.getSecurityState();
-      } finally {
-        readLock.unlock();
-      }
+      return desiredStateEntity.getSecurityState();
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readLock.unlock();
     }
   }
 
@@ -889,17 +841,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       throw new AmbariException("The security state must be an endpoint state");
     }
 
-    clusterGlobalLock.readLock().lock();
+    writeLock.lock();
     try {
-      writeLock.lock();
-      try {
-        desiredStateEntity.setSecurityState(securityState);
-        saveIfPersisted();
-      } finally {
-        writeLock.unlock();
-      }
+      desiredStateEntity.setSecurityState(securityState);
+      saveIfPersisted();
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      writeLock.unlock();
     }
   }
 
@@ -913,17 +860,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
    */
   @Override
   public void setUpgradeState(UpgradeState upgradeState) {
-    clusterGlobalLock.readLock().lock();
+    writeLock.lock();
     try {
-      writeLock.lock();
-      try {
-        stateEntity.setUpgradeState(upgradeState);
-        saveIfPersisted();
-      } finally {
-        writeLock.unlock();
-      }
+      stateEntity.setUpgradeState(upgradeState);
+      saveIfPersisted();
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      writeLock.unlock();
     }
   }
 
@@ -978,48 +920,23 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public String getServiceComponentName() {
-    clusterGlobalLock.readLock().lock();
-    try {
-      readLock.lock();
-      try {
-        return serviceComponent.getName();
-      } finally {
-        readLock.unlock();
-      }
-    } finally {
-      clusterGlobalLock.readLock().unlock();
-    }
+    return serviceComponent.getName();
   }
 
   @Override
   public String getHostName() {
-    clusterGlobalLock.readLock().lock();
-    try {
-      readLock.lock();
-      try {
-        return host.getHostName();
-      } finally {
-        readLock.unlock();
-      }
-    } finally {
-      clusterGlobalLock.readLock().unlock();
-    }
+    return host.getHostName();
   }
 
   /**
    * @return the lastOpStartTime
    */
   public long getLastOpStartTime() {
-    clusterGlobalLock.readLock().lock();
+    readLock.lock();
     try {
-      readLock.lock();
-      try {
-        return lastOpStartTime;
-      } finally {
-        readLock.unlock();
-      }
+      return lastOpStartTime;
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readLock.unlock();
     }
   }
 
@@ -1027,16 +944,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
    * @param lastOpStartTime the lastOpStartTime to set
    */
   public void setLastOpStartTime(long lastOpStartTime) {
-    clusterGlobalLock.readLock().lock();
+    writeLock.lock();
     try {
-      writeLock.lock();
-      try {
-        this.lastOpStartTime = lastOpStartTime;
-      } finally {
-        writeLock.unlock();
-      }
+      this.lastOpStartTime = lastOpStartTime;
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      writeLock.unlock();
     }
   }
 
@@ -1044,16 +956,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
    * @return the lastOpEndTime
    */
   public long getLastOpEndTime() {
-    clusterGlobalLock.readLock().lock();
+    readLock.lock();
     try {
-      readLock.lock();
-      try {
-        return lastOpEndTime;
-      } finally {
-        readLock.unlock();
-      }
+      return lastOpEndTime;
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readLock.unlock();
     }
   }
 
@@ -1061,16 +968,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
    * @param lastOpEndTime the lastOpEndTime to set
    */
   public void setLastOpEndTime(long lastOpEndTime) {
-    clusterGlobalLock.readLock().lock();
+    writeLock.lock();
     try {
-      writeLock.lock();
-      try {
-        this.lastOpEndTime = lastOpEndTime;
-      } finally {
-        writeLock.unlock();
-      }
+      this.lastOpEndTime = lastOpEndTime;
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      writeLock.unlock();
     }
   }
 
@@ -1078,16 +980,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
    * @return the lastOpLastUpdateTime
    */
   public long getLastOpLastUpdateTime() {
-    clusterGlobalLock.readLock().lock();
+    readLock.lock();
     try {
-      readLock.lock();
-      try {
-        return lastOpLastUpdateTime;
-      } finally {
-        readLock.unlock();
-      }
+      return lastOpLastUpdateTime;
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readLock.unlock();
     }
   }
 
@@ -1095,252 +992,160 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
    * @param lastOpLastUpdateTime the lastOpLastUpdateTime to set
    */
   public void setLastOpLastUpdateTime(long lastOpLastUpdateTime) {
-    clusterGlobalLock.readLock().lock();
+    writeLock.lock();
     try {
-      writeLock.lock();
-      try {
-        this.lastOpLastUpdateTime = lastOpLastUpdateTime;
-      } finally {
-        writeLock.unlock();
-      }
+      this.lastOpLastUpdateTime = lastOpLastUpdateTime;
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      writeLock.unlock();
     }
   }
 
   @Override
   public long getClusterId() {
-    clusterGlobalLock.readLock().lock();
-    try {
-      readLock.lock();
-      try {
-        return serviceComponent.getClusterId();
-      } finally {
-        readLock.unlock();
-      }
-    } finally {
-      clusterGlobalLock.readLock().unlock();
-    }
+    return serviceComponent.getClusterId();
   }
 
   @Override
   public String getServiceName() {
-    clusterGlobalLock.readLock().lock();
-    try {
-      readLock.lock();
-      try {
-        return serviceComponent.getServiceName();
-      } finally {
-        readLock.unlock();
-      }
-    } finally {
-      clusterGlobalLock.readLock().unlock();
-    }
+    return serviceComponent.getServiceName();
   }
 
   @Override
   public StackId getStackVersion() {
-    clusterGlobalLock.readLock().lock();
+    readLock.lock();
     try {
-      readLock.lock();
-      try {
-        return gson.fromJson(stateEntity.getCurrentStackVersion(), StackId.class);
-      } finally {
-        readLock.unlock();
-      }
+      return gson.fromJson(stateEntity.getCurrentStackVersion(), StackId.class);
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readLock.unlock();
     }
   }
 
   @Override
   public void setStackVersion(StackId stackVersion) {
-    clusterGlobalLock.readLock().lock();
+    writeLock.lock();
     try {
-      writeLock.lock();
-      try {
-        stateEntity.setCurrentStackVersion(gson.toJson(stackVersion));
-        saveIfPersisted();
-      } finally {
-        writeLock.unlock();
-      }
+      stateEntity.setCurrentStackVersion(gson.toJson(stackVersion));
+      saveIfPersisted();
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      writeLock.unlock();
     }
   }
 
   @Override
   public State getDesiredState() {
-    clusterGlobalLock.readLock().lock();
+    readLock.lock();
     try {
-      readLock.lock();
-      try {
-        return desiredStateEntity.getDesiredState();
-      } finally {
-        readLock.unlock();
-      }
+      return desiredStateEntity.getDesiredState();
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readLock.unlock();
     }
   }
 
   @Override
   public void setDesiredState(State state) {
-    clusterGlobalLock.readLock().lock();
+    writeLock.lock();
     try {
-      writeLock.lock();
-      try {
-        desiredStateEntity.setDesiredState(state);
-        saveIfPersisted();
-      } finally {
-        writeLock.unlock();
-      }
+      desiredStateEntity.setDesiredState(state);
+      saveIfPersisted();
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      writeLock.unlock();
     }
   }
 
   @Override
   public StackId getDesiredStackVersion() {
-    clusterGlobalLock.readLock().lock();
+    readLock.lock();
     try {
-      readLock.lock();
-      try {
-        return gson.fromJson(desiredStateEntity.getDesiredStackVersion(), StackId.class);
-      } finally {
-        readLock.unlock();
-      }
+      return gson.fromJson(desiredStateEntity.getDesiredStackVersion(),
+          StackId.class);
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readLock.unlock();
     }
   }
 
   @Override
   public void setDesiredStackVersion(StackId stackVersion) {
-    clusterGlobalLock.readLock().lock();
+    writeLock.lock();
     try {
-      writeLock.lock();
-      try {
-        desiredStateEntity.setDesiredStackVersion(gson.toJson(stackVersion));
-        saveIfPersisted();
-      } finally {
-        writeLock.unlock();
-      }
+      desiredStateEntity.setDesiredStackVersion(gson.toJson(stackVersion));
+      saveIfPersisted();
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      writeLock.unlock();
     }
   }
 
   @Override
   public HostComponentAdminState getComponentAdminState() {
-    clusterGlobalLock.readLock().lock();
+    readLock.lock();
     try {
-      readLock.lock();
-      try {
-        HostComponentAdminState adminState = desiredStateEntity.getAdminState();
-        if (adminState == null
-            && !serviceComponent.isClientComponent() && !serviceComponent.isMasterComponent()) {
-          adminState = HostComponentAdminState.INSERVICE;
-        }
-        return adminState;
-      } finally {
-        readLock.unlock();
+      HostComponentAdminState adminState = desiredStateEntity.getAdminState();
+      if (adminState == null && !serviceComponent.isClientComponent()
+          && !serviceComponent.isMasterComponent()) {
+        adminState = HostComponentAdminState.INSERVICE;
       }
+      return adminState;
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readLock.unlock();
     }
   }
 
   @Override
   public void setComponentAdminState(HostComponentAdminState attribute) {
-    clusterGlobalLock.readLock().lock();
+    writeLock.lock();
     try {
-      writeLock.lock();
-      try {
-        desiredStateEntity.setAdminState(attribute);
-        saveIfPersisted();
-      } finally {
-        writeLock.unlock();
-      }
+      desiredStateEntity.setAdminState(attribute);
+      saveIfPersisted();
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      writeLock.unlock();
     }
   }
 
   @Override
   public ServiceComponentHostResponse convertToResponse() {
-    clusterGlobalLock.readLock().lock();
+    readLock.lock();
     try {
-      readLock.lock();
+      ServiceComponentHostResponse r = new ServiceComponentHostResponse(
+          serviceComponent.getClusterName(), serviceComponent.getServiceName(),
+          serviceComponent.getName(), getHostName(), getState().toString(),
+          getStackVersion().getStackId(), getDesiredState().toString(),
+          getDesiredStackVersion().getStackId(), getComponentAdminState());
+
+      r.setActualConfigs(actualConfigs);
+
       try {
-        ServiceComponentHostResponse r = new ServiceComponentHostResponse(
-            serviceComponent.getClusterName(),
-            serviceComponent.getServiceName(),
-            serviceComponent.getName(),
-            getHostName(),
-            getState().toString(),
-            getStackVersion().getStackId(),
-            getDesiredState().toString(),
-            getDesiredStackVersion().getStackId(),
-            getComponentAdminState());
-
-        r.setActualConfigs(actualConfigs);
-
-        try {
-          r.setStaleConfig(helper.isStaleConfigs(this));
-        } catch (Exception e) {
-          LOG.error("Could not determine stale config", e);
-        }
-
-        return r;
-      } finally {
-        readLock.unlock();
+        r.setStaleConfig(helper.isStaleConfigs(this));
+      } catch (Exception e) {
+        LOG.error("Could not determine stale config", e);
       }
+
+      return r;
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readLock.unlock();
     }
   }
 
   @Override
   public String getClusterName() {
-    clusterGlobalLock.readLock().lock();
-    try {
-      readLock.lock();
-      try {
-        return serviceComponent.getClusterName();
-      } finally {
-        readLock.unlock();
-      }
-    } finally {
-      clusterGlobalLock.readLock().unlock();
-    }
-
+    return serviceComponent.getClusterName();
   }
 
   @Override
   public void debugDump(StringBuilder sb) {
-    clusterGlobalLock.readLock().lock();
+    readLock.lock();
     try {
-      readLock.lock();
-      try {
-        sb.append("ServiceComponentHost={ hostname=").append(getHostName())
-          .append(", serviceComponentName=").append(serviceComponent.getName())
-          .append(", clusterName=").append(serviceComponent.getClusterName())
-          .append(", serviceName=").append(serviceComponent.getServiceName())
-          .append(", desiredStackVersion=").append(getDesiredStackVersion())
-          .append(", desiredState=").append(getDesiredState())
-          .append(", stackVersion=").append(getStackVersion())
-          .append(", state=").append(getState())
-          .append(", securityState=").append(getSecurityState())
-          .append(", desiredSecurityState=").append(getDesiredSecurityState())
-          .append(" }");
-      } finally {
-        readLock.unlock();
-      }
+      sb.append("ServiceComponentHost={ hostname=").append(getHostName()).append(
+          ", serviceComponentName=").append(serviceComponent.getName()).append(
+          ", clusterName=").append(serviceComponent.getClusterName()).append(
+          ", serviceName=").append(serviceComponent.getServiceName()).append(
+          ", desiredStackVersion=").append(getDesiredStackVersion()).append(
+          ", desiredState=").append(getDesiredState()).append(", stackVersion=").append(
+          getStackVersion()).append(", state=").append(getState()).append(
+          ", securityState=").append(getSecurityState()).append(
+          ", desiredSecurityState=").append(getDesiredSecurityState()).append(
+          " }");
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readLock.unlock();
     }
-
   }
 
   @Override
@@ -1361,12 +1166,23 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public void persist() {
-    clusterGlobalLock.readLock().lock();
+    boolean clusterWriteLockAcquired = false;
+    if (!persisted) {
+      clusterGlobalLock.writeLock().lock();
+      clusterWriteLockAcquired = true;
+    }
+
     try {
       writeLock.lock();
       try {
         if (!persisted) {
+          // persist the new cluster topology and then release the cluster lock
+          // as it has no more bearing on the rest of this persist() method
           persistEntities();
+          clusterGlobalLock.writeLock().unlock();
+          clusterWriteLockAcquired = false;
+
+          // these shoudl still be done with the internal lock
           refresh();
           host.refresh();
           serviceComponent.refresh();
@@ -1387,9 +1203,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
         writeLock.unlock();
       }
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      if (clusterWriteLockAcquired) {
+        clusterGlobalLock.writeLock().unlock();
+      }
     }
-
   }
 
   @Transactional
@@ -1421,33 +1238,27 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   @Override
   @Transactional
   public void refresh() {
-    clusterGlobalLock.readLock().lock();
+    writeLock.lock();
     try {
-      writeLock.lock();
-      try {
-        if (isPersisted()) {
-          HostComponentStateEntityPK pk = new HostComponentStateEntityPK();
-          HostComponentDesiredStateEntityPK dpk = new HostComponentDesiredStateEntityPK();
-          pk.setClusterId(getClusterId());
-          pk.setComponentName(getServiceComponentName());
-          pk.setServiceName(getServiceName());
-          pk.setHostName(getHostName());
-          dpk.setClusterId(getClusterId());
-          dpk.setComponentName(getServiceComponentName());
-          dpk.setServiceName(getServiceName());
-          dpk.setHostName(getHostName());
-          stateEntity = hostComponentStateDAO.findByPK(pk);
-          desiredStateEntity = hostComponentDesiredStateDAO.findByPK(dpk);
-          hostComponentStateDAO.refresh(stateEntity);
-          hostComponentDesiredStateDAO.refresh(desiredStateEntity);
-        }
-      } finally {
-        writeLock.unlock();
+      if (isPersisted()) {
+        HostComponentStateEntityPK pk = new HostComponentStateEntityPK();
+        HostComponentDesiredStateEntityPK dpk = new HostComponentDesiredStateEntityPK();
+        pk.setClusterId(getClusterId());
+        pk.setComponentName(getServiceComponentName());
+        pk.setServiceName(getServiceName());
+        pk.setHostName(getHostName());
+        dpk.setClusterId(getClusterId());
+        dpk.setComponentName(getServiceComponentName());
+        dpk.setServiceName(getServiceName());
+        dpk.setHostName(getHostName());
+        stateEntity = hostComponentStateDAO.findByPK(pk);
+        desiredStateEntity = hostComponentDesiredStateDAO.findByPK(dpk);
+        hostComponentStateDAO.refresh(stateEntity);
+        hostComponentDesiredStateDAO.refresh(desiredStateEntity);
       }
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      writeLock.unlock();
     }
-
   }
 
   @Transactional
@@ -1461,20 +1272,23 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   @Override
   public boolean canBeRemoved() {
     clusterGlobalLock.readLock().lock();
+    boolean schLockAcquired = false;
     try {
-      readLock.lock();
-      try {
+      // if unable to read, then writers are writing; cannot remove SCH
+      schLockAcquired = readLock.tryLock();
+      if (!schLockAcquired) {
+        return false;
+      }
 
-        return (getState().isRemovableState());
-
-      } finally {
+      return (getState().isRemovableState());
+    } finally {
+      if (schLockAcquired) {
         readLock.unlock();
       }
-    } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
   }
+
 
   @Override
   public void delete() {
@@ -1550,170 +1364,123 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       return;
     }
 
-    clusterGlobalLock.readLock().lock();
+    writeLock.lock();
     try {
-      writeLock.lock();
-      try {
-        LOG.debug("Updating actual config tags: " + configTags);
-        actualConfigs = new HashMap<String, HostConfig>();
+      LOG.debug("Updating actual config tags: " + configTags);
+      actualConfigs = new HashMap<String, HostConfig>();
 
-        for (Entry<String, Map<String, String>> entry : configTags.entrySet()) {
-          String type = entry.getKey();
-          Map<String, String> values = new HashMap<String, String>(entry.getValue());
+      for (Entry<String, Map<String, String>> entry : configTags.entrySet()) {
+        String type = entry.getKey();
+        Map<String, String> values = new HashMap<String, String>(
+            entry.getValue());
 
-          String tag = values.get(ConfigHelper.CLUSTER_DEFAULT_TAG);
-          values.remove(ConfigHelper.CLUSTER_DEFAULT_TAG);
+        String tag = values.get(ConfigHelper.CLUSTER_DEFAULT_TAG);
+        values.remove(ConfigHelper.CLUSTER_DEFAULT_TAG);
 
-          HostConfig hc = new HostConfig();
-          hc.setDefaultVersionTag(tag);
-          actualConfigs.put(type, hc);
+        HostConfig hc = new HostConfig();
+        hc.setDefaultVersionTag(tag);
+        actualConfigs.put(type, hc);
 
-          if (!values.isEmpty()) {
-            for (Entry<String, String> overrideEntry : values.entrySet()) {
-              Long groupId = Long.parseLong(overrideEntry.getKey());
-              hc.getConfigGroupOverrides().put(groupId, overrideEntry.getValue());
-              if (!configGroupMap.containsKey(groupId)) {
-                LOG.debug("Config group does not exist, id = " + groupId);
-              }
+        if (!values.isEmpty()) {
+          for (Entry<String, String> overrideEntry : values.entrySet()) {
+            Long groupId = Long.parseLong(overrideEntry.getKey());
+            hc.getConfigGroupOverrides().put(groupId, overrideEntry.getValue());
+            if (!configGroupMap.containsKey(groupId)) {
+              LOG.debug("Config group does not exist, id = " + groupId);
             }
           }
         }
-      } finally {
-        writeLock.unlock();
       }
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      writeLock.unlock();
     }
   }
 
-
-
   @Override
   public Map<String, HostConfig> getActualConfigs() {
-    clusterGlobalLock.readLock().lock();
+    readLock.lock();
     try {
-      readLock.lock();
-      try {
-        return actualConfigs;
-      } finally {
-        readLock.unlock();
-      }
+      return actualConfigs;
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readLock.unlock();
     }
-
   }
 
   @Override
   public HostState getHostState() {
-    clusterGlobalLock.readLock().lock();
+    readLock.lock();
     try {
-      readLock.lock();
-      try {
-        return host.getState();
-      } finally {
-        readLock.unlock();
-      }
+      return host.getState();
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readLock.unlock();
     }
   }
 
   @Override
   public void setMaintenanceState(MaintenanceState state) {
-    clusterGlobalLock.readLock().lock();
+    writeLock.lock();
     try {
-      writeLock.lock();
-      try {
-        desiredStateEntity.setMaintenanceState(state);
-        saveIfPersisted();
+      desiredStateEntity.setMaintenanceState(state);
+      saveIfPersisted();
 
-        // broadcast the maintenance mode change
-        MaintenanceModeEvent event = new MaintenanceModeEvent(state, this);
-        eventPublisher.publish(event);
+      // broadcast the maintenance mode change
+      MaintenanceModeEvent event = new MaintenanceModeEvent(state, this);
+      eventPublisher.publish(event);
 
-      } finally {
-        writeLock.unlock();
-      }
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      writeLock.unlock();
     }
   }
 
   @Override
   public MaintenanceState getMaintenanceState() {
-    clusterGlobalLock.readLock().lock();
+    readLock.lock();
     try {
-      readLock.lock();
-      try {
-        return desiredStateEntity.getMaintenanceState();
-      } finally {
-        readLock.unlock();
-      }
+      return desiredStateEntity.getMaintenanceState();
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readLock.unlock();
     }
   }
 
   @Override
   public void setProcesses(List<Map<String, String>> procs) {
-    clusterGlobalLock.readLock().lock();
+    writeLock.lock();
     try {
-      writeLock.lock();
-      try {
-        processes = Collections.unmodifiableList(procs);
-      } finally {
-        writeLock.unlock();
-      }
+      processes = Collections.unmodifiableList(procs);
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      writeLock.unlock();
     }
   }
 
   @Override
   public List<Map<String, String>> getProcesses() {
-    clusterGlobalLock.readLock().lock();
+    readLock.lock();
     try {
-      readLock.lock();
-      try {
-        return processes;
-      } finally {
-        readLock.unlock();
-      }
+      return processes;
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readLock.unlock();
     }
   }
 
   @Override
   public boolean isRestartRequired() {
-    clusterGlobalLock.readLock().lock();
+    readLock.lock();
     try {
-      readLock.lock();
-      try {
-        return desiredStateEntity.isRestartRequired();
-      } finally {
-        readLock.unlock();
-      }
+      return desiredStateEntity.isRestartRequired();
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readLock.unlock();
     }
   }
 
   @Override
   public void setRestartRequired(boolean restartRequired) {
-    clusterGlobalLock.readLock().lock();
+    writeLock.lock();
     try {
-      writeLock.lock();
-      try {
-        desiredStateEntity.setRestartRequired(restartRequired);
-        saveIfPersisted();
-        helper.invalidateStaleConfigsCache(this);
-      } finally {
-        writeLock.unlock();
-      }
+      desiredStateEntity.setRestartRequired(restartRequired);
+      saveIfPersisted();
+      helper.invalidateStaleConfigsCache(this);
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      writeLock.unlock();
     }
   }
 

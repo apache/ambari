@@ -160,46 +160,21 @@ public class ServiceImpl implements Service {
 
   @Override
   public String getName() {
-    clusterGlobalLock.readLock().lock();
-    try {
-      readWriteLock.readLock().lock();
-      try {
-        return serviceEntity.getServiceName();
-      } finally {
-        readWriteLock.readLock().unlock();
-      }
-    } finally {
-      clusterGlobalLock.readLock().unlock();
-    }
+    return serviceEntity.getServiceName();
   }
 
   @Override
   public long getClusterId() {
-    clusterGlobalLock.readLock().lock();
-    try {
-      readWriteLock.readLock().lock();
-      try {
-        return cluster.getClusterId();
-      } finally {
-        readWriteLock.readLock().unlock();
-      }
-    } finally {
-      clusterGlobalLock.readLock().unlock();
-    }
+    return cluster.getClusterId();
   }
 
   @Override
   public Map<String, ServiceComponent> getServiceComponents() {
-    clusterGlobalLock.readLock().lock();
+    readWriteLock.readLock().lock();
     try {
-      readWriteLock.readLock().lock();
-      try {
-        return new HashMap<String, ServiceComponent>(components);
-      } finally {
-        readWriteLock.readLock().unlock();
-      }
+      return new HashMap<String, ServiceComponent>(components);
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readWriteLock.readLock().unlock();
     }
   }
 
@@ -282,176 +257,124 @@ public class ServiceImpl implements Service {
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }
-
-
   }
 
   @Override
   public ServiceComponent getServiceComponent(String componentName)
       throws AmbariException {
-    clusterGlobalLock.readLock().lock();
+    readWriteLock.readLock().lock();
     try {
-      readWriteLock.readLock().lock();
-      try {
-        if (!components.containsKey(componentName)) {
-          throw new ServiceComponentNotFoundException(cluster.getClusterName(),
-              getName(),
-              componentName);
-        }
-        return components.get(componentName);
-      } finally {
-        readWriteLock.readLock().unlock();
+      if (!components.containsKey(componentName)) {
+        throw new ServiceComponentNotFoundException(cluster.getClusterName(),
+            getName(), componentName);
       }
+      return components.get(componentName);
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readWriteLock.readLock().unlock();
     }
-
-
   }
 
   @Override
   public State getDesiredState() {
-    clusterGlobalLock.readLock().lock();
+    readWriteLock.readLock().lock();
     try {
-      readWriteLock.readLock().lock();
-      try {
-        return serviceDesiredStateEntity.getDesiredState();
-      } finally {
-        readWriteLock.readLock().unlock();
-      }
+      return serviceDesiredStateEntity.getDesiredState();
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readWriteLock.readLock().unlock();
     }
-
-
   }
 
   @Override
   public void setDesiredState(State state) {
-    clusterGlobalLock.readLock().lock();
+    readWriteLock.writeLock().lock();
     try {
-      readWriteLock.writeLock().lock();
-      try {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Setting DesiredState of Service"
-              + ", clusterName=" + cluster.getClusterName()
-              + ", clusterId=" + cluster.getClusterId()
-              + ", serviceName=" + getName()
-              + ", oldDesiredState=" + getDesiredState()
-              + ", newDesiredState=" + state);
-        }
-        serviceDesiredStateEntity.setDesiredState(state);
-        saveIfPersisted();
-      } finally {
-        readWriteLock.writeLock().unlock();
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Setting DesiredState of Service" + ", clusterName="
+            + cluster.getClusterName() + ", clusterId="
+            + cluster.getClusterId() + ", serviceName=" + getName()
+            + ", oldDesiredState=" + getDesiredState() + ", newDesiredState="
+            + state);
       }
+      serviceDesiredStateEntity.setDesiredState(state);
+      saveIfPersisted();
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readWriteLock.writeLock().unlock();
     }
   }
 
   @Override
   public SecurityState getSecurityState() {
-    clusterGlobalLock.readLock().lock();
+    readWriteLock.readLock().lock();
     try {
-      readWriteLock.readLock().lock();
-      try {
-        return serviceDesiredStateEntity.getSecurityState();
-      } finally {
-        readWriteLock.readLock().unlock();
-      }
+      return serviceDesiredStateEntity.getSecurityState();
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readWriteLock.readLock().unlock();
     }
   }
 
   @Override
   public void setSecurityState(SecurityState securityState) throws AmbariException {
-    if(!securityState.isEndpoint())
+    if(!securityState.isEndpoint()) {
       throw new AmbariException("The security state must be an endpoint state");
+    }
 
-    clusterGlobalLock.readLock().lock();
+    readWriteLock.writeLock().lock();
     try {
-      readWriteLock.writeLock().lock();
-      try {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Setting DesiredSecurityState of Service"
-              + ", clusterName=" + cluster.getClusterName()
-              + ", clusterId=" + cluster.getClusterId()
-              + ", serviceName=" + getName()
-              + ", oldDesiredSecurityState=" + getSecurityState()
-              + ", newDesiredSecurityState=" + securityState);
-        }
-        serviceDesiredStateEntity.setSecurityState(securityState);
-        saveIfPersisted();
-      } finally {
-        readWriteLock.writeLock().unlock();
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Setting DesiredSecurityState of Service" + ", clusterName="
+            + cluster.getClusterName() + ", clusterId="
+            + cluster.getClusterId() + ", serviceName=" + getName()
+            + ", oldDesiredSecurityState=" + getSecurityState()
+            + ", newDesiredSecurityState=" + securityState);
       }
+      serviceDesiredStateEntity.setSecurityState(securityState);
+      saveIfPersisted();
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readWriteLock.writeLock().unlock();
     }
   }
 
   @Override
   public StackId getDesiredStackVersion() {
-    clusterGlobalLock.readLock().lock();
+    readWriteLock.readLock().lock();
     try {
-      readWriteLock.readLock().lock();
-      try {
-        return gson.fromJson(serviceDesiredStateEntity.getDesiredStackVersion(), StackId.class);
-      } finally {
-        readWriteLock.readLock().unlock();
-      }
+      return gson.fromJson(serviceDesiredStateEntity.getDesiredStackVersion(),
+          StackId.class);
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readWriteLock.readLock().unlock();
     }
   }
 
   @Override
   public void setDesiredStackVersion(StackId stackVersion) {
-    clusterGlobalLock.readLock().lock();
+    readWriteLock.writeLock().lock();
     try {
-      readWriteLock.writeLock().lock();
-      try {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Setting DesiredStackVersion of Service"
-              + ", clusterName=" + cluster.getClusterName()
-              + ", clusterId=" + cluster.getClusterId()
-              + ", serviceName=" + getName()
-              + ", oldDesiredStackVersion=" + getDesiredStackVersion()
-              + ", newDesiredStackVersion=" + stackVersion);
-        }
-        serviceDesiredStateEntity.setDesiredStackVersion(gson.toJson(stackVersion));
-        saveIfPersisted();
-      } finally {
-        readWriteLock.writeLock().unlock();
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Setting DesiredStackVersion of Service" + ", clusterName="
+            + cluster.getClusterName() + ", clusterId="
+            + cluster.getClusterId() + ", serviceName=" + getName()
+            + ", oldDesiredStackVersion=" + getDesiredStackVersion()
+            + ", newDesiredStackVersion=" + stackVersion);
       }
+      serviceDesiredStateEntity.setDesiredStackVersion(gson.toJson(stackVersion));
+      saveIfPersisted();
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readWriteLock.writeLock().unlock();
     }
-
-
   }
 
   @Override
   public ServiceResponse convertToResponse() {
-    clusterGlobalLock.readLock().lock();
+    readWriteLock.readLock().lock();
     try {
-      readWriteLock.readLock().lock();
-      try {
-        ServiceResponse r = new ServiceResponse(cluster.getClusterId(),
-            cluster.getClusterName(),
-            getName(),
-            getDesiredStackVersion().getStackId(),
-            getDesiredState().toString());
+      ServiceResponse r = new ServiceResponse(cluster.getClusterId(),
+          cluster.getClusterName(), getName(),
+          getDesiredStackVersion().getStackId(), getDesiredState().toString());
 
-        r.setMaintenanceState(getMaintenanceState().name());
-        return r;
-      } finally {
-        readWriteLock.readLock().unlock();
-      }
+      r.setMaintenanceState(getMaintenanceState().name());
+      return r;
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readWriteLock.readLock().unlock();
     }
   }
 
@@ -462,32 +385,26 @@ public class ServiceImpl implements Service {
 
   @Override
   public void debugDump(StringBuilder sb) {
-    clusterGlobalLock.readLock().lock();
+    readWriteLock.readLock().lock();
     try {
-      readWriteLock.readLock().lock();
-      try {
-        sb.append("Service={ serviceName=" + getName()
-            + ", clusterName=" + cluster.getClusterName()
-            + ", clusterId=" + cluster.getClusterId()
-            + ", desiredStackVersion=" + getDesiredStackVersion()
-            + ", desiredState=" + getDesiredState().toString()
-            + ", components=[ ");
-        boolean first = true;
-        for (ServiceComponent sc : components.values()) {
-          if (!first) {
-            sb.append(" , ");
-          }
-          first = false;
-          sb.append("\n      ");
-          sc.debugDump(sb);
-          sb.append(" ");
+      sb.append("Service={ serviceName=" + getName() + ", clusterName="
+          + cluster.getClusterName() + ", clusterId=" + cluster.getClusterId()
+          + ", desiredStackVersion=" + getDesiredStackVersion()
+          + ", desiredState=" + getDesiredState().toString()
+          + ", components=[ ");
+      boolean first = true;
+      for (ServiceComponent sc : components.values()) {
+        if (!first) {
+          sb.append(" , ");
         }
-        sb.append(" ] }");
-      } finally {
-        readWriteLock.readLock().unlock();
+        first = false;
+        sb.append("\n      ");
+        sc.debugDump(sb);
+        sb.append(" ");
       }
+      sb.append(" ] }");
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readWriteLock.readLock().unlock();
     }
   }
 
@@ -504,12 +421,11 @@ public class ServiceImpl implements Service {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
   }
 
   @Override
   public void persist() {
-    clusterGlobalLock.readLock().lock();
+    clusterGlobalLock.writeLock().lock();
     try {
       readWriteLock.writeLock().lock();
       try {
@@ -534,9 +450,8 @@ public class ServiceImpl implements Service {
         readWriteLock.writeLock().unlock();
       }
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      clusterGlobalLock.writeLock().unlock();
     }
-
   }
 
   @Transactional
@@ -564,27 +479,20 @@ public class ServiceImpl implements Service {
   @Override
   @Transactional
   public void refresh() {
-    clusterGlobalLock.readLock().lock();
+    readWriteLock.writeLock().lock();
     try {
-      readWriteLock.writeLock().lock();
-      try {
-        if (isPersisted()) {
-          ClusterServiceEntityPK pk = new ClusterServiceEntityPK();
-          pk.setClusterId(getClusterId());
-          pk.setServiceName(getName());
-          serviceEntity = clusterServiceDAO.findByPK(pk);
-          serviceDesiredStateEntity = serviceEntity.getServiceDesiredStateEntity();
-          clusterServiceDAO.refresh(serviceEntity);
-          serviceDesiredStateDAO.refresh(serviceDesiredStateEntity);
-        }
-      } finally {
-        readWriteLock.writeLock().unlock();
+      if (isPersisted()) {
+        ClusterServiceEntityPK pk = new ClusterServiceEntityPK();
+        pk.setClusterId(getClusterId());
+        pk.setServiceName(getName());
+        serviceEntity = clusterServiceDAO.findByPK(pk);
+        serviceDesiredStateEntity = serviceEntity.getServiceDesiredStateEntity();
+        clusterServiceDAO.refresh(serviceEntity);
+        serviceDesiredStateDAO.refresh(serviceDesiredStateEntity);
       }
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readWriteLock.writeLock().unlock();
     }
-
-
   }
 
   @Override
@@ -613,8 +521,6 @@ public class ServiceImpl implements Service {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
-
   }
 
   @Override
@@ -730,21 +636,16 @@ public class ServiceImpl implements Service {
 
   @Override
   public void setMaintenanceState(MaintenanceState state) {
-    clusterGlobalLock.readLock().lock();
+    readWriteLock.writeLock().lock();
     try {
-      try {
-        readWriteLock.writeLock().lock();
-        serviceDesiredStateEntity.setMaintenanceState(state);
-        saveIfPersisted();
+      serviceDesiredStateEntity.setMaintenanceState(state);
+      saveIfPersisted();
 
-        // broadcast the maintenance mode change
-        MaintenanceModeEvent event = new MaintenanceModeEvent(state, this);
-        eventPublisher.publish(event);
-      } finally {
-        readWriteLock.writeLock().unlock();
-      }
+      // broadcast the maintenance mode change
+      MaintenanceModeEvent event = new MaintenanceModeEvent(state, this);
+      eventPublisher.publish(event);
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readWriteLock.writeLock().unlock();
     }
   }
 
@@ -752,5 +653,4 @@ public class ServiceImpl implements Service {
   public MaintenanceState getMaintenanceState() {
     return serviceDesiredStateEntity.getMaintenanceState();
   }
-
 }
