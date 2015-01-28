@@ -47,7 +47,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -265,9 +264,7 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
   private static void updateStageStatus(StageEntity entity, HostRoleStatus desiredStatus) {
     Collection<HostRoleCommandEntity> tasks = entity.getHostRoleCommands();
 
-    Map<HostRoleStatus, Integer> taskStatusCounts = calculateTaskStatusCounts(getHostRoleStatuses(tasks));
-
-    HostRoleStatus currentStatus = calculateSummaryStatus(taskStatusCounts, tasks.size(), !entity.isSkippable());
+    HostRoleStatus currentStatus = CalculatedStatus.statusFromTaskEntities(tasks, entity.isSkippable()).getStatus();
 
     if (!isValidManualTransition(currentStatus, desiredStatus)) {
       throw new IllegalArgumentException("Can not transition a stage from " +
@@ -333,107 +330,12 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
     setResourceProperty(resource, STAGE_START_TIME, startTime, requestedIds);
     setResourceProperty(resource, STAGE_END_TIME, endTime, requestedIds);
 
-    int taskCount = tasks.size();
+    CalculatedStatus status = CalculatedStatus.statusFromTaskEntities(tasks, entity.isSkippable());
 
-    Map<HostRoleStatus, Integer> taskStatusCounts = calculateTaskStatusCounts(getHostRoleStatuses(tasks));
-
-    setResourceProperty(resource, STAGE_PROGRESS_PERCENT, calculateProgressPercent(taskStatusCounts, taskCount),
-        requestedIds);
-    setResourceProperty(resource, STAGE_STATUS,
-        calculateSummaryStatus(taskStatusCounts, taskCount, !entity.isSkippable()).toString(),
-        requestedIds);
+    setResourceProperty(resource, STAGE_PROGRESS_PERCENT, status.getPercent(), requestedIds);
+    setResourceProperty(resource, STAGE_STATUS, status.getStatus().toString(), requestedIds);
 
     return resource;
-  }
-
-  /**
-   * Calculate the percent complete based on the given status counts.
-   *
-   * @param counters  counts of resources that are in various states
-   * @param total     total number of resources in request
-   *
-   * @return the percent complete for the stage
-   */
-  protected static double calculateProgressPercent(Map<HostRoleStatus, Integer> counters, double total) {
-    return ((counters.get(HostRoleStatus.QUEUED)      * 0.09 +
-        counters.get(HostRoleStatus.IN_PROGRESS)      * 0.35 +
-        counters.get(HostRoleStatus.HOLDING)          * 0.35 +
-        counters.get(HostRoleStatus.HOLDING_FAILED)   * 0.35 +
-        counters.get(HostRoleStatus.HOLDING_TIMEDOUT) * 0.35 +
-        counters.get(HostRoleStatus.COMPLETED)) / total) * 100.0;
-  }
-
-  /**
-   * Calculate an overall status based on the given status counts.
-   *
-   * @param counters  counts of resources that are in various states
-   * @param total     total number of resources in request
-   * @param failAll   true if a single failed status should result in an overall failed status return
-   *
-   * @return summary request status based on statuses of tasks in different states.
-   */
-  protected static HostRoleStatus calculateSummaryStatus(Map<HostRoleStatus, Integer> counters, int total,
-                                                         boolean failAll) {
-    return counters.get(HostRoleStatus.PENDING) == total ? HostRoleStatus.PENDING :
-        counters.get(HostRoleStatus.HOLDING) > 0 ? HostRoleStatus.HOLDING :
-        counters.get(HostRoleStatus.HOLDING_FAILED) > 0 ? HostRoleStatus.HOLDING_FAILED :
-        counters.get(HostRoleStatus.HOLDING_TIMEDOUT) > 0 ? HostRoleStatus.HOLDING_TIMEDOUT :
-        counters.get(HostRoleStatus.FAILED) > 0 && failAll ? HostRoleStatus.FAILED :
-        counters.get(HostRoleStatus.ABORTED) > 0 ? HostRoleStatus.ABORTED :
-        counters.get(HostRoleStatus.TIMEDOUT) > 0 && failAll ? HostRoleStatus.TIMEDOUT :
-        counters.get(HostRoleStatus.COMPLETED) == total ? HostRoleStatus.COMPLETED :
-            HostRoleStatus.IN_PROGRESS;
-  }
-
-  /**
-   * Get a collection of statuses from the given collection of task entities.
-   *
-   * @param tasks  the task entities
-   *
-   * @return a collection of statuses
-   */
-  private static Collection<HostRoleStatus> getHostRoleStatuses(Collection<HostRoleCommandEntity> tasks) {
-    Collection<HostRoleStatus> hostRoleStatuses = new LinkedList<HostRoleStatus>();
-
-    for (HostRoleCommandEntity hostRoleCommand : tasks) {
-      hostRoleStatuses.add(hostRoleCommand.getStatus());
-    }
-    return hostRoleStatuses;
-  }
-
-  /**
-   * Returns counts of tasks that are in various states.
-   *
-   * @param hostRoleStatuses  the collection of tasks
-   *
-   * @return a map of counts of tasks keyed by the task status
-   */
-  protected static Map<HostRoleStatus, Integer> calculateTaskStatusCounts(Collection<HostRoleStatus> hostRoleStatuses) {
-    Map<HostRoleStatus, Integer> counters = new HashMap<HostRoleStatus, Integer>();
-    // initialize
-    for (HostRoleStatus hostRoleStatus : HostRoleStatus.values()) {
-      counters.put(hostRoleStatus, 0);
-    }
-    // calculate counts
-    for (HostRoleStatus status : hostRoleStatuses) {
-      // count tasks where isCompletedState() == true as COMPLETED
-      // but don't count tasks with COMPLETED status twice
-      if (status.isCompletedState() && status != HostRoleStatus.COMPLETED) {
-        // Increase total number of completed tasks;
-        counters.put(HostRoleStatus.COMPLETED, counters.get(HostRoleStatus.COMPLETED) + 1);
-      }
-      // Increment counter for particular status
-      counters.put(status, counters.get(status) + 1);
-    }
-
-    // We overwrite the value to have the sum converged
-    counters.put(HostRoleStatus.IN_PROGRESS,
-        hostRoleStatuses.size() -
-        counters.get(HostRoleStatus.COMPLETED) -
-        counters.get(HostRoleStatus.QUEUED) -
-        counters.get(HostRoleStatus.PENDING));
-
-    return counters;
   }
 
   /**

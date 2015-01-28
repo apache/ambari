@@ -42,9 +42,11 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Order;
 import javax.persistence.metamodel.SingularAttribute;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 @Singleton
 public class StageDAO {
@@ -91,6 +93,25 @@ public class StageDAO {
         "WHERE stage.requestId=?1 " +
         "ORDER BY stage.stageId", StageEntity.class);
     return daoUtils.selectList(query, requestId);
+  }
+
+  /**
+   * Get the list of stage entities for the given request id and stage ids.
+   *
+   * @param requestId  the request ids
+   * @param stageIds   the set of stage ids
+   *
+   * @return the set of entities for the given ids
+   */
+  public List<StageEntity> findByStageIds(Long requestId, Set<Long> stageIds) {
+    List<StageEntity> stageEntities = new LinkedList<StageEntity>();
+
+    for (StageEntity stage : findByRequestId(requestId)) {
+      if (stageIds.contains(stage.getStageId())) {
+        stageEntities.add(stage);
+      }
+    }
+    return stageEntities;
   }
 
   @RequiresSession

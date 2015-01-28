@@ -17,18 +17,14 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.StaticallyInject;
-import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -39,11 +35,11 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
-import org.apache.ambari.server.state.UpgradeHelper;
 
 import com.google.inject.Inject;
 
@@ -71,10 +67,10 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
   private static UpgradeDAO m_dao = null;
 
   /**
-   * Used to generated the correct tasks and stages during an upgrade.
+   * Used for querying stage resources.
    */
   @Inject
-  private static UpgradeHelper s_upgradeHelper;
+  private static StageDAO stageDAO = null;
 
   static {
     // properties
@@ -117,7 +113,6 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       String upgradeIdStr = (String) propertyMap.get(UPGRADE_REQUEST_ID);
-      String clusterName = (String) propertyMap.get(UPGRADE_CLUSTER_NAME);
 
       if (null == upgradeIdStr || upgradeIdStr.isEmpty()) {
         throw new IllegalArgumentException("The upgrade id is required when querying for upgrades");
@@ -126,29 +121,25 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
       Long upgradeId = Long.valueOf(upgradeIdStr);
       UpgradeEntity upgrade = m_dao.findUpgradeByRequestId(upgradeId);
 
+      Long requestId = upgrade.getRequestId();
+
       List<UpgradeGroupEntity> groups = upgrade.getUpgradeGroups();
       if (null != groups) {
-
 
         for (UpgradeGroupEntity group : upgrade.getUpgradeGroups()) {
           Resource r = toResource(upgrade, group, requestPropertyIds);
 
-          List<Long> stageIds = new ArrayList<Long>();
+          Set<Long> stageIds = new HashSet<Long>();
           for (UpgradeItemEntity itemEntity : group.getItems()) {
             stageIds.add(itemEntity.getStageId());
           }
 
-          Set<Resource> stages = s_upgradeHelper.getStageResources(clusterName,
-              upgrade.getRequestId(), stageIds);
-
-          aggregate(r, stages, requestPropertyIds);
+          aggregate(r, requestId, stageIds, requestPropertyIds);
 
           results.add(r);
         }
       }
-
     }
-
     return results;
   }
 
@@ -188,51 +179,14 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
    * Aggregates status and percent complete for stages and puts the results on the upgrade group
    *
    * @param upgradeGroup  the resource representing an upgrade group
-   * @param stages        the collection of resources representing stages
+   * @param stageIds      the set of resources ids of the stages
    * @param requestedIds  the ids for the request
    */
-  private void aggregate(Resource upgradeGroup, Collection<Resource> stages, Set<String> requestedIds) {
+  private void aggregate(Resource upgradeGroup, Long requestId, Set<Long> stageIds, Set<String> requestedIds) {
 
-    Map<HostRoleStatus, Integer> counters =
-        StageResourceProvider.calculateTaskStatusCounts(getHostRoleStatuses(stages));
+    CalculatedStatus status = CalculatedStatus.statusFromStageEntities(stageDAO.findByStageIds(requestId, stageIds));
 
-    setResourceProperty(upgradeGroup, UPGRADE_GROUP_STATUS,
-        StageResourceProvider.calculateSummaryStatus(counters, stages.size(), false), requestedIds);
-
-    setResourceProperty(upgradeGroup, UPGRADE_GROUP_PROGRESS_PERCENT,
-        StageResourceProvider.calculateProgressPercent(counters, stages.size()), requestedIds);
-  }
-
-  /**
-   * Get a collection of statuses from the given collection of stage resources.
-   *
-   * @param stageResources  the stage resources
-   *
-   * @return a collection of statuses
-   */
-  private static Collection<HostRoleStatus> getHostRoleStatuses(Collection<Resource> stageResources) {
-    Collection<HostRoleStatus> hostRoleStatuses = new LinkedList<HostRoleStatus>();
-
-    for (Resource stage : stageResources) {
-      HostRoleStatus status = getStatus(stage);
-
-      if (status != null) {
-        hostRoleStatuses.add(status);
-      }
-    }
-    return hostRoleStatuses;
-  }
-
-  /**
-   * Get the status of the given stage resource.
-   *
-   * @param stageResource  the resource
-   *
-   * @return  the stage status
-   */
-  private static HostRoleStatus getStatus(Resource stageResource) {
-    String status = (String) stageResource.getPropertyValue(StageResourceProvider.STAGE_STATUS);
-
-    return status == null ? null : HostRoleStatus.valueOf(status);
+    setResourceProperty(upgradeGroup, UPGRADE_GROUP_STATUS, status.getStatus(), requestedIds);
+    setResourceProperty(upgradeGroup, UPGRADE_GROUP_PROGRESS_PERCENT, status.getPercent(), requestedIds);
   }
 }

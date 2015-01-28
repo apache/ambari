@@ -21,6 +21,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.api.services.BaseRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ExecuteActionRequest;
@@ -219,17 +220,16 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
         throw new IllegalArgumentException("Abort reason can not be empty.");
       }
 
-      List<HostRoleCommand> commands = internalRequest.getCommands();
-      HostRoleStatus internalRequestStatus =
-          StageResourceProvider.calculateSummaryStatus(
-              StageResourceProvider.calculateTaskStatusCounts(getHostRoleStatuses(commands)), commands.size(), true);
-
       if (updateRequest.getStatus() != HostRoleStatus.ABORTED) {
         throw new IllegalArgumentException(
                 String.format("%s is wrong value. The only allowed value " +
                                 "for updating request status is ABORTED",
                         updateRequest.getStatus()));
       }
+
+      HostRoleStatus internalRequestStatus =
+          CalculatedStatus.statusFromStages(internalRequest.getStages()).getStatus();
+
       if (internalRequestStatus.isCompletedState()) {
         throw new IllegalArgumentException(
                 String.format("Can not set request that is in %s state to %s state.",
@@ -465,18 +465,18 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     }
 
     Collection<HostRoleCommand> commands = request.getCommands();
+    Collection<Stage> stages = request.getStages();
+
+    CalculatedStatus status = CalculatedStatus.statusFromStages(stages);
+
+    setResourceProperty(resource, REQUEST_STATUS_PROPERTY_ID, status.getStatus().toString(), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_PROGRESS_PERCENT_ID, status.getPercent(), requestedPropertyIds);
 
     int taskCount = commands.size();
 
     Map<HostRoleStatus, Integer> hostRoleStatusCounters =
-        StageResourceProvider.calculateTaskStatusCounts(getHostRoleStatuses(commands));
+        CalculatedStatus.calculateStatusCounts(getHostRoleStatuses(commands));
 
-    HostRoleStatus requestStatus =
-        StageResourceProvider.calculateSummaryStatus(hostRoleStatusCounters, taskCount, true);
-
-    double progressPercent = StageResourceProvider.calculateProgressPercent(hostRoleStatusCounters, taskCount);
-
-    setResourceProperty(resource, REQUEST_STATUS_PROPERTY_ID, requestStatus.toString(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_TASK_CNT_ID, taskCount, requestedPropertyIds);
     setResourceProperty(resource, REQUEST_FAILED_TASK_CNT_ID,
             hostRoleStatusCounters.get(HostRoleStatus.FAILED), requestedPropertyIds);
@@ -488,7 +488,6 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
             hostRoleStatusCounters.get(HostRoleStatus.QUEUED), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_COMPLETED_TASK_CNT_ID,
             hostRoleStatusCounters.get(HostRoleStatus.COMPLETED), requestedPropertyIds);
-    setResourceProperty(resource, REQUEST_PROGRESS_PERCENT_ID, progressPercent, requestedPropertyIds);
 
     return resource;
   }
