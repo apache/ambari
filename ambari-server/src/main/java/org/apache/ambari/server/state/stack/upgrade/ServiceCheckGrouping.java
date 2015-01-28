@@ -76,6 +76,9 @@ public class ServiceCheckGrouping extends Grouping {
       m_metaInfo = ctx.getAmbariMetaInfo();
 
       List<StageWrapper> result = new ArrayList<StageWrapper>();
+      if (Direction.DOWNGRADE == ctx.getDirection()) {
+        return result;
+      }
 
       Map<String, Service> serviceMap = m_cluster.getServices();
 

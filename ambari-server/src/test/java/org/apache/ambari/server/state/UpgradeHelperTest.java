@@ -169,9 +169,9 @@ public class UpgradeHelperTest {
     assertEquals(postGroup.items.get(2).getText(), "Save Cluster State");
     assertEquals(postGroup.items.get(2).getType(), StageWrapper.Type.SERVER_SIDE_ACTION);
 
-    assertEquals(9, groups.get(1).items.size());
-    assertEquals(8, groups.get(2).items.size());
-    assertEquals(6, groups.get(3).items.size());
+    assertEquals(7, groups.get(1).items.size());
+    assertEquals(7, groups.get(2).items.size());
+    assertEquals(5, groups.get(3).items.size());
   }
 
   @Test
@@ -223,7 +223,7 @@ public class UpgradeHelperTest {
 
 
   @Test
-  public void testServiceCheckStages() throws Exception {
+  public void testServiceCheckUpgradeStages() throws Exception {
 
     Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
     assertTrue(upgrades.containsKey("upgrade_test_checks"));
@@ -241,6 +241,35 @@ public class UpgradeHelperTest {
 
     // grab the manual task out of ZK which has placeholder text
     UpgradeGroupHolder zookeeperGroup = groups.get(1);
+    assertEquals("ZOOKEEPER", zookeeperGroup.name);
+    ManualTask manualTask = (ManualTask) zookeeperGroup.items.get(0).getTasks().get(
+        0).getTasks().get(0);
+
+    assertEquals(
+        "This is a manual task with a placeholder of placeholder-rendered-properly",
+        manualTask.message);
+  }
+
+  @Test
+  public void testServiceCheckDowngradeStages() throws Exception {
+
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    assertTrue(upgrades.containsKey("upgrade_test_checks"));
+    UpgradePack upgrade = upgrades.get("upgrade_test_checks");
+    assertNotNull(upgrade);
+
+    makeCluster();
+
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver,
+        DOWNGRADE_VERSION, Direction.DOWNGRADE);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
+
+    assertEquals(5, groups.size());
+
+    // grab the manual task out of ZK which has placeholder text
+
+    UpgradeGroupHolder zookeeperGroup = groups.get(3);
     assertEquals("ZOOKEEPER", zookeeperGroup.name);
     ManualTask manualTask = (ManualTask) zookeeperGroup.items.get(0).getTasks().get(
         0).getTasks().get(0);

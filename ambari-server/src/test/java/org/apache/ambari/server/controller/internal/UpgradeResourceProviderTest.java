@@ -63,6 +63,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.easymock.EasyMock;
 import org.junit.After;
@@ -286,7 +287,8 @@ public class UpgradeResourceProviderTest {
     assertEquals(1, resources.size());
     res = resources.iterator().next();
     assertNotNull(res.getPropertyValue("Upgrade/progress_percent"));
-
+    assertNotNull(res.getPropertyValue("Upgrade/direction"));
+    assertEquals(Direction.UPGRADE, res.getPropertyValue("Upgrade/direction"));
 
     // upgrade groups
     propertyIds.clear();
@@ -392,7 +394,7 @@ public class UpgradeResourceProviderTest {
 
     UpgradeGroupEntity group = upgradeGroups.get(2);
     assertEquals("ZOOKEEPER", group.getName());
-    assertEquals(4, group.getItems().size());
+    assertEquals(3, group.getItems().size());
 
   }
 
@@ -441,6 +443,7 @@ public class UpgradeResourceProviderTest {
     assertNotNull(entity);
     assertEquals("2.1.1", entity.getFromVersion());
     assertEquals("2.2", entity.getToVersion());
+    assertEquals(Direction.DOWNGRADE, entity.getDirection());
 
     StageDAO dao = injector.getInstance(StageDAO.class);
     List<StageEntity> stages = dao.findByRequestId(entity.getRequestId());

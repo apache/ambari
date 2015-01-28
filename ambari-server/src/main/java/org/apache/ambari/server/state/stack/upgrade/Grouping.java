@@ -139,7 +139,8 @@ public class Grouping {
             service, "", Collections.<String>emptySet(), new ServiceCheckTask()));
       }
 
-      if (m_serviceCheck && m_servicesToCheck.size() > 0) {
+      if (Direction.UPGRADE == ctx.getDirection() && m_serviceCheck &&
+          m_servicesToCheck.size() > 0) {
         StageWrapper wrapper = new StageWrapper(
             StageWrapper.Type.SERVICE_CHECK,
             "Service Check " + StringUtils.join(m_servicesToCheck, ", "),

@@ -142,7 +142,7 @@ public class ColocatedGrouping extends Grouping {
         LOG.debug("RU final: {}", finalBatches);
       }
 
-      results.addAll(fromProxies(initialBatch));
+      results.addAll(fromProxies(ctx.getDirection(), initialBatch));
 
       // !!! TODO when manual tasks are ready
       ManualTask task = new ManualTask();
@@ -151,16 +151,18 @@ public class ColocatedGrouping extends Grouping {
 
       StageWrapper wrapper = new StageWrapper(
           StageWrapper.Type.SERVER_SIDE_ACTION,
-          "Validate Partial Upgrade",
+          "Validate Partial " +
+              (Direction.UPGRADE == ctx.getDirection() ? "Upgrade" : "Downgrade"),
           new TaskWrapper(null, null, Collections.<String>emptySet(), task));
       results.add(wrapper);
 
-      results.addAll(fromProxies(finalBatches));
+      results.addAll(fromProxies(ctx.getDirection(), finalBatches));
 
       return results;
     }
 
-    private List<StageWrapper> fromProxies(Map<String, List<TaskProxy>> wrappers) {
+    private List<StageWrapper> fromProxies(Direction direction,
+        Map<String, List<TaskProxy>> wrappers) {
       List<StageWrapper> results = new ArrayList<StageWrapper>();
 
       Set<String> serviceChecks = new HashSet<String>();
@@ -195,7 +197,8 @@ public class ColocatedGrouping extends Grouping {
 
       }
 
-      if (m_serviceCheck && serviceChecks.size() > 0) {
+      if (Direction.UPGRADE == direction && m_serviceCheck &&
+          serviceChecks.size() > 0) {
         // !!! add the service check task
         List<TaskWrapper> tasks = new ArrayList<TaskWrapper>();
         for (String service : serviceChecks) {

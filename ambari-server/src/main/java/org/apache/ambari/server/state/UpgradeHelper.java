@@ -146,6 +146,11 @@ public class UpgradeHelper {
       groupHolder.skippable = group.skippable;
       groupHolder.allowRetry = group.allowRetry;
 
+      // !!! all downgrades are skippable
+      if (Direction.DOWNGRADE == context.getDirection()) {
+        groupHolder.skippable = true;
+      }
+
       StageWrapperBuilder builder = group.getBuilder();
 
       List<UpgradePack.OrderService> services = group.services;

@@ -235,6 +235,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     columns.add(new DBAccessor.DBColumnInfo("request_id", Long.class, null, null, false));
     columns.add(new DBAccessor.DBColumnInfo("from_version", String.class, 255, "", false));
     columns.add(new DBAccessor.DBColumnInfo("to_version", String.class, 255, "", false));
+    columns.add(new DBAccessor.DBColumnInfo("direction", String.class, 255, "UPGRADE", false));
     dbAccessor.createTable("upgrade", columns, "upgrade_id");
     dbAccessor.addFKConstraint("upgrade", "fk_upgrade_cluster_id", "cluster_id", "clusters", "cluster_id", false);
     dbAccessor.addFKConstraint("upgrade", "fk_upgrade_request_id", "request_id", "request", "request_id", false);

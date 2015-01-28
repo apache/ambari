@@ -707,6 +707,7 @@ CREATE TABLE upgrade (
   request_id NUMBER(19) NOT NULL,
   from_version VARCHAR2(255) DEFAULT '' NOT NULL,
   to_version VARCHAR2(255) DEFAULT '' NOT NULL,
+  direction VARCHAR2(255) DEFAULT 'UPGRADE' NOT NULL,
   PRIMARY KEY (upgrade_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
   FOREIGN KEY (request_id) REFERENCES request(request_id)

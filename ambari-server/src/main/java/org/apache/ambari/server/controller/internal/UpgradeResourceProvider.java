@@ -103,6 +103,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   protected static final String UPGRADE_FORCE_DOWNGRADE = "Upgrade/force_downgrade";
   protected static final String UPGRADE_FROM_VERSION = "Upgrade/from_version";
   protected static final String UPGRADE_TO_VERSION = "Upgrade/to_version";
+  protected static final String UPGRADE_DIRECTION = "Upgrade/direction";
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
       Arrays.asList(UPGRADE_REQUEST_ID, UPGRADE_CLUSTER_NAME));
@@ -153,6 +154,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     PROPERTY_IDS.add(UPGRADE_FORCE_DOWNGRADE);
     PROPERTY_IDS.add(UPGRADE_FROM_VERSION);
     PROPERTY_IDS.add(UPGRADE_TO_VERSION);
+    PROPERTY_IDS.add(UPGRADE_DIRECTION);
 
     // !!! boo
     for (String requestPropertyId : RequestResourceProvider.PROPERTY_IDS) {
@@ -305,6 +307,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     setResourceProperty(resource, UPGRADE_REQUEST_ID, entity.getRequestId(), requestedIds);
     setResourceProperty(resource, UPGRADE_FROM_VERSION, entity.getFromVersion(), requestedIds);
     setResourceProperty(resource, UPGRADE_TO_VERSION, entity.getToVersion(), requestedIds);
+    setResourceProperty(resource, UPGRADE_DIRECTION, entity.getDirection(), requestedIds);
 
     return resource;
   }
@@ -477,6 +480,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     entity.setToVersion(version);
     entity.setUpgradeGroups(groupEntities);
     entity.setClusterId(Long.valueOf(cluster.getClusterId()));
+    entity.setDirection(direction);
 
     req.getRequestStatusResponse();
 
