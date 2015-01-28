@@ -749,7 +749,8 @@ def modify_config_item(config_type, catalog):
   catalog.set_substitution_handler(_substitute)
 
   try:
-    properties_latest, properties_attributes_latest = rename_all_properties(get_config(config_type), catalog.property_map_catalog)
+    properties_latest, properties_attributes_latest = get_config(config_type)
+    properties_latest = rename_all_properties(properties_latest, catalog.property_map_catalog)
   except Exception as e:
     properties_latest = {}
     properties_attributes_latest = None
@@ -763,7 +764,7 @@ def modify_config_item(config_type, catalog):
   #     "dfs.namenode.checkpoint.edits.dir",
   #     "dfs.namenode.checkpoint.dir",
   #     "dfs.namenode.checkpoint.period"]
-
+  Options.logger.info("Updating '%s' catalog item..." % config_type )
   if is_merged_copy:  # Append configs to existed ones
     tag, structured_resp = get_config_resp(config_type, False)
     if structured_resp is not None:
@@ -829,8 +830,6 @@ def update_config_using_existing_properties(conf_type, properties_template,
         lambda (item_key, item_value): item_key not in keys_to_delete,
         zip(properties_attributes_latest[key].keys(), properties_attributes_latest[key].values())
       ))
-
-
 
   update_config(properties_parsed, conf_type, attributes=properties_attributes_latest)
 
