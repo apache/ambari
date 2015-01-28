@@ -61,13 +61,6 @@ def _coerce_gid(group):
 def _ensure_metadata(path, user, group, mode=None, cd_access=None):
   stat = os.stat(path)
   
-  if mode:
-    existing_mode = stat.st_mode & 07777
-    if existing_mode != mode:
-      Logger.info("Changing permission for %s from %o to %o" % (
-      path, existing_mode, mode))
-      sudo.chmod(path, mode)
-  
   if user:
     uid = _coerce_uid(user)
     if stat.st_uid != uid:
@@ -76,13 +69,19 @@ def _ensure_metadata(path, user, group, mode=None, cd_access=None):
       
       sudo.chown(path, user, None)
       
-
   if group:
     gid = _coerce_gid(group)
     if stat.st_gid != gid:
       Logger.info(
         "Changing group for %s from %d to %s" % (path, stat.st_gid, group))
       sudo.chown(path, None, group)
+      
+  if mode:
+    existing_mode = stat.st_mode & 07777
+    if existing_mode != mode:
+      Logger.info("Changing permission for %s from %o to %o" % (
+      path, existing_mode, mode))
+      sudo.chmod(path, mode)
       
   if cd_access:
     if not re.match("^[ugoa]+$", cd_access):
