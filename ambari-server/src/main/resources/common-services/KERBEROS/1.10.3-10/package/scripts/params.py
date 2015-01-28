@@ -57,6 +57,8 @@ krb5kdc_pid_path = '/var/run/krb5kdc.pid'
 smoke_test_principal = None
 smoke_test_keytab_file = None
 
+smoke_user =  config['configurations']['cluster-env']['smokeuser']
+
 # If a test keytab file is available, simply use it
 
 

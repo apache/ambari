@@ -301,7 +301,7 @@ class KerberosScript(Script):
         KerberosScript.create_principal(admin_identity)
 
   @staticmethod
-  def test_kinit(identity):
+  def test_kinit(identity, user=None):
     principal = get_property_value(identity, 'principal')
 
     if principal is not None:
@@ -312,7 +312,9 @@ class KerberosScript(Script):
       # If a test keytab file is available, simply use it
       if (keytab_file is not None) and (os.path.isfile(keytab_file)):
         command = 'kinit -k -t %s %s' % (keytab_file, principal)
-        Execute(command)
+        Execute(command,
+          user = user,
+        )
         return shell.checked_call('kdestroy')
 
       # If base64-encoded test keytab data is available; then decode it, write it to a temporary file
@@ -324,7 +326,9 @@ class KerberosScript(Script):
 
         try:
           command = 'kinit -k -t %s %s' % (test_keytab_file, principal)
-          Execute(command)
+          Execute(command,
+            user = user,
+          )
           return shell.checked_call('kdestroy')
         except:
           raise

@@ -34,7 +34,7 @@ class KerberosServiceCheck(KerberosScript):
       code, out = self.test_kinit({
         'principal': params.smoke_test_principal,
         'keytab_file': params.smoke_test_keytab_file
-      })
+      }, user=params.smoke_user)
       test_performed = True
 
     # Else if a test credentials is specified, try to test using that
@@ -45,7 +45,7 @@ class KerberosServiceCheck(KerberosScript):
         'keytab_file': params.test_keytab_file,
         'keytab': params.test_keytab,
         'password': params.test_password
-      })
+      }, user=params.smoke_user)
       test_performed = True
 
     else:
