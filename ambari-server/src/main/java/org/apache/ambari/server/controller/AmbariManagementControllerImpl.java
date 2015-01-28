@@ -22,10 +22,8 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_PASSWORD;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_URL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_USERNAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLIENTS_TO_UPDATE_CONFIGS;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.PACKAGE_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
@@ -34,6 +32,8 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TY
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLIENTS_TO_UPDATE_CONFIGS;
 
 import java.io.File;
 import java.io.IOException;
@@ -2183,31 +2183,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
   }
 
-  private void validateServiceComponentHostRequestDelete(
-      ServiceComponentHostRequest request) {
-    Set<String> componentsDecommissioned = new HashSet<String>(
-        Arrays.asList(new String[] { "DATANODE", "NODEMANAGER" }));
-
-    if (request.getClusterName() == null
-        || request.getClusterName().isEmpty()
-        || request.getComponentName() == null
-        || request.getComponentName().isEmpty()
-        || request.getHostname() == null
-        || request.getHostname().isEmpty()) {
-      throw new IllegalArgumentException("Invalid arguments"
-          + ", cluster name, component name and host name should be"
-          + " provided");
-    }
-
-    if (componentsDecommissioned.contains(request.getComponentName())
-        && request.getAdminState() != null
-        && !request.getAdminState().equals("DECOMMISSIONED")) {
-      throw new IllegalArgumentException(
-          "Invalid arguments, component=" + request.getComponentName()
-              + " must be in DECOMMISSIONED state.");
-    }
-  }
-
   @Override
   public String findServiceName(Cluster cluster, String componentName) throws AmbariException {
     StackId stackId = cluster.getDesiredStackVersion();
@@ -2306,7 +2281,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     for (ServiceComponentHostRequest request : expanded) {
 
-      validateServiceComponentHostRequestDelete(request);
+      validateServiceComponentHostRequest(request);
 
       Cluster cluster = clusters.getCluster(request.getClusterName());
 
