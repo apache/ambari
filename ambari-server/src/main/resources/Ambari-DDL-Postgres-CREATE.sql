@@ -509,7 +509,7 @@ CREATE TABLE repo_version (
   PRIMARY KEY(repo_version_id)
 );
 
-CREATE TABLE ambari.artifact (
+CREATE TABLE artifact (
   artifact_name VARCHAR(255) NOT NULL,
   artifact_data TEXT NOT NULL,
   foreign_keys VARCHAR(255) NOT NULL,
