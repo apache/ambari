@@ -300,7 +300,7 @@ public class ADKerberosOperationHandlerTest extends EasyMockSupport {
     Assert.assertEquals("nn/c6501.ambari.apache.org", attributes.get("servicePrincipalName").get());
 
     Assert.assertNotNull(attributes.get("userPrincipalName"));
-    Assert.assertEquals("nn/c6501.ambari.apache.org@hdp01.local", attributes.get("userPrincipalName").get());
+    Assert.assertEquals("nn/c6501.ambari.apache.org@HDP01.LOCAL", attributes.get("userPrincipalName").get());
 
     Assert.assertNotNull(attributes.get("unicodePwd"));
     Assert.assertEquals("\"secret\"", new String((byte[]) attributes.get("unicodePwd").get(), Charset.forName("UTF-16LE")));
@@ -325,7 +325,7 @@ public class ADKerberosOperationHandlerTest extends EasyMockSupport {
     Assert.assertEquals("hdfs", attributes.get("cn").get());
 
     Assert.assertNotNull(attributes.get("userPrincipalName"));
-    Assert.assertEquals("hdfs@hdp01.local", attributes.get("userPrincipalName").get());
+    Assert.assertEquals("hdfs@HDP01.LOCAL", attributes.get("userPrincipalName").get());
 
     Assert.assertNotNull(attributes.get("unicodePwd"));
     Assert.assertEquals("\"secret\"", new String((byte[]) attributes.get("unicodePwd").get(), Charset.forName("UTF-16LE")));
@@ -358,7 +358,7 @@ public class ADKerberosOperationHandlerTest extends EasyMockSupport {
             "  #if( $is_service )" +
             "  \"servicePrincipalName\": \"$principal_name\"," +
             "  #end" +
-            "  \"userPrincipalName\": \"$normalized_principal.toLowerCase()\"," +
+            "  \"userPrincipalName\": \"$normalized_principal\"," +
             "  \"unicodePwd\": \"$password\"," +
             "  \"accountExpires\": \"0\"," +
             "  \"userAccountControl\": \"66048\"" +
@@ -424,7 +424,7 @@ public class ADKerberosOperationHandlerTest extends EasyMockSupport {
     Assert.assertEquals("nn/c6501.ambari.apache.org", attributes.get("servicePrincipalName").get());
 
     Assert.assertNotNull(attributes.get("userPrincipalName"));
-    Assert.assertEquals("nn/c6501.ambari.apache.org@hdp01.local", attributes.get("userPrincipalName").get());
+    Assert.assertEquals("nn/c6501.ambari.apache.org@HDP01.LOCAL", attributes.get("userPrincipalName").get());
 
     Assert.assertNotNull(attributes.get("sAMAccountName"));
     Assert.assertTrue(attributes.get("sAMAccountName").get().toString().length() <= 20);
@@ -504,7 +504,7 @@ public class ADKerberosOperationHandlerTest extends EasyMockSupport {
             "  #if( $is_service )" +
             "  \"servicePrincipalName\": \"$principal_name\"," +
             "  #end" +
-            "  \"userPrincipalName\": \"$normalized_principal.toLowerCase()\"," +
+            "  \"userPrincipalName\": \"$normalized_principal\"," +
             "  \"unicodePwd\": \"$password\"," +
             "  \"accountExpires\": \"0\"," +
             "  \"userAccountControl\": \"66048\"" +

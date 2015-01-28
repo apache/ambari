@@ -502,7 +502,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
           "#if( $is_service )" +
           "  \"servicePrincipalName\": \"$principal_name\"," +
           "#end" +
-          "\"userPrincipalName\": \"$normalized_principal.toLowerCase()\"," +
+          "\"userPrincipalName\": \"$normalized_principal\"," +
           "\"unicodePwd\": \"$password\"," +
           "\"accountExpires\": \"0\"," +
           "\"userAccountControl\": \"66048\"" +
