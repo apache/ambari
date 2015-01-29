@@ -63,12 +63,126 @@ App.AddServiceController = App.WizardController.extend({
     group: "hadoop"
   }),
 
+  loadMap: {
+    '1': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.loadServices();
+        }
+      }
+    ],
+    '2': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.loadMasterComponentHosts();
+          this.load('hosts');
+        }
+      }
+    ],
+    '2': [
+      {
+        type: 'async',
+        callback: function () {
+          var dfd = $.Deferred();
+          var self = this;
+          this.loadHosts().done(function () {
+            self.loadMasterComponentHosts();
+            self.load('hosts');
+            dfd.resolve();
+          });
+          return dfd.promise();
+        }
+      }
+    ],
+    '3': [
+      {
+        type: 'async',
+        callback: function () {
+          var dfd = $.Deferred();
+          var self = this;
+          this.loadHosts().done(function () {
+            self.loadServices();
+            self.loadClients();
+            self.loadSlaveComponentHosts();//depends on loadServices
+            dfd.resolve();
+          });
+          return dfd.promise();
+        }
+      }
+    ],
+    '4': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.loadServiceConfigGroups();
+          this.loadServiceConfigProperties();
+        }
+      }
+    ],
+    '5': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.checkSecurityStatus();
+          this.load('cluster');
+          this.set('content.additionalClients', []);
+        }
+      }
+    ]
+  },
+
   setCurrentStep: function (currentStep, completed) {
     this._super(currentStep, completed);
     App.clusterStatus.setClusterStatus({
       wizardControllerName: this.get('name'),
       localdb: App.db.data
     });
+  },
+
+  loadHosts: function () {
+    var dfd;
+    if (this.getDBProperty('hosts')) {
+      dfd = $.Deferred();
+      dfd.resolve();
+    } else {
+      dfd = App.ajax.send({
+        name: 'hosts.confirmed',
+        sender: this,
+        data: {},
+        success: 'loadHostsSuccessCallback',
+        error: 'loadHostsErrorCallback'
+      });
+    }
+    return dfd.promise();
+  },
+
+  loadHostsSuccessCallback: function (response) {
+    var installedHosts = {};
+
+    response.items.forEach(function (item, indx) {
+      installedHosts[item.Hosts.host_name] = {
+        name: item.Hosts.host_name,
+        cpu: item.Hosts.cpu_count,
+        memory: item.Hosts.total_mem,
+        disk_info: item.Hosts.disk_info,
+        osType: item.Hosts.os_type,
+        osArch: item.Hosts.os_arch,
+        ip: item.Hosts.ip,
+        bootStatus: "REGISTERED",
+        isInstalled: true,
+        hostComponents: item.host_components,
+        id: indx++
+      };
+    });
+    this.setDBProperty('hosts', installedHosts);
+    this.set('content.hosts', installedHosts);
+  },
+
+  loadHostsErrorCallback: function (jqXHR, ajaxOptions, error, opt) {
+    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
+    console.log('Loading hosts failed');
   },
 
   /**
@@ -101,9 +215,10 @@ App.AddServiceController = App.WizardController.extend({
         item.set('isSelected', isSelected || (this.get("currentStep") == "1" ? isInstalled : isSelected));
         item.set('isInstalled', isInstalled);
       }, this);
-      var isServiceWithSlave = App.StackService.find().filterProperty('isSelected').filterProperty('hasSlave').filterProperty('isInstalled', false).mapProperty('serviceName').length;
-      var isServiceWithClient = App.StackService.find().filterProperty('isSelected').filterProperty('hasClient').filterProperty('isInstalled', false).mapProperty('serviceName').length;
-      this.set('content.skipSlavesStep', !isServiceWithSlave && !isServiceWithClient);
+      var isServiceWithSlave = App.StackService.find().filterProperty('isSelected').filterProperty('hasSlave').filterProperty('isInstalled', false).length;
+      var isServiceWithClient = App.StackService.find().filterProperty('isSelected').filterProperty('hasClient').filterProperty('isInstalled', false).length;
+      var isServiceWithCustomAssignedNonMasters = App.StackService.find().filterProperty('isSelected').filterProperty('hasNonMastersWithCustomAssignment').filterProperty('isInstalled', false).length;
+      this.set('content.skipSlavesStep', !isServiceWithSlave && !isServiceWithClient || !isServiceWithCustomAssignedNonMasters);
       if (this.get('content.skipSlavesStep')) {
         this.get('isStepDisabled').findProperty('step', 3).set('value', this.get('content.skipSlavesStep'));
       }
@@ -258,7 +373,7 @@ App.AddServiceController = App.WizardController.extend({
     var selectedServices = this.get('content.services').filterProperty('isSelected', true).mapProperty('serviceName');
     var installedComponentsMap = {};
     var uninstalledComponents = [];
-    var hosts = this.get('content.hosts');
+    var hosts = this.getDBProperty('hosts') || this.get('content.hosts');
     var masterComponents = App.get('components.masters');
     var nonMasterComponentHosts = [];
 
@@ -305,7 +420,7 @@ App.AddServiceController = App.WizardController.extend({
     }
 
     if (!nonMasterComponentHosts.length) {
-      nonMasterComponentHosts.push(Object.keys(this.get('content.hosts'))[0]);
+      nonMasterComponentHosts.push(Object.keys(hosts)[0]);
     }
     var uninstalledComponentHosts =  nonMasterComponentHosts.map(function(_hostName){
       return {
@@ -347,34 +462,6 @@ App.AddServiceController = App.WizardController.extend({
     this.setDBProperty('clientInfo', clients);
     this.set('content.clients', clients);
     console.log("AddServiceController.saveClients: saved list ", clients);
-  },
-
-  /**
-   * Load data for all steps until <code>current step</code>
-   */
-  loadAllPriorSteps: function () {
-    var step = this.get('currentStep');
-    switch (step) {
-      case '8':
-      case '7':
-      case '6':
-      case '5':
-        this.checkSecurityStatus();
-        this.load('cluster');
-        this.set('content.additionalClients', []);
-      case '4':
-        this.loadServiceConfigGroups();
-        this.loadServiceConfigProperties();
-      case '3':
-        this.loadServices();
-        this.loadClients();
-        this.loadSlaveComponentHosts();//depends on loadServices
-      case '2':
-        this.loadMasterComponentHosts();
-        this.load('hosts');
-      case '1':
-        this.loadServices();
-    }
   },
 
   /**

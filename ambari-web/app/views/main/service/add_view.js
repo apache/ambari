@@ -21,51 +21,6 @@ var App = require('app');
 
 App.AddServiceView = Em.View.extend(App.WizardMenuMixin, {
 
-  templateName: require('templates/main/service/add'),
+  templateName: require('templates/main/service/add')
 
-  isLoaded: false,
-
-  willInsertElement: function () {
-    this.loadHosts();
-  },
-
-  /**
-   * send request to fetch all hosts information
-   */
-  loadHosts: function () {
-    App.ajax.send({
-      name: 'hosts.confirmed',
-      sender: this,
-      data: {},
-      success: 'loadHostsSuccessCallback',
-      error: 'loadHostsErrorCallback'
-    });
-  },
-
-  loadHostsSuccessCallback: function (response) {
-    var installedHosts = {};
-
-    response.items.forEach(function (item, indx) {
-      installedHosts[item.Hosts.host_name] = {
-        name: item.Hosts.host_name,
-        cpu: item.Hosts.cpu_count,
-        memory: item.Hosts.total_mem,
-        disk_info: item.Hosts.disk_info,
-        osType: item.Hosts.os_type,
-        osArch: item.Hosts.os_arch,
-        ip: item.Hosts.ip,
-        bootStatus: "REGISTERED",
-        isInstalled: true,
-        hostComponents: item.host_components,
-        id: indx++
-      };
-    });
-    this.get('controller').setDBProperty('hosts', installedHosts);
-    this.set('controller.content.hosts', installedHosts);
-    this.set('isLoaded', true);
-  },
-
-  loadHostsErrorCallback: function(){
-    this.set('isLoaded', true);
-  }
 });

@@ -198,6 +198,24 @@ describe('App.StackService', function () {
     });
   });
 
+  describe('#hasNonMastersWithCustomAssignment', function () {
+    it('No serviceComponents', function () {
+      ss.set('serviceComponents', []);
+      ss.propertyDidChange('hasNonMastersWithCustomAssignment');
+      expect(ss.get('hasNonMastersWithCustomAssignment')).to.be.false;
+    });
+    it('All non-master serviceComponents are required on all hosts', function () {
+      ss.set('serviceComponents', [Em.Object.create({isMaster: true}), Em.Object.create({isSlave: true, cardinality: 'ALL'}), Em.Object.create({isClient: true, cardinality: 'ALL'})]);
+      ss.propertyDidChange('hasNonMastersWithCustomAssignment');
+      expect(ss.get('hasNonMastersWithCustomAssignment')).to.be.false;
+    });
+    it('Has non-master serviceComponents not required on all hosts', function () {
+      ss.set('serviceComponents', [Em.Object.create({isSlave: true}), Em.Object.create({isClient: true})]);
+      ss.propertyDidChange('hasNonMastersWithCustomAssignment');
+      expect(ss.get('hasNonMastersWithCustomAssignment')).to.be.true;
+    });
+  });
+
   describe('#isClientOnlyService', function () {
     it('Has not only client serviceComponents', function () {
       ss.set('serviceComponents', [Em.Object.create({isSlave: true}), Em.Object.create({isClient: true})]);

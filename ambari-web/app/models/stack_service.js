@@ -141,6 +141,11 @@ App.StackService = DS.Model.extend({
     return serviceComponents.someProperty('isSlave');
   }.property('serviceName'),
 
+  hasNonMastersWithCustomAssignment: function () {
+    var serviceComponents = this.get('serviceComponents');
+    return serviceComponents.rejectProperty('isMaster').rejectProperty('cardinality', 'ALL').length > 0;
+  }.property('serviceName'),
+
   isClientOnlyService: function () {
     var serviceComponents = this.get('serviceComponents');
     return serviceComponents.everyProperty('isClient');
