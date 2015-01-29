@@ -19,6 +19,7 @@ package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.ExtendedResourceProvider;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -55,7 +56,7 @@ import java.util.Set;
  * ResourceProvider for Stage
  */
 @StaticallyInject
-public class StageResourceProvider extends AbstractResourceProvider implements ExtendedResourceProvider {
+public class StageResourceProvider extends AbstractControllerResourceProvider implements ExtendedResourceProvider {
 
   /**
    * Used for querying stage resources.
@@ -133,9 +134,9 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
   private static Map<HostRoleStatus, EnumSet<HostRoleStatus>> manualTransitionMap = new HashMap<HostRoleStatus, EnumSet<HostRoleStatus>>();
 
   static {
-    manualTransitionMap.put(HostRoleStatus.HOLDING, EnumSet.of(HostRoleStatus.COMPLETED));
-    manualTransitionMap.put(HostRoleStatus.HOLDING_FAILED, EnumSet.of(HostRoleStatus.PENDING, HostRoleStatus.FAILED));
-    manualTransitionMap.put(HostRoleStatus.HOLDING_TIMEDOUT, EnumSet.of(HostRoleStatus.PENDING, HostRoleStatus.TIMEDOUT));
+    manualTransitionMap.put(HostRoleStatus.HOLDING, EnumSet.of(HostRoleStatus.COMPLETED, HostRoleStatus.ABORTED));
+    manualTransitionMap.put(HostRoleStatus.HOLDING_FAILED, EnumSet.of(HostRoleStatus.PENDING, HostRoleStatus.FAILED, HostRoleStatus.ABORTED));
+    manualTransitionMap.put(HostRoleStatus.HOLDING_TIMEDOUT, EnumSet.of(HostRoleStatus.PENDING, HostRoleStatus.TIMEDOUT, HostRoleStatus.ABORTED));
   }
 
 
@@ -143,9 +144,11 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
 
   /**
    * Constructor.
+   *
+   * @param managementController  the Ambari management controller
    */
-  StageResourceProvider() {
-    super(PROPERTY_IDS, KEY_PROPERTY_IDS);
+  StageResourceProvider(AmbariManagementController managementController) {
+    super(PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
   }
 
   // ----- AbstractResourceProvider ------------------------------------------
@@ -183,7 +186,7 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
         String stageStatus = (String) updateProperties.get(STAGE_STATUS);
         if (stageStatus != null) {
           HostRoleStatus desiredStatus = HostRoleStatus.valueOf(stageStatus);
-          updateStageStatus(entity, desiredStatus);
+          updateStageStatus(entity, desiredStatus, getManagementController());
         }
       }
     }
@@ -237,15 +240,16 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
    * @param requestId      the request id
    * @param stageId        the stage id
    * @param desiredStatus  the desired stage status
+   * @param controller     the ambari management controller
    */
-  public static void updateStageStatus(long requestId, long stageId, HostRoleStatus desiredStatus) {
-    Predicate predicate =
-        new PredicateBuilder().property(STAGE_STAGE_ID).equals(stageId).
-            and().property(STAGE_REQUEST_ID).equals(requestId).toPredicate();
+  public static void updateStageStatus(long requestId, long stageId, HostRoleStatus desiredStatus,
+                                       AmbariManagementController controller) {
+    Predicate predicate = new PredicateBuilder().property(STAGE_STAGE_ID).equals(stageId).and().
+        property(STAGE_REQUEST_ID).equals(requestId).toPredicate();
 
     List<StageEntity> entityList = dao.findAll(PropertyHelper.getReadRequest(), predicate);
     for (StageEntity stageEntity : entityList) {
-      updateStageStatus(stageEntity, desiredStatus);
+      updateStageStatus(stageEntity, desiredStatus, controller);
     }
   }
 
@@ -255,32 +259,36 @@ public class StageResourceProvider extends AbstractResourceProvider implements E
   /**
    * Update the given stage entity with the desired status.
    *
-   * @param entity         the stage entity to update
+   * @param stage          the stage entity to update
    * @param desiredStatus  the desired stage status
+   * @param controller     the ambari management controller
    *
    * @throws java.lang.IllegalArgumentException if the transition to the desired status is not a
    *         legal transition
    */
-  private static void updateStageStatus(StageEntity entity, HostRoleStatus desiredStatus) {
-    Collection<HostRoleCommandEntity> tasks = entity.getHostRoleCommands();
+  private static void updateStageStatus(StageEntity stage, HostRoleStatus desiredStatus,
+                                        AmbariManagementController controller) {
+    Collection<HostRoleCommandEntity> tasks = stage.getHostRoleCommands();
 
-    HostRoleStatus currentStatus = CalculatedStatus.statusFromTaskEntities(tasks, entity.isSkippable()).getStatus();
+    HostRoleStatus currentStatus = CalculatedStatus.statusFromTaskEntities(tasks, stage.isSkippable()).getStatus();
 
     if (!isValidManualTransition(currentStatus, desiredStatus)) {
       throw new IllegalArgumentException("Can not transition a stage from " +
           currentStatus + " to " + desiredStatus);
     }
+    if (desiredStatus == HostRoleStatus.ABORTED) {
+      controller.getActionManager().cancelRequest(stage.getRequestId(), "User aborted.");
+    } else {
+      for (HostRoleCommandEntity hostRoleCommand : tasks) {
+        HostRoleStatus hostRoleStatus = hostRoleCommand.getStatus();
+        if (hostRoleStatus.equals(currentStatus)) {
+          hostRoleCommand.setStatus(desiredStatus);
 
-    for (HostRoleCommandEntity hostRoleCommand : tasks) {
-      HostRoleStatus hostRoleStatus = hostRoleCommand.getStatus();
-      if (hostRoleStatus.equals(currentStatus)) {
-        hostRoleCommand.setStatus(desiredStatus);
-
-        if (desiredStatus == HostRoleStatus.PENDING) {
-          hostRoleCommand.setStartTime(-1L);
+          if (desiredStatus == HostRoleStatus.PENDING) {
+            hostRoleCommand.setStartTime(-1L);
+          }
+          hostRoleCommandDAO.merge(hostRoleCommand);
         }
-
-        hostRoleCommandDAO.merge(hostRoleCommand);
       }
     }
   }

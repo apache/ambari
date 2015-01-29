@@ -22,11 +22,15 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
+import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.QueryResponse;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.utilities.PredicateBuilder;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.StageDAO;
@@ -47,8 +51,10 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.easymock.EasyMock.anyLong;
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
@@ -59,6 +65,7 @@ public class StageResourceProviderTest {
   private StageDAO dao = null;
   private Clusters clusters = null;
   private Cluster cluster = null;
+  private AmbariManagementController managementController = null;
   private Injector injector;
 
   @Before
@@ -66,6 +73,7 @@ public class StageResourceProviderTest {
     dao = createStrictMock(StageDAO.class);
     clusters = createStrictMock(Clusters.class);
     cluster = createStrictMock(Cluster.class);
+    managementController = createNiceMock(AmbariManagementController.class);
 
     // create an injector which will inject the mocks
     injector = Guice.createInjector(Modules.override(
@@ -77,7 +85,7 @@ public class StageResourceProviderTest {
 
   @Test
   public void testCreateResources() throws Exception {
-    StageResourceProvider provider = new StageResourceProvider();
+    StageResourceProvider provider = new StageResourceProvider(managementController);
 
     Request request = createNiceMock(Request.class);
     try {
@@ -90,7 +98,7 @@ public class StageResourceProviderTest {
 
   @Test
   public void testUpdateResources() throws Exception {
-    StageResourceProvider provider = new StageResourceProvider();
+    StageResourceProvider provider = new StageResourceProvider(managementController);
 
     Request request = createNiceMock(Request.class);
     Predicate predicate = createNiceMock(Predicate.class);
@@ -107,7 +115,7 @@ public class StageResourceProviderTest {
 
   @Test
   public void testDeleteResources() throws Exception {
-    StageResourceProvider provider = new StageResourceProvider();
+    StageResourceProvider provider = new StageResourceProvider(managementController);
 
     Predicate predicate = createNiceMock(Predicate.class);
     try {
@@ -120,12 +128,12 @@ public class StageResourceProviderTest {
 
   @Test
   public void testGetResources() throws Exception {
-    StageResourceProvider provider = new StageResourceProvider();
+    StageResourceProvider provider = new StageResourceProvider(managementController);
 
     Request request = createNiceMock(Request.class);
     Predicate predicate = createNiceMock(Predicate.class);
 
-    List<StageEntity> entities = getStageEntities();
+    List<StageEntity> entities = getStageEntities(HostRoleStatus.COMPLETED);
 
     expect(dao.findAll(request, predicate)).andReturn(entities);
 
@@ -151,12 +159,12 @@ public class StageResourceProviderTest {
 
   @Test
   public void testQueryForResources() throws Exception {
-    StageResourceProvider provider = new StageResourceProvider();
+    StageResourceProvider provider = new StageResourceProvider(managementController);
 
     Request request = createNiceMock(Request.class);
     Predicate predicate = createNiceMock(Predicate.class);
 
-    List<StageEntity> entities = getStageEntities();
+    List<StageEntity> entities = getStageEntities(HostRoleStatus.COMPLETED);
 
     expect(dao.findAll(request, predicate)).andReturn(entities);
 
@@ -178,7 +186,32 @@ public class StageResourceProviderTest {
     verify(dao, clusters, cluster);
   }
 
-  private List<StageEntity> getStageEntities() {
+  @Test
+  public void testUpdateStageStatus_aborted() throws Exception {
+
+    ActionManager actionManager = createNiceMock(ActionManager.class);
+
+    Predicate predicate = new PredicateBuilder().property(StageResourceProvider.STAGE_STAGE_ID).equals(2L).and().
+        property(StageResourceProvider.STAGE_REQUEST_ID).equals(1L).toPredicate();
+
+    Request request = PropertyHelper.getReadRequest();
+
+    List<StageEntity> entities = getStageEntities(HostRoleStatus.HOLDING);
+
+    expect(dao.findAll(request, predicate)).andReturn(entities);
+
+    expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
+
+    actionManager.cancelRequest(eq(1L), anyObject(String.class));
+
+    replay(dao, clusters, cluster, actionManager, managementController);
+
+    StageResourceProvider.updateStageStatus(1L, 2L, HostRoleStatus.ABORTED, managementController);
+
+    verify(dao, clusters, cluster, actionManager, managementController);
+  }
+
+  private List<StageEntity> getStageEntities(HostRoleStatus lastTaskStatus) {
     StageEntity stage = new StageEntity();
 
     HostRoleCommandEntity task1 = new HostRoleCommandEntity();
@@ -187,7 +220,7 @@ public class StageResourceProviderTest {
     task1.setEndTime(2000L);
 
     HostRoleCommandEntity task2 = new HostRoleCommandEntity();
-    task2.setStatus(HostRoleStatus.COMPLETED);
+    task2.setStatus(lastTaskStatus);
     task2.setStartTime(1500L);
     task2.setEndTime(2500L);
 
@@ -197,6 +230,7 @@ public class StageResourceProviderTest {
     tasks.add(task2);
 
     stage.setHostRoleCommands(tasks);
+    stage.setRequestId(1L);
 
     List<StageEntity> entities = new LinkedList<StageEntity>();
     entities.add(stage);
@@ -209,6 +243,7 @@ public class StageResourceProviderTest {
       binder.bind(StageDAO.class).toInstance(dao);
       binder.bind(Clusters.class).toInstance(clusters);
       binder.bind(Cluster.class).toInstance(cluster);
+      binder.bind(AmbariManagementController.class).toInstance(managementController);
       binder.bind(ActionMetadata.class);
     }
   }

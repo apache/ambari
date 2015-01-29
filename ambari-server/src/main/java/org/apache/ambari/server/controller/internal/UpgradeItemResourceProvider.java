@@ -128,7 +128,7 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
           Long requestId = (Long) resource.getPropertyValue(UPGRADE_REQUEST_ID);
           Long stageId   = (Long) resource.getPropertyValue(UPGRADE_ITEM_STAGE_ID);
 
-          StageResourceProvider.updateStageStatus(requestId, stageId, desiredStatus);
+          StageResourceProvider.updateStageStatus(requestId, stageId, desiredStatus, getManagementController());
         }
       }
     }

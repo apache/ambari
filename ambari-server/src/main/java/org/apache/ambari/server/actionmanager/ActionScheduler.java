@@ -802,7 +802,7 @@ class ActionScheduler implements Runnable {
 
   /**
    * @param requestId request will be cancelled on next scheduler wake up
-   * (if it is in state that allows cancelation, e.g. QUEUED, PENDING, IN_PROGRESS)
+   * (if it is in state that allows cancellation, e.g. QUEUED, PENDING, IN_PROGRESS)
    * @param reason why request is being cancelled
    */
   public void scheduleCancellingRequest(long requestId, String reason) {
