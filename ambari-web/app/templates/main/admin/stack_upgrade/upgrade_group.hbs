@@ -61,7 +61,7 @@
     {{#if item.isExpanded}}
 
       {{! List of Tasks}}
-      <div class="task-list">
+      <div class="task-list margin-bottom-5">
         {{#each task in item.tasks}}
           {{view App.upgradeTaskView contentBinding="task" tasksBinding="item.tasks"}}
         {{/each}}

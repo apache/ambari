@@ -1317,7 +1317,7 @@ Em.I18n.translations = {
 
   'admin.stackVersions.editRepositories.info': 'Provide Base URLs for the Operating Systems you are configuring. Uncheck all other Operating Systems.',
   'admin.stackVersions.editRepositories.validation.warning': 'Some of the repositories failed validation. Make changes to the base url or skip validation if you are sure that urls are correct',
-  'admin.stackVersions.version.install.confirm': 'You are about to install version <strong>{0}</strong> on all hosts.',
+  'admin.stackVersions.version.install.confirm': 'You are about to install packages for version <strong>{0}</strong> on all hosts.',
   'admin.stackVersions.version.linkTooltip': 'Click to Edit Repositories',
   'admin.stackVersions.version.hostsTooltip': 'Click to List Hosts',
   'admin.stackVersions.version.emptyHostsTooltip': 'No Hosts to List',
@@ -1326,7 +1326,7 @@ Em.I18n.translations = {
   'admin.stackVersions.manageVersions.popup.body': 'You are about to leave the <b>Cluster Management</b> interface' +
     ' and go to the <b>Ambari Administration</b> interface. You can return to cluster management by using the' +
     ' “Go to Dashboard” link in the Ambari Administration > Clusters section.',
-  'admin.stackVersions.version.installNow': "Install Now",
+  'admin.stackVersions.version.installNow': "Install Packages",
   'admin.stackVersions.version.performUpgrade': "Perform Upgrade",
   'admin.stackVersions.version.upgrade.pause': "Upgrade: Action Required",
   'admin.stackVersions.version.upgrade.running': "Upgrade: In Process",
@@ -1347,7 +1347,7 @@ Em.I18n.translations = {
   "Click on <b>Finalize</b> when you are ready to finalize the upgrade and commit to the new version." +
   " You are strongly encouraged to run tests on your cluster to ensure it is fully operational before finalizing." +
   " <b>You cannot go back to the original version once the upgrade is finalized.</b>",
-  'admin.stackUpgrade.doThisLater': "Do This Later",
+  'admin.stackUpgrade.pauseUpgrade': "Pause Upgrade",
   'admin.stackUpgrade.downgrade.proceed': "Proceed with Downgrade",
   'admin.stackUpgrade.downgrade.title': "Downgrade to {0}",
   'admin.stackUpgrade.downgrade.body': "Are you sure you wish to abort the upgrade process and downgrade to {0}",
@@ -1358,7 +1358,7 @@ Em.I18n.translations = {
   'admin.stackUpgrade.state.inProgress.downgrade': "Downgrade in Progress",
   'admin.stackUpgrade.state.paused.downgrade': "Downgrade Paused",
   'admin.stackUpgrade.state.completed.downgrade': "Downgrade Finished",
-  'admin.stackUpgrade.dialog.header': "Upgrade to {0}",
+  'admin.stackUpgrade.dialog.header': "Rolling Upgrade to {0}",
   'admin.stackUpgrade.dialog.downgrade.header': "Downgrade to {0}",
   'admin.stackUpgrade.dialog.operationFailed': "This operation failed.",
   'admin.stackUpgrade.dialog.stop': "Stop Upgrade",
