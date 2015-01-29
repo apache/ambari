@@ -231,12 +231,11 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
           CalculatedStatus.statusFromStages(internalRequest.getStages()).getStatus();
 
       if (internalRequestStatus.isCompletedState()) {
-        throw new IllegalArgumentException(
-                String.format("Can not set request that is in %s state to %s state.",
-                        internalRequestStatus.toString(), updateRequest.getStatus()));
+        // Ignore updates to completed requests to avoid throwing exception on race condition
+      } else {
+        // Validation passed
+        targets.add(internalRequest);
       }
-      // Validation passed
-      targets.add(internalRequest);
     }
     // Perform update
     Iterator<RequestRequest> reqIterator = requests.iterator();

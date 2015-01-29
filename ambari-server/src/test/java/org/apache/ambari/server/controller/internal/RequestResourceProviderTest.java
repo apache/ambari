@@ -928,12 +928,16 @@ public class RequestResourceProviderTest {
           status == HostRoleStatus.HOLDING ||
           status == HostRoleStatus.HOLDING_FAILED ||
           status == HostRoleStatus.HOLDING_TIMEDOUT ||
+          status == HostRoleStatus.COMPLETED ||
+          status == HostRoleStatus.ABORTED ||
+          status == HostRoleStatus.FAILED ||
+          status == HostRoleStatus.TIMEDOUT ||
           status == HostRoleStatus.QUEUED) { // the only valid cases
         provider.updateResources(request, predicate);
       } else {  // In other cases, should error out
         try {
           provider.updateResources(request, predicate);
-          Assert.fail("Expected an java.lang.IllegalArgumentException: null is wrong value.");
+          Assert.fail("Expected an java.lang.IllegalArgumentException");
         } catch (IllegalArgumentException e) {
           // expected
         }
