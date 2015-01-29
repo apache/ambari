@@ -22,6 +22,8 @@ from resource_management import *
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.core.environment import Environment
+from ambari_commons.os_check import OSConst, OSCheck
+from urlparse import urlparse
 
 RESULT_CODE_OK = 'OK'
 RESULT_CODE_CRITICAL = 'CRITICAL'
@@ -54,6 +56,8 @@ def execute(parameters=None, host_name=None):
   security_enabled = False
   if set([OOZIE_URL_KEY, SMOKEUSER_KEY, SECURITY_ENABLED]).issubset(parameters):
     oozie_url = parameters[OOZIE_URL_KEY]
+    localhost_address = 'localhost' if OSCheck.get_os_family() == OSConst.WINSRV_FAMILY else '0.0.0.0'
+    oozie_url = oozie_url.replace(urlparse(oozie_url).hostname,localhost_address)
     smokeuser = parameters[SMOKEUSER_KEY]
     security_enabled = str(parameters[SECURITY_ENABLED]).upper() == 'TRUE'
   else:
