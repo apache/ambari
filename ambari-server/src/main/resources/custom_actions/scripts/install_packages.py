@@ -106,8 +106,15 @@ class InstallPackages(Script):
           packages_installed_after = [package[0] for package in packages_installed_after]
           packages_installed_before = set(packages_installed_before)
           new_packages_installed = [package for package in packages_installed_after if package not in packages_installed_before]
+
+          if OSCheck.is_ubuntu_family():
+            package_version_string = repository_version.replace('.', '-')
+          else:
+            package_version_string = repository_version.replace('-', '_')
+            package_version_string = package_version_string.replace('.', '_')
           for package in new_packages_installed:
-            Package(package, action="remove")
+            if package_version_string and (package_version_string in package):
+              Package(package, action="remove")
 
     # Build structured output
     structured_output = {

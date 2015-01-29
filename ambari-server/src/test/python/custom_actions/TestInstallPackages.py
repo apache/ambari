@@ -139,11 +139,14 @@ class TestInstallPackages(RMFTestCase):
 
   @staticmethod
   def _add_packages_with_fail(arg):
-    arg.append(["pkg1", "1.0", "repo"])
-    arg.append(["pkg2", "2.0", "repo2"])
+    arg.append(["pkg1_2_2_0_1_885_pack", "1.0", "repo"])
+    arg.append(["pkg2_2_2_0_1_885_pack2", "2.0", "repo2"])
     if TestInstallPackages._install_failed:
-      arg.append(["hadoop_2_2_fake_pkg", "1.0", "repo"])
-      arg.append(["snappy_fake_pkg", "3.0", "repo2"])
+      arg.append(["should_not_be_removed_pkg1", "1.0", "repo"])
+      arg.append(["hadoop_2_2_0_1_885fake_pkg", "1.0", "repo"])
+      arg.append(["snappy__2_2_0_1_885_fake_pkg", "3.0", "repo2"])
+      arg.append(["ubuntu-like-2-2-0-1-885-fake-pkg", "3.0", "repo2"])
+      arg.append(["should_not_be_removed_pkg2", "3.0", "repo2"])
 
   @staticmethod
   def _new_with_exception(cls, name, env=None, provider=None, **kwargs):
@@ -164,6 +167,7 @@ class TestInstallPackages(RMFTestCase):
     is_redhat_family_mock.return_value = True
     list_ambari_managed_repos_mock.return_value = []
     def side_effect(retcode):
+      TestInstallPackages._install_failed = True
       raise Exception()
     Package__mock.side_effect = side_effect
     self.assertRaises(Fail, self.executeScript, "scripts/install_packages.py",
@@ -195,6 +199,8 @@ class TestInstallPackages(RMFTestCase):
                               append_to_file=True,
                               )
     self.assertNoMoreResources()
+
+    TestInstallPackages._install_failed = False
 
 
   @patch("ambari_commons.os_check.OSCheck.is_suse_family")
