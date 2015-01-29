@@ -600,6 +600,12 @@ App.ServiceConfigProperty = Em.Object.extend({
         var falconServerHost = masterComponentHostsInDB.findProperty('component', 'FALCON_SERVER').hostName;
         this.setDefaultValue('localhost', falconServerHost);
         break;
+      case 'RANGER_HOST':
+        var rangerAdminHost = masterComponentHostsInDB.findProperty('component', 'RANGER_ADMIN');
+        if(rangerAdminHost) {
+          this.set('value', rangerAdminHost.hostName);
+        }
+        break;
     }
   },
 
@@ -845,7 +851,11 @@ App.ServiceConfigProperty = Em.Object.extend({
   viewClass: function () {
     switch (this.get('displayType')) {
       case 'checkbox':
-        return App.ServiceConfigCheckbox;
+        if (this.get('dependentConfigPattern')) {
+          return App.ServiceConfigCheckboxWithDependencies;
+        } else {
+          return App.ServiceConfigCheckbox;
+        }
       case 'password':
         return App.ServiceConfigPasswordField;
       case 'combobox':

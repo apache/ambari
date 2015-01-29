@@ -563,7 +563,13 @@ App.config = Em.Object.create({
     // Password fields should be made blank by default in installer wizard
     // irrespective of whatever value is sent from stack definition.
     // This forces the user to fill the password field.
-    configData.value = configData.displayType == "password" ? '' : advanced ? advanced.value : configData.value;
+    if (configData.displayType == 'checkbox') {
+      configData.value = advanced ? advanced.value === 'true' : configData.value === 'true';
+    } else if (configData.displayType == 'password') {
+      configData.value = '';
+    } else {
+      configData.value = advanced ? advanced.value : configData.value;
+    }
     configData.defaultValue = configData.value;
     configData.filename = advanced ? advanced.filename : configData.filename;
     configData.description = advanced ? advanced.description : configData.description;

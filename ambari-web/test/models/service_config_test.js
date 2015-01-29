@@ -259,6 +259,13 @@ var serviceConfig,
     },
     {
       initial: {
+        displayType: 'checkbox',
+        dependentConfigPattern: 'somPattern'
+      },
+      viewClass: App.ServiceConfigCheckboxWithDependencies
+    },
+    {
+      initial: {
         displayType: 'password'
       },
       viewClass: App.ServiceConfigPasswordField

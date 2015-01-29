@@ -104,7 +104,550 @@ hdp22properties.push(
     "category": "FalconStartupSite",
     "serviceName": "FALCON",
     "filename": "falcon-startup.properties.xml"
-  });
+  },
+  /*********RANGER FOR HDFS************/
+  {
+    "id": "site property",
+    "name": "XAAUDIT.HDFS.IS_ENABLED",
+    "displayName": "Audit to HDFS",
+    "displayType": "checkbox",
+    "dependentConfigPattern": "^XAAUDIT.HDFS",
+    "filename": "ranger-hdfs-plugin-properties.xml",
+    "category": "Advanced ranger-hdfs-plugin-properties",
+    "serviceName": "HDFS"
+  },
+  {
+    "id": "site property",
+    "name": "XAAUDIT.DB.IS_ENABLED",
+    "displayName": "Audit to DB",
+    "displayType": "checkbox",
+    "filename": "ranger-hdfs-plugin-properties.xml",
+    "category": "Advanced ranger-hdfs-plugin-properties",
+    "serviceName": "HDFS"
+  },
+  {
+    "id": "site property",
+    "name": "enable_hdfs_plugin",
+    "value": false,
+    "defaultValue": false,
+    "displayName": "Enable Ranger for HDFS",
+    "displayType": "checkbox",
+    "filename": "ranger-hdfs-plugin-properties.xml",
+    "category": "Advanced ranger-hdfs-plugin-properties",
+    "serviceName": "HDFS"
+  },
+  {
+    "id": "puppet var",
+    "name": "RANGER_HOST",
+    "displayName": "Policy Admin URL",
+    "value": "",
+    "defaultValue": "",
+    "description": "The host that has been assigned to run Ranger Server",
+    "displayType": "masterHost",
+    "isOverridable": false,
+    "isVisible": true,
+    "isRequiredByAgent": false,
+    "serviceName": "HDFS",
+    "filename": "ranger-hdfs-plugin-properties.xml",
+    "category": "Advanced ranger-hdfs-plugin-properties"
+  },
+  /*********RANGER FOR HIVE************/
+  {
+    "id": "site property",
+    "name": "XAAUDIT.HDFS.IS_ENABLED",
+    "displayName": "Audit to HDFS",
+    "displayType": "checkbox",
+    "dependentConfigPattern": "^XAAUDIT.HDFS",
+    "filename": "ranger-hive-plugin-properties.xml",
+    "category": "Advanced ranger-hive-plugin-properties",
+    "serviceName": "HIVE"
+  },
+  {
+    "id": "site property",
+    "name": "XAAUDIT.DB.IS_ENABLED",
+    "displayName": "Audit to DB",
+    "displayType": "checkbox",
+    "filename": "ranger-hive-plugin-properties.xml",
+    "category": "Advanced ranger-hive-plugin-properties",
+    "serviceName": "HIVE"
+  },
+  {
+    "id": "site property",
+    "name": "enable_hdfs_plugin",
+    "value": false,
+    "defaultValue": false,
+    "displayName": "Enable Ranger for HDFS",
+    "displayType": "checkbox",
+    "filename": "ranger-hive-plugin-properties.xml",
+    "category": "Advanced ranger-hive-plugin-properties",
+    "serviceName": "HIVE"
+  },
+  {
+    "id": "site property",
+    "name": "UPDATE_XAPOLICIES_ON_GRANT_REVOKE",
+    "defaultValue": true,
+    "displayName": "Should Hive GRANT/REVOKE update XA policies?",
+    "displayType": "checkbox",
+    "filename": "ranger-hive-plugin-properties.xml",
+    "category": "Advanced ranger-hive-plugin-properties",
+    "serviceName": "HIVE"
+  },
+  {
+    "id": "puppet var",
+    "name": "RANGER_HOST",
+    "displayName": "Policy Admin URL",
+    "value": "",
+    "defaultValue": "",
+    "description": "The host that has been assigned to run Ranger Server",
+    "displayType": "masterHost",
+    "isOverridable": false,
+    "isVisible": true,
+    "isRequiredByAgent": false,
+    "serviceName": "HIVE",
+    "filename": "ranger-hive-plugin-properties.xml",
+    "category": "Advanced ranger-hive-plugin-properties"
+  },
+  /*********RANGER FOR HBASE************/
+  {
+    "id": "site property",
+    "name": "XAAUDIT.HDFS.IS_ENABLED",
+    "displayName": "Audit to HDFS",
+    "displayType": "checkbox",
+    "dependentConfigPattern": "^XAAUDIT.HDFS",
+    "filename": "ranger-hbase-plugin-properties.xml",
+    "category": "Advanced ranger-hbase-plugin-properties",
+    "serviceName": "HBASE"
+  },
+  {
+    "id": "site property",
+    "name": "XAAUDIT.DB.IS_ENABLED",
+    "displayName": "Audit to DB",
+    "displayType": "checkbox",
+    "filename": "ranger-hbase-plugin-properties.xml",
+    "category": "Advanced ranger-hbase-plugin-properties",
+    "serviceName": "HBASE"
+  },
+  {
+    "id": "site property",
+    "name": "enable_hdfs_plugin",
+    "value": false,
+    "defaultValue": false,
+    "displayName": "Enable Ranger for HDFS",
+    "displayType": "checkbox",
+    "filename": "ranger-hbase-plugin-properties.xml",
+    "category": "Advanced ranger-hbase-plugin-properties",
+    "serviceName": "HBASE"
+  },
+  {
+    "id": "site property",
+    "name": "UPDATE_XAPOLICIES_ON_GRANT_REVOKE",
+    "defaultValue": true,
+    "displayName": "Should HBase GRANT/REVOKE update XA policies?",
+    "displayType": "checkbox",
+    "filename": "ranger-hbase-plugin-properties.xml",
+    "category": "Advanced ranger-hbase-plugin-properties",
+    "serviceName": "HBASE"
+  },
+  {
+    "id": "puppet var",
+    "name": "RANGER_HOST",
+    "displayName": "Policy Admin URL",
+    "value": "",
+    "defaultValue": "",
+    "description": "The host that has been assigned to run Ranger Server",
+    "displayType": "masterHost",
+    "isOverridable": false,
+    "isVisible": true,
+    "isRequiredByAgent": false,
+    "serviceName": "HBASE",
+    "filename": "ranger-hbase-plugin-properties.xml",
+    "category": "Advanced ranger-hbase-plugin-properties"
+  },
+  /*********RANGER FOR STORM************/
+  {
+    "id": "site property",
+    "name": "XAAUDIT.HDFS.IS_ENABLED",
+    "displayName": "Audit to HDFS",
+    "displayType": "checkbox",
+    "dependentConfigPattern": "^XAAUDIT.HDFS",
+    "filename": "ranger-storm-plugin-properties.xml",
+    "category": "Advanced ranger-storm-plugin-properties",
+    "serviceName": "STORM"
+  },
+  {
+    "id": "site property",
+    "name": "XAAUDIT.DB.IS_ENABLED",
+    "displayName": "Audit to DB",
+    "displayType": "checkbox",
+    "filename": "ranger-storm-plugin-properties.xml",
+    "category": "Advanced storm-hbase-plugin-properties",
+    "serviceName": "STORM"
+  },
+  {
+    "id": "site property",
+    "name": "enable_hdfs_plugin",
+    "value": false,
+    "defaultValue": false,
+    "displayName": "Enable Ranger for HDFS",
+    "displayType": "checkbox",
+    "filename": "ranger-storm-plugin-properties.xml",
+    "category": "Advanced storm-hbase-plugin-properties",
+    "serviceName": "STORM"
+  },
+  {
+    "id": "puppet var",
+    "name": "RANGER_HOST",
+    "displayName": "Policy Admin URL",
+    "value": "",
+    "defaultValue": "",
+    "description": "The host that has been assigned to run Ranger Server",
+    "displayType": "masterHost",
+    "isOverridable": false,
+    "isVisible": true,
+    "isRequiredByAgent": false,
+    "serviceName": "STORM",
+    "filename": "ranger-storm-plugin-properties.xml",
+    "category": "Advanced ranger-strom-plugin-properties"
+  },
+  /*********RANGER FOR KNOX************/
+  {
+    "id": "site property",
+    "name": "XAAUDIT.HDFS.IS_ENABLED",
+    "displayName": "Audit to HDFS",
+    "displayType": "checkbox",
+    "dependentConfigPattern": "^XAAUDIT.HDFS",
+    "filename": "ranger-knox-plugin-properties.xml",
+    "category": "Advanced ranger-knox-plugin-properties",
+    "serviceName": "KNOX"
+  },
+  {
+    "id": "site property",
+    "name": "XAAUDIT.DB.IS_ENABLED",
+    "displayName": "Audit to DB",
+    "displayType": "checkbox",
+    "filename": "ranger-knox-plugin-properties.xml",
+    "category": "Advanced ranger-knox-plugin-properties",
+    "serviceName": "KNOX"
+  },
+  {
+    "id": "site property",
+    "name": "enable_hdfs_plugin",
+    "value": false,
+    "defaultValue": false,
+    "displayName": "Enable Ranger for HDFS",
+    "displayType": "checkbox",
+    "filename": "ranger-knox-plugin-properties.xml",
+    "category": "Advanced ranger-knox-plugin-properties",
+    "serviceName": "KNOX"
+  },
+  {
+    "id": "puppet var",
+    "name": "RANGER_HOST",
+    "displayName": "Policy Admin URL",
+    "value": "",
+    "defaultValue": "",
+    "description": "The host that has been assigned to run Ranger Server",
+    "displayType": "masterHost",
+    "isOverridable": false,
+    "isVisible": true,
+    "isRequiredByAgent": false,
+    "serviceName": "KNOX",
+    "filename": "ranger-knox-plugin-properties.xml",
+    "category": "Advanced ranger-knox-plugin-properties"
+  },
+  /**********************************************RANGER***************************************/
+  {
+    "id": "puppet var",
+    "name": "RANGER_HOST",
+    "displayName": "Policy Admin URL",
+    "value": "",
+    "defaultValue": "",
+    "description": "The host that has been assigned to run Ranger Server",
+    "displayType": "masterHost",
+    "isOverridable": false,
+    "isVisible": true,
+    "isRequiredByAgent": false,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
+    "category": "Advanced admin-properties"
+  },
+  {
+    "id": "site property",
+    "name": "ambari_user_password",
+    "displayName": "Ranger Admin user's password for Ambari",
+    "defaultValue": "ambari",
+    "isReconfigurable": true,
+    "displayType": "password",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
+    "category": "AdminSettings"
+  },
+  {
+    "id": "site property",
+    "name": "SQL_CONNECTOR_JAR",
+    "displayName": "Location of Sql Connector Jar",
+    "defaultValue": "/usr/share/java/mysql-connector-java.jar",
+    "isReconfigurable": true,
+    "displayType": "",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
+    "category": "AdminSettings"
+  },
+  {
+    "id": "site property",
+    "name": "DB_FLAVOR",
+    "displayName": "DB FLAVOR",
+    "value": "MYSQL",
+    "defaultValue": "MYSQL",
+    "isReconfigurable": true,
+    "options": [
+      {
+        displayName: 'MYSQL'
+      },
+      {
+        displayName: 'ORACLE'
+      }
+    ],
+    "displayType": "radio button",
+    "radioName": "RANGER DB_FLAVOR",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
+    "category": "DBSettings"
+  },
+  {
+    "id": "site property",
+    "name": "SQL_COMMAND_INVOKER",
+    "displayName": "SQL Command Invoker",
+    "defaultValue": "mysql",
+    "isReconfigurable": true,
+    "displayType": "",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
+    "category": "DBSettings"
+  },
+  {
+    "id": "site property",
+    "name": "db_host",
+    "displayName": "Admin DB Instance",
+    "defaultValue": "",
+    "isReconfigurable": true,
+    "displayType": "",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
+    "category": "DBSettings"
+  },
+  {
+    "id": "site property",
+    "name": "db_root_user",
+    "displayName": "Admin DB root user",
+    "defaultValue": "",
+    "isReconfigurable": true,
+    "displayType": "",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
+    "category": "DBSettings"
+  },
+  {
+    "id": "site property",
+    "name": "db_root_password",
+    "displayName": "Admin DB root password",
+    "defaultValue": "",
+    "isReconfigurable": true,
+    "displayType": "password",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
+    "category": "DBSettings"
+  },
+  {
+    "id": "site property",
+    "name": "db_name",
+    "displayName": "Admin DB database name",
+    "defaultValue": "",
+    "isReconfigurable": true,
+    "displayType": "",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
+    "category": "DBSettings"
+  },
+
+  {
+    "id": "site property",
+    "name": "db_user",
+    "displayName": "Admin DB mysql username",
+    "defaultValue": "",
+    "isReconfigurable": true,
+    "displayType": "",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
+    "category": "DBSettings"
+  },
+  {
+    "id": "site property",
+    "name": "db_password",
+    "displayName": "Admin DB mysql password",
+    "defaultValue": "",
+    "isReconfigurable": true,
+    "displayType": "password",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
+    "category": "DBSettings"
+  },
+  {
+    "id": "site property",
+    "name": "audit_db_name",
+    "displayName": "Admin DB database name",
+    "defaultValue": "",
+    "isReconfigurable": true,
+    "displayType": "",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
+    "category": "DBSettings"
+  },
+  {
+    "id": "site property",
+    "name": "audit_db_user",
+    "displayName": "Admin DB mysql username",
+    "defaultValue": "",
+    "isReconfigurable": true,
+    "displayType": "",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
+    "category": "DBSettings"
+  },
+  {
+    "id": "site property",
+    "name": "audit_db_password",
+    "displayName": "Admin DB mysql password",
+    "defaultValue": "",
+    "isReconfigurable": true,
+    "displayType": "password",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
+    "category": "DBSettings"
+  },
+  {
+    "id": "puppet var",
+    "name": "policymgr_external_url",
+    "displayName": "External URL",
+    "defaultValue": "http://localhost:6080",
+    "isReconfigurable": true,
+    "displayType": "",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
+    "category": "Advanced admin-properties"
+  },
+  {
+    "id": "puppet var",
+    "name": "policymgr_http_enabled",
+    "displayName": "HTTP enabled",
+    "defaultValue": true,
+    "isReconfigurable": true,
+    "displayType": "checkbox",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
+    "category": "Advanced admin-properties"
+  },
+  {
+    "id": "puppet var",
+    "name": "unix_user",
+    "displayName": "Used to create user and assign permission",
+    "defaultValue": "ranger",
+    "isReconfigurable": true,
+    "displayType": "",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
+    "category": "Advanced admin-properties"
+  },
+  {
+    "id": "puppet var",
+    "name": "unix_group",
+    "displayName": "Used to create group and assign permission",
+    "defaultValue": "ranger",
+    "isReconfigurable": true,
+    "displayType": "",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
+    "category": "Advanced admin-properties"
+  },
+  {
+    "id": "site property",
+    "name": "authentication_method",
+    "displayName": "Authentication method",
+    "defaultValue": "NONE",
+    "options": [
+      {
+        displayName: 'LDAP',
+        foreignKeys: ['xa_ldap_userDNpattern', 'xa_ldap_groupRoleAttribute', 'xa_ldap_url', 'xa_ldap_groupSearchBase', 'xa_ldap_groupSearchFilter']
+      },
+      {
+        displayName: 'ACTIVE_DIRECTORY',
+        foreignKeys: ['xa_ldap_ad_domain', 'xa_ldap_ad_url']
+      },
+      {
+        displayName: 'UNIX',
+        foreignKeys: ['remoteLoginEnabled', 'authServiceHostName','authServicePort']
+      },
+      {
+        displayName: 'NONE'
+      }
+    ],
+    "displayType": "radio button",
+    "radioName": "authentication-method",
+    "isReconfigurable": true,
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
+    "category": "Advanced admin-properties"
+  },
+  {
+    "id": "puppet var",
+    "name": "remoteLoginEnabled",
+    "displayName": "Allow remote Login",
+    "defaultValue": true,
+    "isReconfigurable": true,
+    "displayType": "checkbox",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
+    "category": "Advanced admin-properties"
+  }
+);
 
 var additionalProperties = [];
 

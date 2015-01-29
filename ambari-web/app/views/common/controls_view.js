@@ -210,6 +210,27 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
   }.property('serviceConfig.isEditable')
 });
 
+/**
+ * Checkbox control which can hide or show dependent  properties
+ * @type {*|void}
+ */
+App.ServiceConfigCheckboxWithDependencies = App.ServiceConfigCheckbox.extend({
+
+  didInsertElement: function() {
+    this._super();
+    this.showHideDependentConfigs();
+  },
+
+  showHideDependentConfigs: function() {
+    if (this.get('serviceConfig.dependentConfigPattern')) {
+      this.get('categoryConfigsAll').forEach(function(c) {
+        if (c.get('name').match(this.get('serviceConfig.dependentConfigPattern')) && c.get('name') != this.get('serviceConfig.name'))
+          c.set('isVisible', this.get('checked'))
+      }, this);
+    }
+  }.observes('checked')
+});
+
 App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, {
   templateName: require('templates/wizard/controls_service_config_radio_buttons'),
 
@@ -217,13 +238,18 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
     // on page render, automatically populate JDBC URLs only for default database settings
     // so as to not lose the user's customizations on these fields
     if (['addServiceController', 'installerController'].contains(this.get('controller.wizardController.name'))) {
-      if (/^New\s\w+\sDatabase$/.test(this.get('serviceConfig.value'))) {
+      if (/^New\s\w+\sDatabase$/.test(this.get('serviceConfig.value')) || this.dontUseHandleDbConnection.contains(this.get('serviceConfig.name'))) {
         this.onOptionsChange();
       } else {
         this.handleDBConnectionProperty();
       }
     }
   },
+
+  /**
+   * properties with these names don'use handleDBConnectionProperty mathod
+   */
+  dontUseHandleDbConnection: ['DB_FLAVOR', 'authentication_method'],
 
   configs: function () {
     if (this.get('controller.name') == 'mainServiceInfoConfigsController') return this.get('categoryConfigsAll');
@@ -426,6 +452,8 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
    * @method handleDBConnectionProperty
    **/
   handleDBConnectionProperty: function() {
+    if (this.dontUseHandleDbConnection.contains(this.get('serviceConfig.name')))
+      return;
     var handledProperties = ['oozie_database', 'hive_database'];
     var currentValue = this.get('serviceConfig.value');
     var databases = /MySQL|PostgreSQL|Oracle|Derby|MSSQL/gi;
