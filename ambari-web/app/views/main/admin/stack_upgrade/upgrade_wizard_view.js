@@ -110,6 +110,14 @@ App.upgradeWizardView = Em.View.extend({
   }.property('activeGroup.upgradeItems.@each.status'),
 
   /**
+   * upgrade doesn't have any failed or manual or running item
+   * @type {boolean}
+   */
+  noActiveItem: function () {
+    return (Em.isNone(this.get('failedItem')) && Em.isNone(this.get('runningItem')) && Em.isNone(this.get('manualItem')));
+  }.property('failedItem', 'runningItem', 'manualItem'),
+
+  /**
    * details of currently active task
    * @type {object|undefined}
    */

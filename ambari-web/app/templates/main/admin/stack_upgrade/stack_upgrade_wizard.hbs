@@ -116,6 +116,13 @@
             </div>
           {{/if}}
         {{/if}}
+        {{#if view.noActiveItem}}
+          <div class="box details-box">
+            <div>
+              {{t admin.stackUpgrade.dialog.notActive}}
+            </div>
+          </div>
+        {{/if}}
       </div>
       {{#each group in view.upgradeGroups}}
         {{#if group.isVisible}}

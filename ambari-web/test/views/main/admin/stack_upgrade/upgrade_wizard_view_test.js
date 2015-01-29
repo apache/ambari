@@ -212,6 +212,49 @@ describe('App.upgradeWizardView', function () {
     });
   });
 
+  describe("#noActiveItem", function () {
+    var testCases = [
+      {
+        data: {
+          failedItem: null,
+          runningItem: null,
+          manualItem: null
+        },
+        result: true
+      },
+      {
+        data: {
+          failedItem: {},
+          runningItem: null,
+          manualItem: null
+        },
+        result: false
+      },
+      {
+        data: {
+          failedItem: null,
+          runningItem: {},
+          manualItem: null
+        },
+        result: false
+      },
+      {
+        data: {
+          failedItem: null,
+          runningItem: null,
+          manualItem: {}
+        },
+        result: false
+      }
+    ].forEach(function (test) {
+        it("failedItem = " + test.data.failedItem + ";runningItem = " + test.data.runningItem + ";manualItem = " + test.data.manualItem, function () {
+          view.reopen(test.data);
+          view.propertyDidChange('noActiveItem');
+          expect(view.get('noActiveItem')).to.equal(test.result);
+        });
+      });
+  });
+
   describe("#isHoldingState", function () {
     var testCases = [
       {
