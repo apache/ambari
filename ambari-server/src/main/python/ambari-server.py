@@ -33,13 +33,13 @@ from ambari_server.BackupRestore import main as BackupRestore_main
 from ambari_server.dbConfiguration import DATABASE_NAMES
 from ambari_server.serverConfiguration import configDefaults, get_ambari_properties, PID_NAME
 from ambari_server.serverUtils import is_server_runing, refresh_stack_hash
-from ambari_server.serverSetup import reset, setup
+from ambari_server.serverSetup import reset, setup, setup_jce_policy
 from ambari_server.serverUpgrade import upgrade, upgrade_stack
 from ambari_server.setupHttps import setup_https, setup_ganglia_https
 
 from ambari_server.setupActions import BACKUP_ACTION, LDAP_SETUP_ACTION, LDAP_SYNC_ACTION, PSTART_ACTION, \
   REFRESH_STACK_HASH_ACTION, RESET_ACTION, RESTORE_ACTION, SETUP_ACTION, SETUP_SECURITY_ACTION, START_ACTION, \
-  STATUS_ACTION, STOP_ACTION, UPGRADE_ACTION, UPGRADE_STACK_ACTION
+  STATUS_ACTION, STOP_ACTION, UPGRADE_ACTION, UPGRADE_STACK_ACTION, SETUP_JCE_ACTION
 from ambari_server.setupSecurity import setup_ldap, sync_ldap, setup_master_key, setup_ambari_krb5_jaas
 from ambari_server.userInput import get_validated_string_input
 
@@ -491,6 +491,7 @@ def create_user_action_map(args, options):
 def create_user_action_map(args, options):
   action_map = {
         SETUP_ACTION: UserAction(setup, options),
+        SETUP_JCE_ACTION : UserActionPossibleArgs(setup_jce_policy, [2], args),
         START_ACTION: UserAction(start, options),
         STOP_ACTION: UserAction(stop, options),
         RESET_ACTION: UserAction(reset, options),

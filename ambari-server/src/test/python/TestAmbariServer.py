@@ -76,7 +76,7 @@ with patch("platform.linux_distribution", return_value = os_distro_value):
         from ambari_server.serverUtils import is_server_runing, refresh_stack_hash
         from ambari_server.serverSetup import check_selinux, check_ambari_user, proceedJDBCProperties, SE_STATUS_DISABLED, SE_MODE_ENFORCING, configure_os_settings, \
           download_and_install_jdk, prompt_db_properties, setup, \
-          AmbariUserChecks, AmbariUserChecksLinux, AmbariUserChecksWindows, JDKSetup, reset
+          AmbariUserChecks, AmbariUserChecksLinux, AmbariUserChecksWindows, JDKSetup, reset, setup_jce_policy, unpack_jce_policy
         from ambari_server.serverUpgrade import upgrade, upgrade_local_repo, change_objects_owner, upgrade_stack, \
           run_stack_upgrade, run_metainfo_upgrade, run_schema_upgrade, move_user_custom_actions
         from ambari_server.setupHttps import is_valid_https_port, setup_https, import_cert_and_key_action, get_fqdn, \
@@ -2658,6 +2658,125 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEqual(result, "one")
     pass
 
+
+  @patch("ambari_server.serverSetup.get_ambari_properties")
+  @patch("os.path.exists")
+  @patch("zipfile.ZipFile")
+  @patch("os.path.split")
+  @patch("os.listdir")
+  @patch("ambari_commons.os_utils.copy_files")
+  @patch("shutil.rmtree")
+  def test_unpack_jce_policy(self, rmtree_mock, copy_files_mock, os_listdir_mock, os_path_split_mock, zipfile_mock, exists_mock, get_ambari_properties_mock):
+
+    # Testing the case when the zip file doesn't contains any folder
+    properties = MagicMock()
+    get_ambari_properties_mock.return_value = properties
+    exists_mock.return_value = True
+    zipfile = MagicMock()
+    zipfile_mock.return_value = zipfile
+    zip_members = ["US_export_policy.jar", "local_policy.jar", "README.txt"]
+    zipfile.namelist.return_value = zip_members
+    os_path_split_mock.return_value = [""]
+
+    unpack_jce_policy()
+    self.assertTrue(get_ambari_properties_mock.called)
+    self.assertTrue(exists_mock.called)
+    self.assertTrue(zipfile_mock.called)
+    self.assertTrue(os_path_split_mock.called)
+
+    # Testing the case when the zip file contains a folder
+    unziped_jce_path = "jce"
+    os_path_split_mock.return_value = unziped_jce_path
+
+    unpack_jce_policy()
+    self.assertTrue(get_ambari_properties_mock.called)
+    self.assertTrue(exists_mock.called)
+    self.assertTrue(zipfile_mock.called)
+    self.assertTrue(os_listdir_mock.called)
+    self.assertTrue(copy_files_mock.called)
+    self.assertTrue(rmtree_mock.called)
+
+    # Testing when the jdk_security_path or jce_zip_path doesn't exist
+    exists_mock.return_value = False
+    try:
+      unpack_jce_policy()
+    except FatalException:
+      self.assertTrue(True)
+    exists_mock.return_value = True
+
+    # Testing when zipfile fail with an error
+    zipfile_mock.side_effect = FatalException(1,"Extract error")
+    try:
+      unpack_jce_policy()
+    except FatalException:
+      self.assertTrue(True)
+
+
+  @patch("os.path.exists")
+  @patch("shutil.copy")
+  @patch("ambari_server.serverSetup.os.path.split")
+  @patch("ambari_server.serverSetup.unpack_jce_policy")
+  @patch("ambari_server.serverSetup.get_ambari_properties")
+  @patch("ambari_commons.os_utils.search_file")
+  @patch("__builtin__.open")
+  def test_setup_jce_policy(self, open_mock, search_file_mock, get_ambari_properties_mock, unpack_jce_policy_mock, path_split_mock, shutil_copy_mock, exists_mock):
+    exists_mock.return_value = True
+    properties = MagicMock()
+    unpack_jce_policy_mock.return_value = 0
+    get_ambari_properties_mock.return_value = properties
+    conf_file = 'etc/ambari-server/conf/ambari.properties'
+    search_file_mock.return_value = conf_file
+    path_split_mock.return_value = ["/path/to", "JCEPolicy.zip"]
+    args = ['setup-jce', '/path/to/JCEPolicy.zip']
+
+    setup_jce_policy(args)
+    shutil_copy_mock.assert_called_with(args[1], configDefaults.SERVER_RESOURCES_DIR)
+    self.assertTrue(unpack_jce_policy_mock.called)
+    self.assertTrue(get_ambari_properties_mock.called)
+    self.assertTrue(properties.store.called)
+
+    # Testing that if the source and the destination is the same will not try to copy the file
+    path_split_mock.return_value = [configDefaults.SERVER_RESOURCES_DIR, "JCEPolicy.zip"]
+    shutil_copy_mock.reset_mock()
+
+    setup_jce_policy(args)
+    self.assertFalse(shutil_copy_mock.called)
+    self.assertTrue(unpack_jce_policy_mock.called)
+    self.assertTrue(get_ambari_properties_mock.called)
+    self.assertTrue(properties.store.called)
+    path_split_mock.return_value = ["/path/to", "JCEPolicy.zip"]
+
+    # Testing with bad path
+    exists_mock.return_value = False
+    try:
+      setup_jce_policy(args)
+    except FatalException:
+      self.assertTrue(True)
+    exists_mock.return_value = True
+
+    # Testing with an error produced by shutil.copy
+    shutil_copy_mock.reset_mock()
+    shutil_copy_mock.side_effect = FatalException(1, "Error trying to copy the file.")
+    try:
+      setup_jce_policy(args)
+    except FatalException:
+      self.assertTrue(True)
+
+    # Testing with an error produced by Properties.store function
+    properties.store.side_effect = Exception("Invalid file.")
+    try:
+      setup_jce_policy(args)
+    except Exception:
+      self.assertTrue(True)
+    properties.reset_mock()
+
+    # Testing with an error produced by unpack_jce_policy
+    unpack_jce_policy_mock.side_effect = FatalException(1, "Can not install JCE policy")
+    try:
+      setup_jce_policy(args)
+    except FatalException:
+      self.assertTrue(True)
+
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("ambari_commons.firewall.run_os_command")
   @patch("os.path.exists")
@@ -2688,7 +2807,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch("ambari_server.serverSetup.extract_views")
   @patch("ambari_server.serverSetup.adjust_directory_permissions")
   @patch("ambari_server.serverSetup.read_ambari_user")
-  def test_setup(self, read_ambari_user_mock, adjust_dirs_mock, extract_views_mock, proceedJDBCProperties_mock, is_root_mock,
+  @patch("ambari_server.serverSetup.unpack_jce_policy")
+  def test_setup(self, unpack_jce_policy_mock, read_ambari_user_mock, adjust_dirs_mock, extract_views_mock, proceedJDBCProperties_mock, is_root_mock,
                  disable_security_enhancements_mock, check_jdbc_drivers_mock, check_ambari_user_mock,
                  download_jdk_mock, configure_os_settings_mock, get_ambari_properties_mock,
                  get_YN_input_mock, gvsi_mock, gvsi_1_mock,
@@ -2737,6 +2857,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     check_postgre_up_mock.return_value = (PGConfig.PG_STATUS_RUNNING, 0, "", "")
     configure_postgres_mock.return_value = (0, "", "")
     run_os_command_1_mock.return_value = (0, "", "")
+    unpack_jce_policy_mock.return_value = 0
 
     def reset_mocks():
       is_jdbc_user_changed_mock.reset_mock()
@@ -4514,7 +4635,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch("ambari_server.serverSetup.configure_os_settings")
   @patch('__builtin__.raw_input')
   @patch("ambari_server.serverSetup.disable_security_enhancements")
-  def test_setup_remote_db_wo_client(self, check_selinux_mock, raw_input, configure_os_settings_mock,
+  @patch("ambari_server.serverSetup.unpack_jce_policy")
+  def test_setup_remote_db_wo_client(self, unpack_jce_policy_mock, check_selinux_mock, raw_input, configure_os_settings_mock,
                                      download_jdk_mock, check_ambari_user_mock, is_root_mock, check_jdbc_drivers_mock,
                                      read_password_mock, ensure_jdbc_driver_installed_mock, store_remote_properties_mock,
                                      get_validated_string_input_0_mock, get_YN_input_0_mock,
@@ -4552,6 +4674,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     download_jdk_mock.return_value = 0
     configure_os_settings_mock.return_value = 0
     verify_setup_allowed_method.return_value = 0
+    unpack_jce_policy_mock.return_value = 0
 
     try:
       setup(args)
@@ -6049,7 +6172,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch("ambari_server.serverSetup.adjust_directory_permissions")
   @patch("sys.exit")
   @patch("__builtin__.raw_input")
-  def test_ambariServerSetupWithCustomDbName(self, raw_input, exit_mock, adjust_dirs_mock, extract_views_mock, store_password_file_mock,
+  @patch("ambari_server.serverSetup.unpack_jce_policy")
+  def test_ambariServerSetupWithCustomDbName(self, unpack_jce_policy_mock, raw_input, exit_mock, adjust_dirs_mock, extract_views_mock, store_password_file_mock,
                                              get_is_secure_mock, setup_db_mock, is_root_mock, #is_local_database_mock,
                                              check_selinux_mock, check_jdbc_drivers_mock, check_ambari_user_mock,
                                              check_postgre_up_mock, configure_postgres_mock,
