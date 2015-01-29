@@ -209,7 +209,6 @@ if dfs_ha_enabled:
       namenode_id = nn_id
       namenode_rpc = nn_host
 
-
 if dfs_http_policy == "HTTPS_ONLY":
   https_only = True
   journalnode_address = default('/configurations/hdfs-site/dfs.journalnode.https-address', None)
@@ -312,7 +311,6 @@ has_ranger_admin = not len(ranger_admin_hosts) == 0
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
   # setting flag value for ranger hdfs plugin
   enable_ranger_hdfs = False
-  user_input = config['configurations']['ranger-hdfs-plugin-properties']['ranger-hdfs-plugin-enabled']
   if  user_input.lower() == 'yes':
     enable_ranger_hdfs = True
   elif user_input.lower() == 'no':

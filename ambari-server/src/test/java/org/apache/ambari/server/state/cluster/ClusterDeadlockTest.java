@@ -120,7 +120,7 @@ public class ClusterDeadlockTest {
    *
    * @throws Exception
    */
-  @Test(timeout = 15000)
+  @Test(timeout = 30000)
   public void testDeadlockBetweenImplementations() throws Exception {
     Cluster cluster = clusters.getCluster("c1");
     Service service = cluster.getService("HDFS");
@@ -157,7 +157,7 @@ public class ClusterDeadlockTest {
    *
    * @throws Exception
    */
-  @Test(timeout = 15000)
+  @Test(timeout = 30000)
   public void testAddingHostComponentsWhileReading() throws Exception {
     Cluster cluster = clusters.getCluster("c1");
     Service service = cluster.getService("HDFS");

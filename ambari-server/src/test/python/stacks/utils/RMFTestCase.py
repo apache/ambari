@@ -144,7 +144,11 @@ class RMFTestCase(TestCase):
   @staticmethod
   def _getCommonServicesFolder():
     return os.path.join(RMFTestCase._getSrcFolder(), PATH_TO_COMMON_SERVICES)
-      
+
+  @staticmethod
+  def _getStackTestsFolder():
+    return os.path.join(RMFTestCase._getSrcFolder(), PATH_TO_STACK_TESTS)
+
   @staticmethod
   def _get_attr(module, attr):
     module_methods = dir(module)

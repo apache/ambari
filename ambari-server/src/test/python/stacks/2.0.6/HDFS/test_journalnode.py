@@ -17,13 +17,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+import os
 from stacks.utils.RMFTestCase import *
-from ambari_commons import OSCheck
 from mock.mock import MagicMock, patch
+
 
 class TestJournalnode(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HDFS/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"
+  UPGRADE_STACK_VERSION = "2.2"
 
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/journalnode.py",
@@ -244,3 +246,74 @@ class TestJournalnode(RMFTestCase):
                               content = Template('slaves.j2'),
                               owner = 'root',
                               )
+
+
+  @patch('time.sleep')
+  @patch("urllib2.urlopen")
+  def test_post_rolling_restart(self, urlopen_mock, time_mock):
+    # load the NN and JN JMX files so that the urllib2.urlopen mock has data
+    # to return
+    journalnode_jmx_file = os.path.join(RMFTestCase._getStackTestsFolder(),
+      self.UPGRADE_STACK_VERSION, "configs", "journalnode-upgrade-jmx.json" )
+
+    namenode_jmx_file = os.path.join(RMFTestCase._getStackTestsFolder(),
+      self.UPGRADE_STACK_VERSION, "configs", "journalnode-upgrade-namenode-jmx.json" )
+
+    journalnode_jmx = open(journalnode_jmx_file, 'r').read()
+    namenode_jmx = open(namenode_jmx_file, 'r').read()
+
+    url_stream_mock = MagicMock()
+    url_stream_mock.read.side_effect = [namenode_jmx, journalnode_jmx,
+      journalnode_jmx, journalnode_jmx]
+
+    urlopen_mock.return_value = url_stream_mock
+
+    # run the post_rolling_restart using the data from above
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/journalnode.py",
+      classname = "JournalNode", command = "post_rolling_restart",
+      config_file = "journalnode-upgrade.json",
+      hdp_stack_version = self.UPGRADE_STACK_VERSION,
+      target = RMFTestCase.TARGET_COMMON_SERVICES )
+
+    # ensure that the mock was called with the http-style version of the URL
+    urlopen_mock.assert_called
+    urlopen_mock.assert_called_with( "http://c6403.ambari.apache.org:8480/jmx" )
+
+    url_stream_mock.reset_mock()
+    url_stream_mock.read.side_effect = [namenode_jmx, journalnode_jmx,
+      journalnode_jmx, journalnode_jmx]
+
+    urlopen_mock.return_value = url_stream_mock
+
+    # now try with HDFS on SSL
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/journalnode.py",
+      classname = "JournalNode", command = "post_rolling_restart",
+      config_file = "journalnode-upgrade-hdfs-secure.json",
+      hdp_stack_version = self.UPGRADE_STACK_VERSION,
+      target = RMFTestCase.TARGET_COMMON_SERVICES )
+
+    # ensure that the mock was called with the http-style version of the URL
+    urlopen_mock.assert_called
+    urlopen_mock.assert_called_with( "https://c6403.ambari.apache.org:8481/jmx" )
+
+
+
+  @patch('time.sleep')
+  @patch("urllib2.urlopen")
+  def test_post_rolling_restart_bad_jmx(self, urlopen_mock, time_mock):
+    urlopen_mock_response = '{ "bad_data" : "gonna_mess_you_up" }'
+
+    url_stream_mock = MagicMock()
+    url_stream_mock.read.side_effect = [urlopen_mock_response]
+    urlopen_mock.return_value = url_stream_mock
+
+    try:
+      self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/journalnode.py",
+        classname = "JournalNode", command = "post_rolling_restart",
+        config_file = "journalnode-upgrade.json",
+        hdp_stack_version = self.UPGRADE_STACK_VERSION,
+        target = RMFTestCase.TARGET_COMMON_SERVICES )
+
+      self.fail("Expected a failure since the JMX JSON for JournalTransactionInfo was missing")
+    except:
+      pass

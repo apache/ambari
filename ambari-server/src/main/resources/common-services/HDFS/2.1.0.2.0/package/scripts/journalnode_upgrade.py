@@ -18,14 +18,12 @@ limitations under the License.
 """
 
 import time
-import json
 
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
-from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
 from resource_management.core.exceptions import Fail
-from utils import get_jmx_data, get_port
+from utils import get_jmx_data
 
 
 
@@ -97,24 +95,18 @@ def ensure_jns_have_new_txn(nodes, last_txn_id):
   num_of_jns = len(nodes)
   actual_txn_ids = {}
   jns_updated = 0
-  protocol = 'http'
 
-  journal_node_address = default("/configurations/hdfs-site/dfs.journalnode.https-address", None)
-  if journal_node_address:
-    protocol = "https"
-  else:
-    journal_node_address = default("/configurations/hdfs-site/dfs.journalnode.http-address", None)
-
-  if not journal_node_address:
+  if params.journalnode_address is None:
     raise Fail("Could not retrieve Journal node address")
 
-  jn_port = get_port(journal_node_address)    # default is 8480, encrypted is 8481
-  if not jn_port:
+  if params.journalnode_port is None:
     raise Fail("Could not retrieve Journalnode port")
 
   time_out_secs = 3 * 60
   step_time_secs = 10
   iterations = int(time_out_secs/step_time_secs)
+
+  protocol = "https" if params.https_only else "http"
 
   Logger.info("Checking if all Journalnodes are updated.")
   for i in range(iterations):
@@ -129,7 +121,7 @@ def ensure_jns_have_new_txn(nodes, last_txn_id):
       if node in actual_txn_ids and actual_txn_ids[node] and actual_txn_ids[node] >= last_txn_id:
         continue
 
-      url = '%s://%s:%s' % (protocol, node, jn_port)
+      url = '%s://%s:%s' % (protocol, node, params.journalnode_port)
       data = get_jmx_data(url, 'Journal-', 'LastWrittenTxId')
       if data:
         actual_txn_ids[node] = int(data)
