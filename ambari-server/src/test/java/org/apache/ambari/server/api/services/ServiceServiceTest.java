@@ -81,12 +81,56 @@ public class ServiceServiceTest extends BaseServiceTest {
     args = new Object[] {getHttpHeaders(), getUriInfo(), "serviceName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.DELETE, service, m, args, null));
 
+    //createArtifact
+    service = new TestServiceService("clusterName", "serviceName", "artifactName");
+    m = service.getClass().getMethod("createArtifact", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "serviceName", "artifactName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.POST, service, m, args, "body"));
+
+    //getArtifact
+    service = new TestServiceService("clusterName", "serviceName", "artifactName");
+    m = service.getClass().getMethod("getArtifact", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "serviceName", "artifactName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, "body"));
+
+    //getArtifacts
+    service = new TestServiceService("clusterName", "serviceName");
+    m = service.getClass().getMethod("getArtifacts", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "serviceName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, "body"));
+
+    //updateArtifact
+    service = new TestServiceService("clusterName", "serviceName", "artifactName");
+    m = service.getClass().getMethod("updateArtifact", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "serviceName", "artifactName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.PUT, service, m, args, "body"));
+
+    //updateArtifacts
+    service = new TestServiceService("clusterName", "serviceName");
+    m = service.getClass().getMethod("updateArtifacts", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "serviceName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.PUT, service, m, args, "body"));
+
+    //deleteArtifact
+    service = new TestServiceService("clusterName", "serviceName", "artifactName");
+    m = service.getClass().getMethod("deleteArtifact", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "serviceName", "artifactName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.DELETE, service, m, args, "body"));
+
+    //deleteArtifacts
+    service = new TestServiceService("clusterName", "serviceName");
+    m = service.getClass().getMethod("deleteArtifacts", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "serviceName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.DELETE, service, m, args, "body"));
+
+
     return listInvocations;
   }
 
   private class TestServiceService extends ServiceService {
     private String m_clusterId;
     private String m_serviceId;
+    private String m_artifact_id;
 
     private TestServiceService(String clusterId, String serviceId) {
       super(clusterId);
@@ -94,10 +138,25 @@ public class ServiceServiceTest extends BaseServiceTest {
       m_serviceId = serviceId;
     }
 
+    private TestServiceService(String clusterId, String serviceId, String artifactId) {
+      super(clusterId);
+      m_clusterId = clusterId;
+      m_serviceId = serviceId;
+      m_artifact_id = artifactId;
+    }
+
     @Override
     ResourceInstance createServiceResource(String clusterName, String serviceName) {
       assertEquals(m_clusterId, clusterName);
       assertEquals(m_serviceId, serviceName);
+      return getTestResource();
+    }
+
+    @Override
+    ResourceInstance createArtifactResource(String clusterName, String serviceName, String artifactName) {
+      assertEquals(m_clusterId, clusterName);
+      assertEquals(m_serviceId, serviceName);
+      assertEquals(m_artifact_id, artifactName);
       return getTestResource();
     }
 

@@ -273,6 +273,98 @@ public class ServiceService extends BaseService {
   }
 
   /**
+   * Handles: PUT /clusters/{clusterID}/services/{serviceName}/artifacts
+   * Update all artifacts matching the provided predicate.
+   *
+   * @param headers      http headers
+   * @param ui           uri info
+   * @param serviceName  service name
+   *
+   * @return information regarding the updated artifacts
+   */
+  @PUT
+  @Path("{serviceName}/artifacts")
+  @Produces("text/plain")
+  public Response updateArtifacts(String body,
+                                  @Context HttpHeaders headers,
+                                  @Context UriInfo ui,
+                                  @PathParam("serviceName") String serviceName) {
+
+    return handleRequest(headers, body, ui, Request.Type.PUT,
+        createArtifactResource(m_clusterName, serviceName, null));
+  }
+
+  /**
+   * Handles: PUT /clusters/{clusterID}/services/{serviceName}/artifacts/{artifactName}
+   * Update a specific artifact.
+   *
+   * @param headers       http headers
+   * @param ui            uri info
+   * @param serviceName   service name
+   * @param artifactName  artifact name
+   *
+   * @return information regarding the updated artifact
+   */
+  @PUT
+  @Path("{serviceName}/artifacts/{artifactName}")
+  @Produces("text/plain")
+  public Response updateArtifact(String body,
+                                 @Context HttpHeaders headers,
+                                 @Context UriInfo ui,
+                                 @PathParam("serviceName") String serviceName,
+                                 @PathParam("artifactName") String artifactName) {
+
+    return handleRequest(headers, body, ui, Request.Type.PUT,
+        createArtifactResource(m_clusterName, serviceName, artifactName));
+  }
+
+  /**
+   * Handles: DELETE /clusters/{clusterID}/services/{serviceName}/artifacts
+   * Delete all artifacts matching the provided predicate.
+   *
+   * @param headers      http headers
+   * @param ui           uri info
+   * @param serviceName  service name
+   *
+   * @return information regarding the deleted artifacts
+   */
+  @DELETE
+  @Path("{serviceName}/artifacts")
+  @Produces("text/plain")
+  public Response deleteArtifacts(String body,
+                                  @Context HttpHeaders headers,
+                                  @Context UriInfo ui,
+                                  @PathParam("serviceName") String serviceName) {
+
+    return handleRequest(headers, body, ui, Request.Type.DELETE,
+        createArtifactResource(m_clusterName, serviceName, null));
+  }
+
+  /**
+   * Handles: DELETE /clusters/{clusterID}/services/{serviceName}/artifacts/{artifactName}
+   * Delete a specific artifact.
+   *
+   * @param headers       http headers
+   * @param ui            uri info
+   * @param serviceName   service name
+   * @param artifactName  artifact name
+   *
+   * @return information regarding the deleted artifact
+   */
+  @DELETE
+  @Path("{serviceName}/artifacts/{artifactName}")
+  @Produces("text/plain")
+  public Response deleteArtifact(String body,
+                                 @Context HttpHeaders headers,
+                                 @Context UriInfo ui,
+                                 @PathParam("serviceName") String serviceName,
+                                 @PathParam("artifactName") String artifactName) {
+
+    return handleRequest(headers, body, ui, Request.Type.DELETE,
+        createArtifactResource(m_clusterName, serviceName, artifactName));
+  }
+
+  /**
    * Gets the alert history service
    *
    * @param request

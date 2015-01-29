@@ -66,7 +66,7 @@ public class ClusterServiceTest extends BaseServiceTest {
     args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "clusterName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.POST, clusterService, m, args, "body"));
 
-    //createCluster
+    //updateCluster
     clusterService = new TestClusterService(clusters, "clusterName");
     m = clusterService.getClass().getMethod("updateCluster", String.class, HttpHeaders.class, UriInfo.class, String.class);
     args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "clusterName"};
@@ -77,6 +77,48 @@ public class ClusterServiceTest extends BaseServiceTest {
     m = clusterService.getClass().getMethod("deleteCluster", HttpHeaders.class, UriInfo.class, String.class);
     args = new Object[] {getHttpHeaders(), getUriInfo(), "clusterName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.DELETE, clusterService, m, args, null));
+
+    //createArtifact
+    clusterService = new TestClusterService(clusters, "clusterName");
+    m = clusterService.getClass().getMethod("createArtifact", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "clusterName", "artifactName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.POST, clusterService, m, args, "body"));
+
+    //getArtifact
+    clusterService = new TestClusterService(clusters, "clusterName");
+    m = clusterService.getClass().getMethod("getArtifact", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "clusterName", "artifact_name"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, clusterService, m, args, "body"));
+
+    //getArtifacts
+    clusterService = new TestClusterService(clusters, "clusterName");
+    m = clusterService.getClass().getMethod("getArtifacts", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "clusterName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, clusterService, m, args, "body"));
+
+    //updateArtifact
+    clusterService = new TestClusterService(clusters, "clusterName");
+    m = clusterService.getClass().getMethod("updateArtifact", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "clusterName", "artifactName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.PUT, clusterService, m, args, "body"));
+
+    //updateArtifacts
+    clusterService = new TestClusterService(clusters, "clusterName");
+    m = clusterService.getClass().getMethod("updateArtifacts", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "clusterName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.PUT, clusterService, m, args, "body"));
+
+    //deleteArtifact
+    clusterService = new TestClusterService(clusters, "clusterName");
+    m = clusterService.getClass().getMethod("deleteArtifact", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "clusterName", "artifactName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.DELETE, clusterService, m, args, "body"));
+
+    //deleteArtifacts
+    clusterService = new TestClusterService(clusters, "clusterName");
+    m = clusterService.getClass().getMethod("deleteArtifacts", String.class, HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "clusterName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.DELETE, clusterService, m, args, "body"));
 
     return listInvocations;
   }
@@ -92,6 +134,12 @@ public class ClusterServiceTest extends BaseServiceTest {
 
     @Override
     ResourceInstance createClusterResource(String clusterName) {
+      assertEquals(m_clusterId, clusterName);
+      return getTestResource();
+    }
+
+    @Override
+    ResourceInstance createArtifactResource(String clusterName, String artifactName) {
       assertEquals(m_clusterId, clusterName);
       return getTestResource();
     }

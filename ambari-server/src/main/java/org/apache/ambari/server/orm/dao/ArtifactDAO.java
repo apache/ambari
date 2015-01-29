@@ -30,7 +30,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import java.util.List;
-import java.util.Map;
 import java.util.TreeMap;
 
 
@@ -105,5 +104,26 @@ public class ArtifactDAO {
   @Transactional
   public void create(ArtifactEntity entity) {
     entityManagerProvider.get().persist(entity);
+  }
+
+  /**
+   * Merge the state of the given entity into the current persistence context.
+   *
+   * @param artifactEntity  entity to merge
+   * @return the merged entity
+   */
+  @Transactional
+  public ArtifactEntity merge(ArtifactEntity artifactEntity) {
+    return entityManagerProvider.get().merge(artifactEntity);
+  }
+
+  /**
+   * Remove the entity instance.
+   *
+   * @param artifactEntity  entity to remove
+   */
+  @Transactional
+  public void remove(ArtifactEntity artifactEntity) {
+    entityManagerProvider.get().remove(merge(artifactEntity));
   }
 }

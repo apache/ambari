@@ -185,10 +185,10 @@ public class ClusterService extends BaseService {
   @GET
   @Path("{clusterName}/artifacts")
   @Produces("text/plain")
-  public Response getClusterArtifacts(String body,
-                                      @Context HttpHeaders headers,
-                                      @Context UriInfo ui,
-                                      @PathParam("clusterName") String clusterName) {
+  public Response getArtifacts(String body,
+                               @Context HttpHeaders headers,
+                               @Context UriInfo ui,
+                               @PathParam("clusterName") String clusterName) {
 
     hasPermission(Request.Type.GET, clusterName);
     return handleRequest(headers, body, ui, Request.Type.GET,
@@ -210,11 +210,11 @@ public class ClusterService extends BaseService {
   @GET
   @Path("{clusterName}/artifacts/{artifactName}")
   @Produces("text/plain")
-  public Response getClusterArtifact(String body,
-                                      @Context HttpHeaders headers,
-                                      @Context UriInfo ui,
-                                      @PathParam("clusterName") String clusterName,
-                                      @PathParam("artifactName") String artifactName) {
+  public Response getArtifact(String body,
+                              @Context HttpHeaders headers,
+                              @Context UriInfo ui,
+                              @PathParam("clusterName") String clusterName,
+                              @PathParam("artifactName") String artifactName) {
 
     hasPermission(Request.Type.GET, clusterName);
     return handleRequest(headers, body, ui, Request.Type.GET,
@@ -235,15 +235,111 @@ public class ClusterService extends BaseService {
   @POST
   @Path("{clusterName}/artifacts/{artifactName}")
   @Produces("text/plain")
-  public Response createClusterArtifact(String body,
-                                      @Context HttpHeaders headers,
-                                      @Context UriInfo ui,
-                                      @PathParam("clusterName") String clusterName,
-                                      @PathParam("artifactName") String artifactName) {
+  public Response createArtifact(String body,
+                                 @Context HttpHeaders headers,
+                                 @Context UriInfo ui,
+                                 @PathParam("clusterName") String clusterName,
+                                 @PathParam("artifactName") String artifactName) {
 
     hasPermission(Request.Type.POST, clusterName);
     return handleRequest(headers, body, ui, Request.Type.POST,
         createArtifactResource(clusterName, artifactName));
+  }
+
+  /**
+   * Handles: PUT /clusters/{clusterID}/artifacts
+   * Update all artifacts matching the provided predicate.
+   *
+   * @param headers      http headers
+   * @param ui           uri info
+   * @param clusterName  cluster name
+   *
+   * @return information regarding the updated artifacts
+   */
+  @PUT
+  @Path("{clusterName}/artifacts")
+  @Produces("text/plain")
+  public Response updateArtifacts(String body,
+                                  @Context HttpHeaders headers,
+                                  @Context UriInfo ui,
+                                  @PathParam("clusterName") String clusterName) {
+
+    hasPermission(Request.Type.PUT, clusterName);
+    return handleRequest(headers, body, ui, Request.Type.PUT,
+        createArtifactResource(clusterName, null));
+  }
+
+  /**
+   * Handles: PUT /clusters/{clusterID}/artifacts/{artifactName}
+   * Update a specific artifact.
+   *
+   * @param headers       http headers
+   * @param ui            uri info
+   * @param clusterName   cluster name
+   * @param artifactName  artifactName
+   *
+   * @return information regarding the updated artifact
+   */
+  @PUT
+  @Path("{clusterName}/artifacts/{artifactName}")
+  @Produces("text/plain")
+  public Response updateArtifact(String body,
+                                 @Context HttpHeaders headers,
+                                @Context UriInfo ui,
+                                @PathParam("clusterName") String clusterName,
+                                @PathParam("artifactName") String artifactName) {
+
+    hasPermission(Request.Type.PUT, clusterName);
+    return handleRequest(headers, body, ui, Request.Type.PUT,
+        createArtifactResource(clusterName, artifactName));
+  }
+
+  /**
+   * Handles: DELETE /clusters/{clusterID}/artifacts/{artifactName}
+   * Delete a specific artifact.
+   *
+   * @param headers       http headers
+   * @param ui            uri info
+   * @param clusterName   cluster name
+   * @param artifactName  artifactName
+   *
+   * @return information regarding the deleted artifact
+   */
+  @DELETE
+  @Path("{clusterName}/artifacts/{artifactName}")
+  @Produces("text/plain")
+  public Response deleteArtifact(String body,
+                                 @Context HttpHeaders headers,
+                                 @Context UriInfo ui,
+                                 @PathParam("clusterName") String clusterName,
+                                 @PathParam("artifactName") String artifactName) {
+
+    hasPermission(Request.Type.DELETE, clusterName);
+    return handleRequest(headers, body, ui, Request.Type.DELETE,
+        createArtifactResource(clusterName, artifactName));
+  }
+
+  /**
+   * Handles: DELETE /clusters/{clusterID}/artifacts
+   * Delete all artifacts matching the provided predicate.
+   *
+   * @param headers      http headers
+   * @param ui           uri info
+   * @param clusterName  cluster name
+   *
+   * @return information regarding the deleted artifacts
+   */
+  @DELETE
+  @Path("{clusterName}/artifacts")
+  @Produces("text/plain")
+  public Response deleteArtifacts(String body,
+                                  @Context HttpHeaders headers,
+                                  @Context UriInfo ui,
+                                  @PathParam("clusterName") String clusterName) {
+
+    hasPermission(Request.Type.DELETE, clusterName);
+    return handleRequest(headers, body, ui, Request.Type.DELETE,
+        createArtifactResource(clusterName, null));
   }
 
   /**

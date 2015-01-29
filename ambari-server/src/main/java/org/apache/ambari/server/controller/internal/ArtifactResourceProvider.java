@@ -216,13 +216,18 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
   }
 
   @Override
-  public RequestStatus updateResources(Request request, Predicate predicate)
+  public RequestStatus updateResources(final Request request, Predicate predicate)
       throws SystemException,
              UnsupportedPropertyException,
              NoSuchResourceException,
              NoSuchParentResourceException {
 
-    throw new UnsupportedOperationException("Update not currently supported for Artifact resources");
+    for (Resource resource : getResources(request, predicate)) {
+      modifyResources(getUpdateCommand(request, resource));
+    }
+
+    notifyUpdate(Resource.Type.Artifact, request, predicate);
+    return getRequestStatus(null);
   }
 
   @Override
@@ -232,11 +237,20 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
              NoSuchResourceException,
              NoSuchParentResourceException {
 
-    throw new UnsupportedOperationException("Delete not currently supported for Artifact resources");
+    // get resources to update
+    Set<Resource> setResources = getResources(
+        new RequestImpl(null, null, null, null), predicate);
+
+    for (final Resource resource : setResources) {
+      modifyResources(getDeleteCommand(resource));
+    }
+
+    notifyDelete(Resource.Type.Artifact, predicate);
+    return getRequestStatus(null);
   }
 
   /**
-   * Create a command to create the resource.
+   * Create a command to create a resource.
    *
    * @param properties        request properties
    * @param requestInfoProps  request info properties
@@ -309,6 +323,65 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
           }
         }
         return matchingResources;
+      }
+    };
+  }
+
+  /**
+   * Create a command to update a resource.
+   *
+   * @param request   update request
+   * @param resource  resource to update
+   *
+   * @return  a update resource command
+   */
+  private Command<Void> getUpdateCommand(final Request request, final Resource resource) {
+    return new Command<Void>() {
+      @Override
+      public Void invoke() throws AmbariException {
+        Map<String, Object> entityUpdateProperties =
+            new HashMap<String, Object>(request.getProperties().iterator().next());
+
+        // ensure name is set.  It won't be in case of query
+        entityUpdateProperties.put(ARTIFACT_NAME_PROPERTY,
+            String.valueOf(resource.getPropertyValue(ARTIFACT_NAME_PROPERTY)));
+
+        artifactDAO.merge(toEntity(entityUpdateProperties,
+            request.getRequestInfoProperties().get(Request.REQUEST_INFO_BODY_PROPERTY)));
+
+        return null;
+      }
+    };
+  }
+
+  /**
+   * Create a command to delete a resource.
+   *
+   * @param resource the resource to delete
+   *
+   * @return  a delete resource command
+   */
+  private Command<Void> getDeleteCommand(final Resource resource) {
+    return new Command<Void>() {
+      @Override
+      public Void invoke() throws AmbariException {
+        Map<String, Object> keyProperties = new HashMap<String, Object>();
+
+        // flatten out key properties as is expected by createForeignKeyMap()
+        for (Map.Entry<String, Object> entry : resource.getPropertiesMap().get("Artifacts").entrySet()) {
+          keyProperties.put(String.format("Artifacts/%s", entry.getKey()), entry.getValue());
+        }
+
+        // create entity and set properties
+        final ArtifactEntity entity = new ArtifactEntity();
+        entity.setArtifactName(String.valueOf(resource.getPropertyValue(ARTIFACT_NAME_PROPERTY)));
+        entity.setForeignKeys(createForeignKeyMap(keyProperties));
+
+        LOG.info("Deleting Artifact, name = {}, foreign keys = {}",
+            entity.getArtifactName(), entity.getForeignKeys());
+
+        artifactDAO.remove(entity);
+        return null;
       }
     };
   }
@@ -394,6 +467,9 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
         rawRequestBody, Map.class);
 
     Object artifactData = rawBodyMap.get(ARTIFACT_DATA_PROPERTY);
+    if (artifactData == null) {
+      throw new IllegalArgumentException("artifact_data property must be provided");
+    }
     if (! (artifactData instanceof Map)) {
       throw new IllegalArgumentException("artifact_data property must be a map");
     }

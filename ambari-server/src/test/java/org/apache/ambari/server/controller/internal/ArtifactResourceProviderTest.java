@@ -18,9 +18,11 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import com.google.gson.Gson;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
@@ -51,6 +53,7 @@ import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -58,14 +61,15 @@ import static org.junit.Assert.fail;
 /**
  * ArtifactResourceProvider unit tests.
  */
+@SuppressWarnings("unchecked")
 public class ArtifactResourceProviderTest {
 
   private ArtifactDAO dao = createStrictMock(ArtifactDAO.class);
   private EntityManager em = createStrictMock(EntityManager.class);
   private AmbariManagementController controller = createStrictMock(AmbariManagementController.class);
   private Request request = createMock(Request.class);
-  private Clusters clusters = createStrictMock(Clusters.class);
-  private Cluster cluster = createStrictMock(Cluster.class);
+  private Clusters clusters = createMock(Clusters.class);
+  private Cluster cluster = createMock(Cluster.class);
   private ArtifactEntity entity = createMock(ArtifactEntity.class);
   private ArtifactEntity entity2 = createMock(ArtifactEntity.class);
 
@@ -231,43 +235,6 @@ public class ArtifactResourceProviderTest {
     TreeMap<String, String> foreignKeys = new TreeMap<String, String>();
     foreignKeys.put("cluster", "500");
 
-
-    String bodyJson =
-        "{ " +
-        "  \"artifact_data\" : {" +
-        "    \"foo\" : \"bar\"," +
-        "    \"child\" : {" +
-        "      \"childKey\" : \"childValue\"," +
-        "      \"child2\" : {" +
-        "        \"child2Key\" : \"child2Value\"," +
-        "        \"child3\" : {" +
-        "          \"child4\" : {" +
-        "            \"child4Key\" : \"child4Value\"" +
-        "          }" +
-        "        }" +
-        "      }" +
-        "    }," +
-        "    \"collection\" : [" +
-        "      {" +
-        "        \"child\" : {" +
-        "          \"childKey\" : \"childValue\"," +
-        "          \"child2\" : {" +
-        "            \"child2Key\" : \"child2Value\"," +
-        "            \"child3\" : {" +
-        "              \"child4\" : {" +
-        "                \"child4Key\" : \"child4Value\"" +
-        "              }" +
-        "            }" +
-        "          }" +
-        "        }" +
-        "      }," +
-        "      {" +
-        "        \"child4Key\" : \"child4Value\"" +
-        "      } " +
-        "    ]" +
-        "  }" +
-        "}";
-
     Map<String, String> requestInfoProps = new HashMap<String, String>();
     requestInfoProps.put(Request.REQUEST_INFO_BODY_PROPERTY, bodyJson);
 
@@ -329,6 +296,160 @@ public class ArtifactResourceProviderTest {
     assertEquals(foreignKeys, createEntity.getForeignKeys());
   }
 
+  @Test
+  public void testUpdateResources() throws Exception {
+    Map<String, String> requestInfoProps = new HashMap<String, String>();
+    requestInfoProps.put(Request.REQUEST_INFO_BODY_PROPERTY, bodyJson);
+
+    Capture<ArtifactEntity> updateEntityCapture = new Capture<ArtifactEntity>();
+    Capture<ArtifactEntity> updateEntityCapture2 = new Capture<ArtifactEntity>();
+    Set<String> propertyIds = new HashSet<String>();
+    TreeMap<String, String> foreignKeys = new TreeMap<String, String>();
+    foreignKeys.put("cluster", "500");
+
+    List<ArtifactEntity> entities = new ArrayList<ArtifactEntity>();
+    entities.add(entity);
+    entities.add(entity2);
+
+    Map<String, Object> artifact_data = Collections.<String, Object>singletonMap("foo", "bar");
+    Map<String, Object> artifact_data2 = Collections.<String, Object>singletonMap("foo2", "bar2");
+
+    Map<String, String> responseForeignKeys = new HashMap<String, String>();
+    responseForeignKeys.put("cluster", "500");
+
+    // map with flattened properties
+    Map<String, Object> properties = new HashMap<String, Object>();
+    properties.put("Artifacts/artifact_name", "test-artifact");
+    properties.put("Artifacts/cluster_name", "test-cluster");
+    properties.put("artifact_data/foo", "bar");
+    properties.put("artifact_data/child/childKey", "childValue");
+    properties.put("artifact_data/child/child2/child2Key", "child2Value");
+    properties.put("artifact_data/child/child2/child3/child4/child4Key", "child4Value");
+
+    Set<Map<String, Object>> requestProperties = Collections.singleton(properties);
+
+    Collection<Object> collectionProperties = new HashSet<Object>();
+    properties.put("artifact_data/collection", collectionProperties);
+
+    // expectations
+    expect(request.getProperties()).andReturn(requestProperties).anyTimes();
+    expect(request.getRequestInfoProperties()).andReturn(requestInfoProps).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("test-cluster")).andReturn(cluster).anyTimes();
+    expect(clusters.getClusterById(500L)).andReturn(cluster).anyTimes();
+    expect(cluster.getClusterId()).andReturn(500L).anyTimes();
+    expect(cluster.getClusterName()).andReturn("test-cluster").anyTimes();
+
+    expect(request.getPropertyIds()).andReturn(propertyIds).anyTimes();
+
+    expect(dao.findByForeignKeys(eq(foreignKeys))).andReturn(entities).anyTimes();
+    expect(entity.getArtifactName()).andReturn("test-artifact").anyTimes();
+    expect(entity.getForeignKeys()).andReturn(responseForeignKeys).anyTimes();
+    expect(entity.getArtifactData()).andReturn(artifact_data).anyTimes();
+    expect(entity2.getArtifactName()).andReturn("test-artifact2").anyTimes();
+    expect(entity2.getForeignKeys()).andReturn(responseForeignKeys).anyTimes();
+    expect(entity2.getArtifactData()).andReturn(artifact_data2).anyTimes();
+
+    expect(dao.merge(capture(updateEntityCapture))).andReturn(entity).once();
+    expect(dao.merge(capture(updateEntityCapture2))).andReturn(entity2).once();
+
+    // end of expectation setting
+    replay(dao, em, controller, request, clusters, cluster, entity, entity2);
+
+    PredicateBuilder pb = new PredicateBuilder();
+    Predicate predicate = pb.begin().property("Artifacts/cluster_name").equals("test-cluster").end().toPredicate();
+
+    RequestStatus response = resourceProvider.updateResources(request, predicate);
+    ArtifactEntity updateEntity = updateEntityCapture.getValue();
+    ArtifactEntity updateEntity2 = updateEntityCapture2.getValue();
+
+    Gson serializer = new Gson();
+    ArtifactEntity expected = new ArtifactEntity();
+    expected.setArtifactData((Map<String, Object>) serializer.<Map<String, Object>>fromJson(
+        bodyJson, Map.class).get("artifact_data"));
+
+    assertEquals(expected.getArtifactData(), updateEntity.getArtifactData());
+    assertEquals(expected.getArtifactData(), updateEntity2.getArtifactData());
+
+    if (updateEntity.getArtifactName().equals("test-artifact")) {
+      assertEquals("test-artifact2",updateEntity2.getArtifactName() );
+    } else if (updateEntity.getArtifactName().equals("test-artifact2")) {
+      assertEquals("test-artifact", updateEntity2.getArtifactName());
+    } else {
+      fail ("Unexpected artifact name: " + updateEntity.getArtifactName());
+    }
+
+    assertEquals(foreignKeys, updateEntity.getForeignKeys());
+    assertEquals(foreignKeys, updateEntity2.getForeignKeys());
+
+    assertEquals(RequestStatus.Status.Complete, response.getStatus());
+
+    verify(dao, em, controller, request, clusters, cluster, entity, entity2);
+  }
+
+  @Test
+  public void testDeleteResources() throws Exception {
+
+    Capture<ArtifactEntity> deleteEntityCapture = new Capture<ArtifactEntity>();
+    Capture<ArtifactEntity> deleteEntityCapture2 = new Capture<ArtifactEntity>();
+    TreeMap<String, String> foreignKeys = new TreeMap<String, String>();
+    foreignKeys.put("cluster", "500");
+
+    List<ArtifactEntity> entities = new ArrayList<ArtifactEntity>();
+    entities.add(entity);
+    entities.add(entity2);
+
+    Map<String, Object> artifact_data = Collections.<String, Object>singletonMap("foo", "bar");
+    Map<String, Object> artifact_data2 = Collections.<String, Object>singletonMap("foo2", "bar2");
+
+    Map<String, String> responseForeignKeys = new HashMap<String, String>();
+    responseForeignKeys.put("cluster", "500");
+
+    // expectations
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("test-cluster")).andReturn(cluster).anyTimes();
+    expect(clusters.getClusterById(500L)).andReturn(cluster).anyTimes();
+    expect(cluster.getClusterId()).andReturn(500L).anyTimes();
+    expect(cluster.getClusterName()).andReturn("test-cluster").anyTimes();
+
+
+    expect(dao.findByForeignKeys(eq(foreignKeys))).andReturn(entities).anyTimes();
+    expect(entity.getArtifactName()).andReturn("test-artifact").anyTimes();
+    expect(entity.getForeignKeys()).andReturn(responseForeignKeys).anyTimes();
+    expect(entity.getArtifactData()).andReturn(artifact_data).anyTimes();
+    expect(entity2.getArtifactName()).andReturn("test-artifact2").anyTimes();
+    expect(entity2.getForeignKeys()).andReturn(responseForeignKeys).anyTimes();
+    expect(entity2.getArtifactData()).andReturn(artifact_data2).anyTimes();
+
+    dao.remove(capture(deleteEntityCapture));
+    dao.remove(capture(deleteEntityCapture2));
+
+    // end of expectation setting
+    replay(dao, em, controller, request, clusters, cluster, entity, entity2);
+
+    PredicateBuilder pb = new PredicateBuilder();
+    Predicate predicate = pb.begin().property("Artifacts/cluster_name").equals("test-cluster").end().toPredicate();
+
+    RequestStatus response = resourceProvider.deleteResources(predicate);
+    ArtifactEntity deleteEntity = deleteEntityCapture.getValue();
+    ArtifactEntity deleteEntity2 = deleteEntityCapture2.getValue();
+
+    if (deleteEntity.getArtifactName().equals("test-artifact")) {
+      assertEquals("test-artifact2", deleteEntity2.getArtifactName());
+    } else if (deleteEntity.getArtifactName().equals("test-artifact2")) {
+      assertEquals("test-artifact", deleteEntity2.getArtifactName());
+    } else {
+      fail ("Unexpected artifact name: " + deleteEntity.getArtifactName());
+    }
+
+    assertEquals(foreignKeys, deleteEntity.getForeignKeys());
+    assertEquals(foreignKeys, deleteEntity2.getForeignKeys());
+
+    assertEquals(RequestStatus.Status.Complete, response.getStatus());
+
+    verify(dao, em, controller, request, clusters, cluster, entity, entity2);
+  }
+
 
   private void setPrivateField(Object o, String field, Object value) throws Exception{
     Class<?> c = o.getClass();
@@ -336,4 +457,40 @@ public class ArtifactResourceProviderTest {
     f.setAccessible(true);
     f.set(o, value);
   }
+
+  private String bodyJson =
+      "{ " +
+          "  \"artifact_data\" : {" +
+          "    \"foo\" : \"bar\"," +
+          "    \"child\" : {" +
+          "      \"childKey\" : \"childValue\"," +
+          "      \"child2\" : {" +
+          "        \"child2Key\" : \"child2Value\"," +
+          "        \"child3\" : {" +
+          "          \"child4\" : {" +
+          "            \"child4Key\" : \"child4Value\"" +
+          "          }" +
+          "        }" +
+          "      }" +
+          "    }," +
+          "    \"collection\" : [" +
+          "      {" +
+          "        \"child\" : {" +
+          "          \"childKey\" : \"childValue\"," +
+          "          \"child2\" : {" +
+          "            \"child2Key\" : \"child2Value\"," +
+          "            \"child3\" : {" +
+          "              \"child4\" : {" +
+          "                \"child4Key\" : \"child4Value\"" +
+          "              }" +
+          "            }" +
+          "          }" +
+          "        }" +
+          "      }," +
+          "      {" +
+          "        \"child4Key\" : \"child4Value\"" +
+          "      } " +
+          "    ]" +
+          "  }" +
+          "}";
 }
