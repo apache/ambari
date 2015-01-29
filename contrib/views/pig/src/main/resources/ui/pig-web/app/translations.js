@@ -55,6 +55,9 @@ Ember.I18n.translations = {
     'last_executed':'Last Executed',
     'last_results':'Last Results',
     'no_jobs_message':'This script has not been executed',
+    'load_error':'Error loading scripts',
+    'load_error_single':'Error loading script',
+    'not_found':'Script not found',
     'modal':{
       'create_script':'New Script',
       'unsaved_changes_warning':'You have unsaved changes in script.',
@@ -142,6 +145,7 @@ Ember.I18n.translations = {
   'udfs':{
     'udfs':'UDFs',
     'create':'Create UDF',
+    'load_error':'Error loading UDFs',
     'tooltips':{
       'path':'Path of this script file on HDFS'
     },

@@ -69,29 +69,6 @@ App.Job = DS.Model.extend({
     }).then(success,error);
   },
 
-  isExplainJob: function(){
-    return this.jobType == "explain";
-  },
-  isSyntaxCheckJob: function(){
-      return this.jobType == "syntax_check";
-  },
-  isUtilityJob:  function(){
-      return this.isExplainJob() || this.isSyntaxCheckJob();
-  },
-
-  pingStatusMap:{
-    'SUBMITTING':true,
-    'SUBMITTED':true,
-    'RUNNING':true,
-    'COMPLETED':false,
-    'SUBMIT_FAILED':false,
-    'KILLED':false,
-    'FAILED':false
-  },
-  needsPing:function () {
-    return this.pingStatusMap[this.get('status')];
-  }.property('status'),
-
   jobSuccess:function () {
     return this.get('status') == 'COMPLETED';
   }.property('status'),
@@ -104,11 +81,11 @@ App.Job = DS.Model.extend({
     return this.get('status') == 'SUBMITTING' || this.get('status') == 'SUBMITTED' || this.get('status') == 'RUNNING';
   }.property('status'),
 
-  argumentsArray:function (q,w) {
+  argumentsArray:function (key,val) {
     if (arguments.length >1) {
       var oldargs = (this.get('templetonArguments'))?this.get('templetonArguments').w():[];
-      if (w.length != oldargs.length) {
-        this.set('templetonArguments',w.join('\t'));
+      if (val.length != oldargs.length) {
+        this.set('templetonArguments',val.join('\t'));
       }
     }
     var args = this.get('templetonArguments');

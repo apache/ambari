@@ -18,12 +18,13 @@
 
 var App = require('app');
 
-App.PigScriptsRoute = Em.Route.extend(App.RouteError, {
-  errorMassage:Em.I18n.t('scripts.load_error'),
-  enter: function() {
-    this.controllerFor('pig').set('category','scripts');
-  },
-  model: function(object,transition) {
-    return this.store.find('script');
+App.RouteError = Ember.Mixin.create({
+  errorMassage:'',
+  actions:{
+    error:function (error) {
+      this.controllerFor('pig').set('category','');
+      var trace = (error.hasOwnProperty('responseJSON'))?error.responseJSON.trace:null;
+      this.send('showAlert', {message:this.get('errorMassage'), status:'error', trace:trace});
+    }
   }
 });

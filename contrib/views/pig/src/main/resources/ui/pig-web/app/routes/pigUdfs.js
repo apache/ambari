@@ -18,7 +18,8 @@
 
 var App = require('app');
 
-App.PigUdfsRoute = Em.Route.extend({
+App.PigUdfsRoute = Em.Route.extend(App.RouteError, {
+  errorMassage:Em.I18n.t('udfs.load_error'),
   enter: function() {
     this.controllerFor('pig').set('category',"udfs");
   },

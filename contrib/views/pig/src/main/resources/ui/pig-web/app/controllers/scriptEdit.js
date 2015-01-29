@@ -35,7 +35,7 @@ App.ScriptEditController = Em.ObjectController.extend({
   }.observes('content.title','isRenaming'),
 
   pigParamsMatch:function (controller) {
-    editorContent = this.get('content.pigScript.fileContent');
+    var editorContent = this.get('content.pigScript.fileContent');
     if (editorContent) {
       var match_var = editorContent.match(/\%\w+\%/g);
       if (match_var) {
@@ -64,14 +64,11 @@ App.ScriptEditController = Em.ObjectController.extend({
       var changedAttributes = this.get('content').changedAttributes();
 
       if (opt === 'ask') {
-        this.set('oldTitle',this.get('content.title'));
-        this.set('isRenaming',true);
+        this.setProperties({'oldTitle':this.get('content.title'),'isRenaming':true});
       }
 
       if (opt === 'cancel') {
-        this.set('content.title',this.get('oldTitle'));
-        this.set('oldTitle','');
-        this.set('isRenaming',false);
+        this.setProperties({'content.title':this.get('oldTitle'),'isRenaming':false,'oldTitle':''});
       }
 
       if (opt === this.get('content.title') && !Em.isBlank(this.get('content.title'))) {
@@ -80,8 +77,7 @@ App.ScriptEditController = Em.ObjectController.extend({
             this.send('showAlert', {message:Em.I18n.t('editor.title_updated'),status:'success'});
           }.bind(this));
         }
-        this.set('oldTitle','');
-        this.set('isRenaming',false);
+        this.setProperties({'oldTitle':'','isRenaming':false});
       }
     },
     addArgument:function (arg) {
@@ -90,15 +86,13 @@ App.ScriptEditController = Em.ObjectController.extend({
         return false;
       }
       if (!settled.contains(arg)) {
-        settled.pushObject(arg);
-        this.set('tmpArgument','');
+        this.setProperties({'content.argumentsArray': settled.pushObject(arg) && settled,'tmpArgument':''});
       } else {
         this.send('showAlert', {'message': Em.I18n.t('scripts.alert.arg_present'), status:'info'});
       }
     },
     removeArgument:function (arg) {
-      var removed = this.get('content.argumentsArray').removeObject(arg);
-      this.set('content.argumentsArray',removed);
+      this.set('content.argumentsArray',this.get('content.argumentsArray').removeObject(arg));
     },
     execute: function (script, operation) {
       this.set('isExec',true);
@@ -157,7 +151,7 @@ App.ScriptEditController = Em.ObjectController.extend({
       scriptId:script.get('id'),
 
       /**
-       * Add '-check' argument for syntax check and remove all for explain.
+       * Add '-check' argument for syntax check and remove all arguments for explain.
        * @type {String}
        */
       templetonArguments:(exc)?args:(chk)?(!args.match(/-check/g))?args+(args?"\t":"")+'-check':args:'',

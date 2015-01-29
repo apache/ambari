@@ -18,14 +18,8 @@
 
 var App = require('app');
 
-App.PigHistoryRoute = Em.Route.extend({
-  actions:{
-    error:function (error) {
-      this.controllerFor('pig').set('category',"");
-      var trace = (error.responseJSON)?error.responseJSON.trace:null;
-      this.send('showAlert', {message:Em.I18n.t('history.load_error'),status:'error',trace:trace});
-    }
-  },
+App.PigHistoryRoute = Em.Route.extend(App.RouteError, {
+  errorMassage:Em.I18n.t('history.load_error'),
   enter: function() {
     this.controllerFor('pig').set('category',"history");
   },

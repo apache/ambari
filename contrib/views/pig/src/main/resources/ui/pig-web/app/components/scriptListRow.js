@@ -19,6 +19,9 @@
 var App = require('app');
 
 App.ScriptListRowComponent = Em.Component.extend({
+  layoutName:'components/scriptListRow',
+  jobs:[],
+  script:null,
   tagName:'tr',
   scriptJobs:function () {
     var scriptId = this.get('script.id');

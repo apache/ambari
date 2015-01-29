@@ -32,44 +32,7 @@
     </thead>
     <tbody>
     {{#each paginatedContent}}
-      {{#script-list-row script=this jobs=controller.jobs}}
-        <td class="first">{{#link-to 'script.edit' id}}
-          {{#if isNew}}
-            <div class="spinner-sm"></div>
-          {{/if}}
-          {{#unless isNew}}
-            {{title}}
-          {{/unless}}
-        {{/link-to}}
-        </td>
-        <td>
-          {{#if view.currentJob}}
-            <span class="date">{{showDate view.currentJob.dateStarted 'YYYY-MM-DD HH:mm'}}</span>
-          {{else}}
-            {{t 'scripts.not_run_message'}}
-          {{/if}}
-        </td>
-        <td>
-        {{#if view.currentJob.jobInProgress}}
-          <h4>
-            <span class="label label-warning">{{view.currentJob.status}}</span>
-          </h4>
-        {{/if}}
-        {{#if view.currentJob.jobSuccess}}
-          <i class="fa fa-fw fa-lg fa-check green"></i> {{t 'common.success'}} <small> ({{view.currentJob.durationTime}})</small>
-        {{/if}}
-        {{#if view.currentJob.jobError}}
-          <i class="fa fa-fw fa-lg fa-exclamation red"></i> {{t 'common.error'}}
-        {{/if}}
-        </td>
-        <td>
-          {{#unless isNew}}
-            {{#link-to 'script.history' id}}<i class="fa fa-clock-o"></i> {{t 'common.history'}}{{/link-to}}
-            <a href="#" {{action "copyScript" this}}><i class="fa fa-copy"></i> {{t 'common.copy'}}</a>
-            <a href="#" {{action "deletescript" this}}><i class="fa fa-trash-o"></i> {{t 'common.delete'}}</a>
-          {{/unless}}
-        </td>
-      {{/script-list-row}}
+      {{script-list-row script=this jobs=controller.jobs}}
     {{/each}}
     </tbody>
   </table>

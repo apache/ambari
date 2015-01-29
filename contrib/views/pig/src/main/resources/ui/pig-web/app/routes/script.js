@@ -34,6 +34,19 @@ App.ScriptRoute = Em.Route.extend({
         transition.abort();
         this.send('openModal','confirmAway',transition);
       }
+    },
+    error:function (error) {
+      var msg, trace = (error && error.responseJSON.trace)?error.responseJSON.trace:null;
+      if (error.status = 404) {
+        this.store.all('script').filterBy('isLoaded',false).forEach(function (notLoaded) {
+          notLoaded.unloadRecord();
+        });
+        msg = Em.I18n.t('scripts.not_found');
+      } else {
+        msg = Em.I18n.t('scripts.load_error_single');
+      }
+      this.send('showAlert', {'message': msg, status:'error', trace:trace});
+      this.transitionTo('pig');
     }
   },
   enter:function () {

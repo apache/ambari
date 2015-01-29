@@ -26,7 +26,7 @@ App.ScriptJobRoute = Em.Route.extend({
         if (error && error.responseJSON.trace)
           trace = error.responseJSON.trace;
         transition.send('showAlert', {'message':Em.I18n.t('job.alert.load_error',{message:error.message}), status:'error', trace:trace});
-        this.transitionTo('pig.scripts');
+        this.transitionTo('pig');
       },
       navigate:function (argument) {
         return this.transitionTo(argument.route)

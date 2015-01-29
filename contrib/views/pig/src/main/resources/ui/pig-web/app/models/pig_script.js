@@ -27,18 +27,18 @@ App.Script = DS.Model.extend({
   owner:DS.attr('string'),
   opened:DS.attr('string'),
   // nav item identifier
-  name:function (q){
-    return this.get('title')+this.get('id');
+  name:function (){
+    return this.get('title') + this.get('id');
   }.property('title'),
   label:function (){
     return this.get('title');
   }.property('title'),
 
-  argumentsArray:function (q,w) {
+  argumentsArray:function (key,val) {
     if (arguments.length >1) {
       var oldargs = (this.get('templetonArguments'))?this.get('templetonArguments').w():[];
-      if (w.length != oldargs.length) {
-        this.set('templetonArguments',w.join('\t'));
+      if (val.length != oldargs.length) {
+        this.set('templetonArguments',val.join('\t'));
       }
     }
     var args = this.get('templetonArguments');

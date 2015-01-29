@@ -20,9 +20,7 @@ var App = require('app');
 
 App.PigAlertView = Ember.View.extend({
   alertsView : Ember.CollectionView.extend({
-    content: function () {
-      return this.get('controller.content');
-    }.property('controller.content'),
+    content:Em.computed.alias('controller.content'),
     itemViewClass: Ember.View.extend({
       classNames: ['alert fade in'],
       classNameBindings: ['alertClass'],
@@ -30,21 +28,19 @@ App.PigAlertView = Ember.View.extend({
       dismiss:'alert',
       templateName: 'partials/alert-content',
       didInsertElement:function () {
-        var self = this;
-
-        $(self.get('element')).bind('closed.bs.alert', function (e) {
-          return self.clearAlert();
-        });
+        this.$().bind('closed.bs.alert', function () {
+          return this.clearAlert();
+        }.bind(this));
 
         if (this.get('content.status')!='error') {
-          Ember.run.debounce(self, self.close, 3000);
+          Ember.run.debounce(this, this.close, 3000);
         }
       },
-      close : function (argument) {
-        return $(this.get('element')).alert('close');
+      close : function () {
+        return this.$().alert('close');
       },
       clearAlert:function () {
-        return this.get('controller').send('removeAlertObject',this.content);
+        return this.get('controller').send('removeAlertObject',this.get('content'));
       },
       alertClass: function () {
         var classes = {'success':'alert-success','error':'alert-danger','info':'alert-info'};

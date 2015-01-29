@@ -31,19 +31,31 @@ App.PigRoute = Em.Route.extend({
   },
   actions: {
     gotoSection: function(nav) {
-      var location = (nav.hasOwnProperty('url'))?nav.url:this.routeName;
-      this.transitionTo(location);
+      this.transitionTo((nav.hasOwnProperty('url'))?nav.url:this.routeName);
     },
+    /**
+     * Show alert
+     *
+     *  Alert object example:
+     *
+     *  {
+     *    message: alert message,
+     *    status: alert status (success||error||info),
+     *    trace: alert trace
+     *  }
+     *
+     * @param  {Object} alert
+     * @return {Object}
+     */
     showAlert:function (alert) {
-      var pigAlert = this.controllerFor('pigAlert');
-      return pigAlert.get('content').pushObject(Em.Object.create(alert));
+      return this.controllerFor('pigAlert').get('content').pushObject(Em.Object.create(alert));
     },
-    openModal: function(modal,content) {
-      this.controllerFor(modal).set('model', content);
-      return this.render(['modal',modal].join('/'), {
+    openModal: function(modalName, content) {
+      this.controllerFor(modalName).set('model', content);
+      return this.render(['modal',modalName].join('/'), {
         into: 'pig',
         outlet: 'modal',
-        controller:modal
+        controller: modalName
       });
     },
     removeModal: function() {

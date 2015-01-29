@@ -54,13 +54,15 @@ App.ScriptController = Em.ObjectController.extend({
 
   activeJobs:Em.A(),
   activeJobsIds:Em.computed.mapBy('activeJobs','id'),
+  activeScriptId:Em.computed.alias('controllers.pig.activeScript.id'),
 
   staticTabs:function () {
     return [
-      {label:'Script',name:'script',url:'script.edit',target:this.get('controllers.pig.activeScript.id')},
-      {label:'History',name:'history',url:'script.history',target:this.get('controllers.pig.activeScript.id')}
+      {label:'Script',name:'script',url:'script.edit',target:this.get('activeScriptId')},
+      {label:'History',name:'history',url:'script.history',target:this.get('activeScriptId')}
     ];
-  }.property('controllers.pig.activeScript.id'),
+  }.property('activeScriptId'),
+
 
   jobTabs:function () {
     var jobTabs = [];
@@ -90,7 +92,7 @@ App.ScriptController = Em.ObjectController.extend({
     },
     onPoll: function() {
       this.get('jobs').forEach(function (job) {
-        if (job.get('needsPing')) {
+        if (job.get('jobInProgress')) {
           job.reload();
         } else {
           this.jobs.removeObject(job);
@@ -115,8 +117,8 @@ App.ScriptController = Em.ObjectController.extend({
   }.observes('activeJobs.@each'),
 
   activeJobsWatcher:function () {
-    if (this.get('activeJobs.firstObject.scriptId') != this.get('controllers.pig.activeScript.id')) {
+    if (this.get('activeJobs.firstObject.scriptId') != this.get('controllers.pig.activeScriptId')) {
       this.set('activeJobs',[]);
     }
-  }.observes('controllers.pig.activeScript.id')
+  }.observes('controllers.pig.activeScriptId')
 });

@@ -93,6 +93,7 @@ require('router');
 // mixins
 require("mixins/fileHandler");
 require("mixins/pagination");
+require("mixins/routeError");
 
 //routes
 require("routes/pig");

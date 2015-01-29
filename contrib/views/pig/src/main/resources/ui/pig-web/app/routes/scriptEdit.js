@@ -24,21 +24,9 @@ App.ScriptEditRoute = Em.Route.extend({
   },
   isExec:false,
   model: function(params) {
-    var record;
-    var isExist = this.store.all('script').some(function(script) {
-      return script.get('id') === params.script_id;
-    });
-    if (isExist) {
-      record = this.store.find('script',params.script_id);
-    } else {
-      record = this.store.createRecord('script');
-    }
-    return record;
+    return this.store.find('script',params.script_id);
   },
   afterModel:function  (model) {
-    if (model.get('length') == 0) {
-      this.transitionTo('pig');
-    }
     this.controllerFor('pig').set('activeScriptId', model.get('id'));
   },
   renderTemplate: function() {

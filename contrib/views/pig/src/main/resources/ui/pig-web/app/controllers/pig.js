@@ -60,24 +60,19 @@ App.PigController = Em.ArrayController.extend({
       return script.save().then(onSuccess,onFail);
     },
     copyScript:function (script) {
-      script.get('pigScript').then(function (file) {
-
-        var newScript = this.store.createRecord('script',{
-          title:script.get('title')+' (copy)',
-          templetonArguments:script.get('templetonArguments')
-        });
-
-        newScript.save().then(function (savedScript) {
-          savedScript.get('pigScript').then(function (newFile) {
-            newFile.set('fileContent',file.get('fileContent'));
-            newFile.save().then(function () {
-              this.send('showAlert', {'message':script.get('title') + ' is copied.',status:'success'});
-              if (this.get('activeScript')) {
-                this.send('openModal','gotoCopy',savedScript);
-              }
-            }.bind(this));
-          }.bind(this));
-        }.bind(this));
+      var newScript = this.store.createRecord('script',{
+        title:script.get('title')+' (copy)',
+        templetonArguments:script.get('templetonArguments')
+      });
+      newScript.save().then(function (savedScript) {
+        return Em.RSVP.all([savedScript.get('pigScript'),script.get('pigScript.fileContent')]);
+      }).then(function (data) {
+        return data.objectAt(0).set('fileContent',data.objectAt(1)).save();
+      }).then(function () {
+        this.send('showAlert', {'message':script.get('title') + ' is copied.',status:'success'});
+        if (this.get('activeScript')) {
+          this.send('openModal','gotoCopy',newScript);
+        }
       }.bind(this));
     }
   },
