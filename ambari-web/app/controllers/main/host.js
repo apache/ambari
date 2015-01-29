@@ -482,11 +482,11 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
       iColumn: column,
       value: [
         {
-          property: 'version',
+          property: 'repository_versions/RepositoryVersions/repository_version',
           value: version
         },
         {
-          property: 'state',
+          property: 'HostStackVersions/state',
           value: state.toUpperCase()
         }
       ],

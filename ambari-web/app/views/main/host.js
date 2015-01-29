@@ -1010,12 +1010,13 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
     filterView: filters.componentFieldView.extend({
       templateName: require('templates/main/host/version_filter'),
       selectedVersion: null,
-      selecteStatus: null,
+      selectedStatus: null,
       value: [],
 
       versionSelectView: filters.createSelectView({
         classNames: ['notActive'],
         fieldType: 'filter-input-width',
+        filterPropertyName: 'repository_versions/RepositoryVersions/repository_version',
         content: function () {
           return  [
             {
@@ -1036,6 +1037,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
       statusSelectView: filters.createSelectView({
         classNames: ['notActive'],
         fieldType: 'filter-input-width',
+        filterPropertyName: 'HostStackVersions/state',
         content: function () {
           return [
             {
@@ -1084,6 +1086,18 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
         });
       }
     }),
+    setValue: function (value) {
+      var versionSelectView = this.get('childViews')[0];
+
+      //restore selected options in Select views
+      versionSelectView.get('childViews').forEach(function (view) {
+        var filter = value.findProperty('property', view.get('filterPropertyName'));
+        if (filter && view.get('content').findProperty('value', filter.value)) {
+          view.set('selected', view.get('content').findProperty('value', filter.value));
+        }
+      }, this);
+      this._super(value);
+    },
     onChangeValue: function () {
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'sub-resource');
     },
