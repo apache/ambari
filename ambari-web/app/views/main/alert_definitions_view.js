@@ -53,10 +53,15 @@ App.MainAlertDefinitionsView = App.TableView.extend({
 
   didInsertElement: function () {
     var self = this;
-    this.tooltipsUpdater();
     Em.run.next(function () {
       self.set('isInitialRendering', false);
+      self.tooltipsUpdater();
+      self.addObserver('pageContent.length', self, 'tooltipsUpdater');
     });
+  },
+
+  willDestroyElement: function () {
+    this.removeObserver('pageContent.length', this, 'tooltipsUpdater');
   },
 
   /**
@@ -401,27 +406,30 @@ App.MainAlertDefinitionsView = App.TableView.extend({
      * @method updateContent
      */
     updateContent: function() {
-      var alertGroups = App.AlertGroup.find().map(function (group) {
-        return Em.Object.create({
+      var defaultGroups = [];
+      var customGroups = [];
+      App.AlertGroup.find().forEach(function (group) {
+        var item = Em.Object.create({
           value: group.get('id'),
-          label: group.get('displayNameDefinitions'),
-          default: group.get('default')
+          label: group.get('displayNameDefinitions')
         });
+        if (group.get('default')) {
+          defaultGroups.push(item);
+        } else {
+          customGroups.push(item);
+        }
       });
-      var defaultGroups = alertGroups.filterProperty('default');
-      defaultGroups.forEach(function(defaultGroup) {
-        alertGroups.removeObject(defaultGroup);
-      });
-      var sortedGroups = defaultGroups.sortProperty('label').concat(alertGroups.sortProperty('label'));
+      defaultGroups = defaultGroups.sortProperty('label');
+      customGroups = customGroups.sortProperty('label');
 
       this.set('content', [
         Em.Object.create({
           value: '',
           label: Em.I18n.t('common.all') + ' (' + this.get('parentView.controller.content.length') + ')'
         })
-      ].concat(sortedGroups));
+      ].concat(defaultGroups, customGroups));
       this.onValueChange();
-    }.observes('App.router.clusterController.isLoaded', 'controller.mapperTimestamp'),
+    }.observes('App.router.clusterController.isLoaded', 'App.router.manageAlertGroupsController.changeTrigger'),
 
     selectCategory: function (event) {
       var category = event.context;
@@ -503,7 +511,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
     Em.run.next(this, function () {
       App.tooltip($(".enable-disable-button, .timeago"));
     });
-  }.observes('pageContent.@each.enabled', 'pageContent.@each.lastTriggeredFormatted'),
+  },
 
   updateFilter: function (iColumn, value, type) {
     if (!this.get('isInitialRendering')) {

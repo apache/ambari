@@ -31,6 +31,12 @@ App.ManageAlertGroupsController = Em.Controller.extend({
   isLoaded: false,
 
   /**
+   * Property used to trigger Alert Groups Filter content updating
+   * @type {Boolean}
+   */
+  changeTrigger: false,
+
+  /**
    * @type {App.AlertGroup[]}
    */
   alertGroups: [],
