@@ -604,6 +604,9 @@ App.ServiceConfigProperty = Em.Object.extend({
         var rangerAdminHost = masterComponentHostsInDB.findProperty('component', 'RANGER_ADMIN');
         if(rangerAdminHost) {
           this.set('value', rangerAdminHost.hostName);
+        } else {
+          this.set('isVisible', 'false');
+          this.set('isRequired', 'false');
         }
         break;
     }
