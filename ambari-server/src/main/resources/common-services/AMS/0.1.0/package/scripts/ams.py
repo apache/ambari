@@ -22,6 +22,7 @@ from resource_management import *
 from ambari_commons import OSConst
 from service_mapping import *
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_commons.str_utils import compress_backslashes
 import glob
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
@@ -81,8 +82,11 @@ def ams(name=None):
     ]
     for link_pair in links_pairs:
       link, target = link_pair
-      target = glob.glob(os.path.expandvars(target))[0].replace("\\\\", "\\")
-      Execute('cmd /c mklink "{0}" "{1}"'.format(link, target))
+      real_link = os.path.expandvars(link)
+      target = compress_backslashes(glob.glob(os.path.expandvars(target))[0])
+      if not os.path.exists(real_link):
+        #TODO check the symlink destination too. Broken in Python 2.x on Windows.
+        Execute('cmd /c mklink "{0}" "{1}"'.format(real_link, target))
 
     Directory(params.ams_monitor_conf_dir,
               owner=params.ams_user,

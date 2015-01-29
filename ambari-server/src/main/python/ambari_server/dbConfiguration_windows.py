@@ -65,10 +65,9 @@ class SQLServerConfig(DBMSConfig):
     self.JDBC_DRIVER_INSTALL_MSG = 'Before starting Ambari Server, you must install the SQL Server JDBC driver.'
 
     # The values from options supersede the values from properties
-    self.database_host = options.database_host if options.database_host is not None and options.database_host is not "" else \
-        properties.get_property(self.dbPropKeys.server_key)
+    self.database_host = DBMSConfig._init_member_with_prop_default(options, "database_host", properties, self.dbPropKeys.server_key, "")
     try:
-      if self.database_host is None or self.database_host is "":
+      if not self.database_host:
         self.database_host = options.default_database_host
       else:
         self.database_host = compress_backslashes(self.database_host)
@@ -81,11 +80,10 @@ class SQLServerConfig(DBMSConfig):
                                                                    properties, self.dbPropKeys.db_name_key, configDefaults.DEFAULT_DB_NAME)
 
     self.use_windows_authentication = DBMSConfig._init_member_with_prop_default(options, "database_windows_auth",
-        properties, self.dbAuthKeys.integrated_auth_key, False)
+        properties, self.dbAuthKeys.integrated_auth_key, "False")
     self.database_username = DBMSConfig._init_member_with_prop_default(options, "database_username",
                                                                        properties, self.dbAuthKeys.user_name_key, DEFAULT_USERNAME)
-    self.database_password = options.database_password if options.database_password is not None and options.database_password is not "" \
-      else ""
+    self.database_password = DBMSConfig._init_member_with_default(options, "database_password", "")
     if not self.database_password:
       self.database_password = DBMSConfig._read_password_from_properties(properties)
 

@@ -26,6 +26,7 @@ from status import check_service_status
 class AmsMonitor(Script):
   def install(self, env):
     self.install_packages(env)
+    self.configure(env) # for security
 
   def configure(self, env):
     import params
@@ -33,8 +34,6 @@ class AmsMonitor(Script):
     ams(name='monitor')
 
   def start(self, env):
-    import params
-    env.set_params(params)
     self.configure(env) # for security
 
     ams_service( 'monitor',

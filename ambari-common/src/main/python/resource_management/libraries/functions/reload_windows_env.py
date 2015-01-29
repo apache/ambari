@@ -29,9 +29,9 @@ default_whitelist = ["FALCON_CONF_DIR", "FALCON_DATA_DIR", "FALCON_HOME", "FALCO
                      "HDFS_AUDIT_LOGGER", "HDFS_DATA_DIR", "HIVE_CONF_DIR", "HIVE_HOME", "HIVE_LIB_DIR", "HIVE_LOG_DIR",
                      "HIVE_OPTS", "KNOX_CONF_DIR", "KNOX_HOME", "KNOX_LOG_DIR", "MAHOUT_HOME", "OOZIE_DATA",
                      "OOZIE_HOME", "OOZIE_LOG", "OOZIE_ROOT", "PIG_HOME", "SQOOP_HOME", "STORM_CONF_DIR", "STORM_HOME",
-                     "STORM_LOG_DIR", "WEBHCAT_CONF_DIR", "YARN_LOG_DIR", "ZOOKEEPER_CONF_DIR", "ZOOKEEPER_HOME",
-                     "ZOOKEEPER_LIB_DIR", "ZOO_LOG_DIR", "COLLECTOR_CONF_DIR", "COLLECTOR_HOME", "MONITOR_CONF_DIR",
-                     "MONITOR_HOME", "SINK_HOME"]
+                     "STORM_LOG_DIR", "TEZ_HOME", "WEBHCAT_CONF_DIR", "YARN_LOG_DIR", "ZOOKEEPER_CONF_DIR",
+                     "ZOOKEEPER_HOME", "ZOOKEEPER_LIB_DIR", "ZOO_LOG_DIR", "COLLECTOR_CONF_DIR", "COLLECTOR_HOME",
+                     "MONITOR_CONF_DIR", "MONITOR_HOME", "SINK_HOME"]
 def reload_windows_env(keys_white_list=default_whitelist):
   root = HKEY_LOCAL_MACHINE
   subkey = r'SYSTEM\CurrentControlSet\Control\Session Manager\Environment'

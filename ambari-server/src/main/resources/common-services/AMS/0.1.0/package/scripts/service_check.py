@@ -22,21 +22,45 @@ from resource_management.core.logger import Logger
 from resource_management.core.base import Fail
 from resource_management import Script
 from resource_management import Template
+
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+
 import httplib
 import urllib
 import json
+import os
 import random
 import time
 import socket
 
 
 class AMSServiceCheck(Script):
-
   AMS_METRICS_POST_URL = "/ws/v1/timeline/metrics/"
   AMS_METRICS_GET_URL = "/ws/v1/timeline/metrics?%s"
   AMS_CONNECT_TRIES = 3
   AMS_CONNECT_TIMEOUT = 10
 
+  @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+  def service_check(self, env):
+    from resource_management.libraries.functions.windows_service_utils import check_windows_service_exists
+    from service_mapping import collector_win_service_name, monitor_win_service_name
+    import params
+
+    env.set_params(params)
+
+    #Just check that the services were correctly installed
+    #Check the monitor on all hosts
+    Logger.info("AMS Monitor service check was started.")
+    if not check_windows_service_exists(monitor_win_service_name):
+      raise Fail("AMS Monitor service was not properly installed. Check the logs and retry the installation.")
+    #Check the collector only where installed
+    if params.ams_collector_home_dir and os.path.isdir(params.ams_collector_home_dir):
+      Logger.info("AMS Collector service check was started.")
+      if not check_windows_service_exists(collector_win_service_name):
+        raise Fail("AMS Collector service was not properly installed. Check the logs and retry the installation.")
+
+  @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
   def service_check(self, env):
     import params
 
@@ -51,7 +75,7 @@ class AMSServiceCheck(Script):
 
     headers = {"Content-type": "application/json"}
 
-    for i in xrange(1,self.AMS_CONNECT_TRIES):
+    for i in xrange(0, self.AMS_CONNECT_TRIES):
       try:
         Logger.info("Connecting (POST) to %s:%s%s" % (params.ams_collector_host_single,
                                                       params.metric_collector_port,
@@ -61,13 +85,13 @@ class AMSServiceCheck(Script):
         conn.request("POST", self.AMS_METRICS_POST_URL, metric_json, headers)
         break
       except (httplib.HTTPException, socket.error) as ex:
-        if i < self.AMS_CONNECT_TRIES:
-          time.sleep(self.AMS_CONNECT_TIMEOUT)
-          Logger.info("Connection failed. Next retry in %s seconds."
-                      % (self.AMS_CONNECT_TIMEOUT))
-        else:
-          Fail("AMS metrics were not saved. Service check has failed. "
-               "\nConnection failed.")
+        time.sleep(self.AMS_CONNECT_TIMEOUT)
+        Logger.info("Connection failed. Next retry in %s seconds."
+                    % (self.AMS_CONNECT_TIMEOUT))
+
+    if i == self.AMS_CONNECT_TRIES:
+      raise Fail("AMS metrics were not saved. Service check has failed. "
+           "\nConnection failed.")
 
     response = conn.getresponse()
     Logger.info("Http response: %s %s" % (response.status, response.reason))

@@ -144,7 +144,7 @@ def _is_msi_installed():
 # check if msi was installed correctly and raise Fail in case of broken install
 def _validate_msi_install():
   if not _is_msi_installed() and os.path.exists(os.path.join(_working_dir, INSTALL_MARKER_FAILED)):
-    Fail("Current or previous hdp.msi install failed. Check hdp.msi install logs")
+    raise Fail("Current or previous hdp.msi install failed. Check hdp.msi install logs")
   return _is_msi_installed()
 
 
