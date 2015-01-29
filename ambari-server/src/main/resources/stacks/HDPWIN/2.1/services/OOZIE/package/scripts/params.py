@@ -29,5 +29,6 @@ oozie_root = os.environ['OOZIE_ROOT']
 oozie_home = os.environ['OOZIE_HOME']
 oozie_conf_dir = os.path.join(oozie_home,'conf')
 oozie_user = "hadoop"
+oozie_tmp_dir = "c:\\hadoop\\temp\\oozie"
 
 oozie_env_cmd_template = config['configurations']['oozie-env']['content']

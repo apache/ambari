@@ -51,6 +51,8 @@ class OozieServer(Script):
     import params
     env.set_params(params)
     self.configure(env)
+    cmd =  format("cmd /C \"cd /d {oozie_tmp_dir} && {oozie_home}\\bin\\ooziedb.cmd create -sqlfile oozie.sql -run\"")
+    Execute( cmd, user = params.oozie_user, ignore_failures = True )
     Service(service_mapping.oozie_server_win_service_name, action="start")
 
   def stop(self, env):

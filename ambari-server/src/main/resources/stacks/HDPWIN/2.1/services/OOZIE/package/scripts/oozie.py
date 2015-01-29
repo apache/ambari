@@ -36,3 +36,8 @@ def oozie():
     owner=params.oozie_user,
     content=InlineTemplate(params.oozie_env_cmd_template)
   )
+
+  Directory( params.oozie_tmp_dir,
+    owner = params.oozie_user,
+    recursive = True,
+  )
