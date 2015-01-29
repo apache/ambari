@@ -73,7 +73,7 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('User', 'hdfs',
         gid = 'hadoop',
         ignore_failures = False,
-        groups = [u'hadoop'],
+        groups = [u' hdfs'],
     )
     self.assertResourceCalled('User', 'storm',
         gid = 'hadoop',

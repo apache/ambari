@@ -152,6 +152,7 @@ has_oozie_server = not len(oozie_servers) == 0
 hbase_tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
 
 proxyuser_group = default("/configurations/hadoop-env/proxyuser_group","users")
+dfs_cluster_administrators_group = config['configurations']['hdfs-site']["dfs.cluster.administrators"]
 
 ignore_groupsusers_create = default("/configurations/cluster-env/ignore_groupsusers_create", False)
 
@@ -171,6 +172,8 @@ if has_tez:
   user_to_groups_dict[tez_user] = [proxyuser_group]
 if has_oozie_server:
   user_to_groups_dict[oozie_user] = [proxyuser_group]
+if has_namenode:
+  user_to_groups_dict[hdfs_user] = [dfs_cluster_administrators_group]
 
 user_to_gid_dict = collections.defaultdict(lambda:user_group)
 

@@ -326,7 +326,8 @@
 
   <property>
     <name>dfs.cluster.administrators</name>
-    <value> hdfs</value>
+    <value>hdfs</value>
+    <property-type>GROUP</property-type>
     <description>ACL for who all can view the default servlets in the HDFS</description>
   </property>
 
