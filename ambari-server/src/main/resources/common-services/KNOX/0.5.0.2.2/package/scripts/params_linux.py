@@ -29,6 +29,8 @@ knox_master_secret_path = '/var/lib/knox/data/security/master'
 knox_cert_store_path = '/var/lib/knox/data/security/keystores/gateway.jks'
 
 knox_user = default("/configurations/knox-env/knox_user", "knox")
+stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
   knox_bin = '/usr/hdp/current/knox-server/bin/gateway.sh'
   ldap_bin = '/usr/hdp/current/knox-server/bin/ldap.sh'
