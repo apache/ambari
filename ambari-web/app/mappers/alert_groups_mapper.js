@@ -38,27 +38,12 @@ App.alertGroupsMapper = App.QuickDataMapper.create({
     }
   },
 
-  /**
-   * Map for alertGroup's alertDefinitions
-   * Store alertDefinitions to alertGroup-properties basing on alertDefinitionType
-   * Format: key - alertDefinitionType, value - alertGroup-property where alertDefinition should be saved
-   * @type {object}
-   */
-  typesMap: {
-    PORT: 'port_alert_definitions',
-    METRIC: 'metrics_alert_definitions',
-    WEB: 'web_alert_definitions',
-    AGGREGATE: 'aggregate_alert_definitions',
-    SCRIPT: 'script_alert_definitions'
-  },
-
   map: function (json) {
     if (!Em.isNone(json, 'items')) {
 
       var alertGroups = [],
         self = this,
         groupsToDelete = App.AlertGroup.find().mapProperty('id'),
-        typesMap = this.get('typesMap'),
         /**
          * AlertGroups-map for <code>App.AlertDefinitionsMappers</code>
          * Format:
@@ -77,15 +62,12 @@ App.alertGroupsMapper = App.QuickDataMapper.create({
       json.items.forEach(function(item) {
         var group = self.parseIt(item, self.get('config'));
         groupsToDelete = groupsToDelete.without(group.id);
-        Em.keys(typesMap).forEach(function(k) {
-          group[typesMap[k]] = [];
-        });
         group.targets = [];
+        group.definitions = [];
         if (item.AlertGroup.definitions) {
           item.AlertGroup.definitions.forEach(function(definition) {
-            var type = typesMap[definition.source_type];
-            if (!group[type].contains(definition.id)) {
-              group[type].push(definition.id);
+            if (!group.definitions.contains(definition.id)) {
+              group.definitions.push(definition.id);
             }
             if (Em.isNone(alertDefinitionsGroupsMap[definition.id])) {
               alertDefinitionsGroupsMap[definition.id] = [];

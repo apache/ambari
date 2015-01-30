@@ -44,7 +44,7 @@ App.AlertGroup = DS.Model.extend({
   /**
    * @type {App.AlertDefinition[]}
    */
-  definitions: App.AlertDefinition.find(),
+  definitions: DS.hasMany('App.AlertDefinition'),
 
   /**
    * @type {App.AlertNotification[]}

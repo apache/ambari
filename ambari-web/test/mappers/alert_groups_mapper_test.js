@@ -113,22 +113,14 @@ describe('App.alertGroupsMapper', function () {
           id: 3,
           name: 'ZOOKEEPER',
           default: true,
-          port_alert_definitions: [8],
-          metrics_alert_definitions: [],
-          web_alert_definitions: [],
-          aggregate_alert_definitions: [9],
-          script_alert_definitions: [],
+          definitions: [8,9],
           targets: [1, 2]
         },
         {
           id: 2,
           name: 'YARN',
           default: true,
-          port_alert_definitions: [],
-          metrics_alert_definitions: [1, 5],
-          web_alert_definitions: [2, 3, 7],
-          aggregate_alert_definitions: [4],
-          script_alert_definitions: [6],
+          definitions: [1, 2, 3, 4, 5, 6, 7],
           targets: [2, 3]
         }
       ];
