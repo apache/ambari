@@ -569,7 +569,7 @@ App.MainServiceItemController = Em.Controller.extend({
    */
   addComponent: function (componentName) {
     var self = this;
-    var component = App.HostComponent.find().findProperty('componentName', componentName);
+    var component = App.StackServiceComponent.find().findProperty('componentName', componentName);
     var componentDisplayName = component.get('displayName');
 
     self.loadHostsWithoutComponent(componentName);

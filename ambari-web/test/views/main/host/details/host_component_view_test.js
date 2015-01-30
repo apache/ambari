@@ -223,18 +223,56 @@ describe('App.HostComponentView', function() {
 
   describe('#isDeleteComponentDisabled', function() {
 
+    beforeEach(function() {
+      sinon.stub(hostComponentView, 'componentCounter', function() {
+        return 1;
+      });
+      sinon.stub(App.StackServiceComponent, 'find', function(component) {
+        var min = component == 'comp0' ? 0 : 1;
+        return Em.Object.create({minToInstall: min});
+      });
+    });
+    afterEach(function() {
+      hostComponentView.componentCounter.restore();
+      App.StackServiceComponent.find.restore();
+    });
+
     var tests = ['INSTALLED', 'UNKNOWN', 'INSTALL_FAILED', 'UPGRADE_FAILED', 'INIT'];
     var testE = false;
     var defaultE = true;
 
     App.HostComponentStatus.getStatusesList().forEach(function(status) {
       it(status, function() {
+        App.store.load(App.StackServiceComponent, {
+          id: 1,
+          component_name: 'comp0'
+        });
+        hostComponentView.get('hostComponent').set('componentName', 'comp0');
         hostComponentView.get('hostComponent').set('workStatus', status);
         var e = tests.contains(status) ? testE : defaultE;
         expect(hostComponentView.get('isDeleteComponentDisabled')).to.equal(e);
       });
     });
 
+    it('delete is disabled because min cardinality 1', function() {
+      App.store.load(App.StackServiceComponent, {
+        id: 2,
+        component_name: 'comp1'
+      });
+      hostComponentView.get('hostComponent').set('componentName', 'comp1');
+      hostComponentView.get('hostComponent').set('workStatus', 'INSTALLED');
+      expect(hostComponentView.get('isDeleteComponentDisabled')).to.equal(true);
+    });
+
+    it('delete is enabled because min cardinality 0', function() {
+      App.store.load(App.StackServiceComponent, {
+        id: 2,
+        component_name: 'comp0'
+      });
+      hostComponentView.get('hostComponent').set('componentName', 'comp0');
+      hostComponentView.get('hostComponent').set('workStatus', 'INSTALLED');
+      expect(hostComponentView.get('isDeleteComponentDisabled')).to.equal(false);
+    });
   });
 
   describe('#componentTextStatus', function() {
