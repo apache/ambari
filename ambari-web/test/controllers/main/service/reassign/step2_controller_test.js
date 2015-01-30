@@ -190,34 +190,33 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
 
     var testCases = [
       {
-        title: 'selectedHost = currentHostId and component_name = content.reassign.component_name',
+        title: 'selectedHost = currentHostId',
         arguments: {
-          selectedHost: 'host1',
-          reassignComponentName: 'COMP1'
+          selectedHost: 'host1'
         },
-        result: 'host3'
+        result: {
+          selectedHost: 'host3',
+          availableHosts: ['host2', 'host3']
+        }
       },
       {
-        title: 'selectedHost not equal to currentHostId and component_name = content.reassign.component_name',
+        title: 'selectedHost not equal to currentHostId',
         arguments: {
+          selectedHost: 'host2'
+        },
+        result: {
           selectedHost: 'host2',
-          reassignComponentName: 'COMP1'
-        },
-        result: 'host2'
-      },
-      {
-        title: 'selectedHost = currentHostId and component_name not equal to content.reassign.component_name',
-        arguments: {
-          selectedHost: 'host1',
-          reassignComponentName: 'COMP2'
-        },
-        result: 'host1'
+          availableHosts: ['host3']
+        }
       }
     ];
 
     testCases.forEach(function (test) {
       it(test.title, function () {
         controller.set('hosts', [
+          Em.Object.create({
+            host_name: 'host1'
+          }),
           Em.Object.create({
             host_name: 'host3'
           }),
@@ -226,15 +225,14 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
           })
         ]);
         controller.set('currentHostId', 'host1');
-        controller.set('content.reassign.component_name', test.arguments.reassignComponentName);
         controller.set('selectedServicesMasters', [Em.Object.create({
           component_name: 'COMP1',
           selectedHost: test.arguments.selectedHost
         })]);
 
         expect(controller.rebalanceSingleComponentHosts('COMP1')).to.be.true;
-        expect(controller.get('selectedServicesMasters')[0].get('selectedHost')).to.equal(test.result);
-        expect(controller.get('selectedServicesMasters')[0].get('availableHosts').mapProperty('host_name')).to.eql(['host2', 'host3']);
+        expect(controller.get('selectedServicesMasters')[0].get('selectedHost')).to.equal(test.result.selectedHost);
+        expect(controller.get('selectedServicesMasters')[0].get('availableHosts').mapProperty('host_name')).to.eql(test.result.availableHosts);
       });
     });
   });

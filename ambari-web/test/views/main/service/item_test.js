@@ -106,8 +106,8 @@ describe('App.MainServiceItemView', function () {
           result: [
             {"action": "restartAllHostComponents", "context": "HDFS", "label": "Restart All", "cssClass": "icon-repeat", "disabled": false},
             {"action": "rollingRestart", "label": "Restart DataNodes", "cssClass": "icon-time", "disabled": false, "context": "DATANODE"},
-            {"action": "reassignMaster", "context": "NAMENODE", "label": "Move NameNode", "cssClass": "icon-share-alt", "disabled": true},
-            {"action": "reassignMaster", "context": "SECONDARY_NAMENODE", "label": "Move SNameNode", "cssClass": "icon-share-alt", "disabled": true},
+            {"action": "reassignMaster", "context": "NAMENODE", "label": "Move NameNode", "cssClass": "icon-share-alt", "disabled": false},
+            {"action": "reassignMaster", "context": "SECONDARY_NAMENODE", "label": "Move SNameNode", "cssClass": "icon-share-alt", "disabled": false},
             {"action": "enableHighAvailability", "label": "Enable NameNode HA", "cssClass": "icon-arrow-up", "isHidden": false, "disabled": true},
             {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt"},
             {"action": "turnOnOffPassive", "context": "Turn On Maintenance Mode for HDFS", "label": "Turn On Maintenance Mode", "cssClass": "icon-medkit", "disabled": false},
@@ -366,6 +366,31 @@ describe('App.MainServiceItemView', function () {
         }
       });
 
+      sinon.stub(App.HostComponent, 'find', function () {
+        return [
+          Em.Object.create({
+            hostName: 'host1',
+            componentName: 'NAMENODE'
+          }),
+          Em.Object.create({
+            hostName: 'host1',
+            componentName: 'SECONDARY_NAMENODE'
+          }),
+          Em.Object.create({
+            hostName: 'host1',
+            componentName: 'APP_TIMELINE_SERVER'
+          }),
+          Em.Object.create({
+            hostName: 'host1',
+            componentName: 'RESOURCEMANAGER'
+          }),
+          Em.Object.create({
+            hostName: 'host1',
+            componentName: 'OOZIE_SERVER'
+          })
+        ];
+      });
+
       sinon.stub(App.StackServiceComponent, 'find', function () {
         switch (arguments[0]) {
           case 'NAMENODE':
@@ -400,6 +425,7 @@ describe('App.MainServiceItemView', function () {
 
     afterEach(function () {
       App.get.restore();
+      App.HostComponent.find.restore();
       App.StackServiceComponent.find.restore();
     });
 

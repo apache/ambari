@@ -103,8 +103,7 @@ App.MainServiceItemView = Em.View.extend({
         action: 'reassignMaster',
         context: '',
         label: Em.I18n.t('services.service.actions.reassign.master'),
-        cssClass: 'icon-share-alt',
-        disabled: App.get('isSingleNode')
+        cssClass: 'icon-share-alt'
       },
       STARTDEMOLDAP: {
         action: 'startLdapKnox',
@@ -238,7 +237,8 @@ App.MainServiceItemView = Em.View.extend({
       }).forEach(function(master) {
         options.push(self.createOption(actionMap.MOVE_COMPONENT, {
           context: master,
-          label: actionMap.MOVE_COMPONENT.label.format(App.format.role(master))
+          label: actionMap.MOVE_COMPONENT.label.format(App.format.role(master)),
+          disabled: App.allHostNames.length === App.HostComponent.find().filterProperty('componentName', master).mapProperty('hostName').length
         }));
       });
       if (service.get('serviceTypes').contains('HA_MODE')) {

@@ -193,6 +193,14 @@ App.HostComponentView = Em.View.extend({
   }.property('content'),
 
   /**
+   * Host component with some <code>workStatus</code> can't be moved (so, disable such action in the dropdown list)
+   * @type {bool}
+   */
+  isMoveComponentDisabled: function () {
+    return App.allHostNames.length === App.HostComponent.find().filterProperty('componentName', this.get('content.componentName')).mapProperty('hostName').length;
+  }.property('content'),
+
+  /**
    * Host component with some <code>workStatus</code> can't be deleted (so, disable such action in the dropdown list)
    * @type {bool}
    */

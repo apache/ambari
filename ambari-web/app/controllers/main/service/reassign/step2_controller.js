@@ -88,16 +88,16 @@ App.ReassignMasterWizardStep2Controller = App.WizardStep5Controller.extend({
       availableComponentHosts = [];
 
     this.get("hosts").forEach(function (item) {
-      if (this.get('currentHostId') !== item.get('host_name')) {
+      if ( (this.get('currentHostId') !== item.get('host_name')) && !(currentComponents.mapProperty("selectedHost").contains(item.get('host_name')))) {
         availableComponentHosts.pushObject(item);
       }
     }, this);
 
     if (availableComponentHosts.length > 0) {
-      currentComponents.forEach(function (item) {
-        var preparedAvailableHosts = availableComponentHosts.slice(0);
+      var preparedAvailableHosts = availableComponentHosts.slice(0);
 
-        if (item.get('selectedHost') === this.get('currentHostId') && item.get('component_name') === this.get('content.reassign.component_name')) {
+      currentComponents.forEach(function (item) {
+        if (item.get('selectedHost') === this.get('currentHostId') && item.get('component_name') === componentName) {
           item.set('selectedHost', preparedAvailableHosts.objectAt(0).host_name);
         }
         item.set("availableHosts", preparedAvailableHosts.sortProperty('host_name'));
