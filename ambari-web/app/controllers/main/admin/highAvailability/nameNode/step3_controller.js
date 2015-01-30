@@ -28,6 +28,14 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
   isLoaded: false,
   versionLoaded: true,
 
+  /**
+   * Map of sites and properties to delete
+   * @type Object
+   */
+  configsToRemove: {
+    'hdfs-site': ['dfs.namenode.secondary.http-address']
+  },
+
   clearStep: function () {
     this.get('stepConfigs').clear();
     this.serverConfigData = {};
@@ -75,6 +83,7 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
 
   onLoadConfigs: function (data) {
     this.set('serverConfigData',data);
+    this.removeConfigs(this.get('configsToRemove'));
     this.tweakServiceConfigs(this.get('haConfig.configs'));
     this.renderServiceConfigs(this.get('haConfig'));
     this.set('isLoaded', true);
@@ -132,6 +141,24 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
      var value = this.get('serverConfigData.items').findProperty('type', 'hdfs-site').properties['dfs.journalnode.edits.dir'];
      this.setConfigInitialValue(config, value);
     }
+  },
+
+  /**
+   * Find and remove config properties in <code>serverConfigData</code>
+   * @param configsToRemove - map of config sites and properties to remove
+   * @returns {Object}
+   */
+  removeConfigs:function (configsToRemove) {
+    var configs = this.get('serverConfigData');
+    Em.keys(configsToRemove).forEach(function(site){
+      var siteConfigs = configs.items.findProperty('type', site);
+      if (siteConfigs) {
+        configsToRemove[site].forEach(function (property) {
+          delete siteConfigs.properties[property];
+        });
+      }
+    });
+    return configs;
   },
 
   setConfigInitialValue: function(config,value) {
