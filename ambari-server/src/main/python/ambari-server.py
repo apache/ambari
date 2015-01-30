@@ -223,8 +223,8 @@ def setup_security(args):
     print '  [{0}] {1}'.format(iAction, actionDesc[0])
   print '=' * 75
 
-  choice_prompt = 'Enter choice, (1-[0]): '.format(iAction)
-  choice_re = '1-{0}'.format(iAction)
+  choice_prompt = 'Enter choice, (1-{0}): '.format(iAction)
+  choice_re = '[1-{0}]'.format(iAction)
   choice = get_validated_string_input(choice_prompt, '0', choice_re,
                                       'Invalid choice', False, False)
 
