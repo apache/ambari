@@ -24,6 +24,41 @@ describe('App.UpgradeVersionBoxView', function () {
   var view = App.UpgradeVersionBoxView.create({
     controller: Em.Object.create({
       upgrade: Em.K
-    })
+    }),
+    content: Em.K
+  });
+
+  describe("#isUpgrading", function () {
+    afterEach(function () {
+      App.set('upgradeState', 'INIT');
+    });
+    it("wrong version", function () {
+      App.set('upgradeState', 'IN_PROGRESS');
+      view.set('controller.upgradeVersion', 'HDP-2.2.1');
+      view.set('content.displayName', 'HDP-2.2.2');
+      view.propertyDidChange('isUpgrading');
+      expect(view.get('isUpgrading')).to.be.false;
+    });
+    it("correct version", function () {
+      App.set('upgradeState', 'IN_PROGRESS');
+      view.set('controller.upgradeVersion', 'HDP-2.2.2');
+      view.set('content.displayName', 'HDP-2.2.2');
+      view.propertyDidChange('isUpgrading');
+      expect(view.get('isUpgrading')).to.be.true;
+    });
+    it("upgradeState INIT", function () {
+      App.set('upgradeState', 'INIT');
+      view.set('controller.upgradeVersion', 'HDP-2.2.2');
+      view.set('content.displayName', 'HDP-2.2.2');
+      view.propertyDidChange('isUpgrading');
+      expect(view.get('isUpgrading')).to.be.false;
+    });
+    it("upgradeState INIT and wrong version", function () {
+      App.set('upgradeState', 'INIT');
+      view.set('controller.upgradeVersion', 'HDP-2.2.2');
+      view.set('content.displayName', 'HDP-2.2.1');
+      view.propertyDidChange('isUpgrading');
+      expect(view.get('isUpgrading')).to.be.false;
+    });
   });
 });

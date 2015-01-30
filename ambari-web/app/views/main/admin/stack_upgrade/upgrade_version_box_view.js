@@ -42,6 +42,14 @@ App.UpgradeVersionBoxView = Em.View.extend({
   }.property('App.router.backgroundOperationsController.services.@each.progress'),
 
   /**
+   * version is upgrading
+   * @type {boolean}
+   */
+  isUpgrading: function () {
+    return (this.get('controller.upgradeVersion') === this.get('content.displayName') && App.get('upgradeState') !== 'INIT');
+  }.property('App.upgradeState', 'content.displayName', 'controller.upgradeVersion'),
+
+  /**
    * @type {string}
    */
   versionClass: function () {
@@ -85,6 +93,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
   /**
    * object that describes how content should be displayed
    * @type {Em.Object}
+   * TODO remove <code>isUpgrading</code> condition when transition of version states in API fixed
    */
   stateElement: function () {
     var currentVersion = this.get('controller.currentVersion');
@@ -110,7 +119,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       element.set('isLink', true);
       element.set('text', Em.I18n.t('hosts.host.stackVersions.status.installing'));
       element.set('action', 'showProgressPopup');
-    } else if (status === 'INSTALLED') {
+    } else if (status === 'INSTALLED' && !this.get('isUpgrading')) {
       if (stringUtils.compareVersions(this.get('content.repositoryVersion'), currentVersion.repository_version) === 1) {
         element.set('isButton', true);
         element.set('text', Em.I18n.t('admin.stackVersions.version.performUpgrade'));
@@ -121,7 +130,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
         element.set('text', Em.I18n.t('common.installed'));
         element.set('action', null);
       }
-    } else if (['UPGRADING', 'UPGRADE_FAILED', 'UPGRADED'].contains(status)) {
+    } else if (['UPGRADING', 'UPGRADE_FAILED', 'UPGRADED'].contains(status) || this.get('isUpgrading')) {
       element.set('isLink', true);
       element.set('action', 'openUpgradeDialog');
       if (['HOLDING', 'HOLDING_FAILED', 'HOLDING_TIMEDOUT'].contains(App.get('upgradeState'))) {
@@ -141,7 +150,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       }
     }
     return element;
-  }.property('content.status', 'controller.isDowngrade'),
+  }.property('content.status', 'controller.isDowngrade', 'isUpgrading'),
 
   didInsertElement: function () {
     App.tooltip($('.link-tooltip'), {title: Em.I18n.t('admin.stackVersions.version.linkTooltip')});
