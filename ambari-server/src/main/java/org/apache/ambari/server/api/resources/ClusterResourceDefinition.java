@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.api.resources;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -75,4 +76,13 @@ public class ClusterResourceDefinition extends BaseStacksResourceDefinition {
 
     return setChildren;
   }
+
+  @Override
+  public Collection<String> getUpdateDirectives() {
+    Collection<String> directives = super.getUpdateDirectives();
+    directives.add("regenerate_keytabs");
+
+    return directives;
+  }
+
 }

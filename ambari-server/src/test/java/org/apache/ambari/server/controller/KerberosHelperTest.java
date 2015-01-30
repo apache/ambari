@@ -109,7 +109,7 @@ import static org.powermock.api.easymock.PowerMock.verifyAll;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(KerberosDescriptor.class)
-@PowerMockIgnore({"javax.crypto.*" })
+@PowerMockIgnore({"javax.crypto.*"})
 @SuppressWarnings("unchecked")
 public class KerberosHelperTest {
 
@@ -307,6 +307,35 @@ public class KerberosHelperTest {
       Assert.assertTrue(e.getMessage().startsWith("Invalid KDC administrator credentials"));
       throw e;
     }
+  }
+
+  @Test
+  public void testExecuteCustomOperationsInvalidOperation() throws Exception {
+    KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
+    final Cluster cluster = createNiceMock(Cluster.class);
+
+    try {
+      kerberosHelper.executeCustomOperations(cluster, createNiceMock(KerberosDescriptor.class),
+          Collections.singletonMap("invalid_operation", "false"), null);
+    }
+    catch(Throwable t) {
+      Assert.fail("Exception should not have been thrown");
+    }
+  }
+
+  @Test(expected = AmbariException.class)
+  public void testRegenerateKeytabsInvalidValue() throws Exception {
+    KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
+    final Cluster cluster = createNiceMock(Cluster.class);
+
+    kerberosHelper.executeCustomOperations(cluster, createNiceMock(KerberosDescriptor.class),
+        Collections.singletonMap("regenerate_keytabs", "false"), null);
+    Assert.fail("AmbariException should have failed");
+  }
+
+  @Test
+  public void testRegenerateKeytabs() throws Exception {
+    testRegenerateKeytabs(new KerberosCredential("principal", "password", "keytab"), false, false);
   }
 
   private void testEnableKerberos(final KerberosCredential kerberosCredential,
@@ -544,6 +573,243 @@ public class KerberosHelperTest {
 
     kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, !(getClusterDescriptor || getStackDescriptor) ?
         kerberosDescriptor : null, requestStageContainer);
+
+    verifyAll();
+  }
+
+  private void testRegenerateKeytabs(final KerberosCredential kerberosCredential,
+                                     boolean getClusterDescriptor,
+                                     boolean getStackDescriptor) throws Exception {
+
+    KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
+
+    final StackId stackVersion = createNiceMock(StackId.class);
+
+    final ServiceComponentHost sch1 = createMock(ServiceComponentHost.class);
+    expect(sch1.getServiceName()).andReturn("SERVICE1").once();
+    expect(sch1.getServiceComponentName()).andReturn("COMPONENT1").once();
+    expect(sch1.getSecurityState()).andReturn(SecurityState.UNSECURED).anyTimes();
+    expect(sch1.getDesiredSecurityState()).andReturn(SecurityState.UNSECURED).anyTimes();
+    expect(sch1.getStackVersion()).andReturn(stackVersion).anyTimes();
+    expect(sch1.getHostName()).andReturn("host1").anyTimes();
+
+    final ServiceComponentHost sch2 = createMock(ServiceComponentHost.class);
+    expect(sch2.getServiceName()).andReturn("SERVICE2").once();
+    expect(sch2.getServiceComponentName()).andReturn("COMPONENT2").once();
+    expect(sch2.getSecurityState()).andReturn(SecurityState.UNSECURED).anyTimes();
+    expect(sch2.getDesiredSecurityState()).andReturn(SecurityState.UNSECURED).anyTimes();
+    expect(sch2.getStackVersion()).andReturn(stackVersion).anyTimes();
+    expect(sch2.getHostName()).andReturn("host1").anyTimes();
+
+    final Host host = createNiceMock(Host.class);
+    expect(host.getHostName()).andReturn("host1").once();
+    expect(host.getState()).andReturn(HostState.HEALTHY).once();
+
+    final Service service1 = createStrictMock(Service.class);
+    expect(service1.getName()).andReturn("SERVICE1").anyTimes();
+    expect(service1.getServiceComponents())
+        .andReturn(Collections.<String, ServiceComponent>emptyMap())
+        .once();
+
+    final Service service2 = createStrictMock(Service.class);
+    expect(service2.getName()).andReturn("SERVICE2").anyTimes();
+    expect(service2.getServiceComponents())
+        .andReturn(Collections.<String, ServiceComponent>emptyMap())
+        .once();
+
+    final Map<String, String> kerberosEnvProperties = createNiceMock(Map.class);
+    // TODO: (rlevas) Add when AMBARI 9121 is complete
+    // expect(kerberosEnvProperties.get("kdc_type")).andReturn("mit-kdc").once();
+
+    final Config kerberosEnvConfig = createNiceMock(Config.class);
+    expect(kerberosEnvConfig.getProperties()).andReturn(kerberosEnvProperties).once();
+
+    final Map<String, String> krb5ConfProperties = createNiceMock(Map.class);
+    expect(krb5ConfProperties.get("kdc_type")).andReturn("mit-kdc").once();
+    expect(krb5ConfProperties.get("realm")).andReturn("FOOBAR.COM").once();
+
+    final Config krb5ConfConfig = createNiceMock(Config.class);
+    // TODO: (rlevas) Remove when AMBARI 9121 is complete
+    expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).once();
+
+    final MaintenanceStateHelper maintenanceStateHelper = injector.getInstance(MaintenanceStateHelper.class);
+    expect(maintenanceStateHelper.getEffectiveState(anyObject(ServiceComponentHost.class)))
+        .andReturn(MaintenanceState.OFF).anyTimes();
+
+    final Cluster cluster = createNiceMock(Cluster.class);
+    expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).once();
+    expect(cluster.getDesiredConfigByType("krb5-conf")).andReturn(krb5ConfConfig).once();
+    expect(cluster.getDesiredConfigByType("kerberos-env")).andReturn(kerberosEnvConfig).once();
+    expect(cluster.getClusterName()).andReturn("c1").anyTimes();
+    expect(cluster.getServices())
+        .andReturn(new HashMap<String, Service>() {
+          {
+            put("SERVICE1", service1);
+            put("SERVICE2", service2);
+          }
+        })
+        .anyTimes();
+    expect(cluster.getServiceComponentHosts("host1"))
+        .andReturn(new ArrayList<ServiceComponentHost>() {
+          {
+            add(sch1);
+            add(sch2);
+          }
+        })
+        .once();
+    expect(cluster.getCurrentStackVersion())
+        .andReturn(new StackId("HDP", "2.2"))
+        .anyTimes();
+    expect(cluster.getSessionAttributes()).andReturn(new HashMap<String, Object>() {{
+      if (kerberosCredential != null) {
+        put("kerberos_admin/" + KerberosCredential.KEY_NAME_PRINCIPAL, kerberosCredential.getPrincipal());
+        put("kerberos_admin/" + KerberosCredential.KEY_NAME_PASSWORD, kerberosCredential.getPassword());
+        put("kerberos_admin/" + KerberosCredential.KEY_NAME_KEYTAB, kerberosCredential.getKeytab());
+      }
+    }}).anyTimes();
+
+    final Clusters clusters = injector.getInstance(Clusters.class);
+    expect(clusters.getHostsForCluster("c1"))
+        .andReturn(new HashMap<String, Host>() {
+          {
+            put("host1", host);
+          }
+        })
+        .once();
+
+    final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, "host1"))
+        .andReturn(Collections.<String, Map<String, String>>emptyMap())
+        .once();
+    expect(ambariManagementController.getRoleCommandOrder(cluster))
+        .andReturn(createNiceMock(RoleCommandOrder.class))
+        .once();
+
+    final ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
+    expect(configHelper.getEffectiveConfigProperties(anyObject(Cluster.class), anyObject(Map.class)))
+        .andReturn(new HashMap<String, Map<String, String>>() {
+          {
+            put("cluster-env", new HashMap<String, String>() {{
+              put("kerberos_domain", "FOOBAR.COM");
+            }});
+          }
+        })
+        .once();
+    expect(configHelper.getEffectiveConfigAttributes(anyObject(Cluster.class), anyObject(Map.class)))
+        .andReturn(Collections.<String, Map<String, Map<String, String>>>emptyMap())
+        .once();
+
+    final KerberosPrincipalDescriptor principalDescriptor1 = createNiceMock(KerberosPrincipalDescriptor.class);
+    expect(principalDescriptor1.getValue()).andReturn("component1/_HOST@${realm}").once();
+    expect(principalDescriptor1.getType()).andReturn(KerberosPrincipalType.SERVICE).once();
+    expect(principalDescriptor1.getConfiguration()).andReturn("service1-site/component1.kerberos.principal").once();
+
+    final KerberosPrincipalDescriptor principalDescriptor2 = createNiceMock(KerberosPrincipalDescriptor.class);
+    expect(principalDescriptor2.getValue()).andReturn("component2/${host}@${realm}").once();
+    expect(principalDescriptor2.getType()).andReturn(KerberosPrincipalType.SERVICE).once();
+    expect(principalDescriptor2.getConfiguration()).andReturn("service2-site/component2.kerberos.principal").once();
+
+    final KerberosKeytabDescriptor keytabDescriptor1 = createNiceMock(KerberosKeytabDescriptor.class);
+    expect(keytabDescriptor1.getFile()).andReturn("${keytab_dir}/service1.keytab").once();
+    expect(keytabDescriptor1.getOwnerName()).andReturn("service1").once();
+    expect(keytabDescriptor1.getOwnerAccess()).andReturn("rw").once();
+    expect(keytabDescriptor1.getGroupName()).andReturn("hadoop").once();
+    expect(keytabDescriptor1.getGroupAccess()).andReturn("").once();
+    expect(keytabDescriptor1.getConfiguration()).andReturn("service1-site/component1.keytab.file").once();
+
+    final KerberosKeytabDescriptor keytabDescriptor2 = createNiceMock(KerberosKeytabDescriptor.class);
+    expect(keytabDescriptor2.getFile()).andReturn("${keytab_dir}/service2.keytab").once();
+    expect(keytabDescriptor2.getOwnerName()).andReturn("service2").once();
+    expect(keytabDescriptor2.getOwnerAccess()).andReturn("rw").once();
+    expect(keytabDescriptor2.getGroupName()).andReturn("hadoop").once();
+    expect(keytabDescriptor2.getGroupAccess()).andReturn("").once();
+    expect(keytabDescriptor2.getConfiguration()).andReturn("service2-site/component2.keytab.file").once();
+
+    final KerberosIdentityDescriptor identityDescriptor1 = createNiceMock(KerberosIdentityDescriptor.class);
+    expect(identityDescriptor1.getPrincipalDescriptor()).andReturn(principalDescriptor1).once();
+    expect(identityDescriptor1.getKeytabDescriptor()).andReturn(keytabDescriptor1).once();
+
+    final KerberosIdentityDescriptor identityDescriptor2 = createNiceMock(KerberosIdentityDescriptor.class);
+    expect(identityDescriptor2.getPrincipalDescriptor()).andReturn(principalDescriptor2).once();
+    expect(identityDescriptor2.getKeytabDescriptor()).andReturn(keytabDescriptor2).once();
+
+    final KerberosComponentDescriptor componentDescriptor1 = createNiceMock(KerberosComponentDescriptor.class);
+    expect(componentDescriptor1.getIdentities(true)).
+        andReturn(new ArrayList<KerberosIdentityDescriptor>() {{
+          add(identityDescriptor1);
+        }}).once();
+
+    final KerberosComponentDescriptor componentDescriptor2 = createNiceMock(KerberosComponentDescriptor.class);
+    expect(componentDescriptor2.getIdentities(true)).
+        andReturn(new ArrayList<KerberosIdentityDescriptor>() {{
+          add(identityDescriptor2);
+        }}).once();
+
+    final KerberosServiceDescriptor serviceDescriptor1 = createNiceMock(KerberosServiceDescriptor.class);
+    expect(serviceDescriptor1.getComponent("COMPONENT1")).andReturn(componentDescriptor1).once();
+
+    final KerberosServiceDescriptor serviceDescriptor2 = createNiceMock(KerberosServiceDescriptor.class);
+    expect(serviceDescriptor2.getComponent("COMPONENT2")).andReturn(componentDescriptor2).once();
+
+    final KerberosDescriptor kerberosDescriptor = createNiceMock(KerberosDescriptor.class);
+    expect(kerberosDescriptor.getService("SERVICE1")).andReturn(serviceDescriptor1).once();
+    expect(kerberosDescriptor.getService("SERVICE2")).andReturn(serviceDescriptor2).once();
+
+    //todo: extract method?
+    if (getClusterDescriptor) {
+      // needed to mock the static method fromJson()
+      setupGetDescriptorFromCluster(kerberosDescriptor);
+    } else if (getStackDescriptor) {
+      setupGetDescriptorFromStack(kerberosDescriptor);
+    }
+    final StageFactory stageFactory = injector.getInstance(StageFactory.class);
+    expect(stageFactory.createNew(anyLong(), anyObject(String.class), anyObject(String.class),
+        anyLong(), anyObject(String.class), anyObject(String.class), anyObject(String.class),
+        anyObject(String.class)))
+        .andAnswer(new IAnswer<Stage>() {
+          @Override
+          public Stage answer() throws Throwable {
+            Stage stage = createNiceMock(Stage.class);
+
+            expect(stage.getHostRoleCommands())
+                .andReturn(Collections.<String, Map<String, HostRoleCommand>>emptyMap())
+                .anyTimes();
+            replay(stage);
+            return stage;
+          }
+        })
+        .anyTimes();
+
+    // This is a STRICT mock to help ensure that the end result is what we want.
+    final RequestStageContainer requestStageContainer = createStrictMock(RequestStageContainer.class);
+    // Create Principals Stage
+    expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
+    expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.addStages(anyObject(List.class));
+    expectLastCall().once();
+    // Create Keytabs Stage
+    expect(requestStageContainer.getLastStageId()).andReturn(0L).anyTimes();
+    expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.addStages(anyObject(List.class));
+    expectLastCall().once();
+    // Distribute Keytabs Stage
+    expect(requestStageContainer.getLastStageId()).andReturn(1L).anyTimes();
+    expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.addStages(anyObject(List.class));
+    expectLastCall().once();
+    // Clean-up/Finalize Stage
+    expect(requestStageContainer.getLastStageId()).andReturn(3L).anyTimes();
+    expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.addStages(anyObject(List.class));
+    expectLastCall().once();
+
+    replayAll();
+
+    // Needed by infrastructure
+    metaInfo.init();
+
+    kerberosHelper.executeCustomOperations(cluster, !(getClusterDescriptor || getStackDescriptor) ?
+        kerberosDescriptor : null, Collections.singletonMap("regenerate_keytabs", "true"), requestStageContainer);
 
     verifyAll();
   }

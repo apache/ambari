@@ -136,6 +136,7 @@ public class KerberosHelper {
    */
   private static ClusterController clusterController = null;
 
+
   /**
    * The Handler implementation that provides the logic to enable Kerberos
    */
@@ -189,11 +190,6 @@ public class KerberosHelper {
     // Update KerberosDetails with the new security type - the current one in the cluster is the "old" value
     kerberosDetails.setSecurityType(securityType);
 
-    //todo: modify call from cluster state transition to not include descriptor
-    if (kerberosDescriptor == null) {
-      kerberosDescriptor = getClusterDescriptor(cluster);
-    }
-
     if (securityType == SecurityType.KERBEROS) {
       LOG.info("Configuring Kerberos for realm {} on cluster, {}", kerberosDetails.getDefaultRealm(), cluster.getClusterName());
       requestStageContainer = handle(cluster, kerberosDescriptor, kerberosDetails, null, null, requestStageContainer, enableKerberosHandler);
@@ -206,6 +202,52 @@ public class KerberosHelper {
 
     return requestStageContainer;
   }
+
+  /**
+   * Used to execute custom security operations which are sent as directives in URI
+   *
+   * @param cluster               the relevant Cluster
+   * @param kerberosDescriptor    a KerberosDescriptor containing updates to the descriptor already
+   *                              configured for the cluster
+   * @param requestProperties     this structure is expected to hold already supported and validated directives
+   *                              for the 'Cluster' resource. See ClusterResourceDefinition#getUpdateDirectives
+   * @param requestStageContainer a RequestStageContainer to place generated stages, if needed -
+   *                              if null a new RequestStageContainer will be created.   @return the updated or a new RequestStageContainer containing the stages that need to be
+   *                              executed to complete this task; or null if no stages need to be executed.
+   * @throws AmbariException
+   */
+  public RequestStageContainer executeCustomOperations(Cluster cluster, KerberosDescriptor kerberosDescriptor,
+                                                       Map<String, String> requestProperties, RequestStageContainer requestStageContainer)
+      throws AmbariException {
+
+    if (requestProperties != null) {
+
+      for (SupportedCustomOperation operation : SupportedCustomOperation.values()) {
+        if (requestProperties.containsKey(operation.name().toLowerCase())) {
+          String value = requestProperties.get(operation.name().toLowerCase());
+
+          // The operation specific logic is kept in one place and described here
+          switch (operation) {
+            case REGENERATE_KEYTABS:
+              if (cluster.getSecurityType() != SecurityType.KERBEROS) {
+                throw new AmbariException(String.format("Custom operation %s can only be requested with the security type cluster property: %s", operation.name(), SecurityType.KERBEROS.name()));
+              }
+
+              if ("true".equalsIgnoreCase(value)) {
+                handle(cluster, kerberosDescriptor, getKerberosDetails(cluster), null, null, requestStageContainer, createPrincipalsAndKeytabsHandler);
+              }
+              break;
+
+            default: // No other operations are currently supported
+              throw new AmbariException(String.format("Custom operation not supported: %s", operation.name()));
+          }
+        }
+      }
+    }
+
+    return requestStageContainer;
+  }
+
 
   /**
    * Ensures the set of filtered principals and keytabs exist on the cluster.
@@ -278,6 +320,11 @@ public class KerberosHelper {
                                        Handler handler) throws AmbariException {
 
     Map<String, Service> services = cluster.getServices();
+
+    //todo: modify call from cluster state transition to not include descriptor
+    if (kerberosDescriptor == null) {
+      kerberosDescriptor = getClusterDescriptor(cluster);
+    }
 
     if ((services != null) && !services.isEmpty()) {
       SecurityState desiredSecurityState = handler.getNewServiceSecurityState();
@@ -696,8 +743,7 @@ public class KerberosHelper {
    * is available from the endpoint
    * stacks/:stackName/versions/:version/artifacts/kerberos_descriptor.
    *
-   * @param cluster  cluster instance
-   *
+   * @param cluster cluster instance
    * @return the kerberos descriptor associated with the specified cluster
    * @throws AmbariException if unable to obtain the descriptor
    */
@@ -733,11 +779,11 @@ public class KerberosHelper {
       // parent cluster doesn't exist.  shouldn't happen since we have the cluster instance
       e.printStackTrace();
       throw new AmbariException("An unknown error occurred while trying to obtain the cluster kerberos descriptor", e);
-    }  catch (NoSuchResourceException e) {
+    } catch (NoSuchResourceException e) {
       // no descriptor registered, use the default from the stack
     }
 
-    if (response != null && ! response.isEmpty()) {
+    if (response != null && !response.isEmpty()) {
       Resource descriptorResource = response.iterator().next();
       String descriptor_data = (String) descriptorResource.getPropertyValue(
           ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY);
@@ -1165,11 +1211,18 @@ public class KerberosHelper {
   /**
    * Determine if a cluster has kerberos enabled.
    *
-   * @param cluster  cluster to test
+   * @param cluster cluster to test
    * @return true if the provided cluster has kerberos enabled; false otherwise
    */
   public boolean isClusterKerberosEnabled(Cluster cluster) {
     return cluster.getSecurityType() == SecurityType.KERBEROS;
+  }
+
+  /**
+   * A enumeration of the supported custom operations
+   */
+  public static enum SupportedCustomOperation {
+    REGENERATE_KEYTABS
   }
 
   /**
@@ -1618,6 +1671,29 @@ public class KerberosHelper {
 
       return requestStageContainer.getLastStageId();
     }
+  }
+
+  /**
+   * Method used to externally peek if weather we have supported operations to execute or not
+   * <p/>
+   * It is required that the SecurityType from the request is wither KERBEROS or NONE and that at least one
+   * directive in the requestProperties map is supported.
+   *
+   * @param requestSecurityType      the SecurityType from the request
+   * @param requestProperties A Map of request directives and their values
+   * @return true if custom operations should be executed; false otherwise
+   */
+  public boolean shouldExecuteCustomOperations(SecurityType requestSecurityType, Map<String, String> requestProperties) {
+
+    if (((requestSecurityType == SecurityType.KERBEROS) || (requestSecurityType == SecurityType.NONE)) &&
+        (requestProperties != null) && !requestProperties.isEmpty()) {
+      for (SupportedCustomOperation type : SupportedCustomOperation.values()) {
+        if (requestProperties.containsKey(type.name().toLowerCase())) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
 

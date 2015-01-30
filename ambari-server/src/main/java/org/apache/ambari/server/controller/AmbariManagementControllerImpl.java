@@ -1153,12 +1153,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       //
       // ***************************************************
 
-      response = updateCluster(request);
+      response = updateCluster(request, requestProperties);
     }
     return response;
   }
 
-  private synchronized RequestStatusResponse updateCluster(ClusterRequest request)
+  private synchronized RequestStatusResponse updateCluster(ClusterRequest request, Map<String, String> requestProperties)
       throws AmbariException {
 
     RequestStageContainer requestStageContainer = null;
@@ -1331,7 +1331,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     // set the new security type of the cluster if change is requested
     SecurityType securityType = request.getSecurityType();
-    if((securityType != null) && (cluster.getSecurityType() != securityType) ){
+
+    if(securityType != null) {
+      // if any custom operations are valid and requested, the process of executing them should be initiated,
+      // most of the validation logic will be left to the KerberosHelper to avoid polluting the controller
+      if (kerberosHelper.shouldExecuteCustomOperations(securityType, requestProperties)) {
+        requestStageContainer = kerberosHelper.executeCustomOperations(cluster, request.getKerberosDescriptor(), requestProperties, requestStageContainer);
+      } else if (cluster.getSecurityType() != securityType) {
         LOG.info("Received cluster security type change request from {} to {}",
             cluster.getSecurityType().name(), securityType.name());
 
@@ -1345,6 +1351,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
 
         cluster.setSecurityType(securityType);
+      }
     }
 
     if (requestStageContainer != null) {
