@@ -44,9 +44,12 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     standby_name_node_id: 'standby_name_node_id',
     standby_name_node2_id: 'standby_name_node2_id',
     journal_nodes: 'journal_nodes',
+    metrics_not_available: 'metrics_not_available',
     name_node_start_time: 'nameNodeComponent.host_components[0].metrics.runtime.StartTime',
     jvm_memory_heap_used: 'nameNodeComponent.host_components[0].metrics.jvm.HeapMemoryUsed',
     jvm_memory_heap_max: 'nameNodeComponent.host_components[0].metrics.jvm.HeapMemoryMax',
+    live_data_nodes: 'live_data_nodes',
+    dead_data_nodes: 'dead_data_nodes',
     decommission_data_nodes: 'decommission_data_nodes',
     capacity_used: 'nameNodeComponent.host_components[0].metrics.dfs.FSNamesystem.CapacityUsed',
     capacity_total: 'nameNodeComponent.host_components[0].metrics.dfs.FSNamesystem.CapacityTotal',
@@ -79,7 +82,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     apps_killed: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.root.AppsKilled',
     apps_failed: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.root.AppsFailed',
     node_managers_count_active: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.activeNMcount',
-    //node_managers_count_lost: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.lostNMcount',
+    node_managers_count_lost: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.lostNMcount',
     node_managers_count_unhealthy: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.unhealthyNMcount',
     node_managers_count_rebooted: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.rebootedNMcount',
     node_managers_count_decommissioned: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.decommissionedNMcount',
@@ -423,11 +426,24 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
         finalConfig = jQuery.extend(finalConfig, hdfsConfig);
         // Get the live, dead & decommission nodes from string json
         if (component.host_components[0].metrics && component.host_components[0].metrics.dfs && component.host_components[0].metrics.dfs.namenode) {
+          item.metrics_not_available = false;
           var decommissionNodesJson = App.parseJSON(component.host_components[0].metrics.dfs.namenode.DecomNodes);
+          var deadNodesJson = App.parseJSON(component.host_components[0].metrics.dfs.namenode.DeadNodes);
+          var liveNodesJson = App.parseJSON(component.host_components[0].metrics.dfs.namenode.LiveNodes);
+        } else {
+          item.metrics_not_available = true;
         }
         item.decommission_data_nodes = [];
+        item.dead_data_nodes = [];
+        item.live_data_nodes = [];
         for (var host in decommissionNodesJson) {
           item.decommission_data_nodes.push('DATANODE'+ '_' + host);
+        }
+        for (var host in deadNodesJson) {
+          item.dead_data_nodes.push('DATANODE'+ '_' + host);
+        }
+        for (var host in liveNodesJson) {
+          item.live_data_nodes.push('DATANODE'+ '_' + host);
         }
       }
       if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "JOURNALNODE") {

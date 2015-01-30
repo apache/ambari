@@ -25,8 +25,13 @@
       {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.nodeManagersStarted" totalComponentsBinding="view.service.nodeManagersTotal"}}
         {{view.liveComponents}}/{{view.totalComponents}}
       {{/view}}
-    </span>{{t services.service.summary.nodeManagersLive}}
+    </span>{{t common.started}}
   </td>
+</tr>
+<!-- NodeManagers status -->
+<tr>
+  <td>{{t dashboard.services.yarn.nodeManagers.status}}</td>
+  <td>{{view.nodeManagersStatus}}</td>
 </tr>
 <!-- YARN Clients -->
 <tr>
@@ -47,11 +52,6 @@
 <tr>
   <td>{{t dashboard.services.resourceManager.nodes.heap}}</td>
   <td>{{view.nodeHeap}}</td>
-</tr>
-<!-- NodeManagers status -->
-<tr>
-  <td>{{t dashboard.services.yarn.nodeManagers.status}}</td>
-  <td>{{view.nodeManagersStatus}}</td>
 </tr>
 <!-- Containers -->
 <tr>

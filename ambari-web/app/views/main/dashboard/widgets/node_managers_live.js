@@ -47,21 +47,21 @@ App.NodeManagersLiveView = App.TextDashboardWidgetView.extend({
   maxValue: 100,
 
   nodeManagersLive: function () {
-    return this.get('model.nodeManagersStarted');
-  }.property('model.nodeManagersStarted'),
+    return this.get('model.nodeManagersCountActive');
+  }.property('model.nodeManagersCountActive'),
 
   data: function () {
     var nodeManagers = this.get('model.nodeManagersTotal');
     var nodeManagersLive = this.get('nodeManagersLive');
-    if (!nodeManagers) {
-      return -1;
+    if (nodeManagersLive == null) {
+      return null;
     } else {
       return (nodeManagersLive / nodeManagers).toFixed(2) * 100;
     }
   }.property('model.nodeManagersTotal', 'nodeManagersLive'),
 
   content: function () {
-    return this.get('nodeManagersLive') + '/' + this.get('model.nodeManagersTotal');
+    return this.get('nodeManagersLive') == null ? Em.I18n.t('services.service.summary.notAvailable') : this.get('nodeManagersLive') + '/' + this.get('model.nodeManagersTotal');
   }.property('model.nodeManagersTotal', 'nodeManagersLive'),
 
   editWidget: function (event) {

@@ -26,7 +26,16 @@
         {{view.liveComponents}}/{{view.totalComponents}}
       {{/view}}
     </span>
-      {{t services.service.summary.DataNodesLive}}
+      {{t common.started}}
+  </td>
+</tr>
+<!-- Data Node Counts -->
+<tr>
+  <td>{{t dashboard.services.hdfs.datanodecounts}}</td>
+  <td>
+    <span {{translateAttr data-original-title="dashboard.services.hdfs.datanode.status.tooltip.live" }} rel="tooltip">{{view.service.liveDataNodes.length}} {{t dashboard.services.hdfs.nodes.live}} </span> /
+    <span {{translateAttr data-original-title="dashboard.services.hdfs.datanode.status.tooltip.dead" }} rel="tooltip">{{view.service.deadDataNodes.length}} {{t dashboard.services.hdfs.nodes.dead}} </span> /
+    <span {{translateAttr data-original-title="dashboard.services.hdfs.datanode.status.tooltip.decommission" }} rel="tooltip">{{view.service.decommissionDataNodes.length}} {{t dashboard.services.hdfs.nodes.decom}}</span>
   </td>
 </tr>
 <!-- JournalNodes -->
@@ -53,15 +62,6 @@
 <tr>
   <td>{{t dashboard.services.hdfs.nodes.heap}}</td>
   <td>{{view.nodeHeap}}</td>
-</tr>
-<!-- Data Node Counts -->
-<tr>
-  <td>{{t dashboard.services.hdfs.datanodecounts}}</td>
-  <td>
-    {{view.dataNodesLive}} {{t dashboard.services.hdfs.nodes.live}} /
-    {{view.dataNodesDead}} {{t dashboard.services.hdfs.nodes.dead}} /
-    {{view.service.decommissionDataNodes.length}} {{t dashboard.services.hdfs.nodes.decom}}
-  </td>
 </tr>
 <!-- HDFS Capacity (Disk Usage)-->
 <tr>

@@ -38,6 +38,8 @@ App.HDFSService = App.Service.extend({
   jvmMemoryHeapUsed: DS.attr('number'),
   jvmMemoryHeapMax: DS.attr('number'),
   decommissionDataNodes: DS.hasMany('App.HostComponent'),
+  liveDataNodes: DS.hasMany('App.HostComponent'),
+  deadDataNodes: DS.hasMany('App.HostComponent'),
   capacityUsed: DS.attr('number'),
   capacityTotal: DS.attr('number'),
   capacityRemaining: DS.attr('number'),
@@ -48,7 +50,8 @@ App.HDFSService = App.Service.extend({
   dfsTotalFiles: DS.attr('number'),
   upgradeStatus: DS.attr('boolean'),
   safeModeStatus: DS.attr('string'),
-  nameNodeRpc: DS.attr('number')
+  nameNodeRpc: DS.attr('number'),
+  metricsNotAvailable: DS.attr('boolean')
 });
 
 App.HDFSService.FIXTURES = [];

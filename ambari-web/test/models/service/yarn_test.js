@@ -152,7 +152,7 @@ describe('App.YARNService', function () {
       expect(yarnService.get('childQueueNames')).to.eql(['root/default']);
     });
   });
-
+/*
   describe('#nodeManagersCountLost', function () {
     nodeCountCases.forEach(function (item) {
       it('should be ' + item.nodeManagersCountLost, function () {
@@ -164,5 +164,5 @@ describe('App.YARNService', function () {
       });
     });
   });
-
+*/
 });

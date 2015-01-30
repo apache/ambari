@@ -32,9 +32,9 @@ App.DataNodeUpView = App.TextDashboardWidgetView.extend({
     var result = [];
     result.pushObject(this.get('dataNodesLive') + ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.live'));
     result.pushObject(this.get('dataNodesDead') + ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.dead'));
-    result.pushObject(this.get('model.decommissionDataNodes.length')+ ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.decom'));
+    result.pushObject(this.get('dataNodesDecom')+ ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.decom'));
     return result;
-  }.property('dataNodesLive', 'dataNodesDead', 'model.decommissionDataNodes.length'),
+  }.property('dataNodesLive', 'dataNodesDead', 'dataNodesDecom'),
   hiddenInfoClass: "hidden-info-three-line",
 
   thresh1: 40,
@@ -42,22 +42,25 @@ App.DataNodeUpView = App.TextDashboardWidgetView.extend({
   maxValue: 100,
 
   dataNodesLive: function () {
-    return this.get('model.dataNodesStarted');
-  }.property('model.dataNodesStarted'),
+    return this.get('model.metricsNotAvailable') ? Em.I18n.t('services.service.summary.notAvailable') : this.get('model.liveDataNodes.length');
+  }.property('model.liveDataNodes.length'),
   dataNodesDead: function () {
-    return this.get('model.dataNodesInstalled');
-  }.property('model.dataNodesInstalled'),
+    return this.get('model.metricsNotAvailable') ? Em.I18n.t('services.service.summary.notAvailable') : this.get('model.deadDataNodes.length');
+  }.property('model.deadDataNodes.length'),
+  dataNodesDecom: function () {
+    return this.get('model.metricsNotAvailable') ? Em.I18n.t('services.service.summary.notAvailable') : this.get('model.decommissionDataNodes.length');
+  }.property('model.decommissionDataNodes.length'),
 
   data: function () {
-    if ( !this.get('model.dataNodesTotal')) {
-      return -1;
+    if (this.get('model.metricsNotAvailable')) {
+      return null;
     } else {
       return ((this.get('dataNodesLive') / this.get('model.dataNodesTotal')).toFixed(2)) * 100;
     }
   }.property('model.dataNodesTotal', 'dataNodesLive'),
 
   content: function () {
-    return this.get('dataNodesLive') + "/" + this.get('model.dataNodesTotal');
+    return this.get('model.metricsNotAvailable') ? Em.I18n.t('services.service.summary.notAvailable') : this.get('dataNodesLive') + "/" + this.get('model.dataNodesTotal');
   }.property('model.dataNodesTotal', 'dataNodesLive'),
 
   editWidget: function (event) {

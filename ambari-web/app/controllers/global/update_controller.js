@@ -377,6 +377,8 @@ App.UpdateController = Em.Controller.extend({
         'host_components/metrics/rpc/RpcQueueTime_avg_time,' +
         'host_components/metrics/dfs/FSNamesystem/*,' +
         'host_components/metrics/dfs/namenode/Version,' +
+        'host_components/metrics/dfs/namenode/LiveNodes,' +
+        'host_components/metrics/dfs/namenode/DeadNodes,' +
         'host_components/metrics/dfs/namenode/DecomNodes,' +
         'host_components/metrics/dfs/namenode/TotalFiles,' +
         'host_components/metrics/dfs/namenode/UpgradeFinalized,' +
@@ -406,6 +408,7 @@ App.UpdateController = Em.Controller.extend({
         "host_components/processes/HostComponentProcess",
       'YARN': "host_components/metrics/yarn/Queue," +
         "ServiceComponentInfo/rm_metrics/cluster/activeNMcount," +
+        "ServiceComponentInfo/rm_metrics/cluster/lostNMcount," +
         "ServiceComponentInfo/rm_metrics/cluster/unhealthyNMcount," +
         "ServiceComponentInfo/rm_metrics/cluster/rebootedNMcount," +
         "ServiceComponentInfo/rm_metrics/cluster/decommissionedNMcount",

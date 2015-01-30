@@ -149,6 +149,7 @@ describe('App.UpdateController', function () {
         ],
         result: ["host_components/metrics/yarn/Queue," +
           "ServiceComponentInfo/rm_metrics/cluster/activeNMcount," +
+          "ServiceComponentInfo/rm_metrics/cluster/lostNMcount," +
           "ServiceComponentInfo/rm_metrics/cluster/unhealthyNMcount," +
           "ServiceComponentInfo/rm_metrics/cluster/rebootedNMcount," +
           "ServiceComponentInfo/rm_metrics/cluster/decommissionedNMcount"]

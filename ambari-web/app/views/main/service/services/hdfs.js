@@ -60,6 +60,9 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     }.property('parentView.service.hostComponents.length')
   }),
 
+  didInsertElement: function() {
+    App.tooltip($("[rel='tooltip']"));
+  },
   dataNodesLive: function () {
     return this.get('service.dataNodesStarted');
   }.property('service.dataNodesStarted'),

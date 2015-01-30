@@ -134,6 +134,7 @@ Em.I18n.translations = {
   'common.oss':'OSs',
   'common.memory':'Memory',
   'common.maximum':'Maximum',
+  'common.started':'Started',
   'common.start':'Start',
   'common.stop':'Stop',
   'common.pause':'Pause',
@@ -2261,6 +2262,19 @@ Em.I18n.translations = {
   'dashboard.services.hdfs.nodes.heapUsed':'{0} / {1} ({2}% used)',
   'dashboard.services.hdfs.chart.label':'Capacity (Used/Total)',
   'dashboard.services.hdfs.blockErrors':'{0} corrupt / {1} missing / {2} under replicated',
+  'dashboard.services.hdfs.datanode.status.tooltip.live': 'This is the number of DataNodes that are live as reported from ' +
+    'the NameNode. Even if a DataNode process is up, NameNode might see the status as dead ' +
+    'if the DataNode is not communicating with the NameNode as expected. This can be due situations ' +
+    'such as a network issue or a hanging DataNode process due to excessive garbage collection.',
+  'dashboard.services.hdfs.datanode.status.tooltip.dead': 'This is the number of DataNodes that are dead as reported from ' +
+  'the NameNode. Even if a DataNode process is up, NameNode might see the status as dead ' +
+  'if the DataNode is not communicating with the NameNode as expected. This can be due situations ' +
+  'such as a network issue or a hanging DataNode process due to excessive garbage collection.',
+  'dashboard.services.hdfs.datanode.status.tooltip.decommission': 'This is the number of DataNodes that are currently ' +
+  'Decommissioning as reported from the NameNode. If there are not enough other DataNodes ' +
+  'in the cluster to create the configured number of block replicas based on the dfs.replication ' +
+  'property (typically 3), a DataNode can get stuck in decommissioning state until ' +
+  'more DataNodes become available to the NameNode.',
 
   'dashboard.services.yarn.summary':'{0} of {1} nodes live',
   'dashboard.services.yarn.resourceManager':'ResourceManager',

@@ -30,6 +30,7 @@ App.YARNService = App.Service.extend({
   nodeManagersInstalled: DS.attr('number'),
   nodeManagersTotal: DS.attr('number'),
   nodeManagersCountActive: DS.attr('number'),
+  nodeManagersCountLost: DS.attr('number'),
   nodeManagersCountUnhealthy: DS.attr('number'),
   nodeManagersCountRebooted: DS.attr('number'),
   nodeManagersCountDecommissioned: DS.attr('number'),
@@ -100,12 +101,12 @@ App.YARNService = App.Service.extend({
     }
     this.set('allQueueNames', allQueueNames);
     this.set('childQueueNames', childQueueNames);
-  }.observes('queue'),
+  }.observes('queue')
   /**
    * ResourceManager's lost count is not accurate once RM is rebooted. Since
    * Ambari knows the total number of nodes and the counts of nodes in other
    * states, we calculate the lost count.
-   */
+   *
   nodeManagersCountLost: function () {
     var totalCount = this.get('nodeManagersTotal');
     var activeCount = this.get('nodeManagersCountActive');
@@ -114,7 +115,7 @@ App.YARNService = App.Service.extend({
     var decomCount = this.get('nodeManagersCountDecommissioned');
     var nonLostHostsCount = activeCount + rebootedCount + decomCount + unhealthyCount;
     return totalCount >= nonLostHostsCount ? totalCount - nonLostHostsCount : 0;
-  }.property('nodeManagersTotal', 'nodeManagersCountActive', 'nodeManagersCountRebooted', 'nodeManagersCountUnhealthy', 'nodeManagersCountDecommissioned')
+  }.property('nodeManagersTotal', 'nodeManagersCountActive', 'nodeManagersCountRebooted', 'nodeManagersCountUnhealthy', 'nodeManagersCountDecommissioned')*/
 });
 
 App.YARNService.FIXTURES = [];
