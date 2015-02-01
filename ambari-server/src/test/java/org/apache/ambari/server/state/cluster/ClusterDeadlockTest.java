@@ -134,7 +134,7 @@ public class ClusterDeadlockTest {
         "HDFS_CLIENT", "c64-0", true);
 
     List<Thread> threads = new ArrayList<Thread>();
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 3; i++) {
       DeadlockExerciserThread thread = new DeadlockExerciserThread();
       thread.setCluster(cluster);
       thread.setService(service);
@@ -293,7 +293,7 @@ public class ClusterDeadlockTest {
     @Override
     public void run() {
       try {
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 10; i++) {
           cluster.convertToResponse();
           service.convertToResponse();
           namenodeComponent.convertToResponse();
@@ -309,7 +309,7 @@ public class ClusterDeadlockTest {
           namenodeSCH.setState(org.apache.ambari.server.state.State.STARTED);
           hdfsClientSCH.setState(org.apache.ambari.server.state.State.INSTALLED);
 
-          Thread.sleep(10);
+          Thread.sleep(100);
         }
       } catch (Exception exception) {
         throw new RuntimeException(exception);

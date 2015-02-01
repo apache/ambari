@@ -732,15 +732,32 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       }
       case CONFIGURE: {
         ConfigureTask ct = (ConfigureTask) task;
-        commandParams.put("type", ct.configType);
-        commandParams.put("key", ct.key);
-        commandParams.put("value", ct.value);
-        itemDetail = String.format("Updating config %s/%s to %s", ct.configType, ct.key, ct.value);
-        if (null != ct.summary) {
-          stageText = ct.summary;
+        Map<String, String> configProperties = ct.getConfigurationProperties(cluster);
+
+        // if the properties are empty it means that the conditions in the
+        // task did not pass;
+        if (configProperties.isEmpty()) {
+          stageText = "No conditions were met for this configuration task.";
+          itemDetail = stageText;
         } else {
-          stageText = String.format("Updating Config %s", ct.configType);
+          commandParams.putAll(configProperties);
+
+          // extract the config type, key and value to use to build the
+          // summary and detail
+          String configType = configProperties.get(ConfigureTask.PARAMETER_CONFIG_TYPE);
+          String key = configProperties.get(ConfigureTask.PARAMETER_KEY);
+          String value = configProperties.get(ConfigureTask.PARAMETER_VALUE);
+
+          itemDetail = String.format("Updating config %s/%s to %s", configType,
+              key, value);
+
+          if (null != ct.summary) {
+            stageText = ct.summary;
+          } else {
+            stageText = String.format("Updating Config %s", configType);
+          }
         }
+
         entity.setText(itemDetail);
         break;
       }
@@ -752,6 +769,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         cluster.getClusterName(), Role.AMBARI_SERVER_ACTION.toString(),
         Collections.<RequestResourceFilter>emptyList(),
         commandParams);
+
     actionContext.setTimeout(Short.valueOf((short)-1));
 
     ExecuteCommandJson jsons = commandExecutionHelper.get().getCommandJson(

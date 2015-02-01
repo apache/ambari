@@ -33,6 +33,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 
 import com.google.inject.Inject;
 
@@ -75,16 +76,24 @@ public class ConfigureAction extends AbstractServerAction {
     }
 
     String clusterName = commandParameters.get("clusterName");
-    String key = commandParameters.get("key");
-    String value = commandParameters.get("value");
+    String key = commandParameters.get(ConfigureTask.PARAMETER_KEY);
+    String value = commandParameters.get(ConfigureTask.PARAMETER_VALUE);
 
     // such as hdfs-site or hbase-env
-    String configType = commandParameters.get("type");
+    String configType = commandParameters.get(ConfigureTask.PARAMETER_CONFIG_TYPE);
 
+    // if the two required properties are null, then assume that no
+    // conditions were met and let the action complete
+    if (null == configType && null == key) {
+      return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", "",
+          "Skipping configuration task");
+    }
+
+    // if only 1 of the required properties was null, then something went
+    // wrong
     if (null == clusterName || null == configType || null == key) {
       String message = "cluster={0}, type={1}, key={2}";
       message = MessageFormat.format(message, clusterName, configType, key);
-
       return createCommandReport(0, HostRoleStatus.FAILED, "{}", "", message);
     }
 

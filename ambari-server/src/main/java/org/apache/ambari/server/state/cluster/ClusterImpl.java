@@ -111,7 +111,6 @@ import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostSummary;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -604,12 +603,7 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public String getClusterName() {
-    clusterGlobalLock.readLock().lock();
-    try {
-      return clusterEntity.getClusterName();
-    } finally {
-      clusterGlobalLock.readLock().unlock();
-    }
+    return clusterEntity.getClusterName();
   }
 
   @Override
@@ -1360,7 +1354,7 @@ public class ClusterImpl implements Cluster {
       } else{
         // HostVersion is INSTALLED and an upgrade is in-progress because at least 2 components have different versions,
         // Or the host has no components that advertise a version, so still consider it as UPGRADING.
-        if (hostVersionEntity.getState().equals(RepositoryVersionState.INSTALLED) && versionedHostComponents.size() > 0 && 
+        if (hostVersionEntity.getState().equals(RepositoryVersionState.INSTALLED) && versionedHostComponents.size() > 0 &&
           !ServiceComponentHostSummary.haveSameVersion(versionedHostComponents)) {
           hostVersionEntity.setState(RepositoryVersionState.UPGRADING);
           hostVersionDAO.merge(hostVersionEntity);

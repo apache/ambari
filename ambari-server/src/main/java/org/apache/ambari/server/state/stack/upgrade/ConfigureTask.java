@@ -17,23 +17,86 @@
  */
 package org.apache.ambari.server.state.stack.upgrade;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 import org.apache.ambari.server.serveraction.upgrades.ConfigureAction;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.DesiredConfig;
 
 /**
- * Upgrade task that represents a configuration should change.
+ * The {@link ConfigureTask} represents a configuration change. This task can be
+ * defined with conditional statements that will only set values if a condition
+ * passes:
+ * <p/>
+ *
+ * <pre>
+ * {@code
+ * <task xsi:type="configure">
+ *   <condition type="hive-site" key="hive.server2.transport.mode" value="binary">
+ *     <type>hive-site</type>
+ *     <key>hive.server2.thrift.port</key>
+ *     <value>10010</value>
+ *   </condition>
+ *   <condition type="hive-site" key="hive.server2.transport.mode" value="http">
+ *     <type>hive-site</type>
+ *     <key>hive.server2.http.port</key>
+ *     <value>10011</value>
+ *   </condition>
+ * </task>
+ * }
+ * </pre>
+ *
+ * It's also possible to simple set a value directly without a precondition
+ * check.
+ *
+ * <pre>
+ * {@code
+ * <task xsi:type="configure">
+ *   <type>hive-site</type>
+ *   <key>hive.server2.thrift.port</key>
+ *   <value>10010</value>
+ * </task>
+ * }
+ * </pre>
+ *
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name="configure")
 public class ConfigureTask extends ServerSideActionTask {
 
+  /**
+   * The key that represents the configuration type to change (ie hdfs-site).
+   */
+  public static final String PARAMETER_CONFIG_TYPE = "configure-task-config-type";
+
+  /**
+   * The key that represents the configuration key to change (ie
+   * hive.server2.thrift.port)
+   */
+  public static final String PARAMETER_KEY = "configure-task-key";
+
+  /**
+   * The key that represents the configuration value to set on
+   * {@link #PARAMETER_CONFIG_TYPE}/{@link #PARAMETER_KEY}.
+   */
+  public static final String PARAMETER_VALUE = "configure-task-value";
+
+  /**
+   * Constructor.
+   *
+   */
   public ConfigureTask() {
     implClass = ConfigureAction.class.getName();
   }
@@ -42,20 +105,125 @@ public class ConfigureTask extends ServerSideActionTask {
   private Task.Type type = Task.Type.CONFIGURE;
 
   @XmlElement(name="type")
-  public String configType;
+  private String configType;
 
   @XmlElement(name="key")
-  public String key;
+  private String key;
 
   @XmlElement(name="value")
-  public String value;
+  private String value;
 
   @XmlElement(name="summary")
   public String summary;
+
+  @XmlElement(name = "condition")
+  private List<Condition> conditions;
 
   @Override
   public Type getType() {
     return type;
   }
 
+  /**
+   * A conditional element that will only perform the configuration if the
+   * condition is met.
+   */
+  @XmlAccessorType(XmlAccessType.FIELD)
+  @XmlType(name = "condition")
+  public static class Condition {
+    @XmlAttribute(name = "type")
+    private String conditionConfigType;
+
+    @XmlAttribute(name = "key")
+    private String conditionKey;
+
+    @XmlAttribute(name = "value")
+    private String conditionValue;
+
+    @XmlElement(name = "type")
+    private String configType;
+
+    @XmlElement(name = "key")
+    private String key;
+
+    @XmlElement(name = "value")
+    private String value;
+  }
+
+  /**
+   * Gets a map containing the following properties pertaining to the
+   * configuration value to change:
+   * <ul>
+   * <li>type - the configuration type (ie hdfs-site)</li>
+   * <li>key - the lookup key for the type</li>
+   * <li>value - the value to set the key to</li>
+   * </ul>
+   *
+   * @param cluster
+   *          the cluster to use when retrieving conditional properties to test
+   *          against (not {@code null}).
+   * @return the a map containing the configuration type, key, and value to use
+   *         when updating a configuration property (never {@code null).
+   *         This could potentially be an empty map if no conditions are
+   *         met. Callers should decide how to handle a configuration task
+   *         that is unable to set any configuration values.
+   */
+  public Map<String, String> getConfigurationProperties(Cluster cluster) {
+    Map<String, String> configParameters = new HashMap<String, String>();
+
+    // if there are no conditions then just take the direct values
+    if (null == conditions || conditions.isEmpty()) {
+      configParameters.put(PARAMETER_CONFIG_TYPE, configType);
+      configParameters.put(PARAMETER_KEY, key);
+      configParameters.put(PARAMETER_VALUE, value);
+      return configParameters;
+    }
+
+    // the first matched condition will win; a single configuration task
+    // should only ever set a single configuration property
+    for (Condition condition : conditions) {
+      String conditionConfigType = condition.conditionConfigType;
+      String conditionKey = condition.conditionKey;
+      String conditionValue = condition.conditionValue;
+
+      // check the condition; if it passes, set the configuration properties
+      // and break
+      String checkValue = getDesiredConfigurationValue(cluster,
+          conditionConfigType, conditionKey);
+
+      if (conditionValue.equals(checkValue)) {
+        configParameters.put(PARAMETER_CONFIG_TYPE, condition.configType);
+        configParameters.put(PARAMETER_KEY, condition.key);
+        configParameters.put(PARAMETER_VALUE, condition.value);
+        break;
+      }
+    }
+
+    return configParameters;
+  }
+
+  /**
+   * Gets the value of the specified cluster property.
+   *
+   * @param cluster
+   *          the cluster (not {@code null}).
+   * @param configType
+   *          the configuration type (ie hdfs-site) (not {@code null}).
+   * @param propertyKey
+   *          the key to retrieve (not {@code null}).
+   * @return the value or {@code null} if it does not exist.
+   */
+  private String getDesiredConfigurationValue(Cluster cluster,
+      String configType, String propertyKey) {
+
+    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
+    DesiredConfig desiredConfig = desiredConfigs.get(configType);
+    Config config = cluster.getConfig(configType, desiredConfig.getTag());
+
+    if (null == config) {
+      return null;
+    }
+
+    return config.getProperties().get(propertyKey);
+  }
 }
