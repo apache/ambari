@@ -23,8 +23,8 @@ from resource_management import *
 config = Script.get_config()
 
 hbase_pid_dir = config['configurations']['ams-hbase-env']['hbase_pid_dir']
-hbase_user = config['configurations']['ams-hbase-env']['hbase_user']
 ams_user = config['configurations']['ams-env']['ams_user']
+hbase_user = ams_user
 ams_collector_pid_dir = config['configurations']['ams-env']['ams_collector_pid_dir']
 ams_monitor_pid_dir = config['configurations']['ams-env']['ams_monitor_pid_dir']
 

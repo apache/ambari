@@ -51,12 +51,6 @@
     <value>1024m</value>
     <description>HBase Master Heap Size</description>
   </property>
-  <property>
-    <name>hbase_user</name>
-    <value>ams</value>
-    <property-type>USER</property-type>
-    <description>HBase User Name.</description>
-  </property>
 
   <!-- hbase-env.sh -->
   <property>
