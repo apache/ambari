@@ -114,6 +114,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private static final String COMMAND_PARAM_DIRECTION = "upgrade_direction";
   private static final String COMMAND_PARAM_RESTART_TYPE = "restart_type";
   private static final String COMMAND_PARAM_TASKS = "tasks";
+  private static final String COMMAND_PARAM_STRUCT_OUT = "structured_out";
 
   private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<Resource.Type, String>();
 
@@ -414,9 +415,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // the version being upgraded or downgraded to (ie hdp-2.2.1.0-1234)
     final String version = (String) requestMap.get(UPGRADE_VERSION);
 
-    UpgradeContext ctx = new UpgradeContext(direction == Direction.UPGRADE ?
-        new MasterHostResolver(cluster) : new MasterHostResolver(cluster, version),
-        version, direction);
+    MasterHostResolver resolver = Direction.UPGRADE == direction ?
+        new MasterHostResolver(cluster) : new MasterHostResolver(cluster, version);
+
+    UpgradeContext ctx = new UpgradeContext(resolver, version, direction);
 
     List<UpgradeGroupHolder> groups = s_upgradeHelper.createSequence(pack, ctx);
 
@@ -560,6 +562,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         cluster.getClusterName(), "ru_execute_tasks",
         Collections.singletonList(filter),
         params);
+    actionContext.setIgnoreMaintenance(true);
     actionContext.setTimeout(Short.valueOf((short)60));
 
     Map<String, String> hostLevelParams = new HashMap<String, String>();
@@ -624,6 +627,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         filters,
         restartCommandParams);
     actionContext.setTimeout(Short.valueOf((short)-1));
+    actionContext.setIgnoreMaintenance(true);
 
     ExecuteCommandJson jsons = commandExecutionHelper.get().getCommandJson(
         actionContext, cluster);
@@ -677,6 +681,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         filters,
         commandParams);
     actionContext.setTimeout(Short.valueOf((short)-1));
+    actionContext.setIgnoreMaintenance(true);
 
     ExecuteCommandJson jsons = commandExecutionHelper.get().getCommandJson(
         actionContext, cluster);
@@ -728,6 +733,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           stageText = mt.summary;
         }
         entity.setText(itemDetail);
+
+        if (null != mt.structuredOut) {
+          commandParams.put(COMMAND_PARAM_STRUCT_OUT, mt.structuredOut);
+        }
+
         break;
       }
       case CONFIGURE: {
@@ -771,6 +781,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         commandParams);
 
     actionContext.setTimeout(Short.valueOf((short)-1));
+    actionContext.setIgnoreMaintenance(true);
 
     ExecuteCommandJson jsons = commandExecutionHelper.get().getCommandJson(
         actionContext, cluster);

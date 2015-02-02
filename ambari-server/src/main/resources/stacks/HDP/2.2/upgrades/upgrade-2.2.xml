@@ -24,7 +24,6 @@
     <group name="ZOOKEEPER" title="Zookeeper">
       <service name="ZOOKEEPER">
         <component>ZOOKEEPER_SERVER</component>
-        <component>ZOOKEEPER_CLIENT</component>
       </service>
     </group>
 
@@ -115,6 +114,9 @@
 
     <group name="CLIENTS" title="Client Components">
       <service-check>false</service-check>
+      <service name="ZOOKEEPER">
+        <component>ZOOKEEPER_CLIENT</component>
+      </service>
       <service name="HDFS">
         <component>HDFS_CLIENT</component>
       </service>
@@ -199,6 +201,12 @@
 
     <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize Upgrade">
       <skippable>true</skippable>
+      <execute-stage title="Check Unhealthy Hosts" id="unhealthy-hosts">
+        <task xsi:type="manual">
+          <message>The following hosts were unhealthy and should be resolved before finalizing can be completed: {{host-detail-list}}</message>
+        </task>
+      </execute-stage>
+      
       <execute-stage title="Confirm Finalize">
         <task xsi:type="manual">
           <message>Please confirm you are ready to finalize</message>

@@ -178,6 +178,10 @@ public class UpgradeHelper {
             continue;
           }
 
+          if (!hostsType.unhealthy.isEmpty()) {
+            context.addUnhealthy(hostsType.unhealthy);
+          }
+
           Service svc = cluster.getService(service.serviceName);
           ProcessingComponent pc = allTasks.get(service.serviceName).get(component);
 

@@ -22,11 +22,13 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.utils.HTTPUtils;
@@ -101,7 +103,6 @@ public class MasterHostResolver {
    * @return The hostname that is the master of the service and component if successful, null otherwise.
    */
   public HostsType getMasterAndHosts(String serviceName, String componentName) {
-    HostsType hostsType = new HostsType();
 
     if (serviceName == null || componentName == null) {
       return null;
@@ -112,6 +113,7 @@ public class MasterHostResolver {
       return null;
     }
 
+    HostsType hostsType = new HostsType();
     hostsType.hosts = componentHosts;
 
     Service s = Service.OTHER;
@@ -164,34 +166,32 @@ public class MasterHostResolver {
    * @param hostsType the hosts to resolve
    * @param service   the service name
    * @param component the component name
-   * @return the modified hosts instance, or {@code null} if the filtering
-   *        results in no hosts to upgrade
+   * @return the modified hosts instance with filtered and unhealthy hosts filled
    */
   private HostsType filterSameVersion(HostsType hostsType, String service, String component) {
-    if (null == m_version) {
-      return hostsType;
-    }
 
     try {
       org.apache.ambari.server.state.Service svc = m_cluster.getService(service);
       ServiceComponent sc = svc.getServiceComponent(component);
 
+      // !!! not really a fan of passing these around
+      List<ServiceComponentHost> unhealthy = new ArrayList<ServiceComponentHost>();
       Set<String> toUpgrade = new LinkedHashSet<String>();
 
       for (String host : hostsType.hosts) {
         ServiceComponentHost sch = sc.getServiceComponentHost(host);
-        if (null == sch.getVersion() || !sch.getVersion().equals(m_version)) {
+
+        if (HostState.HEALTHY != sch.getHostState() && !sc.isMasterComponent()) {
+          unhealthy.add(sch);
+        } else if (null == m_version || null == sch.getVersion() || !sch.getVersion().equals(m_version)) {
           toUpgrade.add(host);
         }
       }
 
-      if (toUpgrade.isEmpty()) {
-        return null;
-      } else {
-        hostsType.hosts = toUpgrade;
-        return hostsType;
-      }
+      hostsType.unhealthy = unhealthy;
+      hostsType.hosts = toUpgrade;
 
+      return hostsType;
     } catch (AmbariException e) {
       // !!! better not
       LOG.warn("Could not determine host components to upgrade. Defaulting to saved hosts.", e);
@@ -298,5 +298,6 @@ public class MasterHostResolver {
     return null;
 
   }
+
 
 }

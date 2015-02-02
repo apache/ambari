@@ -64,7 +64,15 @@ import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.CommandScriptDefinition;
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.CustomCommandDefinition;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.Service;
@@ -74,14 +82,6 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.CommandScriptDefinition;
-import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.CustomCommandDefinition;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.HostComponentAdminState;
-import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.utils.StageUtils;
@@ -447,17 +447,22 @@ public class AmbariCustomCommandExecutionHelper {
     }
 
     // Filter hosts that are in MS
-    Set<String> ignoredHosts = maintenanceStateHelper.filterHostsInMaintenanceState(
-            candidateHosts, new MaintenanceStateHelper.HostPredicate() {
-              @Override
-              public boolean shouldHostBeRemoved(final String hostname)
-                      throws AmbariException {
-                return !maintenanceStateHelper.isOperationAllowed(
-                        cluster, actionExecutionContext.getOperationLevel(),
-                        resourceFilter, serviceName, componentName, hostname);
-              }
-            }
-    );
+    Set<String> ignoredHosts = new HashSet<String>();
+
+    if (!actionExecutionContext.isIgnoreMaintenance()) {
+      ignoredHosts.addAll(maintenanceStateHelper.filterHostsInMaintenanceState(
+        candidateHosts, new MaintenanceStateHelper.HostPredicate() {
+          @Override
+          public boolean shouldHostBeRemoved(final String hostname)
+                  throws AmbariException {
+            return !maintenanceStateHelper.isOperationAllowed(
+                    cluster, actionExecutionContext.getOperationLevel(),
+                    resourceFilter, serviceName, componentName, hostname);
+          }
+        }
+      ));
+    }
+
     String hostName = managementController.getHealthyHost(candidateHosts);
     if (hostName == null) {
       String msg = String.format("Unable to find a healthy host " +
@@ -659,20 +664,20 @@ public class AmbariCustomCommandExecutionHelper {
                 //Get UPDATE_EXCLUDE_FILE_ONLY parameter as string
                 String upd_excl_file_only_str = actionExecutionContext.getParameters()
                 .get(UPDATE_EXCLUDE_FILE_ONLY);
-              
+
                 String decom_incl_hosts_str = actionExecutionContext.getParameters()
-                .get(DECOM_INCLUDED_HOSTS);                
+                .get(DECOM_INCLUDED_HOSTS);
                 if ((upd_excl_file_only_str != null &&
                         !upd_excl_file_only_str.trim().equals(""))){
                   upd_excl_file_only_str = upd_excl_file_only_str.trim();
                 }
-                 
+
                 boolean upd_excl_file_only = false;
                 //Parse of possible forms of value
                 if (upd_excl_file_only_str != null &&
                         !upd_excl_file_only_str.equals("") &&
-                        (upd_excl_file_only_str.equals("\"true\"") 
-                        || upd_excl_file_only_str.equals("'true'") 
+                        (upd_excl_file_only_str.equals("\"true\"")
+                        || upd_excl_file_only_str.equals("'true'")
                         || upd_excl_file_only_str.equals("true"))){
                   upd_excl_file_only = true;
                 }

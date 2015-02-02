@@ -17,6 +17,11 @@
  */
 package org.apache.ambari.server.state;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
@@ -30,6 +35,7 @@ public class UpgradeContext {
   private Direction m_direction;
   private MasterHostResolver m_resolver;
   private AmbariMetaInfo m_metaInfo;
+  private List<ServiceComponentHost> m_unhealthy = new ArrayList<ServiceComponentHost>();
 
   /**
    * Constructor.
@@ -85,5 +91,29 @@ public class UpgradeContext {
   public void setAmbariMetaInfo(AmbariMetaInfo metaInfo) {
     m_metaInfo = metaInfo;
   }
+
+  /**
+   * @param unhealthy a list of unhealthy host components
+   */
+  public void addUnhealthy(List<ServiceComponentHost> unhealthy) {
+    m_unhealthy.addAll(unhealthy);
+  }
+
+  /**
+   * @return a map of host to list of components.
+   */
+  public Map<String, List<String>> getUnhealthy() {
+    Map<String, List<String>> results = new HashMap<String, List<String>>();
+
+    for (ServiceComponentHost sch : m_unhealthy) {
+      if (!results.containsKey(sch.getHostName())) {
+        results.put(sch.getHostName(), new ArrayList<String>());
+      }
+      results.get(sch.getHostName()).add(sch.getServiceComponentName());
+    }
+
+    return results;
+  }
+
 
 }

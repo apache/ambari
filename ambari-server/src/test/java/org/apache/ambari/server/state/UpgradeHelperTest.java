@@ -143,6 +143,55 @@ public class UpgradeHelperTest {
 
     assertEquals(6, groups.get(1).items.size());
     assertEquals(8, groups.get(2).items.size());
+    assertEquals(8, groups.get(3).items.size());
+  }
+
+  @Test
+  public void testUpgradeOrchestrationWithNoHeartbeat() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("foo", "bar");
+    assertTrue(upgrades.isEmpty());
+
+    upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    assertTrue(upgrades.containsKey("upgrade_test"));
+    UpgradePack upgrade = upgrades.get("upgrade_test");
+    assertNotNull(upgrade);
+
+    Cluster cluster = makeCluster(false);
+
+    Clusters clusters = injector.getInstance(Clusters.class);
+    Host h4 = clusters.getHost("h4");
+    h4.setState(HostState.HEARTBEAT_LOST);
+    h4.persist();
+
+
+    List<ServiceComponentHost> schs = cluster.getServiceComponentHosts("h4");
+    assertEquals(1, schs.size());
+    assertEquals(HostState.HEARTBEAT_LOST, schs.get(0).getHostState());
+
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver,
+        UPGRADE_VERSION, Direction.UPGRADE);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
+
+    assertEquals(6, groups.size());
+
+    assertEquals("PRE_CLUSTER", groups.get(0).name);
+    assertEquals("ZOOKEEPER", groups.get(1).name);
+    assertEquals("CORE_MASTER", groups.get(2).name);
+    assertEquals("CORE_SLAVES", groups.get(3).name);
+
+    UpgradeGroupHolder postGroup = groups.get(5);
+    assertEquals("POST_CLUSTER", postGroup.name);
+    assertEquals("Finalize Upgrade", postGroup.title);
+    assertEquals(4, postGroup.items.size());
+    assertEquals("Check Unhealthy Hosts", postGroup.items.get(0).getText());
+    assertEquals("Confirm Finalize", postGroup.items.get(1).getText());
+    assertEquals("Execute HDFS Finalize", postGroup.items.get(2).getText());
+    assertEquals("Save Cluster State", postGroup.items.get(3).getText());
+    assertEquals(StageWrapper.Type.SERVER_SIDE_ACTION, postGroup.items.get(3).getType());
+
+    assertEquals(6, groups.get(1).items.size());
+    assertEquals(8, groups.get(2).items.size());
     assertEquals(7, groups.get(3).items.size());
   }
 
@@ -169,17 +218,18 @@ public class UpgradeHelperTest {
     assertEquals("CORE_MASTER", groups.get(3).name);
     assertEquals("ZOOKEEPER", groups.get(4).name);
 
+
     UpgradeGroupHolder postGroup = groups.get(5);
-    assertEquals(postGroup.name, "POST_CLUSTER");
-    assertEquals(postGroup.title, "Finalize Upgrade");
-    assertEquals(postGroup.items.size(), 3);
-    assertEquals(postGroup.items.get(0).getText(), "Confirm Finalize");
-    assertEquals(postGroup.items.get(1).getText(), "Execute HDFS Finalize");
-    assertEquals(postGroup.items.get(2).getText(), "Save Cluster State");
-    assertEquals(postGroup.items.get(2).getType(), StageWrapper.Type.SERVER_SIDE_ACTION);
+    assertEquals("POST_CLUSTER", postGroup.name);
+    assertEquals("Finalize Upgrade", postGroup.title);
+    assertEquals(3, postGroup.items.size());
+    assertEquals("Confirm Finalize", postGroup.items.get(0).getText());
+    assertEquals("Execute HDFS Finalize", postGroup.items.get(1).getText());
+    assertEquals("Save Cluster State", postGroup.items.get(2).getText());
+    assertEquals(StageWrapper.Type.SERVER_SIDE_ACTION, postGroup.items.get(2).getType());
 
     assertEquals(2, groups.get(1).items.size());
-    assertEquals(7, groups.get(2).items.size());
+    assertEquals(8, groups.get(2).items.size());
     assertEquals(7, groups.get(3).items.size());
     assertEquals(5, groups.get(4).items.size());
   }
@@ -348,12 +398,16 @@ public class UpgradeHelperTest {
         manualTask.message);
   }
 
+  private Cluster makeCluster() throws AmbariException {
+    return makeCluster(true);
+  }
+
 
   /**
    * Create an HA cluster
    * @throws AmbariException
    */
-  public Cluster makeCluster() throws AmbariException {
+  private Cluster makeCluster(boolean clean) throws AmbariException {
     Clusters clusters = injector.getInstance(Clusters.class);
     ServiceFactory serviceFactory = injector.getInstance(ServiceFactory.class);
 
@@ -369,8 +423,7 @@ public class UpgradeHelperTest {
 
     c.createClusterVersion(c.getDesiredStackVersion().getStackName(),
         c.getDesiredStackVersion().getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
-
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 4; i++) {
       String hostName = "h" + (i+1);
       clusters.addHost(hostName);
       Host host = clusters.getHost(hostName);
@@ -398,6 +451,7 @@ public class UpgradeHelperTest {
     sc = s.addServiceComponent("DATANODE");
     sc.addServiceComponentHost("h2");
     sc.addServiceComponentHost("h3");
+    ServiceComponentHost sch = sc.addServiceComponentHost("h4");
 
     s = c.getService("ZOOKEEPER");
     sc = s.addServiceComponent("ZOOKEEPER_SERVER");
@@ -449,7 +503,12 @@ public class UpgradeHelperTest {
     expect(m_masterHostResolver.getMasterAndHosts("HDFS", "NAMENODE")).andReturn(type).anyTimes();
 
     type = new HostsType();
-    type.hosts = new HashSet<String>(Arrays.asList("h2", "h3"));
+    if (clean) {
+      type.hosts = new HashSet<String>(Arrays.asList("h2", "h3", "h4"));
+    } else {
+      type.unhealthy = Collections.singletonList(sch);
+      type.hosts = new HashSet<String>(Arrays.asList("h2", "h3"));
+    }
     expect(m_masterHostResolver.getMasterAndHosts("HDFS", "DATANODE")).andReturn(type).anyTimes();
 
     type = new HostsType();

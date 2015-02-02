@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -34,6 +36,11 @@ import javax.xml.bind.annotation.XmlType;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
+import org.apache.commons.lang.StringUtils;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 /**
  * Used to represent cluster-based operations.
@@ -61,6 +68,9 @@ public class ClusterGrouping extends Grouping {
   private static class ExecuteStage {
     @XmlAttribute(name="title")
     public String title;
+
+    @XmlAttribute(name="id")
+    public String id;
 
     /**
      * Optional service name, can be ""
@@ -128,6 +138,26 @@ public class ClusterGrouping extends Grouping {
           } else {
             switch (task.getType()) {
               case MANUAL:
+                if (null != execution.id && execution.id.equals("unhealthy-hosts")) {
+
+                  // !!! this specific task is used ONLY when there are unhealthy
+                  if (!ctx.getUnhealthy().isEmpty()) {
+                    ManualTask mt = (ManualTask) task;
+
+                    fillHostDetails(mt, ctx.getUnhealthy());
+
+                    wrapper = new StageWrapper(
+                        StageWrapper.Type.SERVER_SIDE_ACTION,
+                        execution.title,
+                        new TaskWrapper(null, null, Collections.<String>emptySet(), task));
+                  }
+                } else {
+                  wrapper = new StageWrapper(
+                      StageWrapper.Type.SERVER_SIDE_ACTION,
+                      execution.title,
+                      new TaskWrapper(null, null, Collections.<String>emptySet(), task));
+                }
+                break;
               case SERVER_ACTION:
                 wrapper = new StageWrapper(
                     StageWrapper.Type.SERVER_SIDE_ACTION,
@@ -148,4 +178,34 @@ public class ClusterGrouping extends Grouping {
       return results;
     }
   }
+
+  private void fillHostDetails(ManualTask mt, Map<String, List<String>> unhealthy) {
+    String msg = mt.message;
+
+    if (null != msg && msg.contains("{{host-detail-list}}")) {
+      mt.message = msg.replace("{{host-detail-list}}",
+          StringUtils.join(unhealthy.keySet(), ", "));
+      }
+
+    JsonArray arr = new JsonArray();
+    for (Entry<String, List<String>> entry : unhealthy.entrySet()) {
+      JsonObject hostObj = new JsonObject();
+      hostObj.addProperty("host", entry.getKey());
+
+      JsonArray componentArr = new JsonArray();
+      for (String comp : entry.getValue()) {
+        componentArr.add(new JsonPrimitive(comp));
+      }
+      hostObj.add("components", componentArr);
+
+      arr.add(hostObj);
+    }
+
+    JsonObject obj = new JsonObject();
+    obj.add("unhealthy", arr);
+
+    mt.structuredOut = obj.toString();
+
+  }
+
 }

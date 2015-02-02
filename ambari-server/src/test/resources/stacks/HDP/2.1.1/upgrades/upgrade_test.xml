@@ -83,6 +83,12 @@
     </group>    
     
     <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize Upgrade" stage="post">
+      <execute-stage title="Check Unhealthy Hosts" id="unhealthy-hosts">
+        <task xsi:type="manual">
+          <message>The following hosts were unhealthy and should be resolved before finalizing can be completed:
+              {{host-detail-list}}</message>
+        </task>
+      </execute-stage>
       <execute-stage title="Confirm Finalize">
         <task xsi:type="manual">
           <message>Please confirm you are ready to finalize</message>

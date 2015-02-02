@@ -19,12 +19,12 @@
 
 package org.apache.ambari.server.controller;
 
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ambari.server.actionmanager.TargetHostType;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * The context required to create tasks and stages for a custom action
@@ -39,6 +39,7 @@ public class ActionExecutionContext {
   private Short timeout;
   private String expectedServiceName;
   private String expectedComponentName;
+  private boolean ignoreMaintenance = false;
 
   /**
    * Create an ActionExecutionContext to execute an action from a request
@@ -129,6 +130,23 @@ public class ActionExecutionContext {
       ", parameters=" + parameters +
       ", targetType=" + targetType +
       ", timeout=" + timeout +
+      ", ignoreMaintenance=" + ignoreMaintenance +
       '}';
   }
+
+  /**
+   * @return {@code true} if the action context should schedule even if maintenance mode is
+   * enabled
+   */
+  public boolean isIgnoreMaintenance() {
+    return ignoreMaintenance;
+  }
+
+  /**
+   * @param ignore  {@code true} to ignore maintenace mode
+   */
+  public void setIgnoreMaintenance(boolean ignore) {
+    ignoreMaintenance = ignore;
+  }
+
 }

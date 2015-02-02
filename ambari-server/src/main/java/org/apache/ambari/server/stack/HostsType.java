@@ -18,8 +18,12 @@
 
 package org.apache.ambari.server.stack;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+
+import org.apache.ambari.server.state.ServiceComponentHost;
 
 /**
  * Wrapper around a collection of hosts that may have either a Master or Secondary host.
@@ -35,9 +39,12 @@ public class HostsType {
    */
   public Set<String> hosts;
 
+  public List<ServiceComponentHost> unhealthy;
+
   public HostsType () {
-    this.master = null;
-    this.secondary = null;
-    this.hosts = new HashSet<String>();
+    master = null;
+    secondary = null;
+    hosts = new HashSet<String>();
+    unhealthy = new ArrayList<ServiceComponentHost>();
   }
 }

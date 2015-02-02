@@ -41,11 +41,15 @@ public class ManualTask extends ServerSideActionTask {
   @XmlTransient
   private Task.Type type = Task.Type.MANUAL;
 
+  @XmlTransient
+  public String structuredOut = null;
+
   @XmlElement(name="message")
   public String message;
 
   @XmlElement(name="summary")
   public String summary;
+
 
   @Override
   public Task.Type getType() {
