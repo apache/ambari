@@ -886,8 +886,12 @@ def unpack_jce_policy():
     try:
       f = zipfile.ZipFile(jce_zip_path, "r")
       zip_members = f.namelist()
+      for member in zip_members:
+        if member.endswith(os.sep):
+          os.makedirs(os.path.join(jdk_security_path, member))
+        else:
+          f.extract(member, jdk_security_path)
       unziped_jce_path = os.path.split(zip_members[len(zip_members) - 1])[0]
-      f.extractall(jdk_security_path)
     finally:
       try:
         f.close()
