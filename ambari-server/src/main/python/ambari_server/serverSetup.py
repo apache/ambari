@@ -346,6 +346,7 @@ class JDKSetup(object):
 
       print_warning_msg("JAVA_HOME " + args.java_home + " must be valid on ALL hosts")
       print_warning_msg(jcePolicyWarn)
+      IS_CUSTOM_JDK = True
 
       properties.process_pair(JAVA_HOME_PROPERTY, args.java_home)
       properties.removeOldProp(JDK_NAME_PROPERTY)
