@@ -21,7 +21,7 @@ var App = require('app');
 App.FlumeAgentUpView = App.TextDashboardWidgetView.extend({
 
   title: Em.I18n.t('dashboard.widgets.FlumeAgentUp'),
-  id: '29',
+  id: '22',
 
   isPieChart: false,
   isText: true,
