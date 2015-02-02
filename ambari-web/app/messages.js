@@ -797,11 +797,6 @@ Em.I18n.translations = {
   'installer.step9.serviceStatus.abort.inProgress':'Aborting ',
   'installer.step9.serviceStatus.abort.completed':' aborted successfully',
   'installer.step9.serviceStatus.abort.failed':' failed to abort',
-  'installer.step9.serviceStatus.upgrade.pending':'Preparing to upgrade ',
-  'installer.step9.serviceStatus.upgrade.queued':'Waiting to upgrade ',
-  'installer.step9.serviceStatus.upgrade.inProgress':'Upgrading ',
-  'installer.step9.serviceStatus.upgrade.completed':' upgraded successfully',
-  'installer.step9.serviceStatus.upgrade.failed':' failed to upgrade',
   'installer.step9.components.install.failed': 'Installation Failure',
 
   'installer.step10.header':'Summary',
@@ -831,42 +826,6 @@ Em.I18n.translations = {
 
   'addHost.step4.header':'Configurations',
   'addHost.step4.title':'Select the configuration groups to which the added hosts will belong to.',
-
-
-  'installer.stackUpgrade.header':'Stack Upgrade Wizard',
-  'installer.stackUpgrade.step1.newVersion':'New Version',
-  'installer.stackUpgrade.step1.installedVersion':'Installed Version',
-  'installer.stackUpgrade.step1.installedStackVersion':'Installed stack version',
-  'installer.stackUpgrade.step1.upgradeStackVersion':'Upgrade stack version',
-  'installer.stackUpgrade.step1.description':'This Stack Upgrade Wizard will walk you through the steps of upgrading the cluster to the latest available stack version.',
-
-  'installer.stackUpgrade.step2.notice.header':'Important before you proceed, please perform following.',
-  'installer.stackUpgrade.step2.notice.first':'Make sure that your NameNode is backed up.',
-  'installer.stackUpgrade.step2.notice.second':'Make sure that your NameNode is backed up.',
-  'installer.stackUpgrade.step2.notice.third':'Make sure that your NameNode is backed up.',
-  'installer.stackUpgrade.step2.notice.complete':'Once you have completed the above, click on Upgrade to initiate the upgrade process on all hosts in your cluster',
-  'installer.stackUpgrade.step2.advancedOption':'Advanced Option',
-  'installer.stackUpgrade.step2.localRepository':'Use a local repository',
-  'installer.stackUpgrade.step2.popup.body':'We cannot proceed since some of the master components are not currently running. Please ensure that all services are running before continuing.',
-  'installer.stackUpgrade.step3.ProceedWithWarning':'Proceed with Warning',
-  'installer.stackUpgrade.step3.status.success':'Successfully upgraded the cluster to {0}',
-  'installer.stackUpgrade.step3.status.info':"Upgrading the cluster. \nPlease wait while we perform cluster upgrade.",
-  'installer.stackUpgrade.step3.status.warning':"Upgraded the cluster to {0} with some warnings.\nYou can start using the cluster but the components that failed to upgrade will not be functional."+
-  "You can click on the Retry button to retry upgrading the failed components. Alternatively you can proceed and retry upgrade on individual components in the Host Detail page.",
-  'installer.stackUpgrade.step3.status.failed':"Failed to upgrade hosts. Click on each host to see what might have gone wrong.\n After fixing the problem, click the Retry button",
-  'installer.stackUpgrade.step3.host.nothingToUpgrade':'Install complete (Waiting to start)',
-  'installer.stackUpgrade.step3.service.upgraded':'Services upgraded',
-  'installer.stackUpgrade.step3.service.upgrading':'Services upgrade in progress',
-  'installer.stackUpgrade.step3.service.pending':'Services upgrade pending',
-  'installer.stackUpgrade.step3.service.failedUpgrade':'Services failed to upgrade',
-  'installer.stackUpgrade.step3.service.stopped':'All Services stopped',
-  'installer.stackUpgrade.step3.service.stopping':'All Services stopping',
-  'installer.stackUpgrade.step3.service.stopFail':'All Services failed to stop',
-  'installer.stackUpgrade.step3.service.stopPending':'All Services stop pending',
-  'installer.stackUpgrade.step3.retry.upgrade':'Retry Upgrade',
-  'installer.stackUpgrade.step3.retry.services':'Retry stopping services',
-  'installer.stackUpgrade.step3.upgrade.header':'All Services upgrade',
-  'installer.stackUpgrade.step3.stop.header':'All Services stop',
 
   'form.create':'Create',
   'form.save':'Save',
@@ -1351,10 +1310,15 @@ Em.I18n.translations = {
   'admin.stackVersions.details.install.hosts.popup.title': "Install {0} version",
 
   'admin.stackUpgrade.finalize.later': "Finalize Later",
-  'admin.stackUpgrade.finalize.message': "Your cluster version has been upgraded. " +
+  'admin.stackUpgrade.finalize.message.upgrade': "Your cluster version has been upgraded. " +
   "Click on <b>Finalize</b> when you are ready to finalize the upgrade and commit to the new version." +
   " You are strongly encouraged to run tests on your cluster to ensure it is fully operational before finalizing." +
   " <b>You cannot go back to the original version once the upgrade is finalized.</b>",
+  'admin.stackUpgrade.finalize.message.downgrade': "Your cluster version has been downgraded. " +
+    "Click on <b>Finalize</b> when you are ready to finalize the downgrade and commit to the new version." +
+    " You are strongly encouraged to run tests on your cluster to ensure it is fully operational before finalizing." +
+    " <b>You cannot go back to the original version once the downgrade is finalized.</b>",
+  'admin.stackUpgrade.doThisLater': "Do This Later",
   'admin.stackUpgrade.pauseUpgrade': "Pause Upgrade",
   'admin.stackUpgrade.downgrade.proceed': "Proceed with Downgrade",
   'admin.stackUpgrade.downgrade.title': "Downgrade to {0}",
