@@ -91,32 +91,6 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putTezProperty("tez.runtime.io.sort.mb", min(int(taskResourceMemory * 0.4), 2047))
     putTezProperty("tez.runtime.unordered.output.buffer.size-mb", int(taskResourceMemory * 0.075))
 
-  def recommendAmsConfigurations(self, configurations, clusterData, services, hosts):
-    putAmsHbaseSiteProperty = self.putProperty(configurations, "ams-hbase-site")
-    putTimelineServiceProperty = self.putProperty(configurations, "ams-site")
-    putHbaseEnvProperty = self.putProperty(configurations, "ams-hbase-env")
-
-    amsCollectorHosts = self.getComponentHostNames(services, "AMS", "METRIC_COLLECTOR")
-    putHbaseEnvProperty("hbase_regionserver_heapsize", "1024m")
-    putAmsHbaseSiteProperty("hfile.block.cache.size", 0.3)
-    putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", 0.5)
-    putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.lowerLimit", 0.4)
-    putTimelineServiceProperty("timeline.metrics.host.aggregator.ttl", 86400)
-
-  # TODO recommend configuration for multiple AMS collectors
-    if len(amsCollectorHosts) > 1:
-      pass
-    else:
-      totalHostsCount = len(hosts["items"])
-      if totalHostsCount > 400:
-        putHbaseEnvProperty("hbase_master_heapsize", "12288m")
-      elif totalHostsCount > 100:
-        putHbaseEnvProperty("hbase_master_heapsize", "6144m")
-      elif totalHostsCount > 50:
-        putHbaseEnvProperty("hbase_master_heapsize", "2048m")
-      else:
-        putHbaseEnvProperty("hbase_master_heapsize", "1024m")
-
   def getServiceConfigurationValidators(self):
     parentValidators = super(HDP22StackAdvisor, self).getServiceConfigurationValidators()
     childValidators = {
@@ -125,9 +99,6 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       "HIVE": {"hiveserver2-site": self.validateHIVEConfigurations},
       "HBASE": {"hbase-site": self.validateHBASEConfigurations},
       "MAPREDUCE2": {"mapred-site": self.validateMapReduce2Configurations},
-      "AMS": {"ams-hbase-site": self.validateAmsHbaseSiteConfigurations,
-              "ams-hbase-env": self.validateAmsHbaseEnvConfigurations,
-              "ams-site": self.validateAmsSiteConfigurations},
       "TEZ": {"tez-site": self.validateTezConfigurations}
     }
     parentValidators.update(childValidators)
@@ -139,93 +110,6 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                         {"config-name": 'tez.runtime.io.sort.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.runtime.io.sort.mb')},
                         {"config-name": 'tez.runtime.unordered.output.buffer.size-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.runtime.unordered.output.buffer.size-mb')},]
     return self.toConfigurationValidationProblems(validationItems, "tez-site")
-
-  def validateAmsSiteConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
-    validationItems = []
-
-    op_mode = properties.get("timeline.metrics.service.operation.mode")
-    correct_op_mode_item = None
-    if op_mode not in ("embedded", "distributed"):
-      correct_op_mode_item = self.getErrorItem("Correct value should be set.")
-      pass
-
-    validationItems.extend([{"config-name":'timeline.metrics.service.operation.mode', "item": correct_op_mode_item }])
-    return self.toConfigurationValidationProblems(validationItems, "ams-site")
-
-  def validateAmsHbaseSiteConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
-
-    amsCollectorHosts = self.getComponentHostNames(services, "AMS", "METRIC_COLLECTOR")
-    ams_site = getSiteProperties(configurations, "ams-site")
-
-    recommendedDiskSpace = 10485760
-    # TODO validate configuration for multiple AMS collectors
-    if len(amsCollectorHosts) > 1:
-      pass
-    else:
-      totalHostsCount = len(hosts["items"])
-      if totalHostsCount > 400:
-        recommendedDiskSpace  = 104857600  # * 1k == 100 Gb
-      elif totalHostsCount > 100:
-        recommendedDiskSpace  = 52428800  # * 1k == 50 Gb
-      elif totalHostsCount > 50:
-        recommendedDiskSpace  = 20971520  # * 1k == 20 Gb
-
-
-    validationItems = []
-    for collectorHostName in amsCollectorHosts:
-      for host in hosts["items"]:
-        if host["Hosts"]["host_name"] == collectorHostName:
-          validationItems.extend([ {"config-name": 'hbase.rootdir', "item": self.validatorEnoughDiskSpace(properties, 'hbase.rootdir', host["Hosts"], recommendedDiskSpace)}])
-          break
-
-    rootdir_item = None
-    op_mode = ams_site.get("timeline.metrics.service.operation.mode")
-    hbase_rootdir = properties.get("hbase.rootdir")
-    if op_mode == "distributed" and not hbase_rootdir.startswith("hdfs://"):
-      rootdir_item = self.getWarnItem("In distributed mode hbase.rootdir should point to HDFS. Collector will operate in embedded mode otherwise.")
-      pass
-
-    distributed_item = None
-    distributed = properties.get("hbase.cluster.distributed")
-    if hbase_rootdir.startswith("hdfs://") and not distributed.lower() == "true":
-      distributed_item = self.getErrorItem("Distributed property should be set to true if hbase.rootdir points to HDFS.")
-
-    validationItems.extend([{"config-name":'hbase.rootdir', "item": rootdir_item },
-                            {"config-name":'hbase.cluster.distributed', "item": distributed_item }])
-
-    return self.toConfigurationValidationProblems(validationItems, "ams-hbase-site")
-
-  def validateAmsHbaseEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
-    regionServerItem = self.validatorLessThenDefaultValue(properties, recommendedDefaults, "hbase_regionserver_heapsize")
-    masterItem = self.validatorLessThenDefaultValue(properties, recommendedDefaults, "hbase_master_heapsize")
-    ams_env = getSiteProperties(configurations, "ams-env")
-    logDirItem = self.validatorEqualsPropertyItem(properties, "hbase_log_dir",
-                                                  ams_env, "ams_collector_log_dir")
-
-    if masterItem is None:
-      hbase_master_heapsize = formatXmxSizeToBytes(properties["hbase_master_heapsize"])
-
-      # TODO Add AMS Collector Xmx property to ams-env
-      # Collector 512m + HBASE Master heapsize
-      # For standalone HBase, master's heap memory is used by regionserver as well
-      requiredMemory = 536870912 + hbase_master_heapsize
-
-      amsCollectorHosts = self.getComponentHostNames(services, "AMS", "METRIC_COLLECTOR")
-      for collectorHostName in amsCollectorHosts:
-        for host in hosts["items"]:
-          if host["Hosts"]["host_name"] == collectorHostName:
-            if host["Hosts"]["total_mem"] * 1024 < requiredMemory:  # in bytes
-              message = "Not enough total RAM on the host {0}, " \
-                        "at least {1} MB required" \
-                        .format(collectorHostName, requiredMemory/1048576)  # MB
-              regionServerItem = self.getWarnItem(message)
-              masterItem = self.getWarnItem(message)
-              break
-
-    validationItems = [{"config-name": "hbase_regionserver_heapsize", "item": regionServerItem},
-                       {"config-name": "hbase_master_heapsize", "item": masterItem},
-                       {"config-name": "hbase_log_dir", "item": logDirItem}]
-    return self.toConfigurationValidationProblems(validationItems, "ams-hbase-env")
 
   def recommendMapReduce2Configurations(self, configurations, clusterData, services, hosts):
     putMapredProperty = self.putProperty(configurations, "mapred-site")
