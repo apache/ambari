@@ -302,8 +302,7 @@ def init_parser_options(parser):
   parser.add_option('-p', '--databasepassword', dest="database_password", default=None,
                     help="Database user password")
   parser.add_option('--jdbc-driver', default=None, dest="jdbc_driver",
-                    help="Specifies the path to the JDBC driver JAR file for the " \
-                         "database type specified with the --jdbc-db option. Used only with --jdbc-db option.")
+                    help="Specifies the path to the JDBC driver JAR file")
   # -b, -i, -k and -x the remaining available short options
   # -h reserved for help
 

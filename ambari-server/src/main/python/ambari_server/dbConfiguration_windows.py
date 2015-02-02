@@ -25,7 +25,7 @@ from ambari_commons.exceptions import FatalException
 from ambari_commons.logging_utils import print_info_msg, print_warning_msg
 from ambari_commons.os_utils import search_file, run_os_command
 from ambari_commons.os_windows import WinServiceController
-from ambari_commons.str_utils import compress_backslashes, ensure_double_backslashes
+from ambari_commons.str_utils import cbool, compress_backslashes, ensure_double_backslashes
 from ambari_server.dbConfiguration import AMBARI_DATABASE_NAME, DEFAULT_USERNAME, DEFAULT_PASSWORD, \
   DBMSConfig, DbPropKeys, DbAuthenticationKeys
 from ambari_server.serverConfiguration import JDBC_DRIVER_PROPERTY, JDBC_DRIVER_PATH_PROPERTY, JDBC_URL_PROPERTY, \
@@ -79,8 +79,8 @@ class SQLServerConfig(DBMSConfig):
     self.database_name = DBMSConfig._init_member_with_prop_default(options, "database_name",
                                                                    properties, self.dbPropKeys.db_name_key, configDefaults.DEFAULT_DB_NAME)
 
-    self.use_windows_authentication = DBMSConfig._init_member_with_prop_default(options, "database_windows_auth",
-        properties, self.dbAuthKeys.integrated_auth_key, "False")
+    self.use_windows_authentication = cbool(DBMSConfig._init_member_with_prop_default(options, "database_windows_auth",
+        properties, self.dbAuthKeys.integrated_auth_key, False))
     self.database_username = DBMSConfig._init_member_with_prop_default(options, "database_username",
                                                                        properties, self.dbAuthKeys.user_name_key, DEFAULT_USERNAME)
     self.database_password = DBMSConfig._init_member_with_default(options, "database_password", "")
@@ -115,7 +115,7 @@ class SQLServerConfig(DBMSConfig):
       self.database_host = get_validated_string_input(hostname_prompt, self.database_host, None, None, False, True)
 
       #prompt for SQL Server authentication method
-      if (not self.use_windows_authentication is None and self.use_windows_authentication.lower() == "true") or \
+      if not self.use_windows_authentication or \
               self.database_username is None or self.database_username == "":
         auth_option_default = '1'
       else:

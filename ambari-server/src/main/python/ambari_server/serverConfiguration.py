@@ -179,8 +179,8 @@ class ServerConfigDefaults(object):
     self.JDK_INSTALL_DIR = ""
     self.JDK_SEARCH_PATTERN = ""
     self.JAVA_EXE_SUBPATH = ""
-    self.JDK_SECURITY_DIR = "jre/lib/security"
-    self.SERVER_RESOURCES_DIR = "/var/lib/ambari-server/resources"
+    self.JDK_SECURITY_DIR = os.path.join("jre", "lib", "security")
+    self.SERVER_RESOURCES_DIR = ""
 
     # Configuration defaults
     self.DEFAULT_CONF_DIR = ""
@@ -256,6 +256,7 @@ class ServerConfigDefaultsWindows(ServerConfigDefaults):
     ]
     self.NR_USERADD_CMD = "cmd /C net user {0} {1} /ADD"
 
+    self.SERVER_RESOURCES_DIR = "resources"
     self.STACK_LOCATION_DEFAULT = "resources\\stacks"
 
     self.DEFAULT_VIEWS_DIR = "resources\\views"
@@ -322,6 +323,7 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
     self.NR_USERADD_CMD = 'useradd -M --comment "{1}" ' \
                  '--shell %s -d /var/lib/ambari-server/keys/ {0}' % locate_file('nologin', '/sbin')
 
+    self.SERVER_RESOURCES_DIR = "/var/lib/ambari-server/resources"
     self.STACK_LOCATION_DEFAULT = "/var/lib/ambari-server/resources/stacks"
 
     self.DEFAULT_VIEWS_DIR = "/var/lib/ambari-server/resources/views"

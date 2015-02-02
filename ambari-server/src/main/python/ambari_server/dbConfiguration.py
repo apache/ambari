@@ -24,6 +24,7 @@ from ambari_commons import OSConst
 from ambari_commons.exceptions import FatalException
 from ambari_commons.logging_utils import get_silent, print_error_msg, print_info_msg, print_warning_msg, set_silent
 from ambari_commons.os_family_impl import OsFamilyImpl
+from ambari_commons.str_utils import cbool
 from ambari_server.serverConfiguration import decrypt_password_for_alias, get_value_from_properties, get_is_secure, \
   is_alias_string, \
   JDBC_PASSWORD_PROPERTY, JDBC_RCA_PASSWORD_ALIAS, PRESS_ENTER_MSG, get_ambari_properties, update_properties, \
@@ -150,9 +151,8 @@ class DBMSConfig(object):
       raise FatalException(-1, msg)
 
     if result != 1:
-      if self._install_jdbc_driver(properties, result):
-        return True
-    return False
+      result = self._install_jdbc_driver(properties, result)
+    return cbool(result)
 
   def change_db_files_owner(self):
     if self._is_local_database():

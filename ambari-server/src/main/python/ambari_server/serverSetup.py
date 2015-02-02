@@ -30,7 +30,7 @@ from ambari_commons.inet_utils import force_download_file
 from ambari_commons.logging_utils import get_silent, print_info_msg, print_warning_msg, print_error_msg
 from ambari_commons.os_check import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-from ambari_commons.os_utils import run_os_command, is_root
+from ambari_commons.os_utils import copy_files, run_os_command, is_root
 from ambari_commons.str_utils import compress_backslashes
 from ambari_server.dbConfiguration import DBMSConfigFactory, check_jdbc_drivers
 from ambari_server.serverConfiguration import configDefaults, JDKRelease, \
@@ -71,8 +71,6 @@ UNTAR_JDK_ARCHIVE = "tar --no-same-owner -xvf {0}"
 JDK_PROMPT = "[{0}] {1}\n"
 JDK_CUSTOM_CHOICE_PROMPT = "[{0}] - Custom JDK\n==============================================================================\nEnter choice ({1}): "
 JDK_VALID_CHOICES = "^[{0}{1:d}]$"
-
-IS_CUSTOM_JDK = False
 
 def get_supported_jdbc_drivers():
   factory = DBMSConfigFactory()
@@ -327,19 +325,14 @@ class JDKSetup(object):
   #
   # Downloads and installs the JDK and the JCE policy archive
   #
-  def download_and_install_jdk(self, args):
-    global IS_CUSTOM_JDK
-    properties = get_ambari_properties()
-    if properties == -1:
-      err = "Error getting ambari properties"
-      raise FatalException(-1, err)
-
+  def download_and_install_jdk(self, args, properties):
     conf_file = properties.fileName
-    ok = False
+
     jcePolicyWarn = "JCE Policy files are required for configuring Kerberos security. If you plan to use Kerberos," \
                     "please make sure JCE Unlimited Strength Jurisdiction Policy Files are valid on all hosts."
 
     if args.java_home:
+      #java_home was specified among the command-line arguments. Use it as custom JDK location.
       if not validate_jdk(args.java_home):
         err = "Path to java home " + args.java_home + " or java binary file does not exists"
         raise FatalException(1, err)
@@ -351,10 +344,10 @@ class JDKSetup(object):
       properties.process_pair(JAVA_HOME_PROPERTY, args.java_home)
       properties.removeOldProp(JDK_NAME_PROPERTY)
       properties.removeOldProp(JCE_NAME_PROPERTY)
-      update_properties(properties)
 
       self._ensure_java_home_env_var_is_set(args.java_home)
-      return 0
+      self.jdk_index = self.custom_jdk_number
+      return
 
     java_home_var = get_JAVA_HOME()
 
@@ -367,10 +360,10 @@ class JDKSetup(object):
           properties.process_pair(JAVA_HOME_PROPERTY, args.java_home)
           properties.removeOldProp(JDK_NAME_PROPERTY)
           properties.removeOldProp(JCE_NAME_PROPERTY)
-          update_properties(properties)
 
           self._ensure_java_home_env_var_is_set(args.java_home)
-          return 0
+          self.jdk_index = self.custom_jdk_number
+          return
         else:
           # For now, changing the existing JDK to make sure we use a supported one
           pass
@@ -379,11 +372,12 @@ class JDKSetup(object):
       change_jdk = get_YN_input("Do you want to change Oracle JDK [y/n] (n)? ", False)
       if not change_jdk:
         self._ensure_java_home_env_var_is_set(java_home_var)
-        return 0
+        self.jdk_index = self.custom_jdk_number
+        return
 
     #Continue with the normal setup, taking the first listed JDK version as the default option
     jdk_num = str(self.jdk_index + 1)
-    (jdks, jdk_choice_prompt, jdk_valid_choices, custom_jdk_number) = self._populate_jdk_configs(properties, jdk_num)
+    (self.jdks, jdk_choice_prompt, jdk_valid_choices, self.custom_jdk_number) = self._populate_jdk_configs(properties, jdk_num)
 
     jdk_num = get_validated_string_input(
       jdk_choice_prompt,
@@ -393,8 +387,9 @@ class JDKSetup(object):
       False
     )
 
-    if jdk_num == str(custom_jdk_number):
-      IS_CUSTOM_JDK = True
+    self.jdk_index = int(jdk_num) - 1
+
+    if self.jdk_index == self.custom_jdk_number:
       print_warning_msg("JDK must be installed on all hosts and JAVA_HOME must be valid on all hosts.")
       print_warning_msg(jcePolicyWarn)
       args.java_home = get_validated_string_input("Path to JAVA_HOME: ", None, None, None, False, False)
@@ -406,13 +401,11 @@ class JDKSetup(object):
       properties.process_pair(JAVA_HOME_PROPERTY, args.java_home)
       properties.removeOldProp(JDK_NAME_PROPERTY)
       properties.removeOldProp(JCE_NAME_PROPERTY)
-      update_properties(properties)
 
       self._ensure_java_home_env_var_is_set(args.java_home)
-      return 0
+      return
 
-    self.jdk_index = int(jdk_num) - 1
-    jdk_cfg = jdks[self.jdk_index]
+    jdk_cfg = self.jdks[self.jdk_index]
 
     try:
       resources_dir = properties[RESOURCES_DIR_PROPERTY]
@@ -476,21 +469,47 @@ class JDKSetup(object):
     properties.process_pair(JDK_NAME_PROPERTY, jdk_cfg.dest_file)
     properties.process_pair(JAVA_HOME_PROPERTY, java_home_dir)
 
+    self._ensure_java_home_env_var_is_set(java_home_dir)
+
+  def download_and_unpack_jce_policy(self, properties):
+    conf_file = properties.fileName
+
+    err_msg_stdout = "JCE Policy files are required for secure HDP setup. Please ensure " \
+              " all hosts have the JCE unlimited strength policy 6, files."
+
     try:
-      self._download_jce_policy(jdk_cfg, resources_dir, properties)
+      resources_dir = properties[RESOURCES_DIR_PROPERTY]
+    except (KeyError), e:
+      err = 'Property ' + str(e) + ' is not defined at ' + conf_file
+      raise FatalException(1, err)
+
+    jdk_cfg = self.jdks[self.jdk_index]
+
+    try:
+      JDKSetup._download_jce_policy(jdk_cfg.jcpol_url, jdk_cfg.dest_jcpol_file, resources_dir, properties)
     except FatalException, e:
-      print "JCE Policy files are required for secure HDP setup. Please ensure " \
-            " all hosts have the JCE unlimited strength policy 6, files."
+      print err_msg_stdout
       print_error_msg("Failed to download JCE policy files:")
       if e.reason is not None:
         print_error_msg("\nREASON: {0}".format(e.reason))
         # TODO: We don't fail installation if _download_jce_policy fails. Is it OK?
 
-    update_properties(properties)
+    print 'Installing JCE policy...'
+    try:
+      JDKSetup.unpack_jce_policy(jdk_cfg.inst_dir, resources_dir, jdk_cfg.dest_jcpol_file)
+    except FatalException, e:
+      print err_msg_stdout
+      print_error_msg("Failed to install JCE policy files:")
+      if e.reason is not None:
+        print_error_msg("\nREASON: {0}".format(e.reason))
+        # TODO: We don't fail installation if _download_jce_policy fails. Is it OK?
 
-    self._ensure_java_home_env_var_is_set(java_home_dir)
+  @staticmethod
+  def unpack_jce_policy(jdk_path, resources_dir, jce_packed_file):
+    jdk_security_path = os.path.abspath(os.path.join(jdk_path, configDefaults.JDK_SECURITY_DIR))
 
-    return 0
+    jce_zip_path = os.path.abspath(os.path.join(resources_dir, jce_packed_file))
+    expand_jce_zip_file(jce_zip_path, jdk_security_path)
 
   def _populate_jdk_configs(self, properties, jdk_num):
     if properties.has_key(JDK_RELEASES):
@@ -513,7 +532,7 @@ class JDKSetup(object):
     jdk_choice_prompt += self.JDK_CUSTOM_CHOICE_PROMPT.format(n_config, jdk_num)
     jdk_valid_choices = self.JDK_VALID_CHOICES.format(jdk_choices, n_config)
 
-    return (jdks, jdk_choice_prompt, jdk_valid_choices, n_config)
+    return (jdks, jdk_choice_prompt, jdk_valid_choices, n_config - 1)
 
   def _download_jdk(self, jdk_url, dest_file):
     jdk_download_fail_msg = " Failed to download JDK: {0}. Please check that the " \
@@ -530,9 +549,9 @@ class JDKSetup(object):
       err = jdk_download_fail_msg.format(str(e))
       raise FatalException(1, err)
 
-  def _download_jce_policy(self, jdk_cfg, resources_dir, properties):
-    jcpol_url = jdk_cfg.jcpol_url
-    dest_file = os.path.abspath(os.path.join(resources_dir, jdk_cfg.dest_jcpol_file))
+  @staticmethod
+  def _download_jce_policy(jcpol_url, dest_jcpol_file, resources_dir, properties):
+    dest_file = os.path.abspath(os.path.join(resources_dir, dest_jcpol_file))
 
     if not os.path.exists(dest_file):
       print 'Downloading JCE Policy archive from ' + jcpol_url + ' to ' + dest_file
@@ -540,7 +559,6 @@ class JDKSetup(object):
         force_download_file(jcpol_url, dest_file)
 
         print 'Successfully downloaded JCE Policy archive to ' + dest_file
-        properties.process_pair(JCE_NAME_PROPERTY, jdk_cfg.dest_jcpol_file)
       except FatalException:
         raise
       except Exception, e:
@@ -548,6 +566,8 @@ class JDKSetup(object):
         raise FatalException(1, err)
     else:
       print "JCE Policy archive already exists, using " + dest_file
+
+    properties.process_pair(JCE_NAME_PROPERTY, dest_jcpol_file)
 
   # Base implementation, overriden in the subclasses
   def _install_jdk(self, java_inst_file, java_home_dir):
@@ -568,6 +588,9 @@ class JDKSetupWindows(JDKSetup):
                  "C:\\jdk1.7.0_67",
                  "Creating (jdk.*)/jre")
     ]
+
+    self.jdks = self.JDK_DEFAULT_CONFIGS
+    self.custom_jdk_number = len(self.jdks)
 
     self.JAVA_BIN = "java.exe"
 
@@ -637,6 +660,9 @@ class JDKSetupLinux(JDKSetup):
                  "Creating (jdk.*)/jre")
     ]
 
+    self.jdks = self.JDK_DEFAULT_CONFIGS
+    self.custom_jdk_number = len(self.jdks)
+
     self.JAVA_BIN = "java"
 
     self.CREATE_JDK_DIR_CMD = "/bin/mkdir -p {0}"
@@ -680,7 +706,20 @@ class JDKSetupLinux(JDKSetup):
     os.environ[JAVA_HOME] = java_home_dir
 
 def download_and_install_jdk(options):
-  return JDKSetup().download_and_install_jdk(options)
+  properties = get_ambari_properties()
+  if properties == -1:
+    err = "Error getting ambari properties"
+    raise FatalException(-1, err)
+
+  jdkSetup = JDKSetup()
+  jdkSetup.download_and_install_jdk(options, properties)
+
+  if jdkSetup.jdk_index != jdkSetup.custom_jdk_number:
+    jdkSetup.download_and_unpack_jce_policy(properties)
+
+  update_properties(properties)
+
+  return 0
 
 
 #
@@ -873,16 +912,10 @@ def extract_views():
   return 0
 
 
-def unpack_jce_policy():
-  properties = get_ambari_properties()
-  jdk_path = properties.get_property(JAVA_HOME_PROPERTY)
-  jdk_security_path = jdk_path + os.sep + configDefaults.JDK_SECURITY_DIR
-
-  jce_name = properties.get_property(JCE_NAME_PROPERTY)
-  jce_zip_path = configDefaults.SERVER_RESOURCES_DIR + os.sep + jce_name
+def expand_jce_zip_file(jce_zip_path, jdk_security_path):
   f = None
-
   import zipfile
+
   if os.path.exists(jdk_security_path) and os.path.exists(jce_zip_path):
     try:
       f = zipfile.ZipFile(jce_zip_path, "r")
@@ -904,15 +937,15 @@ def unpack_jce_policy():
     raise FatalException(1, err)
 
   if unziped_jce_path:
-    from_path = jdk_security_path + os.sep + unziped_jce_path
+    from_path = os.path.join(jdk_security_path, unziped_jce_path)
     jce_files = os.listdir(from_path)
     for i in range(len(jce_files)):
-      jce_files[i] = from_path + os.sep + jce_files[i]
-    from ambari_commons.os_utils import copy_files
+      jce_files[i] = os.path.join(from_path, jce_files[i])
+
     copy_files(jce_files, jdk_security_path)
-    dir_to_delete = jdk_security_path + os.sep + unziped_jce_path.split(os.sep)[0]
+    dir_to_delete = os.path.join(jdk_security_path, unziped_jce_path.split(os.sep)[0])
     shutil.rmtree(dir_to_delete)
-  return 0
+
 
 #
 # Setup the Ambari Server.
@@ -955,14 +988,6 @@ def setup(options):
     err = 'Downloading or installing JDK failed: {0}. Exiting.'.format(e)
     raise FatalException(e.code, err)
 
-  if not IS_CUSTOM_JDK: # If it's not a custom JDK, will also install JCE policy automatically
-    print 'Installing JCE policy...'
-    try:
-      unpack_jce_policy()
-    except FatalException as e:
-      err = 'Installing JCE failed: {0}. Exiting.'.format(e)
-      raise FatalException(e.code, err)
-
   print 'Completing setup...'
   retcode = configure_os_settings()
   if not retcode == 0:
@@ -1003,23 +1028,22 @@ def setup_jce_policy(args):
     err = "Can not run 'setup-jce'. Invalid path {0}.".format(args[1])
     raise FatalException(1, err)
 
-  from ambari_commons.os_utils import search_file
-  from ambari_server.serverConfiguration import AMBARI_PROPERTIES_FILE, get_conf_dir
-  conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
   properties = get_ambari_properties()
+  jdk_path = properties.get_property(JAVA_HOME_PROPERTY)
+  resources_dir = properties.get_property(RESOURCES_DIR_PROPERTY)
+
   zip_name = os.path.split(args[1])[1]
   properties.process_pair(JCE_NAME_PROPERTY, zip_name)
-  try:
-    properties.store(open(conf_file, "w"))
-  except Exception, e:
-    print_error_msg('Could not write ambari config file "%s": %s' % (conf_file, e))
 
   print 'Installing JCE policy...'
   try:
-    unpack_jce_policy()
+    JDKSetup.unpack_jce_policy(jdk_path, resources_dir, zip_name)
   except FatalException as e:
     err = 'Installing JCE failed: {0}. Exiting.'.format(e)
     raise FatalException(e.code, err)
+
+  update_properties(properties)
+
   print 'NOTE: Restart Ambari Server to apply changes' + \
         ' ("ambari-server restart|stop|start")'
 
