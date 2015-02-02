@@ -26,7 +26,7 @@ from copy import deepcopy
 def kafka():
     import params
 
-    Directory([params.log_dir, params.pid_dir, params.conf_dir],
+    Directory([params.kafka_log_dir, params.kafka_pid_dir, params.conf_dir],
               owner=params.kafka_user,
               group=params.user_group,
               recursive=True

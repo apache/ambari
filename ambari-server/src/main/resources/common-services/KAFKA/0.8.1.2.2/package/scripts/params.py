@@ -43,9 +43,9 @@ else:
 
 conf_dir = "/etc/kafka/conf"
 kafka_user = config['configurations']['kafka-env']['kafka_user']
-log_dir = config['configurations']['kafka-env']['kafka_log_dir']
-pid_dir = status_params.kafka_pid_dir
-pid_file = pid_dir+"/kafka.pid"
+kafka_log_dir = config['configurations']['kafka-env']['kafka_log_dir']
+kafka_pid_dir = status_params.kafka_pid_dir
+kafka_pid_file = kafka_pid_dir+"/kafka.pid"
 hostname = config['hostname']
 user_group = config['configurations']['cluster-env']['user_group']
 java64_home = config['hostLevelParams']['java_home']
