@@ -44,6 +44,9 @@
               <a href="#" {{action showInstallProgress this target="view"}}><i class="icon-cog in_progress"></i>&nbsp;{{this.displayStatus}}</a>
             {{else}}
               {{this.displayStatus}}
+              {{#if this.isOutOfSync}}
+                {{view view.outOfSyncInfo}}
+              {{/if}}
             {{/if}}
           {{/if}}
         </td>

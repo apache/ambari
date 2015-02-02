@@ -1996,6 +1996,9 @@ Em.I18n.translations = {
   'hosts.host.stackVersions.status.out_of_sync': 'Out of Sync',
   'hosts.host.stackVersions.status.upgrading': 'Upgrading',
   'hosts.host.stackVersions.status.upgrade_failed': 'Upgrade Failed',
+  'hosts.host.stackVersions.outOfSync.tooltip': 'This version is Out of Sync on this host. Out of Sync can occur ' +
+    'the components on a host change after installing a version not in use. ' +
+    'Click Install to have Ambari install the packages for this version to get this host in sync.',
   'hosts.host.stackVersions.install.confirmation': 'You are about to install version <b>{0}</b> on this host.',
 
   'hosts.host.metrics.dataUnavailable':'Data Unavailable',

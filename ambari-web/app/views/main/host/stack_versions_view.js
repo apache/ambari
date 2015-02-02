@@ -165,6 +165,17 @@ App.MainHostStackVersionsView = App.TableView.extend({
     App.router.get('mainAdminStackAndUpgradeController').showProgressPopup(event.context);
   },
 
+  outOfSyncInfo: Em.View.extend({
+    tagName: 'i',
+    classNames: ['icon-question-sign'],
+    didInsertElement: function() {
+      App.tooltip($(this.get('element')), {
+        placement: "top",
+        title: Em.I18n.t('hosts.host.stackVersions.outOfSync.tooltip')
+      });
+    }
+  }),
+
   /**
    * @type {Array}
    */

@@ -48,6 +48,12 @@ App.HostStackVersion = DS.Model.extend({
   }.property('status'),
 
   /**
+   * @type {boolean}
+   */
+  isOutOfSync: function () {
+    return this.get('status') === 'OUT_OF_SYNC';
+  }.property('status'),
+  /**
    * @type {string}
    */
   displayStatus: function() {
