@@ -264,7 +264,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       throw new IllegalArgumentException("Received an update request with no properties");
     }
 
-    RequestStageContainer requestStages = doUpdateResources(null, request, predicate);
+    RequestStageContainer requestStages = doUpdateResources(null, request, predicate, false);
 
     RequestStatusResponse response = null;
     if (requestStages != null) {
@@ -343,7 +343,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
     try {
       LOG.info("Installing all components on added hosts");
-      requestStages = doUpdateResources(null, installRequest, installPredicate);
+      requestStages = doUpdateResources(null, installRequest, installPredicate, true);
       notifyUpdate(Resource.Type.HostComponent, installRequest, installPredicate);
 
       Map<String, Object> startProperties = new HashMap<String, Object>();
@@ -362,7 +362,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       LOG.info("Starting all non-client components on added hosts");
       //todo: if a host in in state HEARTBEAT_LOST, no stage will be created, so if this occurs during INSTALL
       //todo: then no INSTALL stage will exist which will result in invalid state transition INIT->STARTED
-      doUpdateResources(requestStages, startRequest, startPredicate);
+      doUpdateResources(requestStages, startRequest, startPredicate, true);
       notifyUpdate(Resource.Type.HostComponent, startRequest, startPredicate);
       try {
         requestStages.persist();
@@ -616,8 +616,25 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     return serviceComponentHostRequest;
   }
 
-  private RequestStageContainer doUpdateResources(final RequestStageContainer stages, final Request request, Predicate predicate)
-      throws UnsupportedPropertyException, SystemException, NoSuchResourceException, NoSuchParentResourceException {
+  /**
+   * Update resources.
+   *
+   * @param stages                  request stage container
+   * @param request                 request
+   * @param predicate               request predicate
+   * @param performQueryEvaluation  should query be evaluated for matching resource set
+   * @return
+   * @throws UnsupportedPropertyException   an unsupported property was specified in the request
+   * @throws SystemException                an unknown exception occurred
+   * @throws NoSuchResourceException        the query didn't match any resources
+   * @throws NoSuchParentResourceException  a specified parent resource doesn't exist
+   */
+  private RequestStageContainer doUpdateResources(final RequestStageContainer stages, final Request request,
+                                                  Predicate predicate, boolean performQueryEvaluation)
+                                                  throws UnsupportedPropertyException,
+                                                         SystemException,
+                                                         NoSuchResourceException,
+                                                         NoSuchParentResourceException {
 
     final Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
 
@@ -631,23 +648,23 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     Set<Resource> matchingResources = getResources(queryRequest, predicate);
 
     for (Resource queryResource : matchingResources) {
-      //todo: this was removed for BUG-28737 and the removal of this breaks
-      //todo: the new "add hosts" api.  BUG-4818 is the root cause and needs
-      //todo: to be addressed and then this predicate evaluation should be
-      //todo: uncommented to fix "add hosts".
-//    if (predicate.evaluate(queryResource)) {
-      Map<String, Object> updateRequestProperties = new HashMap<String, Object>();
+      //todo: predicate evaluation was removed for BUG-28737 and the removal of this breaks
+      //todo: the new "add hosts" api.  BUG-4818 is the root cause and needs to be addressed
+      //todo: and then this predicate evaluation should always be performed and the
+      //todo: temporary performQueryEvaluation flag hack should be removed.
+      if (! performQueryEvaluation || predicate.evaluate(queryResource)) {
+        Map<String, Object> updateRequestProperties = new HashMap<String, Object>();
 
-      // add props from query resource
-      updateRequestProperties.putAll(PropertyHelper.getProperties(queryResource));
+        // add props from query resource
+        updateRequestProperties.putAll(PropertyHelper.getProperties(queryResource));
 
-      // add properties from update request
-      //todo: should we flag value size > 1?
-      if (request.getProperties() != null && request.getProperties().size() != 0) {
-        updateRequestProperties.putAll(request.getProperties().iterator().next());
+        // add properties from update request
+        //todo: should we flag value size > 1?
+        if (request.getProperties() != null && request.getProperties().size() != 0) {
+          updateRequestProperties.putAll(request.getProperties().iterator().next());
+        }
+        requests.add(getRequest(updateRequestProperties));
       }
-      requests.add(getRequest(updateRequestProperties));
-//    }
     }
 
     RequestStageContainer requestStages = modifyResources(new Command<RequestStageContainer>() {
@@ -661,6 +678,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
     return requestStages;
   }
+
 
   /**
    * Determine whether a host component state change is valid.

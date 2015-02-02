@@ -56,6 +56,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.slf4j.Logger;
@@ -547,6 +548,7 @@ public class HostResourceProvider extends BaseBlueprintProcessor {
       BlueprintEntity blueprint = getExistingBlueprint(bpName);
       Stack stack = parseStack(blueprint);
       Map<String, HostGroupImpl> blueprintHostGroups = parseBlueprintHostGroups(blueprint, stack);
+      addKerberosClientIfNecessary(clusterName, blueprintHostGroups);
       addHostToHostgroup(hgName, hostname, blueprintHostGroups);
       createHostAndComponentResources(blueprintHostGroups, clusterName, this);
       //todo: optimize: update once per hostgroup with added hosts
@@ -554,6 +556,31 @@ public class HostResourceProvider extends BaseBlueprintProcessor {
     }
     return ((HostComponentResourceProvider) getResourceProvider(Resource.Type.HostComponent)).
         installAndStart(clusterName, addedHosts);
+  }
+
+  /**
+   * Add the kerberos client to groups if kerberos is enabled for the cluster.
+   *
+   * @param clusterName  cluster name
+   * @param groups       host groups
+   *
+   * @throws NoSuchParentResourceException unable to get cluster instance
+   */
+  private void addKerberosClientIfNecessary(String clusterName, Map<String, HostGroupImpl> groups)
+      throws NoSuchParentResourceException {
+
+    //todo: logic would ideally be contained in the stack
+    Cluster cluster;
+    try {
+      cluster = getManagementController().getClusters().getCluster(clusterName);
+    } catch (AmbariException e) {
+      throw new NoSuchParentResourceException("Parent Cluster resource doesn't exist.  clusterName= " + clusterName);
+    }
+    if (cluster.getSecurityType() == SecurityType.KERBEROS) {
+      for (HostGroupImpl group : groups.values()) {
+        group.addComponent("KERBEROS_CLIENT");
+      }
+    }
   }
 
   /**
@@ -673,7 +700,6 @@ public class HostResourceProvider extends BaseBlueprintProcessor {
         throw new HostNotFoundException(clusterName, hostName);
       }
     }
-
 
     for (Host h : hosts) {
       if (clusterName != null) {

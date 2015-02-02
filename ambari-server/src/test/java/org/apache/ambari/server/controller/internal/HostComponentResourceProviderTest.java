@@ -351,10 +351,12 @@ public class HostComponentResourceProviderTest {
     Cluster cluster = createNiceMock(Cluster.class);
     Service service = createNiceMock(Service.class);
     ServiceComponent component = createNiceMock(ServiceComponent.class);
+    ServiceComponent clientComponent = createNiceMock(ServiceComponent.class);
     ServiceComponentHost componentHost = createNiceMock(ServiceComponentHost.class);
+    ServiceComponentHost clientComponentHost = createNiceMock(ServiceComponentHost.class);
     RequestStageContainer stageContainer = createNiceMock(RequestStageContainer.class);
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
-    // INIT->INSTALLED state transition causes check for kerverized cluster
+    // INIT->INSTALLED state transition causes check for kerberized cluster
     KerberosHelper kerberosHelper = createStrictMock(KerberosHelper.class);
 
     Collection<String> hosts = new HashSet<String>();
@@ -366,28 +368,40 @@ public class HostComponentResourceProviderTest {
     Set<ServiceComponentHostResponse> nameResponse = new HashSet<ServiceComponentHostResponse>();
     nameResponse.add(new ServiceComponentHostResponse(
         "Cluster102", "Service100", "Component100", "Host100", "INIT", "", "INIT", "", null));
+    nameResponse.add(new ServiceComponentHostResponse(
+        "Cluster102", "Service100", "some-client", "Host100", "INIT", "", "INIT", "", null));
     Set<ServiceComponentHostResponse> nameResponse2 = new HashSet<ServiceComponentHostResponse>();
     nameResponse2.add(new ServiceComponentHostResponse(
         "Cluster102", "Service100", "Component100", "Host100", "INIT", "", "INSTALLED", "", null));
+    nameResponse2.add(new ServiceComponentHostResponse(
+        "Cluster102", "Service100", "some-client", "Host100", "INIT", "", "INSTALLED", "", null));
 
 
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.findServiceName(cluster, "Component100")).andReturn("Service100").anyTimes();
+    expect(managementController.findServiceName(cluster, "some-client")).andReturn("Service100").anyTimes();
     expect(clusters.getCluster("Cluster102")).andReturn(cluster).anyTimes();
     expect(cluster.getService("Service100")).andReturn(service).anyTimes();
     expect(service.getServiceComponent("Component100")).andReturn(component).anyTimes();
+    expect(service.getServiceComponent("some-client")).andReturn(clientComponent).anyTimes();
     expect(component.getServiceComponentHost("Host100")).andReturn(componentHost).anyTimes();
     expect(component.getName()).andReturn("Component100").anyTimes();
+    expect(clientComponent.getServiceComponentHost("Host100")).andReturn(clientComponentHost).anyTimes();
+    expect(clientComponent.getName()).andReturn("some-client").anyTimes();
+    expect(clientComponent.isClientComponent()).andReturn(true).anyTimes();
     // actual state is always INIT until stages actually execute
     expect(componentHost.getState()).andReturn(State.INIT).anyTimes();
     expect(componentHost.getHostName()).andReturn("Host100").anyTimes();
     expect(componentHost.getServiceComponentName()).andReturn("Component100").anyTimes();
+    expect(clientComponentHost.getState()).andReturn(State.INIT).anyTimes();
+    expect(clientComponentHost.getHostName()).andReturn("Host100").anyTimes();
+    expect(clientComponentHost.getServiceComponentName()).andReturn("some-client").anyTimes();
     expect(response.getMessage()).andReturn("response msg").anyTimes();
-
 
     //Cluster is default type.  Maintenance mode is not being tested here so the default is returned.
     expect(maintenanceStateHelper.isOperationAllowed(Resource.Type.Cluster, componentHost)).andReturn(true).anyTimes();
+    expect(maintenanceStateHelper.isOperationAllowed(Resource.Type.Cluster, clientComponentHost)).andReturn(true).anyTimes();
 
     //todo: can we change to prevent having to call twice?
     expect(managementController.getHostComponents(
@@ -397,8 +411,9 @@ public class HostComponentResourceProviderTest {
 
     Map<String, Map<State, List<ServiceComponentHost>>> changedHosts =
         new HashMap<String, Map<State, List<ServiceComponentHost>>>();
-    List<ServiceComponentHost> changedComponentHosts = Collections.singletonList(componentHost);
-    changedHosts.put("Component100", Collections.singletonMap(State.INSTALLED, changedComponentHosts));
+
+    changedHosts.put("Component100", Collections.singletonMap(State.INSTALLED, Collections.singletonList(componentHost)));
+    changedHosts.put("some-client", Collections.singletonMap(State.INSTALLED, Collections.singletonList(clientComponentHost)));
 
     Map<String, Map<State, List<ServiceComponentHost>>> changedHosts2 =
         new HashMap<String, Map<State, List<ServiceComponentHost>>>();
@@ -425,11 +440,12 @@ public class HostComponentResourceProviderTest {
         eq(managementController))).
         andReturn(provider).anyTimes();
 
-    expect(kerberosHelper.isClusterKerberosEnabled(cluster)).andReturn(false).once();
+    expect(kerberosHelper.isClusterKerberosEnabled(cluster)).andReturn(false).times(2);
 
     // replay
     replay(managementController, response, resourceProviderFactory, clusters, cluster, service,
-        component, componentHost, stageContainer, maintenanceStateHelper, kerberosHelper);
+        component, componentHost, stageContainer, maintenanceStateHelper, kerberosHelper, clientComponent,
+        clientComponentHost);
 
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
     properties.put(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
@@ -438,7 +454,8 @@ public class HostComponentResourceProviderTest {
 
     assertSame(response, requestResponse);
     // verify
-    verify(managementController, response, resourceProviderFactory, stageContainer, kerberosHelper);
+    verify(managementController, response, resourceProviderFactory, stageContainer, kerberosHelper,
+           clientComponent, clientComponentHost);
   }
 
   @Test
