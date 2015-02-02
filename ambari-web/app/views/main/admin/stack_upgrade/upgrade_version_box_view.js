@@ -103,7 +103,8 @@ App.UpgradeVersionBoxView = Em.View.extend({
       status: status,
       isInstalling: function () {
         return this.get('status') === 'INSTALLING';
-      }.property('status')
+      }.property('status'),
+      isDisabled: false
     });
 
     if (status === 'CURRENT') {
@@ -114,6 +115,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       element.set('isButton', true);
       element.set('text', Em.I18n.t('admin.stackVersions.version.installNow'));
       element.set('action', 'installRepoVersionConfirmation');
+      element.set('isDisabled', !App.isAccessible('ADMIN'));
     } else if (status === 'INSTALLING') {
       element.set('iconClass', 'icon-cog');
       element.set('isLink', true);

@@ -28,7 +28,11 @@
 </p>
 <div {{bindAttr class="view.stateElement.isInstalling:installing :align-center :state"}}>
   {{#if view.stateElement.isButton}}
-    <button class="btn btn-primary" {{action runAction view.stateElement target="view"}}>{{view.stateElement.text}}</button>
+    <button class="btn btn-primary"
+      {{action runAction view.stateElement target="view"}}
+      {{bindAttr disabled="view.stateElement.isDisabled"}}>
+      {{view.stateElement.text}}
+    </button>
   {{/if}}
   {{#if view.stateElement.isLabel}}
     <span {{bindAttr class="view.stateElement.class"}}>{{view.stateElement.text}}</span>
