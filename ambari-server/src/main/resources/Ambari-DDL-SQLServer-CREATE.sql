@@ -86,12 +86,7 @@ CREATE TABLE adminpermission (permission_id BIGINT NOT NULL, permission_name VAR
 CREATE TABLE adminprivilege (privilege_id BIGINT, permission_id BIGINT NOT NULL, resource_id BIGINT NOT NULL, principal_id BIGINT NOT NULL, PRIMARY KEY(privilege_id));
 CREATE TABLE host_version (id BIGINT NOT NULL, repo_version_id BIGINT NOT NULL, host_name VARCHAR(255) NOT NULL, state VARCHAR(32) NOT NULL, PRIMARY KEY (id));
 CREATE TABLE repo_version (repo_version_id BIGINT NOT NULL, stack VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL, display_name VARCHAR(128) NOT NULL, upgrade_package VARCHAR(255) NOT NULL, repositories VARCHAR(MAX) NOT NULL, PRIMARY KEY(repo_version_id));
-
-CREATE TABLE artifact (
-  artifact_name VARCHAR(255) NOT NULL,
-  foreign_keys VARCHAR(255) NOT NULL,
-  artifact_data VARCHAR(MAX) NOT NULL,
-  PRIMARY KEY(artifact_name, foreign_keys));
+CREATE TABLE artifact (artifact_name VARCHAR(255) NOT NULL, artifact_data TEXT NOT NULL, foreign_keys VARCHAR(255) NOT NULL, PRIMARY KEY (artifact_name, foreign_keys));
 
 -- altering tables by creating unique constraints----------
 --------altering tables to add constraints----------
