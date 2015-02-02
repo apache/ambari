@@ -213,12 +213,37 @@ describe('App.upgradeWizardView', function () {
   });
 
   describe("#noActiveItem", function () {
+    beforeEach(function () {
+      this.mock = sinon.stub(App, 'get');
+    });
+    afterEach(function () {
+      this.mock.restore();
+    });
     var testCases = [
       {
         data: {
           failedItem: null,
           runningItem: null,
-          manualItem: null
+          manualItem: null,
+          upgradeState: 'COMPLETED'
+        },
+        result: false
+      },
+      {
+        data: {
+          failedItem: null,
+          runningItem: null,
+          manualItem: null,
+          upgradeState: 'INIT'
+        },
+        result: false
+      },
+      {
+        data: {
+          failedItem: null,
+          runningItem: null,
+          manualItem: null,
+          upgradeState: 'IN_PROGRESS'
         },
         result: true
       },
@@ -226,7 +251,8 @@ describe('App.upgradeWizardView', function () {
         data: {
           failedItem: {},
           runningItem: null,
-          manualItem: null
+          manualItem: null,
+          upgradeState: 'IN_PROGRESS'
         },
         result: false
       },
@@ -234,7 +260,8 @@ describe('App.upgradeWizardView', function () {
         data: {
           failedItem: null,
           runningItem: {},
-          manualItem: null
+          manualItem: null,
+          upgradeState: 'IN_PROGRESS'
         },
         result: false
       },
@@ -242,13 +269,18 @@ describe('App.upgradeWizardView', function () {
         data: {
           failedItem: null,
           runningItem: null,
-          manualItem: {}
+          manualItem: {},
+          upgradeState: 'IN_PROGRESS'
         },
         result: false
       }
     ].forEach(function (test) {
-        it("failedItem = " + test.data.failedItem + ";runningItem = " + test.data.runningItem + ";manualItem = " + test.data.manualItem, function () {
+        it("failedItem = " + test.data.failedItem +
+        ";runningItem = " + test.data.runningItem +
+        ";manualItem = " + test.data.manualItem +
+        ";upgradeState = " + test.data.upgradeState, function () {
           view.reopen(test.data);
+          this.mock.withArgs('upgradeState').returns(test.data.upgradeState);
           view.propertyDidChange('noActiveItem');
           expect(view.get('noActiveItem')).to.equal(test.result);
         });

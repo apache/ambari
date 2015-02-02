@@ -114,8 +114,9 @@ App.upgradeWizardView = Em.View.extend({
    * @type {boolean}
    */
   noActiveItem: function () {
-    return (Em.isNone(this.get('failedItem')) && Em.isNone(this.get('runningItem')) && Em.isNone(this.get('manualItem')));
-  }.property('failedItem', 'runningItem', 'manualItem'),
+    return (Em.isNone(this.get('failedItem')) && Em.isNone(this.get('runningItem')) && Em.isNone(this.get('manualItem'))) &&
+      !['INIT', 'COMPLETED'].contains(App.get('upgradeState'));
+  }.property('failedItem', 'runningItem', 'manualItem', 'App.upgradeState'),
 
   /**
    * details of currently active task
