@@ -4236,7 +4236,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_ambari_properties_3_mock.reset_mock()
     get_ambari_properties_3_mock.return_value = get_ambari_properties_2_mock.return_value = \
       get_ambari_properties_mock.return_value = p
-    p.__getitem__.side_effect = ["something", KeyError("test exception")]
+    p.__getitem__.side_effect = ["something", "something", "something", KeyError("test exception")]
     fail = False
 
     try:
@@ -6127,9 +6127,10 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     pass
 
   @not_for_platform(PLATFORM_WINDOWS)
+  @patch("ambari_server.serverConfiguration.write_property")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch("ambari_server.serverConfiguration.get_ambari_version")
-  def test_check_database_name_property(self, get_ambari_version_mock, get_ambari_properties_mock):
+  def test_check_database_name_property(self, get_ambari_version_mock, get_ambari_properties_mock, write_property_mock):
     parser = OptionParser()
     parser.add_option('--database', default=None, help="Database to use embedded|oracle|mysql|postgres", dest="dbms")
     args = parser.parse_args()
@@ -6150,7 +6151,20 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       result = check_database_name_property()
     except FatalException:
       self.fail("Setup should be successful")
-    pass
+
+    # Check upgrade. In Ambari < 1.7.1 "database" property contained db name for local db
+    dbname = "ambari"
+    database = "ambari"
+    persistence = "local"
+    get_ambari_properties_mock.reset_mock()
+    get_ambari_properties_mock.return_value = {JDBC_DATABASE_NAME_PROPERTY: dbname,
+                                               JDBC_DATABASE_PROPERTY: database,
+                                               PERSISTENCE_TYPE_PROPERTY: persistence}
+    try:
+      result = check_database_name_property(upgrade=True)
+    except FatalException:
+      self.fail("Setup should be successful")
+    self.assertTrue(write_property_mock.called)
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("ambari_commons.firewall.run_os_command")

@@ -497,7 +497,8 @@ def check_database_name_property(upgrade=False):
     return -1
 
   version = get_ambari_version(properties)
-  if upgrade and compare_versions(version, "1.7.0") == 0:
+  if upgrade and (properties[JDBC_DATABASE_PROPERTY] not in ["postgres", "oracle", "mysql", "derby"]
+                    or properties.has_key(JDBC_RCA_SCHEMA_PROPERTY)):
     # This code exists for historic reasons in which property names changed from Ambari 1.6.1 to 1.7.0
     persistence_type = properties[PERSISTENCE_TYPE_PROPERTY]
     if persistence_type == "remote":
