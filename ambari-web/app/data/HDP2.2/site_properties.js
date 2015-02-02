@@ -127,11 +127,9 @@ hdp22properties.push(
   },
   {
     "id": "site property",
-    "name": "enable_hdfs_plugin",
-    "value": false,
-    "defaultValue": false,
+    "name": "ranger-hdfs-plugin-enabled",
+    "defaultValue": "no",
     "displayName": "Enable Ranger for HDFS",
-    "displayType": "checkbox",
     "filename": "ranger-hdfs-plugin-properties.xml",
     "category": "Advanced ranger-hdfs-plugin-properties",
     "serviceName": "HDFS"
@@ -147,6 +145,7 @@ hdp22properties.push(
     "isOverridable": false,
     "isVisible": true,
     "isRequiredByAgent": false,
+    "isRequired": false,
     "serviceName": "HDFS",
     "filename": "ranger-hdfs-plugin-properties.xml",
     "category": "Advanced ranger-hdfs-plugin-properties"
@@ -173,11 +172,9 @@ hdp22properties.push(
   },
   {
     "id": "site property",
-    "name": "enable_hdfs_plugin",
-    "value": false,
-    "defaultValue": false,
-    "displayName": "Enable Ranger for HDFS",
-    "displayType": "checkbox",
+    "name": "ranger-hive-plugin-enabled",
+    "defaultValue": "no",
+    "displayName": "Enable Ranger for HIVE",
     "filename": "ranger-hive-plugin-properties.xml",
     "category": "Advanced ranger-hive-plugin-properties",
     "serviceName": "HIVE"
@@ -203,6 +200,7 @@ hdp22properties.push(
     "isOverridable": false,
     "isVisible": true,
     "isRequiredByAgent": false,
+    "isRequired": false,
     "serviceName": "HIVE",
     "filename": "ranger-hive-plugin-properties.xml",
     "category": "Advanced ranger-hive-plugin-properties"
@@ -229,11 +227,9 @@ hdp22properties.push(
   },
   {
     "id": "site property",
-    "name": "enable_hdfs_plugin",
-    "value": false,
-    "defaultValue": false,
-    "displayName": "Enable Ranger for HDFS",
-    "displayType": "checkbox",
+    "name": "ranger-hbase-plugin-enabled",
+    "defaultValue": "no",
+    "displayName": "Enable Ranger for HBASE",
     "filename": "ranger-hbase-plugin-properties.xml",
     "category": "Advanced ranger-hbase-plugin-properties",
     "serviceName": "HBASE"
@@ -259,6 +255,7 @@ hdp22properties.push(
     "isOverridable": false,
     "isVisible": true,
     "isRequiredByAgent": false,
+    "isRequired": false,
     "serviceName": "HBASE",
     "filename": "ranger-hbase-plugin-properties.xml",
     "category": "Advanced ranger-hbase-plugin-properties"
@@ -285,13 +282,11 @@ hdp22properties.push(
   },
   {
     "id": "site property",
-    "name": "enable_hdfs_plugin",
-    "value": false,
-    "defaultValue": false,
-    "displayName": "Enable Ranger for HDFS",
-    "displayType": "checkbox",
+    "name": "ranger-storm-plugin-enabled",
+    "defaultValue": "no",
+    "displayName": "Enable Ranger for STORM",
     "filename": "ranger-storm-plugin-properties.xml",
-    "category": "Advanced storm-hbase-plugin-properties",
+    "category": "Advanced ranger-storm-plugin-properties",
     "serviceName": "STORM"
   },
   {
@@ -305,6 +300,7 @@ hdp22properties.push(
     "isOverridable": false,
     "isVisible": true,
     "isRequiredByAgent": false,
+    "isRequired": false,
     "serviceName": "STORM",
     "filename": "ranger-storm-plugin-properties.xml",
     "category": "Advanced ranger-strom-plugin-properties"
@@ -331,11 +327,9 @@ hdp22properties.push(
   },
   {
     "id": "site property",
-    "name": "enable_hdfs_plugin",
-    "value": false,
-    "defaultValue": false,
-    "displayName": "Enable Ranger for HDFS",
-    "displayType": "checkbox",
+    "name": "ranger-knox-plugin-enabled",
+    "defaultValue": "no",
+    "displayName": "Enable Ranger for KNOX",
     "filename": "ranger-knox-plugin-properties.xml",
     "category": "Advanced ranger-knox-plugin-properties",
     "serviceName": "KNOX"
@@ -351,6 +345,7 @@ hdp22properties.push(
     "isOverridable": false,
     "isVisible": true,
     "isRequiredByAgent": false,
+    "isRequired": false,
     "serviceName": "KNOX",
     "filename": "ranger-knox-plugin-properties.xml",
     "category": "Advanced ranger-knox-plugin-properties"
@@ -367,6 +362,7 @@ hdp22properties.push(
     "isOverridable": false,
     "isVisible": true,
     "isRequiredByAgent": false,
+    "isRequired": false,
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
     "category": "Advanced admin-properties"
