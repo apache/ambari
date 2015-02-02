@@ -84,14 +84,27 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   ambariMetricsValidation: function () {
     //TODO Change 'AMS' to the actual serviceName after it's changed
     var ambariMetricsService = this.findProperty('serviceName', 'AMS');
-    if (ambariMetricsService) {
-      if (!ambariMetricsService.get('isSelected')) {
-        this.addValidationError({
-          id: 'ambariMetricsCheck',
-          type: 'WARNING',
-          callback: this.ambariMetricsCheckPopup
-        });
-      }
+    if (ambariMetricsService && !ambariMetricsService.get('isSelected')) {
+      this.addValidationError({
+        id: 'ambariMetricsCheck',
+        type: 'WARNING',
+        callback: this.ambariMetricsCheckPopup
+      });
+    }
+  },
+
+  /**
+   * Check whether Ranger is selected and show installation requirements if yes
+   * @method rangerValidation
+   */
+  rangerValidation: function () {
+    var rangerService = this.findProperty('serviceName', 'RANGER');
+    if (rangerService && rangerService.get('isSelected')) {
+      this.addValidationError({
+        id: 'rangerRequirements',
+        type: 'WARNING',
+        callback: this.rangerRequirementsPopup
+      });
     }
   },
 
@@ -132,6 +145,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     if (this.get('wizardController.name') == 'installerController') {
       this.ambariMetricsValidation();
     }
+    this.rangerValidation();
     if (!!this.get('errorStack').filterProperty('isShown', false).length) {
       this.showError(this.get('errorStack').findProperty('isShown', false));
       return false;
@@ -356,6 +370,30 @@ App.WizardStep4Controller = Em.ArrayController.extend({
       header: Em.I18n.t('installer.step4.ambariMetricsCheck.popup.header'),
       body: Em.I18n.t('installer.step4.ambariMetricsCheck.popup.body'),
       primary: Em.I18n.t('common.proceedAnyway'),
+      onPrimary: function () {
+        self.onPrimaryPopupCallback();
+        this.hide();
+      }
+    });
+  },
+
+  /**
+   * Show popup with installation requirements for Ranger service
+   * @return {App.ModalPopup}
+   * @method rangerRequirementsPopup
+   */
+  rangerRequirementsPopup: function () {
+    var self = this;
+    return App.ModalPopup.show({
+      header: Em.I18n.t('installer.step4.rangerRequirements.popup.header'),
+      bodyClass: Em.View.extend({
+        templateName: require('templates/wizard/step4/step4_ranger_requirements_popup')
+      }),
+      primary: Em.I18n.t('common.proceed'),
+      isChecked: false,
+      disablePrimary: function () {
+        return !this.get('isChecked');
+      }.property('isChecked'),
       onPrimary: function () {
         self.onPrimaryPopupCallback();
         this.hide();

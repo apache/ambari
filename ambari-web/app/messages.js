@@ -657,6 +657,13 @@ Em.I18n.translations = {
   'installer.step4.serviceCheck.popup.body':'You did not select {0}, but it is needed by other services you selected. We will automatically add {0}. Is this OK?',
   'installer.step4.ambariMetricsCheck.popup.header':'Limited Functionality Warning',
   'installer.step4.ambariMetricsCheck.popup.body':'Ambari Metrics collects metrics from the cluster and makes them available to Ambari.  If you do not install Ambari Metrics service, metrics will not be accessible from Ambari.  Are you sure you want to proceed without Ambari Metrics?',
+  'installer.step4.rangerRequirements.popup.header': 'Ranger Requirements',
+  'installer.step4.rangerRequirements.popup.body.requirements': '<ol><li>You must have an <strong>existing MySQL Server or Oracle Server</strong> database instance running to be used by Ranger.</li>' +
+    '<li>In Assign Masters step of this wizard, you will be prompted to specify which host for the Ranger Admin. On that host, you <strong>must have MySQL Client or Oracle Client installed</strong> for Ranger to access to the database.</li>' +
+    '<li>Ensure that the access for the DB Admin user (<strong>root</strong> in case of MySQL or <strong>SYS</strong> in case of Oracle) is enabled in DB server from any host.</li>' +
+    '<li>Execute the following command on the Ambari Server host. Replace <code>database-type</code> with <strong>mysql</strong> or <strong>oracle</strong> and <code>/jdbc/driver/path</code> based on the location of the MySQL or Oracle JDBC driver:' +
+    '<pre>ambari-server setup --jdbc-db={database-type} --jdbc-driver={/jdbc/driver/path}</pre></li></ol>',
+  'installer.step4.rangerRequirements.popup.body.confirmation': 'I have met all the requirements above.',
 
   'installer.step5.header':'Assign Masters',
   'installer.step5.reassign.header':'Select Target Host',

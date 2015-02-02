@@ -25,7 +25,7 @@ describe('App.WizardStep4Controller', function () {
 
   var services = [
     'HDFS', 'NAGIOS', 'GANGLIA', 'OOZIE', 'HIVE', 'HBASE', 'PIG', 'SCOOP', 'ZOOKEEPER',
-    'YARN', 'MAPREDUCE2', 'FALCON', 'TEZ', 'STORM', 'AMS'
+    'YARN', 'MAPREDUCE2', 'FALCON', 'TEZ', 'STORM', 'AMS', 'RANGER'
   ];
 
   var controller = App.WizardStep4Controller.create();
@@ -290,6 +290,10 @@ describe('App.WizardStep4Controller', function () {
         {
           services: ['HDFS','ZOOKEEPER', 'NAGIOS', 'GANGLIA', 'AMS'],
           errorsExpected: []
+        },
+        {
+          services: ['RANGER'],
+          errorsExpected: ['ambariMetricsCheck', 'rangerRequirements']
         }
       ],
       controllerNames = ['installerController', 'addServiceController'],
@@ -551,6 +555,45 @@ describe('App.WizardStep4Controller', function () {
         }
         controller.ambariMetricsValidation();
         expect(controller.get('errorStack').mapProperty('id').contains('ambariMetricsCheck')).to.equal(item.isAmbariMetricsWarning);
+      });
+    });
+
+  });
+
+  describe('#rangerValidation', function () {
+
+    var cases = [
+      {
+        services: ['HDFS'],
+        isRangerWarning: false,
+        title: 'Ranger not available'
+      },
+      {
+        services: ['RANGER'],
+        isRangerSelected: false,
+        isRangerWarning: false,
+        title: 'Ranger not selected'
+      },
+      {
+        services: ['RANGER'],
+        isRangerSelected: true,
+        isRangerWarning: true,
+        title: 'Ranger selected'
+      }
+    ];
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        controller.clear();
+        controller.set('content', generateSelectedServicesContent(item.services));
+        var ranger = controller.findProperty('serviceName', 'RANGER');
+        if (item.services.contains('RANGER')) {
+          ranger.set('isSelected', item.isRangerSelected);
+        } else {
+          controller.removeObject(ranger);
+        }
+        controller.rangerValidation();
+        expect(controller.get('errorStack').mapProperty('id').contains('rangerRequirements')).to.equal(item.isRangerWarning);
       });
     });
 
