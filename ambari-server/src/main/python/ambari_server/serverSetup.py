@@ -496,7 +496,8 @@ class JDKSetup(object):
 
     print 'Installing JCE policy...'
     try:
-      JDKSetup.unpack_jce_policy(jdk_cfg.inst_dir, resources_dir, jdk_cfg.dest_jcpol_file)
+      jdk_path = properties.get_property(JAVA_HOME_PROPERTY)
+      JDKSetup.unpack_jce_policy(jdk_path, resources_dir, jdk_cfg.dest_jcpol_file)
     except FatalException, e:
       print err_msg_stdout
       print_error_msg("Failed to install JCE policy files:")
