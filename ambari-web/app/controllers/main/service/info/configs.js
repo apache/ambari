@@ -2403,8 +2403,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    */
   showHostsShouldBeRestarted: function (restartRequiredHostsAndComponents) {
     var hosts = [];
-    var rhc = this.get('content.restartRequiredHostsAndComponents') || restartRequiredHostsAndComponents;
-    for (var hostName in rhc) {
+    for (var hostName in restartRequiredHostsAndComponents) {
       hosts.push(hostName);
     }
     var hostsText = hosts.length == 1 ? Em.I18n.t('common.host') : Em.I18n.t('common.hosts');
@@ -2417,11 +2416,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @method showComponentsShouldBeRestarted
    */
   showComponentsShouldBeRestarted: function (restartRequiredHostsAndComponents) {
-    var rhc = this.get('content.restartRequiredHostsAndComponents') || restartRequiredHostsAndComponents;
     var hostsComponets = [];
     var componentsObject = {};
-    for (var hostName in rhc) {
-      rhc[hostName].forEach(function (hostComponent) {
+    for (var hostName in restartRequiredHostsAndComponents) {
+      restartRequiredHostsAndComponents[hostName].forEach(function (hostComponent) {
         hostsComponets.push(hostComponent);
         if (componentsObject[hostComponent] != undefined) {
           componentsObject[hostComponent]++;

@@ -211,17 +211,14 @@ describe("App.MainServiceInfoConfigsController", function () {
 
     beforeEach(function () {
       sinon.stub(mainServiceInfoConfigsController, "showItemsShouldBeRestarted", Em.K);
-      mainServiceInfoConfigsController.set("content", {restartRequiredHostsAndComponents: ""});
     });
     afterEach(function () {
       mainServiceInfoConfigsController.showItemsShouldBeRestarted.restore();
-      mainServiceInfoConfigsController.set("content", undefined);
     });
 
     tests.forEach(function (t) {
       it("trigger showItemsShouldBeRestarted popup with components", function () {
-        mainServiceInfoConfigsController.set("content.restartRequiredHostsAndComponents", t.input);
-        mainServiceInfoConfigsController.showComponentsShouldBeRestarted();
+        mainServiceInfoConfigsController.showComponentsShouldBeRestarted(t.input);
         expect(mainServiceInfoConfigsController.showItemsShouldBeRestarted.calledWith(t.components, t.text)).to.equal(true);
       });
     });
@@ -249,17 +246,14 @@ describe("App.MainServiceInfoConfigsController", function () {
 
     beforeEach(function () {
       sinon.stub(mainServiceInfoConfigsController, "showItemsShouldBeRestarted", Em.K);
-      mainServiceInfoConfigsController.set("content", {restartRequiredHostsAndComponents: ""});
     });
     afterEach(function () {
       mainServiceInfoConfigsController.showItemsShouldBeRestarted.restore();
-      mainServiceInfoConfigsController.set("content", undefined);
     });
 
     tests.forEach(function (t) {
       it("trigger showItemsShouldBeRestarted popup with hosts", function () {
-        mainServiceInfoConfigsController.set("content.restartRequiredHostsAndComponents", t.input);
-        mainServiceInfoConfigsController.showHostsShouldBeRestarted();
+        mainServiceInfoConfigsController.showHostsShouldBeRestarted(t.input);
         expect(mainServiceInfoConfigsController.showItemsShouldBeRestarted.calledWith(t.hosts, t.text)).to.equal(true);
       });
     });
