@@ -1071,7 +1071,7 @@ limitations under the License.
 
   <property>
     <name>hive.execution.engine</name>
-    <value>mr</value>
+    <value>tez</value>
     <description>
       Expects one of [mr, tez].
       Chooses execution engine. Options are: mr (Map reduce, default) or tez (hadoop 2 only)
