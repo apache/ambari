@@ -384,14 +384,20 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
         }.observes('controller.inputFields.name.value'),
 
         emailToValidation: function () {
-          var emailTo = this.get('controller.inputFields.email.value');
-          if (emailTo && !validator.isValidEmail(emailTo)) {
-            this.set('emailToError', true);
-            this.set('controller.inputFields.email.errorMsg', Em.I18n.t('alerts.notifications.error.email'));
-          } else {
-            this.set('emailToError', false);
-            this.set('controller.inputFields.email.errorMsg', null);
+          var inputValue = this.get('controller.inputFields.email.value').trim(),
+              emailsTo = inputValue.split(','),
+              emailToError = false,
+              i = emailsTo.length,
+              emailTo;
+          while (i--) {
+            emailTo = emailsTo[i];
+            if (emailTo && !validator.isValidEmail(emailTo.trim())) {
+              emailToError = true;
+              break;
+            }
           }
+          this.set('emailToError', emailToError);
+          this.set('controller.inputFields.email.errorMsg', emailToError ? Em.I18n.t('alerts.notifications.error.email') : null);
         }.observes('controller.inputFields.email.value'),
 
         emailFromValidation: function () {
