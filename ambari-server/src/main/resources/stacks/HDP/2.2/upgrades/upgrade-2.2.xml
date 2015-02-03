@@ -21,6 +21,37 @@
   <target>2.2.*.*</target>
 
   <order>
+
+    <group xsi:type="cluster" name="PRE_CLUSTER" title="Prepare Backups">
+
+      <execute-stage service="HDFS" component="NAMENODE" title="Pre Upgrade HDFS">
+        <task xsi:type="execute" hosts="master">
+          <script>scripts/namenode.py</script>
+          <function>prepare_rolling_upgrade</function>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Pre Upgrade HBASE">
+        <task xsi:type="execute" hosts="master">
+          <script>scripts/hbase_upgrade.py</script>
+          <function>snapshot</function>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_METASTORE" title="Pre Upgrade HIVE">
+        <task xsi:type="manual">
+          <message>Backup the Hive Metastore database located on the following host(s): {{hosts.all}}</message>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Pre Upgrade OOZIE">
+        <task xsi:type="manual">
+          <message>Backup the Oozie Server database on {{oozie-env/oozie_hostname}}</message>
+        </task>
+      </execute-stage>
+
+    </group>
+
     <group name="ZOOKEEPER" title="Zookeeper">
       <service name="ZOOKEEPER">
         <component>ZOOKEEPER_SERVER</component>
@@ -265,13 +296,6 @@
 
     <service name="HDFS">
       <component name="NAMENODE">
-        <pre-upgrade>
-          <task xsi:type="execute" hosts="master">
-            <script>scripts/namenode.py</script>
-            <function>prepare_rolling_upgrade</function>
-          </task>
-        </pre-upgrade>
-
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
@@ -338,12 +362,6 @@
 
     <service name="HBASE">
       <component name="HBASE_MASTER">
-        <pre-upgrade>
-          <task xsi:type="execute" hosts="master">
-            <script>scripts/hbase_upgrade.py</script>
-            <function>snapshot</function>
-          </task>
-        </pre-upgrade>
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
@@ -389,9 +407,6 @@
     <service name="HIVE">
       <component name="HIVE_METASTORE">
         <pre-upgrade>
-          <task xsi:type="manual">
-            <message>Backup the Hive Metastore database located on the following host(s): {{hosts.all}}</message>
-          </task>
           <task xsi:type="manual">
             <message>Consult the README documentation at /usr/hdp/{{version}}/hive/scripts/metastore/upgrade to correctly upgrade the Hive Metastore database. This database upgrade should be performed on the following host(s): {{hosts.all}}</message>
           </task>
@@ -476,11 +491,6 @@
 
     <service name="OOZIE">
       <component name="OOZIE_SERVER">
-        <pre-upgrade>
-          <task xsi:type="manual">
-            <message>Backup the Oozie Server database on {{oozie-env/oozie_hostname}}</message>
-          </task>
-        </pre-upgrade>
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>

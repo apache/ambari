@@ -151,6 +151,7 @@ public class UpgradeHelperTest {
     assertEquals(postGroup.items.get(2).getText(), "Save Cluster State");
     assertEquals(postGroup.items.get(2).getType(), StageWrapper.Type.SERVER_SIDE_ACTION);
 
+    assertEquals(4, groups.get(0).items.size());
     assertEquals(6, groups.get(1).items.size());
     assertEquals(8, groups.get(2).items.size());
     assertEquals(8, groups.get(3).items.size());
@@ -238,6 +239,7 @@ public class UpgradeHelperTest {
     assertEquals("Save Cluster State", postGroup.items.get(2).getText());
     assertEquals(StageWrapper.Type.SERVER_SIDE_ACTION, postGroup.items.get(2).getType());
 
+    assertEquals(4, groups.get(0).items.size());
     assertEquals(2, groups.get(1).items.size());
     assertEquals(8, groups.get(2).items.size());
     assertEquals(7, groups.get(3).items.size());

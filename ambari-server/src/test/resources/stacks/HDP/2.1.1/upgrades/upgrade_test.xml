@@ -25,6 +25,11 @@
           <message>Foo</message>
         </task>
       </execute-stage>
+      <execute-stage service="HDFS" component="NAMENODE" title="Pre Upgrade HIVE">
+        <task xsi:type="manual">
+          <message>Back stuff up.</message>
+        </task>
+      </execute-stage>
       <execute-stage service="HDFS" component="NAMENODE" title="Finalize HDFS">
         <task xsi:type="execute">
           <command>ls</command>

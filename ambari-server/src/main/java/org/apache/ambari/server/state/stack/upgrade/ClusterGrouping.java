@@ -109,63 +109,24 @@ public class ClusterGrouping extends Grouping {
 
           StageWrapper wrapper = null;
 
-          if (null != execution.service && !execution.service.isEmpty() &&
-              null != execution.component && !execution.component.isEmpty()) {
+          switch (task.getType()) {
+            case MANUAL:
+              wrapper = getManualStageWrapper(ctx, execution);
+              break;
 
-            HostsType hosts = ctx.getResolver().getMasterAndHosts(
-                execution.service, execution.component);
-
-            if (null == hosts) {
-              continue;
-            }
-
-            Set<String> realHosts = new LinkedHashSet<String>(hosts.hosts);
-
-            // !!! FIXME other types
-            if (task.getType() == Task.Type.EXECUTE) {
-              ExecuteTask et = (ExecuteTask) task;
-
-              if (null != et.hosts && "master".equals(et.hosts) && null != hosts.master) {
-                realHosts = Collections.singleton(hosts.master);
-              }
-
+            case SERVER_ACTION:
               wrapper = new StageWrapper(
-                  StageWrapper.Type.RU_TASKS,
+                  StageWrapper.Type.SERVER_SIDE_ACTION,
                   execution.title,
-                  new TaskWrapper(execution.service, execution.component, realHosts, task));
-            }
-          } else {
-            switch (task.getType()) {
-              case MANUAL:
-                if (null != execution.id && execution.id.equals("unhealthy-hosts")) {
+                  new TaskWrapper(null, null, Collections.<String>emptySet(), task));
+              break;
 
-                  // !!! this specific task is used ONLY when there are unhealthy
-                  if (!ctx.getUnhealthy().isEmpty()) {
-                    ManualTask mt = (ManualTask) task;
+            case EXECUTE:
+              wrapper = getExecuteStageWrapper(ctx, execution);
+              break;
 
-                    fillHostDetails(mt, ctx.getUnhealthy());
-
-                    wrapper = new StageWrapper(
-                        StageWrapper.Type.SERVER_SIDE_ACTION,
-                        execution.title,
-                        new TaskWrapper(null, null, Collections.<String>emptySet(), task));
-                  }
-                } else {
-                  wrapper = new StageWrapper(
-                      StageWrapper.Type.SERVER_SIDE_ACTION,
-                      execution.title,
-                      new TaskWrapper(null, null, Collections.<String>emptySet(), task));
-                }
-                break;
-              case SERVER_ACTION:
-                wrapper = new StageWrapper(
-                    StageWrapper.Type.SERVER_SIDE_ACTION,
-                    execution.title,
-                    new TaskWrapper(null, null, Collections.<String>emptySet(), task));
-                break;
-              default:
-                break;
-            }
+            default:
+              break;
           }
 
           if (null != wrapper) {
@@ -176,6 +137,70 @@ public class ClusterGrouping extends Grouping {
 
       return results;
     }
+  }
+
+  private StageWrapper getManualStageWrapper(UpgradeContext ctx, ExecuteStage execution) {
+
+    String service   = execution.service;
+    String component = execution.component;
+    String id        = execution.id;
+    Task task        = execution.task;
+
+    if (null != id && id.equals("unhealthy-hosts")) {
+
+      // !!! this specific task is used ONLY when there are unhealthy
+      if (ctx.getUnhealthy().isEmpty()) {
+        return null;
+      }
+      ManualTask mt = (ManualTask) task;
+
+      fillHostDetails(mt, ctx.getUnhealthy());
+    }
+
+    Set<String> realHosts = Collections.emptySet();
+
+    if (null != service && !service.isEmpty() &&
+        null != component && !component.isEmpty()) {
+
+      HostsType hosts = ctx.getResolver().getMasterAndHosts(service, component);
+
+      if (null != hosts) {
+        realHosts = new LinkedHashSet<String>(hosts.hosts);
+      }
+    }
+
+    return new StageWrapper(
+        StageWrapper.Type.SERVER_SIDE_ACTION,
+        execution.title,
+        new TaskWrapper(service, component, realHosts, task));
+  }
+
+  private StageWrapper getExecuteStageWrapper(UpgradeContext ctx, ExecuteStage execution) {
+    String service   = execution.service;
+    String component = execution.component;
+    Task task        = execution.task;
+
+    if (null != service && !service.isEmpty() &&
+        null != component && !component.isEmpty()) {
+
+      HostsType hosts = ctx.getResolver().getMasterAndHosts(service, component);
+
+      if (hosts != null) {
+        Set<String> realHosts = new LinkedHashSet<String>(hosts.hosts);
+
+        ExecuteTask et = (ExecuteTask) task;
+
+        if (null != et.hosts && "master".equals(et.hosts) && null != hosts.master) {
+          realHosts = Collections.singleton(hosts.master);
+        }
+
+        return new StageWrapper(
+            StageWrapper.Type.RU_TASKS,
+            execution.title,
+            new TaskWrapper(service, component, realHosts, task));
+      }
+    }
+    return null;
   }
 
   private void fillHostDetails(ManualTask mt, Map<String, List<String>> unhealthy) {

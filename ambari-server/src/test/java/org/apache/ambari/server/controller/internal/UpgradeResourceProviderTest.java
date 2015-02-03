@@ -231,11 +231,11 @@ public class UpgradeResourceProviderTest {
 
     List<Stage> stages = am.getRequestStatus(requests.get(0).longValue());
 
-    assertEquals(9, stages.size());
+    assertEquals(10, stages.size());
 
     List<HostRoleCommand> tasks = am.getRequestTasks(requests.get(0).longValue());
     // same number of tasks as stages here
-    assertEquals(9, tasks.size());
+    assertEquals(10, tasks.size());
 
     Set<Long> slaveStageIds = new HashSet<Long>();
 
@@ -322,7 +322,7 @@ public class UpgradeResourceProviderTest {
     ResourceProvider upgradeItemResourceProvider = new UpgradeItemResourceProvider(amc);
     resources = upgradeItemResourceProvider.getResources(request, predicate);
 
-    assertEquals(2, resources.size());
+    assertEquals(3, resources.size());
 
     res = resources.iterator().next();
     assertNotNull(res.getPropertyValue("UpgradeItem/status"));
