@@ -432,7 +432,7 @@ hdp22properties.push(
   {
     "id": "site property",
     "name": "db_host",
-    "displayName": "Admin DB Instance",
+    "displayName": "Ranger DB host",
     "defaultValue": "",
     "isReconfigurable": true,
     "displayType": "",
@@ -445,7 +445,7 @@ hdp22properties.push(
   {
     "id": "site property",
     "name": "db_root_user",
-    "displayName": "Admin DB root user",
+    "displayName": "Ranger DB root user",
     "defaultValue": "",
     "isReconfigurable": true,
     "displayType": "",
@@ -458,7 +458,7 @@ hdp22properties.push(
   {
     "id": "site property",
     "name": "db_root_password",
-    "displayName": "Admin DB root password",
+    "displayName": "Ranger DB root password",
     "defaultValue": "",
     "isReconfigurable": true,
     "displayType": "password",
@@ -471,7 +471,7 @@ hdp22properties.push(
   {
     "id": "site property",
     "name": "db_name",
-    "displayName": "Admin DB database name",
+    "displayName": "Ranger DB name",
     "defaultValue": "",
     "isReconfigurable": true,
     "displayType": "",
@@ -485,7 +485,7 @@ hdp22properties.push(
   {
     "id": "site property",
     "name": "db_user",
-    "displayName": "Admin DB mysql username",
+    "displayName": "Ranger DB username",
     "defaultValue": "",
     "isReconfigurable": true,
     "displayType": "",
@@ -498,7 +498,7 @@ hdp22properties.push(
   {
     "id": "site property",
     "name": "db_password",
-    "displayName": "Admin DB mysql password",
+    "displayName": "Ranger DB password",
     "defaultValue": "",
     "isReconfigurable": true,
     "displayType": "password",
@@ -511,7 +511,7 @@ hdp22properties.push(
   {
     "id": "site property",
     "name": "audit_db_name",
-    "displayName": "Admin DB database name",
+    "displayName": "Ranger Audit DB name",
     "defaultValue": "",
     "isReconfigurable": true,
     "displayType": "",
@@ -524,7 +524,7 @@ hdp22properties.push(
   {
     "id": "site property",
     "name": "audit_db_user",
-    "displayName": "Admin DB mysql username",
+    "displayName": "Ranger Audit DB username",
     "defaultValue": "",
     "isReconfigurable": true,
     "displayType": "",
@@ -537,7 +537,7 @@ hdp22properties.push(
   {
     "id": "site property",
     "name": "audit_db_password",
-    "displayName": "Admin DB mysql password",
+    "displayName": "Ranger Audit DB password",
     "defaultValue": "",
     "isReconfigurable": true,
     "displayType": "password",
