@@ -51,15 +51,13 @@ class TestNamenode(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
-    self.assertResourceCalled('File', '/tmp/checkForFormat.sh',
-                              content = StaticFile('checkForFormat.sh'),
-                              mode = 0755,
-                              )
-    self.assertResourceCalled('Execute', '/tmp/checkForFormat.sh hdfs /etc/hadoop/conf /usr/bin /var/run/hadoop/hdfs/namenode/formatted/ /var/lib/hdfs/namenode/formatted/ /hadoop/hdfs/namenode',
+    self.assertResourceCalled('Execute', 'sudo ls /hadoop/hdfs/namenode | wc -l  | grep -q ^0$',
                               path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
-                              not_if = 'test -d /var/run/hadoop/hdfs/namenode/formatted/ || test -d /var/lib/hdfs/namenode/formatted/',
                               )
-    self.assertResourceCalled('Directory', '/var/lib/hdfs/namenode/formatted/',
+    self.assertResourceCalled('Execute', 'sudo su hdfs - -s /bin/bash -c "export PATH=$PATH:/usr/bin ; yes Y | hdfs --config /etc/hadoop/conf namenode -format"',
+                              path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+                              )
+    self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode/namenode-formatted/',
                               recursive = True,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
@@ -88,7 +86,6 @@ class TestNamenode(RMFTestCase):
         environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec'},
         not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid` >/dev/null 2>&1',
     )
-    self.printResources()
     self.assertResourceCalled('Execute', 'hdfs --config /etc/hadoop/conf dfsadmin -safemode leave',
         path = ['/usr/bin'],
         user = 'hdfs',
@@ -175,16 +172,14 @@ class TestNamenode(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
-    self.assertResourceCalled('File', '/tmp/checkForFormat.sh',
-                              content = StaticFile('checkForFormat.sh'),
-                              mode = 0755,
-                              )
-    self.assertResourceCalled('Execute', '/tmp/checkForFormat.sh hdfs /etc/hadoop/conf /usr/bin /var/run/hadoop/hdfs/namenode/formatted/ /var/lib/hdfs/namenode/formatted/ /hadoop/hdfs/namenode',
+    self.assertResourceCalled('Execute', 'sudo ls /hadoop/hdfs/namenode | wc -l  | grep -q ^0$',
                               path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
-                              not_if = 'test -d /var/run/hadoop/hdfs/namenode/formatted/ || test -d /var/lib/hdfs/namenode/formatted/',
                               )
-    self.assertResourceCalled('Directory', '/var/lib/hdfs/namenode/formatted/',
-                              recursive = True
+    self.assertResourceCalled('Execute', 'sudo su hdfs - -s /bin/bash -c "export PATH=$PATH:/usr/bin ; yes Y | hdfs --config /etc/hadoop/conf namenode -format"',
+                              path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+                              )
+    self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode/namenode-formatted/',
+                              recursive = True,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
                               owner = 'hdfs',
@@ -449,15 +444,10 @@ class TestNamenode(RMFTestCase):
     self.assert_configure_default()
 
     # verify that active namenode was formatted
-    self.assertResourceCalled('File', '/tmp/checkForFormat.sh',
-                              content = StaticFile('checkForFormat.sh'),
-                              mode = 0755,
-                              )
-    self.assertResourceCalled('Execute', '/tmp/checkForFormat.sh hdfs /etc/hadoop/conf /usr/bin /var/run/hadoop/hdfs/namenode/formatted/ /var/lib/hdfs/namenode/formatted/ /hadoop/hdfs/namenode',
+    self.assertResourceCalled('Execute', 'sudo su hdfs - -s /bin/bash -c "export PATH=$PATH:/usr/bin ; yes Y | hdfs --config /etc/hadoop/conf namenode -format"',
                               path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
-                              not_if = 'test -d /var/run/hadoop/hdfs/namenode/formatted/ || test -d /var/lib/hdfs/namenode/formatted/',
                               )
-    self.assertResourceCalled('Directory', '/var/lib/hdfs/namenode/formatted/',
+    self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode/namenode-formatted/',
                               recursive = True,
                               )
 

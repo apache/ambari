@@ -173,8 +173,16 @@ namenode_dirs_stub_filename = "namenode_dirs_created"
 smoke_hdfs_user_dir = format("/user/{smoke_user}")
 smoke_hdfs_user_mode = 0770
 
-namenode_formatted_old_mark_dir = format("{hadoop_pid_dir_prefix}/hdfs/namenode/formatted/")
-namenode_formatted_mark_dir = format("/var/lib/hdfs/namenode/formatted/")
+
+hdfs_namenode_formatted_mark_suffix = "/namenode-formatted/"
+namenode_formatted_old_mark_dirs = ["/var/run/hadoop/hdfs/namenode-formatted", 
+  format("{hadoop_pid_dir_prefix}/hdfs/namenode/formatted"),
+  "/var/lib/hdfs/namenode/formatted"]
+dfs_name_dirs = dfs_name_dir.split(",")
+namenode_formatted_mark_dirs = []
+for dn_dir in dfs_name_dirs:
+ tmp_mark_dir = format("{dn_dir}{hdfs_namenode_formatted_mark_suffix}")
+ namenode_formatted_mark_dirs.append(tmp_mark_dir)
 
 fs_checkpoint_dirs = config['configurations']['hdfs-site']['dfs.namenode.checkpoint.dir'].split(',')
 
