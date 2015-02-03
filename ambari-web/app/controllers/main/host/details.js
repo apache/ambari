@@ -635,12 +635,14 @@ App.MainHostDetailsController = Em.Controller.extend({
     var hiveMSHosts = this.getHiveHosts();
     var hiveMasterHosts = hiveMSHosts.concat(App.HostComponent.find().filterProperty('componentName', 'HIVE_SERVER').mapProperty('hostName')).uniq().sort().join(',');
     var configs = {};
+    var attributes = {};
     var port = "";
     var hiveUser = "";
     var webhcatUser = "";
 
     data.items.forEach(function (item) {
       configs[item.type] = item.properties;
+      attributes[item.type] = item.properties_attributes || {};
     }, this);
 
     port = configs['hive-site']['hive.metastore.uris'].match(/:[0-9]{2,4}/);
@@ -658,11 +660,25 @@ App.MainHostDetailsController = Em.Controller.extend({
     configs['core-site']['hadoop.proxyuser.' + webhcatUser + '.hosts'] = hiveMasterHosts;
     var groups = [
       {
-        'hive-site': configs['hive-site'],
-        'webhcat-site': configs['webhcat-site'],
-        'hive-env': configs['hive-env']
+        properties: {
+          'hive-site': configs['hive-site'],
+          'webhcat-site': configs['webhcat-site'],
+          'hive-env': configs['hive-env']
+        },
+        properties_attributes: {
+          'hive-site': attributes['hive-site'],
+          'webhcat-site': attributes['webhcat-site'],
+          'hive-env': attributes['hive-env']
+        }
       },
-      {'core-site': configs['core-site']}
+      {
+        properties: {
+          'core-site': configs['core-site']
+        },
+        properties_attributes: {
+          'core-site': attributes['core-site']
+        }
+      }
     ];
     this.saveConfigsBatch(groups);
   },
@@ -672,15 +688,17 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @param groups
    */
   saveConfigsBatch: function (groups) {
-    groups.forEach(function (configs) {
+    groups.forEach(function (group) {
       var desiredConfigs = [];
       var tag = 'version' + (new Date).getTime();
-      for (var site in configs) {
-        if (!configs.hasOwnProperty(site)) continue;
+      var properties = group.properties;
+      for (var site in properties) {
+        if (!properties.hasOwnProperty(site)) continue;
         desiredConfigs.push({
           "type": site,
           "tag": tag,
-          "properties": configs[site],
+          "properties": properties[site],
+          "properties_attributes": group.properties_attributes[site],
           "service_config_version_note": Em.I18n.t('hosts.host.hive.configs.save.note')
         });
       }
@@ -852,8 +870,10 @@ App.MainHostDetailsController = Em.Controller.extend({
    */
   saveZkConfigs: function (data) {
     var configs = {};
+    var attributes = {};
     data.items.forEach(function (item) {
       configs[item.type] = item.properties;
+      attributes[item.type] = item.properties_attributes || {};
     }, this);
 
     var zks = this.getZkServerHosts();
@@ -863,10 +883,23 @@ App.MainHostDetailsController = Em.Controller.extend({
     this.setZKConfigs(configs, zksWithPort, zks);
     var groups = [
       {
-        'hive-site': configs['hive-site'],
-        'webhcat-site': configs['webhcat-site']
+        properties: {
+          'hive-site': configs['hive-site'],
+          'webhcat-site': configs['webhcat-site']
+        },
+        properties_attributes: {
+          'hive-site': attributes['hive-site'],
+          'webhcat-site': attributes['webhcat-site']
+        }
       },
-      {'yarn-site': configs['yarn-site']}
+      {
+        properties: {
+          'yarn-site': configs['yarn-site']
+        },
+        properties_attributes: {
+          'yarn-site': attributes['yarn-site']
+        }
+      }
     ];
     this.saveConfigsBatch(groups);
   },

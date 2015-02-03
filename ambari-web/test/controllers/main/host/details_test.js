@@ -744,7 +744,7 @@ describe('App.MainHostDetailsController', function () {
       expect(App.ajax.send.called).to.be.false;
     });
     it("configs is correct", function() {
-      controller.saveConfigsBatch([{'site': {}}]);
+      controller.saveConfigsBatch([{'properties' : {'site': {}}, 'properties_attributes': {'site': {}}}]);
       expect(App.ajax.send.calledOnce).to.be.true;
     });
   });
