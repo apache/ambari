@@ -63,11 +63,13 @@ def configureAgent(server_hostname, user_run_as):
   """ Configure the agent so that it has all the configs knobs properly installed """
   osCommand = ["sed", "-i.bak", "s/hostname=localhost/hostname=" + server_hostname +
                                 "/g", "/etc/ambari-agent/conf/ambari-agent.ini"]
-  execOsCommand(osCommand)
+  ret = execOsCommand(osCommand)
+  if ret['exitstatus'] != 0:
+    return ret
   osCommand = ["sed", "-i.bak", "s/run_as_user=.*$/run_as_user=" + user_run_as +
                                 "/g", "/etc/ambari-agent/conf/ambari-agent.ini"]
-  execOsCommand(osCommand)
-  return
+  ret = execOsCommand(osCommand)
+  return ret
 
 def runAgent(passPhrase, expected_hostname, user_run_as, verbose):
   os.environ[AMBARI_PASSPHRASE_VAR] = passPhrase
@@ -75,18 +77,21 @@ def runAgent(passPhrase, expected_hostname, user_run_as, verbose):
   if verbose:
     vo = " -v"
   cmd = "su - %1s -c '/usr/sbin/ambari-agent restart --expected-hostname=%2s %3s'" % (user_run_as, expected_hostname, vo)
-  agent_retcode = subprocess.call(cmd, shell=True)
+  log = ""
+  p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+  p.communicate()
+  agent_retcode = p.returncode
   for i in range(3):
     time.sleep(1)
     ret = execOsCommand(["tail", "-20", "/var/log/ambari-agent/ambari-agent.log"])
-    if (not ret is None) and (0 == ret['exitstatus']):
+    if (0 == ret['exitstatus']):
       try:
         log = ret['log']
       except Exception:
         log = "Log not found"
       print log
-      return agent_retcode
-  return agent_retcode
+      break
+  return {"exitstatus": agent_retcode, "log": log}
  
 def tryStopAgent():
   verbose = False
@@ -160,15 +165,14 @@ def checkServerReachability(host, port):
   ret = {}
   s = socket.socket()
   try:
-   s.connect((host, port))
-   return
+    s.connect((host, port))
+    ret = {"exitstatus": 0, "log": ""}
   except Exception:
-   ret["exitstatus"] = 1
-   ret["log"] = "Host registration aborted. Ambari Agent host cannot reach Ambari Server '" +\
+    ret["exitstatus"] = 1
+    ret["log"] = "Host registration aborted. Ambari Agent host cannot reach Ambari Server '" +\
                 host+":"+str(port) + "'. " +\
                 "Please check the network connectivity between the Ambari Agent host and the Ambari Server"
-   sys.exit(ret)
-  pass
+  return ret
 
 
 #  Command line syntax help
@@ -183,10 +187,10 @@ def checkServerReachability(host, port):
 
 def parseArguments(argv=None):
   if argv is None:  # make sure that arguments was passed
-     sys.exit(1)
+    return {"exitstatus": 2, "log": "No arguments were passed"}
   args = argv[1:]  # shift path to script
   if len(args) < 3:
-    sys.exit({"exitstatus": 1, "log": "Was passed not all required arguments"})
+    return {"exitstatus": 1, "log": "Not all required arguments were passed"}
 
   expected_hostname = args[0]
   passPhrase = args[1]
@@ -204,48 +208,62 @@ def parseArguments(argv=None):
     except (Exception):
       server_port = 8080
 
-  return expected_hostname, passPhrase, hostname, user_run_as, projectVersion, server_port
+  parsed_args = (expected_hostname, passPhrase, hostname, user_run_as, projectVersion, server_port)
+  return {"exitstatus": 0, "log": "", "parsed_args": parsed_args}
 
 
 def run_setup(argv=None):
   # Parse passed arguments
-  expected_hostname, passPhrase, hostname, user_run_as, projectVersion, server_port = parseArguments(argv)
-  checkServerReachability(hostname, server_port)
-  
+  retcode = parseArguments(argv)
+  if (retcode["exitstatus"] != 0):
+    return retcode
+
+  (expected_hostname, passPhrase, hostname, user_run_as, projectVersion, server_port) = retcode["parsed_args"]
+
+  retcode = checkServerReachability(hostname, server_port)
+  if (retcode["exitstatus"] != 0):
+    return retcode
+
   if projectVersion == "null" or projectVersion == "{ambariVersion}" or projectVersion == "":
     retcode = getOptimalVersion("")
   else:
     retcode = getOptimalVersion(projectVersion)
   if retcode["exitstatus"] == 0 and retcode["log"] != None and retcode["log"] != "" and retcode["log"][0].strip() != "":
-      availiableProjectVersion = retcode["log"].strip()
-      if not isAgentPackageAlreadyInstalled(availiableProjectVersion):
-        ret = installAgent(availiableProjectVersion)
-        if (not ret["exitstatus"] == 0):
-          sys.exit(ret)
+    availiableProjectVersion = retcode["log"].strip()
+    if not isAgentPackageAlreadyInstalled(availiableProjectVersion):
+      retcode = installAgent(availiableProjectVersion)
+      if (not retcode["exitstatus"] == 0):
+        return retcode
   elif retcode["exitstatus"] == 1 and retcode["log"][0].strip() != "":
-      sys.exit({"exitstatus": 1, "log": "Desired version ("+projectVersion+") of ambari-agent package"
+    return {"exitstatus": 1, "log": "Desired version ("+projectVersion+") of ambari-agent package"
                                         " is not available."
                                         " Repository has following "
-                                        "versions of ambari-agent:"+retcode["log"][0].strip()})
+                                        "versions of ambari-agent:"+retcode["log"][0].strip()}
   else:
-       sys.exit(retcode)
-   
-  configureAgent(hostname, user_run_as)
-  sys.exit(runAgent(passPhrase, expected_hostname, user_run_as, verbose))
+    return retcode
+
+  retcode = configureAgent(hostname, user_run_as)
+  if retcode['exitstatus'] != 0:
+    return retcode
+  return runAgent(passPhrase, expected_hostname, user_run_as, verbose)
 
 def main(argv=None):
-    #Try stop agent and check --verbose option if agent already run
+  #Try stop agent and check --verbose option if agent already run
   global verbose
   verbose = tryStopAgent()
   if verbose:
-      run_setup(argv)
+    exitcode = run_setup(argv)
   else:
     try:
-        run_setup(argv)
+      exitcode = run_setup(argv)
     except Exception, e:
-      print e
-      sys.exit(-1)
+      exitcode = {"exitstatus": -1, "log": str(e)}
+  return exitcode
 
 if __name__ == '__main__':
   logging.basicConfig(level=logging.DEBUG)
-  main(sys.argv)
+  ret = main(sys.argv)
+  retcode = ret["exitstatus"]
+  if 0 != retcode:
+    print ret["log"]
+  sys.exit(retcode)
