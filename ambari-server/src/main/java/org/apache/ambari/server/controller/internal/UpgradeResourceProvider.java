@@ -360,7 +360,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     if (null == up) {
       throw new AmbariException(String.format(
           "Unable to perform %s.  Could not locate upgrade pack %s for version %s",
-          direction == Direction.DOWNGRADE ? "downgrade" : "upgrade",
+          direction.getText(false),
           versionEntity.getUpgradePackage(),
           repoVersion));
     }
@@ -423,11 +423,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     List<UpgradeGroupHolder> groups = s_upgradeHelper.createSequence(pack, ctx);
 
     if (groups.isEmpty()) {
-      throw new AmbariException("There are no upgrade groupings available");
+      throw new AmbariException("There are no groupings available");
     }
 
     List<UpgradeGroupEntity> groupEntities = new ArrayList<UpgradeGroupEntity>();
-    RequestStageContainer req = createRequest(version);
+    RequestStageContainer req = createRequest(direction, version);
 
     for (UpgradeGroupHolder group : groups) {
       UpgradeGroupEntity groupEntity = new UpgradeGroupEntity();
@@ -496,12 +496,13 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   }
 
 
-  private RequestStageContainer createRequest(String version) {
+  private RequestStageContainer createRequest(Direction direction, String version) {
     ActionManager actionManager = getManagementController().getActionManager();
 
     RequestStageContainer requestStages = new RequestStageContainer(
         actionManager.getNextRequestId(), null, requestFactory.get(), actionManager);
-    requestStages.setRequestContext(String.format("Upgrading to %s", version));
+    requestStages.setRequestContext(String.format("%s to %s",
+        direction.getVerb(true), version));
 
     return requestStages;
   }

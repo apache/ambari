@@ -151,8 +151,7 @@ public class ColocatedGrouping extends Grouping {
 
       StageWrapper wrapper = new StageWrapper(
           StageWrapper.Type.SERVER_SIDE_ACTION,
-          "Validate Partial " +
-              (Direction.UPGRADE == ctx.getDirection() ? "Upgrade" : "Downgrade"),
+          "Validate Partial " + ctx.getDirection().getText(true),
           new TaskWrapper(null, null, Collections.<String>emptySet(), task));
       results.add(wrapper);
 

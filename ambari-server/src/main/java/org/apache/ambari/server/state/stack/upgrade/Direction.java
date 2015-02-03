@@ -17,10 +17,49 @@
  */
 package org.apache.ambari.server.state.stack.upgrade;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * Indicates if an sequence of Groups should be for an upgrade or a downgrade.
  */
 public enum Direction {
   UPGRADE,
-  DOWNGRADE
+  DOWNGRADE;
+
+  /**
+   * @param proper {@code true} to make the first letter captilized
+   * @return "upgrade" or "downgrade"
+   */
+  public String getText(boolean proper) {
+    return proper ? StringUtils.capitalize(name().toLowerCase()) :
+      name().toLowerCase();
+  }
+
+  /**
+   * @param proper {@code true} to make the first letter captilized
+   * @return "upgraded" or "downgraded"
+   */
+  public String getPast(boolean proper) {
+    return getText(proper) + "d";
+  }
+
+  /**
+   * @param proper {@code true} to make the first letter captilized
+   * @return "upgrades" or "downgrades"
+   */
+  public String getPlural(boolean proper) {
+    return getText(proper) + "s";
+  }
+
+  /**
+   * @param proper {@code true} to make the first letter captilized
+   * @return "upgrading" or "downgrading"
+   */
+  public String getVerb(boolean proper) {
+    String verb = (this == UPGRADE) ? "upgrading" : "downgrading";
+
+    return proper ? StringUtils.capitalize(verb) : verb;
+  }
+
+
 }

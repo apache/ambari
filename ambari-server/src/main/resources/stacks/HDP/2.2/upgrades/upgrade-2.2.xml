@@ -75,7 +75,7 @@
       <batch>
         <percent>33</percent>
         <summary>Verification Required</summary>
-        <message>Core Services have been upgraded. You are advised to perform tests against your cluster to ensure proper operation before proceeding with upgrade of remaining services.</message>
+        <message>Core Services have been {{direction.past}}. You are advised to perform tests against your cluster to ensure proper operation before proceeding with {{direction.text}} of remaining services.</message>
       </batch>
     </group>
     
@@ -199,11 +199,11 @@
     </group>
 
 
-    <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize Upgrade">
+    <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize {{direction.text.proper}}">
       <skippable>true</skippable>
       <execute-stage title="Check Unhealthy Hosts" id="unhealthy-hosts">
         <task xsi:type="manual">
-          <message>The following hosts were unhealthy and should be resolved before finalizing can be completed: {{host-detail-list}}</message>
+          <message>The following hosts were unhealthy and should be resolved before finalizing can be completed: {{hosts.unhealthy}}</message>
         </task>
       </execute-stage>
       
@@ -318,13 +318,6 @@
       </component>
 
       <component name="RESOURCEMANAGER">
-        <!--
-        Upgrade+restart the standby ResourceManager first
-        Make the standby ResourceManager as the active
-
-        Automatic failover: This can be done by simply killing the current active ResourceManager
-        Manual failover: Make the standby ResourceManager as the active and the current active as standby
-        -->
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>

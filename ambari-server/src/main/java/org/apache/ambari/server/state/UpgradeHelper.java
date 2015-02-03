@@ -86,24 +86,82 @@ public class UpgradeHelper {
   private static final Pattern PLACEHOLDER_REGEX = Pattern.compile("(\\{\\{.*?\\}\\})");
 
   /**
-   * A placeholder token that represents all of the hosts that a component is
-   * deployed on. This can be used for cases where text needs to be rendered
-   * with all of the hosts mentioned by their FQDN.
+   * Enum used to define placeholder text for replacement
    */
-  private static final String PLACEHOLDER_HOST_ALL = "{{hosts.all}}";
+  private static enum Placeholder {
+    /**
+     * No placeholder defined
+     */
+    OTHER(""),
+    /**
+     * A placeholder token that represents all of the hosts that a component is
+     * deployed on. This can be used for cases where text needs to be rendered
+     * with all of the hosts mentioned by their FQDN.
+     */
+    HOST_ALL("hosts.all"),
+    /**
+     * A placeholder token that represents a single, active master that a
+     * component is deployed on. This can be used for cases where text needs to eb
+     * rendered with a single master host FQDN inserted.
+     */
+    HOST_MASTER("hosts.master"),
+    /**
+     * The version that the stack is being upgraded or downgraded to, such as
+     * {@code 2.2.1.0-1234}.
+     */
+    VERSION("version"),
+    /**
+     * The lower case of the {@link Direction} value.
+     */
+    DIRECTION_TEXT("direction.text"),
+    /**
+     * The proper case of the {@link Direction} value.
+     */
+    DIRECTION_TEXT_PROPER("direction.text.proper"),
+    /**
+     * The past tense of the {@link Direction} value.
+     */
+    DIRECTION_PAST("direction.past"),
+    /**
+     * The proper past tense of the {@link Direction} value.
+     */
+    DIRECTION_PAST_PROPER("direction.past.proper"),
+    /**
+     * The plural tense of the {@link Direction} value.
+     */
+    DIRECTION_PLURAL("direction.plural"),
+    /**
+     * The proper plural tense of the {@link Direction} value.
+     */
+    DIRECTION_PLURAL_PROPER("direction.plural.proper"),
+    /**
+     * The verbal noun of the {@link Direction} value.
+     */
+    DIRECTION_VERB("direction.verb"),
+    /**
+     * The proper verbal noun of the {@link Direction} value.
+     */
+    DIRECTION_VERB_PROPER("direction.verb.proper"),
+    /**
+     * Unhealthy hosts if they are specified.
+     */
+    UNHEALTHY_HOSTS("hosts.unhealthy");
 
-  /**
-   * A placeholder token that represents a single, active master that a
-   * component is deployed on. This can be used for cases where text needs to eb
-   * rendered with a single master host FQDN inserted.
-   */
-  private static final String PLACEHOLDER_HOST_MASTER = "{{hosts.master}}";
+    private String pattern;
+    private Placeholder(String key) {
+      pattern = "{{" + key + "}}";
+    }
 
-  /**
-   * The version that the stack is being upgraded or downgraded to, such as
-   * {@code 2.2.1.0-1234}.
-   */
-  private static final String PLACEHOLDER_VERSION = "{{version}}";
+    static Placeholder find(String pattern) {
+      for (Placeholder p : values()) {
+        if (p.pattern.equals(pattern)) {
+          return p;
+        }
+      }
+
+      return OTHER;
+    }
+  }
 
   /**
    * Used to render parameter placeholders in {@link ManualTask}s after the
@@ -133,7 +191,6 @@ public class UpgradeHelper {
     Cluster cluster = context.getCluster();
     boolean forUpgrade = context.getDirection() == Direction.UPGRADE;
     MasterHostResolver mhr = context.getResolver();
-    String version = context.getVersion();
 
     Map<String, Map<String, ProcessingComponent>> allTasks = upgradePack.getTasks();
     List<UpgradeGroupHolder> groups = new ArrayList<UpgradeGroupHolder>();
@@ -214,11 +271,9 @@ public class UpgradeHelper {
 
       List<StageWrapper> proxies = builder.build(context);
 
-      // post process all of the tasks
-      postProcessTasks(proxies, mhr, version);
-
       if (!proxies.isEmpty()) {
         groupHolder.items = proxies;
+        postProcess(context, groupHolder);
         groups.add(groupHolder);
       }
     }
@@ -243,77 +298,112 @@ public class UpgradeHelper {
   }
 
   /**
-   * Walks through the generated upgrade hierarchy and applies special
-   * processing to any tasks that require it. An example of this are manual
-   * tasks that have some parameter placeholders rendered.
+   * Walks through the UpgradeGroupHolder and updates titles and manual tasks,
+   * replacing keyword tokens needed for display purposes
    *
-   * @param stageWrappers
-   *          the stage wrappers (not {@code null}).
-   * @param mhr
-   *          a helper to resolve masters, slaves, and hosts (not {@code null}).
-   * @param version
-   *          the version of the stack being upgraded or dowgraded to, such as
-   *          {@code 2.2.0.0-1234} (not {@code null}).
+   * @param ctx     the upgrade context
+   * @param holder  the upgrade holder
    */
-  private void postProcessTasks(List<StageWrapper> stageWrappers,
-      MasterHostResolver mhr, String version) throws AmbariException {
-    Cluster cluster = mhr.getCluster();
+  private void postProcess(UpgradeContext ctx, UpgradeGroupHolder holder) {
 
-    for (StageWrapper stageWrapper : stageWrappers) {
-      List<TaskWrapper> taskWrappers = stageWrapper.getTasks();
-      for (TaskWrapper taskWrapper : taskWrappers) {
-        List<Task> tasks = taskWrapper.getTasks();
+    holder.title = tokenReplace(ctx, holder.title, null, null);
 
-        // if the task is a manual task, then render any placeholders such
-        // as {{hdfs-site/foo}}
-        for (Task task : tasks) {
+    for (StageWrapper stageWrapper : holder.items) {
+      for (TaskWrapper taskWrapper : stageWrapper.getTasks()) {
+        for (Task task : taskWrapper.getTasks()) {
           if (task.getType() == Type.MANUAL) {
-            List<String> tokens = new ArrayList<String>(5);
-            ManualTask manualTask = (ManualTask) task;
-
-            // if there is no message for some reason, skip this one
-            if (null == manualTask.message) {
-              continue;
-            }
-
-            Matcher matcher = PLACEHOLDER_REGEX.matcher(manualTask.message);
-            while (matcher.find()) {
-              tokens.add(matcher.group(1));
-            }
-
-            // iterate through all of the matched tokens
-            for (String token : tokens) {
-              String value = token;
-              if (token.equals(PLACEHOLDER_HOST_ALL)) {
-                HostsType hostsType = mhr.getMasterAndHosts(
-                    taskWrapper.getService(), taskWrapper.getComponent());
-
-                if (null != hostsType) {
-                  value = StringUtils.join(hostsType.hosts, ", ");
-                }
-              } else if (token.equals(PLACEHOLDER_HOST_MASTER)) {
-                HostsType hostsType = mhr.getMasterAndHosts(
-                    taskWrapper.getService(), taskWrapper.getComponent());
-
-                if (null != hostsType) {
-                  value = hostsType.master;
-                }
-              } else if (token.equals(PLACEHOLDER_VERSION)) {
-                value = version;
-              } else {
-                value = m_configHelper.get().getPlaceholderValueFromDesiredConfigurations(
-                    cluster, token);
-              }
-
-              // replace the token in the message with the value
-              if (null != value) {
-                manualTask.message = manualTask.message.replace(token, value);
-              }
+            ManualTask mt = (ManualTask) task;
+            if (null != mt.message) {
+              mt.message = tokenReplace(ctx, mt.message,
+                  taskWrapper.getService(), taskWrapper.getComponent());
             }
           }
         }
       }
     }
+  }
+
+  /**
+   * @param ctx       the upgrade context
+   * @param source    the source string to replace tokens on
+   * @param service   the service name if required
+   * @param component the component name if required
+   * @return the source string with tokens replaced, if any are found
+   */
+  private String tokenReplace(UpgradeContext ctx, String source, String service, String component) {
+    Cluster cluster = ctx.getCluster();
+    MasterHostResolver mhr = ctx.getResolver();
+    String version = ctx.getVersion();
+
+    String result = source;
+
+    List<String> tokens = new ArrayList<String>(5);
+    Matcher matcher = PLACEHOLDER_REGEX.matcher(source);
+    while (matcher.find()) {
+      tokens.add(matcher.group(1));
+    }
+
+    // iterate through all of the matched tokens
+    for (String token : tokens) {
+      String value = null;
+
+      Placeholder p = Placeholder.find(token);
+      switch (p) {
+        case HOST_ALL: {
+          if (null != service && null != component) {
+            HostsType hostsType = mhr.getMasterAndHosts(service, component);
+
+            if (null != hostsType) {
+              value = StringUtils.join(hostsType.hosts, ", ");
+            }
+          }
+          break;
+        }
+        case HOST_MASTER: {
+          if (null != service && null != component) {
+            HostsType hostsType = mhr.getMasterAndHosts(service, component);
+
+            if (null != hostsType) {
+              value = hostsType.master;
+            }
+          }
+          break;
+        }
+        case VERSION:
+          value = version;
+          break;
+        case DIRECTION_VERB:
+        case DIRECTION_VERB_PROPER:
+          value = ctx.getDirection().getVerb(p == Placeholder.DIRECTION_VERB_PROPER);
+          break;
+        case DIRECTION_PAST:
+        case DIRECTION_PAST_PROPER:
+          value = ctx.getDirection().getPast(p == Placeholder.DIRECTION_PAST_PROPER);
+          break;
+        case DIRECTION_PLURAL:
+        case DIRECTION_PLURAL_PROPER:
+          value = ctx.getDirection().getPlural(p == Placeholder.DIRECTION_PLURAL_PROPER);
+          break;
+        case DIRECTION_TEXT:
+        case DIRECTION_TEXT_PROPER:
+          value = ctx.getDirection().getText(p == Placeholder.DIRECTION_TEXT_PROPER);
+          break;
+        case UNHEALTHY_HOSTS:
+          value = StringUtils.join(ctx.getUnhealthy().keySet(), ", ");
+          break;
+        default:
+          value = m_configHelper.get().getPlaceholderValueFromDesiredConfigurations(
+              cluster, token);
+          break;
+      }
+
+      // replace the token in the message with the value
+      if (null != value) {
+        result = result.replace(token, value);
+      }
+    }
+
+    return result;
   }
 
   /**

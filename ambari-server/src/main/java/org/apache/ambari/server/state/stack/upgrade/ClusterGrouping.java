@@ -36,7 +36,6 @@ import javax.xml.bind.annotation.XmlType;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
-import org.apache.commons.lang.StringUtils;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -180,12 +179,6 @@ public class ClusterGrouping extends Grouping {
   }
 
   private void fillHostDetails(ManualTask mt, Map<String, List<String>> unhealthy) {
-    String msg = mt.message;
-
-    if (null != msg && msg.contains("{{host-detail-list}}")) {
-      mt.message = msg.replace("{{host-detail-list}}",
-          StringUtils.join(unhealthy.keySet(), ", "));
-      }
 
     JsonArray arr = new JsonArray();
     for (Entry<String, List<String>> entry : unhealthy.entrySet()) {

@@ -132,6 +132,16 @@ public class UpgradeHelperTest {
     assertEquals("CORE_SLAVES", groups.get(3).name);
     assertEquals("HIVE", groups.get(4).name);
 
+    UpgradeGroupHolder holder = groups.get(2);
+    boolean found = false;
+    for (StageWrapper sw : holder.items) {
+      if (sw.getTasksJson().contains("Upgrading your database")) {
+        found = true;
+      }
+    }
+    assertTrue("Expected to find replaced text for Upgrading", found);
+
+
     UpgradeGroupHolder postGroup = groups.get(5);
     assertEquals(postGroup.name, "POST_CLUSTER");
     assertEquals(postGroup.title, "Finalize Upgrade");
@@ -221,7 +231,7 @@ public class UpgradeHelperTest {
 
     UpgradeGroupHolder postGroup = groups.get(5);
     assertEquals("POST_CLUSTER", postGroup.name);
-    assertEquals("Finalize Upgrade", postGroup.title);
+    assertEquals("Finalize Downgrade", postGroup.title);
     assertEquals(3, postGroup.items.size());
     assertEquals("Confirm Finalize", postGroup.items.get(0).getText());
     assertEquals("Execute HDFS Finalize", postGroup.items.get(1).getText());

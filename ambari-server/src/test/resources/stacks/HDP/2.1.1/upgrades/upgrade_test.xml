@@ -19,7 +19,7 @@
   <target>2.2.*</target>
   
   <order>
-    <group xsi:type="cluster" name="PRE_CLUSTER" title="Pre Upgrade" stage="pre">
+    <group xsi:type="cluster" name="PRE_CLUSTER" title="Pre {{direction.text.proper}}">
       <execute-stage title="Confirm 1">
         <task xsi:type="manual">
           <message>Foo</message>
@@ -82,7 +82,7 @@
       </service>
     </group>    
     
-    <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize Upgrade" stage="post">
+    <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize {{direction.text.proper}}">
       <execute-stage title="Check Unhealthy Hosts" id="unhealthy-hosts">
         <task xsi:type="manual">
           <message>The following hosts were unhealthy and should be resolved before finalizing can be completed:
@@ -138,7 +138,7 @@
             <value>mynewvalue</value>
           </task>
           <task xsi:type="manual">
-            <message>Update your database</message>
+            <message>{{direction.verb.proper}} your database</message>
           </task>
         </pre-upgrade>
         <upgrade>
