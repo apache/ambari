@@ -21,11 +21,15 @@
     <artifactId>ambari-contrib-views</artifactId>
     <version>0.1.0-SNAPSHOT</version>
   </parent>
+  <properties>
+    <tez.view.version>0.6.0-SNAPSHOT</tez.view.version>
+    <tez.version>0.6.0</tez.version>
+  </properties>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.ambari</groupId>
   <artifactId>tez-ambari-view</artifactId>
-  <name>tez-ambari-view</name>
-  <version>0.6.0-SNAPSHOT</version>
+  <name>Tez</name>
+  <version>${tez.view.version}</version>
   <description>Tez Ambari View</description>
   <repositories>
     <repository>
@@ -88,7 +92,7 @@
                <artifactItem>
                  <groupId>org.apache.tez</groupId>
                  <artifactId>tez-ui</artifactId>
-                 <version>${version}</version>
+                 <version>${tez.version}</version>
                  <type>war</type>
                  <overWrite>false</overWrite>
                  <outputDirectory>target/classes</outputDirectory>
@@ -129,7 +133,7 @@
     <dependency>
       <groupId>org.apache.tez</groupId>
       <artifactId>tez-ui</artifactId>
-      <version>${version}</version>
+      <version>${tez.version}</version>
       <type>war</type>
     </dependency>
 

@@ -31,6 +31,7 @@
     <module>pig</module>
     <module>slider</module>
     <module>capacity-scheduler</module>
+    <module>tez</module>
   </modules>
   <build>
     <pluginManagement>
