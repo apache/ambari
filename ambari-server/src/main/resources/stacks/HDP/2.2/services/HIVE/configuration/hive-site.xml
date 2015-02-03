@@ -795,15 +795,6 @@ limitations under the License.
   </property>
 
   <property>
-    <name>hive.server2.transport.mode</name>
-    <value>binary</value>
-    <description>
-      Expects one of [binary, http].
-      Transport mode of HiveServer2.
-    </description>
-  </property>
-
-  <property>
     <name>hive.server2.thrift.http.port</name>
     <value>10001</value>
     <description>Port number of HiveServer2 Thrift interface when hive.server2.transport.mode is 'http'.</description>

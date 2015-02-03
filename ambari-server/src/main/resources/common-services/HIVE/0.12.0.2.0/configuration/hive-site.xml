@@ -325,5 +325,14 @@ limitations under the License.
       supporting dynamic service discovery.
     </description>
   </property>
-  
+
+  <property>
+    <name>hive.server2.transport.mode</name>
+    <value>binary</value>
+    <description>
+      Expects one of [binary, http].
+      Transport mode of HiveServer2.
+    </description>
+  </property>
+
 </configuration>
