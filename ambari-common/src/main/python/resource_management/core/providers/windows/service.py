@@ -32,6 +32,7 @@ class ServiceProvider(Provider):
     self._service_handle = self._service_handle if hasattr(self, "_service_handle") else \
       win32service.OpenService(_schSCManager, self.resource.service_name, win32service.SERVICE_ALL_ACCESS)
     if not self.status():
+      self.enable()
       win32service.StartService(self._service_handle, None)
       self.wait_status(win32service.SERVICE_RUNNING)
 
@@ -55,6 +56,20 @@ class ServiceProvider(Provider):
     if win32service.QueryServiceStatusEx(self._service_handle)["CurrentState"] == win32service.SERVICE_RUNNING:
       return True
     return False
+
+  def enable(self):
+    if win32service.QueryServiceConfig(self._service_handle)[1] == win32service.SERVICE_DISABLED:
+      win32service.ChangeServiceConfig(self._service_handle,
+                                       win32service.SERVICE_NO_CHANGE,
+                                       win32service.SERVICE_DEMAND_START,
+                                       win32service.SERVICE_NO_CHANGE,
+                                       None,
+                                       None,
+                                       0,
+                                       None,
+                                       None,
+                                       None,
+                                       None)
 
   def get_current_status(self):
     return win32service.QueryServiceStatusEx(self._service_handle)["CurrentState"]
