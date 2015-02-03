@@ -17,12 +17,18 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.google.inject.name.Named;
-import com.google.inject.persist.Transactional;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
@@ -48,48 +54,54 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
+import com.google.inject.persist.Transactional;
 
 @Singleton
 public class ActionDBAccessorImpl implements ActionDBAccessor {
   private static final Logger LOG = LoggerFactory.getLogger(ActionDBAccessorImpl.class);
+
   private long requestId;
+
   @Inject
   ClusterDAO clusterDAO;
+
   @Inject
   HostDAO hostDAO;
+
   @Inject
   RequestDAO requestDAO;
+
   @Inject
   StageDAO stageDAO;
+
   @Inject
   HostRoleCommandDAO hostRoleCommandDAO;
+
   @Inject
   ExecutionCommandDAO executionCommandDAO;
+
   @Inject
   RoleSuccessCriteriaDAO roleSuccessCriteriaDAO;
+
   @Inject
   StageFactory stageFactory;
+
   @Inject
   RequestFactory requestFactory;
+
   @Inject
   HostRoleCommandFactory hostRoleCommandFactory;
+
   @Inject
   Clusters clusters;
+
   @Inject
   RequestScheduleDAO requestScheduleDAO;
-
-
 
   private Cache<Long, HostRoleCommand> hostRoleCommandCache;
   private long cacheLimit; //may be exceeded to store tasks from one request
@@ -186,20 +198,33 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     endRequestIfCompleted(requestId);
   }
 
-  /* (non-Javadoc)
-   * @see org.apache.ambari.server.actionmanager.ActionDBAccessor#getPendingStages()
+  /**
+   * {@inheritDoc}
    */
   @Override
   public List<Stage> getStagesInProgress() {
     List<Stage> stages = new ArrayList<Stage>();
-    List<HostRoleStatus> statuses =
-        Arrays.asList(HostRoleStatus.QUEUED, HostRoleStatus.IN_PROGRESS,
-          HostRoleStatus.PENDING, HostRoleStatus.HOLDING,
-          HostRoleStatus.HOLDING_FAILED, HostRoleStatus.HOLDING_TIMEDOUT);
-    for (StageEntity stageEntity : stageDAO.findByCommandStatuses(statuses)) {
+
+    List<StageEntity> stageEntities = stageDAO.findByCommandStatuses(HostRoleStatus.IN_PROGRESS_STATUSES);
+
+    for (StageEntity stageEntity : stageEntities) {
       stages.add(stageFactory.createExisting(stageEntity));
     }
+
     return stages;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int getCommandsInProgressCount() {
+    Number count = hostRoleCommandDAO.getCountByStatus(HostRoleStatus.IN_PROGRESS_STATUSES);
+    if (null == count) {
+      return 0;
+    }
+
+    return count.intValue();
   }
 
   @Override
@@ -562,16 +587,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   public List<HostRoleCommand> getTasksByRoleAndStatus(String role, HostRoleStatus status) {
     return getTasks(hostRoleCommandDAO.findTaskIdsByRoleAndStatus(role, status));
   }
-  
-  @Override
-  public List<Stage> getStagesByHostRoleStatus(Set<HostRoleStatus> statuses) {
-    List<Stage> stages = new ArrayList<Stage>();
-    for (StageEntity stageEntity : stageDAO.findByCommandStatuses(statuses)) {
-      stages.add(stageFactory.createExisting(stageEntity));
-    }
-    return stages;
-  }
 
+  @Override
   public HostRoleCommand getTask(long taskId) {
     HostRoleCommandEntity commandEntity = hostRoleCommandDAO.findByPK((int) taskId);
     if (commandEntity == null) {

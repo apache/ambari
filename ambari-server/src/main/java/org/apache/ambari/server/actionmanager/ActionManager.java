@@ -17,11 +17,13 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.name.Named;
-import com.google.inject.persist.UnitOfWork;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
@@ -34,13 +36,10 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
+import com.google.inject.persist.UnitOfWork;
 
 
 /**
@@ -63,7 +62,7 @@ public class ActionManager {
                        UnitOfWork unitOfWork,
                        RequestFactory requestFactory, Configuration configuration,
                        AmbariEventPublisher ambariEventPublisher) {
-    this.actionQueue = aq;
+    actionQueue = aq;
     this.db = db;
     scheduler = new ActionScheduler(schedulerSleepTime, actionTimeout, db,
         actionQueue, fsm, 2, hostsMap, unitOfWork, ambariEventPublisher, configuration);
@@ -203,10 +202,6 @@ public class ActionManager {
 
   public Collection<HostRoleCommand> getTasks(Collection<Long> taskIds) {
     return db.getTasks(taskIds);
-  }
-
-  public List<Stage> getRequestsByHostRoleStatus(Set<HostRoleStatus> statuses) {
-    return db.getStagesByHostRoleStatus(statuses);
   }
 
   /**
