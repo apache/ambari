@@ -2323,6 +2323,7 @@ Em.I18n.translations = {
   'dashboard.configHistory.table.configGroup.default' : 'default',
   'dashboard.configHistory.table.empty' : 'No history to display',
   'dashboard.configHistory.table.notes.default': 'Initial configurations for {0}',
+  'dashboard.configHistory.table.notes.addService': 'Configuration updated while adding service',
   'dashboard.configHistory.table.notes.no': '<i>No notes</i>',
   'dashboard.configHistory.table.version.versionText' : 'V{0}',
   'dashboard.configHistory.table.version.prefix' : 'V',

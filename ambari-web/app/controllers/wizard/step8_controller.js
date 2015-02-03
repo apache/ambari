@@ -1501,6 +1501,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       coreSiteObject.tag = tag;
       var coreSiteConfigs = this.get('configs').filterProperty('filename', 'core-site.xml');
       if (this.isConfigsChanged(coreSiteObject.properties, coreSiteConfigs)) {
+        coreSiteObject.service_config_version_note = Em.I18n.t('dashboard.configHistory.table.notes.addService');
         this.get('serviceConfigTags').pushObject(coreSiteObject);
       }
     }
