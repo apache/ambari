@@ -39,7 +39,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
     var requestId = App.get('testMode') ? 1 : App.db.get('repoVersionInstall', 'id')[0];
     var installRequest = App.router.get('backgroundOperationsController.services').findProperty('id', requestId);
     return (installRequest) ? installRequest.get('progress') : 0;
-  }.property('App.router.backgroundOperationsController.services.@each.progress'),
+  }.property('App.router.backgroundOperationsController.serviceTimestamp'),
 
   /**
    * version is upgrading
