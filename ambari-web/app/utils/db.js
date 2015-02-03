@@ -363,6 +363,7 @@ App.db.setConfigs = function (configs) {
  */
 App.db.setWizardCurrentStep = function (wizardType, currentStep) {
   console.log('TRACE: Entering db:setWizardCurrentStep function');
+  App.db.data = localStorage.getObject('ambari');
   App.db.data[wizardType.capitalize()].currentStep = currentStep;
   localStorage.setObject('ambari', App.db.data);
 };
