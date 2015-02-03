@@ -387,8 +387,8 @@ App.AddSecurityConfigs = Em.Mixin.create({
    *
    * @returns {$.Deferred}
    */
-  getStackDescriptorConfigs: function () {
-    return this.loadStackDescriptorConfigs().pipe(this.createServicesStackDescriptorConfigs.bind(this));
+  getDescriptorConfigs: function () {
+    return this.loadDescriptorConfigs().pipe(this.createServicesStackDescriptorConfigs.bind(this));
   },
 
   /**
@@ -662,9 +662,22 @@ App.AddSecurityConfigs = Em.Mixin.create({
   },
 
   /**
-   * Make request for stack descriptor configs.
-   *
+   * Make request for stack descriptor configs if cluster  is not secure
+   * or cluster descriptor configs if cluster is secure
    * @returns {$.ajax}
+   * @method loadStackDescriptorConfigs
+   */
+  loadDescriptorConfigs: function() {
+    if (App.router.get('mainAdminKerberosController.securityEnabled')) {
+      return this.loadClusterDescriptorConfigs();
+    } else {
+      return this.loadStackDescriptorConfigs();
+    }
+  },
+  /**
+   * Make request for stack descriptor configs.
+   * @returns {$.ajax}
+   * @method loadStackDescriptorConfigs
    */
   loadStackDescriptorConfigs: function () {
     return App.ajax.send({
@@ -674,6 +687,18 @@ App.AddSecurityConfigs = Em.Mixin.create({
         stackName: App.get('currentStackName'),
         stackVersionNumber: App.get('currentStackVersionNumber')
       }
+    });
+  },
+
+  /**
+   * Make request for cluster descriptor configs.
+   * @returns {$.ajax}
+   * @method loadClusterDescriptorConfigs
+   */
+  loadClusterDescriptorConfigs: function () {
+    return App.ajax.send({
+      sender: this,
+      name: 'admin.kerberize.cluster_descriptor'
     });
   }
 });

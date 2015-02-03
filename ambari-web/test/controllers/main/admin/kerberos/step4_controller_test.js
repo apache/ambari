@@ -212,4 +212,41 @@ describe('App.KerberosWizardStep4Controller', function() {
     });
   });
 
+  describe("#createCategoryForServices()", function() {
+    var controller = App.KerberosWizardStep4Controller.create({
+      wizardController: {
+        name: 'addServiceController'
+      }
+    });
+    beforeEach(function() {
+      sinon.stub(App.StackService, 'find').returns([
+        Em.Object.create({
+          serviceName: 'HDFS',
+          displayName: 'HDFS',
+          isInstalled: true
+        }),
+        Em.Object.create({
+          serviceName: 'MAPREDUCE2',
+          displayName: 'MapReduce 2',
+          isInstalled: false,
+          isSelected: true
+        })
+      ]);
+    });
+
+    afterEach(function() {
+      App.StackService.find.restore();
+    });
+
+    it('for add service', function() {
+      expect(controller.createCategoryForServices()).to.eql([App.ServiceConfigCategory.create({ name: 'HDFS', displayName: 'HDFS', collapsedByDefault: true}),
+        App.ServiceConfigCategory.create({ name: 'MAPREDUCE2', displayName: 'MapReduce 2', collapsedByDefault: true})]);
+    });
+
+    it('for kerberos wizard', function() {
+      controller.set('wizardController.name', 'KerberosWizard');
+      expect(controller.createCategoryForServices()).to.eql([App.ServiceConfigCategory.create({ name: 'HDFS', displayName: 'HDFS', collapsedByDefault: true})]);
+    });
+  })
+
 });

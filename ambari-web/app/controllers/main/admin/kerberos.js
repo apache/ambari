@@ -163,22 +163,6 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   /**
    * Override <code>App.KerberosWizardStep4Controller</code>
    *
-   * @returns {$.ajax}
-   */
-  loadStackDescriptorConfigs: function () {
-    return App.ajax.send({
-      sender: this,
-      name: 'get.cluster.artifact',
-      data: {
-        artifactName: 'kerberos_descriptor',
-        stackVersionNumber: App.get('currentStackVersionNumber')
-      }
-    });
-  },
-  
-  /**
-   * Override <code>App.KerberosWizardStep4Controller</code>
-   *
    * @param {App.ServiceConfigProperty[]} properties
    */
   setStepConfigs: function (properties) {

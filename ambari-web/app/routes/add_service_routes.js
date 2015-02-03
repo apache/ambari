@@ -221,7 +221,7 @@ module.exports = App.WizardRoute.extend({
       addServiceController.saveServiceConfigProperties(wizardStep7Controller);
       addServiceController.saveServiceConfigGroups(wizardStep7Controller, true);
       if (App.supports.automatedKerberos) {
-        if (router.get('mainAdminSecurityController.securityEnabled')) {
+        if (router.get('mainAdminKerberosController.securityEnabled')) {
           router.transitionTo('step5');
           return;
         }
@@ -283,7 +283,7 @@ module.exports = App.WizardRoute.extend({
     },
     back: function(router){
       var controller = router.get('addServiceController');
-      if (App.supports.automatedKerberos && router.get('mainAdminSecurityController.securityEnabled')) {
+      if (App.supports.automatedKerberos && router.get('mainAdminKerberosController.securityEnabled')) {
         router.transitionTo('step5');
         return;
       }

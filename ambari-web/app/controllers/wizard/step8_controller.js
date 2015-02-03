@@ -123,8 +123,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @type {bool}
    */
   securityEnabled: function () {
-    return App.router.get('mainAdminSecurityController.securityEnabled');
-  }.property('App.router.mainAdminSecurityController.securityEnabled'),
+    return App.router.get('mainAdminKerberosController.securityEnabled');
+  }.property('App.router.mainAdminKerberosController.securityEnabled'),
 
   /**
    * Selected config group
@@ -1078,6 +1078,22 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   },
 
   /**
+   * updates kerberosDescriptorConfigs
+   * @method updateKerberosDescriptor
+   */
+  updateKerberosDescriptor: function() {
+    var kerberosDescriptor = App.db.get('KerberosWizard', 'kerberosDescriptorConfigs');
+    this.addRequestToAjaxQueue({
+      name: 'admin.kerberos.cluster.artifact.update',
+      data: {
+        artifactName: 'kerberos_descriptor',
+        data: {
+          artifact_data: kerberosDescriptor
+        }
+      }
+    });
+  },
+  /**
    * Start deploy process
    * @method startDeploy
    */
@@ -1085,6 +1101,11 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     this.createCluster();
     this.createSelectedServices();
     if (this.get('content.controllerName') !== 'addHostController') {
+      if (this.get('content.controllerName') === 'addServiceController') {
+        if (this.get('securityEnabled')) {
+          this.updateKerberosDescriptor();
+        }
+      }
       if (this.get('wizardController').getDBProperty('fileNamesToUpdate') && this.get('wizardController').getDBProperty('fileNamesToUpdate').length) {
         this.updateConfigurations(this.get('wizardController').getDBProperty('fileNamesToUpdate'));
       }

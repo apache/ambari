@@ -1276,8 +1276,21 @@ var urls = {
     'real': '/stacks/{stackName}/versions/{stackVersionNumber}/artifacts/kerberos_descriptor?fields=artifact_data',
     'mock': '/data/wizard/kerberos/stack_descriptors.json'
   },
-  'create.cluster.artifact': {
+  'admin.kerberize.cluster_descriptor': {
+    'real': '/clusters/{clusterName}/artifacts/kerberos_descriptor?fields=artifact_data',
+    'mock': '/data/wizard/kerberos/stack_descriptors.json'
+  },
+  'admin.kerberos.cluster.artifact.create': {
     'type': 'POST',
+    'real': '/clusters/{clusterName}/artifacts/{artifactName}',
+    'format' : function (data) {
+      return {
+        data: JSON.stringify(data.data)
+      }
+    }
+  },
+  'admin.kerberos.cluster.artifact.update': {
+    'type': 'PUT',
     'real': '/clusters/{clusterName}/artifacts/{artifactName}',
     'format' : function (data) {
       return {

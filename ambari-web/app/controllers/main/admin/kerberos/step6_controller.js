@@ -40,7 +40,7 @@ App.KerberosWizardStep6Controller = App.KerberosProgressPageController.extend({
 
   postKerberosDescriptor: function (kerberosDescriptor) {
     return App.ajax.send({
-      name: 'create.cluster.artifact',
+      name: 'admin.kerberos.cluster.artifact.create',
       sender: this,
       data: {
         artifactName: 'kerberos_descriptor',

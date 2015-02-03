@@ -33,7 +33,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
   loadStep: function() {
     var self = this;
     this.clearStep();
-    this.getStackDescriptorConfigs().then(function(properties) {
+    this.getDescriptorConfigs().then(function(properties) {
       self.setStepConfigs(properties);
       self.set('isRecommendedLoaded', true);
     });
@@ -74,9 +74,16 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     ];
   },
 
+  /**
+   * creates categories for advanced secure configs
+   * @returns {[App.ServiceConfigCategory]}
+   */
   createCategoryForServices: function() {
-    return App.Service.find().mapProperty('serviceName').map(function(item) {
-      return App.ServiceConfigCategory.create({ name: item, displayName: App.Service.find().findProperty('serviceName',item).get('displayName'), collapsedByDefault: true});
+    var services = App.StackService.find().filter(function(s) {
+      return s.get('isInstalled') || (s.get('isSelected') && this.get('wizardController.name') == 'addServiceController');
+    }, this);
+    return services.map(function(item) {
+      return App.ServiceConfigCategory.create({ name: item.get('serviceName'), displayName: item.get('displayName'), collapsedByDefault: true});
     })
   },
 
@@ -113,7 +120,6 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
   prepareConfigProperties: function(configs) {
     var self = this;
     var storedServiceConfigs = this.get('wizardController').getDBProperty('serviceConfigProperties');
-    var realmValue = storedServiceConfigs.findProperty('name', 'realm').value;
     var installedServiceNames = ['Cluster'].concat(App.Service.find().mapProperty('serviceName'));
     var adminProps = [];
     var configProperties = configs.slice(0);
@@ -133,9 +139,12 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     configProperties = configProperties.filter(function(item) {
       return installedServiceNames.contains(item.get('serviceName'));
     });
-    configProperties.findProperty('name', 'realm').set('value', realmValue);
-    configProperties.findProperty('name', 'realm').set('defaultValue', realmValue);
-    
+    if (this.get('wizardController.name') != 'addServiceController') {
+      var realmValue = storedServiceConfigs.findProperty('name', 'realm').value;
+      configProperties.findProperty('name', 'realm').set('value', realmValue);
+      configProperties.findProperty('name', 'realm').set('defaultValue', realmValue);
+    }
+
     configProperties.setEach('isSecureConfig', false);
     configProperties.forEach(function(property, item, allConfigs) {
       if (['spnego_keytab', 'spnego_principal'].contains(property.get('name'))) {

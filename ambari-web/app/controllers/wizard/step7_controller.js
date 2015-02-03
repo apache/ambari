@@ -67,8 +67,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
    * uses for add service - find out is security is enabled
    */
   securityEnabled: function () {
-    return App.router.get('mainAdminSecurityController.securityEnabled');
-  }.property('App.router.mainAdminSecurityController.securityEnabled'),
+    return App.router.get('mainAdminKerberosController.securityEnabled');
+  }.property('App.router.mainAdminKerberosController.securityEnabled'),
   /**
    * If miscConfigChange Modal is shown
    * @type {bool}
