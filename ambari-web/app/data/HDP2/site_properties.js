@@ -150,6 +150,16 @@ var hdp2properties = [
     "category": "Advanced hdfs-site",
     "serviceName": "HDFS"
   },
+  {
+    "id": "site property",
+    "name": "dfs.cluster.administrators",
+    "displayName": "dfs.cluster.administrators",
+    "description": "ACL for who all can view the default servlets in the HDFS",
+    "isVisible": true,
+    "category": "Advanced hdfs-site",
+    "serviceName": "HDFS",
+    "filename": "hdfs-site.xml"
+  },
 
 /**********************************************YARN***************************************/
   {
