@@ -46,7 +46,24 @@ import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.serveraction.ServerAction;
-import org.apache.ambari.server.serveraction.kerberos.*;
+import org.apache.ambari.server.serveraction.kerberos.CreateKeytabFilesServerAction;
+import org.apache.ambari.server.serveraction.kerberos.CreatePrincipalsServerAction;
+import org.apache.ambari.server.serveraction.kerberos.FinalizeKerberosServerAction;
+import org.apache.ambari.server.serveraction.kerberos.KDCType;
+import org.apache.ambari.server.serveraction.kerberos.KerberosActionDataFile;
+import org.apache.ambari.server.serveraction.kerberos.KerberosActionDataFileBuilder;
+import org.apache.ambari.server.serveraction.kerberos.KerberosAdminAuthenticationException;
+import org.apache.ambari.server.serveraction.kerberos.KerberosConfigDataFile;
+import org.apache.ambari.server.serveraction.kerberos.KerberosConfigDataFileBuilder;
+import org.apache.ambari.server.serveraction.kerberos.KerberosCredential;
+import org.apache.ambari.server.serveraction.kerberos.KerberosKDCConnectionException;
+import org.apache.ambari.server.serveraction.kerberos.KerberosLDAPContainerException;
+import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException;
+import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandler;
+import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandlerFactory;
+import org.apache.ambari.server.serveraction.kerberos.KerberosRealmException;
+import org.apache.ambari.server.serveraction.kerberos.KerberosServerAction;
+import org.apache.ambari.server.serveraction.kerberos.UpdateKerberosConfigsServerAction;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -55,10 +72,12 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosConfigurationDescriptor;
@@ -656,7 +675,9 @@ public class KerberosHelper {
       // If all goes well, set all services to _desire_ to be secured or unsecured, depending on handler
       if (desiredSecurityState != null) {
         for (Service service : services.values()) {
-          service.setSecurityState(desiredSecurityState);
+          if ((serviceComponentFilter == null) || serviceComponentFilter.containsKey(service.getName())) {
+            service.setSecurityState(desiredSecurityState);
+          }
         }
       }
     }
@@ -1557,7 +1578,7 @@ public class KerberosHelper {
     public boolean shouldProcess(SecurityState desiredSecurityState, ServiceComponentHost sch) throws AmbariException {
       return (desiredSecurityState == SecurityState.UNSECURED) &&
           (maintenanceStateHelper.getEffectiveState(sch) == MaintenanceState.OFF) &&
-          (sch.getSecurityState() != SecurityState.UNSECURED) &&
+          ((sch.getDesiredSecurityState() != SecurityState.UNSECURED) || (sch.getSecurityState() != SecurityState.UNSECURED)) &&
           (sch.getSecurityState() != SecurityState.UNSECURING);
     }
 
@@ -1583,13 +1604,98 @@ public class KerberosHelper {
                              ServiceComponentHostServerActionEvent event,
                              RoleCommandOrder roleCommandOrder, KerberosDetails kerberosDetails,
                              File dataDirectory, RequestStageContainer requestStageContainer,
-                             List<ServiceComponentHost> serviceComponentHosts) {
-      // TODO (rlevas): If there are principals, keytabs, and configurations to process, setup the following sages:
-      //  1) remove principals
-      //  2) remove keytab files
-      //  3) update configurations
-      //  3) restart services
-      return requestStageContainer == null ? -1 : requestStageContainer.getLastStageId();
+                             List<ServiceComponentHost> serviceComponentHosts) throws AmbariException {
+      //  1) revert configurations
+
+      // If a RequestStageContainer does not already exist, create a new one...
+      if (requestStageContainer == null) {
+        requestStageContainer = new RequestStageContainer(
+            actionManager.getNextRequestId(),
+            null,
+            requestFactory,
+            actionManager);
+      }
+
+      Map<String, String> commandParameters = new HashMap<String, String>();
+      commandParameters.put(KerberosServerAction.DATA_DIRECTORY, dataDirectory.getAbsolutePath());
+      commandParameters.put(KerberosServerAction.DEFAULT_REALM, kerberosDetails.getDefaultRealm());
+      commandParameters.put(KerberosServerAction.KDC_TYPE, kerberosDetails.getKdcType().name());
+      commandParameters.put(KerberosServerAction.ADMINISTRATOR_CREDENTIAL, getEncryptedAdministratorCredentials(cluster));
+
+      // If there are configurations to set, create a (temporary) data file to store the configuration
+      // updates and fill it will the relevant configurations.
+      if (!kerberosConfigurations.isEmpty()) {
+        File configFile = new File(dataDirectory, KerberosConfigDataFile.DATA_FILE_NAME);
+        KerberosConfigDataFileBuilder kerberosConfDataFileBuilder = null;
+
+        if (serviceComponentHosts != null) {
+          Set<String> visitedServices = new HashSet<String>();
+
+          for (ServiceComponentHost sch : serviceComponentHosts) {
+            String serviceName = sch.getServiceName();
+
+            if (!visitedServices.contains(serviceName)) {
+              StackId stackVersion = sch.getStackVersion();
+
+              visitedServices.add(serviceName);
+
+              if (stackVersion != null) {
+                Set<PropertyInfo> serviceProperties = configHelper.getServiceProperties(stackVersion, serviceName, true);
+
+                if (serviceProperties != null) {
+                  for (PropertyInfo propertyInfo : serviceProperties) {
+                    String filename = propertyInfo.getFilename();
+
+                    if (filename != null) {
+                      Map<String, String> kerberosConfiguration = kerberosConfigurations.get(ConfigHelper.fileNameToConfigType(filename));
+
+                      if ((kerberosConfiguration != null) && (kerberosConfiguration.containsKey(propertyInfo.getName()))) {
+                        kerberosConfiguration.put(propertyInfo.getName(), propertyInfo.getValue());
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        try {
+          kerberosConfDataFileBuilder = new KerberosConfigDataFileBuilder(configFile);
+
+          for (Map.Entry<String, Map<String, String>> entry : kerberosConfigurations.entrySet()) {
+            String type = entry.getKey();
+            Map<String, String> properties = entry.getValue();
+
+            if (properties != null) {
+              for (Map.Entry<String, String> configTypeEntry : properties.entrySet()) {
+                kerberosConfDataFileBuilder.addRecord(type,
+                    configTypeEntry.getKey(),
+                    configTypeEntry.getValue());
+              }
+            }
+          }
+        } catch (IOException e) {
+          String message = String.format("Failed to write kerberos configurations file - %s", configFile.getAbsolutePath());
+          LOG.error(message);
+          throw new AmbariException(message, e);
+        } finally {
+          if (kerberosConfDataFileBuilder != null) {
+            try {
+              kerberosConfDataFileBuilder.close();
+            } catch (IOException e) {
+              LOG.warn("Failed to close the kerberos configurations file writer", e);
+            }
+          }
+        }
+      }
+
+      // *****************************************************************
+      // Create stage to update configurations of services
+      addUpdateConfigurationsStage(cluster, clusterHostInfoJson, hostParamsJson, event, commandParameters,
+          roleCommandOrder, requestStageContainer);
+
+      return requestStageContainer.getLastStageId();
     }
   }
 
