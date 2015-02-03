@@ -180,7 +180,17 @@ module.exports = Em.Route.extend({
       summary: Em.Route.extend({
         route: '/summary',
         connectOutlets: function (router, context) {
-          router.get('mainHostDetailsController').connectOutlet('mainHostSummary');
+          router.get('mainController').dataLoading().done(function() {
+            var controller = router.get('mainHostDetailsController');
+            if ( App.Service.find().mapProperty('serviceName').contains('OOZIE')) {
+              controller.loadConfigs('loadOozieConfigs');
+              controller.isOozieConfigLoaded.always(function () {
+                controller.connectOutlet('mainHostSummary');
+              });
+            }else {
+              controller.connectOutlet('mainHostSummary');
+            }
+          });
         }
       }),
 

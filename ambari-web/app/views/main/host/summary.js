@@ -44,7 +44,7 @@ App.MainHostSummaryView = Em.View.extend({
   /**
    * @type {bool}
    */
-  isStopCommand:true,
+  isStopCommand: true,
 
   /**
    * @type {App.Host}
@@ -277,6 +277,9 @@ App.MainHostSummaryView = Em.View.extend({
 
     addableToHostComponents.forEach(function(addableComponent) {
       if(installedServices.contains(addableComponent.get('serviceName')) && !installedComponents.contains(addableComponent.get('componentName'))) {
+        if ((addableComponent.get('componentName') === 'OOZIE_SERVER') && !App.router.get('mainHostDetailsController.isOozieServerAddable')) {
+          return;
+        }
         components.pushObject(self.addableComponentObject.create({'componentName': addableComponent.get('componentName'), 'serviceName': addableComponent.get('serviceName')}));
       }
     });

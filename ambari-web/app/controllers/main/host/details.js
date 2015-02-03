@@ -44,6 +44,17 @@ App.MainHostDetailsController = Em.Controller.extend({
   referer: '',
 
   /**
+   * Deferred object will be resolved when Oozie configs are downloaded
+   * @type {object}
+   */
+  isOozieConfigLoaded: $.Deferred(),
+
+  /**
+   * @type {bool}
+   */
+  isOozieServerAddable: true,
+
+  /**
    * Open dashboard page
    * @method routeHome
    */
@@ -569,6 +580,37 @@ App.MainHostDetailsController = Em.Controller.extend({
   /**
    * Success callback for load configs request
    * @param {object} data
+   * @method loadOozieConfigs
+   */
+  loadOozieConfigs: function (data) {
+    return App.ajax.send({
+      name: 'admin.get.all_configurations',
+      sender: this,
+      data: {
+        urlParams: '(type=oozie-env&tag=' + data.Clusters.desired_configs['oozie-env'].tag + ')'
+      },
+      success: 'onLoadOozieConfigs',
+      error: 'onLoadConfigsErrorCallback'
+    });
+  },
+
+  /**
+   * get Oozie database config and set databaseType
+   * @param {object} data
+   * @method onLoadHiveConfigs
+   */
+  onLoadOozieConfigs: function (data) {
+    var configs = {};
+    data.items.forEach(function(item) {
+      $.extend(configs, item.properties);
+    });
+    this.set('isOozieServerAddable', !(Em.isEmpty(configs["oozie_database"]) || configs["oozie_database"] === 'New Derby Database'));
+    this.get('isOozieConfigLoaded').resolve();
+  },
+
+  /**
+   * Success callback for load configs request
+   * @param {object} data
    * @method loadHiveConfigs
    */
   loadHiveConfigs: function (data) {
@@ -741,8 +783,17 @@ App.MainHostDetailsController = Em.Controller.extend({
     App.ajax.send({
       name: 'config.tags',
       sender: this,
-      success: callback ? callback : 'loadConfigsSuccessCallback'
+      success: callback ? callback : 'loadConfigsSuccessCallback',
+      error: 'onLoadConfigsErrorCallback'
     });
+  },
+
+  /**
+   * onLoadConfigsErrorCallback
+   * @method onLoadConfigsErrorCallback
+   */
+  onLoadConfigsErrorCallback: function () {
+    this.get('isOozieConfigLoaded').reject();
   },
 
   /**
