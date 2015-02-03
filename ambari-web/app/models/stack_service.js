@@ -169,7 +169,7 @@ App.StackService = DS.Model.extend({
     var configTypes = this.get('configTypes');
     var serviceComponents = this.get('serviceComponents');
     if (configTypes && Object.keys(configTypes).length) {
-      var pattern = ["General", "CapacityScheduler", "FaultTolerance", "Isolation", "Performance", "KDC","^Advanced", "Env$", "^Custom", "Falcon - Oozie integration", "FalconStartupSite", "FalconRuntimeSite", "MetricCollector", "Settings$"];
+      var pattern = ["General", "CapacityScheduler", "FaultTolerance", "Isolation", "Performance", "KDC", "Kadmin","^Advanced", "Env$", "^Custom", "Falcon - Oozie integration", "FalconStartupSite", "FalconRuntimeSite", "MetricCollector", "Settings$"];
       configCategories = App.StackService.configCategories.call(this).filter(function (_configCategory) {
         var serviceComponentName = _configCategory.get('name');
         var isServiceComponent = serviceComponents.someProperty('componentName', serviceComponentName);
@@ -324,7 +324,8 @@ App.StackService.configCategories = function () {
       break;
     case 'KERBEROS':
       serviceConfigCategories.pushObjects([
-        App.ServiceConfigCategory.create({ name: 'KDC', displayName: 'KDC and Kadmin'}),
+        App.ServiceConfigCategory.create({ name: 'KDC', displayName: 'KDC'}),
+        App.ServiceConfigCategory.create({ name: 'Kadmin', displayName: 'Kadmin'}),
         App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'})
       ]);
       break;

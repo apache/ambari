@@ -1973,8 +1973,8 @@ var hdp2properties = [
   },
   {
     "id": "puppet var",
-    "name": "admin_server_host",
-    "displayName": "Kadmin host",
+    "name": "realm",
+    "displayName": "Realm name",
     "isOverridable": false,
     "isVisible": true,
     "isRequiredByAgent": true,
@@ -1985,18 +1985,6 @@ var hdp2properties = [
   },
   {
     "id": "puppet var",
-    "name": "realm",
-    "displayName": "Realm name",
-    "isOverridable": false,
-    "isVisible": true,
-    "isRequiredByAgent": true,
-    "serviceName": "KERBEROS",
-    "filename": "krb5-conf.xml",
-    "category": "KDC",
-    "index": 3
-  },
-  {
-    "id": "puppet var",
     "name": "ldap_url",
     "displayName": "LDAP url",
     "isOverridable": false,
@@ -2004,7 +1992,7 @@ var hdp2properties = [
     "serviceName": "KERBEROS",
     "filename": "kerberos-env.xml",
     "category": "KDC",
-    "index": 4
+    "index": 3
   },
   {
     "id": "puppet var",
@@ -2014,7 +2002,7 @@ var hdp2properties = [
     "serviceName": "KERBEROS",
     "filename": "kerberos-env.xml",
     "category": "KDC",
-    "index": 5
+    "index": 4
   },
   {
     "id": "puppet var",
@@ -2036,7 +2024,19 @@ var hdp2properties = [
     "serviceName": "KERBEROS",
     "filename": "krb5-conf.xml",
     "category": "KDC",
-    "index": 6
+    "index": 5
+  },
+  {
+    "id": "puppet var",
+    "name": "admin_server_host",
+    "displayName": "Kadmin host",
+    "isOverridable": false,
+    "isVisible": true,
+    "isRequiredByAgent": true,
+    "serviceName": "KERBEROS",
+    "filename": "krb5-conf.xml",
+    "category": "Kadmin",
+    "index": 0
   },
   {
     "id": "puppet var",
@@ -2048,8 +2048,8 @@ var hdp2properties = [
     "isRequiredByAgent": false,
     "serviceName": "KERBEROS",
     "filename": "krb5-conf.xml",
-    "category": "KDC",
-    "index": 7
+    "category": "Kadmin",
+    "index": 1
   },
   {
     "id": "puppet var",
@@ -2061,8 +2061,8 @@ var hdp2properties = [
     "isRequiredByAgent": false,
     "serviceName": "KERBEROS",
     "filename": "krb5-conf.xml",
-    "category": "KDC",
-    "index": 8
+    "category": "Kadmin",
+    "index": 2
   },
   {
     "id": "puppet var",
