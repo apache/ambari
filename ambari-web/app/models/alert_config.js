@@ -27,6 +27,12 @@ App.AlertConfigProperty = Ember.Object.extend({
   label: '',
 
   /**
+   * PORT|METRIC|AGGREGATE
+   * @type {String}
+   */
+  type: '',
+
+  /**
    * config property value
    * @type {*}
    */
@@ -484,11 +490,17 @@ App.AlertConfigProperties.Thresholds = {
     }.property('showInputForValue', 'showInputForText'),
 
     isValid: function () {
-      var value = this.get('value');
+      var value = this.get('displayValue');
       if (!value) return false;
       value = ('' + value).trim();
-      return this.get('showInputForValue') ? !isNaN(value) && value > 0 : true;
-    }.property('value', 'showInputForValue')
+      if (this.get('type') === 'AGGREGATE') {
+        return this.get('showInputForValue') ? !isNaN(value) && value > 0 && value <= 100 : true;
+      } else if (this.get('type') === 'PORT') {
+        return this.get('showInputForValue') ? !isNaN(value) && value > 0 : true;
+      } else {
+        return this.get('showInputForValue') ? !isNaN(value) : true;
+      }
+    }.property('displayValue', 'showInputForValue')
 
   }),
 
@@ -510,11 +522,17 @@ App.AlertConfigProperties.Thresholds = {
     }.property('showInputForValue', 'showInputForText'),
 
     isValid: function () {
-      var value = this.get('value');
+      var value = this.get('displayValue');
       if (!value) return false;
       value = ('' + value).trim();
-      return this.get('showInputForValue') ? !isNaN(value) && value > 0 : true;
-    }.property('value', 'showInputForValue')
+        if (this.get('type') === 'AGGREGATE') {
+            return this.get('showInputForValue') ? !isNaN(value) && value > 0 && value <= 100 : true;
+        } else if (this.get('type') === 'PORT') {
+            return this.get('showInputForValue') ? !isNaN(value) && value > 0 : true;
+        } else {
+            return this.get('showInputForValue') ? !isNaN(value) : true;
+        }
+    }.property('displayValue', 'showInputForValue')
   }),
 
   /**
@@ -525,11 +543,11 @@ App.AlertConfigProperties.Thresholds = {
   PercentageMixin: Em.Mixin.create({
 
     isValid: function () {
-      var value = this.get('value');
+      var value = this.get('displayValue');
       if (!value) return false;
       value = ('' + value).trim();
-      return this.get('showInputForValue') ? !isNaN(value) && value > 0 && value <= 1.0 : true;
-    }.property('value', 'showInputForValue'),
+      return this.get('showInputForValue') ? !isNaN(value) && value > 0 && value <= 100 : true;
+    }.property('displayValue', 'showInputForValue'),
 
     /**
      * Return <code>value * 100</code>

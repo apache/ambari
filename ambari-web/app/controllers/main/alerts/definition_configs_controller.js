@@ -166,11 +166,13 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         value: isWizard ? '' : this.getThresholdsProperty('ok', 'value')
       }),
       App.AlertConfigProperties.Thresholds.WarningThreshold.create({
+        type: 'PORT',
         valueMetric: 'Seconds',
         text: isWizard ? '' : this.getThresholdsProperty('warning', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('warning', 'value')
       }),
       App.AlertConfigProperties.Thresholds.CriticalThreshold.create({
+        type: 'PORT',
         valueMetric: 'Seconds',
         text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
@@ -210,11 +212,13 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         value: isWizard ? '' : this.getThresholdsProperty('ok', 'value')
       }),
       App.AlertConfigProperties.Thresholds.WarningThreshold.create({
+        type: 'METRIC',
         valueMetric: units,
         text: isWizard ? '' : this.getThresholdsProperty('warning', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('warning', 'value')
       }),
       App.AlertConfigProperties.Thresholds.CriticalThreshold.create({
+        type: 'METRIC',
         valueMetric: units,
         text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
@@ -252,11 +256,13 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         value: isWizard ? '' : this.getThresholdsProperty('ok', 'value')
       }),
       App.AlertConfigProperties.Thresholds.WarningThreshold.create({
+        type: 'WEB',
         showInputForValue: false,
         text: isWizard ? '' : this.getThresholdsProperty('warning', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('warning', 'value')
       }),
       App.AlertConfigProperties.Thresholds.CriticalThreshold.create({
+        type: 'WEB',
         showInputForValue: false,
         text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
@@ -314,11 +320,13 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         value: isWizard ? '' : this.getThresholdsProperty('ok', 'value')
       }),
       App.AlertConfigProperties.Thresholds.WarningThreshold.create(App.AlertConfigProperties.Thresholds.PercentageMixin, {
+        type: 'AGGREGATE',
         text: isWizard ? '' : this.getThresholdsProperty('warning', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('warning', 'value'),
         valueMetric: '%'
       }),
       App.AlertConfigProperties.Thresholds.CriticalThreshold.create(App.AlertConfigProperties.Thresholds.PercentageMixin, {
+        type: 'AGGREGATE',
         text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('critical', 'value'),
         valueMetric: '%'
