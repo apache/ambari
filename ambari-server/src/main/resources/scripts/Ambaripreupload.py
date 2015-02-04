@@ -17,6 +17,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
  
 """
+# Before running the script please add a proper pythopath, by executing:
+# export PYTHONPATH=/usr/lib/python2.6/site-packages 
 import glob
 from logging import thread
 import os
