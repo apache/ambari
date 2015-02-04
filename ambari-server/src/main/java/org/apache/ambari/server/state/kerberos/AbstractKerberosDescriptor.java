@@ -213,52 +213,6 @@ public abstract class AbstractKerberosDescriptor {
   }
 
   /**
-   * Parses a file containing JSON-formatted text into a (generic) Map.
-   *
-   * @param file a File containing the JSON-formatted text to parse
-   * @return a Map of the data
-   * @throws FileNotFoundException if the specified File does not point to a valid file
-   * @throws IOException           if the specified File is not a readable file
-   * @throws AmbariException       if the specified File does not contain valid JSON data
-   */
-  protected static Map<String, Object> parseFile(File file) throws IOException {
-    if (file == null) {
-      return Collections.emptyMap();
-    } else if (!file.isFile() || !file.canRead()) {
-      throw new IOException(String.format("%s is not a readable file", file.getAbsolutePath()));
-    } else {
-      try {
-        return new Gson().fromJson(new FileReader(file),
-            new TypeToken<Map<String, Object>>() {
-            }.getType());
-      } catch (JsonSyntaxException e) {
-        throw new AmbariException(String.format("Failed to parse JSON-formatted file: %s", file.getAbsolutePath()), e);
-      }
-    }
-  }
-
-  /**
-   * Parses a JSON-formatted String into a (generic) Map.
-   *
-   * @param json a String containing the JSON-formatted text to parse
-   * @return a Map of the data
-   * @throws AmbariException if an error occurs while parsing the JSON-formatted String
-   */
-  protected static Map<String, Object> parseJSON(String json) throws AmbariException {
-    if ((json == null) || json.isEmpty()) {
-      return Collections.emptyMap();
-    } else {
-      try {
-        return new Gson().fromJson(json,
-            new TypeToken<Map<String, Object>>() {
-            }.getType());
-      } catch (JsonSyntaxException e) {
-        throw new AmbariException("Failed to parse JSON-formatted string", e);
-      }
-    }
-  }
-
-  /**
    * Safely retrieves the requested value from the supplied Map
    *
    * @param map a Map containing the relevant data

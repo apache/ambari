@@ -19,6 +19,7 @@
 package org.apache.ambari.server.stack;
 
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.util.Assert;
@@ -32,12 +33,13 @@ import java.net.URL;
  * and services
  */
 public class KerberosDescriptorTest {
+  private static final KerberosDescriptorFactory KERBEROS_DESCRIPTOR_FACTORY = new KerberosDescriptorFactory();
+
   private static File stacksDirectory;
   private static File hdpStackDirectory;
   private static File hdp22StackDirectory;
   private static File hdp22ServicesDirectory;
   private static File commonServicesDirectory;
-
 
   @BeforeClass
   public static void beforeClass() {
@@ -69,7 +71,7 @@ public class KerberosDescriptorTest {
   @Test
   public void testHDP22HBASEServiceDescriptor() throws IOException {
     File hbaseDirectory = new File(hdp22ServicesDirectory, "HBASE");
-    KerberosDescriptor descriptor = KerberosDescriptor.fromFile(new File(hbaseDirectory, "kerberos.json"));
+    KerberosDescriptor descriptor = KERBEROS_DESCRIPTOR_FACTORY.createInstance(new File(hbaseDirectory, "kerberos.json"));
     Assert.notNull(descriptor);
     Assert.notNull(descriptor.getServices());
     Assert.notNull(descriptor.getService("HBASE"));
@@ -78,7 +80,7 @@ public class KerberosDescriptorTest {
   @Test
   public void testHDP22HDFSServiceDescriptor() throws IOException {
     File hdfsDirectory = new File(hdp22ServicesDirectory, "HDFS");
-    KerberosDescriptor descriptor = KerberosDescriptor.fromFile(new File(hdfsDirectory, "kerberos.json"));
+    KerberosDescriptor descriptor = KERBEROS_DESCRIPTOR_FACTORY.createInstance(new File(hdfsDirectory, "kerberos.json"));
     Assert.notNull(descriptor);
     Assert.notNull(descriptor.getServices());
     Assert.notNull(descriptor.getService("HDFS"));
@@ -87,7 +89,7 @@ public class KerberosDescriptorTest {
   @Test
   public void testHDP22YarnServiceDescriptor() throws IOException {
     File yarnDirectory = new File(hdp22ServicesDirectory, "YARN");
-    KerberosDescriptor descriptor = KerberosDescriptor.fromFile(new File(yarnDirectory, "kerberos.json"));
+    KerberosDescriptor descriptor = KERBEROS_DESCRIPTOR_FACTORY.createInstance(new File(yarnDirectory, "kerberos.json"));
     Assert.notNull(descriptor);
     Assert.notNull(descriptor.getServices());
     Assert.notNull(descriptor.getService("YARN"));

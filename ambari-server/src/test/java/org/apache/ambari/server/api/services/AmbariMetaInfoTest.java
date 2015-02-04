@@ -77,6 +77,8 @@ import org.apache.ambari.server.state.alert.PortSource;
 import org.apache.ambari.server.state.alert.Reporting;
 import org.apache.ambari.server.state.alert.Source;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
+import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptorFactory;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.commons.io.FileUtils;
@@ -1861,6 +1863,18 @@ public class AmbariMetaInfoTest {
       f = c.getDeclaredField("eventPublisher");
       f.setAccessible(true);
       f.set(this, ambariEventPublisher);
+
+      //KerberosDescriptorFactory
+      KerberosDescriptorFactory kerberosDescriptorFactory = new KerberosDescriptorFactory();
+      f = c.getDeclaredField("kerberosDescriptorFactory");
+      f.setAccessible(true);
+      f.set(this, kerberosDescriptorFactory);
+
+      //KerberosServiceDescriptorFactory
+      KerberosServiceDescriptorFactory kerberosServiceDescriptorFactory = new KerberosServiceDescriptorFactory();
+      f = c.getDeclaredField("kerberosServiceDescriptorFactory");
+      f.setAccessible(true);
+      f.set(this, kerberosServiceDescriptorFactory);
 
       //OSFamily
       Configuration config = createNiceMock(Configuration.class);

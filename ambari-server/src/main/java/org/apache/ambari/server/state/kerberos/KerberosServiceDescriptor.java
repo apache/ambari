@@ -111,108 +111,6 @@ public class KerberosServiceDescriptor extends AbstractKerberosDescriptorContain
   private Map<String, KerberosComponentDescriptor> components;
 
   /**
-   * Creates a Collection of KerberosServiceDescriptors parsed from a JSON-formatted file.
-   * <p/>
-   * The file is expected to be formatted as follows:
-   * <pre>
-   * {
-   *    "services" : [
-   *      ... (zero or more service descriptor blocks) ...
-   *    ]
-   * }
-   * </pre>
-   *
-   * @param file a JSON-formatted file containing this service-level descriptor data
-   * @return an array of KerberosServiceDescriptor objects
-   * @throws FileNotFoundException if the specified File does not point to a valid file
-   * @throws IOException           if the specified File is not a readable file
-   * @throws AmbariException       if the specified File does not contain valid JSON data
-   * @see org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor
-   */
-  public static KerberosServiceDescriptor[] fromFile(File file) throws IOException {
-    try {
-      return fromMap(parseFile(file));
-    } catch (AmbariException e) {
-      throw new AmbariException(String.format("An error occurred processing the JSON-formatted file: %s", file.getAbsolutePath()), e);
-    }
-  }
-
-  /**
-   * Creates a Collection of KerberosServiceDescriptors parsed from a JSON-formatted String.
-   * <p/>
-   * The String is expected to be formatted as follows:
-   * <pre>
-   * {
-   *    "services" : [
-   *      ... (zero or more service descriptor blocks) ...
-   *    ]
-   * }
-   * </pre>
-   *
-   * @param json a JSON-formatted String containing this service-level descriptor data
-   * @return an array of KerberosServiceDescriptor objects
-   * @throws AmbariException if an error occurs while processing the JSON-formatted String
-   * @see org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor
-   */
-  public static KerberosServiceDescriptor[] fromJSON(String json) throws AmbariException {
-    try {
-      return fromMap(parseJSON(json));
-    } catch (AmbariException e) {
-      throw new AmbariException("An error occurred processing the JSON-formatted string", e);
-    }
-  }
-
-  /**
-   * Creates a Collection of KerberosServiceDescriptors parsed from a Map of data.
-   * <p/>
-   * The Map is expected to be formatted as follows:
-   * <pre>
-   * "services" => [
-   *   ... (zero or more Maps containing service descriptor data) ...
-   * ]
-   * </pre>
-   *
-   * @param map a Map containing this service-level descriptor data
-   * @return an array of KerberosServiceDescriptor objects
-   * @throws org.apache.ambari.server.AmbariException if an error occurs while processing the Map
-   * @see org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor
-   */
-  public static KerberosServiceDescriptor[] fromMap(Map<String, Object> map) throws AmbariException {
-    ArrayList<KerberosServiceDescriptor> descriptors = new ArrayList<KerberosServiceDescriptor>();
-
-    if (map != null) {
-      Object servicesData = map.get("services");
-
-      if (servicesData == null) {
-        throw new AmbariException("Missing top-level \"services\" property in service-level Kerberos descriptor data");
-      } else if (servicesData instanceof Collection) {
-        for (Object serviceData : (Collection) servicesData) {
-          if (serviceData instanceof Map) {
-            descriptors.add(new KerberosServiceDescriptor((Map) serviceData));
-          }
-        }
-      } else {
-        throw new AmbariException(String.format("Unexpected top-level \"services\" type in service-level Kerberos descriptor data: %s",
-            servicesData.getClass().getName()));
-      }
-    }
-
-    return descriptors.toArray(new KerberosServiceDescriptor[descriptors.size()]);
-  }
-
-  /**
-   * Creates a new KerberosServiceDescriptor
-   *
-   * @param name a String declaring this service's name
-   * @param json a JSON-formatted String containing this service's descriptor data
-   * @throws AmbariException if an error occurs while parsing the JSON-formatted String
-   * @see org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor
-   */
-  public static KerberosServiceDescriptor fromJSON(String name, String json) throws AmbariException {
-    return new KerberosServiceDescriptor(name, parseJSON(json));
-  }
-
-  /**
    * Creates a new KerberosServiceDescriptor
    * <p/>
    * See {@link org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor} for the JSON
@@ -221,7 +119,7 @@ public class KerberosServiceDescriptor extends AbstractKerberosDescriptorContain
    * @param data a Map of values use to populate the data for the new instance
    * @see org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor
    */
-  public KerberosServiceDescriptor(Map<?, ?> data) {
+  KerberosServiceDescriptor(Map<?, ?> data) {
     // The name for this KerberosServiceDescriptor is stored in the "name" entry in the map
     // This is not automatically set by the super classes.
     this(getStringValue(data, "name"), data);
@@ -237,7 +135,7 @@ public class KerberosServiceDescriptor extends AbstractKerberosDescriptorContain
    * @param data a Map of values use to populate the data for the new instance
    * @see org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor
    */
-  public KerberosServiceDescriptor(String name, Map<?, ?> data) {
+  KerberosServiceDescriptor(String name, Map<?, ?> data) {
     super(data);
 
     // This is not automatically set by the super classes.

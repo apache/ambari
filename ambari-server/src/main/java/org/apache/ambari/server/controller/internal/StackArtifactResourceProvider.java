@@ -18,8 +18,10 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
+import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -34,7 +36,9 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptorFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,6 +59,7 @@ import java.util.Set;
  * Stack artifacts are part of the stack definition and therefore can't
  * be created, updated or deleted.
  */
+@StaticallyInject
 public class StackArtifactResourceProvider extends AbstractControllerResourceProvider {
   /**
    * stack name
@@ -106,6 +111,18 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
    */
   public static final String KERBEROS_DESCRIPTOR_NAME = "kerberos_descriptor";
 
+
+  /**
+   * KerberosDescriptorFactory used to create KerberosDescriptor instances
+   */
+  @Inject
+  private static KerberosDescriptorFactory kerberosDescriptorFactory;
+
+  /**
+   * KerberosServiceDescriptorFactory used to create KerberosServiceDescriptor instances
+   */
+  @Inject
+  private static KerberosServiceDescriptorFactory kerberosServiceDescriptorFactory;
 
   /**
    * set resource properties, pk and fk's
@@ -294,7 +311,7 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
 
     String kerberosFileLocation = stackInfo.getKerberosDescriptorFileLocation();
     if (kerberosFileLocation != null) {
-      kerberosDescriptor = KerberosDescriptor.fromFile(new File(kerberosFileLocation));
+      kerberosDescriptor = kerberosDescriptorFactory.createInstance(new File(kerberosFileLocation));
     } else if (! serviceDescriptors.isEmpty()) {
       // service descriptors present with no stack descriptor,
       // create an empty stack descriptor to hold services
@@ -339,8 +356,8 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
     File kerberosFile = serviceInfo.getKerberosDescriptorFile();
 
     if (kerberosFile != null) {
-      KerberosServiceDescriptor serviceDescriptor = getMatchingServiceDescriptor(
-          KerberosServiceDescriptor.fromFile(kerberosFile), serviceName);
+      KerberosServiceDescriptor serviceDescriptor =
+          kerberosServiceDescriptorFactory.createInstance(kerberosFile, serviceName);
 
       if (serviceDescriptor != null) {
         return serviceDescriptor.toMap();
@@ -363,8 +380,8 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
     for (ServiceInfo service : stack.getServices()) {
       File descriptorFile = service.getKerberosDescriptorFile();
       if (descriptorFile != null) {
-        KerberosServiceDescriptor descriptor = getMatchingServiceDescriptor(
-            KerberosServiceDescriptor.fromFile(descriptorFile), service.getName());
+        KerberosServiceDescriptor descriptor =
+            kerberosServiceDescriptorFactory.createInstance(descriptorFile, service.getName());
 
         if (descriptor != null) {
           serviceDescriptors.add(descriptor);
@@ -374,28 +391,4 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
     return serviceDescriptors;
   }
 
-  /**
-   * Get the correct service descriptor from an array of service descriptors.
-   * This is necessary because in some cases, multiple stack services are contained in the same
-   * stack metainfo file and all point to the same kerberos descriptor.
-   * This should be fixed in the stack to only return the matching descriptor, not all descriptors.
-   * When/If these changes are made in the stack, this method will go away as only the correct descriptor
-   * will be returned for a given service.
-   *
-   * @param descriptors  array of service descriptors
-   * @param serviceName  service name
-   *
-   * @return the service descriptor which correlates to the specified service or null if no match is made
-   */
-  private KerberosServiceDescriptor getMatchingServiceDescriptor(KerberosServiceDescriptor[] descriptors,
-                                                                 String serviceName) {
-    KerberosServiceDescriptor match = null;
-    for (KerberosServiceDescriptor descriptor : descriptors) {
-      if (descriptor.getName().equals(serviceName)) {
-        match = descriptor;
-        break;
-      }
-    }
-    return match;
-  }
 }

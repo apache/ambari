@@ -114,6 +114,8 @@ public class KerberosServiceDescriptorTest {
         }
       };
 
+  private static final KerberosServiceDescriptorFactory KERBEROS_SERVICE_DESCRIPTOR_FACTORY = new KerberosServiceDescriptorFactory();
+
   public static void validateFromJSON(KerberosServiceDescriptor[] serviceDescriptors) {
     Assert.assertNotNull(serviceDescriptors);
     Assert.assertEquals(2, serviceDescriptors.length);
@@ -241,11 +243,11 @@ public class KerberosServiceDescriptorTest {
   }
 
   private KerberosServiceDescriptor createFromJSON() throws AmbariException {
-    return KerberosServiceDescriptor.fromJSON("SERVICE_NAME", JSON_VALUE);
+    return KERBEROS_SERVICE_DESCRIPTOR_FACTORY.createInstance("SERVICE_NAME", JSON_VALUE);
   }
 
   private KerberosServiceDescriptor[] createMultipleFromJSON() throws AmbariException {
-    return KerberosServiceDescriptor.fromJSON(JSON_VALUE_SERVICES);
+    return KERBEROS_SERVICE_DESCRIPTOR_FACTORY.createInstances(JSON_VALUE_SERVICES);
   }
 
   private KerberosServiceDescriptor createFromMap() throws AmbariException {
@@ -255,7 +257,7 @@ public class KerberosServiceDescriptorTest {
   private KerberosServiceDescriptor[] createFromFile() throws IOException {
     URL url = getClass().getClassLoader().getResource("service_level_kerberos.json");
     File file = (url == null) ? null : new File(url.getFile());
-    return KerberosServiceDescriptor.fromFile(file);
+    return KERBEROS_SERVICE_DESCRIPTOR_FACTORY.createInstances(file);
   }
 
   @Test
@@ -272,7 +274,7 @@ public class KerberosServiceDescriptorTest {
   public void testInvalid() {
     // Invalid JSON syntax
     try {
-      KerberosServiceDescriptor.fromJSON(JSON_VALUE_SERVICES + "erroneous text");
+      KERBEROS_SERVICE_DESCRIPTOR_FACTORY.createInstances(JSON_VALUE_SERVICES + "erroneous text");
       Assert.fail("Should have thrown AmbariException.");
     } catch (AmbariException e) {
       // This is expected
@@ -282,7 +284,7 @@ public class KerberosServiceDescriptorTest {
 
     // Test missing top-level "services"
     try {
-      KerberosServiceDescriptor.fromJSON(JSON_VALUE);
+      KERBEROS_SERVICE_DESCRIPTOR_FACTORY.createInstances(JSON_VALUE);
       Assert.fail("Should have thrown AmbariException.");
     } catch (AmbariException e) {
       // This is expected
@@ -294,7 +296,7 @@ public class KerberosServiceDescriptorTest {
     URL url = getClass().getClassLoader().getResource("service_level_kerberos_invalid.json");
     File file = (url == null) ? null : new File(url.getFile());
     try {
-      KerberosServiceDescriptor.fromFile(file);
+      KERBEROS_SERVICE_DESCRIPTOR_FACTORY.createInstances(file);
       Assert.fail("Should have thrown AmbariException.");
     } catch (AmbariException e) {
       // This is expected

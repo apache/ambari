@@ -569,7 +569,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
     if (addKerberosStages) {
       // adds the necessary kerberos related stages to the request
-      kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, null, requestStages);
+      kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, requestStages);
     }
 
     return requestStages;

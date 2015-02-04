@@ -19,7 +19,6 @@
 package org.apache.ambari.server.controller.internal;
 
 import com.google.inject.Injector;
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
@@ -542,7 +541,7 @@ public class HostComponentResourceProviderTest {
         andReturn(provider).anyTimes();
 
     expect(kerberosHelper.isClusterKerberosEnabled(cluster)).andReturn(true).once();
-    expect(kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, null, stageContainer)).
+    expect(kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, stageContainer)).
         andReturn(stageContainer).once();
 
     // replay

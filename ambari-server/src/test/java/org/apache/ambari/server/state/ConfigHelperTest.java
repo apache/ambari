@@ -17,6 +17,12 @@
  */
 package org.apache.ambari.server.state;
 
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -57,7 +63,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static org.easymock.EasyMock.*;
 
 
 @RunWith(Enclosed.class)

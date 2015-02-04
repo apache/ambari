@@ -62,6 +62,7 @@ import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.host.HostFactory;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosKeytabDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor;
@@ -69,14 +70,11 @@ import org.apache.ambari.server.state.kerberos.KerberosPrincipalType;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
+import org.easymock.EasyMockSupport;
 import org.easymock.IAnswer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.persistence.EntityManager;
 
@@ -94,27 +92,18 @@ import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.powermock.api.easymock.PowerMock.createMock;
-import static org.powermock.api.easymock.PowerMock.createNiceMock;
-import static org.powermock.api.easymock.PowerMock.createStrictMock;
-import static org.powermock.api.easymock.PowerMock.expectLastCall;
-import static org.powermock.api.easymock.PowerMock.mockStatic;
-import static org.powermock.api.easymock.PowerMock.replay;
-import static org.powermock.api.easymock.PowerMock.replayAll;
-import static org.powermock.api.easymock.PowerMock.reset;
-import static org.powermock.api.easymock.PowerMock.verify;
-import static org.powermock.api.easymock.PowerMock.verifyAll;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(KerberosDescriptor.class)
-@PowerMockIgnore({"javax.crypto.*", "org.apache.log4j.*"})
-@SuppressWarnings("unchecked")
-public class KerberosHelperTest {
+public class KerberosHelperTest extends EasyMockSupport {
 
   private static Injector injector;
   private final ClusterController clusterController = createStrictMock(ClusterController.class);
+  private final KerberosDescriptorFactory kerberosDescriptorFactory = createStrictMock(KerberosDescriptorFactory.class);
   private final AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
 
   @Before
@@ -181,6 +170,7 @@ public class KerberosHelperTest {
         bind(ConfigHelper.class).toInstance(createNiceMock(ConfigHelper.class));
         bind(KerberosOperationHandlerFactory.class).toInstance(kerberosOperationHandlerFactory);
         bind(ClusterController.class).toInstance(clusterController);
+        bind(KerberosDescriptorFactory.class).toInstance(kerberosDescriptorFactory);
       }
     });
 
@@ -198,11 +188,10 @@ public class KerberosHelperTest {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
 
     Cluster cluster = createNiceMock(Cluster.class);
-    KerberosDescriptor kerberosDescriptor = createNiceMock(KerberosDescriptor.class);
     RequestStageContainer requestStageContainer = createNiceMock(RequestStageContainer.class);
 
     replayAll();
-    kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, kerberosDescriptor, requestStageContainer);
+    kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, requestStageContainer);
     verifyAll();
   }
 
@@ -220,10 +209,8 @@ public class KerberosHelperTest {
     final Cluster cluster = createNiceMock(Cluster.class);
     expect(cluster.getDesiredConfigByType("kerberos-env")).andReturn(kerberosEnvConfig).once();
 
-    final KerberosDescriptor kerberosDescriptor = createNiceMock(KerberosDescriptor.class);
-
     replayAll();
-    kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, kerberosDescriptor, null);
+    kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, null);
     verifyAll();
   }
 
@@ -242,22 +229,20 @@ public class KerberosHelperTest {
     final Cluster cluster = createNiceMock(Cluster.class);
     expect(cluster.getDesiredConfigByType("krb5-conf")).andReturn(krb5ConfConfig).once();
 
-    final KerberosDescriptor kerberosDescriptor = createNiceMock(KerberosDescriptor.class);
-
     replayAll();
-    kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, kerberosDescriptor, null);
+    kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, null);
     verifyAll();
   }
 
   @Test
   public void testEnableKerberos() throws Exception {
-    testEnableKerberos(new KerberosCredential("principal", "password", "keytab"), false, false);
+    testEnableKerberos(new KerberosCredential("principal", "password", "keytab"), true, false);
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testEnableKerberosMissingCredentials() throws Exception {
     try {
-      testEnableKerberos(null, false, false);
+      testEnableKerberos(null, true, false);
     } catch (IllegalArgumentException e) {
       Assert.assertTrue(e.getMessage().startsWith("Missing KDC administrator credentials"));
       throw e;
@@ -267,7 +252,7 @@ public class KerberosHelperTest {
   @Test(expected = IllegalArgumentException.class)
   public void testEnableKerberosInvalidCredentials() throws Exception {
     try {
-      testEnableKerberos(new KerberosCredential("invalid_principal", "password", "keytab"), false, false);
+      testEnableKerberos(new KerberosCredential("invalid_principal", "password", "keytab"), true, false);
     } catch (IllegalArgumentException e) {
       Assert.assertTrue(e.getMessage().startsWith("Invalid KDC administrator credentials"));
       throw e;
@@ -315,10 +300,9 @@ public class KerberosHelperTest {
     final Cluster cluster = createNiceMock(Cluster.class);
 
     try {
-      kerberosHelper.executeCustomOperations(cluster, createNiceMock(KerberosDescriptor.class),
+      kerberosHelper.executeCustomOperations(cluster,
           Collections.singletonMap("invalid_operation", "false"), null);
-    }
-    catch(Throwable t) {
+    } catch (Throwable t) {
       Assert.fail("Exception should not have been thrown");
     }
   }
@@ -328,14 +312,14 @@ public class KerberosHelperTest {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
     final Cluster cluster = createNiceMock(Cluster.class);
 
-    kerberosHelper.executeCustomOperations(cluster, createNiceMock(KerberosDescriptor.class),
+    kerberosHelper.executeCustomOperations(cluster,
         Collections.singletonMap("regenerate_keytabs", "false"), null);
     Assert.fail("AmbariException should have failed");
   }
 
   @Test
   public void testRegenerateKeytabs() throws Exception {
-    testRegenerateKeytabs(new KerberosCredential("principal", "password", "keytab"), false, false);
+    testRegenerateKeytabs(new KerberosCredential("principal", "password", "keytab"));
   }
 
   @Test
@@ -535,13 +519,12 @@ public class KerberosHelperTest {
     expect(kerberosDescriptor.getService("SERVICE1")).andReturn(serviceDescriptor1).once();
     expect(kerberosDescriptor.getService("SERVICE2")).andReturn(serviceDescriptor2).once();
 
-    //todo: extract method?
     if (getClusterDescriptor) {
-      // needed to mock the static method fromJson()
       setupGetDescriptorFromCluster(kerberosDescriptor);
     } else if (getStackDescriptor) {
       setupGetDescriptorFromStack(kerberosDescriptor);
     }
+
     final StageFactory stageFactory = injector.getInstance(StageFactory.class);
     expect(stageFactory.createNew(anyLong(), anyObject(String.class), anyObject(String.class),
         anyLong(), anyObject(String.class), anyObject(String.class), anyObject(String.class),
@@ -594,8 +577,7 @@ public class KerberosHelperTest {
     // Needed by infrastructure
     metaInfo.init();
 
-    kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, !(getClusterDescriptor || getStackDescriptor) ?
-        kerberosDescriptor : null, requestStageContainer);
+    kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, requestStageContainer);
 
     verifyAll();
   }
@@ -834,15 +816,12 @@ public class KerberosHelperTest {
     // Needed by infrastructure
     metaInfo.init();
 
-    kerberosHelper.toggleKerberos(cluster, SecurityType.NONE, !(getClusterDescriptor || getStackDescriptor) ?
-        kerberosDescriptor : null, requestStageContainer);
+    kerberosHelper.toggleKerberos(cluster, SecurityType.NONE, requestStageContainer);
 
     verifyAll();
   }
 
-  private void testRegenerateKeytabs(final KerberosCredential kerberosCredential,
-                                     boolean getClusterDescriptor,
-                                     boolean getStackDescriptor) throws Exception {
+  private void testRegenerateKeytabs(final KerberosCredential kerberosCredential) throws Exception {
 
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
 
@@ -1018,13 +997,8 @@ public class KerberosHelperTest {
     expect(kerberosDescriptor.getService("SERVICE1")).andReturn(serviceDescriptor1).once();
     expect(kerberosDescriptor.getService("SERVICE2")).andReturn(serviceDescriptor2).once();
 
-    //todo: extract method?
-    if (getClusterDescriptor) {
-      // needed to mock the static method fromJson()
-      setupGetDescriptorFromCluster(kerberosDescriptor);
-    } else if (getStackDescriptor) {
-      setupGetDescriptorFromStack(kerberosDescriptor);
-    }
+    setupGetDescriptorFromCluster(kerberosDescriptor);
+
     final StageFactory stageFactory = injector.getInstance(StageFactory.class);
     expect(stageFactory.createNew(anyLong(), anyObject(String.class), anyObject(String.class),
         anyLong(), anyObject(String.class), anyObject(String.class), anyObject(String.class),
@@ -1071,14 +1045,12 @@ public class KerberosHelperTest {
     // Needed by infrastructure
     metaInfo.init();
 
-    kerberosHelper.executeCustomOperations(cluster, !(getClusterDescriptor || getStackDescriptor) ?
-        kerberosDescriptor : null, Collections.singletonMap("regenerate_keytabs", "true"), requestStageContainer);
+    kerberosHelper.executeCustomOperations(cluster, Collections.singletonMap("regenerate_keytabs", "true"), requestStageContainer);
 
     verifyAll();
   }
 
   private void setupGetDescriptorFromCluster(KerberosDescriptor kerberosDescriptor) throws Exception {
-    mockStatic(KerberosDescriptor.class);
     ResourceProvider resourceProvider = createStrictMock(ResourceProvider.class);
     expect(clusterController.ensureResourceProvider(Resource.Type.Artifact)).andReturn(resourceProvider).once();
 
@@ -1098,15 +1070,19 @@ public class KerberosHelperTest {
     expect(resourceProvider.getResources(capture(requestCapture),
         capture(predicateCapture))).andReturn(result).once();
 
-    String artifactData = "kerberos descriptor json";
-    expect(resource.getPropertyValue(ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY)).
-        andReturn(artifactData).once();
+    Map<String, Map<String, Object>> resourcePropertiesMap = createStrictMock(Map.class);
+    expect(resourcePropertiesMap.get(ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY))
+        .andReturn(Collections.<String, Object>emptyMap()).once();
+    expect(resourcePropertiesMap.get(ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY + "/properties"))
+        .andReturn(Collections.<String, Object>emptyMap()).once();
 
-    expect(KerberosDescriptor.fromJSON(artifactData)).andReturn(kerberosDescriptor).once();
+    expect(resource.getPropertiesMap()).andReturn(resourcePropertiesMap).once();
+
+    expect(kerberosDescriptorFactory.createInstance(anyObject(Map.class)))
+        .andReturn(kerberosDescriptor).once();
   }
 
   private void setupGetDescriptorFromStack(KerberosDescriptor kerberosDescriptor) throws Exception {
-    mockStatic(KerberosDescriptor.class);
     ResourceProvider resourceProvider = createStrictMock(ResourceProvider.class);
     expect(clusterController.ensureResourceProvider(Resource.Type.Artifact)).andReturn(resourceProvider).once();
 
@@ -1310,6 +1286,8 @@ public class KerberosHelperTest {
     expect(kerberosDescriptor.getService("SERVICE1")).andReturn(serviceDescriptor1).once();
     expect(kerberosDescriptor.getService("SERVICE3")).andReturn(serviceDescriptor3).once();
 
+    setupGetDescriptorFromCluster(kerberosDescriptor);
+
     final StageFactory stageFactory = injector.getInstance(StageFactory.class);
     expect(stageFactory.createNew(anyLong(), anyObject(String.class), anyObject(String.class),
         anyLong(), anyObject(String.class), anyObject(String.class), anyObject(String.class),
@@ -1362,7 +1340,7 @@ public class KerberosHelperTest {
     serviceComponentFilter.put("SERVICE3", Collections.singleton("COMPONENT3"));
     serviceComponentFilter.put("SERVICE1", null);
 
-    kerberosHelper.ensureIdentities(cluster, kerberosDescriptor, serviceComponentFilter, identityFilter, requestStageContainer);
+    kerberosHelper.ensureIdentities(cluster, serviceComponentFilter, identityFilter, requestStageContainer);
 
     verifyAll();
   }

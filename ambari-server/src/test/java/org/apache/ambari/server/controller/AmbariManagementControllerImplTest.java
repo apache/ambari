@@ -55,7 +55,6 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.easymock.Capture;
 import org.junit.Before;
 import org.junit.Test;
@@ -536,55 +535,6 @@ public class AmbariManagementControllerImplTest {
   }
 
   /**
-   * Ensure that when the appropriate request directives are set, KerberosHelper#executeCustomOperations
-   * is invoked
-   */
-  @Test
-  public void testUpdateClustersKerberosCustomOperationsInvoked() throws Exception {
-    // member state mocks
-    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
-    Injector injector = createStrictMock(Injector.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    ActionManager actionManager = createNiceMock(ActionManager.class);
-    ClusterRequest clusterRequest = createNiceMock(ClusterRequest.class);
-
-    // requests
-    Set<ClusterRequest> requests = Collections.singleton(clusterRequest);
-
-    // request properties (aka directives)
-    Map<String, String> requestProperties = Collections.singletonMap("regenerate_keytabs", "true");
-
-    KerberosHelper kerberosHelper = createMockBuilder(KerberosHelper.class)
-    .addMockedMethod("executeCustomOperations", Cluster.class, KerberosDescriptor.class, Map.class, RequestStageContainer.class)
-    .createStrictMock();
-
-    // expectations
-    injector.injectMembers(capture(controllerCapture));
-    expect(injector.getInstance(Gson.class)).andReturn(null);
-    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
-    expect(injector.getInstance(KerberosHelper.class)).andReturn(kerberosHelper);
-    expect(clusterRequest.getClusterId()).andReturn(1L).times(6);
-    expect(clusterRequest.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
-    expect(clusters.getClusterById(1L)).andReturn(cluster).times(2);
-    expect(cluster.getClusterName()).andReturn("cluster").times(2);
-
-    expect(kerberosHelper.executeCustomOperations(cluster, null, requestProperties, null))
-        .andReturn(null)
-        .once();
-
-    // replay mocks
-    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper);
-
-    // test
-    AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, injector);
-    controller.updateClusters(requests, requestProperties);
-
-    // assert and verify
-    assertSame(controller, controllerCapture.getValue());
-    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper);
-  }
-
-  /**
    * Ensure that when the cluster is updated KerberosHandler.toggleKerberos is not invoked unless
    * the security type is altered
    */
@@ -659,7 +609,7 @@ public class AmbariManagementControllerImplTest {
     expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.KERBEROS, null))
         .andReturn(false)
         .once();
-    expect(kerberosHelper.toggleKerberos(anyObject(Cluster.class), anyObject(SecurityType.class), anyObject(KerberosDescriptor.class), anyObject(RequestStageContainer.class)))
+    expect(kerberosHelper.toggleKerberos(anyObject(Cluster.class), anyObject(SecurityType.class), anyObject(RequestStageContainer.class)))
         .andReturn(null)
         .once();
 
@@ -709,7 +659,7 @@ public class AmbariManagementControllerImplTest {
     expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.NONE, null))
         .andReturn(false)
         .once();
-    expect(kerberosHelper.toggleKerberos(anyObject(Cluster.class), anyObject(SecurityType.class), anyObject(KerberosDescriptor.class), anyObject(RequestStageContainer.class)))
+    expect(kerberosHelper.toggleKerberos(anyObject(Cluster.class), anyObject(SecurityType.class), anyObject(RequestStageContainer.class)))
         .andReturn(null)
         .once();
 
@@ -768,7 +718,7 @@ public class AmbariManagementControllerImplTest {
     expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.NONE, null))
         .andReturn(false)
         .once();
-    expect(kerberosHelper.toggleKerberos(anyObject(Cluster.class), anyObject(SecurityType.class), anyObject(KerberosDescriptor.class), anyObject(RequestStageContainer.class)))
+    expect(kerberosHelper.toggleKerberos(anyObject(Cluster.class), anyObject(SecurityType.class), anyObject(RequestStageContainer.class)))
         .andThrow(new IllegalArgumentException("bad args!"))
         .once();
 

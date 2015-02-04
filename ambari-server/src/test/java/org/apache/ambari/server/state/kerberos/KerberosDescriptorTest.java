@@ -22,14 +22,15 @@ import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.junit.Test;
 
-import java.io.File;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class KerberosDescriptorTest {
+  private static final KerberosDescriptorFactory KERBEROS_DESCRIPTOR_FACTORY = new KerberosDescriptorFactory();
+  private static final KerberosServiceDescriptorFactory KERBEROS_SERVICE_DESCRIPTOR_FACTORY = new KerberosServiceDescriptorFactory();
+
   public static final String JSON_VALUE =
       "{" +
           "  \"properties\": {" +
@@ -219,7 +220,7 @@ public class KerberosDescriptorTest {
   }
 
   private KerberosDescriptor createFromJSON() throws AmbariException {
-    return KerberosDescriptor.fromJSON(JSON_VALUE);
+    return KERBEROS_DESCRIPTOR_FACTORY.createInstance(JSON_VALUE);
   }
 
   private KerberosDescriptor createFromMap() throws AmbariException {
@@ -251,7 +252,7 @@ public class KerberosDescriptorTest {
   public void testInvalid() {
     // Invalid JSON syntax
     try {
-      KerberosServiceDescriptor.fromJSON(JSON_VALUE + "erroneous text");
+      KERBEROS_SERVICE_DESCRIPTOR_FACTORY.createInstances(JSON_VALUE + "erroneous text");
       Assert.fail("Should have thrown AmbariException.");
     } catch (AmbariException e) {
       // This is expected

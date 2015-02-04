@@ -67,7 +67,9 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptorFactory;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.UpgradePack;
@@ -167,6 +169,18 @@ public class AmbariMetaInfo {
    */
   @Inject
   private AmbariEventPublisher eventPublisher;
+
+  /**
+   * KerberosDescriptorFactory used to create KerberosDescriptor instances
+   */
+  @Inject
+  private KerberosDescriptorFactory kerberosDescriptorFactory;
+
+  /**
+   * KerberosServiceDescriptorFactory used to create KerberosServiceDescriptor instances
+   */
+  @Inject
+  private KerberosServiceDescriptorFactory kerberosServiceDescriptorFactory;
 
   //todo: only used by StackManager
   @Inject
@@ -1034,7 +1048,7 @@ public class AmbariMetaInfo {
 
       if (file.canRead()) {
         try {
-          kerberosDescriptor = KerberosDescriptor.fromFile(file);
+          kerberosDescriptor = kerberosDescriptorFactory.createInstance(file);
         } catch (IOException e) {
           throw new AmbariException(String.format("Failed to parse kerberos descriptor file %s",
               file.getAbsolutePath()), e);
@@ -1086,7 +1100,7 @@ public class AmbariMetaInfo {
 
     if (kerberosFile != null) {
       try {
-        kerberosServiceDescriptors = KerberosServiceDescriptor.fromFile(kerberosFile);
+        kerberosServiceDescriptors = kerberosServiceDescriptorFactory.createInstances(kerberosFile);
       } catch (Exception e) {
         LOG.error("Could not read the kerberos descriptor file", e);
         throw new AmbariException("Could not read kerberos descriptor file", e);

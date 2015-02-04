@@ -1362,7 +1362,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       // if any custom operations are valid and requested, the process of executing them should be initiated,
       // most of the validation logic will be left to the KerberosHelper to avoid polluting the controller
       if (kerberosHelper.shouldExecuteCustomOperations(securityType, requestProperties)) {
-        requestStageContainer = kerberosHelper.executeCustomOperations(cluster, request.getKerberosDescriptor(), requestProperties, requestStageContainer);
+        requestStageContainer = kerberosHelper.executeCustomOperations(cluster, requestProperties, requestStageContainer);
       } else if (cluster.getSecurityType() != securityType) {
         LOG.info("Received cluster security type change request from {} to {}",
             cluster.getSecurityType().name(), securityType.name());
@@ -1371,7 +1371,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           // Since the security state of the cluster has changed, invoke toggleKerberos to handle
           // adding or removing Kerberos from the cluster. This may generate multiple stages
           // or not depending the current state of the cluster.
-          requestStageContainer = kerberosHelper.toggleKerberos(cluster, securityType, request.getKerberosDescriptor(), requestStageContainer);
+          requestStageContainer = kerberosHelper.toggleKerberos(cluster, securityType, requestStageContainer);
         } else {
           throw new IllegalArgumentException(String.format("Unexpected security type encountered: %s", securityType.name()));
         }
@@ -2853,8 +2853,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       serviceComponentFilter.put("KERBEROS", null);
 
-      requestStageContainer = kerberosHelper.ensureIdentities(cluster, null, serviceComponentFilter,
-          identityFilter, requestStageContainer);
+      requestStageContainer = kerberosHelper.ensureIdentities(cluster, serviceComponentFilter, identityFilter, requestStageContainer);
     }
 
     ExecuteCommandJson jsons = customCommandExecutionHelper.getCommandJson(

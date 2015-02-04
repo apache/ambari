@@ -19,8 +19,9 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import com.google.gson.Gson;
+import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.StackServiceRequest;
 import org.apache.ambari.server.controller.StackServiceResponse;
@@ -28,13 +29,13 @@ import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptorFactory;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
+@StaticallyInject
 public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
 
   protected static final String SERVICE_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(
@@ -76,6 +77,12 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(new String[] { STACK_NAME_PROPERTY_ID,
           STACK_VERSION_PROPERTY_ID, SERVICE_NAME_PROPERTY_ID }));
+
+  /**
+   * KerberosServiceDescriptorFactory used to create KerberosServiceDescriptor instances
+   */
+  @Inject
+  private static KerberosServiceDescriptorFactory kerberosServiceDescriptorFactory;
 
   protected StackServiceResourceProvider(Set<String> propertyIds,
       Map<Type, String> keyPropertyIds,
@@ -122,7 +129,7 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
           response.getServiceName(), requestedIds);
 
       setResourceProperty(resource, SERVICE_DISPLAY_NAME_PROPERTY_ID,
-              response.getServiceDisplayName(), requestedIds);
+          response.getServiceDisplayName(), requestedIds);
 
       setResourceProperty(resource, USER_NAME_PROPERTY_ID,
           response.getUserName(), requestedIds);
@@ -135,7 +142,7 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
 
       setResourceProperty(resource, CONFIG_TYPES,
           response.getConfigTypes(), requestedIds);
-      
+
       setResourceProperty(resource, REQUIRED_SERVICES_ID,
           response.getRequiredServices(), requestedIds);
 
@@ -148,25 +155,15 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
       // TODO (rlevas): Convert this to an official resource
       File kerberosDescriptorFile = response.getKerberosDescriptorFile();
       if (kerberosDescriptorFile != null) {
-        KerberosServiceDescriptor[] descriptors;
+        KerberosServiceDescriptor descriptor;
         try {
-          descriptors = KerberosServiceDescriptor.fromFile(kerberosDescriptorFile);
+          descriptor = kerberosServiceDescriptorFactory.createInstance(kerberosDescriptorFile, response.getServiceName());
         } catch (IOException e) {
           throw new SystemException("Failed to parse the service's Kerberos descriptor", e);
         }
 
-        if (descriptors != null) {
-          String serviceName = response.getServiceName();
-
-          // Iterate over the KerberosServiceDescriptors to find the one for this service since
-          // Kerberos descriptor files can contain details about more than one service
-          for(KerberosServiceDescriptor descriptor:descriptors) {
-            if(serviceName.equals(descriptor.getName())) {
-              setResourceProperty(resource, KERBEROS_DESCRIPTOR_PROPERTY_ID,
-                  descriptor.toMap(), requestedIds);
-              break; // Stop looping, this was the service we are looking for.
-            }
-          }
+        if (descriptor != null) {
+          setResourceProperty(resource, KERBEROS_DESCRIPTOR_PROPERTY_ID, descriptor.toMap(), requestedIds);
         }
       }
 

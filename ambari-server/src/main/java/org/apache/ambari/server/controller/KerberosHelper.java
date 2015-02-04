@@ -82,6 +82,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosConfigurationDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosKeytabDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor;
@@ -149,27 +150,15 @@ public class KerberosHelper {
   @Inject
   private KerberosOperationHandlerFactory kerberosOperationHandlerFactory;
 
+  @Inject
+  private KerberosDescriptorFactory kerberosDescriptorFactory;
+
   /**
    * Used to get kerberos descriptors associated with the cluster or stack.
    * Currently not available via injection.
    */
   private static ClusterController clusterController = null;
 
-
-  /**
-   * The Handler implementation that provides the logic to enable Kerberos
-   */
-  private Handler enableKerberosHandler = new EnableKerberosHandler();
-
-  /**
-   * The Handler implementation that provides the logic to disable Kerberos
-   */
-  private Handler disableKerberosHandler = new DisableKerberosHandler();
-
-  /**
-   * The Handler implementation that provides the logic to ensure the existence of principals and keytabs
-   */
-  private Handler createPrincipalsAndKeytabsHandler = new CreatePrincipalsAndKeytabsHandler();
 
   /**
    * Toggles Kerberos security to enable it or remove it depending on the state of the cluster.
@@ -193,14 +182,13 @@ public class KerberosHelper {
    * @param cluster               the relevant Cluster
    * @param securityType          the SecurityType to handle; this value is expected to be either
    *                              SecurityType.KERBEROS or SecurityType.NONE
-   * @param kerberosDescriptor    a KerberosDescriptor containing updates to the descriptor already
-   *                              configured for the cluster
    * @param requestStageContainer a RequestStageContainer to place generated stages, if needed -
-   *                              if null a new RequestStageContainer will be created.   @return the updated or a new RequestStageContainer containing the stages that need to be
-   *                              executed to complete this task; or null if no stages need to be executed.
+   *                              if null a new RequestStageContainer will be created.
+   * @return the updated or a new RequestStageContainer containing the stages that need to be
+   * executed to complete this task; or null if no stages need to be executed.
    * @throws AmbariException
    */
-  public RequestStageContainer toggleKerberos(Cluster cluster, SecurityType securityType, KerberosDescriptor kerberosDescriptor,
+  public RequestStageContainer toggleKerberos(Cluster cluster, SecurityType securityType,
                                               RequestStageContainer requestStageContainer)
       throws AmbariException {
 
@@ -211,10 +199,10 @@ public class KerberosHelper {
 
     if (securityType == SecurityType.KERBEROS) {
       LOG.info("Configuring Kerberos for realm {} on cluster, {}", kerberosDetails.getDefaultRealm(), cluster.getClusterName());
-      requestStageContainer = handle(cluster, kerberosDescriptor, kerberosDetails, null, null, requestStageContainer, enableKerberosHandler);
+      requestStageContainer = handle(cluster, kerberosDetails, null, null, requestStageContainer, new EnableKerberosHandler());
     } else if (securityType == SecurityType.NONE) {
       LOG.info("Disabling Kerberos from cluster, {}", cluster.getClusterName());
-      requestStageContainer = handle(cluster, kerberosDescriptor, kerberosDetails, null, null, requestStageContainer, disableKerberosHandler);
+      requestStageContainer = handle(cluster, kerberosDetails, null, null, requestStageContainer, new DisableKerberosHandler());
     } else {
       throw new AmbariException(String.format("Unexpected security type value: %s", securityType.name()));
     }
@@ -226,8 +214,6 @@ public class KerberosHelper {
    * Used to execute custom security operations which are sent as directives in URI
    *
    * @param cluster               the relevant Cluster
-   * @param kerberosDescriptor    a KerberosDescriptor containing updates to the descriptor already
-   *                              configured for the cluster
    * @param requestProperties     this structure is expected to hold already supported and validated directives
    *                              for the 'Cluster' resource. See ClusterResourceDefinition#getUpdateDirectives
    * @param requestStageContainer a RequestStageContainer to place generated stages, if needed -
@@ -235,8 +221,8 @@ public class KerberosHelper {
    *                              executed to complete this task; or null if no stages need to be executed.
    * @throws AmbariException
    */
-  public RequestStageContainer executeCustomOperations(Cluster cluster, KerberosDescriptor kerberosDescriptor,
-                                                       Map<String, String> requestProperties, RequestStageContainer requestStageContainer)
+  public RequestStageContainer executeCustomOperations(Cluster cluster, Map<String, String> requestProperties,
+                                                       RequestStageContainer requestStageContainer)
       throws AmbariException {
 
     if (requestProperties != null) {
@@ -253,7 +239,7 @@ public class KerberosHelper {
               }
 
               if ("true".equalsIgnoreCase(value)) {
-                handle(cluster, kerberosDescriptor, getKerberosDetails(cluster), null, null, requestStageContainer, createPrincipalsAndKeytabsHandler);
+                handle(cluster, getKerberosDetails(cluster), null, null, requestStageContainer, new CreatePrincipalsAndKeytabsHandler());
               }
               break;
 
@@ -283,8 +269,6 @@ public class KerberosHelper {
    * information about the Kerberos configuration, generally specific to the KDC being used.
    *
    * @param cluster                the relevant Cluster
-   * @param kerberosDescriptor     a KerberosDescriptor containing updates to the descriptor already
-   *                               configured for the cluster
    * @param serviceComponentFilter a Map of service names to component names indicating the relevant
    *                               set of services and components - if null, no filter is relevant;
    *                               if empty, the filter indicates no relevant services or components
@@ -297,25 +281,21 @@ public class KerberosHelper {
    * executed to complete this task; or null if no stages need to be executed.
    * @throws AmbariException
    */
-  public RequestStageContainer ensureIdentities(Cluster cluster, KerberosDescriptor kerberosDescriptor,
-                                                Map<String, Collection<String>> serviceComponentFilter,
-                                                Collection<String> identityFilter,
-                                                RequestStageContainer requestStageContainer) throws AmbariException {
-    return handle(cluster, kerberosDescriptor, getKerberosDetails(cluster), serviceComponentFilter, identityFilter,
-        requestStageContainer, createPrincipalsAndKeytabsHandler);
+  public RequestStageContainer ensureIdentities(Cluster cluster, Map<String, Collection<String>> serviceComponentFilter,
+                                                Collection<String> identityFilter, RequestStageContainer requestStageContainer)
+      throws AmbariException {
+    return handle(cluster, getKerberosDetails(cluster), serviceComponentFilter, identityFilter,
+        requestStageContainer, new CreatePrincipalsAndKeytabsHandler());
   }
 
   /**
-   * Performs operations needed to enable to disable Kerberos on the relevant cluster.
+   * Performs operations needed to process Kerberos related tasks on the relevant cluster.
    * <p/>
-   * Iterates through the components installed on the relevant cluster and attempts to enable or
-   * disable Kerberos as needed.
-   * <p/>
-   * The supplied Handler instance handles the logic on whether this process enables or disables
-   * Kerberos.
+   * Iterates through the components installed on the relevant cluster to determine if work
+   * need to be done.  Calls into the Handler implementation to provide guidance and set up stages
+   * to perform the work needed to complete the relative action.
    *
    * @param cluster                the relevant Cluster
-   * @param kerberosDescriptor     the (derived) KerberosDescriptor
    * @param kerberosDetails        a KerberosDetails containing information about relevant Kerberos configuration
    * @param serviceComponentFilter a Map of service names to component names indicating the relevant
    *                               set of services and components - if null, no filter is relevant;
@@ -325,13 +305,14 @@ public class KerberosHelper {
    *                               relevant identities
    * @param requestStageContainer  a RequestStageContainer to place generated stages, if needed -
    *                               if null a new RequestStageContainer will be created.
+   * @param handler                a Handler to use to provide guidance and set up stages
+   *                               to perform the work needed to complete the relative action
    * @return the updated or a new RequestStageContainer containing the stages that need to be
    * executed to complete this task; or null if no stages need to be executed.
    * @throws AmbariException
    */
   @Transactional
   private RequestStageContainer handle(Cluster cluster,
-                                       KerberosDescriptor kerberosDescriptor,
                                        KerberosDetails kerberosDetails,
                                        Map<String, Collection<String>> serviceComponentFilter,
                                        Collection<String> identityFilter,
@@ -339,11 +320,6 @@ public class KerberosHelper {
                                        Handler handler) throws AmbariException {
 
     Map<String, Service> services = cluster.getServices();
-
-    //todo: modify call from cluster state transition to not include descriptor
-    if (kerberosDescriptor == null) {
-      kerberosDescriptor = getClusterDescriptor(cluster);
-    }
 
     if ((services != null) && !services.isEmpty()) {
       SecurityState desiredSecurityState = handler.getNewServiceSecurityState();
@@ -353,7 +329,7 @@ public class KerberosHelper {
       if ((hosts != null) && !hosts.isEmpty()) {
         List<ServiceComponentHost> serviceComponentHostsToProcess = new ArrayList<ServiceComponentHost>();
         File indexFile;
-        kerberosDescriptor = buildKerberosDescriptor(cluster.getCurrentStackVersion(), kerberosDescriptor);
+        KerberosDescriptor kerberosDescriptor = getKerberosDescriptor(cluster);
         KerberosActionDataFileBuilder kerberosActionDataFileBuilder = null;
         Map<String, String> kerberosDescriptorProperties = kerberosDescriptor.getProperties();
         Map<String, Map<String, String>> kerberosConfigurations = new HashMap<String, Map<String, String>>();
@@ -758,18 +734,36 @@ public class KerberosHelper {
   }
 
   /**
-   * Get the cluster kerberos descriptor that was registered to the
-   * cluster/:clusterName/artifacts/kerberos_descriptor endpoint if
-   * it exists.  If not, obtain the default cluster descriptor which
-   * is available from the endpoint
-   * stacks/:stackName/versions/:version/artifacts/kerberos_descriptor.
+   * Builds a composite Kerberos descriptor using the default Kerberos descriptor and a user-specified
+   * Kerberos descriptor, if it exists.
+   * <p/>
+   * The default Kerberos descriptor is built from the kerberos.json files in the stack. It can be
+   * retrieved via the <code>stacks/:stackName/versions/:version/artifacts/kerberos_descriptor</code>
+   * endpoint
+   * <p/>
+   * The user-specified Kerberos descriptor was registered to the
+   * <code>cluster/:clusterName/artifacts/kerberos_descriptor</code> endpoint.
+   * <p/>
+   * If the user-specified Kerberos descriptor exists, it is used to update the default Kerberos
+   * descriptor and the composite is returned.  If not, the default cluster descriptor is returned
+   * as-is.
    *
    * @param cluster cluster instance
    * @return the kerberos descriptor associated with the specified cluster
    * @throws AmbariException if unable to obtain the descriptor
    */
-  private KerberosDescriptor getClusterDescriptor(Cluster cluster) throws AmbariException {
-    KerberosDescriptor descriptor;
+  private KerberosDescriptor getKerberosDescriptor(Cluster cluster) throws AmbariException {
+    StackId stackId = cluster.getCurrentStackVersion();
+
+    // -------------------------------
+    // Get the default Kerberos descriptor from the stack, which is the same as the value from
+    // stacks/:stackName/versions/:version/artifacts/kerberos_descriptor
+    KerberosDescriptor defaultDescriptor = ambariMetaInfo.getKerberosDescriptor(stackId.getStackName(), stackId.getStackVersion());
+    // -------------------------------
+
+    // Get the user-supplied Kerberos descriptor from cluster/:clusterName/artifacts/kerberos_descriptor
+    KerberosDescriptor descriptor = null;
+
     PredicateBuilder pb = new PredicateBuilder();
     Predicate predicate = pb.begin().property("Artifacts/cluster_name").equals(cluster.getClusterName()).and().
         property(ArtifactResourceProvider.ARTIFACT_NAME_PROPERTY).equals("kerberos_descriptor").
@@ -806,16 +800,39 @@ public class KerberosHelper {
 
     if (response != null && !response.isEmpty()) {
       Resource descriptorResource = response.iterator().next();
-      String descriptor_data = (String) descriptorResource.getPropertyValue(
-          ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY);
+      Map<String, Map<String, Object>> propertyMap = descriptorResource.getPropertiesMap();
+      if (propertyMap != null) {
+        Map<String, Object> artifactData = propertyMap.get(ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY);
+        Map<String, Object> artifactDataProperties = propertyMap.get(ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY + "/properties");
+        HashMap<String, Object> data = new HashMap<String, Object>();
 
-      descriptor = KerberosDescriptor.fromJSON(descriptor_data);
-    } else {
-      // get default descriptor from stack
-      StackId stackId = cluster.getCurrentStackVersion();
-      descriptor = ambariMetaInfo.getKerberosDescriptor(stackId.getStackName(), stackId.getStackVersion());
+        if (artifactData != null) {
+          data.putAll(artifactData);
+        }
+
+        if (artifactDataProperties != null) {
+          data.put("properties", artifactDataProperties);
+        }
+
+        descriptor = kerberosDescriptorFactory.createInstance(data);
+      }
     }
-    return descriptor;
+    // -------------------------------
+
+    // -------------------------------
+    // Attempt to build and return a composite of the default Kerberos descriptor and the user-supplied
+    // Kerberos descriptor. If the default descriptor exists, overlay the user-supplied Kerberos
+    // descriptor on top of it (if it exists) and return the composite; else return the user-supplied
+    // Kerberos descriptor. If both values are null, null may be returned.
+    if (defaultDescriptor == null) {
+      return descriptor;
+    } else {
+      if (descriptor != null) {
+        defaultDescriptor.update(descriptor);
+      }
+      return defaultDescriptor;
+    }
+    // -------------------------------
   }
 
 
@@ -853,33 +870,6 @@ public class KerberosHelper {
     }
 
     return directory;
-  }
-
-  /**
-   * Build a composite Kerberos descriptor using the default descriptor data, existing cluster
-   * descriptor data (future), and the supplied descriptor updates from the request
-   *
-   * @param currentStackVersion the current cluster's StackId
-   * @param kerberosDescriptor  a KerberosDescriptor containing updates from the request payload
-   * @return a KerberosDescriptor containing existing data with requested changes
-   * @throws AmbariException
-   */
-  private KerberosDescriptor buildKerberosDescriptor(StackId currentStackVersion,
-                                                     KerberosDescriptor kerberosDescriptor)
-      throws AmbariException {
-    KerberosDescriptor defaultKerberosDescriptor = ambariMetaInfo.getKerberosDescriptor(
-        currentStackVersion.getStackName(),
-        currentStackVersion.getStackVersion()
-    );
-
-    if (defaultKerberosDescriptor == null) {
-      return kerberosDescriptor;
-    } else {
-      if (kerberosDescriptor != null) {
-        defaultKerberosDescriptor.update(kerberosDescriptor);
-      }
-      return defaultKerberosDescriptor;
-    }
   }
 
   /**
