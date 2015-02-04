@@ -93,6 +93,12 @@ class ZookeeperServer(Script):
     call_and_match_output(list_command, r"\[.*?" + unique + ".*?\]", quorum_err_message)
     call(delete_command)
 
+    if params.client_port:
+      check_leader_command = format("echo stat | nc localhost {client_port} | grep Mode")
+      code, out = call(check_leader_command, logoutput=False)
+      if code == 0 and out:
+        Logger.info(out)
+
   def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)

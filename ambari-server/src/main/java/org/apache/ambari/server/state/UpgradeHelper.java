@@ -249,9 +249,8 @@ public class UpgradeHelper {
               // The order is important, first do the standby, then the active namenode.
               Set<String> order = new LinkedHashSet<String>();
 
-              // TODO Upgrade Pack, somehow, running the secondary first causes them to swap, even before the restart.
-              order.add(hostsType.master);
               order.add(hostsType.secondary);
+              order.add(hostsType.master);
 
               // Override the hosts with the ordered collection
               hostsType.hosts = order;

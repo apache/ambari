@@ -102,7 +102,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
 
       // Will include hosts whose state is UPGRADED, and potentially INSTALLED
       Set<HostVersionEntity> hostsWithAllowedVersion = new HashSet<HostVersionEntity>();
-      Set<HostVersionEntity> hostsWithoutCorrectVersionState = new HashSet<HostVersionEntity>();
+      Set<String> hostsWithoutCorrectVersionState = new HashSet<String>();
       Set<String> hostsToUpdate = new HashSet<String>();
       // If true, then the cluster version is still in UPGRADING and allowed to transition to UPGRADED, and then CURRENT
       boolean atLeastOneHostInInstalledState = false;
@@ -131,7 +131,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
           hostsWithAllowedVersion.add(hostVersion);
           hostsToUpdate.add(hostVersion.getHostName());
         } else {
-          hostsWithoutCorrectVersionState.add(hostVersion);
+          hostsWithoutCorrectVersionState.add(hostVersion.getHostName());
         }
       }
 

@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -47,6 +48,7 @@ import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
+import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
@@ -155,6 +157,46 @@ public class UpgradeHelperTest {
     assertEquals(6, groups.get(1).items.size());
     assertEquals(8, groups.get(2).items.size());
     assertEquals(8, groups.get(3).items.size());
+  }
+
+  /**
+   * Verify that a Rolling Upgrades restarts the NameNodes in the following order: standby, active.
+   * @throws Exception
+   */
+  @Test
+  public void testNamenodeOrder() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    assertTrue(upgrades.containsKey("upgrade_test"));
+    UpgradePack upgrade = upgrades.get("upgrade_test");
+    assertNotNull(upgrade);
+
+    makeCluster();
+
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver,
+        UPGRADE_VERSION, Direction.UPGRADE);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
+
+    assertEquals(6, groups.size());
+
+    UpgradeGroupHolder mastersGroup = groups.get(2);
+    assertEquals("CORE_MASTER", mastersGroup.name);
+
+    List<String> orderedNameNodes = new LinkedList<String>();
+    for (StageWrapper sw : mastersGroup.items) {
+      if (sw.getType().equals(StageWrapper.Type.RESTART)) {
+        for (TaskWrapper tw : sw.getTasks()) {
+          for (String hostName : tw.getHosts()) {
+            orderedNameNodes.add(hostName);
+          }
+        }
+      }
+    }
+
+    assertEquals(2, orderedNameNodes.size());
+    // Order is standby, then active.
+    assertEquals("h2", orderedNameNodes.get(0));
+    assertEquals("h1", orderedNameNodes.get(1));
   }
 
   @Test

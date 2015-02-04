@@ -1237,13 +1237,6 @@ public class ClusterImpl implements Cluster {
         }
 
         RepositoryVersionState hostState = hostVersion.getState();
-        if (host.getState() != HostState.HEALTHY) {
-          hostState = RepositoryVersionState.OUT_OF_SYNC;
-          LOG.warn(String.format(
-              "Host %s is in unhealthy state, treating as %s", hostName,
-              hostState));
-        }
-
         if (stateToHosts.containsKey(hostState)) {
           stateToHosts.get(hostState).add(hostName);
         } else {

@@ -1058,7 +1058,9 @@ public class ClusterTest {
 
     h2.setState(HostState.UNHEALTHY);
     c1.recalculateClusterVersionState(stackVersion);
-    checkStackVersionState(stackId.getStackId(), stackVersion, RepositoryVersionState.OUT_OF_SYNC);
+    // In order for the states to be accurately reflected, the host health status should not impact the status
+    // of the host_version.
+    checkStackVersionState(stackId.getStackId(), stackVersion, RepositoryVersionState.INSTALLING);
     // Retry by going back to INSTALLING
     c1.transitionClusterVersion(stackId.getStackId(), stackVersion, RepositoryVersionState.INSTALLING);
 

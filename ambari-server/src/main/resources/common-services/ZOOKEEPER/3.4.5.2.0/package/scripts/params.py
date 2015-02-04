@@ -65,7 +65,7 @@ zk_pid_dir = status_params.zk_pid_dir
 zk_pid_file = status_params.zk_pid_file
 zk_server_heapsize = "-Xmx1024m"
 
-clientPort = config['configurations']['zoo.cfg']['clientPort']
+client_port = default('/configurations/zoo.cfg/clientPort', None)
 
 if 'zoo.cfg' in config['configurations']:
   zoo_cfg_properties_map = config['configurations']['zoo.cfg']
