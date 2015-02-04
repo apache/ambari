@@ -17,17 +17,17 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.actionmanager.Stage;
-import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
-import org.apache.ambari.server.orm.entities.StageEntity;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
+
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.orm.entities.StageEntity;
 
 /**
  * Status of a request resource, calculated from a set of tasks or stages.
@@ -218,7 +218,7 @@ public class CalculatedStatus {
    *
    * @return a map of counts of tasks keyed by the task status
    */
-  private static Map<HostRoleStatus, Integer> calculateTaskEntityStatusCounts(Collection<HostRoleCommandEntity> tasks) {
+  public static Map<HostRoleStatus, Integer> calculateTaskEntityStatusCounts(Collection<HostRoleCommandEntity> tasks) {
     Collection<HostRoleStatus> hostRoleStatuses = new LinkedList<HostRoleStatus>();
 
     for (HostRoleCommandEntity hostRoleCommand : tasks) {

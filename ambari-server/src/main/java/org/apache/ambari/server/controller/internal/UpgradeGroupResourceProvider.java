@@ -17,14 +17,17 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.ambari.server.StaticallyInject;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -37,6 +40,8 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
@@ -56,6 +61,11 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
   protected static final String UPGRADE_GROUP_TITLE = "UpgradeGroup/title";
   protected static final String UPGRADE_GROUP_PROGRESS_PERCENT = "UpgradeGroup/progress_percent";
   protected static final String UPGRADE_GROUP_STATUS = "UpgradeGroup/status";
+
+  protected static final String UPGRADE_GROUP_TOTAL_TASKS = "UpgradeGroup/total_task_count";
+  protected static final String UPGRADE_GROUP_IN_PROGRESS_TASKS = "UpgradeGroup/in_progress_task_count";
+  protected static final String UPGRADE_GROUP_COMPLETED_TASKS = "UpgradeGroup/completed_task_count";
+
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
       Arrays.asList(UPGRADE_REQUEST_ID, UPGRADE_GROUP_ID));
@@ -80,6 +90,9 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
     PROPERTY_IDS.add(UPGRADE_GROUP_TITLE);
     PROPERTY_IDS.add(UPGRADE_GROUP_PROGRESS_PERCENT);
     PROPERTY_IDS.add(UPGRADE_GROUP_STATUS);
+    PROPERTY_IDS.add(UPGRADE_GROUP_TOTAL_TASKS);
+    PROPERTY_IDS.add(UPGRADE_GROUP_IN_PROGRESS_TASKS);
+    PROPERTY_IDS.add(UPGRADE_GROUP_COMPLETED_TASKS);
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.UpgradeGroup, UPGRADE_GROUP_ID);
@@ -176,15 +189,37 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
   }
 
   /**
-   * Aggregates status and percent complete for stages and puts the results on the upgrade group
+   * Aggregates status, percent complete, and count information for stages and
+   * puts the results on the upgrade group
    *
    * @param upgradeGroup  the resource representing an upgrade group
    * @param stageIds      the set of resources ids of the stages
    * @param requestedIds  the ids for the request
    */
   private void aggregate(Resource upgradeGroup, Long requestId, Set<Long> stageIds, Set<String> requestedIds) {
+    List<StageEntity> stages = stageDAO.findByStageIds(requestId, stageIds);
 
-    CalculatedStatus status = CalculatedStatus.statusFromStageEntities(stageDAO.findByStageIds(requestId, stageIds));
+    List<HostRoleCommandEntity> tasks = new ArrayList<HostRoleCommandEntity>();
+    for (StageEntity stage : stages) {
+      tasks.addAll(stage.getHostRoleCommands());
+    }
+
+    Map<HostRoleStatus, Integer> counts = CalculatedStatus.calculateTaskEntityStatusCounts(tasks);
+    Integer inProgress = 0;
+    Integer completed = 0;
+
+    for (Entry<HostRoleStatus, Integer> entry : counts.entrySet()) {
+      if (entry.getKey().isCompletedState()) {
+        completed += entry.getValue();
+      } else if (entry.getKey().isInProgress()) {
+        inProgress += entry.getValue();
+      }
+    }
+    setResourceProperty(upgradeGroup, UPGRADE_GROUP_TOTAL_TASKS, tasks.size(), requestedIds);
+    setResourceProperty(upgradeGroup, UPGRADE_GROUP_IN_PROGRESS_TASKS, inProgress, requestedIds);
+    setResourceProperty(upgradeGroup, UPGRADE_GROUP_COMPLETED_TASKS, completed, requestedIds);
+
+    CalculatedStatus status = CalculatedStatus.statusFromStageEntities(stages);
 
     setResourceProperty(upgradeGroup, UPGRADE_GROUP_STATUS, status.getStatus(), requestedIds);
     setResourceProperty(upgradeGroup, UPGRADE_GROUP_PROGRESS_PERCENT, status.getPercent(), requestedIds);

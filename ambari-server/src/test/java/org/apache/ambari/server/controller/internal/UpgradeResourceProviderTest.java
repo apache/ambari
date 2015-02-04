@@ -307,6 +307,9 @@ public class UpgradeResourceProviderTest {
     res = resources.iterator().next();
     assertNotNull(res.getPropertyValue("UpgradeGroup/status"));
     assertNotNull(res.getPropertyValue("UpgradeGroup/group_id"));
+    assertNotNull(res.getPropertyValue("UpgradeGroup/total_task_count"));
+    assertNotNull(res.getPropertyValue("UpgradeGroup/in_progress_task_count"));
+    assertNotNull(res.getPropertyValue("UpgradeGroup/completed_task_count"));
 
     // upgrade items
     propertyIds.clear();

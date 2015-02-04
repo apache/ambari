@@ -17,6 +17,16 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import static org.junit.Assert.assertEquals;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
@@ -24,14 +34,8 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
+import org.junit.Before;
 import org.junit.Test;
-
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.*;
 
 /**
  * CalculatedStatus tests.
@@ -41,6 +45,14 @@ public class CalculatedStatusTest {
 
   private static long taskId = 0L;
   private static long stageId = 0L;
+
+  private static Field s_field;
+
+  @Before()
+  public void setup() throws Exception {
+    s_field = HostRoleCommand.class.getDeclaredField("taskId");
+    s_field.setAccessible(true);
+  }
 
 
   @Test
@@ -419,12 +431,36 @@ public class CalculatedStatusTest {
     assertEquals(1L, (long) counts.get(HostRoleStatus.ABORTED));
   }
 
+  @Test
+  public void testCountsWithRepeatHosts() throws Exception {
+    List<Stage> stages = new ArrayList<Stage>();
+
+      stages.addAll(getStages(getTaskEntities(
+          HostRoleStatus.COMPLETED, HostRoleStatus.COMPLETED,
+          HostRoleStatus.COMPLETED, HostRoleStatus.COMPLETED)));
+
+    // create 5th stage that is a repeat of an earlier one
+    HostRoleCommandEntity entity = new HostRoleCommandEntity();
+    entity.setTaskId(taskId++);
+    entity.setHostName("h2");
+    entity.setStatus(HostRoleStatus.PENDING);
+    stages.addAll(getStages(Collections.singleton(entity)));
+
+    CalculatedStatus calc = CalculatedStatus.statusFromStages(stages);
+
+    assertEquals(HostRoleStatus.IN_PROGRESS, calc.getStatus());
+    assertEquals(80d, calc.getPercent(), 0.1d);
+  }
+
+
   private Collection<HostRoleCommandEntity> getTaskEntities(HostRoleStatus... statuses) {
     Collection<HostRoleCommandEntity> entities = new LinkedList<HostRoleCommandEntity>();
 
-    for (HostRoleStatus status : statuses) {
+    for (int i = 0; i < statuses.length; i++) {
+      HostRoleStatus status = statuses[i];
       HostRoleCommandEntity entity = new HostRoleCommandEntity();
       entity.setTaskId(taskId++);
+      entity.setHostName("h" + i);
       entity.setStatus(status);
 
       entities.add(entity);
@@ -470,7 +506,7 @@ public class CalculatedStatusTest {
 
     void setHostRoleCommands(Collection<HostRoleCommandEntity> tasks) {
       for (HostRoleCommandEntity task : tasks) {
-        TestCommand command = new TestCommand(taskId++);
+        TestCommand command = new TestCommand(task.getHostName(), taskId++);
         command.setStatus(task.getStatus());
         hostRoleCommands.add(command);
       }
@@ -483,30 +519,15 @@ public class CalculatedStatusTest {
   }
 
   private class TestCommand extends HostRoleCommand {
-    private final long taskId;
 
-    public TestCommand(long taskId) {
-      super("", Role.AMBARI_SERVER_ACTION, null, RoleCommand.START);
-      this.taskId = taskId;
+    public TestCommand(String host, long taskId) {
+      super(host, Role.AMBARI_SERVER_ACTION, null, RoleCommand.START);
+      try {
+        s_field.set(this, Long.valueOf(taskId));
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
 
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-      if (!super.equals(o)) return false;
-
-      TestCommand that = (TestCommand) o;
-
-      return taskId == that.taskId;
-
-    }
-
-    @Override
-    public int hashCode() {
-      int result = super.hashCode();
-      result = 31 * result + (int) (taskId ^ (taskId >>> 32));
-      return result;
-    }
   }
 }

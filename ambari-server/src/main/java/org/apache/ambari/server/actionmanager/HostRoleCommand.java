@@ -17,15 +17,16 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import com.google.inject.Injector;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.assistedinject.AssistedInject;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
+
+import com.google.inject.Injector;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 
 /**
  * This class encapsulates the information for an task on a host for a
@@ -295,7 +296,7 @@ public class HostRoleCommand {
 
   @Override
   public int hashCode() {
-    return (hostName + role.toString() + roleCommand.toString()).hashCode();
+    return Long.valueOf(taskId).hashCode();
   }
 
   @Override
@@ -304,8 +305,8 @@ public class HostRoleCommand {
       return false;
     }
     HostRoleCommand o = (HostRoleCommand) other;
-    return (this.role.equals(o.role) && this.hostName.equals(o.hostName) && this.roleCommand
-        .equals(o.roleCommand));
+
+    return hashCode() == o.hashCode();
   }
 
   @Override

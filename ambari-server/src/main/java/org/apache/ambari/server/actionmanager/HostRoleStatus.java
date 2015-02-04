@@ -124,4 +124,11 @@ public enum HostRoleStatus {
   public static List<HostRoleStatus> getFailedStates() {
     return Collections.unmodifiableList(FAILED_STATES);
   }
+
+  /**
+   * @return {@code true} if this is a status that is in progress
+   */
+  public boolean isInProgress() {
+    return IN_PROGRESS_STATUSES.contains(this);
+  }
 }
