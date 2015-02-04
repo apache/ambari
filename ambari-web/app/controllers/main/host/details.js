@@ -1780,13 +1780,15 @@ App.MainHostDetailsController = Em.Controller.extend({
       }
     });
   },
-  deleteHostSuccessCallback: function (data) {
+  deleteHostSuccessCallback: function (data, rq, requestBody) {
     var self = this;
     App.router.get('updateController').updateHost(function () {
       self.loadConfigs('loadHiveConfigs');
       self.loadConfigs();
       App.router.transitionTo('hosts.index');
     });
+    if(!!(requestBody && requestBody.hostName))
+      App.hostsMapper.deleteRecord(App.Host.find().findProperty('hostName', requestBody.hostName));
     App.router.get('clusterController').getAllHostNames();
   },
   deleteHostErrorCallback: function (xhr, textStatus, errorThrown, opt) {
