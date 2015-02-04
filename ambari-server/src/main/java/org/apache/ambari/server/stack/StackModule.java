@@ -207,6 +207,12 @@ public class StackModule extends BaseModule<StackModule, StackInfo> {
     if (stackInfo.getStackHooksFolder() == null) {
       stackInfo.setStackHooksFolder(parentStack.getModuleInfo().getStackHooksFolder());
     }
+
+    // grab stack level kerberos.json from parent stack
+    if (stackInfo.getKerberosDescriptorFileLocation() == null) {
+      stackInfo.setKerberosDescriptorFileLocation(parentStack.getModuleInfo().getKerberosDescriptorFileLocation());
+    }
+
     mergeServicesWithParent(parentStack, allStacks, commonServices);
   }
 

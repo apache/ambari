@@ -577,5 +577,13 @@ public class StackManagerTest {
 
   }
 
+  @Test
+  public void testInheritKerberosDescriptor() throws Exception {
+    StackInfo stack = stackManager.getStack("HDP", "2.1.1");
+    String stacksFolder = ClassLoader.getSystemClassLoader().getResource("stacks").getPath();
+    assertEquals(new File(stacksFolder, "HDP/2.0.8/kerberos.json").getAbsolutePath(),
+        stack.getKerberosDescriptorFileLocation());
+  }
+
   //todo: component override assertions
 }
