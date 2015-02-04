@@ -279,7 +279,7 @@ public interface Cluster {
    * @return <code>true</code> if the config was added, or <code>false</code>
    * if the config is already set as the current
    */
-  public ServiceConfigVersionResponse addDesiredConfig(String user, Set<Config> configs);
+  public ServiceConfigVersionResponse addDesiredConfig(String user, Set<Config> configs) throws AmbariException;
 
   /**
    * Adds and sets a DESIRED configuration to be applied to a cluster.  There
@@ -290,7 +290,7 @@ public interface Cluster {
    * @return <code>true</code> if the config was added, or <code>false</code>
    * if the config is already set as the current
    */
-  ServiceConfigVersionResponse addDesiredConfig(String user, Set<Config> configs, String serviceConfigVersionNote);
+  ServiceConfigVersionResponse addDesiredConfig(String user, Set<Config> configs, String serviceConfigVersionNote) throws AmbariException;
 
   ServiceConfigVersionResponse createServiceConfigVersion(String serviceName, String user, String note,
                                                           ConfigGroup configGroup);

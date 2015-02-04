@@ -1753,12 +1753,12 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public ServiceConfigVersionResponse addDesiredConfig(String user, Set<Config> configs) {
+  public ServiceConfigVersionResponse addDesiredConfig(String user, Set<Config> configs) throws AmbariException {
     return addDesiredConfig(user, configs, null);
   }
 
   @Override
-  public ServiceConfigVersionResponse addDesiredConfig(String user, Set<Config> configs, String serviceConfigVersionNote) {
+  public ServiceConfigVersionResponse addDesiredConfig(String user, Set<Config> configs, String serviceConfigVersionNote) throws AmbariException {
     if (null == user) {
       throw new NullPointerException("User must be specified.");
     }
@@ -2161,24 +2161,30 @@ public class ClusterImpl implements Cluster {
   }
 
   @Transactional
-  ServiceConfigVersionResponse applyConfigs(Set<Config> configs, String user, String serviceConfigVersionNote) {
+  ServiceConfigVersionResponse applyConfigs(Set<Config> configs, String user, String serviceConfigVersionNote) throws AmbariException {
 
     String serviceName = null;
-    for (Config config: configs) {
-
-      selectConfig(config.getType(), config.getTag(), user);
-      //find service name for config type
+    for (Config config : configs) {
       for (Entry<String, String> entry : serviceConfigTypes.entries()) {
         if (StringUtils.equals(entry.getValue(), config.getType())) {
-          if (serviceName != null && !serviceName.equals(entry.getKey())) {
-            LOG.error("Updating configs for multiple services by a " +
-              "single API request isn't supported, config version not created");
-            return null;
+          if (serviceName == null) {
+            serviceName = entry.getKey();
+            break;
+          } else if (!serviceName.equals(entry.getKey())) {
+            String error = "Updating configs for multiple services by a " +
+                "single API request isn't supported";
+            AmbariException exception = new AmbariException(error);
+            LOG.error(error + ", config version not created");
+            throw exception;
+          } else {
+            break;
           }
-          serviceName = entry.getKey();
-          break;
         }
       }
+    }
+
+    for (Config config: configs) {
+      selectConfig(config.getType(), config.getTag(), user);
     }
 
     if (serviceName == null) {
