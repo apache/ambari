@@ -24,10 +24,13 @@ import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
+import org.apache.ambari.server.events.HostAddedEvent;
 import org.apache.ambari.server.events.ServiceComponentInstalledEvent;
 import org.apache.ambari.server.events.ServiceInstalledEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
+import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -36,6 +39,7 @@ import org.apache.ambari.server.state.StackId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -58,6 +62,9 @@ public class HostVersionOutOfSyncListener {
 
   @Inject
   private Provider<HostVersionDAO> hostVersionDAO;
+
+  @Inject
+  private Provider<HostDAO> hostDAO;
 
   @Inject
   private Provider<Clusters> clusters;
@@ -114,6 +121,34 @@ public class HostVersionOutOfSyncListener {
             hostVersionDAO.get().merge(hostVersionEntity);
             changedRepositoryVersions.add(hostVersionEntity.getRepositoryVersion().getVersion());
           }
+        }
+      }
+      for (String version : changedRepositoryVersions) {
+        cluster.recalculateClusterVersionState(version);
+      }
+    } catch (AmbariException e) {
+      LOG.error("Can not update hosts about out of sync", e);
+    }
+  }
+
+  @Subscribe
+  @Transactional
+  public void onHostEvent(HostAddedEvent event) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(event.toString());
+    }
+    try {
+      Cluster cluster = clusters.get().getClusterById(event.getClusterId());
+      Set<String> changedRepositoryVersions = new HashSet<String>();
+      Collection<ClusterVersionEntity> allClusterVersions = cluster.getAllClusterVersions();
+      for (ClusterVersionEntity clusterVersion : allClusterVersions) {
+        if (clusterVersion.getState() != RepositoryVersionState.CURRENT) { // Current version is taken care of automatically
+          String hostName = event.getHostName();
+          HostVersionEntity missingHostVersion = new HostVersionEntity(hostName,
+                  clusterVersion.getRepositoryVersion(), RepositoryVersionState.OUT_OF_SYNC);
+          missingHostVersion.setHostEntity(hostDAO.get().findByName(hostName));
+          hostVersionDAO.get().create(missingHostVersion);
+          changedRepositoryVersions.add(clusterVersion.getRepositoryVersion().getVersion());
         }
       }
       for (String version : changedRepositoryVersions) {

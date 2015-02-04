@@ -92,6 +92,10 @@ public class HostVersionEntity {
   public HostVersionEntity() {
   }
 
+  /**
+   * When using this constructor, you should also call setHostEntity(). Otherwise
+   * you will have persistence errors when persisting the instance.
+   */
   public HostVersionEntity(String hostName, RepositoryVersionEntity repositoryVersion, RepositoryVersionState state) {
     this.hostName = hostName;
     this.repositoryVersion = repositoryVersion;
