@@ -169,7 +169,8 @@ App.StackService = DS.Model.extend({
     var configTypes = this.get('configTypes');
     var serviceComponents = this.get('serviceComponents');
     if (configTypes && Object.keys(configTypes).length) {
-      var pattern = ["General", "CapacityScheduler", "FaultTolerance", "Isolation", "Performance", "KDC", "Kadmin","^Advanced", "Env$", "^Custom", "Falcon - Oozie integration", "FalconStartupSite", "FalconRuntimeSite", "MetricCollector", "Settings$"];
+      var pattern = ["General", "CapacityScheduler", "FaultTolerance", "Isolation", "Performance", "KDC", "Kadmin",
+        "^Advanced", "Env$", "^Custom", "Falcon - Oozie integration", "FalconStartupSite", "FalconRuntimeSite", "MetricCollector", "RepositoryConfigs", "Settings$"];
       configCategories = App.StackService.configCategories.call(this).filter(function (_configCategory) {
         var serviceComponentName = _configCategory.get('name');
         var isServiceComponent = serviceComponents.someProperty('componentName', serviceComponentName);
@@ -224,6 +225,7 @@ App.StackService.reviewPageHandlers = {
     'Database': 'loadOozieDbValue'
   }
 };
+App.StackService.RangerAgents = ['HDFS','HBASE','HIVE','KNOX','STORM'];
 
 App.StackService.configCategories = function () {
   var serviceConfigCategories = [];
@@ -263,14 +265,16 @@ App.StackService.configCategories = function () {
         App.ServiceConfigCategory.create({ name: 'HIVE_METASTORE', displayName: 'Hive Metastore'}),
         App.ServiceConfigCategory.create({ name: 'WEBHCAT_SERVER', displayName: 'WebHCat Server'}),
         App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'}),
-        App.ServiceConfigCategory.create({ name: 'Performance', displayName: 'Performance'})
+        App.ServiceConfigCategory.create({ name: 'Performance', displayName: 'Performance'}),
+        App.ServiceConfigCategory.create({ name: 'GrantSettings', displayName: 'Grant/Revoke Settings'})
       ]);
       break;
     case 'HBASE':
       serviceConfigCategories.pushObjects([
         App.ServiceConfigCategory.create({ name: 'HBASE_MASTER', displayName: 'HBase Master'}),
         App.ServiceConfigCategory.create({ name: 'HBASE_REGIONSERVER', displayName: 'RegionServer'}),
-        App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'})
+        App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'}),
+        App.ServiceConfigCategory.create({ name: 'GrantSettings', displayName: 'Grant/Revoke Settings'})
       ]);
       break;
     case 'ZOOKEEPER':
@@ -338,7 +342,11 @@ App.StackService.configCategories = function () {
     case 'RANGER':
       serviceConfigCategories.pushObjects([
         App.ServiceConfigCategory.create({ name: 'AdminSettings', displayName: 'Admin Settings'}),
-        App.ServiceConfigCategory.create({ name: 'DBSettings', displayName: 'DB Settings'})
+        App.ServiceConfigCategory.create({ name: 'DBSettings', displayName: 'DB Settings'}),
+        App.ServiceConfigCategory.create({ name: 'RangerSettings', displayName: 'Ranger Settings'}),
+        App.ServiceConfigCategory.create({ name: 'UnixAuthenticationSettings', displayName: 'Unix Authentication Settings'}),
+        App.ServiceConfigCategory.create({ name: 'ADSettings', displayName: 'AD Settings'}),
+        App.ServiceConfigCategory.create({ name: 'LDAPSettings', displayName: 'LDAP Settings'})
       ]);
       break;
     case 'PIG':
@@ -352,6 +360,12 @@ App.StackService.configCategories = function () {
   }
   serviceConfigCategories.pushObject(App.ServiceConfigCategory.create({ name: 'Advanced', displayName: 'Advanced'}));
 
+  if (App.StackService.RangerAgents.contains(this.get('serviceName'))) {
+    serviceConfigCategories.pushObject(App.ServiceConfigCategory.create({ name: 'RangerSettings', displayName: 'Ranger Settings'}));
+    serviceConfigCategories.pushObject(App.ServiceConfigCategory.create({ name: 'HDFSAuditSettings', displayName: 'HDFS Audit Settings'}));
+    serviceConfigCategories.pushObject(App.ServiceConfigCategory.create({ name: 'RepositoryConfigs', displayName: 'Ranger plugin repository and policy users'}));
+    serviceConfigCategories.pushObject(App.ServiceConfigCategory.create({ name: 'SSLRangerSettings', displayName: 'SSL Settings'}));
+  }
   var configTypes = Object.keys(this.get('configTypes'));
 
   //Falcon has dependency on oozie-site but oozie-site advanced/custom section should not be shown on Falcon page

@@ -270,6 +270,10 @@ describe('App.StackService', function () {
       expect(ss.get('configCategories').mapProperty('name')).to.eql([
         "General",
         "Advanced",
+        "RangerSettings",
+        "HDFSAuditSettings",
+        "RepositoryConfigs",
+        "SSLRangerSettings",
         "Advanced key",
         "Custom key"
       ]);
@@ -282,6 +286,10 @@ describe('App.StackService', function () {
         "DATANODE",
         "General",
         "Advanced",
+        "RangerSettings",
+        "HDFSAuditSettings",
+        "RepositoryConfigs",
+        "SSLRangerSettings",
         "Advanced key",
         "Custom key"]);
     });
