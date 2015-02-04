@@ -61,4 +61,164 @@ describe('App.UpgradeVersionBoxView', function () {
       expect(view.get('isUpgrading')).to.be.false;
     });
   });
+
+  describe("#installProgress", function () {
+    beforeEach(function () {
+      sinon.stub(App.db, 'get').returns(1);
+      this.mock = sinon.stub(App.router, 'get');
+    });
+    afterEach(function () {
+      App.db.get.restore();
+      this.mock.restore();
+    });
+    it("request absent", function () {
+      this.mock.returns([]);
+      view.propertyDidChange('installProgress');
+      expect(view.get('installProgress')).to.equal(0);
+    });
+    it("request present", function () {
+      this.mock.returns([Em.Object.create({progress: 100})]);
+      view.propertyDidChange('installProgress');
+      expect(view.get('installProgress')).to.equal(100);
+    });
+  });
+
+  describe("#versionClass", function () {
+    it("status CURRENT", function () {
+      view.set('content.status', 'CURRENT');
+      view.propertyDidChange('versionClass');
+      expect(view.get('versionClass')).to.equal('current-version-box');
+    });
+    it("status INSTALLED", function () {
+      view.set('content.status', 'INSTALLED');
+      view.propertyDidChange('versionClass');
+      expect(view.get('versionClass')).to.equal('');
+    });
+  });
+
+  describe("#isOutOfSync", function () {
+    it("status OUT_OF_SYNC", function () {
+      view.set('content.status', 'OUT_OF_SYNC');
+      view.propertyDidChange('isOutOfSync');
+      expect(view.get('isOutOfSync')).to.be.true;
+    });
+  });
+
+  describe("#didInsertElement()", function () {
+    beforeEach(function () {
+      sinon.stub(App, 'tooltip').returns(1);
+    });
+    afterEach(function () {
+      App.tooltip.restore();
+    });
+    it("init tooltips", function () {
+      view.didInsertElement();
+      expect(App.tooltip.callCount).to.equal(4);
+    });
+  });
+
+  describe("#runAction()", function () {
+    beforeEach(function () {
+      sinon.stub(view.get('controller'), 'upgrade').returns(1);
+    });
+    afterEach(function () {
+      view.get('controller').upgrade.restore();
+    });
+    it("action = null", function () {
+      view.runAction({context: Em.Object.create({action: null})});
+      expect(view.get('controller').upgrade.called).to.be.false;
+    });
+    it("action = 'upgrade'", function () {
+      view.set('content', 'content');
+      view.runAction({context: Em.Object.create({action: 'upgrade'})});
+      expect(view.get('controller').upgrade.calledWith('content')).to.be.true;
+    });
+  });
+
+  describe("#editRepositories()", function () {
+    beforeEach(function () {
+      sinon.stub(App.RepositoryVersion, 'find').returns(Em.Object.create({
+        operatingSystems: []
+      }));
+      sinon.stub(App.ModalPopup, 'show', Em.K);
+    });
+    afterEach(function () {
+      App.RepositoryVersion.find.restore();
+      App.ModalPopup.show.restore();
+    });
+    it("show popup", function () {
+      view.editRepositories();
+      expect(App.ModalPopup.show.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#showHosts()", function () {
+    beforeEach(function () {
+      sinon.spy(App.ModalPopup, 'show');
+      sinon.stub(view, 'filterHostsByStack', Em.K);
+    });
+    afterEach(function () {
+      App.ModalPopup.show.restore();
+      view.filterHostsByStack.restore();
+    });
+    it("no hosts", function () {
+      view.showHosts({contexts: [
+       'status', 'version', []
+      ]});
+      expect(App.ModalPopup.show.called).to.be.false;
+    });
+    it("one host", function () {
+      var popup = view.showHosts({contexts: [
+        {id: 1}, 'version', ['host1']
+      ]});
+      expect(App.ModalPopup.show.calledOnce).to.be.true;
+      popup.onPrimary();
+      expect(view.filterHostsByStack.calledWith('version', 1)).to.be.true;
+    });
+  });
+
+  describe("#filterHostsByStack()", function () {
+    var mock = {
+      set: Em.K,
+      filterByStack: Em.K
+    };
+    beforeEach(function () {
+      sinon.stub(App.router, 'get').withArgs('mainHostController').returns(mock);
+      sinon.stub(App.router, 'transitionTo', Em.K);
+      sinon.spy(mock, 'set');
+      sinon.spy(mock, 'filterByStack');
+    });
+    afterEach(function () {
+      App.router.get.restore();
+      App.router.transitionTo.restore();
+      mock.set.restore();
+      mock.filterByStack.restore();
+    });
+    it("version and state are valid", function () {
+      view.filterHostsByStack('version', 'state');
+      expect(mock.set.calledWith('showFilterConditionsFirstLoad', true)).to.be.true;
+      expect(mock.filterByStack.calledWith('version', 'state')).to.be.true;
+      expect(App.router.transitionTo.calledWith('hosts.index')).to.be.true;
+    });
+    it("version is null", function () {
+      view.filterHostsByStack(null, 'state');
+      expect(mock.set.called).to.be.false;
+      expect(mock.filterByStack.called).to.be.false;
+      expect(App.router.transitionTo.called).to.be.false;
+    });
+    it("state is null", function () {
+      view.filterHostsByStack('version', null);
+      expect(mock.set.called).to.be.false;
+      expect(mock.filterByStack.called).to.be.false;
+      expect(App.router.transitionTo.called).to.be.false;
+    });
+    it("state and version are null", function () {
+      view.filterHostsByStack(null, null);
+      expect(mock.set.called).to.be.false;
+      expect(mock.filterByStack.called).to.be.false;
+      expect(App.router.transitionTo.called).to.be.false;
+    });
+  });
+
+
 });

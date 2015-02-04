@@ -27,6 +27,88 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     setDBProperty: Em.K
   });
 
+  describe("#realRepoUrl", function() {
+    before(function () {
+      this.mock = sinon.stub(App, 'get');
+    });
+    after(function () {
+      this.mock.restore();
+    });
+    it("", function() {
+      this.mock.withArgs('apiPrefix').returns('apiPrefix');
+      this.mock.withArgs('stackVersionURL').returns('stackVersionURL');
+      controller.propertyDidChange('realRepoUrl');
+      expect(controller.get('realRepoUrl')).to.equal('apiPrefixstackVersionURL/repository_versions?fields=*,operating_systems/*,operating_systems/repositories/*');
+    });
+  });
+
+  describe("#realStackUrl", function() {
+    before(function () {
+      this.mock = sinon.stub(App, 'get');
+    });
+    after(function () {
+      this.mock.restore();
+    });
+    it("", function() {
+      this.mock.withArgs('apiPrefix').returns('apiPrefix');
+      this.mock.withArgs('clusterName').returns('clusterName');
+      controller.propertyDidChange('realStackUrl');
+      expect(controller.get('realStackUrl')).to.equal('apiPrefix/clusters/clusterName/stack_versions?fields=*,repository_versions/*,repository_versions/operating_systems/repositories/*');
+    });
+  });
+
+  describe("#realUpdateUrl", function() {
+    before(function () {
+      this.mock = sinon.stub(App, 'get');
+    });
+    after(function () {
+      this.mock.restore();
+    });
+    it("", function() {
+      this.mock.withArgs('apiPrefix').returns('apiPrefix');
+      this.mock.withArgs('clusterName').returns('clusterName');
+      controller.propertyDidChange('realUpdateUrl');
+      expect(controller.get('realUpdateUrl')).to.equal('apiPrefix/clusters/clusterName/stack_versions?fields=ClusterStackVersions/*');
+    });
+  });
+
+  describe("#load()", function() {
+    before(function(){
+      sinon.stub(controller, 'loadUpgradeData').returns({
+        done: function(callback) {callback();}
+      });
+      sinon.stub(controller, 'loadStackVersionsToModel').returns({
+        done: function(callback) {callback();}
+      });
+      sinon.stub(controller, 'loadRepoVersionsToModel').returns({
+        done: function(callback) {callback();}
+      });
+      sinon.stub(App.StackVersion, 'find').returns([Em.Object.create({
+        state: 'CURRENT',
+        repositoryVersion: {
+          repositoryVersion: '2.2',
+          displayName: 'HDP-2.2'
+        }
+      })]);
+    });
+    after(function(){
+      controller.loadUpgradeData.restore();
+      controller.loadStackVersionsToModel.restore();
+      controller.loadRepoVersionsToModel.restore();
+      App.StackVersion.find.restore();
+    });
+    it("", function() {
+      controller.load();
+      expect(controller.loadUpgradeData.calledWith(true)).to.be.true;
+      expect(controller.loadStackVersionsToModel.calledWith(true)).to.be.true;
+      expect(controller.loadRepoVersionsToModel.calledOnce).to.be.true;
+      expect(controller.get('currentVersion')).to.eql({
+        "repository_version": "2.2",
+        "repository_name": "HDP-2.2"
+      });
+    });
+  });
+
   describe("#loadUpgradeData()", function() {
     beforeEach(function () {
       sinon.stub(App.ajax, 'send').returns({
@@ -405,6 +487,11 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       App.clusterStatus.setClusterStatus.restore();
       controller.setDBProperty.restore();
     });
+    it("upgradeState is not COMPLETED", function() {
+      App.set('upgradeState', 'UPGRADING');
+      controller.finish();
+      expect(App.clusterStatus.setClusterStatus.called).to.be.false;
+    });
     it("upgradeState is COMPLETED", function() {
       App.set('upgradeState', 'COMPLETED');
       controller.finish();
@@ -413,12 +500,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(controller.setDBProperty.calledWith('upgradeState', 'INIT')).to.be.true;
       expect(controller.setDBProperty.calledWith('currentVersion', undefined)).to.be.true;
       expect(App.get('upgradeState')).to.equal('INIT');
-      expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.false;
-    });
-    it("upgradeState is not COMPLETED", function() {
-      App.set('upgradeState', 'UPGRADING');
-      controller.finish();
-      expect(App.clusterStatus.setClusterStatus.called).to.be.false;
+      expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
     });
   });
 
@@ -604,6 +686,128 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           }
         ]};
       expect(controller.prepareRepoForSaving(repo)).to.eql(result);
+    });
+  });
+
+  describe("#saveRepoOS()", function() {
+    before(function(){
+      this.mock = sinon.stub(controller, 'validateRepoVersions');
+      sinon.stub(controller, 'prepareRepoForSaving', Em.K);
+      sinon.stub(App.ajax, 'send').returns({success: Em.K});
+    });
+    after(function(){
+      this.mock.restore();
+      controller.prepareRepoForSaving.restore();
+      App.ajax.send.restore();
+    });
+    it("validation errors present", function() {
+      this.mock.returns({
+        done: function(callback) {callback([1]);}
+      });
+      controller.saveRepoOS(Em.Object.create({repoVersionId: 1}), true);
+      expect(controller.validateRepoVersions.calledWith(Em.Object.create({repoVersionId: 1}), true)).to.be.true;
+      expect(controller.prepareRepoForSaving.called).to.be.false;
+      expect(App.ajax.send.called).to.be.false;
+    });
+    it("no validation errors", function() {
+      this.mock.returns({
+        done: function(callback) {callback([]);}
+      });
+      controller.saveRepoOS(Em.Object.create({repoVersionId: 1}), true);
+      expect(controller.validateRepoVersions.calledWith(Em.Object.create({repoVersionId: 1}), true)).to.be.true;
+      expect(controller.prepareRepoForSaving.calledWith(Em.Object.create({repoVersionId: 1}))).to.be.true;
+      expect(App.ajax.send.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#validateRepoVersions()", function () {
+    before(function () {
+      sinon.stub(App.ajax, 'send').returns({success: Em.K, error: Em.K});
+    });
+    after(function () {
+      App.ajax.send.restore();
+    });
+    it("skip validation", function () {
+      controller.validateRepoVersions(Em.Object.create({repoVersionId: 1}), true);
+      expect(App.ajax.send.called).to.be.false;
+    });
+    it("do validation", function () {
+      var repo = Em.Object.create({
+        repoVersionId: 1,
+        operatingSystems: [
+          Em.Object.create({
+            isSelected: true,
+            repositories: [
+              Em.Object.create()
+            ]
+          })
+        ]
+      });
+      controller.validateRepoVersions(repo, false);
+      expect(App.ajax.send.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#showProgressPopup()", function () {
+    var mock = {
+      initPopup: Em.K
+    };
+    before(function () {
+      sinon.stub(App.router, 'get').withArgs('highAvailabilityProgressPopupController').returns(mock);
+      sinon.spy(mock, 'initPopup');
+    });
+    after(function () {
+      App.router.get.restore();
+      mock.initPopup.restore();
+    });
+    it("", function () {
+      controller.showProgressPopup(Em.Object.create());
+      expect(mock.initPopup.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#getUrl()", function() {
+    beforeEach(function(){
+      controller.reopen({
+        realStackUrl: 'realStackUrl',
+        realRepoUrl: 'realRepoUrl',
+        realUpdateUrl: 'realUpdateUrl'
+      });
+    });
+    it("full load is true, stack is null", function() {
+      expect(controller.getUrl(null, true)).to.equal('realRepoUrl');
+    });
+    it("full load is true, stack is valid", function() {
+      expect(controller.getUrl({}, true)).to.equal('realStackUrl');
+    });
+    it("full load is false, stack is valid", function() {
+      expect(controller.getUrl({}, false)).to.equal('realUpdateUrl');
+    });
+  });
+
+  describe("#loadStackVersionsToModel()", function () {
+    before(function () {
+      sinon.stub(App.HttpClient, 'get');
+    });
+    after(function () {
+      App.HttpClient.get.restore();
+    });
+    it("", function () {
+      controller.loadStackVersionsToModel();
+      expect(App.HttpClient.get.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#loadRepoVersionsToModel()", function () {
+    before(function () {
+      sinon.stub(App.HttpClient, 'get');
+    });
+    after(function () {
+      App.HttpClient.get.restore();
+    });
+    it("", function () {
+      controller.loadRepoVersionsToModel();
+      expect(App.HttpClient.get.calledOnce).to.be.true;
     });
   });
 });

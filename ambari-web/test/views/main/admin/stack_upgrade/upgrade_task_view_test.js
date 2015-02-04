@@ -26,6 +26,7 @@ describe('App.upgradeTaskView', function () {
     taskDetailsProperties: ['prop1']
   });
   view.removeObserver('content.isExpanded', view, 'doPolling');
+  view.removeObserver('outsideView', view, 'doPolling');
 
   describe("#logTabId", function() {
     it("", function() {
@@ -74,17 +75,46 @@ describe('App.upgradeTaskView', function () {
       view.doPolling.restore();
       this.clock.restore();
     });
-    it("isExpanded false", function () {
+    it("isExpanded = false, outsideView = false", function () {
       view.set('content.isExpanded', false);
+      view.set('outsideView', false);
       view.doPolling();
       expect(view.getTaskDetails.called).to.be.false;
     });
-    it("isExpanded true", function () {
+    it("isExpanded = true", function () {
       view.set('content.isExpanded', true);
+      view.set('outsideView', false);
       view.doPolling();
       expect(view.getTaskDetails.calledOnce).to.be.true;
       this.clock.tick(App.bgOperationsUpdateInterval);
       expect(view.doPolling.calledTwice).to.be.true;
+    });
+    it("outsideView = true", function () {
+      view.set('outsideView', true);
+      view.set('content.isExpanded', false);
+      view.doPolling();
+      expect(view.getTaskDetails.calledOnce).to.be.true;
+      this.clock.tick(App.bgOperationsUpdateInterval);
+      expect(view.doPolling.calledTwice).to.be.true;
+    });
+  });
+
+  describe("#didInsertElement()", function() {
+    beforeEach(function () {
+      sinon.stub(view, 'doPolling', Em.K);
+    });
+    afterEach(function () {
+      view.doPolling.restore();
+    });
+    it("outsideView = true", function() {
+      view.set('outsideView', true);
+      view.didInsertElement();
+      expect(view.doPolling.calledOnce).to.be.true;
+    });
+    it("outsideView = false", function() {
+      view.set('outsideView', false);
+      view.didInsertElement();
+      expect(view.doPolling.called).to.be.false;
     });
   });
 
@@ -95,6 +125,7 @@ describe('App.upgradeTaskView', function () {
     });
     afterEach(function () {
       App.ajax.send.restore();
+      view.set('content', Em.Object.create());
     });
     it("call App.ajax.send()", function () {
       view.set('content.id', 1);
@@ -109,6 +140,11 @@ describe('App.upgradeTaskView', function () {
         },
         success: 'getTaskDetailsSuccessCallback'
       });
+    });
+    it("call App.ajax.send()", function () {
+      view.set('content', null);
+      view.getTaskDetails();
+      expect(App.ajax.send.called).to.be.false;
     });
   });
 
@@ -214,4 +250,32 @@ describe('App.upgradeTaskView', function () {
       expect(mockWindow.document.close.calledOnce).to.be.true;
     });
   });
+
+  describe("#showContent", function() {
+    it("outsideView = false, content.isExpanded = false", function() {
+      view.set('outsideView', false);
+      view.set('content.isExpanded', false);
+      view.propertyDidChange('showContent');
+      expect(view.get('showContent')).to.be.false;
+    });
+    it("outsideView = true, content.isExpanded = false", function() {
+      view.set('outsideView', true);
+      view.set('content.isExpanded', false);
+      view.propertyDidChange('showContent');
+      expect(view.get('showContent')).to.be.true;
+    });
+    it("outsideView = false, content.isExpanded = true", function() {
+      view.set('outsideView', false);
+      view.set('content.isExpanded', true);
+      view.propertyDidChange('showContent');
+      expect(view.get('showContent')).to.be.true;
+    });
+    it("outsideView = true, content.isExpanded = true", function() {
+      view.set('outsideView', true);
+      view.set('content.isExpanded', true);
+      view.propertyDidChange('showContent');
+      expect(view.get('showContent')).to.be.true;
+    });
+  });
+
 });

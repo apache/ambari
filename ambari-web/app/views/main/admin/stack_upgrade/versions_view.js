@@ -158,9 +158,10 @@ App.MainAdminStackVersionsView = Em.View.extend({
 
   /**
    * route to versions in Admin View
+   * @return {App.ModalPopup}
    */
   goToVersions: function () {
-    App.showConfirmationPopup(function () {
+    return App.showConfirmationPopup(function () {
       window.location.replace('/views/ADMIN_VIEW/1.0.0/INSTANCE/#/stackVersions');
     },
     Em.I18n.t('admin.stackVersions.manageVersions.popup.body'),
@@ -179,23 +180,31 @@ App.MainAdminStackVersionsView = Em.View.extend({
    * stop polling upgrade state
    */
   willDestroyElement: function () {
-    clearTimeout(this.get('updateTimer'));
+    window.clearTimeout(this.get('updateTimer'));
   },
 
   /**
-   * poll Upgrade state
+   * set timer for polling
    */
   doPolling: function () {
     var self = this;
-    this.set('updateTimer', setTimeout(function () {
-      //skip call if Upgrade wizard opened
-      if (App.router.get('updateController').get('isWorking')) {
-        self.get('controller').load().done(function () {
-          self.set('controller.isLoaded', true);
-          self.doPolling();
-        });
-      }
+    this.set('updateTimer', window.setTimeout(function () {
+      self.poll();
     }, App.bgOperationsUpdateInterval));
+  },
+
+  /**
+   * poll data
+   */
+  poll: function () {
+    var self = this;
+    //skip call if Upgrade wizard opened
+    if (App.router.get('updateController').get('isWorking')) {
+      this.get('controller').load().done(function () {
+        self.set('controller.isLoaded', true);
+        self.doPolling();
+      });
+    }
   }
 
 });

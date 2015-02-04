@@ -94,7 +94,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @type {String}
    */
   realStackUrl: function () {
-    return App.apiPrefix + '/clusters/' + App.get('clusterName') +
+    return App.get('apiPrefix') + '/clusters/' + App.get('clusterName') +
       '/stack_versions?fields=*,repository_versions/*,repository_versions/operating_systems/repositories/*';
   }.property('App.clusterName'),
 
@@ -103,7 +103,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @type {String}
    */
   realUpdateUrl: function () {
-    return App.apiPrefix + '/clusters/' + App.get('clusterName') + '/stack_versions?fields=ClusterStackVersions/*';
+    return App.get('apiPrefix') + '/clusters/' + App.get('clusterName') + '/stack_versions?fields=ClusterStackVersions/*';
   }.property('App.clusterName'),
 
   init: function () {

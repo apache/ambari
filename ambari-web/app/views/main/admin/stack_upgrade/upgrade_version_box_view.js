@@ -53,15 +53,14 @@ App.UpgradeVersionBoxView = Em.View.extend({
    * @type {string}
    */
   versionClass: function () {
-    return this.get('content.status') == 'CURRENT'
-      ? 'current-version-box' : '';
+    return this.get('content.status') === 'CURRENT' ? 'current-version-box' : '';
   }.property('content.status'),
 
   /**
    * @type {boolean}
    */
   isOutOfSync: function () {
-    return this.get('content.status') == 'OUT_OF_SYNC';
+    return this.get('content.status') === 'OUT_OF_SYNC';
   }.property('content.status'),
 
   /**
@@ -276,8 +275,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
    * @method filterHostsByStack
    */
   filterHostsByStack: function (version, state) {
-    if (!version || !state)
-      return;
+    if (!version || !state) return;
     App.router.get('mainHostController').filterByStack(version, state);
     App.router.get('mainHostController').set('showFilterConditionsFirstLoad', true);
     App.router.transitionTo('hosts.index');

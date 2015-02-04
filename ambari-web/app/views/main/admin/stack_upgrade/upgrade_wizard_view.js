@@ -120,7 +120,7 @@ App.upgradeWizardView = Em.View.extend({
 
   /**
    * details of currently active task
-   * @type {object|undefined}
+   * @type {object|null}
    */
   taskDetails: function () {
     if (this.get('runningItem')) {
@@ -129,6 +129,8 @@ App.upgradeWizardView = Em.View.extend({
       return this.get('failedItem').get('tasks').find(function (task) {
         return this.get('failedStatuses').contains(task.get('status'));
       }, this);
+    } else {
+      return null;
     }
   }.property('failedItem.tasks.@each.status', 'runningItem.tasks.@each.status'),
 

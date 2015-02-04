@@ -33,7 +33,7 @@ App.upgradeTaskView = Em.View.extend({
    */
   showContent: function () {
     return this.get('outsideView') || this.get('content.isExpanded');
-  }.property('content.isExpanded'),
+  }.property('content.isExpanded', 'outsideView'),
 
   /**
    * @type {boolean}

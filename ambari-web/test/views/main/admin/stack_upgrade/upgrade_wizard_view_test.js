@@ -26,15 +26,48 @@ describe('App.upgradeWizardView', function () {
   });
   view.reopen({
     controller: Em.Object.create({
+      upgradeData: Em.Object.create(),
       loadUpgradeData: Em.K,
       setUpgradeItemStatus: Em.K
-    }),
-    activeGroup: Em.Object.create()
+    })
   });
   view.removeObserver('App.clusterName', view, 'startPolling');
 
-  describe("#overallProgress", function() {
-    it("progress is 1.9", function() {
+  describe("#upgradeGroups", function () {
+    it("upgradeGroups is null", function () {
+      view.set('controller.upgradeData.upgradeGroups', null);
+      view.propertyDidChange('upgradeGroups');
+      expect(view.get('upgradeGroups')).to.be.empty;
+    });
+    it("upgradeGroups is valid", function () {
+      view.set('controller.upgradeData.upgradeGroups', [1]);
+      view.propertyDidChange('upgradeGroups');
+      expect(view.get('upgradeGroups')).to.eql([1]);
+    });
+  });
+
+  describe("#activeGroup", function () {
+    after(function () {
+      view.reopen({
+        activeGroup: Em.Object.create()
+      });
+    });
+    it("", function () {
+      view.reopen({
+        activeStatuses: ['IN_PROGRESS'],
+        upgradeGroups: [Em.Object.create({
+          status: 'IN_PROGRESS'
+        })]
+      });
+      view.propertyDidChange('activeGroup');
+      expect(view.get('activeGroup')).to.eql(Em.Object.create({
+        status: 'IN_PROGRESS'
+      }));
+    });
+  });
+
+  describe("#overallProgress", function () {
+    it("progress is 1.9", function () {
       view.set('controller.upgradeData', {
         Upgrade: {
           progress_percent: 1.9
@@ -42,7 +75,7 @@ describe('App.upgradeWizardView', function () {
       });
       expect(view.get('overallProgress')).to.equal(1);
     });
-    it("progress is 1", function() {
+    it("progress is 1", function () {
       view.set('controller.upgradeData', {
         Upgrade: {
           progress_percent: 1
@@ -52,7 +85,7 @@ describe('App.upgradeWizardView', function () {
     });
   });
 
-  describe("#startPolling()", function() {
+  describe("#startPolling()", function () {
     beforeEach(function () {
       sinon.stub(view.get('controller'), 'loadUpgradeData', function () {
         return {
@@ -68,13 +101,13 @@ describe('App.upgradeWizardView', function () {
       view.get('controller').loadUpgradeData.restore();
       view.doPolling.restore();
     });
-    it("clusterName is null", function() {
+    it("clusterName is null", function () {
       App.set('clusterName', null);
       view.startPolling();
       expect(view.doPolling.called).to.be.false;
       expect(view.get('isLoaded')).to.be.false;
     });
-    it("clusterName set", function() {
+    it("clusterName set", function () {
       App.set('clusterName', 'c1');
       view.startPolling();
       expect(view.get('controller').loadUpgradeData.calledOnce).to.be.true;
@@ -319,16 +352,232 @@ describe('App.upgradeWizardView', function () {
     });
   });
 
-  describe("#isDowngradeAvailable", function() {
-    it("downgrade available", function() {
+  describe("#isDowngradeAvailable", function () {
+    it("downgrade available", function () {
       view.set('controller.isDowngrade', false);
       view.propertyDidChange('isDowngradeAvailable');
       expect(view.get('isDowngradeAvailable')).to.be.true;
     });
-    it("downgrade unavailable", function() {
+    it("downgrade unavailable", function () {
       view.set('controller.isDowngrade', true);
       view.propertyDidChange('isDowngradeAvailable');
       expect(view.get('isDowngradeAvailable')).to.be.false;
     });
   });
+
+  describe("#taskDetails", function () {
+    it("runningItem present", function () {
+      view.reopen({
+        runningItem: Em.Object.create({
+          tasks: [{status: "IN_PROGRESS"}]
+        })
+      });
+      view.propertyDidChange('taskDetails');
+      expect(view.get('taskDetails')).to.eql({status: "IN_PROGRESS"});
+    });
+    it("failedItem present", function () {
+      view.reopen({
+        failedItem: Em.Object.create({
+          tasks: [Em.Object.create({status: "FAILED"})]
+        }),
+        failedStatuses: ['FAILED'],
+        runningItem: null
+      });
+      view.propertyDidChange('taskDetails');
+      expect(view.get('taskDetails').get('status')).to.equal('FAILED');
+    });
+    it("failedItem and runningItem are absent", function () {
+      view.reopen({
+        failedItem: null,
+        runningItem: null
+      });
+      view.propertyDidChange('taskDetails');
+      expect(view.get('taskDetails')).to.be.null;
+    });
+  });
+
+  describe("#isFinalizeItem", function () {
+    it("", function () {
+      view.reopen({
+        manualItem: {
+          context: 'Confirm Finalize'
+        }
+      });
+      view.propertyDidChange('isFinalizeItem');
+      expect(view.get('isFinalizeItem')).to.be.true;
+    });
+  });
+
+  describe("#toggleDetails()", function () {
+    before(function () {
+      sinon.stub(view, 'toggleProperty', Em.K);
+    });
+    after(function () {
+      view.toggleProperty.restore();
+    });
+    it("", function () {
+      view.toggleDetails();
+      expect(view.toggleProperty.calledWith('isDetailsOpened')).to.be.true;
+    });
+  });
+
+  describe("#upgradeStatusLabel", function () {
+    var testCases = [
+      {
+        data: {
+          status: 'QUEUED',
+          isDowngrade: false
+        },
+        result: Em.I18n.t('admin.stackUpgrade.state.inProgress')
+      },
+      {
+        data: {
+          status: 'PENDING',
+          isDowngrade: false
+        },
+        result: Em.I18n.t('admin.stackUpgrade.state.inProgress')
+      },
+      {
+        data: {
+          status: 'IN_PROGRESS',
+          isDowngrade: false
+        },
+        result: Em.I18n.t('admin.stackUpgrade.state.inProgress')
+      },
+      {
+        data: {
+          status: 'COMPLETED',
+          isDowngrade: false
+        },
+        result: Em.I18n.t('admin.stackUpgrade.state.completed')
+      },
+      {
+        data: {
+          status: 'ABORTED',
+          isDowngrade: false
+        },
+        result: Em.I18n.t('admin.stackUpgrade.state.paused')
+      },
+      {
+        data: {
+          status: 'TIMEDOUT',
+          isDowngrade: false
+        },
+        result: Em.I18n.t('admin.stackUpgrade.state.paused')
+      },
+      {
+        data: {
+          status: 'FAILED',
+          isDowngrade: false
+        },
+        result: Em.I18n.t('admin.stackUpgrade.state.paused')
+      },
+      {
+        data: {
+          status: 'HOLDING_FAILED',
+          isDowngrade: false
+        },
+        result: Em.I18n.t('admin.stackUpgrade.state.paused')
+      },
+      {
+        data: {
+          status: 'HOLDING_TIMEDOUT',
+          isDowngrade: false
+        },
+        result: Em.I18n.t('admin.stackUpgrade.state.paused')
+      },
+      {
+        data: {
+          status: 'HOLDING',
+          isDowngrade: false
+        },
+        result: Em.I18n.t('admin.stackUpgrade.state.paused')
+      },
+      {
+        data: {
+          status: '',
+          isDowngrade: false
+        },
+        result: ''
+      },
+      {
+        data: {
+          status: 'QUEUED',
+          isDowngrade: true
+        },
+        result: Em.I18n.t('admin.stackUpgrade.state.inProgress.downgrade')
+      },
+      {
+        data: {
+          status: 'PENDING',
+          isDowngrade: true
+        },
+        result: Em.I18n.t('admin.stackUpgrade.state.inProgress.downgrade')
+      },
+      {
+        data: {
+          status: 'IN_PROGRESS',
+          isDowngrade: true
+        },
+        result: Em.I18n.t('admin.stackUpgrade.state.inProgress.downgrade')
+      },
+      {
+        data: {
+          status: 'COMPLETED',
+          isDowngrade: true
+        },
+        result: Em.I18n.t('admin.stackUpgrade.state.completed.downgrade')
+      },
+      {
+        data: {
+          status: 'ABORTED',
+          isDowngrade: true
+        },
+        result: Em.I18n.t('admin.stackUpgrade.state.paused.downgrade')
+      },
+      {
+        data: {
+          status: 'TIMEDOUT',
+          isDowngrade: true
+        },
+        result: Em.I18n.t('admin.stackUpgrade.state.paused.downgrade')
+      },
+      {
+        data: {
+          status: 'FAILED',
+          isDowngrade: true
+        },
+        result: Em.I18n.t('admin.stackUpgrade.state.paused.downgrade')
+      },
+      {
+        data: {
+          status: 'HOLDING_FAILED',
+          isDowngrade: true
+        },
+        result: Em.I18n.t('admin.stackUpgrade.state.paused.downgrade')
+      },
+      {
+        data: {
+          status: 'HOLDING_TIMEDOUT',
+          isDowngrade: true
+        },
+        result: Em.I18n.t('admin.stackUpgrade.state.paused.downgrade')
+      },
+      {
+        data: {
+          status: 'HOLDING',
+          isDowngrade: true
+        },
+        result: Em.I18n.t('admin.stackUpgrade.state.paused.downgrade')
+      }
+    ].forEach(function (test) {
+        it('status = ' + test.data.status + ", isDowngrade = " + test.data.isDowngrade, function () {
+          view.set('controller.upgradeData.Upgrade.request_status', test.data.status);
+          view.set('controller.isDowngrade', test.data.isDowngrade);
+          view.propertyDidChange('upgradeStatusLabel');
+          expect(view.get('upgradeStatusLabel')).to.equal(test.result);
+        });
+      });
+  });
+
 });

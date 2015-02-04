@@ -1279,7 +1279,7 @@ Em.I18n.translations = {
   'admin.stackVersions.filter.upgradeReady': "Upgrade Ready ({0})",
   'admin.stackVersions.filter.installed': "Installed ({0})",
   'admin.stackVersions.filter.current': "Current ({0})",
-  'admin.stackVersions.filter.upgrading': "Upgrade In Process ({0})",
+  'admin.stackVersions.filter.upgrading': "Upgrade/Downgrade In Process ({0})",
   'admin.stackVersions.filter.upgraded': "Ready to Finalize ({0})",
 
   'admin.stackVersions.editRepositories.info': 'Provide Base URLs for the Operating Systems you are configuring. Uncheck all other Operating Systems.',
