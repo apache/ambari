@@ -164,7 +164,9 @@ public class ClusterGrouping extends Grouping {
 
       HostsType hosts = ctx.getResolver().getMasterAndHosts(service, component);
 
-      if (null != hosts) {
+      if (null == hosts) {
+        return null;
+      } else {
         realHosts = new LinkedHashSet<String>(hosts.hosts);
       }
     }
