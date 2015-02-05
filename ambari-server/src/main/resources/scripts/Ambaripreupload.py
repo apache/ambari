@@ -63,6 +63,8 @@ class params():
   hadoop_conf_dir = "/etc/hadoop/conf"
   user_group = "hadoop"
   security_enabled = False
+  oozie_user = "oozie"
+  execute_path = "/usr/hdp/current/hadoop-client/bin"
  
 params = params()
  
@@ -255,8 +257,17 @@ with Environment() as env:
  
   oozie_cmd = format("{put_shared_lib_to_hdfs_cmd} ; hadoop --config {hadoop_conf_dir} dfs -chmod -R 755 {oozie_hdfs_user_dir}/share")
   not_if_command = format("{kinit_if_needed} hadoop --config {hadoop_conf_dir} dfs -ls /user/oozie/share | awk 'BEGIN {{count=0;}} /share/ {{count++}} END {{if (count > 0) {{exit 0}} else {{exit 1}}}}'")
- 
-  #Execute(format("hadoop --config {hadoop_conf_dir} dfs -mkdir {
+  HdfsDirectory(format("{oozie_hdfs_user_dir}/share"),
+                action="create",
+                owner=oozie_user,
+                mode=0555,
+                conf_dir=params.hadoop_conf_dir,
+                hdfs_user=params.hdfs_user,
+                )
+
+  Execute( oozie_cmd, user = params.oozie_user, not_if = not_if_command,
+           path = params.execute_path )
+
   copy_tarballs_to_hdfs("/usr/hdp/current/hadoop-client/mapreduce.tar.gz", "wasb:///hdp/apps/{{ hdp_stack_version }}/mapreduce/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
   copy_tarballs_to_hdfs("/usr/hdp/current/tez-client/lib/tez.tar.gz", "wasb:///hdp/apps/{{ hdp_stack_version }}/tez/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
   copy_tarballs_to_hdfs("/usr/hdp/current/hive-client/hive.tar.gz", "wasb:///hdp/apps/{{ hdp_stack_version }}/hive/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
