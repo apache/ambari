@@ -259,7 +259,7 @@
   </property>
   <property>
     <name>zookeeper.session.timeout.ms</name>
-    <value>6000</value>
+    <value>30000</value>
     <description>Zookeeper session timeout. If the server fails to heartbeat to zookeeper within this period of time it is considered dead. If you set this too low the server may be falsely considered dead; if you set it too high it may take too long to recognize a truly dead server.</description>
   </property>
   <property>
