@@ -239,6 +239,12 @@ if (('hive-log4j' in config['configurations']) and ('content' in config['configu
 else:
   log4j_props = None
 
+#webhcat-log4j.properties.template
+if (('webhcat-log4j' in config['configurations']) and ('content' in config['configurations']['webhcat-log4j'])):
+  log4j_webhcat_props = config['configurations']['webhcat-log4j']['content']
+else:
+  log4j_webhcat_props = None
+
 #hive-exec-log4j.properties.template
 if (('hive-exec-log4j' in config['configurations']) and ('content' in config['configurations']['hive-exec-log4j'])):
   log4j_exec_props = config['configurations']['hive-exec-log4j']['content']

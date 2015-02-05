@@ -212,6 +212,12 @@ class TestWebHCatServer(RMFTestCase):
                               owner = 'hcat',
                               group = 'hadoop',
                               )
+    self.assertResourceCalled('File', '/etc/hcatalog/conf/webhcat-log4j.properties',
+                              content = 'log4jproperties\nline2',
+                              owner = 'hcat',
+                              group = 'hadoop',
+                              mode = 0644,
+                              )
 
   def assert_configure_secured(self):
     self.assertResourceCalled('HdfsDirectory', '/apps/webhcat',
@@ -313,6 +319,12 @@ class TestWebHCatServer(RMFTestCase):
                               content = InlineTemplate(self.getConfig()['configurations']['webhcat-env']['content']),
                               owner = 'hcat',
                               group = 'hadoop',
+                              )
+    self.assertResourceCalled('File', '/etc/hcatalog/conf/webhcat-log4j.properties',
+                              content = 'log4jproperties\nline2',
+                              owner = 'hcat',
+                              group = 'hadoop',
+                              mode = 0644,
                               )
 
   @patch("resource_management.libraries.functions.security_commons.build_expectations")

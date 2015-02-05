@@ -147,3 +147,19 @@ def webhcat():
        group=params.user_group,
        content=InlineTemplate(params.webhcat_env_sh_template)
   )
+
+  log4j_webhcat_filename = 'webhcat-log4j.properties'
+  if (params.log4j_webhcat_props != None):
+    File(format("{config_dir}/{log4j_webhcat_filename}"),
+         mode=0644,
+         group=params.user_group,
+         owner=params.webhcat_user,
+         content=params.log4j_webhcat_props
+    )
+  elif (os.path.exists("{config_dir}/{log4j_webhcat_filename}.template")):
+    File(format("{config_dir}/{log4j_webhcat_filename}"),
+         mode=0644,
+         group=params.user_group,
+         owner=params.webhcat_user,
+         content=StaticFile(format("{config_dir}/{log4j_webhcat_filename}.template"))
+    )

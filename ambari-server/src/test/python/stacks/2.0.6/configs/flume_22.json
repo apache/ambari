@@ -570,6 +570,9 @@
         "hive-exec-log4j": {
             "content": "log4jproperties\nline2"
         },
+        "webhcat-log4j": {
+             "content": "log4jproperties\nline2"
+        },
         "zookeeper-log4j": {
             "content": "log4jproperties\nline2"
         },
