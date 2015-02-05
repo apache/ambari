@@ -319,7 +319,7 @@ App.MainServiceItemView = Em.View.extend({
       });
       options.forEach(function(opt, index) {
         if ( JSON.stringify(opt) != JSON.stringify(self.get('maintenance')[index])  ) {
-          self.get('maintenance').push(opt);
+          self.get('maintenance').pushObject(opt);
         }
       });
     }

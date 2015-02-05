@@ -20,7 +20,7 @@ var App = require('app');
 
 var view;
 
-describe.skip('App.MainAlertsManageAlertGroupView', function () {
+describe('App.MainAlertsManageAlertGroupView', function () {
 
   beforeEach(function () {
 
