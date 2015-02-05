@@ -388,7 +388,7 @@ public class ClusterTest {
 
 
   @Test
-  public void testGetAndSetConfigs() throws AmbariException {
+  public void testGetAndSetConfigs() {
 
     Map<String, Map<String, String>> c1PropAttributes = new HashMap<String, Map<String,String>>();
     c1PropAttributes.put("final", new HashMap<String, String>());
@@ -724,7 +724,7 @@ public class ClusterTest {
   }
 
   @Test
-  public void testSingleServiceVersionForMultipleConfigs() throws AmbariException {
+  public void testSingleServiceVersionForMultipleConfigs() {
     Config config1 = configFactory.createNew(c1, "hdfs-site",
       new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<String, Map<String,String>>());
     config1.setTag("version1");

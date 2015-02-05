@@ -1753,12 +1753,12 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public ServiceConfigVersionResponse addDesiredConfig(String user, Set<Config> configs) throws AmbariException {
+  public ServiceConfigVersionResponse addDesiredConfig(String user, Set<Config> configs) {
     return addDesiredConfig(user, configs, null);
   }
 
   @Override
-  public ServiceConfigVersionResponse addDesiredConfig(String user, Set<Config> configs, String serviceConfigVersionNote) throws AmbariException {
+  public ServiceConfigVersionResponse addDesiredConfig(String user, Set<Config> configs, String serviceConfigVersionNote) {
     if (null == user) {
       throw new NullPointerException("User must be specified.");
     }
@@ -2161,7 +2161,7 @@ public class ClusterImpl implements Cluster {
   }
 
   @Transactional
-  ServiceConfigVersionResponse applyConfigs(Set<Config> configs, String user, String serviceConfigVersionNote) throws AmbariException {
+  ServiceConfigVersionResponse applyConfigs(Set<Config> configs, String user, String serviceConfigVersionNote) {
 
     String serviceName = null;
     for (Config config : configs) {
@@ -2173,7 +2173,7 @@ public class ClusterImpl implements Cluster {
           } else if (!serviceName.equals(entry.getKey())) {
             String error = "Updating configs for multiple services by a " +
                 "single API request isn't supported";
-            AmbariException exception = new AmbariException(error);
+            IllegalArgumentException exception = new IllegalArgumentException(error);
             LOG.error(error + ", config version not created");
             throw exception;
           } else {

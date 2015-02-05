@@ -1061,7 +1061,7 @@ public class ServiceComponentHostTest {
    * @param tag the config tag
    * @param values the values for the config
    */
-  private void makeConfig(Cluster cluster, String type, String tag, Map<String, String> values, Map<String, Map<String, String>> attributes) throws AmbariException {
+  private void makeConfig(Cluster cluster, String type, String tag, Map<String, String> values, Map<String, Map<String, String>> attributes) {
     Config config = configFactory.createNew(cluster, type, values, attributes);
     config.setTag(tag);
     config.persist();
