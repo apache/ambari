@@ -41,17 +41,19 @@ def setup_hadoop():
               recursive=True,
               owner='root',
               group=params.user_group,
-              mode=0775
+              mode=0775,
+              cd_access='a',
     )
     Directory(params.hadoop_pid_dir_prefix,
               recursive=True,
               owner='root',
-              group='root'
+              group='root',
+              cd_access='a',
     )
-  #this doesn't needed with stack 1
     Directory(params.hadoop_tmp_dir,
               recursive=True,
               owner=params.hdfs_user,
+              cd_access='a',
               )
   #files
     if params.security_enabled:

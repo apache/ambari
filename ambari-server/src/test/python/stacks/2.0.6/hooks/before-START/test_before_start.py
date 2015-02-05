@@ -41,15 +41,18 @@ class TestHookBeforeStart(RMFTestCase):
                               group = 'hadoop',
                               mode = 0775,
                               recursive = True,
+                              cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop',
                               owner = 'root',
                               group = 'root',
                               recursive = True,
+                              cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/tmp/hadoop-hdfs',
                               owner = 'hdfs',
                               recursive = True,
+                              cd_access = 'a',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/commons-logging.properties',
                               content = Template('commons-logging.properties.j2'),
@@ -99,15 +102,18 @@ class TestHookBeforeStart(RMFTestCase):
                               group = 'hadoop',
                               mode = 0775,
                               recursive = True,
+                              cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop',
                               owner = 'root',
                               group = 'root',
                               recursive = True,
+                              cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/tmp/hadoop-hdfs',
                               owner = 'hdfs',
                               recursive = True,
+                              cd_access = 'a',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/commons-logging.properties',
                               content = Template('commons-logging.properties.j2'),
@@ -174,15 +180,18 @@ class TestHookBeforeStart(RMFTestCase):
                               group = 'hadoop',
                               mode = 0775,
                               recursive = True,
+                              cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop',
                               owner = 'root',
                               group = 'root',
                               recursive = True,
+                              cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/tmp/hadoop-hdfs',
                               owner = 'hdfs',
                               recursive = True,
+                              cd_access = 'a',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/commons-logging.properties',
                               content = Template('commons-logging.properties.j2'),
