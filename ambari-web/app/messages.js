@@ -1737,7 +1737,7 @@ Em.I18n.translations = {
       '<li>Login to the target host <b>{2}</b> and change permissions for the NameNode dirs by running:' +
       '<div class="code-snippet">chown -R {3}:{5} {6}</div></li>' +
       '<li>Create marker directory by running:' +
-      '<div class="code-snippet">mkdir -p /var/run/hadoop/hdfs/namenode/formatted</div></li>' +
+      '<div class="code-snippet">mkdir -p /var/lib/hdfs/namenode/formatted</div></li>' +
       '</ol>' +
       '</div>',
   'services.reassign.step5.body.namenode_ha':
