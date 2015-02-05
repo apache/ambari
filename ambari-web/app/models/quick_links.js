@@ -300,5 +300,12 @@ App.QuickLinks.FIXTURES = [
     site: 'falcon-env',
     regex: '^(\\d+)$',
     default_http_port: 15000
+  },
+  {
+    id: 33,
+    label:'Ranger Admin UI',
+    url:'%@://%@:6080/',
+    service_id: 'RANGER',
+    template:'%@://%@:6080/'
   }
 ];
