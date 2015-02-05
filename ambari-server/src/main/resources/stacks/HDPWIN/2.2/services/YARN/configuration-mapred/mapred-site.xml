@@ -24,87 +24,77 @@
 
   <property>
     <name>mapreduce.admin.user.env</name>
-    <value>LD_LIBRARY_PATH=/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-amd64-64</value>
-    <description>
-      Additional execution environment entries for map and reduce task processes.
-      This is not an additive property. You must preserve the original value if
-      you want your map and reduce tasks to have access to native libraries (compression, etc)
-    </description>
+    <deleted>true</deleted>
+    <value/>
+    <description/>
   </property>
 
   <property>
     <name>mapreduce.application.classpath</name>
-    <value>$PWD/mr-framework/hadoop/share/hadoop/mapreduce/*:$PWD/mr-framework/hadoop/share/hadoop/mapreduce/lib/*:$PWD/mr-framework/hadoop/share/hadoop/common/*:$PWD/mr-framework/hadoop/share/hadoop/common/lib/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/lib/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/lib/*:/usr/hdp/${hdp.version}/hadoop/lib/hadoop-lzo-0.6.0.${hdp.version}.jar:/etc/hadoop/conf/secure</value>
+    <value>
+      C:\hdp\hadoop\etc\hadoop;C:\hdp\hadoop\etc\hadoop;C:\hdp\hadoop\share\hadoop\common\lib\*;C:\hdp\hadoop\share\hadoop\common\*;C:\hdp\hadoop\share\hadoop\hdfs;C:\hdp\hadoop\share\hadoop\hdfs\lib\*;C:\hdp\hadoop\share\hadoop\hdfs\*;C:\hdp\hadoop\share\hadoop\yarn\lib\*;C:\hdp\hadoop\share\hadoop\yarn\*;C:\hdp\hadoop\share\hadoop\mapreduce\lib\*;C:\hdp\hadoop\share\hadoop\mapreduce\*;C:\hdp\hadoop\share\hadoop\yarn\*;C:\hdp\hadoop\share\hadoop\mapreduce\lib\*;C:\hdp\hadoop\modules\*
+    </value>
     <description>
-      CLASSPATH for MR applications. A comma-separated list of CLASSPATH
-      entries.
+      CLASSPATH for MR applications. A comma-separated list of CLASSPATH entries.
     </description>
   </property>
 
   <property>
     <name>mapreduce.application.framework.path</name>
-    <value>/hdp/apps/${hdp.version}/mapreduce/mapreduce.tar.gz#mr-framework</value>
-    <description></description>
+    <deleted>true</deleted>
+    <value/>
+    <description/>
   </property>
 
   <property>
     <name>yarn.app.mapreduce.am.admin-command-opts</name>
-    <value>-Dhdp.version=${hdp.version}</value>
-    <description>
-      Java opts for the MR App Master processes.
-      The following symbol, if present, will be interpolated: @taskid@ is replaced
-      by current TaskID. Any other occurrences of '@' will go unchanged.
-      For example, to enable verbose gc logging to a file named for the taskid in
-      /tmp and to set the heap maximum to be a gigabyte, pass a 'value' of:
-      -Xmx1024m -verbose:gc -Xloggc:/tmp/@taskid@.gc
-
-      Usage of -Djava.library.path can cause programs to no longer function if
-      hadoop native libraries are used. These values should instead be set as part
-      of LD_LIBRARY_PATH in the map / reduce JVM env using the mapreduce.map.env and
-      mapreduce.reduce.env config settings.
-    </description>
+    <deleted>true</deleted>
+    <value/>
+    <description/>
   </property>
 
   <property>
     <name>mapreduce.admin.map.child.java.opts</name>
-    <value>-server -XX:NewRatio=8 -Djava.net.preferIPv4Stack=true -Dhdp.version=${hdp.version}</value>
-    <description></description>
+    <deleted>true</deleted>
+    <value/>
+    <description/>
   </property>
 
   <property>
     <name>mapreduce.admin.reduce.child.java.opts</name>
-    <value>-server -XX:NewRatio=8 -Djava.net.preferIPv4Stack=true -Dhdp.version=${hdp.version}</value>
-    <description></description>
+    <deleted>true</deleted>
+    <value/>
+    <description/>
   </property>
 
   <property>
     <name>mapreduce.reduce.shuffle.fetch.retry.enabled</name>
     <value>1</value>
-    <description></description>
+    <description/>
   </property>
 
   <property>
     <name>mapreduce.reduce.shuffle.fetch.retry.interval-ms</name>
     <value>1000</value>
-    <description></description>
+    <description/>
   </property>
 
   <property>
     <name>mapreduce.reduce.shuffle.fetch.retry.timeout-ms</name>
     <value>30000</value>
-    <description></description>
+    <description/>
   </property>
 
   <property>
     <name>mapreduce.job.emit-timeline-data</name>
     <value>false</value>
-    <description></description>
+    <description/>
   </property>
 
   <property>
     <name>mapreduce.jobhistory.bind-host</name>
     <value>0.0.0.0</value>
-    <description></description>
+    <description/>
   </property>
 
 </configuration>

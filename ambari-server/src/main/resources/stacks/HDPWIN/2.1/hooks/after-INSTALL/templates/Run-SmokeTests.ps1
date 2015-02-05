@@ -114,6 +114,7 @@ function Run-PigSmokeTest
     $ts=Get-TimeStamp
     Write-Host "Pig smoke test - wordcount using hadoop.cmd file"
     $pigscript = Join-Path $ENV:TMP "script-$ts.pig"
+    Invoke-HadoopCmd "dfs -mkdir -p /user/hadoop/"
     Invoke-HadoopCmd "dfs -copyFromLocal $ENV:HADOOP_HOME\bin\hadoop.cmd hadoop-$ts"
     Add-Content $pigscript "A = load 'hadoop-$ts' using PigStorage(' ');"
     Add-Content $pigscript "B = foreach A generate `$0 as id;"
