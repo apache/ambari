@@ -1172,26 +1172,6 @@ describe('App.InstallerStep7Controller', function () {
     });
   });
 
-  describe('#_updateValueForCheckBoxConfig', function () {
-    Em.A([
-        {
-          v: 'true',
-          e: true
-        },
-        {
-          v: 'false',
-          e: false
-        }
-      ]).forEach(function (test) {
-        it(test.v, function () {
-          var serviceConfigProperty = Em.Object.create({value: test.v});
-          installerStep7Controller._updateValueForCheckBoxConfig(serviceConfigProperty);
-          expect(serviceConfigProperty.get('value')).to.equal(test.e);
-          expect(serviceConfigProperty.get('defaultValue')).to.equal(test.e);
-        });
-      });
-  });
-
   describe('#_updateIsEditableFlagForConfig', function () {
     beforeEach(function(){
       this.mock = sinon.stub(App, 'isAccessible');

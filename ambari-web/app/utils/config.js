@@ -247,9 +247,6 @@ App.config = Em.Object.create({
       config.value = config.value.slice(0, config.value.length - 1);
       config.defaultValue = config.value;
     }
-    if (config.displayType === 'checkbox') {
-      config.value = (config.value === 'true') ? config.defaultValue = true : config.defaultValue = false;
-    }
   },
   /**
    * calculate config properties:
@@ -522,11 +519,6 @@ App.config = Em.Object.create({
           }
         }
 
-        if (configData.displayType === 'checkbox') {
-          configData.value = configData.value === 'true'; // convert {String} value to {Boolean}
-          configData.defaultValue = configData.value;
-        }
-
         mergedConfigs.push(configData);
       } else {
         preDefinedCfgs.forEach(function (cfg) {
@@ -563,9 +555,7 @@ App.config = Em.Object.create({
     // Password fields should be made blank by default in installer wizard
     // irrespective of whatever value is sent from stack definition.
     // This forces the user to fill the password field.
-    if (configData.displayType == 'checkbox') {
-      configData.value = advanced ? advanced.value === 'true' : configData.value === 'true';
-    } else if (configData.displayType == 'password') {
+    if (configData.displayType == 'password') {
       configData.value = '';
     } else {
       configData.value = advanced ? advanced.value : configData.value;
@@ -1136,13 +1126,6 @@ App.config = Em.Object.create({
     if (serviceConfig && serviceConfig.displayType === 'int') {
       if (/\d+m$/.test(hostOverrideValue)) {
         return hostOverrideValue.slice(0, hostOverrideValue.length - 1);
-      }
-    } else if (serviceConfig && serviceConfig.displayType === 'checkbox') {
-      switch (hostOverrideValue) {
-        case 'true':
-          return true;
-        case 'false':
-          return false;
       }
     }
     return hostOverrideValue;

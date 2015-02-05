@@ -998,7 +998,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
     var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
 
-    this.setValueForCheckBox(serviceConfigProperty);
     this.setSupportsFinal(serviceConfigProperty);
     this.setValuesForOverrides(overrides, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected);
     this.setEditability(serviceConfigProperty, defaultGroupSelected);
@@ -1098,25 +1097,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       newSCP.set('isEditable', false);
     }
     return newSCP;
-  },
-
-  /**
-   * convert string values to boolean for checkboxes
-   * @param {Ember.Object} serviceConfigProperty
-   */
-  setValueForCheckBox: function (serviceConfigProperty) {
-    if (serviceConfigProperty.get("displayType") == 'checkbox') {
-      switch (serviceConfigProperty.get("value")) {
-        case 'true':
-          serviceConfigProperty.set("value", true);
-          serviceConfigProperty.set("defaultValue", true);
-          break;
-        case 'false':
-          serviceConfigProperty.set("value", false);
-          serviceConfigProperty.set("defaultValue", false);
-          break;
-      }
-    }
   },
 
   /**

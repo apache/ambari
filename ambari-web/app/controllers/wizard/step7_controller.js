@@ -398,28 +398,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
   },
 
   /**
-   * By default <code>value</code>-property is string "true|false".
-   * Should update it to boolean type
-   * Also affects <code>defaultValue</code>
-   * @param {Ember.Object} serviceConfigProperty
-   * @returns {Ember.Object} Updated config-object
-   * @method _updateValueForCheckBoxConfig
-   */
-  _updateValueForCheckBoxConfig: function (serviceConfigProperty) {
-    var v = serviceConfigProperty.get('value');
-    switch (serviceConfigProperty.get('value')) {
-      case 'true':
-        v = true;
-        break;
-      case 'false':
-        v = false;
-        break;
-    }
-    serviceConfigProperty.setProperties({value: v, defaultValue: v});
-    return serviceConfigProperty;
-  },
-
-  /**
    * Set <code>isEditable</code>-property to <code>serviceConfigProperty</code>
    * Based on user's permissions and selected config group
    * @param {Ember.Object} serviceConfigProperty
@@ -502,9 +480,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
 
       if (Em.isNone(serviceConfigProperty.get('isOverridable'))) {
         serviceConfigProperty.set('isOverridable', true);
-      }
-      if (serviceConfigProperty.get('displayType') === 'checkbox') {
-        this._updateValueForCheckBoxConfig(serviceConfigProperty);
       }
       this._updateOverridesForConfig(serviceConfigProperty, component);
       this._updateIsEditableFlagForConfig(serviceConfigProperty, defaultGroupSelected);

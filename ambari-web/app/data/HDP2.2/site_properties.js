@@ -134,7 +134,7 @@ hdp22properties.push(
   {
     "id": "site property",
     "name": "ranger-hdfs-plugin-enabled",
-    "defaultValue": "no",
+    "displayType": "checkbox",
     "displayName": "Enable Ranger for HDFS",
     "filename": "ranger-hdfs-plugin-properties.xml",
     "category": "RangerSettings",
@@ -189,7 +189,7 @@ hdp22properties.push(
   {
     "id": "site property",
     "name": "ranger-hive-plugin-enabled",
-    "defaultValue": "no",
+    "displayType": "checkbox",
     "displayName": "Enable Ranger for HIVE",
     "filename": "ranger-hive-plugin-properties.xml",
     "category": "RangerSettings",
@@ -254,7 +254,7 @@ hdp22properties.push(
   {
     "id": "site property",
     "name": "ranger-hbase-plugin-enabled",
-    "defaultValue": "no",
+    "displayType": "checkbox",
     "displayName": "Enable Ranger for HBASE",
     "filename": "ranger-hbase-plugin-properties.xml",
     "category": "RangerSettings",
@@ -319,7 +319,7 @@ hdp22properties.push(
   {
     "id": "site property",
     "name": "ranger-storm-plugin-enabled",
-    "defaultValue": "no",
+    "displayType": "checkbox",
     "displayName": "Enable Ranger for STORM",
     "filename": "ranger-storm-plugin-properties.xml",
     "category": "RangerSettings",
@@ -374,7 +374,7 @@ hdp22properties.push(
   {
     "id": "site property",
     "name": "ranger-knox-plugin-enabled",
-    "defaultValue": "no",
+    "displayType": "checkbox",
     "displayName": "Enable Ranger for KNOX",
     "filename": "ranger-knox-plugin-properties.xml",
     "category": "RangerSettings",

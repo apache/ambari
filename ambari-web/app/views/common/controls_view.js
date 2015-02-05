@@ -203,7 +203,62 @@ App.ServiceConfigBigTextArea = App.ServiceConfigTextArea.extend(App.ServiceConfi
  */
 App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, {
 
-  checkedBinding: 'serviceConfig.value',
+  allowedPairs: {
+    'trueFalse': ["true", "false"],
+    'YesNo': ["Yes", "No"],
+    'YESNO': ["YES", "NO"],
+    'yesNo': ["yes", "no"]
+  },
+
+  trueValue: true,
+  falseValue: false,
+
+  checked: false,
+
+  /**
+   * set appropriate config values pair
+   * to define which value is positive (checked) property
+   * and what value is negative (unchecked) proeprty
+   */
+  didInsertElement: function() {
+    this._super();
+    this.addObserver('serviceConfig.value', this, 'toggleChecker');
+    Object.keys(this.get('allowedPairs')).forEach(function(key) {
+      if (this.get('allowedPairs')[key].contains(this.get('serviceConfig.value'))) {
+        this.set('trueValue', this.get('allowedPairs')[key][0]);
+        this.set('falseValue', this.get('allowedPairs')[key][1]);
+      }
+    }, this);
+    this.set('checked', this.get('serviceConfig.value') === this.get('trueValue'))
+  },
+
+  willDestroyElement: function() {
+    this.removeObserver('serviceConfig.value', this, 'checkedBinding');
+  },
+
+  /***
+   * defines if checkbox value appropriate to the config value
+   * @returns {boolean}
+   */
+  isNotAppropriateValue: function() {
+    return this.get('serviceConfig.value') !== this.get(this.get('checked') + 'Value');
+  },
+
+  /**
+   * change service config value if click on checkbox
+   */
+  toggleValue: function() {
+    if (this.isNotAppropriateValue())
+      this.set('serviceConfig.value', this.get(this.get('checked') + 'Value'));
+  }.observes('checked'),
+
+  /**
+   * change checkbox value if click on undo
+   */
+  toggleChecker: function() {
+    if (this.isNotAppropriateValue())
+      this.set('checked', !this.get('checked'));
+  },
 
   disabled: function () {
     return !this.get('serviceConfig.isEditable');

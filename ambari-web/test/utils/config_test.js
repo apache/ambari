@@ -72,26 +72,6 @@ describe('App.config', function () {
       expect(config.value).to.equal('1024');
       expect(config.defaultValue).to.equal('1024');
     });
-    it('value should be transformed to true from "true"', function () {
-      config = {
-        displayType: 'checkbox',
-        value: 'true',
-        defaultValue: 'true'
-      };
-      App.config.handleSpecialProperties(config);
-      expect(config.value).to.equal(true);
-      expect(config.defaultValue).to.equal(true);
-    });
-    it('value should be transformed to false from "false"', function () {
-      config = {
-        displayType: 'checkbox',
-        value: 'false',
-        defaultValue: 'false'
-      };
-      App.config.handleSpecialProperties(config);
-      expect(config.value).to.equal(false);
-      expect(config.defaultValue).to.equal(false);
-    });
   });
 
   describe('#capacitySchedulerFilter', function() {
