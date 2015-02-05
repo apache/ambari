@@ -48,7 +48,7 @@
   </property>
   <property>
     <name>hbase.cluster.distributed</name>
-    <value>false</value>
+    <value>{{hbase_cluster_distributed}}</value>
     <description>
       The mode the cluster will be in. Possible values are false for
       standalone mode and true for distributed mode. If false, startup will run
@@ -64,7 +64,7 @@
   </property>
   <property>
     <name>hbase.zookeeper.quorum</name>
-    <value>localhost</value>
+    <value>{{zookeeper_quorum_hosts}}</value>
     <description>Comma separated list of servers in the ZooKeeper Quorum.
       For example, "host1.mydomain.com,host2.mydomain.com,host3.mydomain.com".
       By default this is set to localhost for local and pseudo-distributed modes
