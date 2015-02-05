@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
+import re
 
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
@@ -25,42 +25,56 @@ from resource_management.core.shell import call
 from resource_management.core.exceptions import Fail
 
 
-class SAFEMODE:
+class SafeMode:
   ON = "ON"
   OFF = "OFF"
+  UNKNOWN = "UNKNOWN"
 
-
-safemode_to_instruction = {SAFEMODE.ON: "enter",
-                           SAFEMODE.OFF: "leave"}
+safemode_to_instruction = {SafeMode.ON: "enter",
+                           SafeMode.OFF: "leave"}
 
 def reach_safemode_state(user, safemode_state, in_ha):
   """
   Enter or leave safemode for the Namenode.
   @param user: user to perform action as
-  @param safemode_state: ON or OFF
+  @param safemode_state: Desired state of ON or OFF
   @param in_ha: bool indicating if Namenode High Availability is enabled
-  @:return True if successful, false otherwise.
+  @:return Returns a tuple of (transition success, original state). If no change is needed, the indicator of
+  success will be True
   """
   Logger.info("Prepare to transition into safemode state %s" % safemode_state)
   import params
+  original_state = SafeMode.UNKNOWN
 
   hostname = params.hostname
-  grep = format("Safe mode is {safemode_state} in {hostname}") if in_ha else format("Safe mode is {safemode_state}")
-  safemode_check = format("su - {user} -c 'hdfs dfsadmin -safemode get | grep \"{grep}\"'")
+  safemode_check = format("su - {user} -c 'hdfs dfsadmin -safemode get'")
+
+  grep_pattern = format("Safe mode is {safemode_state} in {hostname}") if in_ha else format("Safe mode is {safemode_state}")
+  safemode_check_with_grep = format("su - {user} -c 'hdfs dfsadmin -safemode get | grep \"{grep_pattern}\"'")
   code, out = call(safemode_check)
   Logger.info("Command: %s\nCode: %d." % (safemode_check, code))
-  if code != 0:
-    command = "hdfs dfsadmin -safemode %s" % (safemode_to_instruction[safemode_state])
-    Execute(command,
-            user=user,
-            logoutput=True,
-            path=[params.hadoop_bin_dir])
+  if code == 0 and out is not None:
+    Logger.info(out)
+    re_pattern = r"Safe mode is (\S*) in " + hostname.replace(".", "\\.") if in_ha else r"Safe mode is (\S*)"
+    m = re.search(re_pattern, out, re.IGNORECASE)
+    if m and len(m.groups()) >= 1:
+      original_state = m.group(1).upper()
 
-    code, out = call(safemode_check)
-    Logger.info("Command: %s\nCode: %d. Out: %s" % (safemode_check, code, out))
-    if code != 0:
-      return False
-  return True
+      if original_state == safemode_state:
+        return (True, original_state)
+      else:
+        # Make a transition
+        command = "hdfs dfsadmin -safemode %s" % (safemode_to_instruction[safemode_state])
+        Execute(command,
+                user=user,
+                logoutput=True,
+                path=[params.hadoop_bin_dir])
+
+        code, out = call(safemode_check_with_grep)
+        Logger.info("Command: %s\nCode: %d. Out: %s" % (safemode_check_with_grep, code, out))
+        if code == 0:
+          return (True, original_state)
+  return (False, original_state)
 
 
 def prepare_rolling_upgrade():
@@ -77,9 +91,9 @@ def prepare_rolling_upgrade():
   if params.security_enabled:
     Execute(format("{params.kinit_path_local} -kt {params.hdfs_user_keytab} {params.hdfs_principal_name}"))
 
-  safemode_transition_successful = reach_safemode_state(params.hdfs_user, SAFEMODE.OFF, True)
+  safemode_transition_successful, original_state = reach_safemode_state(params.hdfs_user, SafeMode.OFF, True)
   if not safemode_transition_successful:
-    raise Fail("Could not transition to safemode state %s. Please check logs to make sure namenode is up." % str(SAFEMODE.OFF))
+    raise Fail("Could not transition to safemode state %s. Please check logs to make sure namenode is up." % str(SafeMode.OFF))
 
   prepare = "hdfs dfsadmin -rollingUpgrade prepare"
   query = "hdfs dfsadmin -rollingUpgrade query"
@@ -102,10 +116,14 @@ def finalize_rolling_upgrade():
     Execute(format("{params.kinit_path_local} -kt {params.hdfs_user_keytab} {params.hdfs_principal_name}"))
 
   finalize_cmd = "hdfs dfsadmin -rollingUpgrade finalize"
+  query_cmd = "hdfs dfsadmin -rollingUpgrade query"
+
+  Execute(query_cmd,
+        user=params.hdfs_user,
+        logoutput=True)
   Execute(finalize_cmd,
           user=params.hdfs_user,
           logoutput=True)
-
-  safemode_transition_successful = reach_safemode_state(params.hdfs_user, SAFEMODE.OFF, True)
-  if not safemode_transition_successful:
-    Logger.warning("Could leave safemode")
+  Execute(query_cmd,
+          user=params.hdfs_user,
+          logoutput=True)
