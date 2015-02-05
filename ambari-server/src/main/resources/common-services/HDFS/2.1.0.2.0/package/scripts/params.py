@@ -241,9 +241,10 @@ if security_enabled:
   
   nn_kinit_cmd = format("{kinit_path_local} -kt {_nn_keytab} {_nn_principal_name};")
 
-  _jn_principal_name = config['configurations']['hdfs-site']['dfs.journalnode.kerberos.principal']
-  _jn_principal_name = _jn_principal_name.replace('_HOST', hostname.lower())
-  _jn_keytab = config['configurations']['hdfs-site']['dfs.journalnode.keytab.file']
+  _jn_principal_name = default("/configurations/hdfs-site/dfs.journalnode.kerberos.principal", None)
+  if _jn_principal_name:
+    _jn_principal_name = _jn_principal_name.replace('_HOST', hostname.lower())
+  _jn_keytab = default("/configurations/hdfs-site/dfs.journalnode.keytab.file", None)
   jn_kinit_cmd = format("{kinit_path_local} -kt {_jn_keytab} {_jn_principal_name};")
 else:
   dn_kinit_cmd = ""
