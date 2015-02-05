@@ -27,14 +27,6 @@ App.WizardStep10Controller = Em.Controller.extend({
   clusterInfo: [],
 
   /**
-   * Show message about required Nagios restart if AddHostWizard or AddServiceWizard used and Nagios is installed
-   * @type {bool}
-   */
-  isNagiosRestartRequired: function () {
-    return this.get('content.controllerName') !== 'installerController' && App.Service.find('NAGIOS').get('isLoaded');
-  }.property('content.controllerName'),
-
-  /**
    * is Add service wizard the ongoing wizard
    * @type {bool}
    */
@@ -186,7 +178,7 @@ App.WizardStep10Controller = Em.Controller.extend({
     components.forEach(function (_component) {
       var component = Em.Object.create(_component);
       if (['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'HISTORYSERVER', 'RESOURCEMANAGER', 'HBASE_MASTER',
-        'HIVE_SERVER', 'OOZIE_SERVER', 'GANGLIA_SERVER', 'NAGIOS_SERVER'].contains(component.component)) {
+        'HIVE_SERVER', 'OOZIE_SERVER', 'GANGLIA_SERVER'].contains(component.component)) {
         this.loadMasterComponent(component);
       }
     }, this);

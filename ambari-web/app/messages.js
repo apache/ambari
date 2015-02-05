@@ -354,7 +354,6 @@ Em.I18n.translations = {
   'host.trimspacesValidation': 'Cannot contain leading or trailing whitespace',
 
   'services.hdfs.rebalance.title' : 'HDFS Rebalance',
-  'services.nagios.description':'Nagios Monitoring and Alerting system',
   'services.ganglia.description':'Ganglia Metrics Collection system',
   'services.hdfs.description':'Apache Hadoop Distributed File System',
   'services.glusterfs.description':'Apache Hadoop Compatible File System (must be installed manually)',
@@ -397,7 +396,6 @@ Em.I18n.translations = {
   'services.alerts.brLastCheck': '<br>Last Checked {0}',
   'services.alerts.occurredOn': 'Occurred on {0}, {1}',
   'services.alerts.goToService': 'Go to Service',
-  'services.alerts.goToNagios': 'Go to Nagios Web UI',
 
   'services.summary.selectHostForComponent': 'Select the host to add {0} component',
   'services.summary.allHostsAlreadyRunComponent': 'All hosts already running {0} component',
@@ -532,7 +530,7 @@ Em.I18n.translations = {
   'installer.step3.hostWarningsPopup.report.fileFolders': '<br><br>######################################<br># Files and Folders<br>#<br># A space delimited list of files and folders which should not exist.<br># Provided so that administrators can easily copy paths into scripts, email etc.<br># Example: rm -r /etc/hadoop /etc/hbase<br>######################################<br>FILES AND FOLDERS<br>',
   'installer.step3.hostWarningsPopup.report.reverseLookup': '<br><br>######################################<br># Reverse Lookup<br># <br># The hostname was not found in the reverse DNS lookup. This may result in incorrect behavior. <br># Please check the DNS setup and fix the issue.<br>######################################<br>REVERSE LOOKUP<br>',
   'installer.step3.hostWarningsPopup.report.process': '<br><br>######################################<br># Processes<br>#<br># A comma separated list of process tuples which should not be running.<br># Provided so that administrators can easily copy paths into scripts, email etc.<br>######################################<br>PROCESSES<br>',
-  'installer.step3.hostWarningsPopup.report.package': '<br><br>######################################<br># Packages<br>#<br># A space delimited list of software packages which should be uninstalled.<br># Provided so that administrators can easily copy paths into scripts, email etc.<br># Example: yum remove hadoop-hdfs nagios<br>######################################<br>PACKAGES<br>',
+  'installer.step3.hostWarningsPopup.report.package': '<br><br>######################################<br># Packages<br>#<br># A space delimited list of software packages which should be uninstalled.<br># Provided so that administrators can easily copy paths into scripts, email etc.<br># Example: yum remove hadoop-hdfs yarn<br>######################################<br>PACKAGES<br>',
   'installer.step3.hostWarningsPopup.report.service': '<br><br>######################################<br># Services<br>#<br># A space delimited list of services which should be up and running.<br># Provided so that administrators can easily copy paths into scripts, email etc.<br># Example: services start ntpd httpd<br>######################################<br>SERVICES<br>',
   'installer.step3.hostWarningsPopup.report.user': '<br><br>######################################<br># Users<br>#<br># A space delimited list of users who should not exist.<br># Provided so that administrators can easily copy paths into scripts, email etc.<br># Example: userdel hdfs<br>######################################<br>USERS<br>',
   'installer.step3.hostWarningsPopup.report.folder': '\\ /folder',
@@ -801,9 +799,6 @@ Em.I18n.translations = {
 
   'installer.step10.header':'Summary',
   'installer.step10.body':'Here is the summary of the install process.',
-  'installer.step10.nagiosRestartRequired':' Restarting Nagios service is required for alerts and ' +
-    'notifications to work properly.  After clicking on the Complete button to dismiss this wizard, go to ' +
-    '<i>Services -> Nagios</i> to restart the Nagios service.',
   'installer.step10.staleServicesRestartRequired':' You may also need to restart other services for the newly added ' +
     'services to function properly (for example, HDFS and YARN/MapReduce need to be restarted after adding Oozie). After closing this ' +
     'wizard, please restart all services that have the restart indicator <i class="icon-refresh"></i> next to the service name.',
@@ -1585,9 +1580,6 @@ Em.I18n.translations = {
   'services.service.info.menu.configs':'Configs',
   'services.service.info.summary.hostsRunningMonitor':'{0}/{1}',
   'services.service.info.summary.serversHostCount':'{0} more',
-  'services.service.info.summary.nagiosWebUI':'Nagios Web UI',
-  'services.service.info.summary.nagios.noAlerts':'No alerts',
-  'services.service.info.summary.nagios.alerts':'Nagios service required for viewing alerts',
 
   'services.service.config.final':'Final',
   'services.service.config.saved':'Save Configuration Changes',
@@ -2024,7 +2016,6 @@ Em.I18n.translations = {
   'host.host.componentFilter.slave':'Slave Components',
   'host.host.componentFilter.client':'Client Components',
   'hosts.host.deleteComponent.popup.msg1':'Are you sure you want to delete {0}?',
-  'hosts.host.deleteComponent.popup.msg2':'<b>Important:</b> After this <i>{0}</i> is deleted, go to <i>Services -> Nagios</i> to restart the Nagios service.  This is required for the alerts and notifications to work properly.',
   'hosts.host.deleteComponent.popup.deleteZooKeeperServer':'Deleting <i>ZooKeeper Server</i> may reconfigure such properties:<ul><li>ha.zookeeper.quorum</li><li>hbase.zookeeper.quorum</li><li>templeton.zookeeper.hosts</li><li>yarn.resourcemanager.zk-address</li><li>hive.zookeeper.quorum</li><li>hive.cluster.delegation.token.store.zookeeper.connectString</li></ul>',
   'hosts.host.deleteComponent.popup.warning':'<b>WARNING!</b> Delete the last <i>{0}</i> component in the cluster?</br>Deleting the last component in the cluster could result in permanent loss of service data.',
   'hosts.host.deleteComponent.popup.confirm':'Confirm Delete',
@@ -2036,7 +2027,6 @@ Em.I18n.translations = {
   'host.host.addComponent.popup.dependedComponents.body': '{0} requires {1} to be installed along with it on the same host. Please add them first and then try adding {0}',
   'host.host.addComponent.popup.dependedComponents.header': 'Component dependencies',
   'hosts.host.zooKeeper.configs.save.note': 'This configuration is created by ambari while installing/deleting zookeeper component on a host',
-  'hosts.host.addComponent.note':'<b>Important:</b> After this <i>{0}</i> is installed, go to <i>Services -> Nagios</i> to restart the Nagios service.  This is required for the alerts and notifications to work properly.',
   'hosts.host.addComponent.securityNote':'You are running your cluster in secure mode. You must set up the keytab for {0} on {1} before you proceed. Otherwise, the component will not be able to start properly.',
   'hosts.host.addComponent.popup.confirm':'Confirm Add',
   'hosts.host.datanode.decommission':'Decommission DataNode',
@@ -2083,7 +2073,6 @@ Em.I18n.translations = {
   'hosts.decommission.tooltip.warning':'Cannot {0} since {1} is not running',
   'hosts.delete.popup.body':'Are you sure you want to delete host <i>{0}</i>?',
   'hosts.delete.popup.body.msg1':'By removing this host, Ambari will ignore future communications from this host. Software packages will not be removed from the host. The components on the host should not be restarted. If you wish to readd this host to the cluster, be sure to clean the host.',
-  'hosts.delete.popup.body.msg2':'After deleting this host, Nagios should be restarted to remove this host from Nagios monitoring. Go to the <i>Services</i> page to restart Nagios.',
   'hosts.delete.popup.body.msg3':'If this host was hosting a Zookeeper Server, the Zookeeper Service should be restarted. Go to the <i>Services</i> page.',
   'hosts.delete.popup.body.msg4':'<b>WARNING!</b> Delete the last <i>{0}</i> component[s] in the cluster?</br>Deleting the last components in the cluster could result in permanent loss of service data.',
   'hosts.delete.popup.body.msg.unknownComponents':'This host does not appear to be online and Ambari communication with the Agent has been lost.',

@@ -5,7 +5,7 @@
       "hosts" : [
         "c6403.ambari.apache.org"
       ],
-      "services": ["HDFS", "MAPREDUCE2", "YARN", "TEZ", "NAGIOS", "GANGLIA", "HIVE", "SQOOP", "OOZIE", "ZOOKEEPER", "FALCON", "STORM", "FLUME", "PIG"],
+      "services": ["HDFS", "MAPREDUCE2", "YARN", "TEZ", "GANGLIA", "HIVE", "SQOOP", "OOZIE", "ZOOKEEPER", "FALCON", "STORM", "FLUME", "PIG"],
       "Recommendation" : {
         "id" : 5
       },
@@ -126,9 +126,6 @@
                 },
                 {
                   "name" : "SECONDARY_NAMENODE"
-                },
-                {
-                  "name" : "NAGIOS_SERVER"
                 }
               ]
             }

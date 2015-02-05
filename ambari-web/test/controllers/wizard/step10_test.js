@@ -395,7 +395,7 @@ describe('App.WizardStep10Controller', function () {
 
   describe('#loadMasterComponents', function() {
 
-    var components = Em.A(['NAMENODE','SECONDARY_NAMENODE','JOBTRACKER','HISTORYSERVER','RESOURCEMANAGER','HBASE_MASTER','HIVE_SERVER','OOZIE_SERVER','GANGLIA_SERVER','NAGIOS_SERVER']);
+    var components = Em.A(['NAMENODE','SECONDARY_NAMENODE','JOBTRACKER','HISTORYSERVER','RESOURCEMANAGER','HBASE_MASTER','HIVE_SERVER','OOZIE_SERVER','GANGLIA_SERVER']);
 
     d3.range(1, components.length).forEach(function(i) {
       d3.range(1, i).forEach(function(j) {
@@ -409,42 +409,6 @@ describe('App.WizardStep10Controller', function () {
       });
     });
 
-  });
-
-  describe('#isNagiosRestartRequired', function() {
-    Em.A([
-      {
-        controllerName: 'addServiceController',
-        isLoaded: true,
-        e: true
-      },
-      {
-        controllerName: 'installerController',
-        isLoaded: true,
-        e: false
-      },
-      {
-        controllerName: 'addServiceController',
-        isLoaded: false,
-        e: false
-      },
-      {
-        controllerName: 'installerController',
-        isLoaded: false,
-        e: false
-      }
-    ]).forEach(function (test) {
-        it(test.controllerName + ' Nagios loaded' + test.isLoaded.toString(), function () {
-          controller.set('content.controllerName', test.controllerName);
-          sinon.stub(App.Service, 'find', function() {
-            return Em.Object.create({
-              isLoaded: test.isLoaded
-            })
-          });
-          expect(controller.get('isNagiosRestartRequired')).to.equal(test.e);
-          App.Service.find.restore();
-        });
-      });
   });
 
   describe('#loadRegisteredHosts', function() {

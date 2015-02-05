@@ -243,27 +243,6 @@
       ]
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/clusters/perf/components/NAGIOS_SERVER",
-      "ServiceComponentInfo" : {
-        "category" : "MASTER",
-        "cluster_name" : "perf",
-        "component_name" : "NAGIOS_SERVER",
-        "service_name" : "NAGIOS"
-      },
-      "host_components" : [
-        {
-          "href" : "http://192.168.56.101:8080/api/v1/clusters/perf/hosts/dev01.hortonworks.com/host_components/NAGIOS_SERVER",
-          "HostRoles" : {
-            "cluster_name" : "perf",
-            "component_name" : "NAGIOS_SERVER",
-            "host_name" : "dev01.hortonworks.com",
-            "maintenance_state" : "OFF",
-            "state" : "STARTED"
-          }
-        }
-      ]
-    },
-    {
       "href" : "http://192.168.56.101:8080/api/v1/clusters/perf/components/OOZIE_SERVER",
       "ServiceComponentInfo" : {
         "category" : "MASTER",

@@ -240,9 +240,6 @@ App.MainHostDetailsController = Em.Controller.extend({
       lastComponentError: Em.View.extend({
         template: Em.Handlebars.compile(Em.I18n.t('hosts.host.deleteComponent.popup.warning').format(displayName))
       }),
-      restartNagiosMsg: Em.View.extend({
-        template: Em.Handlebars.compile(Em.I18n.t('hosts.host.deleteComponent.popup.msg2').format(displayName))
-      }),
       deleteComponentMsg: function () {
         return Em.I18n.t('hosts.host.deleteComponent.popup.msg1').format(displayName);
       }.property(),
@@ -476,10 +473,6 @@ App.MainHostDetailsController = Em.Controller.extend({
 
       bodyClass: Em.View.extend({
         templateName: require('templates/main/host/details/addComponentPopup')
-      }),
-
-      restartNagiosMsg: Em.View.extend({
-        template: Em.Handlebars.compile(Em.I18n.t('hosts.host.addComponent.note').format(message))
       }),
 
       onPrimary: function () {
@@ -999,9 +992,6 @@ App.MainHostDetailsController = Em.Controller.extend({
       installComponentMessage: function () {
         return Em.I18n.t('hosts.host.installComponent.msg').format(displayName);
       }.property(),
-      restartNagiosMsg: Em.View.extend({
-        template: Em.Handlebars.compile(Em.I18n.t('hosts.host.addComponent.note').format(displayName))
-      }),
       bodyClass: Em.View.extend({
         templateName: require('templates/main/host/details/installComponentPopup')
       }),

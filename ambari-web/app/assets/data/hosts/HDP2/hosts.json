@@ -275,15 +275,6 @@
         },
         {
           "HostRoles" : {
-            "component_name" : "NAGIOS_SERVER",
-            "maintenance_state" : "OFF",
-            "service_name" : "NAGIOS",
-            "stale_configs" : true,
-            "state" : "INIT"
-          }
-        },
-        {
-          "HostRoles" : {
             "component_name" : "NAMENODE",
             "maintenance_state" : "OFF",
             "service_name" : "HDFS",

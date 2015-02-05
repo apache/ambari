@@ -95,7 +95,7 @@ App.ServiceConfigCategory = Ember.Object.extend({
 
   isForMasterComponent: function () {
     var masterServices = [ 'NameNode', 'SNameNode', 'JobTracker', 'HBase Master', 'Oozie Master',
-      'Hive Metastore', 'WebHCat Server', 'ZooKeeper Server', 'Nagios', 'Ganglia' ];
+      'Hive Metastore', 'WebHCat Server', 'ZooKeeper Server', 'Ganglia' ];
 
     return (masterServices.contains(this.get('name')));
   }.property('name'),

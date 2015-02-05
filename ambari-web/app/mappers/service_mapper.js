@@ -29,7 +29,7 @@ App.serviceMapper = App.QuickDataMapper.create({
         cachedService.ServiceInfo.state = service.ServiceInfo.state;
         cachedService.ServiceInfo.passive_state = service.ServiceInfo.maintenance_state;
 
-        //check whether Nagios installed and started
+        //check whether Alerts installed and started
         if (service.legacy_alerts) {
           cachedService.ServiceInfo.critical_alerts_count = service.legacy_alerts.summary.CRITICAL + service.legacy_alerts.summary.WARNING;
         }
@@ -44,7 +44,7 @@ App.serviceMapper = App.QuickDataMapper.create({
           components: []
         };
 
-        //check whether Nagios installed and started
+        //check whether Alerts installed and started
         if (service.legacy_alerts) {
           serviceData.ServiceInfo.critical_alerts_count = service.legacy_alerts.summary.CRITICAL + service.legacy_alerts.summary.WARNING;
         }

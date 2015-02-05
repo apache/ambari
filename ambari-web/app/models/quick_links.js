@@ -172,13 +172,6 @@ App.QuickLinks.FIXTURES = [
 
   },
   {
-    id:21,
-    label:'Nagios Web UI',
-    url:'%@://%@/nagios',
-    service_id: 'NAGIOS',
-    template:'%@://%@/nagios'
-  },
-  {
     id:23,
     label:'ResourceManager UI',
     url:'%@://%@:%@',

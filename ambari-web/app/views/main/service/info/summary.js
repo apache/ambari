@@ -67,12 +67,6 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
     return App.get('services.hasClient');
   }.property('App.services.hasClient'),
 
-  noTemplateService: function () {
-    var serviceName = this.get("service.serviceName");
-    //services with only master components
-    return serviceName == "NAGIOS";
-  }.property('controller.content'),
-
   hasManyServers: function () {
     return this.get('servers').length > 1;
   }.property('servers'),

@@ -29,13 +29,9 @@ App.WizardStep10View = Em.View.extend({
 
   serviceRestartText: function () {
     var controller = this.get('controller');
-    if (controller.get('isNagiosRestartRequired') && controller.get('isAddServiceWizard'))
-      return Em.I18n.t('common.important')  + Em.I18n.t('installer.step10.nagiosRestartRequired') + Em.I18n.t('installer.step10.staleServicesRestartRequired');
-    else if (controller.get('isNagiosRestartRequired'))
-      return Em.I18n.t('common.important') + Em.I18n.t('installer.step10.nagiosRestartRequired');
-    else if (controller.get('isAddServiceWizard'))
+    if (controller.get('isAddServiceWizard'))
       return Em.I18n.t('common.important') + Em.I18n.t('installer.step10.staleServicesRestartRequired');
     else
       return '';
-  }.property('controller.isNagiosRestartRequired','controller.isAddServiceWizard')
+  }.property('controller.isAddServiceWizard')
 });

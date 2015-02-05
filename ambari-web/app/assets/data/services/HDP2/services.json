@@ -82,22 +82,6 @@
       }
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/clusters/cl/services/NAGIOS",
-      "ServiceInfo" : {
-        "maintenance_state" : "OFF",
-        "cluster_name" : "cl",
-        "service_name" : "NAGIOS",
-        "state": "STARTED"
-      },
-      "alerts" : {
-        "summary" : {
-          "CRITICAL" : 0,
-          "OK" : 0,
-          "WARNING" : 0
-        }
-      }
-    },
-    {
       "href" : "http://192.168.56.101:8080/api/v1/clusters/cl/services/OOZIE",
       "ServiceInfo" : {
         "maintenance_state" : "OFF",

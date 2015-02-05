@@ -981,51 +981,6 @@ var props = {
       "category": "ZooKeeper Server",
       "component": "ZOOKEEPER_SERVER"
     },
-
-  /**********************************************NAGIOS***************************************/
-    {
-      "id": "puppet var",
-      "name": "nagios_server",
-      "displayName": "Nagios Server host",
-      "value": "",
-      "defaultValue": "localhost",
-      "description": "Nagios server host",
-      "displayType": "masterHost",
-      "isVisible": true,
-      "isOverridable": false,
-      "serviceName": "NAGIOS",
-      "category": "Nagios Server"
-    },
-    {
-      "id": "puppet var",
-      "name": "nagios_principal_name",
-      "displayName": "Principal name",
-      "value": "",
-      "defaultValue": "nagios",
-      "description": "Primary name for Nagios server",
-      "displayType": "principal",
-      "isVisible": true,
-      "isOverridable": false,
-      "serviceName": "NAGIOS",
-      "filename": "nagios-env.xml",
-      "category": "Nagios Server",
-      "component": "NAGIOS_SERVER"
-    },
-    {
-      "id": "puppet var",
-      "name": "nagios_keytab_path",
-      "displayName": " Path to keytab file",
-      "value": "",
-      "defaultValue": "/etc/security/keytabs/nagios.service.keytab",
-      "description": "Path to the Nagios server keytab file",
-      "displayType": "directory",
-      "isVisible": true,
-      "isOverridable": false,
-      "serviceName": "NAGIOS",
-      "filename": "nagios-env.xml",
-      "category": "Nagios Server",
-      "component": "NAGIOS_SERVER"
-    },
   /**********************************************Falcon***************************************/
     {
       "id": "puppet var",

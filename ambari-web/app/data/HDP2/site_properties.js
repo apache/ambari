@@ -3635,51 +3635,6 @@ var hdp2properties = [
     "filename": "oozie-env.xml",
     "category": "Advanced oozie-env"
   },
-/**********************************************NAGIOS***************************************/
-  {
-    "id": "puppet var",
-    "name": "nagios_web_login",
-    "displayName": "Nagios Admin username",
-    "description": "Nagios Web UI Admin username",
-    "defaultValue": "nagiosadmin",
-    "isReconfigurable": false,
-    "displayType": "user",
-    "isOverridable": false,
-    "isVisible": true,
-    "serviceName": "NAGIOS",
-    "category": "General",
-    "filename": "nagios-env.xml",
-    "index": 0
-  },
-  {
-    "id": "puppet var",
-    "name": "nagios_web_password",
-    "displayName": "Nagios Admin password",
-    "description": "Nagios Web UI Admin password",
-    "defaultValue": "",
-    "isReconfigurable": true,
-    "displayType": "password",
-    "isOverridable": false,
-    "isVisible": true,
-    "serviceName": "NAGIOS",
-    "filename": "nagios-env.xml",
-    "category": "General",
-    "index": 1
-  },
-  {
-    "id": "puppet var",
-    "name": "nagios_contact",
-    "displayName": "Hadoop Admin email",
-    "description": "Hadoop Administrator email for alert notification",
-    "defaultValue": "",
-    "displayType": "email",
-    "isOverridable": false,
-    "isVisible": true,
-    "serviceName": "NAGIOS",
-    "filename": "nagios-env.xml",
-    "category": "General",
-    "index": 2
-  },
 /**********************************************ZOOKEEPER***************************************/
   {
     "id": "puppet var",

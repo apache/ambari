@@ -74,10 +74,6 @@ App.AddSecurityConfigs = Em.Mixin.create({
   secureConfigs: function () {
     var configs = [
       {
-        name: 'nagios_principal_name',
-        serviceName: 'NAGIOS'
-      },
-      {
         name: 'zookeeper_principal_name',
         serviceName: 'ZOOKEEPER'
       },

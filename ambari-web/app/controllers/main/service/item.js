@@ -619,10 +619,6 @@ App.MainServiceItemController = Em.Controller.extend({
         templateName: require('templates/main/service/add_host_popup')
       }),
 
-      restartNagiosMsg: Em.View.extend({
-        template: Em.Handlebars.compile(Em.I18n.t('hosts.host.addComponent.note').format(componentDisplayName))
-      }),
-
       onPrimary: function () {
         var selectedHost = this.get('selectedHost');
 

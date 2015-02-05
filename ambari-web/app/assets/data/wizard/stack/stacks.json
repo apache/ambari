@@ -267,29 +267,6 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0/services/NAGIOS",
-          "StackServices" : {
-            "comments" : "Nagios Monitoring and Alerting system",
-            "custom_commands" : [ ],
-            "display_name" : "Nagios",
-            "required_services" : null,
-            "service_check_supported" : false,
-            "service_name" : "NAGIOS",
-            "service_version" : "3.5.0",
-            "stack_name" : "HDP",
-            "stack_version" : "2.0",
-            "user_name" : null,
-            "config_types" : {
-              "nagios-env" : {
-                "supports" : {
-                  "adding_forbidden" : "false",
-                  "final" : "false"
-                }
-              }
-            }
-          }
-        },
-        {
           "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0/services/OOZIE",
           "StackServices" : {
             "comments" : "System for workflow coordination and execution of Apache Hadoop jobs.  This also includes the installation of the optional Oozie Web Console which relies on and will install the <a target=\"_blank\" href=\"http://www.sencha.com/legal/open-source-faq/\">ExtJS</a> Library.\n      ",
@@ -722,29 +699,6 @@
                 "supports" : {
                   "adding_forbidden" : "false",
                   "final" : "true"
-                }
-              }
-            }
-          }
-        },
-        {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6/services/NAGIOS",
-          "StackServices" : {
-            "comments" : "Nagios Monitoring and Alerting system",
-            "custom_commands" : [ ],
-            "display_name" : "Nagios",
-            "required_services" : null,
-            "service_check_supported" : false,
-            "service_name" : "NAGIOS",
-            "service_version" : "3.5.0",
-            "stack_name" : "HDP",
-            "stack_version" : "2.0.6",
-            "user_name" : null,
-            "config_types" : {
-              "nagios-env" : {
-                "supports" : {
-                  "adding_forbidden" : "false",
-                  "final" : "false"
                 }
               }
             }
@@ -1224,29 +1178,6 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/NAGIOS",
-          "StackServices" : {
-            "comments" : "Nagios Monitoring and Alerting system",
-            "custom_commands" : [ ],
-            "display_name" : "Nagios",
-            "required_services" : null,
-            "service_check_supported" : false,
-            "service_name" : "NAGIOS",
-            "service_version" : "3.5.0",
-            "stack_name" : "HDP",
-            "stack_version" : "2.0.6.GlusterFS",
-            "user_name" : null,
-            "config_types" : {
-              "nagios-env" : {
-                "supports" : {
-                  "adding_forbidden" : "false",
-                  "final" : "false"
-                }
-              }
-            }
-          }
-        },
-        {
           "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/OOZIE",
           "StackServices" : {
             "comments" : "System for workflow coordination and execution of Apache Hadoop jobs.  This also includes the installation of the optional Oozie Web Console which relies on and will install the <a target=\"_blank\" href=\"http://www.sencha.com/legal/open-source-faq/\">ExtJS</a> Library.\n      ",
@@ -1716,29 +1647,6 @@
                 "supports" : {
                   "adding_forbidden" : "false",
                   "final" : "true"
-                }
-              }
-            }
-          }
-        },
-        {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/NAGIOS",
-          "StackServices" : {
-            "comments" : "Nagios Monitoring and Alerting system",
-            "custom_commands" : [ ],
-            "display_name" : "Nagios",
-            "required_services" : [ ],
-            "service_check_supported" : false,
-            "service_name" : "NAGIOS",
-            "service_version" : "3.5.0",
-            "stack_name" : "HDP",
-            "stack_version" : "2.1",
-            "user_name" : null,
-            "config_types" : {
-              "nagios-env" : {
-                "supports" : {
-                  "adding_forbidden" : "false",
-                  "final" : "false"
                 }
               }
             }
@@ -2311,29 +2219,6 @@
                 "supports" : {
                   "adding_forbidden" : "false",
                   "final" : "true"
-                }
-              }
-            }
-          }
-        },
-        {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/NAGIOS",
-          "StackServices" : {
-            "comments" : "Nagios Monitoring and Alerting system",
-            "custom_commands" : [ ],
-            "display_name" : "Nagios",
-            "required_services" : null,
-            "service_check_supported" : false,
-            "service_name" : "NAGIOS",
-            "service_version" : "3.5.0",
-            "stack_name" : "HDP",
-            "stack_version" : "2.1.GlusterFS",
-            "user_name" : null,
-            "config_types" : {
-              "nagios-env" : {
-                "supports" : {
-                  "adding_forbidden" : "false",
-                  "final" : "false"
                 }
               }
             }
@@ -2957,29 +2842,6 @@
                 "supports" : {
                   "adding_forbidden" : "false",
                   "final" : "true"
-                }
-              }
-            }
-          }
-        },
-        {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/NAGIOS",
-          "StackServices" : {
-            "comments" : "Nagios Monitoring and Alerting system",
-            "custom_commands" : [ ],
-            "display_name" : "Nagios",
-            "required_services" : [ ],
-            "service_check_supported" : false,
-            "service_name" : "NAGIOS",
-            "service_version" : "3.5.0",
-            "stack_name" : "HDP",
-            "stack_version" : "2.2",
-            "user_name" : null,
-            "config_types" : {
-              "nagios-env" : {
-                "supports" : {
-                  "adding_forbidden" : "false",
-                  "final" : "false"
                 }
               }
             }

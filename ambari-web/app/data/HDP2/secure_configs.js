@@ -114,15 +114,6 @@ var configs = [
     configs: configProperties.filterProperty('serviceName', 'OOZIE')
   },
   {
-    serviceName: 'NAGIOS',
-    displayName: 'Nagios',
-    configCategories: [
-      App.ServiceConfigCategory.create({ name: 'Nagios Server', displayName:  'Nagios Server'})
-    ],
-    sites: ['nagios-env'],
-    configs: configProperties.filterProperty('serviceName', 'NAGIOS')
-  },
-  {
     serviceName: 'STORM',
     displayName: 'Storm',
     filename: 'storm-site',

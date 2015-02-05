@@ -690,24 +690,6 @@
       }
     },
     {
-      "href" : "http://ambari-server:8080/api/v1/clusters/cluster/requests/1/tasks/49",
-      "Tasks" : {
-        "exit_code" : 999,
-        "stdout" : "",
-        "status" : "ABORTED",
-        "stderr" : "",
-        "host_name" : "host3",
-        "id" : 49,
-        "cluster_name" : "cluster",
-        "attempt_cnt" : 0,
-        "request_id" : 1,
-        "command" : "INSTALL",
-        "role" : "NAGIOS_SERVER",
-        "start_time" : -1,
-        "stage_id" : 2
-      }
-    },
-    {
       "href" : "http://ambari-server:8080/api/v1/clusters/cluster/requests/1/tasks/38",
       "Tasks" : {
         "exit_code" : 0,

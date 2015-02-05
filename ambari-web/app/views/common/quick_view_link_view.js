@@ -276,13 +276,13 @@ App.QuickViewLinks = Em.View.extend({
 
   /**
    * services that supports security. this array is used to find out protocol.
-   * becides GANGLIA, NAGIOS, YARN, MAPREDUCE2. These properties use
+   * becides GANGLIA, YARN, MAPREDUCE2. These properties use
    * their properties to know protocol
    */
   servicesSupportsHttps: ["HDFS", "HBASE"],
 
   /**
-   * setProtocol - if cluster is secure for some services (GANGLIA, NAGIOS, MAPREDUCE2, YARN and servicesSupportsHttps)
+   * setProtocol - if cluster is secure for some services (GANGLIA, MAPREDUCE2, YARN and servicesSupportsHttps)
    * protocol becomes "https" otherwise "http" (by default)
    * @param {String} service_id - service name
    * @param {Object} configProperties
@@ -299,9 +299,6 @@ App.QuickViewLinks = Em.View.extend({
     switch (service_id) {
       case "GANGLIA":
         return (ambariProperties && ambariProperties['ganglia.https'] == true) ? "https" : "http";
-        break;
-      case "NAGIOS":
-        return (ambariProperties && ambariProperties['nagios.https'] == true) ? "https" : "http";
         break;
       case "YARN":
         var yarnProperties = configProperties && configProperties.findProperty('type', 'yarn-site');
@@ -367,7 +364,6 @@ App.QuickViewLinks = Em.View.extend({
       case "hbase":
       case "oozie":
       case "ganglia":
-      case "nagios":
       case "storm":
       case "falcon":
         return "_blank";

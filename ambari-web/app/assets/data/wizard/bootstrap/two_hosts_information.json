@@ -75,10 +75,6 @@
               "type" : "not_exist"
             },
             {
-              "name" : "/etc/nagios",
-              "type" : "not_exist"
-            },
-            {
               "name" : "/var/run/hadoop",
               "type" : "not_exist"
             },
@@ -113,17 +109,9 @@
             {
               "name" : "/var/log/hive",
               "type" : "not_exist"
-            },
-            {
-              "name" : "/var/log/nagios",
-              "type" : "not_exist"
             }
           ],
           "rpms" : [
-            {
-              "name" : "nagios",
-              "installed" : true
-            },
             {
               "name" : "ganglia",
               "installed" : true
@@ -243,10 +231,6 @@
         "last_agent_env" : {
           "stackFoldersAndFiles" : [ ],
           "rpms" : [
-            {
-              "name" : "nagios",
-              "installed" : false
-            },
             {
               "name" : "ganglia",
               "installed" : false

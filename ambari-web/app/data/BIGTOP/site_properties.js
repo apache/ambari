@@ -3043,51 +3043,6 @@ module.exports =
       "filename": "oozie-env.xml",
       "category": "Advanced oozie-env"
     },
-  /**********************************************NAGIOS***************************************/
-    {
-      "id": "puppet var",
-      "name": "nagios_web_login",
-      "displayName": "Nagios Admin username",
-      "description": "Nagios Web UI Admin username",
-      "defaultValue": "nagiosadmin",
-      "isReconfigurable": false,
-      "displayType": "user",
-      "isOverridable": false,
-      "isVisible": true,
-      "serviceName": "NAGIOS",
-      "category": "General",
-      "filename": "nagios-env.xml",
-      "index": 0
-    },
-    {
-      "id": "puppet var",
-      "name": "nagios_web_password",
-      "displayName": "Nagios Admin password",
-      "description": "Nagios Web UI Admin password",
-      "defaultValue": "",
-      "isReconfigurable": true,
-      "displayType": "password",
-      "isOverridable": false,
-      "isVisible": true,
-      "serviceName": "NAGIOS",
-      "filename": "nagios-env.xml",
-      "category": "General",
-      "index": 1
-    },
-    {
-      "id": "puppet var",
-      "name": "nagios_contact",
-      "displayName": "Hadoop Admin email",
-      "description": "Hadoop Administrator email for alert notification",
-      "defaultValue": "",
-      "displayType": "email",
-      "isOverridable": false,
-      "isVisible": true,
-      "serviceName": "NAGIOS",
-      "filename": "nagios-env.xml",
-      "category": "General",
-      "index": 2
-    },
   /**********************************************ZOOKEEPER***************************************/
     {
       "id": "puppet var",
@@ -3709,38 +3664,6 @@ module.exports =
       "filename": "ganglia-env.xml",
       "category": "Users and Groups",
       "belongsToService": []
-    },
-    {
-      "id": "puppet var",
-      "name": "nagios_user",
-      "displayName": "Nagios User",
-      "description": "User to run Nagios as",
-      "defaultValue": "nagios",
-      "isReconfigurable": false,
-      "displayType": "user",
-      "isOverridable": false,
-      "isVisible": true,
-      "serviceName": "MISC",
-      "filename": "nagios-env.xml",
-      "category": "Users and Groups",
-      "belongsToService": ["NAGIOS"],
-      "index": 14
-    },
-    {
-      "id": "puppet var",
-      "name": "nagios_group",
-      "displayName": "Nagios Group",
-      "description": "Nagios Group",
-      "defaultValue": "nagios",
-      "isReconfigurable": false,
-      "displayType": "user",
-      "isOverridable": false,
-      "isVisible": true,
-      "serviceName": "MISC",
-      "filename": "nagios-env.xml",
-      "category": "Users and Groups",
-      "belongsToService": ["NAGIOS"],
-      "index": 13
     },
     {
       "id": "puppet var",

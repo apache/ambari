@@ -77,11 +77,6 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
       components: ['WEBHCAT_SERVER']
     },
     {
-      serviceName: 'NAGIOS',
-      configName: 'nagios_server',
-      components: ['NAGIOS_SERVER']
-    },
-    {
       serviceName: 'HDFS',
       configName: 'namenode_host',
       components: ['NAMENODE']
@@ -173,12 +168,6 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
       configName: 'webhcatserver_host',
       principalName: 'webHCat_http_principal_name',
       primaryName: 'HTTP/'
-    },
-    {
-      serviceName: 'NAGIOS',
-      configName: 'nagios_server',
-      principalName: 'nagios_principal_name',
-      primaryName: 'nagios/'
     }
   ],
 

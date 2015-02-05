@@ -739,19 +739,6 @@ describe('App.WizardStep8Controller', function () {
       });
   });
 
-  describe('#loadNagiosAdminValue', function() {
-    it('should use serviceConfigProperties nagios_web_login and nagios_contact', function() {
-      installerStep8Controller.set('content', {
-        serviceConfigProperties: [
-          {name: 'nagios_web_login', value: 'admin'},
-          {name: 'nagios_contact', value: 'admin@admin.com'}
-        ]
-      });
-      var nagiosAdmin = installerStep8Controller.loadNagiosAdminValue();
-      expect(nagiosAdmin).to.equal('admin / (admin@admin.com)');
-    });
-  });
-
   describe('#submit', function() {
     beforeEach(function() {
       sinon.stub(installerStep8Controller, 'submitProceed', Em.K);

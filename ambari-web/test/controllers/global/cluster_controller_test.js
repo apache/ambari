@@ -30,7 +30,7 @@ var modelSetup = require('test/init_model_test');
 describe('App.clusterController', function () {
   var controller = App.ClusterController.create();
   App.Service.FIXTURES = [
-    {service_name: 'NAGIOS'}
+    {service_name: 'GANGLIA'}
   ];
 
   describe('#updateLoadStatus()', function () {
@@ -250,22 +250,22 @@ describe('App.clusterController', function () {
   describe('#gangliaWebProtocol', function () {
     var testCases = [
       {
-        title: 'if ambariProperties is null then nagiosWebProtocol should be "http"',
+        title: 'if ambariProperties is null then gangliaWebProtocol should be "http"',
         data: null,
         result: 'http'
       },
       {
-        title: 'if ambariProperties is empty object then nagiosWebProtocol should be "http"',
+        title: 'if ambariProperties is empty object then gangliaWebProtocol should be "http"',
         data: {},
         result: 'http'
       },
       {
-        title: 'if nagios.https is false then nagiosWebProtocol should be "http"',
+        title: 'if ganglia.https is false then gangliaWebProtocol should be "http"',
         data: {'ganglia.https': false},
         result: 'http'
       },
       {
-        title: 'if nagios.https is true then nagiosWebProtocol should be "http"',
+        title: 'if ganglia.https is true then gangliaWebProtocol should be "http"',
         data: {'ganglia.https': true},
         result: 'https'
       }

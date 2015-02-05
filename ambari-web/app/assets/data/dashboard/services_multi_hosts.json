@@ -669,47 +669,6 @@
       ]
     },
     {
-      "href" : "http://ambari:8080/api/clusters/mycluster/services/NAGIOS",
-      "ServiceInfo" : {
-        "cluster_name" : "mycluster",
-        "service_name" : "NAGIOS"
-      },
-      "components" : [
-        {
-          "href" : "http://ambari:8080/api/clusters/mycluster/services/NAGIOS/components/NAGIOS_SERVER",
-          "ServiceComponentInfo" : {
-            "cluster_name" : "mycluster",
-            "component_name" : "NAGIOS_SERVER",
-            "service_name" : "NAGIOS"
-          },
-          "host_components" : [
-            {
-              "href" : "http://ambari:8080/api/clusters/mycluster/hosts/ip-10-83-47-139.ec2.internal/host_components/NAGIOS_SERVER",
-              "HostRoles" : {
-                "configs" : "{}",
-                "cluster_name" : "mycluster",
-                "desired_configs" : "{}",
-                "desired_state" : "STARTED",
-                "state" : "STARTED",
-                "component_name" : "NAGIOS_SERVER",
-                "host_name" : "ip-10-83-47-139.ec2.internal"
-              },
-              "component" : [
-                {
-                  "href" : "http://ambari:8080/api/clusters/mycluster/services/NAGIOS/components/NAGIOS_SERVER",
-                  "ServiceComponentInfo" : {
-                    "cluster_name" : "mycluster",
-                    "component_name" : "NAGIOS_SERVER",
-                    "service_name" : "NAGIOS"
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
       "href" : "http://ambari:8080/api/clusters/mycluster/services/HBASE",
       "ServiceInfo" : {
         "cluster_name" : "mycluster",

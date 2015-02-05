@@ -111,10 +111,6 @@ var serviceConfig,
       master: true
     },
     {
-      name: 'Nagios',
-      master: true
-    },
-    {
       name: 'Ganglia',
       master: true
     },

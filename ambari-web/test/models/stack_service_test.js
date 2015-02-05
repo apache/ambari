@@ -141,10 +141,6 @@ describe('App.StackService', function () {
         result: false
       },
       {
-        serviceName: 'NAGIOS',
-        result: true
-      },
-      {
         serviceName: 'GANGLIA',
         result: true
       }

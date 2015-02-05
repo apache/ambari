@@ -252,7 +252,6 @@ describe('utils/helper', function() {
           'MAPREDUCE2_CLIENT': 'MapReduce2 Client',
           'MAPREDUCE2_SERVICE_CHECK': 'MapReduce2 Service Check',
           'MYSQL_SERVER': 'MySQL Server',
-          'NAGIOS_SERVER': 'Nagios Server',
           'NAMENODE': 'NameNode',
           'NAMENODE_SERVICE_CHECK': 'NameNode Service Check',
           'NIMBUS': 'Nimbus',

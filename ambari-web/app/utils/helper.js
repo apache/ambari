@@ -481,6 +481,7 @@ App.format = {
       // for Decommission command, make sure the hostname is in lower case
        result = result.split(':')[0] + ': ' + result.split(':')[1].toLowerCase();
     }
+    //TODO check if UI use this
     if (result === ' Nagios Update Ignore Actionexecute') {
        result = Em.I18n.t('common.maintenance.task');
     }

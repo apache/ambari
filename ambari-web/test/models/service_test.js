@@ -108,10 +108,6 @@ var service,
       configurable: true
     },
     {
-      name: 'NAGIOS',
-      configurable: true
-    },
-    {
       name: 'ZOOKEEPER',
       configurable: true
     },
@@ -266,10 +262,6 @@ describe('App.Service', function () {
       },
       {
         serviceName: 'GANGLIA',
-        result: ['MONITORING']
-      },
-      {
-        serviceName: 'NAGIOS',
         result: ['MONITORING']
       },
       {

@@ -19,8 +19,6 @@
 var App = require('app');
 var uiEffects = require('utils/ui_effects');
 
-require('models/alert');
-
 App.MainDashboardServiceHealthView = Em.View.extend({
   classNameBindings: ["healthStatus", "healthStatusClass"],
   //template: Em.Handlebars.compile(""),

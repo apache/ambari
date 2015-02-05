@@ -25,7 +25,6 @@ App.ClusterController = Em.Controller.extend({
   clusterDataLoadedPercent: 'width:0', // 0 to 1
 
   isGangliaUrlLoaded: false,
-  isNagiosUrlLoaded: false,
 
   /**
    * Provides the URL to use for Ganglia server. This URL
@@ -34,15 +33,6 @@ App.ClusterController = Em.Controller.extend({
    * If null is returned, it means GANGLIA service is not installed.
    */
   gangliaUrl: null,
-
-  /**
-   * Provides the URL to use for NAGIOS server. This URL
-   * is helpful in getting alerts data from server and also
-   * in populating links in UI.
-   *
-   * If null is returned, it means NAGIOS service is not installed.
-   */
-  nagiosUrl: null,
 
   clusterName: function () {
     return App.get('clusterName');

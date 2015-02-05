@@ -127,16 +127,6 @@
         "output" : "TCP OK - 0.001 second response time on port 8670"
       },
       {
-        "description" : "Nagios status log freshness",
-        "host_name" : "dev01.hortonworks.com",
-        "last_status" : "OK",
-        "last_status_time" : 1389636508,
-        "service_name" : "NAGIOS",
-        "status" : "OK",
-        "status_time" : 1389793693,
-        "output" : "NAGIOS OK: 2 processes, status log updated 2 seconds ago"
-      },
-      {
         "description" : "NameNode host CPU utilization on dev01.hortonworks.com",
         "host_name" : "dev01.hortonworks.com",
         "last_status" : "OK",

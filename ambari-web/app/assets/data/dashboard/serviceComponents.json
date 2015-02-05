@@ -62,25 +62,6 @@
       ]
     },
     {
-      "href" : "http://ambari/api/clusters/vmc/services/NAGIOS",
-      "ServiceInfo" : {
-        "cluster_name" : "vmc",
-        "service_name" : "NAGIOS"
-      },
-      "components" : [
-        {
-          "href" : "http://ambari/api/clusters/vmc/services/NAGIOS/components/NAGIOS_SERVER",
-          "ServiceComponentInfo" : {
-            "cluster_name" : "vmc",
-            "desired_configs" : "{}",
-            "state" : "STARTED",
-            "component_name" : "NAGIOS_SERVER",
-            "service_name" : "NAGIOS"
-          }
-        }
-      ]
-    },
-    {
       "href" : "http://ambari/api/clusters/vmc/services/GANGLIA",
       "ServiceInfo" : {
         "cluster_name" : "vmc",

@@ -227,10 +227,6 @@ module.exports = Em.Application.create({
       return App.StackService.find().filterProperty('isServiceMetricsService').mapProperty('serviceName');
     }.property('App.router.clusterController.isLoaded'),
 
-    alerting: function () {
-      return App.StackService.find().filterProperty('isAlertingService').mapProperty('serviceName');
-    }.property('App.router.clusterController.isLoaded'),
-
     supportsServiceCheck: function() {
       return App.StackService.find().filterProperty('serviceCheckSupported').mapProperty('serviceName');
     }.property('App.router.clusterController.isLoaded')

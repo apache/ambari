@@ -64,15 +64,6 @@
           }
         },
         {
-          "href" : "http://162.216.148.67:8080/api/v1/clusters/c1/hosts/ambari-1.c.apache.internal/host_components/NAGIOS_SERVER",
-          "HostRoles" : {
-            "cluster_name" : "c1",
-            "component_name" : "NAGIOS_SERVER",
-            "host_name" : "ambari-1.c.apache.internal",
-            "state" : "INSTALLED"
-          }
-        },
-        {
           "href" : "http://162.216.148.67:8080/api/v1/clusters/c1/hosts/ambari-1.c.apache.internal/host_components/NAMENODE",
           "HostRoles" : {
             "cluster_name" : "c1",

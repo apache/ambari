@@ -95,7 +95,7 @@ App.StackService = DS.Model.extend({
 
   // Is the service required for monitoring of other hadoop ecosystem services
   isMonitoringService: function () {
-    var services = ['NAGIOS', 'GANGLIA'];
+    var services = ['GANGLIA'];
     return services.contains(this.get('serviceName'));
   }.property('serviceName'),
 
@@ -108,12 +108,6 @@ App.StackService = DS.Model.extend({
   // Is the service required for reporting hadoop service metrics
   isServiceMetricsService: function () {
       var services = ['GANGLIA'];
-      return services.contains(this.get('serviceName'));
-  }.property('serviceName'),
-
-  // Is the service required for reporting aleerts
-  isAlertingService: function () {
-      var services = ['NAGIOS'];
       return services.contains(this.get('serviceName'));
   }.property('serviceName'),
 
@@ -195,7 +189,6 @@ App.StackService.displayOrder = [
   'MAPREDUCE2',
   'YARN',
   'TEZ',
-  'NAGIOS',
   'GANGLIA',
   'HIVE',
   'HBASE',
@@ -217,9 +210,6 @@ App.StackService.coSelected = {
 App.StackService.reviewPageHandlers = {
   'HIVE': {
     'Database': 'loadHiveDbValue'
-  },
-  'NAGIOS': {
-    'Administrator': 'loadNagiosAdminValue'
   },
   'OOZIE': {
     'Database': 'loadOozieDbValue'

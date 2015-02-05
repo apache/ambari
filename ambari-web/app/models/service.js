@@ -83,7 +83,6 @@ App.Service = DS.Model.extend({
   serviceTypes: function() {
     var typeServiceMap = {
       GANGLIA: ['MONITORING'],
-      NAGIOS:  ['MONITORING'],
       HDFS: ['HA_MODE'],
       YARN: ['HA_MODE']
     };

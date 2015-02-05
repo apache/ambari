@@ -24,7 +24,7 @@ require('controllers/wizard/step4_controller');
 describe('App.WizardStep4Controller', function () {
 
   var services = [
-    'HDFS', 'NAGIOS', 'GANGLIA', 'OOZIE', 'HIVE', 'HBASE', 'PIG', 'SCOOP', 'ZOOKEEPER',
+    'HDFS', 'GANGLIA', 'OOZIE', 'HIVE', 'HBASE', 'PIG', 'SCOOP', 'ZOOKEEPER',
     'YARN', 'MAPREDUCE2', 'FALCON', 'TEZ', 'STORM', 'AMS', 'RANGER'
   ];
 
@@ -42,7 +42,7 @@ describe('App.WizardStep4Controller', function () {
         'isInstalled': false,
         isPrimaryDFS: serviceName == 'HDFS',
         isDFS: ['HDFS','GLUSTERFS'].contains(serviceName),
-        isMonitoringService: ['NAGIOS','GANGLIA'].contains(serviceName),
+        isMonitoringService: ['GANGLIA'].contains(serviceName),
         requiredServices: App.StackService.find(serviceName).get('requiredServices'),
         displayNameOnSelectServicePage: App.format.role(serviceName),
         coSelectedServices: function() {
@@ -244,11 +244,11 @@ describe('App.WizardStep4Controller', function () {
           errorsExpected: ['serviceCheck_YARN', 'ambariMetricsCheck']
         },
         {
-          services: ['HDFS', 'ZOOKEEPER', 'FALCON', 'NAGIOS'],
+          services: ['HDFS', 'ZOOKEEPER', 'FALCON'],
           errorsExpected: ['serviceCheck_OOZIE', 'ambariMetricsCheck']
         },
         {
-          services: ['HDFS', 'ZOOKEEPER', 'GANGLIA', 'NAGIOS', 'HIVE'],
+          services: ['HDFS', 'ZOOKEEPER', 'GANGLIA', 'HIVE'],
           errorsExpected: ['serviceCheck_YARN', 'ambariMetricsCheck']
         },
         {
@@ -256,7 +256,7 @@ describe('App.WizardStep4Controller', function () {
           errorsExpected: ['serviceCheck_YARN', 'multipleDFS', 'ambariMetricsCheck']
         },
         {
-          services: ['HDFS','ZOOKEEPER', 'NAGIOS', 'GANGLIA'],
+          services: ['HDFS','ZOOKEEPER', 'GANGLIA'],
           errorsExpected: ['ambariMetricsCheck']
         },
         {
@@ -276,11 +276,11 @@ describe('App.WizardStep4Controller', function () {
           errorsExpected: ['serviceCheck_YARN']
         },
         {
-          services: ['HDFS', 'ZOOKEEPER', 'FALCON', 'NAGIOS', 'AMS'],
+          services: ['HDFS', 'ZOOKEEPER', 'FALCON', 'AMS'],
           errorsExpected: ['serviceCheck_OOZIE']
         },
         {
-          services: ['HDFS', 'ZOOKEEPER', 'GANGLIA', 'NAGIOS', 'HIVE', 'AMS'],
+          services: ['HDFS', 'ZOOKEEPER', 'GANGLIA', 'HIVE', 'AMS'],
           errorsExpected: ['serviceCheck_YARN']
         },
         {
@@ -288,7 +288,7 @@ describe('App.WizardStep4Controller', function () {
           errorsExpected: ['serviceCheck_YARN', 'multipleDFS']
         },
         {
-          services: ['HDFS','ZOOKEEPER', 'NAGIOS', 'GANGLIA', 'AMS'],
+          services: ['HDFS','ZOOKEEPER', 'GANGLIA', 'AMS'],
           errorsExpected: []
         },
         {
@@ -346,7 +346,7 @@ describe('App.WizardStep4Controller', function () {
         errorsExpected: ['serviceCheck_YARN', 'serviceCheck_TEZ', 'multipleDFS']
       },
       {
-        services: ['HDFS','ZOOKEEPER', 'NAGIOS', 'GANGLIA'],
+        services: ['HDFS','ZOOKEEPER', 'GANGLIA'],
         confirmPopupCount: 0,
         errorsExpected: []
       }

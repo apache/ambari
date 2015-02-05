@@ -847,17 +847,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   },
 
   /**
-   * Set displayed Nagion Admin value
-   * @method loadNagiosAdminValue
-   */
-  loadNagiosAdminValue: function () {
-    var config = this.get('content.serviceConfigProperties');
-    var adminLoginName = config.findProperty('name', 'nagios_web_login');
-    var adminEmail = config.findProperty('name', 'nagios_contact');
-    return adminLoginName.value + ' / (' + adminEmail.value + ')';
-  },
-
-  /**
    * Onclick handler for <code>next</code> button
    * @method submit
    * @return {App.ModalPopup|null}

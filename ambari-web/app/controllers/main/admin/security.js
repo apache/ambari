@@ -96,7 +96,6 @@ App.MainAdminSecurityController = Em.Controller.extend({
     'smokeuser': {defaultValue: 'ambari-qa', siteName: 'cluster-env', serviceName: 'CLUSTER'},
     'zk_user': {defaultValue: 'zookeeper', siteName: 'zookeeper-env', serviceName: 'ZOOKEEPER'},
     'oozie_user': {defaultValue: 'oozie', siteName: 'oozie-env', serviceName: 'OOZIE'},
-    'nagios_user': {defaultValue: 'nagios', siteName: 'nagios-env', serviceName: 'NAGIOS'},
     'user_group': {defaultValue: 'hadoop', siteName: 'hadoop-env', serviceName: 'HDFS'},
     'storm_user': {defaultValue: 'storm', siteName: 'storm-env', serviceName: 'STORM'},
     'falcon_user': {defaultValue: 'falcon', siteName: 'falcon-env', serviceName: 'FALCON'},

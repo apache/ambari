@@ -172,15 +172,6 @@
       ]
     },
     {
-      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/NAGIOS",
-      "StackServices" : {
-        "stack_version" : "1.3.0",
-        "service_name" : "NAGIOS",
-        "stack_name" : "HDP"
-      },
-      "configurations" : [ ]
-    },
-    {
       "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HCATALOG",
       "StackServices" : {
         "stack_version" : "1.3.0",
