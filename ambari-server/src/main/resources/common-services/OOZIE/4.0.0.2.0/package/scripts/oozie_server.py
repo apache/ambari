@@ -158,7 +158,6 @@ class OozieServer(Script):
     Logger.info("Executing Oozie Server Rolling Upgrade pre-restart")
 
     oozie_server_upgrade.backup_configuration()
-    oozie_server_upgrade.pre_hdp_select()
 
     Execute(format("hdp-select set oozie-server {version}"))
 

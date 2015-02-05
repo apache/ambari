@@ -65,15 +65,6 @@ def backup_configuration():
         tarball.close()
 
 
-def pre_hdp_select():
-  """
-  Removes /usr/bin/oozie which is required before running hdp-select
-  :return:
-  """
-  if os.path.isfile('/usr/bin/oozie'):
-    os.remove('/usr/bin/oozie')
-
-
 def restore_configuration():
   """
   Restores the configuration backups to their proper locations after an

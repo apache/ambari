@@ -637,12 +637,8 @@ class TestOozieServer(RMFTestCase):
     chmod_mock.assert_called_once_with('/usr/hdp/current/oozie-server/libext-customer', 511)
 
     self.assertTrue(isfile_mock.called)
-    self.assertEqual(isfile_mock.call_count,4)
+    self.assertEqual(isfile_mock.call_count,3)
     isfile_mock.assert_called_with('/usr/share/HDP-oozie/ext-2.2.zip')
-
-    self.assertTrue(remove_mock.called)
-    self.assertEqual(remove_mock.call_count,1)
-    remove_mock.assert_called_with('/usr/bin/oozie')
 
     self.assertTrue(glob_mock.called)
     self.assertEqual(glob_mock.call_count,1)
@@ -692,12 +688,8 @@ class TestOozieServer(RMFTestCase):
     chmod_mock.assert_called_once_with('/usr/hdp/current/oozie-server/libext-customer', 511)
 
     self.assertTrue(isfile_mock.called)
-    self.assertEqual(isfile_mock.call_count,3)
+    self.assertEqual(isfile_mock.call_count,2)
     isfile_mock.assert_called_with('/usr/share/HDP-oozie/ext-2.2.zip')
-
-    self.assertTrue(remove_mock.called)
-    self.assertEqual(remove_mock.call_count,1)
-    remove_mock.assert_called_with('/usr/bin/oozie')
 
     self.assertResourceCalled('Execute', 'hdp-select set oozie-server 2.2.0.0-0000')
     self.assertResourceCalled('Execute', 'hdfs dfs -chown oozie:hadoop /user/oozie/share', user='oozie')
