@@ -185,8 +185,18 @@ public class ViewRegistryTest {
         privilegeDAO, resourceTypeDAO, securityHelper, configuration, handlerList, ambariMetaInfo);
   }
 
+
   @Test
   public void testReadViewArchives() throws Exception {
+    testReadViewArchives(false);
+  }
+
+  @Test
+  public void testReadViewArchives_badArchive() throws Exception {
+    testReadViewArchives(true);
+  }
+
+  private void testReadViewArchives(boolean badArchive) throws Exception {
 
     File viewDir = createNiceMock(File.class);
     File extractedArchiveDir = createNiceMock(File.class);
@@ -286,45 +296,47 @@ public class ViewRegistryTest {
       expect(viewArchive.getAbsolutePath()).andReturn("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}").anyTimes();
     }
 
-    expect(archiveDir.exists()).andReturn(false);
+    expect(archiveDir.exists()).andReturn(false).anyTimes();
     if (System.getProperty("os.name").contains("Windows")) {
       expect(archiveDir.getAbsolutePath()).andReturn("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}").anyTimes();
     }
     else {
       expect(archiveDir.getAbsolutePath()).andReturn("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}").anyTimes();
     }
-    expect(archiveDir.mkdir()).andReturn(true);
-    expect(archiveDir.toURI()).andReturn(new URI("file:./"));
+    expect(archiveDir.mkdir()).andReturn(true).anyTimes();
+    expect(archiveDir.toURI()).andReturn(new URI("file:./")).anyTimes();
 
-    expect(metaInfDir.mkdir()).andReturn(true);
+    expect(metaInfDir.mkdir()).andReturn(true).anyTimes();
 
-    expect(viewJarFile.getNextJarEntry()).andReturn(jarEntry);
-    expect(viewJarFile.getNextJarEntry()).andReturn(null);
+    if (!badArchive) {
+      expect(viewJarFile.getNextJarEntry()).andReturn(jarEntry);
+      expect(viewJarFile.getNextJarEntry()).andReturn(null);
 
-    expect(jarEntry.getName()).andReturn("view.xml");
-    expect(jarEntry.isDirectory()).andReturn(false);
+      expect(jarEntry.getName()).andReturn("view.xml");
+      expect(jarEntry.isDirectory()).andReturn(false);
 
-    expect(viewJarFile.read(anyObject(byte[].class))).andReturn(10);
-    expect(viewJarFile.read(anyObject(byte[].class))).andReturn(-1);
-    fos.write(anyObject(byte[].class), eq(0), eq(10));
+      expect(viewJarFile.read(anyObject(byte[].class))).andReturn(10);
+      expect(viewJarFile.read(anyObject(byte[].class))).andReturn(-1);
+      fos.write(anyObject(byte[].class), eq(0), eq(10));
 
-    fos.flush();
-    fos.close();
-    viewJarFile.closeEntry();
-    viewJarFile.close();
+      fos.flush();
+      fos.close();
+      viewJarFile.closeEntry();
+      viewJarFile.close();
 
-    expect(extractedArchiveDir.exists()).andReturn(false);
-    expect(extractedArchiveDir.mkdir()).andReturn(true);
+      expect(viewDAO.findByName("MY_VIEW{1.0.0}")).andReturn(viewDefinition);
+    }
 
-    expect(classesDir.exists()).andReturn(true);
-    expect(classesDir.toURI()).andReturn(new URI("file:./"));
+    expect(extractedArchiveDir.exists()).andReturn(false).anyTimes();
+    expect(extractedArchiveDir.mkdir()).andReturn(true).anyTimes();
 
-    expect(libDir.exists()).andReturn(true);
+    expect(classesDir.exists()).andReturn(true).anyTimes();
+    expect(classesDir.toURI()).andReturn(new URI("file:./")).anyTimes();
 
-    expect(libDir.listFiles()).andReturn(new File[]{fileEntry});
-    expect(fileEntry.toURI()).andReturn(new URI("file:./"));
+    expect(libDir.exists()).andReturn(true).anyTimes();
 
-    expect(viewDAO.findByName("MY_VIEW{1.0.0}")).andReturn(viewDefinition);
+    expect(libDir.listFiles()).andReturn(new File[]{fileEntry}).anyTimes();
+    expect(fileEntry.toURI()).andReturn(new URI("file:./")).anyTimes();
 
     expect(viewDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
 
@@ -332,7 +344,8 @@ public class ViewRegistryTest {
     replay(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
         libDir, metaInfDir, fileEntry, viewJarFile, jarEntry, fos, resourceDAO, viewDAO, viewInstanceDAO);
 
-    TestViewArchiveUtility archiveUtility = new TestViewArchiveUtility(viewConfigs, files, outputStreams, jarFiles);
+    TestViewArchiveUtility archiveUtility =
+        new TestViewArchiveUtility(viewConfigs, files, outputStreams, jarFiles, badArchive);
 
     ViewRegistry registry = getRegistry(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO,
         resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, archiveUtility, ambariMetaInfo);
@@ -343,25 +356,30 @@ public class ViewRegistryTest {
 
     // Wait for the view load to complete.
     long timeout = System.currentTimeMillis() + 10000L;
-    while ((view == null || !view.getStatus().equals(ViewDefinition.ViewStatus.DEPLOYED))&&
+    while (!archiveUtility.isDeploymentFailed() && (view == null || !view.getStatus().equals(ViewDefinition.ViewStatus.DEPLOYED))&&
         System.currentTimeMillis() < timeout) {
       view = registry.getDefinition("MY_VIEW", "1.0.0");
     }
 
-    Assert.assertNotNull(view);
-    Assert.assertEquals(ViewDefinition.ViewStatus.DEPLOYED, view.getStatus());
+    if (badArchive) {
+      Assert.assertNull(view);
+      Assert.assertTrue(archiveUtility.isDeploymentFailed());
+    } else {
+      Assert.assertNotNull(view);
+      Assert.assertEquals(ViewDefinition.ViewStatus.DEPLOYED, view.getStatus());
 
-    Collection<ViewInstanceEntity> instanceDefinitions = registry.getInstanceDefinitions(view);
-    Assert.assertEquals(2, instanceDefinitions.size());
+      Collection<ViewInstanceEntity> instanceDefinitions = registry.getInstanceDefinitions(view);
+      Assert.assertEquals(2, instanceDefinitions.size());
 
-    for (ViewInstanceEntity viewInstanceEntity : instanceDefinitions) {
-      Assert.assertEquals("v1", viewInstanceEntity.getInstanceData("p1").getValue());
+      for (ViewInstanceEntity viewInstanceEntity : instanceDefinitions) {
+        Assert.assertEquals("v1", viewInstanceEntity.getInstanceData("p1").getValue());
 
-      Collection<ViewEntityEntity> entities = viewInstanceEntity.getEntities();
-      Assert.assertEquals(1, entities.size());
-      ViewEntityEntity viewEntityEntity = entities.iterator().next();
-      Assert.assertEquals(99L, (long) viewEntityEntity.getId());
-      Assert.assertEquals(viewInstanceEntity.getName(), viewEntityEntity.getViewInstanceName());
+        Collection<ViewEntityEntity> entities = viewInstanceEntity.getEntities();
+        Assert.assertEquals(1, entities.size());
+        ViewEntityEntity viewEntityEntity = entities.iterator().next();
+        Assert.assertEquals(99L, (long) viewEntityEntity.getId());
+        Assert.assertEquals(viewInstanceEntity.getName(), viewEntityEntity.getViewInstanceName());
+      }
     }
 
     // verify mocks
@@ -500,7 +518,7 @@ public class ViewRegistryTest {
     replay(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
         libDir, metaInfDir, fileEntry, viewJarFile, jarEntry, fos, viewDAO);
 
-    TestViewArchiveUtility archiveUtility = new TestViewArchiveUtility(viewConfigs, files, outputStreams, jarFiles);
+    TestViewArchiveUtility archiveUtility = new TestViewArchiveUtility(viewConfigs, files, outputStreams, jarFiles, false);
 
     ViewRegistry registry = getRegistry(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO,
         resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, archiveUtility, ambariMetaInfo);
@@ -1478,7 +1496,7 @@ public class ViewRegistryTest {
     replay(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
         libDir, metaInfDir, fileEntry, viewJarFile, jarEntry, is, fos, viewExtractor, resourceDAO, viewDAO, viewInstanceDAO);
 
-    TestViewArchiveUtility archiveUtility = new TestViewArchiveUtility(viewConfigs, files, outputStreams, jarFiles);
+    TestViewArchiveUtility archiveUtility = new TestViewArchiveUtility(viewConfigs, files, outputStreams, jarFiles, false);
 
     if (System.getProperty("os.name").contains("Windows")) {
       Assert.assertTrue(ViewRegistry.extractViewArchive("\\var\\lib\\ambari-server\\resources\\views\\my_view-1.0.0.jar",
@@ -1499,23 +1517,35 @@ public class ViewRegistryTest {
     private final Map<String, File> files;
     private final Map<File, FileOutputStream> outputStreams;
     private final Map<File, JarInputStream> jarFiles;
+    private final boolean badArchive;
+    private boolean deploymentFailed = false;
 
     public TestViewArchiveUtility(Map<File, ViewConfig> viewConfigs, Map<String, File> files, Map<File,
-        FileOutputStream> outputStreams, Map<File, JarInputStream> jarFiles) {
+        FileOutputStream> outputStreams, Map<File, JarInputStream> jarFiles, boolean badArchive) {
       this.viewConfigs = viewConfigs;
       this.files = files;
       this.outputStreams = outputStreams;
       this.jarFiles = jarFiles;
+      this.badArchive = badArchive;
     }
 
     @Override
     public ViewConfig getViewConfigFromArchive(File archiveFile) throws MalformedURLException, JAXBException {
+      if (badArchive) {
+        deploymentFailed = true;
+        throw new IllegalStateException("Bad archive");
+      }
       return viewConfigs.get(archiveFile);
     }
 
     @Override
     public ViewConfig getViewConfigFromExtractedArchive(String archivePath, boolean validate)
         throws JAXBException, FileNotFoundException {
+      if (badArchive) {
+        deploymentFailed = true;
+        throw new IllegalStateException("Bad archive");
+      }
+
       for (File viewConfigKey: viewConfigs.keySet()) {
         if (viewConfigKey.getAbsolutePath().equals(archivePath)) {
           return viewConfigs.get(viewConfigKey);
@@ -1537,6 +1567,10 @@ public class ViewRegistryTest {
     @Override
     public JarInputStream getJarFileStream(File file) throws IOException {
       return jarFiles.get(file);
+    }
+
+    public boolean isDeploymentFailed() {
+      return deploymentFailed;
     }
   }
 

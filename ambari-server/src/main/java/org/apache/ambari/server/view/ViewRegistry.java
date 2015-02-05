@@ -1294,40 +1294,45 @@ public class ViewRegistry {
           for (final File archiveFile : files) {
             if (!archiveFile.isDirectory()) {
 
-              final ViewConfig viewConfig = archiveUtility.getViewConfigFromArchive(archiveFile);
+              try {
+                final ViewConfig viewConfig = archiveUtility.getViewConfigFromArchive(archiveFile);
 
-              String commonName = viewConfig.getName();
-              String version    = viewConfig.getVersion();
-              String viewName   = ViewEntity.getViewName(commonName, version);
+                String commonName = viewConfig.getName();
+                String version    = viewConfig.getVersion();
+                String viewName   = ViewEntity.getViewName(commonName, version);
 
-              if (!viewName.matches(viewNameRegExp)) {
-                continue;
-              }
-
-              final String extractedArchiveDirPath = extractedArchivesPath + File.separator + viewName;
-              final File extractedArchiveDirFile = archiveUtility.getFile(extractedArchiveDirPath);
-
-              final ViewEntity viewDefinition = new ViewEntity(viewConfig, configuration, extractedArchiveDirPath);
-
-              boolean systemView = viewDefinition.isSystem();
-
-              if (!systemOnly || systemView) {
-                // update the registry with the view
-                addDefinition(viewDefinition);
-
-                // always load system views up front
-                if (systemView || !useExecutor || extractedArchiveDirFile.exists()) {
-                  // if the archive is already extracted then load the view now
-                  readViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile, serverVersion);
-                } else {
-                  // if the archive needs to be extracted then create a runnable to do it
-                  extractionRunnables.add(new Runnable() {
-                    @Override
-                    public void run() {
-                      readViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile, serverVersion);
-                    }
-                  });
+                if (!viewName.matches(viewNameRegExp)) {
+                  continue;
                 }
+
+                final String extractedArchiveDirPath = extractedArchivesPath + File.separator + viewName;
+                final File extractedArchiveDirFile = archiveUtility.getFile(extractedArchiveDirPath);
+
+                final ViewEntity viewDefinition = new ViewEntity(viewConfig, configuration, extractedArchiveDirPath);
+
+                boolean systemView = viewDefinition.isSystem();
+
+                if (!systemOnly || systemView) {
+                  // update the registry with the view
+                  addDefinition(viewDefinition);
+
+                  // always load system views up front
+                  if (systemView || !useExecutor || extractedArchiveDirFile.exists()) {
+                    // if the archive is already extracted then load the view now
+                    readViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile, serverVersion);
+                  } else {
+                    // if the archive needs to be extracted then create a runnable to do it
+                    extractionRunnables.add(new Runnable() {
+                      @Override
+                      public void run() {
+                        readViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile, serverVersion);
+                      }
+                    });
+                  }
+                }
+              } catch (Exception e) {
+                String msg = "Caught exception reading view archive " + archiveFile.getAbsolutePath();
+                LOG.error(msg, e);
               }
             }
           }
