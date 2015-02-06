@@ -20,84 +20,84 @@
  */
 -->
 <configuration supports_final="false">
-	<property>
-		<name>SYNC_SOURCE</name>
-		<value>unix</value>
-		<description></description>
-	</property>
-	<property>
-		<name>MIN_UNIX_USER_ID_TO_SYNC</name>
-		<value>1000</value>
-		<description></description>
-	</property>
-	<property>
-		<name>SYNC_INTERVAL</name>
-		<value>1</value>
-		<description></description>
-	</property>
-	<property>
-		<name>SYNC_LDAP_URL</name>
-		<value>ldap://localhost:389</value>
-		<description>a sample value would be:  ldap://ldap.example.com:389</description>
-	</property>
-	<property>
-		<name>SYNC_LDAP_BIND_DN</name>
-		<value>cn=admin,dc=xasecure,dc=net</value>
-		<description>a sample value would be cn=admin,ou=users,dc=hadoop,dc=apache,dc-org</description>
-	</property>
-	<property>
-		<name>SYNC_LDAP_BIND_PASSWORD</name>
-		<value>admin321</value>
-		<description></description>
-	</property>
-	<property>
-		<name>CRED_KEYSTORE_FILENAME</name>
-		<value>/usr/lib/xausersync/.jceks/xausersync.jceks</value>
-		<description></description>
-	</property>
-	<property>
-		<name>SYNC_LDAP_USER_SEARCH_BASE</name>
-		<value>ou=users,dc=xasecure,dc=net</value>
-		<description>sample value would be ou=users,dc=hadoop,dc=apache,dc=org</description>
-	</property>
-	<property>
-		<name>SYNC_LDAP_USER_SEARCH_SCOPE</name>
-		<value>sub</value>
-		<description>default value: sub</description>
-	</property>
-	<property>
-		<name>SYNC_LDAP_USER_OBJECT_CLASS</name>
-		<value>person</value>
-		<description>default value: person</description>
-	</property>
-	<property>
-		<name>SYNC_LDAP_USER_SEARCH_FILTER</name>
-		<value>-</value>
-		<description>default value is empty</description>
-	</property>
-	<property>
-		<name>SYNC_LDAP_USER_NAME_ATTRIBUTE</name>
-		<value>cn</value>
-		<description>default value: cn</description>
-	</property>
-	<property>
-		<name>SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE</name>
-		<value>memberof,ismemberof</value>
-		<description></description>
-	</property>
-	<property>
-		<name>SYNC_LDAP_USERNAME_CASE_CONVERSION</name>
-		<value>lower</value>
-		<description>possible values:  none, lower, upper</description>
-	</property>
-	<property>
-		<name>SYNC_LDAP_GROUPNAME_CASE_CONVERSION</name>
-		<value>lower</value>
-		<description>possible values:  none, lower, upper</description>
-	</property>
-	<property>
-		<name>logdir</name>
-		<value>logs</value>
-		<description>user sync log path</description>
-	</property>
+  <property>
+    <name>SYNC_SOURCE</name>
+    <value>unix</value>
+    <description></description>
+  </property>
+  <property>
+    <name>MIN_UNIX_USER_ID_TO_SYNC</name>
+    <value>1000</value>
+    <description></description>
+  </property>
+  <property>
+    <name>SYNC_INTERVAL</name>
+    <value>1</value>
+    <description></description>
+  </property>
+  <property>
+    <name>SYNC_LDAP_URL</name>
+    <value>ldap://localhost:389</value>
+    <description>a sample value would be:  ldap://ldap.example.com:389</description>
+  </property>
+  <property>
+    <name>SYNC_LDAP_BIND_DN</name>
+    <value>cn=admin,dc=xasecure,dc=net</value>
+    <description>a sample value would be cn=admin,ou=users,dc=hadoop,dc=apache,dc-org</description>
+  </property>
+  <property>
+    <name>SYNC_LDAP_BIND_PASSWORD</name>
+    <value>admin321</value>
+    <description></description>
+  </property>
+  <property>
+    <name>CRED_KEYSTORE_FILENAME</name>
+    <value>/usr/lib/xausersync/.jceks/xausersync.jceks</value>
+    <description></description>
+  </property>
+  <property>
+    <name>SYNC_LDAP_USER_SEARCH_BASE</name>
+    <value>ou=users,dc=xasecure,dc=net</value>
+    <description>sample value would be ou=users,dc=hadoop,dc=apache,dc=org</description>
+  </property>
+  <property>
+    <name>SYNC_LDAP_USER_SEARCH_SCOPE</name>
+    <value>sub</value>
+    <description>default value: sub</description>
+  </property>
+  <property>
+    <name>SYNC_LDAP_USER_OBJECT_CLASS</name>
+    <value>person</value>
+    <description>default value: person</description>
+  </property>
+  <property>
+    <name>SYNC_LDAP_USER_SEARCH_FILTER</name>
+    <value>-</value>
+    <description>default value is empty</description>
+  </property>
+  <property>
+    <name>SYNC_LDAP_USER_NAME_ATTRIBUTE</name>
+    <value>cn</value>
+    <description>default value: cn</description>
+  </property>
+  <property>
+    <name>SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE</name>
+    <value>memberof,ismemberof</value>
+    <description></description>
+  </property>
+  <property>
+    <name>SYNC_LDAP_USERNAME_CASE_CONVERSION</name>
+    <value>lower</value>
+    <description>possible values:  none, lower, upper</description>
+  </property>
+  <property>
+    <name>SYNC_LDAP_GROUPNAME_CASE_CONVERSION</name>
+    <value>lower</value>
+    <description>possible values:  none, lower, upper</description>
+  </property>
+  <property>
+    <name>logdir</name>
+    <value>logs</value>
+    <description>user sync log path</description>
+  </property>
 </configuration>

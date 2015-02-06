@@ -27,9 +27,8 @@ from resource_management import *
 from resource_management.libraries.functions.ranger_functions import Rangeradmin
 from resource_management.core.logger import Logger
 
-def setup_ranger_hive(env):
+def setup_ranger_hive():
   import params
-  env.set_params(params)
 
   if params.has_ranger_admin:
 
@@ -45,7 +44,7 @@ def setup_ranger_hive(env):
     if not os.path.isfile(params.ranger_driver_curl_target):
       Execute(('cp', '--remove-destination', params.ranger_downloaded_custom_connector, params.ranger_driver_curl_target),
               path=["/bin", "/usr/bin/"],
-              sudo=True)
+              sudo=True)     
 
     try:
       command = 'hdp-select status hive-server2'
@@ -65,8 +64,8 @@ def setup_ranger_hive(env):
 
     file_path = '/usr/hdp/'+ hdp_version +'/ranger-hive-plugin/install.properties'
 
-    ranger_hive_dict = ranger_hive_properties(params)
-    hive_repo_data = hive_repo_properties(params)
+    ranger_hive_dict = ranger_hive_properties()
+    hive_repo_data = hive_repo_properties()
 
     write_properties_to_file(file_path, ranger_hive_dict)
   
@@ -76,9 +75,7 @@ def setup_ranger_hive(env):
       response_code, response_recieved = ranger_adm_obj.check_ranger_login_urllib2(ranger_hive_dict['POLICY_MGR_URL'] + '/login.jsp', 'test:test')
 
       if response_code is not None and response_code == 200:
-        ambari_ranger_admin = params.config['configurations']['ranger-env']['ranger_admin_username']
-        ambari_ranger_password = params.config['configurations']['ranger-env']['ranger_admin_password']
-        ambari_ranger_admin,ambari_ranger_password = ranger_adm_obj.create_ambari_admin_user(ambari_ranger_admin, ambari_ranger_password, 'admin:admin')
+        ambari_ranger_admin, ambari_ranger_password = ranger_adm_obj.create_ambari_admin_user(params.ambari_ranger_admin, params.ambari_ranger_password, params.admin_uname_password)
         ambari_username_password_for_ranger = ambari_ranger_admin + ':' + ambari_ranger_password
         if ambari_ranger_admin != '' and ambari_ranger_password != '':
           repo = ranger_adm_obj.get_repository_by_name_urllib2(ranger_hive_dict['REPOSITORY_NAME'], 'hive', 'true', ambari_username_password_for_ranger)
@@ -86,7 +83,7 @@ def setup_ranger_hive(env):
           if repo and repo['name'] ==  ranger_hive_dict['REPOSITORY_NAME']:
             Logger.info('Hive Repository exist')
           else:
-            response = ranger_adm_obj.create_repository_urllib2(hive_repo_data,ambari_username_password_for_ranger)
+            response = ranger_adm_obj.create_repository_urllib2(hive_repo_data,ambari_username_password_for_ranger, params.policy_user)
             if response is not None:
               Logger.info('Hive Repository created in Ranger Admin')
             else:
@@ -144,61 +141,63 @@ def modify_config(filepath, variable, setting):
 
   return
 
-def ranger_hive_properties(params):
+def ranger_hive_properties():
+  import params
+
   ranger_hive_properties = dict()
 
-  ranger_hive_properties['POLICY_MGR_URL']       = params.config['configurations']['admin-properties']['policymgr_external_url']
-  ranger_hive_properties['SQL_CONNECTOR_JAR']    = params.config['configurations']['admin-properties']['SQL_CONNECTOR_JAR']
-  ranger_hive_properties['XAAUDIT.DB.FLAVOUR']     = params.config['configurations']['admin-properties']['DB_FLAVOR']
-  ranger_hive_properties['XAAUDIT.DB.DATABASE_NAME'] = params.config['configurations']['admin-properties']['audit_db_name']
-  ranger_hive_properties['XAAUDIT.DB.USER_NAME']   = params.config['configurations']['admin-properties']['audit_db_user']
-  ranger_hive_properties['XAAUDIT.DB.PASSWORD']    = params.config['configurations']['admin-properties']['audit_db_password']
-  ranger_hive_properties['XAAUDIT.DB.HOSTNAME']    = params.config['configurations']['admin-properties']['db_host']
-  ranger_hive_properties['REPOSITORY_NAME']      = str(params.config['clusterName']) + '_hive'
+  ranger_hive_properties['POLICY_MGR_URL'] = params.policymgr_mgr_url
+  ranger_hive_properties['SQL_CONNECTOR_JAR'] = params.sql_connector_jar
+  ranger_hive_properties['XAAUDIT.DB.FLAVOUR'] = params.xa_audit_db_flavor
+  ranger_hive_properties['XAAUDIT.DB.DATABASE_NAME'] = params.xa_audit_db_name
+  ranger_hive_properties['XAAUDIT.DB.USER_NAME'] = params.xa_audit_db_user
+  ranger_hive_properties['XAAUDIT.DB.PASSWORD'] = params.xa_audit_db_password
+  ranger_hive_properties['XAAUDIT.DB.HOSTNAME'] = params.xa_db_host
+  ranger_hive_properties['REPOSITORY_NAME'] = params.repo_name
+  ranger_hive_properties['XAAUDIT.DB.IS_ENABLED'] = params.db_enabled
 
-  ranger_hive_properties['XAAUDIT.DB.IS_ENABLED']   = params.config['configurations']['ranger-hive-plugin-properties']['XAAUDIT.DB.IS_ENABLED']
+  ranger_hive_properties['XAAUDIT.HDFS.IS_ENABLED'] = params.hdfs_enabled
+  ranger_hive_properties['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] = params.hdfs_dest_dir
+  ranger_hive_properties['XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY'] = params.hdfs_buffer_dir
+  ranger_hive_properties['XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY'] = params.hdfs_archive_dir
+  ranger_hive_properties['XAAUDIT.HDFS.DESTINTATION_FILE'] = params.hdfs_dest_file
+  ranger_hive_properties['XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS'] = params.hdfs_dest_flush_int_sec
+  ranger_hive_properties['XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS'] = params.hdfs_dest_rollover_int_sec
+  ranger_hive_properties['XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS'] = params.hdfs_dest_open_retry_int_sec
+  ranger_hive_properties['XAAUDIT.HDFS.LOCAL_BUFFER_FILE'] = params.hdfs_buffer_file
+  ranger_hive_properties['XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS'] = params.hdfs_buffer_flush_int_sec
+  ranger_hive_properties['XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS'] = params.hdfs_buffer_rollover_int_sec
+  ranger_hive_properties['XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT'] = params.hdfs_archive_max_file_count
 
-  ranger_hive_properties['XAAUDIT.HDFS.IS_ENABLED'] = params.config['configurations']['ranger-hive-plugin-properties']['XAAUDIT.HDFS.IS_ENABLED']
-  ranger_hive_properties['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] = params.config['configurations']['ranger-hive-plugin-properties']['XAAUDIT.HDFS.DESTINATION_DIRECTORY']
-  ranger_hive_properties['XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY'] = params.config['configurations']['ranger-hive-plugin-properties']['XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY']
-  ranger_hive_properties['XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY'] = params.config['configurations']['ranger-hive-plugin-properties']['XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY']
-  ranger_hive_properties['XAAUDIT.HDFS.DESTINTATION_FILE'] = params.config['configurations']['ranger-hive-plugin-properties']['XAAUDIT.HDFS.DESTINTATION_FILE']
-  ranger_hive_properties['XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS'] = params.config['configurations']['ranger-hive-plugin-properties']['XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS']
-  ranger_hive_properties['XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS'] = params.config['configurations']['ranger-hive-plugin-properties']['XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS']
-  ranger_hive_properties['XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS'] = params.config['configurations']['ranger-hive-plugin-properties']['XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS']
-  ranger_hive_properties['XAAUDIT.HDFS.LOCAL_BUFFER_FILE'] = params.config['configurations']['ranger-hive-plugin-properties']['XAAUDIT.HDFS.LOCAL_BUFFER_FILE']
-  ranger_hive_properties['XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS'] = params.config['configurations']['ranger-hive-plugin-properties']['XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS']
-  ranger_hive_properties['XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS'] = params.config['configurations']['ranger-hive-plugin-properties']['XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS']
-  ranger_hive_properties['XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT'] = params.config['configurations']['ranger-hive-plugin-properties']['XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT']
-  
-
-  ranger_hive_properties['SSL_KEYSTORE_FILE_PATH'] = params.config['configurations']['ranger-hive-plugin-properties']['SSL_KEYSTORE_FILE_PATH']
-  ranger_hive_properties['SSL_KEYSTORE_PASSWORD'] = params.config['configurations']['ranger-hive-plugin-properties']['SSL_KEYSTORE_PASSWORD']
-  ranger_hive_properties['SSL_TRUSTSTORE_FILE_PATH'] = params.config['configurations']['ranger-hive-plugin-properties']['SSL_TRUSTSTORE_FILE_PATH']
-  ranger_hive_properties['SSL_TRUSTSTORE_PASSWORD'] = params.config['configurations']['ranger-hive-plugin-properties']['SSL_TRUSTSTORE_PASSWORD']
-
-  ranger_hive_properties['UPDATE_XAPOLICIES_ON_GRANT_REVOKE'] = params.config['configurations']['ranger-hive-plugin-properties']['UPDATE_XAPOLICIES_ON_GRANT_REVOKE']
+  ranger_hive_properties['SSL_KEYSTORE_FILE_PATH'] = params.ssl_keystore_file
+  ranger_hive_properties['SSL_KEYSTORE_PASSWORD'] = params.ssl_keystore_password
+  ranger_hive_properties['SSL_TRUSTSTORE_FILE_PATH'] = params.ssl_truststore_file
+  ranger_hive_properties['SSL_TRUSTSTORE_PASSWORD'] = params.ssl_truststore_password
+   
+  ranger_hive_properties['UPDATE_XAPOLICIES_ON_GRANT_REVOKE'] = params.grant_revoke
 
   return ranger_hive_properties
 
-def hive_repo_properties(params):
-
-  hive_host = params.config['clusterHostInfo']['hive_server_host'][0]
+def hive_repo_properties():
+  import params
 
   config_dict = dict()
-  config_dict['username'] = params.config['configurations']['ranger-hive-plugin-properties']['REPOSITORY_CONFIG_USERNAME']
-  config_dict['password'] = params.config['configurations']['ranger-hive-plugin-properties']['REPOSITORY_CONFIG_PASSWORD']
-  config_dict['jdbc.driverClassName'] = params.config['configurations']['ranger-hive-plugin-properties']['jdbc.driverClassName']
-  config_dict['jdbc.url'] = 'jdbc:hive2://' + hive_host + ':10000'
-  config_dict['commonNameForCertificate'] = params.config['configurations']['ranger-hive-plugin-properties']['common.name.for.certificate']
+  config_dict['username'] = params.repo_config_username
+  config_dict['password'] = params.repo_config_password
+  config_dict['jdbc.driverClassName'] = params.jdbc_driver_class_name
+  if params.security_enabled:
+    config_dict['jdbc.url'] = format("{params.hive_url}/default;principal={params.hive_principal}")
+  else:  
+    config_dict['jdbc.url'] = params.hive_url
+  config_dict['commonNameForCertificate'] = params.common_name_for_certificate
 
   repo= dict()
-  repo['isActive']        = "true"
-  repo['config']          = json.dumps(config_dict)
-  repo['description']       = "hive repo"
-  repo['name']          = str(params.config['clusterName']) + '_hive'
-  repo['repositoryType']      = "Hive"
-  repo['assetType']         = '3'
+  repo['isActive'] = "true"
+  repo['config'] = json.dumps(config_dict)
+  repo['description'] = "hive repo"
+  repo['name'] = params.repo_name
+  repo['repositoryType'] = "Hive"
+  repo['assetType'] = '3'
 
   data = json.dumps(repo)
 

@@ -57,6 +57,14 @@
         <component>ZOOKEEPER_SERVER</component>
       </service>
     </group>
+    
+    <group name="RANGER" title="Ranger">
+      <skippable>true</skippable>
+      <service name="RANGER">
+        <component>RANGER_ADMIN</component>
+        <component>RANGER_USERSYNC</component>
+      </service>
+    </group>
 
     <group name="CORE_MASTER" title="Core Masters">
       <service-check>false</service-check>
@@ -294,6 +302,25 @@
       </component>
     </service>
 
+    <service name="RANGER">
+      <component name="RANGER_ADMIN">
+        <pre-upgrade>
+          <task xsi:type="manual">
+            <message>Backup the Ranger Admin database and Ranger Audit database</message>
+          </task>
+        </pre-upgrade>
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+
+      <component name="RANGER_USERSYNC">
+        <upgrade>
+          <task xsi:type="restart" />
+        </upgrade>
+      </component>
+    </service>
+
     <service name="HDFS">
       <component name="NAMENODE">
         <upgrade>
@@ -359,7 +386,6 @@
         </upgrade>
       </component>
     </service>
-
     <service name="HBASE">
       <component name="HBASE_MASTER">
         <upgrade>

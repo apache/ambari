@@ -19,11 +19,11 @@
  */
 -->
 <metainfo>
-    <schemaVersion>2.0</schemaVersion>
-    <services>
-        <service>
-            <name>RANGER</name>
-            <extends>common-services/RANGER/0.4.0</extends>		
-        </service>
-    </services>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>RANGER</name>
+      <extends>common-services/RANGER/0.4.0</extends>   
+    </service>
+  </services>
 </metainfo>

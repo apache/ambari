@@ -23,22 +23,29 @@ from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.core import shell
 from setup_ranger import setup_usersync
-
+import upgrade
 
 class RangerUsersync(Script):
   def install(self, env):
     self.install_packages(env)
-    setup_usersync(env)
+    setup_usersync()
 
-  def stop(self, env):
+  def stop(self, env, rolling_restart=False):
     import params
 
+    env.set_params(params)
     Execute(format('{params.usersync_stop}'))
 
-  def start(self, env):
+  def pre_rolling_restart(self, env):
+    import params
+    env.set_params(params)
+    upgrade.prestart(env, "ranger-usersync")
+
+  def start(self, env, rolling_restart=False):
     import params
 
-    setup_usersync(env)
+    env.set_params(params)
+    setup_usersync()
     Execute(format('{params.usersync_start}'))
 
   def status(self, env):

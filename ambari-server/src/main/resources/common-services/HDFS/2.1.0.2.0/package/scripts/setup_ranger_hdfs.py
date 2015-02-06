@@ -28,10 +28,8 @@ from resource_management.libraries.functions.ranger_functions import Rangeradmin
 from resource_management.core.logger import Logger
 
 
-def setup_ranger_hdfs(env):
+def setup_ranger_hdfs():
   import params
-
-  env.set_params(params)
 
   if params.has_ranger_admin:
 
@@ -68,8 +66,8 @@ def setup_ranger_hdfs(env):
 
     file_path = '/usr/hdp/' + hdp_version + '/ranger-hdfs-plugin/install.properties'
 
-    ranger_hdfs_dict = ranger_hdfs_properties(params)
-    hdfs_repo_data = hdfs_repo_properties(params)
+    ranger_hdfs_dict = ranger_hdfs_properties()
+    hdfs_repo_data = hdfs_repo_properties()
 
     write_properties_to_file(file_path, ranger_hdfs_dict)
 
@@ -80,16 +78,14 @@ def setup_ranger_hdfs(env):
         ranger_hdfs_dict['POLICY_MGR_URL'] + '/login.jsp', 'test:test')
 
       if response_code is not None and response_code == 200:
-        ambari_ranger_admin = params.config['configurations']['ranger-env']['ranger_admin_username']
-        ambari_ranger_password = params.config['configurations']['ranger-env']['ranger_admin_password']
-        ambari_ranger_admin,ambari_ranger_password = ranger_adm_obj.create_ambari_admin_user(ambari_ranger_admin, ambari_ranger_password, 'admin:admin')
+        ambari_ranger_admin, ambari_ranger_password = ranger_adm_obj.create_ambari_admin_user(params.ambari_ranger_admin, params.ambari_ranger_password, params.admin_uname_password)
         ambari_username_password_for_ranger = ambari_ranger_admin + ':' + ambari_ranger_password
         if ambari_ranger_admin != '' and ambari_ranger_password != '':
           repo = ranger_adm_obj.get_repository_by_name_urllib2(ranger_hdfs_dict['REPOSITORY_NAME'], 'hdfs', 'true', ambari_username_password_for_ranger)
           if repo and repo['name'] == ranger_hdfs_dict['REPOSITORY_NAME']:
             Logger.info('HDFS Repository exist')
           else:
-            response = ranger_adm_obj.create_repository_urllib2(hdfs_repo_data, ambari_username_password_for_ranger)
+            response = ranger_adm_obj.create_repository_urllib2(hdfs_repo_data, ambari_username_password_for_ranger, params.policy_user)
             if response is not None:
               Logger.info('HDFS Repository created in Ranger Admin')
             else:
@@ -148,89 +144,59 @@ def modify_config(filepath, variable, setting):
   return
 
 
-def ranger_hdfs_properties(params):
+def ranger_hdfs_properties():
+  import params
+
   ranger_hdfs_properties = dict()
 
-  ranger_hdfs_properties['POLICY_MGR_URL'] = params.config['configurations']['admin-properties'][
-    'policymgr_external_url']
-  ranger_hdfs_properties['SQL_CONNECTOR_JAR'] = params.config['configurations']['admin-properties']['SQL_CONNECTOR_JAR']
-  ranger_hdfs_properties['XAAUDIT.DB.FLAVOUR'] = params.config['configurations']['admin-properties']['DB_FLAVOR']
-  ranger_hdfs_properties['XAAUDIT.DB.DATABASE_NAME'] = params.config['configurations']['admin-properties'][
-    'audit_db_name']
-  ranger_hdfs_properties['XAAUDIT.DB.USER_NAME'] = params.config['configurations']['admin-properties']['audit_db_user']
-  ranger_hdfs_properties['XAAUDIT.DB.PASSWORD'] = params.config['configurations']['admin-properties'][
-    'audit_db_password']
-  ranger_hdfs_properties['XAAUDIT.DB.HOSTNAME'] = params.config['configurations']['admin-properties']['db_host']
-  ranger_hdfs_properties['REPOSITORY_NAME'] = str(params.config['clusterName']) + '_hadoop'
+  ranger_hdfs_properties['POLICY_MGR_URL'] = params.policymgr_mgr_url
+  ranger_hdfs_properties['SQL_CONNECTOR_JAR'] = params.sql_connector_jar
+  ranger_hdfs_properties['XAAUDIT.DB.FLAVOUR'] = params.xa_audit_db_flavor
+  ranger_hdfs_properties['XAAUDIT.DB.DATABASE_NAME'] = params.xa_audit_db_name
+  ranger_hdfs_properties['XAAUDIT.DB.USER_NAME'] = params.xa_audit_db_user
+  ranger_hdfs_properties['XAAUDIT.DB.PASSWORD'] = params.xa_audit_db_password
+  ranger_hdfs_properties['XAAUDIT.DB.HOSTNAME'] = params.xa_db_host
+  ranger_hdfs_properties['REPOSITORY_NAME'] = params.repo_name
+  ranger_hdfs_properties['XAAUDIT.DB.IS_ENABLED'] = params.db_enabled
 
-  ranger_hdfs_properties['XAAUDIT.DB.IS_ENABLED'] = params.config['configurations']['ranger-hdfs-plugin-properties'][
-    'XAAUDIT.DB.IS_ENABLED']
+  ranger_hdfs_properties['XAAUDIT.HDFS.IS_ENABLED'] = params.hdfs_enabled
+  ranger_hdfs_properties['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] = params.hdfs_dest_dir
+  ranger_hdfs_properties['XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY'] = params.hdfs_buffer_dir
+  ranger_hdfs_properties['XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY'] = params.hdfs_archive_dir
+  ranger_hdfs_properties['XAAUDIT.HDFS.DESTINTATION_FILE'] = params.hdfs_dest_file
+  ranger_hdfs_properties['XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS'] = params.hdfs_dest_flush_int_sec
+  ranger_hdfs_properties['XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS'] = params.hdfs_dest_rollover_int_sec
+  ranger_hdfs_properties['XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS'] = params.hdfs_dest_open_retry_int_sec
+  ranger_hdfs_properties['XAAUDIT.HDFS.LOCAL_BUFFER_FILE'] = params.hdfs_buffer_file
+  ranger_hdfs_properties['XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS'] = params.hdfs_buffer_flush_int_sec
+  ranger_hdfs_properties['XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS'] = params.hdfs_buffer_rollover_int_sec
+  ranger_hdfs_properties['XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT'] = params.hdfs_archive_max_file_count
 
-  ranger_hdfs_properties['XAAUDIT.HDFS.IS_ENABLED'] = params.config['configurations']['ranger-hdfs-plugin-properties'][
-    'XAAUDIT.HDFS.IS_ENABLED']
-  ranger_hdfs_properties['XAAUDIT.HDFS.DESTINATION_DIRECTORY'] = \
-  params.config['configurations']['ranger-hdfs-plugin-properties']['XAAUDIT.HDFS.DESTINATION_DIRECTORY']
-  ranger_hdfs_properties['XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY'] = \
-  params.config['configurations']['ranger-hdfs-plugin-properties']['XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY']
-  ranger_hdfs_properties['XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY'] = \
-  params.config['configurations']['ranger-hdfs-plugin-properties']['XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY']
-  ranger_hdfs_properties['XAAUDIT.HDFS.DESTINTATION_FILE'] = \
-  params.config['configurations']['ranger-hdfs-plugin-properties']['XAAUDIT.HDFS.DESTINTATION_FILE']
-  ranger_hdfs_properties['XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS'] = \
-  params.config['configurations']['ranger-hdfs-plugin-properties']['XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS']
-  ranger_hdfs_properties['XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS'] = \
-  params.config['configurations']['ranger-hdfs-plugin-properties'][
-    'XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS']
-  ranger_hdfs_properties['XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS'] = \
-  params.config['configurations']['ranger-hdfs-plugin-properties'][
-    'XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS']
-  ranger_hdfs_properties['XAAUDIT.HDFS.LOCAL_BUFFER_FILE'] = \
-  params.config['configurations']['ranger-hdfs-plugin-properties']['XAAUDIT.HDFS.LOCAL_BUFFER_FILE']
-  ranger_hdfs_properties['XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS'] = \
-  params.config['configurations']['ranger-hdfs-plugin-properties']['XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS']
-  ranger_hdfs_properties['XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS'] = \
-  params.config['configurations']['ranger-hdfs-plugin-properties'][
-    'XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS']
-  ranger_hdfs_properties['XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT'] = \
-  params.config['configurations']['ranger-hdfs-plugin-properties']['XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT']
-
-  ranger_hdfs_properties['SSL_KEYSTORE_FILE_PATH'] = params.config['configurations']['ranger-hdfs-plugin-properties'][
-    'SSL_KEYSTORE_FILE_PATH']
-  ranger_hdfs_properties['SSL_KEYSTORE_PASSWORD'] = params.config['configurations']['ranger-hdfs-plugin-properties'][
-    'SSL_KEYSTORE_PASSWORD']
-  ranger_hdfs_properties['SSL_TRUSTSTORE_FILE_PATH'] = params.config['configurations']['ranger-hdfs-plugin-properties'][
-    'SSL_TRUSTSTORE_FILE_PATH']
-  ranger_hdfs_properties['SSL_TRUSTSTORE_PASSWORD'] = params.config['configurations']['ranger-hdfs-plugin-properties'][
-    'SSL_TRUSTSTORE_PASSWORD']
+  ranger_hdfs_properties['SSL_KEYSTORE_FILE_PATH'] = params.ssl_keystore_file
+  ranger_hdfs_properties['SSL_KEYSTORE_PASSWORD'] = params.ssl_keystore_password
+  ranger_hdfs_properties['SSL_TRUSTSTORE_FILE_PATH'] = params.ssl_truststore_file
+  ranger_hdfs_properties['SSL_TRUSTSTORE_PASSWORD'] = params.ssl_truststore_password
 
   return ranger_hdfs_properties
 
 
-def hdfs_repo_properties(params):
-  config_dict = dict()
-  config_dict['username'] = params.config['configurations']['ranger-hdfs-plugin-properties'][
-    'REPOSITORY_CONFIG_USERNAME']
-  config_dict['password'] = params.config['configurations']['ranger-hdfs-plugin-properties'][
-    'REPOSITORY_CONFIG_PASSWORD']
-  config_dict['hadoop.security.authentication'] = params.config['configurations']['core-site'][
-    'hadoop.security.authentication']
-  config_dict['hadoop.security.authorization'] = params.config['configurations']['core-site'][
-    'hadoop.security.authorization']
-  config_dict['fs.default.name'] = params.config['configurations']['core-site']['fs.defaultFS']
-  config_dict['hadoop.security.auth_to_local'] = params.config['configurations']['core-site'][
-    'hadoop.security.auth_to_local']
-  config_dict['hadoop.rpc.protection'] = params.config['configurations']['ranger-hdfs-plugin-properties'][
-    'hadoop.rpc.protection']
-  config_dict['commonNameForCertificate'] = params.config['configurations']['ranger-hdfs-plugin-properties'][
-    'common.name.for.certificate']
+def hdfs_repo_properties():
+  import params
 
-  if params.config['configurations']['cluster-env']['security_enabled']:
-    config_dict['dfs.datanode.kerberos.principal'] = params.config['configurations']['hdfs-site'][
-      'dfs.datanode.kerberos.principal']
-    config_dict['dfs.namenode.kerberos.principal'] = params.config['configurations']['hdfs-site'][
-      'dfs.namenode.kerberos.principal']
-    config_dict['dfs.secondary.namenode.kerberos.principal'] = params.config['configurations']['hdfs-site'][
-      'dfs.secondary.namenode.kerberos.principal']
+  config_dict = dict()
+  config_dict['username'] = params.repo_config_username
+  config_dict['password'] = params.repo_config_password
+  config_dict['hadoop.security.authentication'] = params.hadoop_security_authentication
+  config_dict['hadoop.security.authorization'] = params.hadoop_security_authorization
+  config_dict['fs.default.name'] = params.fs_default_name
+  config_dict['hadoop.security.auth_to_local'] = params.hadoop_security_auth_to_local
+  config_dict['hadoop.rpc.protection'] = params.hadoop_rpc_protection
+  config_dict['commonNameForCertificate'] = params.common_name_for_certificate
+
+  if params.security_enabled:
+    config_dict['dfs.datanode.kerberos.principal'] = params._dn_principal_name
+    config_dict['dfs.namenode.kerberos.principal'] = params._nn_principal_name
+    config_dict['dfs.secondary.namenode.kerberos.principal'] = params._sn_principal_name
   else:
     config_dict['dfs.datanode.kerberos.principal'] = ''
     config_dict['dfs.namenode.kerberos.principal'] = ''
@@ -240,7 +206,7 @@ def hdfs_repo_properties(params):
   repo['isActive'] = "true"
   repo['config'] = json.dumps(config_dict)
   repo['description'] = "hdfs repo"
-  repo['name'] = str(params.config['clusterName']) + "_hadoop"
+  repo['name'] = params.repo_name
   repo['repositoryType'] = "Hdfs"
   repo['assetType'] = '1'
 

@@ -56,7 +56,7 @@ class HiveServer(Script):
     # This function is needed in HDP 2.2, but it is safe to call in earlier versions.
     copy_tarballs_to_hdfs('mapreduce', 'hive-server2', params.tez_user, params.hdfs_user, params.user_group)
     copy_tarballs_to_hdfs('tez', 'hive-server2', params.tez_user, params.hdfs_user, params.user_group)
-    setup_ranger_hive(env)    
+    setup_ranger_hive()    
     hive_service( 'hiveserver2', action = 'start',
       rolling_restart=rolling_restart )
 

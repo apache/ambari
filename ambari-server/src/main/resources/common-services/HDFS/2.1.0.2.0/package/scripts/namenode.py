@@ -70,7 +70,7 @@ class NameNode(Script):
 
     env.set_params(params)
     self.configure(env)
-    setup_ranger_hdfs(env)
+    setup_ranger_hdfs()
     namenode(action="start", rolling_restart=rolling_restart, env=env)
 
   def post_rolling_restart(self, env):

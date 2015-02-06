@@ -20,44 +20,64 @@
 -->
 <configuration supports_final="true">
 
-    <property>
-        <name>ranger_user</name>
-        <value>ranger</value>
-        <property-type>USER</property-type>
-        <description>Ranger username</description>
-    </property>
+  <property>
+    <name>ranger_user</name>
+    <value>ranger</value>
+    <property-type>USER</property-type>
+    <description>Ranger username</description>
+  </property>
 
-    <property>
-        <name>ranger_group</name>
-        <value>ranger</value>
-        <property-type>GROUP</property-type>
-        <description>Ranger group</description>
-    </property>
+  <property>
+    <name>ranger_group</name>
+    <value>ranger</value>
+    <property-type>GROUP</property-type>
+    <description>Ranger group</description>
+  </property>
 
-    <property>
-        <name>ranger_admin_log_dir</name>
-        <value>/var/log/ranger/admin</value>
-        <description></description>
-    </property>
+  <property>
+    <name>ranger_admin_log_dir</name>
+    <value>/var/log/ranger/admin</value>
+    <description></description>
+  </property>
 
-    <property>
-        <name>ranger_usersync_log_dir</name>
-        <value>/var/log/ranger/usersync</value>
-        <description></description>
-    </property>
+  <property>
+    <name>ranger_usersync_log_dir</name>
+    <value>/var/log/ranger/usersync</value>
+    <description></description>
+  </property>
 
-        <property>
-        <name>ranger_admin_username</name>
-        <value>amb_ranger_admin</value>
-        <property-type>TEXT</property-type>
-        <description></description>
-    </property>
+  <property>
+    <name>ranger_admin_username</name>
+    <value>amb_ranger_admin</value>
+    <property-type>TEXT</property-type>
+    <description></description>
+  </property>
 
-    <property>
-        <name>ranger_admin_password</name>
-        <value>ambari123</value>
-        <property-type>PASSWORD</property-type>
-        <description></description>
-    </property>
+  <property>
+    <name>ranger_admin_password</name>
+    <value>ambari123</value>
+    <property-type>PASSWORD</property-type>
+    <description></description>
+  </property>
+
+  <property>
+    <name>admin_username</name>
+    <value>admin</value>
+    <description>This user must be synced with Ranger admin</description>
+  </property>  
+
+  <property>
+    <name>admin_password</name>
+    <value>admin</value>
+    <property-type>PASSWORD</property-type>
+    <description>This admin user password must be synced with Ranger admin</description>
+  </property>
+  
+  <property>
+    <name>oracle_home</name>
+    <value>-</value>
+    <property-type>TEXT</property-type>
+    <description>Oracle Home needs to be set to path where oracle is installed, this will help install Ranger Admin when used with Oracle as database.</description>
+  </property>  
 
 </configuration>

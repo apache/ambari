@@ -24,23 +24,29 @@ from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.core import shell
 from setup_ranger import setup_ranger
-
+import upgrade
 
 class RangerAdmin(Script):
   def install(self, env):
     self.install_packages(env)
-    setup_ranger(env)
+    setup_ranger()
 
-  def stop(self, env):
+  def stop(self, env, rolling_restart=False):
     import params
 
     env.set_params(params)
     Execute(format('{params.ranger_stop}'))
 
-  def start(self, env):
+  def pre_rolling_restart(self, env):
     import params
+    env.set_params(params)
+    upgrade.prestart(env, "ranger-admin")
 
-    setup_ranger(env)
+  def start(self, env, rolling_restart=False):
+    import params
+    
+    env.set_params(params)
+    setup_ranger()
     Execute(format('{params.ranger_start}'))
 
   def status(self, env):

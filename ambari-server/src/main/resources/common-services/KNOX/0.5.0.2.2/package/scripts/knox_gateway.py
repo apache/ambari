@@ -80,7 +80,7 @@ class KnoxGateway(Script):
     self.configure(env)
     daemon_cmd = format('{knox_bin} start')
     no_op_test = format('ls {knox_pid_file} >/dev/null 2>&1 && ps -p `cat {knox_pid_file}` >/dev/null 2>&1')
-    setup_ranger_knox(env)
+    setup_ranger_knox()
     Execute(daemon_cmd,
             user=params.knox_user,
             environment={'JAVA_HOME': params.java_home},

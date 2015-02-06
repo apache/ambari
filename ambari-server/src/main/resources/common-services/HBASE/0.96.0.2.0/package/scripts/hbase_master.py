@@ -52,7 +52,7 @@ class HbaseMaster(Script):
     import params
     env.set_params(params)
     self.configure(env) # for security
-    setup_ranger_hbase(env)  
+    setup_ranger_hbase()  
     hbase_service( 'master',
       action = 'start'
     )

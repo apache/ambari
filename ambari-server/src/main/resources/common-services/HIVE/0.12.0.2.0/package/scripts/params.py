@@ -335,20 +335,70 @@ HdfsDirectory = functools.partial(
 
 # ranger host
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
-user_input = default("/configurations/ranger-hive-plugin-properties/ranger-hive-plugin-enabled", "no")
 has_ranger_admin = not len(ranger_admin_hosts) == 0
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >=0:
   # setting flag value for ranger hive plugin
   enable_ranger_hive = False
-  user_input = config['configurations']['ranger-hive-plugin-properties']['ranger-hive-plugin-enabled']
-  if  user_input.lower() == 'yes':
+  ranger_plugin_enable = default("/configurations/ranger-hive-plugin-properties/ranger-hive-plugin-enabled", "no")
+  if ranger_plugin_enable.lower() == 'yes':
     enable_ranger_hive = True
-  elif user_input.lower() == 'no':
+  elif ranger_plugin_enable.lower() == 'no':
     enable_ranger_hive = False
 
-ranger_jdbc_jar_name = "mysql-connector-java.jar"
+#ranger hive properties
+policymgr_mgr_url = default("/configurations/admin-properties/policymgr_external_url", "http://localhost:6080")
+sql_connector_jar = default("/configurations/admin-properties/SQL_CONNECTOR_JAR", "/usr/share/java/mysql-connector-java.jar")
+xa_audit_db_flavor = default("/configurations/admin-properties/DB_FLAVOR", "MYSQL")
+xa_audit_db_name = default("/configurations/admin-properties/audit_db_name", "ranger_audit")
+xa_audit_db_user = default("/configurations/admin-properties/audit_db_user", "rangerlogger")
+xa_audit_db_password = default("/configurations/admin-properties/audit_db_password", "rangerlogger")
+xa_db_host = default("/configurations/admin-properties/db_host", "localhost")
+repo_name = str(config['clusterName']) + '_hive'
+db_enabled = default("/configurations/ranger-hive-plugin-properties/XAAUDIT.DB.IS_ENABLED", "false")
+hdfs_enabled = default("/configurations/ranger-hive-plugin-properties/XAAUDIT.HDFS.IS_ENABLED", "false")
+hdfs_dest_dir = default("/configurations/ranger-hive-plugin-properties/XAAUDIT.HDFS.DESTINATION_DIRECTORY", "hdfs://__REPLACE__NAME_NODE_HOST:8020/ranger/audit/app-type/time:yyyyMMdd")
+hdfs_buffer_dir = default("/configurations/ranger-hive-plugin-properties/XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY", "__REPLACE__LOG_DIR/hadoop/app-type/audit")
+hdfs_archive_dir = default("/configurations/ranger-hive-plugin-properties/XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY", "__REPLACE__LOG_DIR/hadoop/app-type/audit/archive")
+hdfs_dest_file = default("/configurations/ranger-hive-plugin-properties/XAAUDIT.HDFS.DESTINTATION_FILE", "hostname-audit.log")
+hdfs_dest_flush_int_sec = default("/configurations/ranger-hive-plugin-properties/XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS", "900")
+hdfs_dest_rollover_int_sec = default("/configurations/ranger-hive-plugin-properties/XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS", "86400")
+hdfs_dest_open_retry_int_sec = default("/configurations/ranger-hive-plugin-properties/XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS", "60")
+hdfs_buffer_file = default("/configurations/ranger-hive-plugin-properties/XAAUDIT.HDFS.LOCAL_BUFFER_FILE", "time:yyyyMMdd-HHmm.ss.log")
+hdfs_buffer_flush_int_sec = default("/configurations/ranger-hive-plugin-properties/XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS", "60")
+hdfs_buffer_rollover_int_sec = default("/configurations/ranger-hive-plugin-properties/XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS", "600")
+hdfs_archive_max_file_count = default("/configurations/ranger-hive-plugin-properties/XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT", "10")
+ssl_keystore_file = default("/configurations/ranger-hive-plugin-properties/SSL_KEYSTORE_FILE_PATH", "/etc/hadoop/conf/ranger-plugin-keystore.jks")
+ssl_keystore_password = default("/configurations/ranger-hive-plugin-properties/SSL_KEYSTORE_PASSWORD", "myKeyFilePassword")
+ssl_truststore_file = default("/configurations/ranger-hive-plugin-properties/SSL_TRUSTSTORE_FILE_PATH", "/etc/hadoop/conf/ranger-plugin-truststore.jks")
+ssl_truststore_password = default("/configurations/ranger-hive-plugin-properties/SSL_TRUSTSTORE_PASSWORD", "changeit")
+grant_revoke = default("/configurations/ranger-hive-plugin-properties/UPDATE_XAPOLICIES_ON_GRANT_REVOKE","true")
+
+jdbc_driver_class_name = default("/configurations/ranger-hive-plugin-properties/jdbc.driverClassName","")
+common_name_for_certificate = default("/configurations/ranger-hive-plugin-properties/common.name.for.certificate", "-")
+
+repo_config_username = default("/configurations/ranger-hive-plugin-properties/REPOSITORY_CONFIG_USERNAME", "hive")
+repo_config_password = default("/configurations/ranger-hive-plugin-properties/REPOSITORY_CONFIG_PASSWORD", "hive")
+
+admin_uname = default("/configurations/ranger-env/admin_username", "admin")
+admin_password = default("/configurations/ranger-env/admin_password", "admin")
+admin_uname_password = format("{admin_uname}:{admin_password}")
+
+ambari_ranger_admin = default("/configurations/ranger-env/ranger_admin_username", "amb_ranger_admin")
+ambari_ranger_password = default("/configurations/ranger-env/ranger_admin_password", "ambari123")
+policy_user = default("/configurations/ranger-hive-plugin-properties/policy_user", "ambari-qa")
+
+#For curl command in ranger plugin to get db connector
+if xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'mysql':
+  ranger_jdbc_symlink_name = "mysql-jdbc-driver.jar"
+  ranger_jdbc_jar_name = "mysql-connector-java.jar"
+elif xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'oracle':
+  ranger_jdbc_jar_name = "ojdbc6.jar"
+  ranger_jdbc_symlink_name = "oracle-jdbc-driver.jar"
 
 ranger_downloaded_custom_connector = format("{tmp_dir}/{ranger_jdbc_jar_name}")
 
-ranger_driver_curl_source = format("{jdk_location}/{ranger_jdbc_jar_name}")
+ranger_driver_curl_source = format("{jdk_location}/{ranger_jdbc_symlink_name}")
 ranger_driver_curl_target = format("{java_share_dir}/{ranger_jdbc_jar_name}")
+
+if security_enabled:
+  hive_principal = hive_server_principal.replace('_HOST',hive_server_host.lower())

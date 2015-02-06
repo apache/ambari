@@ -58,7 +58,7 @@ class UiServer(Script):
     import params
     env.set_params(params)
     self.configure(env)
-    setup_ranger_storm(env)    
+    setup_ranger_storm()    
     service("ui", action="start")
 
   def stop(self, env, rolling_restart=False):

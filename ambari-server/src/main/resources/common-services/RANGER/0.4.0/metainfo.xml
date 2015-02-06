@@ -19,67 +19,67 @@
  */
 -->
 <metainfo>
-    <schemaVersion>2.0</schemaVersion>
-    <services>
-        <service>
-            <name>RANGER</name>
-            <displayName>Ranger</displayName>
-            <comment>Comprehensive security for Hadoop</comment>
-            <version>0.4.0</version>
-            <components>
-                
-                <component>
-                    <name>RANGER_ADMIN</name>
-                    <displayName>Ranger Admin</displayName>
-                    <category>MASTER</category>
-                    <cardinality>1</cardinality>
-                    <commandScript>
-                        <script>scripts/ranger_admin.py</script>
-                        <scriptType>PYTHON</scriptType>
-                        <timeout>600</timeout>
-                    </commandScript>
-                </component>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>RANGER</name>
+      <displayName>Ranger</displayName>
+      <comment>Comprehensive security for Hadoop</comment>
+      <version>0.4.0</version>
+      <components>
+          
+        <component>
+          <name>RANGER_ADMIN</name>
+          <displayName>Ranger Admin</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <commandScript>
+            <script>scripts/ranger_admin.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+        </component>
 
-                <component>
-                    <name>RANGER_USERSYNC</name>
-                    <displayName>Ranger Usersync</displayName>
-                    <category>MASTER</category>
-                    <cardinality>1</cardinality>
-                    <commandScript>
-                        <script>scripts/ranger_usersync.py</script>
-                        <scriptType>PYTHON</scriptType>
-                        <timeout>600</timeout>
-                    </commandScript>           
-                </component>
+        <component>
+          <name>RANGER_USERSYNC</name>
+          <displayName>Ranger Usersync</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <commandScript>
+            <script>scripts/ranger_usersync.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>        
+        </component>
 
-            </components>              
+      </components>              
 
-            <osSpecifics>
-                <osSpecific>
-                    <osFamily>redhat5,redhat6,suse11,ubuntu12</osFamily>
-                    <packages>
-                        <package>
-                            <name>ranger-admin</name>                                
-                        </package>
-                        <package>
-                            <name>ranger-usersync</name>
-                        </package>                           
-                    </packages>                        
-                </osSpecific>
-            </osSpecifics>
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>redhat5,redhat6,suse11,ubuntu12</osFamily>
+          <packages>
+            <package>
+              <name>ranger-admin</name>                                
+            </package>
+            <package>
+              <name>ranger-usersync</name>
+            </package>                           
+          </packages>                        
+        </osSpecific>
+      </osSpecifics>
 
-            <configuration-dependencies>
-                <config-type>admin-properties</config-type>
-                <config-type>ranger-site</config-type>
-                <config-type>usersync-properties</config-type>
-            </configuration-dependencies>
+      <configuration-dependencies>
+        <config-type>admin-properties</config-type>
+        <config-type>ranger-site</config-type>
+        <config-type>usersync-properties</config-type>
+      </configuration-dependencies>
 
-            <commandScript>
-                <script>scripts/service_check.py</script>
-                <scriptType>PYTHON</scriptType>
-                <timeout>300</timeout>				
-            </commandScript>
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>        
+      </commandScript>
 
-        </service>
-    </services>
+    </service>
+  </services>
 </metainfo>

@@ -50,7 +50,7 @@ class Rangeradmin:
       base64string = base64.encodestring(usernamepassword).replace('\n', '')
       request.add_header("Content-Type", "application/json")
       request.add_header("Accept", "application/json")
-      request.add_header("Authorization", "Basic %s" % base64string)
+      request.add_header("Authorization", "Basic {0}".format(base64string))
       result = urllib2.urlopen(request)
       response_code = result.getcode()
       response = json.loads(result.read())
@@ -65,25 +65,25 @@ class Rangeradmin:
         return None
     except urllib2.URLError, e:
       if isinstance(e, urllib2.HTTPError):
-        Logger.error("HTTP Code: %s" % e.code)
-        Logger.error("HTTP Data: %s" % e.read())
+        Logger.error("HTTP Code: {0}".format(e.code))
+        Logger.error("HTTP Data: {0}".format(e.read()))
       else:
-        Logger.error("Error : %s" % (e.reason))
+        Logger.error("Error : {0}".format(e.reason))
       return None
     except httplib.BadStatusLine:
       Logger.error("Ranger Admin service is not reachable, please restart the service and then try again")
       return None
 
-  def create_repository_urllib2(self, data, usernamepassword):
+  def create_repository_urllib2(self, data, usernamepassword, policy_user):
     try:
       searchRepoURL = self.urlReposPub
-      base64string = base64.encodestring('%s' % (usernamepassword)).replace('\n', '')
+      base64string = base64.encodestring('{0}'.format(usernamepassword)).replace('\n', '')
       headers = {
         'Accept': 'application/json',
         "Content-Type": "application/json"
       }
       request = urllib2.Request(searchRepoURL, data, headers)
-      request.add_header("Authorization", "Basic %s" % base64string)
+      request.add_header("Authorization", "Basic {0}".format(base64string))
       result = urllib2.urlopen(request)
       response_code = result.getcode()
       response = json.loads(json.JSONEncoder().encode(result.read()))
@@ -99,7 +99,7 @@ class Rangeradmin:
         if (len(policyList)) > 0:
           policiesUpdateCount = 0
           for policy in policyList:
-            updatedPolicyObj = self.get_policy_params(typeOfPolicy, policy)
+            updatedPolicyObj = self.get_policy_params(typeOfPolicy, policy, policy_user)
             policyResCode, policyResponse = self.update_ranger_policy(updatedPolicyObj['id'],
                                                                       json.dumps(updatedPolicyObj), usernamepassword)
             if policyResCode == 200:
@@ -121,10 +121,10 @@ class Rangeradmin:
         return None
     except urllib2.URLError, e:
       if isinstance(e, urllib2.HTTPError):
-        Logger.error("HTTP Code: %s" % e.code)
-        Logger.error("HTTP Data: %s" % e.read())
+        Logger.error("HTTP Code: {0}".format(e.code))
+        Logger.error("HTTP Data: {0}".foramt(e.read()))
       else:
-        Logger.error("Error: %s" % (e.reason))
+        Logger.error("Error: {0}".format(e.reason))
       return None
     except httplib.BadStatusLine:
       Logger.error("Ranger Admin service is not reachable, please restart the service and then try again")
@@ -136,17 +136,17 @@ class Rangeradmin:
       base64string = base64.encodestring(usernamepassword).replace('\n', '')
       request.add_header("Content-Type", "application/json")
       request.add_header("Accept", "application/json")
-      request.add_header("Authorization", "Basic %s" % base64string)
+      request.add_header("Authorization", "Basic {0}".format(base64string))
       result = urllib2.urlopen(request)
       response = result.read()
       response_code = result.getcode()
       return response_code, response
     except urllib2.URLError, e:
       if isinstance(e, urllib2.HTTPError):
-        Logger.error("HTTP Code: %s" % e.code)
-        Logger.error("HTTP Data: %s" % e.read())
+        Logger.error("HTTP Code: {0}".format(e.code))
+        Logger.error("HTTP Data: {0}".format(e.read()))
       else:
-        Logger.error("Error : %s" % (e.reason))
+        Logger.error("Error : {0}".format(e.reason))
       return None, None
     except httplib.BadStatusLine, e:
       Logger.error("Ranger Admin service is not reachable, please restart the service and then try again")
@@ -159,7 +159,7 @@ class Rangeradmin:
       base64string = base64.encodestring(usernamepassword).replace('\n', '')
       request.add_header("Content-Type", "application/json")
       request.add_header("Accept", "application/json")
-      request.add_header("Authorization", "Basic %s" % base64string)
+      request.add_header("Authorization", "Basic {0}".format(base64string))
       result = urllib2.urlopen(request)
       response_code = result.getcode()
       response = json.loads(result.read())
@@ -169,10 +169,10 @@ class Rangeradmin:
         return None
     except urllib2.URLError, e:
       if isinstance(e, urllib2.HTTPError):
-        Logger.error("HTTP Code: %s" % e.code)
-        Logger.error("HTTP Data: %s" % e.read())
+        Logger.error("HTTP Code: {0}".format(e.code))
+        Logger.error("HTTP Data: {0}".format(e.read()))
       else:
-        Logger.error("Error: %s" % (e.reason))
+        Logger.error("Error: {0}".format(e.reason))
       return None
     except httplib.BadStatusLine:
       Logger.error("Ranger Admin service is not reachable, please restart the service and then try again")
@@ -181,13 +181,13 @@ class Rangeradmin:
   def update_ranger_policy(self, policyId, data, usernamepassword):
     try:
       searchRepoURL = self.urlPolicies + "/" + str(policyId)
-      base64string = base64.encodestring('%s' % (usernamepassword)).replace('\n', '')
+      base64string = base64.encodestring('{0}'.format(usernamepassword)).replace('\n', '')
       headers = {
         'Accept': 'application/json',
         "Content-Type": "application/json"
       }
       request = urllib2.Request(searchRepoURL, data, headers)
-      request.add_header("Authorization", "Basic %s" % base64string)
+      request.add_header("Authorization", "Basic {0}".format(base64string))
       request.get_method = lambda: 'PUT'
       result = urllib2.urlopen(request)
       response_code = result.getcode()
@@ -200,30 +200,30 @@ class Rangeradmin:
         return None, None
     except urllib2.URLError, e:
       if isinstance(e, urllib2.HTTPError):
-        Logger.error("HTTP Code: %s" % e.code)
-        Logger.error("HTTP Data: %s" % e.read())
+        Logger.error("HTTP Code: {0}".format(e.code))
+        Logger.error("HTTP Data: {0}".format(e.read()))
       else:
-        Logger.error("Error: %s" % (e.reason))
+        Logger.error("Error: {0}".format(e.reason))
       return None, None
     except httplib.BadStatusLine:
       Logger.error("Ranger Admin service is not reachable, please restart the service and then try again")
       return None, None
 
-  def get_policy_params(self, typeOfPolicy, policyObj):
+  def get_policy_params(self, typeOfPolicy, policyObj, policy_user):
 
     typeOfPolicy = typeOfPolicy.lower()
     if typeOfPolicy == "hdfs":
-      policyObj['permMapList'] = [{'userList': ['ambari-qa'], 'permList': ['Read', 'Write', 'Execute', 'Admin']}]
+      policyObj['permMapList'] = [{'userList': [policy_user], 'permList': ['Read', 'Write', 'Execute', 'Admin']}]
     elif typeOfPolicy == "hive":
-      policyObj['permMapList'] = [{'userList': ['ambari-qa'],
+      policyObj['permMapList'] = [{'userList': [policy_user],
                                    'permList': ['Select', 'Update', 'Create', 'Drop', 'Alter', 'Index', 'Lock', 'All',
                                                 'Admin']}]
     elif typeOfPolicy == "hbase":
-      policyObj['permMapList'] = [{'userList': ['ambari-qa'], 'permList': ['Read', 'Write', 'Create', 'Admin']}]
+      policyObj['permMapList'] = [{'userList': [policy_user], 'permList': ['Read', 'Write', 'Create', 'Admin']}]
     elif typeOfPolicy == "knox":
-      policyObj['permMapList'] = [{'userList': ['ambari-qa'], 'permList': ['Allow', 'Admin']}]
+      policyObj['permMapList'] = [{'userList': [policy_user], 'permList': ['Allow', 'Admin']}]
     elif typeOfPolicy == "storm":
-      policyObj['permMapList'] = [{'userList': ['ambari-qa', 'storm'],
+      policyObj['permMapList'] = [{'userList': [policy_user],
                                    'permList': ['SubmitTopology', 'FileUpload', 'GetNimbusConf', 'GetClusterInfo',
                                                 'FileDownload', 'KillTopology', 'Rebalance', 'Activate', 'Deactivate',
                                                 'GetTopologyConf', 'GetTopology', 'GetUserTopology',
@@ -238,7 +238,7 @@ class Rangeradmin:
       base64string = base64.encodestring(usernamepassword).replace('\n', '')
       request.add_header("Content-Type", "application/json")
       request.add_header("Accept", "application/json")
-      request.add_header("Authorization", "Basic %s" % base64string)
+      request.add_header("Authorization", "Basic {0}".format(base64string))
       result = urllib2.urlopen(request)
       response_code =  result.getcode()
       response = json.loads(result.read())
@@ -267,13 +267,13 @@ class Rangeradmin:
           admin_user['description'] = ambari_admin_username
           admin_user['firstName'] = ambari_admin_username
           data =  json.dumps(admin_user)
-          base64string = base64.encodestring('%s' % (usernamepassword)).replace('\n', '')
+          base64string = base64.encodestring('{0}'.format(usernamepassword)).replace('\n', '')
           headers = {
-	          'Accept': 'application/json',
-	          "Content-Type": "application/json"
+            'Accept': 'application/json',
+            "Content-Type": "application/json"
           }
           request = urllib2.Request(url, data, headers)
-          request.add_header("Authorization", "Basic %s" % base64string)
+          request.add_header("Authorization", "Basic {0}".format(base64string))
           result = urllib2.urlopen(request)
           response_code =  result.getcode()
           response = json.loads(json.JSONEncoder().encode(result.read()))
@@ -289,11 +289,11 @@ class Rangeradmin:
 
     except urllib2.URLError, e:
       if isinstance(e, urllib2.HTTPError):
-        Logger.error("HTTP Code: %s" % e.code)
-        Logger.error("HTTP Data: %s" % e.read())
+        Logger.error("HTTP Code: {0}".format(e.code))
+        Logger.error("HTTP Data: {0}".format(e.read()))
         return '',''
       else:
-        Logger.error("Error: %s" % (e.reason))
+        Logger.error("Error: {0}".format(e.reason))
         return '',''
     except httplib.BadStatusLine:
       Logger.error("Ranger Admin service is not reachable, please restart the service and then try again")
