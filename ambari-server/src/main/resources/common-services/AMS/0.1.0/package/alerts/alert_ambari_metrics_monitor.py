@@ -21,6 +21,8 @@ limitations under the License.
 import os
 import socket
 
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.core.exceptions import ComponentIsNotRunning
 
@@ -38,6 +40,14 @@ def get_tokens():
   return (AMS_MONITOR_PID_DIR,)
 
 
+@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
+def is_monitor_process_live(pid_file):
+  from ambari_commons.os_windows import WinServiceController, SERVICE_STATUS_RUNNING
+
+  svcStatus = WinServiceController.QueryStatus("AmbariMetricsHostMonitoring")
+  return (SERVICE_STATUS_RUNNING == svcStatus)
+
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def is_monitor_process_live(pid_file):
   """
   Gets whether the AMS monitor represented by the specified file is running.
