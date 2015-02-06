@@ -40,9 +40,11 @@ stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_sta
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
   rest_lib_dir = '/usr/hdp/current/storm-client/contrib/storm-rest'
   storm_bin_dir = "/usr/hdp/current/storm-client/bin"
+  storm_lib_dir = "/usr/hdp/current/storm-client/lib"
 else:
   rest_lib_dir = "/usr/lib/storm/contrib/storm-rest"
   storm_bin_dir = "/usr/bin"
+  storm_lib_dir = "/usr/lib/storm/lib/"
 
 storm_user = config['configurations']['storm-env']['storm_user']
 log_dir = config['configurations']['storm-env']['storm_log_dir']
@@ -95,6 +97,8 @@ ams_collector_hosts = default("/clusterHostInfo/metric_collector_hosts", [])
 has_metric_collector = not len(ams_collector_hosts) == 0
 if has_metric_collector:
   metric_collector_host = ams_collector_hosts[0]
+  metric_collector_report_interval = 60
+metric_collector_sink_jar = "/usr/lib/storm/lib/ambari-metrics-storm-sink*.jar"
 
 # ranger host
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])

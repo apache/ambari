@@ -29,6 +29,9 @@
         <include>org.apache.ambari:ambari-metrics-common</include>
         <include>org.apache.ambari:ambari-metrics-storm-sink</include>
         <include>org.codehaus.jackson:jackson-mapper-asl</include> <!--missing in storm classpath-->
+        <include>org.codehaus.jackson:jackson-core-asl</include> <!--missing in storm classpath-->
+        <include>org.codehaus.jackson:jackson-xc</include> <!--missing in storm classpath-->
+        <include>commons-httpclient:commons-httpclient</include> <!--missing in storm classpath-->
       </includes>
     </dependencySet>
   </dependencySets>
