@@ -524,18 +524,18 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   describe("#downgrade()", function() {
     before(function () {
       sinon.stub(App.ajax, 'send', Em.K);
-      sinon.stub(controller, 'setUpgradeItemStatus');
+      sinon.stub(controller, 'abortUpgrade');
     });
     after(function () {
       App.ajax.send.restore();
-      controller.setUpgradeItemStatus.restore();
+      controller.abortUpgrade.restore();
     });
     it("make ajax call", function() {
       controller.downgrade(Em.Object.create({
         repository_version: '2.2',
         repository_name: 'HDP-2.2'
       }), {context: 'context'});
-      expect(controller.setUpgradeItemStatus.calledWith('context', 'FAILED')).to.be.true;
+      expect(controller.abortUpgrade.calledOnce).to.be.true;
       expect(App.ajax.send.getCall(0).args[0]).to.eql({
         name: 'admin.downgrade.start',
         sender: controller,

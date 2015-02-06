@@ -282,7 +282,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @param {object} event
    */
   downgrade: function (currentVersion, event) {
-    this.setUpgradeItemStatus(event.context, 'FAILED');
+    this.abortUpgrade();
     App.ajax.send({
       name: 'admin.downgrade.start',
       sender: this,
@@ -292,6 +292,19 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         isDowngrade: true
       },
       success: 'upgradeSuccessCallback'
+    });
+  },
+
+  /**
+   * abort upgrade (in order to start Downgrade)
+   */
+  abortUpgrade: function () {
+    return App.ajax.send({
+      name: 'admin.upgrade.abort',
+      sender: this,
+      data: {
+        upgradeId: this.get('upgradeId')
+      }
     });
   },
 
