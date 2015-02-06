@@ -306,6 +306,18 @@
             "value": "{0}"
           }
         }
+      },
+      {
+        "name": "nodemanager_health_summary",
+        "label": "NodeManager Health Summary",
+        "description": "This service-level alert is triggered if there are unhealthy NodeManagers",
+        "interval": 1,
+        "scope": "SERVICE",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "YARN/2.1.0.2.0/package/alerts/alert_nodemanagers_summary.py"
+        }
       }
     ],
     "APP_TIMELINE_SERVER": [

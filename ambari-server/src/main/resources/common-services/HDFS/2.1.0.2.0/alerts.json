@@ -296,6 +296,45 @@
         }
       },
       {
+        "name": "datanode_health_summary",
+        "label": "DataNode Health Summary",
+        "description": "This service-level alert is triggered if there are unhealthy DataNodes",
+        "interval": 1,
+        "scope": "SERVICE",
+        "enabled": true,
+        "source": {
+          "type": "METRIC",
+          "uri": {
+            "http": "{{hdfs-site/dfs.namenode.http-address}}",
+            "https": "{{hdfs-site/dfs.namenode.https-address}}",
+            "https_property": "{{hdfs-site/dfs.http.policy}}",
+            "https_property_value": "HTTPS_ONLY"
+          },
+          "reporting": {
+            "ok": {
+              "text": "All {2} DataNode(s) are healthy"
+            },
+            "warning": {
+              "text": "Dead/Stale Datanode(s): {0}/{1} out of {2}",
+              "value": 1
+            },
+            "critical": {
+              "text": "Dead/Stale Datanode(s): {0}/{1} out of {2}",
+              "value": 1
+            },
+            "units" : "DataNode(s)"
+          },
+          "jmx": {
+            "property_list": [
+              "Hadoop:service=NameNode,name=FSNamesystemState/NumDeadDataNodes",
+              "Hadoop:service=NameNode,name=FSNamesystemState/NumStaleDataNodes",
+              "Hadoop:service=NameNode,name=FSNamesystemState/NumLiveDataNodes"
+            ],
+            "value": "{0} + {1}"
+          }
+        }
+      },
+      {
         "name": "namenode_process",
         "label": "NameNode Process",
         "description": "This host-level alert is triggered if the NameNode process cannot be confirmed to be up and listening on the network.",
