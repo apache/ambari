@@ -17,7 +17,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-__all__ = ["RMFTestCase", "Template", "StaticFile", "InlineTemplate", "UnknownConfigurationMock", "FunctionMock"]
+__all__ = ["RMFTestCase", "Template", "StaticFile", "InlineTemplate", "UnknownConfigurationMock", "FunctionMock",
+           "CallFunctionMock"]
 
 from unittest import TestCase
 import json
@@ -213,7 +214,7 @@ class RMFTestCase(TestCase):
     with patch.object(UnknownConfiguration, '__getattr__', return_value=lambda: "UnknownConfiguration()"):
       self.assertNotEqual(len(RMFTestCase.env.resource_list), 0, "There was no more resources executed!")
       resource = RMFTestCase.env.resource_list.pop(0)
-      
+
       self.assertEquals(resource_type, resource.__class__.__name__)
       self.assertEquals(name, resource.name)
       self.assertEquals(kwargs, resource.arguments)
@@ -264,5 +265,24 @@ class FunctionMock():
     
   def __eq__(self, other):
     return hasattr(other, '__call__') and hasattr(other, '__name__') and self.name == other.__name__
+
+class CallFunctionMock():
+  """
+  Used to mock callable with specified arguments and expected results.
+  Callable will be called with arguments and result will be compared.
+  """
+  def __init__(self, call_result=None, *args, **kwargs):
+    self.call_result = call_result
+    self.args = args
+    self.kwargs = kwargs
+
+  def __ne__(self, other):
+    return not self.__eq__(other)
+
+  def __eq__(self, other):
+    if hasattr(other, '__call__'):
+      result = other(*self.args, **self.kwargs)
+      return self.call_result == result
+    return False
       
 

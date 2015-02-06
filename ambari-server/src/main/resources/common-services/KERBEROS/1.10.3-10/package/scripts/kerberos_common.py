@@ -382,8 +382,14 @@ class KerberosScript(Script):
             elif group_access == 'r':
               mode |= stat.S_IRGRP
 
+            keytab_content = base64.b64decode(keytab_content_base64)
+
+            # to hide content in command output
+            def make_lambda(data):
+              return lambda: data
+
             File(keytab_file_path,
-                 content=base64.b64decode(keytab_content_base64),
+                 content=make_lambda(keytab_content),
                  mode=mode,
                  owner=owner,
                  group=group)
