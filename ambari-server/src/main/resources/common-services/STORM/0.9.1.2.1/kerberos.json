@@ -13,7 +13,7 @@
           "name": "storm_components",
           "principal": {
             "value": "storm/_HOST@${realm}",
-            "type" : "service",
+            "type": "service",
             "configuration": "storm-env/storm_principal_name"
           },
           "keytab": {
@@ -52,7 +52,7 @@
               "name": "nimbus_server",
               "principal": {
                 "value": "nimbus/_HOST@${realm}",
-                "type" : "service",
+                "type": "service",
                 "configuration": "storm-env/nimbus_principal_name"
               },
               "keytab": {
@@ -77,7 +77,7 @@
               "name": "nimbus_server",
               "principal": {
                 "value": "nimbus/_HOST@${realm}",
-                "type" : "service",
+                "type": "service",
                 "configuration": "storm-env/nimbus_principal_name"
               },
               "keytab": {
@@ -91,6 +91,31 @@
                   "access": ""
                 },
                 "configuration": "storm-env/nimbus_keytab"
+              }
+            }
+          ]
+        },
+        {
+          "name": "SUPERVISOR",
+          "identities": [
+            {
+              "name": "storm_components",
+              "principal": {
+                "value": "storm/_HOST@${realm}",
+                "type": "service",
+                "configuration": "storm-env/storm_principal_name"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/storm.service.keytab",
+                "owner": {
+                  "name": "${storm-env/storm_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "storm-env/storm_keytab"
               }
             }
           ]
