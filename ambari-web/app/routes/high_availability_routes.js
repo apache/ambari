@@ -100,10 +100,10 @@ module.exports = App.WizardRoute.extend({
     route: '/step1',
     connectOutlets: function (router) {
       var controller = router.get('highAvailabilityWizardController');
-      controller.usersLoading().done(function () {
-        controller.saveHdfsUser();
+      controller.dataLoading().done(function () {
         controller.setCurrentStep('1');
-        controller.dataLoading().done(function () {
+        controller.usersLoading().done(function () {
+          controller.saveHdfsUser();
           controller.loadAllPriorSteps();
           controller.connectOutlet('highAvailabilityWizardStep1', controller.get('content'));
         })
