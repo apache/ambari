@@ -1,0 +1,59 @@
+{
+  "RANGER": {
+    "service": [],
+    "RANGER_ADMIN": [
+      {
+        "name": "ranger_admin_process",
+        "label": "Ranger Admin Process",
+        "description": "This host-level alert is triggered if the Ranger Admin cannot be determined to be up.",
+        "interval": 1,
+        "scope": "HOST",
+        "source": {
+          "type": "PORT",
+          "uri": "{{ranger-site/HTTP_SERVICE_PORT}}",
+          "default_port": 6080,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
+            }
+          }
+        }
+      }
+    ],
+    "RANGER_USERSYNC": [
+      {
+        "name": "ranger_usersync_process",
+        "label": "Ranger Usersync Process",
+        "description": "This host-level alert is triggered if the Ranger Usersync cannot be determined to be up.",
+        "interval": 1,
+        "scope": "HOST",
+        "source": {
+          "type": "PORT",
+          "uri": "{{admin-properties/authServicePort}}",
+          "default_port": 5151,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
+            }
+          }
+        }
+      }
+    ]
+  }
+}
