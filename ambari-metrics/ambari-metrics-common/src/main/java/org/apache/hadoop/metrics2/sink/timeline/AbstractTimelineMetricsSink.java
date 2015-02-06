@@ -36,7 +36,6 @@ public abstract class AbstractTimelineMetricsSink {
   public static final String MAX_METRIC_ROW_CACHE_SIZE = "maxRowCacheSize";
   public static final String METRICS_SEND_INTERVAL = "sendInterval";
   public static final String COLLECTOR_HOST_PROPERTY = "collector";
-  public static final String COLLECTOR_PORT_PROPERTY = "port";
 
   protected final Log LOG;
   private HttpClient httpClient = new HttpClient();

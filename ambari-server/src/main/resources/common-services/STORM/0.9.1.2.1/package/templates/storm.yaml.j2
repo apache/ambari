@@ -63,5 +63,4 @@ supervisor.enable: true
 topology.metrics.consumer.register:
   - class: "org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsSink"
     parallelism.hint: 1
-metrics.reporter.register: "org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter"
 {% endif %}

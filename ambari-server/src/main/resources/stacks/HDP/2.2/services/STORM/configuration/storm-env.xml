@@ -34,7 +34,7 @@
 export JAVA_HOME={{java64_home}}
 
 # export STORM_CONF_DIR=""
-export STORM_HOME=/usr/hdp/current/storm-client
+STORM_HOME=/usr/hdp/current/storm-client
     </value>
   </property>
 </configuration>
