@@ -38,9 +38,9 @@
 		<description>Used for repository creation on ranger admin</description>
 	</property>	
 
-	<property>
+	<property require-input="true">
 		<name>REPOSITORY_CONFIG_PASSWORD</name>
-		<value>admin-password</value>
+		<value></value>
 		<property-type>PASSWORD</property-type>
 		<description>Used for repository creation on ranger admin</description>
 	</property>	
@@ -135,9 +135,10 @@
 		<description></description>
 	</property>
 
-	<property>
+	<property require-input="true">
 		<name>SSL_KEYSTORE_PASSWORD</name>
-		<value>myKeyFilePassword</value>
+		<value></value>
+		<property-type>PASSWORD</property-type>
 		<description></description>
 	</property>
 
@@ -147,9 +148,10 @@
 		<description></description>
 	</property>
 
-	<property>
+	<property require-input="true">
 		<name>SSL_TRUSTSTORE_PASSWORD</name>
-		<value>changeit</value>
+		<value></value>
+		<property-type>PASSWORD</property-type>
 		<description></description>
 	</property>
 
