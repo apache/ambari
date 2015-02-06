@@ -44,6 +44,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
       HDFS: App.MainDashboardServiceHdfsView,
       STORM: App.MainDashboardServiceStormView,
       YARN: App.MainDashboardServiceYARNView,
+      RANGER: App.MainDashboardServiceRangerView,
       FLUME: Em.View.extend({
         template: Em.Handlebars.compile('' +
           '<tr>' +

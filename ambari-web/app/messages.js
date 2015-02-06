@@ -1441,6 +1441,9 @@ Em.I18n.translations = {
   'services.service.summary.flume.start.context': 'Start Flume {0}',
   'services.service.summary.flume.noAgents': 'No Flume to display',
 
+  'services.service.summary.ranger.plugin.title': 'Ranger {0} plugin',
+  'services.service.summary.ranger.plugin.loadingStatus': 'Loading status...',
+
   'services.service.summary.alerts.noAlerts': 'No alerts',
   'services.service.summary.alerts.alertsExist': '{0} alerts',
   'services.service.summary.alerts.popup.header': 'Alerts for {0}',

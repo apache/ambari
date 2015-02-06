@@ -99,7 +99,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    */
   rangerValidation: function () {
     var rangerService = this.findProperty('serviceName', 'RANGER');
-    if (rangerService && rangerService.get('isSelected')) {
+    if (rangerService && rangerService.get('isSelected') && !rangerService.get('isInstalled')) {
       this.addValidationError({
         id: 'rangerRequirements',
         type: 'WARNING',

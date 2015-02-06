@@ -200,6 +200,7 @@ require('views/main/service/services/zookeeper');
 require('views/main/service/services/oozie');
 require('views/main/service/services/flume');
 require('views/main/service/services/storm');
+require('views/main/service/services/ranger');
 require('views/main/service/all_services_actions');
 require('views/main/service/menu');
 require('views/main/service/item');

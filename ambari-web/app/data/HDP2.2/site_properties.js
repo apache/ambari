@@ -136,6 +136,7 @@ hdp22properties.push(
     "name": "ranger-hdfs-plugin-enabled",
     "displayType": "checkbox",
     "displayName": "Enable Ranger for HDFS",
+    "isOverridable": false,
     "filename": "ranger-hdfs-plugin-properties.xml",
     "category": "RangerSettings",
     "serviceName": "HDFS"
@@ -191,6 +192,7 @@ hdp22properties.push(
     "name": "ranger-hive-plugin-enabled",
     "displayType": "checkbox",
     "displayName": "Enable Ranger for HIVE",
+    "isOverridable": false,
     "filename": "ranger-hive-plugin-properties.xml",
     "category": "RangerSettings",
     "serviceName": "HIVE"
@@ -256,6 +258,7 @@ hdp22properties.push(
     "name": "ranger-hbase-plugin-enabled",
     "displayType": "checkbox",
     "displayName": "Enable Ranger for HBASE",
+    "isOverridable": false,
     "filename": "ranger-hbase-plugin-properties.xml",
     "category": "RangerSettings",
     "serviceName": "HBASE"
@@ -321,6 +324,7 @@ hdp22properties.push(
     "name": "ranger-storm-plugin-enabled",
     "displayType": "checkbox",
     "displayName": "Enable Ranger for STORM",
+    "isOverridable": false,
     "filename": "ranger-storm-plugin-properties.xml",
     "category": "RangerSettings",
     "serviceName": "STORM"
@@ -376,6 +380,7 @@ hdp22properties.push(
     "name": "ranger-knox-plugin-enabled",
     "displayType": "checkbox",
     "displayName": "Enable Ranger for KNOX",
+    "isOverridable": false,
     "filename": "ranger-knox-plugin-properties.xml",
     "category": "RangerSettings",
     "serviceName": "KNOX"

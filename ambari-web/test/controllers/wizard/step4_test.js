@@ -571,14 +571,23 @@ describe('App.WizardStep4Controller', function () {
       {
         services: ['RANGER'],
         isRangerSelected: false,
+        isRangerInstalled: false,
         isRangerWarning: false,
         title: 'Ranger not selected'
       },
       {
         services: ['RANGER'],
         isRangerSelected: true,
+        isRangerInstalled: false,
         isRangerWarning: true,
         title: 'Ranger selected'
+      },
+      {
+        services: ['RANGER'],
+        isRangerSelected: true,
+        isRangerInstalled: true,
+        isRangerWarning: false,
+        title: 'Ranger installed'
       }
     ];
 
@@ -588,7 +597,10 @@ describe('App.WizardStep4Controller', function () {
         controller.set('content', generateSelectedServicesContent(item.services));
         var ranger = controller.findProperty('serviceName', 'RANGER');
         if (item.services.contains('RANGER')) {
-          ranger.set('isSelected', item.isRangerSelected);
+          ranger.setProperties({
+            isSelected: item.isRangerSelected,
+            isInstalled: item.isRangerInstalled,
+          });
         } else {
           controller.removeObject(ranger);
         }

@@ -23,6 +23,151 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
   selectedFlumeAgent: null,
 
   /**
+   * Indicates whether Ranger plugins status update polling is active
+   * @type {boolean}
+   */
+  isRangerUpdateWorking: false,
+
+  /**
+   * Indicates whether array with initial Ranger plugins data is set
+   * @type {boolean}
+   */
+  isRangerPluginsArraySet: false,
+
+  /**
+   * Indicates whether previous AJAX request for Ranger plugins config properties has failed
+   * @type {boolean}
+   */
+  isPreviousRangerConfigsCallFailed: false,
+
+  /**
+   * Ranger plugins data
+   * @type {array}
+   */
+  rangerPlugins: [
+    {
+      serviceName: 'HDFS',
+      type: 'ranger-hdfs-plugin-properties',
+      propertyName: 'ranger-hdfs-plugin-enabled'
+    },
+    {
+      serviceName: 'HIVE',
+      type: 'ranger-hive-plugin-properties',
+      propertyName: 'ranger-hive-plugin-enabled'
+    },
+    {
+      serviceName: 'HBASE',
+      type: 'ranger-hbase-plugin-properties',
+      propertyName: 'ranger-hbase-plugin-enabled'
+    },
+    {
+      serviceName: 'KNOX',
+      type: 'ranger-knox-plugin-properties',
+      propertyName: 'ranger-knox-plugin-enabled'
+    },
+    {
+      serviceName: 'STORM',
+      type: 'ranger-storm-plugin-properties',
+      propertyName: 'ranger-storm-plugin-enabled'
+    }
+  ],
+
+  /**
+   * Set initial Ranger plugins data
+   * @method setRangerPlugins
+   */
+  setRangerPlugins: function () {
+    if (App.get('router.clusterController.isLoaded') && !this.get('isRangerPluginsArraySet')) {
+      this.setProperties({
+        rangerPlugins: this.get('rangerPlugins').map(function (item) {
+          return $.extend(item, {
+            pluginTitle: Em.I18n.t('services.service.summary.ranger.plugin.title').
+              format(App.StackService.find().findProperty('serviceName', item.serviceName).get('displayName')),
+            isDisplayed: App.Service.find().someProperty('serviceName', item.serviceName),
+            status: Em.I18n.t('services.service.summary.ranger.plugin.loadingStatus')
+          });
+        }),
+        isRangerPluginsArraySet: true
+      });
+    }
+  }.observes('App.router.clusterController.isLoaded'),
+
+  /**
+   * Get latest config tags
+   * @method updateRangerPluginsStatus
+   * @param callback
+   */
+  updateRangerPluginsStatus: function (callback) {
+    App.ajax.send({
+      name: 'config.tags',
+      sender: this,
+      success: 'getRangerPluginsStatus',
+      callback: callback
+    });
+  },
+
+  /**
+   * Get latest Ranger plugins config properties
+   * @method getRangerPluginsStatus
+   * @param data
+   */
+  getRangerPluginsStatus: function (data) {
+    var urlParams = [];
+    this.get('rangerPlugins').forEach(function (item) {
+      if (App.Service.find().someProperty('serviceName', item.serviceName)) {
+        var currentTag = data.Clusters.desired_configs[item.type].tag;
+        var isTagChanged = item.tag != currentTag;
+        Em.set(item, 'isDisplayed', true);
+        //Request for properties should be sent either if configs have changed or if previous Ranger plugins config properties has failed
+        if (isTagChanged || this.get('isPreviousRangerConfigsCallFailed')) {
+          Em.set(item, 'tag', currentTag);
+          urlParams.push('(type=' + item.type + '&tag=' + currentTag + ')');
+        }
+      } else {
+        Em.set(item, 'isDisplayed', false);
+      }
+    }, this);
+    if (urlParams.length) {
+      App.ajax.send({
+        name: 'reassign.load_configs',
+        sender: this,
+        data: {
+          urlParams: urlParams.join('|')
+        },
+        success: 'getRangerPluginsStatusSuccess',
+        error: 'getRangerPluginsStatusError'
+      });
+    }
+  },
+
+  /**
+   * Set Ranger plugins statuses
+   * @method getRangerPluginsStatusSuccess
+   * @param data
+   */
+  getRangerPluginsStatusSuccess: function (data) {
+    this.set('isPreviousRangerConfigsCallFailed', false);
+    data.items.forEach(function (item) {
+      var serviceName = this.get('rangerPlugins').findProperty('type', item.type).serviceName;
+      var propertyName = this.get('rangerPlugins').findProperty('type', item.type).propertyName;
+      var statusMap = {
+        Yes: 'alerts.table.state.enabled',
+        No: 'alerts.table.state.disabled'
+      };
+      var statusString = statusMap[item.properties[propertyName]] || 'common.unknown';
+      Em.set(this.get('rangerPlugins').findProperty('serviceName', serviceName), 'status', Em.I18n.t(statusString));
+    }, this);
+  },
+
+  /**
+   * Method executed if Ranger plugins config properties request has failed
+   * @method getRangerPluginsStatusError
+   */
+  getRangerPluginsStatusError: function () {
+    this.set('isPreviousRangerConfigsCallFailed', true);
+  },
+
+  /**
    * Send start command for selected Flume Agent
    * @method startFlumeAgent
    */
