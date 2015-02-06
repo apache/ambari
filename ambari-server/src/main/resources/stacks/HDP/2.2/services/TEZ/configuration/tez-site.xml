@@ -308,4 +308,10 @@
     </description>
   </property>
 
+  <property>
+    <name>tez.runtime.convert.user-payload.to.history-text</name>
+    <value>true</value>
+    <description>Whether to publish configuration information to History logger</description>
+  </property>
+
 </configuration>
