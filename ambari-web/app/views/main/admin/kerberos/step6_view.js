@@ -26,6 +26,6 @@ App.KerberosWizardStep6View = App.KerberosProgressPageView.extend({
 
   submitButtonText: Em.I18n.t('common.next') + '&rarr;',
 
-  showBackButton: false
+  showBackButton: true
 
 });

@@ -1268,6 +1268,19 @@ var urls = {
       }
     }
   },
+  'admin.unkerberize.cluster': {
+    'type': 'PUT',
+    'real': '/clusters/{clusterName}',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          Clusters: {
+            security_type: "NONE"
+          }
+        })
+      }
+    }
+  },
   'get.cluster.artifact': {
     'real': '/clusters/{clusterName}/artifacts/{artifactName}?fields=artifact_data',
     'mock': '/data/wizard/kerberos/stack_descriptors.json'

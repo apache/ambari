@@ -215,4 +215,27 @@ describe('App.WizardController', function () {
     });
 
   });
+
+  describe('#enableStep', function () {
+
+    it('should update appropriate value in isStepDisabled', function () {
+
+      c.set('isStepDisabled', [
+        Em.Object.create({step: 1, value: true}),
+        Em.Object.create({step: 2, value: true}),
+        Em.Object.create({step: 3, value: true}),
+        Em.Object.create({step: 4, value: true}),
+        Em.Object.create({step: 5, value: true}),
+        Em.Object.create({step: 6, value: true}),
+        Em.Object.create({step: 7, value: true})
+      ]);
+
+      c.enableStep(1);
+      expect(c.get('isStepDisabled')[0].get('value')).to.be.false;
+
+      c.enableStep(7);
+      expect(c.get('isStepDisabled')[6].get('value')).to.be.false;
+    });
+
+  });
 });

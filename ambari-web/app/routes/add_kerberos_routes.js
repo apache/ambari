@@ -226,6 +226,8 @@ module.exports = App.WizardRoute.extend({
       var kerberosWizardController = router.get('kerberosWizardController');
       var kerberosWizardStep4Controller = router.get('kerberosWizardStep4Controller');
       kerberosWizardController.saveServiceConfigProperties(kerberosWizardStep4Controller);
+      kerberosWizardController.setDBProperty('tasksStatuses', null);
+      kerberosWizardController.setDBProperty('tasksRequestIds', null);
       router.transitionTo('step5');
     }
   }),
@@ -250,7 +252,22 @@ module.exports = App.WizardRoute.extend({
     },
     back: Em.Router.transitionTo('step4'),
     next: function (router) {
-      router.transitionTo('step6');
+      var kerberosWizardController = router.get('kerberosWizardController');
+      kerberosWizardController.setDBProperty('tasksStatuses', null);
+      kerberosWizardController.setDBProperty('tasksRequestIds', null);
+      var step6Controller = router.get('kerberosWizardStep6Controller');
+      var kerberosDescriptor = kerberosWizardController.get('kerberosDescriptorConfigs');
+      step6Controller.postKerberosDescriptor(kerberosDescriptor).always(function (data, result, request) {
+        if (result === 'error' && data.status === 409) {
+          step6Controller.putKerberosDescriptor(kerberosDescriptor).always(function (data) {
+            step6Controller.unkerberizeCluster().always(function (data) {
+              router.transitionTo('step6');
+            });
+          });
+        } else {
+          router.transitionTo('step6');
+        }
+      });
     }
   }),
 
@@ -267,16 +284,12 @@ module.exports = App.WizardRoute.extend({
       controller.dataLoading().done(function () {
         controller.setLowerStepsDisable(6);
         controller.loadAllPriorSteps();
-        var kerberosDescriptor = controller.get('kerberosDescriptorConfigs');
-          stepController.postKerberosDescriptor(kerberosDescriptor).always(function (data) {
-          stepController.setRequest();
-          controller.connectOutlet('kerberosWizardStep6', controller.get('content'));
-        });
+        stepController.setRequest();
+        controller.connectOutlet('kerberosWizardStep6', controller.get('content'));
       });
     },
     retry: function () {
       var router = App.get('router');
-      var controller = router.get('kerberosWizardController');
       var stepController = router.get('kerberosWizardStep6Controller');
       stepController.setRequest();
       stepController.loadStep();
@@ -284,7 +297,7 @@ module.exports = App.WizardRoute.extend({
     unroutePath: function () {
       return false;
     },
-    back: Em.Router.transitionTo('step5'),
+    back: Em.Router.transitionTo('step4'),
     next: function (router) {
       router.transitionTo('step7');
     }

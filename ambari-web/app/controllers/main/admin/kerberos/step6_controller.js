@@ -24,6 +24,12 @@ App.KerberosWizardStep6Controller = App.KerberosProgressPageController.extend({
   commands: [],
   contextForPollingRequest: Em.I18n.t('requestInfo.kerberizeCluster'),
 
+  /**
+   * Define whether show Back button
+   * @type {Boolean}
+   */
+  isBackButtonDisabled: true,
+
   setRequest: function () {
     this.set('request', {
       name: 'KERBERIZE_CLUSTER',
@@ -35,6 +41,17 @@ App.KerberosWizardStep6Controller = App.KerberosProgressPageController.extend({
           }
         }
       }
+    });
+  },
+
+  /**
+   * Send request to unkerberisze cluster
+   * @returns {$.ajax}
+   */
+  unkerberizeCluster: function () {
+    return App.ajax.send({
+      name: 'admin.unkerberize.cluster',
+      sender: this
     });
   },
 
@@ -51,9 +68,42 @@ App.KerberosWizardStep6Controller = App.KerberosProgressPageController.extend({
     });
   },
 
+  /**
+   * Send request to update kerberos descriptor
+   * @param kerberosDescriptor
+   * @returns {$.ajax|*}
+   */
+  putKerberosDescriptor: function (kerberosDescriptor) {
+    return App.ajax.send({
+      name: 'admin.kerberos.cluster.artifact.update',
+      sender: this,
+      data: {
+        artifactName: 'kerberos_descriptor',
+        data: {
+          artifact_data: kerberosDescriptor
+        }
+      }
+    });
+  },
+
   retry: function () {
     this.set('showRetry', false);
     this.get('tasks').setEach('status', 'PENDING');
     App.router.send('retry');
-  }
+  },
+
+
+  /**
+   * Enable or disable previous steps according to tasks statuses
+   */
+  enableDisablePreviousSteps: function () {
+    var wizardController = App.router.get(this.get('content.controllerName'));
+    if (this.get('tasks').someProperty('status', 'FAILED')) {
+      wizardController.enableStep(4);
+      this.set('isBackButtonDisabled', false);
+    } else {
+      wizardController.setLowerStepsDisable(6);
+      this.set('isBackButtonDisabled', true);
+    }
+  }.observes('tasks.@each.status')
 });

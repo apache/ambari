@@ -59,9 +59,9 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
     if (!self.isSingleRequestPage) {
       this.initStep();
     } else {
-      var runningOperations = App.router.get('backgroundOperationsController.services').filterProperty('isRunning');
-      var currentOperation = runningOperations.findProperty('name', this.contextForPollingRequest);
-      if (!currentOperation) {
+      var requestIds = this.get('content.tasksRequestIds');
+      var currentRequestId = requestIds && requestIds[0][0];
+      if (!currentRequestId) {
         this.submitRequest().done(function (data, result, request) {
           if (data) {
             self.set('currentPageRequestId', data.Requests.id);
@@ -76,7 +76,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
           }
         });
       } else {
-        self.set('currentPageRequestId',currentOperation.get('id'));
+        self.set('currentPageRequestId', currentRequestId);
         self.doPollingForPageRequest();
       }
     }
