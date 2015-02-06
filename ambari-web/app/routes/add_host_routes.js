@@ -108,7 +108,7 @@ module.exports = App.WizardRoute.extend({
         var wizardStep2Controller = router.get('wizardStep2Controller');
         wizardStep2Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep2', controller.get('content'));
-      })
+      });
     },
 
     next: function (router) {
@@ -143,7 +143,7 @@ module.exports = App.WizardRoute.extend({
         var wizardStep3Controller = router.get('wizardStep3Controller');
         wizardStep3Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep3', controller.get('content'));
-      })
+      });
     },
     back: function(router){
       router.transitionTo('step1');
@@ -243,7 +243,7 @@ module.exports = App.WizardRoute.extend({
         var wizardStep8Controller = router.get('wizardStep8Controller');
         wizardStep8Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep8', controller.get('content'));
-      })
+      });
     },
     back: function(router){
       if(!router.get('wizardStep8Controller.isBackBtnDisabled')) {
@@ -254,13 +254,39 @@ module.exports = App.WizardRoute.extend({
       var addHostController = router.get('addHostController');
       var wizardStep8Controller = router.get('wizardStep8Controller');
       addHostController.applyConfigGroup();
-      addHostController.installServices(false, function () {
-        addHostController.setInfoForStep9();
-        // We need to do recovery based on whether we are in Add Host or Installer wizard
-        addHostController.saveClusterState('ADD_HOSTS_INSTALLING_3');
-        wizardStep8Controller.set('servicesInstalled', true);
-        router.transitionTo('step6');
-      });
+      var successCallback = function () {
+        // In secure mode this callback will be called in case when user enter valid credentials if session was
+        // expired. 
+        // In other case just proceed to the next step.
+        if (App.router.get('mainAdminKerberosController.securityEnabled') && addHostController.getDBProperty('KDCAuthRequired') == true) {
+          // user has entered valid KDC credentials. Drop db property.
+          addHostController.setDBProperty('KDCAuthRequired', false);
+          // save current cluster status
+          addHostController.saveClusterState('ADD_HOSTS_INSTALLING_3');
+          // continue installation
+          App.router.get('wizardStep9Controller').navigateStep();
+        } else {
+          // We need to do recovery based on whether we are in Add Host or Installer wizard
+          addHostController.setInfoForStep9();
+          addHostController.saveClusterState('ADD_HOSTS_INSTALLING_3');
+          wizardStep8Controller.set('servicesInstalled', true);
+          router.transitionTo('step6');
+        }
+      };
+      var errorCallback = function(request) {
+        var KDCErrorMsg = App.ajax.getKDCErrorMgs(request);
+        // check if KDC credentials was expired and navigate user to next step.
+        // in this case install process is stopped until user enter valid KDC credentials.
+        if (!Em.isNone(KDCErrorMsg)) {
+          wizardStep8Controller.set('servicesInstalled', true);
+          router.transitionTo('step6');
+          addHostController.setDBProperty('KDCAuthRequired', true);
+          addHostController.saveClusterState('ADD_HOSTS_KDC_AUTHORIZATION');
+        } else {
+          successCallback();
+        }
+      };
+      addHostController.installServices(false, successCallback, errorCallback);
     }
   }),
 
@@ -278,7 +304,27 @@ module.exports = App.WizardRoute.extend({
           controller.setLowerStepsDisable(6);
         }
         controller.connectOutlet('wizardStep9', controller.get('content'));
-      })
+        // handle page refresh for enabled security. After page refresh `servicesInstalled` property will be set with default value
+        // On transition from step5 to step6 this code will not execute.
+        if (!App.router.get('wizardStep8Controller.servicesInstalled') && controller.getDBProperty('KDCAuthRequired') == true) {
+          // user refreshed the page. Try to install components
+          controller.installServices(false, function() {
+            // authorization successful
+            controller.setDBProperty('KDCAuthRequired', false);
+            // continue installation
+            wizardStep9Controller.navigateStep();
+            // save cluster state
+            controller.saveClusterState('ADD_HOSTS_INSTALLING_3');
+          }, function(request) {
+            var KDCErrorMsg = App.ajax.getKDCErrorMgs(request);
+            // check if error caused by expired KDC session or invalid credentials
+            if (!Em.isNone(KDCErrorMsg)) {
+              controller.setDBProperty('KDCAuthRequired', true);
+              controller.saveClusterState('ADD_HOSTS_KDC_AUTHORIZATION');
+            }
+          });
+        }
+      });
     },
     back: Em.Router.transitionTo('step5'),
     retry: function(router,context) {
@@ -330,7 +376,7 @@ module.exports = App.WizardRoute.extend({
         }
         controller.connectOutlet('wizardStep10', controller.get('content'));
         router.get('updateController').set('isWorking', true);
-      })
+      });
     },
     back: Em.Router.transitionTo('step6'),
     complete: function (router, context) {
@@ -339,7 +385,7 @@ module.exports = App.WizardRoute.extend({
         'Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components,' +
         'metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free';
       router.get('clusterController').requestHosts(hostsUrl, function () {
-        console.log('Request for hosts, with immutable parameters')
+        console.log('Request for hosts, with immutable parameters');
       });
       router.get('updateController').updateAll();
       $(context.currentTarget).parents("#modal").find(".close").trigger('click');
