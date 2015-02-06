@@ -48,6 +48,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -1817,4 +1818,56 @@ public class AmbariManagementControllerImplTest {
     }
 
   }
+
+  @Test
+  public void testVerifyRepositires() throws Exception {
+    // member state mocks
+    Injector injector = createStrictMock(Injector.class);
+    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+
+    // expectations
+    // constructor init
+    injector.injectMembers(capture(controllerCapture));
+    expect(injector.getInstance(Gson.class)).andReturn(null);
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
+
+    RepositoryInfo dummyRepoInfo = new RepositoryInfo();
+    dummyRepoInfo.setRepoName("repo_name");
+
+    expect(ambariMetaInfo.getRepository("stackName", "stackVersion", "redhat6", "repoId")).andReturn(dummyRepoInfo);
+
+    Configuration configuration = createNiceMock(Configuration.class);
+    String[] suffices = {"/repodata/repomd.xml"};
+    expect(configuration.getRepoValidationSuffixes("redhat6")).andReturn(suffices);
+
+    // replay mocks
+    replay(injector, clusters, ambariMetaInfo, configuration);
+
+    // test
+    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
+    setAmbariMetaInfo(ambariMetaInfo, controller);
+
+    // Manually injected
+    Class<?> c = controller.getClass();
+    Field f = c.getDeclaredField("configs");
+    f.setAccessible(true);
+    f.set(controller, configuration);
+
+    Set<RepositoryRequest> requests = new HashSet<RepositoryRequest>();
+    RepositoryRequest request = new RepositoryRequest("stackName", "stackVersion", "redhat6", "repoId");
+    request.setBaseUrl("file:///some/repo");
+	requests.add(request);
+
+	// A wrong file path is passed and IllegalArgumentException is expected
+	try{
+		controller.verifyRepositories(requests);
+		Assert.fail("IllegalArgumentException is expected");
+	}catch(IllegalArgumentException e){
+		Assert.assertEquals("Could not access base url . file:///some/repo/repodata/repomd.xml . ", e.getMessage());
+	}
+
+    verify(injector, clusters, ambariMetaInfo, configuration);
+  }
+
 }

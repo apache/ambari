@@ -3074,26 +3074,41 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     String[] suffixes = configs.getRepoValidationSuffixes(request.getOsType());
     for (String suffix : suffixes) {
       String formatted_suffix = String.format(suffix, repoName);
-      String spec = request.getBaseUrl();
+      String spec = request.getBaseUrl().trim();
 
+      // This logic is to identify if the end of baseurl has a slash ('/') and/or the beginning of suffix String (e.g. "/repodata/repomd.xml") 
+      // has a slash and they can form a good url.
+      // e.g. "http://baseurl.com/" + "/repodata/repomd.xml" becomes "http://baseurl.com/repodata/repomd.xml" but not "http://baseurl.com//repodata/repomd.xml"
       if (spec.charAt(spec.length() - 1) != '/' && formatted_suffix.charAt(0) != '/') {
-        spec = request.getBaseUrl() + "/" + formatted_suffix;
+        spec = spec + "/" + formatted_suffix;
       } else if (spec.charAt(spec.length() - 1) == '/' && formatted_suffix.charAt(0) == '/') {
-        spec = request.getBaseUrl() + formatted_suffix.substring(1);
+        spec = spec + formatted_suffix.substring(1);
       } else {
-        spec = request.getBaseUrl() + formatted_suffix;
+        spec = spec + formatted_suffix;
       }
 
-      try {
-        IOUtils.readLines(usp.readFrom(spec));
-      } catch (IOException ioe) {
-        errorMessage = "Could not access base url . " + request.getBaseUrl() + " . ";
-        if (LOG.isDebugEnabled()) {
-          errorMessage += ioe;
-        } else {
-          errorMessage += ioe.getMessage();
+      // if spec contains "file://" then check local file system.
+      final String FILE_SCHEME = "file://";
+      if(spec.toLowerCase().startsWith(FILE_SCHEME)){
+        String filePath = spec.substring(FILE_SCHEME.length());
+        File f = new File(filePath);
+        if(!f.exists()){
+          errorMessage = "Could not access base url . " + spec + " . ";
+          break;
         }
-        break;
+
+      }else{
+        try {
+          IOUtils.readLines(usp.readFrom(spec));
+        } catch (IOException ioe) {
+          errorMessage = "Could not access base url . " + request.getBaseUrl() + " . ";
+          if (LOG.isDebugEnabled()) {
+            errorMessage += ioe;
+          } else {
+            errorMessage += ioe.getMessage();
+          }
+          break;
+        }
       }
     }
 
