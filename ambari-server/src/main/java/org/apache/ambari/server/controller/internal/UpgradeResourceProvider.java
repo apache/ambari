@@ -39,6 +39,7 @@ import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
@@ -105,6 +106,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   protected static final String UPGRADE_FROM_VERSION = "Upgrade/from_version";
   protected static final String UPGRADE_TO_VERSION = "Upgrade/to_version";
   protected static final String UPGRADE_DIRECTION = "Upgrade/direction";
+  protected static final String UPGRADE_REQUEST_STATUS = "Upgrade/request_status";
+  protected static final String UPGRADE_ABORT_REASON = "Upgrade/abort_reason";
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
       Arrays.asList(UPGRADE_REQUEST_ID, UPGRADE_CLUSTER_NAME));
@@ -116,6 +119,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private static final String COMMAND_PARAM_RESTART_TYPE = "restart_type";
   private static final String COMMAND_PARAM_TASKS = "tasks";
   private static final String COMMAND_PARAM_STRUCT_OUT = "structured_out";
+
+  private static final String DEFAULT_REASON_TEMPLATE = "Aborting upgrade %s";
 
   private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<Resource.Type, String>();
 
@@ -289,7 +294,52 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
-    throw new SystemException("Cannot update Upgrades");
+
+    Set<Map<String, Object>> requestMaps = request.getProperties();
+
+    if (requestMaps.size() > 1) {
+      throw new SystemException("Can only update one upgrade per request.");
+    }
+
+    // !!! above check ensures only one
+    final Map<String, Object> propertyMap = requestMaps.iterator().next();
+
+    String requestId = (String) propertyMap.get(UPGRADE_REQUEST_ID);
+    if (null == requestId) {
+      throw new IllegalArgumentException(String.format("%s is required", UPGRADE_REQUEST_ID));
+    }
+
+    String requestStatus = (String) propertyMap.get(UPGRADE_REQUEST_STATUS);
+    if (null == requestStatus) {
+      throw new IllegalArgumentException(String.format("%s is required", UPGRADE_REQUEST_STATUS));
+    }
+
+    HostRoleStatus status = HostRoleStatus.valueOf(requestStatus);
+    if (status != HostRoleStatus.ABORTED) {
+      throw new IllegalArgumentException(
+          String.format("Cannot set status %s, only %s is allowed",
+          status, HostRoleStatus.ABORTED));
+    }
+
+    String reason = (String) propertyMap.get(UPGRADE_ABORT_REASON);
+    if (null == reason) {
+      reason = String.format(DEFAULT_REASON_TEMPLATE, requestId);
+    }
+
+    ActionManager actionManager = getManagementController().getActionManager();
+    List<org.apache.ambari.server.actionmanager.Request> requests =
+        actionManager.getRequests(Collections.singletonList(Long.valueOf(requestId)));
+
+    org.apache.ambari.server.actionmanager.Request internalRequest = requests.get(0);
+
+    HostRoleStatus internalStatus = CalculatedStatus.statusFromStages(
+      internalRequest.getStages()).getStatus();
+
+    if (!internalStatus.isCompletedState()) {
+      actionManager.cancelRequest(internalRequest.getRequestId(), reason);
+    }
+
+    return getRequestStatus(null);
   }
 
   @Override

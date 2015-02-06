@@ -109,6 +109,7 @@ public class UpgradeResourceProviderTest {
 
     injector.getInstance(GuiceJpaInitializer.class);
 
+
     helper = injector.getInstance(OrmTestHelper.class);
 
     amc = injector.getInstance(AmbariManagementController.class);
@@ -458,8 +459,31 @@ public class UpgradeResourceProviderTest {
       assertEquals("downgrade", map.get("upgrade_direction"));
     }
 
+  }
+
+  @Test
+  public void testAbort() throws Exception {
+    org.apache.ambari.server.controller.spi.RequestStatus status = testCreateResources();
+
+    Set<Resource> createdResources = status.getAssociatedResources();
+    assertEquals(1, createdResources.size());
+    Resource res = createdResources.iterator().next();
+    Long id = (Long) res.getPropertyValue("Upgrade/request_id");
+    assertNotNull(id);
+    assertEquals(Long.valueOf(1), id);
+
+    Map<String, Object> requestProps = new HashMap<String, Object>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_ID, id.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_STATUS, "ABORTED");
+
+    UpgradeResourceProvider urp = createProvider(amc);
+
+    // !!! make sure we can.  actual abort is tested elsewhere
+    Request req = PropertyHelper.getUpdateRequest(requestProps, null);
+    urp.updateResources(req, null);
 
   }
+
 
   /**
    * @param amc

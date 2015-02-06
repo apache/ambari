@@ -108,7 +108,6 @@ public class UpgradeService extends BaseService {
 
     if (null != upgradeId) {
       mapIds.put(Resource.Type.Upgrade, upgradeId.toString());
-      mapIds.put(Resource.Type.Request, upgradeId.toString());
     }
 
     return createResource(Resource.Type.Upgrade, mapIds);

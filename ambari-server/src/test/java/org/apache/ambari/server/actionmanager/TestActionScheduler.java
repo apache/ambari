@@ -2223,6 +2223,39 @@ public class TestActionScheduler {
 
   }
 
+  @Test
+  public void testAbortHolding() {
+    UnitOfWork unitOfWork = EasyMock.createMock(UnitOfWork.class);
+    ActionDBAccessor db = EasyMock.createMock(ActionDBAccessor.class);
+    ActionQueue aq = new ActionQueue();
+    Clusters fsm = EasyMock.createMock(Clusters.class);
+    Configuration conf = new Configuration(new Properties());
+
+    db.abortHostRole("h1", -1L, -1L, "AMBARI_SERVER_ACTION");
+    EasyMock.expectLastCall();
+
+    EasyMock.replay(db);
+
+    ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
+        new HostsMap((String) null),
+        unitOfWork, null, conf);
+
+    HostRoleCommand hrc1 = new HostRoleCommand("h1", Role.NAMENODE, null, RoleCommand.EXECUTE);
+    hrc1.setStatus(HostRoleStatus.COMPLETED);
+    HostRoleCommand hrc3 = new HostRoleCommand("h1", Role.AMBARI_SERVER_ACTION, null, RoleCommand.CUSTOM_COMMAND);
+    hrc3.setStatus(HostRoleStatus.HOLDING);
+    HostRoleCommand hrc4 = new HostRoleCommand("h1", Role.FLUME_HANDLER, null, RoleCommand.EXECUTE);
+    hrc4.setStatus(HostRoleStatus.PENDING);
+
+    List<HostRoleCommand> hostRoleCommands = Arrays.asList(hrc1, hrc3, hrc4);
+
+    scheduler.cancelHostRoleCommands(hostRoleCommands, "foo");
+
+    EasyMock.verify(db);
+
+  }
+
+
   public static class MockModule extends AbstractModule {
     @Override
     protected void configure() {

@@ -872,6 +872,13 @@ class ActionScheduler implements Runnable {
         cancelCommand.setReason(reason);
         actionQueue.enqueue(hostRoleCommand.getHostName(), cancelCommand);
       }
+
+      if (hostRoleCommand.getStatus().isHoldingState()) {
+        db.abortHostRole(hostRoleCommand.getHostName(),
+            hostRoleCommand.getRequestId(),
+            hostRoleCommand.getStageId(), hostRoleCommand.getRole().name());
+      }
+
       // If host role is an Action, we have to send an event
       if (hostRoleCommand.getRoleCommand().equals(RoleCommand.ACTIONEXECUTE)) {
         String clusterName = hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getClusterName();
