@@ -99,7 +99,7 @@ limitations under the License.
     <dependency>
       <groupId>org.apache.storm</groupId>
       <artifactId>storm-core</artifactId>
-      <version>0.9.3</version>
+      <version>0.9.3.2.2.1.0-2240</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
