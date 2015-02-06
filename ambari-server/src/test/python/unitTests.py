@@ -138,7 +138,8 @@ def main():
   sys.path.append(os.path.join(ambari_server_folder, "src/main/python"))
   sys.path.append(os.path.join(ambari_server_folder, "src/main/resources/scripts"))
   sys.path.append(os.path.join(ambari_server_folder, "src/main/resources/custom_actions/scripts"))
-  
+  sys.path.append(os.path.join(ambari_server_folder, "src/main/resources/host_scripts"))
+
   stacks_folder = os.path.join(pwd, 'stacks')
   #generate test variants(path, service, stack)
   test_variants = []
@@ -196,6 +197,7 @@ def main():
 
   test_dirs = [
     (os.path.join(pwd, 'custom_actions'), "\nRunning tests for custom actions\n"),
+    (os.path.join(pwd, 'host_scripts'), "\nRunning tests for host scripts\n"),
     (pwd, "\nRunning tests for ambari-server\n"),
   ]
 

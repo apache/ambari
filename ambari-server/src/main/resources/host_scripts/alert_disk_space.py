@@ -25,7 +25,8 @@ from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 
 DiskInfo = collections.namedtuple('DiskInfo', 'total used free')
-
+MIN_FREE_SPACE = 5000000000L   # 5GB
+USR_HDP = '/usr/hdp'
 
 def get_tokens():
   """
@@ -34,9 +35,10 @@ def get_tokens():
   """
   return None
 
-
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def execute(parameters=None, host_name=None):
   """
+  Performs advanced disk checks under Linux
   Returns a tuple containing the result code and a pre-formatted result label
 
   Keyword arguments:
@@ -44,27 +46,69 @@ def execute(parameters=None, host_name=None):
   host_name (string): the name of this host where the alert is running
   """
 
-  disk_usage = None
+  # Check usage of root partition
   try:
     disk_usage = _get_disk_usage()
+    result_code, label = _get_warnings_for_partition(disk_usage)
   except NotImplementedError, platform_error:
-    return (('CRITICAL', [str(platform_error)]))
+    return 'CRITICAL', [str(platform_error)]
 
+  if result_code == 'OK':
+    # Root partition seems to be OK, let's check /usr/hdp
+    try:
+      disk_usage = _get_disk_usage(USR_HDP)
+      result_code_usr_hdp, label_usr_hdp = _get_warnings_for_partition(disk_usage)
+      if result_code_usr_hdp != 'OK':
+        label = "{0}. Insufficient space at {1}: {2}".format(label, USR_HDP, label_usr_hdp)
+        result_code = 'WARNING'
+    except NotImplementedError, platform_error:
+      return 'CRITICAL', [str(platform_error)]
+    pass
+
+  return result_code, [label]
+
+
+def _get_warnings_for_partition(disk_usage):
   if disk_usage is None or disk_usage.total == 0:
-    return (('CRITICAL', ['Unable to determine the disk usage']))
+    return 'CRITICAL', ['Unable to determine the disk usage']
 
   result_code = 'OK'
   percent = disk_usage.used / float(disk_usage.total) * 100
-  if percent > 50:
+  if percent > 80:
+    result_code = 'CRITICAL'
+  elif percent > 50:
     result_code = 'WARNING'
-  elif percent > 80:
-    result_code = 'CRTICAL'
 
   label = 'Capacity Used: [{0:.2f}%, {1}], Capacity Total: [{2}]'.format(
-      percent, _get_formatted_size(disk_usage.used),
-      _get_formatted_size(disk_usage.total) )
+    percent, _get_formatted_size(disk_usage.used),
+    _get_formatted_size(disk_usage.total))
 
-  return ((result_code, [label]))
+  if result_code == 'OK':
+    # Check absolute disk space value
+    if disk_usage.free < MIN_FREE_SPACE:
+      result_code = 'WARNING'
+      label += '. Free space < {0}'.format(_get_formatted_size(MIN_FREE_SPACE))
+
+  return result_code, label
+
+
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def execute(parameters=None, host_name=None):
+  """
+  Performs simplified disk checks under Windows
+  Returns a tuple containing the result code and a pre-formatted result label
+
+  Keyword arguments:
+  parameters (dictionary): a mapping of parameter key to value
+  host_name (string): the name of this host where the alert is running
+  """
+  try:
+    disk_usage = _get_disk_usage()
+    result = _get_warnings_for_partition(disk_usage)
+  except NotImplementedError, platform_error:
+    result = ('CRITICAL', [str(platform_error)])
+  return result
+
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def _get_disk_usage(path='/'):
@@ -125,13 +169,13 @@ def _get_formatted_size(bytes):
   if bytes < 1000:
     return '%i' % bytes + ' B'
   elif 1000 <= bytes < 1000000:
-    return '%.1f' % (bytes/1000.0) + ' KB'
+    return '%.1f' % (bytes / 1000.0) + ' KB'
   elif 1000000 <= bytes < 1000000000:
     return '%.1f' % (bytes / 1000000.0) + ' MB'
   elif 1000000000 <= bytes < 1000000000000:
-    return '%.1f' % (bytes/1000000000.0) + ' GB'
+    return '%.1f' % (bytes / 1000000000.0) + ' GB'
   else:
-    return '%.1f' % (bytes/1000000000000.0) + ' TB'
+    return '%.1f' % (bytes / 1000000000000.0) + ' TB'
 
 if __name__ == '__main__':
     print _get_disk_usage(os.getcwd())
