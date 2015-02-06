@@ -69,13 +69,11 @@ App.stackVersionMapper = App.QuickDataMapper.create({
          * <code>UPGRADING<code>
          * <code>UPGRADED<code>
          * <code>UPGRADE_FAILED<code>
-         * <code>CURRENT<code>
          */
         stack.host_states.INSTALLED = item.ClusterStackVersions.host_states.INSTALLED
           .concat(item.ClusterStackVersions.host_states.UPGRADING)
           .concat(item.ClusterStackVersions.host_states.UPGRADED)
-          .concat(item.ClusterStackVersions.host_states.UPGRADE_FAILED)
-          .concat(item.ClusterStackVersions.host_states.CURRENT);
+          .concat(item.ClusterStackVersions.host_states.UPGRADE_FAILED);
 
         if (item.repository_versions && item.repository_versions[0]) {
           item.repository_versions[0].RepositoryVersions.stackVersionId = item.ClusterStackVersions.id;
