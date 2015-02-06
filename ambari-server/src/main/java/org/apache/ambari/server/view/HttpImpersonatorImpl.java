@@ -18,6 +18,7 @@
 package org.apache.ambari.server.view;
 
 
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.proxy.ProxyService;
 import org.apache.ambari.view.ImpersonatorSetting;
@@ -132,7 +133,11 @@ public class HttpImpersonatorImpl implements HttpImpersonator {
     }
 
     try {
-      URLStreamProvider urlStreamProvider = new URLStreamProvider(ProxyService.URL_CONNECT_TIMEOUT, ProxyService.URL_READ_TIMEOUT, null, null, null);
+
+      ComponentSSLConfiguration configuration = ComponentSSLConfiguration.instance();
+      URLStreamProvider urlStreamProvider = new URLStreamProvider(ProxyService.URL_CONNECT_TIMEOUT,
+          ProxyService.URL_READ_TIMEOUT, configuration.getTruststorePath(),
+          configuration.getTruststorePassword(), configuration.getTruststoreType());
 
       Map<String, List<String>> headers = new HashMap<String, List<String>>();
       headers.put(impersonatorSetting.getDoAsParamName(), new ArrayList<String>() {{add(impersonatorSetting.getUsername()); }} );
