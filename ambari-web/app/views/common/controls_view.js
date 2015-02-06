@@ -278,7 +278,7 @@ App.ServiceConfigCheckboxWithDependencies = App.ServiceConfigCheckbox.extend({
 
   showHideDependentConfigs: function() {
     if (this.get('serviceConfig.dependentConfigPattern')) {
-      this.get('parentView.serviceConfigs').forEach(function(c) {
+      this.get('categoryConfigsAll').forEach(function(c) {
         if (c.get('name').match(this.get('serviceConfig.dependentConfigPattern')) && c.get('name') != this.get('serviceConfig.name'))
           c.set('isVisible', this.get('checked'))
       }, this);
@@ -580,8 +580,8 @@ App.ServiceConfigRadioButton = Ember.Checkbox.extend({
         components.forEach(function (_component) {
           if (_component.foreignKeys) {
             _component.foreignKeys.forEach(function (_componentName) {
-              if (this.get('parentView.parentView.serviceConfigs').someProperty('name', _componentName)) {
-                var component = this.get('parentView.parentView.serviceConfigs').findProperty('name', _componentName);
+              if (this.get('parentView.categoryConfigsAll').someProperty('name', _componentName)) {
+                var component = this.get('parentView.categoryConfigsAll').findProperty('name', _componentName);
                 component.set('isVisible', _component.displayName === this.get('value'));
               }
             }, this);

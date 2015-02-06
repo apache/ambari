@@ -106,33 +106,6 @@ var hivePropsByCategory = {
     'hive.compactor.check.interval',
     'hive.compactor.delta.num.threshold',
     'hive.compactor.delta.pct.threshold'
-  ],
-
-  'SSLRangerSettings': [
-    'SSL_KEYSTORE_FILE_PATH',
-    'SSL_KEYSTORE_PASSWORD',
-    'SSL_TRUSTSTORE_FILE_PATH',
-    'SSL_TRUSTSTORE_PASSWORD'
-  ],
-
-  'RepositoryConfigs': [
-    'POLICY_USER',
-    'REPOSITORY_CONFIG_PASSWORD',
-    'REPOSITORY_CONFIG_USERNAME'
-  ],
-
-  'HDFSAuditSettings': [
-    'XAAUDIT.HDFS.DESTINATION_DIRECTORY',
-    'XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY',
-    'XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY',
-    'XAAUDIT.HDFS.DESTINTATION_FILE',
-    'XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS',
-    'XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS',
-    'XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS',
-    'XAAUDIT.HDFS.LOCAL_BUFFER_FILE',
-    'XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS',
-    'XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS',
-    'XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT'
   ]
 };
 
@@ -140,7 +113,7 @@ var hiveProps = [];
 
 for (var category in hivePropsByCategory) {
   hiveProps = hiveProps.concat(App.config.generateConfigPropertiesByName(hivePropsByCategory[category], 
-    { category: category, serviceName: 'HIVE', filename: ['HDFSAuditSettings', 'RepositoryConfigs', 'SSLRangerSettings'].contains(category) ? 'ranger-hive-plugin-properties.xml' : 'hive-site.xml'}));
+    { category: category, serviceName: 'HIVE', filename: 'hive-site.xml'}));
 }
 
 module.exports = hiveProps;
