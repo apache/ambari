@@ -272,7 +272,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
 
     stackName = (String) propertyMap.get(HOST_STACK_VERSION_STACK_PROPERTY_ID);
     stackVersion = (String) propertyMap.get(HOST_STACK_VERSION_VERSION_PROPERTY_ID);
-    String stackId = new StackId(stackName, stackVersion).getStackId();
+    final String stackId = new StackId(stackName, stackVersion).getStackId();
     if (!ami.isSupportedStack(stackName, stackVersion)) {
       throw new NoSuchParentResourceException(String.format("Stack %s is not supported",
               stackId));
@@ -375,6 +375,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     final String repoList = gson.toJson(repoInfo);
 
     Map<String, String> params = new HashMap<String, String>(){{
+      put("stack_id", stackId);
       put("repository_version", desiredRepoVersion);
       put("base_urls", repoList);
       put("package_list", packageList);
