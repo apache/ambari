@@ -182,6 +182,8 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
       if (!metricList.isEmpty()) {
         emitMetrics(timelineMetrics);
       }
+    } catch (UnableToConnectException uce) {
+      LOG.warn("Unable to send metrics to collector by address:" + uce.getConnectUrl());
     } catch (IOException io) {
       throw new MetricsException("Failed to putMetrics", io);
     }

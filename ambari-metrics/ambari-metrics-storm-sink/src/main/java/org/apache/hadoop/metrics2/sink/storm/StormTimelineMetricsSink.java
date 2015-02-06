@@ -21,11 +21,13 @@ package org.apache.hadoop.metrics2.sink.storm;
 import backtype.storm.metric.api.IMetricsConsumer;
 import backtype.storm.task.IErrorReporter;
 import backtype.storm.task.TopologyContext;
+
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
+import org.apache.hadoop.metrics2.sink.timeline.UnableToConnectException;
 import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
 import org.apache.hadoop.metrics2.sink.timeline.configuration.Configuration;
 import org.apache.hadoop.metrics2.util.Servers;
@@ -103,6 +105,8 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
       timelineMetrics.setMetrics(metricList);
       try {
         emitMetrics(timelineMetrics);
+      } catch (UnableToConnectException uce) {
+        LOG.warn("Unable to send metrics to collector by address:" + uce.getConnectUrl());
       } catch (IOException e) {
         LOG.error("Unexpected error", e);
       }

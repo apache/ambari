@@ -27,6 +27,7 @@ import org.apache.flume.instrumentation.util.JMXPollUtil;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
+import org.apache.hadoop.metrics2.sink.timeline.UnableToConnectException;
 import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
 import org.apache.hadoop.metrics2.sink.timeline.configuration.Configuration;
 import org.apache.hadoop.metrics2.util.Servers;
@@ -129,6 +130,8 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
           LOG.info("Attributes for component " + component);
           processComponentAttributes(currentTimeMillis, component, attributeMap);
         }
+      } catch (UnableToConnectException uce) {
+        LOG.warn("Unable to send metrics to collector by address:" + uce.getConnectUrl());
       } catch (Exception e) {
         LOG.error("Unexpected error", e);
       }
