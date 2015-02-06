@@ -103,6 +103,24 @@
          </execution>
        </executions>
       </plugin>
+
+      <plugin>
+        <groupId>org.vafer</groupId>
+        <artifactId>jdeb</artifactId>
+        <version>1.0.1</version>
+        <executions>
+          <execution>
+            <phase>none</phase>
+            <goals>
+              <goal>jdeb</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <skip>true</skip>
+          <submodules>false</submodules>
+        </configuration>
+      </plugin>
     </plugins>
 
     <resources>
@@ -117,7 +135,7 @@
 
       <resource>
         <directory>src/main/resources</directory>
-        <filtering>false</filtering>
+        <filtering>true</filtering>
         <includes>
           <include>WEB-INF/web.xml</include>
           <include>META-INF/**/*</include>

@@ -40,7 +40,7 @@ App.Helpers.ambari = (function () {
     /**
      * Key for the property representing ATS url.
      */
-    TIMELINE_URL: 'yarn.ats.url',
+    TIMELINE_URL: 'yarn.timeline-server.url',
     RM_URL: 'yarn.resourcemanager.url',
 
     /**

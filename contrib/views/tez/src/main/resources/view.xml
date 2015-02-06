@@ -17,19 +17,19 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
 <view>
   <name>TEZ</name>
   <label>TEZ View</label>
-  <version>0.6.0</version>
+  <version>${tez.view.version}</version>
   <parameter>
-    <name>yarn.ats.url</name>
+    <name>yarn.timeline-server.url</name>
     <description>The URL to the YARN Application Timeline Server, used to provide TEZ information. Typically this is the yarn.timeline-service.webapp.address property in the yarn-site.xml configuration. Url must be accessible from Ambari server.</description>
-    <label>YARN ATS URL</label>
-    <placeholder>http://yarn.ats.address:8188</placeholder>
+    <label>YARN Timeline Server URL</label>
+    <placeholder>http://yarn.timeline-service.hostname:8188</placeholder>
     <required>true</required>
   </parameter>
   <parameter>
     <name>yarn.resourcemanager.url</name>
     <description>The URL to the YARN ResourceManager, used to provide YARN Application data. Typically this is the yarn.resourcemanager.webapp.address property in the yarn-site.xml configuration. Url must be accessible from Ambari server.</description>
     <label>YARN ResourceManager URL</label>
-    <placeholder>http://yarn.resourcemanager.address:8088</placeholder>
+    <placeholder>http://yarn.resourcemanager.hostname:8088</placeholder>
     <required>true</required>
   </parameter>
   <!-- The status resource exists to show the subset of properties that any user is allowed to see, not just an admin user. -->
