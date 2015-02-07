@@ -228,7 +228,7 @@ case "$1" in
         rm -f "${PIDFILE}" >/dev/null 2>&1
     fi
 
-    nohup "${JAVA}" "-cp" "/usr/lib/ambari-metrics-collector/*:${COLLECTOR_CONF_DIR}" ${AMS_COLLECTOR_OPTS} "-Djava.net.preferIPv4Stack=true" "-Dams.log.dir=${AMS_COLLECTOR_LOG_DIR}" "-Dproc_${DAEMON_NAME}" "${CLASS}" "$@" > $OUTFILE 2>&1 &
+    nohup "${JAVA}" "-cp" "/usr/lib/ambari-metrics-collector/*:${COLLECTOR_CONF_DIR}" "-Djava.net.preferIPv4Stack=true" "-Dams.log.dir=${AMS_COLLECTOR_LOG_DIR}" "-Dproc_${DAEMON_NAME}" "${CLASS}" "$@" > $OUTFILE 2>&1 &
     PID=$!
     write_pidfile "${PIDFILE}"
     sleep 2
