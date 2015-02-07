@@ -25,8 +25,8 @@ describe('App.QuickViewLinks', function () {
 
   describe('#setProtocol', function() {
     var tests = [
-      { serviceName: "GANGLIA", ambariProperties: { 'ganglia.https': true }, m: "https for ganglia", result: "https" },
-      { serviceName: "GANGLIA", ambariProperties: { 'ganglia.https': false }, m: "http for ganglia 1", result: "http" },
+      { serviceName: "GANGLIA", ambariProperties: { 'ganglia.https': 'true' }, m: "https for ganglia", result: "https" },
+      { serviceName: "GANGLIA", ambariProperties: { 'ganglia.https': 'false' }, m: "http for ganglia 1", result: "http" },
       { serviceName: "GANGLIA", m: "http for ganglia 2", result: "http" },
       { serviceName: "YARN", configProperties: [
         { type: 'yarn-site', properties: { 'yarn.http.policy': 'HTTPS_ONLY' }}

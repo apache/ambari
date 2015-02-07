@@ -298,7 +298,7 @@ App.QuickViewLinks = Em.View.extend({
     }
     switch (service_id) {
       case "GANGLIA":
-        return (ambariProperties && ambariProperties['ganglia.https'] == true) ? "https" : "http";
+        return (ambariProperties && ambariProperties['ganglia.https'] == "true") ? "https" : "http";
         break;
       case "YARN":
         var yarnProperties = configProperties && configProperties.findProperty('type', 'yarn-site');
