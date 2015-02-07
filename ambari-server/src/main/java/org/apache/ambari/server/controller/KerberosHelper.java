@@ -239,7 +239,7 @@ public class KerberosHelper {
               }
 
               if ("true".equalsIgnoreCase(value)) {
-                handle(cluster, getKerberosDetails(cluster), null, null, requestStageContainer, new CreatePrincipalsAndKeytabsHandler());
+                requestStageContainer = handle(cluster, getKerberosDetails(cluster), null, null, requestStageContainer, new CreatePrincipalsAndKeytabsHandler());
               }
               break;
 

@@ -318,8 +318,13 @@ public class KerberosHelperTest extends EasyMockSupport {
   }
 
   @Test
+  public void testRegenerateKeytabsValidateRequestStageContainer() throws Exception {
+    testRegenerateKeytabs(new KerberosCredential("principal", "password", "keytab"), false);
+  }
+
+  @Test
   public void testRegenerateKeytabs() throws Exception {
-    testRegenerateKeytabs(new KerberosCredential("principal", "password", "keytab"));
+    testRegenerateKeytabs(new KerberosCredential("principal", "password", "keytab"), false);
   }
 
   @Test
@@ -821,7 +826,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     verifyAll();
   }
 
-  private void testRegenerateKeytabs(final KerberosCredential kerberosCredential) throws Exception {
+  private void testRegenerateKeytabs(final KerberosCredential kerberosCredential, boolean mockRequestStageContainer) throws Exception {
 
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
 
@@ -1017,35 +1022,41 @@ public class KerberosHelperTest extends EasyMockSupport {
         })
         .anyTimes();
 
-    // This is a STRICT mock to help ensure that the end result is what we want.
-    final RequestStageContainer requestStageContainer = createStrictMock(RequestStageContainer.class);
-    // Create Principals Stage
-    expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
-    expect(requestStageContainer.getId()).andReturn(1L).once();
-    requestStageContainer.addStages(anyObject(List.class));
-    expectLastCall().once();
-    // Create Keytabs Stage
-    expect(requestStageContainer.getLastStageId()).andReturn(0L).anyTimes();
-    expect(requestStageContainer.getId()).andReturn(1L).once();
-    requestStageContainer.addStages(anyObject(List.class));
-    expectLastCall().once();
-    // Distribute Keytabs Stage
-    expect(requestStageContainer.getLastStageId()).andReturn(1L).anyTimes();
-    expect(requestStageContainer.getId()).andReturn(1L).once();
-    requestStageContainer.addStages(anyObject(List.class));
-    expectLastCall().once();
-    // Clean-up/Finalize Stage
-    expect(requestStageContainer.getLastStageId()).andReturn(3L).anyTimes();
-    expect(requestStageContainer.getId()).andReturn(1L).once();
-    requestStageContainer.addStages(anyObject(List.class));
-    expectLastCall().once();
+
+    final RequestStageContainer requestStageContainer;
+    if (mockRequestStageContainer) {
+      // This is a STRICT mock to help ensure that the end result is what we want.
+      requestStageContainer = createStrictMock(RequestStageContainer.class);
+      // Create Principals Stage
+      expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
+      expect(requestStageContainer.getId()).andReturn(1L).once();
+      requestStageContainer.addStages(anyObject(List.class));
+      expectLastCall().once();
+      // Create Keytabs Stage
+      expect(requestStageContainer.getLastStageId()).andReturn(0L).anyTimes();
+      expect(requestStageContainer.getId()).andReturn(1L).once();
+      requestStageContainer.addStages(anyObject(List.class));
+      expectLastCall().once();
+      // Distribute Keytabs Stage
+      expect(requestStageContainer.getLastStageId()).andReturn(1L).anyTimes();
+      expect(requestStageContainer.getId()).andReturn(1L).once();
+      requestStageContainer.addStages(anyObject(List.class));
+      expectLastCall().once();
+      // Clean-up/Finalize Stage
+      expect(requestStageContainer.getLastStageId()).andReturn(3L).anyTimes();
+      expect(requestStageContainer.getId()).andReturn(1L).once();
+      requestStageContainer.addStages(anyObject(List.class));
+      expectLastCall().once();
+    } else {
+      requestStageContainer = null;
+    }
 
     replayAll();
 
     // Needed by infrastructure
     metaInfo.init();
 
-    kerberosHelper.executeCustomOperations(cluster, Collections.singletonMap("regenerate_keytabs", "true"), requestStageContainer);
+    Assert.assertNotNull(kerberosHelper.executeCustomOperations(cluster, Collections.singletonMap("regenerate_keytabs", "true"), requestStageContainer));
 
     verifyAll();
   }
