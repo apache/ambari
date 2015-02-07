@@ -19,15 +19,14 @@ limitations under the License.
 Ambari Agent
 
 """
-
+import re
 import os
 import json
 import socket
-import time
 
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions.default import default
-from resource_management.core.shell import call
+from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from ambari_agent.FileCache import FileCache
@@ -127,7 +126,8 @@ class ExecuteUpgradeTasks(Script):
 
           # Notice that the script_path is now the fully qualified path, and the
           # same command-#.json file is used.
-          command_params = ["python",
+          # Also, the python wrapper is used, since it sets up the correct environment variables
+          command_params = ["/usr/bin/ambari-python-wrap",
                             script_path,
                             task.function,
                             self.command_data_file,
@@ -137,10 +137,12 @@ class ExecuteUpgradeTasks(Script):
                             Script.get_tmp_dir()]
 
           task.command = " ".join(command_params)
+          # Replace redundant whitespace to make the unit tests easier to validate
+          task.command = re.sub("\s+", " ", task.command).strip()
 
         if task.command:
           task.command = replace_variables(task.command, host_name, version)
-          code, out = call(task.command)
+          code, out = shell.call(task.command)
           Logger.info("Command: %s\nCode: %s, Out: %s" % (task.command, str(code), str(out)))
           if code != 0:
             raise Fail(out)
