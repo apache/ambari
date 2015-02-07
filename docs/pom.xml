@@ -227,6 +227,18 @@
             </organization>            
         </developer>
         <developer>
+            <id>ddorai</id>
+            <name>Dilli Arumugam</name>
+            <email>ddorai@hortonworks.com</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>dmitriusan</id>
             <name>Dmitry Lysnichenko</name>
             <email>dmitriusan@apache.org</email>
@@ -503,6 +515,18 @@
             </organization>            
         </developer>
         <developer>
+            <id>rlevas</id>
+            <name>Robert Levas</name>
+            <email>rlevas@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>rnettleton</id>
             <name>Bob Nettleton</name>
             <email>rnettleton@apache.org</email>
@@ -681,10 +705,6 @@
           <organization>Pivotal</organization>
         </contributor>
         <contributor>
-          <name>Dilli Arumugam</name>
-          <organization>Hortonworks</organization>
-        </contributor>
-        <contributor>
           <name>Jos Backus</name>
           <organization>eBay</organization>
         </contributor>
@@ -695,10 +715,6 @@
         <contributor>
           <name>Daniel Ballard</name>
           <organization>Pivotal</organization>
-        </contributor>
-        <contributor>
-          <name>Florian Barca</name>
-          <organization>Hortonworks</organization>
         </contributor>
         <contributor>
           <name>Chun Chen</name>
@@ -769,10 +785,6 @@
           <organization></organization>
         </contributor>
         <contributor>
-          <name>Jayush Luniya</name>
-          <organization>Hortonworks</organization>
-        </contributor>
-        <contributor>
           <name>Trevor McKay</name>
           <organization>Red Hat</organization>
         </contributor>
@@ -786,10 +798,6 @@
         </contributor>
         <contributor>
           <name>Thejas Nair</name>
-          <organization>Hortonworks</organization>
-        </contributor>
-        <contributor>
-          <name>Robert Nettleton</name>
           <organization>Hortonworks</organization>
         </contributor>
         <contributor>
