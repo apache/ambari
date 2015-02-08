@@ -65,7 +65,9 @@ hbase_root_dir = config['configurations']['ams-hbase-site']['hbase.rootdir']
 is_hbase_distributed = hbase_root_dir.startswith('hdfs://')
 
 # security is disabled for embedded mode, when HBase is backed by file
-security_enabled = False if not is_hbase_distributed else config['configurations']['cluster-env']['security_enabled'] 
+security_enabled = False if not is_hbase_distributed else config['configurations']['cluster-env']['security_enabled']
+# if cluster is secured and embedded we have to disable haddop env
+disable_hadoop_environment = config['configurations']['cluster-env']['security_enabled'] and not is_hbase_distributed
 
 # this is "hadoop-metrics.properties" for 1.x stacks
 metric_prop_file_name = "hadoop-metrics2-hbase.properties"
@@ -82,6 +84,9 @@ regionserver_xmn_percent = config['configurations']['ams-hbase-env']['hbase_regi
 regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, regionserver_xmn_percent, regionserver_xmn_max)
 # For embedded mode
 hbase_heapsize = master_heapsize
+
+zookeeper_quorum_hosts = ','.join(ams_collector_hosts) if is_hbase_distributed else 'localhost'
+hbase_cluster_distributed = 'true' if is_hbase_distributed else 'false'
 
 ams_checkpoint_dir = config['configurations']['ams-site']['timeline.metrics.aggregator.checkpoint.dir']
 hbase_pid_dir = status_params.hbase_pid_dir
@@ -102,21 +107,30 @@ service_check_data = functions.get_unique_id_and_date()
 user_group = config['configurations']['cluster-env']["user_group"]
 hadoop_user = "hadoop"
 
+kinit_cmd = ""
+
 if security_enabled:
   _hostname_lowercase = config['hostname'].lower()
-  master_jaas_princ = default('/configurations/ams-hbase-site/hbase.master.kerberos.principal', 'hbase/_HOST@EXAMPLE.COM').replace('_HOST',_hostname_lowercase)
-  regionserver_jaas_princ = default('/configurations/ams-hbase-site/hbase.regionserver.kerberos.principal', 'hbase/_HOST@EXAMPLE.COM').replace('_HOST',_hostname_lowercase)
 
-  master_keytab_path = config['configurations']['ams-hbase-site']['hbase.master.keytab.file']
-  regionserver_keytab_path = config['configurations']['ams-hbase-site']['hbase.regionserver.keytab.file']
+  client_jaas_config_file = format("{hbase_conf_dir}/hbase_client_jaas.conf")
   smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
   hbase_user_keytab = config['configurations']['ams-hbase-env']['hbase_user_keytab']
-  kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
-if security_enabled:
-   kinit_cmd = format("{kinit_path_local} -kt {hbase_user_keytab} {hbase_user};")
-else:
-   kinit_cmd = ""
+  ams_collector_jaas_config_file = format("{hbase_conf_dir}/ams_collector_jaas.conf")
+  ams_collector_keytab_path = config['configurations']['ams-hbase-security-site']['hbase.myclient.keytab']
+  ams_collector_jaas_princ = config['configurations']['ams-hbase-security-site']['hbase.myclient.principal'].replace('_HOST',_hostname_lowercase)
+
+  ams_zookeeper_jaas_config_file = format("{hbase_conf_dir}/ams_zookeeper_jaas.conf")
+  ams_zookeeper_keytab = config['configurations']['ams-hbase-security-site']['ams.zookeeper.keytab']
+  ams_zookeeper_principal_name = config['configurations']['ams-hbase-security-site']['ams.zookeeper.principal'].replace('_HOST',_hostname_lowercase)
+
+  master_jaas_config_file = format("{hbase_conf_dir}/hbase_master_jaas.conf")
+  master_keytab_path = config['configurations']['ams-hbase-security-site']['hbase.master.keytab.file']
+  master_jaas_princ = config['configurations']['ams-hbase-security-site']['hbase.master.kerberos.principal'].replace('_HOST',_hostname_lowercase)
+
+  regionserver_jaas_config_file = format("{hbase_conf_dir}/hbase_regionserver_jaas.conf")
+  regionserver_keytab_path = config['configurations']['ams-hbase-security-site']['hbase.regionserver.keytab.file']
+  regionserver_jaas_princ = config['configurations']['ams-hbase-security-site']['hbase.regionserver.kerberos.principal'].replace('_HOST',_hostname_lowercase)
 
 #log4j.properties
 if (('ams-hbase-log4j' in config['configurations']) and ('content' in config['configurations']['ams-hbase-log4j'])):

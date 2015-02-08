@@ -114,9 +114,14 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
              recursive = True
   )
 
+  merged_ams_hbase_site = {}
+  merged_ams_hbase_site.update(params.config['configurations']['ams-hbase-site'])
+  if params.security_enabled:
+    merged_ams_hbase_site.update(params.config['configurations']['ams-hbase-security-site'])
+
   XmlConfig("hbase-site.xml",
             conf_dir = params.hbase_conf_dir,
-            configurations = params.config['configurations']['ams-hbase-site'],
+            configurations = merged_ams_hbase_site,
             configuration_attributes=params.config['configuration_attributes']['ams-hbase-site'],
             owner = params.hbase_user,
             group = params.user_group
@@ -157,7 +162,9 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
 
   if params.security_enabled:
     hbase_TemplateConfig( format("hbase_{name}_jaas.conf"), user=params.hbase_user)
-  
+    hbase_TemplateConfig( format("hbase_client_jaas.conf"), user=params.hbase_user)
+    hbase_TemplateConfig( format("ams_zookeeper_jaas.conf"), user=params.hbase_user)
+
   if name in ["master","regionserver"]:
 
     if params.is_hbase_distributed:
@@ -167,6 +174,13 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
                            owner=params.hbase_user,
                            mode=0775
       )
+
+      params.HdfsDirectory(params.hbase_staging_dir,
+                           action="create_delayed",
+                           owner=params.hbase_user,
+                           mode=0711
+      )
+
       params.HdfsDirectory(None, action="create")
 
     else:

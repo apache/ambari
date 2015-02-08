@@ -20,12 +20,12 @@ limitations under the License.
 
 from resource_management import *
 from ambari_commons import OSCheck
-import status_params
+
 config = Script.get_config()
 
 ams_collector_conf_dir = "/etc/ambari-metrics-collector/conf"
 ams_monitor_conf_dir = "/etc/ambari-metrics-monitor/conf/"
-ams_user = status_params.ams_user
+ams_user = config['configurations']['ams-env']['ams_user']
 #RPM versioning support
 rpm_version = default("/configurations/hadoop-env/rpm_version", None)
 
