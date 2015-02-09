@@ -73,8 +73,7 @@ public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
     }
     if (!prerequisiteCheck.getFailedOn().isEmpty()) {
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason("Some hosts do not have repository version " + request.getRepositoryVersion() + " installed");
+      prerequisiteCheck.setFailReason(formatEntityList(prerequisiteCheck.getFailedOn()) + " must have repository version " + request.getRepositoryVersion() + " installed");
     }
-
   }
 }

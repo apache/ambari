@@ -53,7 +53,7 @@ public class ServicesMaintenanceModeCheck extends AbstractCheckDescriptor {
     }
     if (!prerequisiteCheck.getFailedOn().isEmpty()) {
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason("Some services are in Maintenance Mode");
+      prerequisiteCheck.setFailReason(formatEntityList(prerequisiteCheck.getFailedOn()) + " must not be in Maintenance Mode");
     }
   }
 }
