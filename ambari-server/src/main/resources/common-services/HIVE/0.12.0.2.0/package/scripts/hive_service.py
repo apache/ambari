@@ -50,6 +50,10 @@ def hive_service(name, action='start', rolling_restart=False):
     if rolling_restart:
       process_id_exists_command = None
 
+    if params.security_enabled:
+      hive_kinit_cmd = format("{kinit_path_local} -kt {hive_server2_keytab} {hive_principal}; ")
+      Execute(hive_kinit_cmd, user=params.hive_user)
+
     Execute(demon_cmd, user=params.hive_user,
       environment={'HADOOP_HOME': params.hadoop_home}, path=params.execute_path,
       not_if=process_id_exists_command )

@@ -130,6 +130,9 @@ class TestHiveServer(RMFTestCase):
     )
 
     self.assert_configure_secured()
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hive.service.keytab hive/c6402.ambari.apache.org@EXAMPLE.COM; ',
+                              user = 'hive',
+                              )
     self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/start_hiveserver2_script /var/log/hive/hive-server2.out /var/log/hive/hive-server2.log /var/run/hive/hive-server.pid /etc/hive/conf.server /var/log/hive',
                               not_if = 'ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1',
                               environment = {'HADOOP_HOME' : '/usr'},
