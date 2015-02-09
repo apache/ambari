@@ -21,14 +21,11 @@ import re
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.default import default
 from resource_management.core.shell import call
+from resource_management.core.constants import Direction, SafeMode
 from resource_management.core.exceptions import Fail
 
-
-class SafeMode:
-  ON = "ON"
-  OFF = "OFF"
-  UNKNOWN = "UNKNOWN"
 
 safemode_to_instruction = {SafeMode.ON: "enter",
                            SafeMode.OFF: "leave"}
@@ -79,31 +76,39 @@ def reach_safemode_state(user, safemode_state, in_ha):
 
 def prepare_rolling_upgrade():
   """
+  Perform either an upgrade or a downgrade.
+
   Rolling Upgrade for HDFS Namenode requires the following.
   0. Namenode must be up
   1. Leave safemode if the safemode status is not OFF
   2. Execute a rolling upgrade "prepare"
   3. Execute a rolling upgrade "query"
   """
-  Logger.info("Executing Rolling Upgrade prepare")
   import params
+
+  if not params.upgrade_direction or params.upgrade_direction not in [Direction.UPGRADE, Direction.DOWNGRADE]:
+    raise Fail("Could not retrieve upgrade direction: %s" % str(params.upgrade_direction))
+  Logger.info(format("Performing a(n) {params.upgrade_direction} of HDFS"))
 
   if params.security_enabled:
     Execute(format("{params.kinit_path_local} -kt {params.hdfs_user_keytab} {params.hdfs_principal_name}"))
 
-  safemode_transition_successful, original_state = reach_safemode_state(params.hdfs_user, SafeMode.OFF, True)
-  if not safemode_transition_successful:
-    raise Fail("Could not transition to safemode state %s. Please check logs to make sure namenode is up." % str(SafeMode.OFF))
 
-  prepare = "hdfs dfsadmin -rollingUpgrade prepare"
-  query = "hdfs dfsadmin -rollingUpgrade query"
-  Execute(prepare,
-          user=params.hdfs_user,
-          logoutput=True)
-  Execute(query,
-          user=params.hdfs_user,
-          logoutput=True)
+  if params.upgrade_direction == Direction.UPGRADE:
+    safemode_transition_successful, original_state = reach_safemode_state(params.hdfs_user, SafeMode.OFF, True)
+    if not safemode_transition_successful:
+      raise Fail("Could not transition to safemode state %s. Please check logs to make sure namenode is up." % str(SafeMode.OFF))
 
+    prepare = "hdfs dfsadmin -rollingUpgrade prepare"
+    query = "hdfs dfsadmin -rollingUpgrade query"
+    Execute(prepare,
+            user=params.hdfs_user,
+            logoutput=True)
+    Execute(query,
+            user=params.hdfs_user,
+            logoutput=True)
+  elif params.upgrade_direction == Direction.DOWNGRADE:
+    pass
 
 def finalize_rolling_upgrade():
   """

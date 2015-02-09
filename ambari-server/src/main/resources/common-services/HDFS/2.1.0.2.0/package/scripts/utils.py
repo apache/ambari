@@ -71,7 +71,8 @@ def failover_namenode():
     Logger.info("Rolling Upgrade - Initiating namenode failover by killing zkfc on active namenode")
 
     # Forcefully kill ZKFC on this host to initiate a failover
-    kill_zkfc(params.hdfs_user)
+    # If ZKFC is already dead, then potentially this node can still be the active one.
+    was_zkfc_killed = kill_zkfc(params.hdfs_user)
 
     # Wait until it transitions to standby
     check_standby_cmd = format("hdfs haadmin -getServiceState {namenode_id} | grep standby")
@@ -83,11 +84,13 @@ def failover_namenode():
     if code == 255 and out:
       Logger.info("Rolling Upgrade - namenode is already down")
     else:
-      Execute(check_standby_cmd,
-              user=params.hdfs_user,
-              tries=50,
-              try_sleep=6,
-              logoutput=True)
+      if was_zkfc_killed:
+        # Only mandate that this be the standby namenode if ZKFC was indeed killed to initiate a failover.
+        Execute(check_standby_cmd,
+                user=params.hdfs_user,
+                tries=50,
+                try_sleep=6,
+                logoutput=True)
 
   else:
     Logger.info("Rolling Upgrade - Host %s is the standby namenode." % str(params.hostname))
@@ -99,6 +102,7 @@ def kill_zkfc(zkfc_user):
   Option 1. Kill zkfc on primary namenode provided that the secondary is up and has zkfc running on it.
   Option 2. Silent failover (not supported as of HDP 2.2.0.0)
   :param zkfc_user: User that started the ZKFC process.
+  :return: Return True if ZKFC was killed, otherwise, false.
   """
   import params
   if params.dfs_ha_enabled:
@@ -110,6 +114,9 @@ def kill_zkfc(zkfc_user):
         Logger.debug("ZKFC is running and will be killed to initiate namenode failover.")
         kill_command = format("{check_process} && kill -9 `cat {zkfc_pid_file}` > /dev/null 2>&1")
         Execute(kill_command)
+        Execute(format("rm -f {zkfc_pid_file}"))
+        return True
+  return False
 
 
 def get_service_pid_file(name, user):

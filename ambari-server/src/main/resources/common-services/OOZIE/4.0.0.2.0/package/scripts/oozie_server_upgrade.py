@@ -24,6 +24,7 @@ import tempfile
 
 from resource_management.core import shell
 from resource_management.core.logger import Logger
+from resource_management.core.constants import Direction
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions import format
@@ -118,7 +119,7 @@ def prepare_libext_directory():
   # /usr/hdp/current/hadoop-client ; we must use params.version directly
   # however, this only works when upgrading beyond 2.2.0.0; don't do this
   # for downgrade to 2.2.0.0 since hadoop-lzo will not be present
-  if params.upgrade_direction == "upgrade" or target_version_needs_compression_libraries:
+  if params.upgrade_direction == Direction.UPGRADE or target_version_needs_compression_libraries:
     hadoop_lzo_pattern = 'hadoop-lzo*.jar'
     hadoop_client_new_lib_dir = format("/usr/hdp/{version}/hadoop/lib")
 
