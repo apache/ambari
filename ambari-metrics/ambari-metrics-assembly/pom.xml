@@ -154,6 +154,20 @@
                   dest="${project.build.directory}/embedded"
                   compression="gzip"
                   />
+                <!-- Resolving symlinks-->
+                <move todir="${project.build.directory}/embedded/${hadoop.folder}/lib/native/">
+                  <fileset dir="${project.build.directory}/embedded/${hadoop.folder}/lib/native/"/>
+                  <mapper type="regexp" from="libsnappy.so.1.1.*" to="libsnappy.so.1"/>
+                </move>
+                <move
+                  file="${project.build.directory}/embedded/${hadoop.folder}/lib/native/libhdfs.so.0.0.0"
+                  tofile="${project.build.directory}/embedded/${hadoop.folder}/lib/native/libhdfs.so"
+                  />
+                <move
+                  file="${project.build.directory}/embedded/${hadoop.folder}/lib/native/libhadoop.so.1.0.0"
+                  tofile="${project.build.directory}/embedded/${hadoop.folder}/lib/native/libhadoop.so"
+                  />
+                <delete file="${project.build.directory}/embedded/${hadoop.folder}/lib/native/libsnappy.so"/>
               </target>
             </configuration>
           </execution>

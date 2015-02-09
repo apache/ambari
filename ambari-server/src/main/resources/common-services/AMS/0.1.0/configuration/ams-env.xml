@@ -69,9 +69,10 @@ export AMS_MONITOR_PID_DIR={{ams_monitor_pid_dir}}
 # AMS HBase pid directory
 export AMS_HBASE_PID_DIR={{hbase_pid_dir}}
 
-export AMS_COLLECTOR_OPTS=
+# AMS Collector options
+export AMS_COLLECTOR_OPTS="-Djava.library.path=/usr/lib/ams-hbase/lib/hadoop-native"
 {% if security_enabled %}
-export AMS_COLLECTOR_OPTS="-Djava.security.auth.login.config={{ams_collector_jaas_config_file}}"
+export AMS_COLLECTOR_OPTS="$AMS_COLLECTOR_OPTS -Djava.security.auth.login.config={{ams_collector_jaas_config_file}}"
 {% endif %}
 
     </value>
