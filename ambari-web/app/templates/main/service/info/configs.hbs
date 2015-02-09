@@ -48,7 +48,7 @@
       {{/isAccessible}}
     {{/if}}
     <div class="clearfix"></div>
-    {{view App.ServiceConfigView filterBinding="controller.filter" columnsBinding="controller.filterColumns" canEditBinding="controller.isCurrentSelected" showConfigHistoryFeatureBinding="controller.showConfigHistoryFeature"}}
+    {{view App.ServiceConfigView filterBinding="controller.filter" columnsBinding="controller.filterColumns" canEditBinding="controller.canEdit" showConfigHistoryFeatureBinding="controller.showConfigHistoryFeature"}}
     {{#isAccessible ADMIN}}
       {{#unless showConfigHistoryFeature}}
           <p class="pull-right">

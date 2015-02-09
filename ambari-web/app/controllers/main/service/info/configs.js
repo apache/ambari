@@ -64,6 +64,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   isCurrentSelected: function () {
     return App.ServiceConfigVersion.find(this.get('content.serviceName') + "_" + this.get('selectedVersion')).get('isCurrent');
   }.property('selectedVersion', 'content.serviceName', 'dataIsLoaded'),
+
+  /**
+   * @type {boolean}
+   */
+  canEdit: function () {
+    return this.get('isCurrentSelected') && !this.get('isCompareMode');
+  }.property('isCurrentSelected', 'isCompareMode'),
+
   serviceConfigs: function () {
     return App.config.get('preDefinedServiceConfigs');
   }.property('App.config.preDefinedServiceConfigs'),
