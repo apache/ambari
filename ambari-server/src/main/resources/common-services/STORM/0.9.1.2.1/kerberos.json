@@ -30,6 +30,17 @@
           }
         }
       ],
+      "configurations": [
+        {
+          "storm-site": {
+            "nimbus.authorizer": "backtype.storm.security.auth.authorizer.SimpleACLAuthorizer",
+            "drpc.authorizer": "backtype.storm.security.auth.authorizer.DRPCSimpleACLAuthorizer",
+            "ui.filter": "org.apache.hadoop.security.authentication.server.AuthenticationFilter",
+            "storm.principal.tolocal": "backtype.storm.security.auth.KerberosPrincipalToLocal",
+            "supervisor.enable": "true"
+          }
+        }
+      ],
       "components": [
         {
           "name": "STORM_UI_SERVER",

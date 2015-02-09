@@ -40,23 +40,19 @@ storm.thrift.transport : "{% if security_enabled %}{{configurations['_storm.thri
 # Kerberos security section. For the reference please use: https://github.com/hortonworks/storm/blob/champlain/SECURITY.md for details
 #
 
-storm.principal.tolocal: "backtype.storm.security.auth.KerberosPrincipalToLocal"
 storm.zookeeper.superACL: "sasl:{{storm_bare_jaas_principal}}"
 java.security.auth.login.config: "{{conf_dir}}/storm_jaas.conf"
 nimbus.admins:
   - "{{storm_user}}"
 nimbus.supervisor.users:
   - "{{storm_user}}"
-nimbus.authorizer: "backtype.storm.security.auth.authorizer.SimpleACLAuthorizer"
-drpc.authorizer: "backtype.storm.security.auth.authorizer.DRPCSimpleACLAuthorizer"
 
-ui.filter: "org.apache.hadoop.security.authentication.server.AuthenticationFilter"
 ui.filter.params:
   "type": "kerberos"
   "kerberos.principal": "{{storm_ui_jaas_principal}}"
   "kerberos.keytab": "{{storm_ui_keytab_path}}"
   "kerberos.name.rules": "DEFAULT"
-supervisor.enable: true
+
 {% endif %}
 
 {% if has_metric_collector %}
