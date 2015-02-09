@@ -189,13 +189,12 @@ public class UpgradeHelper {
 
     context.setAmbariMetaInfo(m_ambariMetaInfo.get());
     Cluster cluster = context.getCluster();
-    boolean forUpgrade = context.getDirection() == Direction.UPGRADE;
     MasterHostResolver mhr = context.getResolver();
 
     Map<String, Map<String, ProcessingComponent>> allTasks = upgradePack.getTasks();
     List<UpgradeGroupHolder> groups = new ArrayList<UpgradeGroupHolder>();
 
-    for (Grouping group : upgradePack.getGroups(forUpgrade)) {
+    for (Grouping group : upgradePack.getGroups(context.getDirection().isUpgrade())) {
 
       UpgradeGroupHolder groupHolder = new UpgradeGroupHolder();
       groupHolder.name = group.name;
@@ -204,7 +203,7 @@ public class UpgradeHelper {
       groupHolder.allowRetry = group.allowRetry;
 
       // !!! all downgrades are skippable
-      if (Direction.DOWNGRADE == context.getDirection()) {
+      if (context.getDirection().isDowngrade()) {
         groupHolder.skippable = true;
       }
 
@@ -212,7 +211,7 @@ public class UpgradeHelper {
 
       List<UpgradePack.OrderService> services = group.services;
 
-      if (context.getDirection() == Direction.DOWNGRADE && !services.isEmpty()) {
+      if (context.getDirection().isDowngrade() && !services.isEmpty()) {
         List<UpgradePack.OrderService> reverse = new ArrayList<UpgradePack.OrderService>(services);
         Collections.reverse(reverse);
         services = reverse;
@@ -242,6 +241,8 @@ public class UpgradeHelper {
           Service svc = cluster.getService(service.serviceName);
           ProcessingComponent pc = allTasks.get(service.serviceName).get(component);
 
+          setDisplayNames(context, service.serviceName, component);
+
           // Special case for NAMENODE
           if (service.serviceName.equalsIgnoreCase("HDFS") && component.equalsIgnoreCase("NAMENODE")) {
             // !!! revisit if needed
@@ -258,11 +259,11 @@ public class UpgradeHelper {
                 throw new AmbariException(MessageFormat.format("Could not find active and standby namenodes using hosts: {0}", StringUtils.join(hostsType.hosts, ", ").toString()));
             }
 
-            builder.add(hostsType, service.serviceName, forUpgrade,
+            builder.add(context, hostsType, service.serviceName,
                 svc.isClientOnlyService(), pc);
 
           } else {
-            builder.add(hostsType, service.serviceName, forUpgrade,
+            builder.add(context, hostsType, service.serviceName,
                 svc.isClientOnlyService(), pc);
           }
         }
@@ -516,6 +517,29 @@ public class UpgradeHelper {
     }
 
     return resources.iterator().next();
+  }
+
+  /**
+   * Helper to set service and component display names on the context
+   * @param context   the context to update
+   * @param service   the service name
+   * @param component the component name
+   */
+  private void setDisplayNames(UpgradeContext context, String service, String component) {
+    StackId stackId = context.getCluster().getDesiredStackVersion();
+    try {
+      ServiceInfo serviceInfo = m_ambariMetaInfo.get().getService(stackId.getStackName(),
+          stackId.getStackVersion(), service);
+      context.setServiceDisplay(service, serviceInfo.getDisplayName());
+
+      ComponentInfo compInfo = serviceInfo.getComponentByName(component);
+      context.setComponentDisplay(service, component, compInfo.getDisplayName());
+
+    } catch (AmbariException e) {
+      LOG.debug("Could not get service detail", e);
+    }
+
+
   }
 
 }

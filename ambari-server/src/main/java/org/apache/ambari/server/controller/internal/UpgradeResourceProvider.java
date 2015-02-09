@@ -394,7 +394,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     String repoVersion = version;
 
-    if (direction == Direction.DOWNGRADE && null != versionForUpgradePack) {
+    if (direction.isDowngrade() && null != versionForUpgradePack) {
       repoVersion = versionForUpgradePack;
     }
 
@@ -469,7 +469,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // the version being upgraded or downgraded to (ie hdp-2.2.1.0-1234)
     final String version = (String) requestMap.get(UPGRADE_VERSION);
 
-    MasterHostResolver resolver = Direction.UPGRADE == direction ?
+    MasterHostResolver resolver = direction.isUpgrade() ?
         new MasterHostResolver(configHelper, cluster) : new MasterHostResolver(configHelper, cluster, version);
 
     UpgradeContext ctx = new UpgradeContext(resolver, version, direction);

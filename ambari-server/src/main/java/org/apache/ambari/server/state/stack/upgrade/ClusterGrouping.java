@@ -90,8 +90,8 @@ public class ClusterGrouping extends Grouping {
   public class ClusterBuilder extends StageWrapperBuilder {
 
     @Override
-    public void add(HostsType hostsType, String service,
-        boolean forUpgrade, boolean clientOnly, ProcessingComponent pc) {
+    public void add(UpgradeContext ctx, HostsType hostsType, String service,
+        boolean clientOnly, ProcessingComponent pc) {
       // !!! no-op in this case
     }
 

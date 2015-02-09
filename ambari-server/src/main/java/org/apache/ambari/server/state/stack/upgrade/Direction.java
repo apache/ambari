@@ -27,6 +27,23 @@ public enum Direction {
   DOWNGRADE;
 
   /**
+   * @return {@code true} if the direction is for upgrade.  Convenience instead
+   * of equality checking.
+   */
+  public boolean isUpgrade() {
+    return this == UPGRADE;
+  }
+
+  /**
+   * @return {@code true} if the direction is for downgrade.  Convenience instead
+   * of equality checking.
+   */
+  public boolean isDowngrade() {
+    return this == DOWNGRADE;
+  }
+
+
+  /**
    * @param proper {@code true} to make the first letter captilized
    * @return "upgrade" or "downgrade"
    */

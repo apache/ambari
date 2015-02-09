@@ -115,6 +115,13 @@ public class UpgradeHelperTest {
     assertTrue(upgrades.isEmpty());
 
     upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+
+    ServiceInfo si = ambariMetaInfo.getService("HDP", "2.1.1", "ZOOKEEPER");
+    si.setDisplayName("Zk");
+    ComponentInfo ci = si.getComponentByName("ZOOKEEPER_SERVER");
+    ci.setDisplayName("ZooKeeper1 Server2");
+
+
     assertTrue(upgrades.containsKey("upgrade_test"));
     UpgradePack upgrade = upgrades.get("upgrade_test");
     assertNotNull(upgrade);
@@ -143,6 +150,11 @@ public class UpgradeHelperTest {
     }
     assertTrue("Expected to find replaced text for Upgrading", found);
 
+
+    UpgradeGroupHolder group = groups.get(1);
+    // check that the display name is being used
+    assertTrue(group.items.get(1).getText().contains("ZooKeeper1 Server2"));
+    assertEquals(group.items.get(5).getText(), "Service Check Zk");
 
     UpgradeGroupHolder postGroup = groups.get(5);
     assertEquals(postGroup.name, "POST_CLUSTER");

@@ -65,8 +65,8 @@ public class ServiceCheckGrouping extends Grouping {
 
 
     @Override
-    public void add(HostsType hostsType, String service, boolean forUpgrade, boolean clientOnly,
-        ProcessingComponent pc) {
+    public void add(UpgradeContext ctx, HostsType hostsType, String service,
+        boolean clientOnly, ProcessingComponent pc) {
       // !!! nothing to do here
     }
 
@@ -76,7 +76,7 @@ public class ServiceCheckGrouping extends Grouping {
       m_metaInfo = ctx.getAmbariMetaInfo();
 
       List<StageWrapper> result = new ArrayList<StageWrapper>();
-      if (Direction.DOWNGRADE == ctx.getDirection()) {
+      if (ctx.getDirection().isDowngrade()) {
         return result;
       }
 
@@ -89,7 +89,7 @@ public class ServiceCheckGrouping extends Grouping {
         if (checkServiceValidity(service, serviceMap)) {
           StageWrapper wrapper = new StageWrapper(
               StageWrapper.Type.SERVICE_CHECK,
-              "Service Check " + service,
+              "Service Check " + ctx.getServiceDisplay(service),
               new TaskWrapper(service, "", Collections.<String>emptySet(),
                   new ServiceCheckTask()));
           result.add(wrapper);
@@ -103,7 +103,7 @@ public class ServiceCheckGrouping extends Grouping {
         if (checkServiceValidity(service, serviceMap)) {
           StageWrapper wrapper = new StageWrapper(
               StageWrapper.Type.SERVICE_CHECK,
-              "Service Check " + service,
+              "Service Check " + ctx.getServiceDisplay(service),
               new TaskWrapper(service, "", Collections.<String>emptySet(),
                   new ServiceCheckTask()));
           result.add(wrapper);

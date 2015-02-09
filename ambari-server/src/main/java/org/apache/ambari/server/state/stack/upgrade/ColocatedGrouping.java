@@ -69,8 +69,10 @@ public class ColocatedGrouping extends Grouping {
     }
 
     @Override
-    public void add(HostsType hostsType, String service,
-        boolean forUpgrade, boolean clientOnly, ProcessingComponent pc) {
+    public void add(UpgradeContext ctx, HostsType hostsType, String service,
+        boolean clientOnly, ProcessingComponent pc) {
+
+      boolean forUpgrade = ctx.getDirection().isUpgrade();
 
       int count = Double.valueOf(Math.ceil(
           (double) m_batch.percent / 100 * hostsType.hosts.size())).intValue();
@@ -95,7 +97,8 @@ public class ColocatedGrouping extends Grouping {
         if (null != tasks && tasks.size() > 0) {
           proxy = new TaskProxy();
           proxy.clientOnly = clientOnly;
-          proxy.message = getStageText("Preparing", pc.name, Collections.singleton(host));
+          proxy.message = getStageText("Preparing",
+              ctx.getComponentDisplay(service, pc.name), Collections.singleton(host));
           proxy.tasks.addAll(TaskWrapperBuilder.getTaskList(service, pc.name, singleHostsType, tasks));
           proxy.service = service;
           proxy.component = pc.name;
@@ -112,8 +115,8 @@ public class ColocatedGrouping extends Grouping {
             proxy.restart = true;
             proxy.service = service;
             proxy.component = pc.name;
-            proxy.message = getStageText("Restarting ", pc.name, Collections.singleton(host));
-
+            proxy.message = getStageText("Restarting",
+                ctx.getComponentDisplay(service, pc.name), Collections.singleton(host));
             targetList.add(proxy);
           }
         }
@@ -126,7 +129,8 @@ public class ColocatedGrouping extends Grouping {
           proxy.component = pc.name;
           proxy.service = service;
           proxy.tasks.addAll(TaskWrapperBuilder.getTaskList(service, pc.name, singleHostsType, tasks));
-          proxy.message = getStageText("Completing", pc.name, Collections.singleton(host));
+          proxy.message = getStageText("Completing",
+              ctx.getComponentDisplay(service, pc.name), Collections.singleton(host));
           targetList.add(proxy);
         }
       }
@@ -196,17 +200,18 @@ public class ColocatedGrouping extends Grouping {
 
       }
 
-      if (Direction.UPGRADE == direction && m_serviceCheck &&
-          serviceChecks.size() > 0) {
+      if (direction.isUpgrade() && m_serviceCheck && serviceChecks.size() > 0) {
         // !!! add the service check task
         List<TaskWrapper> tasks = new ArrayList<TaskWrapper>();
+        Set<String> displays = new HashSet<String>();
         for (String service : serviceChecks) {
           tasks.add(new TaskWrapper(service, "", Collections.<String>emptySet(), new ServiceCheckTask()));
+          displays.add(service);
         }
 
         StageWrapper wrapper = new StageWrapper(
             StageWrapper.Type.SERVICE_CHECK,
-            "Service Check " + StringUtils.join(serviceChecks, ", "),
+            "Service Check " + StringUtils.join(displays, ", "),
             tasks.toArray(new TaskWrapper[tasks.size()]));
 
         results.add(wrapper);

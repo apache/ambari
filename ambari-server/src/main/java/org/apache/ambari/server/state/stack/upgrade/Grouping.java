@@ -84,8 +84,10 @@ public class Grouping {
      * @param pc the ProcessingComponent derived from the upgrade pack.
      */
     @Override
-    public void add(HostsType hostsType, String service,
-        boolean forUpgrade, boolean clientOnly, ProcessingComponent pc) {
+    public void add(UpgradeContext ctx, HostsType hostsType, String service,
+       boolean clientOnly, ProcessingComponent pc) {
+
+      boolean forUpgrade = ctx.getDirection().isUpgrade();
 
       List<TaskBucket> buckets = buckets(resolveTasks(forUpgrade, true, pc));
       for (TaskBucket bucket : buckets) {
@@ -93,7 +95,7 @@ public class Grouping {
         Set<String> preTasksEffectiveHosts = TaskWrapperBuilder.getEffectiveHosts(preTasks);
         StageWrapper stage = new StageWrapper(
             bucket.type,
-            getStageText("Preparing", pc.name, preTasksEffectiveHosts),
+            getStageText("Preparing", ctx.getComponentDisplay(service, pc.name), preTasksEffectiveHosts),
             preTasks
             );
         m_stages.add(stage);
@@ -106,7 +108,7 @@ public class Grouping {
           for (String hostName : hostsType.hosts) {
             StageWrapper stage = new StageWrapper(
                 StageWrapper.Type.RESTART,
-                getStageText("Restarting", pc.name, Collections.singleton(hostName)),
+                getStageText("Restarting", ctx.getComponentDisplay(service, pc.name), Collections.singleton(hostName)),
                 new TaskWrapper(service, pc.name, Collections.singleton(hostName), t));
             m_stages.add(stage);
           }
@@ -119,7 +121,7 @@ public class Grouping {
         Set<String> postTasksEffectiveHosts = TaskWrapperBuilder.getEffectiveHosts(postTasks);
         StageWrapper stage = new StageWrapper(
             bucket.type,
-            getStageText("Completing", pc.name, postTasksEffectiveHosts),
+            getStageText("Completing", ctx.getComponentDisplay(service, pc.name), postTasksEffectiveHosts),
             postTasks
             );
         m_stages.add(stage);
@@ -134,16 +136,17 @@ public class Grouping {
     public List<StageWrapper> build(UpgradeContext ctx) {
 
       List<TaskWrapper> tasks = new ArrayList<TaskWrapper>();
+      List<String> displays = new ArrayList<String>();
       for (String service : m_servicesToCheck) {
         tasks.add(new TaskWrapper(
             service, "", Collections.<String>emptySet(), new ServiceCheckTask()));
+        displays.add(ctx.getServiceDisplay(service));
       }
 
-      if (Direction.UPGRADE == ctx.getDirection() && m_serviceCheck &&
-          m_servicesToCheck.size() > 0) {
+      if (ctx.getDirection().isUpgrade() && m_serviceCheck && m_servicesToCheck.size() > 0) {
         StageWrapper wrapper = new StageWrapper(
             StageWrapper.Type.SERVICE_CHECK,
-            "Service Check " + StringUtils.join(m_servicesToCheck, ", "),
+            "Service Check " + StringUtils.join(displays, ", "),
             tasks.toArray(new TaskWrapper[0])
             );
 

@@ -36,6 +36,8 @@ public class UpgradeContext {
   private MasterHostResolver m_resolver;
   private AmbariMetaInfo m_metaInfo;
   private List<ServiceComponentHost> m_unhealthy = new ArrayList<ServiceComponentHost>();
+  private Map<String, String> m_serviceNames = new HashMap<String, String>();
+  private Map<String, String> m_componentNames = new HashMap<String, String>();
 
   /**
    * Constructor.
@@ -114,6 +116,48 @@ public class UpgradeContext {
 
     return results;
   }
+
+  /**
+   * @return the service display name, or the service name if not set
+   */
+  public String getServiceDisplay(String service) {
+    if (m_serviceNames.containsKey(service)) {
+      return m_serviceNames.get(service);
+    }
+
+    return service;
+  }
+
+  /**
+   * @return the component display name, or the component name if not set
+   */
+  public String getComponentDisplay(String service, String component) {
+    String key = service + ":" + component;
+    if (m_componentNames.containsKey(key)) {
+      return m_componentNames.get(key);
+    }
+
+    return component;
+  }
+
+  /**
+   * @param service     the service name
+   * @param displayName the display name for the service
+   */
+  public void setServiceDisplay(String service, String displayName) {
+    m_serviceNames.put(service, displayName);
+  }
+
+  /**
+   * @param service     the service name that owns the component
+   * @param component   the component name
+   * @param displayName the display name for the component
+   */
+  public void setComponentDisplay(String service, String component, String displayName) {
+    String key = service + ":" + component;
+    m_componentNames.put(key, displayName);
+  }
+
 
 
 }

@@ -32,14 +32,14 @@ public abstract class StageWrapperBuilder {
   /**
    * Adds a processing component that will be built into stage wrappers.
    *
+   * @param ctx         the upgrade context
    * @param hostsType   the hosts, along with their type
    * @param service     the service name
-   * @param forUpgrade  {@code true} when performing an upgrade, {@code false} for a downgrade
    * @param clientOnly  whether the service is client only, no service checks
    * @param pc          the ProcessingComponent derived from the upgrade pack
    */
-  public abstract void add(HostsType hostsType, String service,
-      boolean forUpgrade, boolean clientOnly, ProcessingComponent pc);
+  public abstract void add(UpgradeContext ctx, HostsType hostsType, String service,
+      boolean clientOnly, ProcessingComponent pc);
 
   /**
    * Builds the stage wrappers.
