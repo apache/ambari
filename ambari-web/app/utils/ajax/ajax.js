@@ -1487,6 +1487,21 @@ var urls = {
     }
   },
 
+  'admin.kerberos_security.regenerate_keytabs': {
+    'real': '/clusters/{clusterName}?regenerate_keytabs=true',
+    'mock': '',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          "Clusters" : {
+            "security_type" : "KERBEROS"
+          }
+        })
+      }
+    }
+  },
+
   'wizard.advanced_repositories.valid_url': {
     'real': '/stacks/{stackName}/versions/{stackVersion}/operating_systems/{osType}/repositories/{repoId}',
     'mock': '',

@@ -937,6 +937,7 @@ Em.I18n.translations = {
   'admin.kerberos.wizard.header':'Enable Kerberos Wizard',
   'admin.kerberos.button.enable': 'Enable Kerberos',
   'admin.kerberos.button.disable': 'Disable Kerberos',
+  'admin.kerberos.button.regenerateKeytabs': 'Regenerate Keytabs',
   'admin.kerberos.wizard.exit.warning.msg': 'Configuring Kerberos is in progress. Do you really want to exit the Enable Kerberos Wizard?',
   'admin.kerberos.wizard.exit.critical.msg': 'Configuring Kerberos is in progress. <strong>Before dismissing, you should complete the wizard.</strong> Do you really want to exit the Enable Kerberos Wizard?',
   'admin.kerberos.wizard.step1.header': 'Get Started',

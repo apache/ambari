@@ -20,6 +20,7 @@
     <div>
       <p class="text-success">{{t admin.security.enabled}}
         <a class="btn btn-padding btn-warning admin-disable-security-btn" {{bindAttr disabled="isSubmitDisabled"}} {{action notifySecurityOffPopup target="controller"}}>{{t admin.kerberos.button.disable}} </a>
+        <button class="btn btn-success"{{action regenerateKeytabs target="controller"}}><i class="icon-repeat"></i> {{t admin.kerberos.button.regenerateKeytabs}}</button>
         <br/>
       </p>
     </div>

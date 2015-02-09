@@ -59,6 +59,32 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
     });
   },
 
+  /**
+   * Show confirmation popup and after confirmation send request to regenerate keytabs
+   */
+  regenerateKeytabs: function () {
+    var self = this;
+    return App.showConfirmationPopup(function(){
+      App.ajax.send({
+        name: "admin.kerberos_security.regenerate_keytabs",
+        sender: self,
+        success: "regenerateKeytabsSuccess"
+      });
+    });
+  },
+
+  /**
+   * Success callback of <code>regenerateKeytabs</code>
+   * show background operations popup if appropriate option is set
+   */
+  regenerateKeytabsSuccess: function () {
+    App.router.get('applicationController').dataLoading().done(function (initValue) {
+      if (initValue) {
+        App.router.get('backgroundOperationsController').showPopup();
+      }
+    });
+  },
+
   getUpdatedSecurityStatus: function () {
     this.getSecurityStatus();
     return this.get('securityEnabled');
