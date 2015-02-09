@@ -19,15 +19,16 @@ package org.apache.ambari.server.checks;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.PrereqCheckType;
+import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 
 /**
  * Describes prerequisite check.
@@ -42,13 +43,16 @@ public abstract class AbstractCheckDescriptor {
   Provider<Clusters> clustersProvider;
 
   @Inject
-  Provider<ConfigHelper> configHelperProvider;
-
-  @Inject
   Provider<HostVersionDAO> hostVersionDaoProvider;
 
   @Inject
   Provider<RepositoryVersionDAO> repositoryVersionDaoProvider;
+
+  @Inject
+  Provider<RepositoryVersionHelper> repositoryVersionHelper;
+
+  @Inject
+  Provider<AmbariMetaInfo> ambariMetaInfo;
 
   /**
    * Constructor.
