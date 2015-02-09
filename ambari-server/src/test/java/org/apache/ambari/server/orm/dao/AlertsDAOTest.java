@@ -300,6 +300,51 @@ public class AlertsDAOTest {
   }
 
   /**
+   * Tests that the {@link AlertCurrentEntity} fields are updated properly when
+   * a new {@link AlertHistoryEntity} is associated.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testAlertCurrentUpdatesViaHistory() throws Exception {
+    AlertDefinitionEntity hostDef = new AlertDefinitionEntity();
+    hostDef.setDefinitionName("Host Alert Definition ");
+    hostDef.setServiceName("YARN");
+    hostDef.setComponentName(null);
+    hostDef.setClusterId(m_cluster.getClusterId());
+    hostDef.setHash(UUID.randomUUID().toString());
+    hostDef.setScheduleInterval(Integer.valueOf(60));
+    hostDef.setScope(Scope.HOST);
+    hostDef.setSource("{\"type\" : \"SCRIPT\"}");
+    hostDef.setSourceType(SourceType.SCRIPT);
+    m_definitionDao.create(hostDef);
+
+    // history for the definition
+    AlertHistoryEntity history = new AlertHistoryEntity();
+    history.setServiceName(hostDef.getServiceName());
+    history.setClusterId(m_cluster.getClusterId());
+    history.setAlertDefinition(hostDef);
+    history.setAlertLabel(hostDef.getDefinitionName());
+    history.setAlertText(hostDef.getDefinitionName());
+    history.setAlertTimestamp(Long.valueOf(1L));
+    history.setHostName("h2");
+    history.setAlertState(AlertState.OK);
+
+    // current for the history
+    AlertCurrentEntity current = new AlertCurrentEntity();
+    current.setOriginalTimestamp(1L);
+    current.setLatestTimestamp(2L);
+    current.setAlertHistory(history);
+    m_dao.create(current);
+
+    assertEquals(history.getAlertText(), current.getLatestText());
+
+    history.setAlertText("foobar!");
+    current.setAlertHistory(history);
+    assertEquals(history.getAlertText(), current.getLatestText());
+  }
+
+  /**
    *
    */
   @Test

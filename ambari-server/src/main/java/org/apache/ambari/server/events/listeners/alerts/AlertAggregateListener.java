@@ -21,6 +21,7 @@ import java.text.MessageFormat;
 
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.events.AlertReceivedEvent;
+import org.apache.ambari.server.events.AlertStateChangeEvent;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.orm.dao.AlertSummaryDTO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
@@ -38,8 +39,12 @@ import com.google.inject.Singleton;
 
 /**
  * The {@link AlertAggregateListener} is used to listen for all incoming
- * {@link AlertReceivedEvent} instances and determine if there exists a
+ * {@link AlertStateChangeEvent} instances and determine if there exists a
  * {@link SourceType#AGGREGATE} alert that needs to run.
+ * <p/>
+ * This listener is only needed on state changes as aggregation of alerts is
+ * only performed against the state of an alert and not the values that
+ * contributed to that state.
  */
 @Singleton
 @EagerSingleton
@@ -70,7 +75,7 @@ public class AlertAggregateListener {
    * Consume an alert that was received.
    */
   @Subscribe
-  public void onAlertEvent(AlertReceivedEvent event) {
+  public void onAlertEvent(AlertStateChangeEvent event) {
     AlertDefinition aggregateDefinition = m_aggregateMapping.getAggregateDefinition(
         event.getClusterId(), event.getAlert().getName());
 
@@ -129,7 +134,6 @@ public class AlertAggregateListener {
 
     // make a new event and allow others to consume it
     AlertReceivedEvent aggEvent = new AlertReceivedEvent(event.getClusterId(), alert);
-
     m_publisher.publish(aggEvent);
   }
 }

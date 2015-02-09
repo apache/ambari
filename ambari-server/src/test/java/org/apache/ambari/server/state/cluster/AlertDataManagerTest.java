@@ -341,8 +341,8 @@ public class AlertDataManagerTest {
     aggDef.setScope(Scope.SERVICE);
 
     AggregateSource source = new AggregateSource();
-
     source.setAlertName("to_aggregate");
+
     // !!! type is protected
     Field field = Source.class.getDeclaredField("type");
     field.setAccessible(true);
@@ -425,8 +425,6 @@ public class AlertDataManagerTest {
 
     assertNotNull(aggregatedDefinition);
 
-    // any alert and event will do that is for the definition since an aggregate
-    // checks them all regardless of state
     Alert alert = new Alert(
         definition.getDefinitionName(),
         null,
@@ -434,8 +432,12 @@ public class AlertDataManagerTest {
         definition.getComponentName(),
         "h1",
         AlertState.OK);
-    AlertReceivedEvent event = new AlertReceivedEvent(m_cluster.getClusterId(),
-        alert);
+
+    AlertCurrentEntity current = m_dao.findCurrentByHostAndName(
+        m_cluster.getClusterId(), "h1", definition.getDefinitionName());
+
+    AlertStateChangeEvent event = new AlertStateChangeEvent(
+        m_cluster.getClusterId(), alert, current, AlertState.OK);
 
     listener.onAlertEvent(event);
     assertNotNull(ref.get());
@@ -443,8 +445,6 @@ public class AlertDataManagerTest {
     assertTrue(ref.get().getText().indexOf("0/4") > -1);
 
     // check if one is critical, still ok
-    AlertCurrentEntity current = m_dao.findCurrentByHostAndName(
-        m_cluster.getClusterId(), "h1", definition.getDefinitionName());
     current.getAlertHistory().setAlertState(AlertState.CRITICAL);
     m_dao.merge(current.getAlertHistory());
 
@@ -454,9 +454,9 @@ public class AlertDataManagerTest {
     assertTrue(ref.get().getText().indexOf("1/4") > -1);
 
     // two are either warning or critical, warning
-    current = m_dao.findCurrentByHostAndName(
-m_cluster.getClusterId(), "h2",
+    current = m_dao.findCurrentByHostAndName(m_cluster.getClusterId(), "h2",
         definition.getDefinitionName());
+
     current.getAlertHistory().setAlertState(AlertState.WARNING);
     m_dao.merge(current.getAlertHistory());
 
@@ -466,9 +466,9 @@ m_cluster.getClusterId(), "h2",
     assertTrue(ref.get().getText().indexOf("2/4") > -1);
 
     // three make it critical
-    current = m_dao.findCurrentByHostAndName(
-m_cluster.getClusterId(), "h3",
+    current = m_dao.findCurrentByHostAndName(m_cluster.getClusterId(), "h3",
         definition.getDefinitionName());
+
     current.getAlertHistory().setAlertState(AlertState.CRITICAL);
     m_dao.merge(current.getAlertHistory());
 

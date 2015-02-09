@@ -207,8 +207,9 @@ public class AlertCurrentEntity {
   }
 
   /**
-   * Gets the associated {@link AlertHistoryEntity} entry for this current alert
-   * instance.
+   * Sets the associated {@link AlertHistoryEntity} entry for this current alert
+   * instance. This will update the internal fields of this current alert with
+   * those from the alertHistory.
    *
    * @param alertHistory
    *          the most recently received history entry (not {@code null}).
@@ -216,6 +217,7 @@ public class AlertCurrentEntity {
   public void setAlertHistory(AlertHistoryEntity alertHistory) {
     this.alertHistory = alertHistory;
     alertDefinition = alertHistory.getAlertDefinition();
+    latestText = alertHistory.getAlertText();
   }
 
   /**

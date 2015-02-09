@@ -179,6 +179,7 @@ public class AlertReceivedListener {
       current.setAlertHistory(history);
       current.setLatestTimestamp(Long.valueOf(alert.getTimestamp()));
       current.setOriginalTimestamp(Long.valueOf(alert.getTimestamp()));
+      current.setLatestText(alert.getText());
 
       current = m_alertsDao.merge(current);
 
