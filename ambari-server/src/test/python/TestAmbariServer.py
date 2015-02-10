@@ -2806,7 +2806,10 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch("ambari_server.serverSetup.adjust_directory_permissions")
   @patch("ambari_server.serverSetup.read_ambari_user")
   @patch("ambari_server.serverSetup.expand_jce_zip_file")
-  def test_setup(self, expand_jce_zip_file_mock, read_ambari_user_mock, adjust_dirs_mock, extract_views_mock, proceedJDBCProperties_mock, is_root_mock,
+  @patch("ambari_server.dbConfiguration_linux.get_postgre_hba_dir")
+  @patch("ambari_server.dbConfiguration_linux.get_postgre_running_status")
+  def test_setup(self, get_postgre_running_status_mock, get_postgre_hba_dir_mock, expand_jce_zip_file_mock,
+                 read_ambari_user_mock, adjust_dirs_mock, extract_views_mock, proceedJDBCProperties_mock, is_root_mock,
                  disable_security_enhancements_mock, check_jdbc_drivers_mock, check_ambari_user_mock,
                  download_jdk_mock, configure_os_settings_mock, get_ambari_properties_mock,
                  get_YN_input_mock, gvsi_mock, gvsi_1_mock,
@@ -3235,7 +3238,10 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch("getpass.getuser")
   @patch("os.chdir")
   @patch.object(ResourceFilesKeeper, "perform_housekeeping")
-  def test_start(self, perform_housekeeping_mock, chdir_mock, getuser_mock, find_jdbc_driver_mock,
+  @patch("ambari_server.dbConfiguration_linux.get_postgre_hba_dir")
+  @patch("ambari_server.dbConfiguration_linux.get_postgre_running_status")
+  def test_start(self, get_postgre_running_status_mock, get_postgre_hba_dir_mock,
+                 perform_housekeeping_mock, chdir_mock, getuser_mock, find_jdbc_driver_mock,
                  is_root_mock, is_root_2_mock, read_ambari_user_mock,
                  check_postgre_up_mock, print_info_msg_mock, print_warning_msg_mock,
                  find_jdk_mock, check_database_name_property_mock, search_file_mock,
@@ -4110,7 +4116,10 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch("ambari_server.serverUpgrade.get_ambari_properties")
   @patch("ambari_server.serverUpgrade.upgrade_local_repo")
   @patch("ambari_server.serverUpgrade.move_user_custom_actions")
-  def test_upgrade(self, move_user_custom_actions, upgrade_local_repo_mock,
+  @patch("ambari_server.dbConfiguration_linux.get_postgre_hba_dir")
+  @patch("ambari_server.dbConfiguration_linux.get_postgre_running_status")
+  def test_upgrade(self, get_postgre_running_status_mock, get_postgre_hba_dir_mock,
+                   move_user_custom_actions, upgrade_local_repo_mock,
                    get_ambari_properties_mock, get_ambari_properties_2_mock, get_ambari_properties_3_mock,
                    is_root_mock, get_ambari_version_mock, get_ambari_version_2_mock,
                    parse_properties_file_mock,

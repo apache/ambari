@@ -298,10 +298,10 @@ class PGConfig(LinuxDBMSConfig):
                           '--command=/var/lib/ambari-server/resources/scripts/change_owner.sh -d {0} -s {1} -o {2}']
 
   PG_ERROR_BLOCKED = "is being accessed by other users"
-  PG_STATUS_RUNNING = get_postgre_running_status(OS_TYPE)
+  PG_STATUS_RUNNING = None
   SERVICE_CMD = "/usr/bin/env service"
   PG_SERVICE_NAME = "postgresql"
-  PG_HBA_DIR = get_postgre_hba_dir(OSCheck.get_os_family())
+  PG_HBA_DIR = None
 
   PG_ST_CMD = "%s %s status" % (SERVICE_CMD, PG_SERVICE_NAME)
   if os.path.isfile("/usr/bin/postgresql-setup"):
@@ -313,9 +313,9 @@ class PGConfig(LinuxDBMSConfig):
   PG_RESTART_CMD = "%s %s restart" % (SERVICE_CMD, PG_SERVICE_NAME)
   PG_HBA_RELOAD_CMD = "%s %s reload" % (SERVICE_CMD, PG_SERVICE_NAME)
 
-  PG_HBA_CONF_FILE = os.path.join(PG_HBA_DIR, "pg_hba.conf")
-  PG_HBA_CONF_FILE_BACKUP = os.path.join(PG_HBA_DIR, "pg_hba_bak.conf.old")
-  POSTGRESQL_CONF_FILE = os.path.join(PG_HBA_DIR, "postgresql.conf")
+  PG_HBA_CONF_FILE = None
+  PG_HBA_CONF_FILE_BACKUP = None
+  POSTGRESQL_CONF_FILE = None
 
   POSTGRES_EMBEDDED_INIT_FILE = "/var/lib/ambari-server/resources/Ambari-DDL-Postgres-EMBEDDED-CREATE.sql"
   POSTGRES_EMBEDDED_DROP_FILE = "/var/lib/ambari-server/resources/Ambari-DDL-Postgres-EMBEDDED-DROP.sql"
@@ -350,6 +350,13 @@ class PGConfig(LinuxDBMSConfig):
     self._is_user_changed = False
 
     if self.persistence_type == STORAGE_TYPE_LOCAL:
+      PGConfig.PG_STATUS_RUNNING = get_postgre_running_status(OS_TYPE)
+      PGConfig.PG_HBA_DIR = get_postgre_hba_dir(OSCheck.get_os_family())
+
+      PGConfig.PG_HBA_CONF_FILE = os.path.join(PGConfig.PG_HBA_DIR, "pg_hba.conf")
+      PGConfig.PG_HBA_CONF_FILE_BACKUP = os.path.join(PGConfig.PG_HBA_DIR, "pg_hba_bak.conf.old")
+      PGConfig.POSTGRESQL_CONF_FILE = os.path.join(PGConfig.PG_HBA_DIR, "postgresql.conf")
+
       postgres_init_file_default = PGConfig.POSTGRES_EMBEDDED_INIT_FILE
       postgres_drop_file_default = PGConfig.POSTGRES_EMBEDDED_DROP_FILE
     else:
