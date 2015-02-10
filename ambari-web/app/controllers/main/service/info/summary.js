@@ -80,9 +80,10 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
     if (App.get('router.clusterController.isLoaded') && !this.get('isRangerPluginsArraySet')) {
       this.setProperties({
         rangerPlugins: this.get('rangerPlugins').map(function (item) {
+          var stackService = App.StackService.find().findProperty('serviceName', item.serviceName);
+          var displayName = (stackService) ? stackService.get('displayName') : item.serviceName;
           return $.extend(item, {
-            pluginTitle: Em.I18n.t('services.service.summary.ranger.plugin.title').
-              format(App.StackService.find().findProperty('serviceName', item.serviceName).get('displayName')),
+            pluginTitle: Em.I18n.t('services.service.summary.ranger.plugin.title').format(displayName),
             isDisplayed: App.Service.find().someProperty('serviceName', item.serviceName),
             status: Em.I18n.t('services.service.summary.ranger.plugin.loadingStatus')
           });

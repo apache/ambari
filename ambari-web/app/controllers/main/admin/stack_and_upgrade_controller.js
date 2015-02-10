@@ -271,7 +271,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       },
       Em.I18n.t('admin.stackUpgrade.downgrade.body').format(currentVersion.repository_name),
       null,
-      Em.I18n.t('admin.stackUpgrade.downgrade.title').format(currentVersion.repository_name),
+      Em.I18n.t('admin.stackUpgrade.dialog.downgrade.header').format(currentVersion.repository_name),
       Em.I18n.t('admin.stackUpgrade.downgrade.proceed')
     );
   },
@@ -342,6 +342,24 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     });
     this.load();
     this.openUpgradeDialog();
+  },
+
+  /**
+   * upgrade confirmation popup
+   * @param {object} version
+   * @return App.ModalPopup
+   */
+  confirmUpgrade: function (version) {
+    var self = this;
+
+    return App.showConfirmationPopup(
+      function () {
+        self.runPreUpgradeCheck.call(self, version);
+      },
+      Em.I18n.t('admin.stackUpgrade.upgrade.confirm.body').format(version.get('displayName')),
+      null,
+      Em.I18n.t('admin.stackUpgrade.dialog.header').format(version.get('displayName'))
+    );
   },
 
   /**

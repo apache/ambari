@@ -506,18 +506,43 @@ describe('App.MainAdminStackAndUpgradeController', function() {
 
   describe("#confirmDowngrade()", function() {
     before(function () {
-      sinon.stub(App, 'showConfirmationPopup', Em.K);
+      sinon.spy(App, 'showConfirmationPopup');
+      sinon.stub(controller, 'downgrade', Em.K);
     });
     after(function () {
       App.showConfirmationPopup.restore();
+      controller.downgrade.restore();
     });
     it("show confirmation popup", function() {
       controller.set('currentVersion', Em.Object.create({
         repository_version: '2.2',
         repository_name: 'HDP-2.2'
       }));
-      controller.confirmDowngrade();
+      var popup = controller.confirmDowngrade();
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
+      popup.onPrimary();
+      expect(controller.downgrade.calledWith(Em.Object.create({
+        repository_version: '2.2',
+        repository_name: 'HDP-2.2'
+      }))).to.be.true;
+    });
+  });
+
+  describe("#confirmUpgrade()", function() {
+    before(function () {
+      sinon.spy(App, 'showConfirmationPopup');
+      sinon.stub(controller, 'runPreUpgradeCheck', Em.K);
+    });
+    after(function () {
+      App.showConfirmationPopup.restore();
+      controller.runPreUpgradeCheck.restore();
+    });
+    it("show confirmation popup", function() {
+      var version = Em.Object.create({displayName: 'HDP-2.2'});
+      var popup = controller.confirmUpgrade(version);
+      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+      popup.onPrimary();
+      expect(controller.runPreUpgradeCheck.calledWith(version)).to.be.true;
     });
   });
 

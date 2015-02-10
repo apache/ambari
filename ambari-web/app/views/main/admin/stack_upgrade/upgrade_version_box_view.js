@@ -124,7 +124,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       if (stringUtils.compareVersions(this.get('content.repositoryVersion'), currentVersion.repository_version) === 1) {
         element.set('isButton', true);
         element.set('text', Em.I18n.t('admin.stackVersions.version.performUpgrade'));
-        element.set('action', 'runPreUpgradeCheck');
+        element.set('action', 'confirmUpgrade');
       } else {
         element.set('iconClass', 'icon-ok');
         element.set('isLink', true);
