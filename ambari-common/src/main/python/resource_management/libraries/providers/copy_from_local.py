@@ -25,6 +25,7 @@ from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
 from resource_management.core.providers import Provider
 from resource_management.libraries.functions.format import format
 from resource_management.core.shell import as_user
+from resource_management.core.resources.system import Execute
 
 class CopyFromLocalProvider(Provider):
   def action_run(self):
