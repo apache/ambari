@@ -141,7 +141,7 @@ angular.module('ambariAdminConsole')
       })
       .catch(function(data) {
         var errorMessage = data.statusText;
-        if (data.status === 500) {
+        if (data.status >= 400) {
           try {
             var errorObject = JSON.parse(errorMessage);
             errorMessage = errorObject.detail;
