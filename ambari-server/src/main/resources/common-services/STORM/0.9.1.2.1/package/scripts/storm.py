@@ -71,6 +71,7 @@ def storm():
 
     Execute(format("sudo ln -s {metric_collector_sink_jar} {storm_lib_dir}/ambari-metrics-storm-sink.jar"),
             not_if=format("ls {storm_lib_dir}/ambari-metrics-storm-sink.jar"),
+            only_if=format("ls {metric_collector_sink_jar}")
     )
 
   File(format("{conf_dir}/storm-env.sh"),
