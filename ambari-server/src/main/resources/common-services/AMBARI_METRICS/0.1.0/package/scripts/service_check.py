@@ -85,13 +85,13 @@ class AMSServiceCheck(Script):
         conn.request("POST", self.AMS_METRICS_POST_URL, metric_json, headers)
         break
       except (httplib.HTTPException, socket.error) as ex:
-        time.sleep(self.AMS_CONNECT_TIMEOUT)
-        Logger.info("Connection failed. Next retry in %s seconds."
-                    % (self.AMS_CONNECT_TIMEOUT))
-
-    if i == self.AMS_CONNECT_TRIES:
-      raise Fail("Metrics were not saved. Service check has failed. "
-           "\nConnection failed.")
+        if i < self.AMS_CONNECT_TRIES - 1:  #range/xrange returns items from start to end-1
+          time.sleep(self.AMS_CONNECT_TIMEOUT)
+          Logger.info("Connection failed. Next retry in %s seconds."
+                      % (self.AMS_CONNECT_TIMEOUT))
+        else:
+          raise Fail("Metrics were not saved. Service check has failed. "
+               "\nConnection failed.")
 
     response = conn.getresponse()
     Logger.info("Http response: %s %s" % (response.status, response.reason))
