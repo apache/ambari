@@ -20,9 +20,17 @@ STACKS_FOLDER_OLD=/var/lib/ambari-server/resources/stacks_$(date '+%d_%m_%y_%H_%
 COMMON_SERVICES_FOLDER="/var/lib/ambari-server/resources/common-services"
 COMMON_SERVICES_FOLDER_OLD=/var/lib/ambari-server/resources/common-services_$(date '+%d_%m_%y_%H_%M').old
 
+AMBARI_PROPERTIES="/etc/ambari-server/conf/ambari.properties"
+AMBARI_PROPERTIES_OLD="$AMBARI_PROPERTIES.rpmsave"
+
 if [ -d "/etc/ambari-server/conf.save" ]
 then
     mv /etc/ambari-server/conf.save /etc/ambari-server/conf_$(date '+%d_%m_%y_%H_%M').save
+fi
+
+if [ -f "$AMBARI_PROPERTIES" ]
+then
+    mv -f "$AMBARI_PROPERTIES" "$AMBARI_PROPERTIES_OLD"
 fi
 
 if [ -d "$STACKS_FOLDER" ]
