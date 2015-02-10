@@ -17,7 +17,8 @@
  */
 package org.apache.ambari.server.checks;
 
-import java.util.List;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -25,13 +26,9 @@ import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.stack.PrereqCheckType;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.PrereqCheckType;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
-import org.apache.commons.lang.StringUtils;
-
-import com.google.inject.Inject;
-import com.google.inject.Provider;
 
 /**
  * Describes prerequisite check.
@@ -91,32 +88,4 @@ public abstract class AbstractCheckDescriptor {
    * @throws AmbariException if server error happens
    */
   public abstract void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException;
-
-  /**
-   * Formats lists of given entities to human readable form:
-   * [entity1] -> {entity1} {noun}
-   * [entity1, entity2] -> {entity1} and {entity2} {noun}s
-   * [entity1, entity2, entity3] -> {entity1}, {entity2} and {entity3} {noun}s
-   * The noun for the entities is taken from check type, it may be cluster, service or host.
-   *
-   * @param entities list of entities to format
-   * @return formatted entity list
-   */
-  protected String formatEntityList(List<String> entities) {
-    if (entities == null || entities.isEmpty()) {
-      return "";
-    }
-    final StringBuilder formatted = new StringBuilder(StringUtils.join(entities, ", "));
-    if (entities.size() > 1) {
-      formatted.replace(formatted.lastIndexOf(","), formatted.lastIndexOf(",") + 1, " and");
-    }
-    if (type != null) {
-      formatted.append(" ").append(type.name().toLowerCase());
-      if (entities.size() > 1) {
-        formatted.append("s");
-      }
-    }
-    return formatted.toString();
-  }
-
 }

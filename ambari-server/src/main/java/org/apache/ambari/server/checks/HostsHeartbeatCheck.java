@@ -54,7 +54,7 @@ public class HostsHeartbeatCheck extends AbstractCheckDescriptor {
     }
     if (!prerequisiteCheck.getFailedOn().isEmpty()) {
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason(formatEntityList(prerequisiteCheck.getFailedOn()) + " must be heartbeating with the server");
+      prerequisiteCheck.setFailReason("Some hosts are not heartbeating with the server");
     }
   }
 }

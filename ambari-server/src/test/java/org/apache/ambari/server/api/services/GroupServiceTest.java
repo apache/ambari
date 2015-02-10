@@ -36,7 +36,6 @@ import java.util.Map;
  */
 public class GroupServiceTest extends BaseServiceTest {
 
-  @Override
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
     List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
 
