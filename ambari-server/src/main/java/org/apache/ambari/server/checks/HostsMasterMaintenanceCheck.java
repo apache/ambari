@@ -19,12 +19,12 @@ package org.apache.ambari.server.checks;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.stack.HostsType;
+import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.PrereqCheckType;
-import org.apache.ambari.server.state.stack.UpgradePack;
-import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -43,36 +43,18 @@ public class HostsMasterMaintenanceCheck extends AbstractCheckDescriptor {
   }
 
   @Override
-  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    return request.getRepositoryVersion() != null;
-  }
-
-  @Override
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
-    final StackId stackId = cluster.getDesiredStackVersion();
+    final MasterHostResolver masterHostResolver = new MasterHostResolver(configHelperProvider.get(), cluster);
     final Set<String> hostsWithMasterComponent = new HashSet<String>();
-    final String upgradePackName = repositoryVersionHelper.get().getUpgradePackageName(stackId.getStackName(), stackId.getStackVersion(), request.getRepositoryVersion());
-    if (upgradePackName == null) {
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason("Could not find suitable upgrade pack for " + stackId.getStackName() + " " + stackId.getStackVersion() + " to version " + request.getRepositoryVersion());
-      return;
-    }
-    final UpgradePack upgradePack = ambariMetaInfo.get().getUpgradePacks(stackId.getStackName(), stackId.getStackVersion()).get(upgradePackName);
-    if (upgradePack == null) {
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason("Could not find upgrade pack named " + upgradePackName);
-      return;
-    }
-    final Set<String> componentsFromUpgradePack = new HashSet<String>();
-    for (Map<String, ProcessingComponent> task: upgradePack.getTasks().values()) {
-      componentsFromUpgradePack.addAll(task.keySet());
-    }
-    for (Service service: cluster.getServices().values()) {
-      for (ServiceComponent serviceComponent: service.getServiceComponents().values()) {
-        if (serviceComponent.isMasterComponent() && componentsFromUpgradePack.contains(serviceComponent.getName())) {
-          hostsWithMasterComponent.addAll(serviceComponent.getServiceComponentHosts().keySet());
+    for (Map.Entry<String, Service> serviceEntry: cluster.getServices().entrySet()) {
+      final Service service = serviceEntry.getValue();
+      for (Map.Entry<String, ServiceComponent> serviceComponentEntry: service.getServiceComponents().entrySet()) {
+        final ServiceComponent serviceComponent = serviceComponentEntry.getValue();
+        final HostsType hostsType = masterHostResolver.getMasterAndHosts(service.getName(), serviceComponent.getName());
+        if (hostsType != null && hostsType.master != null) {
+          hostsWithMasterComponent.add(hostsType.master);
         }
       }
     }
