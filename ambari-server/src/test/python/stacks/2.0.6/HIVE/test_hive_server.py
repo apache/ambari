@@ -57,7 +57,8 @@ class TestHiveServer(RMFTestCase):
     )
 
     self.assert_configure_default()
-    self.assertResourceCalled('Execute', 'metatool -updateLocation hdfs://c6401.ambari.apache.org:8020/apps/hive/warehouse ',
+    self.printResources()
+    self.assertResourceCalled('Execute', 'hive --config /etc/hive/conf.server --service metatool -updateLocation hdfs://c6401.ambari.apache.org:8020/apps/hive/warehouse ',
         environment = {'PATH' : "/bin:/usr/lib/hive/bin:/usr/bin"},
         user = 'hive',
     )
