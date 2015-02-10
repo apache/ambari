@@ -263,7 +263,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     columns.add(new DBAccessor.DBColumnInfo("tasks", char[].class, 32672, null, true));
     columns.add(new DBAccessor.DBColumnInfo("item_text", String.class, 1024, null, true));
     dbAccessor.createTable("upgrade_item", columns, "upgrade_item_id");
-    dbAccessor.addFKConstraint("upgrade_item", "fk_upgrade_item_upgrade_group_id", "upgrade_group_id", "upgrade_group", "upgrade_group_id", false);
+    dbAccessor.addFKConstraint("upgrade_item", "fk_upg_item_upgrade_group_id", "upgrade_group_id", "upgrade_group", "upgrade_group_id", false);
     dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('upgrade_item_id_seq', 0)", false);
   }
 
