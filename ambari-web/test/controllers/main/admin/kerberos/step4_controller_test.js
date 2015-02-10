@@ -247,6 +247,55 @@ describe('App.KerberosWizardStep4Controller', function() {
       controller.set('wizardController.name', 'KerberosWizard');
       expect(controller.createCategoryForServices()).to.eql([App.ServiceConfigCategory.create({ name: 'HDFS', displayName: 'HDFS', collapsedByDefault: true})]);
     });
-  })
+  });
+
+  describe('#loadStep', function() {
+
+    describe('skip "Configure Identities" step', function() {
+      beforeEach(function() {
+        this.controller = App.KerberosWizardStep4Controller.create({});
+        this.wizardController = App.AddServiceController.create({});
+        this.controller.set('wizardController', this.wizardController);
+        sinon.stub(this.controller, 'clearStep').returns(true);
+        sinon.stub(this.controller, 'getDescriptorConfigs').returns((new $.Deferred()).resolve(true).promise());
+        sinon.stub(this.controller, 'setStepConfigs').returns(true);
+        sinon.stub(App.router, 'send').withArgs('next');
+      });
+
+      afterEach(function() {
+        this.controller.clearStep.restore();
+        this.controller.getDescriptorConfigs.restore();
+        this.controller.setStepConfigs.restore();
+        App.router.send.restore();
+      });
+
+      var tests = [
+        {
+          securityEnabled: true,
+          stepSkipped: false,
+        },
+        {
+          securityEnabled: false,
+          stepSkipped: true
+        }
+      ];
+
+      tests.forEach(function(test) {
+        it('security {0} configure identities step should be {1}'.format(!!test.securityEnabled ? 'enabled' : 'disabled', !!test.stepSkipped ? 'skipped' : 'not skipped'), function() {
+          sinon.stub(App.router, 'get').withArgs('mainAdminKerberosController.securityEnabled').returns(test.securityEnabled);
+          this.wizardController.checkSecurityStatus();
+          App.router.get.restore();
+          this.controller.loadStep();
+          expect(App.router.send.calledWith('next')).to.be.eql(test.stepSkipped);
+        });
+      }, this);
+
+      it('step should not be disabled for Add Kerberos wizard', function() {
+        this.controller.set('wizardController', App.KerberosWizardController.create({}));
+        this.controller.loadStep();
+        expect(App.router.send.calledWith('next')).to.be.false;
+      });
+    });
+  });
 
 });

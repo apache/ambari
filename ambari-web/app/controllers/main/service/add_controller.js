@@ -547,6 +547,7 @@ App.AddServiceController = App.WizardController.extend({
   checkSecurityStatus: function() {
     if (App.supports.automatedKerberos) {
       if (!App.router.get('mainAdminKerberosController.securityEnabled')) {
+        this.set('skipConfigureIdentitiesStep', true);
         this.get('isStepDisabled').findProperty('step', 5).set('value', true);
       }
     }

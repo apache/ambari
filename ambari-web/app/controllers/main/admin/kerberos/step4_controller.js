@@ -31,6 +31,10 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
   },
   
   loadStep: function() {
+    if (this.get('wizardController.skipConfigureIdentitiesStep')) {
+      App.router.send('next');
+      return;
+    }
     var self = this;
     this.clearStep();
     this.getDescriptorConfigs().then(function(properties) {
