@@ -38,7 +38,8 @@
         {
           "hbase-site": {
             "hbase.security.authentication": "kerberos",
-            "hbase.security.authorization": "true"
+            "hbase.security.authorization": "true",
+            "zookeeper.znode.parent": "/hbase-secure"
           }
         }
       ],
