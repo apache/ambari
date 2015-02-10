@@ -51,7 +51,7 @@ public class MasterHostResolver {
   private String m_version;
   private ConfigHelper m_configHelper;
 
-  enum Service {
+  public enum Service {
     HDFS,
     HBASE,
     YARN,

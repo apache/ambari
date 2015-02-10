@@ -25,7 +25,17 @@ import java.util.List;
 import java.util.ArrayList;
 
 import org.apache.ambari.server.StaticallyInject;
-import org.apache.ambari.server.checks.*;
+import org.apache.ambari.server.checks.AbstractCheckDescriptor;
+import org.apache.ambari.server.checks.HostsHeartbeatCheck;
+import org.apache.ambari.server.checks.HostsMasterMaintenanceCheck;
+import org.apache.ambari.server.checks.HostsRepositoryVersionCheck;
+import org.apache.ambari.server.checks.ServicesDecommissionCheck;
+import org.apache.ambari.server.checks.ServicesJobsDistributedCacheCheck;
+import org.apache.ambari.server.checks.ServicesMaintenanceModeCheck;
+import org.apache.ambari.server.checks.ServicesNamenodeHighAvailabilityCheck;
+import org.apache.ambari.server.checks.SecondaryNamenodeDeletedCheck;
+import org.apache.ambari.server.checks.ServicesUpCheck;
+import org.apache.ambari.server.checks.ServicesYarnWorkPreservingCheck;
 import org.apache.ambari.server.state.CheckHelper;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
@@ -68,6 +78,8 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
   @Inject
   private static ServicesNamenodeHighAvailabilityCheck servicesNamenodeHighAvailabilityCheck;
   @Inject
+  private static SecondaryNamenodeDeletedCheck secondaryNamenodeDeletedCheck;
+  @Inject
   private static ServicesYarnWorkPreservingCheck servicesYarnWorkPreservingCheck;
   @Inject
   private static ServicesDecommissionCheck servicesDecommissionCheck;
@@ -89,6 +101,7 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
       add(hostsRepositoryVersionCheck);
       add(servicesMaintenanceModeCheck);
       add(servicesNamenodeHighAvailabilityCheck);
+      add(secondaryNamenodeDeletedCheck);
       add(servicesYarnWorkPreservingCheck);
       add(servicesDecommissionCheck);
       add(servicesJobsDistributedCacheCheck);
