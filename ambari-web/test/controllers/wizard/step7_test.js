@@ -1322,7 +1322,7 @@ describe('App.InstallerStep7Controller', function () {
   describe('#setInstalledServiceConfigs', function () {
 
     var controller = App.WizardStep7Controller.create({
-        installedServiceNames: ['HBASE', 'AMS']
+        installedServiceNames: ['HBASE', 'AMBARI_METRICS']
       }),
       serviceConfigTags = [
         {
@@ -1348,7 +1348,7 @@ describe('App.InstallerStep7Controller', function () {
         {
           name: 'hbase.client.scanner.caching',
           value: '2000',
-          serviceName: 'AMS',
+          serviceName: 'AMBARI_METRICS',
           filename: 'ams-hbase-site.xml'
         }
       ],
@@ -1372,7 +1372,7 @@ describe('App.InstallerStep7Controller', function () {
           tag: 'version1'
         }
       ],
-      installedServiceNames = ['HBASE', 'AMS'];
+      installedServiceNames = ['HBASE', 'AMBARI_METRICS'];
 
     it('should handle properties with the same name', function () {
       controller.setInstalledServiceConfigs(serviceConfigTags, configs, configsByTags, installedServiceNames);

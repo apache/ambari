@@ -83,7 +83,7 @@ def main(argv=None):
   parser = optparse.OptionParser()
 
   parser.add_option("-H", "--host", dest="host",
-                    help="AMS host")
+                    help="Ambari Metrics host")
   parser.add_option("-t", "--starttime", dest="start_time_secs",
                     default=int(time.time()),
                     help="start time in seconds, default value is current time")
@@ -92,7 +92,7 @@ def main(argv=None):
   (options, args) = parser.parse_args()
 
   if options.host is None:
-    print "AMS host name is required (--host or -h)"
+    print "Ambari Metrics host name is required (--host or -h)"
     exit(-1)
 
   if options.node_names is None:

@@ -107,14 +107,14 @@ public class AMSReportPropertyProvider extends MetricsReportPropertyProvider {
 
     // Check liveliness of host
     if (!hostProvider.isCollectorHostLive(clusterName, TIMELINE_METRICS)) {
-      LOG.info("METRIC_COLLECTOR host is not live. Skip populating " +
+      LOG.info("METRICS_COLLECTOR host is not live. Skip populating " +
         "resources with metrics.");
       return true;
     }
 
     // Check liveliness of Collector
     if (!hostProvider.isCollectorComponentLive(clusterName, TIMELINE_METRICS)) {
-      LOG.info("METRIC_COLLECTOR is not live. Skip populating resources" +
+      LOG.info("METRICS_COLLECTOR is not live. Skip populating resources" +
         " with metrics.");
       return true;
     }

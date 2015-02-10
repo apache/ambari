@@ -319,7 +319,7 @@ App.StackService.configCategories = function () {
         App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'})
       ]);
       break;
-    case 'AMS':
+    case 'AMBARI_METRICS':
       serviceConfigCategories.pushObjects([
         App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'}),
         App.ServiceConfigCategory.create({ name: 'MetricCollector', displayName: 'Metric Collector'})

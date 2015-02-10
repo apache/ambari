@@ -52,7 +52,7 @@ import java.util.regex.Pattern;
 
 import static org.apache.ambari.server.Role.HBASE_MASTER;
 import static org.apache.ambari.server.Role.HBASE_REGIONSERVER;
-import static org.apache.ambari.server.Role.METRIC_COLLECTOR;
+import static org.apache.ambari.server.Role.METRICS_COLLECTOR;
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.TIMELINE_METRICS;
 import static org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
@@ -66,7 +66,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
   static {
     TIMELINE_APPID_MAP.put(HBASE_MASTER.name(), "HBASE");
     TIMELINE_APPID_MAP.put(HBASE_REGIONSERVER.name(), "HBASE");
-    TIMELINE_APPID_MAP.put(METRIC_COLLECTOR.name(), "AMS-HBASE");
+    TIMELINE_APPID_MAP.put(METRICS_COLLECTOR.name(), "AMS-HBASE");
 
     mapper = new ObjectMapper();
     AnnotationIntrospector introspector = new JaxbAnnotationIntrospector();
@@ -158,14 +158,14 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
 
           // Check liveliness of host
           if (!hostProvider.isCollectorHostLive(clusterName, TIMELINE_METRICS)) {
-            LOG.info("METRIC_COLLECTOR host is not live. Skip populating " +
+            LOG.info("METRICS_COLLECTOR host is not live. Skip populating " +
               "resources with metrics.");
             return Collections.emptySet();
           }
 
           // Check liveliness of Collector
           if (!hostProvider.isCollectorComponentLive(clusterName, TIMELINE_METRICS)) {
-            LOG.info("METRIC_COLLECTOR is not live. Skip populating resources" +
+            LOG.info("METRICS_COLLECTOR is not live. Skip populating resources" +
               " with metrics.");
             return Collections.emptySet();
           }
@@ -358,11 +358,11 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
 
   /**
    * Return a propertyInfoMap for all metrics. Handles special case for
-   * METRIC_COLLECTOR metrics by returning HBase metrics.
+   * METRICS_COLLECTOR metrics by returning HBase metrics.
    */
   @Override
   public Map<String, Map<String, PropertyInfo>> getComponentMetrics() {
-    if (super.getComponentMetrics().containsKey(METRIC_COLLECTOR.name())) {
+    if (super.getComponentMetrics().containsKey(METRICS_COLLECTOR.name())) {
       return super.getComponentMetrics();
     }
 
@@ -380,7 +380,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
       amsMetrics.putAll(metricPropertyIds.get(HBASE_REGIONSERVER.name()));
     }
     if (!amsMetrics.isEmpty()) {
-      super.getComponentMetrics().putAll(Collections.singletonMap(METRIC_COLLECTOR.name(), amsMetrics));
+      super.getComponentMetrics().putAll(Collections.singletonMap(METRICS_COLLECTOR.name(), amsMetrics));
     }
 
     return super.getComponentMetrics();

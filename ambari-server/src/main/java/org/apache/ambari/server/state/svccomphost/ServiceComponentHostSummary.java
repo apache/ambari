@@ -52,7 +52,7 @@ public class ServiceComponentHostSummary  {
       if (!hostComponentStateEntity.getVersion().equalsIgnoreCase(State.UNKNOWN.toString())) {
         versionedHostComponents.add(hostComponentStateEntity);
       } else {
-        // Some Components cannot advertise a version. E.g., ZKF, AMS, Kerberos
+        // Some Components cannot advertise a version. E.g., ZKF, AMBARI_METRICS, Kerberos
         ComponentInfo compInfo = ambariMetaInfo.getComponent(
             stackName, stackVersion, hostComponentStateEntity.getServiceName(),
             hostComponentStateEntity.getComponentName());

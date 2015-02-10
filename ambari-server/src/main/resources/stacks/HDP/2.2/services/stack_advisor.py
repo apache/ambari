@@ -27,7 +27,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       "HBASE": self.recommendHBASEConfigurations,
       "MAPREDUCE2": self.recommendMapReduce2Configurations,
       "TEZ": self.recommendTezConfigurations,
-      "AMS": self.recommendAmsConfigurations,
+      "AMBARI_METRICS": self.recommendAmsConfigurations,
       "YARN": self.recommendYARNConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
@@ -349,27 +349,27 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
   def getMastersWithMultipleInstances(self):
     result = super(HDP22StackAdvisor, self).getMastersWithMultipleInstances()
-    result.extend(['METRIC_COLLECTOR'])
+    result.extend(['METRICS_COLLECTOR'])
     return result
 
   def getNotValuableComponents(self):
     result = super(HDP22StackAdvisor, self).getNotValuableComponents()
-    result.extend(['METRIC_MONITOR'])
+    result.extend(['METRICS_MONITOR'])
     return result
 
   def getNotPreferableOnServerComponents(self):
     result = super(HDP22StackAdvisor, self).getNotPreferableOnServerComponents()
-    result.extend(['METRIC_COLLECTOR'])
+    result.extend(['METRICS_COLLECTOR'])
     return result
 
   def getCardinalitiesDict(self):
     result = super(HDP22StackAdvisor, self).getCardinalitiesDict()
-    result['METRIC_COLLECTOR'] = {"min": 1}
+    result['METRICS_COLLECTOR'] = {"min": 1}
     return result
 
   def getComponentLayoutSchemes(self):
     result = super(HDP22StackAdvisor, self).getComponentLayoutSchemes()
-    result['METRIC_COLLECTOR'] = {"else": 2}
+    result['METRICS_COLLECTOR'] = {"else": 2}
     return result
 
 def is_number(s):

@@ -254,7 +254,7 @@ describe('App.config', function () {
       expect(properties).to.have.length(2);
       expect(hbaseProperty.serviceName).to.equal('HBASE');
       expect(hbaseProperty.value).to.equal('/hadoop/hbase');
-      expect(amsProperty.serviceName).to.equal('AMS');
+      expect(amsProperty.serviceName).to.equal('AMBARI_METRICS');
       expect(amsProperty.value).to.equal('/hadoop/ams-hbase');
     });
   });

@@ -82,8 +82,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @method ambariMetricsValidation
    */
   ambariMetricsValidation: function () {
-    //TODO Change 'AMS' to the actual serviceName after it's changed
-    var ambariMetricsService = this.findProperty('serviceName', 'AMS');
+    var ambariMetricsService = this.findProperty('serviceName', 'AMBARI_METRICS');
     if (ambariMetricsService && !ambariMetricsService.get('isSelected')) {
       this.addValidationError({
         id: 'ambariMetricsCheck',

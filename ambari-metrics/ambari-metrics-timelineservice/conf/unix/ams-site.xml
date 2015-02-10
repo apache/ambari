@@ -20,6 +20,6 @@
 
 <configuration>
 
-  <!-- Site specific AMS configuration properties -->
+  <!-- Site specific AMBARI_METRICS configuration properties -->
 
 </configuration>

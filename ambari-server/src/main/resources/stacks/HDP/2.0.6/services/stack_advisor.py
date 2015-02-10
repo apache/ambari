@@ -85,7 +85,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       "MAPREDUCE2": self.recommendMapReduce2Configurations,
       "HDFS": self.recommendHDFSConfigurations,
       "HBASE": self.recommendHbaseEnvConfigurations,
-      "AMS": self.recommendAmsConfigurations
+      "AMBARI_METRICS": self.recommendAmsConfigurations
     }
 
   def putProperty(self, config, configType):
@@ -131,14 +131,14 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putTimelineServiceProperty = self.putProperty(configurations, "ams-site")
     putHbaseEnvProperty = self.putProperty(configurations, "ams-hbase-env")
 
-    amsCollectorHosts = self.getComponentHostNames(services, "AMS", "METRIC_COLLECTOR")
+    amsCollectorHosts = self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")
     putHbaseEnvProperty("hbase_regionserver_heapsize", "1024m")
     putAmsHbaseSiteProperty("hfile.block.cache.size", 0.3)
     putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", 0.5)
     putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.lowerLimit", 0.4)
     putTimelineServiceProperty("timeline.metrics.host.aggregator.ttl", 86400)
 
-    # TODO recommend configuration for multiple AMS collectors
+    # TODO recommend configuration for multiple AMBARI_METRICS collectors
     if len(amsCollectorHosts) > 1:
       pass
     else:
@@ -256,7 +256,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       "MAPREDUCE2": {"mapred-site": self.validateMapReduce2Configurations},
       "YARN": {"yarn-site": self.validateYARNConfigurations},
       "HBASE": {"hbase-env": self.validateHbaseEnvConfigurations},
-      "AMS": {"ams-hbase-site": self.validateAmsHbaseSiteConfigurations,
+      "AMBARI_METRICS": {"ams-hbase-site": self.validateAmsHbaseSiteConfigurations,
               "ams-hbase-env": self.validateAmsHbaseEnvConfigurations,
               "ams-site": self.validateAmsSiteConfigurations},
     }
@@ -275,11 +275,11 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
   def validateAmsHbaseSiteConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
 
-    amsCollectorHosts = self.getComponentHostNames(services, "AMS", "METRIC_COLLECTOR")
+    amsCollectorHosts = self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")
     ams_site = getSiteProperties(configurations, "ams-site")
 
     recommendedDiskSpace = 10485760
-    # TODO validate configuration for multiple AMS collectors
+    # TODO validate configuration for multiple AMBARI_METRICS collectors
     if len(amsCollectorHosts) > 1:
       pass
     else:
@@ -321,17 +321,17 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     masterItem = self.validatorLessThenDefaultValue(properties, recommendedDefaults, "hbase_master_heapsize")
     ams_env = getSiteProperties(configurations, "ams-env")
     logDirItem = self.validatorEqualsPropertyItem(properties, "hbase_log_dir",
-                                                  ams_env, "ams_collector_log_dir")
+                                                  ams_env, "metrics_collector_log_dir")
 
     if masterItem is None:
       hbase_master_heapsize = formatXmxSizeToBytes(properties["hbase_master_heapsize"])
 
-      # TODO Add AMS Collector Xmx property to ams-env
+      # TODO Add AMBARI_METRICS Collector Xmx property to ams-env
       # Collector 512m + HBASE Master heapsize
       # For standalone HBase, master's heap memory is used by regionserver as well
       requiredMemory = 536870912 + hbase_master_heapsize
 
-      amsCollectorHosts = self.getComponentHostNames(services, "AMS", "METRIC_COLLECTOR")
+      amsCollectorHosts = self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")
       for collectorHostName in amsCollectorHosts:
         for host in hosts["items"]:
           if host["Hosts"]["host_name"] == collectorHostName:

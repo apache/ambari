@@ -651,10 +651,10 @@ class TestHDP22StackAdvisor(TestCase):
     services = {
       "services":  [ {
         "StackServices": {
-          "service_name": "AMS"
+          "service_name": "AMBARI_METRICS"
         },"components": [{
           "StackServiceComponents": {
-            "component_name": "METRIC_COLLECTOR",
+            "component_name": "METRICS_COLLECTOR",
             "hostnames": ["host1"]
           }
 

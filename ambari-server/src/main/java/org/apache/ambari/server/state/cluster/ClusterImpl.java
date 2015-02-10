@@ -1256,7 +1256,7 @@ public class ClusterImpl implements Cluster {
         for (HostComponentStateEntity hostComponentStateEntity : allHostComponents) {
           if (hostComponentStateEntity.getVersion().equalsIgnoreCase(
               State.UNKNOWN.toString())) {
-            // Some Components cannot advertise a version. E.g., ZKF, AMS,
+            // Some Components cannot advertise a version. E.g., ZKF, AMBARI_METRICS,
             // Kerberos
             ComponentInfo compInfo = ambariMetaInfo.getComponent(
                 stackId.getStackName(), stackId.getStackVersion(),

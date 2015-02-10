@@ -25,7 +25,7 @@ describe('App.WizardStep4Controller', function () {
 
   var services = [
     'HDFS', 'GANGLIA', 'OOZIE', 'HIVE', 'HBASE', 'PIG', 'SCOOP', 'ZOOKEEPER',
-    'YARN', 'MAPREDUCE2', 'FALCON', 'TEZ', 'STORM', 'AMS', 'RANGER'
+    'YARN', 'MAPREDUCE2', 'FALCON', 'TEZ', 'STORM', 'AMBARI_METRICS', 'RANGER'
   ];
 
   var controller = App.WizardStep4Controller.create();
@@ -260,35 +260,35 @@ describe('App.WizardStep4Controller', function () {
           errorsExpected: ['ambariMetricsCheck']
         },
         {
-          services: ['HDFS','ZOOKEEPER', 'AMS'],
+          services: ['HDFS','ZOOKEEPER', 'AMBARI_METRICS'],
           errorsExpected: []
         },
         {
-          services: ['ZOOKEEPER', 'AMS'],
+          services: ['ZOOKEEPER', 'AMBARI_METRICS'],
           errorsExpected: []
         },
         {
-          services: ['HDFS', 'AMS'],
+          services: ['HDFS', 'AMBARI_METRICS'],
           errorsExpected: ['serviceCheck_ZOOKEEPER']
         },
         {
-          services: ['HDFS', 'TEZ', 'ZOOKEEPER', 'AMS'],
+          services: ['HDFS', 'TEZ', 'ZOOKEEPER', 'AMBARI_METRICS'],
           errorsExpected: ['serviceCheck_YARN']
         },
         {
-          services: ['HDFS', 'ZOOKEEPER', 'FALCON', 'AMS'],
+          services: ['HDFS', 'ZOOKEEPER', 'FALCON', 'AMBARI_METRICS'],
           errorsExpected: ['serviceCheck_OOZIE']
         },
         {
-          services: ['HDFS', 'ZOOKEEPER', 'GANGLIA', 'HIVE', 'AMS'],
+          services: ['HDFS', 'ZOOKEEPER', 'GANGLIA', 'HIVE', 'AMBARI_METRICS'],
           errorsExpected: ['serviceCheck_YARN']
         },
         {
-          services: ['HDFS', 'GLUSTERFS', 'ZOOKEEPER', 'HIVE', 'AMS'],
+          services: ['HDFS', 'GLUSTERFS', 'ZOOKEEPER', 'HIVE', 'AMBARI_METRICS'],
           errorsExpected: ['serviceCheck_YARN', 'multipleDFS']
         },
         {
-          services: ['HDFS','ZOOKEEPER', 'GANGLIA', 'AMS'],
+          services: ['HDFS','ZOOKEEPER', 'GANGLIA', 'AMBARI_METRICS'],
           errorsExpected: []
         },
         {
@@ -530,13 +530,13 @@ describe('App.WizardStep4Controller', function () {
         title: 'Ambari Metrics not available'
       },
       {
-        services: ['AMS'],
+        services: ['AMBARI_METRICS'],
         isAmbariMetricsSelected: false,
         isAmbariMetricsWarning: true,
         title: 'Ambari Metrics not selected'
       },
       {
-        services: ['AMS'],
+        services: ['AMBARI_METRICS'],
         isAmbariMetricsSelected: true,
         isAmbariMetricsWarning: false,
         title: 'Ambari Metrics selected'
@@ -547,8 +547,8 @@ describe('App.WizardStep4Controller', function () {
       it(item.title, function () {
         controller.clear();
         controller.set('content', generateSelectedServicesContent(item.services));
-        var ams = controller.findProperty('serviceName', 'AMS');
-        if (item.services.contains('AMS')) {
+        var ams = controller.findProperty('serviceName', 'AMBARI_METRICS');
+        if (item.services.contains('AMBARI_METRICS')) {
           ams.set('isSelected', item.isAmbariMetricsSelected);
         } else {
           controller.removeObject(ams);

@@ -50,7 +50,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-// Timeline service client support is not enabled for AMS
+// Timeline service client support is not enabled for AMBARI_METRICS
 @Ignore
 public class TestApplicationHistoryClientService extends
     ApplicationHistoryStoreTestUtils {

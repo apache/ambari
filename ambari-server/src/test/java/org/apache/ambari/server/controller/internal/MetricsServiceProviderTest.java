@@ -76,7 +76,7 @@ public class MetricsServiceProviderTest {
     Predicate expectedPredicate2 =
       new PredicateBuilder().property(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID)
         .equals("c1").and().property(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID)
-        .equals("METRIC_COLLECTOR").toPredicate();
+        .equals("METRICS_COLLECTOR").toPredicate();
 
     ArgumentCaptor<Request> requestCapture = ArgumentCaptor.forClass(Request.class);
     ArgumentCaptor<Predicate> predicateCapture = ArgumentCaptor.forClass(Predicate.class);
@@ -111,7 +111,7 @@ public class MetricsServiceProviderTest {
     when(hostComponentResourceProvider.getResources(any(Request.class),
       any(Predicate.class))).thenReturn(hostComponents);
     when(hostComponent.getPropertyValue
-      (HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID)).thenReturn("METRIC_COLLECTOR");
+      (HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID)).thenReturn("METRICS_COLLECTOR");
     when(hostComponent.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID)).thenReturn("h1");
 
     service = providerModule.getMetricsServiceType();

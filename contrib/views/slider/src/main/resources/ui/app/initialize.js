@@ -103,13 +103,13 @@ App.initializer({
       viewErrors: [],
 
       /**
-       * Host with Metrics Server (AMS)
+       * Host with Metrics Server (AMBARI_METRICS)
        * @type {string|null}
        */
       metricsHost: null,
 
       /**
-       * Port of Metrics Server (AMS port)
+       * Port of Metrics Server (AMBARI_METRICS port)
        * @type {array|null}
        */
       metricsPort: null,

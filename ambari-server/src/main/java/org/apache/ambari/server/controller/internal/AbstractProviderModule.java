@@ -55,7 +55,6 @@ import org.apache.ambari.server.state.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.InetAddress;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -85,7 +84,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
   private static final String HOST_COMPONENT_HOST_NAME_PROPERTY_ID      = PropertyHelper.getPropertyId("HostRoles", "host_name");
   private static final String HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "component_name");
   private static final String GANGLIA_SERVER                            = "GANGLIA_SERVER";
-  private static final String METRIC_SERVER                             = "METRIC_COLLECTOR";
+  private static final String METRIC_SERVER                             = "METRICS_COLLECTOR";
   private static final String PROPERTIES_CATEGORY = "properties";
   private static final Map<Service.Type, String> serviceConfigVersions = new ConcurrentHashMap<Service.Type, String>();
   private static final Map<Service.Type, String> serviceConfigTypes = new EnumMap<Service.Type, String>(Service.Type.class);
@@ -105,7 +104,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
     serviceConfigTypes.put(Service.Type.HBASE, "hbase-site");
     serviceConfigTypes.put(Service.Type.YARN, "yarn-site");
     serviceConfigTypes.put(Service.Type.MAPREDUCE2, "mapred-site");
-    serviceConfigTypes.put(Service.Type.AMS, "ams-site");
+    serviceConfigTypes.put(Service.Type.AMBARI_METRICS, "ams-site");
 
     componentServiceMap.put("NAMENODE", Service.Type.HDFS);
     componentServiceMap.put("DATANODE", Service.Type.HDFS);
@@ -335,20 +334,20 @@ public abstract class AbstractProviderModule implements ProviderModule,
       return "80"; // Not called by the provider
     } else if (service.equals(TIMELINE_METRICS)) {
       try {
-        String configType = serviceConfigTypes.get(Service.Type.AMS);
+        String configType = serviceConfigTypes.get(Service.Type.AMBARI_METRICS);
         String currentConfigVersion = getDesiredConfigVersion(clusterName, configType);
-        String oldConfigVersion = serviceConfigVersions.get(Service.Type.AMS);
+        String oldConfigVersion = serviceConfigVersions.get(Service.Type.AMBARI_METRICS);
 
         if (!currentConfigVersion.equals(oldConfigVersion)) {
-          serviceConfigVersions.put(Service.Type.AMS, currentConfigVersion);
+          serviceConfigVersions.put(Service.Type.AMBARI_METRICS, currentConfigVersion);
 
           Map<String, String> configProperties = getDesiredConfigMap
             (clusterName, currentConfigVersion, configType,
-              Collections.singletonMap("METRIC_COLLECTOR",
+              Collections.singletonMap("METRICS_COLLECTOR",
                 new String[] { "timeline.metrics.service.webapp.address" }));
 
           if (!configProperties.isEmpty()) {
-            clusterMetricServerPort = getPortString(configProperties.get("METRIC_COLLECTOR"));
+            clusterMetricServerPort = getPortString(configProperties.get("METRICS_COLLECTOR"));
           } else {
             clusterMetricServerPort = COLLECTOR_DEFAULT_PORT;
           }
@@ -399,8 +398,8 @@ public abstract class AbstractProviderModule implements ProviderModule,
       return isHostComponentLive(clusterName, collectorHostName, "GANGLIA",
         Role.GANGLIA_SERVER.name());
     } else if (service.equals(TIMELINE_METRICS)) {
-      return isHostComponentLive(clusterName, collectorHostName, "AMS",
-        Role.METRIC_COLLECTOR.name());
+      return isHostComponentLive(clusterName, collectorHostName, "AMBARI_METRICS",
+        Role.METRICS_COLLECTOR.name());
     }
     return false;
   }

@@ -4180,7 +4180,7 @@ var hdp2properties = [
     "rowStyleClass": "indent-1",
     "filename": "alert_notification"
   },
-/************************************************AMS******************************************/
+/************************************************AMBARI_METRICS******************************************/
   {
     "id": "site property",
     "name": "timeline.metrics.service.operation.mode",
@@ -4188,55 +4188,55 @@ var hdp2properties = [
     "description": "\n      Service Operation modes:\n      1) embedded: Metrics stored on local FS, HBase in Standalone mode\n      2) distributed: HBase daemons writing to HDFS\n      3) external: External HBase storage backend\n    ",
     "defaultValue": "embedded",
     "displayType": "string",
-    "serviceName": "AMS",
+    "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "General",
     "index": 1
   },
   {
     "id": "site property",
-    "name": "ams_collector_log_dir",
+    "name": "metrics_collector_log_dir",
     "displayName": "Metrics Collector log dir",
     "description": "\n      Log location for collector logs\n    ",
     "defaultValue": "embedded",
     "displayType": "string",
-    "serviceName": "AMS",
+    "serviceName": "AMBARI_METRICS",
     "filename": "ams-env.xml",
     "category": "General",
     "index": 2
   },
   {
     "id": "site property",
-    "name": "ams_collector_pid_dir",
+    "name": "metrics_collector_pid_dir",
     "displayName": "Metrics Collector pid dir",
     "description": "\n      pid location for collector\n    ",
     "defaultValue": "embedded",
     "displayType": "string",
-    "serviceName": "AMS",
+    "serviceName": "AMBARI_METRICS",
     "filename": "ams-env.xml",
     "category": "General",
     "index": 3
   },
   {
     "id": "site property",
-    "name": "ams_monitor_log_dir",
+    "name": "metrics_monitor_log_dir",
     "displayName": "Metrics Monitor log dir",
     "description": "\n      Log location for monitor logs\n    ",
     "defaultValue": "embedded",
     "displayType": "string",
-    "serviceName": "AMS",
+    "serviceName": "AMBARI_METRICS",
     "filename": "ams-env.xml",
     "category": "General",
     "index": 4
   },
   {
     "id": "site property",
-    "name": "ams_monitor_pid_dir",
+    "name": "metrics_monitor_pid_dir",
     "displayName": "Metrics Monitor pid dir",
     "description": "\n      pid location for monitor\n    ",
     "defaultValue": "embedded",
     "displayType": "string",
-    "serviceName": "AMS",
+    "serviceName": "AMBARI_METRICS",
     "filename": "ams-env.xml",
     "category": "General",
     "index": 5
@@ -4248,7 +4248,7 @@ var hdp2properties = [
     "description": "\n      Directory to store aggregator checkpoints\n    ",
     "defaultValue": "/tmp",
     "displayType": "directory",
-    "serviceName": "AMS",
+    "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "MetricCollector",
     "index": 17
@@ -4260,7 +4260,7 @@ var hdp2properties = [
     "description": "\n      Multiplier value * interval = Max allowed checkpoint lag. Effectively\n      if aggregator checkpoint is greater than max allowed checkpoint delay,\n      the checkpoint will be discarded by the aggregator.\n    ",
     "defaultValue": "2",
     "displayType": "int",
-    "serviceName": "AMS",
+    "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "MetricCollector",
     "index": 16
@@ -4272,7 +4272,7 @@ var hdp2properties = [
     "description": "\n      Disable cluster based hourly aggregations.\n    ",
     "defaultValue": "false",
     "displayType": "string",
-    "serviceName": "AMS",
+    "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "MetricCollector",
     "index": 14
@@ -4284,7 +4284,7 @@ var hdp2properties = [
     "description": "\n      Time in seconds to sleep for the hourly resolution cluster wide\n      aggregator. Default is 1 hour.\n    ",
     "defaultValue": "3600",
     "displayType": "int",
-    "serviceName": "AMS",
+    "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "MetricCollector",
     "index": 15
@@ -4296,7 +4296,7 @@ var hdp2properties = [
     "description": "\n      Multiplier value * interval = Max allowed checkpoint lag. Effectively\n      if aggregator checkpoint is greater than max allowed checkpoint delay,\n      the checkpoint will be discarded by the aggregator.\n    ",
     "defaultValue": "2",
     "displayType": "int",
-    "serviceName": "AMS",
+    "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "MetricCollector",
     "index": 13
@@ -4308,7 +4308,7 @@ var hdp2properties = [
     "description": "\n      Disable cluster based minute aggregations.\n    ",
     "defaultValue": "false",
     "displayType": "string",
-    "serviceName": "AMS",
+    "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "MetricCollector",
     "index": 10
@@ -4320,7 +4320,7 @@ var hdp2properties = [
     "description": "\n      Time in seconds to sleep for the minute resolution cluster wide\n      aggregator. Default resolution is 2 minutes.\n    ",
     "defaultValue": "120",
     "displayType": "int",
-    "serviceName": "AMS",
+    "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "MetricCollector",
     "index": 11
@@ -4332,7 +4332,7 @@ var hdp2properties = [
     "description": "\n      Lowest resolution of desired data for cluster level minute aggregates.\n    ",
     "defaultValue": "15",
     "displayType": "int",
-    "serviceName": "AMS",
+    "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "MetricCollector",
     "index": 12
@@ -4344,7 +4344,7 @@ var hdp2properties = [
     "description": "\n      Multiplier value * interval = Max allowed checkpoint lag. Effectively\n      if aggregator checkpoint is greater than max allowed checkpoint delay,\n      the checkpoint will be discarded by the aggregator.\n    ",
     "defaultValue": "2",
     "displayType": "int",
-    "serviceName": "AMS",
+    "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "MetricCollector",
     "index": 9
@@ -4356,7 +4356,7 @@ var hdp2properties = [
     "description": "\n      Disable host based hourly aggregations\n    ",
     "defaultValue": "false",
     "displayType": "string",
-    "serviceName": "AMS",
+    "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "MetricCollector",
     "index": 7
@@ -4368,7 +4368,7 @@ var hdp2properties = [
     "description": "\n      Time in seconds to sleep for the hourly resolution host based\n      aggregator. Default resolution is 1 hour.\n    ",
     "defaultValue": "3600",
     "displayType": "int",
-    "serviceName": "AMS",
+    "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "MetricCollector",
     "index": 8
@@ -4380,7 +4380,7 @@ var hdp2properties = [
     "description": "\n      Multiplier value * interval = Max allowed checkpoint lag. Effectively\n      if aggregator checkpoint is greater than max allowed checkpoint delay,\n      the checkpoint will be discarded by the aggregator.\n    ",
     "defaultValue": "2",
     "displayType": "int",
-    "serviceName": "AMS",
+    "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "MetricCollector",
     "index": 6
@@ -4392,7 +4392,7 @@ var hdp2properties = [
     "description": "\n      Disable host based minute aggregations.\n    ",
     "defaultValue": "false",
     "displayType": "string",
-    "serviceName": "AMS",
+    "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "MetricCollector",
     "index": 4
@@ -4404,7 +4404,7 @@ var hdp2properties = [
     "description": "\n      Time in seconds to sleep for the minute resolution host based\n      aggregator. Default resolution is 5 minutes.\n    ",
     "defaultValue": "300",
     "displayType": "int",
-    "serviceName": "AMS",
+    "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "MetricCollector",
     "index": 5
@@ -4416,7 +4416,7 @@ var hdp2properties = [
     "description": "\n      Time in seconds to sleep on the first run or when the checkpoint is\n      too old.\n    ",
     "defaultValue": "120",
     "displayType": "int",
-    "serviceName": "AMS",
+    "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "MetricCollector",
     "index": 1
@@ -4428,7 +4428,7 @@ var hdp2properties = [
     "description": "\n      Max result limit on number of rows returned. Calculated as follows:\n      4 aggregate metrics/min * 60 * 24: Retrieve aggregate data for 1 day.\n    ",
     "defaultValue": "5760",
     "displayType": "int",
-    "serviceName": "AMS",
+    "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "MetricCollector",
     "index": 2
@@ -4440,7 +4440,7 @@ var hdp2properties = [
     "description": "\n      JDBC resultset prefect size for aggregator queries.\n    ",
     "defaultValue": "2000",
     "displayType": "int",
-    "serviceName": "AMS",
+    "serviceName": "AMBARI_METRICS",
     "filename": "ams-site.xml",
     "category": "MetricCollector",
     "index": 3

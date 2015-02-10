@@ -348,7 +348,7 @@ public class AMSPropertyProviderTest {
     String propertyId = PropertyHelper.getPropertyId("metrics/hbase/regionserver", "requests");
     Resource resource = new ResourceImpl(Resource.Type.Component);
     resource.setProperty(HOST_NAME_PROPERTY_ID, "h1");
-    resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "METRIC_COLLECTOR");
+    resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "METRICS_COLLECTOR");
     Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
     temporalInfoMap.put(propertyId, new TemporalInfoImpl(1421694000L, 1421697600L, 1L));
     Request request = PropertyHelper.getReadRequest(

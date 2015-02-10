@@ -213,7 +213,7 @@ module.exports = {
       {
         "name": "hbase_log_dir",
         "value": "/hadoop/ams-hbase",
-        "serviceName": "AMS",
+        "serviceName": "AMBARI_METRICS",
         "filename": "ams-hbase-env.xml"
       }
     ];

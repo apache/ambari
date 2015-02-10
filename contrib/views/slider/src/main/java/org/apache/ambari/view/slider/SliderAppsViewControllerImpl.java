@@ -263,8 +263,8 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
             }
             if (cluster.getDesiredConfigs().containsKey("ams-site")) {
               Map<String, String> amsConfigs = ambariClient.getConfiguration(cluster, "ams-site", cluster.getDesiredConfigs().get("ams-site"));
-              AmbariService amsService = ambariClient.getService(cluster, "AMS");
-              List<AmbariHostComponent> hostsList = amsService.getComponentsToHostComponentsMap().get("METRIC_COLLECTOR");
+              AmbariService amsService = ambariClient.getService(cluster, "AMBARI_METRICS");
+              List<AmbariHostComponent> hostsList = amsService.getComponentsToHostComponentsMap().get("METRICS_COLLECTOR");
               if (hostsList != null && hostsList.size() > 0) {
                 String collectorHostName = hostsList.get(0).getHostName();
                 newHadoopConfigs.put(PROPERTY_METRICS_SERVER_HOSTNAME, collectorHostName);

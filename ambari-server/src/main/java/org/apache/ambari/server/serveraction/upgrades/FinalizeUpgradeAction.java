@@ -108,7 +108,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
       boolean atLeastOneHostInInstalledState = false;
 
       // It is important to only iterate over the hosts with a version, as opposed to all hosts, since some hosts
-      // may only have components that do not advertise a version, such as AMS.
+      // may only have components that do not advertise a version, such as AMBARI_METRICS.
       for (HostVersionEntity hostVersion : hostVersions) {
         boolean isStateCorrect = false;
 
