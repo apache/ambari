@@ -50,7 +50,6 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
@@ -160,7 +159,6 @@ public class KerberosHelperTest extends EasyMockSupport {
         bind(SecurityHelper.class).toInstance(createNiceMock(SecurityHelper.class));
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(AmbariCustomCommandExecutionHelper.class).toInstance(createNiceMock(AmbariCustomCommandExecutionHelper.class));
-        bind(MaintenanceStateHelper.class).toInstance(createNiceMock(MaintenanceStateHelper.class));
         bind(AmbariManagementController.class).toInstance(createNiceMock(AmbariManagementController.class));
         bind(AmbariMetaInfo.class).toInstance(metaInfo);
         bind(ActionManager.class).toInstance(createNiceMock(ActionManager.class));
@@ -401,10 +399,6 @@ public class KerberosHelperTest extends EasyMockSupport {
     // TODO: (rlevas) Remove when AMBARI 9121 is complete
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).once();
 
-    final MaintenanceStateHelper maintenanceStateHelper = injector.getInstance(MaintenanceStateHelper.class);
-    expect(maintenanceStateHelper.getEffectiveState(anyObject(ServiceComponentHost.class)))
-        .andReturn(MaintenanceState.OFF).anyTimes();
-
     final Cluster cluster = createNiceMock(Cluster.class);
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).once();
     expect(cluster.getDesiredConfigByType("krb5-conf")).andReturn(krb5ConfConfig).once();
@@ -444,6 +438,9 @@ public class KerberosHelperTest extends EasyMockSupport {
             put("host1", host);
           }
         })
+        .once();
+    expect(clusters.getHost("host1"))
+        .andReturn(host)
         .once();
 
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
@@ -621,7 +618,6 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final Host host = createNiceMock(Host.class);
     expect(host.getHostName()).andReturn("host1").once();
-    expect(host.getState()).andReturn(HostState.HEALTHY).once();
 
     final Service service1 = createStrictMock(Service.class);
     expect(service1.getName()).andReturn("SERVICE1").anyTimes();
@@ -653,10 +649,6 @@ public class KerberosHelperTest extends EasyMockSupport {
     final Config krb5ConfConfig = createNiceMock(Config.class);
     // TODO: (rlevas) Remove when AMBARI 9121 is complete
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).once();
-
-    final MaintenanceStateHelper maintenanceStateHelper = injector.getInstance(MaintenanceStateHelper.class);
-    expect(maintenanceStateHelper.getEffectiveState(anyObject(ServiceComponentHost.class)))
-        .andReturn(MaintenanceState.OFF).anyTimes();
 
     final Cluster cluster = createNiceMock(Cluster.class);
     expect(cluster.getSecurityType()).andReturn(SecurityType.NONE).once();
@@ -809,6 +801,11 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.addStages(anyObject(List.class));
     expectLastCall().once();
+    // Destroy Principals Stage
+    expect(requestStageContainer.getLastStageId()).andReturn(2L).anyTimes();
+    expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.addStages(anyObject(List.class));
+    expectLastCall().once();
     // TODO: Add more of these when more stages are added.
     // Clean-up/Finalize Stage
     expect(requestStageContainer.getLastStageId()).andReturn(3L).anyTimes();
@@ -879,10 +876,6 @@ public class KerberosHelperTest extends EasyMockSupport {
     // TODO: (rlevas) Remove when AMBARI 9121 is complete
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).once();
 
-    final MaintenanceStateHelper maintenanceStateHelper = injector.getInstance(MaintenanceStateHelper.class);
-    expect(maintenanceStateHelper.getEffectiveState(anyObject(ServiceComponentHost.class)))
-        .andReturn(MaintenanceState.OFF).anyTimes();
-
     final Cluster cluster = createNiceMock(Cluster.class);
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).once();
     expect(cluster.getDesiredConfigByType("krb5-conf")).andReturn(krb5ConfConfig).once();
@@ -922,6 +915,9 @@ public class KerberosHelperTest extends EasyMockSupport {
             put("host1", host);
           }
         })
+        .once();
+    expect(clusters.getHost("host1"))
+        .andReturn(host)
         .once();
 
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
@@ -1161,10 +1157,6 @@ public class KerberosHelperTest extends EasyMockSupport {
     // TODO: (rlevas) Remove when AMBARI 9121 is complete
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).once();
 
-    final MaintenanceStateHelper maintenanceStateHelper = injector.getInstance(MaintenanceStateHelper.class);
-    expect(maintenanceStateHelper.getEffectiveState(anyObject(ServiceComponentHost.class)))
-        .andReturn(MaintenanceState.OFF).anyTimes();
-
     final Cluster cluster = createNiceMock(Cluster.class);
     expect(cluster.getDesiredConfigByType("krb5-conf")).andReturn(krb5ConfConfig).once();
     expect(cluster.getDesiredConfigByType("kerberos-env")).andReturn(kerberosEnvConfig).once();
@@ -1204,6 +1196,9 @@ public class KerberosHelperTest extends EasyMockSupport {
             put("host1", host);
           }
         })
+        .once();
+    expect(clusters.getHost("host1"))
+        .andReturn(host)
         .once();
 
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);

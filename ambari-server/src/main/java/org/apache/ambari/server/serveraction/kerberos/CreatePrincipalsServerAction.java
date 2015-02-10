@@ -18,9 +18,12 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
+import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
+import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +41,17 @@ import java.util.concurrent.ConcurrentMap;
 public class CreatePrincipalsServerAction extends KerberosServerAction {
   private final static Logger LOG = LoggerFactory.getLogger(CreatePrincipalsServerAction.class);
 
+  /**
+   * KerberosPrincipalDAO used to set and get Kerberos principal details
+   */
+  @Inject
+  private KerberosPrincipalDAO kerberosPrincipalDAO;
+
+  /**
+   * KerberosPrincipalHostDAO used to get Kerberos principal details
+   */
+  @Inject
+  private KerberosPrincipalHostDAO kerberosPrincipalHostDAO;
 
   /**
    * Called to execute this action.  Upon invocation, calls
@@ -87,62 +101,72 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
       throws AmbariException {
     CommandReport commandReport = null;
 
-    Map<String, String> principalPasswordMap = getPrincipalPasswordMap(requestSharedDataContext);
-    Map<String, Integer> principalKeyNumberMap = getPrincipalKeyNumberMap(requestSharedDataContext);
+    boolean regenerateKeytabs = "true".equalsIgnoreCase(getCommandParameterValue(getCommandParameters(), REGENERATE_ALL));
 
-    String password = principalPasswordMap.get(evaluatedPrincipal);
+    if (regenerateKeytabs || !kerberosPrincipalHostDAO.exists(evaluatedPrincipal)) {
+      Map<String, String> principalPasswordMap = getPrincipalPasswordMap(requestSharedDataContext);
+      Map<String, Integer> principalKeyNumberMap = getPrincipalKeyNumberMap(requestSharedDataContext);
 
-    if (password == null) {
-      String message = String.format("Creating principal, %s", evaluatedPrincipal);
-      LOG.info(message);
-      actionLog.writeStdOut(message);
+      String password = principalPasswordMap.get(evaluatedPrincipal);
 
-      password = operationHandler.createSecurePassword();
+      if (password == null) {
+        String message = String.format("Creating principal, %s", evaluatedPrincipal);
+        LOG.info(message);
+        actionLog.writeStdOut(message);
 
-      try {
-        if (operationHandler.principalExists(evaluatedPrincipal)) {
-          // Create a new password since we need to know what it is.
-          // A new password/key would have been generated after exporting the keytab anyways.
-          message = String.format("Principal, %s, already exists, setting new password", evaluatedPrincipal);
-          LOG.warn(message);
-          actionLog.writeStdOut(message);
-          Integer keyNumber = operationHandler.setPrincipalPassword(evaluatedPrincipal, password);
+        password = operationHandler.createSecurePassword();
 
-          if (keyNumber != null) {
-            principalPasswordMap.put(evaluatedPrincipal, password);
-            principalKeyNumberMap.put(evaluatedPrincipal, keyNumber);
-            message = String.format("Successfully set password for %s", evaluatedPrincipal);
-            LOG.debug(message);
-          } else {
-            message = String.format("Failed to set password for %s - unknown reason", evaluatedPrincipal);
-            LOG.error(message);
-            actionLog.writeStdErr(message);
-            commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
-          }
-        } else {
-          message = String.format("Creating new principal, %s", evaluatedPrincipal);
-          LOG.debug(message);
-
+        try {
           boolean servicePrincipal = "service".equalsIgnoreCase(identityRecord.get(KerberosActionDataFile.PRINCIPAL_TYPE));
-          Integer keyNumber = operationHandler.createPrincipal(evaluatedPrincipal, password, servicePrincipal);
 
-          if (keyNumber != null) {
-            principalPasswordMap.put(evaluatedPrincipal, password);
-            principalKeyNumberMap.put(evaluatedPrincipal, keyNumber);
-            message = String.format("Successfully created new principal, %s", evaluatedPrincipal);
-            LOG.debug(message);
+          if (operationHandler.principalExists(evaluatedPrincipal)) {
+            // Create a new password since we need to know what it is.
+            // A new password/key would have been generated after exporting the keytab anyways.
+            message = String.format("Principal, %s, already exists, setting new password", evaluatedPrincipal);
+            LOG.warn(message);
+            actionLog.writeStdOut(message);
+            Integer keyNumber = operationHandler.setPrincipalPassword(evaluatedPrincipal, password);
+
+            if (keyNumber != null) {
+              principalPasswordMap.put(evaluatedPrincipal, password);
+              principalKeyNumberMap.put(evaluatedPrincipal, keyNumber);
+              message = String.format("Successfully set password for %s", evaluatedPrincipal);
+              LOG.debug(message);
+            } else {
+              message = String.format("Failed to set password for %s - unknown reason", evaluatedPrincipal);
+              LOG.error(message);
+              actionLog.writeStdErr(message);
+              commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
+            }
           } else {
-            message = String.format("Failed to create principal, %s - unknown reason", evaluatedPrincipal);
-            LOG.error(message);
-            actionLog.writeStdErr(message);
-            commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
+            message = String.format("Creating new principal, %s", evaluatedPrincipal);
+            LOG.debug(message);
+
+            Integer keyNumber = operationHandler.createPrincipal(evaluatedPrincipal, password, servicePrincipal);
+
+            if (keyNumber != null) {
+              principalPasswordMap.put(evaluatedPrincipal, password);
+              principalKeyNumberMap.put(evaluatedPrincipal, keyNumber);
+              message = String.format("Successfully created new principal, %s", evaluatedPrincipal);
+              LOG.debug(message);
+            } else {
+              message = String.format("Failed to create principal, %s - unknown reason", evaluatedPrincipal);
+              LOG.error(message);
+              actionLog.writeStdErr(message);
+              commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
+            }
           }
+
+          if (!kerberosPrincipalDAO.exists(evaluatedPrincipal)) {
+            kerberosPrincipalDAO.create(evaluatedPrincipal, servicePrincipal);
+          }
+
+        } catch (KerberosOperationException e) {
+          message = String.format("Failed to create principal, %s - %s", evaluatedPrincipal, e.getMessage());
+          LOG.error(message, e);
+          actionLog.writeStdErr(message);
+          commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
         }
-      } catch (KerberosOperationException e) {
-        message = String.format("Failed to create principal, %s - %s", evaluatedPrincipal, e.getMessage());
-        LOG.error(message, e);
-        actionLog.writeStdErr(message);
-        commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
       }
     }
 

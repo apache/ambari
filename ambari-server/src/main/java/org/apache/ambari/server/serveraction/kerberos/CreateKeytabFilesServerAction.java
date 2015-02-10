@@ -18,14 +18,20 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
+import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
+import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
+import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
@@ -44,6 +50,18 @@ import static org.apache.ambari.server.serveraction.kerberos.KerberosActionDataF
  */
 public class CreateKeytabFilesServerAction extends KerberosServerAction {
   private final static Logger LOG = LoggerFactory.getLogger(CreateKeytabFilesServerAction.class);
+
+  /**
+   * KerberosPrincipalDAO used to set and get Kerberos principal details
+   */
+  @Inject
+  private KerberosPrincipalDAO kerberosPrincipalDAO;
+
+  /**
+   * KerberosPrincipalHostDAO used to get Kerberos principal details
+   */
+  @Inject
+  private KerberosPrincipalHostDAO kerberosPrincipalHostDAO;
 
   /**
    * Called to execute this action.  Upon invocation, calls
@@ -129,25 +147,61 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
           // If found create th keytab file, else skip it.
           String password = principalPasswordMap.get(evaluatedPrincipal);
 
-          if (password == null) {
-            message = String.format("Failed to create keytab file for %s, missing password", evaluatedPrincipal);
-            actionLog.writeStdErr(message);
-            LOG.error(message);
-            commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
-          } else {
-            // Determine where to store the keytab file.  It should go into a host-specific
-            // directory under the previously determined data directory.
-            File hostDirectory = new File(getDataDirectoryPath(), host);
+          // Determine where to store the keytab file.  It should go into a host-specific
+          // directory under the previously determined data directory.
+          File hostDirectory = new File(getDataDirectoryPath(), host);
 
-            // Ensure the host directory exists...
-            if (hostDirectory.exists() || hostDirectory.mkdirs()) {
-              File keytabFile = new File(hostDirectory, DigestUtils.sha1Hex(keytabFilePath));
+          // Ensure the host directory exists...
+          if (hostDirectory.exists() || hostDirectory.mkdirs()) {
+            File keytabFile = new File(hostDirectory, DigestUtils.sha1Hex(keytabFilePath));
+
+            if (password == null) {
+              if (kerberosPrincipalHostDAO.exists(evaluatedPrincipal, host)) {
+                // There is nothing to do for this since it must already exist and we don't want to
+                // regenerate the keytab
+                message = String.format("Skipping keytab file for %s, missing password indicates nothing to do", evaluatedPrincipal);
+                LOG.debug(message);
+              } else {
+                KerberosPrincipalEntity principalEntity = kerberosPrincipalDAO.find(evaluatedPrincipal);
+                String cachedKeytabPath = (principalEntity == null) ? null : principalEntity.getCachedKeytabPath();
+
+                if (cachedKeytabPath == null) {
+                  message = String.format("Failed to create keytab file for %s, missing password", evaluatedPrincipal);
+                  actionLog.writeStdErr(message);
+                  LOG.error(message);
+                  commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
+                } else {
+                  try {
+                    FileUtils.copyFile(new File(cachedKeytabPath), keytabFile);
+                    message = String.format("Using cached keytab file for %s at %s", evaluatedPrincipal, keytabFile.getAbsolutePath());
+                    LOG.debug(message);
+                  } catch (IOException e) {
+                    message = String.format("Failed to use cached keytab file for %s at %s: %s", evaluatedPrincipal, keytabFile.getAbsolutePath(), e.getMessage());
+                    actionLog.writeStdErr(message);
+                    LOG.warn(message);
+                    commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
+                  }
+                }
+              }
+            } else {
               Integer keyNumber = principalKeyNumberMap.get(evaluatedPrincipal);
 
               try {
                 if (operationHandler.createKeytabFile(evaluatedPrincipal, password, keyNumber, keytabFile)) {
                   message = String.format("Successfully created keytab file for %s at %s", evaluatedPrincipal, keytabFile.getAbsolutePath());
                   LOG.debug(message);
+
+                  // If the current identity does not represent a service, store the location of the
+                  // keytab file so it can be reused rather than recreate it.
+                  // Note: for now we are using the keytab's destination directory on the Ambari
+                  // server
+                  KerberosPrincipalEntity principalEntity = kerberosPrincipalDAO.find(evaluatedPrincipal);
+                  if (principalEntity != null) {
+                    if (!principalEntity.isService()) {
+                      principalEntity.setCachedKeytabPath(keytabFilePath);
+                      kerberosPrincipalDAO.merge(principalEntity);
+                    }
+                  }
                 } else {
                   message = String.format("Failed to create keytab file for %s at %s", evaluatedPrincipal, keytabFile.getAbsolutePath());
                   actionLog.writeStdErr(message);
@@ -160,13 +214,13 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
                 LOG.error(message, e);
                 commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
               }
-            } else {
-              message = String.format("Failed to create keytab file for %s, the container directory does not exist: %s",
-                  evaluatedPrincipal, hostDirectory.getAbsolutePath());
-              actionLog.writeStdErr(message);
-              LOG.error(message);
-              commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
             }
+          } else {
+            message = String.format("Failed to create keytab file for %s, the container directory does not exist: %s",
+                evaluatedPrincipal, hostDirectory.getAbsolutePath());
+            actionLog.writeStdErr(message);
+            LOG.error(message);
+            commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
           }
         }
       }

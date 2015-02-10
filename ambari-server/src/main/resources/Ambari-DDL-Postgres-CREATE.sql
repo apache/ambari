@@ -585,6 +585,29 @@ ALTER TABLE serviceconfigmapping ADD CONSTRAINT FK_scvm_config FOREIGN KEY (conf
 ALTER TABLE serviceconfighosts ADD CONSTRAINT  FK_scvhosts_scv FOREIGN KEY (service_config_id) REFERENCES serviceconfig(service_config_id);
 ALTER TABLE clusters ADD CONSTRAINT FK_clusters_resource_id FOREIGN KEY (resource_id) REFERENCES adminresource(resource_id);
 
+-- Kerberos
+CREATE TABLE kerberos_principal (
+  principal_name VARCHAR(255) NOT NULL,
+  is_service SMALLINT NOT NULL DEFAULT 1,
+  cached_keytab_path VARCHAR(255),
+  PRIMARY KEY(principal_name)
+);
+
+CREATE TABLE kerberos_principal_host (
+  principal_name VARCHAR(255) NOT NULL,
+  host_name VARCHAR(255) NOT NULL,
+  PRIMARY KEY(principal_name, host_name)
+);
+
+ALTER TABLE kerberos_principal_host
+ADD CONSTRAINT FK_kerberosprincipalhost_hostname
+FOREIGN KEY (host_name) REFERENCES hosts (host_name) ON DELETE CASCADE;
+
+ALTER TABLE kerberos_principal_host
+ADD CONSTRAINT FK_kerberosprincipalhost_principalname
+FOREIGN KEY (principal_name) REFERENCES kerberos_principal (principal_name) ON DELETE CASCADE;
+-- Kerberos (end)
+
 -- Alerting Framework
 CREATE TABLE alert_definition (
   definition_id BIGINT NOT NULL, 

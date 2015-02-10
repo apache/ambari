@@ -89,6 +89,12 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   */
   public static final String KEYTAB_CONTENT_BASE64 = "keytab_content_base64";
 
+  /*
+  * Key used in kerberosCommandParams in ExecutionCommand to indicate whether to generate key keytabs
+  * for all principals ("true") or only those that are missing ("false")
+  */
+  public static final String REGENERATE_ALL = "regenerate_all";
+
   private static final Logger LOG = LoggerFactory.getLogger(KerberosServerAction.class);
 
   /**

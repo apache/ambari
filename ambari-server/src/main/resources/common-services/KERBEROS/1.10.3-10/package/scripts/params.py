@@ -49,6 +49,8 @@ cluster_env = None
 kdc_server_host = None
 cluster_host_info = None
 
+hostname = config['hostname']
+
 kdb5_util_path = 'kdb5_util'
 
 kdamin_pid_path = '/var/run/kadmind.pid'

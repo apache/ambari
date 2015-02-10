@@ -135,6 +135,8 @@ public class UpgradeCatalog200Test {
     Capture<DBAccessor.DBColumnInfo> dataValueColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<List<DBAccessor.DBColumnInfo>> alertTargetStatesCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
     Capture<List<DBAccessor.DBColumnInfo>> artifactCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
+    Capture<List<DBAccessor.DBColumnInfo>> kerberosPrincipalCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
+    Capture<List<DBAccessor.DBColumnInfo>> kerberosPrincipalHostCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
 
     Capture<List<DBAccessor.DBColumnInfo>> upgradeCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
     Capture<List<DBAccessor.DBColumnInfo>> upgradeGroupCapture = new Capture<List<DBAccessor.DBColumnInfo>>();
@@ -211,6 +213,18 @@ public class UpgradeCatalog200Test {
     dbAccessor.createTable(eq("artifact"), capture(artifactCapture),
         eq("artifact_name"), eq("foreign_keys"));
 
+    // kerberos_principal
+    dbAccessor.createTable(eq("kerberos_principal"), capture(kerberosPrincipalCapture),
+        eq("principal_name"));
+
+    // kerberos_principal_host
+    dbAccessor.createTable(eq("kerberos_principal_host"), capture(kerberosPrincipalHostCapture),
+        eq("principal_name"), eq("host_name"));
+    dbAccessor.addFKConstraint(eq("kerberos_principal_host"), eq("FK_kerberosprincipalhost_hostname"),
+        eq("host_name"), eq("hosts"), eq("host_name"), eq(false));
+    dbAccessor.addFKConstraint(eq("kerberos_principal_host"), eq("FK_kerberosprincipalhost_principalname"),
+        eq("principal_name"), eq("kerberos_principal"), eq("principal_name"), eq(false));
+
     setViewInstancePropertyExpectations(dbAccessor, valueColumnCapture);
     setViewInstanceDataExpectations(dbAccessor, dataValueColumnCapture);
 
@@ -282,6 +296,11 @@ public class UpgradeCatalog200Test {
     List<DBAccessor.DBColumnInfo> artifactColumns = artifactCapture.getValue();
     testCreateArtifactTable(artifactColumns);
 
+    // verify kerberos_principal columns
+    testCreateKerberosPrincipalTable(kerberosPrincipalCapture.getValue());
+
+    // verify kerberos_principal_host columns
+    testCreateKerberosPrincipalHostTable(kerberosPrincipalHostCapture.getValue());
 
     // Verify capture group sizes
     assertEquals(7, clusterVersionCapture.getValue().size());
@@ -600,6 +619,49 @@ public class UpgradeCatalog200Test {
       } else if (column.getName().equals("artifact_data")) {
         assertNull(column.getDefaultValue());
         assertEquals(char[].class, column.getType());
+        assertEquals(false, column.isNullable());
+      } else {
+        fail("unexpected column name");
+      }
+    }
+  }
+
+  private void testCreateKerberosPrincipalTable(List<DBColumnInfo> columns) {
+    assertEquals(3, columns.size());
+    for (DBColumnInfo column : columns) {
+      if (column.getName().equals("principal_name")) {
+        assertNull(column.getDefaultValue());
+        assertEquals(String.class, column.getType());
+        assertEquals(255, (int) column.getLength());
+        assertEquals(false, column.isNullable());
+      } else if (column.getName().equals("is_service")) {
+        assertEquals(1, column.getDefaultValue());
+        assertEquals(Short.class, column.getType());
+        assertEquals(1, (int) column.getLength());
+        assertEquals(false, column.isNullable());
+      } else if (column.getName().equals("cached_keytab_path")) {
+        assertNull(column.getDefaultValue());
+        assertEquals(String.class, column.getType());
+        assertEquals(255, (int) column.getLength());
+        assertEquals(true, column.isNullable());
+      } else {
+        fail("unexpected column name");
+      }
+    }
+  }
+
+  private void testCreateKerberosPrincipalHostTable(List<DBColumnInfo> columns) {
+    assertEquals(2, columns.size());
+    for (DBColumnInfo column : columns) {
+      if (column.getName().equals("principal_name")) {
+        assertNull(column.getDefaultValue());
+        assertEquals(String.class, column.getType());
+        assertEquals(255, (int) column.getLength());
+        assertEquals(false, column.isNullable());
+      } else if (column.getName().equals("host_name")) {
+        assertNull(column.getDefaultValue());
+        assertEquals(String.class, column.getType());
+        assertEquals(255, (int) column.getLength());
         assertEquals(false, column.isNullable());
       } else {
         fail("unexpected column name");

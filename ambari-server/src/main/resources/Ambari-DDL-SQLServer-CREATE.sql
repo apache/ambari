@@ -163,6 +163,29 @@ ALTER TABLE clusters ADD CONSTRAINT FK_clusters_resource_id FOREIGN KEY (resourc
 ALTER TABLE host_version ADD CONSTRAINT FK_host_version_host_name FOREIGN KEY (host_name) REFERENCES hosts (host_name);
 ALTER TABLE host_version ADD CONSTRAINT FK_host_version_repovers_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id);
 
+-- Kerberos
+CREATE TABLE kerberos_principal (
+  principal_name VARCHAR(255) NOT NULL,
+  is_service SMALLINT NOT NULL DEFAULT 1,
+  cached_keytab_path VARCHAR(255),
+  PRIMARY KEY(principal_name)
+);
+
+CREATE TABLE kerberos_principal_host (
+  principal_name VARCHAR(255) NOT NULL,
+  host_name VARCHAR(255) NOT NULL,
+  PRIMARY KEY(principal_name, host_name)
+);
+
+ALTER TABLE kerberos_principal_host
+ADD CONSTRAINT FK_kerberosprincipalhost_hostname
+FOREIGN KEY (host_name) REFERENCES hosts (host_name) ON DELETE CASCADE;
+
+ALTER TABLE kerberos_principal_host
+ADD CONSTRAINT FK_kerberosprincipalhost_principalname
+FOREIGN KEY (principal_name) REFERENCES kerberos_principal (principal_name) ON DELETE CASCADE;
+-- Kerberos (end)
+
 -- Alerting Framework
 CREATE TABLE alert_definition (
   definition_id BIGINT NOT NULL,

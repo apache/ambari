@@ -66,6 +66,8 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
   private static final String ALERT_TARGET_STATES_TABLE = "alert_target_states";
   private static final String ALERT_CURRENT_TABLE = "alert_current";
   private static final String ARTIFACT_TABLE = "artifact";
+  private static final String KERBEROS_PRINCIPAL_TABLE = "kerberos_principal";
+  private static final String KERBEROS_PRINCIPAL_HOST_TABLE = "kerberos_principal_host";
 
   /**
    * {@inheritDoc}
@@ -111,6 +113,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     prepareRollingUpgradesDDL();
     executeAlertDDLUpdates();
     createArtifactTable();
+    createKerberosPrincipalTables();
 
     // add security_type to clusters
     dbAccessor.addColumn("clusters", new DBColumnInfo(
@@ -270,6 +273,23 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("foreign_keys", String.class, 255, null, false));
     columns.add(new DBColumnInfo("artifact_data", char[].class, null, null, false));
     dbAccessor.createTable(ARTIFACT_TABLE, columns, "artifact_name", "foreign_keys");
+  }
+
+  private void createKerberosPrincipalTables() throws SQLException {
+    ArrayList<DBColumnInfo> columns;
+
+    columns = new ArrayList<DBColumnInfo>();
+    columns.add(new DBColumnInfo("principal_name", String.class, 255, null, false));
+    columns.add(new DBColumnInfo("is_service", Short.class, 1, 1, false));
+    columns.add(new DBColumnInfo("cached_keytab_path", String.class, 255, null, true));
+    dbAccessor.createTable(KERBEROS_PRINCIPAL_TABLE, columns, "principal_name");
+
+    columns = new ArrayList<DBColumnInfo>();
+    columns.add(new DBColumnInfo("principal_name", String.class, 255, null, false));
+    columns.add(new DBColumnInfo("host_name", String.class, 255, null, false));
+    dbAccessor.createTable(KERBEROS_PRINCIPAL_HOST_TABLE, columns, "principal_name", "host_name");
+    dbAccessor.addFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_kerberosprincipalhost_hostname", "host_name", "hosts", "host_name", false);
+    dbAccessor.addFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_kerberosprincipalhost_principalname", "principal_name", KERBEROS_PRINCIPAL_TABLE, "principal_name", false);
   }
 
   // ----- UpgradeCatalog ----------------------------------------------------

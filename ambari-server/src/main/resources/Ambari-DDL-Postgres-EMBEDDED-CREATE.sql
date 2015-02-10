@@ -659,6 +659,31 @@ ALTER TABLE ambari.users ADD CONSTRAINT FK_users_principal_id FOREIGN KEY (princ
 ALTER TABLE ambari.groups ADD CONSTRAINT FK_groups_principal_id FOREIGN KEY (principal_id) REFERENCES ambari.adminprincipal(principal_id);
 ALTER TABLE ambari.clusters ADD CONSTRAINT FK_clusters_resource_id FOREIGN KEY (resource_id) REFERENCES ambari.adminresource(resource_id);
 
+-- Kerberos
+CREATE TABLE ambari.kerberos_principal (
+  principal_name VARCHAR(255) NOT NULL,
+  is_service SMALLINT NOT NULL DEFAULT 1,
+  cached_keytab_path VARCHAR(255),
+  PRIMARY KEY(principal_name)
+);
+GRANT ALL PRIVILEGES ON TABLE ambari.kerberos_principal TO :username;
+
+CREATE TABLE ambari.kerberos_principal_host (
+  principal_name VARCHAR(255) NOT NULL,
+  host_name VARCHAR(255) NOT NULL,
+  PRIMARY KEY(principal_name, host_name)
+);
+GRANT ALL PRIVILEGES ON TABLE ambari.kerberos_principal_host TO :username;
+
+ALTER TABLE ambari.kerberos_principal_host
+ADD CONSTRAINT FK_kerberosprincipalhost_hostname
+FOREIGN KEY (host_name) REFERENCES ambari.hosts (host_name) ON DELETE CASCADE;
+
+ALTER TABLE ambari.kerberos_principal_host
+ADD CONSTRAINT FK_kerberosprincipalhost_principalname
+FOREIGN KEY (principal_name) REFERENCES ambari.kerberos_principal (principal_name) ON DELETE CASCADE;
+-- Kerberos (end)
+
 -- Alerting Framework
 CREATE TABLE ambari.alert_definition (
   definition_id BIGINT NOT NULL, 

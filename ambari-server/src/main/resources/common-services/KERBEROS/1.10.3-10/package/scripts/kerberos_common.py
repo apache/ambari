@@ -351,8 +351,7 @@ class KerberosScript(Script):
       return 0, ''
 
 
-  @staticmethod
-  def write_keytab_file():
+  def write_keytab_file(self):
     import params
     import stat
 
@@ -393,3 +392,9 @@ class KerberosScript(Script):
                  mode=mode,
                  owner=owner,
                  group=group)
+
+            principal = get_property_value(item, 'principal')
+            if principal is not None:
+              self.put_structured_out({
+                principal.replace("_HOST", params.hostname): keytab_file_path
+              })

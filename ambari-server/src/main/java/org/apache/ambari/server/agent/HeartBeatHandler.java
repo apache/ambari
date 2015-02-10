@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +31,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
+import com.google.common.reflect.TypeToken;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.RoleCommand;
@@ -51,6 +51,7 @@ import org.apache.ambari.server.events.HostComponentVersionEvent;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
+import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
 import org.apache.ambari.server.serveraction.kerberos.KerberosActionDataFile;
 import org.apache.ambari.server.serveraction.kerberos.KerberosActionDataFileReader;
 import org.apache.ambari.server.serveraction.kerberos.KerberosServerAction;
@@ -82,6 +83,7 @@ import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
 import org.apache.ambari.server.state.host.HostStatusUpdatesReceivedEvent;
 import org.apache.ambari.server.state.host.HostUnhealthyHeartbeatEvent;
+import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpFailedEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
@@ -91,7 +93,6 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.csv.CSVParser;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -151,6 +152,12 @@ public class HeartBeatHandler {
 
   @Inject
   private AmbariEventPublisher ambariEventPublisher;
+
+  /**
+   * KerberosPrincipalHostDAO used to set and get Kerberos principal details
+   */
+  @Inject
+  private KerberosPrincipalHostDAO kerberosPrincipalHostDAO;
 
   private Map<String, Long> hostResponseIds = new ConcurrentHashMap<String, Long>();
 
@@ -444,6 +451,35 @@ public class HeartBeatHandler {
               report.getStatus().equals("IN_PROGRESS")) {
         hostRoleCommand.setStartTime(now);
       }
+
+      // If the report indicates the keytab file was successfully transferred to a host, record this
+      // for future reference
+      if ("KERBEROS".equalsIgnoreCase(report.getServiceName()) &&
+          "KERBEROS_CLIENT".equalsIgnoreCase(report.getRole()) &&
+          RoleCommand.CUSTOM_COMMAND.name().equalsIgnoreCase(report.getRoleCommand()) &&
+          "SET_KEYTAB".equalsIgnoreCase(report.getCustomCommand()) &&
+          RequestExecution.Status.COMPLETED.name().equalsIgnoreCase(report.getStatus())) {
+
+        Map<String, String> structuredOutput;
+        try {
+          structuredOutput = gson.fromJson(report.getStructuredOut(),
+              new TypeToken<Map<String, String>>() {
+              }.getType());
+        } catch (JsonSyntaxException ex) {
+          //Json structure was incorrect do nothing, pass this data further for processing
+          structuredOutput = null;
+        }
+
+        if (structuredOutput != null) {
+          for (Map.Entry<String, String> entry : structuredOutput.entrySet()) {
+            String principal = entry.getKey();
+            if (!kerberosPrincipalHostDAO.exists(principal, hostname)) {
+              kerberosPrincipalHostDAO.create(principal, hostname);
+            }
+          }
+        }
+      }
+
       //pass custom STAR, STOP and RESTART
       if (RoleCommand.ACTIONEXECUTE.toString().equals(report.getRoleCommand()) ||
          (RoleCommand.CUSTOM_COMMAND.toString().equals(report.getRoleCommand()) &&
@@ -951,54 +987,70 @@ public class HeartBeatHandler {
     return commands;
   }
 
-  static void injectKeytab(ExecutionCommand ec, String targetHost) throws AmbariException {
+  /**
+   * Insert Kerberos keytab details into the ExecutionCommand for the SET_KEYTAB custom command if
+   * any keytab details and associated data exists for the target host.
+   *
+   * @param ec the ExecutionCommand to update
+   * @param targetHost a name of the host the relevant command is destined for
+   * @throws AmbariException
+   */
+  void injectKeytab(ExecutionCommand ec, String targetHost) throws AmbariException {
     Map<String, String> hlp = ec.getHostLevelParams();
     if ((hlp == null) || !"SET_KEYTAB".equals(hlp.get("custom_command"))) {
       return;
     }
     List<Map<String, String>> kcp = ec.getKerberosCommandParams();
     String dataDir = ec.getCommandParams().get(KerberosServerAction.DATA_DIRECTORY);
-    File file = new File(dataDir + File.separator + "index.dat");
-    CSVParser csvParser = null;
+    KerberosActionDataFileReader reader = null;
+
     try {
-      KerberosActionDataFileReader reader = new KerberosActionDataFileReader(file);
-      Iterator<Map<String, String>> iterator = reader.iterator();
-      while (iterator.hasNext())    {
-        Map<String, String> record = iterator.next();
+      reader = new KerberosActionDataFileReader(new File(dataDir, KerberosActionDataFile.DATA_FILE_NAME));
+
+      for(Map<String, String> record : reader) {
         String hostName = record.get(KerberosActionDataFile.HOSTNAME);
-        if (!targetHost.equalsIgnoreCase(hostName))    {
-          continue;
+
+        if (targetHost.equalsIgnoreCase(hostName)) {
+          String keytabFilePath = record.get(KerberosActionDataFile.KEYTAB_FILE_PATH);
+
+          if (keytabFilePath != null) {
+            String sha1Keytab = DigestUtils.sha1Hex(keytabFilePath);
+            File keytabFile = new File(dataDir + File.separator + hostName + File.separator + sha1Keytab);
+
+            if (keytabFile.canRead()) {
+              Map<String, String> keytabMap = new HashMap<String, String>();
+              String principal = record.get(KerberosActionDataFile.PRINCIPAL);
+              String isService = record.get(KerberosActionDataFile.SERVICE);
+
+              keytabMap.put(KerberosActionDataFile.HOSTNAME, hostName);
+              keytabMap.put(KerberosActionDataFile.SERVICE, isService);
+              keytabMap.put(KerberosActionDataFile.COMPONENT, record.get(KerberosActionDataFile.COMPONENT));
+              keytabMap.put(KerberosActionDataFile.PRINCIPAL, principal);
+              keytabMap.put(KerberosActionDataFile.PRINCIPAL_CONFIGURATION, record.get(KerberosActionDataFile.PRINCIPAL_CONFIGURATION));
+              keytabMap.put(KerberosActionDataFile.KEYTAB_FILE_PATH, keytabFilePath);
+              keytabMap.put(KerberosActionDataFile.KEYTAB_FILE_OWNER_NAME, record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_NAME));
+              keytabMap.put(KerberosActionDataFile.KEYTAB_FILE_OWNER_ACCESS, record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_ACCESS));
+              keytabMap.put(KerberosActionDataFile.KEYTAB_FILE_GROUP_NAME, record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_NAME));
+              keytabMap.put(KerberosActionDataFile.KEYTAB_FILE_GROUP_ACCESS, record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_ACCESS));
+              keytabMap.put(KerberosActionDataFile.KEYTAB_FILE_CONFIGURATION, record.get(KerberosActionDataFile.KEYTAB_FILE_CONFIGURATION));
+
+              BufferedInputStream bufferedIn = new BufferedInputStream(new FileInputStream(keytabFile));
+              byte[] keytabContent = IOUtils.toByteArray(bufferedIn);
+              String keytabContentBase64 = Base64.encodeBase64String(keytabContent);
+              keytabMap.put(KerberosServerAction.KEYTAB_CONTENT_BASE64, keytabContentBase64);
+
+              kcp.add(keytabMap);
+            }
+          }
         }
-        Map<String, String> keytabMap = new HashMap<String, String>();
-        keytabMap.put(KerberosActionDataFile.HOSTNAME, hostName);
-        keytabMap.put(KerberosActionDataFile.SERVICE, record.get(KerberosActionDataFile.SERVICE));
-        keytabMap.put(KerberosActionDataFile.COMPONENT, record.get(KerberosActionDataFile.COMPONENT));
-        keytabMap.put(KerberosActionDataFile.PRINCIPAL, record.get(KerberosActionDataFile.PRINCIPAL));
-        keytabMap.put(KerberosActionDataFile.PRINCIPAL_CONFIGURATION, record.get(KerberosActionDataFile.PRINCIPAL_CONFIGURATION));
-        keytabMap.put(KerberosActionDataFile.KEYTAB_FILE_PATH, record.get(KerberosActionDataFile.KEYTAB_FILE_PATH));
-        keytabMap.put(KerberosActionDataFile.KEYTAB_FILE_OWNER_NAME, record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_NAME));
-        keytabMap.put(KerberosActionDataFile.KEYTAB_FILE_OWNER_ACCESS, record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_ACCESS));
-        keytabMap.put(KerberosActionDataFile.KEYTAB_FILE_GROUP_NAME, record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_NAME));
-        keytabMap.put(KerberosActionDataFile.KEYTAB_FILE_GROUP_ACCESS, record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_ACCESS));
-        keytabMap.put(KerberosActionDataFile.KEYTAB_FILE_CONFIGURATION, record.get(KerberosActionDataFile.KEYTAB_FILE_CONFIGURATION));
-
-        String sha1Keytab =  DigestUtils.sha1Hex(record.get(KerberosActionDataFile.KEYTAB_FILE_PATH));
-
-        BufferedInputStream bufferedIn = new BufferedInputStream(
-          new FileInputStream(dataDir + File.separator +
-            hostName + File.separator + sha1Keytab));
-        byte[] keytabContent = IOUtils.toByteArray(bufferedIn);
-        String keytabContentBase64 = Base64.encodeBase64String(keytabContent);
-        keytabMap.put(KerberosServerAction.KEYTAB_CONTENT_BASE64, keytabContentBase64);
-        kcp.add(keytabMap);
       }
     } catch (IOException e) {
       throw new AmbariException("Could not inject keytabs to enable kerberos");
     }  finally {
-      if (csvParser != null && !csvParser.isClosed())  {
+      if (reader != null) {
         try {
-          csvParser.close();
-        }  catch (Throwable t)  {
+          reader.close();
+        } catch (Throwable t) {
           // ignored
         }
       }
