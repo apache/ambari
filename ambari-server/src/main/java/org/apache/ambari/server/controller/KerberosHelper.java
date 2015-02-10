@@ -366,6 +366,11 @@ public class KerberosHelper {
               // Calculate the current host-specific configurations. These will be used to replace
               // variables within the Kerberos descriptor data
               Map<String, Map<String, String>> configurations = calculateConfigurations(cluster, hostname);
+              // add existing kerberos auth_to_local rules to builder
+              if (configurations.containsKey("core-site")) {
+                authToLocalBuilder.addRules(
+                    configurations.get("core-site").get("hadoop.security.auth_to_local"));
+              }
 
               // A map to hold un-categorized properties.  This may come from the KerberosDescriptor
               // and will also contain a value for the current host
@@ -1023,7 +1028,7 @@ public class KerberosHelper {
         if ((identityFilter == null) || identityFilter.contains(identity.getName())) {
           KerberosPrincipalDescriptor principalDescriptor = identity.getPrincipalDescriptor();
           if (principalDescriptor != null) {
-            authToLocalBuilder.append(
+            authToLocalBuilder.addRule(
                 KerberosDescriptor.replaceVariables(principalDescriptor.getValue(), configurations),
                 KerberosDescriptor.replaceVariables(principalDescriptor.getLocalUsername(), configurations));
           }
