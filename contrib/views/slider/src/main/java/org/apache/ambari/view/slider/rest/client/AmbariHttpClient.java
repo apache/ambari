@@ -111,7 +111,9 @@ public class AmbariHttpClient extends BaseHttpClient implements AmbariClient {
             && jsonElement.getAsJsonObject().get("RootServiceComponents").getAsJsonObject().has("properties")) {
           JsonObject ambariProperties = jsonElement.getAsJsonObject().get("RootServiceComponents").getAsJsonObject().get("properties").getAsJsonObject();
           for (Entry<String, JsonElement> entry : ambariProperties.entrySet()) {
-            configs.put(entry.getKey(), entry.getValue().getAsString());
+            if (entry.getValue().isJsonPrimitive()) {
+              configs.put(entry.getKey(), entry.getValue().getAsString());
+            }
           }
         }
       } catch (HttpException e) {
@@ -200,7 +202,9 @@ public class AmbariHttpClient extends BaseHttpClient implements AmbariClient {
 				        .get("properties").getAsJsonObject();
 				    Map<String, String> properties = new HashMap<String, String>();
 				    for (Map.Entry<String, JsonElement> entry : propertiesObj.entrySet()) {
-				      properties.put(entry.getKey(), entry.getValue().getAsString());
+                                      if (entry.getValue().isJsonPrimitive()) {
+                                        properties.put(entry.getKey(), entry.getValue().getAsString());
+                                      }
 				    }
 				    return properties;
 				  }
