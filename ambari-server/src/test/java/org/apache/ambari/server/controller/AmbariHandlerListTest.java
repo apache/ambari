@@ -18,15 +18,25 @@
 
 package org.apache.ambari.server.controller;
 
+import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntityTest;
+import org.apache.ambari.server.view.ViewRegistry;
 import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.junit.Assert;
 import org.junit.Test;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
@@ -103,5 +113,60 @@ public class AmbariHandlerListTest {
 
     verify(handler, server);
 
+  }
+
+  @Test
+  public void testHandleNonFailSafe() throws Exception {
+    TestHandler handler = new TestHandler();
+    AmbariHandlerList.HandlerFactory handlerFactory = createNiceMock(AmbariHandlerList.HandlerFactory.class);
+    ViewRegistry viewRegistry = createNiceMock(ViewRegistry.class);
+    ViewEntity viewEntity = createNiceMock(ViewEntity.class);
+    ClassLoader classLoader = createNiceMock(ClassLoader.class);
+
+    Request baseRequest = createNiceMock(Request.class);
+
+    HttpServletRequest request = createNiceMock(HttpServletRequest.class);
+    HttpServletResponse response = createNiceMock(HttpServletResponse.class);
+
+    List <Handler> handlers = new LinkedList<Handler>();
+    handlers.add(handler);
+
+    expect(viewRegistry.getDefinition("TEST", "1.0.0")).andReturn(viewEntity).anyTimes();
+    expect(viewEntity.getClassLoader()).andReturn(classLoader).anyTimes();
+
+    replay(viewRegistry, viewEntity);
+
+    AmbariHandlerList handlerList = new AmbariHandlerList(handlerFactory);
+    handlerList.viewRegistry = viewRegistry;
+
+    handlerList.handleNonFailSafe("/api/v1/views/TEST/versions/1.0.0/instances/INSTANCE_1/resources/test",
+        baseRequest, request, response, handlers);
+
+    Assert.assertEquals("/api/v1/views/TEST/versions/1.0.0/instances/INSTANCE_1/resources/test", handler.getTarget());
+    Assert.assertEquals(classLoader, handler.getClassLoader());
+
+    verify(viewRegistry, viewEntity);
+  }
+
+  private static class TestHandler extends AbstractHandler {
+
+    private ClassLoader classLoader = null;
+    private String target = null;
+
+    @Override
+    public void handle(String target, Request request,
+                       HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse)
+        throws IOException, ServletException {
+      this.target = target;
+      classLoader = Thread.currentThread().getContextClassLoader();
+    }
+
+    public ClassLoader getClassLoader() {
+      return classLoader;
+    }
+
+    public String getTarget() {
+      return target;
+    }
   }
 }

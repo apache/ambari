@@ -127,12 +127,27 @@ public class FailsafeHandlerList extends HandlerCollection {
           return;
         }
       }
+      handleNonFailSafe(target, baseRequest, request, response, nonFailsafeHandlers);
+    }
+  }
 
-      for (Handler handler : nonFailsafeHandlers) {
-        handler.handle(target, baseRequest, request, response);
-        if (baseRequest.isHandled()) {
-          return;
-        }
+  /**
+   * Attempt to handle the request with the non-failsafe handlers.
+   *
+   * @param target       the target of the request - either a URI or a name
+   * @param baseRequest  the original unwrapped request object.
+   * @param request      the request
+   * @param response     the response
+   * @param handlers     the non-failsafe handlers
+   */
+  protected void handleNonFailSafe(String target, Request baseRequest, HttpServletRequest request,
+                                   HttpServletResponse response, List<Handler> handlers)
+      throws IOException, ServletException {
+
+    for (Handler handler : handlers) {
+      handler.handle(target, baseRequest, request, response);
+      if (baseRequest.isHandled()) {
+        return;
       }
     }
   }

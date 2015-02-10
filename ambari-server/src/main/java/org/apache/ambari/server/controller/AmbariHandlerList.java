@@ -17,11 +17,18 @@
  */
 package org.apache.ambari.server.controller;
 
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
@@ -31,10 +38,13 @@ import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.view.SystemException;
 import org.apache.ambari.view.ViewContext;
 import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.SessionManager;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
@@ -45,6 +55,12 @@ import org.springframework.web.filter.DelegatingFilterProxy;
  */
 @Singleton
 public class AmbariHandlerList extends FailsafeHandlerList implements ViewInstanceHandlerList {
+
+  /**
+   * The target pattern for a view resource request.
+   */
+  private static final Pattern VIEW_RESOURCE_TARGET_PATTERN =
+      Pattern.compile("/api/(\\S+)/views/(\\S+)/versions/(\\S+)/instances/(\\S+)/resources/(\\S+)");
 
   /**
    * The view registry.
@@ -75,6 +91,12 @@ public class AmbariHandlerList extends FailsafeHandlerList implements ViewInstan
    * Spring web app context.
    */
   private GenericWebApplicationContext springWebAppContext;
+
+  /**
+   * The logger.
+   */
+  protected final static Logger LOG = LoggerFactory.getLogger(AmbariHandlerList.class);
+
 
   // ----- Constructors ------------------------------------------------------
 
@@ -122,6 +144,39 @@ public class AmbariHandlerList extends FailsafeHandlerList implements ViewInstan
   }
 
 
+  // ----- FailsafeHandlerList -----------------------------------------------
+
+  @Override
+  protected void handleNonFailSafe(String target, Request baseRequest,
+                                   HttpServletRequest request, HttpServletResponse response,
+                                   List<Handler> handlers) throws IOException, ServletException {
+
+    ViewEntity viewEntity = getTargetView(target);
+
+    if (viewEntity == null) {
+      super.handleNonFailSafe(target, baseRequest, request, response, handlers);
+    } else {
+      // if there is a view target (as in a view resource request) then set the view class loader
+      ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+      ClassLoader viewClassLoader    = null;
+
+      try {
+        viewClassLoader = viewEntity.getClassLoader();
+        if (viewClassLoader == null) {
+          LOG.warn("No class loader associated with view " + viewEntity.getName() + ".");
+        } else {
+          Thread.currentThread().setContextClassLoader(viewClassLoader);
+        }
+        super.handleNonFailSafe(target, baseRequest, request, response, handlers);
+      } finally {
+        if (viewClassLoader != null) {
+          Thread.currentThread().setContextClassLoader(contextClassLoader);
+        }
+      }
+    }
+  }
+
+
   // ----- ViewInstanceHandler -----------------------------------------------
 
   @Override
@@ -164,6 +219,20 @@ public class AmbariHandlerList extends FailsafeHandlerList implements ViewInstan
       throws SystemException {
     ViewEntity viewDefinition = viewInstanceDefinition.getViewEntity();
     return handlerFactory.create(viewInstanceDefinition, viewDefinition.getArchive(), viewInstanceDefinition.getContextPath());
+  }
+
+
+  /**
+   * Get the view that is the target of the request; null if not a view request.
+   *
+   * @param target  the target of the request
+   *
+   * @return the view target; null if none
+   */
+  private ViewEntity getTargetView(String target) {
+    Matcher matcher = VIEW_RESOURCE_TARGET_PATTERN.matcher(target);
+
+    return matcher.matches() ? viewRegistry.getDefinition(matcher.group(2), matcher.group(3)) : null;
   }
 
 
