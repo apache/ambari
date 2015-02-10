@@ -68,7 +68,7 @@ public class StacksService extends BaseService {
                            @Context UriInfo ui,
                            @PathParam("stackName") String stackName) {
 
-    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createStackResource(stackName));
   }
 
@@ -79,7 +79,7 @@ public class StacksService extends BaseService {
                                    @Context HttpHeaders headers,
                                    @Context UriInfo ui, @PathParam("stackName") String stackName) {
 
-    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createStackVersionResource(stackName, null));
   }
 
@@ -91,7 +91,7 @@ public class StacksService extends BaseService {
                                   @Context UriInfo ui, @PathParam("stackName") String stackName,
                                   @PathParam("stackVersion") String stackVersion) {
 
-    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createStackVersionResource(stackName, stackVersion));
   }
 
@@ -102,7 +102,7 @@ public class StacksService extends BaseService {
                                    @Context UriInfo ui, @PathParam("stackName") String stackName,
                                    @PathParam("stackVersion") String stackVersion) {
 
-    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createStackLevelConfigurationsResource(stackName, stackVersion, null));
   }
 
@@ -115,7 +115,7 @@ public class StacksService extends BaseService {
                                         @PathParam("serviceName") String serviceName,
                                         @PathParam("propertyName") String propertyName) {
 
-    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createStackLevelConfigurationsResource(stackName, stackVersion, propertyName));
   }
 
@@ -127,7 +127,7 @@ public class StacksService extends BaseService {
                                    @Context UriInfo ui, @PathParam("stackName") String stackName,
                                    @PathParam("stackVersion") String stackVersion) {
 
-    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createStackServiceResource(stackName, stackVersion, null));
   }
 
@@ -139,7 +139,7 @@ public class StacksService extends BaseService {
                                   @PathParam("stackVersion") String stackVersion,
                                   @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createStackServiceResource(stackName, stackVersion, serviceName));
   }
 
@@ -150,7 +150,7 @@ public class StacksService extends BaseService {
                                               @Context UriInfo ui, @PathParam("stackName") String stackName,
                                               @PathParam("stackVersion") String stackVersion) {
 
-    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createStackArtifactsResource(stackName, stackVersion, null));
   }
 
@@ -162,7 +162,7 @@ public class StacksService extends BaseService {
                                    @PathParam("stackVersion") String stackVersion,
                                    @PathParam("artifactName") String artifactName) {
 
-    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createStackArtifactsResource(stackName, stackVersion, artifactName));
   }
 
@@ -174,7 +174,7 @@ public class StacksService extends BaseService {
                                   @PathParam("stackVersion") String stackVersion,
                                   @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createStackServiceArtifactsResource(stackName, stackVersion, serviceName, null));
   }
 
@@ -187,7 +187,7 @@ public class StacksService extends BaseService {
                                            @PathParam("serviceName") String serviceName,
                                            @PathParam("artifactName") String artifactName) {
 
-    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createStackServiceArtifactsResource(stackName, stackVersion, serviceName, artifactName));
   }
 
@@ -200,7 +200,7 @@ public class StacksService extends BaseService {
                                          @PathParam("stackVersion") String stackVersion,
                                          @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createStackConfigurationResource(stackName, stackVersion, serviceName, null));
   }
 
@@ -214,7 +214,7 @@ public class StacksService extends BaseService {
                                         @PathParam("serviceName") String serviceName,
                                         @PathParam("propertyName") String propertyName) {
 
-    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createStackConfigurationResource(stackName, stackVersion, serviceName, propertyName));
   }
 
@@ -227,7 +227,7 @@ public class StacksService extends BaseService {
                                        @PathParam("stackVersion") String stackVersion,
                                        @PathParam("serviceName") String serviceName) {
 
-    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createStackServiceComponentResource(stackName, stackVersion, serviceName, null));
   }
 
@@ -240,7 +240,7 @@ public class StacksService extends BaseService {
                                                   @PathParam("serviceName") String serviceName,
                                                   @PathParam("componentName") String componentName) {
 
-    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createStackServiceComponentDependencyResource(stackName, stackVersion, serviceName, componentName, null));
   }
 
@@ -254,7 +254,7 @@ public class StacksService extends BaseService {
                                       @PathParam("componentName") String componentName,
                                       @PathParam("dependencyName") String dependencyName) {
 
-    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createStackServiceComponentDependencyResource(stackName, stackVersion, serviceName, componentName, dependencyName));
   }
 
@@ -267,7 +267,7 @@ public class StacksService extends BaseService {
                                       @PathParam("serviceName") String serviceName,
                                       @PathParam("componentName") String componentName) {
 
-    return handleRequest(headers, body, new StackUriInfo(ui), Request.Type.GET,
+    return handleRequest(headers, body, ui, Request.Type.GET,
         createStackServiceComponentResource(stackName, stackVersion, serviceName, componentName));
   }
 
@@ -395,154 +395,6 @@ public class StacksService extends BaseService {
     return createResource(Resource.Type.Stack,
         Collections.singletonMap(Resource.Type.Stack, stackName));
 
-  }
-
-  /**
-   * Temporary UriInfo implementation which is used to convert old property names.
-   * Because both the /stacks and /stacks2 api use the same underlying classes, we
-   * need to convert the new corrected property names to the old names for the back end.
-   * This should be removed when /stacks2 is removed and we can change the property names
-   * in the resource definitions to the new form.
-   */
-  public static class StackUriInfo implements UriInfo {
-    private UriInfo m_delegate;
-
-    public StackUriInfo(UriInfo delegate) {
-      m_delegate = delegate;
-    }
-    @Override
-    public String getPath() {
-      return m_delegate.getPath();
-    }
-
-    @Override
-    public String getPath(boolean b) {
-      return m_delegate.getPath(b);
-    }
-
-    @Override
-    public List<PathSegment> getPathSegments() {
-      return m_delegate.getPathSegments();
-    }
-
-    @Override
-    public List<PathSegment> getPathSegments(boolean b) {
-      return m_delegate.getPathSegments(b);
-    }
-
-    /**
-     * Converts the new corrected property names to the old names for the backend.
-     * Because both the /stacks and /stacks2 api use the same underlying classes, we
-     * need to convert the new corrected property names to the old names for the backend.
-     * This should be removed when /stacks2 is removed and we can change the property names
-     * in the resource definitions to the new form.
-     */
-    private String normalizeComponentNames(String value) {
-      if (value == null) {
-        return null;
-      }
-      value = value.replaceAll("services/", "stackServices/");
-      value = value.replaceAll("components/", "serviceComponents/");
-      value = value.replaceAll("operating_systems/", "operatingSystems/");
-      return value;
-    }
-
-    @Override
-    public URI getRequestUri() {
-      String uriPath = m_delegate.getRequestUri().getPath();
-      UriBuilder uriBuilder = UriBuilder.fromUri(m_delegate.getRequestUri());
-      List<NameValuePair> parametersList = URLEncodedUtils.parse(m_delegate.getRequestUri(), "UTF-8");
-      List<NameValuePair> newQuery = new ArrayList<NameValuePair>();
-      for (NameValuePair nameValuePair : parametersList) {
-        newQuery.add(new BasicNameValuePair(normalizeComponentNames(nameValuePair.getName()),
-            normalizeComponentNames(nameValuePair.getValue())));
-      }
-
-      uriBuilder.replacePath(normalizeComponentNames(uriPath));
-      uriBuilder.replaceQuery(URLEncodedUtils.format(newQuery, "UTF-8"));
-
-      return uriBuilder.build();
-    }
-
-    @Override
-    public UriBuilder getRequestUriBuilder() {
-      return m_delegate.getRequestUriBuilder();
-    }
-
-    @Override
-    public URI getAbsolutePath() {
-      return m_delegate.getAbsolutePath();
-    }
-
-    @Override
-    public UriBuilder getAbsolutePathBuilder() {
-      return m_delegate.getAbsolutePathBuilder();
-    }
-
-    @Override
-    public URI getBaseUri() {
-      return m_delegate.getBaseUri();
-    }
-
-    @Override
-    public UriBuilder getBaseUriBuilder() {
-      return m_delegate.getBaseUriBuilder();
-    }
-
-    @Override
-    public MultivaluedMap<String, String> getPathParameters() {
-      return m_delegate.getPathParameters();
-    }
-
-    @Override
-    public MultivaluedMap<String, String> getPathParameters(boolean b) {
-      return m_delegate.getPathParameters(b);
-    }
-
-    @Override
-    public MultivaluedMap<String, String> getQueryParameters() {
-      MultivaluedMap<String, String> queryParams = m_delegate.getQueryParameters();
-
-      if (queryParams.containsKey(QueryLexer.QUERY_FIELDS)) {
-        String fields = queryParams.getFirst(QueryLexer.QUERY_FIELDS);
-        queryParams.putSingle(QueryLexer.QUERY_FIELDS, convertToOldPropertyNames(fields));
-      }
-
-      if (queryParams.containsKey(QueryLexer.QUERY_SORT)) {
-        String sortBy = queryParams.getFirst(QueryLexer.QUERY_SORT);
-        queryParams.putSingle(QueryLexer.QUERY_SORT, convertToOldPropertyNames(sortBy));
-      }
-
-      return queryParams;
-    }
-
-    @Override
-    public MultivaluedMap<String, String> getQueryParameters(boolean b) {
-      return m_delegate.getQueryParameters(b);
-    }
-
-    @Override
-    public List<String> getMatchedURIs() {
-      return m_delegate.getMatchedURIs();
-    }
-
-    @Override
-    public List<String> getMatchedURIs(boolean b) {
-      return m_delegate.getMatchedURIs(b);
-    }
-
-    @Override
-    public List<Object> getMatchedResources() {
-      return m_delegate.getMatchedResources();
-    }
-
-    private String convertToOldPropertyNames(String str) {
-      str = str.replaceAll("services", "stackServices");
-      str = str.replaceAll("components", "serviceComponents");
-      str = str.replaceAll("operating_systems", "operatingSystems");
-
-      return str;
-    }
   }
 }
 

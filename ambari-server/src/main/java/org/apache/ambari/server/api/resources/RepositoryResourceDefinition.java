@@ -23,7 +23,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 
 import com.google.common.collect.Sets;
 
-public class RepositoryResourceDefinition extends BaseStacksResourceDefinition {
+public class RepositoryResourceDefinition extends BaseResourceDefinition {
 
   public static String VALIDATE_ONLY_DIRECTIVE = "validate_only";
 

@@ -23,7 +23,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import java.util.Collections;
 import java.util.Set;
 
-public class StackServiceComponentResourceDefinition extends BaseStacksResourceDefinition {
+public class StackServiceComponentResourceDefinition extends BaseResourceDefinition {
 
   public StackServiceComponentResourceDefinition() {
     super(Resource.Type.StackServiceComponent);
@@ -31,12 +31,12 @@ public class StackServiceComponentResourceDefinition extends BaseStacksResourceD
 
   @Override
   public String getPluralName() {
-    return "serviceComponents";
+    return "components";
   }
 
   @Override
   public String getSingularName() {
-    return "serviceComponent";
+    return "component";
   }
 
   @Override

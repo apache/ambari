@@ -341,7 +341,7 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         break;
 
       case StackArtifact:
-        resourceDefinition = new BaseStacksResourceDefinition(Resource.Type.StackArtifact) {
+        resourceDefinition = new BaseResourceDefinition(Resource.Type.StackArtifact) {
           @Override
           public String getPluralName() {
             return "artifacts";

@@ -24,7 +24,7 @@ import java.util.Set;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 
-public class StackServiceResourceDefinition extends BaseStacksResourceDefinition {
+public class StackServiceResourceDefinition extends BaseResourceDefinition {
 
   public StackServiceResourceDefinition(Type resourceType) {
     super(resourceType);
@@ -36,12 +36,12 @@ public class StackServiceResourceDefinition extends BaseStacksResourceDefinition
 
   @Override
   public String getPluralName() {
-    return "stackServices";
+    return "services";
   }
 
   @Override
   public String getSingularName() {
-    return "stackService";
+    return "service";
   }
 
   @Override

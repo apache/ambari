@@ -185,14 +185,14 @@ public class QueryImplTest {
     QueryImpl instance = new TestQuery(mapIds, resourceDefinition);
 
     instance.addProperty("versions/*", null);
-    instance.addProperty("versions/operatingSystems/*", null);
-    instance.addProperty("versions/operatingSystems/repositories/*", null);
+    instance.addProperty("versions/operating_systems/*", null);
+    instance.addProperty("versions/operating_systems/repositories/*", null);
 
     instance.execute();
 
     Set<String> propertyIds = new HashSet<String>();
-    propertyIds.add("versions/operatingSystems/repositories/Repositories/repo_id");
-    propertyIds.add("versions/operatingSystems/OperatingSystems/os_type");
+    propertyIds.add("versions/operating_systems/repositories/Repositories/repo_id");
+    propertyIds.add("versions/operating_systems/OperatingSystems/os_type");
 
     Map<Resource, Set<Map<String, Object>>> resourcePropertiesMap = instance.getJoinedResourceProperties(propertyIds, null, null);
 
@@ -210,8 +210,8 @@ public class QueryImplTest {
 
     for (Map<String, Object> map : propertyMaps) {
       Assert.assertEquals(2, map.size());
-      Assert.assertTrue(map.containsKey("versions/operatingSystems/OperatingSystems/os_type"));
-      Assert.assertTrue(map.containsKey("versions/operatingSystems/repositories/Repositories/repo_id"));
+      Assert.assertTrue(map.containsKey("versions/operating_systems/OperatingSystems/os_type"));
+      Assert.assertTrue(map.containsKey("versions/operating_systems/repositories/Repositories/repo_id"));
     }
   }
 
@@ -226,7 +226,7 @@ public class QueryImplTest {
     QueryImpl instance = new TestQuery(mapIds, resourceDefinition);
 
     PredicateBuilder pb = new PredicateBuilder();
-    Predicate predicate = pb.property("versions/operatingSystems/OperatingSystems/os_type").equals("centos5").toPredicate();
+    Predicate predicate = pb.property("versions/operating_systems/OperatingSystems/os_type").equals("centos5").toPredicate();
 
     instance.setUserPredicate(predicate);
 
@@ -247,7 +247,7 @@ public class QueryImplTest {
     Assert.assertEquals(Resource.Type.StackVersion, versionNode.getObject().getType());
 
     Assert.assertEquals(1, versionNode.getChildren().size());
-    TreeNode<Resource> opSystemsNode = versionNode.getChild("operatingSystems");
+    TreeNode<Resource> opSystemsNode = versionNode.getChild("operating_systems");
     Assert.assertEquals(1, opSystemsNode.getChildren().size());
 
     TreeNode<Resource> opSystemNode = opSystemsNode.getChild("OperatingSystem:1");
@@ -362,8 +362,8 @@ public class QueryImplTest {
     QueryImpl instance = new TestQuery(mapIds, resourceDefinition);
 
     instance.addProperty("versions/*", null);
-    instance.addProperty("versions/operatingSystems/*", null);
-    instance.addProperty("versions/operatingSystems/repositories/*", null);
+    instance.addProperty("versions/operating_systems/*", null);
+    instance.addProperty("versions/operating_systems/repositories/*", null);
 
     Result result = instance.execute();
 
@@ -383,7 +383,7 @@ public class QueryImplTest {
 
     Assert.assertEquals(5, versionNode.getChildren().size());
 
-    TreeNode<Resource> opSystemsNode = versionNode.getChild("operatingSystems");
+    TreeNode<Resource> opSystemsNode = versionNode.getChild("operating_systems");
     Assert.assertEquals(3, opSystemsNode.getChildren().size());
 
     TreeNode<Resource> opSystemNode = opSystemsNode.getChild("OperatingSystem:1");
@@ -465,10 +465,10 @@ public class QueryImplTest {
     Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
 
     QueryImpl instance = new TestQuery(mapIds, resourceDefinition);
-    instance.addProperty("operatingSystems/*", null);
+    instance.addProperty("operating_systems/*", null);
 
     PredicateBuilder pb = new PredicateBuilder();
-    Predicate predicate = pb.property("operatingSystems/OperatingSystems/os_type").equals("centos5").toPredicate();
+    Predicate predicate = pb.property("operating_systems/OperatingSystems/os_type").equals("centos5").toPredicate();
 
     instance.setUserPredicate(predicate);
     instance.setPageRequest(new PageRequestImpl(PageRequest.StartingPoint.Beginning, 1, 0, null, null));
@@ -484,7 +484,7 @@ public class QueryImplTest {
     Assert.assertEquals("1.2.1", stackVersionNode.getObject().getPropertyValue("Versions/stack_version"));
 
     QueryImpl instance2 = new TestQuery(mapIds, resourceDefinition);
-    instance2.addProperty("operatingSystems/*", null);
+    instance2.addProperty("operating_systems/*", null);
     instance2.setUserPredicate(predicate);
     instance2.setPageRequest(new PageRequestImpl(PageRequest.StartingPoint.OffsetStart, 1, 1, null, null));
 
@@ -500,7 +500,7 @@ public class QueryImplTest {
 
     QueryImpl instance3 = new TestQuery(mapIds, resourceDefinition);
 
-    instance3.addProperty("operatingSystems/*", null);
+    instance3.addProperty("operating_systems/*", null);
 
     instance3.setUserPredicate(predicate);
     //page_size = 2, offset = 1

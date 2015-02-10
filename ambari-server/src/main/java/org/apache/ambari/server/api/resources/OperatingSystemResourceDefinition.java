@@ -24,7 +24,7 @@ import java.util.Set;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 
-public class OperatingSystemResourceDefinition extends BaseStacksResourceDefinition {
+public class OperatingSystemResourceDefinition extends BaseResourceDefinition {
 
   public OperatingSystemResourceDefinition(Type resourceType) {
     super(resourceType);
@@ -36,12 +36,12 @@ public class OperatingSystemResourceDefinition extends BaseStacksResourceDefinit
 
   @Override
   public String getPluralName() {
-    return "operatingSystems";
+    return "operating_systems";
   }
 
   @Override
   public String getSingularName() {
-    return "operatingSystem";
+    return "operating_system";
   }
   
   @Override

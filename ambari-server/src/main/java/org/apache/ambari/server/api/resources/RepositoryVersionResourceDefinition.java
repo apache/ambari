@@ -22,7 +22,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.controller.spi.Resource;
 
-public class RepositoryVersionResourceDefinition extends BaseStacksResourceDefinition {
+public class RepositoryVersionResourceDefinition extends BaseResourceDefinition {
 
   public RepositoryVersionResourceDefinition() {
     super(Resource.Type.RepositoryVersion);

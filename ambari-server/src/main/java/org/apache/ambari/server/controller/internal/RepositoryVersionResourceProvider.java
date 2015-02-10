@@ -69,7 +69,7 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
   public static final String REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("RepositoryVersions", "repository_version");
   public static final String REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID       = PropertyHelper.getPropertyId("RepositoryVersions", "display_name");
   public static final String REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID       = PropertyHelper.getPropertyId("RepositoryVersions", "upgrade_pack");
-  public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID         = "operating_systems"; //TODO should be replaced with resource definition when we get rid of Stacks2Service
+  public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID         = PropertyHelper.getPropertyId("RepositoryVersions", "operating_systems");
   public static final String SUBRESOURCE_REPOSITORIES_PROPERTY_ID              = new RepositoryResourceDefinition().getPluralName();
 
   @SuppressWarnings("serial")

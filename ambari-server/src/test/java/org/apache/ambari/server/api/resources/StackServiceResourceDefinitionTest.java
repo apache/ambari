@@ -33,8 +33,8 @@ public class StackServiceResourceDefinitionTest {
   @Test
   public void testDefinitionNames() {
     ResourceDefinition def = new StackServiceResourceDefinition();
-    assertEquals("stackService", def.getSingularName());
-    assertEquals("stackServices", def.getPluralName());
+    assertEquals("service", def.getSingularName());
+    assertEquals("services", def.getPluralName());
   }
 
   @Test

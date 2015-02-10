@@ -212,24 +212,4 @@ public class StacksServiceTest extends BaseServiceTest {
       return getTestResultSerializer();
     }
   }
-
-  //todo: this is necessary for temporary changes to service to support both stacks and stacks2 api.
-  //todo: when stacks2 is removed and stacks doesn't need to wrap the UriInfo, this should be removed.
-  @Override
-  protected void assertCreateRequest(ServiceTestInvocation testMethod) {
-    expect(requestFactory.createRequest(same(httpHeaders), same(requestBody), (UriInfo) notNull(),
-        same(testMethod.getRequestType()), same(resourceInstance))).andReturn(request);
-  }
-
-  @Test
-  public void testStackUriInfo() throws URISyntaxException {
-
-    UriInfo delegate = new LocalUriInfo("http://host/services/?fields=*");
-    StacksService.StackUriInfo sui = new StacksService.StackUriInfo(delegate);
-    assertEquals(new URI("http://host/stackServices/?fields=*"), sui.getRequestUri());
-
-    delegate = new LocalUriInfo("http://host/?condition1=true&condition2=true&services/service.matches(A%7CB)");
-    sui = new StacksService.StackUriInfo(delegate);
-    assertEquals(new URI("http://host/?condition1=true&condition2=true&stackServices%2Fservice.matches%28A%7CB%29"), sui.getRequestUri());
-  }
 }

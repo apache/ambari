@@ -24,7 +24,7 @@ import java.util.Set;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 
-public class StackLevelConfigurationResourceDefinition extends BaseStacksResourceDefinition {
+public class StackLevelConfigurationResourceDefinition extends BaseResourceDefinition {
 
   public StackLevelConfigurationResourceDefinition(Type resourceType) {
     super(Resource.Type.StackLevelConfiguration);

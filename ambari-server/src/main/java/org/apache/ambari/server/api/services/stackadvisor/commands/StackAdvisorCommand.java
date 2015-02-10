@@ -39,7 +39,6 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.LocalUriInfo;
 import org.apache.ambari.server.api.services.Request;
-import org.apache.ambari.server.api.services.StacksService.StackUriInfo;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
@@ -322,7 +321,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
     String servicesURI = String.format(GET_SERVICES_INFO_URI, stackName, stackVersion,
         request.getServicesCommaSeparated());
 
-    Response response = handleRequest(null, null, new StackUriInfo(new LocalUriInfo(servicesURI)),
+    Response response = handleRequest(null, null, new LocalUriInfo(servicesURI),
         Request.Type.GET, createStackVersionResource(stackName, stackVersion));
 
     if (response.getStatus() != Status.OK.getStatusCode()) {

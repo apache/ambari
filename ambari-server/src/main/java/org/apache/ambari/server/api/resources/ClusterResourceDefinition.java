@@ -29,7 +29,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 /**
  * Cluster resource definition.
  */
-public class ClusterResourceDefinition extends BaseStacksResourceDefinition {
+public class ClusterResourceDefinition extends BaseResourceDefinition {
   /**
    * Constructor.
    */

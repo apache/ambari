@@ -25,7 +25,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 /**
  * Stack Version Resource Definition for hosts and clusters.
  */
-public class ComponentStackVersionResourceDefinition extends BaseStacksResourceDefinition {
+public class ComponentStackVersionResourceDefinition extends BaseResourceDefinition {
   public ComponentStackVersionResourceDefinition(Resource.Type type) {
     super(type);
   }
