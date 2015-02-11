@@ -29,20 +29,13 @@ def setup_jce():
   if not params.jdk_name:
     return
   
-  environment = {
-    "no_proxy": format("{ambari_server_hostname}")
-  }
-  
   if params.jce_policy_zip is not None:
     jce_curl_target = format("{artifact_dir}/{jce_policy_zip}")
-    download_jce = format("mkdir -p {artifact_dir}; \
-    curl -kf -x \"\" --retry 10 \
-    {jce_location}/{jce_policy_zip} -o {jce_curl_target}")
-    Execute( download_jce,
-             path = ["/bin","/usr/bin/"],
-             not_if =format("test -e {jce_curl_target}"),
-             ignore_failures = True,
-             environment = environment
+    Directory(params.artifact_dir,
+         recursive = True,
+    )
+    File(jce_curl_target,
+         content = DownloadSource(format("{jce_location}/{jce_policy_zip}")),
     )
   elif params.security_enabled:
     # Something weird is happening

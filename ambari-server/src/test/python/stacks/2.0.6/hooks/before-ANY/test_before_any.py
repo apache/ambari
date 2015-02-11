@@ -30,11 +30,11 @@ class TestHookBeforeInstall(RMFTestCase):
                        command="hook",
                        config_file="default.json"
     )
-    self.assertResourceCalled('Execute', 'mkdir -p /tmp/AMBARI-artifacts/;     curl -kf -x "" --retry 10     http://c6401.ambari.apache.org:8080/resources//UnlimitedJCEPolicyJDK7.zip -o /tmp/AMBARI-artifacts//UnlimitedJCEPolicyJDK7.zip',
-        environment = {'no_proxy': 'c6401.ambari.apache.org'},
-        not_if = 'test -e /tmp/AMBARI-artifacts//UnlimitedJCEPolicyJDK7.zip',
-        ignore_failures = True,
-        path = ['/bin', '/usr/bin/'],
+    self.assertResourceCalled('Directory', '/tmp/AMBARI-artifacts/',
+        recursive = True,
+    )
+    self.assertResourceCalled('File', '/tmp/AMBARI-artifacts//UnlimitedJCEPolicyJDK7.zip',
+        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//UnlimitedJCEPolicyJDK7.zip'),
     )
     self.assertResourceCalled('Group', 'hadoop',
         ignore_failures = False,

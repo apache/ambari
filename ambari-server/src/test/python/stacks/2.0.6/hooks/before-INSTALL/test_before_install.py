@@ -18,9 +18,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from stacks.utils.RMFTestCase import *
 from mock.mock import MagicMock, call, patch
 from resource_management import *
+from stacks.utils.RMFTestCase import *
 
 @patch.object(Hook, "run_custom_hook", new = MagicMock())
 class TestHookBeforeInstall(RMFTestCase):
@@ -40,10 +40,11 @@ class TestHookBeforeInstall(RMFTestCase):
     )
     self.assertResourceCalled('Package', 'unzip',)
     self.assertResourceCalled('Package', 'curl',)
-    self.assertResourceCalled('Execute', 'mkdir -p /tmp/AMBARI-artifacts/ ;   curl -kf -x \"\"   --retry 10 http://c6401.ambari.apache.org:8080/resources//jdk-7u67-linux-x64.tar.gz -o /tmp/AMBARI-artifacts//jdk-7u67-linux-x64.tar.gz',
-        not_if = 'test -e /usr/jdk64/jdk1.7.0_45/bin/java',
-        path = ['/bin', '/usr/bin/'],
-        environment = {'no_proxy': 'c6401.ambari.apache.org'},
+    self.assertResourceCalled('Directory', '/tmp/AMBARI-artifacts/',
+        recursive = True,
+    )
+    self.assertResourceCalled('File', '/tmp/AMBARI-artifacts//jdk-7u67-linux-x64.tar.gz',
+        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//jdk-7u67-linux-x64.tar.gz'),
     )
     self.assertResourceCalled('Directory', '/usr/jdk64',)
     self.assertResourceCalled('Execute', ('chmod', 'a+x', u'/usr/jdk64'),

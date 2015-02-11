@@ -74,19 +74,10 @@ def hive(name=None):
 
   if name == 'metastore' or name == 'hiveserver2':
     jdbc_connector()
-    
-  environment = {
-    "no_proxy": format("{ambari_server_hostname}")
-  }
 
-  cmd = format("/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf -x \"\" "
-               "--retry 5 "
-               "{jdk_location}{check_db_connection_jar_name} "
-               "-o {check_db_connection_jar_name}'")
-
-  Execute(cmd,
-          not_if=format("[ -f {check_db_connection_jar} ]"),
-          environment = environment)
+  File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
+       content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),
+  )
 
   if name == 'metastore':
     File(params.start_metastore_path,
@@ -205,14 +196,10 @@ def jdbc_connector():
     Execute(('rm', '-f', params.prepackaged_ojdbc_symlink),
             path=["/bin", "/usr/bin/"],
             sudo = True)
-
-    Execute(('curl', '-kf', '-x', "", '--retry', '10', params.driver_curl_source, '-o',
-             params.downloaded_custom_connector),
-            not_if=format("test -f {downloaded_custom_connector}"),
-            path=["/bin", "/usr/bin/"],
-            environment=environment,
-            sudo = True)
-
+    
+    File(params.downloaded_custom_connector,
+         content = DownloadSource(params.driver_curl_source),
+    )
 
     Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.target),
             #creates=params.target, TODO: uncomment after ranger_hive_plugin will not provide jdbc

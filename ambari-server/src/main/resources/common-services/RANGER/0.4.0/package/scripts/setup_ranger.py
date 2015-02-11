@@ -28,15 +28,9 @@ def setup_ranger():
   import params
 
   if check_db_connnection():
-
-    environment = {"no_proxy": format("{params.ambari_server_hostname}")}
-
-    Execute(('curl', '-kf', '-x', "", '--retry', '10', params.driver_curl_source, '-o',
-            params.downloaded_custom_connector),
-            not_if=format("test -f {params.downloaded_custom_connector}"),
-            path=["/bin", "/usr/bin/"],
-            environment=environment,
-            sudo=True)
+    File(params.downloaded_custom_connector,
+         content = DownloadSource(params.driver_curl_source)
+    )
 
     if not os.path.isfile(params.driver_curl_target):
       Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.driver_curl_target),
