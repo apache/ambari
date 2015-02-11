@@ -56,19 +56,19 @@
   <div class="row-fluid host-link">
     <div class="span4 align-center">
       <div><a href="#" {{bindAttr class="view.content.noInitHosts:empty-hosts-tooltip:hosts-tooltip :not-active"}}
-        {{action showHosts view.versionStateMap.not_installed view.content.repositoryVersion view.content.notInstalledHosts target="view"}}>
+        {{action showHosts view.versionStateMap.not_installed view.content.displayName view.content.notInstalledHosts target="view"}}>
         {{view.content.notInstalledHosts.length}}</a></div>
       <div>{{t admin.stackVersions.version.notInstalled}}</div>
     </div>
     <div class="span4 align-center">
       <div><a href="#" {{bindAttr class="view.content.noInstalledHosts:empty-hosts-tooltip:hosts-tooltip :not-active"}}
-        {{action showHosts view.versionStateMap.installed view.content.repositoryVersion view.content.installedHosts target="view"}}>
+        {{action showHosts view.versionStateMap.installed view.content.displayName view.content.installedHosts target="view"}}>
         {{view.content.installedHosts.length}}</a></div>
       <div>{{t common.installed}}</div>
     </div>
     <div class="span4 align-center">
       <div><a href="#" {{bindAttr class="view.content.noCurrentHosts:empty-hosts-tooltip:hosts-tooltip :not-active"}}
-        {{action showHosts view.versionStateMap.current view.content.repositoryVersion view.content.currentHosts target="view"}}>
+        {{action showHosts view.versionStateMap.current view.content.displayName view.content.currentHosts target="view"}}>
         {{view.content.currentHosts.length}}</a></div>
       <div>{{t common.current}}</div>
     </div>

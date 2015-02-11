@@ -470,11 +470,11 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
 
   /**
    * Filter hosts by stack version and state
-   * @param {String} version
+   * @param {String} displayName
    * @param {String} state
    */
-  filterByStack: function (version, state) {
-    if (!version || !state)
+  filterByStack: function (displayName, state) {
+    if (!displayName || !state)
       return;
     var column = 11;
 
@@ -482,8 +482,8 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
       iColumn: column,
       value: [
         {
-          property: 'repository_versions/RepositoryVersions/repository_version',
-          value: version
+          property: 'repository_versions/RepositoryVersions/display_name',
+          value: displayName
         },
         {
           property: 'HostStackVersions/state',

@@ -247,13 +247,13 @@ App.UpgradeVersionBoxView = Em.View.extend({
    */
   showHosts: function (event) {
     var status = event.contexts[0];
-    var version = event.contexts[1];
+    var displayName = event.contexts[1];
     var hosts = event.contexts[2];
     var self = this;
     if (hosts.length) {
       return App.ModalPopup.show({
         bodyClass: Ember.View.extend({
-          title: Em.I18n.t('admin.stackVersions.hosts.popup.title').format(version, status.label, hosts.length),
+          title: Em.I18n.t('admin.stackVersions.hosts.popup.title').format(displayName, status.label, hosts.length),
           hosts: hosts,
           template: Em.Handlebars.compile('<h4>{{view.title}}</h4><div class="limited-height-2">{{#each view.hosts}}<div>{{this}}</div>{{/each}}</div>')
         }),
@@ -262,7 +262,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
         secondary: Em.I18n.t('common.close'),
         onPrimary: function () {
           this.hide();
-          self.filterHostsByStack(version, status.id);
+          self.filterHostsByStack(displayName, status.id);
         }
       });
     }
@@ -270,13 +270,13 @@ App.UpgradeVersionBoxView = Em.View.extend({
 
   /**
    * goes to the hosts page with content filtered by repo_version_name and repo_version_state
-   * @param version
+   * @param displayName
    * @param state
    * @method filterHostsByStack
    */
-  filterHostsByStack: function (version, state) {
-    if (!version || !state) return;
-    App.router.get('mainHostController').filterByStack(version, state);
+  filterHostsByStack: function (displayName, state) {
+    if (!displayName || !state) return;
+    App.router.get('mainHostController').filterByStack(displayName, state);
     App.router.get('mainHostController').set('showFilterConditionsFirstLoad', true);
     App.router.transitionTo('hosts.index');
   }

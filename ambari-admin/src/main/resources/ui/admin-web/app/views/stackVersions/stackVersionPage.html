@@ -19,7 +19,7 @@
 <div class="clearfix">
   <ol class="breadcrumb pull-left">
     <li><a href="#/stackVersions">Versions</a></li>
-    <li class="active" ng-if="editController">{{repoVersionFullName}}</li>
+    <li class="active" ng-if="editController">{{displayName}}&nbsp;<span class="sub-text">({{repoVersionFullName}})</span></li>
     <li class="active" ng-if="createController">Register Version</li>
   </ol>
 
@@ -39,7 +39,7 @@
     </div>
     <div class="panel-body">
       <div class="form-inline repo-version-inline">
-        <label class="control-label col-sm-2 repo-version-label">Version</label>
+        <label class="control-label col-sm-2 repo-version-label">Name</label>
         <div class="col-sm-10">
           <select class="form-control repo-version-select"
                   ng-model="$parent.upgradeStack.selected"

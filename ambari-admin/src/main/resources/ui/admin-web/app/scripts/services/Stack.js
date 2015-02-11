@@ -147,6 +147,7 @@ angular.module('ambariAdminConsole')
     getRepo: function (repoVersion, stack_name) {
       var url = Settings.baseUrl + '/stacks/' + stack_name + '/versions?' +
       'fields=repository_versions/operating_systems/repositories/*' +
+      ',repository_versions/RepositoryVersions/display_name' +
       '&repository_versions/RepositoryVersions/repository_version=' + repoVersion;
       var deferred = $q.defer();
       $http.get(url, {mock: 'version/version.json'})
@@ -158,6 +159,7 @@ angular.module('ambariAdminConsole')
           stack: data.Versions.stack_name + '-' + data.Versions.stack_version,
           stackName: data.Versions.stack_name,
           versionName: data.repository_versions[0].RepositoryVersions.repository_version,
+          displayName : data.repository_versions[0].RepositoryVersions.display_name,
           repoVersionFullName : data.Versions.stack_name + '-' + data.repository_versions[0].RepositoryVersions.repository_version,
           osList: data.repository_versions[0].operating_systems,
           updateObj: data.repository_versions[0]

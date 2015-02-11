@@ -1954,6 +1954,7 @@ Em.I18n.translations = {
 
   'hosts.host.menu.stackVersions': 'Versions',
   'hosts.host.stackVersions.table.allVersions': 'All Versions',
+  'hosts.host.stackVersions.table.allNames': 'All Names',
   'hosts.host.stackVersions.table.noVersions': 'No versions',
   'hosts.host.stackVersions.table.filteredInfo': '{0} of {1} versions showing',
   'hosts.host.stackVersions.status.init': 'Uninstalled',

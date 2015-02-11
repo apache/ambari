@@ -30,6 +30,7 @@ angular.module('ambariAdminConsole')
       $scope.stack = response.stack;
       $scope.stackName = response.stackName;
       $scope.versionName = response.versionName;
+      $scope.displayName = response.displayName;
       $scope.stackVersion = response.stackVersion;
       $scope.updateObj = response.updateObj;
       $scope.subversion = response.versionName.substring(4); // cut off stack version
@@ -144,7 +145,7 @@ angular.module('ambariAdminConsole')
     return Stack.validateBaseUrls($scope.skipValidation, $scope.osList, upgradeStack).then(function (invalidUrls) {
       if (invalidUrls.length === 0) {
         Stack.updateRepo($scope.stackName, $scope.stackVersion, $scope.id, $scope.updateObj).then(function () {
-          Alert.success('Edited version <a href="#/stackVersions/' + $scope.stackName + '/' + $scope.versionName + '/edit">' + $scope.repoVersionFullName + '</a>');
+          Alert.success('Edited version <a href="#/stackVersions/' + $scope.stackName + '/' + $scope.versionName + '/edit">' + $scope.displayName + '</a>');
           $location.path('/stackVersions');
         }).catch(function (data) {
           Alert.error('Version update error', data.message);
@@ -174,7 +175,7 @@ angular.module('ambariAdminConsole')
 
   $scope.delete = function () {
     ConfirmationModal.show('Deregister Version', { "url": 'views/modals/BodyForDeregisterVersion.html',
-      "scope": {"repoVersionFullName": $scope.repoVersionFullName }}).then(function() {
+      "scope": {"displayName": $scope.displayName }}).then(function() {
       Stack.deleteRepo($scope.stackName, $scope.stackVersion, $scope.id).then( function () {
         $location.path('/stackVersions');
       }).catch(function (data) {

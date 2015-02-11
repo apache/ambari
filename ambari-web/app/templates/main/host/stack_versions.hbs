@@ -35,7 +35,7 @@
     {{#each view.pageContent}}
       <tr>
         <td class="first stack-name">{{this.stack}}</td>
-        <td class="repo-version">{{this.repoVersion}}</td>
+        <td class="repo-version">{{this.displayName}}</td>
         <td class="host-stack-version-status">
           {{#if this.isCurrent}}
             <span class="label label-success">{{t common.current}}</span>

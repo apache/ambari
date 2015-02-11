@@ -391,6 +391,10 @@ a.gotoinstance{
   padding: 0;
 }
 
+.breadcrumb .sub-text{
+  font-size: 16px;
+}
+
 .user-edit-panel .ats-switch span.switch-right , .create-user-form .ats-switch span.switch-right{
   background-color: #da4f49;
   color: white;

@@ -594,7 +594,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
      */
     currentVersion: function() {
       var currentRepoVersion = this.get('content.stackVersions').findProperty('isCurrent') || this.get('content.stackVersions').objectAt(0);
-      return currentRepoVersion ? currentRepoVersion.get('repoVersion') + " (" + currentRepoVersion.get('displayStatus') + ")" : "";
+      return currentRepoVersion ? currentRepoVersion.get('displayName') + " (" + currentRepoVersion.get('displayStatus') + ")" : "";
     }.property('content.stackVersions'),
 
     /**
@@ -603,7 +603,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
      */
     versionlabels: function () {
       return this.get('content.stackVersions').filterProperty('isCurrent', false).map(function (version) {
-        return version.get('repoVersion');
+        return version.get('displayName');
       }).join("<br />");
     }.property('content.stackVersions.length'),
 
@@ -1016,14 +1016,14 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
       versionSelectView: filters.createSelectView({
         classNames: ['notActive'],
         fieldType: 'filter-input-width',
-        filterPropertyName: 'repository_versions/RepositoryVersions/repository_version',
+        filterPropertyName: 'repository_versions/RepositoryVersions/display_name',
         content: function () {
           return  [
             {
               value: '',
-              label: Em.I18n.t('hosts.host.stackVersions.table.allVersions')
+              label: Em.I18n.t('common.all')
             }
-          ].concat(this.get('controller.allHostStackVersions').mapProperty('repoVersion').uniq().map(function (version) {
+          ].concat(this.get('controller.allHostStackVersions').mapProperty('displayName').uniq().map(function (version) {
             return {
               value: version,
               label: version
@@ -1064,7 +1064,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
         var filterProperties = [];
         if (this.get('selectedVersion')) {
           filterProperties.push({
-            property: 'repository_versions/RepositoryVersions/repository_version',
+            property: 'repository_versions/RepositoryVersions/display_name',
             value: this.get('selectedVersion')
           });
         }

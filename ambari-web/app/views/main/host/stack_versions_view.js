@@ -66,8 +66,8 @@ App.MainHostStackVersionsView = App.TableView.extend({
    */
   repoVersionSort: sort.fieldView.extend({
     column: 2,
-    name: 'repoVersion',
-    displayName: Em.I18n.t('common.version'),
+    name: 'displayName',
+    displayName: Em.I18n.t('common.name'),
     type: 'version'
   }),
 
@@ -118,9 +118,9 @@ App.MainHostStackVersionsView = App.TableView.extend({
       return [
         {
           value: '',
-          label: Em.I18n.t('hosts.host.stackVersions.table.allVersions')
+          label: Em.I18n.t('common.all')
         }
-      ].concat(this.get('parentView.content').mapProperty('repoVersion').uniq().map(function (version) {
+      ].concat(this.get('parentView.content').mapProperty('displayName').uniq().map(function (version) {
         return {
           value: version,
           label: version
@@ -182,7 +182,7 @@ App.MainHostStackVersionsView = App.TableView.extend({
   colPropAssoc: function () {
     var associations = [];
     associations[1] = 'stack';
-    associations[2] = 'repoVersion';
+    associations[2] = 'displayName';
     associations[3] = 'status';
     return associations;
   }.property()
