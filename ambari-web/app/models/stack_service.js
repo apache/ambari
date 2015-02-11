@@ -328,7 +328,11 @@ App.StackService.configCategories = function () {
     case 'RANGER':
       serviceConfigCategories.pushObjects([
         App.ServiceConfigCategory.create({ name: 'AdminSettings', displayName: 'Admin Settings'}),
-        App.ServiceConfigCategory.create({ name: 'DBSettings', displayName: 'DB Settings'})
+        App.ServiceConfigCategory.create({ name: 'DBSettings', displayName: 'DB Settings'}),
+        App.ServiceConfigCategory.create({ name: 'RangerSettings', displayName: 'Ranger Settings'}),
+        App.ServiceConfigCategory.create({ name: 'UnixAuthenticationSettings', displayName: 'Unix Authentication Settings'}),
+        App.ServiceConfigCategory.create({ name: 'ADSettings', displayName: 'AD Settings'}),
+        App.ServiceConfigCategory.create({ name: 'LDAPSettings', displayName: 'LDAP Settings'})
       ]);
       break;
     case 'PIG':

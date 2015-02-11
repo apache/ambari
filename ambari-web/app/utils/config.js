@@ -425,6 +425,7 @@ App.config = Em.Object.create({
     serviceConfigObj.belongsToService = configsPropertyDef.belongsToService;
     serviceConfigObj.category = configsPropertyDef.category;
     serviceConfigObj.showLabel = configsPropertyDef.showLabel !== false;
+    serviceConfigObj.dependentConfigPattern = configsPropertyDef.dependentConfigPattern
   },
 
   /**
