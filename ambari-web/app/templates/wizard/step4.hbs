@@ -36,7 +36,7 @@
     {{#each controller}}
       {{#unless isHiddenOnSelectServicePage}}
         <tr {{bindAttr class="isSelected:success:"}}>
-          <td><label class="checkbox">{{view Ember.Checkbox elementIdBinding="serviceName"
+          <td><label class="checkbox">{{view Ember.Checkbox classBinding="serviceName"
           disabledBinding="isInstalled"
           checkedBinding="isSelected"}}{{displayNameOnSelectServicePage}}</label>
           </td>
