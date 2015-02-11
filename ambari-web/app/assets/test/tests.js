@@ -255,6 +255,7 @@ var files = ['test/init_model_test',
   'test/models/user_test',
   'test/models/host_stack_version_test',
   'test/models/upgrade_entity_test',
+  'test/routes/views_test',
   //contains test with fake timers that affect Date
   'test/utils/lazy_loading_test'
 

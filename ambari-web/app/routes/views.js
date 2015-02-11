@@ -35,10 +35,39 @@ module.exports = Em.Route.extend({
     route: '/:viewName/:version/:instanceName',
     connectOutlets: function (router, params) {
       // find and set content for `mainViewsDetails` and associated controller
+
+      var href = ['/views', params.viewName, params.version, params.instanceName].join('/');
+      var viewPath = this.parseViewPath(params.instanceName);
+      if (viewPath) {
+        href = ['/views', params.viewName, params.version, params.instanceName.slice(0, params.instanceName.lastIndexOf('?'))].join('/');
+      }
+
       router.get('mainViewsController').dataLoading().done(function() {
-        router.get('mainController').connectOutlet('mainViewsDetails', App.router.get('mainViewsController.ambariViews')
-          .findProperty('href', ['/views', params.viewName, params.version, params.instanceName].join('/')));
+        var content = App.router.get('mainViewsController.ambariViews').findProperty('href', href);
+        if (content) content.set('viewPath', viewPath);
+        router.get('mainController').connectOutlet('mainViewsDetails', content);
       });
+    },
+    /**
+     * parse internal view path
+     * "viewPath" - used as a key of additional path
+     * Example:
+     *   origin URL: viewName?viewPath=%2Fuser%2Fadmin%2Faddress&foo=bar&count=1
+     * should be translated to
+     *   view path: /user/admin/address?foo=bar&count=1
+     *
+     * @param {string} instanceName
+     * @returns {string}
+     */
+    parseViewPath: function (instanceName) {
+      var path = '';
+      if (instanceName.contains('?')) {
+        path = instanceName.slice(instanceName.indexOf('?'));
+        if (path.contains('viewPath')) {
+          path = decodeURIComponent(path.slice((path.lastIndexOf('?viewPath=') + 10))).replace('&', '?');
+        }
+      }
+      return path;
     }
   })
 });
