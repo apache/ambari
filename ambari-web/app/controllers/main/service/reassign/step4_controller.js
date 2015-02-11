@@ -287,12 +287,11 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
    * remove tasks by command name
    */
   removeTasks: function(commands) {
-    var tasks = this.get('tasks'),
-        index = null
-        cmd = null;
+    var tasks = this.get('tasks');
 
     commands.forEach(function(command) {
-      cmd = tasks.filterProperty('command', command);
+      var cmd = tasks.filterProperty('command', command);
+      var index = null;
 
       if (cmd.length === 0) {
         return false;
@@ -334,6 +333,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
       }));
     }
     this.removeUnneededTasks();
+    this.set('isLoaded', true);
   },
 
   hideRollbackButton: function () {

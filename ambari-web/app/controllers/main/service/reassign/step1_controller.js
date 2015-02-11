@@ -73,15 +73,17 @@ App.ReassignMasterWizardStep1Controller = Em.Controller.extend({
   onLoadConfigsTags: function (data) {
     var urlParams = this.getConfigUrlParams(this.get('content.reassign.component_name'), data);
 
-    App.ajax.send({
-      name: 'reassign.load_configs',
-      sender: this,
-      data: {
-        urlParams: urlParams.join('|')
-      },
-      success: 'onLoadConfigs',
-      error: ''
-    });
+    if (urlParams.length > 0) {
+      App.ajax.send({
+        name: 'reassign.load_configs',
+        sender: this,
+        data: {
+          urlParams: urlParams.join('|')
+        },
+        success: 'onLoadConfigs',
+        error: ''
+      });
+    }
   },
 
   onLoadConfigs: function (data) {

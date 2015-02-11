@@ -65,6 +65,7 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
     }
 
     this.removeUnneededTasks();
+    this.set('isLoaded', true);
   },
 
   removeUnneededTasks: function () {
