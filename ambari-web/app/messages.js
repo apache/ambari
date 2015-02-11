@@ -1318,7 +1318,7 @@ Em.I18n.translations = {
   'admin.stackUpgrade.doThisLater': "Do This Later",
   'admin.stackUpgrade.pauseUpgrade': "Pause Upgrade",
   'admin.stackUpgrade.downgrade.proceed': "Proceed with Downgrade",
-  'admin.stackUpgrade.downgrade.body': "Are you sure you wish to abort the upgrade process and downgrade to {0}",
+  'admin.stackUpgrade.downgrade.body': "Are you sure you wish to abort the upgrade process and downgrade to <b>{0}</b>?",
   'admin.stackUpgrade.upgrade.confirm.body': "You are about to perform an upgrade to {0}.",
   'admin.stackUpgrade.title': "Stack and Versions",
   'admin.stackUpgrade.state.inProgress': "Upgrade in Progress",
