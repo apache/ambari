@@ -25,7 +25,7 @@ describe('App.WizardStep4Controller', function () {
 
   var services = [
     'HDFS', 'GANGLIA', 'OOZIE', 'HIVE', 'HBASE', 'PIG', 'SCOOP', 'ZOOKEEPER',
-    'YARN', 'MAPREDUCE2', 'FALCON', 'TEZ', 'STORM', 'AMBARI_METRICS', 'RANGER'
+    'YARN', 'MAPREDUCE2', 'FALCON', 'TEZ', 'STORM', 'AMBARI_METRICS', 'RANGER', 'SPARK'
   ];
 
   var controller = App.WizardStep4Controller.create();
@@ -300,7 +300,31 @@ describe('App.WizardStep4Controller', function () {
       wizardNames = {
         installerController: 'Install Wizard',
         addServiceController: 'Add Service Wizard'
-      };
+      },
+      sparkCases = [
+        {
+          currentStackName: 'HDP',
+          currentStackVersionNumber: '2.2',
+          sparkWarningExpected: true,
+          title: 'HDP 2.2'
+        },
+        {
+          currentStackName: 'HDP',
+          currentStackVersionNumber: '2.3',
+          sparkWarningExpected: false,
+          title: 'HDP 2.3'
+        },
+        {
+          currentStackName: 'BIGTOP',
+          currentStackVersionNumber: '0.8',
+          sparkWarningExpected: false,
+          title: 'Non-HDP stack'
+        }
+      ];
+
+    beforeEach(function () {
+      controller.clear();
+    });
 
     controllerNames.forEach(function (name) {
       tests.forEach(function(test) {
@@ -312,7 +336,6 @@ describe('App.WizardStep4Controller', function () {
           .format(wizardNames[name], test.services.join(','), errorsExpected.length ? 'passed' : 'failed',
             errorsExpected.length ? errorsExpected.join(',') : 'absent');
         it(message, function() {
-          controller.clear();
           controller.setProperties({
             content: generateSelectedServicesContent(test.services),
             wizardController: Em.Object.create({
@@ -323,6 +346,17 @@ describe('App.WizardStep4Controller', function () {
           expect(controller.get('errorStack').mapProperty('id')).to.eql(errorsExpected.toArray());
         });
       })
+    });
+
+    sparkCases.forEach(function (item) {
+      it(item.title, function () {
+        sinon.stub(App, 'get').withArgs('currentStackName').returns(item.currentStackName).
+          withArgs('currentStackVersionNumber').returns(item.currentStackVersionNumber);
+        controller.set('content', generateSelectedServicesContent(['SPARK']));
+        controller.validate();
+        expect(controller.get('errorStack').someProperty('id', 'sparkWarning')).to.equal(item.sparkWarningExpected);
+        App.get.restore();
+      });
     });
 
   });
@@ -599,13 +633,146 @@ describe('App.WizardStep4Controller', function () {
         if (item.services.contains('RANGER')) {
           ranger.setProperties({
             isSelected: item.isRangerSelected,
-            isInstalled: item.isRangerInstalled,
+            isInstalled: item.isRangerInstalled
           });
         } else {
           controller.removeObject(ranger);
         }
         controller.rangerValidation();
         expect(controller.get('errorStack').mapProperty('id').contains('rangerRequirements')).to.equal(item.isRangerWarning);
+      });
+    });
+
+  });
+
+  describe('#sparkValidation', function () {
+
+    var cases = [
+      {
+        services: ['HDFS'],
+        isSparkWarning: false,
+        currentStackName: 'HDP',
+        currentStackVersionNumber: '2.2',
+        title: 'HDP 2.2, Spark not available'
+      },
+      {
+        services: ['HDFS'],
+        isSparkWarning: false,
+        currentStackName: 'HDP',
+        currentStackVersionNumber: '2.3',
+        title: 'HDP 2.3, Spark not available'
+      },
+      {
+        services: ['HDFS'],
+        isSparkWarning: false,
+        currentStackName: 'BIGTOP',
+        currentStackVersionNumber: '0.8',
+        title: 'Non-HDP stack, Spark not available'
+      },
+      {
+        services: ['SPARK'],
+        isSparkSelected: false,
+        isSparkInstalled: false,
+        isSparkWarning: false,
+        currentStackName: 'HDP',
+        currentStackVersionNumber: '2.2',
+        title: 'HDP 2.2, Spark not selected'
+      },
+      {
+        services: ['SPARK'],
+        isSparkSelected: true,
+        isSparkInstalled: false,
+        isSparkWarning: true,
+        currentStackName: 'HDP',
+        currentStackVersionNumber: '2.2',
+        title: 'HDP 2.2, Spark selected'
+      },
+      {
+        services: ['SPARK'],
+        isSparkSelected: true,
+        isSparkInstalled: true,
+        isSparkWarning: false,
+        currentStackName: 'HDP',
+        currentStackVersionNumber: '2.2',
+        title: 'HDP 2.2, Spark installed'
+      },
+      {
+        services: ['SPARK'],
+        isSparkSelected: false,
+        isSparkInstalled: false,
+        isSparkWarning: false,
+        currentStackName: 'HDP',
+        currentStackVersionNumber: '2.3',
+        title: 'HDP 2.3, Spark not selected'
+      },
+      {
+        services: ['SPARK'],
+        isSparkSelected: true,
+        isSparkInstalled: false,
+        isSparkWarning: false,
+        currentStackName: 'HDP',
+        currentStackVersionNumber: '2.3',
+        title: 'HDP 2.3, Spark selected'
+      },
+      {
+        services: ['SPARK'],
+        isSparkSelected: true,
+        isSparkInstalled: true,
+        isSparkWarning: false,
+        currentStackName: 'HDP',
+        currentStackVersionNumber: '2.3',
+        title: 'HDP 2.3, Spark installed'
+      },
+      {
+        services: ['SPARK'],
+        isSparkSelected: false,
+        isSparkInstalled: false,
+        isSparkWarning: false,
+        currentStackName: 'BIGTOP',
+        currentStackVersionNumber: '0.8',
+        title: 'Non-HDP stack, Spark not selected'
+      },
+      {
+        services: ['SPARK'],
+        isSparkSelected: true,
+        isSparkInstalled: false,
+        isSparkWarning: false,
+        currentStackName: 'BIGTOP',
+        currentStackVersionNumber: '0.8',
+        title: 'Non-HDP stack, Spark selected'
+      },
+      {
+        services: ['SPARK'],
+        isSparkSelected: true,
+        isSparkInstalled: true,
+        isSparkWarning: false,
+        currentStackName: 'BIGTOP',
+        currentStackVersionNumber: '0.8',
+        title: 'Non-HDP stack, Spark installed'
+      }
+    ];
+
+    afterEach(function () {
+      App.get.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        sinon.stub(App, 'get').withArgs('currentStackName').returns(item.currentStackName).
+          withArgs('currentStackVersionNumber').returns(item.currentStackVersionNumber);
+        controller.clear();
+        controller.set('content', generateSelectedServicesContent(item.services));
+        var spark = controller.findProperty('serviceName', 'SPARK');
+        if (item.services.contains('SPARK')) {
+          spark.setProperties({
+            isSelected: item.isSparkSelected,
+            isInstalled: item.isSparkInstalled
+          });
+        } else {
+          controller.removeObject(spark);
+        }
+        controller.sparkValidation();
+        expect(controller.get('errorStack').mapProperty('id').contains('sparkWarning')).to.equal(item.isSparkWarning);
       });
     });
 

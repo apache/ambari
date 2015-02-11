@@ -108,6 +108,22 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   },
 
   /**
+   * Warn user if he tries to install Spark with HDP 2.2
+   * @method sparkValidation
+   */
+  sparkValidation: function () {
+    var sparkService = this.findProperty('serviceName', 'SPARK');
+    if (sparkService && sparkService.get('isSelected') && !sparkService.get('isInstalled') &&
+      App.get('currentStackName') == 'HDP' && App.get('currentStackVersionNumber') == '2.2') {
+      this.addValidationError({
+        id: 'sparkWarning',
+        type: 'WARNING',
+        callback: this.sparkWarningPopup
+      });
+    }
+  },
+
+  /**
    * Onclick handler for <code>Next</code> button.
    * @method submit
    */
@@ -145,6 +161,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
       this.ambariMetricsValidation();
     }
     this.rangerValidation();
+    this.sparkValidation();
     if (!!this.get('errorStack').filterProperty('isShown', false).length) {
       this.showError(this.get('errorStack').findProperty('isShown', false));
       return false;
@@ -393,6 +410,24 @@ App.WizardStep4Controller = Em.ArrayController.extend({
       disablePrimary: function () {
         return !this.get('isChecked');
       }.property('isChecked'),
+      onPrimary: function () {
+        self.onPrimaryPopupCallback();
+        this.hide();
+      }
+    });
+  },
+
+  /**
+   * Show popup with Spark installation warning
+   * @return {App.ModalPopup}
+   * @method sparkWarningPopup
+   */
+  sparkWarningPopup: function () {
+    var self = this;
+    return App.ModalPopup.show({
+      header: Em.I18n.t('common.warning'),
+      body: Em.I18n.t('installer.step4.sparkWarning.popup.body'),
+      primary: Em.I18n.t('common.proceedAnyway'),
       onPrimary: function () {
         self.onPrimaryPopupCallback();
         this.hide();

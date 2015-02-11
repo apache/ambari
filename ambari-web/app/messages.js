@@ -662,6 +662,7 @@ Em.I18n.translations = {
     '<li>Execute the following command on the Ambari Server host. Replace <code>database-type</code> with <strong>mysql</strong> or <strong>oracle</strong> and <code>/jdbc/driver/path</code> based on the location of the MySQL or Oracle JDBC driver:' +
     '<pre>ambari-server setup --jdbc-db={database-type} --jdbc-driver={/jdbc/driver/path}</pre></li></ol>',
   'installer.step4.rangerRequirements.popup.body.confirmation': 'I have met all the requirements above.',
+  'installer.step4.sparkWarning.popup.body': 'Spark requires HDP 2.2.1 or later. Attempting to install Spark to a HDP 2.2.0 cluster will fail. Confirm you are using HDP 2.2.1 or later packages. Are you sure you want to proceed?',
 
   'installer.step5.header':'Assign Masters',
   'installer.step5.reassign.header':'Select Target Host',
