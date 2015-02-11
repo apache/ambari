@@ -65,8 +65,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
           putHiveProperty("hive.security.authenticator.manager", 'org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator')
         elif (rangerPluginEnabled.lower() == "No".lower()):
           putHiveProperty = self.putProperty(configurations, "hiveserver2-site")
-          putHiveProperty("hive.security.authorization.manager", 'org.apache.hadoop.hive.ql.security.authorization.DefaultHiveAuthorizationProvider')
-          putHiveProperty("hive.security.authenticator.manager", 'org.apache.hadoop.hive.ql.security.HadoopDefaultAuthenticator')
+          putHiveProperty("hive.security.authorization.manager", 'org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactory')
+          putHiveProperty("hive.security.authenticator.manager", 'org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator')
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP22StackAdvisor, self).recommendHbaseEnvConfigurations(configurations, clusterData, services, hosts)
@@ -96,7 +96,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     childValidators = {
       "HDFS": {"hdfs-site": self.validateHDFSConfigurations,
                "hadoop-env": self.validateHDFSConfigurationsEnv},
-      "HIVE": {"hiveserver2-site": self.validateHIVEConfigurations},
+      "HIVE": {"hiveserver2-site": self.validateHiveServer2Configurations, "hive-site": self.validateHiveConfigurations},
       "HBASE": {"hbase-site": self.validateHBASEConfigurations},
       "MAPREDUCE2": {"mapred-site": self.validateMapReduce2Configurations},
       "TEZ": {"tez-site": self.validateTezConfigurations}
@@ -253,7 +253,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                                       data_transfer_protection_value, VALID_TRANSFER_PROTECTION_VALUES))})
     return self.toConfigurationValidationProblems(validationItems, "hdfs-site")
 
-  def validateHIVEConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateHiveServer2Configurations(self, properties, recommendedDefaults, configurations, services, hosts):
     super(HDP22StackAdvisor, self).validateHiveConfigurations(properties, recommendedDefaults, configurations, services, hosts)
     hive_server2 = properties
     validationItems = [] 
@@ -270,32 +270,68 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
         if hive_server2[prop_name] != prop_val:
           validationItems.append({"config-name": prop_name,
                                   "item": self.getWarnItem(
-                                  "If Ranger HIVE Plugin is enabled."\
+                                  "If Ranger Hive Plugin is enabled."\
                                   " {0} needs to be set to {1}".format(prop_name,prop_val))})
         prop_name = 'hive.security.authenticator.manager'
         prop_val = "org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator"
         if hive_server2[prop_name] != prop_val:
           validationItems.append({"config-name": prop_name,
                                   "item": self.getWarnItem(
-                                  "If Ranger HIVE Plugin is enabled."\
+                                  "If Ranger Hive Plugin is enabled."\
                                   " {0} needs to be set to {1}".format(prop_name,prop_val))})
       ##Add stack validations for  Ranger plugin disabled.
       elif (ranger_plugin_enabled.lower() == 'No'.lower()):
         prop_name = 'hive.security.authorization.manager'
-        prop_val = "org.apache.hadoop.hive.ql.security.authorization.DefaultHiveAuthorizationProvider"
+        prop_val = "org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactory"
         if hive_server2[prop_name] != prop_val:
           validationItems.append({"config-name": prop_name,
                                   "item": self.getWarnItem(
-                                  "If Ranger HIVE Plugin is disabled."\
+                                  "If Ranger Hive Plugin is disabled."\
                                   " {0} needs to be set to {1}".format(prop_name,prop_val))})
         prop_name = 'hive.security.authenticator.manager'
-        prop_val = "org.apache.hadoop.hive.ql.security.HadoopDefaultAuthenticator"
+        prop_val = "org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator"
         if hive_server2[prop_name] != prop_val:
           validationItems.append({"config-name": prop_name,
                                   "item": self.getWarnItem(
-                                  "If Ranger HIVE Plugin is disabled."\
+                                  "If Ranger Hive Plugin is disabled."\
                                   " {0} needs to be set to {1}".format(prop_name,prop_val))})
     return self.toConfigurationValidationProblems(validationItems, "hiveserver2-site")
+
+  def validateHiveConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    super(HDP22StackAdvisor, self).validateHiveConfigurations(properties, recommendedDefaults, configurations, services, hosts)
+    hive_site = properties
+    validationItems = []
+    #Adding Ranger Plugin logic here
+    ranger_plugin_properties = getSiteProperties(configurations, "ranger-hive-plugin-properties")
+    ranger_plugin_enabled = ranger_plugin_properties['ranger-hive-plugin-enabled']
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    ##Add stack validations only if Ranger is enabled.
+    if ("RANGER" in servicesList):
+      ##Add stack validations for  Ranger plugin enabled.
+      if (ranger_plugin_enabled.lower() == 'Yes'.lower()):
+        prop_name = 'hive.security.authorization.enabled'
+        prop_val = 'true'
+        if hive_site[prop_name] != prop_val:
+          validationItems.append({"config-name": prop_name,
+                                  "item": self.getWarnItem(
+                                    "If Ranger Hive Plugin is enabled." \
+                                    " {0} needs to be set to {1}".format(prop_name,prop_val))})
+
+        prop_name = 'hive.conf.restricted.list'
+        prop_vals = 'hive.security.authorization.enabled,hive.security.authorization.manager,hive.security.authenticator.manager'.split(',')
+        current_vals = hive_site[prop_name].split(',')
+        missing_vals = []
+
+        for val in prop_vals:
+          if not val in current_vals:
+            missing_vals.append(val)
+
+        if missing_vals:
+          validationItems.append({"config-name": prop_name,
+                                  "item": self.getWarnItem(
+                                  "If Ranger Hive Plugin is enabled." \
+                                  " {0} needs to contain {1}".format(prop_name, ','.join(missing_vals)))})
+    return self.toConfigurationValidationProblems(validationItems, "hive-site")
 
   def validateHBASEConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     super(HDP22StackAdvisor, self).validateHbaseEnvConfigurations(properties, recommendedDefaults, configurations, services, hosts)
@@ -329,21 +365,21 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       if hbase_site[prop_name] != prop_val:
         validationItems.append({"config-name": prop_name,
                                 "item": self.getWarnItem(
-                                "If Ranger HBASE Plugin is enabled."\
+                                "If Ranger HBase Plugin is enabled."\
                                 "{0} needs to be set to {1}".format(prop_name,prop_val))})
       prop_name = "hbase.coprocessor.master.classes"
       prop_val = "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
       if hbase_site[prop_name] != prop_val:
         validationItems.append({"config-name": prop_name,
                                 "item": self.getWarnItem(
-                                "If Ranger HBASE Plugin is enabled."\
+                                "If Ranger HBase Plugin is enabled."\
                                 " {0} needs to be set to {1}".format(prop_name,prop_val))})
       prop_name = "hbase.coprocessor.region.classes"
       prop_val = "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
       if hbase_site[prop_name] != prop_val:
         validationItems.append({"config-name": prop_name,
                                 "item": self.getWarnItem(
-                                "If Ranger HBASE Plugin is enabled."\
+                                "If Ranger HBase Plugin is enabled."\
                                 " {0} needs to be set to {1}".format(prop_name,prop_val))})
     return self.toConfigurationValidationProblems(validationItems, "hbase-site")
 
