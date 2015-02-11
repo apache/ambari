@@ -336,13 +336,13 @@ def init_parser_options(parser):
                     help="Start ambari-server in debug mode")
   parser.add_option('-y', '--suspend-start', action="store_true", dest='suspend_start', default=False,
                     help="Freeze ambari-server Java process at startup in debug mode")
-  parser.add_option('--all', action="store_true", default=False, help="LDAP sync all Ambari users and groups",
+  parser.add_option('--all', action="store_true", default=False, help="LDAP sync all option.  Synchronize all LDAP users and groups.",
                     dest="ldap_sync_all")
   parser.add_option('--existing', action="store_true", default=False,
-                    help="LDAP sync existing Ambari users and groups only", dest="ldap_sync_existing")
-  parser.add_option('--users', default=None, help="Specifies the path to the LDAP sync users CSV file.",
+                    help="LDAP sync existing option.  Synchronize existing Ambari users and groups only.", dest="ldap_sync_existing")
+  parser.add_option('--users', default=None, help="LDAP sync users option. Specifies the path to a CSV file of user names to be synchronized.",
                     dest="ldap_sync_users")
-  parser.add_option('--groups', default=None, help="Specifies the path to the LDAP sync groups CSV file.",
+  parser.add_option('--groups', default=None, help="LDAP sync groups option.  Specifies the path to a CSV file of group names to be synchronized.",
                     dest="ldap_sync_groups")
   parser.add_option('--database', default=None, help="Database to use embedded|oracle|mysql|postgres", dest="dbms")
   parser.add_option('--databasehost', default=None, help="Hostname of database server", dest="database_host")

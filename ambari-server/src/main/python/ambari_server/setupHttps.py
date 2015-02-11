@@ -33,6 +33,7 @@ from ambari_commons.os_utils import is_root, run_os_command, copy_file, set_file
 from ambari_server.serverConfiguration import get_ambari_properties, find_properties_file, read_ambari_user, \
     SSL_TRUSTSTORE_PASSWORD_PROPERTY, get_is_secure, decrypt_password_for_alias, SSL_TRUSTSTORE_PASSWORD_ALIAS, \
     SSL_TRUSTSTORE_PATH_PROPERTY, get_value_from_properties, SSL_TRUSTSTORE_TYPE_PROPERTY, find_jdk, configDefaults, \
+    SSL_API, SSL_API_PORT, DEFAULT_SSL_API_PORT, \
     get_encrypted_password, GET_FQDN_SERVICE_URL
 from ambari_server.setupSecurity import adjust_directory_permissions
 from ambari_server.userInput import get_YN_input, get_validated_string_input, read_password, get_prompt_default, \
@@ -58,8 +59,6 @@ KEYTOOL_DELETE_CERT_CMD = "{0} -delete -alias '{1}' -storepass '{2}' -noprompt"
 KEYTOOL_KEYSTORE = " -keystore '{0}'"
 
 SSL_KEY_DIR = 'security.server.keys_dir'
-SSL_API_PORT = 'client.api.ssl.port'
-SSL_API = 'api.ssl'
 SSL_SERVER_CERT_NAME = 'client.api.ssl.cert_name'
 SSL_SERVER_KEY_NAME = 'client.api.ssl.key_name'
 SSL_CERT_FILE_NAME = "https.crt"
@@ -67,7 +66,6 @@ SSL_KEY_FILE_NAME = "https.key"
 SSL_KEYSTORE_FILE_NAME = "https.keystore.p12"
 SSL_KEY_PASSWORD_FILE_NAME = "https.pass.txt"
 SSL_KEY_PASSWORD_LENGTH = 50
-DEFAULT_SSL_API_PORT = 8443
 SSL_DATE_FORMAT = '%b  %d %H:%M:%S %Y GMT'
 
 #SSL certificate metainfo

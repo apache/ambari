@@ -156,6 +156,11 @@ SSL_TRUSTSTORE_PATH_PROPERTY = "ssl.trustStore.path"
 SSL_TRUSTSTORE_PASSWORD_PROPERTY = "ssl.trustStore.password"
 SSL_TRUSTSTORE_TYPE_PROPERTY = "ssl.trustStore.type"
 
+# SSL common
+SSL_API = 'api.ssl'
+SSL_API_PORT = 'client.api.ssl.port'
+DEFAULT_SSL_API_PORT = 8443
+
 # JDK
 JDK_RELEASES="java.releases"
 
