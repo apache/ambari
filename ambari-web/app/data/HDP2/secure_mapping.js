@@ -551,22 +551,6 @@ var props = [
     "serviceName": "HIVE"
   },
   {
-    "name": "hbase.coprocessor.master.classes",
-    "templateName": [],
-    "foreignKey": null,
-    "value": "org.apache.hadoop.hbase.security.access.AccessController",
-    "filename": "hbase-site.xml",
-    "serviceName": "HBASE"
-  },
-  {
-    "name": "hbase.coprocessor.region.classes",
-    "templateName": [],
-    "foreignKey": null,
-    "value": "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,org.apache.hadoop.hbase.security.access.AccessController",
-    "filename": "hbase-site.xml",
-    "serviceName": "HBASE"
-  },
-  {
     "name": "hbase.security.authentication",
     "templateName": [],
     "foreignKey": null,
@@ -581,14 +565,6 @@ var props = [
     "foreignKey": null,
     "value": "true",
     "nonSecureValue": "false",
-    "filename": "hbase-site.xml",
-    "serviceName": "HBASE"
-  },
-  {
-    "name": "hbase.coprocessor.region.classes",
-    "templateName": [],
-    "foreignKey": null,
-    "value": "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,org.apache.hadoop.hbase.security.access.AccessController",
     "filename": "hbase-site.xml",
     "serviceName": "HBASE"
   },
