@@ -262,11 +262,16 @@ App.ServerValidatorMixin = Em.Mixin.create({
         header: Em. I18n.t('installer.step7.popup.validation.warning.header'),
         classNames: ['sixty-percent-width-modal'],
         primary: Em.I18n.t('common.proceedAnyway'),
+        primaryClass: 'btn-danger',
         onPrimary: function () {
           this.hide();
           deferred.resolve();
         },
         onSecondary: function () {
+          this.hide();
+          deferred.reject("invalid_configs"); // message used to differentiate types of rejections.
+        },
+        onClose: function () {
           this.hide();
           deferred.reject("invalid_configs"); // message used to differentiate types of rejections.
         },
