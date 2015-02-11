@@ -83,12 +83,17 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
    * @returns {[App.ServiceConfigCategory]}
    */
   createCategoryForServices: function() {
-    var services = App.StackService.find().filter(function(s) {
-      return s.get('isInstalled') || (s.get('isSelected') && this.get('wizardController.name') == 'addServiceController');
-    }, this);
+    var services = [];
+    if (this.get('wizardController.name') == 'addServiceController') {
+      services = App.StackService.find().filter(function(item) {
+        return item.get('isInstalled') || item.get('isSelected');
+      });
+    } else {
+      services = App.Service.find();
+    }
     return services.map(function(item) {
       return App.ServiceConfigCategory.create({ name: item.get('serviceName'), displayName: item.get('displayName'), collapsedByDefault: true});
-    })
+    });
   },
 
   /**

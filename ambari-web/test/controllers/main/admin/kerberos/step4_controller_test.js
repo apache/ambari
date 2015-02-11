@@ -219,6 +219,12 @@ describe('App.KerberosWizardStep4Controller', function() {
       }
     });
     beforeEach(function() {
+      sinon.stub(App.Service, 'find').returns([
+        Em.Object.create({
+          serviceName: 'HDFS',
+          displayName: 'HDFS'
+        })
+      ]);
       sinon.stub(App.StackService, 'find').returns([
         Em.Object.create({
           serviceName: 'HDFS',
@@ -235,6 +241,7 @@ describe('App.KerberosWizardStep4Controller', function() {
     });
 
     afterEach(function() {
+      App.Service.find.restore();
       App.StackService.find.restore();
     });
 
