@@ -34,7 +34,7 @@ from ambari_commons.os_utils import copy_files, find_in_path, is_root, remove_fi
 from ambari_server.dbConfiguration import DBMSConfig, USERNAME_PATTERN, SETUP_DB_CONNECT_ATTEMPTS, \
     SETUP_DB_CONNECT_TIMEOUT, STORAGE_TYPE_LOCAL, DEFAULT_USERNAME, DEFAULT_PASSWORD
 from ambari_server.serverConfiguration import get_ambari_properties, get_value_from_properties, configDefaults, \
-    OS_TYPE, AMBARI_PROPERTIES_FILE, RESOURCES_DIR_PROPERTY, \
+    OS_TYPE, OS_FAMILY, AMBARI_PROPERTIES_FILE, RESOURCES_DIR_PROPERTY, \
     JDBC_DATABASE_PROPERTY, JDBC_DATABASE_NAME_PROPERTY, JDBC_POSTGRES_SCHEMA_PROPERTY, \
     JDBC_HOSTNAME_PROPERTY, JDBC_PORT_PROPERTY, \
     JDBC_USER_NAME_PROPERTY, JDBC_PASSWORD_PROPERTY, JDBC_PASSWORD_FILENAME, \
@@ -351,7 +351,7 @@ class PGConfig(LinuxDBMSConfig):
 
     if self.persistence_type == STORAGE_TYPE_LOCAL:
       PGConfig.PG_STATUS_RUNNING = get_postgre_running_status(OS_TYPE)
-      PGConfig.PG_HBA_DIR = get_postgre_hba_dir(OSCheck.get_os_family())
+      PGConfig.PG_HBA_DIR = get_postgre_hba_dir(OS_FAMILY)
 
       PGConfig.PG_HBA_CONF_FILE = os.path.join(PGConfig.PG_HBA_DIR, "pg_hba.conf")
       PGConfig.PG_HBA_CONF_FILE_BACKUP = os.path.join(PGConfig.PG_HBA_DIR, "pg_hba_bak.conf.old")

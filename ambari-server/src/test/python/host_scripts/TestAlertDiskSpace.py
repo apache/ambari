@@ -28,6 +28,7 @@ from stacks.utils.RMFTestCase import *
 class TestAlertDiskSpace(RMFTestCase):
 
   @patch('alert_disk_space._get_disk_usage')
+  @patch.object(OSCheck, "get_os_family", new = MagicMock(return_value = 'redhat'))
   def test_linux_flow(self, disk_usage_mock):
     # / OK, /usr/hdp OK
     disk_usage_mock.return_value = \
