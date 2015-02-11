@@ -1178,6 +1178,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
         for (Map.Entry<String, String> property : globalProperites.entrySet()) {
           String propertyName = property.getKey();
           String propertyValue = property.getValue();
+          String newPropertyName = getNewPropertyName().get(propertyName);
 
           Set<String> newConfigTypes = configHelper.findConfigTypesByPropertyName(cluster.getCurrentStackVersion(),
                   propertyName, cluster.getClusterName());
@@ -1188,7 +1189,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
           if(newConfigTypes.size() > 0) {
             newConfigType = newConfigTypes.iterator().next();
           } else {
-            newConfigType = getAdditionalMappingGlobalToEnv().get(propertyName);
+            newConfigType = getAdditionalMappingGlobalToEnv().get(((newPropertyName == null)? propertyName : newPropertyName));
           }
 
           if(newConfigType==null) {
@@ -1199,13 +1200,13 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
           }
 
           LOG.info("Mapping config " + propertyName + " from " + Configuration.GLOBAL_CONFIG_TAG +
-              " to " + newConfigType +
+              " to " + ((newPropertyName == null)? propertyName : newPropertyName) + " property in " + newConfigType +
               " (value="+propertyValue+")");
 
           if(!newProperties.containsKey(newConfigType)) {
             newProperties.put(newConfigType, new HashMap<String, String>());
           }
-          newProperties.get(newConfigType).put(propertyName, propertyValue);
+          newProperties.get(newConfigType).put(((newPropertyName == null)? propertyName : newPropertyName), propertyValue);
         }
 
         for (Entry<String, Map<String, String>> newProperty : newProperties.entrySet()) {
@@ -1243,10 +1244,17 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     result.put("storm_keytab","storm-env");
     result.put("hive_hostname","hive-env");
     result.put("oozie_hostname","oozie-env");
+    result.put("dataDir","zoo.cfg");
 
     return result;
   }
 
+  public Map<String, String> getNewPropertyName() {
+    Map<String, String> result = new HashMap<String, String>();
+    result.put("zk_data_dir","dataDir");
+    return result;
+  }
+  
   private void upgradePermissionModel() throws SQLException {
     final UserDAO userDAO = injector.getInstance(UserDAO.class);
     final PrincipalDAO principalDAO = injector.getInstance(PrincipalDAO.class);

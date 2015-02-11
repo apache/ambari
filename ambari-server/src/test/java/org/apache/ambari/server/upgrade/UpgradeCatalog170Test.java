@@ -162,7 +162,7 @@ public class UpgradeCatalog170Test {
   }
 
   @Test
-  public void testExecuteDDLUpdates() throws Exception {
+  public void testExecuteDDLUpdates_DBAccessor() throws Exception {
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     Connection connection = createNiceMock(Connection.class);
     PreparedStatement stmt = createNiceMock(PreparedStatement.class);
@@ -334,9 +334,11 @@ public class UpgradeCatalog170Test {
     Method n = AbstractUpgradeCatalog.class.getDeclaredMethod("getEntityManagerProvider");
     Method l = AbstractUpgradeCatalog.class.getDeclaredMethod
         ("addNewConfigurationsFromXml");
+    Method newPropMap = UpgradeCatalog170.class.getDeclaredMethod("getNewPropertyName");
 
     UpgradeCatalog170 upgradeCatalog = createMockBuilder(UpgradeCatalog170.class)
-      .addMockedMethod(m).addMockedMethod(n).addMockedMethod(l).createMock();
+      .addMockedMethod(m).addMockedMethod(n).addMockedMethod(l).addMockedMethod(newPropMap)
+            .createMock();
 
     List<ConfigGroupConfigMappingEntity> configGroupConfigMappingEntities =
             new ArrayList<ConfigGroupConfigMappingEntity>();
@@ -379,6 +381,7 @@ public class UpgradeCatalog170Test {
     expect(entityManager.createQuery(cq)).andReturn(q).anyTimes();
     expect(trans.isActive()).andReturn(true).anyTimes();
     expect(upgradeCatalog.getEntityManagerProvider()).andReturn(entityManagerProvider).anyTimes();
+    expect(upgradeCatalog.getNewPropertyName()).andReturn(new HashMap<String, String>()).anyTimes();
     expect(cb.createQuery(HostRoleCommandEntity.class)).andReturn(cq).anyTimes();
     expect(cb.desc(taskId)).andReturn(o).anyTimes();
     expect(cq.from(HostRoleCommandEntity.class)).andReturn(hrc).anyTimes();
