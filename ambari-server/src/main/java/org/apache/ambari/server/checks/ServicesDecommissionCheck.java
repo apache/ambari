@@ -56,7 +56,7 @@ public class ServicesDecommissionCheck extends AbstractCheckDescriptor {
     }
     if (!prerequisiteCheck.getFailedOn().isEmpty()) {
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason("There are services in decommission or decommissioning state");
+      prerequisiteCheck.setFailReason(formatEntityList(prerequisiteCheck.getFailedOn()) + " must not be in decommissioned or decommissioning state");
     }
   }
 }

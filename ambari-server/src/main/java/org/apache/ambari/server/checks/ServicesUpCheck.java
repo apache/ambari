@@ -56,7 +56,7 @@ public class ServicesUpCheck extends AbstractCheckDescriptor {
 
     if (!prerequisiteCheck.getFailedOn().isEmpty()) {
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason("Some services are down");
+      prerequisiteCheck.setFailReason(formatEntityList(prerequisiteCheck.getFailedOn()) + " must be STARTED");
     }
   }
 }

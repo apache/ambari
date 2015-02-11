@@ -65,7 +65,8 @@ public class ServicesYarnWorkPreservingCheck extends AbstractCheckDescriptor {
       !BooleanUtils.toBoolean(config.getProperties().get("yarn.resourcemanager.work-preserving-recovery.enabled"))) {
       prerequisiteCheck.getFailedOn().add("YARN");
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason("YARN doesn't have work preserving restart, yarn.resourcemanager.work-preserving-recovery.enabled property is missing");
+      prerequisiteCheck.setFailReason("YARN doesn't have work preserving restart. Verify that yarn.resourcemanager.work-preserving-recovery.enabled property"
+          + " is present in yarn-site.xml and is set to true");
     }
   }
 }

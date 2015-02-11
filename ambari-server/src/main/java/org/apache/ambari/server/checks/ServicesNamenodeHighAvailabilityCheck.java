@@ -57,7 +57,7 @@ public class ServicesNamenodeHighAvailabilityCheck extends AbstractCheckDescript
     if (!config.getProperties().containsKey("dfs.nameservices")) {
       prerequisiteCheck.getFailedOn().add("HDFS");
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason("Namenode high availability is disabled");
+      prerequisiteCheck.setFailReason("Namenode high availability is disabled. Verify that dfs.nameservices property is present in hdfs-site.xml");
     }
   }
 }

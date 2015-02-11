@@ -85,7 +85,7 @@ public class HostsMasterMaintenanceCheck extends AbstractCheckDescriptor {
     }
     if (!prerequisiteCheck.getFailedOn().isEmpty()) {
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason("Some hosts with master components are in Maintenance Mode");
+      prerequisiteCheck.setFailReason(formatEntityList(prerequisiteCheck.getFailedOn()) + " must not be in in Maintenance Mode as they have master components installed");
     }
   }
 }
