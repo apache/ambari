@@ -35,6 +35,7 @@ import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +43,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -111,7 +113,15 @@ public class HostVersionOutOfSyncListener {
       Cluster cluster = clusters.get().getClusterById(event.getClusterId());
       Set<String> changedRepositoryVersions = new HashSet<String>();
       StackId currentStackId = cluster.getCurrentStackVersion();
-      for (String hostName : clusters.get().getHostsForCluster(cluster.getClusterName()).keySet()) {
+      Map<String, ServiceComponent> serviceComponents = cluster.getService(event.getServiceName()).getServiceComponents();
+      // Determine hosts that become OUT_OF_SYNC when adding components for new service
+      Set<String> affectedHosts = new HashSet<String>();
+      for (ServiceComponent component : serviceComponents.values()) {
+        for (String hostname : component.getServiceComponentHosts().keySet()) {
+          affectedHosts.add(hostname);
+        }
+      }
+      for (String hostName : affectedHosts) {
         List<HostVersionEntity> hostVersionEntities =
             hostVersionDAO.get().findByClusterAndHost(cluster.getClusterName(), hostName);
         for (HostVersionEntity hostVersionEntity : hostVersionEntities) {
