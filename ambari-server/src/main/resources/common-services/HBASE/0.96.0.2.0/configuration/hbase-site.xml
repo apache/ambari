@@ -328,4 +328,9 @@
     <description>Path to domain socket.</description>
   </property>
 
+  <property>
+    <name>hbase.rpc.protection</name>
+    <value>authentication</value>
+  </property>
+
 </configuration>
