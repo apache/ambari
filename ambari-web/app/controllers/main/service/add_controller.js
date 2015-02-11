@@ -36,6 +36,11 @@ App.AddServiceController = App.WizardController.extend({
   serviceToInstall: null,
 
   /**
+   *
+   */
+  installClientQueueLength: 0,
+
+  /**
    * All wizards data will be stored in this variable
    *
    * cluster - cluster name
@@ -128,6 +133,8 @@ App.AddServiceController = App.WizardController.extend({
           this.checkSecurityStatus();
           this.load('cluster');
           this.set('content.additionalClients', []);
+          this.set('installClientQueueLength', 0);
+          this.set('installClietsQueue', App.ajaxQueue.create({}));
         }
       }
     ]
@@ -500,13 +507,37 @@ App.AddServiceController = App.WizardController.extend({
       "urlParams": "ServiceInfo/service_name.in(" + selectedServices.join(',')  + ")"
     };
   },
-  installServices: function (callback) {
+
+  /**
+   * run this method after success/error callbacks
+   * for <code>installServicesRequest<code>
+   */
+  installServicesComplete: function () {
+    this.setDBProperty('KDCAuthRequired', false);
+    App.get('router.wizardStep8Controller').set('servicesInstalled', true);
+    this.setInfoForStep9();
+    this.saveClusterState('ADD_SERVICES_INSTALLING_3');
+    App.router.transitionTo('step7');
+  },
+
+  /**
+   * main method for installinf clients
+   * @method installServices
+   */
+  installServices: function () {
+    var self = this;
+    this.setDBProperty('KDCAuthRequired', false);
     this.set('content.cluster.oldRequestsId', []);
-    this.installAdditionalClients();
+    this.installAdditionalClients().done(function () {
+      self.installSelectedServices();
+    });
+  },
+
+  installSelectedServices: function () {
     var name = 'common.services.update';
     var selectedServices = this.get('content.services').filterProperty('isInstalled', false).filterProperty('isSelected', true).mapProperty('serviceName');
     var data = this.generateDataForInstallServices(selectedServices);
-    this.installServicesRequest(name, data, callback);
+    this.installServicesRequest(name, data, this.installServicesComplete.bind(this));
   },
 
   installServicesRequest: function (name, data, callback) {
@@ -526,22 +557,68 @@ App.AddServiceController = App.WizardController.extend({
    * @method installAdditionalClients
    */
   installAdditionalClients: function () {
-    this.get('content.additionalClients').forEach(function (c) {
-      if (c.hostNames.length > 0) {
-        var queryStr = 'HostRoles/component_name='+ c.componentName + '&HostRoles/host_name.in(' + c.hostNames.join() + ')';
-        App.ajax.send({
-          name: 'common.host_component.update',
-          sender: this,
-          data: {
-            query: queryStr,
-            context: 'Install ' + App.format.role(c.componentName),
-            HostRoles: {
-              state: 'INSTALLED'
-            }
-          }
-        });
+    var dfd = $.Deferred();
+    if (this.get('content.additionalClients.length') > 0) {
+      this.get('content.additionalClients').forEach(function (c, k) {
+        if (c.hostNames.length > 0) {
+          var queryStr = 'HostRoles/component_name='+ c.componentName + '&HostRoles/host_name.in(' + c.hostNames.join() + ')';
+          this.get('installClietsQueue').addRequest({
+            name: 'common.host_component.update',
+            sender: this,
+            data: {
+              query: queryStr,
+              context: 'Install ' + App.format.role(c.componentName),
+              HostRoles: {
+                state: 'INSTALLED'
+              },
+              counter: k,
+              deferred: dfd
+            },
+            success: 'installClientComplete',
+            error: 'installClientComplete',
+            kdcFailHandler: 'kdcFailHandler',
+            kdcCancelHandler: 'installSelectedServices'
+          });
+        }
+      }, this);
+      if (this.get('installClietsQueue.queue.length') == 0) {
+        return dfd.resolve();
+      } else {
+        this.set('installClientQueueLength', this.get('installClietsQueue.queue.length'));
+        App.get('router.wizardStep8Controller').set('servicesInstalled', true);
+        this.get('installClietsQueue').start();
       }
-    }, this);
+    } else {
+      dfd.resolve();
+    }
+    return dfd.promise();
+  },
+
+  /**
+   * callback for when install clients success
+   * of fail with not KDC error
+   * @param data
+   * @param params
+   * @param opt
+   * @method installClientComplete
+   */
+  installClientComplete: function(data, params, opt) {
+    if (this.getDBProperty('KDCAuthRequired')) {
+      this.setDBProperty('KDCAuthRequired', false);
+      this.installServices();
+      opt.deferred.reject();
+    } else if (this.get('installClientQueueLength') - 1 == opt.counter) {
+      opt.deferred.resolve();
+    }
+  },
+
+  /**
+   * kdc fail handler for installClients method
+   * @method kdcFailHandler
+   */
+  kdcFailHandler: function() {
+    this.setDBProperty('KDCAuthRequired', true);
+    this.saveClusterState('ADD_SERVICE_KDC_AUTHORIZATION');
   },
 
   checkSecurityStatus: function() {

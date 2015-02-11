@@ -263,8 +263,8 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
    * puts kerberos admin credentials in the live cluster session
    * @returns {*} jqXHr
    */
-  createKerberosAdminSession: function () {
-    var configs = this.get('stepConfigs')[0].get('configs');
+  createKerberosAdminSession: function (configs) {
+    configs = configs || this.get('stepConfigs')[0].get('configs');
     var adminPrincipalValue = configs.findProperty('name', 'admin_principal').value;
     var adminPasswordValue = configs.findProperty('name', 'admin_password').value;
     return App.ajax.send({

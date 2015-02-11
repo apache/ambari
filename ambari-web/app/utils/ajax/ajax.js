@@ -2313,7 +2313,8 @@ var formatRequest = function (data) {
  */
 var specialMsg = {
   "missingKDC": "Missing KDC administrator credentials.",
-  "invalidKDC": "Invalid KDC administrator credentials."
+  "invalidKDC": "Invalid KDC administrator credentials.",
+  "missingRDCForRealm": "Failed to find a KDC for the specified realm - kadmin"
 };
 /**
  * Wrapper for all ajax requests
@@ -2377,6 +2378,20 @@ var ajax = Em.Object.extend({
     opt.error = function (request, ajaxOptions, error) {
       var KDCErrorMsg = this.getKDCErrorMgs(request);
       if (!Em.isNone(KDCErrorMsg)) {
+        /**
+         * run this handler before show KDC error popup
+         */
+        if (config.kdcFailHandler) {
+          config.sender[config.kdcFailHandler](request, ajaxOptions, error, opt, params);
+        }
+        /**
+         * run this handler when click cancle on KDC error popup
+         */
+        if (config.kdcCancelHandler) {
+          opt.kdcCancelHandler = function() {
+            config.sender[config.kdcCancelHandler]();
+          };
+        }
         this.defaultErrorKDCHandler(opt, KDCErrorMsg);
       } else if (config.error) {
         config.sender[config.error](request, ajaxOptions, error, opt, params);
@@ -2445,7 +2460,8 @@ var ajax = Em.Object.extend({
     } catch (err) {}
     if (jqXHR.status === 400 && message) {
       return message.contains(specialMsg.missingKDC) ? specialMsg.missingKDC
-        : message.contains(specialMsg.invalidKDC) ? specialMsg.invalidKDC : null;
+        : message.contains(specialMsg.invalidKDC) ? specialMsg.invalidKDC :
+        specialMsg.missingRDCForRealm ? specialMsg.missingRDCForRealm : null;
     } else {
       return null;
     }

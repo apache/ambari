@@ -55,6 +55,7 @@ describe('App.AddServiceController', function() {
         if ('clusterName' === k) return 'tdk';
         return Em.get(App, k);
       });
+      addServiceController.set('installClietsQueue', App.ajaxQueue.create())
     });
 
     afterEach(function () {

@@ -33,6 +33,18 @@ App.showInvalidKDCPopup = function (ajaxOpt, message) {
       warningMsg: message + Em.I18n.t('popup.invalid.KDC.msg'),
       templateName: require('templates/common/modal_popups/invalid_KDC_popup')
     }),
+    onClose: function() {
+      this.hide();
+      if (ajaxOpt.kdcCancelHandler) {
+        ajaxOpt.kdcCancelHandler();
+      }
+    },
+    onSecondary: function() {
+      this.hide();
+      if (ajaxOpt.kdcCancelHandler) {
+        ajaxOpt.kdcCancelHandler();
+      }
+    },
     onPrimary: function () {
       this.hide();
       App.get('router.clusterController').createKerberosAdminSession(this.get('principal'), this.get('password'), ajaxOpt);

@@ -263,6 +263,7 @@ module.exports = App.WizardRoute.extend({
       }
     },
     next: function (router) {
+      router.get('kerberosWizardStep2Controller').createKerberosAdminSession(router.get('kerberosWizardStep4Controller.stepConfigs')[0].get('configs'));
       router.transitionTo('step6');
     }
   }),
@@ -305,15 +306,7 @@ module.exports = App.WizardRoute.extend({
       }
     },
     next: function (router) {
-      var addServiceController = router.get('addServiceController');
-      var wizardStep8Controller = router.get('wizardStep8Controller');
-      addServiceController.installServices(function () {
-        addServiceController.setInfoForStep9();
-
-        addServiceController.saveClusterState('ADD_SERVICES_INSTALLING_3');
-        wizardStep8Controller.set('servicesInstalled', true);
-        router.transitionTo('step7');
-      });
+      router.get('addServiceController').installServices();
     }
   }),
 
