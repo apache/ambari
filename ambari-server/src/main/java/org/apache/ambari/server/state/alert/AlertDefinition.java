@@ -37,6 +37,7 @@ import com.google.gson.annotations.SerializedName;
 public class AlertDefinition {
 
   private long clusterId;
+  private long definitionId;
   private String serviceName = null;
   private String componentName = null;
 
@@ -68,6 +69,21 @@ public class AlertDefinition {
    */
   public void setClusterId(long clusterId) {
     this.clusterId = clusterId;
+  }
+
+  /**
+   * @return the definitionId
+   */
+  public long getDefinitionId() {
+    return definitionId;
+  }
+
+  /**
+   * @param definitionId
+   *          the definitionId to set
+   */
+  public void setDefinitionId(long definitionId) {
+    this.definitionId = definitionId;
   }
 
   /**

@@ -35,8 +35,12 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
+import org.apache.ambari.server.orm.dao.AlertsDAO;
+import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
+import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
+import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
@@ -67,6 +71,7 @@ public class AlertEventPublisherTest {
 
   private AlertDispatchDAO dispatchDao;
   private AlertDefinitionDAO definitionDao;
+  private AlertsDAO alertsDao;
   private Clusters clusters;
   private Cluster cluster;
   private String clusterName;
@@ -100,6 +105,7 @@ public class AlertEventPublisherTest {
 
     dispatchDao = injector.getInstance(AlertDispatchDAO.class);
     definitionDao = injector.getInstance(AlertDefinitionDAO.class);
+    alertsDao = injector.getInstance(AlertsDAO.class);
     clusters = injector.getInstance(Clusters.class);
     serviceFactory = injector.getInstance(ServiceFactory.class);
     ormHelper = injector.getInstance(OrmTestHelper.class);
@@ -228,6 +234,54 @@ public class AlertEventPublisherTest {
     Assert.assertNotNull(aggregate);
     Assert.assertEquals("bar",
         aggregate.getSource().getReporting().getOk().getText());
+  }
+
+  @Test
+  public void testAlertDefinitionNameChangeEvent() throws Exception {
+    installHdfsService();
+    AlertDefinitionEntity definition = definitionDao.findAll().get(0);
+
+    // create 2 historical entries; one will be current
+    AlertHistoryEntity history = new AlertHistoryEntity();
+    history.setServiceName(definition.getServiceName());
+    history.setClusterId(cluster.getClusterId());
+    history.setAlertDefinition(definition);
+    history.setAlertLabel(definition.getLabel());
+    history.setAlertText(definition.getDefinitionName());
+    history.setAlertTimestamp(Long.valueOf(1L));
+    history.setHostName(null);
+    history.setAlertState(AlertState.OK);
+    alertsDao.create(history);
+
+    // this one will be current
+    AlertHistoryEntity history2 = new AlertHistoryEntity();
+    history2.setServiceName(definition.getServiceName());
+    history2.setClusterId(cluster.getClusterId());
+    history2.setAlertDefinition(definition);
+    history2.setAlertLabel(definition.getLabel());
+    history2.setAlertText(definition.getDefinitionName());
+    history2.setAlertTimestamp(Long.valueOf(1L));
+    history2.setHostName(null);
+    history2.setAlertState(AlertState.CRITICAL);
+
+    // current for the history
+    AlertCurrentEntity current = new AlertCurrentEntity();
+    current.setOriginalTimestamp(1L);
+    current.setLatestTimestamp(2L);
+    current.setAlertHistory(history2);
+    alertsDao.create(current);
+
+    // change the definition name
+    definition.setLabel("testAlertDefinitionNameChangeEvent");
+    definitionDao.merge(definition);
+
+    // the older history item will not have the label changed while
+    // the new one will
+    history = alertsDao.findById(history.getAlertId());
+    history2 = alertsDao.findById(history2.getAlertId());
+
+    Assert.assertFalse(definition.getLabel().equals(history.getAlertLabel()));
+    Assert.assertEquals(definition.getLabel(), history2.getAlertLabel());
   }
 
   /**

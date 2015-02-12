@@ -38,8 +38,7 @@ public class AlertDefinitionChangedEvent extends ClusterEvent {
    * @param definition
    *          the alert definition that was changed.
    */
-  public AlertDefinitionChangedEvent(long clusterId,
- AlertDefinition definition) {
+  public AlertDefinitionChangedEvent(long clusterId, AlertDefinition definition) {
     super(AmbariEventType.ALERT_DEFINITION_CHANGED, clusterId);
     m_definition = definition;
   }

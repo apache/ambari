@@ -156,14 +156,15 @@ public class AlertReceivedListener {
     } else if (alert.getState() == current.getAlertHistory().getAlertState()) {
       current.setLatestTimestamp(alert.getTimestamp());
       current.setLatestText(alert.getText());
-
       current = m_alertsDao.merge(current);
     } else {
-      LOG.debug(
-          "Alert State Changed: CurrentId {}, CurrentTimestamp {}, HistoryId {}, HistoryState {}",
-          current.getAlertId(), current.getLatestTimestamp(),
-          current.getAlertHistory().getAlertId(),
-          current.getAlertHistory().getAlertState());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
+            "Alert State Changed: CurrentId {}, CurrentTimestamp {}, HistoryId {}, HistoryState {}",
+            current.getAlertId(), current.getLatestTimestamp(),
+            current.getAlertHistory().getAlertId(),
+            current.getAlertHistory().getAlertState());
+      }
 
       AlertHistoryEntity oldHistory = current.getAlertHistory();
       AlertState oldState = oldHistory.getAlertState();
@@ -183,11 +184,13 @@ public class AlertReceivedListener {
 
       current = m_alertsDao.merge(current);
 
-      LOG.debug(
-          "Alert State Merged: CurrentId {}, CurrentTimestamp {}, HistoryId {}, HistoryState {}",
-          current.getAlertId(), current.getLatestTimestamp(),
-          current.getAlertHistory().getAlertId(),
-          current.getAlertHistory().getAlertState());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
+            "Alert State Merged: CurrentId {}, CurrentTimestamp {}, HistoryId {}, HistoryState {}",
+            current.getAlertId(), current.getLatestTimestamp(),
+            current.getAlertHistory().getAlertId(),
+            current.getAlertHistory().getAlertState());
+      }
 
       // broadcast the alert changed event for other subscribers
       AlertStateChangeEvent alertChangedEvent = new AlertStateChangeEvent(
@@ -317,8 +320,8 @@ public class AlertReceivedListener {
       AlertDefinitionEntity definition, Alert alert) {
     AlertHistoryEntity history = new AlertHistoryEntity();
     history.setAlertDefinition(definition);
+    history.setAlertLabel(definition.getLabel());
     history.setAlertInstance(alert.getInstance());
-    history.setAlertLabel(alert.getLabel());
     history.setAlertState(alert.getState());
     history.setAlertText(alert.getText());
     history.setAlertTimestamp(Long.valueOf(alert.getTimestamp()));

@@ -195,8 +195,10 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider {
    */
   private Resource toResource(boolean isCollection, String clusterName,
       AlertCurrentEntity entity, Set<String> requestedIds) {
-    Resource resource = new ResourceImpl(Resource.Type.Alert);
+    AlertHistoryEntity history = entity.getAlertHistory();
+    AlertDefinitionEntity definition = history.getAlertDefinition();
 
+    Resource resource = new ResourceImpl(Resource.Type.Alert);
     setResourceProperty(resource, ALERT_CLUSTER_NAME, clusterName, requestedIds);
     setResourceProperty(resource, ALERT_ID, entity.getAlertId(), requestedIds);
     setResourceProperty(resource, ALERT_LATEST_TIMESTAMP, entity.getLatestTimestamp(), requestedIds);
@@ -204,15 +206,14 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider {
     setResourceProperty(resource, ALERT_ORIGINAL_TIMESTAMP, entity.getOriginalTimestamp(), requestedIds);
     setResourceProperty(resource, ALERT_TEXT, entity.getLatestText(), requestedIds);
 
-    AlertHistoryEntity history = entity.getAlertHistory();
     setResourceProperty(resource, ALERT_INSTANCE, history.getAlertInstance(), requestedIds);
-    setResourceProperty(resource, ALERT_LABEL, history.getAlertLabel(), requestedIds);
+    setResourceProperty(resource, ALERT_LABEL, definition.getLabel(), requestedIds);
     setResourceProperty(resource, ALERT_STATE, history.getAlertState(), requestedIds);
     setResourceProperty(resource, ALERT_COMPONENT, history.getComponentName(), requestedIds);
     setResourceProperty(resource, ALERT_HOST, history.getHostName(), requestedIds);
     setResourceProperty(resource, ALERT_SERVICE, history.getServiceName(), requestedIds);
 
-    AlertDefinitionEntity definition = history.getAlertDefinition();
+
     setResourceProperty(resource, ALERT_DEFINITION_ID, definition.getDefinitionId(),requestedIds);
     setResourceProperty(resource, ALERT_DEFINITION_NAME, definition.getDefinitionName(), requestedIds);
     setResourceProperty(resource, ALERT_SCOPE, definition.getScope(), requestedIds);

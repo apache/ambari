@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.events.listeners.alerts;
 
+import java.util.List;
 import java.util.Set;
 
 import org.apache.ambari.server.EagerSingleton;
@@ -25,10 +26,14 @@ import org.apache.ambari.server.events.AlertDefinitionDeleteEvent;
 import org.apache.ambari.server.events.AlertDefinitionRegistrationEvent;
 import org.apache.ambari.server.events.AlertHashInvalidationEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.orm.dao.AlertsDAO;
+import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
+import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.state.alert.AggregateDefinitionMapping;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
 import org.apache.ambari.server.state.alert.SourceType;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,6 +75,12 @@ public class AlertLifecycleListener {
   private AmbariEventPublisher m_eventPublisher;
 
   /**
+   * Used for querying current alerts when an alert definition changes.
+   */
+  @Inject
+  private AlertsDAO m_alertsDao;
+
+  /**
    * Constructor.
    *
    * @param publisher
@@ -106,6 +117,7 @@ public class AlertLifecycleListener {
    * tasks:
    * <ul>
    * <li>Updating definition with {@link AggregateDefinitionMapping}</li>
+   * <li>Updating current alerts with definition label</li>
    * </ul>
    *
    * @param event
@@ -120,6 +132,18 @@ public class AlertLifecycleListener {
 
     if (definition.getSource().getType() == SourceType.AGGREGATE) {
       m_aggregateMapping.registerAggregate(event.getClusterId(), definition);
+    }
+
+    // update any current alerts
+    List<AlertCurrentEntity> currentAlerts = m_alertsDao.findCurrentByDefinitionId(definition.getDefinitionId());
+    for (AlertCurrentEntity current : currentAlerts) {
+      AlertHistoryEntity history = current.getAlertHistory();
+
+      // if the definition label changed, update the current alerts
+      if (!StringUtils.equals(definition.getLabel(), history.getAlertLabel())) {
+        history.setAlertLabel(definition.getLabel());
+        m_alertsDao.merge(history);
+      }
     }
   }
 

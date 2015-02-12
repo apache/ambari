@@ -133,6 +133,7 @@ public class AlertDataManagerTest {
       definition.setScope(Scope.SERVICE);
       definition.setSource("{\"type\" : \"SCRIPT\"}");
       definition.setSourceType(SourceType.SCRIPT);
+      definition.setLabel(ALERT_LABEL);
       m_definitionDao.create(definition);
     }
   }

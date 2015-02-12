@@ -178,6 +178,7 @@ public class AlertDefinitionFactory {
 
     AlertDefinition definition = new AlertDefinition();
     definition.setClusterId(entity.getClusterId());
+    definition.setDefinitionId(entity.getDefinitionId());
     definition.setComponentName(entity.getComponentName());
     definition.setEnabled(entity.getEnabled());
     definition.setHostIgnored(entity.isHostIgnored());

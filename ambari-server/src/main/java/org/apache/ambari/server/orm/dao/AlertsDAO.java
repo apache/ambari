@@ -293,9 +293,28 @@ public class AlertsDAO {
   }
 
   /**
+   * Gets the current alerts for the specified definition ID.
+   *
+   * @param definitionId
+   *          the ID of the definition to retrieve current alerts for.
+   * @return the current alerts for the definition or an empty list if none
+   *         exist (never {@code null}).
+   */
+  @RequiresSession
+  public List<AlertCurrentEntity> findCurrentByDefinitionId(long definitionId) {
+    TypedQuery<AlertCurrentEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertCurrentEntity.findByDefinitionId", AlertCurrentEntity.class);
+
+    query.setParameter("definitionId", Long.valueOf(definitionId));
+    query = setQueryRefreshHint(query);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
    * Gets the current alerts for a given cluster.
    *
-   * @return the current alerts for the given clusteror an empty list if none
+   * @return the current alerts for the given cluster or an empty list if none
    *         exist (never {@code null}).
    */
   @RequiresSession

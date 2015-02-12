@@ -213,6 +213,9 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
@@ -255,6 +258,9 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     return results;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public RequestStatus updateResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
@@ -317,6 +323,9 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     return getRequestStatus(null);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public RequestStatus deleteResources(Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
