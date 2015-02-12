@@ -385,18 +385,15 @@ public class KerberosHelperTest extends EasyMockSupport {
     expectLastCall().once();
 
     final Map<String, String> kerberosEnvProperties = createNiceMock(Map.class);
-    // TODO: (rlevas) Add when AMBARI 9121 is complete
-    // expect(kerberosEnvProperties.get("kdc_type")).andReturn("mit-kdc").once();
+    expect(kerberosEnvProperties.get("kdc_type")).andReturn("mit-kdc").once();
 
     final Config kerberosEnvConfig = createNiceMock(Config.class);
     expect(kerberosEnvConfig.getProperties()).andReturn(kerberosEnvProperties).once();
 
     final Map<String, String> krb5ConfProperties = createNiceMock(Map.class);
-    expect(krb5ConfProperties.get("kdc_type")).andReturn("mit-kdc").once();
     expect(krb5ConfProperties.get("realm")).andReturn("FOOBAR.COM").once();
 
     final Config krb5ConfConfig = createNiceMock(Config.class);
-    // TODO: (rlevas) Remove when AMBARI 9121 is complete
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).once();
 
     final Cluster cluster = createNiceMock(Cluster.class);
@@ -636,18 +633,15 @@ public class KerberosHelperTest extends EasyMockSupport {
     expectLastCall().once();
 
     final Map<String, String> kerberosEnvProperties = createNiceMock(Map.class);
-    // TODO: (rlevas) Add when AMBARI 9121 is complete
-    // expect(kerberosEnvProperties.get("kdc_type")).andReturn("mit-kdc").once();
+    expect(kerberosEnvProperties.get("kdc_type")).andReturn("mit-kdc").once();
 
     final Config kerberosEnvConfig = createNiceMock(Config.class);
     expect(kerberosEnvConfig.getProperties()).andReturn(kerberosEnvProperties).once();
 
     final Map<String, String> krb5ConfProperties = createNiceMock(Map.class);
-    expect(krb5ConfProperties.get("kdc_type")).andReturn("mit-kdc").once();
     expect(krb5ConfProperties.get("realm")).andReturn("FOOBAR.COM").once();
 
     final Config krb5ConfConfig = createNiceMock(Config.class);
-    // TODO: (rlevas) Remove when AMBARI 9121 is complete
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).once();
 
     final Cluster cluster = createNiceMock(Cluster.class);
@@ -862,18 +856,15 @@ public class KerberosHelperTest extends EasyMockSupport {
         .once();
 
     final Map<String, String> kerberosEnvProperties = createNiceMock(Map.class);
-    // TODO: (rlevas) Add when AMBARI 9121 is complete
-    // expect(kerberosEnvProperties.get("kdc_type")).andReturn("mit-kdc").once();
+    expect(kerberosEnvProperties.get("kdc_type")).andReturn("mit-kdc").once();
 
     final Config kerberosEnvConfig = createNiceMock(Config.class);
     expect(kerberosEnvConfig.getProperties()).andReturn(kerberosEnvProperties).once();
 
     final Map<String, String> krb5ConfProperties = createNiceMock(Map.class);
-    expect(krb5ConfProperties.get("kdc_type")).andReturn("mit-kdc").once();
     expect(krb5ConfProperties.get("realm")).andReturn("FOOBAR.COM").once();
 
     final Config krb5ConfConfig = createNiceMock(Config.class);
-    // TODO: (rlevas) Remove when AMBARI 9121 is complete
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).once();
 
     final Cluster cluster = createNiceMock(Cluster.class);
@@ -1143,18 +1134,15 @@ public class KerberosHelperTest extends EasyMockSupport {
         .once();
 
     final Map<String, String> kerberosEnvProperties = createNiceMock(Map.class);
-    // TODO: (rlevas) Add when AMBARI 9121 is complete
-    // expect(kerberosEnvProperties.get("kdc_type")).andReturn("mit-kdc").once();
+    expect(kerberosEnvProperties.get("kdc_type")).andReturn("mit-kdc").once();
 
     final Config kerberosEnvConfig = createNiceMock(Config.class);
     expect(kerberosEnvConfig.getProperties()).andReturn(kerberosEnvProperties).once();
 
     final Map<String, String> krb5ConfProperties = createNiceMock(Map.class);
-    expect(krb5ConfProperties.get("kdc_type")).andReturn("mit-kdc").once();
     expect(krb5ConfProperties.get("realm")).andReturn("FOOBAR.COM").once();
 
     final Config krb5ConfConfig = createNiceMock(Config.class);
-    // TODO: (rlevas) Remove when AMBARI 9121 is complete
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).once();
 
     final Cluster cluster = createNiceMock(Cluster.class);

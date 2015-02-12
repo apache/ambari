@@ -92,13 +92,6 @@
     <value/>
   </property>
   <property require-input="true">
-    <name>kdc_type</name>
-    <description>
-      The type of KDC being used. Either mit-kdc or active-directory
-    </description>
-    <value>mit-kdc</value>
-  </property>
-  <property require-input="true">
     <name>kdc_host</name>
     <description>
       The IP address or FQDN of the KDC or Active Directory server, optionally a port number may be

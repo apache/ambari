@@ -139,7 +139,7 @@
         "service_name" : "KERBEROS",
         "stack_name" : "HDP",
         "stack_version" : "2.2",
-        "type" : "krb5-conf.xml"
+        "type" : "kerberos-env.xml"
       }
     },
     {

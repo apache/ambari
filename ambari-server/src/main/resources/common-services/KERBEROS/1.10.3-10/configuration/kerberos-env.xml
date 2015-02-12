@@ -22,6 +22,14 @@
 
 <configuration supports_final="false">
   <property require-input="true">
+    <name>kdc_type</name>
+    <description>
+      The type of KDC being used. Either mit-kdc or active-directory
+    </description>
+    <value>mit-kdc</value>
+  </property>
+
+  <property require-input="true">
     <name>ldap_url</name>
     <description>
       The URL to the Active Directory LDAP Interface

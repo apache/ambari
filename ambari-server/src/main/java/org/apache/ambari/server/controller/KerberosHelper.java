@@ -705,18 +705,18 @@ public class KerberosHelper {
 
     KDCType kdcType = null;
     String kdcTypeProperty = kerberosEnvProperties.get("kdc_type");
-    if (kdcTypeProperty == null) {
-      // TODO: (rlevas) Only pull from kerberos-env, this is only for transitional purposes (AMBARI 9121)
-      kdcTypeProperty = krb5ConfProperties.get("kdc_type");
+    if(kdcTypeProperty == null) {
+      String message = "The 'kerberos-env/kdc_type' value must be set to a valid KDC type";
+      LOG.error(message);
+      throw new IllegalArgumentException(message);
     }
-    if (kdcTypeProperty != null) {
-      try {
-        kdcType = KDCType.translate(kdcTypeProperty);
-      } catch (IllegalArgumentException e) {
-        String message = String.format("Invalid 'kdc_type' value: %s", kdcTypeProperty);
-        LOG.error(message);
-        throw new AmbariException(message);
-      }
+
+    try {
+      kdcType = KDCType.translate(kdcTypeProperty);
+    } catch (IllegalArgumentException e) {
+      String message = String.format("Invalid 'kdc_type' value: %s", kdcTypeProperty);
+      LOG.error(message);
+      throw new AmbariException(message);
     }
 
     kerberosDetails.setSecurityType(cluster.getSecurityType());

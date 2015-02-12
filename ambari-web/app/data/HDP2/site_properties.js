@@ -1964,7 +1964,7 @@ var hdp2properties = [
     "isRequiredByAgent": true,
     "displayType": "masterHost",
     "serviceName": "KERBEROS",
-    "filename": "krb5-conf.xml",
+    "filename": "kerberos-env.xml",
     "category": "KDC",
     "index": 0
   },
