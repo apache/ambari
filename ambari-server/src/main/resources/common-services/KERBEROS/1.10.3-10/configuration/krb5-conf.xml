@@ -78,38 +78,10 @@
     </description>
     <value>true</value>
   </property>
-  <property>
-    <name>libdefaults_default_tgs_enctypes</name>
-    <description>
-      The supported list of session key encryption types that should be returned by the KDC.
-    </description>
-    <value>
-      aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96 des3-cbc-sha1 arcfour-hmac-md5
-      camellia256-cts-cmac camellia128-cts-cmac des-cbc-crc des-cbc-md5 des-cbc-md4
-    </value>
-  </property>
-  <property>
-    <name>libdefaults_default_tkt_enctypes</name>
-    <description>
-      The supported list of session key encryption types that should be requested by the client.
-    </description>
-    <value>
-      aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96 des3-cbc-sha1 arcfour-hmac-md5
-      camellia256-cts-cmac camellia128-cts-cmac des-cbc-crc des-cbc-md5 des-cbc-md4
-    </value>
-  </property>
-
-  <property require-input="true">
-    <name>realm</name>
-    <description>
-      The realm to use when creating Service and Ambari principals from the realms section of your /etc/krb5.conf (e.g. EXAMPLE.COM).
-    </description>
-    <value/>
-  </property>
   <property require-input="true">
     <name>domains</name>
     <description>
-      A comma-seperated list of domain names used to map server hostnames to the Realm name (e.g. .example.com,example.com). This is optional
+      A comma-separated list of domain names used to map server host names to the Realm name (e.g. .example.com,example.com). This is optional
     </description>
     <value/>
   </property>
@@ -126,6 +98,14 @@
       The IP address or FQDN for the KDC Kerberos administrative host. Optionally a port number may be included.
     </description>
     <value/>
+  </property>
+
+  <property>
+    <name>manage_krb5_conf</name>
+    <description>
+      Indicates whether your krb5.conf file should be managed by the wizard or should you manage it yourself
+    </description>
+    <value>true</value>
   </property>
 
 

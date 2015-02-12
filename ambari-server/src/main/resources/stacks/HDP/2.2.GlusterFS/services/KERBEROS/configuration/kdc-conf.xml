@@ -48,7 +48,7 @@
           acl_file = {{kadm5_acl_path}}
           dict_file = /usr/share/dict/words
           admin_keytab = {{kadm5_acl_dir}}/kadm5.keytab
-          supported_enctypes = {{libdefaults_default_tgs_enctypes}}
+          supported_enctypes = {{encryption_types}}
       }
 
       {# Append additional realm declarations below #}

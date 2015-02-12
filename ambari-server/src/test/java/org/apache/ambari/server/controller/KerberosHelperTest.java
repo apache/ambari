@@ -216,10 +216,12 @@ public class KerberosHelperTest extends EasyMockSupport {
   public void testMissingKerberosEnvConf() throws Exception {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
 
+    final Map<String, String> kerberosEnvProperties = createNiceMock(Map.class);
+    expect(kerberosEnvProperties.get("realm")).andReturn("EXAMPLE.COM").once();
+
     final Map<String, String> krb5ConfProperties = createNiceMock(Map.class);
     expect(krb5ConfProperties.get("kdc_host")).andReturn("10.0.100.1").once();
     expect(krb5ConfProperties.get("kadmin_host")).andReturn("10.0.100.1").once();
-    expect(krb5ConfProperties.get("realm")).andReturn("EXAMPLE.COM").once();
 
     final Config krb5ConfConfig = createNiceMock(Config.class);
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).once();
@@ -384,19 +386,20 @@ public class KerberosHelperTest extends EasyMockSupport {
     service2.setSecurityState(SecurityState.SECURED_KERBEROS);
     expectLastCall().once();
 
-    final Map<String, String> kerberosEnvProperties = createNiceMock(Map.class);
+    final Map<String, String> kerberosEnvProperties = createMock(Map.class);
     expect(kerberosEnvProperties.get("kdc_type")).andReturn("mit-kdc").once();
+    expect(kerberosEnvProperties.get("realm")).andReturn("FOOBAR.COM").once();
 
     final Config kerberosEnvConfig = createNiceMock(Config.class);
     expect(kerberosEnvConfig.getProperties()).andReturn(kerberosEnvProperties).once();
 
-    final Map<String, String> krb5ConfProperties = createNiceMock(Map.class);
-    expect(krb5ConfProperties.get("realm")).andReturn("FOOBAR.COM").once();
+    final Map<String, String> krb5ConfProperties = createMock(Map.class);
 
     final Config krb5ConfConfig = createNiceMock(Config.class);
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).once();
 
-    final Cluster cluster = createNiceMock(Cluster.class);
+    final Cluster cluster = createMock(Cluster.class);
+    expect(cluster.getClusterId()).andReturn(1L).anyTimes();
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).once();
     expect(cluster.getDesiredConfigByType("krb5-conf")).andReturn(krb5ConfConfig).once();
     expect(cluster.getDesiredConfigByType("kerberos-env")).andReturn(kerberosEnvConfig).once();
@@ -634,12 +637,12 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final Map<String, String> kerberosEnvProperties = createNiceMock(Map.class);
     expect(kerberosEnvProperties.get("kdc_type")).andReturn("mit-kdc").once();
+    expect(kerberosEnvProperties.get("realm")).andReturn("FOOBAR.COM").once();
 
     final Config kerberosEnvConfig = createNiceMock(Config.class);
     expect(kerberosEnvConfig.getProperties()).andReturn(kerberosEnvProperties).once();
 
     final Map<String, String> krb5ConfProperties = createNiceMock(Map.class);
-    expect(krb5ConfProperties.get("realm")).andReturn("FOOBAR.COM").once();
 
     final Config krb5ConfConfig = createNiceMock(Config.class);
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).once();
@@ -857,12 +860,12 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final Map<String, String> kerberosEnvProperties = createNiceMock(Map.class);
     expect(kerberosEnvProperties.get("kdc_type")).andReturn("mit-kdc").once();
+    expect(kerberosEnvProperties.get("realm")).andReturn("FOOBAR.COM").once();
 
     final Config kerberosEnvConfig = createNiceMock(Config.class);
     expect(kerberosEnvConfig.getProperties()).andReturn(kerberosEnvProperties).once();
 
     final Map<String, String> krb5ConfProperties = createNiceMock(Map.class);
-    expect(krb5ConfProperties.get("realm")).andReturn("FOOBAR.COM").once();
 
     final Config krb5ConfConfig = createNiceMock(Config.class);
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).once();
@@ -1135,12 +1138,12 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final Map<String, String> kerberosEnvProperties = createNiceMock(Map.class);
     expect(kerberosEnvProperties.get("kdc_type")).andReturn("mit-kdc").once();
+    expect(kerberosEnvProperties.get("realm")).andReturn("FOOBAR.COM").once();
 
     final Config kerberosEnvConfig = createNiceMock(Config.class);
     expect(kerberosEnvConfig.getProperties()).andReturn(kerberosEnvProperties).once();
 
     final Map<String, String> krb5ConfProperties = createNiceMock(Map.class);
-    expect(krb5ConfProperties.get("realm")).andReturn("FOOBAR.COM").once();
 
     final Config krb5ConfConfig = createNiceMock(Config.class);
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).once();

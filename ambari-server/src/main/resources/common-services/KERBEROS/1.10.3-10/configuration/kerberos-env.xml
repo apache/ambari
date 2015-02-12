@@ -46,6 +46,25 @@
   </property>
 
   <property require-input="true">
+    <name>encryption_types</name>
+    <description>
+      The supported list of session key encryption types that should be returned by the KDC.
+    </description>
+    <value>
+      aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96 des3-cbc-sha1 arcfour-hmac-md5 camellia256-cts-cmac camellia128-cts-cmac des-cbc-crc des-cbc-md5 des-cbc-md4
+    </value>
+  </property>
+
+  <property require-input="true">
+    <name>realm</name>
+    <description>
+      The default realm to use when creating service principals
+    </description>
+    <value></value>
+  </property>
+
+
+    <property require-input="true">
     <name>create_attributes_template</name>
     <description>
       A Velocity template to use to generate a JSON-formatted document containing the set of

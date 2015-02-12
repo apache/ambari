@@ -54,36 +54,6 @@
     <name>libdefaults_forwardable</name>
     <value>true</value>
   </property>
-  <property>
-    <name>libdefaults_default_tgs_enctypes</name>
-    <description>
-      a space-delimited list of session key encryption types supported by the KDC or Active
-      Directory
-    </description>
-    <value>
-      aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96 des3-cbc-sha1 arcfour-hmac-md5
-      camellia256-cts-cmac camellia128-cts-cmac des-cbc-crc des-cbc-md5 des-cbc-md4
-    </value>
-  </property>
-  <property>
-    <name>libdefaults_default_tkt_enctypes</name>
-    <description>
-      a space-delimited list of session key encryption types supported by the KDC or Active
-      Directory
-    </description>
-    <value>
-      aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96 des3-cbc-sha1 arcfour-hmac-md5
-      camellia256-cts-cmac camellia128-cts-cmac des-cbc-crc des-cbc-md5 des-cbc-md4
-    </value>
-  </property>
-
-  <property require-input="true">
-    <name>realm</name>
-    <description>
-      The realm to use when creating service principals
-    </description>
-    <value/>
-  </property>
   <property require-input="true">
     <name>domains</name>
     <description>
@@ -134,6 +104,13 @@
     </value>
   </property>
 
+  <property>
+    <name>manage_krb5_conf</name>
+    <description>
+      Indicates weather the Kerberos client krb5.conf file should be managed by Ambari or you will manage manually
+    </description>
+    <value>true</value>
+  </property>
 
   <property>
     <name>conf_dir</name>

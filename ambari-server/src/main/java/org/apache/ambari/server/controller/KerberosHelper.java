@@ -708,7 +708,7 @@ public class KerberosHelper {
       throw new AmbariException(message);
     }
 
-    KDCType kdcType = null;
+    KDCType kdcType;
     String kdcTypeProperty = kerberosEnvProperties.get("kdc_type");
     if(kdcTypeProperty == null) {
       String message = "The 'kerberos-env/kdc_type' value must be set to a valid KDC type";
@@ -725,7 +725,7 @@ public class KerberosHelper {
     }
 
     kerberosDetails.setSecurityType(cluster.getSecurityType());
-    kerberosDetails.setDefaultRealm(krb5ConfProperties.get("realm"));
+    kerberosDetails.setDefaultRealm(kerberosEnvProperties.get("realm"));
 
     // Set the KDCType to the the MIT_KDC as a fallback.
     kerberosDetails.setKdcType((kdcType == null) ? KDCType.MIT_KDC : kdcType);

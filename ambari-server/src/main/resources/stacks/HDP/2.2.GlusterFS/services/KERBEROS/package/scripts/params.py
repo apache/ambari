@@ -116,7 +116,17 @@ if config is not None:
 
   krb5_conf_template = None
 
+  encryption_types = None
+  manage_krb5_conf = "true"
+  krb5_conf_template = None
+
   krb5_conf_data = get_property_value(configurations, 'krb5-conf')
+
+  kerberos_env = get_property_value(configurations, "kerberos-env")
+
+  if kerberos_env is not None:
+    encryption_types = get_property_value(kerberos_env, "encryption_types", None)
+    realm = get_property_value(kerberos_env, "realm", None)
 
   if krb5_conf_data is not None:
     logging_default = get_property_value(krb5_conf_data, 'logging_default', logging_default)
@@ -136,10 +146,10 @@ if config is not None:
                                                  libdefaults_forwardable)
     libdefaults_default_tgs_enctypes = get_property_value(krb5_conf_data,
                                                           'libdefaults_default_tgs_enctypes',
-                                                          libdefaults_default_tgs_enctypes)
+                                                          encryption_types)
     libdefaults_default_tkt_enctypes = get_property_value(krb5_conf_data,
                                                           'libdefaults_default_tkt_enctypes',
-                                                          libdefaults_default_tkt_enctypes)
+                                                          encryption_types)
     realm = get_property_value(krb5_conf_data, 'realm', realm)
     domains = get_property_value(krb5_conf_data, 'domains', domains)
     kdc_host = get_property_value(krb5_conf_data, 'kdc_host', kdc_host)
@@ -172,6 +182,9 @@ if config is not None:
     krb5_conf_dir = get_property_value(krb5_conf_data, 'conf_dir', krb5_conf_dir)
     krb5_conf_file = get_property_value(krb5_conf_data, 'conf_file', krb5_conf_file)
     krb5_conf_path = krb5_conf_dir + '/' + krb5_conf_file
+
+    manage_krb5_conf = get_property_value(krb5_conf_data, 'manage_krb5_conf',
+                                          "true")
 
   # ################################################################################################
   # Get kdc.conf template data

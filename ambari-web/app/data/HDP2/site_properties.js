@@ -1989,7 +1989,7 @@ var hdp2properties = [
     "isVisible": true,
     "isRequiredByAgent": true,
     "serviceName": "KERBEROS",
-    "filename": "krb5-conf.xml",
+    "filename": "kerberos-env.xml",
     "category": "KDC",
     "index": 2
   },
@@ -2021,6 +2021,14 @@ var hdp2properties = [
     "serviceName": "KERBEROS",
     "filename": "kerberos-env.xml",
     "displayType": "content",
+    "category": "Advanced kerberos-env"
+  },
+  {
+    "id": "puppet var",
+    "name": "encryption_types",
+    "displayName": "Encryption Types",
+    "serviceName": "KERBEROS",
+    "filename": "kerberos-env.xml",
     "category": "Advanced kerberos-env"
   },
   {

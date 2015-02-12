@@ -28,7 +28,8 @@ class KerberosClient(KerberosScript):
   def configure(self, env):
     import params
     env.set_params(params)
-    self.write_krb5_conf()
+    if params.manage_krb5_conf:
+      self.write_krb5_conf()
 
   def status(self, env):
     raise ClientComponentHasNoStatus()

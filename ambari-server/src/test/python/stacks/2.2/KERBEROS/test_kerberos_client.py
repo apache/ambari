@@ -81,6 +81,20 @@ class TestKerberosClient(RMFTestCase):
                               group='root',
                               mode=0644)
 
+  def test_configure_unmanaged_kdc_and_krb5conf(self):
+    json_data = use_cases.get_unmanged_krb5conf_use_case()
+
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/kerberos_client.py",
+                       classname="KerberosClient",
+                       command="configure",
+                       config_dict=json_data,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+
+    self.assertNoMoreResources()
+
   def test_configure_unmanaged_ad(self):
     json_data = use_cases.get_unmanged_ad_use_case()
 
