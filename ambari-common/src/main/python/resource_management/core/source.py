@@ -22,14 +22,12 @@ Ambari Agent
 
 from __future__ import with_statement
 from resource_management.core.environment import Environment
-from resource_management.core.logger import Logger
-from resource_management.core.exceptions import Fail
 from resource_management.core.utils import checked_unite
 
 __all__ = ["Source", "Template", "InlineTemplate", "StaticFile", "DownloadSource"]
 
+import hashlib
 import os
-import time
 import urllib2
 import urlparse
 
@@ -138,53 +136,36 @@ else:
 
 
 class DownloadSource(Source):
-  """
-  redownload_files = True/False -- if file with the same name exists in tmp_dir
-  it won't be downloaded again (be if files are different this won't replace them)
-  
-  ignore_proxy = True/False -- determines if http_proxy / https_proxy environment variables
-  should be ignored or not
-  """
-    
-  def __init__(self, name, redownload_files=False, ignore_proxy=True):
+  def __init__(self, name, cache=True, md5sum=None):
     super(DownloadSource, self).__init__(name)
-
     self.url = self.name
-    self.cache = not redownload_files and bool(self.env.tmp_dir)
-    self.download_path = self.env.tmp_dir
-    self.ignore_proxy = ignore_proxy
+    self.md5sum = md5sum
+    self.cache = cache
+    if not 'download_path' in self.env.config:
+      self.env.config.download_path = '/var/tmp/downloads'
+    if not os.path.exists(self.env.config.download_path):
+      os.makedirs(self.env.config.download_path)
 
   def get_content(self):
-    if self.download_path and not os.path.exists(self.download_path):
-      raise Fail("Directory {0} doesn't exist, please provide valid download path".format(self.download_path))
-    
-    if urlparse.urlparse(self.url).path:
-      filename = os.path.basename(urlparse.urlparse(self.url).path)
-    else:
-      filename = 'index.html.{0}'.format(time.time())
-    
-    if self.cache:  
-      filepath = os.path.join(self.download_path, filename)
-    
-    if not self.cache or not os.path.exists(filepath):
-      Logger.info("Downloading the file from {0}".format(self.url))
-      
-      if self.ignore_proxy:
-        opener = urllib2.build_opener(urllib2.ProxyHandler({}))
-      else:
-        opener = urllib2.build_opener()
-      
-      req = urllib2.Request(self.url)
-      web_file = opener.open(req)
+    filepath = os.path.basename(urlparse.urlparse(self.url).path)
+    content = None
+    if not self.cache or not os.path.exists(
+      os.path.join(self.env.config.download_path, filepath)):
+      web_file = urllib2.urlopen(self.url)
       content = web_file.read()
-
-      if self.cache:
-        with open(filepath, 'w') as fp:
-          fp.write(content)
     else:
-      Logger.info("Not downloading the file from {0}, because {1} already exists".format(self.url, filepath))
-        
-      with open(filepath) as fp:
+      update = False
+      with open(os.path.join(self.env.config.download_path, filepath)) as fp:
         content = fp.read()
-
+      if self.md5sum:
+        m = hashlib.md5(content)
+        md5 = m.hexdigest()
+        if md5 != self.md5sum:
+          web_file = urllib2.urlopen(self.url)
+          content = web_file.read()
+          update = True
+      if self.cache and update:
+        with open(os.path.join(self.env.config.download_path, filepath),
+                  'w') as fp:
+          fp.write(content)
     return content

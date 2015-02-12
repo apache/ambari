@@ -35,12 +35,16 @@ def setup_java():
   if not params.jdk_name:
     return
 
-  Directory(params.artifact_dir,
-      recursive = True,
-  )
-  File(jdk_curl_target,
-       content = DownloadSource(format("{jdk_location}/{jdk_name}")),
-  )
+  environment = {
+    "no_proxy": format("{ambari_server_hostname}")
+  }
+
+  Execute(format("mkdir -p {artifact_dir} ; \
+  curl -kf -x \"\" \
+  --retry 10 {jdk_location}/{jdk_name} -o {jdk_curl_target}"),
+          path = ["/bin","/usr/bin/"],
+          not_if = format("test -e {java_exec}"),
+          environment = environment)
 
   if params.jdk_name.endswith(".bin"):
     chmod_cmd = ("chmod", "+x", jdk_curl_target)

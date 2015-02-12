@@ -31,9 +31,15 @@ def setup_ranger_hive():
   import params
 
   if params.has_ranger_admin:
-    File(params.ranger_downloaded_custom_connector,
-         content = DownloadSource(params.ranger_driver_curl_source),
-    )
+
+    environment = {"no_proxy": format("{params.ambari_server_hostname}")}
+
+    Execute(('curl', '-kf', '-x', "", '--retry', '10', params.ranger_driver_curl_source, '-o',
+            params.ranger_downloaded_custom_connector),
+            not_if=format("test -f {params.ranger_downloaded_custom_connector}"),
+            path=["/bin", "/usr/bin/"],
+            environment=environment,
+            sudo=True)
 
     if not os.path.isfile(params.ranger_driver_curl_target):
       Execute(('cp', '--remove-destination', params.ranger_downloaded_custom_connector, params.ranger_driver_curl_target),

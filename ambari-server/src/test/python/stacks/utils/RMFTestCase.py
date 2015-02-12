@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-__all__ = ["RMFTestCase", "Template", "StaticFile", "InlineTemplate", "DownloadSource", "UnknownConfigurationMock", "FunctionMock",
+__all__ = ["RMFTestCase", "Template", "StaticFile", "InlineTemplate", "UnknownConfigurationMock", "FunctionMock",
            "CallFunctionMock"]
 
 from unittest import TestCase
@@ -244,14 +244,7 @@ def InlineTemplate(name, **kwargs):
   with RMFTestCase.env:
     from resource_management.core.source import InlineTemplate
     return InlineTemplate(name, **kwargs)
-  
-class DownloadSource():
-  def __init__(self, name, **kwargs):
-    self.name = name
-  
-  def __eq__(self, other):
-    from resource_management.core.source import DownloadSource
-    return isinstance(other, DownloadSource) and self.name == other.name
+
 
 class UnknownConfigurationMock():
   def __eq__(self, other):

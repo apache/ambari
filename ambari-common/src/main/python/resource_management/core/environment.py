@@ -39,25 +39,24 @@ from resource_management.core.logger import Logger
 class Environment(object):
   _instances = []
 
-  def __init__(self, basedir=None, tmp_dir=None, test_mode=False, logging_level=logging.INFO):
+  def __init__(self, basedir=None, test_mode=False, logging_level=logging.INFO):
     """
     @param basedir: basedir/files, basedir/templates are the places where templates / static files
     are looked up
     @param test_mode: if this is enabled, resources won't be executed until manualy running env.run().
-    """   
-    self.reset(basedir, test_mode, tmp_dir)
+    """
+    self.reset(basedir, test_mode)
     
     if not Logger.logger:
       Logger.initialize_logger(logging_level)
 
-  def reset(self, basedir, test_mode, tmp_dir):
+  def reset(self, basedir, test_mode):
     self.system = System.get_instance()
     self.config = AttributeDictionary()
     self.resources = {}
     self.resource_list = []
     self.delayed_actions = set()
     self.test_mode = test_mode
-    self.tmp_dir = tmp_dir
     self.update_config({
       # current time
       'date': datetime.now(),

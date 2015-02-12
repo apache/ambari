@@ -29,7 +29,7 @@ from symbol import parameters
 logger = logging.getLogger()
 
 class ScriptAlert(BaseAlert):
-  def __init__(self, alert_meta, alert_source_meta, config):
+  def __init__(self, alert_meta, alert_source_meta):
     """ ScriptAlert reporting structure is output from the script itself """
     
     alert_source_meta['reporting'] = {
@@ -41,7 +41,6 @@ class ScriptAlert(BaseAlert):
     
     super(ScriptAlert, self).__init__(alert_meta, alert_source_meta)
     
-    self.config = config
     self.path = None
     self.stacks_dir = None
     self.common_services_dir = None
@@ -91,7 +90,7 @@ class ScriptAlert(BaseAlert):
       matchObj = re.match( r'((.*)services\/(.*)\/package\/)', self.path_to_script)
       if matchObj:
         basedir = matchObj.group(1)
-        with Environment(basedir, tmp_dir=self.config.get.get('agent', 'tmp_dir')) as env:
+        with Environment(basedir) as env:
           return cmd_module.execute(parameters, self.host_name)
       else:
         return cmd_module.execute(parameters, self.host_name)

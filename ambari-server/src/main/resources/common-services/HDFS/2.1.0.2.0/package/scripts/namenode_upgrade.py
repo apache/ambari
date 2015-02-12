@@ -23,7 +23,7 @@ from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
 from resource_management.core.shell import call
-from resource_management.libraries.functions import Direction, SafeMode
+from resource_management.core.constants import Direction, SafeMode
 from resource_management.core.exceptions import Fail
 
 
