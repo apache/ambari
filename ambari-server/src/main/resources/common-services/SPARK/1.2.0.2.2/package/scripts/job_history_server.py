@@ -66,6 +66,10 @@ class JobHistoryServer(Script):
     env.set_params(params)
     self.configure(env)
 
+    if params.security_enabled:
+      spark_kinit_cmd = format("{kinit_path_local} -kt {spark_kerberos_keytab} {spark_principal}; ")
+      Execute(spark_kinit_cmd, user=params.spark_user)
+
     # FIXME! TODO! remove this after soft link bug is fixed:
     if not os.path.islink('/usr/hdp/current/spark'):
       hdp_version = get_hdp_version()

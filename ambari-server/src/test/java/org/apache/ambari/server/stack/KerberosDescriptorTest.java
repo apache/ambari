@@ -141,6 +141,14 @@ public class KerberosDescriptorTest {
     Assert.notNull(descriptor.getService("ZOOKEEPER"));
   }
 
+  @Test
+  public void testCommonSparkServiceDescriptor() throws IOException {
+    KerberosDescriptor descriptor = getKerberosDescriptor(commonServicesDirectory, "SPARK", "1.2.0.2.2");
+    Assert.notNull(descriptor);
+    Assert.notNull(descriptor.getServices());
+    Assert.notNull(descriptor.getService("SPARK"));
+  }
+
   private KerberosDescriptor getKerberosDescriptor(File baseDirectory, String service, String version) throws IOException {
     File serviceDirectory = new File(baseDirectory, service);
     File serviceVersionDirectory = new File(serviceDirectory, version);

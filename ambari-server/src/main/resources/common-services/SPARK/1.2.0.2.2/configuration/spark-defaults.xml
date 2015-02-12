@@ -86,4 +86,14 @@
     <value></value>
   </property>
 
+  <property>
+    <name>spark.history.kerberos.principal</name>
+    <value>none</value>
+  </property>
+
+  <property>
+    <name>spark.history.kerberos.keytab</name>
+    <value>none</value>
+  </property>
+
 </configuration>
