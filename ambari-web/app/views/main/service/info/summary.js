@@ -251,12 +251,8 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
     return App.AlertDefinition.find().someProperty('serviceName', this.get('controller.content.serviceName'));
   }.property('controller.content.serviceName'),
 
-  restartRequiredHostsAndComponents:function () {
-    return this.get('controller.content.restartRequiredHostsAndComponents');
-  }.property('controller.content.restartRequiredHostsAndComponents'),
-
   updateComponentInformation: function() {
-    var hc = this.get('restartRequiredHostsAndComponents');
+    var hc = this.get('controller.content.restartRequiredHostsAndComponents');
     var hostsCount = 0;
     var componentsCount = 0;
     for (var host in hc) {
@@ -265,7 +261,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
     }
     this.set('componentsCount', componentsCount);
     this.set('hostsCount', hostsCount);
-  }.observes('restartRequiredHostsAndComponents'),
+  }.observes('controller.content.restartRequiredHostsAndComponents'),
 
   rollingRestartSlaveComponentName : function() {
     return batchUtils.getRollingRestartComponentName(this.get('serviceName'));
@@ -278,14 +274,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
     }
     return label;
   }.property('rollingRestartSlaveComponentName'),
-  showComponentsShouldBeRestarted: function () {
-    var rhc = this.get('restartRequiredHostsAndComponents');
-    App.router.get('mainServiceInfoConfigsController').showComponentsShouldBeRestarted(rhc);
-  },
-  showHostsShouldBeRestarted: function () {
-    var rhc = this.get('restartRequiredHostsAndComponents');
-    App.router.get('mainServiceInfoConfigsController').showHostsShouldBeRestarted(rhc);
-  },
+
   restartAllStaleConfigComponents: function () {
     var self = this;
     var serviceDisplayName = this.get('service.displayName');

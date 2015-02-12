@@ -2387,9 +2387,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
   /**
    * trigger showItemsShouldBeRestarted popup with hosts that requires resetart
+   * @param event
    * @method showHostsShouldBeRestarted
    */
-  showHostsShouldBeRestarted: function (restartRequiredHostsAndComponents) {
+  showHostsShouldBeRestarted: function (event) {
+    var restartRequiredHostsAndComponents = event.context;
     var hosts = [];
     for (var hostName in restartRequiredHostsAndComponents) {
       hosts.push(hostName);
@@ -2401,9 +2403,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
   /**
    * trigger showItemsShouldBeRestarted popup with components that requires resetart
+   * @param event
    * @method showComponentsShouldBeRestarted
    */
-  showComponentsShouldBeRestarted: function (restartRequiredHostsAndComponents) {
+  showComponentsShouldBeRestarted: function (event) {
+    var restartRequiredHostsAndComponents = event.context;
     var hostsComponets = [];
     var componentsObject = {};
     for (var hostName in restartRequiredHostsAndComponents) {

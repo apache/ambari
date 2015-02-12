@@ -194,15 +194,19 @@ describe("App.MainServiceInfoConfigsController", function () {
     var tests = [
       {
         input: {
-          'publicHostName1': ['TaskTracker'],
-          'publicHostName2': ['JobTracker', 'TaskTracker']
+          context: {
+            'publicHostName1': ['TaskTracker'],
+            'publicHostName2': ['JobTracker', 'TaskTracker']
+          }
         },
         components: "2 TaskTrackers, 1 JobTracker",
         text: Em.I18n.t('service.service.config.restartService.shouldBeRestarted').format(Em.I18n.t('common.components'))
       },
       {
         input: {
-          'publicHostName1': ['TaskTracker']
+          context: {
+            'publicHostName1': ['TaskTracker']
+          }
         },
         components: "1 TaskTracker",
         text: Em.I18n.t('service.service.config.restartService.shouldBeRestarted').format(Em.I18n.t('common.component'))
@@ -229,15 +233,19 @@ describe("App.MainServiceInfoConfigsController", function () {
     var tests = [
       {
         input: {
-          'publicHostName1': ['TaskTracker'],
-          'publicHostName2': ['JobTracker', 'TaskTracker']
+          context: {
+            'publicHostName1': ['TaskTracker'],
+            'publicHostName2': ['JobTracker', 'TaskTracker']
+          }
         },
         hosts: "publicHostName1, publicHostName2",
         text: Em.I18n.t('service.service.config.restartService.shouldBeRestarted').format(Em.I18n.t('common.hosts'))
       },
       {
         input: {
-          'publicHostName1': ['TaskTracker']
+          context: {
+            'publicHostName1': ['TaskTracker']
+          }
         },
         hosts: "publicHostName1",
         text: Em.I18n.t('service.service.config.restartService.shouldBeRestarted').format(Em.I18n.t('common.host'))
