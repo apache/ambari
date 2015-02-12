@@ -67,10 +67,11 @@ public class SecondaryNamenodeDeletedCheck extends AbstractCheckDescriptor {
         hosts = serviceComponent.getServiceComponentHosts().keySet();
       }
     } catch (ServiceComponentNotFoundException err) {
+      // This exception can be ignored if the component doesn't exist because it is a best-attempt at finding it.
       ;
     }
 
-    // Try another method
+    // Try another method to find references to SECONDARY_NAMENODE
     if (hosts.isEmpty()) {
       List<HostComponentStateEntity> allHostComponents = hostComponentStateDao.findAll();
       for(HostComponentStateEntity hc : allHostComponents) {
@@ -83,7 +84,7 @@ public class SecondaryNamenodeDeletedCheck extends AbstractCheckDescriptor {
     if (!hosts.isEmpty()) {
       prerequisiteCheck.getFailedOn().add(SECONDARY_NAMENODE);
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason("The SECONDARY_NAMENODE component must be deleted from host(s): " + StringUtils.join(hosts, ", ") + ". Please use the REST API to delete it.");
+      prerequisiteCheck.setFailReason("The SECONDARY_NAMENODE component must be deleted from host(s): " + StringUtils.join(hosts, ", ") + ". Please delete it from the Host Components.");
     }
   }
 }
