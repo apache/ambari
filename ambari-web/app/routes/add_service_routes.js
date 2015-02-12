@@ -263,7 +263,9 @@ module.exports = App.WizardRoute.extend({
       }
     },
     next: function (router) {
-      router.get('kerberosWizardStep2Controller').createKerberosAdminSession(router.get('kerberosWizardStep4Controller.stepConfigs')[0].get('configs'));
+      if (App.supports.automatedKerberos && router.get('mainAdminKerberosController.securityEnabled')) {
+        router.get('kerberosWizardStep2Controller').createKerberosAdminSession(router.get('kerberosWizardStep4Controller.stepConfigs')[0].get('configs'));
+      }
       router.transitionTo('step6');
     }
   }),
