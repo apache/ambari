@@ -29,7 +29,7 @@ App.MainAdminView = Em.View.extend({
       label: Em.I18n.t('admin.stackUpgrade.title')
     });
     items.push({
-      name: 'serviceAccounts',
+      name: 'adminServiceAccounts',
       url: 'adminServiceAccounts',
       label: Em.I18n.t('common.serviceAccounts')
     });

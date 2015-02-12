@@ -157,7 +157,8 @@ App.MainMenuView = Em.CollectionView.extend({
       goToCategory: function (event) {
         var itemName = this.get('parentView').get('content').routing;
         // route to correct category of current menu item
-        if (itemName == 'admin') {
+        // skip routing to already selected category
+        if (itemName === 'admin' && !this.get('isActive')) {
           App.router.route('main/admin/' + event.context);
         }
       }

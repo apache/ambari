@@ -499,7 +499,7 @@ module.exports = Em.Route.extend({
     adminServiceAccounts: Em.Route.extend({
       route: '/serviceAccounts',
       connectOutlets: function (router) {
-        router.set('mainAdminController.category', "serviceAccounts");
+        router.set('mainAdminController.category', "adminServiceAccounts");
         router.get('mainAdminController').connectOutlet('mainAdminServiceAccounts');
       }
     }),
