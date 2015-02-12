@@ -180,7 +180,8 @@ class Script(object):
     # Run class method depending on a command type
     try:
       method = self.choose_method_to_execute(command_name)
-      with Environment(self.basedir) as env:
+      with Environment(self.basedir, tmp_dir=Script.tmp_dir) as env:
+        env.config.download_path = Script.tmp_dir
         method(env)
 
         # For start actions, try to advertise the component's version

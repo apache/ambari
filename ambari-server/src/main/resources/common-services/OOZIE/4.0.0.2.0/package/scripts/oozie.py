@@ -76,20 +76,12 @@ def oozie(is_server=False # TODO: see if see can remove this
            group = params.user_group
     )
 
-  environment = {
-    "no_proxy": format("{ambari_server_hostname}")
-  }
-
   if params.jdbc_driver_name == "com.mysql.jdbc.Driver" or \
      params.jdbc_driver_name == "com.microsoft.sqlserver.jdbc.SQLServerDriver" or \
      params.jdbc_driver_name == "org.postgresql.Driver" or \
      params.jdbc_driver_name == "oracle.jdbc.driver.OracleDriver":
-    Execute(format("/bin/sh -c 'cd /usr/lib/ambari-agent/ &&\
-    curl -kf -x \"\" \
-    --retry 5 {jdk_location}{check_db_connection_jar_name}\
-     -o {check_db_connection_jar_name}'"),
-      not_if  = format("[ -f {check_db_connection_jar} ]"),
-      environment=environment
+    File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
+      content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),
     )
   pass
 
@@ -157,17 +149,9 @@ def oozie_server_specific():
   if params.jdbc_driver_name=="com.mysql.jdbc.Driver" or \
      params.jdbc_driver_name == "com.microsoft.sqlserver.jdbc.SQLServerDriver" or \
      params.jdbc_driver_name=="oracle.jdbc.driver.OracleDriver":
-
-    environment = {
-      "no_proxy": format("{ambari_server_hostname}")
-    }
-
-    Execute(('curl', '-kf', '-x', "", '--retry', '10', params.driver_curl_source, '-o',
-             params.downloaded_custom_connector),
-            not_if=format("test -f {downloaded_custom_connector}"),
-            path=["/bin", "/usr/bin/"],
-            environment=environment,
-            sudo = True)
+    File(params.downloaded_custom_connector,
+         content = DownloadSource(params.driver_curl_source),
+    )
 
 
     Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.target),

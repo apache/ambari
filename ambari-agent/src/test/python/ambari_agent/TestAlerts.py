@@ -55,7 +55,7 @@ class TestAlerts(TestCase):
     test_common_services_path = os.path.join('ambari_agent', 'dummy_files')
     test_host_scripts_path = os.path.join('ambari_agent', 'dummy_files')
 
-    ash = AlertSchedulerHandler(test_file_path, test_stack_path, test_common_services_path, test_host_scripts_path)
+    ash = AlertSchedulerHandler(test_file_path, test_stack_path, test_common_services_path, test_host_scripts_path, None)
     ash.start()
 
     self.assertTrue(aps_add_interval_job_mock.called)
@@ -221,7 +221,7 @@ class TestAlerts(TestCase):
     json['source']['host_scripts_directory'] = os.path.join('ambari_agent', 'host_scripts')
 
     collector = AlertCollector()
-    sa = ScriptAlert(json, json['source'])
+    sa = ScriptAlert(json, json['source'], MagicMock())
     sa.set_helpers(collector, {'foo-site/bar': 'rendered-bar', 'foo-site/baz':'rendered-baz'} )
     self.assertEquals(json['source']['path'], sa.path)
     self.assertEquals(json['source']['stacks_directory'], sa.stacks_dir)
@@ -490,7 +490,7 @@ class TestAlerts(TestCase):
     test_common_services_path = os.path.join('ambari_agent', 'dummy_files')
     test_host_scripts_path = os.path.join('ambari_agent', 'dummy_files')
     
-    ash = AlertSchedulerHandler(test_file_path, test_stack_path, test_common_services_path, test_host_scripts_path)
+    ash = AlertSchedulerHandler(test_file_path, test_stack_path, test_common_services_path, test_host_scripts_path, None)
     ash.start()
 
     self.assertEquals(1, ash.get_job_count())
@@ -546,7 +546,7 @@ class TestAlerts(TestCase):
     test_common_services_path = os.path.join('ambari_agent', 'dummy_files')
     test_host_scripts_path = os.path.join('ambari_agent', 'dummy_files')
 
-    ash = AlertSchedulerHandler(test_file_path, test_stack_path, test_common_services_path, test_host_scripts_path)
+    ash = AlertSchedulerHandler(test_file_path, test_stack_path, test_common_services_path, test_host_scripts_path, None)
     ash.start()
 
     self.assertEquals(1, ash.get_job_count())
@@ -599,7 +599,7 @@ class TestAlerts(TestCase):
     test_common_services_path = os.path.join('ambari_agent', 'dummy_files')
     test_host_scripts_path = os.path.join('ambari_agent', 'dummy_files')
 
-    ash = AlertSchedulerHandler(test_file_path, test_stack_path, test_common_services_path, test_host_scripts_path)
+    ash = AlertSchedulerHandler(test_file_path, test_stack_path, test_common_services_path, test_host_scripts_path, None)
     ash.start()
 
     self.assertEquals(1, ash.get_job_count())
@@ -660,7 +660,7 @@ class TestAlerts(TestCase):
     json['source']['host_scripts_directory'] = os.path.join('ambari_agent', 'host_scripts')
 
     collector = AlertCollector()
-    sa = ScriptAlert(json, json['source'])
+    sa = ScriptAlert(json, json['source'], None)
 
     # instruct the test alert script to be skipped
     sa.set_helpers(collector, {'foo-site/skip': 'true'} )
@@ -690,7 +690,7 @@ class TestAlerts(TestCase):
       }
     }
 
-    alert = ScriptAlert(json, json['source'])
+    alert = ScriptAlert(json, json['source'], None)
     self.assertEquals(alert._get_reporting_text(alert.RESULT_OK), '{0}')
     self.assertEquals(alert._get_reporting_text(alert.RESULT_WARNING), '{0}')
     self.assertEquals(alert._get_reporting_text(alert.RESULT_CRITICAL), '{0}')
@@ -738,7 +738,7 @@ class TestAlerts(TestCase):
       all_commands = json.load(fp)
     all_commands[0]['configurations']['hdfs-site'].update({"dfs.namenode.http-address": "c6401.ambari.apache.org:50071"})
 
-    ash = AlertSchedulerHandler(test_file_path, test_stack_path, test_common_services_path, test_host_scripts_path)
+    ash = AlertSchedulerHandler(test_file_path, test_stack_path, test_common_services_path, test_host_scripts_path, None)
     ash.start()
 
     with patch("__builtin__.open") as open_mock:

@@ -24,9 +24,9 @@ import tempfile
 
 from resource_management.core import shell
 from resource_management.core.logger import Logger
-from resource_management.core.constants import Direction
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Execute
+from resource_management.libraries.functions import Direction
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import compare_versions
 from resource_management.libraries.functions import format_hdp_stack_version

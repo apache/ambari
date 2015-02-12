@@ -53,7 +53,7 @@ class AlertSchedulerHandler():
   }
 
 
-  def __init__(self, cachedir, stacks_dir, common_services_dir, host_scripts_dir, in_minutes=True):
+  def __init__(self, cachedir, stacks_dir, common_services_dir, host_scripts_dir, config, in_minutes=True):
     self.cachedir = cachedir
     self.stacks_dir = stacks_dir
     self.common_services_dir = common_services_dir
@@ -69,6 +69,7 @@ class AlertSchedulerHandler():
     self._collector = AlertCollector()
     self.__scheduler = Scheduler(AlertSchedulerHandler.APS_CONFIG)
     self.__in_minutes = in_minutes
+    self.config = config
     self.__config_maps = {}
 
 
@@ -281,7 +282,7 @@ class AlertSchedulerHandler():
       source['stacks_directory'] = self.stacks_dir
       source['common_services_directory'] = self.common_services_dir
       source['host_scripts_directory'] = self.host_scripts_dir
-      alert = ScriptAlert(json_definition, source)
+      alert = ScriptAlert(json_definition, source, self.config)
     elif source_type == AlertSchedulerHandler.TYPE_WEB:
       alert = WebAlert(json_definition, source)
 

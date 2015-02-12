@@ -91,7 +91,7 @@ class Controller(threading.Thread):
     alerts_cache_dir = os.path.join(cache_dir, 'alerts')
     
     self.alert_scheduler_handler = AlertSchedulerHandler(alerts_cache_dir, 
-        stacks_cache_dir, common_services_cache_dir, host_scripts_cache_dir)
+        stacks_cache_dir, common_services_cache_dir, host_scripts_cache_dir, config)
 
 
   def __del__(self):
