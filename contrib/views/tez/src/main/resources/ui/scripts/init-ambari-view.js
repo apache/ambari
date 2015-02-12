@@ -18,38 +18,54 @@
 
 App.deferReadiness();
 
-var TEZ_PARAM = "tezPath";
+var PATH_PARAM_NAME = "viewPath";
 
-function createParam(path) {
-  return '%@=%@'.fmt(TEZ_PARAM, encodeURIComponent(path));
+/**
+ * Creates an object from query string
+ * @param getQueryObject {String}
+ * @return {Object}
+ */
+function getQueryObject(queryString) {
+  queryString = queryString ? queryString.replace('?', '') : '';
+
+  return queryString.split('&').reduce(function (obj, param) {
+    var paramParts;
+    if(param.trim()) {
+      paramParts = param.split('=');
+      if(paramParts[0] == PATH_PARAM_NAME) {
+        paramParts[1] = decodeURIComponent(paramParts[1]);
+      }
+      obj[paramParts[0]] = paramParts[1];
+    }
+    return obj;
+  }, {});
 }
 
-function getSetParam(queryString, path) {
-  if(queryString) {
-    var params = queryString.split('&'),
-        param;
+/**
+ * Creates query string from an object
+ * @param getQueryObject {String}
+ * @return {Object}
+ */
+function getQueryString(object) {
+  var params = [];
 
-    for(var i = 0, count = params.length; i < count; i++) {
-      param = params[i];
-
-      if(param.substr(0, TEZ_PARAM.length) == TEZ_PARAM) {
-        if(path != undefined) {
-          if(path == '') {
-            params.splice(i, 1);
-          }
-          else {
-            params[i] = createParam(path);
-          }
-          return params.join('&');
-        }
-        else {
-          return decodeURIComponent(param.split('=')[1]);
-        }
-      }
-    }
+  function addParam(key, value) {
+    params.push('%@=%@'.fmt(key, value));
   }
-  // If param was empty and path is available, set.
-  return (path != undefined && path != '') ? createParam(path) : '';
+
+  object = $.extend({}, object);
+
+  // Because of the way Ambari handles viewPath, its better to put it at the front
+  if(object.hasOwnProperty(PATH_PARAM_NAME)) {
+    addParam(
+      PATH_PARAM_NAME,
+      encodeURIComponent(object[PATH_PARAM_NAME])
+    );
+    delete object[PATH_PARAM_NAME];
+  }
+  $.each(object, addParam);
+
+  return params.join('&');
 }
 
 // Redirect if required
@@ -59,23 +75,18 @@ function redirectionCheck() {
   // If opened outside ambari, redirect
   if(window.parent == window) {
     var hrefParts = href.split('/#/'),
-        ambariLink = hrefParts[0].replace('/views/', '/#/main/views/');
+        pathParts = hrefParts[1].split('?'),
+        queryParams =getQueryObject(pathParts[1]);
 
-    href = '%@?%@'.fmt(ambariLink, getSetParam('', hrefParts[1] || ''));
-  }
-  // If opened inside ambari with a path different from current path redirect iframe
-  else {
-    var parentHref = window.parent.location.href.split('?'),
-        tezPath = getSetParam(parentHref[1]),
-        currentPath = href.split('/#/')[1];
+        if(pathParts[0]) {
+          queryParams[PATH_PARAM_NAME] = '/#/' + pathParts[0];
+        }
 
-    if(tezPath && tezPath != currentPath) {
-      href = '%@#/%@'.fmt(parentHref[0].replace('/#/main/views/', '/views/'), tezPath);
-    }
-  }
+    window.location = '%@?%@'.fmt(
+      hrefParts[0].replace('/views/', '/#/main/views/'),
+      getQueryString(queryParams)
+    );
 
-  if(href != window.location.href) {
-    window.location = href;
     return true;
   }
 }
@@ -196,13 +207,24 @@ function loadParams() {
 }
 
 function onPathChange() {
+
   var path = window.location.hash.substr(2).trim(),
-      urlParts = window.parent.location.href.split('?'),
-      queryParam = getSetParam(urlParts[1], path);
+      pathParts = path.split('?'),
+
+      parentUrlParts = window.parent.location.href.split('?'),
+      parentQueryParam = getQueryObject(parentUrlParts[1]);
+
+      $.extend(parentQueryParam, getQueryObject(pathParts[1]));
+      delete parentQueryParam[PATH_PARAM_NAME];
+      if(pathParts[0]) {
+        parentQueryParam[PATH_PARAM_NAME] = '/#/' + pathParts[0];
+      }
+
+  path = getQueryString(parentQueryParam);
   window.parent.history.replaceState(
     null,
     null,
-    queryParam ? '%@?%@'.fmt(urlParts[0], queryParam) : urlParts[0]
+    path ? '%@?%@'.fmt(parentUrlParts[0], path) : parentUrlParts[0]
   );
 }
 
