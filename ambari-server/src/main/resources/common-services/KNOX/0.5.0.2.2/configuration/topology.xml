@@ -66,12 +66,6 @@
                     &lt;enabled&gt;true&lt;/enabled&gt;
                 &lt;/provider&gt;
 
-                &lt;provider&gt;
-                    &lt;role&gt;authorization&lt;/role&gt;
-                    &lt;name&gt;AclsAuthz&lt;/name&gt;
-                    &lt;enabled&gt;true&lt;/enabled&gt;
-                &lt;/provider&gt;
-
             &lt;/gateway&gt;
 
             &lt;service&gt;
