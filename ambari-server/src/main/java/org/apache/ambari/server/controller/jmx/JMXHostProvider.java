@@ -49,6 +49,20 @@ public interface JMXHostProvider {
    */
   public String getPort(String clusterName, String componentName)
       throws SystemException;
+
+  /**
+   * Get the port for the specified cluster name and component.
+   *
+   * @param clusterName    the cluster name
+   * @param componentName  the component name
+   * @param componentName httpsEnabled https enabled
+   *
+   * @return the port for the specified cluster name and component
+   *
+   * @throws SystemException if unable to get the JMX port
+   */
+  public String getPort(String clusterName, String componentName, boolean httpsEnabled)
+      throws SystemException;
   
   /**
    * Get the protocol for the specified cluster name and component.

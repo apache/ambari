@@ -372,6 +372,10 @@ App.ServiceConfigProperty = Em.Object.extend({
         var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName;
         this.setDefaultValue(hostWithPort,rmHost);
         break;
+      case 'yarn.resourcemanager.webapp.https.address':
+        var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName;
+        this.setDefaultValue(hostWithPort,rmHost);
+        break;
       case 'yarn.resourcemanager.webapp.address':
         var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName;
         this.setDefaultValue(hostWithPort,rmHost);

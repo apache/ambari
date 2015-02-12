@@ -313,6 +313,14 @@
   </property>
 
   <property>
+    <name>yarn.resourcemanager.webapp.https.address</name>
+    <value>localhost:8090</value>
+    <description>
+      The https address of the RM web application.
+    </description>
+  </property>
+
+  <property>
     <name>yarn.nodemanager.vmem-check-enabled</name>
     <value>false</value>
     <description>

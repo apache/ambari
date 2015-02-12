@@ -183,7 +183,15 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
 
     String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
 
-    String port = getPort(clusterName, componentName);
+    String protocol = getJMXProtocol(clusterName, componentName);
+
+    boolean httpsEnabled = false;
+
+    if (protocol.equals("https")){
+      httpsEnabled = true;
+    }
+
+    String port = getPort(clusterName, componentName, httpsEnabled);
     if (port == null) {
       LOG.warn("Unable to get JMX metrics.  No port value for " + componentName);
       return resource;
@@ -194,8 +202,7 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
       LOG.warn("Unable to get JMX metrics.  No host name for " + componentName);
       return resource;
     }
-    
-    String protocol = getJMXProtocol(clusterName, componentName);
+
     InputStream in = null;
 
     try {
@@ -340,8 +347,8 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
     }
   }
 
-  private String getPort(String clusterName, String componentName) throws SystemException {
-    String port = jmxHostProvider.getPort(clusterName, componentName);
+  private String getPort(String clusterName, String componentName, boolean httpsEnabled) throws SystemException {
+    String port = jmxHostProvider.getPort(clusterName, componentName, httpsEnabled);
     return port == null ? DEFAULT_JMX_PORTS.get(componentName) : port;
   }
 

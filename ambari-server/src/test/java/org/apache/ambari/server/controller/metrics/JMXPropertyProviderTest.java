@@ -483,6 +483,11 @@ public class JMXPropertyProviderTest {
     }
 
     @Override
+    public String getPort(String clusterName, String componentName, boolean httpsEnabled) throws SystemException {
+      return getPort(clusterName, componentName);
+    }
+
+    @Override
     public String getPort(String clusterName, String componentName) throws
         SystemException {
 

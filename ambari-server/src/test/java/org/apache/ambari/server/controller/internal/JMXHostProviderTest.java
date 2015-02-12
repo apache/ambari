@@ -70,6 +70,8 @@ public class JMXHostProviderTest {
   private static final String NAMENODE_PORT_V2 = "dfs.namenode.http-address";
   private static final String DATANODE_PORT = "dfs.datanode.http.address";
   private static final String RESOURCEMANAGER_PORT = "yarn.resourcemanager.webapp.address";
+  private static final String RESOURCEMANAGER_HTTPS_PORT = "yarn.resourcemanager.webapp.https.address";
+  private static final String YARN_HTTPS_POLICY = "yarn.http.policy";
   private static final String NODEMANAGER_PORT = "yarn.nodemanager.webapp.address";
 
   @Before
@@ -269,6 +271,8 @@ public class JMXHostProviderTest {
     Map<String, String> yarnConfigs = new HashMap<String, String>();
     yarnConfigs.put(RESOURCEMANAGER_PORT, "8088");
     yarnConfigs.put(NODEMANAGER_PORT, "8042");
+    yarnConfigs.put(RESOURCEMANAGER_HTTPS_PORT, "8090");
+    yarnConfigs.put(YARN_HTTPS_POLICY, "HTTPS_ONLY");
 
     ConfigurationRequest cr1 = new ConfigurationRequest(clusterName,
       "hdfs-site", "versionN", configs, null);
@@ -382,6 +386,20 @@ public class JMXHostProviderTest {
   }
 
   @Test
+  public void testJMXHttpsPort() throws
+    NoSuchParentResourceException,
+    ResourceAlreadyExistsException, UnsupportedPropertyException,
+    SystemException, AmbariException, NoSuchResourceException {
+    createConfigs();
+    JMXHostProviderModule providerModule = new JMXHostProviderModule();
+    providerModule.registerResourceProvider(Resource.Type.Cluster);
+    providerModule.registerResourceProvider(Resource.Type.Configuration);
+    Assert.assertEquals("https", providerModule.getJMXProtocol("c1", "RESOURCEMANAGER"));
+    Assert.assertEquals("8090", providerModule.getPort("c1", "RESOURCEMANAGER", true));
+
+  }
+
+  @Test
   public void testJMXPortMapUpdate() throws
     NoSuchParentResourceException,
     ResourceAlreadyExistsException, UnsupportedPropertyException,
@@ -450,11 +468,6 @@ public class JMXHostProviderTest {
       else if (type == Resource.Type.Configuration)
         return configResourceProvider;
       return null;
-    }
-    
-    @Override
-    public String getJMXProtocol(String clusterName, String componentName) {
-      return "http";
     }
     
   }

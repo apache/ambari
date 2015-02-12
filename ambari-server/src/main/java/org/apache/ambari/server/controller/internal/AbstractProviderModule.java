@@ -91,10 +91,12 @@ public abstract class AbstractProviderModule implements ProviderModule,
   private static final Map<Service.Type, Map<String, String[]>> serviceDesiredProperties = new EnumMap<Service.Type, Map<String, String[]>>(Service.Type.class);
   private static final Map<String, Service.Type> componentServiceMap = new HashMap<String, Service.Type>();
 
+  private static final String PROPERTY_HDFS_HTTP_POLICY_VALUE_HTTPS_ONLY = "HTTPS_ONLY";
+
   private static final String COLLECTOR_DEFAULT_PORT = "6188";
 
   private static final Map<String, Map<String, String[]>> jmxDesiredProperties = new HashMap<String, Map<String, String[]>>();
-  private volatile Map<String, String> clusterCoreSiteConfigVersionMap = new HashMap<String, String>();
+  private volatile Map<String, String> clusterHdfsSiteConfigVersionMap = new HashMap<String, String>();
   private volatile Map<String, String> clusterJmxProtocolMap = new HashMap<String, String>();
   private volatile String clusterMetricServerPort = null;
 
@@ -118,6 +120,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
     Map<String, String[]> initPropMap = new HashMap<String, String[]>();
     initPropMap.put("NAMENODE", new String[]{"dfs.http.address", "dfs.namenode.http-address"});
     initPropMap.put("DATANODE", new String[]{"dfs.datanode.http.address"});
+    initPropMap.put("NAMENODE-HTTPS", new String[]{"dfs.namenode.https-address", "dfs.https.port"});
     serviceDesiredProperties.put(Service.Type.HDFS, initPropMap);
 
     initPropMap = new HashMap<String, String[]>();
@@ -131,6 +134,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
 
     initPropMap = new HashMap<String, String[]>();
     initPropMap.put("RESOURCEMANAGER", new String[]{"yarn.resourcemanager.webapp.address"});
+    initPropMap.put("RESOURCEMANAGER-HTTPS", new String[]{"yarn.resourcemanager.webapp.https.address"});
     initPropMap.put("NODEMANAGER", new String[]{"yarn.nodemanager.webapp.address"});
     serviceDesiredProperties.put(Service.Type.YARN, initPropMap);
 
@@ -139,8 +143,12 @@ public abstract class AbstractProviderModule implements ProviderModule,
     serviceDesiredProperties.put(Service.Type.MAPREDUCE2, initPropMap);
 
     initPropMap = new HashMap<String, String[]>();
-    initPropMap.put("NAMENODE", new String[]{"hadoop.ssl.enabled"});
+    initPropMap.put("NAMENODE", new String[]{"dfs.http.policy"});
     jmxDesiredProperties.put("NAMENODE", initPropMap);
+
+    initPropMap = new HashMap<String, String[]>();
+    initPropMap.put("RESOURCEMANAGER", new String[]{"yarn.http.policy"});
+    jmxDesiredProperties.put("RESOURCEMANAGER", initPropMap);
   }
 
   /**
@@ -456,6 +464,11 @@ public abstract class AbstractProviderModule implements ProviderModule,
 
   @Override
   public String getPort(String clusterName, String componentName) throws SystemException {
+    return getPort(clusterName, componentName, false);
+  }
+
+  @Override
+  public String getPort(String clusterName, String componentName, boolean httpsEnabled) throws SystemException {
     // Parent map need not be synchronized
     Map<String, String> clusterJmxPorts = jmxPortMap.get(clusterName);
     if (clusterJmxPorts == null) {
@@ -483,9 +496,19 @@ public abstract class AbstractProviderModule implements ProviderModule,
 
           serviceConfigVersions.put(service, currVersion);
 
+          Map<String, String[]> componentPorts = new HashMap<String, String[]>();
+          String[] componentsHttpsPorts;
+
+          if (httpsEnabled) {
+            componentsHttpsPorts = serviceDesiredProperties.get(service).get(componentName + "-HTTPS");
+          } else {
+            componentsHttpsPorts = serviceDesiredProperties.get(service).get(componentName);
+          }
+          componentPorts.put(componentName, componentsHttpsPorts);
+
           Map<String, String> portMap = getDesiredConfigMap(clusterName,
               currVersion, serviceConfigTypes.get(service),
-              serviceDesiredProperties.get(service));
+              componentPorts);
 
           for (Entry<String, String> entry : portMap.entrySet()) {
             // portString will be null if the property defined for the component doesn't exist
@@ -976,21 +999,24 @@ public abstract class AbstractProviderModule implements ProviderModule,
   @Override
   public String getJMXProtocol(String clusterName, String componentName) {
     String jmxProtocolString = clusterJmxProtocolMap.get(clusterName);
+
     try {
-      String newCoreSiteConfigVersion = getDesiredConfigVersion(clusterName, "core-site");
-      String cachedCoreSiteConfigVersion = clusterCoreSiteConfigVersionMap.get(clusterName);
-      if (!newCoreSiteConfigVersion.equals(cachedCoreSiteConfigVersion)) {
-        clusterCoreSiteConfigVersionMap.put(clusterName, newCoreSiteConfigVersion);
-
-        // Getting protocolMap for NAMENODE as it is the same property hadoop.ssl.enabled for all components
-        Map<String, String> protocolMap = getDesiredConfigMap(
-            clusterName,
-            newCoreSiteConfigVersion, "core-site",
-            jmxDesiredProperties.get("NAMENODE"));
-        jmxProtocolString = getJMXProtocolString(protocolMap.get("NAMENODE"));
-        clusterJmxProtocolMap.put(clusterName, jmxProtocolString);
+      if (componentName.equals("NAMENODE") || componentName.equals("RESOURCEMANAGER")) {
+        Service.Type service = componentServiceMap.get(componentName);
+        String config = serviceConfigTypes.get(service);
+        String newSiteConfigVersion = getDesiredConfigVersion(clusterName, config);
+        String cachedSiteConfigVersion = clusterHdfsSiteConfigVersionMap.get(clusterName);
+        if (!newSiteConfigVersion.equals(cachedSiteConfigVersion)) {
+          Map<String, String> protocolMap = getDesiredConfigMap(
+              clusterName,
+              newSiteConfigVersion, config,
+              jmxDesiredProperties.get(componentName));
+          jmxProtocolString = getJMXProtocolString(protocolMap.get(componentName));
+          clusterJmxProtocolMap.put(clusterName, jmxProtocolString);
+        }
+      } else {
+        jmxProtocolString = "http";
       }
-
     } catch (Exception e) {
       LOG.info("Exception while detecting JMX protocol for clusterName = " + clusterName +
           ", componentName = " + componentName, e);
@@ -1015,7 +1041,10 @@ public abstract class AbstractProviderModule implements ProviderModule,
   }
 
   private String getJMXProtocolString(String value) {
-    return Boolean.valueOf(value) ? "https" : "http";
+    if (value.equals(PROPERTY_HDFS_HTTP_POLICY_VALUE_HTTPS_ONLY))
+      return "https";
+    else
+      return "http";
   }
 
 }
