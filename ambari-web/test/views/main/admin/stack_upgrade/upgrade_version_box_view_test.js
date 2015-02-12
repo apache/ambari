@@ -25,7 +25,7 @@ describe('App.UpgradeVersionBoxView', function () {
     controller: Em.Object.create({
       upgrade: Em.K
     }),
-    content: Em.K
+    content: Em.Object.create()
   });
 
   describe("#isUpgrading", function () {
@@ -113,7 +113,7 @@ describe('App.UpgradeVersionBoxView', function () {
     });
     it("init tooltips", function () {
       view.didInsertElement();
-      expect(App.tooltip.callCount).to.equal(4);
+      expect(App.tooltip.callCount).to.equal(3);
     });
   });
 
@@ -162,14 +162,21 @@ describe('App.UpgradeVersionBoxView', function () {
       view.filterHostsByStack.restore();
     });
     it("no hosts", function () {
+      view.set('content', Em.Object.create({
+        p1: []
+      }));
       view.showHosts({contexts: [
-       'status', 'version', []
+        {'property': 'p1'}
       ]});
       expect(App.ModalPopup.show.called).to.be.false;
     });
     it("one host", function () {
+      view.set('content', Em.Object.create({
+        p1: ['host1'],
+        displayName: 'version'
+      }));
       var popup = view.showHosts({contexts: [
-        {id: 1}, 'version', ['host1']
+        {id: 1, 'property': 'p1'}
       ]});
       expect(App.ModalPopup.show.calledOnce).to.be.true;
       popup.onPrimary();

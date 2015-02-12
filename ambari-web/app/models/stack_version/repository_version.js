@@ -86,6 +86,27 @@ App.RepositoryVersion = DS.Model.extend({
   }.property('stackVersion.noInitHosts'),
 
   /**
+   * @type {string}
+   */
+  noInitHostsTooltip: function () {
+    return (this.get('noInitHosts')) ? Em.I18n.t('admin.stackVersions.version.emptyHostsTooltip') : Em.I18n.t('admin.stackVersions.version.hostsTooltip');
+  }.property('noInitHosts'),
+
+  /**
+   * @type {string}
+   */
+  noCurrentHostsTooltip: function () {
+    return (this.get('noCurrentHosts')) ? Em.I18n.t('admin.stackVersions.version.emptyHostsTooltip') : Em.I18n.t('admin.stackVersions.version.hostsTooltip');
+  }.property('noCurrentHosts'),
+
+  /**
+   * @type {string}
+   */
+  noInstalledHostsTooltip: function () {
+    return (this.get('noInstalledHosts')) ? Em.I18n.t('admin.stackVersions.version.emptyHostsTooltip') : Em.I18n.t('admin.stackVersions.version.hostsTooltip');
+  }.property('noInstalledHosts'),
+
+  /**
    * @type {boolean}
    */
   isVisible: true

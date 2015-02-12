@@ -71,14 +71,17 @@ App.UpgradeVersionBoxView = Em.View.extend({
   versionStateMap: {
     'current': {
       'id': 'current',
+      'property': 'currentHosts',
       'label': Em.I18n.t('admin.stackVersions.hosts.popup.header.current')
     },
     'installed': {
       'id': 'installed',
+      'property': 'installedHosts',
       'label': Em.I18n.t('admin.stackVersions.hosts.popup.header.installed')
     },
     'not_installed': {
       'id': 'installing',
+      'property': 'notInstalledHosts',
       'label': Em.I18n.t('admin.stackVersions.hosts.popup.header.not_installed')
     }
   },
@@ -155,8 +158,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
 
   didInsertElement: function () {
     App.tooltip($('.link-tooltip'), {title: Em.I18n.t('admin.stackVersions.version.linkTooltip')});
-    App.tooltip($('.hosts-tooltip'), {title: Em.I18n.t('admin.stackVersions.version.hostsTooltip')});
-    App.tooltip($('.empty-hosts-tooltip'), {title: Em.I18n.t('admin.stackVersions.version.emptyHostsTooltip')});
+    App.tooltip($('.hosts-tooltip'));
     App.tooltip($('.out-of-sync-badge'), {title: Em.I18n.t('hosts.host.stackVersions.status.out_of_sync')});
   },
 
@@ -247,8 +249,8 @@ App.UpgradeVersionBoxView = Em.View.extend({
    */
   showHosts: function (event) {
     var status = event.contexts[0];
-    var displayName = event.contexts[1];
-    var hosts = event.contexts[2];
+    var displayName = this.get('content.displayName');
+    var hosts = this.get('content').get(status['property']);
     var self = this;
     if (hosts.length) {
       return App.ModalPopup.show({
