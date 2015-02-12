@@ -63,6 +63,10 @@ class UserProvider(Provider):
       if option_flag and option_value:
         command += [option_flag, str(option_value)]
 
+    # if trying to modify existing user, but no values to modify are provided
+    if self.user and len(command) == 1:
+      return
+
     command.append(self.resource.username)
 
     shell.checked_call(command, sudo=True)

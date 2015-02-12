@@ -71,9 +71,9 @@ class TestHookBeforeInstall(RMFTestCase):
         groups = [u'hadoop'],
     )
     self.assertResourceCalled('User', 'hdfs',
-        gid = 'hadoop',
         ignore_failures = False,
-        groups = [u' hdfs'],
+        gid = 'hadoop',
+        groups = [u'hadoop'],
     )
     self.assertResourceCalled('User', 'storm',
         gid = 'hadoop',
@@ -139,6 +139,21 @@ class TestHookBeforeInstall(RMFTestCase):
     )
     self.assertResourceCalled('Execute', '/tmp/changeUid.sh hbase /home/hbase,/tmp/hbase,/usr/bin/hbase,/var/log/hbase,/hadoop/hbase',
         not_if = 'test $(id -u hbase) -gt 1000',
+    )
+    self.assertResourceCalled('User', 'test_user1',
+        ignore_failures = False
+    )
+    self.assertResourceCalled('User', 'test_user2',
+        ignore_failures = False
+    )
+    self.assertResourceCalled('Group', 'hdfs',
+        ignore_failures = False,
+    )
+    self.assertResourceCalled('Group', 'test_group',
+        ignore_failures = False,
+    )
+    self.assertResourceCalled('User', 'hdfs',
+        groups = [u'hadoop', u'hdfs', u'test_group'],
     )
     self.assertResourceCalled('Directory', '/etc/hadoop',
         mode = 0755

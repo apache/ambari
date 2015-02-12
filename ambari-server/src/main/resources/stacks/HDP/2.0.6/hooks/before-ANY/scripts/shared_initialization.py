@@ -18,6 +18,8 @@ limitations under the License.
 """
 
 import os
+import re
+from copy import copy
 
 from resource_management import *
 
@@ -83,6 +85,39 @@ def setup_users():
                cd_access="a",
     )
     set_uid(params.hbase_user, params.hbase_user_dirs)
+
+  if params.has_namenode:
+    create_dfs_cluster_admins()
+
+def create_dfs_cluster_admins():
+  """
+  dfs.cluster.administrators support format <comma-delimited list of usernames><space><comma-delimited list of group names>
+  """
+  import params
+
+  parts = re.split('\s', params.dfs_cluster_administrators_group)
+  if len(parts) == 1:
+    parts.append("")
+
+  users_list = parts[0].split(",") if parts[0] else []
+  groups_list = parts[1].split(",") if parts[1] else []
+
+  if users_list:
+    User(users_list,
+         ignore_failures = params.ignore_groupsusers_create
+    )
+
+  if groups_list:
+    Group(copy(groups_list),
+         ignore_failures = params.ignore_groupsusers_create
+    )
+
+  User(params.hdfs_user,
+    groups = params.user_to_groups_dict[params.hdfs_user] + groups_list
+  )
+
+
+
     
 def set_uid(user, user_dirs):
   """

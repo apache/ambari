@@ -302,43 +302,8 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     // remove NAGIOS to make way for the new embedded alert framework
     removeNagiosService();
     addNewConfigurationsFromXml();
-    updateDfsClusterAdmintistratorsProperty();
     updateHiveDatabaseType();
     setSecurityType();
-  }
-  
-  protected void updateDfsClusterAdmintistratorsProperty() throws AmbariException {
-    /*
-     * Remove trailing and leading whitespaces from hdfs-site/dfs.cluster.administrators
-     * property.
-     */
-    AmbariManagementController ambariManagementController = injector.getInstance(
-        AmbariManagementController.class);
-    Clusters clusters = ambariManagementController.getClusters();
-
-    if (clusters != null) {
-      Map<String, Cluster> clusterMap = clusters.getClusters();
-      Map<String, String> prop = new HashMap<String, String>();
-      String properyValue = null;
-
-      if (clusterMap != null && !clusterMap.isEmpty()) {
-        for (final Cluster cluster : clusterMap.values()) {
-          properyValue = null;
-          if (cluster.getDesiredConfigByType("hdfs-site") != null) {
-            properyValue = cluster.getDesiredConfigByType(
-                "hdfs-site").getProperties().get("dfs.cluster.administrators");
-          }
-
-          if (properyValue != null) {
-            properyValue = properyValue.trim();
-
-            prop.put("dfs.cluster.administrators", properyValue);
-            updateConfigurationPropertiesForCluster(cluster, "hdfs-site",
-                prop, true, false);
-          }
-        }
-      }
-    }
   }
 
   protected void updateHiveDatabaseType() throws AmbariException {

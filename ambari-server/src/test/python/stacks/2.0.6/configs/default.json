@@ -241,7 +241,7 @@
             "dfs.block.access.token.enable": "true", 
             "dfs.support.append": "true", 
             "dfs.datanode.address": "0.0.0.0:${ambari.dfs.datanode.port}", 
-            "dfs.cluster.administrators": " hdfs", 
+            "dfs.cluster.administrators": "test_user1,test_user2 hdfs,test_group",
             "dfs.replication": "3", 
             "ambari.dfs.datanode.http.port": "50075", 
             "dfs.datanode.balance.bandwidthPerSec": "6250000", 
