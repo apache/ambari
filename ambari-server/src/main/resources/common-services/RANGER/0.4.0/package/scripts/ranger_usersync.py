@@ -46,7 +46,8 @@ class RangerUsersync(Script):
 
     env.set_params(params)
     setup_usersync()
-    Execute(format('{params.usersync_start}'))
+    no_op_test = format('ps -ef | grep proc_rangerusersync | grep -v grep')
+    Execute(format('{params.usersync_start}'), not_if=no_op_test)
 
   def status(self, env):
     cmd = 'ps -ef | grep proc_rangerusersync | grep -v grep'

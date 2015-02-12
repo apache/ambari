@@ -35,7 +35,7 @@ class RangerAdmin(Script):
     import params
 
     env.set_params(params)
-    Execute(format('{params.ranger_stop}'))
+    Execute(format('{params.ranger_stop}'), user=params.unix_user)
 
   def pre_rolling_restart(self, env):
     import params
@@ -47,7 +47,8 @@ class RangerAdmin(Script):
     
     env.set_params(params)
     setup_ranger()
-    Execute(format('{params.ranger_start}'))
+    no_op_test = format('ps -ef | grep proc_rangeradmin | grep -v grep')
+    Execute(format('{params.ranger_start}'), user=params.unix_user, not_if=no_op_test)
 
   def status(self, env):
     cmd = 'ps -ef | grep proc_rangeradmin | grep -v grep'
