@@ -35,7 +35,8 @@ public class ComponentInfo {
   private String cardinality;
 
   /**
-   * By default, all Components should advertise a version through a mechanism like hdp-select.
+   * Technically, no component is required to advertise a version. In practice, 
+   * Components should advertise a version through a mechanism like hdp-select.
    * The version must be present the structured output.in the {"version": "#.#.#.#-###"}
    * For example, Masters will typically advertise the version upon a RESTART.
    * Whereas clients will advertise the version when INSTALLED.
@@ -43,7 +44,7 @@ public class ComponentInfo {
    * at the moment. For instance, ZKFC has the same version as NameNode, while AMBARI_METRICS and KERBEROS do not have a mechanism.
    */
   @XmlElements(@XmlElement(name = "versionAdvertised"))
-  private boolean versionAdvertised = true;
+  private boolean versionAdvertised = false;
 
   /**
   * Added at schema ver 2

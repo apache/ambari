@@ -33,6 +33,7 @@
           <displayName>Ranger Admin</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/ranger_admin.py</script>
             <scriptType>PYTHON</scriptType>
@@ -45,6 +46,7 @@
           <displayName>Ranger Usersync</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/ranger_usersync.py</script>
             <scriptType>PYTHON</scriptType>

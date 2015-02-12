@@ -29,6 +29,7 @@
           <displayName>Falcon Client</displayName>
           <category>CLIENT</category>
           <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/falcon_client.py</script>
             <scriptType>PYTHON</scriptType>
@@ -57,6 +58,7 @@
           <displayName>Falcon Server</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <dependencies>
             <dependency>
               <name>OOZIE/OOZIE_SERVER</name>

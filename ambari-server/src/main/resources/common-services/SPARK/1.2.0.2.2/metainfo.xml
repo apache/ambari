@@ -30,6 +30,7 @@
           <displayName>Spark History Server</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>
@@ -64,7 +65,8 @@
           <displayName>Spark Client</displayName>
           <category>CLIENT</category>
           <cardinality>1+</cardinality>
-           <dependencies>
+          <versionAdvertised>true</versionAdvertised>
+          <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>
               <scope>host</scope>

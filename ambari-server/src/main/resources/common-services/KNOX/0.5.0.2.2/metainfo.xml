@@ -29,6 +29,7 @@
           <displayName>Knox Gateway</displayName>
           <category>MASTER</category>
           <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/knox_gateway.py</script>
             <scriptType>PYTHON</scriptType>

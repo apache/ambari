@@ -30,6 +30,7 @@
           <displayName>NameNode</displayName>
           <category>MASTER</category>
           <cardinality>1-2</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/namenode.py</script>
             <scriptType>PYTHON</scriptType>
@@ -60,6 +61,7 @@
           <displayName>DataNode</displayName>
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/datanode.py</script>
             <scriptType>PYTHON</scriptType>
@@ -72,6 +74,7 @@
           <displayName>SNameNode</displayName>
           <!-- TODO:  cardinality is conditional on HA usage -->
           <cardinality>1</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <category>MASTER</category>
           <commandScript>
             <script>scripts/snamenode.py</script>
@@ -85,6 +88,7 @@
           <displayName>HDFS Client</displayName>
           <category>CLIENT</category>
           <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/hdfs_client.py</script>
             <scriptType>PYTHON</scriptType>
@@ -119,6 +123,7 @@
           <displayName>JournalNode</displayName>
           <category>SLAVE</category>
           <cardinality>0+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/journalnode.py</script>
             <scriptType>PYTHON</scriptType>

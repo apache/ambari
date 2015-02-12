@@ -29,6 +29,7 @@
           <displayName>Slider</displayName>
           <category>CLIENT</category>
           <cardinality>0+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>

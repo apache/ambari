@@ -30,6 +30,7 @@
           <displayName>Oozie Server</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>
@@ -65,6 +66,7 @@
           <displayName>Oozie Client</displayName>
           <category>CLIENT</category>
           <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>

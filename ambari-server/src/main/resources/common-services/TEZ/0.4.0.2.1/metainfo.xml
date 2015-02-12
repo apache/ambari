@@ -28,6 +28,7 @@
           <name>TEZ_CLIENT</name>
           <displayName>Tez Client</displayName>
           <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <category>CLIENT</category>
           <commandScript>
             <script>scripts/tez_client.py</script>

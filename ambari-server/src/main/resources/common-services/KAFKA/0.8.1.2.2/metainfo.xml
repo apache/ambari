@@ -29,6 +29,7 @@
           <displayName>Kafka Broker</displayName>
           <category>MASTER</category>
           <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <dependencies>
             <dependency>
               <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>

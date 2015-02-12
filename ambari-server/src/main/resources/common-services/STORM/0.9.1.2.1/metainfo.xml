@@ -31,6 +31,7 @@
           <displayName>Nimbus</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <dependencies>
             <dependency>
               <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
@@ -52,6 +53,7 @@
           <displayName>Storm REST API Server</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/rest_api.py</script>
             <scriptType>PYTHON</scriptType>
@@ -64,6 +66,7 @@
           <displayName>Supervisor</displayName>
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/supervisor.py</script>
             <scriptType>PYTHON</scriptType>
@@ -76,6 +79,7 @@
           <displayName>Storm UI Server</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/ui_server.py</script>
             <scriptType>PYTHON</scriptType>
@@ -88,6 +92,7 @@
           <displayName>DRPC Server</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/drpc_server.py</script>
             <scriptType>PYTHON</scriptType>

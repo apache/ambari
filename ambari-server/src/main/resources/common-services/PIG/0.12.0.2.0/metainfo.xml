@@ -29,6 +29,7 @@
           <displayName>Pig</displayName>
           <category>CLIENT</category>
           <cardinality>0+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/pig_client.py</script>
             <scriptType>PYTHON</scriptType>

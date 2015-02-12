@@ -29,6 +29,7 @@
           <displayName>Flume</displayName>
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/flume_handler.py</script>
             <scriptType>PYTHON</scriptType>

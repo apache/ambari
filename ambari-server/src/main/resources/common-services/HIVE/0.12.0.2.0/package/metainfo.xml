@@ -30,6 +30,7 @@
           <displayName>Hive Metastore</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <clientsToUpdateConfigs></clientsToUpdateConfigs>
           <auto-deploy>
             <enabled>true</enabled>
@@ -50,6 +51,7 @@
           <displayName>HiveServer2</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <clientsToUpdateConfigs></clientsToUpdateConfigs>
           <dependencies>
             <dependency>
@@ -88,6 +90,7 @@
           <displayName>WebHCat Server</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <clientsToUpdateConfigs>
             <client>HCAT</client>
           </clientsToUpdateConfigs>
@@ -150,6 +153,7 @@
           <displayName>MySQL Server</displayName>
           <category>MASTER</category>
           <cardinality>0-1</cardinality>
+          <versionAdvertised>false</versionAdvertised>
           <clientsToUpdateConfigs></clientsToUpdateConfigs>
           <commandScript>
             <script>scripts/mysql_server.py</script>
@@ -172,6 +176,7 @@
           <displayName>Hive Client</displayName>
           <category>CLIENT</category>
           <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/hive_client.py</script>
             <scriptType>PYTHON</scriptType>
@@ -206,6 +211,7 @@
           <name>HCAT</name>
           <displayName>HCat Client</displayName>
           <category>CLIENT</category>
+          <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/hcat_client.py</script>
             <scriptType>PYTHON</scriptType>
