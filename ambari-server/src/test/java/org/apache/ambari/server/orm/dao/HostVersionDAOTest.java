@@ -114,7 +114,7 @@ public class HostVersionDAOTest {
     // Both sides of relation should be set when modifying in runtime
     host1.setClusterEntities(Arrays.asList(clusterEntity));
     host2.setClusterEntities(Arrays.asList(clusterEntity));
-    host2.setClusterEntities(Arrays.asList(clusterEntity));
+    host3.setClusterEntities(Arrays.asList(clusterEntity));
 
     hostDAO.create(host1);
     hostDAO.create(host2);

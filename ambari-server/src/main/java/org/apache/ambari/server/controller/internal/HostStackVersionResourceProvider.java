@@ -165,11 +165,18 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
 
     for (Map<String, Object> propertyMap: propertyMaps) {
       final String hostName = propertyMap.get(HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID).toString();
-      final String clusterName = propertyMap.get(HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID).toString();
+      String clusterName = null;
+      if (propertyMap.containsKey(HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID)) {
+        clusterName = propertyMap.get(HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID).toString();
+      }
       final Long id;
       List<HostVersionEntity> requestedEntities = new ArrayList<HostVersionEntity>();
       if (propertyMap.get(HOST_STACK_VERSION_ID_PROPERTY_ID) == null && propertyMaps.size() == 1) {
-        requestedEntities = hostVersionDAO.findByHost(hostName);
+        if (clusterName == null) {
+          requestedEntities = hostVersionDAO.findByHost(hostName);
+        } else {
+          requestedEntities = hostVersionDAO.findByClusterAndHost(clusterName, hostName);
+        }
       } else {
         try {
           id = Long.parseLong(propertyMap.get(HOST_STACK_VERSION_ID_PROPERTY_ID).toString());
@@ -211,13 +218,16 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
       final Resource resource = new ResourceImpl(Resource.Type.HostStackVersion);
 
       setResourceProperty(resource, HOST_STACK_VERSION_HOST_NAME_PROPERTY_ID, entity.getHostName(), requestedIds);
-      setResourceProperty(resource, HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, clusterName, requestedIds);
       setResourceProperty(resource, HOST_STACK_VERSION_ID_PROPERTY_ID, entity.getId(), requestedIds);
       setResourceProperty(resource, HOST_STACK_VERSION_STACK_PROPERTY_ID, stackId.getStackName(), requestedIds);
       setResourceProperty(resource, HOST_STACK_VERSION_VERSION_PROPERTY_ID, stackId.getStackVersion(), requestedIds);
       setResourceProperty(resource, HOST_STACK_VERSION_STATE_PROPERTY_ID, entity.getState().name(), requestedIds);
 
-      if (repoVerEntity!=null) {
+      if (clusterName != null) {
+        setResourceProperty(resource, HOST_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, clusterName, requestedIds);
+      }
+
+      if (repoVerEntity != null) {
         Long repoVersionId = repoVerEntity.getId();
         setResourceProperty(resource, HOST_STACK_VERSION_REPO_VERSION_PROPERTY_ID, repoVersionId, requestedIds);
       }
