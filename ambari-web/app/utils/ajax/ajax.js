@@ -2459,9 +2459,10 @@ var ajax = Em.Object.extend({
       var message = $.parseJSON(jqXHR.responseText).message;
     } catch (err) {}
     if (jqXHR.status === 400 && message) {
-      return message.contains(specialMsg.missingKDC) ? specialMsg.missingKDC
-        : message.contains(specialMsg.invalidKDC) ? specialMsg.invalidKDC :
-        specialMsg.missingRDCForRealm ? specialMsg.missingRDCForRealm : null;
+      for(var m in specialMsg) {
+        if (specialMsg.hasOwnProperty(m) && message.contains(specialMsg[m]))
+          return m;
+      }
     } else {
       return null;
     }
