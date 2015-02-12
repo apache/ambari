@@ -369,18 +369,23 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                                 "{0} needs to be set to {1}".format(prop_name,prop_val))})
       prop_name = "hbase.coprocessor.master.classes"
       prop_val = "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
-      if hbase_site[prop_name] != prop_val:
+      exclude_val = "org.apache.hadoop.hbase.security.access.AccessController"
+      if (prop_val in hbase_site[prop_name] and exclude_val not in hbase_site[prop_name]):
+        pass
+      else:
         validationItems.append({"config-name": prop_name,
                                 "item": self.getWarnItem(
                                 "If Ranger HBase Plugin is enabled."\
-                                " {0} needs to be set to {1}".format(prop_name,prop_val))})
+                                " {0} needs to contain {1} instead of {2}".format(prop_name,prop_val,exclude_val))})
       prop_name = "hbase.coprocessor.region.classes"
       prop_val = "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
-      if hbase_site[prop_name] != prop_val:
+      if (prop_val in hbase_site[prop_name] and exclude_val not in hbase_site[prop_name]):
+        pass
+      else:
         validationItems.append({"config-name": prop_name,
                                 "item": self.getWarnItem(
                                 "If Ranger HBase Plugin is enabled."\
-                                " {0} needs to be set to {1}".format(prop_name,prop_val))})
+                                " {0} needs to contain {1} instead of {2}".format(prop_name,prop_val,exclude_val))})
     return self.toConfigurationValidationProblems(validationItems, "hbase-site")
 
   def getMastersWithMultipleInstances(self):
