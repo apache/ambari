@@ -104,12 +104,14 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
 
   Directory (params.hbase_tmp_dir,
              owner = params.hbase_user,
+             cd_access="a",
              recursive = True
   )
 
   Directory (os.path.join(params.local_dir, "jars"),
              owner = params.hbase_user,
              group = params.user_group,
+             cd_access="a",
              mode=0775,
              recursive = True
   )
@@ -131,7 +133,7 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
             group = params.user_group
     )
   # Manually overriding ownership of file installed by hadoop package
-  else: 
+  else:
     File( format("{params.hbase_conf_dir}/hbase-policy.xml"),
       owner = params.hbase_user,
       group = params.user_group
@@ -148,7 +150,7 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
          group = params.user_group,
          content=Template("hadoop-metrics2-hbase.properties.j2")
     )
-       
+
   # hbase_TemplateConfig( params.metric_prop_file_name,
   #   tag = 'GANGLIA-MASTER' if name == 'master' else 'GANGLIA-RS'
   # )
@@ -157,7 +159,7 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
 
   if params.security_enabled:
     hbase_TemplateConfig( format("hbase_{name}_jaas.conf"), user=params.hbase_user)
-  
+
   if name in ["master","regionserver"]:
 
     if params.is_hbase_distributed:
@@ -179,14 +181,16 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
 
       Directory(local_root_dir,
                 owner = params.hbase_user,
-                recursive = True)
+                cd_access="a",
+                recursive = True
+      )
 
   if name != "client":
     Directory( params.hbase_pid_dir,
       owner = params.hbase_user,
       recursive = True
     )
-  
+
     Directory (params.hbase_log_dir,
       owner = params.hbase_user,
       recursive = True

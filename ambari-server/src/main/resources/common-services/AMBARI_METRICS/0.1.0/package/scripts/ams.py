@@ -119,6 +119,7 @@ def ams(name=None):
     Directory(params.ams_checkpoint_dir,
               owner=params.ams_user,
               group=params.user_group,
+              cd_access="a",
               recursive=True
     )
 
@@ -154,12 +155,14 @@ def ams(name=None):
     Directory(params.ams_collector_log_dir,
               owner=params.ams_user,
               group=params.user_group,
+              cd_access="a",
               recursive=True
     )
 
     Directory(params.ams_collector_pid_dir,
               owner=params.ams_user,
               group=params.user_group,
+              cd_access="a",
               recursive=True
     )
 
@@ -187,6 +190,7 @@ def ams(name=None):
     Directory(format("{ams_monitor_dir}/psutil/build"),
               owner=params.ams_user,
               group=params.user_group,
+              cd_access="a",
               recursive=True)
 
     TemplateConfig(
