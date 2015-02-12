@@ -176,8 +176,7 @@ def copy_tarballs_to_hdfs(source, dest, hdp_select_component_name, component_use
   destination_file = os.path.join(component_tar_destination_folder, file_name)
   destination_file = destination_file.replace("{{ hdp_stack_version }}", hdp_version)
  
-  does_hdfs_file_exist_cmd = "fs -ls %s" % destination_file
- 
+
   kinit_if_needed = ""
   if params.security_enabled:
     kinit_if_needed = format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name};")
@@ -187,7 +186,22 @@ def copy_tarballs_to_hdfs(source, dest, hdp_select_component_name, component_use
             user=component_user,
             path='/bin'
     )
- 
+
+  #Check if destination folder already exists
+  does_hdfs_dir_exist = False
+  does_hdfs_file_exist_cmd = "fs -ls %s" % os.path.dirname(destination_file)
+  try:
+    ExecuteHadoop(does_hdfs_file_exist_cmd,
+                  user=component_user,
+                  logoutput=True,
+                  conf_dir=params.hadoop_conf_dir,
+                  bin_dir=params.hadoop_bin_dir
+    )
+    does_hdfs_dir_exist = True
+  except Fail:
+    pass
+
+  does_hdfs_file_exist_cmd = "fs -ls %s" % destination_file
   does_hdfs_file_exist = False
   try:
     ExecuteHadoop(does_hdfs_file_exist_cmd,
@@ -200,7 +214,7 @@ def copy_tarballs_to_hdfs(source, dest, hdp_select_component_name, component_use
   except Fail:
     pass
  
-  if not does_hdfs_file_exist:
+  if not does_hdfs_file_exist and not does_hdfs_dir_exist:
     source_and_dest_pairs = [(component_tar_source_file, destination_file), ]
     return _copy_files(source_and_dest_pairs, file_owner, group_owner, kinit_if_needed)
   return 1
@@ -243,12 +257,11 @@ with Environment() as env:
            not_if  = no_op_test,
            sudo = True,
            )
- 
-  oozie_setup_sh=""
- 
+
+
   oozie_root = 'oozie-server'
+  oozie_setup_sh = format("/usr/hdp/current/{oozie_root}/bin/oozie-setup.sh")
   oozie_shared_lib = format("/usr/hdp/current/{oozie_root}/share")
-  oozie_shared_lib = "/usr/lib/oozie/share"
   oozie_user = 'oozie'
   oozie_hdfs_user_dir = format("/user/{oozie_user}")
   kinit_if_needed = ''
@@ -257,16 +270,27 @@ with Environment() as env:
  
   oozie_cmd = format("{put_shared_lib_to_hdfs_cmd} ; hadoop --config {hadoop_conf_dir} dfs -chmod -R 755 {oozie_hdfs_user_dir}/share")
   not_if_command = format("{kinit_if_needed} hadoop --config {hadoop_conf_dir} dfs -ls /user/oozie/share | awk 'BEGIN {{count=0;}} /share/ {{count++}} END {{if (count > 0) {{exit 0}} else {{exit 1}}}}'")
-  HdfsDirectory(format("{oozie_hdfs_user_dir}/share"),
-                action="create",
-                owner=oozie_user,
-                mode=0555,
-                conf_dir=params.hadoop_conf_dir,
-                hdfs_user=params.hdfs_user,
-                )
 
-  Execute( oozie_cmd, user = params.oozie_user, not_if = not_if_command,
-           path = params.execute_path )
+  #Check if destination folder already exists
+  does_hdfs_file_exist_cmd = "fs -ls %s" % format("{oozie_hdfs_user_dir}/share")
+  try:
+    ExecuteHadoop(does_hdfs_file_exist_cmd,
+                  user=oozie_user,
+                  logoutput=True,
+                  conf_dir=params.hadoop_conf_dir,
+                  bin_dir=params.hadoop_bin_dir
+    )
+  except Fail:
+    #If dir does not exist create it and put files there
+    HdfsDirectory(format("{oozie_hdfs_user_dir}/share"),
+                  action="create",
+                  owner=oozie_user,
+                  mode=0555,
+                  conf_dir=params.hadoop_conf_dir,
+                  hdfs_user=params.hdfs_user,
+                  )
+    Execute( oozie_cmd, user = params.oozie_user, not_if = not_if_command,
+             path = params.execute_path )
 
   copy_tarballs_to_hdfs("/usr/hdp/current/hadoop-client/mapreduce.tar.gz", "wasb:///hdp/apps/{{ hdp_stack_version }}/mapreduce/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
   copy_tarballs_to_hdfs("/usr/hdp/current/tez-client/lib/tez.tar.gz", "wasb:///hdp/apps/{{ hdp_stack_version }}/tez/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
