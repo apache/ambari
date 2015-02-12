@@ -30,13 +30,13 @@ describe('App.KerberosWizardController', function() {
     });
     it('should open warning confirmation popup', function () {
       var f = Em.K;
-      var popup = controller.warnBeforeExitPopup(f, false);
+      controller.warnBeforeExitPopup(f, false);
       expect(App.showConfirmationPopup.calledWith(f, Em.I18n.t('admin.kerberos.wizard.exit.warning.msg'), null, null, Em.I18n.t('common.exitAnyway'), false)).to.be.true;
     });
 
     it('should open critical confirmation popup', function () {
       var f = Em.K;
-      var popup = controller.warnBeforeExitPopup(f, true);
+      controller.warnBeforeExitPopup(f, true);
       expect(App.showConfirmationPopup.calledWith(f, Em.I18n.t('admin.kerberos.wizard.exit.critical.msg'), null, null, Em.I18n.t('common.exitAnyway'), true)).to.be.true;
     });
   });

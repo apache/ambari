@@ -979,6 +979,13 @@ Em.I18n.translations = {
   'admin.kerberos.wizard.step7.notice.failed': 'Some services failed to start and execute tests successfully. Click Retry to attempt again or click Complete to dismiss the wizard and fix manually.',
   'admin.kerberos.wizard.step7.task0.title' : 'Start and Test Services',
 
+  'admin.kerberos.disable.step1.task0.title': 'Stop Services',
+  'admin.kerberos.disable.step1.task1.title': 'Remove Kerberos',
+  'admin.kerberos.disable.step1.task2.title': 'Start Services',
+  'admin.kerberos.disable.inProgress': 'Please wait while cluster is being unkerberized',
+  'admin.kerberos.disable.notice.completed': 'Services have been successfully tested without kerberos environment.',
+  'admin.kerberos.wizard.step1.notice.inProgress': 'Please wait while cluster is being unkerberized',
+
   'admin.highAvailability':' High Availability',
   'admin.highAvailability.button.enable':'Enable NameNode HA',
   'admin.highAvailability.button.disable':'Disable NameNode HA',
@@ -1170,7 +1177,7 @@ Em.I18n.translations = {
   'admin.security.enable.popup.body': 'We will walk you through add security wizard',
   'admin.security.enable.popup.header': 'Add security',
   'admin.security.disable.popup.header': 'Remove security',
-  'admin.security.disable.popup.body': 'Kerberos security will be disabled on the cluster',
+  'admin.security.disable.popup.body': 'You are about to disable Kerberos on the cluster. This will stop all the services in your cluster and remove the Kerberos configurations. <strong>Are you sure you wish to proceed with disabling Kerberos?</strong>',
   'admin.addSecurity.header': 'Enable Security Wizard',
   'admin.security.step1.header': 'Get Started',
   'admin.security.step2.header': 'Configure Services',

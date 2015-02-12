@@ -132,6 +132,7 @@ require('views/main/admin/audit');
 require('views/main/admin/authentication');
 
 require('views/main/admin/kerberos');
+require('views/main/admin/kerberos/disable_view');
 require('views/main/admin/kerberos/wizard_view');
 require('views/main/admin/kerberos/progress_view');
 require('views/main/admin/kerberos/step1_view');

@@ -57,6 +57,7 @@ require('controllers/main/admin/advanced');
 require('utils/polling');
 require('controllers/main/admin/kerberos');
 require('controllers/main/admin/kerberos/wizard_controller');
+require('controllers/main/admin/kerberos/disable_controller');
 require('controllers/main/admin/kerberos/progress_controller');
 require('controllers/main/admin/kerberos/step1_controller');
 require('controllers/main/admin/kerberos/step2_controller');
