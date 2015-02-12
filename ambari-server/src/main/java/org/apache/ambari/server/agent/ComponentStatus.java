@@ -116,14 +116,14 @@ public class ComponentStatus {
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
   }
-  
+
   /**
    * @param tags the config tags that match this status
    */
   public void setConfigTags(Map<String, Map<String,String>> tags) {
     configurationTags = tags;
   }
-  
+
   /**
    * @return the config tags that match this command, or <code>null</code>
    * if none are present
@@ -131,31 +131,27 @@ public class ComponentStatus {
   public Map<String, Map<String,String>> getConfigTags() {
     return configurationTags;
   }
-  
+
   /**
-   * Sets extra information coming from the status. 
+   * Sets extra information coming from the status.
    */
   public void setExtra(Map<String, Object> info) {
     extra = info;
   }
 
   /**
-   * Gets extra information coming from the status. 
+   * Gets extra information coming from the status.
    */
   public Map<String, Object> getExtra() {
     return extra;
   }
-  
+
   @Override
   public String toString() {
-    return "ComponentStatus{" +
-            "componentName='" + componentName + '\'' +
-            ", msg='" + msg + '\'' +
-            ", status='" + status + '\'' +
-            ", securityState='" + securityState + '\'' +
-            ", serviceName='" + serviceName + '\'' +
-            ", clusterName='" + clusterName + '\'' +
-            ", stackVersion='" + stackVersion + '\'' +
-            '}';
+    return "ComponentStatus [componentName=" + componentName + ", msg=" + msg
+        + ", status=" + status + ", securityState=" + securityState
+        + ", serviceName=" + serviceName + ", clusterName=" + clusterName
+        + ", stackVersion=" + stackVersion + ", configurationTags="
+        + configurationTags + ", extra=" + extra + "]";
   }
 }

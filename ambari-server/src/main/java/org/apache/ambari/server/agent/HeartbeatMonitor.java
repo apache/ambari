@@ -224,7 +224,6 @@ public class HeartbeatMonitor implements Runnable {
                                ServiceComponentHost sch) throws AmbariException {
     String serviceName = sch.getServiceName();
     String componentName = sch.getServiceComponentName();
-    Service service = cluster.getService(sch.getServiceName());
     StackId stackId = cluster.getDesiredStackVersion();
     ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
         stackId.getStackVersion(), serviceName);

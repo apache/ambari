@@ -66,7 +66,6 @@ import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -515,16 +514,11 @@ public class HeartBeatHandler {
                 //do nothing, pass this data further for processing
               }
               if (structuredOutput != null && StringUtils.isNotBlank(structuredOutput.getVersion())) {
-                final String previousVersion = scHost.getVersion();
-                if (!StringUtils.equals(previousVersion, structuredOutput.getVersion())) {
-                  scHost.setVersion(structuredOutput.getVersion());
-                  if (previousVersion != null && !previousVersion.equalsIgnoreCase(State.UNKNOWN.toString())) {
-                    scHost.setUpgradeState(UpgradeState.COMPLETE);
-                  }
-                }
+                handleComponentVersionReceived(scHost, structuredOutput.getVersion());
               }
               // Safer to recalculate the version even if we don't detect a difference in the value.
               // This is useful in case that a manual database edit is done while ambari-server is stopped.
+              // TODO should be included into handleComponentVersionReceived() after RU becomes stable
               HostComponentVersionEvent event = new HostComponentVersionEvent(cl, scHost);
               ambariEventPublisher.publish(event);
             }
@@ -671,6 +665,14 @@ public class HeartBeatHandler {
                     List<Map<String, String>> list = (List<Map<String, String>>) extra.get("processes");
                     scHost.setProcesses(list);
                   }
+                  if (extra.containsKey("version")) {
+                    boolean versionWasUpdated = handleComponentVersionReceived(scHost, extra.get("version").toString());
+                    if (versionWasUpdated) {
+                      // TODO should be included into handleComponentVersionReceived() after RU becomes stable
+                      HostComponentVersionEvent event = new HostComponentVersionEvent(cl, scHost);
+                      ambariEventPublisher.publish(event);
+                    }
+                  }
 
                 } catch (Exception e) {
                   LOG.error("Could not access extra JSON for " +
@@ -719,6 +721,26 @@ public class HeartBeatHandler {
         }
       }
     }
+  }
+
+  /**
+   * Updates version of service component and sets upgrade state if needed.
+   *
+   * @param scHost service component host
+   * @param newVersion new version of service component
+   *
+   * @return true if component version was updated to new one
+   */
+  private boolean handleComponentVersionReceived(ServiceComponentHost scHost, String newVersion) {
+    final String previousVersion = scHost.getVersion();
+    if (!StringUtils.equals(previousVersion, newVersion)) {
+      scHost.setVersion(newVersion);
+      if (previousVersion != null && !previousVersion.equalsIgnoreCase(State.UNKNOWN.toString())) {
+        scHost.setUpgradeState(UpgradeState.COMPLETE);
+      }
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -858,6 +880,11 @@ public class HeartBeatHandler {
 
     // Get status of service components
     List<StatusCommand> cmds = heartbeatMonitor.generateStatusCommands(hostname);
+
+    // Add request for component version
+    for (StatusCommand command: cmds) {
+      command.getCommandParams().put("request_version", String.valueOf(true));
+    }
 
     // Save the prefix of the log file paths
     hostObject.setPrefix(register.getPrefix());
