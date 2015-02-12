@@ -4445,6 +4445,168 @@ var hdp2properties = [
     "category": "MetricCollector",
     "index": 3
   },
+  {
+    "id": "site property",
+    "name": "ams.zookeeper.keytab",
+    "displayName": "ams.zookeeper.keytab",
+    "isRequired": false,
+    "serviceName": "AMBARI_METRICS",
+    "category": "Advanced ams-hbase-security-site",
+    "filename": "ams-hbase-security-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "ams.zookeeper.principal",
+    "displayName": "ams.zookeeper.principal",
+    "isRequired": false,
+    "serviceName": "AMBARI_METRICS",
+    "category": "Advanced ams-hbase-security-site",
+    "filename": "ams-hbase-security-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "hadoop.security.authentication",
+    "displayName": "hadoop.security.authentication",
+    "isRequired": false,
+    "serviceName": "AMBARI_METRICS",
+    "category": "Advanced ams-hbase-security-site",
+    "filename": "ams-hbase-security-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "hbase.coprocessor.master.classes",
+    "displayName": "hbase.coprocessor.master.classes",
+    "isRequired": false,
+    "serviceName": "AMBARI_METRICS",
+    "category": "Advanced ams-hbase-security-site",
+    "filename": "ams-hbase-security-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "hbase.coprocessor.region.classes",
+    "displayName": "hbase.coprocessor.region.classes",
+    "isRequired": false,
+    "serviceName": "AMBARI_METRICS",
+    "category": "Advanced ams-hbase-security-site",
+    "filename": "ams-hbase-security-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "hbase.master.kerberos.principal",
+    "displayName": "hbase.master.kerberos.principal",
+    "isRequired": false,
+    "serviceName": "AMBARI_METRICS",
+    "category": "Advanced ams-hbase-security-site",
+    "filename": "ams-hbase-security-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "hbase.master.keytab.file",
+    "displayName": "hbase.master.keytab.file",
+    "isRequired": false,
+    "serviceName": "AMBARI_METRICS",
+    "category": "Advanced ams-hbase-security-site",
+    "filename": "ams-hbase-security-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "hbase.myclient.keytab",
+    "displayName": "hbase.myclient.keytab",
+    "isRequired": false,
+    "serviceName": "AMBARI_METRICS",
+    "category": "Advanced ams-hbase-security-site",
+    "filename": "ams-hbase-security-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "hbase.myclient.principal",
+    "displayName": "hbase.myclient.principal",
+    "isRequired": false,
+    "serviceName": "AMBARI_METRICS",
+    "category": "Advanced ams-hbase-security-site",
+    "filename": "ams-hbase-security-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "hbase.regionserver.kerberos.principal",
+    "displayName": "hbase.regionserver.kerberos.principal",
+    "isRequired": false,
+    "serviceName": "AMBARI_METRICS",
+    "category": "Advanced ams-hbase-security-site",
+    "filename": "ams-hbase-security-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "hbase.regionserver.keytab.file",
+    "displayName": "hbase.regionserver.keytab.file",
+    "isRequired": false,
+    "serviceName": "AMBARI_METRICS",
+    "category": "Advanced ams-hbase-security-site",
+    "filename": "ams-hbase-security-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "hbase.security.authentication",
+    "displayName": "hbase.security.authentication",
+    "isRequired": false,
+    "serviceName": "AMBARI_METRICS",
+    "category": "Advanced ams-hbase-security-site",
+    "filename": "ams-hbase-security-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "hbase.security.authorization",
+    "displayName": "hbase.security.authorization",
+    "isRequired": false,
+    "serviceName": "AMBARI_METRICS",
+    "category": "Advanced ams-hbase-security-site",
+    "filename": "ams-hbase-security-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "hbase.zookeeper.property.authProvider.1",
+    "displayName": "hbase.zookeeper.property.authProvider.1",
+    "isRequired": false,
+    "serviceName": "AMBARI_METRICS",
+    "category": "Advanced ams-hbase-security-site",
+    "filename": "ams-hbase-security-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "hbase.zookeeper.property.jaasLoginRenew",
+    "displayName": "hbase.zookeeper.property.jaasLoginRenew",
+    "isRequired": false,
+    "serviceName": "AMBARI_METRICS",
+    "category": "Advanced ams-hbase-security-site",
+    "filename": "ams-hbase-security-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "hbase.zookeeper.property.kerberos.removeHostFromPrincipal",
+    "displayName": "hbase.zookeeper.property.kerberos.removeHostFromPrincipal",
+    "isRequired": false,
+    "serviceName": "AMBARI_METRICS",
+    "category": "Advanced ams-hbase-security-site",
+    "filename": "ams-hbase-security-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "hbase.zookeeper.property.kerberos.removeRealmFromPrincipal",
+    "displayName": "hbase.zookeeper.property.kerberos.removeRealmFromPrincipal",
+    "isRequired": false,
+    "serviceName": "AMBARI_METRICS",
+    "category": "Advanced ams-hbase-security-site",
+    "filename": "ams-hbase-security-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "zookeeper.znode.parent",
+    "displayName": "zookeeper.znode.parent",
+    "isRequired": false,
+    "serviceName": "AMBARI_METRICS",
+    "category": "Advanced ams-hbase-security-site",
+    "filename": "ams-hbase-security-site.xml"
+  },
 /************************************************Kerberos Descriptor******************************************/
   {
     "name": "smokeuser_principal_name",
