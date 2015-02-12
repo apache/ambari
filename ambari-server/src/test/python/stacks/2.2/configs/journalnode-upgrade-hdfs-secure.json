@@ -1246,7 +1246,7 @@
         "slave_hosts": [
             "c6406.ambari.apache.org"
         ], 
-        "metric_monitor_hosts": [
+        "metrics_monitor_hosts": [
             "c6408.ambari.apache.org", 
             "c6407.ambari.apache.org", 
             "c6406.ambari.apache.org", 
@@ -1264,7 +1264,7 @@
         "webhcat_server_host": [
             "c6407.ambari.apache.org"
         ], 
-        "metric_collector_hosts": [
+        "metrics_collector_hosts": [
             "c6408.ambari.apache.org"
         ], 
         "ambari_server_host": [

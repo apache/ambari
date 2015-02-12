@@ -64,7 +64,7 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
     serviceName = getServiceName(conf);
 
     // Load collector configs
-    metricsServers = Servers.parse(conf.getString(COLLECTOR_HOST_PROPERTY), 8188);
+    metricsServers = Servers.parse(conf.getString(COLLECTOR_HOST_PROPERTY), 6188);
 
     if (metricsServers == null || metricsServers.isEmpty()) {
       LOG.error("No Metric collector configured.");

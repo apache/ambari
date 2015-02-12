@@ -80,7 +80,7 @@ hostname = None
 if config.has_key('hostname'):
   hostname = config['hostname']
 
-ams_collector_hosts = default("/clusterHostInfo/metric_collector_hosts", [])
+ams_collector_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
 has_metric_collector = not len(ams_collector_hosts) == 0
 if has_metric_collector:
   metric_collector_host = ams_collector_hosts[0]

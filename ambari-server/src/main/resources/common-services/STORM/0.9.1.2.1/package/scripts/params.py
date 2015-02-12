@@ -93,7 +93,7 @@ if security_enabled:
     nimbus_bare_jaas_principal = _nimbus_principal_name.replace('/_HOST','').replace('@'+kerberos_domain,'')
     nimbus_keytab_path = config['configurations']['storm-env']['nimbus_keytab']
 
-ams_collector_hosts = default("/clusterHostInfo/metric_collector_hosts", [])
+ams_collector_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
 has_metric_collector = not len(ams_collector_hosts) == 0
 if has_metric_collector:
   metric_collector_host = ams_collector_hosts[0]

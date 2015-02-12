@@ -86,7 +86,7 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
     metricsCache = new TimelineMetricsCache(maxRowCacheSize, metricsSendInterval);
     collectorUri = "http://" + configuration.getProperty(COLLECTOR_HOST_PROPERTY) + "/ws/v1/timeline/metrics";
     List<InetSocketAddress> socketAddresses =
-        Servers.parse(configuration.getProperty(configuration.getProperty(COLLECTOR_HOST_PROPERTY)), 8188);
+        Servers.parse(configuration.getProperty(configuration.getProperty(COLLECTOR_HOST_PROPERTY)), 6188);
     if (socketAddresses != null && !socketAddresses.isEmpty()) {
       socketAddress = socketAddresses.get(0);
     }

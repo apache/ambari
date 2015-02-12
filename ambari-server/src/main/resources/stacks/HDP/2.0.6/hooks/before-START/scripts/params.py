@@ -67,7 +67,7 @@ jtnode_host = default("/clusterHostInfo/jtnode_host", [])
 namenode_host = default("/clusterHostInfo/namenode_host", [])
 zk_hosts = default("/clusterHostInfo/zookeeper_hosts", [])
 ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
-ams_collector_hosts = default("/clusterHostInfo/metric_collector_hosts", [])
+ams_collector_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
 
 has_namenode = not len(namenode_host) == 0
 has_resourcemanager = not len(rm_host) == 0
@@ -90,7 +90,7 @@ if has_ganglia_server:
   ganglia_server_host = ganglia_server_hosts[0]
 if has_metric_collector:
   metric_collector_host = ams_collector_hosts[0]
-  metric_collector_port = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:8188")
+  metric_collector_port = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188")
   if metric_collector_port and metric_collector_port.find(':') != -1:
     metric_collector_port = metric_collector_port.split(':')[1]
   pass
