@@ -405,6 +405,27 @@ hdp22properties.push(
     "category": "Advanced ranger-knox-plugin-properties",
     "serviceName": "KNOX"
   },
+  /**********************************************SPARK***************************************/
+  {
+    "id": "site property",
+    "name": "spark.driver.extraJavaOptions",
+    "displayName": "spark.driver.extraJavaOptions",
+    "defaultValue": "",
+    "isRequired": false,
+    "category": "Advanced spark-defaults",
+    "serviceName": "SPARK",
+    "filename": "spark-defaults.xml"
+  },
+  {
+    "id": "site property",
+    "name": "spark.yarn.am.extraJavaOptions",
+    "displayName": "spark.yarn.am.extraJavaOptions",
+    "defaultValue": "",
+    "isRequired": false,
+    "category": "Advanced spark-defaults",
+    "serviceName": "SPARK",
+    "filename": "spark-defaults.xml"
+  },
   /**********************************************RANGER***************************************/
   {
     "id": "site property",

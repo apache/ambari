@@ -300,5 +300,16 @@ App.QuickLinks.FIXTURES = [
     url:'%@://%@:6080/',
     service_id: 'RANGER',
     template:'%@://%@:6080/'
+  },
+  {
+    id: 34,
+    label:'Spark Job History UI',
+    url:'%@://%@:%@/',
+    service_id: 'SPARK',
+    template:'%@://%@:%@/',
+    http_config: 'spark.history.ui.port',
+    site: 'spark-defaults',
+    regex: '^(\\d+)$',
+    default_http_port: 18080
   }
 ];
