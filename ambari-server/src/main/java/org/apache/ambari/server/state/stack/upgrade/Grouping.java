@@ -57,6 +57,9 @@ public class Grouping {
   @XmlElement(name="service-check", defaultValue="true")
   public boolean performServiceCheck = true;
 
+  @XmlElement(name="direction")
+  public Direction intendedDirection = null;
+
 
   /**
    * Gets the default builder.
@@ -93,12 +96,14 @@ public class Grouping {
       for (TaskBucket bucket : buckets) {
         List<TaskWrapper> preTasks = TaskWrapperBuilder.getTaskList(service, pc.name, hostsType, bucket.tasks);
         Set<String> preTasksEffectiveHosts = TaskWrapperBuilder.getEffectiveHosts(preTasks);
-        StageWrapper stage = new StageWrapper(
-            bucket.type,
-            getStageText("Preparing", ctx.getComponentDisplay(service, pc.name), preTasksEffectiveHosts),
-            preTasks
-            );
-        m_stages.add(stage);
+        if (!preTasksEffectiveHosts.isEmpty()) {
+          StageWrapper stage = new StageWrapper(
+              bucket.type,
+              getStageText("Preparing", ctx.getComponentDisplay(service, pc.name), preTasksEffectiveHosts),
+              preTasks
+              );
+          m_stages.add(stage);
+        }
       }
 
       // !!! FIXME upgrade definition have only one step, and it better be a restart
@@ -119,12 +124,14 @@ public class Grouping {
       for (TaskBucket bucket : buckets) {
         List<TaskWrapper> postTasks = TaskWrapperBuilder.getTaskList(service, pc.name, hostsType, bucket.tasks);
         Set<String> postTasksEffectiveHosts = TaskWrapperBuilder.getEffectiveHosts(postTasks);
-        StageWrapper stage = new StageWrapper(
-            bucket.type,
-            getStageText("Completing", ctx.getComponentDisplay(service, pc.name), postTasksEffectiveHosts),
-            postTasks
-            );
-        m_stages.add(stage);
+        if (!postTasksEffectiveHosts.isEmpty()) {
+          StageWrapper stage = new StageWrapper(
+              bucket.type,
+              getStageText("Completing", ctx.getComponentDisplay(service, pc.name), postTasksEffectiveHosts),
+              postTasks
+              );
+          m_stages.add(stage);
+        }
       }
 
       if (!clientOnly) {

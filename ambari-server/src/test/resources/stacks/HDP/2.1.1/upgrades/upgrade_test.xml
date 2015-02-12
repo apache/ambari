@@ -43,6 +43,8 @@
     </group>
   
     <group name="ZOOKEEPER" title="Zookeeper">
+      <skippable>true</skippable>
+      <allow-retry>false</allow-retry>
       <service name="ZOOKEEPER">
         <component>ZOOKEEPER_SERVER</component>
         <component>ZOOKEEPER_CLIENT</component>

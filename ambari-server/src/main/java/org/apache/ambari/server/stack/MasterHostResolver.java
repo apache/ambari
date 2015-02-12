@@ -120,7 +120,7 @@ public class MasterHostResolver {
     }
 
     HostsType hostsType = new HostsType();
-    hostsType.hosts = componentHosts;
+    hostsType.hosts.addAll(componentHosts);
 
     Service s = Service.OTHER;
     try {
@@ -134,7 +134,7 @@ public class MasterHostResolver {
         case HDFS:
           if (componentName.equalsIgnoreCase("NAMENODE")) {
             if (componentHosts.size() != 2) {
-              return hostsType;
+              return filterSameVersion(hostsType, serviceName, componentName);
             }
 
             Map<Status, String> pair = getNameNodePair();
@@ -144,31 +144,27 @@ public class MasterHostResolver {
             } else {
               hostsType.master = componentHosts.iterator().next();
             }
-          } else {
-            hostsType = filterSameVersion(hostsType, serviceName, componentName);
           }
           break;
         case YARN:
           if (componentName.equalsIgnoreCase("RESOURCEMANAGER")) {
             resolveResourceManagers(getCluster(), hostsType);
-          } else {
-            hostsType = filterSameVersion(hostsType, serviceName, componentName);
           }
           break;
         case HBASE:
           if (componentName.equalsIgnoreCase("HBASE_MASTER")) {
             resolveHBaseMasters(getCluster(), hostsType);
-          } else {
-            hostsType = filterSameVersion(hostsType, serviceName, componentName);
           }
           break;
-        case OTHER:
-          hostsType = filterSameVersion(hostsType, serviceName, componentName);
+        default:
           break;
       }
     } catch (Exception err) {
       LOG.error("Unable to get master and hosts for Component " + componentName + ". Error: " + err.getMessage(), err);
     }
+
+    hostsType = filterSameVersion(hostsType, serviceName, componentName);
+
     return hostsType;
   }
 
@@ -190,7 +186,7 @@ public class MasterHostResolver {
 
       // !!! not really a fan of passing these around
       List<ServiceComponentHost> unhealthy = new ArrayList<ServiceComponentHost>();
-      Set<String> toUpgrade = new LinkedHashSet<String>();
+      LinkedHashSet<String> toUpgrade = new LinkedHashSet<String>();
 
       for (String host : hostsType.hosts) {
         ServiceComponentHost sch = sc.getServiceComponentHost(host);
@@ -271,7 +267,7 @@ public class MasterHostResolver {
   }
 
   private void resolveResourceManagers(Cluster cluster, HostsType hostType) throws MalformedURLException {
-    Set<String> orderedHosts = new LinkedHashSet<String>(hostType.hosts);
+    LinkedHashSet<String> orderedHosts = new LinkedHashSet<String>(hostType.hosts);
 
     // IMPORTANT, for RM, only the master returns jmx
     String rmWebAppAddress = m_configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.YARN_SITE, "yarn.resourcemanager.webapp.address");

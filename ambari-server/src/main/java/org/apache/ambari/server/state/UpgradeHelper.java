@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.state;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -194,7 +193,7 @@ public class UpgradeHelper {
     Map<String, Map<String, ProcessingComponent>> allTasks = upgradePack.getTasks();
     List<UpgradeGroupHolder> groups = new ArrayList<UpgradeGroupHolder>();
 
-    for (Grouping group : upgradePack.getGroups(context.getDirection().isUpgrade())) {
+    for (Grouping group : upgradePack.getGroups(context.getDirection())) {
 
       UpgradeGroupHolder groupHolder = new UpgradeGroupHolder();
       groupHolder.name = group.name;
@@ -246,17 +245,15 @@ public class UpgradeHelper {
           // Special case for NAMENODE
           if (service.serviceName.equalsIgnoreCase("HDFS") && component.equalsIgnoreCase("NAMENODE")) {
             // !!! revisit if needed
-            if (hostsType.master != null && hostsType.secondary != null) {
+            if (!hostsType.hosts.isEmpty() && hostsType.master != null && hostsType.secondary != null) {
               // The order is important, first do the standby, then the active namenode.
-              Set<String> order = new LinkedHashSet<String>();
+              LinkedHashSet<String> order = new LinkedHashSet<String>();
 
               order.add(hostsType.secondary);
               order.add(hostsType.master);
 
               // Override the hosts with the ordered collection
               hostsType.hosts = order;
-            } else {
-                throw new AmbariException(MessageFormat.format("Could not find active and standby namenodes using hosts: {0}", StringUtils.join(hostsType.hosts, ", ").toString()));
             }
 
             builder.add(context, hostsType, service.serviceName,

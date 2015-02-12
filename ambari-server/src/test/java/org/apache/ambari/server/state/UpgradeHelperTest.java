@@ -150,7 +150,6 @@ public class UpgradeHelperTest {
     }
     assertTrue("Expected to find replaced text for Upgrading", found);
 
-
     UpgradeGroupHolder group = groups.get(1);
     // check that the display name is being used
     assertTrue(group.items.get(1).getText().contains("ZooKeeper1 Server2"));
@@ -559,30 +558,30 @@ public class UpgradeHelperTest {
     }, null);
 
     HostsType type = new HostsType();
-    type.hosts = new HashSet<String>(Arrays.asList("h1", "h2", "h3"));
+    type.hosts.addAll(Arrays.asList("h1", "h2", "h3"));
     expect(m_masterHostResolver.getMasterAndHosts("ZOOKEEPER", "ZOOKEEPER_SERVER")).andReturn(type).anyTimes();
 
     type = new HostsType();
-    type.hosts = new HashSet<String>(Arrays.asList("h1", "h2"));
+    type.hosts.addAll(Arrays.asList("h1", "h2"));
     type.master = "h1";
     type.secondary = "h2";
     expect(m_masterHostResolver.getMasterAndHosts("HDFS", "NAMENODE")).andReturn(type).anyTimes();
 
     type = new HostsType();
     if (clean) {
-      type.hosts = new HashSet<String>(Arrays.asList("h2", "h3", "h4"));
+      type.hosts.addAll(Arrays.asList("h2", "h3", "h4"));
     } else {
       type.unhealthy = Collections.singletonList(sch);
-      type.hosts = new HashSet<String>(Arrays.asList("h2", "h3"));
+      type.hosts.addAll(Arrays.asList("h2", "h3"));
     }
     expect(m_masterHostResolver.getMasterAndHosts("HDFS", "DATANODE")).andReturn(type).anyTimes();
 
     type = new HostsType();
-    type.hosts = new HashSet<String>(Arrays.asList("h2"));
+    type.hosts.addAll(Arrays.asList("h2"));
     expect(m_masterHostResolver.getMasterAndHosts("YARN", "RESOURCEMANAGER")).andReturn(type).anyTimes();
 
     type = new HostsType();
-    type.hosts = new HashSet<String>(Arrays.asList("h1", "h3"));
+    type.hosts.addAll(Arrays.asList("h1", "h3"));
     expect(m_masterHostResolver.getMasterAndHosts("YARN", "NODEMANAGER")).andReturn(type).anyTimes();
 
     expect(m_masterHostResolver.getMasterAndHosts("HIVE", "HIVE_SERVER")).andReturn(

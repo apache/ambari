@@ -32,6 +32,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.ServiceCheckGrouping;
 import org.apache.ambari.server.state.stack.upgrade.Task;
@@ -70,12 +71,22 @@ public class UpgradePack {
   }
 
   /**
-   * Gets the groups defined for the upgrade pack
-   * @param upgrade {@code true} if returning the groups in proper order for an upgrade
+   * Gets the groups defined for the upgrade pack.  If a direction is defined
+   * for a group, it must match the supplied direction to be returned
+   * @param direction the direction to return the ordered groups
    * @return the list of groups
    */
-  public List<Grouping> getGroups(boolean upgrade) {
-    return upgrade ? groups : getDowngradeGroups();
+  public List<Grouping> getGroups(Direction direction) {
+    List<Grouping> list = direction.isUpgrade() ? groups : getDowngradeGroups();
+
+    List<Grouping> checked = new ArrayList<Grouping>();
+    for (Grouping group : list) {
+      if (null == group.intendedDirection || direction == group.intendedDirection) {
+        checked.add(group);
+      }
+    }
+
+    return checked;
   }
 
   /**
@@ -219,7 +230,5 @@ public class UpgradePack {
     @XmlElementWrapper(name="post-downgrade")
     @XmlElement(name="task")
     public List<Task> postDowngradeTasks;
-
   }
-
 }

@@ -19,32 +19,36 @@
 package org.apache.ambari.server.stack;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.ambari.server.state.ServiceComponentHost;
 
 /**
- * Wrapper around a collection of hosts that may have either a Master or Secondary host.
+ * Wrapper around a collection of hosts for components.  Some components
+ * also have master/secondary designators.
  */
 public class HostsType {
 
-  public String master;
-
-  public String secondary;
+  /**
+   * The master host, if any.
+   */
+  public String master = null;
 
   /**
-   * Ordered collection of hosts.
+   * The secondary host, if any.
    */
-  public Set<String> hosts;
+  public String secondary = null;
 
-  public List<ServiceComponentHost> unhealthy;
+  /**
+   * Ordered collection of hosts.  This represents all hosts where an upgrade
+   * or downgrade must occur.  For an upgrade, all hosts are set.  For a downgrade,
+   * this list may be a subset of all hosts where the downgrade MUST be executed.
+   * That is to say, a downgrade only occurs where the current version is not
+   * the target version.
+   */
+  public LinkedHashSet<String> hosts = new LinkedHashSet<String>();
 
-  public HostsType () {
-    master = null;
-    secondary = null;
-    hosts = new HashSet<String>();
-    unhealthy = new ArrayList<ServiceComponentHost>();
-  }
+  public List<ServiceComponentHost> unhealthy = new ArrayList<ServiceComponentHost>();
+
 }

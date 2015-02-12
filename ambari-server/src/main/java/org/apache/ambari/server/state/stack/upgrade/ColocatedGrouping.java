@@ -64,7 +64,7 @@ public class ColocatedGrouping extends Grouping {
 
 
     private MultiHomedBuilder(Batch batch, boolean serviceCheck) {
-      this.m_batch = batch;
+      m_batch = batch;
       m_serviceCheck = serviceCheck;
     }
 
@@ -81,7 +81,7 @@ public class ColocatedGrouping extends Grouping {
       for (String host : hostsType.hosts) {
         // This class required inserting a single host into the collection
         HostsType singleHostsType = new HostsType();
-        singleHostsType.hosts = Collections.singleton(host);
+        singleHostsType.hosts.add(host);
 
         Map<String, List<TaskProxy>> targetMap = ((i++) < count) ? initialBatch : finalBatches;
         List<TaskProxy> targetList = targetMap.get(host);
@@ -146,18 +146,20 @@ public class ColocatedGrouping extends Grouping {
         LOG.debug("RU final: {}", finalBatches);
       }
 
-      results.addAll(fromProxies(ctx.getDirection(), initialBatch));
+      List<StageWrapper> befores = fromProxies(ctx.getDirection(), initialBatch);
+      results.addAll(befores);
 
-      // !!! TODO when manual tasks are ready
-      ManualTask task = new ManualTask();
-      task.summary = m_batch.summary;
-      task.message = m_batch.message;
+      if (!befores.isEmpty()) {
+        ManualTask task = new ManualTask();
+        task.summary = m_batch.summary;
+        task.message = m_batch.message;
 
-      StageWrapper wrapper = new StageWrapper(
-          StageWrapper.Type.SERVER_SIDE_ACTION,
-          "Validate Partial " + ctx.getDirection().getText(true),
-          new TaskWrapper(null, null, Collections.<String>emptySet(), task));
-      results.add(wrapper);
+        StageWrapper wrapper = new StageWrapper(
+            StageWrapper.Type.SERVER_SIDE_ACTION,
+            "Validate Partial " + ctx.getDirection().getText(true),
+            new TaskWrapper(null, null, Collections.<String>emptySet(), task));
+        results.add(wrapper);
+      }
 
       results.addAll(fromProxies(ctx.getDirection(), finalBatches));
 

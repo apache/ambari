@@ -58,6 +58,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -155,6 +156,7 @@ public class UpgradeResourceProviderTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     host.setHostAttributes(hostAttributes);
+    host.setState(HostState.HEALTHY);
     host.persist();
 
     clusters.mapHostToCluster("h1", "c1");
@@ -179,7 +181,7 @@ public class UpgradeResourceProviderTest {
     injector = null;
   }
 
-  public org.apache.ambari.server.controller.spi.RequestStatus testCreateResources() throws Exception {
+  private org.apache.ambari.server.controller.spi.RequestStatus testCreateResources() throws Exception {
 
     Cluster cluster = clusters.getCluster("c1");
 
@@ -211,7 +213,7 @@ public class UpgradeResourceProviderTest {
     }
 
     List<UpgradeGroupEntity> upgradeGroups = entity.getUpgradeGroups();
-    assertEquals(4, upgradeGroups.size());
+    assertEquals(3, upgradeGroups.size());
 
     UpgradeGroupEntity group = upgradeGroups.get(1);
     assertEquals(4, group.getItems().size());
@@ -232,15 +234,15 @@ public class UpgradeResourceProviderTest {
 
     List<Stage> stages = am.getRequestStatus(requests.get(0).longValue());
 
-    assertEquals(9, stages.size());
+    assertEquals(8, stages.size());
 
     List<HostRoleCommand> tasks = am.getRequestTasks(requests.get(0).longValue());
     // same number of tasks as stages here
-    assertEquals(9, tasks.size());
+    assertEquals(8, tasks.size());
 
     Set<Long> slaveStageIds = new HashSet<Long>();
 
-    UpgradeGroupEntity coreSlavesGroup = upgradeGroups.get(2);
+    UpgradeGroupEntity coreSlavesGroup = upgradeGroups.get(1);
 
     for (UpgradeItemEntity itemEntity : coreSlavesGroup.getItems()) {
       slaveStageIds.add(itemEntity.getStageId());
@@ -304,7 +306,7 @@ public class UpgradeResourceProviderTest {
     ResourceProvider upgradeGroupResourceProvider = new UpgradeGroupResourceProvider(amc);
     resources = upgradeGroupResourceProvider.getResources(request, predicate);
 
-    assertEquals(4, resources.size());
+    assertEquals(3, resources.size());
     res = resources.iterator().next();
     assertNotNull(res.getPropertyValue("UpgradeGroup/status"));
     assertNotNull(res.getPropertyValue("UpgradeGroup/group_id"));
@@ -344,11 +346,11 @@ public class UpgradeResourceProviderTest {
 
     upgradeItemResourceProvider = new UpgradeItemResourceProvider(amc);
     resources = upgradeItemResourceProvider.getResources(request, predicate);
-    assertEquals(1, resources.size());
+    assertEquals(2, resources.size());
     res = resources.iterator().next();
 
-    assertEquals("Validate Partial Upgrade", res.getPropertyValue("UpgradeItem/context"));
-    assertTrue(res.getPropertyValue("UpgradeItem/text").toString().startsWith("Please run"));
+    assertEquals("Confirm Finalize", res.getPropertyValue("UpgradeItem/context"));
+    assertTrue(res.getPropertyValue("UpgradeItem/text").toString().startsWith("Please confirm"));
   }
 
   @Test
@@ -394,9 +396,9 @@ public class UpgradeResourceProviderTest {
     assertEquals(cluster.getClusterId(), entity.getClusterId().longValue());
 
     List<UpgradeGroupEntity> upgradeGroups = entity.getUpgradeGroups();
-    assertEquals(4, upgradeGroups.size());
+    assertEquals(3, upgradeGroups.size());
 
-    UpgradeGroupEntity group = upgradeGroups.get(2);
+    UpgradeGroupEntity group = upgradeGroups.get(1);
     assertEquals("ZOOKEEPER", group.getName());
     assertEquals(3, group.getItems().size());
 
@@ -482,6 +484,58 @@ public class UpgradeResourceProviderTest {
     Request req = PropertyHelper.getUpdateRequest(requestProps, null);
     urp.updateResources(req, null);
 
+  }
+
+  @Test
+  public void testDirectionUpgrade() throws Exception {
+    Cluster cluster = clusters.getCluster("c1");
+
+    RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
+    repoVersionEntity.setDisplayName("My New Version 3");
+    repoVersionEntity.setOperatingSystems("");
+    repoVersionEntity.setStack("HDP-2.1.1");
+    repoVersionEntity.setUpgradePackage("upgrade_direction");
+    repoVersionEntity.setVersion("2.2.2.3");
+    repoVersionDao.create(repoVersionEntity);
+
+    Map<String, Object> requestProps = new HashMap<String, Object>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.2.3");
+
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    upgradeResourceProvider.createResources(request);
+
+    List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(1, upgrades.size());
+
+    UpgradeEntity upgrade = upgrades.get(0);
+    Long id = upgrade.getRequestId();
+    assertEquals(3, upgrade.getUpgradeGroups().size());
+    UpgradeGroupEntity group = upgrade.getUpgradeGroups().get(2);
+    assertEquals(1, group.getItems().size());
+
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_FROM_VERSION, "2.2.2.3");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_FORCE_DOWNGRADE, "true");
+
+    request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    upgradeResourceProvider.createResources(request);
+
+    upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(2, upgrades.size());
+
+    upgrade = null;
+    for (UpgradeEntity u : upgrades) {
+      if (!u.getRequestId().equals(id)) {
+        upgrade = u;
+      }
+    }
+    assertNotNull(upgrade);
+    assertEquals("Downgrade groups reduced from 3 to 2", 2, upgrade.getUpgradeGroups().size());
+    group = upgrade.getUpgradeGroups().get(1);
+    assertEquals("Execution items increased from 1 to 2", 2, group.getItems().size());
   }
 
 

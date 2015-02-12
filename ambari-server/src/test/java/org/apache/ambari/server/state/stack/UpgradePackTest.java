@@ -32,6 +32,9 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
+import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
+import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping.ExecuteStage;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.RestartTask;
 import org.apache.ambari.server.state.stack.upgrade.Task;
@@ -167,18 +170,42 @@ public class UpgradePackTest {
         "POST_CLUSTER");
 
     int i = 0;
-    List<Grouping> groups = up.getGroups(true);
+    List<Grouping> groups = up.getGroups(Direction.UPGRADE);
     for (Grouping g : groups) {
       assertEquals(expected_up.get(i), g.name);
       i++;
     }
 
     i = 0;
-    groups = up.getGroups(false);
+    groups = up.getGroups(Direction.DOWNGRADE);
     for (Grouping g : groups) {
       assertEquals(expected_down.get(i), g.name);
       i++;
     }
+  }
+
+  @Test
+  public void testDirection() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    assertTrue(upgrades.size() > 0);
+    assertTrue(upgrades.containsKey("upgrade_direction"));
+
+    UpgradePack up = upgrades.get("upgrade_direction");
+
+    List<Grouping> groups = up.getGroups(Direction.UPGRADE);
+    assertEquals(3, groups.size());
+    Grouping group = groups.get(2);
+    assertEquals(ClusterGrouping.class, group.getClass());
+
+    ClusterGrouping cluster_group = (ClusterGrouping) groups.get(2);
+    List<ExecuteStage> stages = cluster_group.executionStages;
+    assertEquals(2, stages.size());
+    assertNotNull(stages.get(0).intendedDirection);
+    assertEquals(Direction.DOWNGRADE, stages.get(0).intendedDirection);
+
+    groups = up.getGroups(Direction.DOWNGRADE);
+    assertEquals(2, groups.size());
+    assertEquals(ClusterGrouping.class, groups.get(1).getClass());
   }
 
 
