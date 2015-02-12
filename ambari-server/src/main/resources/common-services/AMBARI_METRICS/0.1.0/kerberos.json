@@ -20,12 +20,12 @@
                 "value": "amshbase/_HOST@${realm}",
                 "type": "service",
                 "configuration": "ams-hbase-security-site/hbase.master.kerberos.principal",
-                "local_username": "${ams-hbase-env/hbase_user}"
+                "local_username": "${ams-env/ambari_metrics_user}"
               },
               "keytab": {
                 "file": "${keytab_dir}/ams-hbase.master.keytab",
                 "owner": {
-                  "name": "${ams-hbase-env/hbase_user}",
+                  "name": "${ams-env/ambari_metrics_user}",
                   "access": "r"
                 },
                 "group": {
@@ -41,12 +41,12 @@
                 "value": "amshbase/_HOST@${realm}",
                 "type": "service",
                 "configuration": "ams-hbase-security-site/hbase.regionserver.kerberos.principal",
-                "local_username": "${ams-hbase-env/hbase_user}"
+                "local_username": "${ams-env/ambari_metrics_user}"
               },
               "keytab": {
                 "file": "${keytab_dir}/ams-hbase.regionserver.keytab",
                 "owner": {
-                  "name": "${ams-hbase-env/hbase_user}",
+                  "name": "${ams-env/ambari_metrics_user}",
                   "access": "r"
                 },
                 "group": {
@@ -62,12 +62,12 @@
                 "value": "amshbase/_HOST@${realm}",
                 "type": "service",
                 "configuration": "ams-hbase-security-site/hbase.myclient.principal",
-                "local_username": "${ams-hbase-env/hbase_user}"
+                "local_username": "${ams-env/ambari_metrics_user}"
               },
               "keytab": {
                 "file": "${keytab_dir}/ams.collector.keytab",
                 "owner": {
-                  "name": "${ams-hbase-env/hbase_user}",
+                  "name": "${ams-env/ambari_metrics_user}",
                   "access": "r"
                 },
                 "group": {
@@ -83,12 +83,12 @@
                 "value": "zookeeper/_HOST@${realm}",
                 "type": "service",
                 "configuration": "ams-hbase-security-site/ams.zookeeper.principal",
-                "local_username": "${ams-hbase-env/hbase_user}"
+                "local_username": "${ams-env/ambari_metrics_user}"
               },
               "keytab": {
                 "file": "${keytab_dir}/zk.service.ams.keytab",
                 "owner": {
-                  "name": "${ams-hbase-env/hbase_user}",
+                  "name": "${ams-env/ambari_metrics_user}",
                   "access": "r"
                 },
                 "group": {
