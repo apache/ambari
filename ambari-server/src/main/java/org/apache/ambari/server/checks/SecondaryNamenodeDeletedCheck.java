@@ -17,8 +17,12 @@
  */
 package org.apache.ambari.server.checks;
 
+import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
+import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -27,13 +31,16 @@ import org.apache.ambari.server.state.stack.PrereqCheckType;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
  * Checks that the Secondary NameNode is not present on any of the hosts.
  */
 public class SecondaryNamenodeDeletedCheck extends AbstractCheckDescriptor {
-
+  @Inject
+  HostComponentStateDAO hostComponentStateDao;
   /**
    * Constructor.
    */
@@ -49,18 +56,34 @@ public class SecondaryNamenodeDeletedCheck extends AbstractCheckDescriptor {
 
   @Override
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
+    Set<String> hosts = new HashSet<String>();
+    final String SECONDARY_NAMENODE = "SECONDARY_NAMENODE";
+
     final String clusterName = request.getClusterName();
-
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
-    ServiceComponent serviceComponent = cluster.getService(MasterHostResolver.Service.HDFS.name()).getServiceComponent("SECONDARY_NAMENODE");
-    if (serviceComponent !=  null) {
-      Set<String> hosts = serviceComponent.getServiceComponentHosts().keySet();
-
-      if (!hosts.isEmpty()) {
-        prerequisiteCheck.getFailedOn().add(serviceComponent.getName());
-        prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-        prerequisiteCheck.setFailReason("The SECONDARY_NAMENODE component must be deleted from host(s): " + StringUtils.join(hosts, ", ") + ". Please use the REST API to delete it.");
+    try {
+      ServiceComponent serviceComponent = cluster.getService(MasterHostResolver.Service.HDFS.name()).getServiceComponent(SECONDARY_NAMENODE);
+      if (serviceComponent != null) {
+        hosts = serviceComponent.getServiceComponentHosts().keySet();
       }
+    } catch (ServiceComponentNotFoundException err) {
+      ;
+    }
+
+    // Try another method
+    if (hosts.isEmpty()) {
+      List<HostComponentStateEntity> allHostComponents = hostComponentStateDao.findAll();
+      for(HostComponentStateEntity hc : allHostComponents) {
+        if (hc.getServiceName().equalsIgnoreCase(MasterHostResolver.Service.HDFS.name()) && hc.getComponentName().equalsIgnoreCase(SECONDARY_NAMENODE)) {
+          hosts.add(hc.getHostName());
+        }
+      }
+    }
+
+    if (!hosts.isEmpty()) {
+      prerequisiteCheck.getFailedOn().add(SECONDARY_NAMENODE);
+      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+      prerequisiteCheck.setFailReason("The SECONDARY_NAMENODE component must be deleted from host(s): " + StringUtils.join(hosts, ", ") + ". Please use the REST API to delete it.");
     }
   }
 }
