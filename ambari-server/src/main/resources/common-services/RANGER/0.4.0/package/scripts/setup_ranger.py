@@ -47,7 +47,7 @@ def setup_ranger():
     write_properties_to_file(file_path, admin_properties())
     ##if db flavor == oracle - set oracle home env variable
     if params.db_flavor.lower() == 'oracle' and params.oracle_home:
-      env_dict = {'JAVA_HOME': params.java_home, 'ORACLE_HOME':params.oracle_home}
+      env_dict = {'JAVA_HOME': params.java_home, 'ORACLE_HOME':params.oracle_home, 'LD_LIBRARY_PATH':params.oracle_home} 
     else: 
       env_dict = {'JAVA_HOME': params.java_home}
     cmd = format('cd {params.ranger_home} && {params.ranger_home}/setup.sh')
