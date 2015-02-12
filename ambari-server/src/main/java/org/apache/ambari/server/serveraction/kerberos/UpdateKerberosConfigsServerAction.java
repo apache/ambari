@@ -29,6 +29,7 @@ import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.SecurityType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -230,9 +231,11 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
 
           Config baseConfig = cluster.getConfig(cr.getType(), cr.getVersionTag());
           if (baseConfig != null) {
-            String authName = "kerberization";
-
-            if (cluster.addDesiredConfig(authName, Collections.singleton(baseConfig)) != null) {
+            String authName = controller.getAuthName();
+            String configNote = null;
+            configNote = cluster.getSecurityType() == SecurityType.KERBEROS ?
+                    "Enabling Kerberos on Cluster" : "Disabling Kerberos on Cluster";
+            if (cluster.addDesiredConfig(authName, Collections.singleton(baseConfig), configNote) != null) {
               String oldConfigString = (oldConfig != null) ? " from='" + oldConfig.getTag() + "'" : "";
               message = "cluster '" + cluster.getClusterName() + "' "
                   + "changed by: '" + authName + "'; "
