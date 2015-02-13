@@ -254,6 +254,7 @@ else:
   log4j_exec_props = None
 
 daemon_name = status_params.daemon_name
+process_name = status_params.process_name
 hive_env_sh_template = config['configurations']['hive-env']['content']
 
 hive_hdfs_user_dir = format("/user/{hive_user}")

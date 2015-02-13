@@ -55,6 +55,7 @@ class MysqlServer(Script):
 
   def status(self, env):
     import status_params
+    env.set_params(status_params)
 
     mysql_service(daemon_name=status_params.daemon_name, action='status')
 

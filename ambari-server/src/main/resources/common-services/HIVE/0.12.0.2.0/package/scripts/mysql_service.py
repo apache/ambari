@@ -22,7 +22,7 @@ from resource_management import *
 
 
 def mysql_service(daemon_name=None, action='start'): 
-  status_cmd = format("pgrep -l '^{daemon_name}$'")
+  status_cmd = format("pgrep -l '^{process_name}$'")
   cmd = ('service', daemon_name, action)
 
   if action == 'status':

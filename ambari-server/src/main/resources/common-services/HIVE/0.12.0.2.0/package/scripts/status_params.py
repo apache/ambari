@@ -30,6 +30,7 @@ hive_metastore_pid = 'hive.pid'
 hcat_pid_dir = config['configurations']['hive-env']['hcat_pid_dir'] #hcat_pid_dir
 webhcat_pid_file = format('{hcat_pid_dir}/webhcat.pid')
 
+process_name = 'mysqld'
 if System.get_instance().os_family == "suse" or System.get_instance().os_family == "ubuntu":
   daemon_name = 'mysql'
 else:
