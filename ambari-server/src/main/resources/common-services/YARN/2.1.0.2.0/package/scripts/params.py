@@ -172,7 +172,10 @@ if security_enabled:
     yarn_timelineservice_kinit_cmd = format("{kinit_path_local} -kt {_yarn_timelineservice_keytab} {_yarn_timelineservice_principal_name};")
 
   if 'yarn.nodemanager.principal' in config['configurations']['yarn-site']:
-    _nodemanager_principal_name = config['configurations']['yarn-site']['yarn.nodemanager.principal']
+    _nodemanager_principal_name = default('/configurations/yarn-site/yarn.nodemanager.principal', None)
+    if _nodemanager_principal_name:
+      _nodemanager_principal_name = _nodemanager_principal_name.replace('_HOST', hostname.lower())
+
     _nodemanager_keytab = config['configurations']['yarn-site']['yarn.nodemanager.keytab']
     nodemanager_kinit_cmd = format("{kinit_path_local} -kt {_nodemanager_keytab} {_nodemanager_principal_name};")
 
