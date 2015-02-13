@@ -18,6 +18,8 @@
 
 <div class="pull-right">
   <button class="btn" {{action onUndo target="view.parentView"}}>{{t common.cancel}}</button>
-  <button class="btn btn-warning" {{action onIgnore target="view.parentView"}}>{{t common.ignore}}</button>
+  {{#if view.canIgnore}}
+    <button class="btn btn-warning" {{action onIgnore target="view.parentView"}}>{{t common.ignore}}</button>
+  {{/if}}
   <button class="btn btn-success" {{action onApply target="view.parentView"}}>{{t common.apply}}</button>
 </div>

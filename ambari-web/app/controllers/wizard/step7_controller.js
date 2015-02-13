@@ -70,7 +70,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
     return App.router.get('mainAdminKerberosController.securityEnabled');
   }.property('App.router.mainAdminKerberosController.securityEnabled'),
   /**
-   * If miscConfigChange Modal is shown
+   * If configChangeObserver Modal is shown
    * @type {bool}
    */
   miscModalVisible: false,

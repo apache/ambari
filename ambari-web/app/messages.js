@@ -379,6 +379,8 @@ Em.I18n.translations = {
   'services.storm.topology.metrics.total': 'Total topologies',
   'services.storm.tasks.metrics.title': 'Number of tasks',
   'services.storm.tasks.metrics.total': 'Total tasks',
+  'services.storm.configs.range-plugin-enable.dialog.title': 'Enable Ranger for STORM',
+  'services.storm.configs.range-plugin-enable.dialog.message': 'Enabling Ranger plugin for STORM is effective only on a secured cluster.',
 
 
   'services.alerts.head':'You have {0} critical alert notification(s).',

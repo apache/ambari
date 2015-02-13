@@ -20,6 +20,7 @@ var App = require('app');
 
 var validator = require('utils/validator');
 var stringUtils = require('utils/string_utils');
+require('utils/configs/modification_handlers/modification_handler');
 
 App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, {
 
@@ -113,7 +114,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, {
    * Warn/prompt user to adjust Service props when changing user/groups in Misc
    * Is triggered when user ended editing text field
    */
-  miscConfigChange: function (manuallyChangedProperty) {
+  configChangeObserver: function (manuallyChangedProperty) {
     var changedProperty;
     if (manuallyChangedProperty.get("id")) {
       changedProperty = [manuallyChangedProperty];
@@ -128,114 +129,62 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, {
     else {
       return;
     }
-    if (this.get('controller.selectedService.serviceName') == 'MISC') {
-      var newValue = changedProperty.get("value");
-      var stepConfigs = this.get("controller.stepConfigs");
-      this.affectedProperties = [];
-      var curConfigs = "";
-      var affectedPropertyName = "dfs.permissions.superusergroup";
-      if (changedProperty.get("name") == "hdfs_user") {
-        curConfigs = stepConfigs.findProperty("serviceName", "HDFS").get("configs");
-        if (newValue != curConfigs.findProperty("name", affectedPropertyName).get("value")) {
-          this.affectedProperties.push(
-            {
-              serviceName: "HDFS",
-              propertyName: affectedPropertyName,
-              propertyDisplayName: affectedPropertyName,
-              newValue: newValue,
-              curValue: curConfigs.findProperty("name", affectedPropertyName).get("value"),
-              changedPropertyName: "hdfs_user"
-            }
-          );
-        }
-        if ($.trim(newValue) != $.trim(curConfigs.findProperty("name", "dfs.cluster.administrators").get("value"))) {
-          this.affectedProperties.push(
-            {
-              serviceName: "HDFS",
-              propertyName: "dfs.cluster.administrators",
-              propertyDisplayName: "dfs.cluster.administrators",
-              newValue: " " + $.trim(newValue),
-              curValue: curConfigs.findProperty("name", "dfs.cluster.administrators").get("value"),
-              changedPropertyName: "hdfs_user"
-            }
-          );
-        }
-      }
-      else if (changedProperty.get("name") == "user_group") {
-        if (!(this.get("controller.selectedServiceNames").indexOf("YARN") >= 0)) {
-          return;
-        }
-        if (this.get("controller.selectedServiceNames").indexOf("MAPREDUCE2") >= 0) {
-          curConfigs = stepConfigs.findProperty("serviceName", "MAPREDUCE2").get("configs");
-          if ($.trim(newValue) != $.trim(curConfigs.findProperty("name", "mapreduce.cluster.administrators").get("value"))) {
-            this.affectedProperties.push(
-              {
-                serviceName: "MAPREDUCE2",
-                propertyName: "mapreduce.cluster.administrators",
-                propertyDisplayName: "mapreduce.cluster.administrators",
-                newValue: " " + $.trim(newValue),
-                curValue: curConfigs.findProperty("name", "mapreduce.cluster.administrators").get("value"),
-                changedPropertyName: "user_group"
-              }
-            );
+    this.affectedProperties = [];
+    var stepConfigs = this.get("controller.stepConfigs");
+    var serviceId = this.get('controller.selectedService.serviceName');
+    var serviceConfigModificationHandler = null;
+    try{
+      serviceConfigModificationHandler = require('utils/configs/modification_handlers/'+serviceId.toLowerCase());
+    }catch (e) {
+      console.log("Unable to load modification handler for ", serviceId);
+    }
+    if (serviceConfigModificationHandler != null) {
+      var securityEnabled = App.router.get('mainAdminSecurityController.securityEnabled');
+      this.affectedProperties = serviceConfigModificationHandler.getDependentConfigChanges(changedProperty, this.get("controller.selectedServiceNames"), stepConfigs, securityEnabled);
+    }
+    changedProperty.set("editDone", false); // Turn off flag
+    
+    if (this.affectedProperties.length > 0 && !this.get("controller.miscModalVisible")) {
+      this.newAffectedProperties = this.affectedProperties;
+      var self = this;
+      return App.ModalPopup.show({
+        classNames: ['modal-690px-width'],
+        showCloseButton: false,
+        header: "Warning: you must also change these Service properties",
+        onApply: function () {
+          self.get("newAffectedProperties").forEach(function(item) {
+            self.get("controller.stepConfigs").findProperty("serviceName", item.serviceName).get("configs").find(function(config) {
+              return item.propertyName == config.get('name') && (item.filename == null || item.filename == config.get('filename'));
+            }).set("value", item.newValue);
+          });
+          self.get("controller").set("miscModalVisible", false);
+          this.hide();
+        },
+        onIgnore: function () {
+          self.get("controller").set("miscModalVisible", false);
+          this.hide();
+        },
+        onUndo: function () {
+          var affected = self.get("newAffectedProperties").objectAt(0);
+          self.get("controller.stepConfigs").findProperty("serviceName", affected.sourceServiceName).get("configs")
+          .findProperty("name", affected.changedPropertyName).set("value", $.trim(affected.curValue));
+          self.get("controller").set("miscModalVisible", false);
+          this.hide();
+        },
+        footerClass: Ember.View.extend({
+          classNames: ['modal-footer'],
+          templateName: require('templates/common/configs/propertyDependence_footer'),
+          canIgnore: serviceId == 'MISC'
+        }),
+        bodyClass: Ember.View.extend({
+          templateName: require('templates/common/configs/propertyDependence'),
+          controller: this,
+          propertyChange: self.get("newAffectedProperties"),
+          didInsertElement: function () {
+            self.get("controller").set("miscModalVisible", true);
           }
-        }
-        if (this.get("controller.selectedServiceNames").indexOf("YARN") >= 0) {
-          curConfigs = stepConfigs.findProperty("serviceName", "YARN").get("configs");
-          if (newValue != curConfigs.findProperty("name", "yarn.nodemanager.linux-container-executor.group").get("value")) {
-            this.affectedProperties.push(
-              {
-                serviceName: "YARN",
-                propertyName: "yarn.nodemanager.linux-container-executor.group",
-                propertyDisplayName: "yarn.nodemanager.linux-container-executor.group",
-                newValue: newValue,
-                curValue: curConfigs.findProperty("name", "yarn.nodemanager.linux-container-executor.group").get("value"),
-                changedPropertyName: "user_group"
-              }
-            )
-          }
-        }
-      }
-      if (this.affectedProperties.length > 0 && !this.get("controller.miscModalVisible")) {
-        this.newAffectedProperties = this.affectedProperties;
-        var self = this;
-        return App.ModalPopup.show({
-          classNames: ['modal-690px-width'],
-          showCloseButton: false,
-          header: "Warning: you must also change these Service properties",
-          onApply: function () {
-            self.get("newAffectedProperties").forEach(function (item) {
-              self.get("controller.stepConfigs").findProperty("serviceName", item.serviceName).get("configs")
-                .findProperty("name", item.propertyName).set("value", item.newValue);
-            });
-            self.get("controller").set("miscModalVisible", false);
-            this.hide();
-          },
-          onIgnore: function () {
-            self.get("controller").set("miscModalVisible", false);
-            this.hide();
-          },
-          onUndo: function () {
-            var affected = self.get("newAffectedProperties").objectAt(0);
-            self.get("controller.stepConfigs").findProperty("serviceName", "MISC").get("configs")
-              .findProperty("name", affected.changedPropertyName).set("value", $.trim(affected.curValue));
-            self.get("controller").set("miscModalVisible", false);
-            this.hide();
-          },
-          footerClass: Ember.View.extend({
-            classNames: ['modal-footer'],
-            templateName: require('templates/common/configs/propertyDependence_footer')
-          }),
-          bodyClass: Ember.View.extend({
-            templateName: require('templates/common/configs/propertyDependence'),
-            controller: this,
-            propertyChange: self.get("newAffectedProperties"),
-            didInsertElement: function () {
-              self.get("controller").set("miscModalVisible", true);
-            }
-          })
-        });
-      }
+        })
+      });
     }
   }.observes('categoryConfigs.@each.editDone'),
 
@@ -658,7 +607,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, {
     if (supportsFinal) {
       serviceConfigProperty.set('isFinal', defaultIsFinal);
     }
-    this.miscConfigChange(serviceConfigProperty);
+    this.configChangeObserver(serviceConfigProperty);
     Em.$('body>.tooltip').remove(); //some tooltips get frozen when their owner's DOM element is removed
   },
 

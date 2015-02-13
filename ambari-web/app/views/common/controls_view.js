@@ -248,8 +248,10 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
    * change service config value if click on checkbox
    */
   toggleValue: function() {
-    if (this.isNotAppropriateValue())
+    if (this.isNotAppropriateValue()){
       this.set('serviceConfig.value', this.get(this.get('checked') + 'Value'));
+      this.get('serviceConfig').set("editDone", true);
+    }
   }.observes('checked'),
 
   /**
@@ -262,7 +264,14 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
 
   disabled: function () {
     return !this.get('serviceConfig.isEditable');
-  }.property('serviceConfig.isEditable')
+  }.property('serviceConfig.isEditable'),
+
+  //Set editDone false for all current category config text field parameter
+  focusIn: function (event) {
+    if (!this.get('serviceConfig.isOverridden') && !this.get('serviceConfig.isComparison')) {
+      this.get("parentView.categoryConfigsAll").setEach("editDone", false);
+    }
+  }
 });
 
 /**

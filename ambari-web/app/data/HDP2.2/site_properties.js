@@ -133,7 +133,8 @@ hdp22properties.push(
     "isOverridable": false,
     "filename": "ranger-hdfs-plugin-properties.xml",
     "category": "Advanced ranger-hdfs-plugin-properties",
-    "serviceName": "HDFS"
+    "serviceName": "HDFS",
+    "index": 1
   },
   {
     "id": "site property",
@@ -189,7 +190,8 @@ hdp22properties.push(
     "isOverridable": false,
     "filename": "ranger-hive-plugin-properties.xml",
     "category": "Advanced ranger-hive-plugin-properties",
-    "serviceName": "HIVE"
+    "serviceName": "HIVE",
+    "index": 1
   },
   {
     "id": "site property",
@@ -255,7 +257,8 @@ hdp22properties.push(
     "isOverridable": false,
     "filename": "ranger-hbase-plugin-properties.xml",
     "category": "Advanced ranger-hbase-plugin-properties",
-    "serviceName": "HBASE"
+    "serviceName": "HBASE",
+    "index": 1
   },
   {
     "id": "site property",
@@ -321,7 +324,8 @@ hdp22properties.push(
     "isOverridable": false,
     "filename": "ranger-storm-plugin-properties.xml",
     "category": "Advanced ranger-storm-plugin-properties",
-    "serviceName": "STORM"
+    "serviceName": "STORM",
+    "index": 1
   },
   {
     "id": "site property",
@@ -377,7 +381,8 @@ hdp22properties.push(
     "isOverridable": false,
     "filename": "ranger-knox-plugin-properties.xml",
     "category": "Advanced ranger-knox-plugin-properties",
-    "serviceName": "KNOX"
+    "serviceName": "KNOX",
+    "index": 1
   },
   {
     "id": "site property",
