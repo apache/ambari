@@ -52,10 +52,6 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
 
   private static final String LDAP_CONTEXT_FACTORY_CLASS = "com.sun.jndi.ldap.LdapCtxFactory";
 
-  public final static String KERBEROS_ENV_LDAP_URL = "ldap_url";
-  public final static String KERBEROS_ENV_PRINCIPAL_CONTAINER_DN = "container_dn";
-  public final static String KERBEROS_ENV_CREATE_ATTRIBUTES_TEMPLATE = "create_attributes_template";
-
   /**
    * A String containing the URL for the LDAP interface for the relevant Active Directory
    */
@@ -146,6 +142,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
 
     setAdministratorCredentials(administratorCredentials);
     setDefaultRealm(realm);
+    setKeyEncryptionTypes(translateEncryptionTypes(kerberosConfiguration.get(KERBEROS_ENV_ENCRYPTION_TYPES), "\\s+"));
 
     this.ldapContext = createLdapContext();
     this.searchControls = createSearchControls();
@@ -203,7 +200,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
       throw new KerberosOperationException("principal is null");
     }
 
-    DeconstructedPrincipal deconstructPrincipal = deconstructPrincipal(principal);
+    DeconstructedPrincipal deconstructPrincipal = createDeconstructPrincipal(principal);
 
     try {
       return (findPrincipalDN(deconstructPrincipal.getNormalizedPrincipal()) != null);
@@ -237,8 +234,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
       throw new KerberosOperationException("principal password is null");
     }
 
-    // TODO: (rlevas) pass components and realm in separately (AMBARI-9122)
-    DeconstructedPrincipal deconstructedPrincipal = deconstructPrincipal(principal);
+    DeconstructedPrincipal deconstructedPrincipal = createDeconstructPrincipal(principal);
 
     String realm = deconstructedPrincipal.getRealm();
     if (realm == null) {
@@ -327,7 +323,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
       throw new KerberosOperationException("principal password is null");
     }
 
-    DeconstructedPrincipal deconstructPrincipal = deconstructPrincipal(principal);
+    DeconstructedPrincipal deconstructPrincipal = createDeconstructPrincipal(principal);
 
     try {
       String dn = findPrincipalDN(deconstructPrincipal.getNormalizedPrincipal());
@@ -368,7 +364,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
       throw new KerberosOperationException("principal is null");
     }
 
-    DeconstructedPrincipal deconstructPrincipal = deconstructPrincipal(principal);
+    DeconstructedPrincipal deconstructPrincipal = createDeconstructPrincipal(principal);
 
     try {
       String dn = findPrincipalDN(deconstructPrincipal.getNormalizedPrincipal());

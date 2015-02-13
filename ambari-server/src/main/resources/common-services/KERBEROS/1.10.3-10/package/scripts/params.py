@@ -102,12 +102,8 @@ if config is not None:
   libdefaults_ticket_lifetime = '24h'
   libdefaults_renew_lifetime = '7d'
   libdefaults_forwardable = 'true'
-  libdefaults_default_tgs_enctypes = 'aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96 des3-cbc-sha1 ' \
-                                     'arcfour-hmac-md5 camellia256-cts-cmac camellia128-cts-cmac ' \
-                                     'des-cbc-crc des-cbc-md5 des-cbc-md4'
-  libdefaults_default_tkt_enctypes = 'aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96 des3-cbc-sha1 ' \
-                                     'arcfour-hmac-md5 camellia256-cts-cmac camellia128-cts-cmac ' \
-                                     'des-cbc-crc des-cbc-md5 des-cbc-md4'
+  libdefaults_default_tgs_enctypes = None
+  libdefaults_default_tkt_enctypes = None
 
   realm = 'EXAMPLE.COM'
   domains = ''
@@ -150,10 +146,10 @@ if config is not None:
                                                  libdefaults_forwardable)
     libdefaults_default_tgs_enctypes = get_property_value(krb5_conf_data,
                                                           'libdefaults_default_tgs_enctypes',
-                                                          encryption_types)
+                                                          libdefaults_default_tgs_enctypes)
     libdefaults_default_tkt_enctypes = get_property_value(krb5_conf_data,
                                                           'libdefaults_default_tkt_enctypes',
-                                                          encryption_types)
+                                                          libdefaults_default_tkt_enctypes)
     realm = get_property_value(krb5_conf_data, 'realm', realm)
     domains = get_property_value(krb5_conf_data, 'domains', domains)
     kdc_host = get_property_value(krb5_conf_data, 'kdc_host', kdc_host)

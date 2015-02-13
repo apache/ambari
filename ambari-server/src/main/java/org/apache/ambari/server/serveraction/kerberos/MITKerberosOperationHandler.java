@@ -70,8 +70,14 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
   public void open(KerberosCredential administratorCredentials, String realm,
                    Map<String, String> kerberosConfiguration)
       throws KerberosOperationException {
+
     setAdministratorCredentials(administratorCredentials);
     setDefaultRealm(realm);
+
+    if (kerberosConfiguration != null) {
+      setKeyEncryptionTypes(translateEncryptionTypes(kerberosConfiguration.get(KERBEROS_ENV_ENCRYPTION_TYPES), "\\s+"));
+    }
+
     setOpen(true);
   }
 

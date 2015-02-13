@@ -78,7 +78,23 @@
     </description>
     <value>true</value>
   </property>
-  <property require-input="true">
+  <property require-input="false">
+    <name>libdefaults_default_tgs_enctypes</name>
+    <description>
+      A space-delimited list of session key encryption types supported by the KDC or Active
+      Directory
+    </description>
+    <value/>
+  </property>
+  <property require-input="false">
+    <name>libdefaults_default_tkt_enctypes</name>
+    <description>
+      A space-delimited list of session key encryption types supported by the KDC or Active
+      Directory.
+    </description>
+    <value/>
+  </property>
+  <property require-input="false">
     <name>domains</name>
     <description>
       A comma-separated list of domain names used to map server host names to the Realm name (e.g. .example.com,example.com). This is optional
@@ -108,7 +124,6 @@
     <value>true</value>
   </property>
 
-
   <property>
     <name>conf_dir</name>
     <description>The krb5.conf configuration directory</description>
@@ -125,6 +140,12 @@
   ticket_lifetime = {{libdefaults_ticket_lifetime}}
   dns_lookup_realm = {{libdefaults_dns_lookup_realm}}
   dns_lookup_kdc = {{libdefaults_dns_lookup_kdc}}
+  {% if libdefaults_default_tgs_enctypes %}
+  default_tgs_enctypes = {{libdefaults_default_tgs_enctypes}}
+  {% endif %}
+  {% if libdefaults_default_tkt_enctypes %}
+  default_tkt_enctypes = {{libdefaults_default_tkt_enctypes}}
+  {% endif %}
 
 {% if domains %}
 [domain_realm]

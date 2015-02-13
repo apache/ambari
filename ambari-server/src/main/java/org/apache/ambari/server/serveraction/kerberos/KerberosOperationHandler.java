@@ -37,6 +37,8 @@ import java.io.OutputStream;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -58,10 +60,109 @@ public abstract class KerberosOperationHandler {
   protected final static int SECURE_PASSWORD_LENGTH = 18;
 
   /**
+   * Kerberos-env configuration property name: ldap_url
+   */
+  public final static String KERBEROS_ENV_LDAP_URL = "ldap_url";
+
+  /**
+   * Kerberos-env configuration property name: container_dn
+   */
+  public final static String KERBEROS_ENV_PRINCIPAL_CONTAINER_DN = "container_dn";
+
+  /**
+   * Kerberos-env configuration property name: create_attributes_template
+   */
+  public final static String KERBEROS_ENV_CREATE_ATTRIBUTES_TEMPLATE = "create_attributes_template";
+
+  /**
+   * Kerberos-env configuration property name: encryption_types
+   */
+  public final static String KERBEROS_ENV_ENCRYPTION_TYPES = "encryption_types";
+
+  /**
    * The set of available characters to use when generating a secure password
    */
   private final static char[] SECURE_PASSWORD_CHARS =
       "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890?.!$%^*()-_+=~".toCharArray();
+
+  /**
+   * A Map of MIT KDC Encryption types to EncryptionType values.
+   * <p/>
+   * See http://web.mit.edu/kerberos/krb5-devel/doc/admin/conf_files/kdc_conf.html#encryption-types
+   */
+  private static final Map<String, Set<EncryptionType>> ENCRYPTION_TYPE_TRANSLATION_MAP = Collections.unmodifiableMap(
+      new HashMap<String, Set<EncryptionType>>() {
+        {
+          // aes: The AES family: aes256-cts-hmac-sha1-96 and aes128-cts-hmac-sha1-96
+          put("aes", EnumSet.of(EncryptionType.AES256_CTS_HMAC_SHA1_96, EncryptionType.AES128_CTS_HMAC_SHA1_96));
+
+          // aes256-cts-hmac-sha1-96 aes256-cts:  AES-256	CTS mode with 96-bit SHA-1 HMAC
+          put("aes256-cts-hmac-sha1-96", EnumSet.of(EncryptionType.AES256_CTS_HMAC_SHA1_96));
+          put("aes256-cts", EnumSet.of(EncryptionType.AES256_CTS_HMAC_SHA1_96));
+          put("aes-256", EnumSet.of(EncryptionType.AES256_CTS_HMAC_SHA1_96));
+
+          // aes128-cts-hmac-sha1-96 aes128-cts AES-128:	CTS mode with 96-bit SHA-1 HMAC
+          put("aes128-cts-hmac-sha1-96", EnumSet.of(EncryptionType.AES128_CTS_HMAC_SHA1_96));
+          put("aes128-cts", EnumSet.of(EncryptionType.AES128_CTS_HMAC_SHA1_96));
+          put("aes-128", EnumSet.of(EncryptionType.AES128_CTS_HMAC_SHA1_96));
+
+          // rc4	The RC4 family: arcfour-hmac
+          put("rc4", EnumSet.of(EncryptionType.RC4_HMAC));
+
+          // arcfour-hmac rc4-hmac arcfour-hmac-md5:	RC4 with HMAC/MD5
+          put("arcfour-hmac", EnumSet.of(EncryptionType.RC4_HMAC));
+          put("rc4-hmac", EnumSet.of(EncryptionType.RC4_HMAC));
+          put("arcfour-hmac-md5", EnumSet.of(EncryptionType.UNKNOWN));
+
+          // arcfour-hmac-exp rc4-hmac-exp arcfour-hmac-md5-exp:	Exportable RC4 with HMAC/MD5 (weak)
+          put("arcfour-hmac-exp", EnumSet.of(EncryptionType.RC4_HMAC_EXP));
+          put("rc4-hmac-exp", EnumSet.of(EncryptionType.RC4_HMAC_EXP));
+          put("arcfour-hmac-md5-exp", EnumSet.of(EncryptionType.UNKNOWN));
+
+          // camellia 	The Camellia family: camellia256-cts-cmac and camellia128-cts-cmac
+          put("camellia", EnumSet.of(EncryptionType.UNKNOWN));
+
+          // camellia256-cts-cmac camellia256-cts:	Camellia-256 CTS mode with CMAC
+          put("camellia256-cts-cmac", EnumSet.of(EncryptionType.UNKNOWN));
+          put("camellia256-cts", EnumSet.of(EncryptionType.UNKNOWN));
+
+          // camellia128-cts-cmac camellia128-cts:	Camellia-128 CTS mode with CMAC
+          put("camellia128-cts-cmac", EnumSet.of(EncryptionType.UNKNOWN));
+          put("camellia128-cts", EnumSet.of(EncryptionType.UNKNOWN));
+
+          //des:	The DES family: des-cbc-crc, des-cbc-md5, and des-cbc-md4 (weak)
+          put("des", EnumSet.of(EncryptionType.DES_CBC_CRC, EncryptionType.DES_CBC_MD5, EncryptionType.DES_CBC_MD4));
+
+          // des-cbc-md4: DES cbc mode with RSA-MD4 (weak)
+          put("des-cbc-md4", EnumSet.of(EncryptionType.DES_CBC_MD4));
+
+          // des-cbc-md5:	DES cbc mode with RSA-MD5 (weak)
+          put("des-cbc-md5", EnumSet.of(EncryptionType.DES_CBC_MD5));
+
+          // des-cbc-crc:	DES cbc mode with CRC-32 (weak)
+          put("des-cbc-crc", EnumSet.of(EncryptionType.DES_CBC_CRC));
+
+          // des-cbc-raw: DES cbc mode raw (weak)
+          put("des-cbc-raw", EnumSet.of(EncryptionType.UNKNOWN));
+
+          // des-hmac-sha1: DES with HMAC/sha1 (weak)
+          put("des-hmac-sha1", EnumSet.of(EncryptionType.UNKNOWN));
+
+          // des3:	The triple DES family: des3-cbc-sha1
+          put("des3", EnumSet.of(EncryptionType.DES3_CBC_SHA1_KD)); // Using DES3_CBC_SHA1_KD since DES3_CBC_SHA1 invalid key issues with KDC
+
+          // des3-cbc-raw:	Triple DES cbc mode raw (weak)
+          put("des3-cbc-raw", EnumSet.of(EncryptionType.UNKNOWN));
+
+          // des3-cbc-sha1 des3-hmac-sha1 des3-cbc-sha1-kd:	Triple DES cbc mode with HMAC/sha1
+          put("des3-cbc-sha1", EnumSet.of(EncryptionType.DES3_CBC_SHA1_KD)); // Using DES3_CBC_SHA1_KD since DES3_CBC_SHA1 invalid key issues with KDC
+          put("des3-hmac-sha1", EnumSet.of(EncryptionType.UNKNOWN));
+          put("des3-cbc-sha1-kd", EnumSet.of(EncryptionType.DES3_CBC_SHA1_KD));
+
+
+        }
+      }
+  );
 
   /**
    * The default set of ciphers to use for creating keytab entries
@@ -77,6 +178,7 @@ public abstract class KerberosOperationHandler {
 
   private KerberosCredential administratorCredentials = null;
   private String defaultRealm = null;
+  private Set<EncryptionType> keyEncryptionTypes = new HashSet<EncryptionType>(DEFAULT_CIPHERS);
   private boolean open = false;
 
   /**
@@ -235,7 +337,7 @@ public abstract class KerberosOperationHandler {
       throw new KerberosOperationException(String.format("Failed to create keytab file for %s, missing file path", principal));
     } else {
       Keytab keytab;
-      Set<EncryptionType> ciphers = new HashSet<EncryptionType>(DEFAULT_CIPHERS);
+      Set<EncryptionType> ciphers = new HashSet<EncryptionType>(keyEncryptionTypes);
       List<KeytabEntry> keytabEntries = new ArrayList<KeytabEntry>();
 
       if (keytabFile.exists() && keytabFile.canRead() && (keytabFile.length() > 0)) {
@@ -319,6 +421,31 @@ public abstract class KerberosOperationHandler {
 
   public void setDefaultRealm(String defaultRealm) {
     this.defaultRealm = defaultRealm;
+  }
+
+  /**
+   * Gets the encryption algorithms used to encrypt keys in keytab entries
+   *
+   * @return a Set of EncryptionKey values indicating which algorithms are to be used when
+   * encrypting keys for keytab entries.
+   */
+  public Set<EncryptionType> getKeyEncryptionTypes() {
+    return keyEncryptionTypes;
+  }
+
+  /**
+   * Sets the encryption algorithms to use to encrypt keys in keytab entries
+   * <p/>
+   * If set to <code>null</code> the default set of ciphers will be used.  See {@link #DEFAULT_CIPHERS}
+   *
+   * @param keyEncryptionTypes a Set of EncryptionKey values or null to indicate the default set
+   */
+  public void setKeyEncryptionTypes(Set<EncryptionType> keyEncryptionTypes) {
+    this.keyEncryptionTypes = new HashSet<EncryptionType>(
+        (keyEncryptionTypes == null)
+            ? DEFAULT_CIPHERS
+            : keyEncryptionTypes
+    );
   }
 
   /**
@@ -432,12 +559,58 @@ public abstract class KerberosOperationHandler {
     }
   }
 
-  protected DeconstructedPrincipal deconstructPrincipal(String principal) throws KerberosOperationException {
+  /**
+   * Given a principal, attempt to create a new DeconstructedPrincipal
+   *
+   * @param principal a String containing the principal to deconstruct
+   * @return a DeconstructedPrincipal
+   * @throws KerberosOperationException
+   */
+  protected DeconstructedPrincipal createDeconstructPrincipal(String principal) throws KerberosOperationException {
     try {
       return DeconstructedPrincipal.valueOf(principal, getDefaultRealm());
     } catch (IllegalArgumentException e) {
       throw new KerberosOperationException(e.getMessage(), e);
     }
+  }
+
+  /**
+   * Given a cipher (or algorithm) name, attempts to translate it into an EncryptionType value.
+   * <p/>
+   * If a translation is not able to be made, {@link org.apache.directory.shared.kerberos.codec.types.EncryptionType#UNKNOWN}
+   * is returned.
+   *
+   * @param name a String containing the name of the cipher to translate
+   * @return an EncryptionType
+   */
+  protected Set<EncryptionType> translateEncryptionType(String name) {
+    Set<EncryptionType> encryptionTypes = null;
+
+    if ((name != null) && !name.isEmpty()) {
+      encryptionTypes = ENCRYPTION_TYPE_TRANSLATION_MAP.get(name.toLowerCase());
+    }
+
+    return (encryptionTypes == null) ? Collections.<EncryptionType>emptySet() : encryptionTypes;
+  }
+
+  /**
+   * Given a delimited set of encryption type names, attempts to translate into a set of EncryptionType
+   * values.
+   *
+   * @param names     a String containing a delimited list of encryption type names
+   * @param delimiter a String declaring the delimiter to use to split names, if null, " " is used.
+   * @return a Set of EncryptionType values
+   */
+  protected Set<EncryptionType> translateEncryptionTypes(String names, String delimiter) {
+    Set<EncryptionType> encryptionTypes = new HashSet<EncryptionType>();
+
+    if ((names != null) && !names.isEmpty()) {
+      for (String name : names.split((delimiter == null) ? "\\s+" : delimiter)) {
+        encryptionTypes.addAll(translateEncryptionType(name.trim()));
+      }
+    }
+
+    return encryptionTypes;
   }
 
 }

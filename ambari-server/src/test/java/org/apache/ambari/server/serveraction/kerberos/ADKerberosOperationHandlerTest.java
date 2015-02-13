@@ -45,7 +45,7 @@ import java.util.Properties;
 
 import static org.easymock.EasyMock.*;
 
-public class ADKerberosOperationHandlerTest extends EasyMockSupport {
+public class ADKerberosOperationHandlerTest extends KerberosOperationHandlerTest {
   private static final String DEFAULT_ADMIN_PRINCIPAL = "cluser_admin@HDP01.LOCAL";
   private static final String DEFAULT_ADMIN_PASSWORD = "Hadoop12345";
   private static final String DEFAULT_LDAP_URL = "ldaps://10.0.100.4";
