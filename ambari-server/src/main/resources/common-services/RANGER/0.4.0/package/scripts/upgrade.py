@@ -26,4 +26,4 @@ def prestart(env, hdp_component):
   import params
 
   if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
-    Execute("hdp-select set {0} {1}".format(hdp_component, version))
+    Execute("hdp-select set {0} {1}".format(hdp_component, params.version))
