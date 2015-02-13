@@ -306,7 +306,7 @@ App.MainHostSummaryView = Em.View.extend({
    * Get clients with custom commands
    */
   clientsWithCustomCommands: function() {
-    var clients = this.get('clients');
+    var clients = this.get('clients').rejectProperty('componentName', 'KERBEROS_CLIENT');
     var options = [];
     var clientWithCommands;
     clients.forEach(function(client) {
