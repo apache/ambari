@@ -56,6 +56,18 @@ public class AlertUri {
   private String m_httpsPropertyValue;
 
   /**
+   * Kerberos keytab path to use.
+   */
+  @SerializedName("kerberos_keytab")
+  private String m_kerberosKeytab;
+
+  /**
+   * Kerberos principal name to use.
+   */
+  @SerializedName("kerberos_principal")
+  private String m_kerberosPrincipal;
+
+  /**
    * A default port to use on the host running the alert if no URLs can be
    * found.
    */
@@ -112,6 +124,24 @@ public class AlertUri {
    */
   public String getHttpsPropertyValue() {
     return m_httpsPropertyValue;
+  }
+
+  /**
+   * The configuration property with kerberos keytab path.
+   *
+   * @return the configuration property, or {@code null} for none.
+   */
+  public String getKerberosKeytab() {
+    return m_kerberosKeytab;
+  }
+
+  /**
+   * The configuration property with kerberos principal name.
+   *
+   * @return the configuration property, or {@code null} for none.
+   */
+  public String getKerberosPrincipal() {
+    return m_kerberosPrincipal;
   }
 
   /**

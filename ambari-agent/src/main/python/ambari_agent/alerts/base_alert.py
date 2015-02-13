@@ -212,6 +212,8 @@ class BaseAlert(object):
     https_property_key = None
     https_property_value_key = None
     default_port = None
+    kerberos_keytab = None
+    kerberos_principal = None
     
     if 'http' in uri_structure:
       http_key = self._find_lookup_property(uri_structure['http'])
@@ -228,12 +230,19 @@ class BaseAlert(object):
     if 'default_port' in uri_structure:
       default_port = uri_structure['default_port']
 
+    if 'kerberos_keytab' in uri_structure:
+      kerberos_keytab = self._find_lookup_property(uri_structure['kerberos_keytab'])
+
+    if 'kerberos_principal' in uri_structure:
+      kerberos_principal = self._find_lookup_property(uri_structure['kerberos_principal'])
+
     AlertUriLookupKeys = namedtuple('AlertUriLookupKeys', 
-        'http https https_property https_property_value default_port')
+        'http https https_property https_property_value default_port kerberos_keytab kerberos_principal')
     
     alert_uri_lookup_keys = AlertUriLookupKeys(http=http_key, https=https_key, 
         https_property=https_property_key, 
-        https_property_value=https_property_value_key, default_port=default_port)
+        https_property_value=https_property_value_key, default_port=default_port,
+        kerberos_keytab=kerberos_keytab, kerberos_principal=kerberos_principal)
     
     return alert_uri_lookup_keys
 

@@ -419,14 +419,14 @@ class TestAlerts(TestCase):
             "text": "(Unit Tests) warning: {0}",
           },
           "critical": {
-            "text": "(Unit Tests) critical: {1}",
+            "text": "(Unit Tests) critical: {1}. {3}",
           }
         }
       }
     }
 
-    WebResponse = namedtuple('WebResponse', 'status_code time_millis')
-    wa_make_web_request_mock.return_value = WebResponse(200,1.234)
+    WebResponse = namedtuple('WebResponse', 'status_code time_millis error_msg')
+    wa_make_web_request_mock.return_value = WebResponse(200,1.234,None)
 
     # run the alert and check HTTP 200    
     collector = AlertCollector()
@@ -437,11 +437,11 @@ class TestAlerts(TestCase):
     alerts = collector.alerts()
     self.assertEquals(0, len(collector.alerts()))
 
-    self.assertEquals('OK', alerts[0]['state'])
     self.assertEquals('(Unit Tests) ok: 200', alerts[0]['text'])
+    self.assertEquals('OK', alerts[0]['state'])
 
     # run the alert and check HTTP 500
-    wa_make_web_request_mock.return_value = WebResponse(500,1.234)
+    wa_make_web_request_mock.return_value = WebResponse(500,1.234,None)
     collector = AlertCollector()
     alert = WebAlert(json, json['source'])
     alert.set_helpers(collector, {'hdfs-site/dfs.datanode.http.address': '1.2.3.4:80'})
@@ -454,7 +454,7 @@ class TestAlerts(TestCase):
     self.assertEquals('(Unit Tests) warning: 500', alerts[0]['text'])
 
     # run the alert and check critical
-    wa_make_web_request_mock.return_value = WebResponse(0,0)
+    wa_make_web_request_mock.return_value = WebResponse(0,0,'error message')
      
     collector = AlertCollector()
     alert = WebAlert(json, json['source'])
@@ -466,7 +466,7 @@ class TestAlerts(TestCase):
     
     # http assertion indicating that we properly determined non-SSL
     self.assertEquals('CRITICAL', alerts[0]['state'])
-    self.assertEquals('(Unit Tests) critical: http://1.2.3.4:80', alerts[0]['text'])
+    self.assertEquals('(Unit Tests) critical: http://1.2.3.4:80. error message', alerts[0]['text'])
      
     collector = AlertCollector()
     alert = WebAlert(json, json['source'])
@@ -482,7 +482,7 @@ class TestAlerts(TestCase):
     
     # SSL assertion
     self.assertEquals('CRITICAL', alerts[0]['state'])
-    self.assertEquals('(Unit Tests) critical: https://1.2.3.4:8443', alerts[0]['text'])
+    self.assertEquals('(Unit Tests) critical: https://1.2.3.4:8443. error message', alerts[0]['text'])
 
   def test_reschedule(self):
     test_file_path = os.path.join('ambari_agent', 'dummy_files')

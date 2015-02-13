@@ -20,7 +20,9 @@ limitations under the License.
 
 import logging
 import time
-import urllib2
+import subprocess
+import os
+
 from alerts.base_alert import BaseAlert
 from collections import namedtuple
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
@@ -28,6 +30,8 @@ from ambari_commons import OSCheck
 from ambari_commons.inet_utils import resolve_address
 
 logger = logging.getLogger()
+
+CURL_CONNECTION_TIMEOUT = '20'
 
 class WebAlert(BaseAlert):
   
@@ -55,9 +59,10 @@ class WebAlert(BaseAlert):
     web_response = self._make_web_request(url)
     status_code = web_response.status_code
     time_seconds = web_response.time_millis / 1000
+    error_message = web_response.error_msg
 
     if status_code == 0:
-      return (self.RESULT_CRITICAL, [status_code, url, time_seconds])
+      return (self.RESULT_CRITICAL, [status_code, url, time_seconds, error_message])
     
     if status_code < 400:
       return (self.RESULT_OK, [status_code, url, time_seconds])
@@ -106,21 +111,49 @@ class WebAlert(BaseAlert):
     Makes an http(s) request to a web resource and returns the http code. If
     there was an error making the request, return 0 for the status code.
     """    
-    WebResponse = namedtuple('WebResponse', 'status_code time_millis')
+    WebResponse = namedtuple('WebResponse', 'status_code time_millis error_msg')
     
     time_millis = 0
     
     try:
-      start_time = time.time()      
-      response = urllib2.urlopen(url)
+      kerberos_keytab = None
+      kerberos_principal = None
+
+      if self.uri_property_keys.kerberos_principal is not None:
+        kerberos_principal = self._lookup_property_value(
+          self.uri_property_keys.kerberos_principal)
+
+        if kerberos_principal is not None:
+          # substitute _HOST in kerberos principal with actual fqdn
+          kerberos_principal = kerberos_principal.replace('_HOST', self.host_name)
+
+      if self.uri_property_keys.kerberos_keytab is not None:
+        kerberos_keytab = self._lookup_property_value(self.uri_property_keys.kerberos_keytab)
+
+      if kerberos_principal is not None and kerberos_keytab is not None:
+        os.system("kinit -kt {0} {1} > /dev/null".format(kerberos_keytab, kerberos_principal))
+
+      # substitute 0.0.0.0 in url with actual fqdn
+      url = url.replace('0.0.0.0', self.host_name)
+      start_time = time.time()
+      curl = subprocess.Popen(['curl', '--negotiate', '-u', ':', '-sL', '-w',
+        '%{http_code}', url, '--connect-timeout', CURL_CONNECTION_TIMEOUT,
+        '-o', '/dev/null'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+      out, err = curl.communicate()
+
+      if err != '':
+        raise Exception(err)
+
+      response_code = int(out)
       time_millis = time.time() - start_time
-    except:
+    except Exception, exc:
       if logger.isEnabledFor(logging.DEBUG):
-        logger.exception("[Alert][{0}] Failed to make a web request".format(self.get_name()))
-      
-      return WebResponse(status_code=0, time_millis=0)
-    
-    return WebResponse(status_code=response.getcode(), time_millis=time_millis) 
+        logger.exception("[Alert][{0}] Unable to make a web request.".format(self.get_name()))
+
+      return WebResponse(status_code=0, time_millis=0, error_msg=str(exc))
+
+    return WebResponse(status_code=response_code, time_millis=time_millis, error_msg=None)
 
 
   def _get_reporting_text(self, state):

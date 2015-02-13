@@ -38,7 +38,9 @@
           "type": "WEB",
           "uri": {
             "http": "{{falcon-env/falcon_port}}",
-            "default_port": 15000
+            "default_port": 15000,
+            "kerberos_keytab": "{{core-site/hadoop.http.authentication.kerberos.keytab}}",
+            "kerberos_principal": "{{core-site/hadoop.http.authentication.kerberos.principal}}"
           },
           "reporting": {
             "ok": {
@@ -48,7 +50,7 @@
               "text": "HTTP {0} response in {2:.3f} seconds"
             },
             "critical": {
-              "text": "Connection failed to {1}"
+              "text": "Connection failed to {1}: {3}"
             }
           }
         }
