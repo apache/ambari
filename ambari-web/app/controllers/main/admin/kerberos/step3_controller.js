@@ -51,6 +51,10 @@ App.KerberosWizardStep3Controller = App.KerberosProgressPageController.extend({
     });
   },
 
+  onKDCCancel: function() {
+    App.router.get(this.get('content.controllerName')).setStepsEnable();
+    this.get('tasks').objectAt(this.get('currentTaskId')).set('status', 'FAILED');
+  },
 
   getKerberosClientState: function() {
     return App.ajax.send({
@@ -70,6 +74,7 @@ App.KerberosWizardStep3Controller = App.KerberosProgressPageController.extend({
       'sender': this,
       'success': 'startPolling',
       'error': 'onTaskError',
+      'kdcCancelHandler': 'onKDCCancel',
       'data': {
         'serviceName': this.serviceName,
         'displayName': App.format.role(this.serviceName),
