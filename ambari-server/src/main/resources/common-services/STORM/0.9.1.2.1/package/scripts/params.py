@@ -89,7 +89,7 @@ if security_enabled:
     
     
     _nimbus_principal_name = config['configurations']['storm-env']['nimbus_principal_name']
-    nimbus_jaas_principal = _nimbus_principal_name.replace('_HOST',nimbus_host.lower())
+    nimbus_jaas_principal = _nimbus_principal_name.replace('_HOST', _hostname_lowercase)
     nimbus_bare_jaas_principal = _nimbus_principal_name.replace('/_HOST','').replace('@'+kerberos_domain,'')
     nimbus_keytab_path = config['configurations']['storm-env']['nimbus_keytab']
 
