@@ -1940,6 +1940,7 @@ var hdp2properties = [
     "displayName": "Encryption Types",
     "serviceName": "KERBEROS",
     "filename": "kerberos-env.xml",
+    "displayType": "multiLine",
     "category": "Advanced kerberos-env"
   },
   {
@@ -1995,6 +1996,17 @@ var hdp2properties = [
   },
   {
     "id": "puppet var",
+    "name": "manage_krb5_conf",
+    "displayName": "Manage Kerberos client krb5.conf",
+    "displayType": "checkbox",
+    "dependentConfigPattern": "CATEGORY",
+    "serviceName": "KERBEROS",
+    "filename": "krb5-conf.xml",
+    "category": "Advanced krb5-conf",
+    "index": 0
+  },
+  {
+    "id": "puppet var",
     "name": "conf_dir",
     "displayName": "krb5-conf directory path",
     "value": "",
@@ -2007,7 +2019,7 @@ var hdp2properties = [
     "serviceName": "KERBEROS",
     "filename": "krb5-conf.xml",
     "category": "Advanced krb5-conf",
-    "index": 0
+    "index": 1
   },
   {
     "id": "puppet var",
@@ -2023,7 +2035,7 @@ var hdp2properties = [
     "serviceName": "KERBEROS",
     "filename": "krb5-conf.xml",
     "category": "Advanced krb5-conf",
-    "index": 1
+    "index": 2
   },
 /********************************************* flume-agent *****************************/
   {

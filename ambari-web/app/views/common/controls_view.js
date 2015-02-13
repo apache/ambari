@@ -273,17 +273,30 @@ App.ServiceConfigCheckboxWithDependencies = App.ServiceConfigCheckbox.extend({
 
   didInsertElement: function() {
     this._super();
-    this.showHideDependentConfigs();
+    this.toggleDependentConfigs();
   },
 
-  showHideDependentConfigs: function() {
+  toggleDependentConfigs: function() {
     if (this.get('serviceConfig.dependentConfigPattern')) {
-      this.get('parentView.serviceConfigs').forEach(function(c) {
-        if (c.get('name').match(this.get('serviceConfig.dependentConfigPattern')) && c.get('name') != this.get('serviceConfig.name'))
-          c.set('isVisible', this.get('checked'))
-      }, this);
+      if (this.get('serviceConfig.dependentConfigPattern') === "CATEGORY") {
+        this.disableEnableCategoryCongis();
+      } else {
+        this.showHideDependentConfigs();
+      }
     }
-  }.observes('checked')
+  }.observes('checked'),
+
+  disableEnableCategoryCongis: function () {
+    this.get('categoryConfigsAll').setEach('isEditable', this.get('checked'));
+    this.set('serviceConfig.isEditable', true);
+  },
+
+  showHideDependentConfigs: function () {
+    this.get('categoryConfigsAll').forEach(function (c) {
+      if (c.get('name').match(this.get('serviceConfig.dependentConfigPattern')) && c.get('name') != this.get('serviceConfig.name'))
+        c.set('isVisible', this.get('checked'))
+    }, this);
+  }
 });
 
 App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, {
