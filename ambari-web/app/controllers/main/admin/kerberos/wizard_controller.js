@@ -46,9 +46,15 @@ App.KerberosWizardController = App.WizardController.extend({
     failedTask: null
   }),
 
-  setCurrentStep: function (currentStep, completed) {
+  /**
+   * set current step
+   * @param {string} currentStep
+   * @param {boolean} completed
+   * @param {boolean} skipStateSave
+   */
+  setCurrentStep: function (currentStep, completed, skipStateSave) {
     this._super(currentStep, completed);
-    if (App.get('testMode')) {
+    if (App.get('testMode') || skipStateSave) {
       return;
     }
     App.clusterStatus.setClusterStatus({
@@ -290,8 +296,8 @@ App.KerberosWizardController = App.WizardController.extend({
    * Clear all temporary data
    */
   finish: function () {
-    // The in-memory variable for currentstep should be reset to 1st step.
-    this.setCurrentStep('1');
+    // The in-memory variable for current step should be reset to 1st step.
+    this.setCurrentStep('1', false, true);
     // kerberos wizard namespace in the localStorage should be emptied
     this.resetDbNamespace();
     App.get('router.updateController').updateAll();
