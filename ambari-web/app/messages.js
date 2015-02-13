@@ -970,6 +970,7 @@ Em.I18n.translations = {
   'admin.kerberos.wizard.progressPage.notice.inProgress': 'Please wait while cluster is being kerberized',
   'admin.kerberos.wizard.step4.info.body': 'Configure principal name and keytab location for service users and hadoop service components.',
   'admin.kerberos.wizard.step5.task0.title' : 'Stop Services',
+  'admin.kerberos.wizard.step5.task1.title' : 'Delete ATS',
   'admin.kerberos.wizard.step5.notice.inProgress': 'Please wait while services are being stopped.',
   'admin.kerberos.wizard.step5.notice.completed': 'Services have been successfully stopped.',
   'admin.kerberos.wizard.step6.notice.inProgress': 'Please wait while cluster is being kerberized.',

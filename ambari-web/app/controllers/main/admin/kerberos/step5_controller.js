@@ -34,5 +34,46 @@ App.KerberosWizardStep5Controller = App.KerberosProgressPageController.extend({
       success: 'startPolling',
       error: 'onTaskError'
     });
+  },
+
+  loadStep: function() {
+    this.checkComponentsRemoval();
+    this._super();
+  },
+
+  /**
+   * remove Application Timeline Server component if needed.
+   */
+  checkComponentsRemoval: function() {
+    if (App.Service.find().someProperty('serviceName', 'YARN') && !App.get('doesATSSupportKerberos') && !this.get('commands').contains('deleteATS')) {
+      this.get('commands').pushObject('deleteATS');
+    }
+  },
+
+  /**
+   * Remove Application Timeline Server from the host.
+   * @returns {$.Deferred}
+   */
+  deleteATS: function() {
+    return App.ajax.send({
+      name: 'common.delete.host_component',
+      sender: this,
+      data: {
+        componentName: 'APP_TIMELINE_SERVER',
+        hostName: App.HostComponent.find().findProperty('componentName', 'APP_TIMELINE_SERVER').get('hostName')
+      },
+      success: 'onDeleteATSSuccess',
+      error: 'onDeleteATSError'
+    });
+  },
+
+  onDeleteATSSuccess: function() {
+    this.onTaskCompleted();
+  },
+
+  onDeleteATSError: function(error) {
+    if (error.responseText.indexOf('org.apache.ambari.server.controller.spi.NoSuchResourceException') !== -1) {
+      this.onDeleteATSSuccess();
+    }
   }
 });
