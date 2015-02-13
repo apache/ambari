@@ -263,7 +263,11 @@ module.exports = Em.Route.extend({
       router.setNavigationFlow('step5');
 
       var controller = router.get('installerController');
-      router.get('wizardStep5Controller').set('servicesMasters', []);
+      var wizardStep5Controller = router.get('wizardStep5Controller');
+      wizardStep5Controller.setProperties({
+        servicesMasters: [],
+        isInitialLayout: true
+      });
       controller.setCurrentStep('5');
       controller.loadAllPriorSteps().done(function () {
         controller.connectOutlet('wizardStep5', controller.get('content'));

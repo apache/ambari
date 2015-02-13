@@ -843,10 +843,44 @@ describe('App.WizardStep5Controller', function () {
 
   describe('#updateIsSubmitDisabled', function () {
 
+    var clearCases = [
+      {
+        isHostNameValid: true,
+        isInitialLayout: true,
+        isInitialLayoutResulting: false,
+        clearRecommendationsCallCount: 0,
+        recommendAndValidateCallCount: 1,
+        title: 'initial masters-hosts layout'
+      },
+      {
+        isHostNameValid: true,
+        isInitialLayout: false,
+        isInitialLayoutResulting: false,
+        clearRecommendationsCallCount: 1,
+        recommendAndValidateCallCount: 1,
+        title: 'master-hosts layout changed'
+      },
+      {
+        isHostNameValid: false,
+        isInitialLayout: false,
+        isInitialLayoutResulting: false,
+        clearRecommendationsCallCount: 0,
+        recommendAndValidateCallCount: 0,
+        title: 'invalid host name specified'
+      }
+    ];
+
     beforeEach(function () {
       c.set('selectedServicesMasters', [
         {isInstalled: false}
       ]);
+      sinon.stub(c, 'clearRecommendations', Em.K);
+      sinon.stub(c, 'recommendAndValidate', Em.K);
+    });
+
+    afterEach(function () {
+      c.clearRecommendations.restore();
+      c.recommendAndValidate.restore();
     });
 
     it('shouldn\'t change submitDisabled if thereIsNoMasters returns false', function () {
@@ -879,6 +913,19 @@ describe('App.WizardStep5Controller', function () {
 
     });
 
+    clearCases.forEach(function (item) {
+      it(item.title, function () {
+        c.setProperties({
+          isInitialLayout: item.isInitialLayout,
+          servicesMasters: [{
+            isHostNameValid: item.isHostNameValid
+          }]
+        });
+        expect(c.get('isInitialLayout')).to.equal(item.isInitialLayoutResulting);
+        expect(c.clearRecommendations.callCount).to.equal(item.clearRecommendationsCallCount);
+        expect(c.recommendAndValidate.callCount).to.equal(item.recommendAndValidateCallCount);
+      });
+    });
 
   });
 

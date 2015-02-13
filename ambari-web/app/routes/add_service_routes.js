@@ -128,8 +128,10 @@ module.exports = App.WizardRoute.extend({
     connectOutlets: function (router) {
       console.log('in addService.step2:connectOutlets');
       var controller = router.get('addServiceController');
+      var wizardStep2Controller = router.get('wizardStep5Controller');
       controller.setCurrentStep('2');
       controller.set('hideBackButton', false);
+      wizardStep2Controller.set('isInitialLayout', true);
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps().done(function () {
           controller.connectOutlet('wizardStep5', controller.get('content'));

@@ -162,6 +162,12 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, {
   generalWarningMessages: [],
 
   /**
+   * Is masters-hosts layout initial one
+   * @type {bool}
+   */
+  isInitialLayout: true,
+
+  /**
    * true if any error exists
    */
   anyError: function() {
@@ -243,32 +249,33 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, {
    * @metohd updateIsSubmitDisabled
    */
   updateIsSubmitDisabled: function () {
-    var self = this;
 
-    if (self.thereIsNoMasters()) {
+    if (this.thereIsNoMasters()) {
       return false;
     }
 
+    var isSubmitDisabled = this.get('servicesMasters').someProperty('isHostNameValid', false);
+
     if (this.get('useServerValidation')) {
-      self.set('submitDisabled', true);
+      this.set('submitDisabled', true);
 
-      // reset previous recommendations
-      this.clearRecommendations();
-
-      if (self.get('servicesMasters').length === 0) {
+      if (this.get('servicesMasters').length === 0) {
         return;
       }
 
-      var isSubmitDisabled = this.get('servicesMasters').someProperty('isHostNameValid', false);
       if (!isSubmitDisabled) {
-        self.recommendAndValidate();
+        if (!this.get('isInitialLayout')) {
+          this.clearRecommendations(); // reset previous recommendations
+        } else {
+          this.set('isInitialLayout', false);
+        }
+        this.recommendAndValidate();
       }
     } else {
-      var isSubmitDisabled = this.get('servicesMasters').someProperty('isHostNameValid', false);
-      self.set('submitDisabled', isSubmitDisabled);
+      this.set('submitDisabled', isSubmitDisabled);
       return isSubmitDisabled;
     }
-  }.observes('servicesMasters.@each.selectedHost', 'servicesMasters.@each.isHostNameValid'),
+  }.observes('servicesMasters.@each.selectedHost'),
 
   /**
    * Send AJAX request to validate current host layout
