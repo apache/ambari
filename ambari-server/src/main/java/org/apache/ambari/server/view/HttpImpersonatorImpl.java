@@ -24,7 +24,6 @@ import org.apache.ambari.server.proxy.ProxyService;
 import org.apache.ambari.view.ImpersonatorSetting;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.HttpImpersonator;
-import org.apache.ambari.server.controller.internal.AppCookieManager;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -45,7 +44,6 @@ import java.util.ArrayList;
  */
 public class HttpImpersonatorImpl implements HttpImpersonator {
   private ViewContext context;
-  private AppCookieManager appCookieManager;
   private FactoryHelper helper;
 
   /**
@@ -57,15 +55,13 @@ public class HttpImpersonatorImpl implements HttpImpersonator {
     }
   }
 
-  public HttpImpersonatorImpl(ViewContext c, AppCookieManager appCookieManager) {
+  public HttpImpersonatorImpl(ViewContext c) {
     this.context = c;
-    this.appCookieManager = appCookieManager;
     this.helper = new FactoryHelper();
   }
 
-  public HttpImpersonatorImpl(ViewContext c, AppCookieManager appCookieManager, FactoryHelper h) {
+  public HttpImpersonatorImpl(ViewContext c, FactoryHelper h) {
     this.context = c;
-    this.appCookieManager = appCookieManager;
     this.helper = h;
   }
 
@@ -115,18 +111,17 @@ public class HttpImpersonatorImpl implements HttpImpersonator {
   /**
    * Returns the result of the HTTP request by setting the "doAs" impersonation for the query param and username
    * in @param impersonatorSetting.
-   * @param urlToRead URL to request
+   * @param url URL to request
    * @param requestType HTTP Request type: GET, PUT, POST, DELETE, etc.
    * @param impersonatorSetting Setting class with default values for username and doAs param name.
    *                           To use different values, call the setters of the object.
    * @return Return a response as a String
    */
   @Override
-  public String requestURL(String urlToRead, String requestType, final ImpersonatorSetting impersonatorSetting) {
+  public String requestURL(String url, String requestType, final ImpersonatorSetting impersonatorSetting) {
     String result = "";
     BufferedReader rd;
-    String line = null;
-    String url = urlToRead;
+    String line;
 
     if (url.toLowerCase().contains(impersonatorSetting.getDoAsParamName().toLowerCase())) {
       throw new IllegalArgumentException("URL cannot contain \"" + impersonatorSetting.getDoAsParamName() + "\" parameter");
@@ -145,7 +140,7 @@ public class HttpImpersonatorImpl implements HttpImpersonator {
       HttpURLConnection connection = urlStreamProvider.processURL(url, requestType, null, headers);
 
       int responseCode = connection.getResponseCode();
-      InputStream resultInputStream = null;
+      InputStream resultInputStream;
       if (responseCode >= ProxyService.HTTP_ERROR_RANGE_START) {
         resultInputStream = connection.getErrorStream();
       } else {

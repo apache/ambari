@@ -331,7 +331,7 @@ public class ViewContextImpl implements ViewContext, ViewController {
   @Override
   public HttpImpersonatorImpl getHttpImpersonator() {
     ensureURLStreamProvider();
-    return new HttpImpersonatorImpl(this, streamProvider.getAppCookieManager());
+    return new HttpImpersonatorImpl(this);
   }
 
   @Override
@@ -376,7 +376,7 @@ public class ViewContextImpl implements ViewContext, ViewController {
   // ensure that the URL stream provider has been created
   private synchronized void ensureURLStreamProvider() {
     if (streamProvider == null) {
-      streamProvider = viewRegistry.createURLStreamProvider();
+      streamProvider = viewRegistry.createURLStreamProvider(this);
     }
   }
 

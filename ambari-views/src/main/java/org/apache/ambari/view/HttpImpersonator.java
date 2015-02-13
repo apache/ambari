@@ -21,7 +21,11 @@ import java.net.HttpURLConnection;
 
 /**
  * Interface for views to impersonate users over HTTP request.
+ *
+ * @deprecated  As of release 2.0, replaced by
+ *              {@link URLStreamProvider#readAs(String, String, String, java.util.Map, String)}
  */
+@Deprecated
 public interface HttpImpersonator {
 
   /**

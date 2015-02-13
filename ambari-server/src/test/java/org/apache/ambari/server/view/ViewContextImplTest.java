@@ -178,11 +178,11 @@ public class ViewContextImplTest {
 
     viewInstanceDefinition.addResourceProvider(type, provider);
 
-    expect(viewRegistry.createURLStreamProvider()).andReturn(urlStreamProvider);
+    ViewContextImpl viewContext = new ViewContextImpl(viewInstanceDefinition, viewRegistry);
+
+    expect(viewRegistry.createURLStreamProvider(viewContext)).andReturn(urlStreamProvider);
 
     replay(viewRegistry);
-
-    ViewContextImpl viewContext = new ViewContextImpl(viewInstanceDefinition, viewRegistry);
 
     Assert.assertEquals(urlStreamProvider, viewContext.getURLStreamProvider());
 

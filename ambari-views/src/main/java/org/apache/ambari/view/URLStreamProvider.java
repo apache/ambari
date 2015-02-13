@@ -31,13 +31,48 @@ public interface URLStreamProvider {
    *
    * @param spec           the String to parse as a URL
    * @param requestMethod  the HTTP method (GET,POST,PUT,etc.).
-   * @param params         the body of the request; may be null
+   * @param body           the body of the request; may be null
    * @param headers        the headers of the request; may be null
    *
    * @return the input stream
    *
    * @throws IOException if an error occurred connecting to the server
    */
-  public InputStream readFrom(String spec, String requestMethod, String params, Map<String, String> headers)
+  public InputStream readFrom(String spec, String requestMethod, String body, Map<String, String> headers)
       throws IOException;
+
+  /**
+   * Read from the input stream specified by the given URL spec as the given user.  This method sets the
+   * "doAs" user header to impersonate the user over the request.
+   *
+   * @param spec           the String to parse as a URL
+   * @param requestMethod  the HTTP method (GET,POST,PUT,etc.).
+   * @param body           the body of the request; may be null
+   * @param headers        the headers of the request; may be null
+   * @param userName       the "doAs" user name
+   *
+   * @return the input stream
+   *
+   * @throws IOException if an error occurred connecting to the server
+   */
+  public InputStream readAs(String spec, String requestMethod, String body, Map<String, String> headers,
+                            String userName)
+      throws IOException;
+
+  /**
+   * Read from the input stream specified by the given URL spec as the current user.  This method sets the
+   * "doAs" user header to impersonate the user over the request.
+   *
+   * @param spec           the String to parse as a URL
+   * @param requestMethod  the HTTP method (GET,POST,PUT,etc.).
+   * @param body           the body of the request; may be null
+   * @param headers        the headers of the request; may be null
+   *
+   * @return the input stream
+   *
+   * @throws IOException if an error occurred connecting to the server
+   */
+  public InputStream readAsCurrent(String spec, String requestMethod, String body, Map<String, String> headers)
+      throws IOException;
+
 }

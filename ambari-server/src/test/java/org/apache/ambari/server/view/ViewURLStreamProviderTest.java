@@ -18,8 +18,8 @@
 
 package org.apache.ambari.server.view;
 
-import org.apache.ambari.server.controller.internal.AppCookieManager;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
+import org.apache.ambari.view.ViewContext;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -43,6 +43,7 @@ public class ViewURLStreamProviderTest {
     URLStreamProvider streamProvider = createNiceMock(URLStreamProvider.class);
     HttpURLConnection urlConnection = createNiceMock(HttpURLConnection.class);
     InputStream inputStream = createNiceMock(InputStream.class);
+    ViewContext viewContext = createNiceMock(ViewContext.class);
 
     Map<String, String> headers = new HashMap<String, String>();
     headers.put("header", "headerValue");
@@ -55,7 +56,7 @@ public class ViewURLStreamProviderTest {
 
     replay(streamProvider, urlConnection, inputStream);
 
-    ViewURLStreamProvider viewURLStreamProvider = new ViewURLStreamProvider(streamProvider);
+    ViewURLStreamProvider viewURLStreamProvider = new ViewURLStreamProvider(viewContext, streamProvider);
 
     Assert.assertEquals(inputStream, viewURLStreamProvider.readFrom("spec", "requestMethod", "params", headers));
 
@@ -63,18 +64,59 @@ public class ViewURLStreamProviderTest {
   }
 
   @Test
-  public void testGetAppCookieManager() throws Exception {
+  public void testReadAs() throws Exception {
+
     URLStreamProvider streamProvider = createNiceMock(URLStreamProvider.class);
-    AppCookieManager appCookieManager = createNiceMock(AppCookieManager.class);
+    HttpURLConnection urlConnection = createNiceMock(HttpURLConnection.class);
+    InputStream inputStream = createNiceMock(InputStream.class);
+    ViewContext viewContext = createNiceMock(ViewContext.class);
 
-    expect(streamProvider.getAppCookieManager()).andReturn(appCookieManager);
+    Map<String, String> headers = new HashMap<String, String>();
+    headers.put("header", "headerValue");
+    headers.put("doAs", "joe");
 
-    replay(streamProvider, appCookieManager);
+    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    headerMap.put("header", Collections.singletonList("headerValue"));
+    headerMap.put("doAs", Collections.singletonList("joe"));
 
-    ViewURLStreamProvider viewURLStreamProvider = new ViewURLStreamProvider(streamProvider);
+    expect(streamProvider.processURL("spec", "requestMethod", "params", headerMap)).andReturn(urlConnection);
+    expect(urlConnection.getInputStream()).andReturn(inputStream);
 
-    Assert.assertEquals(appCookieManager, viewURLStreamProvider.getAppCookieManager());
+    replay(streamProvider, urlConnection, inputStream);
 
-    verify(streamProvider, appCookieManager);
+    ViewURLStreamProvider viewURLStreamProvider = new ViewURLStreamProvider(viewContext, streamProvider);
+
+    Assert.assertEquals(inputStream, viewURLStreamProvider.readAs("spec", "requestMethod", "params", headers, "joe"));
+
+    verify(streamProvider, urlConnection, inputStream);
+  }
+
+  @Test
+  public void testReadAsCurrent() throws Exception {
+
+    URLStreamProvider streamProvider = createNiceMock(URLStreamProvider.class);
+    HttpURLConnection urlConnection = createNiceMock(HttpURLConnection.class);
+    InputStream inputStream = createNiceMock(InputStream.class);
+    ViewContext viewContext = createNiceMock(ViewContext.class);
+
+    Map<String, String> headers = new HashMap<String, String>();
+    headers.put("header", "headerValue");
+    headers.put("doAs", "joe");
+
+    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    headerMap.put("header", Collections.singletonList("headerValue"));
+    headerMap.put("doAs", Collections.singletonList("joe"));
+
+    expect(streamProvider.processURL("spec", "requestMethod", "params", headerMap)).andReturn(urlConnection);
+    expect(urlConnection.getInputStream()).andReturn(inputStream);
+    expect(viewContext.getUsername()).andReturn("joe").anyTimes();
+
+    replay(streamProvider, urlConnection, inputStream, viewContext);
+
+    ViewURLStreamProvider viewURLStreamProvider = new ViewURLStreamProvider(viewContext, streamProvider);
+
+    Assert.assertEquals(inputStream, viewURLStreamProvider.readAsCurrent("spec", "requestMethod", "params", headers));
+
+    verify(streamProvider, urlConnection, inputStream, viewContext);
   }
 }

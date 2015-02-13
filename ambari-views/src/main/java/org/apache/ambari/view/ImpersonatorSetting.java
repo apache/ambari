@@ -19,7 +19,11 @@ package org.apache.ambari.view;
 
 /**
  * Interface that provides default values for impersonating, such as the username and doAs parameter name.
+ *
+ * @deprecated  As of release 2.0, replaced by
+ *              {@link URLStreamProvider#readAs(String, String, String, java.util.Map, String)}
  */
+@Deprecated
 public interface ImpersonatorSetting {
 
   /**

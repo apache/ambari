@@ -1528,18 +1528,20 @@ public class ViewRegistry {
   /**
    * Factory method to create a view URL stream provider.
    *
+   * @param viewContext  the view context
+   *
    * @return a new view URL stream provider
    */
-  protected ViewURLStreamProvider createURLStreamProvider() {
-    ComponentSSLConfiguration configuration1 = ComponentSSLConfiguration.instance();
+  protected ViewURLStreamProvider createURLStreamProvider(ViewContext viewContext) {
+    ComponentSSLConfiguration sslConfiguration = ComponentSSLConfiguration.instance();
     org.apache.ambari.server.controller.internal.URLStreamProvider streamProvider =
         new org.apache.ambari.server.controller.internal.URLStreamProvider(
             configuration.getRequestConnectTimeout(),
             configuration.getRequestReadTimeout(),
-            configuration1.getTruststorePath(),
-            configuration1.getTruststorePassword(),
-            configuration1.getTruststoreType());
-    return new ViewURLStreamProvider(streamProvider);
+            sslConfiguration.getTruststorePath(),
+            sslConfiguration.getTruststorePassword(),
+            sslConfiguration.getTruststoreType());
+    return new ViewURLStreamProvider(viewContext, streamProvider);
   }
 
   /**
@@ -1548,14 +1550,14 @@ public class ViewRegistry {
    * @return a new view Ambari stream provider
    */
   protected ViewAmbariStreamProvider createAmbariStreamProvider() {
-    ComponentSSLConfiguration configuration1 = ComponentSSLConfiguration.instance();
+    ComponentSSLConfiguration sslConfiguration = ComponentSSLConfiguration.instance();
     org.apache.ambari.server.controller.internal.URLStreamProvider streamProvider =
         new org.apache.ambari.server.controller.internal.URLStreamProvider(
             DEFAULT_REQUEST_CONNECT_TIMEOUT,
             DEFAULT_REQUEST_READ_TIMEOUT,
-            configuration1.getTruststorePath(),
-            configuration1.getTruststorePassword(),
-            configuration1.getTruststoreType());
+            sslConfiguration.getTruststorePath(),
+            sslConfiguration.getTruststorePassword(),
+            sslConfiguration.getTruststoreType());
     return new ViewAmbariStreamProvider(streamProvider, ambariSessionManager, AmbariServer.getController());
   }
 }

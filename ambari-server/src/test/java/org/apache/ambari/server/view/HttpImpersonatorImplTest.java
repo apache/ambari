@@ -18,11 +18,12 @@
 
 package org.apache.ambari.server.view;
 
-import junit.framework.TestCase;
 import org.apache.ambari.view.ImpersonatorSetting;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.server.controller.internal.AppCookieManager;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.io.BufferedReader;
@@ -35,7 +36,7 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.when;
 
 
-public class HttpImpersonatorImplTest extends TestCase {
+public class HttpImpersonatorImplTest {
 
   String cookie;
   String username;
@@ -43,6 +44,7 @@ public class HttpImpersonatorImplTest extends TestCase {
   HttpImpersonatorImpl impersonator;
   String expectedResult;
 
+  @Before
   public void setUp() throws Exception {
     String uuid = UUID.randomUUID().toString().replace("-", "");
     this.cookie = uuid;
@@ -61,11 +63,11 @@ public class HttpImpersonatorImplTest extends TestCase {
     this.viewContext = Mockito.mock(ViewContext.class);
     when(this.viewContext.getUsername()).thenReturn(username);
 
-    this.impersonator = new HttpImpersonatorImpl(this.viewContext, mockAppCookieManager, mockFactory);
+    this.impersonator = new HttpImpersonatorImpl(this.viewContext, mockFactory);
     when(this.viewContext.getHttpImpersonator()).thenReturn(this.impersonator);
   }
 
-  @org.junit.Test
+  @Test
   public void testBasic() throws Exception {
     String urlToRead = "http://foo.com";
     String requestMethod = "GET";
@@ -80,12 +82,12 @@ public class HttpImpersonatorImplTest extends TestCase {
 
     // Test specific params
     HttpURLConnection conn2 = (HttpURLConnection) url.openConnection();
-    conn2 = this.viewContext.getHttpImpersonator().doAs(conn1, requestMethod, "admin", "username");
-    Assert.assertEquals(requestMethod, conn1.getRequestMethod());
-    Assert.assertEquals("admin", conn1.getRequestProperty("username"));
+    conn2 = this.viewContext.getHttpImpersonator().doAs(conn2, requestMethod, "admin", "username");
+    Assert.assertEquals(requestMethod, conn2.getRequestMethod());
+    Assert.assertEquals("admin", conn2.getRequestProperty("username"));
   }
 
-  @org.junit.Test
+  @Test
   public void testRequestURL() throws Exception {
     String urlToRead = "http://foo.com";
     String requestMethod = "GET";
@@ -97,7 +99,7 @@ public class HttpImpersonatorImplTest extends TestCase {
     Assert.assertEquals(this.expectedResult, actualResult);
   }
 
-  @org.junit.Test
+  @Test
   public void testRequestURLWithCustom() throws Exception {
     String urlToRead = "http://foo.com";
     String requestMethod = "GET";
@@ -109,7 +111,7 @@ public class HttpImpersonatorImplTest extends TestCase {
     Assert.assertEquals(this.expectedResult, actualResult);
   }
 
-  @org.junit.Test
+  @Test
   public void testInvalidURL() throws Exception {
     String urlToRead = "http://foo.com?" + "doAs" + "=hive";
     String requestMethod = "GET";
@@ -117,10 +119,10 @@ public class HttpImpersonatorImplTest extends TestCase {
 
     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
     try {
-      conn = this.viewContext.getHttpImpersonator().doAs(conn, requestMethod);
-      fail("Expected an exception to be thrown." );
-    } catch(Exception e) {
-      ;
+      this.viewContext.getHttpImpersonator().doAs(conn, requestMethod);
+      Assert.fail("Expected an exception to be thrown.");
+    } catch(IllegalArgumentException e) {
+      //expected
     }
   }
 }
