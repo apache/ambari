@@ -218,10 +218,24 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
     this.clearFiltersObs();
     this.addObserver('selectAllHosts', this, this.toggleAllHosts);
     this.addObserver('filteringComplete', this, this.overlayObserver);
-    this.addObserver('startIndex', this, 'updatePagination');
+    this.addObserver('startIndex', this, 'updateHostsPagination');
     this.addObserver('displayLength', this, 'updatePagination');
     this.addObserver('filteredCount', this, this.updatePaging);
     this.overlayObserver();
+  },
+
+  updateHostsPagination: function () {
+    this.clearExpandedSections();
+    this.updatePagination();
+  },
+
+  willDestroyElement: function () {
+    this.clearExpandedSections();
+  },
+
+  clearExpandedSections: function () {
+    this.get('controller.expandedComponentsSections').clear();
+    this.get('controller.expandedVersionsSections').clear();
   },
 
   onInitialLoad: function () {
@@ -526,19 +540,30 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
     content:null,
     tagName: 'tr',
     didInsertElement: function(){
+      var hostName = this.get('content.hostName');
       App.tooltip(this.$("[rel='HealthTooltip'], [rel='UsageTooltip'], [rel='ComponentsTooltip']"));
-      this.set('isComponentsCollapsed', true);
-      this.set('isVersionsCollapsed', true);
+      this.set('isComponentsCollapsed', !this.get('controller.expandedComponentsSections').contains(hostName));
+      this.set('isVersionsCollapsed', !this.get('controller.expandedVersionsSections').contains(hostName));
     },
 
-    toggleComponents: function(event) {
-      this.toggleProperty('isComponentsCollapsed');
-      this.$('.host-components').toggle();
+    toggleList: function (flagName, arrayName) {
+      var arrayPropertyName = 'controller.' + arrayName;
+      var hostNameArray = this.get(arrayPropertyName);
+      var hostName = this.get('content.hostName');
+      this.toggleProperty(flagName);
+      if (this.get(flagName)) {
+        this.set(arrayPropertyName, hostNameArray.without(hostName));
+      } else {
+        hostNameArray.push(hostName);
+      }
     },
 
-    toggleVersions: function(){
-      this.toggleProperty('isVersionsCollapsed');
-      this.$('.stack-versions').toggle();
+    toggleComponents: function () {
+      this.toggleList('isComponentsCollapsed', 'expandedComponentsSections');
+    },
+
+    toggleVersions: function () {
+      this.toggleList('isVersionsCollapsed', 'expandedVersionsSections');
     },
 
     /**
