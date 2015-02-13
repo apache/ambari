@@ -427,7 +427,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     return App.ModalPopup.show({
       header: Em.I18n.t('common.warning'),
       body: Em.I18n.t('installer.step4.sparkWarning.popup.body'),
-      primary: Em.I18n.t('common.proceedAnyway'),
+      primary: Em.I18n.t('common.proceed'),
       onPrimary: function () {
         self.onPrimaryPopupCallback();
         this.hide();
