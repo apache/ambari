@@ -159,6 +159,8 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
 
       secondary: Em.I18n.t('alerts.fastAccess.popup.body.showmore'),
 
+      autoHeight: false,
+
       isHideBodyScroll: true,
 
       onSecondary: function () {
