@@ -63,8 +63,7 @@ class AlertSchedulerHandler():
       try:
         os.makedirs(cachedir)
       except:
-        logger.critical("Could not create the cache directory {0}".format(cachedir))
-        pass
+        logger.critical("[AlertScheduler] Could not create the cache directory {0}".format(cachedir))
 
     self._collector = AlertCollector()
     self.__scheduler = Scheduler(AlertSchedulerHandler.APS_CONFIG)
@@ -82,33 +81,53 @@ class AlertSchedulerHandler():
     if reschedule_jobs:
       self.reschedule()
 
-  def __update_definition_configs(self):
-    """ updates the persisted configs and restarts the scheduler """
 
-    definitions = []
+  def __update_definition_configs(self, newConfigurations, reschedule_jobs=False):
+    """
+    Updates the definitions and configurations stored on disk. Optionally
+    can reschedule jobs. Job rescheduling is only necessary when data that
+    an existing job uses has changed. In many cases, configuration values
+    have changed, yet no jobs need rescheduling.
 
-    all_commands = None
+    :param reschedule_jobs:
+    :return:
+    """
+
+    if reschedule_jobs:
+      logger.info("[AlertScheduler] Updating {0} with the latest configuration values and rescheduling alert jobs".format(self.FILENAME))
+    else:
+      logger.info("[AlertScheduler] Updating {0} with the latest configuration values".format(self.FILENAME))
+
     # Load definitions from json
     try:
       with open(os.path.join(self.cachedir, self.FILENAME), 'r') as fp:
         all_commands = json.load(fp)
     except IOError, ValueError:
-      if (logger.isEnabledFor(logging.DEBUG)):
-        logger.exception("Failed to load definitions. {0}".format(traceback.format_exc()))
+      if logger.isEnabledFor(logging.DEBUG):
+        logger.exception("[AlertScheduler] Failed to load definitions. {0}".format(traceback.format_exc()))
       return
 
     # Update definitions with current config
     for command_json in all_commands:
-      clusterName = '' if not 'clusterName' in command_json else command_json['clusterName']
-      hostName = '' if not 'hostName' in command_json else command_json['hostName']
+      if 'clusterName' in command_json:
+        clusterName = command_json['clusterName']
+      else:
+        clusterName = ''
 
-      self.__update_config_values(command_json['configurations'],self.__config_maps[clusterName])
+      self.__update_config_values(command_json['configurations'],
+        self.__config_maps[clusterName])
+
+      # update the configurations before writing the file back out
+      command_json['configurations'] = newConfigurations
 
     # Save definitions to file
     with open(os.path.join(self.cachedir, self.FILENAME), 'w') as f:
       json.dump(all_commands, f, indent=2)
 
-    self.reschedule_all()
+    # only reschdule jobs if instructed to
+    if reschedule_jobs:
+      self.reschedule_all()
+
 
   def __make_function(self, alert_def):
     return lambda: alert_def.collect()
@@ -130,7 +149,7 @@ class AlertSchedulerHandler():
     for _callable in alert_callables:
       self.schedule_definition(_callable)
       
-    logger.debug("Starting scheduler {0}; currently running: {1}".format(
+    logger.debug("[AlertScheduler] Starting {0}; currently running: {1}".format(
       str(self.__scheduler), str(self.__scheduler.running)))
 
     self.__scheduler.start()
@@ -166,7 +185,7 @@ class AlertSchedulerHandler():
       # jobs without valid UUIDs should be unscheduled
       if uuid_valid == False:
         jobs_removed += 1
-        logger.info("Unscheduling {0}".format(scheduled_job.name))
+        logger.info("[AlertScheduler] Unscheduling {0}".format(scheduled_job.name))
         self._collector.remove_by_uuid(scheduled_job.name)
         self.__scheduler.unschedule_job(scheduled_job)
       
@@ -184,7 +203,7 @@ class AlertSchedulerHandler():
         jobs_scheduled += 1
         self.schedule_definition(definition)
   
-    logger.info("Alert Reschedule Summary: {0} rescheduled, {1} unscheduled".format(
+    logger.info("[AlertScheduler] Reschedule Summary: {0} rescheduled, {1} unscheduled".format(
         str(jobs_scheduled), str(jobs_removed)))
 
   def reschedule_all(self):
@@ -200,9 +219,8 @@ class AlertSchedulerHandler():
 
     # unschedule all scheduled jobs
     for scheduled_job in scheduled_jobs:
-
         jobs_removed += 1
-        logger.info("Unscheduling {0}".format(scheduled_job.name))
+        logger.info("[AlertScheduler] Unscheduling {0}".format(scheduled_job.name))
         self._collector.remove_by_uuid(scheduled_job.name)
         self.__scheduler.unschedule_job(scheduled_job)
 
@@ -211,7 +229,7 @@ class AlertSchedulerHandler():
         jobs_scheduled += 1
         self.schedule_definition(definition)
 
-    logger.info("Alert Reschedule Summary: {0} rescheduled, {1} unscheduled".format(
+    logger.info("[AlertScheduler] Reschedule Summary: {0} rescheduled, {1} unscheduled".format(
       str(jobs_scheduled), str(jobs_removed)))
 
 
@@ -230,7 +248,7 @@ class AlertSchedulerHandler():
       with open(alerts_definitions_path) as fp:
         all_commands = json.load(fp)
     except:
-      logger.warning('Alert definitions file was not found under "{0}". No alerts will be scheduled.'.format(alerts_definitions_path))
+      logger.warning('[AlertScheduler] {0} not found. No alerts will be scheduled.'.format(alerts_definitions_path))
       return definitions
     
     for command_json in all_commands:
@@ -270,7 +288,7 @@ class AlertSchedulerHandler():
     source_type = source.get('type', '')
 
     if logger.isEnabledFor(logging.DEBUG):
-      logger.debug("Creating job type {0} with {1}".format(source_type, str(json_definition)))
+      logger.debug("[AlertScheduler] Creating job type {0} with {1}".format(source_type, str(json_definition)))
     
     alert = None
 
@@ -328,22 +346,31 @@ class AlertSchedulerHandler():
 
   def update_configurations(self, commands):
     """
-    when an execution command comes in, update any necessary values.
-    status commands do not contain useful configurations
+    Checks the execution command's configurations against those stored in
+    memory. If there are differences, this will reschedule alerts. The
+    on-disk JSON file is always updated so that it reflects the correct state
+    of configurations
     """
     for command in commands:
       clusterName = command['clusterName']
       if not clusterName in self.__config_maps:
         continue
-        
-      if 'configurations' in command:
-        configmap = command['configurations']
-        keylist = self.__config_maps[clusterName].keys()
-        vals = self.__find_config_values(configmap, keylist)
-        # if we have updated values push them to config_maps and reschedule
-        if vals != self.__config_maps[clusterName]:
-          self.__config_maps[clusterName].update(vals)
-          self.__update_definition_configs()
+
+      if not 'configurations' in command:
+        continue
+
+      existingConfigurationKeys = self.__config_maps[clusterName].keys()
+      newConfigurations = command['configurations']
+      newConfigurationValues = self.__find_config_values(newConfigurations,
+        existingConfigurationKeys)
+
+      # if we have updated values push them to config_maps and reschedule
+      rescheduleJobs = False
+      if newConfigurationValues != self.__config_maps[clusterName]:
+        rescheduleJobs = True
+        self.__config_maps[clusterName].update(newConfigurationValues)
+
+      self.__update_definition_configs(newConfigurations, rescheduleJobs)
         
 
   def schedule_definition(self,definition):
@@ -356,7 +383,7 @@ class AlertSchedulerHandler():
     """
     # NOOP if the definition is disabled; don't schedule it
     if definition.is_enabled() == False:
-      logger.info("The alert {0} with UUID {1} is disabled and will not be scheduled".format(
+      logger.info("[AlertScheduler] The alert {0} with UUID {1} is disabled and will not be scheduled".format(
           definition.get_name(),definition.get_uuid()))
       return
     
@@ -374,7 +401,7 @@ class AlertSchedulerHandler():
     if job is not None:
       job.name = definition.get_uuid()
       
-    logger.info("Scheduling {0} with UUID {1}".format(
+    logger.info("[AlertScheduler] Scheduling {0} with UUID {1}".format(
       definition.get_name(), definition.get_uuid()))
   
 
@@ -410,13 +437,13 @@ class AlertSchedulerHandler():
         if alert is None:
           continue
   
-        logger.info("Executing on-demand alert {0} ({1})".format(alert.get_name(), 
+        logger.info("[AlertScheduler] Executing on-demand alert {0} ({1})".format(alert.get_name(),
             alert.get_uuid()))
         
         alert.set_helpers(self._collector, self.__config_maps[clusterName])
         alert.collect()
       except:
-        logger.exception("Unable to execute the alert outside of the job scheduler")
+        logger.exception("[AlertScheduler] Unable to execute the alert outside of the job scheduler")
 
 def main():
   args = list(sys.argv)

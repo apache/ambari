@@ -97,7 +97,7 @@ class BaseAlert(object):
       # this is useful for cases where the alert might run on multiple hosts
       # but only 1 host should report the data
       if result_state == BaseAlert.RESULT_SKIPPED:
-        logger.debug('Alert {0} with UUID {1} was skipped.'.format(self.get_name(),
+        logger.debug('[Alert][{0}] Skipping UUID {1}.'.format(self.get_name(),
           self.get_uuid()))
 
         return
@@ -113,7 +113,7 @@ class BaseAlert(object):
         res_base_text = self._get_reporting_text(result_state)
 
     except Exception as e:
-      message = "Unable to run alert {0}".format(str(self.alert_meta['name']))
+      message = "[Alert][{0}] Unable to run the alert".format(self.get_name())
       
       # print the exception if in DEBUG, otherwise just log the warning
       if logger.isEnabledFor(logging.DEBUG):
@@ -126,7 +126,7 @@ class BaseAlert(object):
     
     
     if logger.isEnabledFor(logging.DEBUG):
-      logger.debug("debug alert result: {0}".format(str(res)))
+      logger.debug("[Alert][{0}] result = {1}".format(self.get_name(), str(res)))
       
     data = {}
     data['name'] = self._find_value('name')
@@ -141,7 +141,7 @@ class BaseAlert(object):
     data['enabled'] = self._find_value('enabled')
 
     if logger.isEnabledFor(logging.DEBUG):
-      logger.debug("debug alert text: {0}".format(data['text']))
+      logger.debug("[Alert][{0}] text = {1}".format(self.get_name(), data['text']))
     
     self.collector.put(self.cluster, data)
 
@@ -168,8 +168,8 @@ class BaseAlert(object):
     
     if len(keys) > 0:
       if logger.isEnabledFor(logging.DEBUG):
-        logger.debug("Found parameterized key {0} for {1}".format(
-          str(keys), str(self)))
+        logger.debug("[Alert][{0}] Found parameterized key {1} for {2}".format(
+          self.get_name(), str(keys), str(self)))
 
       self._lookup_keys.append(keys[0])
       return keys[0]

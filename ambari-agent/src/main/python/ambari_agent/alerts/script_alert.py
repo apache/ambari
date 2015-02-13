@@ -72,8 +72,8 @@ class ScriptAlert(BaseAlert):
           # append the key to the list of keys for this alert
           self._find_lookup_property(token)
     except:
-      logger.exception("Unable to parameterize tokens for script {0}".format(self.path))
-      pass
+      logger.exception("[Alert][{0}] Unable to parameterize tokens for script {1}".format(
+        self.get_name(), self.path))
               
     
   def _collect(self):
@@ -91,7 +91,7 @@ class ScriptAlert(BaseAlert):
       matchObj = re.match( r'((.*)services\/(.*)\/package\/)', self.path_to_script)
       if matchObj:
         basedir = matchObj.group(1)
-        with Environment(basedir, tmp_dir=self.config.get.get('agent', 'tmp_dir')) as env:
+        with Environment(basedir, tmp_dir=self.config.get('agent', 'tmp_dir')) as env:
           return cmd_module.execute(parameters, self.host_name)
       else:
         return cmd_module.execute(parameters, self.host_name)
@@ -125,11 +125,14 @@ class ScriptAlert(BaseAlert):
           self.stacks_dir, self.host_scripts_dir))
 
     if logger.isEnabledFor(logging.DEBUG):
-      logger.debug("Executing script check {0}".format(self.path_to_script))
+      logger.debug("[Alert][{0}] Executing script check {1}".format(
+        self.get_name(), self.path_to_script))
 
           
     if (not self.path_to_script.endswith('.py')):
-      logger.error("Unable to execute script {0}".format(self.path_to_script))
+      logger.error("[Alert][{0}] Unable to execute script {1}".format(
+        self.get_name(), self.path_to_script))
+
       return None
 
     return imp.load_source(self._find_value('name'), self.path_to_script)

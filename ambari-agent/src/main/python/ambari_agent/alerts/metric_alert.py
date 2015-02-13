@@ -55,8 +55,8 @@ class MetricAlert(BaseAlert):
     # use the URI lookup keys to get a final URI value to query
     alert_uri = self._get_uri_from_structure(self.uri_property_keys)      
     
-    logger.debug("Calculated metric URI to be {0} (ssl={1})".format(alert_uri.uri, 
-        str(alert_uri.is_ssl_enabled)))
+    logger.debug("[Alert][{0}] Calculated metric URI to be {1} (ssl={2})".format(
+        self.get_name(), alert_uri.uri, str(alert_uri.is_ssl_enabled)))
 
     host = BaseAlert.get_host_from_url(alert_uri.uri)
     if host is None:
@@ -79,7 +79,8 @@ class MetricAlert(BaseAlert):
       
       collect_result = self.__get_result(value_list[0] if check_value is None else check_value)
 
-    logger.debug("Resolved value list is: {0}".format(str(value_list)))
+    logger.debug("[Alert][{0}] Resolved values = {1}".format(
+      self.get_name(), str(value_list)))
     
     return (collect_result, value_list)
 

@@ -48,8 +48,8 @@ class WebAlert(BaseAlert):
     # use the URI lookup keys to get a final URI value to query
     alert_uri = self._get_uri_from_structure(self.uri_property_keys)      
 
-    logger.debug("Calculated web URI to be {0} (ssl={1})".format(alert_uri.uri, 
-        str(alert_uri.is_ssl_enabled)))
+    logger.debug("[Alert][{0}] Calculated web URI to be {1} (ssl={2})".format(
+      self.get_name(), alert_uri.uri, str(alert_uri.is_ssl_enabled)))
 
     url = self._build_web_query(alert_uri)
     web_response = self._make_web_request(url)
@@ -116,7 +116,7 @@ class WebAlert(BaseAlert):
       time_millis = time.time() - start_time
     except:
       if logger.isEnabledFor(logging.DEBUG):
-        logger.exception("Unable to make a web request.")
+        logger.exception("[Alert][{0}] Failed to make a web request".format(self.get_name()))
       
       return WebResponse(status_code=0, time_millis=0)
     

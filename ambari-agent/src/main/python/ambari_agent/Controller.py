@@ -258,33 +258,29 @@ class Controller(threading.Thread):
         else:
           self.responseId = serverId
 
-        if 'cancelCommands' in response.keys():
+        response_keys = response.keys()
+        if 'cancelCommands' in response_keys:
           self.cancelCommandInQueue(response['cancelCommands'])
-          pass
 
-        if 'executionCommands' in response.keys():
-          self.addToQueue(response['executionCommands'])
-          self.alert_scheduler_handler.update_configurations(response['executionCommands'])
-          pass
+        if 'executionCommands' in response_keys:
+          execution_commands = response['executionCommands']
+          self.addToQueue(execution_commands)
+          self.alert_scheduler_handler.update_configurations(execution_commands)
 
-        if 'statusCommands' in response.keys():
+        if 'statusCommands' in response_keys:
           self.addToStatusQueue(response['statusCommands'])
-          pass
 
-        if 'alertDefinitionCommands' in response.keys():
+        if 'alertDefinitionCommands' in response_keys:
           self.alert_scheduler_handler.update_definitions(response['alertDefinitionCommands'], True)
-          pass
-        
-        if 'alertExecutionCommands' in response.keys():
+
+        if 'alertExecutionCommands' in response_keys:
           self.alert_scheduler_handler.execute_alert(response['alertExecutionCommands'])
-          pass
 
         if "true" == response['restartAgent']:
           logger.error("Received the restartAgent command")
           self.restartAgent()
         else:
           logger.info("No commands sent from %s", self.serverHostname)
-          pass
 
         if retry:
           logger.info("Reconnected to %s", self.heartbeatUrl)

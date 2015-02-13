@@ -65,16 +65,16 @@ class PortAlert(BaseAlert):
 
     # check warning threshold for sanity
     if self.warning_timeout >= 30:
-      logger.warn("The alert warning threshold of {0}s is too large, resetting to {1}s".format(
-        str(self.warning_timeout), str(DEFAULT_WARNING_TIMEOUT)))
+      logger.warn("[Alert][{0}] The warning threshold of {1}s is too large, resetting to {2}s".format(
+        self.get_name(), str(self.warning_timeout), str(DEFAULT_WARNING_TIMEOUT)))
 
       self.warning_timeout = DEFAULT_WARNING_TIMEOUT
 
 
     # check critical threshold for sanity
     if self.critical_timeout >= 30:
-      logger.warn("The alert critical threshold of {0}s is too large, resetting to {1}s".format(
-        str(self.critical_timeout), str(DEFAULT_CRITICAL_TIMEOUT)))
+      logger.warn("[Alert][{0}] The critical threshold of {1}s is too large, resetting to {2}s".format(
+        self.get_name(), str(self.critical_timeout), str(DEFAULT_CRITICAL_TIMEOUT)))
 
       self.critical_timeout = DEFAULT_CRITICAL_TIMEOUT
 
@@ -84,6 +84,8 @@ class PortAlert(BaseAlert):
     uri_value = self._lookup_property_value(self.uri)
     if uri_value is None:
       uri_value = self.host_name
+      logger.debug("[Alert][{0}] Setting the URI to this host since it wasn't specified".format(
+        self.get_name()))
 
     # in some cases, a single property is a comma-separated list like
     # host1:8080,host2:8081,host3:8083
@@ -92,6 +94,11 @@ class PortAlert(BaseAlert):
       for item in uri_value_array:
         if self.host_name in item:
           uri_value = item
+          if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("[Alert][{0}] Extracted {1} as the host name while parsing the CSV URI {2}".format(
+              self.get_name(), uri_value, str(uri_value_array)))
+          break
+
 
     host = BaseAlert.get_host_from_url(uri_value)
     if host is None:
@@ -108,19 +115,21 @@ class PortAlert(BaseAlert):
 
 
     if logger.isEnabledFor(logging.DEBUG):
-      logger.debug("checking {0} listening on port {1}".format(host, str(port)))
+      logger.debug("[Alert][{0}] Checking {1} on port {2}".format(
+        self.get_name(), host, str(port)))
     
     try:
       s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       s.settimeout(self.critical_timeout)
 
-      t = time.time()
       if OSCheck.is_windows_family():
         # on windows 0.0.0.0 is invalid address to connect but on linux it resolved to 127.0.0.1
         host = resolve_address(host)
+
+      start_time = time.time()
       s.connect((host, port))
-      milliseconds = time.time() - t
-      seconds = milliseconds/1000.0
+      milliseconds = time.time() - start_time
+      seconds = milliseconds / 1000.0
 
       # not sure why this happens sometimes, but we don't always get a
       # socket exception if the connect() is > than the critical threshold

@@ -744,6 +744,46 @@ class TestAlerts(TestCase):
     with patch("__builtin__.open") as open_mock:
       open_mock.side_effect = open_side_effect
       ash.update_configurations(commands)
+
     self.assertTrue(json_mock.called)
     self.assertTrue(json_mock.called_with(all_commands))
 
+
+  @patch.object(AlertSchedulerHandler,"reschedule_all")
+  @patch("json.dump")
+  def test_update_configurations_without_reschedule(self, json_mock, reschedule_mock):
+
+    def open_side_effect(file, mode):
+      if mode == 'w':
+        file_mock = MagicMock()
+        return file_mock
+      else:
+        return self.original_open(file, mode)
+
+    test_file_path = os.path.join('ambari_agent', 'dummy_files')
+    test_stack_path = os.path.join('ambari_agent', 'dummy_files')
+    test_common_services_path = os.path.join('ambari_agent', 'dummy_files')
+    test_host_scripts_path = os.path.join('ambari_agent', 'dummy_files')
+
+    with open(os.path.join(test_stack_path, "definitions.json"),"r") as fp:
+      all_commands = json.load(fp)
+
+    # create a copy of the configurations from definitions.json, then add
+    # a brand new property - this should not cause a restart since there are
+    # no alerts that use this new property
+    commands = [{"clusterName": "c1" }]
+    commands[0]['configurations'] = all_commands[0]['configurations']
+    commands[0]['configurations'].update({ "foo" : "bar" })
+
+    ash = AlertSchedulerHandler(test_file_path, test_stack_path,
+      test_common_services_path, test_host_scripts_path, None)
+
+    ash.start()
+
+    with patch("__builtin__.open") as open_mock:
+      open_mock.side_effect = open_side_effect
+      ash.update_configurations(commands)
+
+    self.assertTrue(json_mock.called)
+    self.assertTrue(json_mock.called_with(all_commands))
+    self.assertFalse(reschedule_mock.called)
