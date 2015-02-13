@@ -301,95 +301,6 @@ var hdp2properties = [
     "serviceName": "YARN",
     "filename": "yarn-site.xml"
   },
-  {
-    "id": "site property",
-    "name": "yarn.timeline-service.enabled",
-    "displayName": "yarn.timeline-service.enabled",
-    "category": "APP_TIMELINE_SERVER",
-    "displayType": "checkbox",
-    "serviceName": "YARN",
-    "filename": "yarn-site.xml"
-  },
-  {
-    "id": "site property",
-    "name": "yarn.timeline-service.leveldb-timeline-store.path",
-    "displayName": "yarn.timeline-service.leveldb-timeline-store.path",
-    "defaultDirectory": "/hadoop/yarn/timeline",
-    "category": "APP_TIMELINE_SERVER",
-    "displayType": "directory",
-    "serviceName": "YARN",
-    "filename": "yarn-site.xml"
-  },
-  {
-    "id": "site property",
-    "name": "yarn.timeline-service.leveldb-timeline-store.ttl-interval-ms",
-    "displayName": "yarn.timeline-service.leveldb-timeline-store.ttl-interval-ms",
-    "displayType": "int",
-    "category": "APP_TIMELINE_SERVER",
-    "serviceName": "YARN",
-    "filename": "yarn-site.xml"
-  },
-  {
-    "id": "site property",
-    "name": "yarn.timeline-service.store-class",
-    "displayName": "yarn.timeline-service.store-class",
-    "category": "APP_TIMELINE_SERVER",
-    "serviceName": "YARN",
-    "filename": "yarn-site.xml"
-  },
-  {
-    "id": "site property",
-    "name": "yarn.timeline-service.ttl-enable",
-    "displayName": "yarn.timeline-service.ttl-enable",
-    "displayType": "checkbox",
-    "category": "APP_TIMELINE_SERVER",
-    "serviceName": "YARN",
-    "filename": "yarn-site.xml"
-  },
-  {
-    "id": "site property",
-    "name": "yarn.timeline-service.ttl-ms",
-    "displayName": "yarn.timeline-service.ttl-ms",
-    "displayType": "int",
-    "category": "APP_TIMELINE_SERVER",
-    "serviceName": "YARN",
-    "filename": "yarn-site.xml"
-  },
-  {
-    "id": "site property",
-    "name": "yarn.timeline-service.generic-application-history.store-class",
-    "displayName": "yarn.timeline-service.generic-application-history.store-class",
-    "category": "APP_TIMELINE_SERVER",
-    "serviceName": "YARN",
-    "filename": "yarn-site.xml"
-  },
-  {
-    "id": "site property",
-    "name": "yarn.timeline-service.webapp.address",
-    "displayName": "yarn.timeline-service.webapp.address",
-    "displayType": "string",
-    "category": "APP_TIMELINE_SERVER",
-    "serviceName": "YARN",
-    "filename": "yarn-site.xml"
-  },
-  {
-    "id": "site property",
-    "name": "yarn.timeline-service.webapp.https.address",
-    "displayName": "yarn.timeline-service.webapp.https.address",
-    "displayType": "string",
-    "category": "APP_TIMELINE_SERVER",
-    "serviceName": "YARN",
-    "filename": "yarn-site.xml"
-  },
-  {
-    "id": "site property",
-    "name": "yarn.timeline-service.address",
-    "displayName": "yarn.timeline-service.address",
-    "displayType": "string",
-    "category": "APP_TIMELINE_SERVER",
-    "serviceName": "YARN",
-    "filename": "yarn-site.xml"
-  },
 /**********************************************MAPREDUCE2***************************************/
   {
     "id": "site property",
@@ -4653,6 +4564,7 @@ var hdp2properties = [
     "index": 6
   }
 ];
+
 if (App.get('isHadoopWindowsStack')) {
   hdp2properties.push(
     {
@@ -4687,6 +4599,102 @@ if (App.get('isHadoopWindowsStack')) {
       "index": 1
     }
   );
+}
+
+var atsProperties = [
+  {
+    "id": "site property",
+    "name": "yarn.timeline-service.enabled",
+    "displayName": "yarn.timeline-service.enabled",
+    "category": "APP_TIMELINE_SERVER",
+    "displayType": "checkbox",
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "yarn.timeline-service.leveldb-timeline-store.path",
+    "displayName": "yarn.timeline-service.leveldb-timeline-store.path",
+    "defaultDirectory": "/hadoop/yarn/timeline",
+    "category": "APP_TIMELINE_SERVER",
+    "displayType": "directory",
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "yarn.timeline-service.leveldb-timeline-store.ttl-interval-ms",
+    "displayName": "yarn.timeline-service.leveldb-timeline-store.ttl-interval-ms",
+    "displayType": "int",
+    "category": "APP_TIMELINE_SERVER",
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "yarn.timeline-service.store-class",
+    "displayName": "yarn.timeline-service.store-class",
+    "category": "APP_TIMELINE_SERVER",
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "yarn.timeline-service.ttl-enable",
+    "displayName": "yarn.timeline-service.ttl-enable",
+    "displayType": "checkbox",
+    "category": "APP_TIMELINE_SERVER",
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "yarn.timeline-service.ttl-ms",
+    "displayName": "yarn.timeline-service.ttl-ms",
+    "displayType": "int",
+    "category": "APP_TIMELINE_SERVER",
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "yarn.timeline-service.generic-application-history.store-class",
+    "displayName": "yarn.timeline-service.generic-application-history.store-class",
+    "category": "APP_TIMELINE_SERVER",
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "yarn.timeline-service.webapp.address",
+    "displayName": "yarn.timeline-service.webapp.address",
+    "displayType": "string",
+    "category": "APP_TIMELINE_SERVER",
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "yarn.timeline-service.webapp.https.address",
+    "displayName": "yarn.timeline-service.webapp.https.address",
+    "displayType": "string",
+    "category": "APP_TIMELINE_SERVER",
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "yarn.timeline-service.address",
+    "displayName": "yarn.timeline-service.address",
+    "displayType": "string",
+    "category": "APP_TIMELINE_SERVER",
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  }
+];
+
+if (!App.get('isHadoop20Stack')) {
+  hdp2properties.pushObjects(atsProperties);
 }
 
 module.exports =

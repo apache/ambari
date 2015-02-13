@@ -157,6 +157,14 @@ module.exports = Em.Application.create({
     return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.2") > -1);
   }.property('currentStackVersionNumber'),
 
+  /**
+   * Determines if current stack is 2.0.*
+   * @type {boolean}
+   */
+  isHadoop20Stack: function () {
+    return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.1") == -1 && stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.0") > -1);
+  }.property('currentStackVersionNumber'),
+
   isHadoopWindowsStack: function() {
     return this.get('currentStackName') == "HDPWIN";
   }.property('currentStackName'),

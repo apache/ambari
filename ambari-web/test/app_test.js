@@ -476,4 +476,57 @@ describe('App', function () {
       expect(App.isAccessible('')).to.be.false;
     });
   });
+
+  describe('#isHadoop20Stack', function () {
+
+    Em.A([
+      {
+        currentStackVersion: 'HDP-2.2',
+        e: false
+      },
+        {
+          currentStackVersion: 'HDP-2.1',
+          e: false
+        },
+        {
+          currentStackVersion: 'HDP-2.0',
+          e: true
+        },
+        {
+          currentStackVersion: 'HDP-2.0.0',
+          e: true
+        },
+        {
+          currentStackVersion: 'HDP-2.0.6',
+          e: true
+        },
+        {
+          currentStackVersion: 'HDPLocal-2.2',
+          e: false
+        },
+        {
+          currentStackVersion: 'HDPLocal-2.1',
+          e: false
+        },
+        {
+          currentStackVersion: 'HDPLocal-2.0',
+          e: true
+        },
+        {
+          currentStackVersion: 'HDPLocal-2.0.0',
+          e: true
+        },
+        {
+          currentStackVersion: 'HDPLocal-2.0.6',
+          e: true
+        }
+    ]).forEach(function (test) {
+        it('for ' + test.currentStackVersion + ' isHadoop20Stack = ' + test.e.toString(), function () {
+          App.set('currentStackVersion', test.currentStackVersion);
+          expect(App.get('isHadoop20Stack')).to.equal(test.e);
+        });
+      });
+
+  });
+
 });
