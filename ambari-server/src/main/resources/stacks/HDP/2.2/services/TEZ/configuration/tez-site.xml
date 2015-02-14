@@ -310,8 +310,17 @@
 
   <property>
     <name>tez.runtime.convert.user-payload.to.history-text</name>
-    <value>true</value>
+    <value>false</value>
     <description>Whether to publish configuration information to History logger</description>
+  </property>
+
+  <property>
+    <name>tez.am.tez-ui.history-url.template</name>
+    <value>__HISTORY_URL_BASE__?viewPath=%2F%23%2Ftez-app%2F__APPLICATION_ID__</value>
+    <description>Template to generate the History URL for a particular Tez Application.
+       Template replaces __APPLICATION_ID__ with the actual applicationId and
+       __HISTORY_URL_BASE__ with the value from the tez.tez-ui.history-url.base config property
+    </description>
   </property>
 
 </configuration>
