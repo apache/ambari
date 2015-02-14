@@ -215,16 +215,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     if (this.get('content.serviceConfigProperties')) {
       this.formatProperties();
       this.loadConfigs();
-      if (this.get('content.controllerName') != 'installerController' && this.get('securityEnabled')) {
-        this.prepareSecureConfigs();
-        this.get('content.services').filterProperty('isSelected', true)
-          .mapProperty('serviceName').forEach(function (serviceName) {
-            var config = this.get('secureConfigs').findProperty('serviceName', serviceName);
-            if (config) {
-              this.setPrincipalValue(serviceName, config.name);
-            }
-          }, this);
-      }
     }
     this.loadClusterInfo();
     this.loadServices();

@@ -664,18 +664,11 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
       this.get('selectedServiceNames').forEach(function (serviceName) {
         if (!serviceConfigs.findProperty('serviceName', serviceName)) return;
         var selectedService = serviceConfigs.findProperty('serviceName', serviceName).set('selected', true);
-        // add secure configs when security is enabled
-        if (this.get('securityEnabled')) {
-          this.addSecureConfigs(selectedService, serviceName);
-        }
       }, this);
       this.get('installedServiceNames').forEach(function (serviceName) {
         var serviceConfigObj = serviceConfigs.findProperty('serviceName', serviceName);
         var isInstallableService = App.StackService.find(serviceName).get('isInstallable');
         if (!isInstallableService) serviceConfigObj.set('showConfig', false);
-        if (this.get('securityEnabled')) {
-          this.setSecureConfigs(serviceConfigObj, serviceName);
-        }
       }, this);
       // if HA is enabled -> Remove SNameNode, hbase.rootdir should use Name Service ID
       if (App.get('isHaEnabled')) {
