@@ -103,6 +103,7 @@ spark_history_ui_port = default("/configurations/spark-defaults/spark.history.ui
 spark_env_sh = config['configurations']['spark-env']['content']
 spark_log4j_properties = config['configurations']['spark-log4j-properties']['content']
 spark_metrics_properties = config['configurations']['spark-metrics-properties']['content']
+spark_javaopts_properties = config['configurations']['spark-javaopts-properties']['content']
 
 hive_server_host = default("/clusterHostInfo/hive_server_host", [])
 is_hive_installed = not len(hive_server_host) == 0
@@ -116,6 +117,10 @@ if spark_driver_extraJavaOptions.find('-Dhdp.version') == -1:
 spark_yarn_am_extraJavaOptions = str(config['configurations']['spark-defaults']['spark.yarn.am.extraJavaOptions'])
 if spark_yarn_am_extraJavaOptions.find('-Dhdp.version') == -1:
   spark_yarn_am_extraJavaOptions = spark_yarn_am_extraJavaOptions + ' -Dhdp.version=' + str(hdp_full_version)
+
+spark_javaopts_properties = str(spark_javaopts_properties)
+if spark_javaopts_properties.find('-Dhdp.version') == -1:
+  spark_javaopts_properties = spark_javaopts_properties+ ' -Dhdp.version=' + str(hdp_full_version)
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])

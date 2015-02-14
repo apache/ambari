@@ -30,6 +30,29 @@
           <displayName>Spark History Server</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+               <name>MAPREDUCE2/MAPREDUCE2_CLIENT</name>
+               <scope>host</scope>
+               <auto-deploy>
+                 <enabled>true</enabled>
+               </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>YARN/YARN_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+             </auto-deploy>
+           </dependency>
+          </dependencies>
           <commandScript>
             <script>scripts/job_history_server.py</script>
             <scriptType>PYTHON</scriptType>
@@ -41,6 +64,29 @@
           <displayName>Spark Client</displayName>
           <category>CLIENT</category>
           <cardinality>1+</cardinality>
+           <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+               <name>MAPREDUCE2/MAPREDUCE2_CLIENT</name>
+               <scope>host</scope>
+               <auto-deploy>
+                 <enabled>true</enabled>
+               </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>YARN/YARN_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+             </auto-deploy>
+            </dependency>
+          </dependencies>
           <commandScript>
             <script>scripts/spark_client.py</script>
             <scriptType>PYTHON</scriptType>
@@ -51,13 +97,24 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat5,redhat6,suse11,ubuntu12</osFamily>
+          <osFamily>redhat5,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>spark</name>
+              <name>spark_2_2_*</name>
             </package>
             <package>
-              <name>spark-python</name>
+              <name>spark_2_2_*-python</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>ubuntu12</osFamily>
+          <packages>
+            <package>
+              <name>spark-2-2-.*</name>
+            </package>
+            <package>
+              <name>spark-2-2-.*-python</name>
             </package>
           </packages>
         </osSpecific>

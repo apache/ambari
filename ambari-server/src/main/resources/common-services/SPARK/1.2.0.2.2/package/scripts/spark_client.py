@@ -34,7 +34,7 @@ class SparkClient(Script):
     import params
 
     env.set_params(params)
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.1.0') >= 0:
+    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       Execute(format("hdp-select set spark-client {version}"))
 
   def install(self, env):

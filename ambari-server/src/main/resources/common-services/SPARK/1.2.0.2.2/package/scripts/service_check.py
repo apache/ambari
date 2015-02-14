@@ -17,37 +17,60 @@ limitations under the License.
 """
 
 from resource_management import *
-
+import subprocess
+import time
 
 class SparkServiceCheck(Script):
   def service_check(self, env):
     import params
 
     env.set_params(params)
-    self.check_spark_job_history_server()
-    # self.check_spark_client()
 
-  def check_spark_job_history_server(self):
-    cmd = 'ps -ef | grep org.apache.spark.deploy.history.HistoryServer | grep -v grep'
-    code, output = shell.call(cmd, timeout=100)
-    if code == 0:
-      Logger.info('Spark job History Server up and running')
-    else:
-      Logger.debug('Spark job History Server not running')
-      raise ComponentIsNotRunning()
+    # smoke_cmd = params.spark_service_check_cmd
+    # code, output = shell.call(smoke_cmd, timeout=100)
+    # if code == 0:
+    #   Logger.info('Spark-on-Yarn Job submitted successfully')
+    # else:
+    #   Logger.info('Spark-on-Yarn Job cannot be submitted')
+    #   raise ComponentIsNotRunning()
 
-  pass
+    command = "curl"
+    httpGssnegotiate = "--negotiate"
+    userpswd = "-u:"
+    insecure = "-k"
+    silent = "-s"
+    out = "-o /dev/null"
+    head = "-w'%{http_code}'"
+    url = 'http://' + params.spark_history_server_host + ':' + str(params.spark_history_ui_port)
 
-  # def check_spark_client(self):
-  # import params
-  #   smoke_cmd = params.spark_service_check_cmd
-  #   code, output = shell.call(smoke_cmd, timeout=100)
-  #   if code == 0:
-  #     Logger.info('Spark on Yarn Job can be submitted')
-  #   else:
-  #     Logger.debug('Spark on Yarn Job cannot be submitted')
-  #     raise ComponentIsNotRunning()
-  # pass
+    command_with_flags = [command, silent, out, head, httpGssnegotiate, userpswd, insecure, url]
+
+    is_running = False
+    for i in range(0,10):
+      proc = subprocess.Popen(command_with_flags, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      (stdout, stderr) = proc.communicate()
+      response = stdout
+      if '200' in response:
+        is_running = True
+        Logger.info('Spark Job History Server up and running')
+        break
+      time.sleep(5)
+
+    if is_running == False :
+      Logger.info('Spark Job History Server not running.')
+      raise ComponentIsNotRunning()  
+
+
+
+    #command_with_flags = [command, silent, out, head, httpGssnegotiate, userpswd, insecure, url]
+    # proc = subprocess.Popen(command_with_flags, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # (stdout, stderr) = proc.communicate()
+    # response = stdout
+    # if '200' in response:
+    #   Logger.info('Spark Job History Server up and running')
+    # else:
+    #   Logger.info('Spark Job History Server not running.')
+    #   raise ComponentIsNotRunning()
 
 if __name__ == "__main__":
   SparkServiceCheck().execute()

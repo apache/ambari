@@ -36,7 +36,7 @@ class JobHistoryServer(Script):
     import params
 
     env.set_params(params)
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.1.0') >= 0:
+    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       Execute(format("hdp-select set spark-historyserver {version}"))
 
   def install(self, env):
@@ -71,10 +71,10 @@ class JobHistoryServer(Script):
       Execute(spark_kinit_cmd, user=params.spark_user)
 
     # FIXME! TODO! remove this after soft link bug is fixed:
-    if not os.path.islink('/usr/hdp/current/spark'):
-      hdp_version = get_hdp_version()
-      cmd = 'ln -s /usr/hdp/' + hdp_version + '/spark /usr/hdp/current/spark'
-      Execute(cmd)
+    #if not os.path.islink('/usr/hdp/current/spark'):
+    #  hdp_version = get_hdp_version()
+    #  cmd = 'ln -s /usr/hdp/' + hdp_version + '/spark /usr/hdp/current/spark'
+    #  Execute(cmd)
 
     daemon_cmd = format('{spark_history_server_start}')
     no_op_test = format(

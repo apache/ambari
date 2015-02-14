@@ -65,14 +65,37 @@ def setup_spark(env):
        content=InlineTemplate(params.spark_metrics_properties)
   )
 
+  File(os.path.join(params.spark_conf, 'java-opts'),
+       owner=params.spark_user,
+       group=params.spark_group,
+       content=params.spark_javaopts_properties
+  )
+
   if params.is_hive_installed:
+    hive_config = get_hive_config()
     XmlConfig("hive-site.xml",
               conf_dir=params.spark_conf,
-              configurations=params.config['configurations']['hive-site'],
-              configuration_attributes=params.config['configuration_attributes']['hive-site'],
+              configurations=hive_config,
               owner=params.spark_user,
               group=params.spark_group,
               mode=0644)
+
+def get_hive_config():
+  import params
+  hive_conf_dict = dict()
+  hive_conf_dict['hive.metastore.uris'] = params.config['configurations']['hive-site']['hive.metastore.uris']
+  if params.security_enabled:
+    hive_conf_dict['hive.metastore.sasl.enabled'] =  str(params.config['configurations']['hive-site']['hive.metastore.sasl.enabled']).lower()
+    hive_conf_dict['hive.metastore.kerberos.keytab.file'] = params.config['configurations']['hive-site']['hive.metastore.kerberos.keytab.file']
+    hive_conf_dict['hive.server2.authentication.spnego.principal'] =  params.config['configurations']['hive-site']['hive.server2.authentication.spnego.principal']
+    hive_conf_dict['hive.server2.authentication.spnego.keytab'] = params.config['configurations']['hive-site']['hive.server2.authentication.spnego.keytab']
+    hive_conf_dict['hive.metastore.kerberos.principal'] = params.config['configurations']['hive-site']['hive.metastore.kerberos.principal']
+    hive_conf_dict['hive.server2.authentication.kerberos.principal'] = params.config['configurations']['hive-site']['hive.server2.authentication.kerberos.principal']
+    hive_conf_dict['hive.server2.authentication.kerberos.keytab'] =  params.config['configurations']['hive-site']['hive.server2.authentication.kerberos.keytab']
+    hive_conf_dict['hive.security.authorization.enabled']=  str(params.config['configurations']['hive-site']['hive.security.authorization.enabled']).lower()
+    hive_conf_dict['hive.server2.enable.doAs'] =  str(params.config['configurations']['hive-site']['hive.server2.enable.doAs']).lower()
+
+  return hive_conf_dict
 
 
 def spark_properties(params):
