@@ -22,6 +22,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
@@ -36,6 +37,8 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.serveraction.kerberos.KerberosAdminAuthenticationException;
+import org.apache.ambari.server.serveraction.kerberos.KerberosMissingAdminCredentialsException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -50,6 +53,7 @@ import org.easymock.Capture;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -68,6 +72,7 @@ import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.isNull;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
@@ -255,6 +260,225 @@ public class ServiceResourceProviderTest {
         serviceResponse0, serviceResponse1, serviceResponse2, serviceResponse3, serviceResponse4,
         ambariMetaInfo, stackId, serviceFactory);
   }
+
+  @Test
+  public void testGetResources_KerberosSpecificProperties() throws Exception{
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    Service service0 = createNiceMock(Service.class);
+    ServiceResponse serviceResponse0 = createNiceMock(ServiceResponse.class);
+
+    StackId stackId = createNiceMock(StackId.class);
+    ServiceFactory serviceFactory = createNiceMock(ServiceFactory.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    KerberosHelper kerberosHeper = createStrictMock(KerberosHelper.class);
+
+    Map<String, Service> allResponseMap = new HashMap<String, Service>();
+    allResponseMap.put("KERBEROS", service0);
+
+    // set expectations
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getServiceFactory()).andReturn(serviceFactory).anyTimes();
+    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).
+        andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
+
+    expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
+
+    expect(cluster.getServices()).andReturn(allResponseMap).anyTimes();
+    expect(cluster.getService("KERBEROS")).andReturn(service0);
+
+    expect(service0.convertToResponse()).andReturn(serviceResponse0).anyTimes();
+
+    expect(service0.getName()).andReturn("Service100").anyTimes();
+
+    expect(serviceResponse0.getClusterName()).andReturn("Cluster100").anyTimes();
+    expect(serviceResponse0.getServiceName()).andReturn("KERBEROS").anyTimes();
+
+    kerberosHeper.validateKDCCredentials(cluster);
+
+    // replay
+    replay(managementController, clusters, cluster, service0, serviceResponse0,
+        ambariMetaInfo, stackId, serviceFactory, kerberosHeper);
+
+    ResourceProvider provider = getServiceProvider(managementController);
+    // set kerberos helper on provider
+    Class<?> c = provider.getClass();
+    Field f = c.getDeclaredField("kerberosHelper");
+    f.setAccessible(true);
+    f.set(provider, kerberosHeper);
+
+    Set<String> propertyIds = new HashSet<String>();
+
+    propertyIds.add(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID);
+    propertyIds.add(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID);
+
+    // create the request
+    Predicate predicate = new PredicateBuilder().property(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and().
+        property(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals("KERBEROS").toPredicate();
+    Request request = PropertyHelper.getReadRequest("ServiceInfo", "Services");
+    Set<Resource> resources = provider.getResources(request, predicate);
+
+    Assert.assertEquals(1, resources.size());
+    for (Resource resource : resources) {
+      Assert.assertEquals("Cluster100", resource.getPropertyValue(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID));
+      Assert.assertEquals("KERBEROS", resource.getPropertyValue(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID));
+      Assert.assertEquals("OK", resource.getPropertyValue("Services/attributes/kdc_validation_result"));
+      Assert.assertEquals("", resource.getPropertyValue("Services/attributes/kdc_validation_failure_details"));
+    }
+
+    // verify
+    verify(managementController, clusters, cluster, service0, serviceResponse0,
+        ambariMetaInfo, stackId, serviceFactory, kerberosHeper);
+  }
+
+  @Test
+  public void testGetResources_KerberosSpecificProperties_KDCInvalidCredentials() throws Exception{
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    Service service0 = createNiceMock(Service.class);
+    ServiceResponse serviceResponse0 = createNiceMock(ServiceResponse.class);
+
+    StackId stackId = createNiceMock(StackId.class);
+    ServiceFactory serviceFactory = createNiceMock(ServiceFactory.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    KerberosHelper kerberosHeper = createStrictMock(KerberosHelper.class);
+
+    Map<String, Service> allResponseMap = new HashMap<String, Service>();
+    allResponseMap.put("KERBEROS", service0);
+
+    // set expectations
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getServiceFactory()).andReturn(serviceFactory).anyTimes();
+    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).
+        andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
+
+    expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
+
+    expect(cluster.getServices()).andReturn(allResponseMap).anyTimes();
+    expect(cluster.getService("KERBEROS")).andReturn(service0);
+
+    expect(service0.convertToResponse()).andReturn(serviceResponse0).anyTimes();
+
+    expect(service0.getName()).andReturn("Service100").anyTimes();
+
+    expect(serviceResponse0.getClusterName()).andReturn("Cluster100").anyTimes();
+    expect(serviceResponse0.getServiceName()).andReturn("KERBEROS").anyTimes();
+
+    kerberosHeper.validateKDCCredentials(cluster);
+    expectLastCall().andThrow(new KerberosAdminAuthenticationException("Invalid KDC administrator credentials."));
+
+    // replay
+    replay(managementController, clusters, cluster, service0, serviceResponse0,
+        ambariMetaInfo, stackId, serviceFactory, kerberosHeper);
+
+    ResourceProvider provider = getServiceProvider(managementController);
+    // set kerberos helper on provider
+    Class<?> c = provider.getClass();
+    Field f = c.getDeclaredField("kerberosHelper");
+    f.setAccessible(true);
+    f.set(provider, kerberosHeper);
+
+    Set<String> propertyIds = new HashSet<String>();
+
+    propertyIds.add(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID);
+    propertyIds.add(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID);
+
+    // create the request
+    Predicate predicate = new PredicateBuilder().property(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and().
+        property(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals("KERBEROS").toPredicate();
+    Request request = PropertyHelper.getReadRequest("ServiceInfo", "Services");
+    Set<Resource> resources = provider.getResources(request, predicate);
+
+    Assert.assertEquals(1, resources.size());
+    for (Resource resource : resources) {
+      Assert.assertEquals("Cluster100", resource.getPropertyValue(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID));
+      Assert.assertEquals("KERBEROS", resource.getPropertyValue(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID));
+      Assert.assertEquals("INVALID_CREDENTIALS", resource.getPropertyValue("Services/attributes/kdc_validation_result"));
+      Assert.assertEquals("Invalid KDC administrator credentials.", resource.getPropertyValue("Services/attributes/kdc_validation_failure_details"));
+    }
+
+    // verify
+    verify(managementController, clusters, cluster, service0, serviceResponse0,
+        ambariMetaInfo, stackId, serviceFactory, kerberosHeper);
+  }
+
+  @Test
+  public void testGetResources_KerberosSpecificProperties_KDCMissingCredentials() throws Exception{
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    Service service0 = createNiceMock(Service.class);
+    ServiceResponse serviceResponse0 = createNiceMock(ServiceResponse.class);
+
+    StackId stackId = createNiceMock(StackId.class);
+    ServiceFactory serviceFactory = createNiceMock(ServiceFactory.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    KerberosHelper kerberosHeper = createStrictMock(KerberosHelper.class);
+
+    Map<String, Service> allResponseMap = new HashMap<String, Service>();
+    allResponseMap.put("KERBEROS", service0);
+
+    // set expectations
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getServiceFactory()).andReturn(serviceFactory).anyTimes();
+    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).
+        andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
+
+    expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
+
+    expect(cluster.getServices()).andReturn(allResponseMap).anyTimes();
+    expect(cluster.getService("KERBEROS")).andReturn(service0);
+
+    expect(service0.convertToResponse()).andReturn(serviceResponse0).anyTimes();
+
+    expect(service0.getName()).andReturn("Service100").anyTimes();
+
+    expect(serviceResponse0.getClusterName()).andReturn("Cluster100").anyTimes();
+    expect(serviceResponse0.getServiceName()).andReturn("KERBEROS").anyTimes();
+
+    kerberosHeper.validateKDCCredentials(cluster);
+    expectLastCall().andThrow(new KerberosMissingAdminCredentialsException("Missing KDC administrator credentials."));
+
+    // replay
+    replay(managementController, clusters, cluster, service0, serviceResponse0,
+        ambariMetaInfo, stackId, serviceFactory, kerberosHeper);
+
+    ResourceProvider provider = getServiceProvider(managementController);
+    // set kerberos helper on provider
+    Class<?> c = provider.getClass();
+    Field f = c.getDeclaredField("kerberosHelper");
+    f.setAccessible(true);
+    f.set(provider, kerberosHeper);
+
+    Set<String> propertyIds = new HashSet<String>();
+
+    propertyIds.add(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID);
+    propertyIds.add(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID);
+
+    // create the request
+    Predicate predicate = new PredicateBuilder().property(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and().
+        property(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals("KERBEROS").toPredicate();
+    Request request = PropertyHelper.getReadRequest("ServiceInfo", "Services");
+    Set<Resource> resources = provider.getResources(request, predicate);
+
+    Assert.assertEquals(1, resources.size());
+    for (Resource resource : resources) {
+      Assert.assertEquals("Cluster100", resource.getPropertyValue(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID));
+      Assert.assertEquals("KERBEROS", resource.getPropertyValue(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID));
+      Assert.assertEquals("MISSING_CREDENTIALS", resource.getPropertyValue("Services/attributes/kdc_validation_result"));
+      Assert.assertEquals("Missing KDC administrator credentials.", resource.getPropertyValue("Services/attributes/kdc_validation_failure_details"));
+    }
+
+    // verify
+    verify(managementController, clusters, cluster, service0, serviceResponse0,
+        ambariMetaInfo, stackId, serviceFactory, kerberosHeper);
+  }
+
 
   @Test
   public void testUpdateResources() throws Exception{

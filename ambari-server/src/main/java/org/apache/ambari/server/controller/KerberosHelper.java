@@ -57,8 +57,10 @@ import org.apache.ambari.server.serveraction.kerberos.KerberosAdminAuthenticatio
 import org.apache.ambari.server.serveraction.kerberos.KerberosConfigDataFile;
 import org.apache.ambari.server.serveraction.kerberos.KerberosConfigDataFileBuilder;
 import org.apache.ambari.server.serveraction.kerberos.KerberosCredential;
+import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosKDCConnectionException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosLDAPContainerException;
+import org.apache.ambari.server.serveraction.kerberos.KerberosMissingAdminCredentialsException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandler;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandlerFactory;
@@ -188,7 +190,12 @@ public class KerberosHelper {
                                               RequestStageContainer requestStageContainer)
       throws AmbariException {
 
-    KerberosDetails kerberosDetails = getKerberosDetails(cluster);
+    KerberosDetails kerberosDetails;
+    try {
+      kerberosDetails = getKerberosDetails(cluster);
+    } catch (KerberosInvalidConfigurationException e) {
+      throw new IllegalArgumentException(e.getMessage(), e);
+    }
 
     // Update KerberosDetails with the new security type - the current one in the cluster is the "old" value
     kerberosDetails.setSecurityType(securityType);
@@ -234,12 +241,18 @@ public class KerberosHelper {
                 throw new AmbariException(String.format("Custom operation %s can only be requested with the security type cluster property: %s", operation.name(), SecurityType.KERBEROS.name()));
               }
 
-              if ("true".equalsIgnoreCase(value) || "all".equalsIgnoreCase(value)) {
-                requestStageContainer = handle(cluster, getKerberosDetails(cluster), null, null, requestStageContainer, new CreatePrincipalsAndKeytabsHandler(true));
-              } else if ("missing".equalsIgnoreCase(value)) {
-                requestStageContainer = handle(cluster, getKerberosDetails(cluster), null, null, requestStageContainer, new CreatePrincipalsAndKeytabsHandler(false));
-              } else {
-                throw new AmbariException(String.format("Unexpected directive value: %s", value));
+              try {
+                if ("true".equalsIgnoreCase(value) || "all".equalsIgnoreCase(value)) {
+                  requestStageContainer = handle(cluster, getKerberosDetails(cluster), null, null,
+                      requestStageContainer, new CreatePrincipalsAndKeytabsHandler(true));
+                } else if ("missing".equalsIgnoreCase(value)) {
+                  requestStageContainer = handle(cluster, getKerberosDetails(cluster), null, null,
+                      requestStageContainer, new CreatePrincipalsAndKeytabsHandler(false));
+                } else {
+                  throw new AmbariException(String.format("Unexpected directive value: %s", value));
+                }
+              } catch (KerberosInvalidConfigurationException e) {
+                throw new IllegalArgumentException(e.getMessage(), e);
               }
 
               break;
@@ -285,8 +298,12 @@ public class KerberosHelper {
   public RequestStageContainer ensureIdentities(Cluster cluster, Map<String, Collection<String>> serviceComponentFilter,
                                                 Collection<String> identityFilter, RequestStageContainer requestStageContainer)
       throws AmbariException {
-    return handle(cluster, getKerberosDetails(cluster), serviceComponentFilter, identityFilter,
-        requestStageContainer, new CreatePrincipalsAndKeytabsHandler(false));
+    try {
+      return handle(cluster, getKerberosDetails(cluster), serviceComponentFilter, identityFilter,
+          requestStageContainer, new CreatePrincipalsAndKeytabsHandler(false));
+    } catch (KerberosInvalidConfigurationException e) {
+      throw new IllegalArgumentException(e.getMessage(), e);
+    }
   }
 
   /**
@@ -475,80 +492,8 @@ public class KerberosHelper {
         // are available
         if (!serviceComponentHostsToProcess.isEmpty()) {
           try {
-            String credentials = getEncryptedAdministratorCredentials(cluster);
-            if (credentials == null) {
-              throw new IllegalArgumentException(
-                  "Missing KDC administrator credentials.\n" +
-                      "The KDC administrator credentials must be set in session by updating the relevant Cluster resource." +
-                      "This may be done by issuing a PUT to the api/v1/clusters/(cluster name) API entry point with the following payload:\n" +
-                      "{\n" +
-                      "  \"session_attributes\" : {\n" +
-                      "    \"kerberos_admin\" : {\"principal\" : \"(PRINCIPAL)\", \"password\" : \"(PASSWORD)\"}\n" +
-                      "  }\n" +
-                      "}"
-              );
-            } else {
-              KerberosOperationHandler operationHandler = kerberosOperationHandlerFactory.getKerberosOperationHandler(kerberosDetails.getKdcType());
-
-              if (operationHandler == null) {
-                throw new AmbariException("Failed to get an appropriate Kerberos operation handler.");
-              } else {
-                byte[] key = Integer.toHexString(cluster.hashCode()).getBytes();
-                KerberosCredential kerberosCredentials = KerberosCredential.decrypt(credentials, key);
-
-                try {
-                  operationHandler.open(kerberosCredentials, kerberosDetails.getDefaultRealm(), kerberosDetails.getKerberosEnvProperties());
-                  if (!operationHandler.testAdministratorCredentials()) {
-                    throw new IllegalArgumentException(
-                        "Invalid KDC administrator credentials.\n" +
-                            "The KDC administrator credentials must be set in session by updating the relevant Cluster resource." +
-                            "This may be done by issuing a PUT to the api/v1/clusters/(cluster name) API entry point with the following payload:\n" +
-                            "{\n" +
-                            "  \"session_attributes\" : {\n" +
-                            "    \"kerberos_admin\" : {\"principal\" : \"(PRINCIPAL)\", \"password\" : \"(PASSWORD)\"}\n" +
-                            "  }\n" +
-                            "}"
-                    );
-                  }
-                } catch (KerberosAdminAuthenticationException e) {
-                  throw new IllegalArgumentException(
-                      "Invalid KDC administrator credentials.\n" +
-                          "The KDC administrator credentials must be set in session by updating the relevant Cluster resource." +
-                          "This may be done by issuing a PUT to the api/v1/clusters/(cluster name) API entry point with the following payload:\n" +
-                          "{\n" +
-                          "  \"session_attributes\" : {\n" +
-                          "    \"kerberos_admin\" : {\"principal\" : \"(PRINCIPAL)\", \"password\" : \"(PASSWORD)\"}\n" +
-                          "  }\n" +
-                          "}",
-                      e
-                  );
-                } catch (KerberosKDCConnectionException e) {
-                  throw new IllegalArgumentException(
-                      "Failed to connect to KDC - " + e.getMessage() + "\n" +
-                          "Update the KDC settings in krb5-conf and kerberos-env configurations to correct this issue.",
-                      e);
-                } catch (KerberosRealmException e) {
-                  throw new IllegalArgumentException(
-                      "Failed to find a KDC for the specified realm - " + e.getMessage() + "\n" +
-                          "Update the KDC settings in krb5-conf and kerberos-env configurations to correct this issue.",
-                      e);
-                } catch (KerberosLDAPContainerException e) {
-                  throw new IllegalArgumentException(
-                      "The principal container was not specified\n" +
-                          "Set the 'container_dn' value in the kerberos-env configuration to correct this issue.",
-                      e);
-                } catch (KerberosOperationException e) {
-                  throw new AmbariException(e.getMessage(), e);
-                } finally {
-                  try {
-                    operationHandler.close();
-                  } catch (KerberosOperationException e) {
-                    // Ignore this...
-                  }
-                }
-              }
-            }
-          } catch (IllegalArgumentException e) {
+            validateKDCCredentials(cluster);
+          } catch (KerberosOperationException e) {
             try {
               FileUtils.deleteDirectory(dataDirectory);
             } catch (Throwable t) {
@@ -556,7 +501,7 @@ public class KerberosHelper {
                   dataDirectory.getAbsolutePath(), t.getMessage()), t);
             }
 
-            throw e;
+            throw new IllegalArgumentException(e.getMessage(), e);
           }
 
           // Determine if the any auth_to_local configurations need to be set dynamically
@@ -664,6 +609,98 @@ public class KerberosHelper {
   }
 
   /**
+   * Validate the KDC admin credentials.
+   *
+   * @param cluster associated cluster
+   *
+   * @throws IllegalArgumentException if the credentials are missing or invalid or
+   *                                  if any associated configuration is invalid
+   * @throws AmbariException if any other error occurs while trying to validate the credentials
+   */
+  public void validateKDCCredentials(Cluster cluster) throws KerberosMissingAdminCredentialsException,
+                                                             KerberosAdminAuthenticationException,
+                                                             KerberosInvalidConfigurationException,
+                                                             AmbariException {
+    String credentials = getEncryptedAdministratorCredentials(cluster);
+    if (credentials == null) {
+      throw new KerberosMissingAdminCredentialsException(
+          "Missing KDC administrator credentials.\n" +
+              "The KDC administrator credentials must be set in session by updating the relevant Cluster resource." +
+              "This may be done by issuing a PUT to the api/v1/clusters/(cluster name) API entry point with the following payload:\n" +
+              "{\n" +
+              "  \"session_attributes\" : {\n" +
+              "    \"kerberos_admin\" : {\"principal\" : \"(PRINCIPAL)\", \"password\" : \"(PASSWORD)\"}\n" +
+              "  }\n" +
+              "}"
+      );
+    } else {
+      KerberosDetails kerberosDetails = getKerberosDetails(cluster);
+      KerberosOperationHandler operationHandler = kerberosOperationHandlerFactory.getKerberosOperationHandler(kerberosDetails.getKdcType());
+
+      if (operationHandler == null) {
+        throw new AmbariException("Failed to get an appropriate Kerberos operation handler.");
+      } else {
+        byte[] key = Integer.toHexString(cluster.hashCode()).getBytes();
+        KerberosCredential kerberosCredentials = KerberosCredential.decrypt(credentials, key);
+
+        boolean missingCredentials = false;
+        try {
+          operationHandler.open(kerberosCredentials, kerberosDetails.getDefaultRealm(), kerberosDetails.getKerberosEnvProperties());
+          // todo: this is really odd that open doesn't throw an exception if the credentials are missing
+          missingCredentials = ! operationHandler.testAdministratorCredentials();
+        } catch (KerberosAdminAuthenticationException e) {
+          throw new KerberosAdminAuthenticationException(
+              "Invalid KDC administrator credentials.\n" +
+                  "The KDC administrator credentials must be set in session by updating the relevant Cluster resource." +
+                  "This may be done by issuing a PUT to the api/v1/clusters/(cluster name) API entry point with the following payload:\n" +
+                  "{\n" +
+                  "  \"session_attributes\" : {\n" +
+                  "    \"kerberos_admin\" : {\"principal\" : \"(PRINCIPAL)\", \"password\" : \"(PASSWORD)\"}\n" +
+                  "  }\n" +
+                  "}", e);
+        } catch (KerberosKDCConnectionException e) {
+          throw new KerberosInvalidConfigurationException(
+              "Failed to connect to KDC - " + e.getMessage() + "\n" +
+                  "Update the KDC settings in krb5-conf and kerberos-env configurations to correct this issue.",
+              e);
+        } catch (KerberosRealmException e) {
+          throw new KerberosInvalidConfigurationException(
+              "Failed to find a KDC for the specified realm - " + e.getMessage() + "\n" +
+                  "Update the KDC settings in krb5-conf and kerberos-env configurations to correct this issue.",
+              e);
+        } catch (KerberosLDAPContainerException e) {
+          throw new KerberosInvalidConfigurationException(
+              "The principal container was not specified\n" +
+                  "Set the 'container_dn' value in the kerberos-env configuration to correct this issue.",
+              e);
+        } catch (KerberosOperationException e) {
+          throw new AmbariException(e.getMessage(), e);
+        } finally {
+          try {
+            operationHandler.close();
+          } catch (KerberosOperationException e) {
+            // Ignore this...
+          }
+        }
+
+        // need to throw this outside of the try/catch so it isn't caught
+        if (missingCredentials) {
+          throw new KerberosMissingAdminCredentialsException(
+              "Invalid KDC administrator credentials.\n" +
+                  "The KDC administrator credentials must be set in session by updating the relevant Cluster resource." +
+                  "This may be done by issuing a PUT to the api/v1/clusters/(cluster name) API entry point with the following payload:\n" +
+                  "{\n" +
+                  "  \"session_attributes\" : {\n" +
+                  "    \"kerberos_admin\" : {\"principal\" : \"(PRINCIPAL)\", \"password\" : \"(PASSWORD)\"}\n" +
+                  "  }\n" +
+                  "}"
+          );
+        }
+      }
+    }
+  }
+
+  /**
    * Gathers the Kerberos-related data from configurations and stores it in a new KerberosDetails
    * instance.
    *
@@ -671,7 +708,9 @@ public class KerberosHelper {
    * @return a new KerberosDetails with the collected configuration data
    * @throws AmbariException
    */
-  private KerberosDetails getKerberosDetails(Cluster cluster) throws AmbariException {
+  private KerberosDetails getKerberosDetails(Cluster cluster)
+      throws KerberosInvalidConfigurationException, AmbariException {
+
     KerberosDetails kerberosDetails = new KerberosDetails();
 
     if (cluster == null) {
@@ -713,7 +752,7 @@ public class KerberosHelper {
     if(kdcTypeProperty == null) {
       String message = "The 'kerberos-env/kdc_type' value must be set to a valid KDC type";
       LOG.error(message);
-      throw new IllegalArgumentException(message);
+      throw new KerberosInvalidConfigurationException(message);
     }
 
     try {

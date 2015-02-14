@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.persist.Transactional;
@@ -29,6 +30,7 @@ import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
@@ -48,6 +50,12 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.serveraction.kerberos.KerberosAdminAuthenticationException;
+import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
+import org.apache.ambari.server.serveraction.kerberos.KerberosKDCConnectionException;
+import org.apache.ambari.server.serveraction.kerberos.KerberosLDAPContainerException;
+import org.apache.ambari.server.serveraction.kerberos.KerberosMissingAdminCredentialsException;
+import org.apache.ambari.server.serveraction.kerberos.KerberosRealmException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -115,6 +123,12 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   private static final ServiceState DEFAULT_SERVICE_STATE = new DefaultServiceState();
 
   private MaintenanceStateHelper maintenanceStateHelper;
+
+  /**
+   * kerberos helper
+   */
+  @Inject
+  private KerberosHelper kerberosHelper;
 
   // ----- Constructors ----------------------------------------------------
 
@@ -191,6 +205,14 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
           requestedIds);
       setResourceProperty(resource, SERVICE_MAINTENANCE_STATE_PROPERTY_ID,
           response.getMaintenanceState(), requestedIds);
+
+      Map<String, Object> serviceSpecificProperties = getServiceSpecificProperties(
+          response.getClusterName(), response.getServiceName());
+
+      for (Map.Entry<String, Object> entry : serviceSpecificProperties.entrySet()) {
+        setResourceProperty(resource, entry.getKey(), entry.getValue(), requestedIds);
+      }
+
       resources.add(resource);
     }
     return resources;
@@ -1408,5 +1430,44 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     }
 
     return State.isValidStateTransition(startState, desiredState);
+  }
+
+  /**
+   * Get any service specific properties for the request.
+   *
+   * @param clusterName  cluster name
+   * @param serviceName  service name
+   */
+  private Map<String, Object> getServiceSpecificProperties(String clusterName, String serviceName) {
+    Map<String, Object> serviceSpecificProperties = new HashMap<String, Object>();
+    if (serviceName.equals("KERBEROS")) {
+      Map<String, String> kerberosAttributes = new HashMap<String, String>();
+      String kdcValidationResult = "OK";
+      String failureDetails = "";
+      try {
+        kerberosHelper.validateKDCCredentials(
+            getManagementController().getClusters().getCluster(clusterName));
+
+      } catch (KerberosInvalidConfigurationException e) {
+        kdcValidationResult = "INVALID_CONFIGURATION";
+        failureDetails = e.getMessage();
+      } catch (KerberosAdminAuthenticationException e) {
+        kdcValidationResult = "INVALID_CREDENTIALS";
+        failureDetails = e.getMessage();
+      } catch (KerberosMissingAdminCredentialsException e) {
+        kdcValidationResult = "MISSING_CREDENTIALS";
+        failureDetails = e.getMessage();
+      } catch (AmbariException e) {
+        kdcValidationResult = "VALIDATION_ERROR";
+        failureDetails = e.getMessage();
+      }
+
+      kerberosAttributes.put("kdc_validation_result", kdcValidationResult);
+      kerberosAttributes.put("kdc_validation_failure_details", failureDetails);
+      serviceSpecificProperties.put(PropertyHelper.getPropertyId(
+          "Services", "attributes"), kerberosAttributes);
+    }
+
+    return serviceSpecificProperties;
   }
 }
