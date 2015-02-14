@@ -2037,6 +2037,36 @@ var hdp2properties = [
     "category": "Advanced krb5-conf",
     "index": 2
   },
+  {
+    "id": "puppet var",
+    "name": "libdefaults_default_tgs_enctypes",
+    "displayName": "libdefaults_default_tgs_enctypes",
+    "value": "",
+    "defaultValue": "",
+    "description": "",
+    "isOverridable": false,
+    "isVisible": true,
+    "isRequiredByAgent": true,
+    "isRequired": false,
+    "serviceName": "KERBEROS",
+    "filename": "krb5-conf.xml",
+    "category": "Advanced krb5-conf"
+  },
+  {
+    "id": "puppet var",
+    "name": "libdefaults_default_tkt_enctypes",
+    "displayName": "libdefaults_default_tkt_enctypes",
+    "value": "",
+    "defaultValue": "",
+    "description": "",
+    "isOverridable": false,
+    "isVisible": true,
+    "isRequiredByAgent": true,
+    "isRequired": false,
+    "serviceName": "KERBEROS",
+    "filename": "krb5-conf.xml",
+    "category": "Advanced krb5-conf"
+  },
 /********************************************* flume-agent *****************************/
   {
     "id": "site property",
