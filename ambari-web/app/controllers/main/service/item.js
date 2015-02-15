@@ -623,7 +623,16 @@ App.MainServiceItemController = Em.Controller.extend({
         var selectedHost = this.get('selectedHost');
 
         // Install
-        componentsUtils.installHostComponent(selectedHost, component);
+        if(component.get('componentName') == "HIVE_METASTORE" && !!selectedHost){
+          App.router.get('mainHostDetailsController').addComponent(
+            {
+              context: component,
+              hiveMetastoreHost: selectedHost
+            }
+          );
+        } else {
+          componentsUtils.installHostComponent(selectedHost, component);
+        }
 
         // Remove host from 'without' collection to immediate recalculate add menu item state
         var hostsWithoutComponent = this.get('hostsWithoutComponent');

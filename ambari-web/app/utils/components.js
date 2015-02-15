@@ -19,9 +19,10 @@ var App = require('app');
 
 module.exports = {
   installHostComponent: function(hostName, component) {
-    var self = this;
-    var componentName = component.get('componentName');
-    var displayName = component.get('displayName');
+    var
+      self = this,
+      componentName = component.get('componentName'),
+      displayName = component.get('displayName');
     App.ajax.send({
       name: 'host.host_component.add_new_component',
       sender: self,

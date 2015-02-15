@@ -44,6 +44,12 @@ App.MainHostDetailsController = Em.Controller.extend({
   referer: '',
 
   /**
+   *  Host on which Hive Metastore will be added
+   * @type {string}
+   */
+  hiveMetastoreHost: '',
+
+  /**
    * Deferred object will be resolved when Oozie configs are downloaded
    * @type {object}
    */
@@ -427,13 +433,16 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @method addComponent
    */
   addComponent: function (event) {
-    var self = this;
-    var component = event.context;
-    var componentName = component.get('componentName');
-    var missedComponents = componentsUtils.checkComponentDependencies(componentName, {
-      scope: 'host',
-      installedComponents: this.get('content.hostComponents').mapProperty('componentName')
-    });
+    var
+      returnFunc,
+      self = this,
+      hiveHost = event.hiveMetastoreHost ? event.hiveMetastoreHost : "";
+      component = event.context,
+      componentName = component.get('componentName'),
+      missedComponents = !!hiveHost ? [] : componentsUtils.checkComponentDependencies(componentName, {
+        scope: 'host',
+        installedComponents: this.get('content.hostComponents').mapProperty('componentName')
+      });
     if (!!missedComponents.length) {
       var popupMessage = Em.I18n.t('host.host.addComponent.popup.dependedComponents.body').format(component.get('displayName'),
         stringUtils.getFormattedStringFromArray(missedComponents.map(function(cName) {
@@ -441,20 +450,28 @@ App.MainHostDetailsController = Em.Controller.extend({
         })));
       return App.showAlertPopup(Em.I18n.t('host.host.addComponent.popup.dependedComponents.header'), popupMessage);
     }
-    if (componentName === 'ZOOKEEPER_SERVER' || componentName === 'HIVE_METASTORE') {
-      return App.showConfirmationPopup(function () {
-        self.primary(component);
-      }, Em.I18n.t('hosts.host.addComponent.' + componentName ));
-    } else {
-      if (this.get('securityEnabled') && componentName !== 'CLIENTS') {
-        return App.showConfirmationPopup(function () {
+
+    switch (componentName) {
+      case 'ZOOKEEPER_SERVER':
+        returnFunc = App.showConfirmationPopup(function () {
           self.primary(component);
-        }, Em.I18n.t('hosts.host.addComponent.securityNote').format(componentName, self.get('content.hostName')));
-      }
-      else {
-        return this.addClientComponent(component);
-      }
+        }, Em.I18n.t('hosts.host.addComponent.' + componentName ));
+        break;
+      case 'HIVE_METASTORE':
+        this.set('hiveMetastoreHost',hiveHost);
+        this.loadConfigs("loadHiveConfigs");
+        break;
+      default:
+        if (this.get('securityEnabled') && componentName !== 'CLIENTS') {
+          returnFunc = App.showConfirmationPopup(function () {
+            self.primary(component);
+          }, Em.I18n.t('hosts.host.addComponent.securityNote').format(componentName, self.get('content.hostName')));
+        }
+        else {
+          returnFunc = this.addClientComponent(component);
+        }
     }
+    return returnFunc;
   },
   /**
    * Send command to server to install client on selected host
@@ -528,7 +545,7 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @param {object} data
    * @param {object} opt
    * @param {object} params
-   * @method installNewComponentSuccessCallback
+   * @method installNewComponentSuccessCallbƒack
    */
   installNewComponentSuccessCallback: function (data, opt, params) {
     if (!data.Requests || !data.Requests.id) {
@@ -542,7 +559,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     }
 
     this.showBackgroundOperationsPopup(function () {
-      if (params.componentName === 'ZOOKEEPER_SERVER' || params.componentName === 'HIVE_METASTORE' ||  params.componentName === 'HIVE_SERVER') {
+      if (params.componentName === 'ZOOKEEPER_SERVER' || params.componentName === 'HIVE_SERVER') {
         self.set(params.componentName === 'ZOOKEEPER_SERVER' ? 'zkRequestId' : 'hiveRequestId', data.Requests.id);
         self.addObserver(
           'App.router.backgroundOperationsController.serviceTimestamp',
@@ -625,13 +642,15 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @method onLoadHiveConfigs
    */
   onLoadHiveConfigs: function (data) {
-    var hiveMSHosts = this.getHiveHosts();
-    var hiveMasterHosts = hiveMSHosts.concat(App.HostComponent.find().filterProperty('componentName', 'HIVE_SERVER').mapProperty('hostName')).uniq().sort().join(',');
-    var configs = {};
-    var attributes = {};
-    var port = "";
-    var hiveUser = "";
-    var webhcatUser = "";
+    var
+      hiveMetastoreHost = this.get('hiveMetastoreHost'),
+      hiveMSHosts = this.getHiveHosts(),
+      hiveMasterHosts = hiveMSHosts.concat(App.HostComponent.find().filterProperty('componentName', 'HIVE_SERVER').mapProperty('hostName')).uniq().sort().join(','),
+      configs = {},
+      attributes = {},
+      port = "",
+      hiveUser = "",
+      webhcatUser = "";
 
     data.items.forEach(function (item) {
       configs[item.type] = item.properties;
@@ -673,18 +692,21 @@ App.MainHostDetailsController = Em.Controller.extend({
         }
       }
     ];
-    this.saveConfigsBatch(groups);
+    this.saveConfigsBatch(groups, hiveMetastoreHost);
   },
 
   /**
    * save configs' sites in batch
    * @param groups
    */
-  saveConfigsBatch: function (groups) {
+  saveConfigsBatch: function (groups, hiveMetastoreHost) {
     groups.forEach(function (group) {
-      var desiredConfigs = [];
-      var tag = 'version' + (new Date).getTime();
-      var properties = group.properties;
+      var
+        self = this,
+        desiredConfigs = [],
+        tag = 'version' + (new Date).getTime(),
+        properties = group.properties;
+
       for (var site in properties) {
         if (!properties.hasOwnProperty(site)) continue;
         desiredConfigs.push({
@@ -701,7 +723,9 @@ App.MainHostDetailsController = Em.Controller.extend({
           sender: this,
           data: {
             desired_config: desiredConfigs
-          }
+          },
+          defaultSuccessCallback: function () {},
+          success: !!hiveMetastoreHost ? componentsUtils.installHostComponent(hiveMetastoreHost, App.StackServiceComponent.find("HIVE_METASTORE")) : this.defaultSuccessCallback
         });
       }
     }, this);
@@ -714,7 +738,15 @@ App.MainHostDetailsController = Em.Controller.extend({
   deleteHiveMetaStore: false,
 
   getHiveHosts: function () {
-    var hiveHosts = App.HostComponent.find().filterProperty('componentName', 'HIVE_METASTORE').mapProperty('hostName');
+    var
+      hiveHosts = App.HostComponent.find().filterProperty('componentName', 'HIVE_METASTORE').mapProperty('hostName'),
+      hiveMetastoreHost = this.get('hiveMetastoreHost');
+
+    if(!!hiveMetastoreHost){
+      hiveHosts.push(hiveMetastoreHost);
+      this.set('hiveMetastoreHost', '');
+    }
+
     if (this.get('fromDeleteHost') || this.get('deleteHiveMetaStore')) {
       this.set('deleteHiveMetaStore', false);
       this.set('fromDeleteHost', false);
