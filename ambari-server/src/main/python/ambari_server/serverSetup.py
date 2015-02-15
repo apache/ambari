@@ -59,7 +59,7 @@ SE_MODE_PERMISSIVE = "permissive"
 # Non-root user setup commands
 NR_USER_COMMENT = "Ambari user"
 
-VIEW_EXTRACT_CMD = "{0} -cp {1}" + \
+VIEW_EXTRACT_CMD = "{0} -cp {1} " + \
                    "org.apache.ambari.server.view.ViewRegistry extract {2} " + \
                    "> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
 
