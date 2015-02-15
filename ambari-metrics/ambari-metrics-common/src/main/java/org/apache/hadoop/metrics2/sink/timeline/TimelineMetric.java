@@ -19,6 +19,10 @@ package org.apache.hadoop.metrics2.sink.timeline;
 
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.metrics2.sink.timeline.deserialize
+  .IgnoringNullsLinkedHashMap;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -39,7 +43,9 @@ public class TimelineMetric implements Comparable<TimelineMetric> {
   private long timestamp;
   private long startTime;
   private String type;
-  private Map<Long, Double> metricValues = new TreeMap<Long, Double>();
+
+  @JsonDeserialize(as = IgnoringNullsLinkedHashMap.class)
+  private Map<Long, Double> metricValues = new IgnoringNullsLinkedHashMap<Long, Double>();
 
   @XmlElement(name = "metricname")
   public String getMetricName() {
