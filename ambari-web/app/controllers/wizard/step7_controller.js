@@ -620,6 +620,10 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
     var self = this;
     this.loadServerSideConfigsRecommendations().always(function () {
       self.set('isRecommendedLoaded', true);
+      // format descriptor configs
+      if (self.get('securityEnabled') && self.get('wizardController.name') == 'addServiceController') {
+        App.config.addKerberosDescriptorConfigs(configs, self.get('wizardController.kerberosDescriptorConfigs') || []);
+      }
       self.setStepConfigs(configs, storedConfigs);
       self.checkHostOverrideInstaller();
       self.activateSpecialConfigs();
@@ -706,45 +710,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
     }
 
     this.set('stepConfigs', serviceConfigs);
-  },
-
-  /**
-   * Set secure properties for installed services. Mark secure properties and
-   * properties with default empty value as non required to pass validation.
-   *
-   * @param {Em.Object} serviceConfigObj
-   * @param {String} serviceName
-   */
-  setSecureConfigs: function (serviceConfigObj, serviceName) {
-    var configProperties = serviceConfigObj.get('configs');
-    if (!configProperties) return;
-    var secureConfigs = this.get('secureConfigs').filterProperty('serviceName', serviceName);
-    secureConfigs.forEach(function (secureConfig) {
-      var property = configProperties.findProperty('name', secureConfig.name);
-      if (property) {
-        property.set('isRequired', secureConfig.value != "");
-        if (!property.get('isRequired')) property.set('errorMessage', '');
-      }
-    });
-  },
-  /**
-   *
-   * @param selectedService
-   * @param serviceName
-   */
-  addSecureConfigs: function (selectedService, serviceName) {
-    var secureService = this.get('secureServices').findProperty('serviceName', serviceName);
-    if (!secureService) {
-      return;
-    }
-    secureService.configCategories.forEach(function (category) {
-      selectedService.get('configCategories').push(category);
-    });
-    secureService.configs.forEach(function (conf) {
-      conf.isVisible = !conf.displayType.contains('masterHost') && !conf.displayType.contains('slaveHost');
-      var config = App.ServiceConfigProperty.create(conf);
-      selectedService.get('configs').push(config);
-    }, this);
   },
 
   /**

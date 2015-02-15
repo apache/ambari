@@ -1282,40 +1282,6 @@ describe('App.InstallerStep7Controller', function () {
 
   });
 
-  describe('#setSecureConfigs', function() {
-    var serviceConfigObj = Em.Object.create({
-      serviceName: 'HDFS',
-      configs: [
-        Em.Object.create({ name: 'hadoop.http.authentication.signature.secret.file' }),
-        Em.Object.create({ name: 'hadoop.security.authentication' })
-      ]
-    });
-    var tests = [
-      { name: 'hadoop.http.authentication.signature.secret.file', e: false },
-      { name: 'hadoop.security.authentication', e: true }
-    ];
-
-    sinon.stub(App, 'get', function(key) {
-      if (['isHadoop22Stack'].contains(key)) return true;
-      else App.get(key);
-    });
-    var controller = App.WizardStep7Controller.create({});
-    controller.get('secureConfigs').pushObjects([
-      {
-        name: 'hadoop.http.authentication.signature.secret.file',
-        serviceName: 'HDFS',
-        value: ''
-      }
-    ]);
-    controller.setSecureConfigs(serviceConfigObj, 'HDFS');
-    App.get.restore();
-    tests.forEach(function(test) {
-      it('{0} is {1}required'.format(test.name, !!test.e ? '' : 'non ' ), function() {
-        expect(serviceConfigObj.get('configs').findProperty('name', test.name).get('isRequired')).to.eql(test.e);
-      });
-    });
-  });
-
   describe('#setInstalledServiceConfigs', function () {
 
     var controller = App.WizardStep7Controller.create({

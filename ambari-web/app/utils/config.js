@@ -744,6 +744,25 @@ App.config = Em.Object.create({
       // Nothing to worry about here, most likely trying indexOf on a non-string
     }
   },
+
+  /**
+   * Mark descriptor properties in configuration object.
+   *
+   * @param {Object[]} configs - config properties to change
+   * @param {App.ServiceConfigProperty[]} descriptor - parsed kerberos descriptor
+   */
+  addKerberosDescriptorConfigs: function(configs, descriptor) {
+    descriptor.forEach(function(item) {
+      var property = configs.findProperty('name', item.get('name'));
+      if (property) {
+        Em.set(property, 'isSecureConfig', true);
+        Em.set(property, 'displayName', Em.get(item, 'name'));
+        Em.set(property, 'isUserProperty', false);
+        Em.set(property, 'isOverridable', false);
+        Em.set(property, 'category', 'Advanced ' + Em.get(item, 'filename'));
+      }
+    });
+  },
   /**
    * create new child configs from overrides, attach them to parent config
    * override - value of config, related to particular host(s)

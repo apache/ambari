@@ -60,12 +60,6 @@ App.ClusterController = Em.Controller.extend({
     this.set('clusterDataLoadedPercent', 'width:' + (Math.floor(numLoaded / loadListLength * 100)).toString() + '%');
   },
 
-  doOnClusterLoad: function (item) {
-    if (this.get('isLoaded')) {
-      App.router.get('mainAdminKerberosController').getUpdatedSecurityStatus();
-    }
-  }.observes('isLoaded'),
-
   dataLoadList: Em.Object.create({
     'hosts': false,
     'serviceMetrics': false,
@@ -77,7 +71,8 @@ App.ClusterController = Em.Controller.extend({
     'componentConfigs': false,
     'componentsState': false,
     'rootService': false,
-    'alertDefinitions': false
+    'alertDefinitions': false,
+    'securityStatus': false
   }),
 
   /**
@@ -263,6 +258,7 @@ App.ClusterController = Em.Controller.extend({
      * 11. load root service (Ambari)
      * 12. load alert definitions to model
      * 13. load unhealthy alert instances
+     * 14. load security status
      */
     self.loadStackServiceComponents(function (data) {
       data.items.forEach(function (service) {
@@ -309,6 +305,10 @@ App.ClusterController = Em.Controller.extend({
       self.loadRootService().done(function (data) {
         App.rootServiceMapper.map(data);
         self.updateLoadStatus('rootService');
+      });
+      // load security status
+      App.router.get('mainAdminKerberosController').getSecurityStatus().always(function() {
+        self.updateLoadStatus('securityStatus');
       });
     });
   },

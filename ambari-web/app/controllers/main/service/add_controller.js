@@ -18,7 +18,7 @@
 
 
 var App = require('app');
-App.AddServiceController = App.WizardController.extend({
+App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
 
   name: 'addServiceController',
   // @TODO: remove after Kerberos Automation supports
@@ -119,10 +119,16 @@ App.AddServiceController = App.WizardController.extend({
     ],
     '4': [
       {
-        type: 'sync',
+        type: 'async',
         callback: function () {
-          this.loadServiceConfigGroups();
-          this.loadServiceConfigProperties();
+          var self = this;
+          var dfd = $.Deferred();
+          this.loadKerberosDescriptorConfigs().done(function() {
+            self.loadServiceConfigGroups();
+            self.loadServiceConfigProperties();
+            dfd.resolve();
+          });
+          return dfd.promise();
         }
       }
     ],
@@ -332,6 +338,24 @@ App.AddServiceController = App.WizardController.extend({
       this.set('content.skipConfigStep', this.skipConfigStep());
       this.get('isStepDisabled').findProperty('step', 4).set('value', this.get('content.skipConfigStep'));
     }
+  },
+
+  /**
+   * Load kerberos descriptor configuration
+   * @returns {$.Deferred}
+   */
+  loadKerberosDescriptorConfigs: function() {
+    var self = this,
+        dfd = $.Deferred();
+    if (App.router.get('mainAdminKerberosController.securityEnabled')) {
+      this.getDescriptorConfigs().then(function(properties) {
+        self.set('kerberosDescriptorConfigs', properties);
+        dfd.resolve();
+      });
+    } else {
+      dfd.resolve();
+    }
+    return dfd.promise();
   },
 
   saveServiceConfigProperties: function (stepController) {
