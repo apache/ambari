@@ -613,11 +613,11 @@ CREATE TABLE kerberos_principal_host (
 );
 
 ALTER TABLE kerberos_principal_host
-ADD CONSTRAINT FK_kerberosprincipalhost_hostname
+ADD CONSTRAINT FK_krb_pr_host_hostname
 FOREIGN KEY (host_name) REFERENCES hosts (host_name) ON DELETE CASCADE;
 
 ALTER TABLE kerberos_principal_host
-ADD CONSTRAINT FK_kerberosprincipalhost_principalname
+ADD CONSTRAINT FK_krb_pr_host_principalname
 FOREIGN KEY (principal_name) REFERENCES kerberos_principal (principal_name) ON DELETE CASCADE;
 -- Kerberos (end)
 

@@ -164,7 +164,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("alert_state", String.class, 255, null, false));
     dbAccessor.createTable(ALERT_TARGET_STATES_TABLE, columns, "target_id");
     dbAccessor.addFKConstraint(ALERT_TARGET_STATES_TABLE,
-        "fk_alert_target_states_target_id", "target_id", ALERT_TARGET_TABLE,
+        "fk_alert_tgt_states_tgt_id", "target_id", ALERT_TARGET_TABLE,
         "target_id", false);
 
     // update alert current maintenance mode
@@ -288,8 +288,8 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("principal_name", String.class, 255, null, false));
     columns.add(new DBColumnInfo("host_name", String.class, 255, null, false));
     dbAccessor.createTable(KERBEROS_PRINCIPAL_HOST_TABLE, columns, "principal_name", "host_name");
-    dbAccessor.addFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_kerberosprincipalhost_hostname", "host_name", "hosts", "host_name", false);
-    dbAccessor.addFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_kerberosprincipalhost_principalname", "principal_name", KERBEROS_PRINCIPAL_TABLE, "principal_name", false);
+    dbAccessor.addFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_krb_pr_host_hostname", "host_name", "hosts", "host_name", false);
+    dbAccessor.addFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_krb_pr_host_principalname", "principal_name", KERBEROS_PRINCIPAL_TABLE, "principal_name", false);
   }
 
   // ----- UpgradeCatalog ----------------------------------------------------

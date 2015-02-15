@@ -220,9 +220,9 @@ public class UpgradeCatalog200Test {
     // kerberos_principal_host
     dbAccessor.createTable(eq("kerberos_principal_host"), capture(kerberosPrincipalHostCapture),
         eq("principal_name"), eq("host_name"));
-    dbAccessor.addFKConstraint(eq("kerberos_principal_host"), eq("FK_kerberosprincipalhost_hostname"),
+    dbAccessor.addFKConstraint(eq("kerberos_principal_host"), eq("FK_krb_pr_host_hostname"),
         eq("host_name"), eq("hosts"), eq("host_name"), eq(false));
-    dbAccessor.addFKConstraint(eq("kerberos_principal_host"), eq("FK_kerberosprincipalhost_principalname"),
+    dbAccessor.addFKConstraint(eq("kerberos_principal_host"), eq("FK_krb_pr_host_principalname"),
         eq("principal_name"), eq("kerberos_principal"), eq("principal_name"), eq(false));
 
     setViewInstancePropertyExpectations(dbAccessor, valueColumnCapture);
