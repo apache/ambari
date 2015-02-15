@@ -33,7 +33,7 @@ from resource_management.core.shell import call
 
 from zookeeper import zookeeper
 from zookeeper_service import zookeeper_service
-
+import random
 
 @retry(times=10, sleep_time=2, err_class=Fail)
 def call_and_match_output(command, regex_expression, err_message):
@@ -81,12 +81,13 @@ class ZookeeperServer(Script):
     Logger.info("Executing Rolling Upgrade post-restart")
     import params
     env.set_params(params)
-
+    zk_server_host = random.choice(params.zookeeper_hosts)
+    cli_shell = format("{zk_cli_shell} -server {zk_server_host}:{client_port}")
     # Ensure that a quorum is still formed.
     unique = get_unique_id_and_date()
-    create_command = format("echo 'create /{unique} mydata' | {zk_cli_shell}")
-    list_command = format("echo 'ls /' | {zk_cli_shell}")
-    delete_command = format("echo 'delete /{unique} ' | {zk_cli_shell}")
+    create_command = format("echo 'create /{unique} mydata' | {cli_shell}")
+    list_command = format("echo 'ls /' | {cli_shell}")
+    delete_command = format("echo 'delete /{unique} ' | {cli_shell}")
 
     quorum_err_message = "Failed to establish zookeeper quorum"
     call_and_match_output(create_command, 'Created', quorum_err_message)
