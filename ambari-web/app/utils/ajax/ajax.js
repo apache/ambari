@@ -1488,7 +1488,7 @@ var urls = {
   },
 
   'admin.kerberos_security.regenerate_keytabs': {
-    'real': '/clusters/{clusterName}?regenerate_keytabs=true',
+    'real': '/clusters/{clusterName}?regenerate_keytabs={type}',
     'mock': '',
     'type': 'PUT',
     'format': function (data) {

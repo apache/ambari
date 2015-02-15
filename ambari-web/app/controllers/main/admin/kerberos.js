@@ -61,15 +61,46 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
 
   /**
    * Show confirmation popup and after confirmation send request to regenerate keytabs
+   * @method regenerateKeytabs
+   * @return {App.ModalPopup}
    */
   regenerateKeytabs: function () {
     var self = this;
-    return App.showConfirmationPopup(function(){
-      App.ajax.send({
-        name: "admin.kerberos_security.regenerate_keytabs",
-        sender: self,
-        success: "regenerateKeytabsSuccess"
-      });
+
+    return App.ModalPopup.show({
+
+      /**
+       * True - regenerate keytabs only for missing hosts and components, false - regenerate for all hosts and components
+       * @type {boolean}
+       */
+      regenerateKeytabsOnlyForMissing: false,
+
+      header: Em.I18n.t('admin.kerberos.button.regenerateKeytabs'),
+
+      bodyClass: Em.View.extend({
+        templateName: require('templates/main/admin/kerberos/regenerate_keytabs_popup_body')
+      }),
+
+      onPrimary: function () {
+        this._super();
+        self.regenerateKeytabsRequest(this.get('regenerateKeytabsOnlyForMissing'));
+      }
+    });
+  },
+
+  /**
+   * Send request to regenerate keytabs
+   * @param {boolean} missingOnly determines type of regeneration - missing|all
+   * @returns {$.ajax}
+   */
+  regenerateKeytabsRequest: function (missingOnly) {
+    return App.ajax.send({
+      name: "admin.kerberos_security.regenerate_keytabs",
+      sender: this,
+      data: {
+        type: missingOnly ? 'missing' : 'all'
+      },
+      success: "regenerateKeytabsSuccess"
     });
   },
 

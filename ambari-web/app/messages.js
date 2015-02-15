@@ -982,6 +982,9 @@ Em.I18n.translations = {
   'admin.kerberos.wizard.step7.notice.failed': 'Some services failed to start and execute tests successfully. Click Retry to attempt again or click Complete to dismiss the wizard and fix manually.',
   'admin.kerberos.wizard.step7.task0.title' : 'Start and Test Services',
 
+  'admin.kerberos.regenerate_keytabs.popup.body': 'You are about to regenerate keytabs for the hosts in the cluster. This will stop all the services in your cluster and regenerate the Kerberos keytabs. <strong>Are you sure you wish to proceed with keytab regeneration?</strong>',
+  'admin.kerberos.regenerate_keytabs.checkbox.label': ' Only regenerate keytabs for missing hosts and components',
+
   'admin.kerberos.disable.step1.task0.title': 'Stop Services',
   'admin.kerberos.disable.step1.task1.title': 'Remove Kerberos',
   'admin.kerberos.disable.step1.task2.title': 'Start Services',
