@@ -101,10 +101,12 @@ class TestExecuteResource(TestCase):
   def test_attribute_try_sleep_tries(self, popen_mock, time_mock):
     expected_call = "call('Retrying after %d seconds. Reason: %s', 1, 'Fail')"
 
-    subproc_mock = MagicMock()
-    subproc_mock.returncode = 0
-    subproc_mock.stdout.readline = MagicMock(side_effect = [Fail("Fail"), "OK"])
-    popen_mock.return_value = subproc_mock
+    subproc_mock_one = MagicMock()
+    subproc_mock_one.returncode = 1
+    subproc_mock_zero = MagicMock()
+    subproc_mock_zero.returncode = 0
+    #subproc_mock.stdout.readline = MagicMock(side_effect = [Fail("Fail"), "OK"])
+    popen_mock.side_effect = [subproc_mock_one, subproc_mock_zero]
 
     with Environment("/") as env:
       Execute('echo "1"',

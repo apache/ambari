@@ -19,10 +19,12 @@ limitations under the License.
 Ambari Agent
 
 """
-import os
 
 __all__ = ["non_blocking_call", "checked_call", "call", "quote_bash_args", "as_user", "as_sudo"]
 
+import os
+import pty
+import select
 import sys
 import logging
 import string
@@ -134,9 +136,10 @@ def _call(command, logoutput=None, throw_on_failure=True,
   for placeholder, replacement in PLACEHOLDERS_TO_STR.iteritems():
     command = command.replace(placeholder, replacement.format(env_str=env_str))
 
+  master_fd, slave_fd = pty.openpty()
   # --noprofile is used to preserve PATH set for ambari-agent
   subprocess_command = ["/bin/bash","--login","--noprofile","-c", command]
-  proc = subprocess.Popen(subprocess_command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+  proc = subprocess.Popen(subprocess_command, bufsize=1, stdout=slave_fd, stderr=subprocess.STDOUT,
                           cwd=cwd, env=env, shell=False,
                           preexec_fn=preexec_fn)
   
@@ -151,23 +154,32 @@ def _call(command, logoutput=None, throw_on_failure=True,
   # in case logoutput==False, never log.    
   logoutput = logoutput==True and Logger.logger.isEnabledFor(logging.INFO) or logoutput==None and Logger.logger.isEnabledFor(logging.DEBUG)
   out = ""
-  
+  read_timeout = .04 # seconds
+
   try:
-    for line in iter(proc.stdout.readline, b''):
-      out += line
-      
-      try:
-        if on_new_line:
-          on_new_line(line)
-      except Exception, err:
-        err_msg = "Caused by on_new_line function failed with exception for input argument '{0}':\n{1}".format(line, traceback.format_exc())
-        raise Fail(err_msg)
-        
-      if logoutput:
-        _print(line)
+    while True:
+      ready, _, _ = select.select([master_fd], [], [], read_timeout)
+      if ready:
+        line = os.read(master_fd, 512)
+        if not line:
+            break
+          
+        out += line
+        try:
+          if on_new_line:
+            on_new_line(line)
+        except Exception, err:
+          err_msg = "Caused by on_new_line function failed with exception for input argument '{0}':\n{1}".format(line, traceback.format_exc())
+          raise Fail(err_msg)
+          
+        if logoutput:
+          _print(line)    
+      elif proc.poll() is not None:
+        break # proc exited
   finally:
-    proc.stdout.close()
-    
+    os.close(slave_fd)
+    os.close(master_fd)
+
   proc.wait()  
   out = out.strip('\n')
   
@@ -179,6 +191,7 @@ def _call(command, logoutput=None, throw_on_failure=True,
       raise ExecuteTimeoutException()
    
   code = proc.returncode
+  print code
   
   if throw_on_failure and code:
     err_msg = Logger.filter_text(("Execution of '%s' returned %d. %s") % (command_alias, code, out))
