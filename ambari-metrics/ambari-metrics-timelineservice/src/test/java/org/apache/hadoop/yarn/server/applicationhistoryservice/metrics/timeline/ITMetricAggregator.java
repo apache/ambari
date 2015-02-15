@@ -85,7 +85,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
 
     Condition queryCondition = new DefaultCondition(null, "local", null, null,
       startTime, startTime + (15 * 60 * 1000), null, null, false);
-    TimelineMetrics recordRead = hdb.getMetricRecords(queryCondition);
+    TimelineMetrics recordRead = hdb.getMetricRecords(queryCondition, null);
 
     // THEN
     assertThat(recordRead.getMetrics()).hasSize(2)

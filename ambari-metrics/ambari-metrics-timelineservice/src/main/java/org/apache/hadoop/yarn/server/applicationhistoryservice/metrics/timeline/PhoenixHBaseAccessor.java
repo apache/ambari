@@ -34,6 +34,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -77,6 +78,7 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 public class PhoenixHBaseAccessor {
 
   private static final Log LOG = LogFactory.getLog(PhoenixHBaseAccessor.class);
+  private static final TimelineMetricReader timelineMetricReader = new TimelineMetricReader();
   private final Configuration hbaseConf;
   private final Configuration metricsConf;
   private final RetryCounterFactory retryCounterFactory;
@@ -150,50 +152,49 @@ public class PhoenixHBaseAccessor {
 
   private static TimelineMetric getLastTimelineMetricFromResultSet(ResultSet rs)
     throws SQLException, IOException {
-    TimelineMetric metric = getTimelineMetricCommonsFromResultSet(rs);
+    TimelineMetric metric = timelineMetricReader
+      .getTimelineMetricCommonsFromResultSet(rs);
     metric.setMetricValues(readLastMetricValueFromJSON(rs.getString("METRICS")));
 
     return metric;
   }
 
-  static TimelineMetric getTimelineMetricFromResultSet(ResultSet rs)
-    throws SQLException, IOException {
-    TimelineMetric metric = getTimelineMetricCommonsFromResultSet(rs);
-    Map<Long, Double> sortedByTimeMetrics =
-      new TreeMap<Long, Double>(readMetricFromJSON(rs.getString("METRICS")));
-    metric.setMetricValues(sortedByTimeMetrics);
-    return metric;
-  }
+  static TimelineMetric getAggregatedTimelineMetricFromResultSet(
+    ResultSet rs, Function f) throws SQLException, IOException {
 
-  /**
-   * Returns common part of timeline metrics record without the values.
-   */
-  private static TimelineMetric getTimelineMetricCommonsFromResultSet(ResultSet rs) 
-    throws SQLException {
     TimelineMetric metric = new TimelineMetric();
-    metric.setMetricName(rs.getString("METRIC_NAME"));
-    metric.setAppId(rs.getString("APP_ID"));
-    metric.setInstanceId(rs.getString("INSTANCE_ID"));
-    metric.setHostName(rs.getString("HOSTNAME"));
-    metric.setTimestamp(rs.getLong("SERVER_TIME"));
-    metric.setStartTime(rs.getLong("START_TIME"));
-    metric.setType(rs.getString("UNITS"));
-    return metric;
-  }
-
-  static TimelineMetric getAggregatedTimelineMetricFromResultSet(ResultSet rs)
-      throws SQLException, IOException {
-    TimelineMetric metric = new TimelineMetric();
-    metric.setMetricName(rs.getString("METRIC_NAME"));
     metric.setHostName(rs.getString("HOSTNAME"));
     metric.setAppId(rs.getString("APP_ID"));
     metric.setInstanceId(rs.getString("INSTANCE_ID"));
     metric.setTimestamp(rs.getLong("SERVER_TIME"));
     metric.setStartTime(rs.getLong("SERVER_TIME"));
     metric.setType(rs.getString("UNITS"));
+
+    // get functions for metricnames
+
+    double value;
+    switch(f.getReadFunction()){
+      case AVG:
+        value = rs.getDouble("METRIC_SUM") / rs.getInt("METRIC_COUNT");
+        break;
+      case MIN:
+        value = rs.getDouble("METRIC_MIN");
+        break;
+      case MAX:
+        value = rs.getDouble("METRIC_MAX");
+        break;
+      case SUM:
+        value = rs.getDouble("METRIC_SUM");
+        break;
+      default:
+        value = rs.getDouble("METRIC_SUM") / rs.getInt("METRIC_COUNT");
+        break;
+    }
+
+    metric.setMetricName(rs.getString("METRIC_NAME") + f.getSuffix());
+
     Map<Long, Double> valueMap = new TreeMap<Long, Double>();
-    valueMap.put(rs.getLong("SERVER_TIME"),
-        rs.getDouble("METRIC_SUM") / rs.getInt("METRIC_COUNT"));
+    valueMap.put(rs.getLong("SERVER_TIME"), value);
     metric.setMetricValues(valueMap);
     return metric;
   }
@@ -236,18 +237,6 @@ public class PhoenixHBaseAccessor {
 
     metricHostAggregate.setDeviation(0.0);
     return metricHostAggregate;
-  }
-
-  static TimelineClusterMetric getTimelineMetricClusterKeyFromResultSet(ResultSet rs)
-    throws SQLException, IOException {
-    TimelineClusterMetric metric = new TimelineClusterMetric(
-      rs.getString("METRIC_NAME"),
-      rs.getString("APP_ID"),
-      rs.getString("INSTANCE_ID"),
-      rs.getLong("SERVER_TIME"),
-      rs.getString("UNITS"));
-
-    return metric;
   }
 
   static MetricClusterAggregate getMetricClusterAggregateFromResultSet(ResultSet rs)
@@ -411,7 +400,8 @@ public class PhoenixHBaseAccessor {
   }
 
   @SuppressWarnings("unchecked")
-  public TimelineMetrics getMetricRecords(final Condition condition)
+  public TimelineMetrics getMetricRecords(
+    final Condition condition, Map<String, List<Function>> metricFunctions)
     throws SQLException, IOException {
 
     verifyCondition(condition);
@@ -429,19 +419,7 @@ public class PhoenixHBaseAccessor {
 
         ResultSet rs = stmt.executeQuery();
         while (rs.next()) {
-          TimelineMetric metric;
-          if (condition.getPrecision() == Precision.HOURS
-              || condition.getPrecision() == Precision.MINUTES) {
-            metric = getAggregatedTimelineMetricFromResultSet(rs);
-          } else {
-            metric = getTimelineMetricFromResultSet(rs);
-          }
-
-          if (condition.isGrouped()) {
-            metrics.addOrMergeTimelineMetric(metric);
-          } else {
-            metrics.getMetrics().add(metric);
-          }
+          appendMetricFromResultSet(metrics, condition, metricFunctions, rs);
         }
       }
 
@@ -464,6 +442,40 @@ public class PhoenixHBaseAccessor {
 
     LOG.info("Metrics records size: " + metrics.getMetrics().size());
     return metrics;
+  }
+
+  private void appendMetricFromResultSet(
+    TimelineMetrics metrics, Condition condition, Map<String,
+    List<Function>> metricFunctions, ResultSet rs)
+    throws SQLException, IOException {
+    if (condition.getPrecision() == Precision.HOURS
+      || condition.getPrecision() == Precision.MINUTES) {
+
+      String metricName = rs.getString("METRIC_NAME");
+      List<Function> functions = metricFunctions.get(metricName);
+
+      for (Function f : functions) {
+        TimelineMetric metric;
+
+        metric = getAggregatedTimelineMetricFromResultSet(rs, f);
+
+        if (condition.isGrouped()) {
+          metrics.addOrMergeTimelineMetric(metric);
+        } else {
+          metrics.getMetrics().add(metric);
+        }
+      }
+    }
+    else {
+      TimelineMetric metric;
+      metric = timelineMetricReader.getTimelineMetricFromResultSet(rs);
+
+      if (condition.isGrouped()) {
+        metrics.addOrMergeTimelineMetric(metric);
+      } else {
+        metrics.getMetrics().add(metric);
+      }
+    }
   }
 
   private PreparedStatement getLatestMetricRecords(
@@ -495,13 +507,16 @@ public class PhoenixHBaseAccessor {
    * @return @TimelineMetrics
    * @throws SQLException
    */
-  public TimelineMetrics getAggregateMetricRecords(final Condition condition)
+  public TimelineMetrics getAggregateMetricRecords(
+    final Condition condition,
+    Map<String, List<Function>> metricFunctions)
     throws SQLException {
 
     verifyCondition(condition);
 
     Connection conn = getConnection();
     PreparedStatement stmt = null;
+    ResultSet rs = null;
     TimelineMetrics metrics = new TimelineMetrics();
 
     try {
@@ -511,23 +526,20 @@ public class PhoenixHBaseAccessor {
       } else {
         stmt = PhoenixTransactSQL.prepareGetAggregateSqlStmt(conn, condition);
 
-        ResultSet rs = stmt.executeQuery();
+        rs = stmt.executeQuery();
         while (rs.next()) {
-          TimelineMetric metric;
-          if (condition.getPrecision() == Precision.HOURS) {
-            metric = getAggregateHoursTimelineMetricFromResultSet(rs);
-          } else {
-            metric = getAggregateTimelineMetricFromResultSet(rs);
-          }
-
-          if (condition.isGrouped()) {
-            metrics.addOrMergeTimelineMetric(metric);
-          } else {
-            metrics.getMetrics().add(metric);
-          }
+          appendAggregateMetricFromResultSet(metrics, condition,
+            metricFunctions, rs);
         }
       }
     } finally {
+      if (rs != null) {
+        try {
+          rs.close();
+        } catch (SQLException e) {
+          // Ignore
+        }
+      }
       if (stmt != null) {
         try {
           stmt.close();
@@ -548,6 +560,31 @@ public class PhoenixHBaseAccessor {
     return metrics;
   }
 
+  private void appendAggregateMetricFromResultSet(
+    TimelineMetrics metrics, Condition condition,
+    Map<String, List<Function>> metricFunctions, ResultSet rs)
+    throws SQLException {
+
+    String metricName = rs.getString("METRIC_NAME");
+    List<Function> functions = metricFunctions.get(metricName);
+
+    for (Function aggregateFunction : functions) {
+      TimelineMetric metric;
+
+      if (condition.getPrecision() == Precision.HOURS) {
+        metric = getAggregateHoursTimelineMetricFromResultSet(rs, aggregateFunction);
+      } else {
+        metric = getAggregateTimelineMetricFromResultSet(rs, aggregateFunction);
+      }
+
+      if (condition.isGrouped()) {
+        metrics.addOrMergeTimelineMetric(metric);
+      } else {
+        metrics.getMetrics().add(metric);
+      }
+    }
+  }
+
   private PreparedStatement getLatestAggregateMetricRecords(
     Condition condition, Connection conn, TimelineMetrics metrics)
     throws SQLException {
@@ -564,7 +601,8 @@ public class PhoenixHBaseAccessor {
 
       ResultSet rs = stmt.executeQuery();
       while (rs.next()) {
-        TimelineMetric metric = getAggregateTimelineMetricFromResultSet(rs);
+        TimelineMetric metric = getAggregateTimelineMetricFromResultSet(rs,
+          new Function());
         metrics.getMetrics().add(metric);
       }
     }
@@ -572,32 +610,73 @@ public class PhoenixHBaseAccessor {
     return stmt;
   }
 
-  private TimelineMetric getAggregateTimelineMetricFromResultSet(ResultSet rs) throws SQLException {
+  private TimelineMetric getAggregateTimelineMetricFromResultSet(
+    ResultSet rs, Function f) throws SQLException {
     TimelineMetric metric = new TimelineMetric();
-    metric.setMetricName(rs.getString("METRIC_NAME"));
     metric.setAppId(rs.getString("APP_ID"));
     metric.setInstanceId(rs.getString("INSTANCE_ID"));
     metric.setTimestamp(rs.getLong("SERVER_TIME"));
     metric.setStartTime(rs.getLong("SERVER_TIME"));
+
+    double value;
+    switch(f.getReadFunction()){
+      case AVG:
+        value = rs.getDouble("METRIC_SUM") / rs.getInt("HOSTS_COUNT");
+        break;
+      case MIN:
+        value = rs.getDouble("METRIC_MIN");
+        break;
+      case MAX:
+        value = rs.getDouble("METRIC_MAX");
+        break;
+      case SUM:
+        value = rs.getDouble("METRIC_SUM");
+        break;
+      default:
+        value = rs.getDouble("METRIC_SUM") / rs.getInt("HOSTS_COUNT");
+        break;
+    }
+
+    metric.setMetricName(rs.getString("METRIC_NAME") + f.getSuffix());
+
     Map<Long, Double> valueMap = new TreeMap<Long, Double>();
-    valueMap.put(rs.getLong("SERVER_TIME"),
-      rs.getDouble("METRIC_SUM") / rs.getInt("HOSTS_COUNT"));
+    valueMap.put(rs.getLong("SERVER_TIME"), value);
     metric.setMetricValues(valueMap);
 
     return metric;
   }
 
   private TimelineMetric getAggregateHoursTimelineMetricFromResultSet(
-    ResultSet rs) throws SQLException {
+    ResultSet rs, Function f) throws SQLException {
     TimelineMetric metric = new TimelineMetric();
-    metric.setMetricName(rs.getString("METRIC_NAME"));
     metric.setAppId(rs.getString("APP_ID"));
     metric.setInstanceId(rs.getString("INSTANCE_ID"));
     metric.setTimestamp(rs.getLong("SERVER_TIME"));
     metric.setStartTime(rs.getLong("SERVER_TIME"));
+
+    double value;
+    switch(f.getReadFunction()){
+      case AVG:
+        value = rs.getDouble("METRIC_SUM") / rs.getInt("METRIC_COUNT");
+        break;
+      case MIN:
+        value = rs.getDouble("METRIC_MIN");
+        break;
+      case MAX:
+        value = rs.getDouble("METRIC_MAX");
+        break;
+      case SUM:
+        value = rs.getDouble("METRIC_SUM");
+        break;
+      default:
+        value = rs.getDouble("METRIC_SUM") / rs.getInt("METRIC_COUNT");
+        break;
+    }
+
+    metric.setMetricName(rs.getString("METRIC_NAME") + f.getSuffix());
+
     Map<Long, Double> valueMap = new TreeMap<Long, Double>();
-    valueMap.put(rs.getLong("SERVER_TIME"),
-        rs.getDouble("METRIC_SUM") / rs.getInt("METRIC_COUNT"));
+    valueMap.put(rs.getLong("SERVER_TIME"), value);
     metric.setMetricValues(valueMap);
 
     return metric;

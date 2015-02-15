@@ -203,13 +203,15 @@ public abstract class AbstractTimelineAggregator implements Runnable {
 
     Connection conn = null;
     PreparedStatement stmt = null;
+    ResultSet rs = null;
 
     try {
       conn = hBaseAccessor.getConnection();
+      // FLUME 2. aggregate and ignore the instance
       stmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
 
       LOG.debug("Query issued @: " + new Date());
-      ResultSet rs = stmt.executeQuery();
+      rs = stmt.executeQuery();
       LOG.debug("Query returned @: " + new Date());
 
       aggregate(rs, startTime, endTime);
@@ -222,6 +224,13 @@ public abstract class AbstractTimelineAggregator implements Runnable {
       LOG.error("Exception during aggregating metrics.", e);
       success = false;
     } finally {
+      if (rs != null) {
+        try {
+          rs.close();
+        } catch (SQLException e) {
+          // Ignore
+        }
+      }
       if (stmt != null) {
         try {
           stmt.close();

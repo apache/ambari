@@ -29,7 +29,6 @@ import java.util.HashMap;
 import java.util.Map;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor.getMetricClusterAggregateFromResultSet;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor.getTimelineMetricClusterKeyFromResultSet;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.Condition;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.DefaultCondition;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.GET_CLUSTER_AGGREGATE_SQL;
@@ -53,6 +52,8 @@ public class TimelineMetricClusterAggregatorHourly extends
   private final Integer checkpointCutOffMultiplier;
   private long checkpointCutOffIntervalMillis;
   private static final Long NATIVE_TIME_RANGE_DELTA = 3600000l; // 1 hour
+  private final TimelineClusterMetricReader timelineClusterMetricReader
+     = new TimelineClusterMetricReader(true);
 
   public TimelineMetricClusterAggregatorHourly(
     PhoenixHBaseAccessor hBaseAccessor, Configuration metricsConf) {
@@ -115,7 +116,7 @@ public class TimelineMetricClusterAggregatorHourly extends
 
     while (rs.next()) {
       TimelineClusterMetric currentMetric =
-        getTimelineMetricClusterKeyFromResultSet(rs);
+        timelineClusterMetricReader.fromResultSet(rs);
       MetricClusterAggregate currentHostAggregate =
         getMetricClusterAggregateFromResultSet(rs);
 

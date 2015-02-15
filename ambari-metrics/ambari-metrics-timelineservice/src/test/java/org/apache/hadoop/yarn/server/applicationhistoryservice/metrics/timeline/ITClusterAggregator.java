@@ -44,6 +44,8 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
   private Connection conn;
   private PhoenixHBaseAccessor hdb;
+  private final TimelineClusterMetricReader metricReader = new
+    TimelineClusterMetricReader(false);
 
   @Before
   public void setUp() throws Exception {
@@ -106,8 +108,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
 
     int recordCount = 0;
     while (rs.next()) {
-      TimelineClusterMetric currentMetric =
-        PhoenixHBaseAccessor.getTimelineMetricClusterKeyFromResultSet(rs);
+      TimelineClusterMetric currentMetric = metricReader.fromResultSet(rs);
       MetricClusterAggregate currentHostAggregate =
         PhoenixHBaseAccessor.getMetricClusterAggregateFromResultSet(rs);
 
@@ -123,6 +124,78 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     }
   }
 
+
+  @Test
+  public void testShouldAggregateClusterIgnoringInstance() throws
+    Exception {
+    // GIVEN
+    TimelineMetricClusterAggregator agg =
+      new TimelineMetricClusterAggregator(hdb, new Configuration());
+
+    long startTime = System.currentTimeMillis();
+    long ctime = startTime;
+    long minute = 60 * 1000;
+
+    /**
+     * Here we have two nodes with two instances each:
+     *              | local1 | local2 |
+     *  instance i1 |   1    |   2    |
+     *  instance i2 |   3    |   4    |
+     *
+     */
+    hdb.insertMetricRecords(prepareSingleTimelineMetric(ctime, "local1",
+      "i1", "disk_free", 1));
+    hdb.insertMetricRecords(prepareSingleTimelineMetric(ctime, "local2",
+      "i1", "disk_free", 2));
+    hdb.insertMetricRecords(prepareSingleTimelineMetric(ctime, "local1",
+      "i2", "disk_free", 3));
+    hdb.insertMetricRecords(prepareSingleTimelineMetric(ctime, "local2",
+      "i2", "disk_free", 4));
+    ctime += minute;
+
+    hdb.insertMetricRecords(prepareSingleTimelineMetric(ctime, "local1",
+      "i1", "disk_free", 1));
+    hdb.insertMetricRecords(prepareSingleTimelineMetric(ctime, "local2",
+      "i1", "disk_free", 3));
+    hdb.insertMetricRecords(prepareSingleTimelineMetric(ctime, "local1",
+      "i2", "disk_free", 2));
+    hdb.insertMetricRecords(prepareSingleTimelineMetric(ctime, "local2",
+      "i2", "disk_free", 4));
+    // WHEN
+    long endTime = ctime + minute;
+    boolean success = agg.doWork(startTime, endTime);
+
+    //THEN
+    Condition condition = new DefaultCondition(null, null, null, null, startTime,
+      endTime, null, null, true);
+    condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_SQL,
+      PhoenixTransactSQL.getNaiveTimeRangeHint(startTime, NATIVE_TIME_RANGE_DELTA),
+      METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
+
+    PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt
+      (conn, condition);
+    ResultSet rs = pstmt.executeQuery();
+
+    int recordCount = 0;
+    while (rs.next()) {
+      TimelineClusterMetric currentMetric = metricReader.fromResultSet(rs);
+//        PhoenixHBaseAccessor.getTimelineMetricClusterKeyFromResultSet(rs);
+      MetricClusterAggregate currentHostAggregate =
+        PhoenixHBaseAccessor.getMetricClusterAggregateFromResultSet(rs);
+
+      if ("disk_free".equals(currentMetric.getMetricName())) {
+        System.out.println("OUTPUT: " + currentMetric+" - " +
+          ""+currentHostAggregate);
+        assertEquals(4, currentHostAggregate.getNumberOfHosts());
+        assertEquals(4.0, currentHostAggregate.getMax());
+        assertEquals(1.0, currentHostAggregate.getMin());
+        assertEquals(10.0, currentHostAggregate.getSum());
+        recordCount++;
+      } else {
+        fail("Unexpected entry");
+      }
+    }
+  }
 
   @Test
   public void testShouldAggregateDifferentMetricsOnClusterProperly()
@@ -167,8 +240,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
 
     int recordCount = 0;
     while (rs.next()) {
-      TimelineClusterMetric currentMetric =
-        PhoenixHBaseAccessor.getTimelineMetricClusterKeyFromResultSet(rs);
+      TimelineClusterMetric currentMetric = metricReader.fromResultSet(rs);
       MetricClusterAggregate currentHostAggregate =
         PhoenixHBaseAccessor.getMetricClusterAggregateFromResultSet(rs);
 

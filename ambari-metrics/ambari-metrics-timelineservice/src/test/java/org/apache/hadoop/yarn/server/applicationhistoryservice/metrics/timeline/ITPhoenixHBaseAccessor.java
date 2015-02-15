@@ -31,6 +31,7 @@ import java.sql.Statement;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import static junit.framework.Assert.assertEquals;
@@ -92,7 +93,8 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     PhoenixTransactSQL.Condition condition = new PhoenixTransactSQL.DefaultCondition(
         Collections.singletonList("disk_free"), "local1", null, null, startTime,
         endTime, Precision.SECONDS, null, true);
-    TimelineMetrics timelineMetrics = hdb.getMetricRecords(condition);
+    TimelineMetrics timelineMetrics = hdb.getMetricRecords(condition,
+      singletonValueFunctionMap("disk_free"));
 
     //THEN
     assertEquals(1, timelineMetrics.getMetrics().size());
@@ -126,7 +128,8 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     PhoenixTransactSQL.Condition condition = new PhoenixTransactSQL.DefaultCondition(
         Collections.singletonList("disk_free"), "local1", null, null, startTime,
         endTime, Precision.MINUTES, null, false);
-    TimelineMetrics timelineMetrics = hdb.getMetricRecords(condition);
+    TimelineMetrics timelineMetrics = hdb.getMetricRecords(condition,
+      singletonValueFunctionMap("disk_free"));
 
     //THEN
     assertEquals(1, timelineMetrics.getMetrics().size());
@@ -176,7 +179,8 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     PhoenixTransactSQL.Condition condition = new PhoenixTransactSQL.DefaultCondition(
         Collections.singletonList("disk_used"), "test_host", "test_app", null,
         startTime, endTime, Precision.HOURS, null, true);
-    TimelineMetrics timelineMetrics = hdb.getMetricRecords(condition);
+    TimelineMetrics timelineMetrics = hdb.getMetricRecords(condition,
+      singletonValueFunctionMap("disk_used"));
 
     //THEN
     assertEquals(1, timelineMetrics.getMetrics().size());
@@ -216,7 +220,8 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     PhoenixTransactSQL.Condition condition = new PhoenixTransactSQL.DefaultCondition(
         Collections.singletonList("disk_free"), null, null, null,
         startTime, endTime, Precision.SECONDS, null, true);
-    TimelineMetrics timelineMetrics = hdb.getAggregateMetricRecords(condition);
+    TimelineMetrics timelineMetrics = hdb.getAggregateMetricRecords(condition,
+      singletonValueFunctionMap("disk_free"));
 
     //THEN
     assertEquals(1, timelineMetrics.getMetrics().size());
@@ -257,7 +262,8 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     PhoenixTransactSQL.Condition condition = new PhoenixTransactSQL.DefaultCondition(
         Collections.singletonList("disk_used"), null, null, null,
         startTime, ctime + minute, Precision.HOURS, null, true);
-    TimelineMetrics timelineMetrics = hdb.getAggregateMetricRecords(condition);
+    TimelineMetrics timelineMetrics = hdb.getAggregateMetricRecords(condition,
+      singletonValueFunctionMap("disk_used"));
 
     // THEN
     assertEquals(1, timelineMetrics.getMetrics().size());
@@ -267,5 +273,11 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     assertEquals("test_app", metric.getAppId());
     assertEquals(1, metric.getMetricValues().size());
     assertEquals(2.0, metric.getMetricValues().values().iterator().next(), 0.00001);
+  }
+
+  private Map<String, List<Function>> singletonValueFunctionMap(String
+                                                                  metricName) {
+    return Collections.singletonMap(metricName, Collections.singletonList
+      (new Function()));
   }
 }

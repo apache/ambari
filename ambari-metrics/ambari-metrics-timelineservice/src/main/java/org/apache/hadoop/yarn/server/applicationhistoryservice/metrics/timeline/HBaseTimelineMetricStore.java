@@ -27,7 +27,9 @@ import org.apache.hadoop.service.AbstractService;
 import org.apache.hadoop.yarn.api.records.timeline.TimelinePutResponse;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -107,14 +109,94 @@ public class HBaseTimelineMetricStore extends AbstractService
       Long startTime, Long endTime, Precision precision, Integer limit,
       boolean groupedByHosts) throws SQLException, IOException {
 
-    Condition condition = new DefaultCondition(metricNames, hostname, applicationId,
-      instanceId, startTime, endTime, precision, limit, groupedByHosts);
+    Map<String, List<Function>> metricFunctions =
+      parseMetricNamesToAggregationFunctions(metricNames);
+
+    Condition condition = new DefaultCondition(
+      new ArrayList<String>(metricFunctions.keySet()),
+      hostname, applicationId, instanceId, startTime, endTime,
+      precision, limit, groupedByHosts);
 
     if (hostname == null) {
-      return hBaseAccessor.getAggregateMetricRecords(condition);
+      TimelineMetrics metrics = hBaseAccessor.getAggregateMetricRecords
+        (condition,  metricFunctions);
+
+      return postProcessMetrics(metrics);
     }
 
-    return hBaseAccessor.getMetricRecords(condition);
+    return postProcessMetrics(
+      hBaseAccessor.getMetricRecords(condition, metricFunctions));
+  }
+
+  private TimelineMetrics postProcessMetrics(TimelineMetrics metrics) {
+    List<TimelineMetric> metricsList = metrics.getMetrics();
+
+    for (TimelineMetric metric: metricsList){
+      String name = metric.getMetricName();
+      if (name.contains("._rate")){
+        updateValueAsRate(metric.getMetricValues());
+      }
+    }
+
+    return metrics;
+  }
+
+  private Map<Long, Double> updateValueAsRate(Map<Long, Double> metricValues) {
+    Long prevTime = null;
+    long step;
+
+    for (Map.Entry<Long, Double> timeValueEntry : metricValues.entrySet()) {
+      Long currTime = timeValueEntry.getKey();
+      Double currVal = timeValueEntry.getValue();
+
+      if (prevTime != null) {
+        step = currTime - prevTime;
+        Double rate = currVal / step;
+        timeValueEntry.setValue(rate);
+      } else {
+        timeValueEntry.setValue(0.0);
+      }
+
+      prevTime = currTime;
+    }
+
+    return metricValues;
+  }
+
+  public static HashMap<String, List<Function>>
+  parseMetricNamesToAggregationFunctions(List<String> metricNames) {
+    HashMap<String, List<Function>> metricsFunctions = new HashMap<String,
+      List<Function>>();
+
+    for (String metricName : metricNames){
+      Function function = Function.DEFAULT_VALUE_FUNCTION;
+      String cleanMetricName = metricName;
+
+      try {
+        function = Function.fromMetricName(metricName);
+        int functionStartIndex = metricName.indexOf("._");
+        if(functionStartIndex > 0 ) {
+          cleanMetricName = metricName.substring(0, functionStartIndex);
+        }
+      } catch (Function.FunctionFormatException ffe){
+        // unknown function so
+        // fallback to VALUE, and fullMetricName
+      }
+
+      addFunctionToMetricName(metricsFunctions, cleanMetricName, function);
+    }
+
+    return metricsFunctions;
+  }
+
+  private static void addFunctionToMetricName(
+    HashMap<String, List<Function>> metricsFunctions, String cleanMetricName,
+    Function function) {
+
+    List<Function> functionsList = metricsFunctions.get(cleanMetricName);
+    if (functionsList==null) functionsList = new ArrayList<Function>(1);
+    functionsList.add(function);
+    metricsFunctions.put(cleanMetricName, functionsList);
   }
 
   @Override
@@ -123,10 +205,16 @@ public class HBaseTimelineMetricStore extends AbstractService
       Long endTime, Precision precision, Integer limit)
       throws SQLException, IOException {
 
-    TimelineMetrics metrics = hBaseAccessor.getMetricRecords(
-      new DefaultCondition(Collections.singletonList(metricName), hostname,
-        applicationId, instanceId, startTime, endTime, precision, limit, true)
-    );
+    Map<String, List<Function>> metricFunctions =
+      parseMetricNamesToAggregationFunctions(Collections.singletonList(metricName));
+
+    Condition condition = new DefaultCondition(
+      new ArrayList<String>(metricFunctions.keySet()), hostname, applicationId,
+      instanceId, startTime, endTime, precision, limit, true);
+    TimelineMetrics metrics = hBaseAccessor.getMetricRecords(condition,
+      metricFunctions);
+
+    metrics = postProcessMetrics(metrics);
 
     TimelineMetric metric = new TimelineMetric();
     List<TimelineMetric> metricList = metrics.getMetrics();

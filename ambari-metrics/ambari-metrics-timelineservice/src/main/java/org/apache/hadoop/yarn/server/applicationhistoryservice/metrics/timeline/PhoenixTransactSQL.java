@@ -683,7 +683,7 @@ public class PhoenixTransactSQL {
     public String getHostname() {
       return hostname == null || hostname.isEmpty() ? null : hostname;
     }
-    
+
     public Precision getPrecision() {
       return precision;
     }
@@ -694,7 +694,7 @@ public class PhoenixTransactSQL {
 
     public String getAppId() {
       if (appId != null && !appId.isEmpty()) {
-        if (!appId.equals("HOST")) {
+        if (!(appId.equals("HOST") || appId.equals("FLUME_HANDLER")) ) {
           return appId.toLowerCase();
         } else {
           return appId;

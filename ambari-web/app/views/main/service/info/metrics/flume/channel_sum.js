@@ -36,9 +36,9 @@ App.ChartServiceMetricsFlume_ChannelSizeSum = App.ChartLinearTimeView.extend({
   transformToSeries: function (jsonData) {
     var seriesArray = [];
     var self = this;
-    if(Em.get(jsonData, "metrics.flume.flume.CHANNEL.ChannelSize.sum")){
+    if(Em.get(jsonData, "metrics.flume.flume.CHANNEL.ChannelSize.rate.sum")){
       var seriesName = Em.I18n.t('services.service.info.metrics.flume.channelSizeSum');
-      var seriesData = jsonData.metrics.flume.flume.CHANNEL.ChannelSize.sum;
+      var seriesData = jsonData.metrics.flume.flume.CHANNEL.ChannelSize.rate.sum;
       if (seriesData) {
         seriesArray.push(self.transformData(seriesData, seriesName));
       }

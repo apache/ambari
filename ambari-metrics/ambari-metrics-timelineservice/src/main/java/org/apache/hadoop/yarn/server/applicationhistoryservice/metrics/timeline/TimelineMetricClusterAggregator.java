@@ -55,6 +55,8 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
   private final Long sleepIntervalMillis;
   public final int timeSliceIntervalMillis;
   private final Integer checkpointCutOffMultiplier;
+  private TimelineMetricReader timelineMetricReader =
+    new TimelineMetricReader(true);
 
   public TimelineMetricClusterAggregator(PhoenixHBaseAccessor hBaseAccessor,
                                          Configuration metricsConf) {
@@ -125,7 +127,7 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
 
     while (rs.next()) {
       TimelineMetric metric =
-        PhoenixHBaseAccessor.getTimelineMetricFromResultSet(rs);
+        timelineMetricReader.getTimelineMetricFromResultSet(rs);
 
       Map<TimelineClusterMetric, Double> clusterMetrics =
         sliceFromTimelineMetric(metric, timeSlices);

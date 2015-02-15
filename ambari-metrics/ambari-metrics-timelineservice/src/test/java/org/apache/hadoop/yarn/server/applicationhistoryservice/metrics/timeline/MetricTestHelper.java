@@ -43,9 +43,17 @@ public class MetricTestHelper {
                                                         String host,
                                                         String metricName,
                                                         double val) {
+    return prepareSingleTimelineMetric(startTime, host, null, metricName, val);
+  }
+
+  public static TimelineMetrics prepareSingleTimelineMetric(long startTime,
+                                                        String host,
+                                                        String instanceId,
+                                                        String metricName,
+                                                        double val) {
     TimelineMetrics m = new TimelineMetrics();
     m.setMetrics(Arrays.asList(
-        createTimelineMetric(startTime, metricName, host, val)));
+        createTimelineMetric(startTime, metricName, host, instanceId, val)));
 
     return m;
   }
@@ -54,10 +62,12 @@ public class MetricTestHelper {
   public static TimelineMetric createTimelineMetric(long startTime,
                                                 String metricName,
                                                 String host,
+                                                String instanceId,
                                                 double val) {
     TimelineMetric m = new TimelineMetric();
     m.setAppId("host");
     m.setHostName(host);
+    m.setInstanceId(instanceId);
     m.setMetricName(metricName);
     m.setStartTime(startTime);
     Map<Long, Double> vals = new HashMap<Long, Double>();
@@ -75,6 +85,7 @@ public class MetricTestHelper {
     TimelineMetric metric = new TimelineMetric();
     metric.setMetricName("disk_used");
     metric.setAppId("test_app");
+    metric.setInstanceId("test_instance");
     metric.setHostName("test_host");
     metric.setTimestamp(startTime);
 
@@ -84,7 +95,7 @@ public class MetricTestHelper {
   public static TimelineClusterMetric createEmptyTimelineClusterMetric(
       String name, long startTime) {
     TimelineClusterMetric metric = new TimelineClusterMetric(name,
-        "test_app", null, startTime, null);
+        "test_app", "instance_id", startTime, null);
 
     return metric;
   }

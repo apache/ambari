@@ -140,7 +140,9 @@ def flume(action = None):
           extra_args = '-Dflume.monitoring.type=ganglia -Dflume.monitoring.hosts={0}:{1}'
           extra_args = extra_args.format(params.ganglia_server_host, '8655')
         if params.has_metric_collector:
-          extra_args = '-Dflume.monitoring.type=org.apache.hadoop.metrics2.sink.flume.FlumeTimelineMetricsSink'
+          extra_args = '-Dflume.monitoring.type=org.apache.hadoop.metrics2.sink.flume.FlumeTimelineMetricsSink ' \
+                       '-Dflume.monitoring.node={0}:{1}'
+          extra_args = extra_args.format(params.metric_collector_host, params.metric_collector_port)
 
         flume_cmd = flume_base.format(agent, flume_agent_conf_dir,
            flume_agent_conf_file, extra_args, agent)
