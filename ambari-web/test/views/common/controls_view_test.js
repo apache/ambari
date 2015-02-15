@@ -296,6 +296,8 @@ describe('App.ServiceConfigRadioButtons', function () {
     var view = App.ServiceConfigRadioButtons.create({
         hostName: null,
         databaseName: null,
+        hostNameProperty: null,
+        databaseNameProperty: null,
         connectionUrl: Em.Object.create(),
         dbClass: Em.Object.create(),
         serviceConfig: Em.Object.create(),
@@ -329,7 +331,10 @@ describe('App.ServiceConfigRadioButtons', function () {
           serviceConfigValue: 'New MySQL Database',
           databaseName: 'db0',
           hostName: 'h0',
+          databaseNameDefault: 'db0d',
+          hostNameDefault: 'h0d',
           connectionUrlValue: 'jdbc:mysql://h0/db0?createDatabaseIfNotExist=true',
+          connectionUrlDefaultValue: 'jdbc:mysql://h0d/db0d?createDatabaseIfNotExist=true',
           dbClassValue: 'com.mysql.jdbc.Driver',
           isAuthVisibleAndRequired: true,
           hiveDbTypeValue: 'mysql'
@@ -339,7 +344,10 @@ describe('App.ServiceConfigRadioButtons', function () {
           serviceConfigValue: Em.I18n.t('services.service.config.hive.oozie.postgresql'),
           databaseName: 'db1',
           hostName: 'h1',
+          databaseNameDefault: 'db1d',
+          hostNameDefault: 'h1d',
           connectionUrlValue: 'jdbc:postgresql://h1:5432/db1',
+          connectionUrlDefaultValue: 'jdbc:postgresql://h1d:5432/db1d',
           dbClassValue: 'org.postgresql.Driver',
           isAuthVisibleAndRequired: true,
           hiveDbTypeValue: 'postgres'
@@ -349,7 +357,10 @@ describe('App.ServiceConfigRadioButtons', function () {
           serviceConfigValue: 'Existing MySQL Database',
           databaseName: 'db2',
           hostName: 'h2',
+          databaseNameDefault: 'db2d',
+          hostNameDefault: 'h2d',
           connectionUrlValue: 'jdbc:mysql://h2/db2?createDatabaseIfNotExist=true',
+          connectionUrlDefaultValue: 'jdbc:mysql://h2d/db2d?createDatabaseIfNotExist=true',
           dbClassValue: 'com.mysql.jdbc.Driver',
           isAuthVisibleAndRequired: true,
           hiveDbTypeValue: 'mysql'
@@ -359,7 +370,10 @@ describe('App.ServiceConfigRadioButtons', function () {
           serviceConfigValue: 'Existing MSSQL Server database with SQL authentication',
           databaseName: 'db3',
           hostName: 'h3',
+          databaseNameDefault: 'db3d',
+          hostNameDefault: 'h3d',
           connectionUrlValue: 'jdbc:sqlserver://h3;databaseName=db3',
+          connectionUrlDefaultValue: 'jdbc:sqlserver://h3d;databaseName=db3d',
           dbClassValue: 'com.microsoft.sqlserver.jdbc.SQLServerDriver',
           isAuthVisibleAndRequired: true,
           hiveDbTypeValue: 'mssql'
@@ -369,7 +383,10 @@ describe('App.ServiceConfigRadioButtons', function () {
           serviceConfigValue: 'Existing Oracle Database',
           databaseName: 'db4',
           hostName: 'h4',
+          databaseNameDefault: 'db4d',
+          hostNameDefault: 'h4d',
           connectionUrlValue: 'jdbc:oracle:thin:@//h4:1521/db4',
+          connectionUrlDefaultValue: 'jdbc:oracle:thin:@//h4d:1521/db4d',
           dbClassValue: 'oracle.jdbc.driver.OracleDriver',
           isAuthVisibleAndRequired: true,
           hiveDbTypeValue: 'oracle'
@@ -379,7 +396,10 @@ describe('App.ServiceConfigRadioButtons', function () {
           serviceConfigValue: 'Existing MSSQL Server database with integrated authentication',
           databaseName: 'db5',
           hostName: 'h5',
+          databaseNameDefault: 'db5d',
+          hostNameDefault: 'h5d',
           connectionUrlValue: 'jdbc:sqlserver://h5;databaseName=db5;integratedSecurity=true',
+          connectionUrlDefaultValue: 'jdbc:sqlserver://h5d;databaseName=db5d;integratedSecurity=true',
           dbClassValue: 'com.microsoft.sqlserver.jdbc.SQLServerDriver',
           isAuthVisibleAndRequired: false,
           hiveDbTypeValue: 'mssql'
@@ -389,7 +409,10 @@ describe('App.ServiceConfigRadioButtons', function () {
           serviceConfigValue: 'New Derby Database',
           databaseName: 'db6',
           hostName: 'h6',
+          databaseNameDefault: 'db6d',
+          hostNameDefault: 'h6d',
           connectionUrlValue: 'jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true',
+          connectionUrlDefaultValue: 'jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true',
           dbClassValue: 'org.apache.derby.jdbc.EmbeddedDriver',
           isAuthVisibleAndRequired: true
         },
@@ -398,7 +421,10 @@ describe('App.ServiceConfigRadioButtons', function () {
           serviceConfigValue: 'Existing MySQL Database',
           databaseName: 'db7',
           hostName: 'h7',
+          databaseNameDefault: 'db7d',
+          hostNameDefault: 'h7d',
           connectionUrlValue: 'jdbc:mysql://h7/db7',
+          connectionUrlDefaultValue: 'jdbc:mysql://h7/db7',
           dbClassValue: 'com.mysql.jdbc.Driver',
           isAuthVisibleAndRequired: true
         },
@@ -407,7 +433,10 @@ describe('App.ServiceConfigRadioButtons', function () {
           serviceConfigValue: Em.I18n.t('services.service.config.hive.oozie.postgresql'),
           databaseName: 'db8',
           hostName: 'h8',
+          databaseNameDefault: 'db8d',
+          hostNameDefault: 'h8d',
           connectionUrlValue: 'jdbc:postgresql://h8:5432/db8',
+          connectionUrlDefaultValue: 'jdbc:postgresql://h8:5432/db8',
           dbClassValue: 'org.postgresql.Driver',
           isAuthVisibleAndRequired: true
         },
@@ -416,7 +445,10 @@ describe('App.ServiceConfigRadioButtons', function () {
           serviceConfigValue: 'Existing MSSQL Server database with SQL authentication',
           databaseName: 'db9',
           hostName: 'h9',
+          databaseNameDefault: 'db9d',
+          hostNameDefault: 'h9d',
           connectionUrlValue: 'jdbc:sqlserver://h9;databaseName=db9',
+          connectionUrlDefaultValue: 'jdbc:sqlserver://h9;databaseName=db9',
           dbClassValue: 'com.microsoft.sqlserver.jdbc.SQLServerDriver',
           isAuthVisibleAndRequired: true
         },
@@ -425,7 +457,10 @@ describe('App.ServiceConfigRadioButtons', function () {
           serviceConfigValue: 'Existing Oracle Database',
           databaseName: 'db10',
           hostName: 'h10',
+          databaseNameDefault: 'db10d',
+          hostNameDefault: 'h10d',
           connectionUrlValue: 'jdbc:oracle:thin:@//h10:1521/db10',
+          connectionUrlDefaultValue: 'jdbc:oracle:thin:@//h10:1521/db10',
           dbClassValue: 'oracle.jdbc.driver.OracleDriver',
           isAuthVisibleAndRequired: true
         },
@@ -434,7 +469,10 @@ describe('App.ServiceConfigRadioButtons', function () {
           serviceConfigValue: 'Existing MSSQL Server database with integrated authentication',
           databaseName: 'db11',
           hostName: 'h11',
+          databaseNameDefault: 'db11d',
+          hostNameDefault: 'h11d',
           connectionUrlValue: 'jdbc:sqlserver://h11;databaseName=db11;integratedSecurity=true',
+          connectionUrlDefaultValue: 'jdbc:sqlserver://h11;databaseName=db11;integratedSecurity=true',
           dbClassValue: 'com.microsoft.sqlserver.jdbc.SQLServerDriver',
           isAuthVisibleAndRequired: false
         }
@@ -444,12 +482,18 @@ describe('App.ServiceConfigRadioButtons', function () {
         OOZIE: ['oozie.service.JPAService.jdbc.username', 'oozie.service.JPAService.jdbc.password']
       };
 
-    before(function () {
+    beforeEach(function () {
       sinon.stub(view, 'handleDBConnectionProperty', Em.K);
+      sinon.stub(App.Service, 'find').returns([
+        {
+          serviceName: 'HIVE'
+        }
+      ]);
     });
 
-    after(function () {
+    afterEach(function () {
       view.handleDBConnectionProperty.restore();
+      App.Service.find.restore();
     });
 
     cases.forEach(function (item) {
@@ -460,9 +504,16 @@ describe('App.ServiceConfigRadioButtons', function () {
         });
         view.setProperties({
           databaseName: item.databaseName,
-          hostName: item.hostName
+          hostName: item.hostName,
+          databaseNameProperty: Em.Object.create({
+            defaultValue: item.databaseNameDefault
+          }),
+          hostNameProperty: Em.Object.create({
+            defaultValue: item.hostNameDefault
+          })
         });
         expect(view.get('connectionUrl.value')).to.equal(item.connectionUrlValue);
+        expect(view.get('connectionUrl.defaultValue')).to.equal(item.connectionUrlDefaultValue);
         expect(view.get('dbClass.value')).to.equal(item.dbClassValue);
         serviceAuthPropsMap[item.serviceName].forEach(function (propName) {
           expect(view.get('categoryConfigsAll').findProperty('name', propName).get('isVisible')).to.equal(item.isAuthVisibleAndRequired);

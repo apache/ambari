@@ -340,85 +340,124 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
     // The following if condition will be satisfied only for installer wizard flow
     if (this.get('configs').length) {
       var connectionUrl = this.get('connectionUrl');
-      var dbClass = this.get('dbClass');
       if (connectionUrl) {
-        if (this.get('serviceConfig.serviceName') === 'HIVE') {
-          var hiveDbType = this.get('parentView.serviceConfigs').findProperty('name', 'hive_database_type');
-          switch (this.get('serviceConfig.value')) {
-            case 'New MySQL Database':
-            case 'Existing MySQL Database':
-              connectionUrl.set('value', "jdbc:mysql://" + this.get('hostName') + "/" + this.get('databaseName') + "?createDatabaseIfNotExist=true");
-              dbClass.set('value', "com.mysql.jdbc.Driver");
-              Em.set(hiveDbType, 'value', 'mysql');
-              break;
-            case Em.I18n.t('services.service.config.hive.oozie.postgresql'):
-              connectionUrl.set('value', "jdbc:postgresql://" + this.get('hostName') + ":5432/" + this.get('databaseName'));
-              dbClass.set('value', "org.postgresql.Driver");
-              Em.set(hiveDbType, 'value', 'postgres');
-              break;
-            case 'Existing Oracle Database':
-              connectionUrl.set('value', "jdbc:oracle:thin:@//" + this.get('hostName') + ":1521/" + this.get('databaseName'));
-              dbClass.set('value', "oracle.jdbc.driver.OracleDriver");
-              Em.set(hiveDbType, 'value', 'oracle');
-              break;
-            case 'Existing MSSQL Server database with SQL authentication':
-              connectionUrl.set('value', "jdbc:sqlserver://" + this.get('hostName') + ";databaseName=" + this.get('databaseName'));
-              dbClass.set('value', "com.microsoft.sqlserver.jdbc.SQLServerDriver");
-              Em.set(hiveDbType, 'value', 'mssql');
-              break;
-            case 'Existing MSSQL Server database with integrated authentication':
-              connectionUrl.set('value', "jdbc:sqlserver://" + this.get('hostName') + ";databaseName=" + this.get('databaseName') + ";integratedSecurity=true");
-              dbClass.set('value', "com.microsoft.sqlserver.jdbc.SQLServerDriver");
-              Em.set(hiveDbType, 'value', 'mssql');
-              break;
-          }
-          var isNotExistingMySQLServer = this.get('serviceConfig.value') !== 'Existing MSSQL Server database with integrated authentication';
-          this.get('categoryConfigsAll').findProperty('name', 'javax.jdo.option.ConnectionUserName').setProperties({
-            isVisible: isNotExistingMySQLServer,
-            isRequired: isNotExistingMySQLServer
-          });
-          this.get('categoryConfigsAll').findProperty('name', 'javax.jdo.option.ConnectionPassword').setProperties({
-            isVisible: isNotExistingMySQLServer,
-            isRequired: isNotExistingMySQLServer
-          });
-        } else if (this.get('serviceConfig.serviceName') === 'OOZIE') {
-          switch (this.get('serviceConfig.value')) {
-            case 'New Derby Database':
-              connectionUrl.set('value', "jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true");
-              dbClass.set('value', "org.apache.derby.jdbc.EmbeddedDriver");
-              break;
-            case 'Existing MySQL Database':
-              connectionUrl.set('value', "jdbc:mysql://" + this.get('hostName') + "/" + this.get('databaseName'));
-              dbClass.set('value', "com.mysql.jdbc.Driver");
-              break;
-            case Em.I18n.t('services.service.config.hive.oozie.postgresql'):
-              connectionUrl.set('value', "jdbc:postgresql://" + this.get('hostName') + ":5432/" + this.get('databaseName'));
-              dbClass.set('value', "org.postgresql.Driver");
-              break;
-            case 'Existing Oracle Database':
-              connectionUrl.set('value', "jdbc:oracle:thin:@//" + this.get('hostName') + ":1521/" + this.get('databaseName'));
-              dbClass.set('value', "oracle.jdbc.driver.OracleDriver");
-              break;
-            case 'Existing MSSQL Server database with SQL authentication':
-              connectionUrl.set('value', "jdbc:sqlserver://" + this.get('hostName') + ";databaseName=" + this.get('databaseName'));
-              dbClass.set('value', "com.microsoft.sqlserver.jdbc.SQLServerDriver");
-              break;
-            case 'Existing MSSQL Server database with integrated authentication':
-              connectionUrl.set('value', "jdbc:sqlserver://" + this.get('hostName') + ";databaseName=" + this.get('databaseName') + ";integratedSecurity=true");
-              dbClass.set('value', "com.microsoft.sqlserver.jdbc.SQLServerDriver");
-              break;
-          }
-          isNotExistingMySQLServer = this.get('serviceConfig.value') !== 'Existing MSSQL Server database with integrated authentication';
-          this.get('categoryConfigsAll').findProperty('name', 'oozie.service.JPAService.jdbc.username').setProperties({
-            isVisible: isNotExistingMySQLServer,
-            isRequired: isNotExistingMySQLServer
-          });
-          this.get('categoryConfigsAll').findProperty('name', 'oozie.service.JPAService.jdbc.password').setProperties({
-            isVisible: isNotExistingMySQLServer,
-            isRequired: isNotExistingMySQLServer
-          });
+        var dbClass = this.get('dbClass');
+        var hostName = this.get('hostName');
+        var databaseName = this.get('databaseName');
+        var hostNameDefault;
+        var databaseNameDefault;
+        var connectionUrlValue = connectionUrl.get('value');
+        var connectionUrlDefaultValue = connectionUrl.get('defaultValue');
+        var dbClassValue = dbClass.get('value');
+        var serviceName = this.get('serviceConfig.serviceName');
+        var isServiceInstalled = App.Service.find().someProperty('serviceName', serviceName);
+        var postgresUrl = 'jdbc:postgresql://{0}:5432/{1}';
+        var oracleUrl = 'jdbc:oracle:thin:@//{0}:1521/{1}';
+        var mssqlUrl = 'jdbc:sqlserver://{0};databaseName={1}';
+        var mssqlIntegratedAuthUrl = 'jdbc:sqlserver://{0};databaseName={1};integratedSecurity=true';
+        var isNotExistingMySQLServer = this.get('serviceConfig.value') !== 'Existing MSSQL Server database with integrated authentication';
+        var categoryConfigsAll = this.get('categoryConfigsAll');
+        if (isServiceInstalled) {
+          hostNameDefault = this.get('hostNameProperty.defaultValue');
+          databaseNameDefault = this.get('databaseNameProperty.defaultValue');
+        } else {
+          hostNameDefault = hostName;
+          databaseNameDefault = databaseName;
         }
-        connectionUrl.set('defaultValue', connectionUrl.get('value'));
+        switch (serviceName) {
+          case 'HIVE':
+            var hiveDbType = this.get('parentView.serviceConfigs').findProperty('name', 'hive_database_type');
+            var mysqlUrl = 'jdbc:mysql://{0}/{1}?createDatabaseIfNotExist=true';
+            switch (this.get('serviceConfig.value')) {
+              case 'New MySQL Database':
+              case 'Existing MySQL Database':
+                connectionUrlValue = mysqlUrl.format(hostName, databaseName);
+                connectionUrlDefaultValue = mysqlUrl.format(hostNameDefault, databaseNameDefault);
+                dbClassValue = 'com.mysql.jdbc.Driver';
+                Em.set(hiveDbType, 'value', 'mysql');
+                break;
+              case Em.I18n.t('services.service.config.hive.oozie.postgresql'):
+                connectionUrlValue = postgresUrl.format(hostName, databaseName);
+                connectionUrlDefaultValue = postgresUrl.format(hostNameDefault, databaseNameDefault);
+                dbClassValue = 'org.postgresql.Driver';
+                Em.set(hiveDbType, 'value', 'postgres');
+                break;
+              case 'Existing Oracle Database':
+                connectionUrlValue = oracleUrl.format(hostName, databaseName);
+                connectionUrlDefaultValue = oracleUrl.format(hostNameDefault, databaseNameDefault);
+                dbClassValue = 'oracle.jdbc.driver.OracleDriver';
+                Em.set(hiveDbType, 'value', 'oracle');
+                break;
+              case 'Existing MSSQL Server database with SQL authentication':
+                connectionUrlValue = mssqlUrl.format(hostName, databaseName);
+                connectionUrlDefaultValue = mssqlUrl.format(hostNameDefault, databaseNameDefault);
+                dbClassValue = 'com.microsoft.sqlserver.jdbc.SQLServerDriver';
+                Em.set(hiveDbType, 'value', 'mssql');
+                break;
+              case 'Existing MSSQL Server database with integrated authentication':
+                connectionUrlValue = mssqlIntegratedAuthUrl.format(hostName, databaseName);
+                connectionUrlDefaultValue = mssqlIntegratedAuthUrl.format(hostNameDefault, databaseNameDefault);
+                dbClassValue = 'com.microsoft.sqlserver.jdbc.SQLServerDriver';
+                Em.set(hiveDbType, 'value', 'mssql');
+                break;
+            }
+            categoryConfigsAll.findProperty('name', 'javax.jdo.option.ConnectionUserName').setProperties({
+              isVisible: isNotExistingMySQLServer,
+              isRequired: isNotExistingMySQLServer
+            });
+            categoryConfigsAll.findProperty('name', 'javax.jdo.option.ConnectionPassword').setProperties({
+              isVisible: isNotExistingMySQLServer,
+              isRequired: isNotExistingMySQLServer
+            });
+            break;
+          case 'OOZIE':
+            var derbyUrl = 'jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true';
+            var mysqlUrl = 'jdbc:mysql://{0}/{1}';
+            switch (this.get('serviceConfig.value')) {
+              case 'New Derby Database':
+                connectionUrlValue = derbyUrl;
+                connectionUrlDefaultValue = derbyUrl;
+                dbClassValue = 'org.apache.derby.jdbc.EmbeddedDriver';
+                break;
+              case 'Existing MySQL Database':
+                connectionUrlValue = mysqlUrl.format(hostName, databaseName);
+                connectionUrlDefaultValue = mysqlUrl.format(hostNameDefault, databaseNameDefault);
+                dbClassValue = 'com.mysql.jdbc.Driver';
+                break;
+              case Em.I18n.t('services.service.config.hive.oozie.postgresql'):
+                connectionUrlValue = postgresUrl.format(hostName, databaseName);
+                connectionUrlDefaultValue = postgresUrl.format(hostNameDefault, databaseNameDefault);
+                dbClassValue = 'org.postgresql.Driver';
+                break;
+              case 'Existing Oracle Database':
+                connectionUrlValue = oracleUrl.format(hostName, databaseName);
+                connectionUrlDefaultValue = oracleUrl.format(hostNameDefault, databaseNameDefault);
+                dbClassValue = 'oracle.jdbc.driver.OracleDriver';
+                break;
+              case 'Existing MSSQL Server database with SQL authentication':
+                connectionUrlValue = mssqlUrl.format(hostName, databaseName);
+                connectionUrlDefaultValue = mssqlUrl.format(hostNameDefault, databaseNameDefault);
+                dbClassValue = 'com.microsoft.sqlserver.jdbc.SQLServerDriver';
+                break;
+              case 'Existing MSSQL Server database with integrated authentication':
+                connectionUrlValue = mssqlIntegratedAuthUrl.format(hostName, databaseName);
+                connectionUrlDefaultValue = mssqlIntegratedAuthUrl.format(hostNameDefault, databaseNameDefault);
+                dbClassValue = 'com.microsoft.sqlserver.jdbc.SQLServerDriver';
+                break;
+            }
+            categoryConfigsAll.findProperty('name', 'oozie.service.JPAService.jdbc.username').setProperties({
+              isVisible: isNotExistingMySQLServer,
+              isRequired: isNotExistingMySQLServer
+            });
+            categoryConfigsAll.findProperty('name', 'oozie.service.JPAService.jdbc.password').setProperties({
+              isVisible: isNotExistingMySQLServer,
+              isRequired: isNotExistingMySQLServer
+            });
+            break;
+        }
+        connectionUrl.set('value', connectionUrlValue);
+        connectionUrl.set('defaultValue', connectionUrlDefaultValue);
+        dbClass.set('value', dbClassValue);
       }
     }
   }.observes('databaseName', 'hostName'),
