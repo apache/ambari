@@ -28,7 +28,7 @@ RESULT_CODE_OK = 'OK'
 RESULT_CODE_CRITICAL = 'CRITICAL'
 RESULT_CODE_UNKNOWN = 'UNKNOWN'
 
-AMS_MONITOR_PID_DIR = '{{ams-env/ams_monitor_pid_dir}}'
+AMS_MONITOR_PID_DIR = '{{ams-env/metrics_monitor_pid_dir}}'
 
 def get_tokens():
   """
