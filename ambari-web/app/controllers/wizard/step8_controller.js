@@ -843,14 +843,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    */
   submit: function () {
     if (this.get('isSubmitDisabled')) return null;
-    if ((this.get('content.controllerName') == 'addHostController') && this.get('securityEnabled')) {
-      var self = this;
-      return App.showConfirmationPopup(function () {
-        self.submitProceed();
-      }, Em.I18n.t('installer.step8.securityConfirmationPopupBody'));
-    } else {
-      return this.submitProceed();
-    }
+    return this.submitProceed();
   },
   /**
    * Update configurations for installed services.

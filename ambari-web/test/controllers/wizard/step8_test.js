@@ -750,16 +750,6 @@ describe('App.WizardStep8Controller', function () {
     });
     Em.A([
         {
-          controllerName: 'addHostController',
-          securityEnabled: true,
-          e: true
-        },
-        {
-          controllerName: 'addHostController',
-          securityEnabled: false,
-          e: false
-        },
-        {
           controllerName: 'addServiceController',
           securityEnabled: true,
           e: false
@@ -783,11 +773,6 @@ describe('App.WizardStep8Controller', function () {
           }
         });
       });
-    it('should call submitProceed when Ok clicked', function() {
-      installerStep8Controller.reopen({isSubmitDisabled: false, securityEnabled: true, content: {controllerName: 'addHostController'}});
-      installerStep8Controller.submit().onPrimary();
-      expect(installerStep8Controller.submitProceed.calledOnce).to.equal(true);
-    });
     it('shouldn\'t do nothing if isSubmitDisabled is true', function() {
       installerStep8Controller.reopen({isSubmitDisabled: true});
       installerStep8Controller.submit();

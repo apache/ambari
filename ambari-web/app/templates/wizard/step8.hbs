@@ -22,12 +22,6 @@
     {{t installer.step8.body}}
   </div>
 
-  {{#if controller.securityEnabled}}
-    <div class="alert alert-error">
-      {{t installer.step8.securityWarning}}
-    </div>
-  {{/if}}
-
   <div id="step8-content" class="well pre-scrollable">
     <div id="step8-info">
       {{#each item in controller.clusterInfo}}
