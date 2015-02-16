@@ -613,4 +613,28 @@ public abstract class KerberosOperationHandler {
     return encryptionTypes;
   }
 
+  /**
+   * Iterates through the characters in a string to escape special characters
+   *
+   * @param string             the String to process
+   * @param charactersToEscape a Set of characters declaring the special characters to escape
+   * @param escapeCharacter    a character to use for escaping
+   * @return the string with escaped characters
+   */
+  protected String escapeCharacters(String string, Set<Character> charactersToEscape, Character escapeCharacter) {
+    if ((string == null) || string.isEmpty() || (charactersToEscape == null) || charactersToEscape.isEmpty()) {
+      return string;
+    } else {
+      StringBuilder builder = new StringBuilder();
+
+      for (char character : string.toCharArray()) {
+        if (charactersToEscape.contains(character)) {
+          builder.append(escapeCharacter);
+        }
+        builder.append(character);
+      }
+
+      return builder.toString();
+    }
+  }
 }

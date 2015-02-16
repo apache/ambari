@@ -35,13 +35,19 @@ import javax.naming.directory.*;
 import javax.naming.ldap.Control;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapContext;
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * Implementation of <code>KerberosOperationHandler</code> to created principal in Active Directory
@@ -51,6 +57,34 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
   private static Log LOG = LogFactory.getLog(ADKerberosOperationHandler.class);
 
   private static final String LDAP_CONTEXT_FACTORY_CLASS = "com.sun.jndi.ldap.LdapCtxFactory";
+
+  /**
+   * A Set of special characters that need to be escaped if they exist within a value in a
+   * Distinguished Name.
+   *
+   * See http://social.technet.microsoft.com/wiki/contents/articles/5312.active-directory-characters-to-escape.aspx
+   */
+  private static final Set<Character> SPECIAL_DN_CHARACTERS = Collections.unmodifiableSet(
+      new HashSet<Character>() {
+        {
+          add('/');
+          add(',');
+          add('\\');
+          add('#');
+          add('+');
+          add('<');
+          add('>');
+          add(';');
+          add('"');
+          add('=');
+          add(' ');
+        }
+      });
+
+  /**
+   * The character to use to escape a special character within a value in a Distinguished Name
+   */
+  private static final Character DN_ESCAPE_CHARACTER = '\\';
 
   /**
    * A String containing the URL for the LDAP interface for the relevant Active Directory
@@ -329,7 +363,8 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
       String dn = findPrincipalDN(deconstructPrincipal.getNormalizedPrincipal());
 
       if (dn != null) {
-        ldapContext.modifyAttributes(dn,
+        ldapContext.modifyAttributes(
+            escapeDNCharacters(dn),
             new ModificationItem[]{
                 new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("unicodePwd", String.format("\"%s\"", password).getBytes("UTF-16LE")))
             }
@@ -558,5 +593,35 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     }
 
     return dn;
+  }
+
+  /**
+   * Iterates through the characters of the given distinguished name to escape special characters
+   *
+   * @param dn the distinguished name to process
+   * @return the distinguished name with escaped characters
+   * @see #escapeCharacters(String, java.util.Set, Character)
+   */
+  protected String escapeDNCharacters(String dn) throws InvalidNameException {
+    if ((dn == null) || dn.isEmpty()) {
+      return dn;
+    } else {
+      LdapName name = new LdapName(dn);
+      List<Rdn> rdns = name.getRdns();
+
+      if ((rdns == null) || rdns.isEmpty()) {
+        throw new InvalidNameException(String.format("One or more RDNs are expected for a DN of %s", dn));
+      }
+
+      StringBuilder builder = new StringBuilder();
+      for (Rdn rdn : rdns) {
+        builder.insert(0,
+            String.format(",%s=%s",
+                rdn.getType(),
+                escapeCharacters((String) rdn.getValue(), SPECIAL_DN_CHARACTERS, DN_ESCAPE_CHARACTER)));
+      }
+
+      return builder.substring(1);
+    }
   }
 }
