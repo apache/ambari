@@ -206,10 +206,8 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
     var service = App.StackService.find().findProperty('serviceName', 'KERBEROS');
     var serviceConfigTags = [];
     var tag = 'version' + (new Date).getTime();
-    var configs = this.get('stepConfigs')[0].get('configs')
-    var skipKrbConfProperties = configs && Em.get(configs.findProperty('name', 'manage_krb5_conf'), 'value') === "false";
     Object.keys(service.get('configTypes')).forEach(function (type) {
-      if (!serviceConfigTags.someProperty('type', type) && !(type === "krb5-conf" && skipKrbConfProperties)) {
+      if (!serviceConfigTags.someProperty('type', type)) {
         var obj = this.createKerberosSiteObj(type, tag);
         obj.service_config_version_note = Em.I18n.t('admin.kerberos.wizard.configuration.note');
         serviceConfigTags.pushObject(obj);
