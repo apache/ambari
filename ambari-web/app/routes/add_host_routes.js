@@ -254,39 +254,13 @@ module.exports = App.WizardRoute.extend({
       var addHostController = router.get('addHostController');
       var wizardStep8Controller = router.get('wizardStep8Controller');
       addHostController.applyConfigGroup();
-      var successCallback = function () {
-        // In secure mode this callback will be called in case when user enter valid credentials if session was
-        // expired. 
-        // In other case just proceed to the next step.
-        if (App.router.get('mainAdminKerberosController.securityEnabled') && addHostController.getDBProperty('KDCAuthRequired') == true) {
-          // user has entered valid KDC credentials. Drop db property.
-          addHostController.setDBProperty('KDCAuthRequired', false);
-          // save current cluster status
-          addHostController.saveClusterState('ADD_HOSTS_INSTALLING_3');
-          // continue installation
-          App.router.get('wizardStep9Controller').navigateStep();
-        } else {
-          // We need to do recovery based on whether we are in Add Host or Installer wizard
-          addHostController.setInfoForStep9();
-          addHostController.saveClusterState('ADD_HOSTS_INSTALLING_3');
-          wizardStep8Controller.set('servicesInstalled', true);
-          router.transitionTo('step6');
-        }
-      };
-      var errorCallback = function(request) {
-        var KDCErrorMsg = App.ajax.getKDCErrorMgs(request);
-        // check if KDC credentials was expired and navigate user to next step.
-        // in this case install process is stopped until user enter valid KDC credentials.
-        if (!Em.isNone(KDCErrorMsg)) {
-          wizardStep8Controller.set('servicesInstalled', true);
-          router.transitionTo('step6');
-          addHostController.setDBProperty('KDCAuthRequired', true);
-          addHostController.saveClusterState('ADD_HOSTS_KDC_AUTHORIZATION');
-        } else {
-          successCallback();
-        }
-      };
-      addHostController.installServices(false, successCallback, errorCallback);
+      addHostController.installServices(false, function () {
+        addHostController.setInfoForStep9();
+        // We need to do recovery based on whether we are in Add Host or Installer wizard
+        addHostController.saveClusterState('ADD_HOSTS_INSTALLING_3');
+        wizardStep8Controller.set('servicesInstalled', true);
+        router.transitionTo('step6');
+      });
     }
   }),
 
@@ -304,26 +278,6 @@ module.exports = App.WizardRoute.extend({
           controller.setLowerStepsDisable(6);
         }
         controller.connectOutlet('wizardStep9', controller.get('content'));
-        // handle page refresh for enabled security. After page refresh `servicesInstalled` property will be set with default value
-        // On transition from step5 to step6 this code will not execute.
-        if (!App.router.get('wizardStep8Controller.servicesInstalled') && controller.getDBProperty('KDCAuthRequired') == true) {
-          // user refreshed the page. Try to install components
-          controller.installServices(false, function() {
-            // authorization successful
-            controller.setDBProperty('KDCAuthRequired', false);
-            // continue installation
-            wizardStep9Controller.navigateStep();
-            // save cluster state
-            controller.saveClusterState('ADD_HOSTS_INSTALLING_3');
-          }, function(request) {
-            var KDCErrorMsg = App.ajax.getKDCErrorMgs(request);
-            // check if error caused by expired KDC session or invalid credentials
-            if (!Em.isNone(KDCErrorMsg)) {
-              controller.setDBProperty('KDCAuthRequired', true);
-              controller.saveClusterState('ADD_HOSTS_KDC_AUTHORIZATION');
-            }
-          });
-        }
       });
     },
     back: Em.Router.transitionTo('step5'),

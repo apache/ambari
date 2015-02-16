@@ -1258,6 +1258,12 @@ var urls = {
       };
     }
   },
+
+  'kerberos.session.state': {
+    'real': '/clusters/{clusterName}/services/KERBEROS?fields=Services/attributes/kdc_validation_result,Services/attributes/kdc_validation_failure_details',
+    'mock': ''
+  },
+
   'admin.kerberize.cluster': {
     'type': 'PUT',
     'real': '/clusters/{clusterName}',
@@ -2307,16 +2313,6 @@ var formatRequest = function (data) {
 };
 
 /**
- * Error messages for KDC administrator credentials error
- * is used for checking if error message is caused by bad KDC credentials
- * @type {{missingKDC: string, invalidKDC: string}}
- */
-var specialMsg = {
-  "missingKDC": "Missing KDC administrator credentials.",
-  "invalidKDC": "Invalid KDC administrator credentials.",
-  "missingRDCForRealm": "Failed to find a KDC for the specified realm - kadmin"
-};
-/**
  * Wrapper for all ajax requests
  *
  * @type {Object}
@@ -2459,14 +2455,8 @@ var ajax = Em.Object.extend({
       var message = $.parseJSON(jqXHR.responseText).message;
     } catch (err) {}
     if (jqXHR.status === 400 && message) {
-      for(var m in specialMsg) {
-        if (specialMsg.hasOwnProperty(m) && message.contains(specialMsg[m]))
-          return m;
-      }
-    } else {
-      return null;
+      return App.format.kdcErrorMsg(message, true);
     }
-
   },
 
   /**

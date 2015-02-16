@@ -140,7 +140,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
           this.load('cluster');
           this.set('content.additionalClients', []);
           this.set('installClientQueueLength', 0);
-          this.set('installClietsQueue', App.ajaxQueue.create({}));
+          this.set('installClietsQueue', App.ajaxQueue.create({abortOnError: false}));
         }
       }
     ]
@@ -537,7 +537,6 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
    * for <code>installServicesRequest<code>
    */
   installServicesComplete: function () {
-    this.setDBProperty('KDCAuthRequired', false);
     App.get('router.wizardStep8Controller').set('servicesInstalled', true);
     this.setInfoForStep9();
     this.saveClusterState('ADD_SERVICES_INSTALLING_3');
@@ -550,7 +549,6 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
    */
   installServices: function () {
     var self = this;
-    this.setDBProperty('KDCAuthRequired', false);
     this.set('content.cluster.oldRequestsId', []);
     this.installAdditionalClients().done(function () {
       self.installSelectedServices();
@@ -598,10 +596,8 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
               counter: k,
               deferred: dfd
             },
-            success: 'installClientComplete',
-            error: 'installClientComplete',
-            kdcFailHandler: 'kdcFailHandler',
-            kdcCancelHandler: 'installSelectedServices'
+            success: 'installClientSuccess',
+            error: 'installClientError'
           });
         }
       }, this);
@@ -620,29 +616,29 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
 
   /**
    * callback for when install clients success
-   * of fail with not KDC error
    * @param data
-   * @param params
    * @param opt
+   * @param params
    * @method installClientComplete
    */
-  installClientComplete: function(data, params, opt) {
-    if (this.getDBProperty('KDCAuthRequired')) {
-      this.setDBProperty('KDCAuthRequired', false);
-      this.installServices();
-      opt.deferred.reject();
-    } else if (this.get('installClientQueueLength') - 1 == opt.counter) {
-      opt.deferred.resolve();
+  installClientSuccess: function(data, opt, params) {
+    if (this.get('installClientQueueLength') - 1 == params.counter) {
+      params.deferred.resolve();
     }
   },
 
   /**
-   * kdc fail handler for installClients method
-   * @method kdcFailHandler
+   * callback for when install clients fail
+   * @param request
+   * @param ajaxOptions
+   * @param error
+   * @param opt
+   * @param params
    */
-  kdcFailHandler: function() {
-    this.setDBProperty('KDCAuthRequired', true);
-    this.saveClusterState('ADD_SERVICE_KDC_AUTHORIZATION');
+  installClientError: function(request, ajaxOptions, error, opt, params) {
+    if (this.get('installClientQueueLength') - 1 == params.counter) {
+      params.deferred.resolve();
+    }
   },
 
   checkSecurityStatus: function() {

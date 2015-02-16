@@ -289,6 +289,39 @@ describe('utils/helper', function() {
           })(inputName)
         }
       });
+      describe('#kdcErrorMsg()', function() {
+        var tests = [
+          {
+            r: "1 Missing KDC administrator credentials. and some text",
+            f: "Missing KDC administrator credentials."
+          },
+          {
+            r: "2 Invalid KDC administrator credentials. and some text",
+            f: "Invalid KDC administrator credentials."
+          },
+          {
+            r: "3 Failed to find a KDC for the specified realm - kadmin and some text",
+            f: "Failed to find a KDC for the specified realm - kadmin"
+          },
+          {
+            r: "4 some text",
+            f: null,
+            s: true
+          },
+          {
+            r: "4 some text",
+            f: "4 some text",
+            s: false
+          }
+        ];
+
+        tests.forEach(function(t) {
+          it("kdcErrorMsg for " + t.f + " with strict " + t.s, function() {
+            expect(App.format.kdcErrorMsg(t.r, t.s)).to.be.equal(t.f);
+          })
+        });
+
+      })
     });
   });
   describe('#App.permit()', function() {

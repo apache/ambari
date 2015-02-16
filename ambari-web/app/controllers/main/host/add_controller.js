@@ -409,20 +409,5 @@ App.AddHostController = App.WizardController.extend({
       error: 'installServicesErrorCallback'
     }).then(callback, errorCallback || callback);
     return true;
-  },
-
-  installServicesSuccessCallback: function(json) {
-    if (json) {
-      // on success callback start deploy for secure cluster after submited credentials
-      if (this.getDBProperty('KDCAuthRequired') == true) {
-        this.setDBProperty('KDCAuthRequired', false);
-        this._super(json);
-        App.router.get('wizardStep9Controller').navigateStep();
-      } else {
-        this._super(json);
-      }
-    } else {
-      console.log('ERROR: Error occurred in parsing JSON data');
-    }
   }
 });
