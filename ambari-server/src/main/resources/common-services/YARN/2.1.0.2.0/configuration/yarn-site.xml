@@ -347,4 +347,12 @@
     </description>
   </property>
 
+  <property>
+    <name>yarn.http.policy</name>
+    <value>http</value>
+    <description>
+      YARN JMX protocol type
+    </description>
+  </property>
+
 </configuration>
