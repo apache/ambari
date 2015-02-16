@@ -24,6 +24,7 @@ from service_mapping import *
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons.str_utils import compress_backslashes
 import glob
+import os
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def ams(name=None):
@@ -49,9 +50,14 @@ def ams(name=None):
               owner=params.ams_user,
     )
 
+    merged_ams_hbase_site = {}
+    merged_ams_hbase_site.update(params.config['configurations']['ams-hbase-site'])
+    if params.security_enabled:
+      merged_ams_hbase_site.update(params.config['configurations']['ams-hbase-security-site'])
+
     XmlConfig( "hbase-site.xml",
                conf_dir = params.ams_collector_conf_dir,
-               configurations = params.config['configurations']['ams-hbase-site'],
+               configurations = merged_ams_hbase_site,
                configuration_attributes=params.config['configuration_attributes']['ams-hbase-site'],
                owner = params.ams_user,
     )
@@ -131,13 +137,23 @@ def ams(name=None):
               group=params.user_group
     )
 
+    merged_ams_hbase_site = {}
+    merged_ams_hbase_site.update(params.config['configurations']['ams-hbase-site'])
+    if params.security_enabled:
+      merged_ams_hbase_site.update(params.config['configurations']['ams-hbase-security-site'])
+
     XmlConfig( "hbase-site.xml",
                conf_dir = params.ams_collector_conf_dir,
-               configurations = params.config['configurations']['ams-hbase-site'],
+               configurations = merged_ams_hbase_site,
                configuration_attributes=params.config['configuration_attributes']['ams-hbase-site'],
                owner = params.ams_user,
                group = params.user_group
     )
+
+    if params.security_enabled:
+      TemplateConfig(os.path.join(params.hbase_conf_dir, "ams_collector_jaas.conf"),
+                     owner = params.ams_user,
+                     template_tag = None)
 
     if (params.log4j_props != None):
       File(format("{params.ams_collector_conf_dir}/log4j.properties"),

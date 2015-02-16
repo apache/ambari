@@ -64,7 +64,7 @@
   </property>
   <property>
     <name>hbase.zookeeper.quorum</name>
-    <value>localhost</value>
+    <value>{{zookeeper_quorum_hosts}}</value>
     <description>Comma separated list of servers in the ZooKeeper Quorum.
       For example, "host1.mydomain.com,host2.mydomain.com,host3.mydomain.com".
       By default this is set to localhost for local and pseudo-distributed modes
