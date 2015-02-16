@@ -31,7 +31,8 @@ describe('App.MainServiceInfoSummaryView', function() {
         hostComponents: []
       })
     }),
-    alertsController: Em.Object.create()
+    alertsController: Em.Object.create(),
+    service: Em.Object.create()
   });
 
   describe('#servers', function () {
@@ -136,5 +137,47 @@ describe('App.MainServiceInfoSummaryView', function() {
         expect(view.get('hasAlertDefinitions')).to.be.false;
       });
     })
+  });
+
+  describe('#didInsertElement', function () {
+
+    var cases = [
+      {
+        serviceName: 'STORM',
+        isStormMetricsSupported: false,
+        isConstructGraphObjectsCalled: false,
+        title: 'Storm, metrics not supported'
+      },
+      {
+        serviceName: 'STORM',
+        isStormMetricsSupported: true,
+        isConstructGraphObjectsCalled: true,
+        title: 'Storm, metrics supported'
+      },
+      {
+        serviceName: 'HDFS',
+        isConstructGraphObjectsCalled: true,
+        title: 'not Storm'
+      }
+    ];
+
+    beforeEach(function () {
+      sinon.stub(view, 'constructGraphObjects', Em.K);
+    });
+
+    afterEach(function () {
+      view.constructGraphObjects.restore();
+      App.get.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        view.set('service.serviceName', item.serviceName);
+        sinon.stub(App, 'get').withArgs('isStormMetricsSupported').returns(item.isStormMetricsSupported);
+        view.didInsertElement();
+        expect(view.constructGraphObjects.calledOnce).to.equal(item.isConstructGraphObjectsCalled);
+      });
+    });
+
   });
 });

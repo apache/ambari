@@ -24,6 +24,7 @@ require('utils/http_client');
 require('models/service');
 require('models/host');
 require('utils/ajax/ajax');
+require('utils/string_utils');
 
 var modelSetup = require('test/init_model_test');
 
@@ -343,5 +344,165 @@ describe('App.clusterController', function () {
     });
   });
 
+  describe('#checkDetailedRepoVersion()', function () {
+
+    var cases = [
+      {
+        currentStackName: 'HDP',
+        currentStackVersionNumber: '2.1',
+        isStormMetricsSupported: false,
+        title: 'HDP < 2.2'
+      },
+      {
+        currentStackName: 'HDP',
+        currentStackVersionNumber: '2.3',
+        isStormMetricsSupported: true,
+        title: 'HDP > 2.2'
+      },
+      {
+        currentStackName: 'BIGTOP',
+        currentStackVersionNumber: '0.8',
+        isStormMetricsSupported: true,
+        title: 'not HDP'
+      }
+    ];
+
+    beforeEach(function () {
+      sinon.stub(App.ajax, 'send').returns({
+        promise: Em.K
+      });
+    });
+
+    afterEach(function () {
+      App.ajax.send.restore();
+      App.get.restore();
+    });
+
+    it('should check detailed repo version for HDP 2.2', function () {
+      sinon.stub(App, 'get').withArgs('currentStackName').returns('HDP').withArgs('currentStackVersionNumber').returns('2.2');
+      controller.checkDetailedRepoVersion();
+      expect(App.ajax.send.calledOnce).to.be.true;
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        sinon.stub(App, 'get', function (key) {
+          return item[key] || Em.get(App, key);
+        });
+        controller.checkDetailedRepoVersion();
+        expect(App.ajax.send.called).to.be.false;
+        expect(App.get('isStormMetricsSupported')).to.equal(item.isStormMetricsSupported);
+      });
+    });
+
+  });
+
+  describe('#checkDetailedRepoVersionSuccessCallback()', function () {
+
+    var cases = [
+      {
+        items: [
+          {
+            repository_versions: [
+              {
+                RepositoryVersions: {
+                  repository_version: '2.1'
+                }
+              }
+            ]
+          }
+        ],
+        isStormMetricsSupported: false,
+        title: 'HDP < 2.2.2'
+      },
+      {
+        items: [
+          {
+            repository_versions: [
+              {
+                RepositoryVersions: {
+                  repository_version: '2.2.2'
+                }
+              }
+            ]
+          }
+        ],
+        isStormMetricsSupported: true,
+        title: 'HDP 2.2.2'
+      },
+      {
+        items: [
+          {
+            repository_versions: [
+              {
+                RepositoryVersions: {
+                  repository_version: '2.2.3'
+                }
+              }
+            ]
+          }
+        ],
+        isStormMetricsSupported: true,
+        title: 'HDP > 2.2.2'
+      },
+      {
+        items: null,
+        isStormMetricsSupported: true,
+        title: 'empty response'
+      },
+      {
+        items: [],
+        isStormMetricsSupported: true,
+        title: 'no items'
+      },
+      {
+        items: [{}],
+        isStormMetricsSupported: true,
+        title: 'empty item'
+      },
+      {
+        items: [{
+          repository_versions: []
+        }],
+        isStormMetricsSupported: true,
+        title: 'no versions'
+      },
+      {
+        items: [{
+          repository_versions: [{}]
+        }],
+        isStormMetricsSupported: true,
+        title: 'no version info'
+      },
+      {
+        items: [{
+          repository_versions: [
+            {
+              RepositoryVersions: {}
+            }
+          ]
+        }],
+        isStormMetricsSupported: true,
+        title: 'empty version info'
+      }
+    ];
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        controller.checkDetailedRepoVersionSuccessCallback({
+          items: item.items
+        });
+        expect(App.get('isStormMetricsSupported')).to.equal(item.isStormMetricsSupported);
+      });
+    });
+
+  });
+
+  describe('#checkDetailedRepoVersionErrorCallback()', function () {
+    it('should set isStormMetricsSupported to default value', function () {
+      controller.checkDetailedRepoVersionErrorCallback();
+      expect(App.get('isStormMetricsSupported')).to.be.true;
+    });
+  });
 
 });

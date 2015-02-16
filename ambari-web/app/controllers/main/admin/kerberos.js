@@ -182,18 +182,22 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
    * @returns {$.Deferred}
    */
   getSecurityStatus: function () {
+    var dfd;
     if (App.get('testMode')) {
+      dfd = $.Deferred();
       this.set('securityEnabled', !App.get('testEnableSecurity'));
       this.set('dataIsLoaded', true);
+      dfd.resolve();
     } else {
       //get Security Status From Server
-      return App.ajax.send({
+      dfd = App.ajax.send({
         name: 'admin.security_status',
         sender: this,
         success: 'getSecurityStatusSuccessCallback',
         error: 'errorCallback'
       });
     }
+    return dfd.promise();
   },
 
   getSecurityStatusSuccessCallback: function(data) {

@@ -19,6 +19,7 @@
 
 var App = require('app');
 require('controllers/main/admin/stack_and_upgrade_controller');
+require('utils/string_utils');
 
 describe('App.MainAdminStackAndUpgradeController', function() {
 
@@ -834,5 +835,55 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       controller.loadRepoVersionsToModel();
       expect(App.HttpClient.get.calledOnce).to.be.true;
     });
+  });
+
+  describe('#currentVersionObserver()', function () {
+
+    var cases = [
+      {
+        stackVersionType: 'HDP',
+        repoVersion: '2.2.1.1.0-1',
+        isStormMetricsSupported: false,
+        title: 'HDP < 2.2.2'
+      },
+      {
+        stackVersionType: 'HDP',
+        repoVersion: '2.2.2.1.0-1',
+        isStormMetricsSupported: true,
+        title: 'HDP 2.2.2'
+      },
+      {
+        stackVersionType: 'HDP',
+        repoVersion: '2.2.3.1.0-1',
+        isStormMetricsSupported: true,
+        title: 'HDP > 2.2.2'
+      },
+      {
+        stackVersionType: 'BIGTOP',
+        repoVersion: '0.8.1.1.0-1',
+        isStormMetricsSupported: true,
+        title: 'not HDP'
+      }
+    ];
+
+    afterEach(function () {
+      App.RepositoryVersion.find.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        sinon.stub(App.RepositoryVersion, 'find').returns([
+          Em.Object.create({
+            status: 'CURRENT',
+            stackVersionType: item.stackVersionType
+          })
+        ]);
+        controller.set('currentVersion', {
+          repository_version: item.repoVersion
+        });
+        expect(App.get('isStormMetricsSupported')).to.equal(item.isStormMetricsSupported);
+      });
+    });
+
   });
 });

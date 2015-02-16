@@ -36,7 +36,9 @@ module.exports = Em.Route.extend({
             } else {
               if (router.get('clusterInstallCompleted')) {
                 App.router.get('clusterController').loadClientServerClockDistance().done(function () {
-                  router.get('mainController').initialize();
+                  App.router.get('clusterController').checkDetailedRepoVersion().done(function () {
+                    router.get('mainController').initialize();
+                  });
                 });
               }
               else {

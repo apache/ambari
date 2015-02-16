@@ -1104,6 +1104,10 @@ var urls = {
       };
     }
   },
+  'cluster.load_detailed_repo_version': {
+    'real': '/clusters/{clusterName}/stack_versions?ClusterStackVersions/state=CURRENT&fields=repository_versions/RepositoryVersions/repository_version&minimal_response=true',
+    'mock': '/data/stack_versions/stack_version_all.json'
+  },
   'cluster.save_provisioning_state': {
     'real': '/clusters/{clusterName}',
     'type': 'PUT',
