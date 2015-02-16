@@ -58,13 +58,13 @@ class HostInfo():
 
     result = {
       'cpu_num': int(cpu_count),
-      'cpu_user': number2percents(cpu_times.user) if hasattr(cpu_times, 'user') else '',
-      'cpu_system': number2percents(cpu_times.system) if hasattr(cpu_times, 'system') else '',
-      'cpu_idle': number2percents(cpu_times.idle) if hasattr(cpu_times, 'idle') else '',
-      'cpu_nice': number2percents(cpu_times.nice) if hasattr(cpu_times, 'nice') else '',
-      'cpu_wio': number2percents(cpu_times.iowait) if hasattr(cpu_times, 'iowait') else '',
-      'cpu_intr': number2percents(cpu_times.irq) if hasattr(cpu_times, 'irq') else '',
-      'cpu_sintr': number2percents(cpu_times.softirq) if hasattr(cpu_times, 'softirq') else ''
+      'cpu_user': number2percents(cpu_times.user) if hasattr(cpu_times, 'user') else 0,
+      'cpu_system': number2percents(cpu_times.system) if hasattr(cpu_times, 'system') else 0,
+      'cpu_idle': number2percents(cpu_times.idle) if hasattr(cpu_times, 'idle') else 0,
+      'cpu_nice': number2percents(cpu_times.nice) if hasattr(cpu_times, 'nice') else 0,
+      'cpu_wio': number2percents(cpu_times.iowait) if hasattr(cpu_times, 'iowait') else 0,
+      'cpu_intr': number2percents(cpu_times.irq) if hasattr(cpu_times, 'irq') else 0,
+      'cpu_sintr': number2percents(cpu_times.softirq) if hasattr(cpu_times, 'softirq') else 0
     }
     if platform.system() != "Windows":
       load_avg = os.getloadavg()
@@ -113,13 +113,13 @@ class HostInfo():
     bytes2kilobytes = lambda x: x / 1024
 
     return {
-      'mem_total': bytes2kilobytes(mem_total) if mem_total else '',
-      'mem_used': bytes2kilobytes(mem_stats.used) if hasattr(mem_stats, 'used') else '',
-      'mem_free': bytes2kilobytes(mem_stats.free) if hasattr(mem_stats, 'free') else '',
-      'mem_shared': bytes2kilobytes(mem_stats.shared) if hasattr(mem_stats, 'shared') else '',
-      'mem_buffered': bytes2kilobytes(mem_stats.buffers) if hasattr(mem_stats, 'buffers') else '',
-      'mem_cached': bytes2kilobytes(mem_stats.cached) if hasattr(mem_stats, 'cached') else '',
-      'swap_free': bytes2kilobytes(swap_stats.free) if hasattr(swap_stats, 'free') else '',
+      'mem_total': bytes2kilobytes(mem_total) if mem_total else 0,
+      'mem_used': bytes2kilobytes(mem_stats.used) if hasattr(mem_stats, 'used') else 0,
+      'mem_free': bytes2kilobytes(mem_stats.free) if hasattr(mem_stats, 'free') else 0,
+      'mem_shared': bytes2kilobytes(mem_stats.shared) if hasattr(mem_stats, 'shared') else 0,
+      'mem_buffered': bytes2kilobytes(mem_stats.buffers) if hasattr(mem_stats, 'buffers') else 0,
+      'mem_cached': bytes2kilobytes(mem_stats.cached) if hasattr(mem_stats, 'cached') else 0,
+      'swap_free': bytes2kilobytes(swap_stats.free) if hasattr(swap_stats, 'free') else 0,
       'disk_free' : disk_usage.get("disk_free"),
       # todo: cannot send string
       #'part_max_used' : disk_usage.get("max_part_used")[0],
