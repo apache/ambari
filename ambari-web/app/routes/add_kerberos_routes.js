@@ -85,6 +85,7 @@ module.exports = App.WizardRoute.extend({
             alwaysCallback: function () {
               self.hide();
               App.get('router').transitionTo('adminKerberos.index');
+              location.reload();
             }
           });
         }
