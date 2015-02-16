@@ -39,7 +39,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.EntityManager;
 
@@ -326,12 +328,15 @@ public class UpgradeCatalog200Test {
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod
         ("addNewConfigurationsFromXml");
     Method setSecurityType = UpgradeCatalog200.class.getDeclaredMethod("setSecurityType");
+    Method updateConfigurationProperties = AbstractUpgradeCatalog.class.getDeclaredMethod
+            ("updateConfigurationProperties", String.class, Map.class, boolean.class, boolean.class);
 
     UpgradeCatalog200 upgradeCatalog = createMockBuilder(UpgradeCatalog200.class)
         .addMockedMethod(removeNagiosService)
         .addMockedMethod(updateHiveDatabaseType)
         .addMockedMethod(addNewConfigurationsFromXml)
         .addMockedMethod(setSecurityType)
+        .addMockedMethod(updateConfigurationProperties)
         .createMock();
 
     upgradeCatalog.removeNagiosService();
@@ -343,6 +348,10 @@ public class UpgradeCatalog200Test {
     expectLastCall().once();
     upgradeCatalog.setSecurityType();
     expectLastCall().once();
+
+    upgradeCatalog.updateConfigurationProperties("hive-site",
+            Collections.singletonMap("hive.server2.transport.mode", "binary"), false, false);
+    expectLastCall();
 
     replay(upgradeCatalog);
 
