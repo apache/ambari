@@ -3477,7 +3477,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(chdir_mock.called)
     self.assertTrue(popenMock.called)
     popen_arg = popenMock.call_args_list[0][0][0]
-    self.assertTrue(popen_arg[0] == "/bin/su")
+    self.assertTrue("; /bin/su" in popen_arg[2])
     self.assertTrue(perform_housekeeping_mock.called)
 
     args = reset_mocks()
