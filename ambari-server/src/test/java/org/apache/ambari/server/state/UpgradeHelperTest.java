@@ -415,7 +415,10 @@ public class UpgradeHelperTest {
     UpgradePack upgrade = upgrades.get("upgrade_test_checks");
     assertNotNull(upgrade);
 
-    makeCluster();
+    Cluster c = makeCluster();
+    c.addService("HBASE");
+
+
 
     UpgradeContext context = new UpgradeContext(m_masterHostResolver,
         UPGRADE_VERSION, Direction.UPGRADE);
@@ -423,6 +426,17 @@ public class UpgradeHelperTest {
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
     assertEquals(7, groups.size());
+
+    UpgradeGroupHolder holder = groups.get(3);
+    assertEquals(holder.name, "SERVICE_CHECK_1");
+    assertEquals(5, holder.items.size());
+    boolean found = false;
+    for (StageWrapper sw : holder.items) {
+      if (sw.getText().contains("HBase")) {
+        found = true;
+      }
+    }
+    assertTrue("Expected string 'HBase' in text", found);
 
     // grab the manual task out of ZK which has placeholder text
     UpgradeGroupHolder zookeeperGroup = groups.get(1);

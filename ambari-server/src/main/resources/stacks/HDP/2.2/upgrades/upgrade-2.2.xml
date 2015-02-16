@@ -40,13 +40,13 @@
 
       <execute-stage service="HIVE" component="HIVE_METASTORE" title="Pre Upgrade Hive">
         <task xsi:type="manual">
-          <message>Backup the Hive Metastore database located on the following host(s): {{hosts.all}}.  During the upgrade process, you will be instructed when it is time to upgrade the Hive Metastore database.  To prepare, review the README documentation at /usr/hdp/{{version}}/hive/scripts/metastore/upgrade for when you are asked to perform this manual step (during the Hive stage of upgrade).  Do not upgrade the database at this time.  You will be prompted when to perform the database upgrade.</message>
+          <message>Before continuing, please backup the Hive Metastore database located on the following host(s): {{hosts.all}}.  During the upgrade process, you will be instructed when it is time to upgrade the Hive Metastore database.  To prepare, review the README documentation at /usr/hdp/{{version}}/hive/scripts/metastore/upgrade for when you are asked to perform this manual step (during the Hive stage of upgrade).  Do not upgrade the database at this time.  You will be prompted when to perform the database upgrade.</message>
         </task>
       </execute-stage>
 
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Pre Upgrade Oozie">
         <task xsi:type="manual">
-          <message>Backup the Oozie Server database on {{oozie-env/oozie_hostname}}</message>
+          <message>Before continuing, please backup the Oozie Server database on {{oozie-env/oozie_hostname}}.</message>
         </task>
       </execute-stage>
 
@@ -115,7 +115,7 @@
       <batch>
         <percent>33</percent>
         <summary>Verification Required</summary>
-        <message>Core Services have been {{direction.past}}. You are advised to perform tests against your cluster to ensure proper operation before proceeding with {{direction.text}} of remaining services.</message>
+        <message>Core Services have been {{direction.past}}. You are advised to perform cluster/workload-specific tests against your cluster to ensure proper operation before proceeding with {{direction.text}} of the remaining services.</message>
       </batch>
     </group>
     
@@ -288,7 +288,7 @@
       <component name="RANGER_ADMIN">
         <pre-upgrade>
           <task xsi:type="manual">
-            <message>Backup the Ranger Admin database and Ranger Audit database</message>
+            <message>Before continuing, please backup the Ranger Admin database and Ranger Audit database</message>
           </task>
         </pre-upgrade>
         <upgrade>
@@ -416,7 +416,7 @@
       <component name="HIVE_METASTORE">
         <pre-upgrade>
           <task xsi:type="manual">
-            <message>Consult the README documentation at /usr/hdp/{{version}}/hive/scripts/metastore/upgrade to correctly upgrade the Hive Metastore database. This database upgrade should be performed on the following host(s): {{hosts.all}}</message>
+            <message>The Hive Metastore database schema must be upgraded before proceeding.  Please consult the README documentation at /usr/hdp/{{version}}/hive/scripts/metastore/upgrade to correctly upgrade the Hive Metastore database. This database upgrade should be performed on the following host(s): {{hosts.all}}.</message>
           </task>
         </pre-upgrade>
         <pre-downgrade />
@@ -429,7 +429,7 @@
         <pre-upgrade>
           <task xsi:type="manual">
             <summary>HiveServer Port Availability</summary>
-            <message>The HiveServer port will now change to 10010 if hive is using a binary transfer mode or 10011 if hive is using an http transport mode. You can use "netstat -anp | grep 1001[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
+            <message>Please note that the HiveServer port will now change to 10010 if hive is using a binary transfer mode or 10011 if hive is using an http transport mode. You can use "netstat -anp | grep 1001[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
           </task>
 
           <task xsi:type="configure">
@@ -449,7 +449,7 @@
         <pre-downgrade>
           <task xsi:type="manual">
             <summary>HiveServer Port Availability</summary>
-            <message>The HiveServer port will now change to 10000 if hive is using a binary transfer mode or 10001 if hive is using an http transport mode. You can use "netstat -anp | grep 1000[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
+            <message>Please note that the HiveServer port will now change to 10000 if hive is using a binary transfer mode or 10001 if hive is using an http transport mode. You can use "netstat -anp | grep 1000[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
           </task>
 
           <task xsi:type="configure">
@@ -544,7 +544,7 @@
       <component name="NIMBUS">
         <pre-upgrade>
           <task xsi:type="manual">
-            <message>Deactivate and kill your currently running topology.</message>
+            <message>Before continuing, please deactivate and kill any currently running topologies.</message>
           </task>
         </pre-upgrade>
         <upgrade>
@@ -572,7 +572,7 @@
         </upgrade>
         <post-upgrade>
           <task xsi:type="manual">
-            <message>Rebuild your topology and resubmit the topology using the new jar.</message>
+            <message>Please rebuild your topology using the new Storm version dependencies and resubmit it using the newly created jar.</message>
           </task>
         </post-upgrade>
       </component>
