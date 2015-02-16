@@ -25,7 +25,7 @@ import sys
 import upgrade
 import os
 from knox import knox
-from ldap import ldap
+from knox_ldap import ldap
 from setup_ranger_knox import setup_ranger_knox
 import service_mapping
 from ambari_commons import OSConst
