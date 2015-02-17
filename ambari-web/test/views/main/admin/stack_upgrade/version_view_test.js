@@ -276,7 +276,7 @@ describe('App.mainAdminStackVersionsView', function () {
       var popup = view.goToVersions();
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
-      expect(window.location.replace.calledWith('/views/ADMIN_VIEW/1.0.0/INSTANCE/#/stackVersions')).to.be.true;
+      expect(window.location.replace.calledWith('/views/ADMIN_VIEW/2.0.0/INSTANCE/#/stackVersions')).to.be.true;
     });
   });
 

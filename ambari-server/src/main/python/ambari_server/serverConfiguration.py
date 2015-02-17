@@ -424,6 +424,14 @@ def get_value_from_properties(properties, key, default=""):
     return default
   return value
 
+def get_admin_views_dir(properties):
+  views_dir = properties.get_property(VIEWS_DIR_PROPERTY)
+  if views_dir is None or views_dir == "":
+    views_dirs = glob.glob("/var/lib/ambari-server/resources/views/work/ADMIN_VIEW*")
+  else:
+    views_dirs = glob.glob(views_dir + "/work/ADMIN_VIEW*")
+  return views_dirs
+
 def get_is_secure(properties):
   isSecure = properties.get_property(SECURITY_IS_ENCRYPTION_ENABLED)
   isSecure = True if isSecure and isSecure.lower() == 'true' else False

@@ -30,7 +30,7 @@ from ambari_server.properties import Properties
 from ambari_server.serverConfiguration import configDefaults, \
   check_database_name_property, get_ambari_properties, get_ambari_version, get_full_ambari_classpath, \
   get_java_exe_path, get_stack_location, parse_properties_file, read_ambari_user, update_ambari_properties, \
-  update_database_name_property, \
+  update_database_name_property, get_admin_views_dir, \
   AMBARI_PROPERTIES_FILE, IS_LDAP_CONFIGURED, LDAP_PRIMARY_URL_PROPERTY, RESOURCES_DIR_PROPERTY, \
   SETUP_OR_UPGRADE_MSG
 from ambari_server.setupSecurity import adjust_directory_permissions
@@ -314,6 +314,11 @@ def upgrade(args):
     args.warnings.append("*.py files were not moved from custom_actions to custom_actions/scripts.")
   elif compare_versions(ambari_version, "2.0.0") == 0:
     move_user_custom_actions()
+
+  # Remove ADMIN_VIEW directory for upgrading Admin View on Ambari upgrade from 1.7.0 to 2.0.0
+  admin_views_dirs = get_admin_views_dir(properties)
+  for admin_views_dir in admin_views_dirs:
+    shutil.rmtree(admin_views_dir)
 
   # check if ambari has obsolete LDAP configuration
   if properties.get_property(LDAP_PRIMARY_URL_PROPERTY) and not properties.get_property(IS_LDAP_CONFIGURED):

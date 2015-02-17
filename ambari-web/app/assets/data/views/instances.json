@@ -18,7 +18,7 @@
             {
               "href" : "http://192.168.56.101:8080/api/v1/views/ADMIN_VIEW/versions/1.0.0/instances/INSTANCE",
               "ViewInstanceInfo" : {
-                "context_path" : "/views/ADMIN_VIEW/1.0.0/INSTANCE",
+                "context_path" : "/views/ADMIN_VIEW/2.0.0/INSTANCE",
                 "description" : "This view provides administration capabilities for Ambari",
                 "icon64_path" : null,
                 "icon_path" : null,

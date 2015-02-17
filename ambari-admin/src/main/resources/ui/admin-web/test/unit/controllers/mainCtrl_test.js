@@ -21,7 +21,7 @@ describe('#Auth', function () {
   describe('signout', function () {
     var scope, ctrl, $httpBackend, $window, clusterService,deferred;
     beforeEach(module('ambariAdminConsole', function($provide){
-      $provide.value('$window', {location: {pathname: 'http://c6401.ambari.apache.org:8080/views/ADMIN_VIEW/1.0.0/INSTANCE/#/'}});
+      $provide.value('$window', {location: {pathname: 'http://c6401.ambari.apache.org:8080/views/ADMIN_VIEW/2.0.0/INSTANCE/#/'}});
       localStorage.ambari = JSON.stringify({app: {authenticated: true, loginName: 'admin', user: 'user'}});
     }));
     afterEach(function() {

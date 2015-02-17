@@ -162,7 +162,7 @@ App.MainAdminStackVersionsView = Em.View.extend({
    */
   goToVersions: function () {
     return App.showConfirmationPopup(function () {
-      window.location.replace('/views/ADMIN_VIEW/1.0.0/INSTANCE/#/stackVersions');
+      window.location.replace('/views/ADMIN_VIEW/2.0.0/INSTANCE/#/stackVersions');
     },
     Em.I18n.t('admin.stackVersions.manageVersions.popup.body'),
     null,
