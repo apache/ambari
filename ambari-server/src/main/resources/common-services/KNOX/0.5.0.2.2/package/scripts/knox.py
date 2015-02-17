@@ -106,7 +106,7 @@ def knox():
 
     cmd = format('{knox_client_bin} create-master --master {knox_master_secret!p}')
     master_secret_exist = as_user(format('test -f {knox_master_secret_path}'), params.knox_user)
-    
+
     Execute(cmd,
             user=params.knox_user,
             environment={'JAVA_HOME': params.java_home},
@@ -114,9 +114,11 @@ def knox():
     )
 
     cmd = format('{knox_client_bin} create-cert --hostname {knox_host_name_in_cluster}')
+    cert_store_exist = as_user(format('test -f {knox_cert_store_path}'), params.knox_user)
+
     Execute(cmd,
             user=params.knox_user,
             environment={'JAVA_HOME': params.java_home},
-            not_if=master_secret_exist,
+            not_if=cert_store_exist,
     )
 
