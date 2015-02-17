@@ -115,7 +115,7 @@ class TestExecuteResource(TestCase):
       )
     pass
 
-    time_mock.assert_called_once_with(10)
+    self.assertTrue(call(10) in time_mock.call_args_list)
 
   @patch.object(pwd, "getpwnam")
   def test_attribute_group(self, getpwnam_mock):

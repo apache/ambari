@@ -19,7 +19,9 @@ limitations under the License.
 '''
 import json
 import os
+import pty
 import socket
+import subprocess
 from resource_management import Script,ConfigDictionary
 from mock.mock import patch
 from mock.mock import MagicMock
@@ -31,6 +33,9 @@ from resource_management.core.resources.packaging import Package
 from resource_management.core.exceptions import Fail
 from ambari_commons.os_check import OSCheck
 
+@patch.object(pty, "openpty", new = MagicMock(return_value=(1,5)))
+@patch.object(os, "close", new=MagicMock())
+@patch.object(subprocess, "Popen", new=MagicMock())
 class TestInstallPackages(RMFTestCase):
 
   @staticmethod
