@@ -39,7 +39,7 @@ def get_tokens():
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return (OOZIE_URL_KEY, SMOKEUSER_KEY, SECURITY_ENABLED,SMOKEUSER_KEYTAB_KEY)
+  return (OOZIE_URL_KEY, SMOKEUSER_KEY, SECURITY_ENABLED, SMOKEUSER_KEYTAB_KEY)
 
 def execute(parameters=None, host_name=None):
   """
@@ -65,10 +65,11 @@ def execute(parameters=None, host_name=None):
 
   try:
     if security_enabled:
-      if set([SMOKEUSER_KEYTAB_KEY]).issubset(parameters):
+      if set([SMOKEUSER_KEYTAB_KEY]).issubset(parameters) and set([SMOKEUSER_KEY]).issubset(parameters):
         smokeuser_keytab = parameters[SMOKEUSER_KEYTAB_KEY]
+        smokeuser_principal = parameters[SMOKEUSER_KEY]
       else:
-        return (RESULT_CODE_UNKNOWN, ['The Smokeuser keytab is required when security is enabled.'])
+        return (RESULT_CODE_UNKNOWN, ['The Smokeuser keytab and username are required when security is enabled.'])
       kinit_path_local = get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
       kinitcmd = format("{kinit_path_local} -kt {smokeuser_keytab} {smokeuser_principal}; ")
 
