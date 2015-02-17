@@ -76,6 +76,9 @@
             <package>
               <name>ambari-metrics-hadoop-sink</name>
             </package>
+            <package>
+              <name>gcc</name>
+            </package>
           </packages>
         </osSpecific>
         <osSpecific>
@@ -83,6 +86,9 @@
           <packages>
             <package>
               <name>ambari-metrics-assembly</name>
+            </package>
+            <package>
+              <name>gcc</name>
             </package>
           </packages>
         </osSpecific>
