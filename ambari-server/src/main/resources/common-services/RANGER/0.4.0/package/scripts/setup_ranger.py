@@ -89,7 +89,7 @@ def do_post_installation():
   ranger_site['http.enabled'] = params.http_enabled
   write_properties_to_file(file_path, ranger_site)
   Logger.info('Performing Ranger post installation DONE')
-  Execute(format('chmod 744 {params.ranger_conf}/ranger_webserver.properties'))
+  File(format('{params.ranger_conf}/ranger_webserver.properties'), mode=0744)
 
 def setup_usersync():
   import params

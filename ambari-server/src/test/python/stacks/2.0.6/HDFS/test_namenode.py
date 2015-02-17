@@ -19,12 +19,11 @@ limitations under the License.
 from ambari_commons import OSCheck
 '''
 from stacks.utils.RMFTestCase import *
-from ambari_commons import OSCheck
 from mock.mock import MagicMock, patch
 import resource_management
 from resource_management.core import shell
+from resource_management.core.exceptions import Fail
 
-import subprocess
 
 @patch.object(shell, "call", new=MagicMock(return_value=(1,"")))
 class TestNamenode(RMFTestCase):
@@ -779,6 +778,27 @@ class TestNamenode(RMFTestCase):
           on_new_line = FunctionMock('handle_new_line'),
       )
       self.assertNoMoreResources()
+
+  @patch("os.path.isfile")
+  def test_ranger_installed_missing_file(self, isfile_mock):
+    """
+    Tests that when Ranger is enabled for HDFS, that an exception is thrown
+    if there is no install.properties found
+    :return:
+    """
+    isfile_mock.return_value = False
+
+    try:
+      self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
+        classname = "NameNode", command = "start", config_file = "ranger-namenode-start.json",
+        hdp_stack_version = self.STACK_VERSION, target = RMFTestCase.TARGET_COMMON_SERVICES )
+
+      self.fail("Expected a failure since the ranger install.properties was missing")
+    except Fail, failure:
+      pass
+
+    self.assertTrue(isfile_mock.called)
+
 
 class Popen_Mock:
   return_value = 1

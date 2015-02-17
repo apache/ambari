@@ -52,18 +52,21 @@ def setup_ranger_hdfs():
       raise Fail(
         'Unable to determine the current version because of a non-zero return code of {0}'.format(str(return_code)))
 
-    hdp_version = re.sub('hadoop-client - ', '', hdp_output)
+    hdp_version = re.sub('hadoop-client - ', '', hdp_output).strip()
     match = re.match('[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+', hdp_version)
 
     if match is None:
       raise Fail('Failed to get extracted version')
 
     file_path = '/usr/hdp/' + hdp_version + '/ranger-hdfs-plugin/install.properties'
+    if not os.path.isfile(file_path):
+      raise Fail('Ranger HDFS plugin install.properties file does not exist at {0}'.format(file_path))
 
     ranger_hdfs_dict = ranger_hdfs_properties()
     hdfs_repo_data = hdfs_repo_properties()
 
-    write_properties_to_file(file_path, ranger_hdfs_dict)
+    if os.path.isfile(file_path):
+      write_properties_to_file(file_path, ranger_hdfs_dict)
 
     if params.enable_ranger_hdfs:
       cmd = format('cd /usr/hdp/{hdp_version}/ranger-hdfs-plugin/ && sh enable-hdfs-plugin.sh')

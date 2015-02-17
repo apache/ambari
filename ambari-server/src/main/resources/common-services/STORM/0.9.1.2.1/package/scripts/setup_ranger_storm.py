@@ -51,15 +51,15 @@ def setup_ranger_storm():
     if return_code != 0:
       raise Fail('Unable to determine the current version because of a non-zero return code of {0}'.format(str(return_code)))
 
-    cmd_split = hdp_output.strip().split( ) 
-    hdp_version = cmd_split[2]
-
+    hdp_version = re.sub('storm-nimbus - ', '', hdp_output).strip()
     match = re.match('[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+', hdp_version)
 
     if match is None:
       raise Fail('Failed to get extracted version')
 
     file_path = '/usr/hdp/'+ hdp_version +'/ranger-storm-plugin/install.properties'
+    if not os.path.isfile(file_path):
+      raise Fail('Ranger Storm plugin install.properties file does not exist at {0}'.format(file_path))
 
     ranger_storm_dict = ranger_storm_properties()
     storm_repo_data = storm_repo_properties()        

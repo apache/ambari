@@ -50,19 +50,21 @@ def setup_ranger_hive():
     if return_code != 0:
       raise Fail('Unable to determine the current version because of a non-zero return code of {0}'.format(str(return_code)))
 
-    hdp_version = re.sub('hive-server2 - ', '', hdp_output)
+    hdp_version = re.sub('hive-server2 - ', '', hdp_output).strip()
     match = re.match('[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+', hdp_version)
 
     if match is None:
       raise Fail('Failed to get extracted version')
 
     file_path = '/usr/hdp/'+ hdp_version +'/ranger-hive-plugin/install.properties'
+    if not os.path.isfile(file_path):
+      raise Fail('Ranger Hive plugin install.properties file does not exist at {0}'.format(file_path))
 
     ranger_hive_dict = ranger_hive_properties()
     hive_repo_data = hive_repo_properties()
 
     write_properties_to_file(file_path, ranger_hive_dict)
-  
+
     if params.enable_ranger_hive:
       cmd = format('cd /usr/hdp/{hdp_version}/ranger-hive-plugin/ && sh enable-hive-plugin.sh')
       ranger_adm_obj = Rangeradmin(url=ranger_hive_dict['POLICY_MGR_URL'])

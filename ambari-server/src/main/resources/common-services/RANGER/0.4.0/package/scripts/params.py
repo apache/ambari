@@ -29,6 +29,7 @@ hdp_stack_version         = format_hdp_stack_version(hdp_stack_version)
 stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0
 
 version = default("/commandParams/version", None)
+stack_name = default("/hostLevelParams/stack_name", None)
 
 if stack_is_hdp22_or_further:
   ranger_home    = '/usr/hdp/current/ranger-admin'

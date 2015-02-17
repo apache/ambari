@@ -50,14 +50,16 @@ def setup_ranger_hbase():
     if return_code != 0:
       raise Fail('Unable to determine the current version because of a non-zero return code of {0}'.format(str(return_code)))
 
-    hdp_version = re.sub('hbase-client - ', '', hdp_output)
+    hdp_version = re.sub('hbase-client - ', '', hdp_output).strip()
     match = re.match('[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+', hdp_version)
 
     if match is None:
       raise Fail('Failed to get extracted version')
 
     file_path = '/usr/hdp/'+ hdp_version +'/ranger-hbase-plugin/install.properties'
-
+    if not os.path.isfile(file_path):
+      raise Fail('Ranger HBase plugin install.properties file does not exist at {0}'.format(file_path))
+    
     ranger_hbase_dict = ranger_hbase_properties()
     hbase_repo_data = hbase_repo_properties()
 

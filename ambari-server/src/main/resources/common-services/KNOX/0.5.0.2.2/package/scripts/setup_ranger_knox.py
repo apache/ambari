@@ -50,16 +50,18 @@ def setup_ranger_knox():
     if return_code != 0:
       raise Fail('Unable to determine the current version because of a non-zero return code of {0}'.format(str(return_code)))
 
-    hdp_version = re.sub('knox-server - ', '', hdp_output)
+    hdp_version = re.sub('knox-server - ', '', hdp_output).strip()
     match = re.match('[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+', hdp_version)
 
     if match is None:
       raise Fail('Failed to get extracted version')
 
     file_path = '/usr/hdp/'+ hdp_version +'/ranger-knox-plugin/install.properties'
+    if not os.path.isfile(file_path):
+      raise Fail('Ranger Knox plugin install.properties file does not exist at {0}'.format(file_path))
 
     ranger_knox_dict = ranger_knox_properties()
-    knox_repo_data = knox_repo_properties()     
+    knox_repo_data = knox_repo_properties()
 
     write_properties_to_file(file_path, ranger_knox_dict)
 
