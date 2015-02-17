@@ -58,13 +58,24 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat5,redhat6,suse11,ubuntu12</osFamily>
+          <osFamily>redhat5,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>ranger-admin</name>                                
+              <name>ranger_2_2_*-admin</name>                                
             </package>
             <package>
-              <name>ranger-usersync</name>
+              <name>ranger_2_2_*-usersync</name>
+            </package>                           
+          </packages>                        
+        </osSpecific>
+        <osSpecific>
+          <osFamily>ubuntu12</osFamily>
+          <packages>
+            <package>
+              <name>ranger-2-2-.*-admin</name>                                
+            </package>
+            <package>
+              <name>ranger-2-2-.*-usersync</name>
             </package>                           
           </packages>                        
         </osSpecific>

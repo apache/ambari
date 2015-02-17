@@ -42,7 +42,7 @@ def setup_ranger():
     if os.path.isfile(file_path):
       shutil.copyfile(file_path, params.ranger_home + '/install-bk.properties')
     else:
-      raise Fail('Ranger admin install.properties file doesnot exist')
+      raise Fail('Ranger admin {0} file does not exist'.format(file_path))
 
     write_properties_to_file(file_path, admin_properties())
     ##if db flavor == oracle - set oracle home env variable
