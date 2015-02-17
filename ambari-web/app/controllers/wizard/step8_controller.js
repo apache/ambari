@@ -839,11 +839,16 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   /**
    * Onclick handler for <code>next</code> button
    * @method submit
-   * @return {App.ModalPopup|null}
+   * @return {void}
    */
   submit: function () {
-    if (this.get('isSubmitDisabled')) return null;
-    return this.submitProceed();
+    if (!this.get('isSubmitDisabled')) {
+      if (this.get('content.controllerName') != 'installerController' && this.get('securityEnabled')) {
+        App.get('router.mainAdminKerberosController').getKDCSessionState(this.submitProceed.bind(this));
+      } else {
+        this.submitProceed();
+      }
+    }
   },
   /**
    * Update configurations for installed services.

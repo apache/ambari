@@ -25,6 +25,7 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.hadoop.yarn.server.applicationhistoryservice.timeline.TimelineStore;
 import org.apache.hadoop.yarn.webapp.GenericExceptionHandler;
 import org.apache.hadoop.yarn.webapp.WebApp;
+import org.apache.hadoop.yarn.webapp.YarnJacksonJaxbJsonProvider;
 import org.apache.hadoop.yarn.webapp.YarnWebParams;
 
 public class AHSWebApp extends WebApp implements YarnWebParams {
@@ -42,7 +43,7 @@ public class AHSWebApp extends WebApp implements YarnWebParams {
 
   @Override
   public void setup() {
-    bind(YarnAMSJacksonJaxbJsonProvider.class);
+    bind(YarnJacksonJaxbJsonProvider.class);
     bind(AHSWebServices.class);
     bind(TimelineWebServices.class);
     bind(GenericExceptionHandler.class);

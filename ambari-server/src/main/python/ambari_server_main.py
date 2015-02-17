@@ -213,28 +213,32 @@ def generate_child_process_param_list(ambari_user, current_user, java_exe, class
 
   command_base = SERVER_START_CMD_DEBUG if debug_start else SERVER_START_CMD
 
-  command = "%s %s; %s" % (ULIMIT_CMD, str(get_ulimit_open_files(properties)),
-      command_base.format(java_exe,
+  ulimit_cmd = "%s %s" % (ULIMIT_CMD, str(get_ulimit_open_files(properties)))
+  command = command_base.format(java_exe,
           ambari_provider_module_option,
           jvm_args,
           class_path,
           configDefaults.SERVER_OUT_FILE,
           os.path.join(configDefaults.PID_DIR, EXITCODE_NAME),
           suspend_mode)
-  )
 
   # required to start properly server instance
   os.chdir(configDefaults.ROOT_FS_PATH)
 
   #For properly daemonization server should be started using shell as parent
+  param_list = [locate_file('sh', '/bin'), "-c"]
   if is_root() and ambari_user != "root":
     # To inherit exported environment variables (especially AMBARI_PASSPHRASE),
     # from subprocess, we have to skip --login option of su command. That's why
     # we change dir to / (otherwise subprocess can face with 'permission denied'
     # errors while trying to list current directory
-    param_list = [locate_file('su', '/bin'), ambari_user, "-s", locate_file('sh', '/bin'), "-c", command]
+    cmd = "{ulimit_cmd} ; {su} {ambari_user} -s {sh_shell} -c '{command}'".format(ulimit_cmd=ulimit_cmd, 
+                                                                                su=locate_file('su', '/bin'), ambari_user=ambari_user,
+                                                                                sh_shell=locate_file('sh', '/bin'), command=command)
   else:
-    param_list = [locate_file('sh', '/bin'), "-c", command]
+    cmd = "{ulimit_cmd} ; {command}".format(ulimit_cmd=ulimit_cmd, command=command)
+    
+  param_list.append(cmd)
   return param_list
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)

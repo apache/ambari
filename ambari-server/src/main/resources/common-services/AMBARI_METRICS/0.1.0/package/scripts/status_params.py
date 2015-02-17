@@ -19,12 +19,21 @@ limitations under the License.
 """
 
 from resource_management import *
+from ambari_commons import OSCheck
 
-config = Script.get_config()
+if OSCheck.is_windows_family():
+  from params_windows import *
+else:
+  from params_linux import *
 
 hbase_pid_dir = config['configurations']['ams-hbase-env']['hbase_pid_dir']
-ams_user = config['configurations']['ams-env']['ambari_metrics_user']
 hbase_user = ams_user
 ams_collector_pid_dir = config['configurations']['ams-env']['metrics_collector_pid_dir']
 ams_monitor_pid_dir = config['configurations']['ams-env']['metrics_monitor_pid_dir']
 
+security_enabled = config['configurations']['cluster-env']['security_enabled']
+ams_hbase_conf_dir = format("{hbase_conf_dir}")
+
+kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+hostname = config['hostname']
+tmp_dir = Script.get_tmp_dir()

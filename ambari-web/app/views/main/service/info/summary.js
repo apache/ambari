@@ -460,7 +460,8 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
 
   didInsertElement: function () {
     var svcName = this.get('service.serviceName');
-    if (svcName) {
+    var isMetricsSupported = svcName != 'STORM' || App.get('isStormMetricsSupported');
+    if (svcName && isMetricsSupported) {
       this.constructGraphObjects(App.service_graph_config[svcName.toLowerCase()]);
     }
     // adjust the summary table height

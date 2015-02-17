@@ -44,11 +44,28 @@ App.KerberosDisableController = App.KerberosProgressPageController.extend({
   },
 
   unkerberize: function () {
+    var self = this;
+    this.deleteKerberos().done(function () {
+      self.reconfigureServices();
+    });
+  },
+
+  reconfigureServices: function () {
     return App.ajax.send({
       name: 'admin.unkerberize.cluster',
       sender: this,
       success: 'startPolling',
       error: 'onTaskError'
+    });
+  },
+
+  deleteKerberos: function () {
+    return App.ajax.send({
+      name: 'common.delete.service',
+      sender: this,
+      data: {
+        serviceName: 'KERBEROS'
+      }
     });
   },
 

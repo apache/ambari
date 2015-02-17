@@ -28,8 +28,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import javax.naming.InvalidNameException;
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -243,6 +245,39 @@ public abstract class KerberosOperationHandlerTest extends EasyMockSupport {
         handler.translateEncryptionTypes("des3", " ")
     );
   }
+
+  @Test
+  public void testEscapeCharacters() throws KerberosOperationException {
+    KerberosOperationHandler handler = createHandler();
+
+    HashSet<Character> specialCharacters = new HashSet<Character>() {
+      {
+        add('/');
+        add(',');
+        add('\\');
+        add('#');
+        add('+');
+        add('<');
+        add('>');
+        add(';');
+        add('"');
+        add('=');
+        add(' ');
+      }
+    };
+
+    Assert.assertEquals("\\/\\,\\\\\\#\\+\\<\\>\\;\\\"\\=\\ ", handler.escapeCharacters("/,\\#+<>;\"= ", specialCharacters, '\\'));
+    Assert.assertNull(handler.escapeCharacters(null, specialCharacters, '\\'));
+    Assert.assertEquals("", handler.escapeCharacters("", specialCharacters, '\\'));
+    Assert.assertEquals("nothing_special_here", handler.escapeCharacters("nothing_special_here", specialCharacters, '\\'));
+    Assert.assertEquals("\\/\\,\\\\\\#\\+\\<\\>\\;\\\"\\=\\ ", handler.escapeCharacters("/,\\#+<>;\"= ", specialCharacters, '\\'));
+
+    Assert.assertEquals("nothing<>special#here!", handler.escapeCharacters("nothing<>special#here!", null, '\\'));
+    Assert.assertEquals("nothing<>special#here!", handler.escapeCharacters("nothing<>special#here!", Collections.<Character>emptySet(), '\\'));
+    Assert.assertEquals("nothing<>special#here!", handler.escapeCharacters("nothing<>special#here!", Collections.singleton('?'), '\\'));
+    Assert.assertEquals("\\A's are special!", handler.escapeCharacters("A's are special!", Collections.singleton('A'), '\\'));
+  }
+
 
   private KerberosOperationHandler createHandler() throws KerberosOperationException {
     KerberosOperationHandler handler = new KerberosOperationHandler() {

@@ -182,18 +182,22 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
    * @returns {$.Deferred}
    */
   getSecurityStatus: function () {
+    var dfd;
     if (App.get('testMode')) {
+      dfd = $.Deferred();
       this.set('securityEnabled', !App.get('testEnableSecurity'));
       this.set('dataIsLoaded', true);
+      dfd.resolve();
     } else {
       //get Security Status From Server
-      return App.ajax.send({
+      dfd = App.ajax.send({
         name: 'admin.security_status',
         sender: this,
         success: 'getSecurityStatusSuccessCallback',
         error: 'errorCallback'
       });
     }
+    return dfd.promise();
   },
 
   getSecurityStatusSuccessCallback: function(data) {
@@ -270,6 +274,26 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
     });
     configProperties.setEach('isEditable', false);
     return configProperties;
+  },
+
+  getKDCSessionState: function(callback) {
+    App.ajax.send({
+      name: 'kerberos.session.state',
+      sender: this,
+      data: {
+        callback: callback
+      },
+      success: 'checkState'
+    })
+  },
+
+  checkState: function(data, opt, params) {
+    var res = Em.get(data, 'Services.attributes.kdc_validation_result');
+    var message = Em.get(data, 'Services.attributes.kdc_validation_failure_details');
+    if (res.toUpperCase() === "OK") {
+      params.callback();
+    } else {
+      App.showInvalidKDCPopup(opt, App.format.kdcErrorMsg(message, false));
+    }
   }
-  
 });

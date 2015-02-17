@@ -334,6 +334,7 @@ module.exports = App.WizardRoute.extend({
         alwaysCallback: function () {
           controller.get('popup').hide();
           App.get('router').transitionTo('adminKerberos.index');
+          location.reload();
         }
       });
 

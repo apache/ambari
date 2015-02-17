@@ -513,6 +513,32 @@ App.format = {
    */
   taskStatus:function (_taskStatus) {
     return _taskStatus.toLowerCase();
+  },
+
+  /**
+   * simplify kdc error msg
+   * @param {string} message
+   * @param {boolean} strict if this flag is true ignore not defined msgs return null
+   *  else return input msg as is;
+   * @returns {*}
+   */
+  kdcErrorMsg: function(message, strict) {
+    /**
+     * Error messages for KDC administrator credentials error
+     * is used for checking if error message is caused by bad KDC credentials
+     * @type {{missingKDC: string, invalidKDC: string}}
+     */
+    var specialMsg = {
+      "missingKDC": "Missing KDC administrator credentials.",
+      "invalidKDC": "Invalid KDC administrator credentials.",
+      "missingRDCForRealm": "Failed to find a KDC for the specified realm - kadmin"
+    };
+
+    for (var m in specialMsg) {
+      if (specialMsg.hasOwnProperty(m) && message.contains(specialMsg[m]))
+        return specialMsg[m];
+    }
+    return strict ? null : message;
   }
 };
 

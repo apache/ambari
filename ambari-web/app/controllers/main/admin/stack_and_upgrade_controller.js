@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var stringUtils = require('utils/string_utils');
 
 App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, {
   name: 'mainAdminStackAndUpgradeController',
@@ -673,5 +674,12 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     }).done(function () {
       item.set('status', status);
     });
-  }
+  },
+
+  currentVersionObserver: function () {
+    var versionNumber = this.get('currentVersion.repository_version');
+    var currentVersionObject = App.RepositoryVersion.find().findProperty('status', 'CURRENT');
+    var versionName = currentVersionObject && currentVersionObject.get('stackVersionType');
+    App.set('isStormMetricsSupported', versionName != 'HDP' || stringUtils.compareVersions(versionNumber, '2.2.2') > -1 || !versionNumber);
+  }.observes('currentVersion.repository_version')
 });

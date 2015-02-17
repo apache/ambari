@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Collections;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -144,10 +145,10 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
   private void executeAlertDDLUpdates() throws AmbariException, SQLException {
     // add ignore_host column to alert_definition
     dbAccessor.addColumn(ALERT_DEFINITION_TABLE, new DBColumnInfo(
-        "ignore_host", Short.class, 1, 0, false));
+            "ignore_host", Short.class, 1, 0, false));
 
     dbAccessor.addColumn(ALERT_DEFINITION_TABLE, new DBColumnInfo(
-        "description", char[].class, 32672, null, true));
+            "description", char[].class, 32672, null, true));
 
     // update alert target
     dbAccessor.addColumn(ALERT_TARGET_TABLE, new DBColumnInfo("is_global",
@@ -304,6 +305,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     addNewConfigurationsFromXml();
     updateHiveDatabaseType();
     setSecurityType();
+    addMissingConfigs();
   }
 
   protected void updateHiveDatabaseType() throws AmbariException {
@@ -453,5 +455,8 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
         clusterServiceDao.removeByPK(primaryKey);
       }
     }
+  }
+  protected void addMissingConfigs() throws AmbariException {
+    updateConfigurationProperties("hive-site", Collections.singletonMap("hive.server2.transport.mode", "binary"), false, false);
   }
 }

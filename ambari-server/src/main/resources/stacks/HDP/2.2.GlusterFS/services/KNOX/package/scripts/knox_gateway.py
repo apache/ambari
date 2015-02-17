@@ -21,7 +21,7 @@ from resource_management import *
 import sys
 
 from knox import knox
-from ldap import ldap
+from knox_ldap import ldap
 
 class KnoxGateway(Script):
   def install(self, env):

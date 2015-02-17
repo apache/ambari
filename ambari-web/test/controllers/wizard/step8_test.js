@@ -742,41 +742,38 @@ describe('App.WizardStep8Controller', function () {
   describe('#submit', function() {
     beforeEach(function() {
       sinon.stub(installerStep8Controller, 'submitProceed', Em.K);
-      sinon.spy(App, 'showConfirmationPopup');
+      sinon.stub(App.get('router.mainAdminKerberosController'), 'getKDCSessionState', Em.K);
     });
     afterEach(function() {
       installerStep8Controller.submitProceed.restore();
-      App.showConfirmationPopup.restore();
+      App.get('router.mainAdminKerberosController').getKDCSessionState.restore();
     });
     Em.A([
         {
           controllerName: 'addServiceController',
-          securityEnabled: true,
-          e: false
+          securityEnabled: true
         },
         {
           controllerName: 'addServiceController',
-          securityEnabled: false,
-          e: false
+          securityEnabled: false
         }
       ]).forEach(function (test) {
         it(test.controllerName + ' ' + test.securityEnabled.toString(), function () {
           installerStep8Controller.reopen({isSubmitDisabled: false, securityEnabled: test.securityEnabled, content: {controllerName: test.controllerName}});
           installerStep8Controller.submit();
-          if (test.e) {
-            expect(App.showConfirmationPopup.calledOnce).to.equal(true);
+          if (test.securityEnabled) {
+            expect(App.get('router.mainAdminKerberosController').getKDCSessionState.called).to.equal(true);
             expect(installerStep8Controller.submitProceed.called).to.equal(false);
-          }
-          else {
-            expect(App.showConfirmationPopup.called).to.equal(false);
-            expect(installerStep8Controller.submitProceed.calledOnce).to.equal(true);
+          } else {
+            expect(App.get('router.mainAdminKerberosController').getKDCSessionState.called).to.equal(false);
+            expect(installerStep8Controller.submitProceed.called).to.equal(true);
           }
         });
       });
     it('shouldn\'t do nothing if isSubmitDisabled is true', function() {
       installerStep8Controller.reopen({isSubmitDisabled: true});
       installerStep8Controller.submit();
-      expect(App.showConfirmationPopup.called).to.equal(false);
+      expect(App.get('router.mainAdminKerberosController').getKDCSessionState.called).to.equal(false);
       expect(installerStep8Controller.submitProceed.called).to.equal(false);
     });
   });

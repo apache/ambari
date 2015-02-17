@@ -264,10 +264,6 @@ App.WizardStep9Controller = Em.Controller.extend({
       this.set('content.cluster.isCompleted', false);
       this.set('content.cluster.requestId', 1);
     }
-    // wait for valid credentials in secure mode if session was expired or entered credentials are invalid
-    if (this.get('wizardController').getDBProperty('KDCAuthRequired') == true && App.router.get('mainAdminKerberosController.securityEnabled')) {
-      return;
-    }
     var needPolling = false;
     var clusterStatus = this.get('content.cluster.status');
     console.log('navigateStep: clusterStatus = ' + clusterStatus);

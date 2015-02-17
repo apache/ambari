@@ -26,6 +26,7 @@ import status_params
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
+stack_name = default("/hostLevelParams/stack_name", None)
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)
 

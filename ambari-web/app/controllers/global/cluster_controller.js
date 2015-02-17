@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var stringUtils = require('utils/string_utils');
 
 App.ClusterController = Em.Controller.extend({
   name: 'clusterController',
@@ -434,5 +435,45 @@ App.ClusterController = Em.Controller.extend({
         $.ajax(ajaxOpt);
       }
     });
+  },
+
+  //TODO Replace this check with any other which is applicable to non-HDP stack
+  /**
+   * Check if HDP stack version is more or equal than 2.2.2 to determine if pluggable metrics for Storm are supported
+   * @method checkDetailedRepoVersion
+   * @returns {promise|*|promise|promise|HTMLElement|promise}
+   */
+  checkDetailedRepoVersion: function () {
+    var dfd;
+    var currentStackName = App.get('currentStackName');
+    var currentStackVersionNumber = App.get('currentStackVersionNumber');
+    if (currentStackName == 'HDP' && currentStackVersionNumber == '2.2') {
+      dfd = App.ajax.send({
+        name: 'cluster.load_detailed_repo_version',
+        sender: this,
+        success: 'checkDetailedRepoVersionSuccessCallback',
+        error: 'checkDetailedRepoVersionErrorCallback'
+      });
+    } else {
+      dfd = $.Deferred();
+      App.set('isStormMetricsSupported', currentStackName != 'HDP' || stringUtils.compareVersions(currentStackVersionNumber, '2.2') == 1);
+      dfd.resolve();
+    }
+    return dfd.promise();
+  },
+
+  checkDetailedRepoVersionSuccessCallback: function (data) {
+    var items = data.items;
+    var version;
+    if (items && items.length) {
+      var repoVersions = items[0].repository_versions;
+      if (repoVersions && repoVersions.length) {
+        version = Em.get(repoVersions[0], 'RepositoryVersions.repository_version');
+      }
+    }
+    App.set('isStormMetricsSupported', stringUtils.compareVersions(version, '2.2.2') > -1 || !version);
+  },
+  checkDetailedRepoVersionErrorCallback: function () {
+    App.set('isStormMetricsSupported', true);
   }
 });
