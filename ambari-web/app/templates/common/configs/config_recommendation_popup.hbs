@@ -36,8 +36,8 @@
               <td>{{property.name}}</td>
               <td>{{property.value}}</td>
               <td>
-                {{property.description}}<br/>
-                <strong>{{property.warnMessage}}</strong>
+                <div class="property-message">{{property.warnMessage}}</div>
+                <div class="property-description">{{property.description}}</div>
               </td>
             </tr>
           {{/if}}
@@ -48,8 +48,8 @@
                 <td>{{property.name}}</td>
                 <td>{{property.value}}</td>
                 <td>
-                  {{property.description}}<br/>
-                  <strong>{{property.errorMessage}}</strong>
+                  <div class="property-message">{{property.errorMessage}}</div>
+                  <div class="property-description">{{property.description}}</div>
                 </td>
               </tr>
             {{/if}}
