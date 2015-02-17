@@ -385,52 +385,54 @@ module.exports = Em.Route.extend({
         route: '/disableSecurity',
         enter: function (router) {
           App.router.get('updateController').set('isWorking', false);
-          App.ModalPopup.show({
-            classNames: ['full-width-modal'],
-            header: Em.I18n.t('admin.removeSecurity.header'),
-            bodyClass: App.KerberosDisableView.extend({
-              controllerBinding: 'App.router.kerberosDisableController'
-            }),
-            primary: Em.I18n.t('form.cancel'),
-            secondary: null,
-            showFooter: false,
+          router.get('mainController').dataLoading().done(function() {
+            App.ModalPopup.show({
+              classNames: ['full-width-modal'],
+              header: Em.I18n.t('admin.removeSecurity.header'),
+              bodyClass: App.KerberosDisableView.extend({
+                controllerBinding: 'App.router.kerberosDisableController'
+              }),
+              primary: Em.I18n.t('form.cancel'),
+              secondary: null,
+              showFooter: false,
 
-            onClose: function () {
-              var self = this;
-              var controller = router.get('kerberosDisableController');
-              if (!controller.get('isSubmitDisabled')) {
-                self.proceedOnClose();
-                return;
-              }
-              var applyingConfigCommand = controller.get('commands').findProperty('name', 'APPLY_CONFIGURATIONS');
-              if (applyingConfigCommand && !applyingConfigCommand.get('isCompleted')) {
-                if (applyingConfigCommand.get('isStarted')) {
-                  App.showAlertPopup(Em.I18n.t('admin.security.applying.config.header'), Em.I18n.t('admin.security.applying.config.body'));
-                } else {
-                  App.showConfirmationPopup(function () {
-                    self.proceedOnClose();
-                  }, Em.I18n.t('admin.addSecurity.disable.onClose'));
+              onClose: function () {
+                var self = this;
+                var controller = router.get('kerberosDisableController');
+                if (!controller.get('isSubmitDisabled')) {
+                  self.proceedOnClose();
+                  return;
                 }
-              } else {
-                self.proceedOnClose();
+                var applyingConfigCommand = controller.get('commands').findProperty('name', 'APPLY_CONFIGURATIONS');
+                if (applyingConfigCommand && !applyingConfigCommand.get('isCompleted')) {
+                  if (applyingConfigCommand.get('isStarted')) {
+                    App.showAlertPopup(Em.I18n.t('admin.security.applying.config.header'), Em.I18n.t('admin.security.applying.config.body'));
+                  } else {
+                    App.showConfirmationPopup(function () {
+                      self.proceedOnClose();
+                    }, Em.I18n.t('admin.addSecurity.disable.onClose'));
+                  }
+                } else {
+                  self.proceedOnClose();
+                }
+              },
+              proceedOnClose: function () {
+                router.get('kerberosDisableController').clearStep();
+                App.db.setSecurityDeployCommands(undefined);
+                App.router.get('updateController').set('isWorking', true);
+                router.get('mainAdminKerberosController').setDisableSecurityStatus(undefined);
+                router.get('addServiceController').finish();
+                App.clusterStatus.setClusterStatus({
+                  clusterName: router.get('content.cluster.name'),
+                  clusterState: 'DEFAULT'
+                });
+                this.hide();
+                router.transitionTo('adminKerberos.index');
+              },
+              didInsertElement: function () {
+                this.fitHeight();
               }
-            },
-            proceedOnClose: function () {
-              router.get('kerberosDisableController').clearStep();
-              App.db.setSecurityDeployCommands(undefined);
-              App.router.get('updateController').set('isWorking', true);
-              router.get('mainAdminKerberosController').setDisableSecurityStatus(undefined);
-              router.get('addServiceController').finish();
-              App.clusterStatus.setClusterStatus({
-                clusterName: router.get('content.cluster.name'),
-                clusterState: 'DEFAULT'
-              });
-              this.hide();
-              router.transitionTo('adminKerberos.index');
-            },
-            didInsertElement: function () {
-              this.fitHeight();
-            }
+            });
           });
         },
 

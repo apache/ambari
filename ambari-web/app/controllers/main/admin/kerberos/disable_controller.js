@@ -28,6 +28,14 @@ App.KerberosDisableController = App.KerberosProgressPageController.extend({
 
   tasksMessagesPrefix: 'admin.kerberos.disable.step',
 
+  loadStep: function() {
+    this.set('content.controllerName', 'kerberosDisableController');
+    this.loadTasksStatuses();
+    this.loadTasksRequestIds();
+    this.loadRequestIds();
+    this._super();
+  },
+
   stopServices: function () {
     App.ajax.send({
       name: 'common.services.update',
@@ -45,7 +53,7 @@ App.KerberosDisableController = App.KerberosProgressPageController.extend({
 
   unkerberize: function () {
     var self = this;
-    this.deleteKerberos().done(function () {
+    this.deleteKerberos().always(function () {
       self.reconfigureServices();
     });
   },

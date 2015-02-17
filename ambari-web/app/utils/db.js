@@ -45,6 +45,7 @@ var InitialData =  {
   'RMHighAvailabilityWizard': {},
   'RollbackHighAvailabilityWizard': {},
   'MainAdminStackAndUpgrade': {},
+  'KerberosDisable': {},
   'tmp': {}
 
 };
