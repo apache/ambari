@@ -217,7 +217,7 @@ App.WizardStep3Controller = Em.Controller.extend({
         'sshKey': this.get('content.installOptions.sshKey'),
         'hosts': Em.keys(this.get('content.hosts')),
         'user': this.get('content.installOptions.sshUser'),
-        'userRunAs': App.get('supports.customizeAgentUserAccount') ? this.get('agentUser') : 'root'
+        'userRunAs': App.get('supports.customizeAgentUserAccount') ? this.get('content.installOptions.agentUser') : 'root'
     });
     App.router.get(this.get('content.controllerName')).launchBootstrap(bootStrapData, function (requestId) {
       if (requestId == '0') {

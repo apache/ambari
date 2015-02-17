@@ -557,11 +557,11 @@ describe('App.WizardStep3Controller', function () {
           content: {
             installOptions: {
               sshKey: 'key',
-              sshUser: 'root'
+              sshUser: 'root',
+              agentUser: 'user'
             },
             hosts: { "host0": { "name": "host0" }, "host1": { "name": "host1" } }
-          },
-          agentUser: 'user'
+          }
         });
         sinon.stub(App, 'get').withArgs('supports.customizeAgentUserAccount').returns(item.customizeAgentUserAccount);
         controller.setupBootStrap();
@@ -1977,12 +1977,12 @@ describe('App.WizardStep3Controller', function () {
         content: {
           installOptions: {
             sshKey: 'key',
-            sshUser: 'root'
+            sshUser: 'root',
+            agentUser: 'user'
           },
           hosts: { "host0": { "name": "host0" }, "host1": { "name": "host1" } },
           controllerName: 'installerController'
-        },
-        agentUser: 'user'
+        }
       });
 
     beforeEach(function () {
