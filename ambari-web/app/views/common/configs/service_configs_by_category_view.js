@@ -305,7 +305,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, {
   },
 
   didInsertElement: function () {
-    var isCollapsed = this.get('category.isCollapsed') == undefined ? (this.get('category.name').indexOf('Advanced') != -1 || this.get('category.name').indexOf('CapacityScheduler') != -1) : this.get('category.isCollapsed');
+    var isCollapsed = this.get('category.isCollapsed') == undefined ? (this.get('category.name').indexOf('Advanced') != -1 || this.get('category.name').indexOf('CapacityScheduler') != -1 || this.get('category.name').indexOf('Custom') != -1) : this.get('category.isCollapsed');
     var self = this;
     this.set('category.isCollapsed', isCollapsed);
     if (isCollapsed) {
