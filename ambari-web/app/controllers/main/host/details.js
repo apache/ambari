@@ -428,6 +428,14 @@ App.MainHostDetailsController = Em.Controller.extend({
 
 
   /**
+   * add component as <code>addComponent<code> method but perform
+   * kdc sessionstate if cluster is secure;
+   * @param event
+   */
+  addComponentWithCheck: function(event) {
+    App.get('router.mainAdminKerberosController').getKDCSessionState(this.addComponent.bind(this, event));
+  },
+  /**
    * Send command to server to install selected host component
    * @param {object} event
    * @method addComponent
@@ -462,15 +470,8 @@ App.MainHostDetailsController = Em.Controller.extend({
         this.loadConfigs("loadHiveConfigs");
         break;
       default:
-        if (this.get('securityEnabled') && componentName !== 'CLIENTS') {
-          returnFunc = App.showConfirmationPopup(function () {
-            self.primary(component);
-          }, Em.I18n.t('hosts.host.addComponent.securityNote').format(componentName, self.get('content.hostName')));
-        }
-        else {
-          returnFunc = this.addClientComponent(component);
-        }
-    }
+        returnFunc = this.addClientComponent(component);
+      }
     return returnFunc;
   },
   /**
@@ -494,21 +495,7 @@ App.MainHostDetailsController = Em.Controller.extend({
 
       onPrimary: function () {
         this.hide();
-        if (component.get('componentName') === 'CLIENTS') {
-          // Clients component has many sub-components which
-          // need to be installed.
-          var scs = component.get('subComponentNames');
-          scs.forEach(function (sc) {
-            var c = Em.Object.create({
-              displayName: App.format.role(sc),
-              componentName: sc,
-              serviceName: sc.replace("_CLIENT", "")
-            });
-            self.primary(c);
-          });
-        } else {
-          self.primary(component);
-        }
+        self.primary(component);
       }
     });
   },

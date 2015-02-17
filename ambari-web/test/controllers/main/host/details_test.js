@@ -437,19 +437,7 @@ describe('App.MainHostDetailsController', function () {
         componentName: 'ZOOKEEPER_SERVER'
       }))).to.be.true;
     });
-    it('add slave component, securityEnabled = true', function () {
-      var event = {context: Em.Object.create({
-        componentName: 'HIVE_CLIENT'
-      })};
-      controller.set('securityEnabled', true);
-      var popup = controller.addComponent(event);
-      expect(App.showConfirmationPopup.calledOnce).to.be.true;
-      popup.onPrimary();
-      expect(controller.primary.calledWith(Em.Object.create({
-        componentName: 'HIVE_CLIENT'
-      }))).to.be.true;
-    });
-    it('add slave component, securityEnabled = false', function () {
+    it('add slave component', function () {
       var event = {context: Em.Object.create({
         componentName: 'HIVE_CLIENT'
       })};
@@ -515,32 +503,12 @@ describe('App.MainHostDetailsController', function () {
       controller.primary.restore();
     });
 
-    it('not CLIENT component', function () {
+    it('any CLIENT component', function () {
       var component = Em.Object.create({'componentName': 'Comp1'});
       var popup = controller.addClientComponent(component);
       expect(App.ModalPopup.show.calledOnce).to.be.true;
       popup.onPrimary();
       expect(controller.primary.calledWith(Em.Object.create({'componentName': 'Comp1'}))).to.be.true;
-    });
-    it('CLIENT components, with empty subComponentNames', function () {
-      var component = Em.Object.create({
-        componentName: 'CLIENTS',
-        subComponentNames: []
-      });
-      var popup = controller.addClientComponent(component);
-      expect(App.ModalPopup.show.calledOnce).to.be.true;
-      popup.onPrimary();
-      expect(controller.primary.calledOnce).to.be.false;
-    });
-    it('CLIENT components, with two sub-component', function () {
-      var component = Em.Object.create({
-        componentName: 'CLIENTS',
-        subComponentNames: ['DATANODE', 'TASKTRACKER']
-      });
-      var popup = controller.addClientComponent(component);
-      expect(App.ModalPopup.show.calledOnce).to.be.true;
-      popup.onPrimary();
-      expect(controller.primary.calledTwice).to.be.true;
     });
   });
 

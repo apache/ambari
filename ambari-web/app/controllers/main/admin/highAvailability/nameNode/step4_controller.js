@@ -61,7 +61,9 @@ App.HighAvailabilityWizardStep4Controller = Em.Controller.extend({
 
   done: function () {
     if (this.get('isNextEnabled')) {
-      App.router.send('next');
+      App.get('router.mainAdminKerberosController').getKDCSessionState(function() {
+        App.router.send("next");
+      });
     }
   }
 

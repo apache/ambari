@@ -55,5 +55,5 @@
 
 <div class="btn-area">
     <a class="btn" {{action back}}>&larr; {{t common.back}}</a>
-    <a class="btn btn-success pull-right" {{action next}} {{bindAttr disabled="controller.isSubmitDisabled"}}>{{t common.next}} &rarr;</a>
+    <a class="btn btn-success pull-right" {{action submit target="controller"}} {{bindAttr disabled="controller.isSubmitDisabled"}}>{{t common.next}} &rarr;</a>
 </div>

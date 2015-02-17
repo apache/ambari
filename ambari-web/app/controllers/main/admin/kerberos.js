@@ -277,14 +277,18 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   },
 
   getKDCSessionState: function(callback) {
-    App.ajax.send({
-      name: 'kerberos.session.state',
-      sender: this,
-      data: {
-        callback: callback
-      },
-      success: 'checkState'
-    })
+    if (this.get('securityEnabled')) {
+      App.ajax.send({
+        name: 'kerberos.session.state',
+        sender: this,
+        data: {
+          callback: callback
+        },
+        success: 'checkState'
+      })
+    } else {
+      callback();
+    }
   },
 
   checkState: function(data, opt, params) {

@@ -20,7 +20,13 @@ var App = require('app');
 
 App.HighAvailabilityWizardStep8Controller = Em.Controller.extend({
 
-  name:"highAvailabilityWizardStep8Controller"
+  name:"highAvailabilityWizardStep8Controller",
+
+  done: function () {
+    App.get('router.mainAdminKerberosController').getKDCSessionState(function() {
+      App.router.send("next");
+    });
+  }
 
 });
 

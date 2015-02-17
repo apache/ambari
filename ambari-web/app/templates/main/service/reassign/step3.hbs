@@ -41,5 +41,5 @@
 <div class="btn-area">
   <a class="btn pull-left" {{action back href="true"}}>&larr; {{t common.back}}</a>
   <a class="btn btn-success pull-right"
-     id="spinner" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action next}}>{{t common.deploy}} &rarr;</a>
+     id="spinner" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.deploy}} &rarr;</a>
 </div>

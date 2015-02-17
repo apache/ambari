@@ -131,6 +131,14 @@ App.RMHighAvailabilityWizardStep3Controller = Em.Controller.extend({
       serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isReconfigurable'));
       serviceConfigProperty.validate();
     }, this);
+  },
+
+  submit: function () {
+    if (!this.get('isSubmitDisabled')) {
+      App.get('router.mainAdminKerberosController').getKDCSessionState(function() {
+        App.router.send("next");
+      });
+    }
   }
 });
 

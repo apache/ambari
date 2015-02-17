@@ -67,7 +67,9 @@ App.MainServiceItemController = Em.Controller.extend({
     });
 
     self.set('add' + componentName, function() {
-      self.addComponent(componentName);
+      App.get('router.mainAdminKerberosController').getKDCSessionState(function() {
+        self.addComponent(componentName);
+      });
     });
 
     Em.defineProperty(self, 'addDisabledTooltip-' + componentName, Em.computed('isAddDisabled-' + componentName, 'addDisabledMsg-' + componentName, function() {
