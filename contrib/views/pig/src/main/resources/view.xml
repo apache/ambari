@@ -18,55 +18,71 @@
     <name>PIG</name>
     <label>Pig</label>
     <version>0.1.0</version>
+    <min-ambari-version>1.7.*</min-ambari-version>
 
     <!-- HDFS Configs -->
     <parameter>
         <name>webhdfs.url</name>
-        <description>WebHDFS FileSystem URI (example: webhdfs://namenode:50070)</description>
+        <description>Enter the WebHDFS FileSystem URI. Typically this is the dfs.namenode.http-address property in the hdfs-site.xml configuration. URL must be accessible from Ambari Server.</description>
+        <label>WebHDFS FileSystem URI</label>
+        <placeholder>webhdfs://namenode:50070</placeholder>
         <required>true</required>
     </parameter>
 
     <parameter>
         <name>webhdfs.username</name>
-        <description>User and doAs for proxy user for HDFS</description>
+        <description>User and doAs for proxy user for HDFS. By default, uses the currently logged-in Ambari user.</description>
+        <label>WebHDFS Username</label>
         <required>false</required>
     </parameter>
 
     <!-- WebHCat Configs -->
     <parameter>
         <name>webhcat.url</name>
-        <description>WebHCat URL (example: http://webhcat.host:50111/templeton/v1)</description>
+        <description>Enter the WebHCat URL for accessing WebHCat. URL must be accessible from Ambari Server.</description>
+        <label>WebHCat URL</label>
+        <placeholder>http://webhcat.host:50111/templeton/v1</placeholder>
         <required>true</required>
     </parameter>
 
     <parameter>
         <name>webhcat.username</name>
-        <description>User and doAs for proxy user for WebHCat</description>
+        <description>User and doAs for proxy user for WebHCat. By default, uses the currently logged-in Ambari user.</description>
+        <label>WebHCat Username</label>
         <required>false</required>
     </parameter>
 
     <!-- General Configs -->
     <parameter>
         <name>dataworker.username</name>
-        <description>The username (defaults to ViewContext username)</description>
+        <description>The dataworker username. By default, users the currently logged-in Ambari user.</description>
+        <label>Dataworker Username</label>
         <required>false</required>
     </parameter>
 
     <parameter>
         <name>scripts.dir</name>
-        <description>HDFS directory to store Pig scripts (example: /user/${username}/scripts)</description>
+        <description>HDFS directory to store Pig scripts.</description>
+        <label>Scripts HDFS Directory</label>
+        <placeholder>/user/${username}/pig/scripts</placeholder>
+        <default-value>/user/${username}/pig/scripts</default-value>
         <required>true</required>
     </parameter>
 
     <parameter>
         <name>jobs.dir</name>
-        <description>HDFS directory to store Pig job status (example: /user/${username}/jobs)</description>
+        <description>HDFS directory to store Pig job status.</description>
+        <label>Jobs HDFS Directory</label>
+        <placeholder>/user/${username}/pig/jobs</placeholder>
+        <default-value>/user/${username}/pig/jobs</default-value>
         <required>true</required>
     </parameter>
 
     <parameter>
         <name>store.dir</name>
-        <description>HDFS directory to store meta information about Pig scripts and jobs (example: /user/${username}/store)</description>
+        <description>HDFS directory to store meta information about Pig scripts and jobs.</description>
+        <label>Meta HDFS Directory</label>
+        <placeholder>/user/${username}/pig/store</placeholder>
         <required>false</required>
     </parameter>
 

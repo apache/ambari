@@ -23,7 +23,7 @@ This View provides a UI to manage queues for the YARN Capacity Scheduler.
 Requirements
 -----
 
-- Ambari 1.7.0
+- Ambari 1.7.0 or later
 - YARN
 
 Build
@@ -59,9 +59,9 @@ From the Ambari Administration interface, create a view instance.
 | Details: Instance Name | CS_1 |
 | Details: Display Name | Queue Manager |
 | Details: Description | Browse and manage YARN Capacity Scheduler queues |
-| Properties: ambari.server.url | http://c6401.ambari.apache.org:8080/api/v1/clusters/MyCluster |
-| Properties: ambari.server.username | admin |
-| Properties: ambari.server.password | password |
+| Properties: Ambari Cluster URL | http://c6401.ambari.apache.org:8080/api/v1/clusters/MyCluster |
+| Properties: Operator Username | admin |
+| Properties: Operator Password | password |
 
 Login to Ambari and browse to the view instance.
 

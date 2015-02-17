@@ -18,24 +18,25 @@
     <name>CAPACITY-SCHEDULER</name>
     <label>Capacity Scheduler</label>
     <version>0.3.0</version>
+    <min-ambari-version>1.7.*</min-ambari-version>
 
     <parameter>
         <name>ambari.server.url</name>
-        <description>The Ambari REST API cluster resource.</description>
+        <description>Enter the Ambari REST API cluster resource.</description>
         <label>Ambari Cluster URL</label>
         <placeholder>http://ambari.server:8080/api/v1/clusters/MyCluster</placeholder>
         <required>true</required>
     </parameter>
     <parameter>
         <name>ambari.server.username</name>
-        <description>The Cluster Operator username (for example: admin).</description>
+        <description>Enter the Cluster Operator username (for example: admin).</description>
         <label>Operator Username</label>
         <placeholder>admin</placeholder>
         <required>true</required>
     </parameter>
     <parameter>
         <name>ambari.server.password</name>
-        <description>The Cluster Operator password (for example: password).</description>
+        <description>Enter the Cluster Operator password (for example: password).</description>
         <label>Operator Password</label>
         <required>true</required>
         <masked>true</masked>

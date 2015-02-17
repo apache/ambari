@@ -23,7 +23,7 @@ This View provides a UI to browse HDFS, create directories and upload + download
 Requirements
 -----
 
-- Ambari 1.7.0
+- Ambari 1.7.0 or later
 - HDFS with WebHDFS configured
 
 Build
@@ -41,20 +41,6 @@ Place the view archive on the Ambari Server and restart to deploy.
 
     cp files-0.1.0-SNAPSHOT.jar /var/lib/ambari-server/resources/views/
     ambari-server restart
-
-View Definition
------
-
-    <parameter>
-        <name>webhdfs.url</name>
-        <description>WebHDFS FileSystem URI (example: webhdfs://namenode:50070)</description>
-        <required>true</required>
-    </parameter>
-    <parameter>
-        <name>webhdfs.username</name>
-        <description>User and doAs for proxy user for HDFS</description>
-        <required>false</required>
-    </parameter>
 
 Cluster Configuration
 -----
@@ -93,7 +79,7 @@ From the Ambari Administration interface, create a Files view instance.
 | Details: Instance Name | FILES_1 |
 | Details: Display Name | Files |
 | Details: Description | Browse HDFS files and directories |
-| Properties: webhdfs.url | webhdfs://c6401.ambari.apache.org:50070 |
+| Properties: WebHDFS FileSystem URI | webhdfs://c6401.ambari.apache.org:50070 |
 
 Login to Ambari as "admin" and browse to the view instance.
 

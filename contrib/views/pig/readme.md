@@ -25,7 +25,7 @@ UDFs with your pig scripts.
 Requirements
 -----
 
-- Ambari 1.7.0
+- Ambari 1.7.0 or later
 - HDFS with WebHDFS configured
 - WebHCat with Pig configured
 
@@ -44,60 +44,6 @@ Place the view archive on the Ambari Server and restart to deploy.
 
     cp pig-0.1.0-SNAPSHOT.jar /var/lib/ambari-server/resources/views/
     ambari-server restart
-
-View Definition
------
-
-    <!-- HDFS Configs -->
-    <parameter>
-        <name>webhdfs.url</name>
-        <description>WebHDFS FileSystem URL (example: webhdfs://namenode.host:50070)</description>
-        <required>true</required>
-    </parameter>
-
-    <parameter>
-        <name>webhdfs.username</name>
-        <description>User and doAs for proxy user for HDFS</description>
-        <required>false</required>
-    </parameter>
-
-    <!-- WebHCat Configs -->
-    <parameter>
-        <name>webhcat.url</name>
-        <description>WebHCat URL (example: http://webhcat.host:50111/templeton/v1)</description>
-        <required>true</required>
-    </parameter>
-
-    <parameter>
-        <name>webhcat.username</name>
-        <description>User and doAs for proxy user for WebHCat</description>
-        <required>false</required>
-    </parameter>
-
-    <!-- General Configs -->
-    <parameter>
-        <name>dataworker.username</name>
-        <description>The username (defaults to ViewContext username)</description>
-        <required>false</required>
-    </parameter>
-
-    <parameter>
-        <name>scripts.dir</name>
-        <description>HDFS directory path to store Pig scripts (example: /tmp/${username}/scripts)</description>
-        <required>true</required>
-    </parameter>
-
-    <parameter>
-        <name>jobs.dir</name>
-        <description>HDFS directory path to store Pig job status (example: /tmp/${username}/jobs)</description>
-        <required>true</required>
-    </parameter>
-
-    <parameter>
-        <name>store.dir</name>
-        <description>HDFS directory to store meta information about Pig scripts and jobs (example: /tmp/${username}/store)</description>
-        <required>false</required>
-    </parameter>
 
 Cluster Configuration
 -----
@@ -158,10 +104,10 @@ From the Ambari Administration interface, create a Pig view instance.
 | Details: Instance Name | PIG_1 |
 | Details: Display Name | Pig |
 | Details: Description | Save and execute Pig scripts |
-| Properties: webhdfs.url | webhdfs://c6401.ambari.apache.org:50070 |
-| Properties: webhcat.url | http://c6401.ambari.apache.org:50111/templeton/v1 |
-| Properties: scripts.dir | /tmp/${username}/scripts |
-| Properties: jobs.dir | /tmp/${username}/jobs |
+| Properties: WebHDFS FileSystem URI | webhdfs://c6401.ambari.apache.org:50070 |
+| Properties: WebHCat URL | http://c6401.ambari.apache.org:50111/templeton/v1 |
+| Properties: Scripts HDFS Directory | /tmp/${username}/scripts |
+| Properties: Jobs HDFS Directory | /tmp/${username}/jobs |
 
 Login to Ambari as "admin" and browse to the view instance.
 
