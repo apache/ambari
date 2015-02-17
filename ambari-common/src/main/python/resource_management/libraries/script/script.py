@@ -106,6 +106,10 @@ class Script(object):
     if os.path.exists(self.stroutfile):
       with open(self.stroutfile, 'r') as fp:
         Script.structuredOut = json.load(fp)
+
+    # version is only set in a specific way and should not be carried 
+    if "version" in Script.structuredOut:
+      del Script.structuredOut["version"]
   
   def put_structured_out(self, sout):
     curr_content = Script.structuredOut.copy()
@@ -146,10 +150,6 @@ class Script(object):
         request_version = default("/commandParams/request_version", None)
         if request_version is not None:
           return True
-        else:
-          if "version" in Script.structuredOut:
-            del Script.structuredOut["version"]
-            Script.structuredOut.update({})
       else:
         # Populate version only on base commands
         return command_name.lower() == "start" or command_name.lower() == "install" or command_name.lower() == "restart"

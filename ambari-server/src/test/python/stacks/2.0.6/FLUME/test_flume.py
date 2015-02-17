@@ -116,6 +116,19 @@ class TestFlumeHandler(RMFTestCase):
     structured_out_mock.assert_called_with({'processes': []})
     self.assertNoMoreResources()
 
+  def test_struct_out(self):
+   from resource_management.libraries.script import Script
+
+   configs_path = os.path.join(RMFTestCase._getSrcFolder(),
+     "test/python/stacks", self.STACK_VERSION, "configs")
+
+   script = Script()
+   script.stroutfile = os.path.join(configs_path, "structured-out-status.json")
+   script.load_structured_out()
+
+   self.assertFalse("version" in script.structuredOut)
+    
+
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("glob.glob")
   @patch("sys.exit")
