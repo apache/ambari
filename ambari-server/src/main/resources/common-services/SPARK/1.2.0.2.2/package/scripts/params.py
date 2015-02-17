@@ -19,6 +19,7 @@ limitations under the License.
 """
 
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
+from resource_management.libraries.functions.default import default
 from resource_management import *
 from setup_spark import *
 import status_params
@@ -27,11 +28,11 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 stack_name = default("/hostLevelParams/stack_name", None)
+stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)
-
-hdp_stack_version = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(hdp_stack_version)
 
 # TODO! FIXME! Version check is not working as of today :
 #   $ yum list installed | grep hdp-select
@@ -41,7 +42,7 @@ hdp_stack_version = format_hdp_stack_version(hdp_stack_version)
 #stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2.1.0') >= 0
 
 stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0
-version = default("/commandParams/version", None)
+
 if stack_is_hdp22_or_further:
   hadoop_home = "/usr/hdp/current/hadoop-client"
   spark_conf = '/etc/spark/conf'

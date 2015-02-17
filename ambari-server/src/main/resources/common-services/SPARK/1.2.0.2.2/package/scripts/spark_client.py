@@ -20,6 +20,7 @@ limitations under the License.
 
 import sys
 from resource_management import *
+from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.core import shell
