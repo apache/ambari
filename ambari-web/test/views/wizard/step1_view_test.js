@@ -590,12 +590,18 @@ describe('App.WizardStep1View', function () {
   });
 
   describe('#clearGroupLocalRepository', function () {
+    var context = {'group-number': 0, id: 'HDP-redhat5', repoId: 'HDP-redhat5', baseUrl: 'baseUrl', validation: 'validation'};
     it('should empty base url and validation', function () {
-      var event = {context: Em.Object.create({'group-number': 0, id: 'HDP-redhat5', repoId: 'HDP-redhat5', baseUrl: 'baseUrl', validation: 'validation'})};
+      var event = {context: Em.Object.create(context, {isSelected: true})};
       view.clearGroupLocalRepository(event);
       expect(event.context.get('baseUrl')).to.be.empty;
       expect(event.context.get('validation')).to.be.empty;
-
+    });
+    it('should do nothing if corresponding OS is not selected', function () {
+      var event = {context: Em.Object.create(context, {isSelected: false})};
+      view.clearGroupLocalRepository(event);
+      expect(event.context.get('baseUrl')).to.equal('baseUrl');
+      expect(event.context.get('validation')).to.equal('validation');
     });
   });
 

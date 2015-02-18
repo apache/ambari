@@ -208,6 +208,9 @@ App.WizardStep1View = Em.View.extend({
    * @param {object} event
    */
   clearGroupLocalRepository: function (event) {
+    if (!event.context.get('isSelected')) {
+      return;
+    }
     event.context.set('baseUrl', '');
     event.context.set('validation', App.Repository.validation['PENDING']);
   },

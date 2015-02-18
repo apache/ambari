@@ -75,7 +75,7 @@
                         </div>
                         <div class="clear-td">
                           {{#if repository.clearAll}}
-                            <a {{action "clearGroupLocalRepository" repository target="view" }}>
+                            <a {{action "clearGroupLocalRepository" repository target="view" }} {{bindAttr class="operatingSystem.isSelected::disabled-clear-button"}}>
                               <i class="icon-remove-sign"></i>
                             </a>
                           {{/if}}
