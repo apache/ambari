@@ -32,6 +32,7 @@ import threading
 import traceback
 import re
 from datetime import datetime
+from resource_management.core.shell import quote_bash_args
 
 AMBARI_PASSPHRASE_VAR_NAME = "AMBARI_PASSPHRASE"
 HOST_BOOTSTRAP_TIMEOUT = 300
@@ -244,7 +245,7 @@ class Bootstrap(threading.Thread):
     params = self.shared_state
     user = params.user
 
-    command = "sudo mkdir -p {0} ; sudo chown -R {1} {0}".format(self.TEMP_FOLDER,params.user)
+    command = "sudo mkdir -p {0} ; sudo chown -R {1} {0}".format(self.TEMP_FOLDER,quote_bash_args(params.user))
 
     ssh = SSH(params.user, params.sshkey_file, self.host, command,
               params.bootdir, self.host_log)
@@ -368,7 +369,7 @@ class Bootstrap(threading.Thread):
     port = self.getAmbariPort()
     passwordFile = self.getPasswordFile()
     return "sudo -S python " + str(setupFile) + " " + str(expected_hostname) + \
-           " " + str(passphrase) + " " + str(server)+ " " + str(user_run_as) + " " + str(version) + \
+           " " + str(passphrase) + " " + str(server)+ " " + quote_bash_args(str(user_run_as)) + " " + str(version) + \
            " " + str(port) + " < " + str(passwordFile)
 
 
@@ -380,7 +381,7 @@ class Bootstrap(threading.Thread):
     version=self.getAmbariVersion()
     port=self.getAmbariPort()
     return "sudo python " + str(setupFile) + " " + str(expected_hostname) + \
-           " " + str(passphrase) + " " + str(server)+ " " + str(user_run_as) + " " + str(version) + \
+           " " + str(passphrase) + " " + str(server)+ " " + quote_bash_args(str(user_run_as)) + " " + str(version) + \
            " " + str(port)
 
 

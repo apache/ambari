@@ -191,7 +191,6 @@ def _call(command, logoutput=None, throw_on_failure=True,
       raise ExecuteTimeoutException()
    
   code = proc.returncode
-  print code
   
   if throw_on_failure and code:
     err_msg = Logger.filter_text(("Execution of '%s' returned %d. %s") % (command_alias, code, out))

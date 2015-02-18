@@ -19,6 +19,8 @@ package org.apache.ambari.server.bootstrap;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -27,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.server.bootstrap.BootStrapStatus.BSStat;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -154,8 +157,7 @@ class BSRunner extends Thread {
     if (user == null || user.isEmpty()) {
       user = DEFAULT_USER;
     }
-    String commands[] = new String[12];
-    String shellCommand[] = new String[3];
+    String command[] = new String[12];
     BSStat stat = BSStat.RUNNING;
     String scriptlog = "";
     try {
@@ -181,23 +183,18 @@ class BSRunner extends Thread {
       /* Running command:
        * script hostlist bsdir user sshkeyfile
        */
-      shellCommand[0] = System.getProperty("os.name").contains("Windows") ? "cmd" : "sh";
-      shellCommand[1] = System.getProperty("os.name").contains("Windows") ? "/C" : "-c";
-
-      commands[0] = this.bsScript;
-      commands[1] = hostString;
-      commands[2] = this.requestIdDir.toString();
-      commands[3] = user;
-      commands[4] = this.sshKeyFile.toString();
-      commands[5] = this.agentSetupScript.toString();
-      commands[6] = this.ambariHostname;
-      commands[7] = this.clusterOsFamily;
-      commands[8] = this.projectVersion;
-      commands[9] = this.serverPort+"";
-      commands[10] = userRunAs;
-      if (this.passwordFile != null) {
-        commands[11] = this.passwordFile.toString();
-      }
+      command[0] = this.bsScript;
+      command[1] = hostString;
+      command[2] = this.requestIdDir.toString();
+      command[3] = user;
+      command[4] = this.sshKeyFile.toString();
+      command[5] = this.agentSetupScript.toString();
+      command[6] = this.ambariHostname;
+      command[7] = this.clusterOsFamily;
+      command[8] = this.projectVersion;
+      command[9] = this.serverPort+"";
+      command[10] = userRunAs;
+      command[11] = (this.passwordFile==null) ? "null" : this.passwordFile.toString();
       LOG.info("Host= " + hostString + " bs=" + this.bsScript + " requestDir=" +
           requestIdDir + " user=" + user + " keyfile=" + this.sshKeyFile +
           " passwordFile " + this.passwordFile + " server=" + this.ambariHostname +
@@ -207,22 +204,31 @@ class BSRunner extends Thread {
       if (this.verbose)
         env = new String[] { env[0], " BS_VERBOSE=\"-vvv\" " };
 
-      StringBuilder commandString = new StringBuilder();
-      for (String comm : commands) {
-        commandString.append(" " + comm);
-      }
-
       if (LOG.isDebugEnabled()) {
-        LOG.debug(commandString);
+        LOG.debug(Arrays.toString(command));
       }
 
-      String bootStrapOutputFile = requestIdDir + File.separator + "bootstrap.out";
-      String bootStrapErrorFile = requestIdDir + File.separator + "bootstrap.err";
-      commandString.append(
-          " 1> " + bootStrapOutputFile + " 2>" + bootStrapErrorFile);
+      String bootStrapOutputFilePath = requestIdDir + File.separator + "bootstrap.out";
+      String bootStrapErrorFilePath = requestIdDir + File.separator + "bootstrap.err";
 
-      shellCommand[2] = commandString.toString();
-      Process process = Runtime.getRuntime().exec(shellCommand, env);
+      Process process = Runtime.getRuntime().exec(command, env);
+      
+      PrintWriter stdOutWriter = null;
+      PrintWriter stdErrWriter = null;
+      
+      try {
+        stdOutWriter = new PrintWriter(bootStrapOutputFilePath);
+        stdErrWriter = new PrintWriter(bootStrapErrorFilePath);
+        IOUtils.copy(process.getInputStream(), stdOutWriter);
+        IOUtils.copy(process.getErrorStream(), stdErrWriter);
+      } finally {
+        if(stdOutWriter != null)
+          stdOutWriter.close();
+        
+        if(stdErrWriter != null)
+          stdErrWriter.close();
+      }
+
 
       // Startup a scheduled executor service to look through the logs
       ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
@@ -234,13 +240,13 @@ class BSRunner extends Thread {
       try {
 
         LOG.info("Bootstrap output, log="
-              + bootStrapErrorFile + " " + bootStrapOutputFile);
+              + bootStrapErrorFilePath + " " + bootStrapOutputFilePath);
         int exitCode = process.waitFor();
         String outMesg = "";
         String errMesg = "";
         try {
-          outMesg = FileUtils.readFileToString(new File(bootStrapOutputFile));
-          errMesg = FileUtils.readFileToString(new File(bootStrapErrorFile));
+          outMesg = FileUtils.readFileToString(new File(bootStrapOutputFilePath));
+          errMesg = FileUtils.readFileToString(new File(bootStrapErrorFilePath));
         } catch(IOException io) {
           LOG.info("Error in reading files ", io);
         }

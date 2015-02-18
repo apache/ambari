@@ -87,6 +87,7 @@ public class BootStrapTest extends TestCase {
     ArrayList<String> hosts = new ArrayList<String>();
     hosts.add("host1");
     hosts.add("host2");
+    info.setUserRunAs("root");
     info.setHosts(hosts);
     info.setUser("user");
     info.setPassword("passwd");
@@ -144,6 +145,7 @@ public class BootStrapTest extends TestCase {
     hosts.add("host2");
     info.setHosts(hosts);
     info.setUser("user");
+    info.setUserRunAs("root");
     info.setPassword("passwd");
     BSResponse response = impl.runBootStrap(info);
     long requestId = response.getRequestId();
