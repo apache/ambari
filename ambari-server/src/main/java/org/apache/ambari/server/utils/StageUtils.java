@@ -17,26 +17,8 @@
  */
 package org.apache.ambari.server.utils;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
-
-import javax.xml.bind.JAXBException;
-
+import com.google.common.base.Joiner;
+import com.google.gson.Gson;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -57,8 +39,24 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 
-import com.google.common.base.Joiner;
-import com.google.gson.Gson;
+import javax.xml.bind.JAXBException;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 public class StageUtils {
 
@@ -138,6 +136,10 @@ public class StageUtils {
 
   public static String getActionId(long requestId, long stageId) {
     return requestId + "-" + stageId;
+  }
+
+  public static Map<String, String> getComponentToClusterInfoKeyMap() {
+    return componentToClusterInfoKeyMap;
   }
 
   public static long[] getRequestStage(String actionId) {

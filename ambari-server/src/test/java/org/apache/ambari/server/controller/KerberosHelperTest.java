@@ -375,7 +375,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(service1.getName()).andReturn("SERVICE1").anyTimes();
     expect(service1.getServiceComponents())
         .andReturn(Collections.<String, ServiceComponent>emptyMap())
-        .once();
+        .times(2);
     service1.setSecurityState(SecurityState.SECURED_KERBEROS);
     expectLastCall().once();
 
@@ -383,7 +383,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(service2.getName()).andReturn("SERVICE2").anyTimes();
     expect(service2.getServiceComponents())
         .andReturn(Collections.<String, ServiceComponent>emptyMap())
-        .once();
+        .times(2);
     service2.setSecurityState(SecurityState.SECURED_KERBEROS);
     expectLastCall().once();
 
@@ -625,7 +625,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(service1.getName()).andReturn("SERVICE1").anyTimes();
     expect(service1.getServiceComponents())
         .andReturn(Collections.<String, ServiceComponent>emptyMap())
-        .once();
+        .times(2);
     service1.setSecurityState(SecurityState.UNSECURED);
     expectLastCall().once();
 
@@ -633,7 +633,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(service2.getName()).andReturn("SERVICE2").anyTimes();
     expect(service2.getServiceComponents())
         .andReturn(Collections.<String, ServiceComponent>emptyMap())
-        .once();
+        .times(2);
     service2.setSecurityState(SecurityState.UNSECURED);
     expectLastCall().once();
 
@@ -852,13 +852,13 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(service1.getName()).andReturn("SERVICE1").anyTimes();
     expect(service1.getServiceComponents())
         .andReturn(Collections.<String, ServiceComponent>emptyMap())
-        .once();
+        .times(2);
 
     final Service service2 = createStrictMock(Service.class);
     expect(service2.getName()).andReturn("SERVICE2").anyTimes();
     expect(service2.getServiceComponents())
         .andReturn(Collections.<String, ServiceComponent>emptyMap())
-        .once();
+        .times(2);
 
     final Map<String, String> kerberosEnvProperties = createNiceMock(Map.class);
     expect(kerberosEnvProperties.get("kdc_type")).andReturn("mit-kdc").anyTimes();
@@ -1130,13 +1130,13 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(service1.getName()).andReturn("SERVICE1").anyTimes();
     expect(service1.getServiceComponents())
         .andReturn(Collections.<String, ServiceComponent>emptyMap())
-        .once();
+        .times(2);
 
     final Service service2 = createStrictMock(Service.class);
     expect(service2.getName()).andReturn("SERVICE2").anyTimes();
     expect(service2.getServiceComponents())
         .andReturn(Collections.<String, ServiceComponent>emptyMap())
-        .once();
+        .times(2);
 
     final Map<String, String> kerberosEnvProperties = createNiceMock(Map.class);
     expect(kerberosEnvProperties.get("kdc_type")).andReturn("mit-kdc").anyTimes();

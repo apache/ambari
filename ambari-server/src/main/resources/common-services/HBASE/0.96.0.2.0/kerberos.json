@@ -39,7 +39,10 @@
           "hbase-site": {
             "hbase.security.authentication": "kerberos",
             "hbase.security.authorization": "true",
-            "zookeeper.znode.parent": "/hbase-secure"
+            "zookeeper.znode.parent": "/hbase-secure",
+            "hbase.coprocessor.master.classes": "org.apache.hadoop.hbase.security.access.AccessController",
+            "hbase.coprocessor.region.classes": "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,org.apache.hadoop.hbase.security.access.AccessController",
+            "hbase.bulkload.staging.dir": "/apps/hbase/staging"
           }
         }
       ],

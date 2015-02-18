@@ -25,7 +25,19 @@
             "hadoop.security.authentication": "kerberos",
             "hadoop.rpc.protection": "authentication",
             "hadoop.security.authorization": "true",
-            "hadoop.security.auth_to_local": "_AUTH_TO_LOCAL_RULES"
+            "hadoop.security.auth_to_local": "_AUTH_TO_LOCAL_RULES",
+            "hadoop.http.authentication.kerberos.name.rules": "",
+            "hadoop.http.filter.initializers": "",
+            "hadoop.http.authentication.type": "simple",
+            "hadoop.http.authentication.signature.secret": "",
+            "hadoop.http.authentication.signature.secret.file": "",
+            "hadoop.http.authentication.signer.secret.provider": "",
+            "hadoop.http.authentication.signer.secret.provider.object": "",
+            "hadoop.http.authentication.token.validity": "",
+            "hadoop.http.authentication.cookie.domain": "",
+            "hadoop.http.authentication.cookie.path": "",
+            "hadoop.proxyuser.HTTP.groups": "${core-site/proxyuser_group}",
+            "hadoop.proxyuser.HTTP.hosts": "${clusterHostInfo/webhcat_server_host}"
           }
         }
       ],

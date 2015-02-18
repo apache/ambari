@@ -78,6 +78,7 @@ import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
@@ -91,6 +92,7 @@ import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1134,6 +1136,18 @@ public class KerberosHelper {
       }
       configHelper.cloneAttributesMap(attributes, configurationAttributes.get(type));
     }
+
+    // add clusterHostInfo config
+    Map<String, String> componentHosts = new HashMap<String, String>();
+    for (Map.Entry<String, Service> service : cluster.getServices().entrySet()) {
+      for (Map.Entry<String, ServiceComponent> serviceComponent : service.getValue().getServiceComponents().entrySet()) {
+        if (StageUtils.getComponentToClusterInfoKeyMap().keySet().contains(serviceComponent.getValue().getName())) {
+          componentHosts.put(StageUtils.getComponentToClusterInfoKeyMap().get(serviceComponent.getValue().getName()),
+                  StringUtils.join(serviceComponent.getValue().getServiceComponentHosts().keySet(), ","));
+        }
+      }
+    }
+    configurations.put("clusterHostInfo", componentHosts);
 
     return configurations;
   }
