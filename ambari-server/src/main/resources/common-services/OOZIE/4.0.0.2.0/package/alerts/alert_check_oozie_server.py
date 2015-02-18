@@ -17,12 +17,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
-from resource_management import *
+from resource_management.core.resources import Execute
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
-from resource_management.core.environment import Environment
 from ambari_commons.os_check import OSConst, OSCheck
+
 from urlparse import urlparse
 
 RESULT_CODE_OK = 'OK'
@@ -31,15 +30,15 @@ RESULT_CODE_UNKNOWN = 'UNKNOWN'
 
 OOZIE_URL_KEY = '{{oozie-site/oozie.base.url}}'
 SECURITY_ENABLED = '{{cluster-env/security_enabled}}'
-SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
-SMOKEUSER_KEYTAB_KEY = '{{cluster-env/smokeuser_keytab}}'
+OOZIE_PRINCIPAL = '{{oozie-site/oozie.authentication.kerberos.principal}}'
+OOZIE_KEYTAB = '{{oozie-site/oozie.authentication.kerberos.keytab}}'
 
 def get_tokens():
   """
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return (OOZIE_URL_KEY, SMOKEUSER_KEY, SECURITY_ENABLED, SMOKEUSER_KEYTAB_KEY)
+  return (OOZIE_URL_KEY, OOZIE_PRINCIPAL, SECURITY_ENABLED, OOZIE_KEYTAB)
 
 def execute(parameters=None, host_name=None):
   """
@@ -53,34 +52,44 @@ def execute(parameters=None, host_name=None):
   if parameters is None:
     return (RESULT_CODE_UNKNOWN, ['There were no parameters supplied to the script.'])
 
+  if not OOZIE_URL_KEY in parameters:
+    return (RESULT_CODE_UNKNOWN, ['The Oozie URL is a required parameter.'])
+
+  # use localhost on Windows, 0.0.0.0 on others; 0.0.0.0 means bind to all
+  # interfaces, which doesn't work on Windows
+  localhost_address = 'localhost' if OSCheck.get_os_family() == OSConst.WINSRV_FAMILY else '0.0.0.0'
+
+  oozie_url = parameters[OOZIE_URL_KEY]
+  oozie_url = oozie_url.replace(urlparse(oozie_url).hostname,localhost_address)
+
   security_enabled = False
-  if set([OOZIE_URL_KEY, SMOKEUSER_KEY, SECURITY_ENABLED]).issubset(parameters):
-    oozie_url = parameters[OOZIE_URL_KEY]
-    localhost_address = 'localhost' if OSCheck.get_os_family() == OSConst.WINSRV_FAMILY else '0.0.0.0'
-    oozie_url = oozie_url.replace(urlparse(oozie_url).hostname,localhost_address)
-    smokeuser = parameters[SMOKEUSER_KEY]
+  if SECURITY_ENABLED in parameters:
     security_enabled = str(parameters[SECURITY_ENABLED]).upper() == 'TRUE'
-  else:
-    return (RESULT_CODE_UNKNOWN, ['The Oozie URL and Smokeuser are a required parameters.'])
+
+  command = format("source /etc/oozie/conf/oozie-env.sh ; oozie admin -oozie {oozie_url} -status")
 
   try:
+    # kinit if security is enabled so that oozie-env.sh can make the web request
     if security_enabled:
-      if set([SMOKEUSER_KEYTAB_KEY]).issubset(parameters) and set([SMOKEUSER_KEY]).issubset(parameters):
-        smokeuser_keytab = parameters[SMOKEUSER_KEYTAB_KEY]
-        smokeuser_principal = parameters[SMOKEUSER_KEY]
+      if OOZIE_KEYTAB in parameters and OOZIE_PRINCIPAL in parameters:
+        oozie_keytab = parameters[OOZIE_KEYTAB]
+        oozie_principal = parameters[OOZIE_PRINCIPAL]
+
+        # substitute _HOST in kerberos principal with actual fqdn
+        oozie_principal = oozie_principal.replace('_HOST', host_name)
       else:
-        return (RESULT_CODE_UNKNOWN, ['The Smokeuser keytab and username are required when security is enabled.'])
+        return (RESULT_CODE_UNKNOWN, ['The Oozie keytab and principal are required parameters when security is enabled.'])
+
       kinit_path_local = get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
-      kinitcmd = format("{kinit_path_local} -kt {smokeuser_keytab} {smokeuser_principal}; ")
+      kinit_command = format("{kinit_path_local} -kt {oozie_keytab} {oozie_principal}; ")
 
-      Execute(kinitcmd,
-              user=smokeuser,
-              )
+      # kinit
+      Execute(kinit_command)
 
-    Execute(format("source /etc/oozie/conf/oozie-env.sh ; oozie admin -oozie {oozie_url} -status"),
-            user=smokeuser,
-            )
-    return (RESULT_CODE_OK, ["Oozie check success"])
+    # execute the command
+    Execute(command)
+
+    return (RESULT_CODE_OK, ["Successful connection to {0}".format(oozie_url)])
 
   except Exception, ex:
     return (RESULT_CODE_CRITICAL, [str(ex)])
