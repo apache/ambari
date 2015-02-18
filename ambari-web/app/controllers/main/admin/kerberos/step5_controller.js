@@ -45,7 +45,8 @@ App.KerberosWizardStep5Controller = App.KerberosProgressPageController.extend({
    * remove Application Timeline Server component if needed.
    */
   checkComponentsRemoval: function() {
-    if (App.Service.find().someProperty('serviceName', 'YARN') && !App.get('doesATSSupportKerberos') && !this.get('commands').contains('deleteATS')) {
+    if (App.Service.find().someProperty('serviceName', 'YARN') && !App.get('doesATSSupportKerberos')
+      && !this.get('commands').contains('deleteATS') && App.HostComponent.find().findProperty('componentName', 'APP_TIMELINE_SERVER')) {
       this.get('commands').pushObject('deleteATS');
     }
   },

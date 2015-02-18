@@ -19,13 +19,14 @@
 var App = require('app');
 
 describe('App.KerberosWizardStep5Controller', function() {
-  describe('checkComponentsRemoval', function() {
+  describe('#checkComponentsRemoval', function() {
 
     var tests = [
-      { yarnInstalled: true, doesATSSupportKerberos: false, commands: ['stopServices', 'deleteATS']},
-      { yarnInstalled: false, doesATSSupportKerberos: true, commands: ['stopServices']},
-      { yarnInstalled: false, doesATSSupportKerberos: false, commands: ['stopServices']},
-      { yarnInstalled: true, doesATSSupportKerberos: true, commands: ['stopServices']},
+      { yarnInstalled: true, doesATSSupportKerberos: false, commands: ['stopServices', 'deleteATS'], ATSInstalled: true},
+      { yarnInstalled: false, doesATSSupportKerberos: true, commands: ['stopServices'], ATSInstalled: true},
+      { yarnInstalled: false, doesATSSupportKerberos: false, commands: ['stopServices'], ATSInstalled: true},
+      { yarnInstalled: true, doesATSSupportKerberos: true, commands: ['stopServices'], ATSInstalled: false},
+      { yarnInstalled: true, doesATSSupportKerberos: true, commands: ['stopServices'], ATSInstalled: true}
     ];
 
     tests.forEach(function(test) {
@@ -33,9 +34,11 @@ describe('App.KerberosWizardStep5Controller', function() {
         var controller = App.KerberosWizardStep5Controller.create({ commands: ['stopServices'] });
         sinon.stub(App, 'get').withArgs('doesATSSupportKerberos').returns(test.doesATSSupportKerberos);
         sinon.stub(App.Service, 'find').returns(test.yarnInstalled ? [Em.Object.create({ serviceName: 'YARN'})] : []);
+        sinon.stub(App.HostComponent, 'find').returns(test.ATSInstalled ? [Em.Object.create({ componentName: 'APP_TIMELINE_SERVER'})] : []);
         controller.checkComponentsRemoval();
         App.get.restore();
         App.Service.find.restore();
+        App.HostComponent.find.restore();
         expect(controller.get('commands').toArray()).to.eql(test.commands);
       });
     });
