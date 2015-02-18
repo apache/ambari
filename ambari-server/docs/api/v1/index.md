@@ -331,9 +331,24 @@ Task attempt resources are individual attempts at map or reduce tasks for a job.
 [Task Attempt Resources](taskattempt-resources.md)
 
 #### views
-Views offer a systematic way to plug-in UI capabilities to surface custom visualization, management and monitoring features in Ambari Web..
+Views offer a systematic way to plug-in UI capabilities to surface custom visualization, management and monitoring features in Ambari Web.
 
 [View Resources](view-resources.md)
+
+#### repository_versions
+Repository version resources contain information about available repositories with Hadoop stacks for cluster.
+
+[Repository Version Resources](repository-version-resources.md)
+
+#### stack_versions
+Stack version resources contain relationship between some resource and repository versions.
+
+[Stack Version Resources](stack-version-resources.md)
+
+#### rolling_upgrades_check
+Rolling upgrades check resources store information about successful/unsuccessful checks performed before rolling upgrade.
+
+[Rolling Upgrade Check Resources](rolling-upgrade-check-resources.md)
 
 Partial Response
 ----
