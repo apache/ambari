@@ -328,6 +328,7 @@ public class UpgradeCatalog200Test {
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod
         ("addNewConfigurationsFromXml");
     Method setSecurityType = UpgradeCatalog200.class.getDeclaredMethod("setSecurityType");
+    Method updateTezConfiguration = UpgradeCatalog200.class.getDeclaredMethod("updateTezConfiguration");
     Method updateConfigurationProperties = AbstractUpgradeCatalog.class.getDeclaredMethod
             ("updateConfigurationProperties", String.class, Map.class, boolean.class, boolean.class);
 
@@ -336,6 +337,7 @@ public class UpgradeCatalog200Test {
         .addMockedMethod(updateHiveDatabaseType)
         .addMockedMethod(addNewConfigurationsFromXml)
         .addMockedMethod(setSecurityType)
+        .addMockedMethod(updateTezConfiguration)
         .addMockedMethod(updateConfigurationProperties)
         .createMock();
 
@@ -347,6 +349,9 @@ public class UpgradeCatalog200Test {
     upgradeCatalog.updateHiveDatabaseType();
     expectLastCall().once();
     upgradeCatalog.setSecurityType();
+    expectLastCall().once();
+
+    upgradeCatalog.updateTezConfiguration();
     expectLastCall().once();
 
     upgradeCatalog.updateConfigurationProperties("hive-site",

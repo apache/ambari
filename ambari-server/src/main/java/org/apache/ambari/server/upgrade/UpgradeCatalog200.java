@@ -21,6 +21,7 @@ package org.apache.ambari.server.upgrade;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +70,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
   private static final String ARTIFACT_TABLE = "artifact";
   private static final String KERBEROS_PRINCIPAL_TABLE = "kerberos_principal";
   private static final String KERBEROS_PRINCIPAL_HOST_TABLE = "kerberos_principal_host";
+  private static final String TEZ_USE_CLUSTER_HADOOP_LIBS_PROPERTY = "tez.use.cluster.hadoop-libs";
 
   /**
    * {@inheritDoc}
@@ -305,7 +307,12 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     addNewConfigurationsFromXml();
     updateHiveDatabaseType();
     setSecurityType();
+    updateTezConfiguration();
     addMissingConfigs();
+  }
+
+  protected void updateTezConfiguration() throws AmbariException {
+    updateConfigurationProperties("tez-site", Collections.singletonMap(TEZ_USE_CLUSTER_HADOOP_LIBS_PROPERTY, String.valueOf(false)), false, false);
   }
 
   protected void updateHiveDatabaseType() throws AmbariException {

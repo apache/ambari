@@ -30,9 +30,9 @@ import org.apache.ambari.server.state.stack.PrereqCheckType;
 import java.util.Map;
 
 /**
- * Checks that MR, Oozie and Tez jobs reference hadoop libraries from the distributed cache.
+ * Checks that MR jobs reference hadoop libraries from the distributed cache.
  */
-public class ServicesJobsDistributedCacheCheck extends AbstractCheckDescriptor {
+public class ServicesMapReduceDistributedCacheCheck extends AbstractCheckDescriptor {
 
   @Override
   public boolean isApplicable(PrereqCheckRequest request)
@@ -49,8 +49,8 @@ public class ServicesJobsDistributedCacheCheck extends AbstractCheckDescriptor {
   /**
    * Constructor.
    */
-  public ServicesJobsDistributedCacheCheck() {
-    super("SERVICES_JOBS_DISTRIBUTED_CACHE", PrereqCheckType.SERVICE, "Jobs should reference hadoop libraries from the distributed cache");
+  public ServicesMapReduceDistributedCacheCheck() {
+    super("SERVICES_MR_DISTRIBUTED_CACHE", PrereqCheckType.SERVICE, "MapReduce should reference hadoop libraries from the distributed cache");
   }
 
   @Override
@@ -61,12 +61,14 @@ public class ServicesJobsDistributedCacheCheck extends AbstractCheckDescriptor {
     final Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
     final DesiredConfig desiredConfig = desiredConfigs.get(configType);
     final Config config = cluster.getConfig(configType, desiredConfig.getTag());
-    if (!config.getProperties().containsKey("mapreduce.application.framework.path") || !config.getProperties().containsKey("mapreduce.application.classpath")) {
-      // TODO actually it is needed to validate that these properties contain proper values but the tickets for these changes are still open, so it will cause
-      // prerequisite checks to fail
-      prerequisiteCheck.getFailedOn().add("MR");
+    final String frameworkPath = config.getProperties().get("mapreduce.application.framework.path");
+    final String applicationClasspath = config.getProperties().get("mapreduce.application.classpath");
+    if (frameworkPath == null || applicationClasspath == null || !frameworkPath.startsWith("hdfs:/")) {
+      prerequisiteCheck.getFailedOn().add("MAP_REDUCE");
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason("mapreduce.application.framework.path and mapreduce.application.classpath should reference distributed cache");
+      prerequisiteCheck.setFailReason("MapReduce should reference hadoop libraries from the distributed cache. Make sure that "
+          + "mapreduce.application.framework.path and mapreduce.application.classpath properties are present in mapred.site.xml "
+          + "and point to hdfs:/... urls");
     }
   }
 }

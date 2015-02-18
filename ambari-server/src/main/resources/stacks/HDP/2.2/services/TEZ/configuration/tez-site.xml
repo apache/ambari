@@ -313,6 +313,12 @@
     <value>false</value>
     <description>Whether to publish configuration information to History logger</description>
   </property>
+  
+  <property>
+    <name>tez.use.cluster.hadoop-libs</name>
+    <value>false</value>
+    <description>This being true implies that the deployment is relying on hadoop jars being available on the cluster on all nodes.</description>
+  </property>
 
   <property>
     <name>tez.am.tez-ui.history-url.template</name>

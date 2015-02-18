@@ -18,8 +18,10 @@
 package org.apache.ambari.server.checks;
 
 import com.google.inject.Inject;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
+import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
@@ -51,7 +53,12 @@ public class SecondaryNamenodeDeletedCheck extends AbstractCheckDescriptor {
   @Override
   public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
     final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
-    return cluster.getService(MasterHostResolver.Service.HDFS.name()) != null;
+    try {
+      cluster.getService("HDFS");
+    } catch (ServiceNotFoundException ex) {
+      return false;
+    }
+    return true;
   }
 
   @Override

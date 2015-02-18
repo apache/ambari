@@ -30,10 +30,12 @@ import org.apache.ambari.server.checks.HostsHeartbeatCheck;
 import org.apache.ambari.server.checks.HostsMasterMaintenanceCheck;
 import org.apache.ambari.server.checks.HostsRepositoryVersionCheck;
 import org.apache.ambari.server.checks.ServicesDecommissionCheck;
-import org.apache.ambari.server.checks.ServicesJobsDistributedCacheCheck;
+import org.apache.ambari.server.checks.ServicesMapReduceDistributedCacheCheck;
 import org.apache.ambari.server.checks.ServicesMaintenanceModeCheck;
 import org.apache.ambari.server.checks.ServicesNamenodeHighAvailabilityCheck;
 import org.apache.ambari.server.checks.SecondaryNamenodeDeletedCheck;
+import org.apache.ambari.server.checks.ServicesOozieDistributedCacheCheck;
+import org.apache.ambari.server.checks.ServicesTezDistributedCacheCheck;
 import org.apache.ambari.server.checks.ServicesUpCheck;
 import org.apache.ambari.server.checks.ServicesYarnWorkPreservingCheck;
 import org.apache.ambari.server.state.CheckHelper;
@@ -84,12 +86,15 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
   @Inject
   private static ServicesDecommissionCheck servicesDecommissionCheck;
   @Inject
-  private static ServicesJobsDistributedCacheCheck servicesJobsDistributedCacheCheck;
+  private static ServicesMapReduceDistributedCacheCheck servicesJobsDistributedCacheCheck;
   @Inject
   private static HostsHeartbeatCheck heartbeatCheck;
   @Inject
   private static ServicesUpCheck servicesUpCheck;
-
+  @Inject
+  private static ServicesOozieDistributedCacheCheck servicesOozieDistributedCacheCheck;
+  @Inject
+  private static ServicesTezDistributedCacheCheck servicesTezDistributedCacheCheck;
 
   /**
    * List of the registered upgrade checks
@@ -107,6 +112,8 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
       add(servicesJobsDistributedCacheCheck);
       add(heartbeatCheck);
       add(servicesUpCheck);
+      add(servicesOozieDistributedCacheCheck);
+      add(servicesTezDistributedCacheCheck);
     }
   };
 

@@ -24,46 +24,62 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrereqCheckType;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.PrereqCheckType;
 
 import java.util.Map;
 
 /**
- * Checks that namenode high availability is enabled.
+ * Checks that Tez jobs reference hadoop libraries from the distributed cache.
  */
-public class ServicesNamenodeHighAvailabilityCheck extends AbstractCheckDescriptor {
-
-  /**
-   * Constructor.
-   */
-  public ServicesNamenodeHighAvailabilityCheck() {
-    super("SERVICES_NAMENODE_HA", PrereqCheckType.SERVICE, "Namenode high availability should be enabled");
-  }
+public class ServicesTezDistributedCacheCheck extends AbstractCheckDescriptor {
 
   @Override
-  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
+  public boolean isApplicable(PrereqCheckRequest request)
+    throws AmbariException {
     final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
     try {
-      cluster.getService("HDFS");
+      cluster.getService("TEZ");
     } catch (ServiceNotFoundException ex) {
       return false;
     }
     return true;
   }
 
+  /**
+   * Constructor.
+   */
+  public ServicesTezDistributedCacheCheck() {
+    super("SERVICES_TEZ_DISTRIBUTED_CACHE", PrereqCheckType.SERVICE, "TEZ should reference hadoop libraries from the distributed cache");
+  }
+
   @Override
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
-    final String configType = "hdfs-site";
+    final String configType = "tez-site";
     final Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
     final DesiredConfig desiredConfig = desiredConfigs.get(configType);
     final Config config = cluster.getConfig(configType, desiredConfig.getTag());
-    if (!config.getProperties().containsKey("dfs.nameservices")) {
-      prerequisiteCheck.getFailedOn().add("HDFS");
+    final String libUris = config.getProperties().get("tez.lib.uris");
+    final String useHadoopLibs = config.getProperties().get("tez.use.cluster.hadoop-libs");
+    if (libUris == null || useHadoopLibs == null) {
+      prerequisiteCheck.getFailedOn().add("TEZ");
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason("Namenode high availability is disabled. Verify that dfs.nameservices property is present in hdfs-site.xml");
+      prerequisiteCheck.setFailReason("tez-site should have properties tez.lib.uris and tez.use.cluster.hadoop-libs");
+      return;
+    }
+    if (!libUris.startsWith("hdfs:/") || !libUris.contains("tar.gz")) {
+      prerequisiteCheck.getFailedOn().add("TEZ");
+      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+      prerequisiteCheck.setFailReason("tez-site property tez.lib.uris should point to hdfs:/... url with .tar.gz archive of TEZ binaries");
+      return;
+    }
+    if (Boolean.parseBoolean(useHadoopLibs)) {
+      prerequisiteCheck.getFailedOn().add("TEZ");
+      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+      prerequisiteCheck.setFailReason("tez-site property tez.use.cluster.hadoop-libs should be set to false");
+      return;
     }
   }
 }

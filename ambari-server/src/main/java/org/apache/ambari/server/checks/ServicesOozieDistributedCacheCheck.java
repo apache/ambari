@@ -21,49 +21,54 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrereqCheckType;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 
-import java.util.Map;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 /**
- * Checks that namenode high availability is enabled.
+ * Checks that Oozie jobs reference hadoop libraries from the distributed cache.
  */
-public class ServicesNamenodeHighAvailabilityCheck extends AbstractCheckDescriptor {
+public class ServicesOozieDistributedCacheCheck extends AbstractCheckDescriptor {
 
-  /**
-   * Constructor.
-   */
-  public ServicesNamenodeHighAvailabilityCheck() {
-    super("SERVICES_NAMENODE_HA", PrereqCheckType.SERVICE, "Namenode high availability should be enabled");
-  }
+  @Inject
+  Provider<ServicesMapReduceDistributedCacheCheck> mapReduceCheck;
 
   @Override
-  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
+  public boolean isApplicable(PrereqCheckRequest request)
+    throws AmbariException {
     final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
     try {
-      cluster.getService("HDFS");
+      cluster.getService("OOZIE");
     } catch (ServiceNotFoundException ex) {
       return false;
     }
     return true;
   }
 
+  /**
+   * Constructor.
+   */
+  public ServicesOozieDistributedCacheCheck() {
+    super("SERVICES_OOZIE_DISTRIBUTED_CACHE", PrereqCheckType.SERVICE, "Oozie should reference hadoop libraries from the distributed cache");
+  }
+
   @Override
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
-    final String clusterName = request.getClusterName();
-    final Cluster cluster = clustersProvider.get().getCluster(clusterName);
-    final String configType = "hdfs-site";
-    final Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
-    final DesiredConfig desiredConfig = desiredConfigs.get(configType);
-    final Config config = cluster.getConfig(configType, desiredConfig.getTag());
-    if (!config.getProperties().containsKey("dfs.nameservices")) {
-      prerequisiteCheck.getFailedOn().add("HDFS");
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason("Namenode high availability is disabled. Verify that dfs.nameservices property is present in hdfs-site.xml");
+    // since Oozie does talk to multiple clusters, all clusters need to have MapReduce configured for Distributed Cache
+    for (String clusterName: clustersProvider.get().getClusters().keySet()) {
+      final PrereqCheckRequest clusterRequest = new PrereqCheckRequest(clusterName);
+      mapReduceCheck.get().perform(prerequisiteCheck, clusterRequest);
+      if (prerequisiteCheck.getStatus() == PrereqCheckStatus.FAIL) {
+        prerequisiteCheck.getFailedOn().clear();
+        prerequisiteCheck.getFailedOn().add("OOZIE");
+        prerequisiteCheck.setFailReason("MapReduce on cluster " + clusterName + " should reference hadoop libraries from the distributed cache. "
+            + "Make sure that mapreduce.application.framework.path and mapreduce.application.classpath properties are present in mapred.site.xml"
+            + "and point to hdfs:/... urls");
+        break;
+      }
     }
   }
 }
