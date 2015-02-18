@@ -65,6 +65,8 @@ public class AmbariAuthorizationFilter implements Filter {
   private static final String API_PERSIST_ALL_PATTERN          = API_VERSION_PREFIX + "/persist.*";
   private static final String API_LDAP_SYNC_EVENTS_ALL_PATTERN = API_VERSION_PREFIX + "/ldap_sync_events.*";
 
+  protected static final String LOGIN_REDIRECT_BASE = "/#/login?targetURI=";
+
   /**
    * The realm to use for the basic http auth
    */
@@ -89,6 +91,16 @@ public class AmbariAuthorizationFilter implements Filter {
       String token = httpRequest.getHeader(INTERNAL_TOKEN_HEADER);
       if (token != null) {
         context.setAuthentication(new InternalAuthenticationToken(token));
+      } else {
+        // for view access, we should redirect to the Ambari login
+        if(requestURI.matches(VIEWS_CONTEXT_ALL_PATTERN)) {
+          String queryString  = httpRequest.getQueryString();
+          String requestedURL = queryString == null ? requestURI : (requestURI + '?' + queryString);
+          String redirectURL  = httpResponse.encodeRedirectURL(LOGIN_REDIRECT_BASE + requestedURL);
+
+          httpResponse.sendRedirect(redirectURL);
+          return;
+        }
       }
     } else {
       boolean authorized = false;

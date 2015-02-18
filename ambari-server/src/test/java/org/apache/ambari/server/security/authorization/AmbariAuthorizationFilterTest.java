@@ -161,7 +161,7 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/any/other/URL", "GET", true);
     urlTests.put("/any/other/URL", "POST", true);
 
-    performGeneralDoFilterTest("admin", new int[] {PermissionEntity.AMBARI_ADMIN_PERMISSION}, urlTests);
+    performGeneralDoFilterTest("admin", new int[] {PermissionEntity.AMBARI_ADMIN_PERMISSION}, urlTests, false);
   }
 
   @Test
@@ -186,7 +186,7 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/any/other/URL", "GET", true);
     urlTests.put("/any/other/URL", "POST", false);
 
-    performGeneralDoFilterTest("user1", new int[] {PermissionEntity.CLUSTER_READ_PERMISSION}, urlTests);
+    performGeneralDoFilterTest("user1", new int[] {PermissionEntity.CLUSTER_READ_PERMISSION}, urlTests, false);
   }
 
   @Test
@@ -211,7 +211,7 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/any/other/URL", "GET", true);
     urlTests.put("/any/other/URL", "POST", false);
 
-    performGeneralDoFilterTest("user1", new int[] {PermissionEntity.CLUSTER_OPERATE_PERMISSION}, urlTests);
+    performGeneralDoFilterTest("user1", new int[] {PermissionEntity.CLUSTER_OPERATE_PERMISSION}, urlTests, false);
   }
 
   @Test
@@ -236,7 +236,7 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/any/other/URL", "GET", true);
     urlTests.put("/any/other/URL", "POST", false);
 
-    performGeneralDoFilterTest("user1", new int[] {PermissionEntity.VIEW_USE_PERMISSION}, urlTests);
+    performGeneralDoFilterTest("user1", new int[] {PermissionEntity.VIEW_USE_PERMISSION}, urlTests, false);
   }
 
   @Test
@@ -259,7 +259,16 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/any/other/URL", "GET", true);
     urlTests.put("/any/other/URL", "POST", false);
 
-    performGeneralDoFilterTest("user2", new int[0], urlTests);
+    performGeneralDoFilterTest("user2", new int[0], urlTests, false);
+  }
+
+  @Test
+  public void testDoFilter_viewNotLoggedIn() throws Exception {
+    final Table<String, String, Boolean> urlTests = HashBasedTable.create();
+    urlTests.put("/views/SomeView/SomeVersion/SomeInstance", "GET", false);
+    urlTests.put("/views/SomeView/SomeVersion/SomeInstance?foo=bar", "GET", false);
+
+    performGeneralDoFilterTest(null, new int[0], urlTests, true);
   }
 
   /**
@@ -268,9 +277,10 @@ public class AmbariAuthorizationFilterTest {
    * @param username user name
    * @param permissionsGranted array of user permissions
    * @param urlTests map of triples: url - http method - is allowed
+   * @param expectRedirect true if the requests should redirect to login
    * @throws Exception
    */
-  private void performGeneralDoFilterTest(String username, final int[] permissionsGranted, Table<String, String, Boolean> urlTests) throws Exception {
+  private void performGeneralDoFilterTest(String username, final int[] permissionsGranted, Table<String, String, Boolean> urlTests, boolean expectRedirect) throws Exception {
     final SecurityContext securityContext = createNiceMock(SecurityContext.class);
     final Authentication authentication = createNiceMock(Authentication.class);
     final FilterConfig filterConfig = createNiceMock(FilterConfig.class);
@@ -294,8 +304,12 @@ public class AmbariAuthorizationFilterTest {
 
     EasyMock.<Collection<? extends GrantedAuthority>>expect(authentication.getAuthorities()).andReturn(authorities).anyTimes();
     expect(filterConfig.getInitParameter("realm")).andReturn("AuthFilter").anyTimes();
-    expect(authentication.isAuthenticated()).andReturn(true).anyTimes();
-    expect(authentication.getName()).andReturn(username).anyTimes();
+    if (username == null) {
+      expect(authentication.isAuthenticated()).andReturn(false).anyTimes();
+    } else {
+      expect(authentication.isAuthenticated()).andReturn(true).anyTimes();
+      expect(authentication.getName()).andReturn(username).anyTimes();
+    }
     expect(filter.getSecurityContext()).andReturn(securityContext).anyTimes();
     expect(filter.getViewRegistry()).andReturn(viewRegistry).anyTimes();
     expect(securityContext.getAuthentication()).andReturn(authentication).anyTimes();
@@ -319,8 +333,19 @@ public class AmbariAuthorizationFilterTest {
       final HttpServletRequest request = createNiceMock(HttpServletRequest.class);
       final HttpServletResponse response = createNiceMock(HttpServletResponse.class);
 
-      expect(request.getRequestURI()).andReturn(urlTest.getRowKey()).anyTimes();
+      String URI = urlTest.getRowKey();
+      String[] URIParts = URI.split("\\?");
+
+      expect(request.getRequestURI()).andReturn(URIParts[0]).anyTimes();
+      expect(request.getQueryString()).andReturn(URIParts.length == 2 ? URIParts[1] : null).anyTimes();
       expect(request.getMethod()).andReturn(urlTest.getColumnKey()).anyTimes();
+
+      if (expectRedirect) {
+        String redirectURL = AmbariAuthorizationFilter.LOGIN_REDIRECT_BASE + urlTest.getRowKey();
+        expect(response.encodeRedirectURL(redirectURL)).andReturn(redirectURL);
+        response.sendRedirect(redirectURL);
+      }
+
       if (urlTest.getValue()) {
         chain.doFilter(EasyMock.<ServletRequest>anyObject(), EasyMock.<ServletResponse>anyObject());
         EasyMock.expectLastCall().once();
@@ -336,6 +361,10 @@ public class AmbariAuthorizationFilterTest {
 
       try {
         verify(chain);
+
+        if (expectRedirect) {
+          verify(response);
+        }
       } catch (AssertionError error) {
         throw new Exception("verify( failed on " + urlTest.getColumnKey() + " " + urlTest.getRowKey(), error);
       }
