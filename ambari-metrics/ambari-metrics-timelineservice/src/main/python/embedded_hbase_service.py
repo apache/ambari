@@ -36,9 +36,9 @@ MASTER_JVM_ARGS = '{0} ' \
   '-classpath "{5}" org.apache.hadoop.hbase.master.HMaster start'
 
 #-Xmx1000m "-XX:+UseConcMarkSweepGC" "-Djava.net.preferIPv4Stack=true"
-# -Dhbase.log.dir="C:\test\ambari-metrics-timelineservice-0.1.0-SNAPSHOT\hbase\logs" -Dhbase.log.file="hbase.log" -Dhbase.home.dir="C:\test\ambari-metrics-timelineservice-0.1.0-SNAPSHOT\hbase" -Dhbase.id.str="Administrator"
+# -Dhbase.log.dir="C:\test\ambari-metrics-timelineservice-2.0.0-SNAPSHOT\hbase\logs" -Dhbase.log.file="hbase.log" -Dhbase.home.dir="C:\test\ambari-metrics-timelineservice-2.0.0-SNAPSHOT\hbase" -Dhbase.id.str="Administrator"
 # -XX:OnOutOfMemoryError="taskkill /F /PID p" -Dhbase.root.logger="INFO,console" -Dhbase.security.logger="INFO,DRFAS"
-# -classpath "C:\test\ambari-metrics-timelineservice-0.1.0-SNAPSHOT\hbase\conf;C:\jdk1.7.0_67\lib\tools.jar;C:\test\ambari-metrics-timelineservice-0.1.0-SNAPSHOT\hbase;C:\test\ambari-metrics-timelineservice-0.1.0-SNAPSHOT\hbase\lib\*"
+# -classpath "C:\test\ambari-metrics-timelineservice-2.0.0-SNAPSHOT\hbase\conf;C:\jdk1.7.0_67\lib\tools.jar;C:\test\ambari-metrics-timelineservice-2.0.0-SNAPSHOT\hbase;C:\test\ambari-metrics-timelineservice-2.0.0-SNAPSHOT\hbase\lib\*"
 # org.apache.hadoop.hbase.master.HMaster start
 def _build_master_java_args(username = None):
   hbase_home_dir = os.path.abspath(EMBEDDED_HBASE_SUBDIR)

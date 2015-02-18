@@ -22,11 +22,11 @@ limitations under the License.
   <parent>
     <artifactId>ambari-metrics</artifactId>
     <groupId>org.apache.ambari</groupId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ambari-metrics-hadoop-sink</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>2.0.0-SNAPSHOT</version>
   <packaging>jar</packaging>
   <properties>
     <sinkJarName>${project.artifactId}-with-common-${project.version}.jar</sinkJarName>
