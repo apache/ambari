@@ -341,7 +341,7 @@ public class Stage {
                                                   @Nullable Integer timeout,
                                                   boolean retryAllowed) {
 
-    addServerActionCommand(actionName, role, command, clusterName, StageUtils.getHostName(), event,
+    addServerActionCommand(actionName, null, role, command, clusterName, StageUtils.getHostName(), event,
         commandParams, commandDetail, configTags, timeout, retryAllowed);
   }
 
@@ -357,26 +357,29 @@ public class Stage {
    * instantiated and invoked as needed.
    *
    * @param actionName    a String declaring the action name (in the form of a classname) to execute
+   * @param userName      the name of the user who created this stage; may be null for anonymous user
    * @param role          the Role for this command
    * @param command       the RoleCommand for this command
    * @param clusterName   a String identifying the cluster on which to to execute this command
    * @param hostName      the name of the host
    * @param event         a ServiceComponentHostServerActionEvent
    * @param commandParams a Map of String to String data used to pass to the action - this may be
-   *                      empty or null if no data is relevant
+*                      empty or null if no data is relevant
    * @param commandDetail a String declaring a descriptive name to pass to the action - null or an
-   *                      empty string indicates no value is to be set
+*                      empty string indicates no value is to be set
    * @param configTags    a Map of configuration tags to set for this command - if null, no
-   *                      configurations will be available for the command
+*                      configurations will be available for the command
    * @param timeout       an Integer declaring the timeout for this action - if null, a default
    * @param retryAllowed  indicates whether retry after failure is allowed
    */
-  public synchronized void addServerActionCommand(String actionName, Role role, RoleCommand command,
+  public synchronized void addServerActionCommand(String actionName,
+                                                  @Nullable  String userName,
+                                                  Role role, RoleCommand command,
                                                   String clusterName, String hostName,
                                                   ServiceComponentHostServerActionEvent event,
                                                   @Nullable Map<String, String> commandParams,
                                                   @Nullable String commandDetail,
-                                                  @Nullable Map<String, Map<String,String>> configTags,
+                                                  @Nullable Map<String, Map<String, String>> configTags,
                                                   @Nullable Integer timeout, boolean retryAllowed) {
     ExecutionCommandWrapper commandWrapper =
         addGenericExecutionCommand(clusterName, hostName, role, command, event, retryAllowed);
@@ -405,6 +408,9 @@ public class Stage {
 
     Map<String, String> roleParams = new HashMap<String, String>();
     roleParams.put(ServerAction.ACTION_NAME, actionName);
+    if (userName != null) {
+      roleParams.put(ServerAction.ACTION_USER_NAME, userName);
+    }
     cmd.setRoleParams(roleParams);
 
     if(commandDetail != null) {

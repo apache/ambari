@@ -859,6 +859,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     String host = cluster.getAllHostsDesiredConfigs().keySet().iterator().next();
 
     stage.addServerActionCommand(task.getImplementationClass(),
+        getManagementController().getAuthName(),
         Role.AMBARI_SERVER_ACTION,
         RoleCommand.EXECUTE,
         cluster.getClusterName(),

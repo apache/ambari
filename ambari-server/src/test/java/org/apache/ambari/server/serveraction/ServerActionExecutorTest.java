@@ -95,7 +95,7 @@ public class ServerActionExecutorTest {
         "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
 
     stage.addServerActionCommand(ManualStageAction.class.getName(),
-        Role.AMBARI_SERVER_ACTION,
+        null, Role.AMBARI_SERVER_ACTION,
         RoleCommand.EXECUTE,
         "cluster1", SERVER_HOST_NAME,
         new ServiceComponentHostServerActionEvent(StageUtils.getHostName(), System.currentTimeMillis()),

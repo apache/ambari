@@ -25,9 +25,11 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
+import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -60,6 +62,12 @@ public class ConfigureAction extends AbstractServerAction {
    */
   @Inject
   private ConfigHelper m_configHelper;
+
+  /**
+   * The Ambari configuration.
+   */
+  @Inject
+  private Configuration configuration;
 
   /**
    * {@inheritDoc}
@@ -108,8 +116,14 @@ public class ConfigureAction extends AbstractServerAction {
 
     String serviceVersionNote = "Stack Upgrade";
 
+    String auditName = getExecutionCommand().getRoleParams().get(ServerAction.ACTION_USER_NAME);
+
+    if (auditName == null) {
+      auditName = configuration.getAnonymousAuditName();
+    }
+
     m_configHelper.createConfigType(cluster, m_controller, configType,
-        config.getProperties(), m_controller.getAuthName(), serviceVersionNote);
+        config.getProperties(), auditName, serviceVersionNote);
 
     String message = "Updated ''{0}'' with ''{1}={2}''";
     message = MessageFormat.format(message, configType, key, value);

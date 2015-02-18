@@ -30,7 +30,8 @@ import java.util.concurrent.ConcurrentMap;
  */
 public interface ServerAction {
 
-  public static final String ACTION_NAME = "ACTION_NAME";
+  public static final String ACTION_NAME      = "ACTION_NAME";
+  public static final String ACTION_USER_NAME = "ACTION_USER_NAME";
 
 
   /**
