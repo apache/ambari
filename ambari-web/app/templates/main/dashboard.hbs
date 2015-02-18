@@ -17,11 +17,11 @@
 }}
 
 <div class="row-fluid">
-  <div class="services-menu well span2" style="padding: 8px 0">
+  <div class="services-menu well span2 service-menu-width" style="padding: 8px 0">
     {{view App.MainServiceMenuView}}
     {{view App.AllServicesActionView}}
   </div>
-    <div class="span10" id="dashboard-widgets-container">
+    <div class="summary-width span10" id="dashboard-widgets-container">
       <ul class="nav nav-tabs">
         {{#each category in view.categories}}
           {{#view view.NavItemView itemBinding="category.name" }}
