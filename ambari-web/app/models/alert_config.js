@@ -491,6 +491,7 @@ App.AlertConfigProperties.Thresholds = {
 
     isValid: function () {
       var value = this.get('displayValue');
+      if (!value && this.get('type') === 'WEB') return true;
       if (!value) return false;
       value = ('' + value).trim();
       if (this.get('type') === 'AGGREGATE') {
@@ -523,6 +524,7 @@ App.AlertConfigProperties.Thresholds = {
 
     isValid: function () {
       var value = this.get('displayValue');
+      if (!value && this.get('type') === 'WEB') return true;
       if (!value) return false;
       value = ('' + value).trim();
         if (this.get('type') === 'AGGREGATE') {
