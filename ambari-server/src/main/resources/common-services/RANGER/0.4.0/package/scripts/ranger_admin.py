@@ -17,16 +17,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
-import sys
-from resource_management import *
+from resource_management.libraries.script import Script
+from resource_management.core.resources.system import Execute
 from resource_management.core.exceptions import ComponentIsNotRunning
+from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
 from resource_management.core import shell
 from setup_ranger import setup_ranger
 import upgrade
 
 class RangerAdmin(Script):
+
+  def get_stack_to_component(self):
+    return {"HDP": "ranger-admin"}
+
   def install(self, env):
     self.install_packages(env)
     setup_ranger()
