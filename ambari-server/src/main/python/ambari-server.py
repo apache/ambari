@@ -510,14 +510,7 @@ def create_user_action_map(args, options):
 #
 # Main.
 #
-def main():
-  parser = optparse.OptionParser(usage="usage: %prog [options] action [stack_id os]",)
-  init_parser_options(parser)
-  (options, args) = parser.parse_args()
-
-  # set verbose
-  set_verbose(options.verbose)
-
+def main(options, args, parser):
   # set silent
   set_silent(options.silent)
 
@@ -590,10 +583,27 @@ def main():
   if options.exit_message is not None:
     print options.exit_message
 
+def mainBody():
+  parser = optparse.OptionParser(usage="usage: %prog [options] action [stack_id os]",)
+  init_parser_options(parser)
+  (options, args) = parser.parse_args()
+
+  # set verbose
+  set_verbose(options.verbose)
+  if options.verbose:
+    main(options, args, parser)
+  else:
+    try:
+      main(options, args, parser)
+    except Exception as e:
+      print_error_msg("Unexpected {0}: {1}".format((e).__class__.__name__, str(e)) +\
+      "\nFor more info run ambari-server with -v or --verbose option")
+      sys.exit(1)     
+      
 
 if __name__ == "__main__":
   try:
-    main()
+    mainBody()
   except (KeyboardInterrupt, EOFError):
     print("\nAborting ... Keyboard Interrupt.")
     sys.exit(1)

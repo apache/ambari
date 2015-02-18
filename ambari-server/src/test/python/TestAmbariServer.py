@@ -273,9 +273,9 @@ class TestAmbariServer(TestCase):
     options.sid_or_sname = "sid"
     setup_security_method.return_value = None
 
-    _ambari_server_.main()
+    _ambari_server_.mainBody()
 
-    _ambari_server_.main()
+    _ambari_server_.mainBody()
     self.assertTrue(setup_security_method.called)
     self.assertFalse(False, get_verbose())
     self.assertFalse(False, get_silent())
@@ -349,6 +349,7 @@ class TestAmbariServer(TestCase):
                                                  ('pathtokeytab')])
     pass
 
+  @patch("sys.exit")
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(_ambari_server_, "setup")
   @patch.object(_ambari_server_, "start")
@@ -356,7 +357,7 @@ class TestAmbariServer(TestCase):
   @patch.object(_ambari_server_, "reset")
   @patch("optparse.OptionParser")
   def test_main_test_setup(self, OptionParserMock, reset_method, stop_method,
-                           start_method, setup_method):
+                           start_method, setup_method, exit_mock):
     opm = OptionParserMock.return_value
     options = MagicMock()
     args = ["setup"]
@@ -364,7 +365,7 @@ class TestAmbariServer(TestCase):
 
     options.dbms = None
     options.sid_or_sname = "sid"
-    _ambari_server_.main()
+    _ambari_server_.mainBody()
 
     self.assertTrue(setup_method.called)
     self.assertFalse(start_method.called)
@@ -373,6 +374,48 @@ class TestAmbariServer(TestCase):
 
     self.assertFalse(False, get_verbose())
     self.assertFalse(False, get_silent())
+
+    setup_method.reset_mock()
+    start_method.reset_mock()
+    stop_method.reset_mock()
+    reset_method.reset_mock()
+    exit_mock.reset_mock()
+    args = ["setup", "-v"]
+    options = MagicMock()
+    opm.parse_args.return_value = (options, args)
+    options.dbms = None
+    options.sid_or_sname = "sid"
+    setup_method.side_effect = Exception("Unexpected error")
+    try:
+      _ambari_server_.mainBody()
+    except Exception:
+      self.assertTrue(True)
+    self.assertTrue(setup_method.called)
+    self.assertFalse(start_method.called)
+    self.assertFalse(stop_method.called)
+    self.assertFalse(reset_method.called)
+    self.assertTrue(get_verbose())
+
+    setup_method.reset_mock()
+    start_method.reset_mock()
+    stop_method.reset_mock()
+    reset_method.reset_mock()
+    exit_mock.reset_mock()
+    args = ["setup"]
+    options = MagicMock()
+    opm.parse_args.return_value = (options, args)
+    options.dbms = None
+    options.sid_or_sname = "sid"
+    options.verbose = False
+    setup_method.side_effect = Exception("Unexpected error")
+    _ambari_server_.mainBody()
+    self.assertTrue(exit_mock.called)
+    self.assertTrue(setup_method.called)
+    self.assertFalse(start_method.called)
+    self.assertFalse(stop_method.called)
+    self.assertFalse(reset_method.called)
+    self.assertFalse(get_verbose())
+
     pass
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
@@ -390,7 +433,7 @@ class TestAmbariServer(TestCase):
 
     options.dbms = None
     options.sid_or_sname = "sname"
-    _ambari_server_.main()
+    _ambari_server_.mainBody()
 
     self.assertTrue(setup_method.called)
     self.assertFalse(start_method.called)
@@ -417,7 +460,7 @@ class TestAmbariServer(TestCase):
     options.dbms = None
     options.sid_or_sname = "sid"
 
-    _ambari_server_.main()
+    _ambari_server_.mainBody()
 
     self.assertFalse(setup_method.called)
     self.assertTrue(start_method.called)
@@ -442,7 +485,7 @@ class TestAmbariServer(TestCase):
     options.dbms = None
     options.sid_or_sname = "sid"
 
-    _ambari_server_.main()
+    _ambari_server_.mainBody()
 
     self.assertFalse(setup_method.called)
     self.assertTrue(start_method.called)
@@ -469,7 +512,7 @@ class TestAmbariServer(TestCase):
 
     options.dbms = None
     options.sid_or_sname = "sname"
-    _ambari_server_.main()
+    _ambari_server_.mainBody()
 
     self.assertTrue(backup_mock.called)
     self.assertFalse(restore_mock.called)
@@ -499,7 +542,7 @@ class TestAmbariServer(TestCase):
 
     options.dbms = None
     options.sid_or_sname = "sname"
-    _ambari_server_.main()
+    _ambari_server_.mainBody()
 
     self.assertTrue(restore_mock.called)
     self.assertFalse(backup_mock.called)
@@ -532,7 +575,7 @@ class TestAmbariServer(TestCase):
     options.dbms = None
     options.sid_or_sname = "sid"
 
-    _ambari_server_.main()
+    _ambari_server_.mainBody()
 
     self.assertFalse(setup_method.called)
     self.assertFalse(start_method.called)
@@ -561,7 +604,7 @@ class TestAmbariServer(TestCase):
     options.dbms = None
     options.sid_or_sname = "sid"
 
-    _ambari_server_.main()
+    _ambari_server_.mainBody()
 
     self.assertFalse(setup_method.called)
     self.assertFalse(start_method.called)
@@ -4327,7 +4370,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     sys.argv = list(base_args)
 
     try:
-      _ambari_server_.main()
+      _ambari_server_.mainBody()
     except SystemExit:
       failed = True
       pass
@@ -4345,7 +4388,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     sys.argv.extend(["--database", "embedded"])
 
     try:
-      _ambari_server_.main()
+      _ambari_server_.mainBody()
     except SystemExit:
       failed = True
       pass
@@ -4360,7 +4403,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     sys.argv.extend(db_args)
 
     try:
-      _ambari_server_.main()
+      _ambari_server_.mainBody()
     except SystemExit:
       failed = True
       pass
@@ -4376,7 +4419,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     sys.argv.extend(["--database", "postgres"])
 
     try:
-      _ambari_server_.main()
+      _ambari_server_.mainBody()
     except SystemExit:
       failed = True
       pass
@@ -4393,7 +4436,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     sys.argv.extend(db_args[2:])
 
     try:
-      _ambari_server_.main()
+      _ambari_server_.mainBody()
     except SystemExit:
       failed = True
       pass
@@ -4411,7 +4454,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     sys.argv.extend(db_args[6:])
 
     try:
-      _ambari_server_.main()
+      _ambari_server_.mainBody()
     except SystemExit:
       failed = True
       pass
