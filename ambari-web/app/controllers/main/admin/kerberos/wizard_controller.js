@@ -37,7 +37,6 @@ App.KerberosWizardController = App.WizardController.extend({
   content: Em.Object.create({
     controllerName: 'kerberosWizardController',
     serviceName: 'KERBEROS',
-    hosts: '',
     kerberosOption: null,
     cluster: null,
     services: [],
@@ -147,12 +146,6 @@ App.KerberosWizardController = App.WizardController.extend({
     this.set('content.kerberosOption', stepController.get('selectedItem'));
   },
 
-  loadConfigTag: function (tag) {
-    var tagVal = App.db.getKerberosWizardConfigTag(tag);
-    this.set('content.' + tag, tagVal);
-  },
-
-
   loadTasksStatuses: function () {
     var statuses = this.getDBProperty('tasksStatuses');
     this.set('content.tasksStatuses', statuses);
@@ -234,7 +227,6 @@ App.KerberosWizardController = App.WizardController.extend({
           var kerberosStep2controller = App.get('router.kerberosWizardStep2Controller');
           this.loadAdvancedConfigs(kerberosStep2controller);
           this.loadServiceConfigProperties();
-          this.load('hosts');
         }
       }
     ],

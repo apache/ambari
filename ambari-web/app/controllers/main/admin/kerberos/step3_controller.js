@@ -45,7 +45,7 @@ App.KerberosWizardStep3Controller = App.KerberosProgressPageController.extend({
           error: 'onTaskError'
         });
       } else {
-        var hostNames = self.get('content.hosts');
+        var hostNames = App.get('allHostNames');
         self.updateComponent('KERBEROS_CLIENT', hostNames, "KERBEROS", "Install");
       }
     });

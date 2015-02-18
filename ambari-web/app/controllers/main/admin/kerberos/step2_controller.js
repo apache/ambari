@@ -58,11 +58,10 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
   }.property('stepConfigs.@each.errorCount', 'miscModalVisible', 'submitButtonClicked', 'testConnectionInProgress'),
 
   hostNames: function () {
-    return this.get('content.hosts');
-  }.property('content.hosts'),
+    return App.get('allHostNames');
+  }.property('App.allHostNames'),
 
   serviceConfigTags: [],
-
 
   clearStep: function () {
     this._super();
@@ -169,7 +168,7 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
   },
 
   createKerberosHostComponents: function () {
-    var hostNames = this.get('content.hosts');
+    var hostNames = this.get('hostNames');
     var queryStr = '';
     hostNames.forEach(function (hostName) {
       queryStr += 'Hosts/host_name=' + hostName + '|';

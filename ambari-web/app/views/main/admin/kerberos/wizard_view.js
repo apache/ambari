@@ -20,42 +20,7 @@ var App = require('app');
 
 App.KerberosWizardView = Em.View.extend(App.WizardMenuMixin, {
 
-  templateName: require('templates/main/admin/kerberos/wizard'),
-
-  isLoaded: false,
-
-  willInsertElement: function () {
-    if (this.get('controller').getDBProperty('hosts')) {
-      this.set('isLoaded', true);
-    } else {
-      this.loadHosts();
-    }
-  },
-
-  loadHosts: function () {
-    App.ajax.send({
-      name: 'hosts.confirmed',
-      sender: this,
-      data: {},
-      success: 'loadHostsSuccessCallback',
-      error: 'loadHostsErrorCallback'
-    });
-  },
-
-  loadHostsSuccessCallback: function (response) {
-    var installedHostNames = [];
-
-    response.items.forEach(function (item) {
-      installedHostNames.push(item.Hosts.host_name);
-    });
-    this.get('controller').setDBProperty('hosts', installedHostNames);
-    this.set('controller.content.hosts', installedHostNames);
-    this.set('isLoaded', true);
-  },
-
-  loadHostsErrorCallback: function(){
-    this.set('isLoaded', true);
-  }
+  templateName: require('templates/main/admin/kerberos/wizard')
 });
 
 
