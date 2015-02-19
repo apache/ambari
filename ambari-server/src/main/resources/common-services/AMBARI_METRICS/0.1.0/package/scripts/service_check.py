@@ -68,7 +68,7 @@ class AMSServiceCheck(Script):
     env.set_params(params)
 
     random_value1 = random.random()
-    current_time = int(time.time())*1000
+    current_time = time.time()
     metric_json = Template('smoketest_metrics.json.j2', hostname=params.hostname, random1=random_value1,
                            current_time=current_time).get_content()
     Logger.info("Generated metrics:\n%s" % metric_json)
@@ -112,7 +112,6 @@ class AMSServiceCheck(Script):
       "appId": "amssmoketestfake",
       "hostname": params.hostname,
       "startTime": 1419860000000,
-      "endTime": int(time.time())*1000+1000,
       "precision": "seconds",
       "grouped": "false",
     }

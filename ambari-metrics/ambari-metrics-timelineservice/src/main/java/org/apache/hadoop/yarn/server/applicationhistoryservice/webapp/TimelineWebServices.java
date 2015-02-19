@@ -24,7 +24,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Public;
 import org.apache.hadoop.classification.InterfaceStability.Unstable;
-import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.yarn.api.records.timeline.TimelineEntities;
 import org.apache.hadoop.yarn.api.records.timeline.TimelineEntity;
 import org.apache.hadoop.yarn.api.records.timeline.TimelineEvents;
@@ -302,24 +301,15 @@ public class TimelineWebServices {
   ) {
     init(res);
     try {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Request for metrics => metricName: " + metricName + ", " +
-          "appId: " + appId + ", instanceId: " + instanceId + ", " +
-          "hostname: " + hostname + ", startTime: " + startTime + ", " +
-          "endTime: " + endTime);
-      }
-
       return timelineMetricStore.getTimelineMetric(metricName, hostname,
         appId, instanceId, parseLongStr(startTime), parseLongStr(endTime),
         Precision.getPrecision(precision), parseIntStr(limit));
     } catch (NumberFormatException ne) {
-      throw new BadRequestException("startTime, endTime and limit should be " +
-        "numeric values");
+      throw new BadRequestException("startTime and limit should be numeric " +
+        "values");
     } catch (Precision.PrecisionFormatException pfe) {
       throw new BadRequestException("precision should be seconds, minutes " +
         "or hours");
-    } catch (IllegalArgumentException iae) {
-      throw new BadRequestException(iae.getMessage());
     } catch (SQLException sql) {
       throw new WebApplicationException(sql,
         Response.Status.INTERNAL_SERVER_ERROR);
@@ -362,13 +352,11 @@ public class TimelineWebServices {
   ) {
     init(res);
     try {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Request for metrics => metricNames: " + metricNames + ", " +
-          "appId: " + appId + ", instanceId: " + instanceId + ", " +
-          "hostname: " + hostname + ", startTime: " + startTime + ", " +
-          "endTime: " + endTime + ", " +
-          "precision: " + precision);
-      }
+      LOG.debug("Request for metrics => metricNames: " + metricNames + ", " +
+        "appId: " + appId + ", instanceId: " + instanceId + ", " +
+        "hostname: " + hostname + ", startTime: " + startTime + ", " +
+        "endTime: " + endTime + ", " +
+        "precision: " + precision);
 
       return timelineMetricStore.getTimelineMetrics(
         parseListStr(metricNames, ","), hostname, appId, instanceId,
@@ -382,8 +370,6 @@ public class TimelineWebServices {
     } catch (Precision.PrecisionFormatException pfe) {
       throw new BadRequestException("precision should be seconds, minutes " +
         "or hours");
-    } catch (IllegalArgumentException iae) {
-      throw new BadRequestException(iae.getMessage());
     } catch (SQLException sql) {
       throw new WebApplicationException(sql,
         Response.Status.INTERNAL_SERVER_ERROR);
@@ -518,28 +504,12 @@ public class TimelineWebServices {
     return booleanStr == null || Boolean.parseBoolean(booleanStr);
   }
 
-  /**
-   * Parses delimited string to list of strings. It skips strings that are
-   * effectively empty (i.e. only whitespace).
-   *
-   */
   private static List<String> parseListStr(String str, String delimiter) {
-    if (str == null || str.trim().isEmpty()){
-      return null;
-    }
-
-    String[] split = str.trim().split(delimiter);
-    List<String> list = new ArrayList<String>(split.length);
-    for (String s : split) {
-      if (!s.trim().isEmpty()){
-        list.add(s);
-      }
-    }
-
-    return list;
+    return str == null ? null : Arrays.asList(str.trim().split(delimiter));
   }
 
   private static String parseStr(String str) {
     return str == null ? null : str.trim();
   }
+
 }
