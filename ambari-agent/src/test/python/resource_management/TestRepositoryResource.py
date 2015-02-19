@@ -154,6 +154,46 @@ class TestRepositoryResource(TestCase):
       self.assertEqual(checked_call_mock.call_args_list[0][0][0], ['apt-get', 'update', '-qq', '-o', 'Dir::Etc::sourcelist=sources.list.d/HDP.list', '-o', 'APT::Get::List-Cleanup=0'])
       self.assertEqual(execute_command_item, 'apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 123ABCD')
 
+    @patch("resource_management.libraries.providers.repository.checked_call")
+    @patch.object(tempfile, "NamedTemporaryFile")
+    @patch("resource_management.libraries.providers.repository.Execute")
+    @patch("resource_management.libraries.providers.repository.File")
+    @patch("os.path.isfile", new=MagicMock(return_value=True))
+    @patch("filecmp.cmp", new=MagicMock(return_value=False))
+    @patch.object(System, "os_release_name", new='precise')
+    @patch.object(System, "os_family", new='ubuntu')
+    def test_create_repo_ubuntu_gpg_key_wrong_output(self, file_mock, execute_mock,
+                                            tempfile_mock, checked_call_mock):
+      """
+      Checks that GPG key is extracted from output without \r sign
+      """
+      tempfile_mock.return_value = MagicMock(spec=file)
+      tempfile_mock.return_value.__enter__.return_value.name = "/tmp/1.txt"
+      checked_call_mock.return_value = 0, "The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 123ABCD\r\n"
+
+      with Environment('/') as env:
+        with patch.object(repository,"Template", new=DummyTemplate.create(DEBIAN_DEFAUTL_TEMPLATE)):
+          Repository('HDP',
+                     base_url='http://download.base_url.org/rpm/',
+                     repo_file_name='HDP',
+                     repo_template = "dummy.j2",
+                     components = ['a','b','c']
+          )
+
+      call_content = file_mock.call_args_list[0]
+      template_name = call_content[0][0]
+      template_content = call_content[1]['content']
+
+      self.assertEquals(template_name, '/tmp/1.txt')
+      self.assertEquals(template_content, 'deb http://download.base_url.org/rpm/ a b c\n')
+
+      copy_item = str(file_mock.call_args_list[1])
+      self.assertEqual(copy_item, "call('/etc/apt/sources.list.d/HDP.list', content=StaticFile('/tmp/1.txt'))")
+      execute_command_item = execute_mock.call_args_list[0][0][0]
+
+      self.assertEqual(checked_call_mock.call_args_list[0][0][0], ['apt-get', 'update', '-qq', '-o', 'Dir::Etc::sourcelist=sources.list.d/HDP.list', '-o', 'APT::Get::List-Cleanup=0'])
+      self.assertEqual(execute_command_item, 'apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 123ABCD')
+
     @patch.object(tempfile, "NamedTemporaryFile")
     @patch("resource_management.libraries.providers.repository.Execute")
     @patch("resource_management.libraries.providers.repository.File")
