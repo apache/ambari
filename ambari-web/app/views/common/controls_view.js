@@ -505,6 +505,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
           break;
       }
       if (hostname) {
+        Em.set(hostname, 'isUserProperty', false);
         returnValue = hostname;
       } else {
         returnValue = this.get('categoryConfigsAll').findProperty('name', 'hive_hostname');
@@ -531,6 +532,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
           break;
       }
       if (hostname) {
+        Em.set(hostname, 'isUserProperty', false);
         returnValue = hostname;
       } else {
         returnValue = this.get('categoryConfigsAll').findProperty('name', 'oozie_hostname');
