@@ -301,14 +301,9 @@ public class ClusterImpl implements Cluster {
     for (Entry<String, ServiceInfo> entry : serviceInfoMap.entrySet()) {
       String serviceName = entry.getKey();
       ServiceInfo serviceInfo = entry.getValue();
-      //collect config types for service
-      Set<PropertyInfo> properties = ambariMetaInfo.getServiceProperties(desiredStackVersion.getStackName(),
-          desiredStackVersion.getStackVersion(), serviceName);
-      for (PropertyInfo property : properties) {
-        String configType = ConfigHelper.fileNameToConfigType(property.getFilename());
-        if (serviceInfo.hasConfigType(configType)) {
-          serviceConfigTypes.put(serviceName, configType);
-        }
+      Set<String> configTypes = serviceInfo.getConfigTypeAttributes().keySet();
+      for (String configType : configTypes) {
+        serviceConfigTypes.put(serviceName, configType);
       }
     }
 
