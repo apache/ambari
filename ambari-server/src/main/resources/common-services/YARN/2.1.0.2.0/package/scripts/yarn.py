@@ -70,6 +70,11 @@ def yarn(name = None):
               mode=0775
               )
 
+    Execute(('chown', '-R', params.yarn_user, params.nm_local_dirs),
+            only_if=format("test -d {nm_local_dirs}"),
+            sudo=True)
+
+
     if params.security_enabled:
       smokeuser_directories = [os.path.join(dir, 'usercache' ,params.smokeuser)
                                for dir in params.nm_local_dirs.split(',')]
