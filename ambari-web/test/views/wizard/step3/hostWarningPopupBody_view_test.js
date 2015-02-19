@@ -211,4 +211,141 @@ describe('App.WizardStep3HostWarningPopupBody', function() {
     });
   });
 
+  describe('#content', function () {
+
+    it('should return array with warning objects', function () {
+      view.set('bodyController', Em.Object.create({
+        hostCheckWarnings: [
+          {
+            hosts: ['h0', 'h1', 'h2', 'h3', 'h4', 'h5', 'h5', 'h7', 'h8', 'h9', 'h10']
+          }
+        ],
+        repoCategoryWarnings: [
+          {
+            hosts: ['h11', 'h12']
+          }
+        ],
+        diskCategoryWarnings: [
+          {
+            hosts: ['h13']
+          }
+        ],
+        jdkCategoryWarnings: [
+          {
+            hosts: ['h14']
+          }
+        ],
+        thpCategoryWarnings: [
+          {
+            hosts: ['h15']
+          }
+        ]
+      }));
+      view.reopen({
+        categoryWarnings: [
+          {
+            category: 'firewall',
+            hosts: ['h16']
+          },
+          {
+            category: 'firewall',
+            hosts: ['h17']
+          },
+          {
+            category: 'processes',
+            hosts: ['h18']
+          },
+          {
+            category: 'packages',
+            hosts: ['h19']
+          },
+          {
+            category: 'fileFolders',
+            hosts: ['h20']
+          },
+          {
+            category: 'services',
+            hosts: ['h21']
+          },
+          {
+            category: 'users',
+            hosts: ['h22']
+          },
+          {
+            category: 'misc',
+            hosts: ['h23']
+          },
+          {
+            category: 'alternatives',
+            hosts: ['h24']
+          },
+          {
+            category: 'reverseLookup',
+            hosts: ['h25']
+          },
+          {
+            category: 'reverseLookup',
+            hosts: ['h26']
+          },
+          {
+            category: 'reverseLookup',
+            hosts: ['h27']
+          },
+          {
+            category: 'reverseLookup',
+            hosts: ['h28']
+          },
+          {
+            category: 'reverseLookup',
+            hosts: ['h29']
+          },
+          {
+            category: 'reverseLookup',
+            hosts: ['h30']
+          },
+          {
+            category: 'reverseLookup',
+            hosts: ['h31']
+          },
+          {
+            category: 'reverseLookup',
+            hosts: ['h32']
+          },
+          {
+            category: 'reverseLookup',
+            hosts: ['h33']
+          },
+          {
+            category: 'reverseLookup',
+            hosts: ['h34']
+          },
+          {
+            category: 'reverseLookup',
+            hosts: ['h35', 'h36']
+          }
+        ]
+      });
+      var content = view.get('content');
+      expect(content.mapProperty('isCollapsed').uniq()).to.eql([true]);
+      expect(content.findProperty('category', 'hostNameResolution').get('warnings')[0].hostsList).
+        to.equal('h0<br>h1<br>h2<br>h3<br>h4<br>h5<br>h5<br>h7<br>h8<br>h9<br> ' + Em.I18n.t('installer.step3.hostWarningsPopup.moreHosts').format(1));
+      expect(content.findProperty('category', 'repositories').get('warnings')[0].hostsList).to.equal('h11<br>h12');
+      expect(content.findProperty('category', 'disk').get('warnings')[0].hostsList).to.equal('h13');
+      expect(content.findProperty('category', 'jdk').get('warnings')[0].hostsList).to.equal('h14');
+      expect(content.findProperty('category', 'thp').get('warnings')[0].hostsList).to.equal('h15');
+      expect(content.findProperty('category', 'firewall').get('warnings').mapProperty('hostsList')).to.eql(['h16', 'h17']);
+      expect(content.findProperty('category', 'process').get('warnings')[0].hostsList).to.equal('h18');
+      expect(content.findProperty('category', 'package').get('warnings')[0].hostsList).to.equal('h19');
+      expect(content.findProperty('category', 'fileFolders').get('warnings')[0].hostsList).to.equal('h20');
+      expect(content.findProperty('category', 'service').get('warnings')[0].hostsList).to.equal('h21');
+      expect(content.findProperty('category', 'user').get('warnings')[0].hostsList).to.equal('h22');
+      expect(content.findProperty('category', 'misc').get('warnings')[0].hostsList).to.equal('h23');
+      expect(content.findProperty('category', 'alternatives').get('warnings')[0].hostsList).to.equal('h24');
+      expect(content.findProperty('category', 'reverseLookup').get('warnings').mapProperty('hostsList')).to.eql([
+        'h25', 'h26', 'h27', 'h28', 'h29', 'h30', 'h31', 'h32', 'h33', 'h34', 'h35<br>h36'
+      ]);
+    });
+
+  });
+
 });

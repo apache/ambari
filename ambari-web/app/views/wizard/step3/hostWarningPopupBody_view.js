@@ -149,7 +149,7 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
     var jdkCategoryWarnings = this.get('bodyController.jdkCategoryWarnings') || [];
     var thpCategoryWarnings = this.get('bodyController.thpCategoryWarnings');
     var categoryWarnings = this.get('categoryWarnings');
-    return [
+    var warningsArray = [
       Em.Object.create({
         warnings: thpCategoryWarnings,
         title: Em.I18n.t('installer.step3.hostWarningsPopup.thp'),
@@ -157,8 +157,7 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
         type: Em.I18n.t('common.issues'),
         emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.thp'),
         action: Em.I18n.t('installer.step3.hostWarningsPopup.action.enabled'),
-        category: 'thp',
-        isCollapsed: true
+        category: 'thp'
       }),
       Em.Object.create({
         warnings: jdkCategoryWarnings,
@@ -167,8 +166,7 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
         type: Em.I18n.t('common.issues'),
         emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.jdk'),
         action: Em.I18n.t('installer.step3.hostWarningsPopup.action.exists'),
-        category: 'jdk',
-        isCollapsed: true
+        category: 'jdk'
       }),
       Em.Object.create({
         warnings: diskCategoryWarnings,
@@ -177,8 +175,7 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
         type: Em.I18n.t('common.issues'),
         emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.disk'),
         action: Em.I18n.t('installer.step3.hostWarningsPopup.action.exists'),
-        category: 'disk',
-        isCollapsed: true
+        category: 'disk'
       }),
       Em.Object.create({
         warnings: repoCategoryWarnings,
@@ -187,8 +184,7 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
         type: Em.I18n.t('common.issues'),
         emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.repositories'),
         action: Em.I18n.t('installer.step3.hostWarningsPopup.action.invalid'),
-        category: 'repositories',
-        isCollapsed: true
+        category: 'repositories'
       }),
       Em.Object.create({
         warnings: categoryWarnings.filterProperty('category', 'firewall'),
@@ -197,8 +193,7 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
         type: Em.I18n.t('common.issues'),
         emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.firewall'),
         action: Em.I18n.t('installer.step3.hostWarningsPopup.action.running'),
-        category: 'firewall',
-        isCollapsed: true
+        category: 'firewall'
       }),
       Em.Object.create({
         warnings: categoryWarnings.filterProperty('category', 'processes'),
@@ -207,8 +202,7 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
         type: Em.I18n.t('common.process'),
         emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.processes'),
         action: Em.I18n.t('installer.step3.hostWarningsPopup.action.running'),
-        category: 'process',
-        isCollapsed: true
+        category: 'process'
       }),
       Em.Object.create({
         warnings: categoryWarnings.filterProperty('category', 'packages'),
@@ -217,8 +211,7 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
         type: Em.I18n.t('common.package'),
         emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.packages'),
         action: Em.I18n.t('installer.step3.hostWarningsPopup.action.installed'),
-        category: 'package',
-        isCollapsed: true
+        category: 'package'
       }),
       Em.Object.create({
         warnings: categoryWarnings.filterProperty('category', 'fileFolders'),
@@ -227,8 +220,7 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
         type: Em.I18n.t('common.path'),
         emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.filesAndFolders'),
         action: Em.I18n.t('installer.step3.hostWarningsPopup.action.exists'),
-        category: 'fileFolders',
-        isCollapsed: true
+        category: 'fileFolders'
       }),
       Em.Object.create({
         warnings: categoryWarnings.filterProperty('category', 'services'),
@@ -237,8 +229,7 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
         type: Em.I18n.t('common.service'),
         emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.services'),
         action: Em.I18n.t('installer.step3.hostWarningsPopup.action.notRunning'),
-        category: 'service',
-        isCollapsed: true
+        category: 'service'
       }),
       Em.Object.create({
         warnings: categoryWarnings.filterProperty('category', 'users'),
@@ -247,8 +238,7 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
         type: Em.I18n.t('common.user'),
         emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.users'),
         action: Em.I18n.t('installer.step3.hostWarningsPopup.action.exists'),
-        category: 'user',
-        isCollapsed: true
+        category: 'user'
       }),
       Em.Object.create({
         warnings: categoryWarnings.filterProperty('category', 'misc'),
@@ -257,8 +247,7 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
         type: Em.I18n.t('installer.step3.hostWarningsPopup.misc.umask'),
         emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.misc'),
         action: Em.I18n.t('installer.step3.hostWarningsPopup.action.exists'),
-        category: 'misc',
-        isCollapsed: true
+        category: 'misc'
       }),
       Em.Object.create({
         warnings: categoryWarnings.filterProperty('category', 'alternatives'),
@@ -267,16 +256,14 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
         type: Em.I18n.t('installer.step3.hostWarningsPopup.alternatives.umask'),
         emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.alternatives.empty'),
         action: Em.I18n.t('installer.step3.hostWarningsPopup.action.exists'),
-        category: 'alternatives',
-        isCollapsed: true
+        category: 'alternatives'
       }),
       Em.Object.create({
         warnings: categoryWarnings.filterProperty('category', 'reverseLookup'),
         title: Em.I18n.t('installer.step3.hostWarningsPopup.reverseLookup'),
         message: Em.I18n.t('installer.step3.hostWarningsPopup.reverseLookup.message'),
         emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.reverseLookup.empty'),
-        category: 'reverseLookup',
-        isCollapsed: true
+        category: 'reverseLookup'
       }),
       Em.Object.create({
         warnings: hostCheckWarnings,
@@ -285,10 +272,22 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
         type: Em.I18n.t('common.issues'),
         emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.empty'),
         action: Em.I18n.t('installer.step3.hostWarningsPopup.action.failed'),
-        category: 'hostNameResolution',
-        isCollapsed: true
+        category: 'hostNameResolution'
       })
-    ]
+    ];
+    warningsArray.forEach(function (warningType) {
+      warningType.set('isCollapsed', true);
+      warningType.get('warnings').forEach(function (warn) {
+        var hosts = Em.get(warn, 'hosts');
+        if (hosts) {
+          var hostsList = hosts.length < 11 ? hosts.join('<br>') :
+            hosts.slice(0, 10).join('<br>') + '<br> ' +
+              Em.I18n.t('installer.step3.hostWarningsPopup.moreHosts').format(warn.hosts.length - 10);
+          Em.set(warn, 'hostsList', hostsList);
+        }
+      });
+    });
+    return warningsArray;
   }.property('category', 'warningsByHost', 'bodyController.jdkCategoryWarnings', 'bodyController.repoCategoryWarnings', 'bodyController.diskCategoryWarnings', 'bodyController.hostCheckWarnings',  'bodyController.thpCategoryWarnings'),
 
   /**

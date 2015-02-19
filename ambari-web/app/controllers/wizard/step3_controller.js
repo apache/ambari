@@ -1623,13 +1623,6 @@ App.WizardStep3Controller = Em.Controller.extend({
       }
     }
 
-    warnings.forEach(function (warn) {
-      if (warn.hosts.length < 11) {
-        warn.hostsList = warn.hosts.join('<br>')
-      } else {
-        warn.hostsList = warn.hosts.slice(0, 10).join('<br>') + '<br> ' + Em.I18n.t('installer.step3.hostWarningsPopup.moreHosts').format(warn.hosts.length - 10);
-      }
-    });
     hosts.unshift({
       name: 'All Hosts',
       warnings: warnings
