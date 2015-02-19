@@ -32,6 +32,7 @@ The Ambari API facilitates the management and monitoring of the resources of an 
 - [Temporal Metrics](#temporal-metrics)
 - [Pagination](#pagination)
 - [Errors](#errors)
+- [Blueprints](#blueprints)
 
 
 Release Version
@@ -1166,4 +1167,9 @@ Errors
                 	 resource type Cluster."
 	}
 
+Blueprints
+----
+
+The `/api/v1/blueprints` endpoint was added in 1.6.
+For more information on this, see [the wiki](https://cwiki.apache.org/confluence/display/AMBARI/Blueprints).
 
