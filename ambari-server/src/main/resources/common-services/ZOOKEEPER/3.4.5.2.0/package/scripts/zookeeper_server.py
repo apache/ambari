@@ -18,35 +18,21 @@ limitations under the License.
 Ambari Agent
 
 """
+import random
 
-import re
-
-from resource_management import *
+from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import get_unique_id_and_date
-from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_JAAS_CONF
 from resource_management.libraries.functions.format import format
 from resource_management.core.shell import call
+from resource_management.libraries.functions.validate import call_and_match_output
+from resource_management.core.logger import Logger
 
 from zookeeper import zookeeper
 from zookeeper_service import zookeeper_service
-import random
-
-@retry(times=10, sleep_time=2, err_class=Fail)
-def call_and_match_output(command, regex_expression, err_message):
-  """
-  Call the command and performs a regex match on the output for the specified expression.
-  :param command: Command to call
-  :param regex_expression: Regex expression to search in the output
-  """
-  # TODO Rolling Upgrade, does this work in Ubuntu? If it doesn't see dynamic_variable_interpretation.py to see how stdout was redirected
-  # to a temporary file, which was then read.
-  code, out = call(command)
-  if not (out and re.search(regex_expression, out, re.IGNORECASE)):
-    raise Fail(err_message)
 
 
 class ZookeeperServer(Script):

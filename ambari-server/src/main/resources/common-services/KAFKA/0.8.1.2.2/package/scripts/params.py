@@ -17,10 +17,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
+from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from resource_management.libraries.functions.default import default
-from resource_management import *
+from resource_management.core.logger import Logger
+
 import status_params
 
 # server configurations
@@ -89,3 +90,7 @@ if has_metric_collector:
       kafka_metrics_reporters = kafka_metrics_reporters + ','
 
   kafka_metrics_reporters = kafka_metrics_reporters + "org.apache.hadoop.metrics2.sink.kafka.KafkaTimelineMetricsReporter"
+
+
+# Security-related params
+security_enabled = config['configurations']['cluster-env']['security_enabled']
