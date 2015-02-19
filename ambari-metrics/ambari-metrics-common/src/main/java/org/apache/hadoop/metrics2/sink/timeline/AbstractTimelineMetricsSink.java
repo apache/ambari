@@ -21,6 +21,9 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.net.SocketAddress;
 
+import java.io.IOException;
+import java.net.SocketAddress;
+
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;

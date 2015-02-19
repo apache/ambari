@@ -29,8 +29,7 @@ import org.apache.commons.lang.Validate;
 import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
-import org.apache.hadoop.metrics2.util.Servers;
-import org.codehaus.jackson.map.AnnotationIntrospector;
+import org.apache.hadoop.metrics2.sink.util.Servers;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
