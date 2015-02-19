@@ -19,11 +19,12 @@
 var App = require('app');
 var stringUtils = require('utils/string_utils');
 
-module.exports = Em.Route.extend({
+module.exports = Em.Route.extend(App.RouterRedirections, {
   route: '/main',
   enter: function (router) {
     App.db.updateStorage();
     console.log('in /main:enter');
+    var self = this;
     router.getAuthenticated().done(function (loggedIn) {
       if (loggedIn) {
         var applicationController = App.router.get('applicationController');
@@ -42,6 +43,16 @@ module.exports = Em.Route.extend({
                 });
               }
               else {
+                Em.run.next(function () {
+                  App.clusterStatus.updateFromServer().complete(function () {
+                    var currentClusterStatus = App.clusterStatus.get('value');
+                    if (currentClusterStatus) {
+                      if (self.get('installerStatuses').contains(currentClusterStatus.clusterState)) {
+                        self.redirectToInstaller(router, currentClusterStatus, false);
+                      }
+                    }
+                  });
+                });
                 App.router.get('clusterController').set('isLoaded', true);
               }
             }
