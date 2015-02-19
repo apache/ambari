@@ -68,6 +68,7 @@
             <exclude>.classpath</exclude>
             <exclude>.project</exclude>
             <exclude>.settings</exclude>
+            <exclude>**/target/**</exclude>
             <exclude>**/.gitkeep</exclude>
             <exclude>**/.bowerrc</exclude>
             <exclude>**/.editorconfig</exclude>
