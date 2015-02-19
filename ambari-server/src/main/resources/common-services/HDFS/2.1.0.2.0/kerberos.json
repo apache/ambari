@@ -36,8 +36,7 @@
             "hadoop.http.authentication.token.validity": "",
             "hadoop.http.authentication.cookie.domain": "",
             "hadoop.http.authentication.cookie.path": "",
-            "hadoop.proxyuser.HTTP.groups": "${core-site/proxyuser_group}",
-            "hadoop.proxyuser.HTTP.hosts": "${clusterHostInfo/webhcat_server_host}"
+            "hadoop.proxyuser.HTTP.groups": "${core-site/proxyuser_group}"
           }
         }
       ],

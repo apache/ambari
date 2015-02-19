@@ -23,6 +23,11 @@
             "templeton.kerberos.secret": "secret",
             "templeton.hive.properties": "hive.metastore.local=false,hive.metastore.uris=thrift://${host}:9083,hive.metastore.sasl.enabled=true,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse,hive.exec.mode.local.auto=false,hive.metastore.kerberos.principal=hive/_HOST@${realm}"
           }
+        },
+        {
+          "core-site": {
+            "hadoop.proxyuser.HTTP.hosts": "${clusterHostInfo/webhcat_server_host}"
+          }
         }
       ],
       "components": [
