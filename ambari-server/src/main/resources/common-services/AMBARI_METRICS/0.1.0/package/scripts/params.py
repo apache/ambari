@@ -66,8 +66,6 @@ is_hbase_distributed = hbase_root_dir.startswith('hdfs://')
 
 # security is disabled for embedded mode, when HBase is backed by file
 security_enabled = False if not is_hbase_distributed else config['configurations']['cluster-env']['security_enabled']
-# if cluster is secured and embedded we have to disable haddop env
-disable_hadoop_environment = config['configurations']['cluster-env']['security_enabled'] and not is_hbase_distributed
 
 # this is "hadoop-metrics.properties" for 1.x stacks
 metric_prop_file_name = "hadoop-metrics2-hbase.properties"
@@ -86,7 +84,6 @@ regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, regionserver_xm
 hbase_heapsize = master_heapsize
 
 zookeeper_quorum_hosts = ','.join(ams_collector_hosts) if is_hbase_distributed else 'localhost'
-hbase_cluster_distributed = 'true' if is_hbase_distributed else 'false'
 
 ams_checkpoint_dir = config['configurations']['ams-site']['timeline.metrics.aggregator.checkpoint.dir']
 hbase_pid_dir = status_params.hbase_pid_dir
