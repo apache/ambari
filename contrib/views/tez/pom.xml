@@ -22,6 +22,7 @@
     <version>2.0.0-SNAPSHOT</version>
   </parent>
   <properties>
+    <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
     <tez.view.version>0.6.0-SNAPSHOT</tez.view.version>
     <tez.version>0.6.0</tez.version>
   </properties>

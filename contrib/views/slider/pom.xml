@@ -121,6 +121,7 @@
   </repositories>
 
   <properties>
+    <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
     <nodejs.directory>${basedir}/target/nodejs</nodejs.directory>
     <npm.version>1.4.3</npm.version>
     <ui.directory>${basedir}/src/main/resources/ui</ui.directory>

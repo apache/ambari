@@ -116,6 +116,7 @@
   </dependencies>
 
   <properties>
+    <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
     <hadoop-version>2.2.0</hadoop-version>
     <ambari.version>2.0.0-SNAPSHOT</ambari.version>
   </properties>

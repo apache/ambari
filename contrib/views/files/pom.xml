@@ -109,10 +109,11 @@
     </dependencies>
 
     <properties>
-    <hadoop-version>2.2.0</hadoop-version>
-    <nodejs.directory>${basedir}/target/nodejs</nodejs.directory>
-    <npm.version>1.4.3</npm.version>
-    <ui.directory>${basedir}/src/main/resources/ui</ui.directory>
+      <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
+      <hadoop-version>2.2.0</hadoop-version>
+      <nodejs.directory>${basedir}/target/nodejs</nodejs.directory>
+      <npm.version>1.4.3</npm.version>
+      <ui.directory>${basedir}/src/main/resources/ui</ui.directory>
     </properties>
     <build>
 

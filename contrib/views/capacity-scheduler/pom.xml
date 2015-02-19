@@ -71,6 +71,7 @@
     </dependencies>
 
     <properties>
+      <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
       <ui.directory>${basedir}/src/main/resources/ui</ui.directory>
     </properties>
 
