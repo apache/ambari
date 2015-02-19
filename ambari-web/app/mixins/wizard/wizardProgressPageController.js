@@ -211,7 +211,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
         displayName: self.isSingleRequestPage ? commands[i].get('context') : Em.I18n.t(tasksMessagesPrefix + currentStep + '.task' + i + '.title'),
         progress: 0,
         isRunning: false,
-        requestIds: []
+        requestIds: self.isSingleRequestPage ? [this.get('stages')[0].request_id] : []
       }));
     }
     this.set('isLoaded', true);
