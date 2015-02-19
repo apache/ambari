@@ -236,4 +236,25 @@ public class AuthToLocalBuilderTest {
         "DEFAULT",
         builder.generate("EXAMPLE.COM"));
   }
+
+  @Test
+  public void testCopy() {
+    AuthToLocalBuilder builder = new AuthToLocalBuilder();
+
+    builder.addRule("nn/_HOST@EXAMPLE.COM", "hdfs");
+    builder.addRule("dn/_HOST@EXAMPLE.COM", "hdfs");
+    builder.addRule("jn/_HOST@EXAMPLE.COM", "hdfs");
+    builder.addRule("rm/_HOST@EXAMPLE.COM", "yarn");
+    builder.addRule("jhs/_HOST@EXAMPLE.COM", "mapred");
+    builder.addRule("hm/_HOST@EXAMPLE.COM", "hbase");
+    builder.addRule("rs/_HOST@EXAMPLE.COM", "hbase");
+
+    builder.addRule("foobar@EXAMPLE.COM", "hdfs");
+
+    AuthToLocalBuilder copy = builder.copy();
+
+    assertNotSame(builder, copy);
+    assertEquals(copy.generate("EXAMPLE.COM"), builder.generate("EXAMPLE.COM"));
+
+  }
 }

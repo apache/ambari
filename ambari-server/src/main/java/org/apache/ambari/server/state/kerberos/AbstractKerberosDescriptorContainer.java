@@ -24,9 +24,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * AbstractKerberosDescriptorContainer is an abstract class implementing AbstractKerberosDescriptor
@@ -64,6 +66,14 @@ import java.util.Map;
  *            "title": "KerberosConfigurationDescriptor"
  *            "type": "{@link org.apache.ambari.server.state.kerberos.KerberosConfigurationDescriptor}"
  *          }
+ *        },
+ *        "auth_to_local": {
+ *          "description": "A list of configuration properties declaring which properties are auth-to-local values
+ *          "type": "array",
+ *          "items": {
+ *            "title": "String"
+ *            "type": "{@link java.lang.String}"
+ *          }
  *        }
  *      }
  *   }
@@ -84,6 +94,12 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
    * A Map of KerberosConfigurationDescriptors contained in this AbstractKerberosDescriptorContainer
    */
   private Map<String, KerberosConfigurationDescriptor> configurations = null;
+
+  /**
+   * A Set of configuration identifiers (config-type/property_name) that indicate which properties
+   * contain auth_to_local values.
+   */
+  private Set<String> authToLocalProperties = null;
 
   /**
    * Constructs a new AbstractKerberosDescriptorContainer
@@ -112,6 +128,16 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
         for (Object item : (Collection) list) {
           if (item instanceof Map) {
             putConfiguration(new KerberosConfigurationDescriptor((Map<?, ?>) item));
+          }
+        }
+      }
+
+      // (Safely) Get the set of KerberosConfigurationDescriptors
+      list = data.get(KerberosDescriptorType.AUTH_TO_LOCAL_PROPERTY.getDescriptorPluralName());
+      if (list instanceof Collection) {
+        for (Object item : (Collection) list) {
+          if (item instanceof String) {
+            putAuthToLocalProperty((String) item);
           }
         }
       }
@@ -398,6 +424,33 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
   }
 
   /**
+   * Adds the specified property name to the set of <code>auth_to_local</code> property names.
+   * <p/>
+   * Each <code>auth_to_local</code> property name is expected to be in the following format:
+   * <code>config-type/property_name</code>`
+   *
+   * @param authToLocalProperty the auth_to_local property to add
+   */
+  public void putAuthToLocalProperty(String authToLocalProperty) {
+    if (authToLocalProperty != null) {
+      if (authToLocalProperties == null) {
+        authToLocalProperties = new HashSet<String>();
+      }
+
+      authToLocalProperties.add(authToLocalProperty);
+    }
+  }
+
+  /**
+   * Gets the set of <code>auth_to_local</code> property names.
+   *
+   * @return a Set of String values; or null if not set
+   */
+  public Set<String> getAuthToLocalProperties() {
+    return authToLocalProperties;
+  }
+
+  /**
    * Test this AbstractKerberosDescriptor to see if it is a container.
    * <p/>
    * This implementation always returns true since it implements a descriptor container.
@@ -457,6 +510,13 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
           } else {
             existing.update(clone);
           }
+        }
+      }
+
+      Set<String> updatedAuthToLocalProperties = updates.getAuthToLocalProperties();
+      if (updatedAuthToLocalProperties != null) {
+        for (String updatedAuthToLocalProperty : updatedAuthToLocalProperties) {
+          putAuthToLocalProperty(updatedAuthToLocalProperty);
         }
       }
     }
@@ -584,6 +644,11 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
         list.add(configuration.toMap());
       }
       map.put(KerberosDescriptorType.CONFIGURATION.getDescriptorPluralName(), list);
+    }
+
+    if (authToLocalProperties != null) {
+      List<String> list = new ArrayList<String>(authToLocalProperties);
+      map.put(KerberosDescriptorType.AUTH_TO_LOCAL_PROPERTY.getDescriptorPluralName(), list);
     }
 
     return map;

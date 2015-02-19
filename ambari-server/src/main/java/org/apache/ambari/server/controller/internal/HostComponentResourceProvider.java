@@ -34,7 +34,6 @@ import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
@@ -60,7 +59,6 @@ import com.google.inject.assistedinject.AssistedInject;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
@@ -123,13 +121,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
    */
   @Inject
   private MaintenanceStateHelper maintenanceStateHelper;
-
-  /**
-   * kerberos helper
-   */
-  @Inject
-  private KerberosHelper kerberosHelper;
-
 
   // ----- Constructors ----------------------------------------------------
 
@@ -415,8 +406,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       clusterNames.add(clusterName);
     }
 
-    boolean addKerberosStages = false;
-
     for (ServiceComponentHostRequest request : requests) {
       validateServiceComponentHostRequest(request);
 
@@ -474,10 +463,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       if (request.getDesiredState() != null) {
         // set desired state on host component
         newState = State.valueOf(request.getDesiredState());
-
-        // determine if this state transition will require that kerberos stages are added to request.
-        // once set to true will stay true
-        addKerberosStages = addKerberosStages || requiresKerberosStageAddition(oldState, newState, cluster);
 
         // throw exception if desired state isn't a valid desired state (static check)
         if (!newState.isValidDesiredState()) {
@@ -563,16 +548,9 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     // just getting the first cluster
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
-    RequestStageContainer requestStages = getManagementController().addStages(
+    return getManagementController().addStages(
         stages, cluster, requestProperties, null, null, null,
         changedScHosts, ignoredScHosts, runSmokeTest, false);
-
-    if (addKerberosStages) {
-      // adds the necessary kerberos related stages to the request
-      kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, requestStages);
-    }
-
-    return requestStages;
   }
 
   @Override
@@ -845,21 +823,6 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       throw new IllegalArgumentException("Property adminState cannot be modified through update. Use service " +
           "specific DECOMMISSION action to decommision/recommission components.");
     }
-  }
-
-  /**
-   * Determine if kerberos stages need to be added to the request as a result of a
-   * host component state change.
-   *
-   * @param current  current host component state
-   * @param target   target host component state
-   * @param cluster  associated cluster
-   * @return whether kerberos stages should be added to the request
-   */
-  public boolean requiresKerberosStageAddition(State current, State target, Cluster cluster) {
-    return current == State.INIT &&
-        target  == State.INSTALLED &&
-        kerberosHelper.isClusterKerberosEnabled(cluster);
   }
 
 

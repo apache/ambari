@@ -65,6 +65,7 @@ import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
 import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.security.ldap.LdapSyncDto;
+import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -1834,7 +1835,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
   }
 
-  private List<Stage> doStageCreation(RequestStageContainer requestStages,
+  private RequestStageContainer doStageCreation(RequestStageContainer requestStages,
       Cluster cluster,
       Map<State, List<Service>> changedServices,
       Map<State, List<ServiceComponent>> changedComps,
@@ -1856,7 +1857,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if ((changedServices == null || changedServices.isEmpty())
         && (changedComps == null || changedComps.isEmpty())
         && (changedScHosts == null || changedScHosts.isEmpty())) {
-      return null;
+      LOG.debug("Created 0 stages");
+      return requestStages;
     }
 
     // smoke test any service that goes from installed to started
@@ -1882,9 +1884,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       String HostParamsJson = StageUtils.getGson().toJson(
           customCommandExecutionHelper.createDefaultHostParams(cluster));
 
-      Stage stage = createNewStage(requestStages.getLastStageId() + 1, cluster,
+      Stage stage = createNewStage(requestStages.getLastStageId(), cluster,
           requestStages.getId(), requestProperties.get(REQUEST_CONTEXT_PROPERTY),
           clusterHostInfoJson, "{}", HostParamsJson);
+
+      Collection<ServiceComponentHost> componentsToEnableKerberos = new ArrayList<ServiceComponentHost>();
 
       //HACK
       String jobtrackerHost = getJobTrackerHost(cluster);
@@ -1923,6 +1927,22 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                       scHost.getServiceComponentName(), scHost.getHostName(),
                       nowTimestamp,
                       scHost.getDesiredStackVersion().getStackId());
+
+                  // If the state is transitioning from INIT TO INSTALLED and the cluster has Kerberos
+                  // enabled, mark this ServiceComponentHost to see if anything needs to be done to
+                  // make sure it is properly configured.  The Kerberos-related stages needs to be
+                  // between the INSTALLED and STARTED states because some services need to set up
+                  // the host (i,e, create user accounts, etc...) before Kerberos-related tasks an
+                  // occur (like distribute keytabs)
+                  if((oldSchState == State.INIT) && kerberosHelper.isClusterKerberosEnabled(cluster)) {
+                    try {
+                      kerberosHelper.configureService(cluster, scHost);
+                    } catch (KerberosInvalidConfigurationException e) {
+                      throw new AmbariException(e.getMessage(), e);
+                    }
+
+                    componentsToEnableKerberos.add(scHost);
+                  }
                 } else if (oldSchState == State.STARTED
                       // TODO: oldSchState == State.INSTALLED is always false, looks like a bug
                       //|| oldSchState == State.INSTALLED
@@ -2102,13 +2122,37 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       RoleCommandOrder rco = getRoleCommandOrder(cluster);
       RoleGraph rg = new RoleGraph(rco);
+
       rg.build(stage);
-      return rg.getStages();
+      requestStages.addStages(rg.getStages());
+
+      if (!componentsToEnableKerberos.isEmpty()) {
+        Map<String, Collection<String>> serviceFilter = new HashMap<String, Collection<String>>();
+
+        for (ServiceComponentHost scHost : componentsToEnableKerberos) {
+          String serviceName = scHost.getServiceName();
+          Collection<String> componentFilter = serviceFilter.get(serviceName);
+
+          if (componentFilter == null) {
+            componentFilter = new HashSet<String>();
+            serviceFilter.put(serviceName, componentFilter);
+          }
+
+          componentFilter.add(scHost.getServiceComponentName());
+        }
+
+        kerberosHelper.ensureIdentities(cluster, serviceFilter, null, requestStages);
+      }
+
+      List<Stage> stages = requestStages.getStages();
+      LOG.debug("Created {} stages", ((stages != null) ? stages.size() : 0));
+
+    } else {
+      LOG.debug("Created 0 stages");
     }
 
-    return null;
+    return requestStages;
   }
-
 
   @Transactional
   void updateServiceStates(
@@ -2186,12 +2230,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       requestStages = new RequestStageContainer(actionManager.getNextRequestId(), null, requestFactory, actionManager);
     }
 
-    List<Stage> stages = doStageCreation(requestStages, cluster, changedServices, changedComponents,
+    requestStages = doStageCreation(requestStages, cluster, changedServices, changedComponents,
         changedHosts, requestParameters, requestProperties,
         runSmokeTest, reconfigureClients);
-    LOG.debug("Created {} stages", ((stages != null) ? stages.size() : 0));
 
-    requestStages.addStages(stages);
     updateServiceStates(changedServices, changedComponents, changedHosts, ignoredHosts);
     return requestStages;
   }

@@ -459,21 +459,22 @@ public class HeartBeatHandler {
           "SET_KEYTAB".equalsIgnoreCase(report.getCustomCommand()) &&
           RequestExecution.Status.COMPLETED.name().equalsIgnoreCase(report.getStatus())) {
 
-        Map<String, String> structuredOutput;
+        WriteKeytabsStructuredOut writeKeytabsStructuredOut;
         try {
-          structuredOutput = gson.fromJson(report.getStructuredOut(),
-              new TypeToken<Map<String, String>>() {
-              }.getType());
+          writeKeytabsStructuredOut = gson.fromJson(report.getStructuredOut(), WriteKeytabsStructuredOut.class);
         } catch (JsonSyntaxException ex) {
           //Json structure was incorrect do nothing, pass this data further for processing
-          structuredOutput = null;
+          writeKeytabsStructuredOut = null;
         }
 
-        if (structuredOutput != null) {
-          for (Map.Entry<String, String> entry : structuredOutput.entrySet()) {
-            String principal = entry.getKey();
-            if (!kerberosPrincipalHostDAO.exists(principal, hostname)) {
-              kerberosPrincipalHostDAO.create(principal, hostname);
+        if (writeKeytabsStructuredOut != null) {
+          Map<String, String> keytabs = writeKeytabsStructuredOut.getKeytabs();
+          if (keytabs != null) {
+            for (Map.Entry<String, String> entry : keytabs.entrySet()) {
+              String principal = entry.getKey();
+              if (!kerberosPrincipalHostDAO.exists(principal, hostname)) {
+                kerberosPrincipalHostDAO.create(principal, hostname);
+              }
             }
           }
         }
@@ -1099,6 +1100,22 @@ public class HeartBeatHandler {
 
     public void setVersion(String version) {
       this.version = version;
+    }
+  }
+
+  /**
+   * This class is used for mapping json of structured output for keytab distribution actions.
+   */
+  private static class WriteKeytabsStructuredOut {
+    @SerializedName("keytabs")
+    private Map<String,String> keytabs;
+
+    public Map<String, String> getKeytabs() {
+      return keytabs;
+    }
+
+    public void setKeytabs(Map<String, String> keytabs) {
+      this.keytabs = keytabs;
     }
   }
 

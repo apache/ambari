@@ -13,6 +13,9 @@
           "name": "/hdfs"
         }
       ],
+      "auth_to_local_properties" : [
+        "oozie-site/oozie.authentication.kerberos.name.rules"
+      ],
       "configurations": [
         {
           "oozie-site": {
@@ -20,7 +23,7 @@
             "oozie.service.AuthorizationService.authorization.enabled": "true",
             "oozie.service.HadoopAccessorService.kerberos.enabled": "true",
             "local.realm": "${realm}",
-            "oozie.authentication.kerberos.name.rules": "_AUTH_TO_LOCAL_RULES"
+            "oozie.authentication.kerberos.name.rules": ""
           }
         }
       ],

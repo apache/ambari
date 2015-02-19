@@ -395,6 +395,11 @@ class KerberosScript(Script):
 
             principal = get_property_value(item, 'principal')
             if principal is not None:
-              self.put_structured_out({
-                principal.replace("_HOST", params.hostname): keytab_file_path
-              })
+              curr_content = Script.structuredOut
+
+              if "keytabs" not in curr_content:
+                curr_content['keytabs'] = {}
+
+              curr_content['keytabs'][principal.replace("_HOST", params.hostname)] = keytab_file_path
+
+              self.put_structured_out(curr_content)

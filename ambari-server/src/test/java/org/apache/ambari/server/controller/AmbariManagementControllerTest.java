@@ -3127,9 +3127,9 @@ public class AmbariManagementControllerTest {
     // sch5 to start
     Stage stage1 = null, stage2 = null, stage3 = null;
     for (Stage s : stages) {
-      if (s.getStageId() == 1) { stage1 = s; }
-      if (s.getStageId() == 2) { stage2 = s; }
-      if (s.getStageId() == 3) { stage3 = s; }
+      if (s.getStageId() == 0) { stage1 = s; }
+      if (s.getStageId() == 1) { stage2 = s; }
+      if (s.getStageId() == 2) { stage3 = s; }
     }
 
     Assert.assertEquals(2, stage1.getExecutionCommands(host1).size());

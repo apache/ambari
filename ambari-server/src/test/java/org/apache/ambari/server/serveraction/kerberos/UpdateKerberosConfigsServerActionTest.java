@@ -26,6 +26,7 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.easymock.EasyMock;
 import org.junit.After;
@@ -50,9 +51,11 @@ public class UpdateKerberosConfigsServerActionTest {
   String dataDir;
   private Injector injector;
   private UpdateKerberosConfigsServerAction action;
-  final AmbariManagementController controller = EasyMock.createNiceMock(AmbariManagementController.class);
-  Clusters clusters = EasyMock.createNiceMock(Clusters.class);
-  Cluster cluster = EasyMock.createNiceMock(Cluster.class);
+
+  private final AmbariManagementController controller = EasyMock.createNiceMock(AmbariManagementController.class);
+  private final ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
+  private final Clusters clusters = EasyMock.createNiceMock(Clusters.class);
+  private final Cluster cluster = EasyMock.createNiceMock(Cluster.class);
 
   @Before
   public void setup() throws Exception {
@@ -60,14 +63,13 @@ public class UpdateKerberosConfigsServerActionTest {
     setupConfigDat();
 
     expect(controller.getClusters()).andReturn(clusters).once();
-
-    expect(controller.createConfiguration(anyObject(ConfigurationRequest.class))).andReturn(
-      null).once();
-
     replay(controller);
 
-    expect(cluster.getConfigsByType("hdfs-site")).andReturn(null).once();
-    expect(cluster.getDesiredConfigByType("hdfs-site")).andReturn(null).once();
+    configHelper.updateConfigType(anyObject(Cluster.class), anyObject(AmbariManagementController.class),
+        anyObject(String.class), anyObject(Map.class), anyObject(String.class), anyObject(String.class));
+    expectLastCall().atLeastOnce();
+    replay(configHelper);
+
     replay(cluster);
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster).once();
@@ -78,6 +80,7 @@ public class UpdateKerberosConfigsServerActionTest {
       @Override
       protected void configure() {
         bind(AmbariManagementController.class).toInstance(controller);
+        bind(ConfigHelper.class).toInstance(configHelper);
       }
     });
     action = injector.getInstance(UpdateKerberosConfigsServerAction.class);
@@ -137,9 +140,7 @@ public class UpdateKerberosConfigsServerActionTest {
 
     action.execute(requestSharedDataContext);
 
-    verify(controller);
-    verify(clusters);
-    verify(cluster);
+    verify(controller, clusters, cluster, configHelper);
   }
 
   @Test

@@ -46,6 +46,12 @@ import java.util.Map;
  */
 public abstract class KerberosServerAction extends AbstractServerAction {
   /**
+   * A (command parameter) property name used to hold the authenticated user's name for use in
+   * operations that record the acting user.
+   */
+  public static final String AUTHENTICATED_USER_NAME = "authenticated_user_name";
+
+  /**
    * A (command parameter) property name used to hold the absolute path to the directory that is to
    * be used to store transient data while the request is being processed.  This is expected to be
    * a temporary directory.

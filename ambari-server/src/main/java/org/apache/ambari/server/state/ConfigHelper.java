@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.collect.Maps;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -636,6 +637,53 @@ public class ConfigHelper {
     StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
 
     return ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
+  }
+
+  /**
+   * A helper method to create a new {@link Config} for a given configuration
+   * type and updates to the current values, if any. This method will perform the following tasks:
+   * <ul>
+   * <li>Marge the specified updates with the properties of the current version of the
+   * configuration</li>
+   * <li>Create a {@link Config} in the cluster for the specified type. This
+   * will have the proper versions and tags set automatically.</li>
+   * <li>Set the cluster's {@link DesiredConfig} to the new configuration</li>
+   * <li>Create an entry in the configuration history with a note and username.</li>
+   * <ul>
+   *
+   * @param cluster
+   * @param controller
+   * @param configType
+   * @param updates
+   * @param authenticatedUserName
+   * @param serviceVersionNote
+   * @throws AmbariException
+   */
+  public void updateConfigType(Cluster cluster,
+                               AmbariManagementController controller, String configType,
+                               Map<String, String> updates, String authenticatedUserName,
+                               String serviceVersionNote) throws AmbariException {
+
+    if((configType != null) && (updates != null) && !updates.isEmpty()) {
+      Config oldConfig = cluster.getDesiredConfigByType(configType);
+      Map<String, String> oldConfigProperties;
+      Map<String, String> properties = new HashMap<String, String>();
+
+      if (oldConfig == null) {
+        oldConfigProperties = null;
+      } else {
+        oldConfigProperties = oldConfig.getProperties();
+        if (oldConfigProperties != null) {
+          properties.putAll(oldConfig.getProperties());
+        }
+      }
+
+      properties.putAll(updates);
+
+      if ((oldConfigProperties == null) || !Maps.difference(oldConfigProperties, properties).areEqual()) {
+        createConfigType(cluster, controller, configType, properties, authenticatedUserName, serviceVersionNote);
+      }
+    }
   }
 
   /**

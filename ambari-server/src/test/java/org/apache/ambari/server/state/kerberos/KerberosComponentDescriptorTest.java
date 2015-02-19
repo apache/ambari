@@ -25,8 +25,11 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class KerberosComponentDescriptorTest {
   public static final String JSON_VALUE =
@@ -42,7 +45,10 @@ public class KerberosComponentDescriptorTest {
           "        \"service.component.property2\": \"value2\"" +
           "      }" +
           "    }" +
-          "  ]" +
+          "  ]," +
+          "  \"auth_to_local_properties\": [" +
+          "      component.name.rules1" +
+          "    ]" +
           "}";
 
   public static final Map<String, Object> MAP_VALUE =
@@ -65,6 +71,9 @@ public class KerberosComponentDescriptorTest {
                 });
               }
             });
+          }});
+          put(KerberosDescriptorType.AUTH_TO_LOCAL_PROPERTY.getDescriptorPluralName(), new ArrayList<String>() {{
+            add("component.name.rules2");
           }});
         }
       };
@@ -96,6 +105,11 @@ public class KerberosComponentDescriptorTest {
     Assert.assertEquals(2, properties.size());
     Assert.assertEquals("value1", properties.get("service.component.property1"));
     Assert.assertEquals("value2", properties.get("service.component.property2"));
+
+    Set<String> authToLocalProperties = componentDescriptor.getAuthToLocalProperties();
+    Assert.assertNotNull(authToLocalProperties);
+    Assert.assertEquals(1, authToLocalProperties.size());
+    Assert.assertEquals("component.name.rules1", authToLocalProperties.iterator().next());
   }
 
   public static void validateFromMap(KerberosComponentDescriptor componentDescriptor) {
@@ -125,6 +139,11 @@ public class KerberosComponentDescriptorTest {
     Assert.assertEquals(2, properties.size());
     Assert.assertEquals("red", properties.get("service.component.property1"));
     Assert.assertEquals("green", properties.get("service.component.property"));
+
+    Set<String> authToLocalProperties = componentDescriptor.getAuthToLocalProperties();
+    Assert.assertNotNull(authToLocalProperties);
+    Assert.assertEquals(1, authToLocalProperties.size());
+    Assert.assertEquals("component.name.rules2", authToLocalProperties.iterator().next());
   }
 
   public static void validateUpdatedData(KerberosComponentDescriptor componentDescriptor) {
@@ -154,6 +173,15 @@ public class KerberosComponentDescriptorTest {
     Assert.assertEquals("red", properties.get("service.component.property1"));
     Assert.assertEquals("value2", properties.get("service.component.property2"));
     Assert.assertEquals("green", properties.get("service.component.property"));
+
+    Set<String> authToLocalProperties = componentDescriptor.getAuthToLocalProperties();
+    Assert.assertNotNull(authToLocalProperties);
+    Assert.assertEquals(2, authToLocalProperties.size());
+    // guarantee ordering...
+    Iterator<String> iterator = new TreeSet<String>(authToLocalProperties).iterator();
+    Assert.assertEquals("component.name.rules1", iterator.next());
+    Assert.assertEquals("component.name.rules2", iterator.next());
+
   }
 
   private static KerberosComponentDescriptor createFromJSON() {

@@ -20,7 +20,6 @@ package org.apache.ambari.server.controller.internal;
 
 import com.google.inject.Injector;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ResourceProviderFactory;
@@ -35,7 +34,6 @@ import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -60,7 +58,6 @@ import java.util.Set;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -304,7 +301,7 @@ public class HostComponentResourceProviderTest {
     HostComponentResourceProvider provider =
         new TestHostComponentResourceProvider(PropertyHelper.getPropertyIds(type),
             PropertyHelper.getKeyPropertyIds(type),
-            managementController, injector, maintenanceStateHelper, null);
+            managementController, injector, maintenanceStateHelper);
 
     expect(resourceProviderFactory.getHostComponentResourceProvider(anyObject(Set.class),
         anyObject(Map.class),
@@ -355,8 +352,6 @@ public class HostComponentResourceProviderTest {
     ServiceComponentHost clientComponentHost = createNiceMock(ServiceComponentHost.class);
     RequestStageContainer stageContainer = createNiceMock(RequestStageContainer.class);
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
-    // INIT->INSTALLED state transition causes check for kerberized cluster
-    KerberosHelper kerberosHelper = createStrictMock(KerberosHelper.class);
 
     Collection<String> hosts = new HashSet<String>();
     hosts.add("Host100");
@@ -432,18 +427,16 @@ public class HostComponentResourceProviderTest {
     HostComponentResourceProvider provider =
         new TestHostComponentResourceProvider(PropertyHelper.getPropertyIds(type),
             PropertyHelper.getKeyPropertyIds(type),
-            managementController, injector, maintenanceStateHelper, kerberosHelper);
+            managementController, injector, maintenanceStateHelper);
 
     expect(resourceProviderFactory.getHostComponentResourceProvider(anyObject(Set.class),
         anyObject(Map.class),
         eq(managementController))).
         andReturn(provider).anyTimes();
 
-    expect(kerberosHelper.isClusterKerberosEnabled(cluster)).andReturn(false).times(2);
-
     // replay
     replay(managementController, response, resourceProviderFactory, clusters, cluster, service,
-        component, componentHost, stageContainer, maintenanceStateHelper, kerberosHelper, clientComponent,
+        component, componentHost, stageContainer, maintenanceStateHelper, clientComponent,
         clientComponentHost);
 
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
@@ -453,109 +446,8 @@ public class HostComponentResourceProviderTest {
 
     assertSame(response, requestResponse);
     // verify
-    verify(managementController, response, resourceProviderFactory, stageContainer, kerberosHelper,
-           clientComponent, clientComponentHost);
-  }
-
-  @Test
-  public void testInstallAndStart_kerberizedCluster() throws Exception {
-    Resource.Type type = Resource.Type.HostComponent;
-
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
-    ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
-    Injector injector = createNiceMock(Injector.class);
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    Service service = createNiceMock(Service.class);
-    ServiceComponent component = createNiceMock(ServiceComponent.class);
-    ServiceComponentHost componentHost = createNiceMock(ServiceComponentHost.class);
-    RequestStageContainer stageContainer = createNiceMock(RequestStageContainer.class);
-    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
-    KerberosHelper kerberosHelper = createStrictMock(KerberosHelper.class);
-
-    Collection<String> hosts = new HashSet<String>();
-    hosts.add("Host100");
-
-    Map<String, String> mapRequestProps = new HashMap<String, String>();
-    mapRequestProps.put("context", "Install and start components on added hosts");
-
-    Set<ServiceComponentHostResponse> nameResponse = new HashSet<ServiceComponentHostResponse>();
-    nameResponse.add(new ServiceComponentHostResponse(
-        "Cluster102", "Service100", "Component100", "Host100", "INIT", "", "INIT", "", null));
-    Set<ServiceComponentHostResponse> nameResponse2 = new HashSet<ServiceComponentHostResponse>();
-    nameResponse2.add(new ServiceComponentHostResponse(
-        "Cluster102", "Service100", "Component100", "Host100", "INIT", "", "INSTALLED", "", null));
-
-
-    // set expectations
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(managementController.findServiceName(cluster, "Component100")).andReturn("Service100").anyTimes();
-    expect(clusters.getCluster("Cluster102")).andReturn(cluster).anyTimes();
-    expect(cluster.getService("Service100")).andReturn(service).anyTimes();
-    expect(service.getServiceComponent("Component100")).andReturn(component).anyTimes();
-    expect(component.getServiceComponentHost("Host100")).andReturn(componentHost).anyTimes();
-    expect(component.getName()).andReturn("Component100").anyTimes();
-    // actual state is always INIT until stages actually execute
-    expect(componentHost.getState()).andReturn(State.INIT).anyTimes();
-    expect(componentHost.getHostName()).andReturn("Host100").anyTimes();
-    expect(componentHost.getServiceComponentName()).andReturn("Component100").anyTimes();
-    expect(response.getMessage()).andReturn("response msg").anyTimes();
-
-    //Cluster is default type.  Maintenance mode is not being tested here so the default is returned.
-    expect(maintenanceStateHelper.isOperationAllowed(Resource.Type.Cluster, componentHost)).andReturn(true).anyTimes();
-
-    expect(managementController.getHostComponents(
-        EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).andReturn(nameResponse);
-    expect(managementController.getHostComponents(
-        EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).andReturn(nameResponse2);
-
-    Map<String, Map<State, List<ServiceComponentHost>>> changedHosts =
-        new HashMap<String, Map<State, List<ServiceComponentHost>>>();
-    List<ServiceComponentHost> changedComponentHosts = Collections.singletonList(componentHost);
-    changedHosts.put("Component100", Collections.singletonMap(State.INSTALLED, changedComponentHosts));
-
-    Map<String, Map<State, List<ServiceComponentHost>>> changedHosts2 =
-        new HashMap<String, Map<State, List<ServiceComponentHost>>>();
-    List<ServiceComponentHost> changedComponentHosts2 = Collections.singletonList(componentHost);
-    changedHosts2.put("Component100", Collections.singletonMap(State.STARTED, changedComponentHosts2));
-
-    expect(managementController.addStages(null, cluster, mapRequestProps, null, null, null, changedHosts,
-        Collections.<ServiceComponentHost>emptyList(), false, false)).andReturn(stageContainer).once();
-
-    expect(managementController.addStages(stageContainer, cluster, mapRequestProps, null, null, null, changedHosts2,
-        Collections.<ServiceComponentHost>emptyList(), false, false)).andReturn(stageContainer).once();
-
-    stageContainer.persist();
-    expect(stageContainer.getProjectedState("Host100", "Component100")).andReturn(State.INSTALLED).once();
-    expect(stageContainer.getRequestStatusResponse()).andReturn(response).once();
-
-    HostComponentResourceProvider provider =
-        new TestHostComponentResourceProvider(PropertyHelper.getPropertyIds(type),
-            PropertyHelper.getKeyPropertyIds(type),
-            managementController, injector, maintenanceStateHelper, kerberosHelper);
-
-    expect(resourceProviderFactory.getHostComponentResourceProvider(anyObject(Set.class),
-        anyObject(Map.class),
-        eq(managementController))).
-        andReturn(provider).anyTimes();
-
-    expect(kerberosHelper.isClusterKerberosEnabled(cluster)).andReturn(true).once();
-    expect(kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, stageContainer)).
-        andReturn(stageContainer).once();
-
-    // replay
-    replay(managementController, response, resourceProviderFactory, clusters, cluster, service,
-        component, componentHost, stageContainer, maintenanceStateHelper, kerberosHelper);
-
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
-    properties.put(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
-
-    RequestStatusResponse requestResponse = provider.installAndStart("Cluster102", hosts);
-
-    assertSame(response, requestResponse);
-    // verify
-    verify(managementController, response, resourceProviderFactory, stageContainer, kerberosHelper);
+    verify(managementController, response, resourceProviderFactory, stageContainer,
+        clientComponent, clientComponentHost);
   }
 
   @Test
@@ -657,8 +549,8 @@ public class HostComponentResourceProviderTest {
     HostComponentResourceProvider provider =
         new TestHostComponentResourceProvider(PropertyHelper.getPropertyIds(type),
             PropertyHelper.getKeyPropertyIds(type),
-            controller, injector, injector.getInstance(MaintenanceStateHelper.class),
-            injector.getInstance(KerberosHelper.class));
+            controller, injector, injector.getInstance(MaintenanceStateHelper.class)
+        );
     RequestStageContainer requestStages = provider.updateHostComponents(null, requests, requestProperties, runSmokeTest);
     requestStages.persist();
     return requestStages.getRequestStatusResponse();
@@ -675,8 +567,7 @@ public class HostComponentResourceProviderTest {
      */
     public TestHostComponentResourceProvider(Set<String> propertyIds, Map<Resource.Type, String> keyPropertyIds,
                                              AmbariManagementController managementController, Injector injector,
-                                             MaintenanceStateHelper maintenanceStateHelper,
-                                             KerberosHelper kerberosHelper) throws Exception {
+                                             MaintenanceStateHelper maintenanceStateHelper) throws Exception {
 
       super(propertyIds, keyPropertyIds, managementController, injector);
 
@@ -685,10 +576,6 @@ public class HostComponentResourceProviderTest {
       Field f = c.getDeclaredField("maintenanceStateHelper");
       f.setAccessible(true);
       f.set(this, maintenanceStateHelper);
-
-      f = c.getDeclaredField("kerberosHelper");
-      f.setAccessible(true);
-      f.set(this, kerberosHelper);
     }
   }
 }

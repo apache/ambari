@@ -24,7 +24,8 @@ public enum KerberosDescriptorType {
   IDENTITY("identity", "identities"),
   PRINCIPAL("principal", "principals"),
   KEYTAB("keytab", "keytabs"),
-  CONFIGURATION("configuration", "configurations");
+  CONFIGURATION("configuration", "configurations"),
+  AUTH_TO_LOCAL_PROPERTY("auth_to_local_property", "auth_to_local_properties");
 
   private final String descriptorName;
   private final String descriptorPluralName;

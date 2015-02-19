@@ -19,13 +19,16 @@
           "name": "/hdfs"
         }
       ],
+      "auth_to_local_properties" : [
+        "core-site/hadoop.security.auth_to_local"
+      ],
       "configurations": [
         {
           "core-site": {
             "hadoop.security.authentication": "kerberos",
             "hadoop.rpc.protection": "authentication",
             "hadoop.security.authorization": "true",
-            "hadoop.security.auth_to_local": "_AUTH_TO_LOCAL_RULES",
+            "hadoop.security.auth_to_local": "",
             "hadoop.http.authentication.kerberos.name.rules": "",
             "hadoop.http.filter.initializers": "",
             "hadoop.http.authentication.type": "simple",

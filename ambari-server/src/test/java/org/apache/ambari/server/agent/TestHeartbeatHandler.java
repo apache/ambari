@@ -2521,6 +2521,7 @@ public class TestHeartbeatHandler {
     executionCommand.setHostLevelParams(hlp);
 
     Map<String, String> commandparams = new HashMap<String, String>();
+    commandparams.put(KerberosServerAction.AUTHENTICATED_USER_NAME, "admin");
     commandparams.put(KerberosServerAction.DATA_DIRECTORY, createTestKeytabData().getAbsolutePath());
     executionCommand.setCommandParams(commandparams);
 

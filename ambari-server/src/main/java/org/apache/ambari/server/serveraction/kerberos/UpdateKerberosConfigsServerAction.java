@@ -18,24 +18,21 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.SecurityType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
@@ -46,13 +43,13 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
 
-  private final static Logger LOG =
-    LoggerFactory.getLogger(UpdateKerberosConfigsServerAction.class);
-
-  private HashMap<String, Map<String, String>> configurations = new HashMap<String, Map<String, String>>();
+  private final static Logger LOG = LoggerFactory.getLogger(UpdateKerberosConfigsServerAction.class);
 
   @Inject
   private AmbariManagementController controller;
+
+  @Inject
+  private ConfigHelper configHelper;
 
   /**
    * Executes this ServerAction
@@ -65,12 +62,11 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
    *                                 to a given request
    * @return a CommandReport declaring the status of the task
    * @throws org.apache.ambari.server.AmbariException
-   *
    * @throws InterruptedException
    */
   @Override
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext)
-    throws AmbariException, InterruptedException {
+      throws AmbariException, InterruptedException {
 
     CommandReport commandReport = null;
 
@@ -78,7 +74,9 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
     Clusters clusters = controller.getClusters();
     Cluster cluster = clusters.getCluster(clusterName);
 
+    String authenticatedUserName = getCommandParameterValue(getCommandParameters(), KerberosServerAction.AUTHENTICATED_USER_NAME);
     String dataDirectoryPath = getCommandParameterValue(getCommandParameters(), KerberosServerAction.DATA_DIRECTORY);
+    HashMap<String, Map<String, String>> configurations = new HashMap<String, Map<String, String>>();
 
     // If the data directory path is set, attempt to process further, else assume there is no work to do
     if (dataDirectoryPath != null) {
@@ -103,7 +101,7 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
               if (principalTokens.length == 2) {
                 String principalConfigType = principalTokens[0];
                 String principalConfigProp = principalTokens[1];
-                addConfigTypePropVal(principalConfigType, principalConfigProp, principal);
+                addConfigTypePropVal(configurations, principalConfigType, principalConfigProp, principal);
               }
 
               String keytabPath = record.get(KerberosActionDataFile.KEYTAB_FILE_PATH);
@@ -112,7 +110,7 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
               if (keytabTokens.length == 2) {
                 String keytabConfigType = keytabTokens[0];
                 String keytabConfigProp = keytabTokens[1];
-                addConfigTypePropVal(keytabConfigType, keytabConfigProp, keytabPath);
+                addConfigTypePropVal(configurations, keytabConfigType, keytabConfigProp, keytabPath);
               }
             }
           }
@@ -126,18 +124,19 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
               String configType = record.get(KerberosConfigDataFile.CONFIGURATION_TYPE);
               String configKey = record.get(KerberosConfigDataFile.KEY);
               String configVal = record.get(KerberosConfigDataFile.VALUE);
-              addConfigTypePropVal(configType, configKey, configVal);
+              addConfigTypePropVal(configurations, configType, configKey, configVal);
             }
           }
 
-          for (Map.Entry<String, Map<String, String>> entry : configurations.entrySet()) {
-            updateConfigurationPropertiesForCluster(
-                cluster,
-                entry.getKey(),     // configType
-                entry.getValue(),   // properties
-                true,               // updateIfExists
-                true,               // createNew
-                "update services configs to enable kerberos");
+          if (!configurations.isEmpty()) {
+            String configNote = cluster.getSecurityType() == SecurityType.KERBEROS
+                ? "Enabling Kerberos"
+                : "Disabling Kerberos";
+
+            for (Map.Entry<String, Map<String, String>> entry : configurations.entrySet()) {
+                configHelper.updateConfigType(cluster, controller, entry.getKey(), entry.getValue(),
+                  authenticatedUserName, configNote);
+            }
           }
         } catch (IOException e) {
           String message = "Could not update services configs to enable kerberos";
@@ -171,115 +170,11 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
 
 
   /**
-   *
-   * Updates service config properties of a cluster
-   * @param cluster   the cluster for which to update service configs
-   * @param configType   service config type to be updated
-   * @param properties    map of service config properties
-   * @param updateIfExists    flag indicating whether to update if a property already exists
-   * @param createNewConfigType  flag indicating whether to create new service config
-   *                             if the config type does not exist
-   * @param note   a short note on change
-   * @throws AmbariException if the operation fails
-   */
-  private void updateConfigurationPropertiesForCluster(
-    Cluster cluster,
-    String configType,
-    Map<String, String> properties,
-    boolean updateIfExists,
-    boolean createNewConfigType,
-    String note)
-    throws AmbariException {
-
-    String newTag = "version" + System.currentTimeMillis();
-    String message;
-    if ((properties != null) && (properties.size() > 0)) {
-      Map<String, Config> all = cluster.getConfigsByType(configType);
-      if (all == null || !all.containsKey(newTag)) {
-        Map<String, String> oldConfigProperties;
-        Config oldConfig = cluster.getDesiredConfigByType(configType);
-
-        if (oldConfig == null && !createNewConfigType) {
-          message = String.format("Config %s not found. Assuming service not installed. " +
-              "Skipping configuration properties update", configType);
-          actionLog.writeStdOut(message);
-          LOG.info(message);
-          return;
-        } else if (oldConfig == null) {
-          oldConfigProperties = new HashMap<String, String>();
-          newTag = "version1";
-        } else {
-          oldConfigProperties = oldConfig.getProperties();
-        }
-
-        Map<String, String> mergedProperties =
-          mergeProperties(oldConfigProperties, properties, updateIfExists);
-
-        if (!Maps.difference(oldConfigProperties, mergedProperties).areEqual()) {
-          message = String.format("Applying configuration with tag '%s' to " +
-              "cluster '%s'", newTag, cluster.getClusterName());
-          actionLog.writeStdOut(message);
-          LOG.info(message);
-
-          ConfigurationRequest cr = new ConfigurationRequest();
-          cr.setClusterName(cluster.getClusterName());
-          cr.setVersionTag(newTag);
-          cr.setType(configType);
-          cr.setProperties(mergedProperties);
-          cr.setServiceConfigVersionNote(note);
-          controller.createConfiguration(cr);
-
-          Config baseConfig = cluster.getConfig(cr.getType(), cr.getVersionTag());
-          if (baseConfig != null) {
-            String authName = controller.getAuthName();
-            String configNote = null;
-            configNote = cluster.getSecurityType() == SecurityType.KERBEROS ?
-                    "Enabling Kerberos on Cluster" : "Disabling Kerberos on Cluster";
-            if (cluster.addDesiredConfig(authName, Collections.singleton(baseConfig), configNote) != null) {
-              String oldConfigString = (oldConfig != null) ? " from='" + oldConfig.getTag() + "'" : "";
-              message = "cluster '" + cluster.getClusterName() + "' "
-                  + "changed by: '" + authName + "'; "
-                  + "type='" + baseConfig.getType() + "' "
-                  + "tag='" + baseConfig.getTag() + "'"
-                  + oldConfigString;
-              LOG.info(message);
-              actionLog.writeStdOut(message);
-            }
-          }
-        } else {
-          message = "No changes detected to config " + configType + ". Skipping configuration properties update";
-          LOG.info(message);
-          actionLog.writeStdOut(message);
-        }
-      }
-    }
-  }
-
-  /**
-   * Merges current properties and new properties
-   * @param originalProperties  current properties
-   * @param newProperties      new properties
-   * @param updateIfExists    flag indicating whether to update if a property already exists
-   * @return    merged properties
-   */
-  private static Map<String, String> mergeProperties(Map<String, String> originalProperties,
-                                                     Map<String, String> newProperties,
-                                                     boolean updateIfExists) {
-
-    Map<String, String> properties = new HashMap<String, String>(originalProperties);
-    for (Map.Entry<String, String> entry : newProperties.entrySet()) {
-      if (!properties.containsKey(entry.getKey()) || updateIfExists) {
-        properties.put(entry.getKey(), entry.getValue());
-      }
-    }
-    return properties;
-  }
-
-  /**
    * Gets a property from the given commandParameters
-   * @param commandParameters   map of command parameters
-   * @param propertyName   property name to find value for
-   * @return    value of given proeprty name, would return <code>null</code>
+   *
+   * @param commandParameters map of command parameters
+   * @param propertyName      property name to find value for
+   * @return value of given proeprty name, would return <code>null</code>
    * if the provided commandParameters is null or  if the requested property is not found
    * in commandParams
    */
@@ -289,11 +184,13 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
 
   /**
    * Adds a property to properties of a given service config type
-   * @param configtype   service config type
-   * @param prop     property to be added
-   * @param val   value for the proeprty
+   *
+   * @param configurations
+   * @param configtype     service config type
+   * @param prop           property to be added
+   * @param val            value for the proeprty
    */
-  private void addConfigTypePropVal(String configtype, String prop, String val) {
+  private void addConfigTypePropVal(HashMap<String, Map<String, String>> configurations, String configtype, String prop, String val) {
     Map<String, String> configtypePropsVal = configurations.get(configtype);
     if (configtypePropsVal == null) {
       configtypePropsVal = new HashMap<String, String>();

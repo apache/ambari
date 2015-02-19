@@ -198,6 +198,23 @@ public class AuthToLocalBuilder {
     return new Rule(rule.startsWith("RULE:") ? rule : String.format("RULE:%s", rule));
   }
 
+  /**
+   * Creates and returns a deep copy of this AuthToLocalBuilder.
+   *
+   * @return a deep copy of this AuthToLocalBuilder
+   */
+  public AuthToLocalBuilder copy() {
+    AuthToLocalBuilder copy = new AuthToLocalBuilder();
+
+    // TODO: This needs to be done in a loop rather than use Set.addAll because there may be an issue
+    // TODO: with the Rule.compareTo method?
+    for(Rule rule:setRules) {
+      copy.setRules.add(rule);
+    }
+
+    return copy;
+  }
+
 
   /**
    * Rule implementation.

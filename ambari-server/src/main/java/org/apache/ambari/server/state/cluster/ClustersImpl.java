@@ -47,6 +47,7 @@ import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
+import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
@@ -108,6 +109,8 @@ public class ClustersImpl implements Clusters {
   HostVersionDAO hostVersionDAO;
   @Inject
   ResourceTypeDAO resourceTypeDAO;
+  @Inject
+  KerberosPrincipalHostDAO kerberosPrincipalHostDAO;
   @Inject
   ClusterFactory clusterFactory;
   @Inject
@@ -692,6 +695,8 @@ public class ClustersImpl implements Clusters {
 
       deleteConfigGroupHostMapping(hostname);
 
+      // Remove mapping of principals to the unmapped host
+      kerberosPrincipalHostDAO.removeByHost(hostname);
     } finally {
       w.unlock();
     }
@@ -742,6 +747,9 @@ public class ClustersImpl implements Clusters {
       hostDAO.refresh(entity);
       hostDAO.remove(entity);
       hosts.remove(hostname);
+
+      // Remove mapping of principals to deleted host
+      kerberosPrincipalHostDAO.removeByHost(hostname);
 
       // publish the event
       HostRemovedEvent event = new HostRemovedEvent(hostname);

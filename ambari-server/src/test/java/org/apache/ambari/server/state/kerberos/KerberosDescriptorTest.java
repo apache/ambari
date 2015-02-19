@@ -24,8 +24,11 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class KerberosDescriptorTest {
   private static final KerberosDescriptorFactory KERBEROS_DESCRIPTOR_FACTORY = new KerberosDescriptorFactory();
@@ -37,6 +40,9 @@ public class KerberosDescriptorTest {
           "      \"realm\": \"${cluster-env/kerberos_domain}\"," +
           "      \"keytab_dir\": \"/etc/security/keytabs\"" +
           "    }," +
+          "  \"auth_to_local_properties\": [" +
+          "      generic.name.rules" +
+          "    ]," +
           "  \"services\": [" +
           KerberosServiceDescriptorTest.JSON_VALUE +
           "    ]" +
@@ -48,6 +54,10 @@ public class KerberosDescriptorTest {
           put("properties", new HashMap<String, Object>() {{
             put("realm", "EXAMPLE.COM");
             put("some.property", "Hello World");
+          }});
+
+          put(KerberosDescriptorType.AUTH_TO_LOCAL_PROPERTY.getDescriptorPluralName(), new ArrayList<String>() {{
+            add("global.name.rules");
           }});
 
           put(KerberosDescriptorType.SERVICE.getDescriptorPluralName(), new ArrayList<Object>() {{
@@ -102,6 +112,11 @@ public class KerberosDescriptorTest {
     Assert.assertEquals("${cluster-env/kerberos_domain}", properties.get("realm"));
     Assert.assertEquals("/etc/security/keytabs", properties.get("keytab_dir"));
 
+    Set<String> authToLocalProperties = descriptor.getAuthToLocalProperties();
+    Assert.assertNotNull(authToLocalProperties);
+    Assert.assertEquals(1, authToLocalProperties.size());
+    Assert.assertEquals("generic.name.rules", authToLocalProperties.iterator().next());
+
     Map<String, KerberosServiceDescriptor> serviceDescriptors = descriptor.getServices();
     Assert.assertNotNull(serviceDescriptors);
     Assert.assertEquals(1, serviceDescriptors.size());
@@ -124,6 +139,11 @@ public class KerberosDescriptorTest {
     Assert.assertEquals(2, properties.size());
     Assert.assertEquals("EXAMPLE.COM", properties.get("realm"));
     Assert.assertEquals("Hello World", properties.get("some.property"));
+
+    Set<String> authToLocalProperties = descriptor.getAuthToLocalProperties();
+    Assert.assertNotNull(authToLocalProperties);
+    Assert.assertEquals(1, authToLocalProperties.size());
+    Assert.assertEquals("global.name.rules", authToLocalProperties.iterator().next());
 
     Map<String, KerberosServiceDescriptor> services = descriptor.getServices();
     Assert.assertNotNull(services);
@@ -192,6 +212,14 @@ public class KerberosDescriptorTest {
     Assert.assertEquals("EXAMPLE.COM", properties.get("realm"));
     Assert.assertEquals("/etc/security/keytabs", properties.get("keytab_dir"));
     Assert.assertEquals("Hello World", properties.get("some.property"));
+
+    Set<String> authToLocalProperties = descriptor.getAuthToLocalProperties();
+    Assert.assertNotNull(authToLocalProperties);
+    Assert.assertEquals(2, authToLocalProperties.size());
+    // guarantee ordering...
+    Iterator<String> iterator = new TreeSet<String>(authToLocalProperties).iterator();
+    Assert.assertEquals("generic.name.rules", iterator.next());
+    Assert.assertEquals("global.name.rules", iterator.next());
 
     Map<String, KerberosServiceDescriptor> serviceDescriptors = descriptor.getServices();
     Assert.assertNotNull(serviceDescriptors);

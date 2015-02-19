@@ -26,8 +26,11 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class KerberosServiceDescriptorTest {
   public static final String JSON_VALUE =
@@ -39,6 +42,9 @@ public class KerberosServiceDescriptorTest {
           "  \"components\": [" +
           KerberosComponentDescriptorTest.JSON_VALUE +
           "]," +
+          "  \"auth_to_local_properties\": [" +
+          "      service.name.rules1" +
+          "    ]," +
           "  \"configurations\": [" +
           "    {" +
           "      \"service-site\": {" +
@@ -60,6 +66,9 @@ public class KerberosServiceDescriptorTest {
           "  \"components\": [" +
           KerberosComponentDescriptorTest.JSON_VALUE +
           "]," +
+          "  \"auth_to_local_properties\": [" +
+          "      service.name.rules1" +
+          "    ]," +
           "  \"configurations\": [" +
           "    {" +
           "      \"service-site\": {" +
@@ -111,6 +120,9 @@ public class KerberosServiceDescriptorTest {
               }
             });
           }});
+          put(KerberosDescriptorType.AUTH_TO_LOCAL_PROPERTY.getDescriptorPluralName(), new ArrayList<String>() {{
+            add("service.name.rules2");
+          }});
         }
       };
 
@@ -161,6 +173,11 @@ public class KerberosServiceDescriptorTest {
     Assert.assertEquals(2, properties.size());
     Assert.assertEquals("value1", properties.get("service.property1"));
     Assert.assertEquals("value2", properties.get("service.property2"));
+
+    Set<String> authToLocalProperties = serviceDescriptor.getAuthToLocalProperties();
+    Assert.assertNotNull(authToLocalProperties);
+    Assert.assertEquals(1, authToLocalProperties.size());
+    Assert.assertEquals("service.name.rules1", authToLocalProperties.iterator().next());
   }
 
   public static void validateFromMap(KerberosServiceDescriptor serviceDescriptor) {
@@ -201,6 +218,11 @@ public class KerberosServiceDescriptorTest {
     Assert.assertEquals(2, properties.size());
     Assert.assertEquals("red", properties.get("service.property1"));
     Assert.assertEquals("green", properties.get("service.property"));
+
+    Set<String> authToLocalProperties = serviceDescriptor.getAuthToLocalProperties();
+    Assert.assertNotNull(authToLocalProperties);
+    Assert.assertEquals(1, authToLocalProperties.size());
+    Assert.assertEquals("service.name.rules2", authToLocalProperties.iterator().next());
   }
 
   public void validateUpdatedData(KerberosServiceDescriptor serviceDescriptor) {
@@ -240,6 +262,15 @@ public class KerberosServiceDescriptorTest {
     Assert.assertEquals("red", properties.get("service.property1"));
     Assert.assertEquals("value2", properties.get("service.property2"));
     Assert.assertEquals("green", properties.get("service.property"));
+
+    Set<String> authToLocalProperties = serviceDescriptor.getAuthToLocalProperties();
+    Assert.assertNotNull(authToLocalProperties);
+    Assert.assertEquals(2, authToLocalProperties.size());
+    // guarantee ordering...
+    Iterator<String> iterator = new TreeSet<String>(authToLocalProperties).iterator();
+    Assert.assertEquals("service.name.rules1", iterator.next());
+    Assert.assertEquals("service.name.rules2", iterator.next());
+
   }
 
   private KerberosServiceDescriptor createFromJSON() throws AmbariException {

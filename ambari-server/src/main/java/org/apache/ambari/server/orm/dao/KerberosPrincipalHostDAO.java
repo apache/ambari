@@ -165,7 +165,7 @@ public class KerberosPrincipalHostDAO {
    */
   @Transactional
   public void removeByPrincipal(String principalName) {
-    entityManagerProvider.get().remove(findByPrincipal(principalName));
+    remove(findByPrincipal(principalName));
   }
 
   /**
@@ -175,7 +175,7 @@ public class KerberosPrincipalHostDAO {
    */
   @Transactional
   public void removeByHost(String hostName) {
-    entityManagerProvider.get().remove(findByHost(hostName));
+    remove(findByHost(hostName));
   }
 
   /**
@@ -201,4 +201,18 @@ public class KerberosPrincipalHostDAO {
   public boolean exists(String principalName, String hostName) {
     return find(principalName, hostName) != null;
   }
+
+  /**
+   * Removes multiple KerberosPrincipalHostEntity items
+   *
+   * @param entities a collection of KerberosPrincipalHostEntity items to remove
+   */
+  private void remove(List<KerberosPrincipalHostEntity> entities) {
+    if (entities != null) {
+      for (KerberosPrincipalHostEntity entity : entities) {
+        entityManagerProvider.get().remove(entity);
+      }
+    }
+  }
+
 }
