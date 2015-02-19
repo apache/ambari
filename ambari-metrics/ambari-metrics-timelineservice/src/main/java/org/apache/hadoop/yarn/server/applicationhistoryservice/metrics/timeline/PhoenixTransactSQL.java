@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Encapsulate all metrics related SQL queries.
@@ -231,9 +232,9 @@ public class PhoenixTransactSQL {
   public static PreparedStatement prepareGetMetricsSqlStmt(
     Connection connection, Condition condition) throws SQLException {
 
-    if (condition.isEmpty()) {
-      throw new IllegalArgumentException("Condition is empty.");
-    }
+    validateConditionIsNotEmpty(condition);
+    validateRowCountLimit(condition);
+
     String stmtStr;
     if (condition.getStatement() != null) {
       stmtStr = condition.getStatement();
@@ -343,13 +344,41 @@ public class PhoenixTransactSQL {
     return stmt;
   }
 
+  private static void validateConditionIsNotEmpty(Condition condition) {
+    if (condition.isEmpty()) {
+      throw new IllegalArgumentException("Condition is empty.");
+    }
+  }
+
+  private static void validateRowCountLimit(Condition condition) {
+    if (condition.getMetricNames() == null
+      || condition.getMetricNames().size() ==0 ) {
+      //aggregator can use empty metrics query
+      return;
+    }
+
+    long range = condition.getEndTime() - condition.getStartTime();
+    long rowsPerMetric = TimeUnit.MILLISECONDS.toHours(range) + 1;
+
+    Precision precision = condition.getPrecision();
+    // for minutes and seconds we can use the rowsPerMetric computed based on
+    // minutes
+    if (precision != null && precision == Precision.HOURS) {
+      rowsPerMetric = TimeUnit.MILLISECONDS.toHours(range) + 1;
+    }
+
+    long totalRowsRequested = rowsPerMetric * condition.getMetricNames().size();
+    if (totalRowsRequested > PhoenixHBaseAccessor.RESULTSET_LIMIT) {
+      throw new IllegalArgumentException("The time range query for " +
+        "precision table exceeds row count limit, please query aggregate " +
+        "table instead.");
+    }
+  }
 
   public static PreparedStatement prepareGetLatestMetricSqlStmt(
     Connection connection, Condition condition) throws SQLException {
 
-    if (condition.isEmpty()) {
-      throw new IllegalArgumentException("Condition is empty.");
-    }
+    validateConditionIsNotEmpty(condition);
 
     if (condition.getMetricNames() == null
       || condition.getMetricNames().size() == 0) {
@@ -421,9 +450,7 @@ public class PhoenixTransactSQL {
   public static PreparedStatement prepareGetAggregateSqlStmt(
     Connection connection, Condition condition) throws SQLException {
 
-    if (condition.isEmpty()) {
-      throw new IllegalArgumentException("Condition is empty.");
-    }
+    validateConditionIsNotEmpty(condition);
 
     String metricsAggregateTable;
     String queryStmt;
@@ -493,15 +520,7 @@ public class PhoenixTransactSQL {
   public static PreparedStatement prepareGetLatestAggregateMetricSqlStmt(
     Connection connection, Condition condition) throws SQLException {
 
-    if (condition.isEmpty()) {
-      throw new IllegalArgumentException("Condition is empty.");
-    }
-
-    if (condition.getMetricNames() == null
-      || condition.getMetricNames().size() == 0) {
-      throw new IllegalArgumentException("Point in time query without " +
-        "metric names not supported ");
-    }
+    validateConditionIsNotEmpty(condition);
 
     String stmtStr;
     if (condition.getStatement() != null) {

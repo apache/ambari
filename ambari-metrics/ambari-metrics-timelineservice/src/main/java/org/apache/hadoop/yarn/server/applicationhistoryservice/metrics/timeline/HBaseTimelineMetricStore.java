@@ -109,6 +109,16 @@ public class HBaseTimelineMetricStore extends AbstractService
       Long startTime, Long endTime, Precision precision, Integer limit,
       boolean groupedByHosts) throws SQLException, IOException {
 
+
+    if (metricNames == null || metricNames.isEmpty()) {
+      throw new IllegalArgumentException("No metric name filter specified.");
+    }
+    if (applicationId == null || applicationId.trim().length() == 0) {
+      throw new IllegalArgumentException("No applicationID filter specified.");
+    }
+    if (limit != null && limit > PhoenixHBaseAccessor.RESULTSET_LIMIT){
+      throw new IllegalArgumentException("Limit too big");
+    }
     Map<String, List<Function>> metricFunctions =
       parseMetricNamesToAggregationFunctions(metricNames);
 
@@ -204,6 +214,16 @@ public class HBaseTimelineMetricStore extends AbstractService
       String applicationId, String instanceId, Long startTime,
       Long endTime, Precision precision, Integer limit)
       throws SQLException, IOException {
+
+    if (metricName == null || metricName.isEmpty()) {
+      throw new IllegalArgumentException("No metric name filter specified.");
+    }
+    if (applicationId == null || applicationId.trim().length() == 0) {
+      throw new IllegalArgumentException("No applicationID filter specified.");
+    }
+    if (limit !=null && limit > PhoenixHBaseAccessor.RESULTSET_LIMIT){
+      throw new IllegalArgumentException("Limit too big");
+    }
 
     Map<String, List<Function>> metricFunctions =
       parseMetricNamesToAggregationFunctions(Collections.singletonList(metricName));

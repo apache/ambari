@@ -404,7 +404,7 @@ public class PhoenixHBaseAccessor {
     final Condition condition, Map<String, List<Function>> metricFunctions)
     throws SQLException, IOException {
 
-    verifyCondition(condition);
+    validateConditionIsNotEmpty(condition);
 
     Connection conn = getConnection();
     PreparedStatement stmt = null;
@@ -481,6 +481,9 @@ public class PhoenixHBaseAccessor {
   private PreparedStatement getLatestMetricRecords(
     Condition condition, Connection conn, TimelineMetrics metrics)
     throws SQLException, IOException {
+
+    validateConditionIsNotEmpty(condition);
+
     PreparedStatement stmt = null;
     SplitByMetricNamesCondition splitCondition =
       new SplitByMetricNamesCondition(condition);
@@ -512,7 +515,7 @@ public class PhoenixHBaseAccessor {
     Map<String, List<Function>> metricFunctions)
     throws SQLException {
 
-    verifyCondition(condition);
+    validateConditionIsNotEmpty(condition);
 
     Connection conn = getConnection();
     PreparedStatement stmt = null;
@@ -682,9 +685,9 @@ public class PhoenixHBaseAccessor {
     return metric;
   }
 
-  private void verifyCondition(Condition condition) throws SQLException {
+  private void validateConditionIsNotEmpty(Condition condition) {
     if (condition.isEmpty()) {
-      throw new SQLException("No filter criteria specified.");
+      throw new IllegalArgumentException("No filter criteria specified.");
     }
   }
 
