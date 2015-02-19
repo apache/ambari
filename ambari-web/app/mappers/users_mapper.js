@@ -62,6 +62,6 @@ App.usersMapper = App.QuickDataMapper.create({
    * @return {Boolean}
    **/
   isOperator: function(permissionList) {
-    return permissionList.indexOf('CLUSTER.OPERATE') > -1;
+    return permissionList.indexOf('CLUSTER.OPERATE') > -1 && !(permissionList.indexOf('AMBARI.ADMIN') > -1);
   }
 });
