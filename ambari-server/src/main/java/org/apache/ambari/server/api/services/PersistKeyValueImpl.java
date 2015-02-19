@@ -60,7 +60,6 @@ public class PersistKeyValueImpl {
     return key;
   }
 
-  @Transactional
   public synchronized void put(String key, String value) {
     KeyValueEntity keyValueEntity = keyValueDAO.findByKey(key);
     if (keyValueEntity != null) {

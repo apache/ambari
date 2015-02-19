@@ -32,6 +32,9 @@ import java.util.Map;
 
 
 public class PersistKeyValueImplTest extends Assert {
+
+  public static final int NUMB_THREADS = 1000;
+
   private Injector injector;
 
   @Before
@@ -74,5 +77,34 @@ public class PersistKeyValueImplTest extends Assert {
 
     assertEquals(largeValue, impl.getValue("key3"));
 
+  }
+
+  @Test
+  public void testMultiThreaded() throws Exception {
+    final PersistKeyValueImpl impl = injector.getInstance(PersistKeyValueImpl.class);
+    Thread[] threads = new Thread[NUMB_THREADS];
+
+    for ( int i = 0; i < NUMB_THREADS; ++i ) {
+      threads[i] = new Thread() {
+        @Override
+        public void run() {
+
+          for (int i = 0; i < 100; ++i) {
+            impl.put("key1", "value1");
+            impl.put("key2", "value2");
+            impl.put("key3", "value3");
+            impl.put("key4", "value4");
+          }
+        }
+      };
+    }
+
+    for ( int i = 0; i < NUMB_THREADS; ++i ) {
+      threads[i].start();
+    }
+
+    for ( int i = 0; i < NUMB_THREADS; ++i ) {
+      threads[i].join();
+    }
   }
 }
