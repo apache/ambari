@@ -17,12 +17,10 @@
  */
 package org.apache.hadoop.metrics2.sink.timeline.cache;
 
-import com.google.common.base.Optional;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
-import org.apache.hadoop.metrics2.MetricType;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 
 import java.util.HashMap;
@@ -160,7 +158,8 @@ public class TimelineMetricsCache {
     String metricName = timelineMetric.getMetricName();
     double firstValue = timelineMetric.getMetricValues().size() > 0
         ? timelineMetric.getMetricValues().entrySet().iterator().next().getValue() : 0;
-    double previousValue = Optional.fromNullable(counterMetricLastValue.get(metricName)).or(firstValue);
+    Double value = counterMetricLastValue.get(metricName);
+    double previousValue = value != null ? value : firstValue;
     Map<Long, Double> metricValues = timelineMetric.getMetricValues();
     Map<Long, Double>   newMetricValues = new TreeMap<Long, Double>();
     for (Map.Entry<Long, Double> entry : metricValues.entrySet()) {
@@ -171,8 +170,8 @@ public class TimelineMetricsCache {
     counterMetricLastValue.put(metricName, previousValue);
   }
 
-  public void putTimelineMetric(TimelineMetric timelineMetric, MetricType type) {
-    if (type == MetricType.COUNTER) {
+  public void putTimelineMetric(TimelineMetric timelineMetric, boolean isCounter) {
+    if (isCounter) {
       transformMetricValuesToDerivative(timelineMetric);
     }
     putTimelineMetric(timelineMetric);
