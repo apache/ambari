@@ -19,31 +19,41 @@ limitations under the License.
 """
 
 import json
+import subprocess
 import socket
 import time
 import urllib2
 
-RESULT_CODE_OK = 'OK'
-RESULT_CODE_CRITICAL = 'CRITICAL'
-RESULT_CODE_UNKNOWN = 'UNKNOWN'
+from resource_management.core.resources import Execute
+from resource_management.libraries.functions import format
+from resource_management.libraries.functions import get_kinit_path
 
-OK_MESSAGE = 'TCP OK - {0:.4f} response on port {1}'
-CRITICAL_CONNECTION_MESSAGE = 'Connection failed on host {0}:{1}'
-CRITICAL_TEMPLETON_STATUS_MESSAGE = 'WebHCat returned an unexpected status of "{0}"'
-CRITICAL_TEMPLETON_UNKNOWN_JSON_MESSAGE = 'Unable to determine WebHCat health from unexpected JSON response'
+RESULT_CODE_OK = "OK"
+RESULT_CODE_CRITICAL = "CRITICAL"
+RESULT_CODE_UNKNOWN = "UNKNOWN"
+
+OK_MESSAGE = "WebHCat status was OK ({0:.3f}s response from {1})"
+CRITICAL_CONNECTION_MESSAGE = "Connection failed to {0}"
+CRITICAL_HTTP_MESSAGE = "HTTP {0} response from {1}"
+CRITICAL_WEBHCAT_STATUS_MESSAGE = 'WebHCat returned an unexpected status of "{0}"'
+CRITICAL_WEBHCAT_UNKNOWN_JSON_MESSAGE = "Unable to determine WebHCat health from unexpected JSON response"
 
 TEMPLETON_PORT_KEY = '{{webhcat-site/templeton.port}}'
 SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
+WEBHCAT_PRINCIPAL_KEY = '{{webhcat-site/templeton.kerberos.principal}}'
+WEBHCAT_KEYTAB_KEY = '{{webhcat-site/templeton.kerberos.keytab}}'
 
-TEMPLETON_OK_RESPONSE = 'ok'
-TEMPLETON_PORT_DEFAULT = 50111
+WEBHCAT_OK_RESPONSE = 'ok'
+WEBHCAT_PORT_DEFAULT = 50111
+
+CURL_CONNECTION_TIMEOUT = '10'
 
 def get_tokens():
   """
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return (TEMPLETON_PORT_KEY,SECURITY_ENABLED_KEY)      
+  return (TEMPLETON_PORT_KEY, SECURITY_ENABLED_KEY, WEBHCAT_KEYTAB_KEY, WEBHCAT_PRINCIPAL_KEY)
   
 
 def execute(parameters=None, host_name=None):
@@ -60,52 +70,115 @@ def execute(parameters=None, host_name=None):
   if parameters is None:
     return (result_code, ['There were no parameters supplied to the script.'])
 
-  templeton_port = TEMPLETON_PORT_DEFAULT
+  webhcat_port = WEBHCAT_PORT_DEFAULT
   if TEMPLETON_PORT_KEY in parameters:
-    templeton_port = int(parameters[TEMPLETON_PORT_KEY])  
+    webhcat_port = int(parameters[TEMPLETON_PORT_KEY])
 
   security_enabled = False
   if SECURITY_ENABLED_KEY in parameters:
     security_enabled = parameters[SECURITY_ENABLED_KEY].lower() == 'true'
 
-  scheme = 'http'
-  if security_enabled is True:
-    scheme = 'https'
+  # the alert will always run on the webhcat host
+  if host_name is None:
+    host_name = socket.getfqdn()
 
-  label = ''
-  url_response = None
-  templeton_status = ''
+  # webhcat always uses http, never SSL
+  query_url = "http://{0}:{1}/templeton/v1/status".format(host_name, webhcat_port)
+
+  # initialize
   total_time = 0
+  json_response = {}
 
-  try:
-    # the alert will always run on the webhcat host
-    if host_name is None:
-      host_name = socket.getfqdn()
-    
-    query = "{0}://{1}:{2}/templeton/v1/status".format(scheme, host_name,
-        templeton_port)
-    
-    # execute the query for the JSON that includes templeton status
-    start_time = time.time()
-    url_response = urllib2.urlopen(query)
-    total_time = time.time() - start_time
-  except:
-    label = CRITICAL_CONNECTION_MESSAGE.format(host_name,templeton_port)
-    return (RESULT_CODE_CRITICAL, [label])
+  if security_enabled:
+    if WEBHCAT_KEYTAB_KEY not in parameters or WEBHCAT_PRINCIPAL_KEY not in parameters:
+      return (RESULT_CODE_UNKNOWN, [str(parameters)])
+      # return (RESULT_CODE_UNKNOWN, ['The WebHCat keytab and principal are required parameters when security is enabled.'])
+
+    try:
+      webhcat_keytab = parameters[WEBHCAT_KEYTAB_KEY]
+      webhcat_principal = parameters[WEBHCAT_PRINCIPAL_KEY]
+
+      # substitute _HOST in kerberos principal with actual fqdn
+      webhcat_principal = webhcat_principal.replace('_HOST', host_name)
+
+      kinit_path_local = get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+      kinit_command = format("{kinit_path_local} -kt {webhcat_keytab} {webhcat_principal}; ")
+
+      # kinit so that curl will work with --negotiate
+      Execute(kinit_command)
+
+      # make a single curl call to get just the http code
+      curl = subprocess.Popen(['curl', '--negotiate', '-u', ':', '-sL', '-w',
+        '%{http_code}', '--connect-timeout', CURL_CONNECTION_TIMEOUT,
+        '-o', '/dev/null', query_url], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+      stdout, stderr = curl.communicate()
+
+      if stderr != '':
+        raise Exception(stderr)
+
+      # check the response code
+      response_code = int(stdout)
+
+      # 0 indicates no connection
+      if response_code == 0:
+        label = CRITICAL_CONNECTION_MESSAGE.format(query_url)
+        return (RESULT_CODE_CRITICAL, [label])
+
+      # any other response aside from 200 is a problem
+      if response_code != 200:
+        label = CRITICAL_HTTP_MESSAGE.format(response_code, query_url)
+        return (RESULT_CODE_CRITICAL, [label])
+
+      # now that we have the http status and it was 200, get the content
+      start_time = time.time()
+      curl = subprocess.Popen(['curl', '--negotiate', '-u', ':', '-sL',
+        '--connect-timeout', CURL_CONNECTION_TIMEOUT, query_url, ],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+      stdout, stderr = curl.communicate()
+      total_time = time.time() - start_time
+
+      if stderr != '':
+        raise Exception(stderr)
+
+      json_response = json.loads(stdout)
+    except Exception, exception:
+      return (RESULT_CODE_CRITICAL, [str(exception)])
+  else:
+    try:
+      # execute the query for the JSON that includes WebHCat status
+      start_time = time.time()
+      url_response = urllib2.urlopen(query_url)
+      total_time = time.time() - start_time
+
+      json_response = json.loads(url_response.read())
+    except urllib2.HTTPError as httpError:
+      label = CRITICAL_HTTP_MESSAGE.format(httpError.code, query_url)
+      return (RESULT_CODE_CRITICAL, [label])
+    except:
+      label = CRITICAL_CONNECTION_MESSAGE.format(query_url)
+      return (RESULT_CODE_CRITICAL, [label])
+
+
+  # if status is not in the response, we can't do any check; return CRIT
+  if 'status' not in json_response:
+    return (RESULT_CODE_CRITICAL, [CRITICAL_WEBHCAT_UNKNOWN_JSON_MESSAGE])
+
 
   # URL response received, parse it
   try:
-    json_response = json.loads(url_response.read())
-    templeton_status = json_response['status']
+    webhcat_status = json_response['status']
   except:
-    return (RESULT_CODE_CRITICAL, [CRITICAL_TEMPLETON_UNKNOWN_JSON_MESSAGE])
+    return (RESULT_CODE_CRITICAL, [CRITICAL_WEBHCAT_UNKNOWN_JSON_MESSAGE])
+
 
   # proper JSON received, compare against known value
-  if templeton_status.lower() == TEMPLETON_OK_RESPONSE:
+  if webhcat_status.lower() == WEBHCAT_OK_RESPONSE:
     result_code = RESULT_CODE_OK
-    label = OK_MESSAGE.format(total_time, templeton_port)
+    label = OK_MESSAGE.format(total_time, query_url)
   else:
     result_code = RESULT_CODE_CRITICAL
-    label = CRITICAL_TEMPLETON_STATUS_MESSAGE.format(templeton_status)
+    label = CRITICAL_WEBHCAT_STATUS_MESSAGE.format(webhcat_status)
 
   return (result_code, [label])
