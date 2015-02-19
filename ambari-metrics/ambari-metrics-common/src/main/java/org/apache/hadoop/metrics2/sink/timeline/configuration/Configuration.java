@@ -18,13 +18,13 @@
 
 package org.apache.hadoop.metrics2.sink.timeline.configuration;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 public class Configuration {
   public final Log LOG = LogFactory.getLog(this.getClass());

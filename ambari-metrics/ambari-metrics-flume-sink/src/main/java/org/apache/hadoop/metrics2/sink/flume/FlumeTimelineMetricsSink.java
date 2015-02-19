@@ -24,13 +24,14 @@ import org.apache.flume.Context;
 import org.apache.flume.FlumeException;
 import org.apache.flume.instrumentation.MonitorService;
 import org.apache.flume.instrumentation.util.JMXPollUtil;
+import org.apache.hadoop.metrics2.MetricType;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
 import org.apache.hadoop.metrics2.sink.timeline.UnableToConnectException;
 import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
 import org.apache.hadoop.metrics2.sink.timeline.configuration.Configuration;
-import org.apache.hadoop.metrics2.sink.util.Servers;
+import org.apache.hadoop.metrics2.util.Servers;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -46,8 +47,6 @@ import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
-
 
 public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implements MonitorService {
   private SocketAddress socketAddress;
@@ -159,7 +158,7 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
           TimelineMetric timelineMetric = createTimelineMetric(currentTimeMillis,
               component, attributeName, attributeValue);
           // Put intermediate values into the cache until it is time to send
-          metricsCache.putTimelineMetric(timelineMetric, isCounterMetric(attributeName));
+          metricsCache.putTimelineMetric(timelineMetric, getMetricType(attributeName));
 
           TimelineMetric cachedMetric = metricsCache.getTimelineMetric(attributeName);
 
@@ -190,7 +189,8 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
     }
   }
 
-  private boolean isCounterMetric(String attributeName) {
-    return counterMetrics.contains(attributeName);
+  private MetricType getMetricType(String attributeName) {
+    return counterMetrics.contains(attributeName) ?
+      MetricType.COUNTER : MetricType.GAUGE;
   }
 }
