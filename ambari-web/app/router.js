@@ -457,6 +457,10 @@ App.Router = Em.Router.extend({
        */
       enter: function (router, context) {
         router.getAuthenticated().done(function (loggedIn) {
+          var location = router.location.location.hash;
+          //key to parse URI for prefered path to route
+          var key = '?targetURI=';
+
           if (loggedIn) {
             Ember.run.next(function () {
               console.log(router.getLoginName() + ' already authenticated.  Redirecting...');
@@ -464,6 +468,10 @@ App.Router = Em.Router.extend({
                 router.transitionTo(route, context);
               });
             });
+          } else {
+            if (location.contains(key)) {
+              router.set('preferedPath', location.slice(location.indexOf(key) + key.length));
+            }
           }
         });
       },
