@@ -124,7 +124,9 @@ class HostInfoLinux(HostInfo):
     "oozie", "sqoop", "hue", "zookeeper", "mapred", "hdfs", "flume",
     "storm", "hive-hcatalog", "tez", "falcon", "ambari_qa", "hadoop_deploy",
     "rrdcached", "hcat", "ambari-qa", "sqoop-ambari-qa", "sqoop-ambari_qa",
-    "webhcat", "hadoop-hdfs", "hadoop-yarn", "hadoop-mapreduce"
+    "webhcat", "hadoop-hdfs", "hadoop-yarn", "hadoop-mapreduce",
+    "knox", "yarn", "hive-webhcat", "kafka", "slider", "storm-slider-client",
+    "ganglia-web"
   ]
 
   # List of live services checked for on the host, takes a map of plan strings
