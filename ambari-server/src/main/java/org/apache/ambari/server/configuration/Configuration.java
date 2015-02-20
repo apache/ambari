@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -81,14 +82,11 @@ public class Configuration {
   public static final String SRVR_CRT_NAME_KEY = "security.server.cert_name";
   public static final String SRVR_CSR_NAME_KEY = "security.server.csr_name";
   public static final String SRVR_KEY_NAME_KEY = "security.server.key_name";
-  public static final String KSTR_NAME_KEY =
-      "security.server.keystore_name";
-  public static final String SRVR_CRT_PASS_FILE_KEY =
-      "security.server.crt_pass_file";
+  public static final String KSTR_NAME_KEY = "security.server.keystore_name";
+  public static final String SRVR_CRT_PASS_FILE_KEY = "security.server.crt_pass_file";
   public static final String SRVR_CRT_PASS_KEY = "security.server.crt_pass";
   public static final String SRVR_CRT_PASS_LEN_KEY = "security.server.crt_pass.len";
-  public static final String PASSPHRASE_ENV_KEY =
-      "security.server.passphrase_env_var";
+  public static final String PASSPHRASE_ENV_KEY = "security.server.passphrase_env_var";
   public static final String PASSPHRASE_KEY = "security.server.passphrase";
   public static final String SRVR_DISABLED_CIPHERS = "security.server.disabled.ciphers";
   public static final String SRVR_DISABLED_PROTOCOLS = "security.server.disabled.protocols";
@@ -111,56 +109,45 @@ public class Configuration {
   public static final String SERVER_DB_NAME_KEY = "server.jdbc.database_name";
   public static final String SERVER_DB_NAME_DEFAULT = "ambari";
   public static final String SERVER_JDBC_POSTGRES_SCHEMA_NAME = "server.jdbc.postgres.schema";
-  public static final String POSTGRES_DB_NAME = "postgres";
-  public static final String ORACLE_DB_NAME = "oracle";
-  public static final String MYSQL_DB_NAME = "mysql";
-  public static final String DERBY_DB_NAME = "derby";
   public static final String OJDBC_JAR_NAME_KEY = "db.oracle.jdbc.name";
   public static final String OJDBC_JAR_NAME_DEFAULT = "ojdbc6.jar";
   public static final String MYSQL_JAR_NAME_KEY = "db.mysql.jdbc.name";
   public static final String MYSQL_JAR_NAME_DEFAULT = "mysql-connector-java.jar";
   public static final String IS_LDAP_CONFIGURED = "ambari.ldap.isConfigured";
   public static final String LDAP_USE_SSL_KEY = "authentication.ldap.useSSL";
-  public static final String LDAP_PRIMARY_URL_KEY =
-      "authentication.ldap.primaryUrl";
-  public static final String LDAP_SECONDARY_URL_KEY =
-      "authentication.ldap.secondaryUrl";
-  public static final String LDAP_BASE_DN_KEY =
-      "authentication.ldap.baseDn";
-  public static final String LDAP_BIND_ANONYMOUSLY_KEY =
-      "authentication.ldap.bindAnonymously";
-  public static final String LDAP_MANAGER_DN_KEY =
-      "authentication.ldap.managerDn";
-  public static final String LDAP_MANAGER_PASSWORD_KEY =
-      "authentication.ldap.managerPassword";
-  public static final String LDAP_USERNAME_ATTRIBUTE_KEY =
-      "authentication.ldap.usernameAttribute";
-  public static final String LDAP_USER_BASE_KEY =
-      "authentication.ldap.userBase";
-  public static final String LDAP_USER_OBJECT_CLASS_KEY =
-      "authentication.ldap.userObjectClass";
-  public static final String LDAP_GROUP_BASE_KEY =
-      "authentication.ldap.groupBase";
-  public static final String LDAP_GROUP_OBJECT_CLASS_KEY =
-      "authentication.ldap.groupObjectClass";
-  public static final String LDAP_GROUP_NAMING_ATTR_KEY =
-      "authentication.ldap.groupNamingAttr";
-  public static final String LDAP_GROUP_MEMEBERSHIP_ATTR_KEY =
-      "authentication.ldap.groupMembershipAttr";
-  public static final String LDAP_ADMIN_GROUP_MAPPING_RULES_KEY =
-      "authorization.ldap.adminGroupMappingRules";
-  public static final String LDAP_GROUP_SEARCH_FILTER_KEY =
-      "authorization.ldap.groupSearchFilter";
+  public static final String LDAP_PRIMARY_URL_KEY = "authentication.ldap.primaryUrl";
+  public static final String LDAP_SECONDARY_URL_KEY = "authentication.ldap.secondaryUrl";
+  public static final String LDAP_BASE_DN_KEY = "authentication.ldap.baseDn";
+  public static final String LDAP_BIND_ANONYMOUSLY_KEY = "authentication.ldap.bindAnonymously";
+  public static final String LDAP_MANAGER_DN_KEY = "authentication.ldap.managerDn";
+  public static final String LDAP_MANAGER_PASSWORD_KEY = "authentication.ldap.managerPassword";
+  public static final String LDAP_USERNAME_ATTRIBUTE_KEY = "authentication.ldap.usernameAttribute";
+  public static final String LDAP_USER_BASE_KEY = "authentication.ldap.userBase";
+  public static final String LDAP_USER_OBJECT_CLASS_KEY = "authentication.ldap.userObjectClass";
+  public static final String LDAP_GROUP_BASE_KEY = "authentication.ldap.groupBase";
+  public static final String LDAP_GROUP_OBJECT_CLASS_KEY = "authentication.ldap.groupObjectClass";
+  public static final String LDAP_GROUP_NAMING_ATTR_KEY = "authentication.ldap.groupNamingAttr";
+  public static final String LDAP_GROUP_MEMEBERSHIP_ATTR_KEY = "authentication.ldap.groupMembershipAttr";
+  public static final String LDAP_ADMIN_GROUP_MAPPING_RULES_KEY = "authorization.ldap.adminGroupMappingRules";
+  public static final String LDAP_GROUP_SEARCH_FILTER_KEY = "authorization.ldap.groupSearchFilter";
   public static final String SERVER_EC_CACHE_SIZE = "server.ecCacheSize";
-  public static final String SERVER_STALE_CONFIG_CACHE_ENABLED_KEY =
-    "server.cache.isStale.enabled";
+  public static final String SERVER_STALE_CONFIG_CACHE_ENABLED_KEY = "server.cache.isStale.enabled";
   public static final String SERVER_PERSISTENCE_TYPE_KEY = "server.persistence.type";
   public static final String SERVER_JDBC_USER_NAME_KEY = "server.jdbc.user.name";
   public static final String SERVER_JDBC_USER_PASSWD_KEY = "server.jdbc.user.passwd";
   public static final String SERVER_JDBC_DRIVER_KEY = "server.jdbc.driver";
   public static final String SERVER_JDBC_URL_KEY = "server.jdbc.url";
   public static final String SERVER_JDBC_PROPERTIES_PREFIX = "server.jdbc.properties.";
-  //  public static final String SERVER_RCA_PERSISTENCE_TYPE_KEY = "server.rca.persistence.type";
+
+  public static final String SERVER_JDBC_CONNECTION_POOL = "server.jdbc.connection-pool";
+  public static final String SERVER_JDBC_CONNECTION_POOL_MIN_SIZE = "server.jdbc.connection-pool.min-size";
+  public static final String SERVER_JDBC_CONNECTION_POOL_MAX_SIZE = "server.jdbc.connection-pool.max-size";
+  public static final String SERVER_JDBC_CONNECTION_POOL_AQUISITION_SIZE = "server.jdbc.connection-pool.acquisition-size";
+  public static final String SERVER_JDBC_CONNECTION_POOL_MAX_AGE = "server.jdbc.connection-pool.max-age";
+  public static final String SERVER_JDBC_CONNECTION_POOL_MAX_IDLE_TIME = "server.jdbc.connection-pool.max-idle-time";
+  public static final String SERVER_JDBC_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS = "server.jdbc.connection-pool.max-idle-time-excess";
+  public static final String SERVER_JDBC_CONNECTION_POOL_IDLE_TEST_INTERVAL = "server.jdbc.connection-pool.idle-test-interval";
+
   public static final String SERVER_JDBC_RCA_USER_NAME_KEY = "server.jdbc.rca.user.name";
   public static final String SERVER_JDBC_RCA_USER_PASSWD_KEY = "server.jdbc.rca.user.passwd";
   public static final String SERVER_JDBC_RCA_DRIVER_KEY = "server.jdbc.rca.driver";
@@ -174,10 +161,8 @@ public class Configuration {
   public static final String HOSTNAME_MACRO = "{hostname}";
   public static final String JDBC_RCA_LOCAL_URL = "jdbc:postgresql://" + HOSTNAME_MACRO + "/ambarirca";
   public static final String JDBC_RCA_LOCAL_DRIVER = "org.postgresql.Driver";
-  public static final String OS_VERSION_KEY =
-      "server.os_type";
-  public static final String SRVR_HOSTS_MAPPING =
-      "server.hosts.mapping";
+  public static final String OS_VERSION_KEY = "server.os_type";
+  public static final String SRVR_HOSTS_MAPPING = "server.hosts.mapping";
   // Command parameter names
   public static final String UPGRADE_FROM_STACK = "source_stack_version";
   public static final String UPGRADE_TO_STACK = "target_stack_version";
@@ -205,30 +190,21 @@ public class Configuration {
   public static final String MAPREDUCE2_LOG4J_CONFIG_TAG = "mapreduce2-log4j";
   public static final String RCA_ENABLED_PROPERTY = "rca_enabled";
   public static final String HIVE_CONFIG_TAG = "hive-site";
-  public static final String HIVE_METASTORE_PASSWORD_PROPERTY =
-      "javax.jdo.option.ConnectionPassword";
-  public static final String MASTER_KEY_PERSISTED = "security.master" +
-      ".key.ispersisted";
-  public static final String MASTER_KEY_LOCATION = "security.master.key" +
-      ".location";
-  public static final String MASTER_KEY_ENV_PROP =
-      "AMBARI_SECURITY_MASTER_KEY";
+  public static final String HIVE_METASTORE_PASSWORD_PROPERTY = "javax.jdo.option.ConnectionPassword";
+  public static final String MASTER_KEY_PERSISTED = "security.master.key.ispersisted";
+  public static final String MASTER_KEY_LOCATION = "security.master.key.location";
+  public static final String MASTER_KEY_ENV_PROP = "AMBARI_SECURITY_MASTER_KEY";
   public static final String MASTER_KEY_FILENAME_DEFAULT = "master";
   /**
    * Key for repo validation suffixes.
    */
   public static final String REPO_SUFFIX_KEY_UBUNTU = "repo.validation.suffixes.ubuntu";
   public static final String REPO_SUFFIX_KEY_DEFAULT = "repo.validation.suffixes.default";
-  public static final String EXECUTION_SCHEDULER_CLUSTERED =
-      "server.execution.scheduler.isClustered";
-  public static final String EXECUTION_SCHEDULER_THREADS =
-      "server.execution.scheduler.maxThreads";
-  public static final String EXECUTION_SCHEDULER_CONNECTIONS =
-      "server.execution.scheduler.maxDbConnections";
-  public static final String EXECUTION_SCHEDULER_MISFIRE_TOLERATION =
-      "server.execution.scheduler.misfire.toleration.minutes";
-  public static final String EXECUTION_SCHEDULER_START_DELAY =
-      "server.execution.scheduler.start.delay.seconds";
+  public static final String EXECUTION_SCHEDULER_CLUSTERED = "server.execution.scheduler.isClustered";
+  public static final String EXECUTION_SCHEDULER_THREADS = "server.execution.scheduler.maxThreads";
+  public static final String EXECUTION_SCHEDULER_CONNECTIONS = "server.execution.scheduler.maxDbConnections";
+  public static final String EXECUTION_SCHEDULER_MISFIRE_TOLERATION = "server.execution.scheduler.misfire.toleration.minutes";
+  public static final String EXECUTION_SCHEDULER_START_DELAY = "server.execution.scheduler.start.delay.seconds";
   public static final String DEFAULT_SCHEDULER_THREAD_COUNT = "5";
   public static final String DEFAULT_SCHEDULER_MAX_CONNECTIONS = "5";
   public static final String DEFAULT_EXECUTION_SCHEDULER_MISFIRE_TOLERATION = "480";
@@ -239,17 +215,15 @@ public class Configuration {
   public static final String EXTERNAL_SCRIPT_TIMEOUT_DEFAULT = "5000";
   /**
    * This key defines whether stages of parallel requests are executed in
-   * parallel or sequentally. Only stages from different requests
-   * running on not interfering host sets may be executed in parallel.
+   * parallel or sequentally. Only stages from different requests running on not
+   * interfering host sets may be executed in parallel.
    */
-  public static final String PARALLEL_STAGE_EXECUTION_KEY =
-      "server.stages.parallel";
+  public static final String PARALLEL_STAGE_EXECUTION_KEY = "server.stages.parallel";
   public static final String AGENT_TASK_TIMEOUT_KEY = "agent.task.timeout";
   public static final String AGENT_TASK_TIMEOUT_DEFAULT = "900";
 
   public static final String CUSTOM_ACTION_DEFINITION_KEY = "custom.action.definitions";
-  private static final String CUSTOM_ACTION_DEFINITION_DEF_VALUE =
-      "/var/lib/ambari-server/resources/custom_action_definitions";
+  private static final String CUSTOM_ACTION_DEFINITION_DEF_VALUE = "/var/lib/ambari-server/resources/custom_action_definitions";
 
   private static final long SERVER_EC_CACHE_SIZE_DEFAULT = 10000L;
   private static final String SERVER_STALE_CONFIG_CACHE_ENABLED_DEFAULT = "true";
@@ -265,34 +239,29 @@ public class Configuration {
   private static final String SRVR_DISABLED_CIPHERS_DEFAULT = "";
   private static final String SRVR_DISABLED_PROTOCOLS_DEFAULT = "";
   private static final String PASSPHRASE_ENV_DEFAULT = "AMBARI_PASSPHRASE";
-  private static final String RESOURCES_DIR_DEFAULT =
-      "/var/lib/ambari-server/resources/";
+  private static final String RESOURCES_DIR_DEFAULT = "/var/lib/ambari-server/resources/";
   private static final String ANONYMOUS_AUDIT_NAME_KEY = "anonymous.audit.name";
 
   private static final int CLIENT_API_PORT_DEFAULT = 8080;
   private static final int CLIENT_API_SSL_PORT_DEFAULT = 8443;
   private static final String LDAP_BIND_ANONYMOUSLY_DEFAULT = "true";
 
-  //TODO For embedded server only - should be removed later
+  // TODO For embedded server only - should be removed later
   private static final String LDAP_PRIMARY_URL_DEFAULT = "localhost:33389";
   private static final String LDAP_BASE_DN_DEFAULT = "dc=ambari,dc=apache,dc=org";
   private static final String LDAP_USERNAME_ATTRIBUTE_DEFAULT = "uid";
-  private static final String LDAP_USER_BASE_DEFAULT =
-      "ou=people,dc=ambari,dc=apache,dc=org";
+  private static final String LDAP_USER_BASE_DEFAULT = "ou=people,dc=ambari,dc=apache,dc=org";
   private static final String LDAP_USER_OBJECT_CLASS_DEFAULT = "person";
-  private static final String LDAP_GROUP_BASE_DEFAULT =
-      "ou=groups,dc=ambari,dc=apache,dc=org";
+  private static final String LDAP_GROUP_BASE_DEFAULT = "ou=groups,dc=ambari,dc=apache,dc=org";
   private static final String LDAP_GROUP_OBJECT_CLASS_DEFAULT = "group";
   private static final String LDAP_GROUP_NAMING_ATTR_DEFAULT = "cn";
   private static final String LDAP_GROUP_MEMBERSHIP_ATTR_DEFAULT = "member";
-  private static final String LDAP_ADMIN_GROUP_MAPPING_RULES_DEFAULT =
-      "Ambari Administrators";
+  private static final String LDAP_ADMIN_GROUP_MAPPING_RULES_DEFAULT = "Ambari Administrators";
   private static final String LDAP_GROUP_SEARCH_FILTER_DEFAULT = "";
   private static final String IS_LDAP_CONFIGURED_DEFAULT = "false";
-  //TODO for development purposes only, should be changed to 'false'
+  // TODO for development purposes only, should be changed to 'false'
   private static final String SERVER_PERSISTENCE_TYPE_DEFAULT = "local";
-  private static final String SERVER_CONNECTION_MAX_IDLE_TIME =
-      "server.connection.max.idle.millis";
+  private static final String SERVER_CONNECTION_MAX_IDLE_TIME = "server.connection.max.idle.millis";
 
   private static final String UBUNTU_OS = "ubuntu12";
 
@@ -318,6 +287,15 @@ public class Configuration {
 
   private static final String SERVER_HTTP_SESSION_INACTIVE_TIMEOUT = "server.http.session.inactive_timeout";
 
+  // database pooling defaults
+  private static final String DEFAULT_JDBC_POOL_MIN_CONNECTIONS = "5";
+  private static final String DEFAULT_JDBC_POOL_MAX_CONNECTIONS = "32";
+  private static final String DEFAULT_JDBC_POOL_ACQUISITION_SIZE = "5";
+  private static final String DEFAULT_JDBC_POOL_MAX_IDLE_TIME_SECONDS = "14400";
+  private static final String DEFAULT_JDBC_POOL_EXCESS_MAX_IDLE_TIME_SECONDS = "0";
+  private static final String DEFAULT_JDBC_POOL_MAX_AGE_SECONDS = "0";
+  private static final String DEFAULT_JDBC_POOL_IDLE_TEST_INTERVAL = "7200";
+
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);
   private Properties properties;
@@ -325,6 +303,80 @@ public class Configuration {
   private CredentialProvider credentialProvider = null;
   private volatile boolean credentialProviderInitialized = false;
   private Map<String, String> customDbProperties = null;
+
+  /**
+   * The {@link DatabaseType} enum represents the database being used.
+   */
+  public enum DatabaseType {
+    POSTGRES("postgres"), ORACLE("oracle"), MYSQL("mysql"), DERBY("derby"), SQL_SERVER(
+        "sqlserver");
+
+    private static final Map<String, DatabaseType> m_mappedTypes = new HashMap<String, Configuration.DatabaseType>(
+        5);
+
+    static {
+      for (DatabaseType databaseType : EnumSet.allOf(DatabaseType.class)) {
+        m_mappedTypes.put(databaseType.getName(), databaseType);
+      }
+    }
+
+    /**
+     * The JDBC URL type name.
+     */
+    private String m_databaseType;
+
+    /**
+     * Constructor.
+     *
+     */
+    private DatabaseType(String databaseType) {
+      m_databaseType = databaseType;
+    }
+
+    /**
+     * Gets an internal name for this database type.
+     *
+     * @return the internal name for this database type.
+     */
+    public String getName() {
+      return m_databaseType;
+    }
+
+    public DatabaseType get(String databaseTypeName) {
+      return m_mappedTypes.get(databaseTypeName);
+    }
+  }
+
+  /**
+   * The {@link ConnectionPoolType} is used to define which pooling mechanism
+   * JDBC should use.
+   */
+  public enum ConnectionPoolType {
+    INTERNAL("internal"), C3P0("c3p0");
+
+    /**
+     * The connection pooling name.
+     */
+    private String m_name;
+
+    /**
+     * Constructor.
+     *
+     * @param name
+     */
+    private ConnectionPoolType(String name) {
+      m_name = name;
+    }
+
+    /**
+     * Gets an internal name for this connection pool type.
+     *
+     * @return the internal name for this connection pool type.
+     */
+    public String getName() {
+      return m_name;
+    }
+  }
 
   public Configuration() {
     this(readConfigFile());
@@ -1136,5 +1188,135 @@ public class Configuration {
     return Integer.parseInt(properties.getProperty(
         SERVER_HTTP_SESSION_INACTIVE_TIMEOUT,
         "1800"));
+  }
+
+  /**
+   * Gets the type of database by examining the {@link #getDatabaseUrl()} JDBC
+   * URL.
+   *
+   * @return the database type (never {@code null}).
+   * @throws RuntimeException
+   *           if there no known database type.
+   */
+  public DatabaseType getDatabaseType() {
+    String dbUrl = getDatabaseUrl();
+    DatabaseType databaseType;
+
+    if (dbUrl.contains(DatabaseType.POSTGRES.getName())) {
+      databaseType = DatabaseType.POSTGRES;
+    } else if (dbUrl.contains(DatabaseType.ORACLE.getName())) {
+      databaseType = DatabaseType.ORACLE;
+    } else if (dbUrl.contains(DatabaseType.MYSQL.getName())) {
+      databaseType = DatabaseType.MYSQL;
+    } else if (dbUrl.contains(DatabaseType.DERBY.getName())) {
+      databaseType = DatabaseType.DERBY;
+    } else {
+      throw new RuntimeException(
+          "The database type could be not determined from the JDBC URL "
+              + dbUrl);
+    }
+
+    return databaseType;
+  }
+
+  /**
+   * Gets the type of connection pool that EclipseLink should use.
+   *
+   * @return default of {@link ConnectionPoolType#INTERNAL}.
+   */
+  public ConnectionPoolType getConnectionPoolType() {
+    String connectionPoolType = properties.getProperty(
+        SERVER_JDBC_CONNECTION_POOL, ConnectionPoolType.INTERNAL.getName());
+
+    if (connectionPoolType.equals(ConnectionPoolType.C3P0.getName())) {
+      return ConnectionPoolType.C3P0;
+    }
+
+    return ConnectionPoolType.INTERNAL;
+  }
+
+  /**
+   * Gets the minimum number of connections that should always exist in the
+   * connection pool.
+   *
+   * @return default of {@value #DEFAULT_JDBC_POOL_MIN_CONNECTIONS}
+   */
+  public int getConnectionPoolMinimumSize() {
+    return Integer.parseInt(properties.getProperty(
+        SERVER_JDBC_CONNECTION_POOL_MIN_SIZE, DEFAULT_JDBC_POOL_MIN_CONNECTIONS));
+  }
+
+  /**
+   * Gets the maximum number of connections that should even exist in the
+   * connection pool.
+   *
+   * @return default of {@value #DEFAULT_JDBC_POOL_MAX_CONNECTIONS}
+   */
+  public int getConnectionPoolMaximumSize() {
+    return Integer.parseInt(properties.getProperty(
+        SERVER_JDBC_CONNECTION_POOL_MAX_SIZE, DEFAULT_JDBC_POOL_MAX_CONNECTIONS));
+  }
+
+  /**
+   * Gets the maximum amount of time in seconds any connection, whether its been
+   * idle or active, should even be in the pool. This will terminate the
+   * connection after the expiration age and force new connections to be opened.
+   *
+   * @return default of {@value #DEFAULT_JDBC_POOL_MAX_AGE_SECONDS}
+   */
+  public int getConnectionPoolMaximumAge() {
+    return Integer.parseInt(properties.getProperty(
+        SERVER_JDBC_CONNECTION_POOL_MAX_AGE, DEFAULT_JDBC_POOL_MAX_AGE_SECONDS));
+  }
+
+  /**
+   * Gets the maximum amount of time in seconds that an idle connection can
+   * remain in the pool. This should always be greater than the value returned
+   * from {@link #getConnectionPoolMaximumExcessIdle()}
+   *
+   * @return default of {@value #DEFAULT_JDBC_POOL_MAX_IDLE_TIME_SECONDS}
+   */
+  public int getConnectionPoolMaximumIdle() {
+    return Integer.parseInt(properties.getProperty(
+        SERVER_JDBC_CONNECTION_POOL_MAX_IDLE_TIME,
+        DEFAULT_JDBC_POOL_MAX_IDLE_TIME_SECONDS));
+  }
+
+  /**
+   * Gets the maximum amount of time in seconds that connections beyond the
+   * minimum pool size should remain in the pool. This should always be less
+   * than than the value returned from {@link #getConnectionPoolMaximumIdle()}
+   *
+   * @return default of {@value #DEFAULT_JDBC_POOL_EXCESS_MAX_IDLE_TIME_SECONDS}
+   */
+  public int getConnectionPoolMaximumExcessIdle() {
+    return Integer.parseInt(properties.getProperty(
+        SERVER_JDBC_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS,
+        DEFAULT_JDBC_POOL_EXCESS_MAX_IDLE_TIME_SECONDS));
+  }
+
+  /**
+   * Gets the number of connections that should be retrieved when the pool size
+   * must increase. It's wise to set this higher than 1 since the assumption is
+   * that a pool that needs to grow should probably grow by more than 1.
+   *
+   * @return default of {@value #DEFAULT_JDBC_POOL_ACQUISITION_SIZE}
+   */
+  public int getConnectionPoolAcquisitionSize() {
+    return Integer.parseInt(properties.getProperty(
+        SERVER_JDBC_CONNECTION_POOL_AQUISITION_SIZE,
+        DEFAULT_JDBC_POOL_ACQUISITION_SIZE));
+  }
+
+  /**
+   * Gets the number of seconds in between testing each idle connection in the
+   * connection pool for validity.
+   *
+   * @return default of {@value #DEFAULT_JDBC_POOL_IDLE_TEST_INTERVAL}
+   */
+  public int getConnectionPoolIdleTestInternval() {
+    return Integer.parseInt(properties.getProperty(
+        SERVER_JDBC_CONNECTION_POOL_IDLE_TEST_INTERVAL,
+        DEFAULT_JDBC_POOL_IDLE_TEST_INTERVAL));
   }
 }

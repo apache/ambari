@@ -17,14 +17,29 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import java.io.File;
+import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
@@ -57,20 +72,9 @@ import org.eclipse.persistence.jpa.JpaEntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.*;
-
-import java.io.File;
-import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Collection;
-import java.util.HashMap;
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog150.class);
@@ -86,7 +90,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
   @Override
   public void executeDDLUpdates() throws AmbariException, SQLException {
     LOG.debug("Upgrading schema...");
-    String dbType = getDbType();
+    DatabaseType databaseType = configuration.getDatabaseType();
     List<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
 
     // ========================================================================
@@ -276,7 +280,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
 
     // Alter columns
 
-    if (dbType.equals(Configuration.POSTGRES_DB_NAME)) {
+    if (databaseType == DatabaseType.POSTGRES) {
       if (dbAccessor.tableExists("hostcomponentdesiredconfigmapping")) {
         dbAccessor.executeQuery("ALTER TABLE hostcomponentdesiredconfigmapping rename to hcdesiredconfigmapping", true);
       }
@@ -284,8 +288,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       dbAccessor.executeQuery("ALTER TABLE users ALTER column ldap_user TYPE INTEGER USING CASE WHEN ldap_user=true THEN 1 ELSE 0 END", true);
     }
 
-    if (Configuration.ORACLE_DB_NAME.equals(dbType) ||
-        Configuration.POSTGRES_DB_NAME.equals(dbType)) {
+    if (databaseType == DatabaseType.ORACLE || databaseType == DatabaseType.POSTGRES) {
       if (dbAccessor.tableHasColumn("hosts", "disks_info")) {
         dbAccessor.executeQuery("ALTER TABLE hosts DROP COLUMN disks_info", true);
       }
@@ -293,7 +296,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
 
 
     //Move tables from ambarirca db to ambari db; drop ambarirca; Mysql
-    if (dbType.equals(Configuration.MYSQL_DB_NAME)) {
+    if (databaseType == DatabaseType.MYSQL) {
       String dbName = configuration.getServerJDBCPostgresSchemaName();
       moveRCATableInMySQL("workflow", dbName);
       moveRCATableInMySQL("job", dbName);
@@ -314,11 +317,11 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       throw new AmbariException(msg);
     } else if (!dbAccessor.tableHasData(tableName)) {
       String query = null;
-      if (dbType.equals(Configuration.POSTGRES_DB_NAME)) {
+      if (databaseType == DatabaseType.POSTGRES) {
         query = getPostgresRequestUpgradeQuery();
-      } else if (dbType.equals(Configuration.ORACLE_DB_NAME)) {
+      } else if (databaseType == DatabaseType.ORACLE) {
         query = getOracleRequestUpgradeQuery();
-      } else if (Configuration.MYSQL_DB_NAME.equals(dbType)) {
+      } else if (databaseType == DatabaseType.MYSQL) {
         query = getMysqlRequestUpgradeQuery();
       }
 
@@ -331,9 +334,9 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
 
     // Drop old constraints
     // ========================================================================
-    if (Configuration.POSTGRES_DB_NAME.equals(dbType)
-      || Configuration.MYSQL_DB_NAME.equals(dbType)
-      || Configuration.DERBY_DB_NAME.equals(dbType)) {
+    if (databaseType == DatabaseType.POSTGRES
+      || databaseType == DatabaseType.MYSQL
+      || databaseType == DatabaseType.DERBY) {
 
       //recreate old constraints to sync with oracle
       dbAccessor.dropConstraint("clusterconfigmapping", "FK_clusterconfigmapping_cluster_id");
@@ -410,7 +413,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
   public void executeDMLUpdates() throws AmbariException, SQLException {
     // Service Config mapping
     String tableName = "serviceconfigmapping";
-    String dbType = getDbType();
+    DatabaseType databaseType = configuration.getDatabaseType();
 
     EntityManager em = getEntityManagerProvider().get();
 
@@ -420,7 +423,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       && dbAccessor.tableHasData(tableName)
       && dbAccessor.tableExists("clusterconfigmapping")) {
 
-      if (dbType.equals(Configuration.POSTGRES_DB_NAME)) {
+      if (databaseType == DatabaseType.POSTGRES) {
         // Service config mapping entity object will be deleted so need to
         // proceed with executing as query
 
@@ -430,13 +433,13 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
 
       } else {
         LOG.warn("Unsupported database for service config mapping query. " +
-          "database = " + dbType);
+          "database = " + databaseType);
       }
     }
 
     // Sequences
     if (dbAccessor.tableExists("ambari_sequences")) {
-      if (dbType.equals(Configuration.POSTGRES_DB_NAME)) {
+      if (databaseType == DatabaseType.POSTGRES) {
 
         ResultSet resultSet = dbAccessor.executeSelect("select * from ambari_sequences where sequence_name in " +
             "('cluster_id_seq','user_id_seq','host_role_command_id_seq')");
@@ -539,7 +542,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
         }
       }
     });
-    
+
     // add history server on the host where jobtracker is
     executeInTransaction(new Runnable() {
       @Override
@@ -574,46 +577,48 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
     ClusterServiceDAO clusterServiceDAO = injector.getInstance(ClusterServiceDAO.class);
     ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
-    
+
     List<ClusterEntity> clusterEntities = clusterDAO.findAll();
     for (final ClusterEntity clusterEntity : clusterEntities) {
       ServiceComponentDesiredStateEntityPK pkHS = new ServiceComponentDesiredStateEntityPK();
       pkHS.setComponentName("HISTORYSERVER");
       pkHS.setClusterId(clusterEntity.getClusterId());
       pkHS.setServiceName("MAPREDUCE");
-      
+
       ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntityHS = serviceComponentDesiredStateDAO.findByPK(pkHS);
-      
+
       // already have historyserver
-      if(serviceComponentDesiredStateEntityHS != null)
+      if(serviceComponentDesiredStateEntityHS != null) {
         continue;
-      
+      }
+
       ServiceComponentDesiredStateEntityPK pkJT = new ServiceComponentDesiredStateEntityPK();
       pkJT.setComponentName("JOBTRACKER");
       pkJT.setClusterId(clusterEntity.getClusterId());
       pkJT.setServiceName("MAPREDUCE");
-      
-      ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntityJT = serviceComponentDesiredStateDAO.findByPK(pkJT);
-      
-      // no jobtracker present probably mapreduce is not installed
-      if(serviceComponentDesiredStateEntityJT == null)
-        continue;
 
-      
+      ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntityJT = serviceComponentDesiredStateDAO.findByPK(pkJT);
+
+      // no jobtracker present probably mapreduce is not installed
+      if(serviceComponentDesiredStateEntityJT == null) {
+        continue;
+      }
+
+
       HostComponentStateEntity jtHostComponentStateEntity = serviceComponentDesiredStateEntityJT.getHostComponentStateEntities().iterator().next();
       HostComponentDesiredStateEntity jtHostComponentDesiredStateEntity = serviceComponentDesiredStateEntityJT.getHostComponentDesiredStateEntities().iterator().next();
       String jtHostname = jtHostComponentStateEntity.getHostName();
       State jtCurrState = jtHostComponentStateEntity.getCurrentState();
       State jtHostComponentDesiredState = jtHostComponentDesiredStateEntity.getDesiredState();
       State jtServiceComponentDesiredState = serviceComponentDesiredStateEntityJT.getDesiredState();
-          
+
       ClusterServiceEntityPK pk = new ClusterServiceEntityPK();
       pk.setClusterId(clusterEntity.getClusterId());
       pk.setServiceName("MAPREDUCE");
-      
+
       ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findByPK(pk);
-      
-      
+
+
       final ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = new ServiceComponentDesiredStateEntity();
       serviceComponentDesiredStateEntity.setComponentName("HISTORYSERVER");
       serviceComponentDesiredStateEntity.setDesiredStackVersion(clusterEntity.getDesiredStackVersion());
@@ -625,21 +630,21 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       stateEntity.setHostName(jtHostname);
       stateEntity.setCurrentState(jtCurrState);
       stateEntity.setCurrentStackVersion(clusterEntity.getDesiredStackVersion());
-      
+
       final HostComponentDesiredStateEntity desiredStateEntity = new HostComponentDesiredStateEntity();
       desiredStateEntity.setDesiredState(jtHostComponentDesiredState);
       desiredStateEntity.setDesiredStackVersion(clusterEntity.getDesiredStackVersion());
-      
+
       persistComponentEntities(stateEntity, desiredStateEntity, serviceComponentDesiredStateEntity);
     }
   }
-    
+
   private void persistComponentEntities(HostComponentStateEntity stateEntity, HostComponentDesiredStateEntity desiredStateEntity, ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity) {
     ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
     HostComponentStateDAO hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
     HostComponentDesiredStateDAO hostComponentDesiredStateDAO = injector.getInstance(HostComponentDesiredStateDAO.class);
     HostDAO hostDAO = injector.getInstance(HostDAO.class);
-    
+
     HostEntity hostEntity = hostDAO.findByName(stateEntity.getHostName());
     hostEntity.getHostComponentStateEntities().add(stateEntity);
     hostEntity.getHostComponentDesiredStateEntities().add(desiredStateEntity);
@@ -697,7 +702,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
           for (String configType : configTypes) {
             if (configType.contains(log4jConfigTypeContains)) {
               ClusterConfigEntity configEntity = clusterDAO.findConfig(clusterId, configType, defaultVersionTag);
-              
+
               if (configEntity == null) {
                 String filename = configType + ".xml";
                 Map<String, String> properties = new HashMap<String, String>();
@@ -856,12 +861,12 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
   }
 
   private void createQuartzTables() throws SQLException {
-    String dbType = getDbType();
+    DatabaseType databaseType = configuration.getDatabaseType();
 
     // Run script to create quartz tables
     String scriptPath = configuration.getResourceDirPath() +
       File.separator + "upgrade" + File.separator + "ddl" +
-      File.separator + String.format(quartzScriptFilePattern, dbType);
+      File.separator + String.format(quartzScriptFilePattern, databaseType.getName());
 
     try {
       dbAccessor.executeScript(scriptPath);

@@ -22,9 +22,11 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_PASSWORD;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_URL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_USERNAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLIENTS_TO_UPDATE_CONFIGS;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_HOME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JCE_NAME;
@@ -41,8 +43,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_R
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLIENTS_TO_UPDATE_CONFIGS;
 
 import java.io.File;
 import java.io.IOException;
@@ -84,6 +84,7 @@ import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
@@ -670,8 +671,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         String configTypeName = configType.getKey();
         Map<String, String> properties = configType.getValue();
 
-        if(configTypeName.equals(Configuration.GLOBAL_CONFIG_TAG))
+        if(configTypeName.equals(Configuration.GLOBAL_CONFIG_TAG)) {
           continue;
+        }
 
         String tag;
         if(cluster.getConfigsByType(configTypeName) == null) {
@@ -1320,6 +1322,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return clusterUpdateCache.getIfPresent(clusterRequest);
   }
 
+  @Override
   public String getJobTrackerHost(Cluster cluster) {
     try {
       Service svc = cluster.getService("MAPREDUCE");
@@ -1658,11 +1661,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     String groupList = gson.toJson(groupSet);
     hostParams.put(GROUP_LIST, groupList);
 
-    if (configs.getServerDBName().equalsIgnoreCase(Configuration
-      .ORACLE_DB_NAME)) {
+    DatabaseType databaseType = configs.getDatabaseType();
+    if (databaseType == DatabaseType.ORACLE) {
       hostParams.put(DB_DRIVER_FILENAME, configs.getOjdbcJarName());
-    } else if (configs.getServerDBName().equalsIgnoreCase(Configuration
-      .MYSQL_DB_NAME)) {
+    } else if (databaseType == DatabaseType.MYSQL) {
       hostParams.put(DB_DRIVER_FILENAME, configs.getMySQLJarName());
     }
 
@@ -2414,6 +2416,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
   }
 
+  @Override
   public String findServiceName(Cluster cluster, String componentName) throws AmbariException {
     StackId stackId = cluster.getDesiredStackVersion();
     String serviceName =
@@ -3754,7 +3757,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
       }
 
-      this.users.processLdapSync(batchInfo);
+      users.processLdapSync(batchInfo);
       return batchInfo;
     } finally {
       ldapSyncInProgress = false;

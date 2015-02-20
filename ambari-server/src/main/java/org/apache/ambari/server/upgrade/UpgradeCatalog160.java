@@ -24,7 +24,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.orm.DBAccessor;
 
 import com.google.inject.Inject;
@@ -100,8 +100,9 @@ public class UpgradeCatalog160 extends AbstractUpgradeCatalog {
   protected void fixViewTablesForMysql() throws SQLException {
     //fixes 1.5.1 issue for mysql with non-default db name
     //view tables were not created
-
-    if (!Configuration.MYSQL_DB_NAME.equals(getDbType()) || "ambari".equals(configuration.getServerDBName())) {
+    DatabaseType databaseType = configuration.getDatabaseType();
+    if (!(databaseType == DatabaseType.MYSQL)
+        || "ambari".equals(configuration.getServerDBName())) {
       //no need to run for non-mysql dbms or default db name
       return;
     }

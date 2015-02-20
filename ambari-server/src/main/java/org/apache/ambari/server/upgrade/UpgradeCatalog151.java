@@ -17,21 +17,22 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.orm.DBAccessor;
-
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.Configuration.DatabaseType;
+import org.apache.ambari.server.orm.DBAccessor;
+
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 /**
  * Upgrade catalog for version 1.5.1.
  */
 public class UpgradeCatalog151 extends AbstractUpgradeCatalog {
-  
+
   //SourceVersion is only for book-keeping purpose
   @Override
   public String getSourceVersion() {
@@ -52,6 +53,7 @@ public class UpgradeCatalog151 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
     List<DBAccessor.DBColumnInfo> columns = new ArrayList<DBAccessor.DBColumnInfo>();
+    DatabaseType databaseType = configuration.getDatabaseType();
 
     // ========================================================================
     // Create tables
@@ -108,12 +110,12 @@ public class UpgradeCatalog151 extends AbstractUpgradeCatalog {
     columns.add(new DBAccessor.DBColumnInfo("subResource_names", String.class, 255, null, true));
     columns.add(new DBAccessor.DBColumnInfo("provider", String.class, 255, null, true));
     columns.add(new DBAccessor.DBColumnInfo("service", String.class, 255, null, true));
-    if (Configuration.MYSQL_DB_NAME.equals(getDbType())) {
+    if (databaseType == DatabaseType.MYSQL) {
       columns.add(new DBAccessor.DBColumnInfo("`resource`", String.class, 255, null, true));
       //TODO incorrect name for MySQL
-    	
+
     } else{
-      columns.add(new DBAccessor.DBColumnInfo("\"resource\"", String.class, 255, null, true)); 
+      columns.add(new DBAccessor.DBColumnInfo("\"resource\"", String.class, 255, null, true));
         //TODO incorrect name for oracle
     }
     dbAccessor.createTable("viewresource", columns, "view_name", "name");

@@ -17,15 +17,13 @@
  */
 package org.apache.ambari.server.scheduler;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Singleton;
+import java.util.List;
+import java.util.Properties;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.state.scheduler.GuiceJobFactory;
-import org.apache.ambari.server.state.scheduler.RequestExecution;
-import org.apache.ambari.server.state.scheduler.Schedule;
-import org.quartz.Job;
 import org.quartz.JobDetail;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
@@ -35,8 +33,9 @@ import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Properties;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
 
 @Singleton
 public class ExecutionSchedulerImpl implements ExecutionScheduler {
@@ -134,13 +133,13 @@ public class ExecutionSchedulerImpl implements ExecutionScheduler {
 
 
   protected String[] getQuartzDbDelegateClassAndValidationQuery() {
-    String dbUrl = configuration.getDatabaseUrl();
     String dbDelegate = "org.quartz.impl.jdbcjobstore.StdJDBCDelegate";
     String dbValidate = "select 0";
 
-    if (dbUrl.contains(Configuration.POSTGRES_DB_NAME)) {
+    DatabaseType databaseType = configuration.getDatabaseType();
+    if (databaseType == DatabaseType.POSTGRES) {
       dbDelegate = "org.quartz.impl.jdbcjobstore.PostgreSQLDelegate";
-    } else if (dbUrl.contains(Configuration.ORACLE_DB_NAME)) {
+    } else if (databaseType == DatabaseType.ORACLE) {
       dbDelegate = "org.quartz.impl.jdbcjobstore.oracle.OracleDelegate";
       dbValidate = "select 0 from dual";
     }

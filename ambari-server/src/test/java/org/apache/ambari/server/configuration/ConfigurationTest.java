@@ -35,6 +35,8 @@ import java.util.Properties;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.Configuration.ConnectionPoolType;
+import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
 import org.apache.commons.io.FileUtils;
@@ -349,5 +351,56 @@ public class ConfigurationTest {
     Assert.assertEquals("14", ldapProperties.getGroupNamingAttr());
     Assert.assertEquals("15", ldapProperties.getAdminGroupMappingRules());
     Assert.assertEquals("16", ldapProperties.getGroupSearchFilter());
+  }
+
+  @Test
+  public void testConnectionPoolingProperties() throws Exception {
+    // test defaults
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+    Assert.assertEquals(ConnectionPoolType.INTERNAL, configuration.getConnectionPoolType());
+    Assert.assertEquals(5, configuration.getConnectionPoolAcquisitionSize());
+    Assert.assertEquals(7200, configuration.getConnectionPoolIdleTestInternval());
+    Assert.assertEquals(0, configuration.getConnectionPoolMaximumAge());
+    Assert.assertEquals(0, configuration.getConnectionPoolMaximumExcessIdle());
+    Assert.assertEquals(14400, configuration.getConnectionPoolMaximumIdle());
+    Assert.assertEquals(32, configuration.getConnectionPoolMaximumSize());
+    Assert.assertEquals(5, configuration.getConnectionPoolMinimumSize());
+
+    ambariProperties.setProperty(Configuration.SERVER_JDBC_CONNECTION_POOL, ConnectionPoolType.C3P0.getName());
+    ambariProperties.setProperty(Configuration.SERVER_JDBC_CONNECTION_POOL_MIN_SIZE, "1");
+    ambariProperties.setProperty(Configuration.SERVER_JDBC_CONNECTION_POOL_MAX_SIZE, "2");
+    ambariProperties.setProperty(Configuration.SERVER_JDBC_CONNECTION_POOL_AQUISITION_SIZE, "3");
+    ambariProperties.setProperty(Configuration.SERVER_JDBC_CONNECTION_POOL_MAX_AGE, "4");
+    ambariProperties.setProperty(Configuration.SERVER_JDBC_CONNECTION_POOL_MAX_IDLE_TIME, "5");
+    ambariProperties.setProperty(Configuration.SERVER_JDBC_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS, "6");
+    ambariProperties.setProperty(Configuration.SERVER_JDBC_CONNECTION_POOL_IDLE_TEST_INTERVAL, "7");
+
+    Assert.assertEquals(ConnectionPoolType.C3P0, configuration.getConnectionPoolType());
+    Assert.assertEquals(3, configuration.getConnectionPoolAcquisitionSize());
+    Assert.assertEquals(7, configuration.getConnectionPoolIdleTestInternval());
+    Assert.assertEquals(4, configuration.getConnectionPoolMaximumAge());
+    Assert.assertEquals(6, configuration.getConnectionPoolMaximumExcessIdle());
+    Assert.assertEquals(5, configuration.getConnectionPoolMaximumIdle());
+    Assert.assertEquals(2, configuration.getConnectionPoolMaximumSize());
+    Assert.assertEquals(1, configuration.getConnectionPoolMinimumSize());
+  }
+
+  @Test
+  public void testDatabaseType() throws Exception {
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+
+    ambariProperties.setProperty(Configuration.SERVER_JDBC_URL_KEY, "jdbc:oracle://server");
+    Assert.assertEquals( DatabaseType.ORACLE, configuration.getDatabaseType() );
+
+    ambariProperties.setProperty(Configuration.SERVER_JDBC_URL_KEY, "jdbc:postgres://server");
+    Assert.assertEquals( DatabaseType.POSTGRES, configuration.getDatabaseType() );
+
+    ambariProperties.setProperty(Configuration.SERVER_JDBC_URL_KEY, "jdbc:mysql://server");
+    Assert.assertEquals( DatabaseType.MYSQL, configuration.getDatabaseType() );
+
+    ambariProperties.setProperty(Configuration.SERVER_JDBC_URL_KEY, "jdbc:derby://server");
+    Assert.assertEquals( DatabaseType.DERBY, configuration.getDatabaseType() );
   }
 }
