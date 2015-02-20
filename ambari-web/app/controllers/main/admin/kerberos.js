@@ -270,6 +270,9 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
             property.set('index', siteProperty.index);
           }
         }
+        if (siteProperty.displayType) {
+          property.set('displayType', siteProperty.displayType);
+        }
       }
     });
     configProperties.setEach('isEditable', false);

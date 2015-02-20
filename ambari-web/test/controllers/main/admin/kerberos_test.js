@@ -54,6 +54,22 @@ describe('App.MainAdminKerberosController', function() {
         expect(prop.get('isEditable')).to.be.false;
       });
     });
+
+    it('should take displayType from predefinedSiteProperties', function () {
+      sinon.stub(App.config, 'get').withArgs('preDefinedSiteProperties').returns([
+        {
+          name: 'hadoop.security.auth_to_local',
+          displayType: 'multiLine'
+        }
+      ]);
+      expect(controller.prepareConfigProperties([
+        Em.Object.create({
+          name: 'hadoop.security.auth_to_local',
+          serviceName: 'HDFS'
+        })
+      ])[0].get('displayType')).to.equal('multiLine');
+      App.config.get.restore();
+    });
   });
 
   describe("#runSecurityCheckSuccess()", function () {

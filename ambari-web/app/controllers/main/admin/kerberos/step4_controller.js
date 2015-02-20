@@ -180,6 +180,9 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
             property.set('index', siteProperty.index);
           }
         }
+        if (siteProperty.displayType) {
+          property.set('displayType', siteProperty.displayType);
+        }
       }
     });
 

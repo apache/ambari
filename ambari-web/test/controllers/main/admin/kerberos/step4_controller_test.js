@@ -50,7 +50,7 @@ describe('App.KerberosWizardStep4Controller', function() {
   });
 
   describe('#prepareConfigProperties', function() {
-    
+
     before(function() {
       var controller = App.KerberosWizardStep4Controller.create({
         wizardController: {
@@ -64,11 +64,18 @@ describe('App.KerberosWizardStep4Controller', function() {
       sinon.stub(App.Service, 'find').returns(Em.A([
         { serviceName: 'HDFS' }
       ]));
+      sinon.stub(App.config, 'get').withArgs('preDefinedSiteProperties').returns([
+        {
+          name: 'hadoop.security.auth_to_local',
+          displayType: 'multiLine'
+        }
+      ]);
       this.result = controller.prepareConfigProperties(properties);
     });
 
     after(function() {
       App.Service.find.restore();
+      App.config.get.restore();
     });
 
     var properties = Em.A([
@@ -77,7 +84,8 @@ describe('App.KerberosWizardStep4Controller', function() {
       Em.Object.create({ name: 'hdfs_keytab', value: '', serviceName: 'HDFS', identityType: 'user', observesValueFrom: 'spnego_keytab' }),
       Em.Object.create({ name: 'falcon_keytab', value: 'falcon_keytab_value', serviceName: 'FALCON' }),
       Em.Object.create({ name: 'mapreduce_keytab', value: 'mapreduce_keytab_value', serviceName: 'MAPREDUCE2' }),
-      Em.Object.create({ name: 'hdfs_principal', value: 'hdfs_principal_value', identityType: 'user', serviceName: 'HDFS' })
+      Em.Object.create({ name: 'hdfs_principal', value: 'hdfs_principal_value', identityType: 'user', serviceName: 'HDFS' }),
+      Em.Object.create({ name: 'hadoop.security.auth_to_local', serviceName: 'HDFS' })
     ]);
     
     var propertyValidationCases = [
@@ -98,9 +106,15 @@ describe('App.KerberosWizardStep4Controller', function() {
       {
         property: 'hdfs_keytab',
         e: [
-          {key: 'category', value: 'Ambari Principals'},
+          { key: 'category', value: 'Ambari Principals' },
           { key: 'value', value: 'spnego_keytab_value' },
           { key: 'observesValueFrom', value: 'spnego_keytab' }
+        ]
+      },
+      {
+        property: 'hadoop.security.auth_to_local',
+        e: [
+          { key: 'displayType', value: 'multiLine' }
         ]
       }
     ];
