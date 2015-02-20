@@ -347,7 +347,7 @@ App.MainHostDetailsController = Em.Controller.extend({
 
   /**
    * Remove host component data from App.HostComponent model.
-   * 
+   *
    * @param {String} componentName
    * @param {String} hostName
    */
@@ -355,7 +355,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     var component = App.HostComponent.find().filterProperty('componentName', componentName).findProperty('hostName', hostName);
     App.serviceMapper.deleteRecord(component);
   },
-  
+
   /**
    * Send command to server to upgrade selected host component
    * @param {object} event
@@ -444,7 +444,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     var
       returnFunc,
       self = this,
-      hiveHost = event.hiveMetastoreHost ? event.hiveMetastoreHost : "";
+      hiveHost = event.hiveMetastoreHost ? event.hiveMetastoreHost : this.get('content.hostName');
       component = event.context,
       componentName = component.get('componentName'),
       missedComponents = !!hiveHost ? [] : componentsUtils.checkComponentDependencies(componentName, {
@@ -466,8 +466,10 @@ App.MainHostDetailsController = Em.Controller.extend({
         }, Em.I18n.t('hosts.host.addComponent.' + componentName ));
         break;
       case 'HIVE_METASTORE':
-        this.set('hiveMetastoreHost',hiveHost);
-        this.loadConfigs("loadHiveConfigs");
+        returnFunc = App.showConfirmationPopup(function () {
+          self.set('hiveMetastoreHost', hiveHost);
+          self.loadConfigs("loadHiveConfigs");
+        }, Em.I18n.t('hosts.host.addComponent.' + componentName ));
         break;
       default:
         returnFunc = this.addClientComponent(component);
@@ -684,13 +686,12 @@ App.MainHostDetailsController = Em.Controller.extend({
 
   /**
    * save configs' sites in batch
+   * @param hiveMetastoreHost
    * @param groups
    */
   saveConfigsBatch: function (groups, hiveMetastoreHost) {
     groups.forEach(function (group) {
-      var
-        self = this,
-        desiredConfigs = [],
+      var desiredConfigs = [],
         tag = 'version' + (new Date).getTime(),
         properties = group.properties;
 
@@ -709,15 +710,28 @@ App.MainHostDetailsController = Em.Controller.extend({
           name: 'common.service.configurations',
           sender: this,
           data: {
-            desired_config: desiredConfigs
+            desired_config: desiredConfigs,
+            hiveMetastoreHost: hiveMetastoreHost
           },
-          defaultSuccessCallback: function () {},
-          success: !!hiveMetastoreHost ? componentsUtils.installHostComponent(hiveMetastoreHost, App.StackServiceComponent.find("HIVE_METASTORE")) : this.defaultSuccessCallback
+          success: 'installHiveMetastore'
         });
       }
+      //clear hive metastore host not to send second request to install component
+      hiveMetastoreHost = null;
     }, this);
   },
 
+  /**
+   * success callback for saveConfigsBatch method
+   * @param data
+   * @param opt
+   * @param params
+   */
+  installHiveMetastore: function(data, opt, params) {
+    if (params.hiveMetastoreHost) {
+      componentsUtils.installHostComponent(params.hiveMetastoreHost, App.StackServiceComponent.find("HIVE_METASTORE"));
+    }
+  },
   /**
    * Delete Hive Metastore is performed
    * @type {bool}
