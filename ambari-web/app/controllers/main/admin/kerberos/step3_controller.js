@@ -73,7 +73,7 @@ App.KerberosWizardStep3Controller = App.KerberosProgressPageController.extend({
       'name': 'service.item.smoke',
       'sender': this,
       'success': 'startPolling',
-      'error': 'onTaskError',
+      'error': 'onTestKerberosError',
       'kdcCancelHandler': 'onKDCCancel',
       'data': {
         'serviceName': this.serviceName,
@@ -81,6 +81,11 @@ App.KerberosWizardStep3Controller = App.KerberosProgressPageController.extend({
         'actionName': this.serviceName + '_SERVICE_CHECK'
       }
     });
+  },
+
+  onTestKerberosError: function (jqXHR, ajaxOptions, error, opt) {
+    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.type, jqXHR.status);
+    this.onTaskError(jqXHR, ajaxOptions, error, opt);
   },
 
   /**
