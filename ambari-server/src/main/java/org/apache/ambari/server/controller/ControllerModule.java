@@ -30,8 +30,10 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIV
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.NON_JTA_DATASOURCE;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.THROW_EXCEPTIONS;
 
+import java.beans.PropertyVetoException;
 import java.lang.annotation.Annotation;
 import java.security.SecureRandom;
 import java.text.MessageFormat;
@@ -54,6 +56,8 @@ import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.configuration.Configuration.ConnectionPoolType;
+import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
@@ -123,6 +127,7 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
 import com.google.inject.persist.PersistModule;
 import com.google.inject.persist.jpa.AmbariJpaPersistModule;
+import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 /**
  * Used for injection purposes.
@@ -162,11 +167,15 @@ public class ControllerModule extends AbstractModule {
   public static Properties getPersistenceProperties(Configuration configuration) {
     Properties properties = new Properties();
 
-    // custom jdbc properties
-    Map<String, String> custom = configuration.getDatabaseCustomProperties();
+    // log what database type has been calculated
+    DatabaseType databaseType = configuration.getDatabaseType();
+    LOG.info("Detected {} as the database type from the JDBC URL", databaseType);
 
-    if (0 != custom.size()) {
-      for (Entry<String, String> entry : custom.entrySet()) {
+    // custom jdbc properties
+    Map<String, String> customProperties = configuration.getDatabaseCustomProperties();
+
+    if (0 != customProperties.size()) {
+      for (Entry<String, String> entry : customProperties.entrySet()) {
         properties.setProperty("eclipselink.jdbc.property." + entry.getKey(),
             entry.getValue());
       }
@@ -187,6 +196,61 @@ public class ControllerModule extends AbstractModule {
         properties.setProperty(JDBC_DRIVER, Configuration.JDBC_LOCAL_DRIVER);
         break;
     }
+
+    // determine the type of pool to use
+    boolean isConnectionPoolingExternal = false;
+    ConnectionPoolType connectionPoolType = configuration.getConnectionPoolType();
+    if (connectionPoolType == ConnectionPoolType.C3P0) {
+      isConnectionPoolingExternal = true;
+    }
+
+    // force the use of c3p0 with MySQL
+    if (databaseType == DatabaseType.MYSQL) {
+      isConnectionPoolingExternal = true;
+    }
+
+    // use c3p0
+    if (isConnectionPoolingExternal) {
+      LOG.info("Using c3p0 {} as the EclipsLink DataSource",
+          ComboPooledDataSource.class.getSimpleName());
+
+      // Oracle requires a different validity query
+      String testQuery = "SELECT 1";
+      if (databaseType == DatabaseType.ORACLE) {
+        testQuery = "SELECT 1 FROM DUAL";
+      }
+
+      ComboPooledDataSource dataSource = new ComboPooledDataSource();
+
+      // attempt to load the driver; if this fails, warn and move on
+      try {
+        dataSource.setDriverClass(configuration.getDatabaseDriver());
+      } catch (PropertyVetoException pve) {
+        LOG.warn("Unable to initialize c3p0", pve);
+        return properties;
+      }
+
+      // basic configuration stuff
+      dataSource.setJdbcUrl(configuration.getDatabaseUrl());
+      dataSource.setUser(configuration.getDatabaseUser());
+      dataSource.setPassword(configuration.getDatabasePassword());
+
+      // pooling
+      dataSource.setMinPoolSize(configuration.getConnectionPoolMinimumSize());
+      dataSource.setInitialPoolSize(configuration.getConnectionPoolMinimumSize());
+      dataSource.setMaxPoolSize(configuration.getConnectionPoolMaximumSize());
+      dataSource.setAcquireIncrement(configuration.getConnectionPoolAcquisitionSize());
+
+      // validity
+      dataSource.setMaxConnectionAge(configuration.getConnectionPoolMaximumAge());
+      dataSource.setMaxIdleTime(configuration.getConnectionPoolMaximumIdle());
+      dataSource.setMaxIdleTimeExcessConnections(configuration.getConnectionPoolMaximumExcessIdle());
+      dataSource.setPreferredTestQuery(testQuery);
+      dataSource.setIdleConnectionTestPeriod(configuration.getConnectionPoolIdleTestInternval());
+
+      properties.put(NON_JTA_DATASOURCE, dataSource);
+    }
+
     return properties;
   }
 
@@ -261,7 +325,7 @@ public class ControllerModule extends AbstractModule {
     PersistenceType persistenceType = configuration.getPersistenceType();
     AmbariJpaPersistModule jpaPersistModule = new AmbariJpaPersistModule(Configuration.JDBC_UNIT_NAME);
 
-    Properties persistenceProperties = getPersistenceProperties(configuration);
+    Properties persistenceProperties = ControllerModule.getPersistenceProperties(configuration);
 
     if (!persistenceType.equals(PersistenceType.IN_MEMORY)) {
       persistenceProperties.setProperty(JDBC_USER, configuration.getDatabaseUser());
@@ -289,7 +353,6 @@ public class ControllerModule extends AbstractModule {
     }
 
     jpaPersistModule.properties(persistenceProperties);
-
     return jpaPersistModule;
   }
 
@@ -341,7 +404,7 @@ public class ControllerModule extends AbstractModule {
    * A second example of where this is needed is when classes require static
    * members that are available via injection.
    * <p/>
-   * If {@code beanDefinitions} is empty or null this will scan 
+   * If {@code beanDefinitions} is empty or null this will scan
    * {@code org.apache.ambari.server} (currently) for any {@link EagerSingleton}
    * or {@link StaticallyInject} or {@link AmbariService} instances.
    *

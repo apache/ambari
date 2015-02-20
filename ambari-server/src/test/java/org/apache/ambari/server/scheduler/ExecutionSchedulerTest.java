@@ -17,7 +17,16 @@
  */
 package org.apache.ambari.server.scheduler;
 
+import static org.easymock.EasyMock.expect;
+import static org.mockito.Mockito.spy;
+import static org.powermock.api.easymock.PowerMock.createNiceMock;
+import static org.powermock.api.easymock.PowerMock.expectNew;
+import static org.powermock.api.easymock.PowerMock.expectPrivate;
+
+import java.util.Properties;
+
 import junit.framework.Assert;
+
 import org.apache.ambari.server.configuration.Configuration;
 import org.junit.After;
 import org.junit.Before;
@@ -29,14 +38,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.quartz.Scheduler;
 import org.quartz.impl.StdSchedulerFactory;
-
-import java.io.File;
-import java.util.Properties;
-import static org.easymock.EasyMock.expect;
-import static org.mockito.Mockito.spy;
-import static org.powermock.api.easymock.PowerMock.createNiceMock;
-import static org.powermock.api.easymock.PowerMock.expectNew;
-import static org.powermock.api.easymock.PowerMock.expectPrivate;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.management.*")
@@ -51,11 +52,11 @@ public class ExecutionSchedulerTest {
     properties.setProperty(Configuration.EXECUTION_SCHEDULER_CLUSTERED, "false");
     properties.setProperty(Configuration.EXECUTION_SCHEDULER_CONNECTIONS, "2");
     properties.setProperty(Configuration.SERVER_JDBC_DRIVER_KEY, "db.driver");
-    properties.setProperty(Configuration.SERVER_JDBC_URL_KEY, "db.url");
+    properties.setProperty(Configuration.SERVER_JDBC_URL_KEY, "jdbc:postgresql://localhost/");
     properties.setProperty(Configuration.SERVER_JDBC_USER_NAME_KEY, "user");
     properties.setProperty(Configuration.SERVER_DB_NAME_KEY, "derby");
 
-    this.configuration = new Configuration(properties);
+    configuration = new Configuration(properties);
 
   }
 
@@ -76,7 +77,7 @@ public class ExecutionSchedulerTest {
     Assert.assertEquals("2", actualProperties.getProperty("org.quartz.threadPool.threadCount"));
     Assert.assertEquals("2", actualProperties.getProperty("org.quartz.dataSource.myDS.maxConnections"));
     Assert.assertEquals("false", actualProperties.getProperty("org.quartz.jobStore.isClustered"));
-    Assert.assertEquals("org.quartz.impl.jdbcjobstore.StdJDBCDelegate",
+    Assert.assertEquals("org.quartz.impl.jdbcjobstore.PostgreSQLDelegate",
       actualProperties.getProperty("org.quartz.jobStore.driverDelegateClass"));
     Assert.assertEquals("select 0",
       actualProperties.getProperty("org.quartz.dataSource.myDS.validationQuery"));

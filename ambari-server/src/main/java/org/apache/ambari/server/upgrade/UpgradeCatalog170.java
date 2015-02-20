@@ -44,6 +44,7 @@ import javax.persistence.criteria.Root;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
@@ -164,10 +165,12 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
+    DatabaseType databaseType = configuration.getDatabaseType();
+
     // needs to be executed first
     renameSequenceValueColumnName();
 
-    String dbType = getDbType();
+
     List<DBColumnInfo> columns;
 
     // add group and members tables
@@ -250,7 +253,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     dbAccessor.insertRow("adminprivilege", new String[]{"privilege_id", "permission_id", "resource_id", "principal_id"}, new String[]{"1", "1", "1", "1"}, true);
 
-    if (dbType.equals(Configuration.ORACLE_DB_NAME)) {
+    if (databaseType == DatabaseType.ORACLE) {
       dbAccessor.executeQuery("ALTER TABLE clusterconfig ADD config_attributes CLOB NULL");
     } else {
       DBColumnInfo clusterConfigAttributesColumn = new DBColumnInfo(
@@ -316,17 +319,17 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     dbAccessor.dropConstraint("confgroupclusterconfigmapping", "FK_confg");
 
-    if (Configuration.ORACLE_DB_NAME.equals(dbType)
-      || Configuration.MYSQL_DB_NAME.equals(dbType)
-      || Configuration.DERBY_DB_NAME.equals(dbType)) {
+    if (databaseType == DatabaseType.ORACLE
+        || databaseType == DatabaseType.MYSQL
+        || databaseType == DatabaseType.DERBY) {
       dbAccessor.executeQuery("ALTER TABLE clusterconfig DROP PRIMARY KEY", true);
-    } else if (Configuration.POSTGRES_DB_NAME.equals(dbType)) {
+    } else if (databaseType == DatabaseType.POSTGRES) {
       dbAccessor.executeQuery("ALTER TABLE clusterconfig DROP CONSTRAINT clusterconfig_pkey CASCADE", true);
     }
 
     dbAccessor.addColumn("clusterconfig", new DBColumnInfo("config_id", Long.class, null, null, true));
 
-    if (Configuration.ORACLE_DB_NAME.equals(dbType)) {
+    if (databaseType == DatabaseType.ORACLE) {
       //sequence looks to be simpler than rownum
       if (dbAccessor.tableHasData("clusterconfig")) {
         dbAccessor.executeQuery("CREATE SEQUENCE TEMP_SEQ " +
@@ -339,12 +342,12 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
         dbAccessor.executeQuery("UPDATE clusterconfig SET config_id = TEMP_SEQ.NEXTVAL");
         dbAccessor.dropSequence("TEMP_SEQ");
       }
-    } else if (Configuration.MYSQL_DB_NAME.equals(dbType)) {
+    } else if (databaseType == DatabaseType.MYSQL) {
       if (dbAccessor.tableHasData("clusterconfig")) {
         dbAccessor.executeQuery("UPDATE clusterconfig " +
           "SET config_id = (SELECT @a := @a + 1 FROM (SELECT @a := 1) s)");
       }
-    } else if (Configuration.POSTGRES_DB_NAME.equals(dbType)) {
+    } else if (databaseType == DatabaseType.POSTGRES) {
       if (dbAccessor.tableHasData("clusterconfig")) {
         //window functions like row_number were added in 8.4, workaround for earlier versions (redhat/centos 5)
         dbAccessor.executeQuery("CREATE SEQUENCE temp_seq START WITH 1");
@@ -354,20 +357,20 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     }
 
     // alter view tables description columns size
-    if (dbType.equals(Configuration.ORACLE_DB_NAME) ||
-        dbType.equals(Configuration.MYSQL_DB_NAME)) {
+    if (databaseType == DatabaseType.ORACLE
+        || databaseType == DatabaseType.MYSQL) {
       dbAccessor.executeQuery("ALTER TABLE viewinstance MODIFY description VARCHAR(2048)");
       dbAccessor.executeQuery("ALTER TABLE viewparameter MODIFY description VARCHAR(2048)");
-    } else if (Configuration.POSTGRES_DB_NAME.equals(dbType)) {
+    } else if (databaseType == DatabaseType.POSTGRES) {
       dbAccessor.executeQuery("ALTER TABLE viewinstance ALTER COLUMN description TYPE VARCHAR(2048)");
       dbAccessor.executeQuery("ALTER TABLE viewparameter ALTER COLUMN description TYPE VARCHAR(2048)");
-    } else if (dbType.equals(Configuration.DERBY_DB_NAME)) {
+    } else if (databaseType == DatabaseType.DERBY) {
       dbAccessor.executeQuery("ALTER TABLE viewinstance ALTER COLUMN description SET DATA TYPE VARCHAR(2048)");
       dbAccessor.executeQuery("ALTER TABLE viewparameter ALTER COLUMN description SET DATA TYPE VARCHAR(2048)");
     }
 
     //upgrade unit test workaround
-    if (Configuration.DERBY_DB_NAME.equals(dbType)) {
+    if (databaseType == DatabaseType.DERBY) {
       dbAccessor.executeQuery("ALTER TABLE clusterconfig ALTER COLUMN config_id DEFAULT 0");
       dbAccessor.executeQuery("ALTER TABLE clusterconfig ALTER COLUMN config_id NOT NULL");
     }
@@ -384,7 +387,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     dbAccessor.executeQuery("ALTER TABLE clusterconfig ADD CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, type_name, version_tag)", true);
     dbAccessor.executeQuery("ALTER TABLE clusterconfig ADD CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version)", true);
 
-    if (!Configuration.ORACLE_DB_NAME.equals(dbType)) {
+    if (databaseType != DatabaseType.ORACLE) {
       dbAccessor.alterColumn("clusterconfig", new DBColumnInfo("config_data", char[].class, null, null, false));
       dbAccessor.alterColumn("blueprint_configuration", new DBColumnInfo("config_data", char[].class, null, null, false));
       dbAccessor.alterColumn("hostgroup_configuration", new DBColumnInfo("config_data", char[].class, null, null, false));
@@ -493,12 +496,12 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
    * thus requires custom approach for every database type.
    */
   private void renameSequenceValueColumnName() throws AmbariException, SQLException {
-    final String dbType = getDbType();
-    if (Configuration.MYSQL_DB_NAME.equals(dbType)) {
+    final DatabaseType databaseType = configuration.getDatabaseType();
+    if (databaseType == DatabaseType.MYSQL) {
       dbAccessor.executeQuery("ALTER TABLE ambari_sequences CHANGE value sequence_value DECIMAL(38) NOT NULL");
-    } else if (Configuration.DERBY_DB_NAME.equals(dbType)) {
+    } else if (databaseType == DatabaseType.DERBY) {
       dbAccessor.executeQuery("RENAME COLUMN ambari_sequences.\"value\" to sequence_value");
-    } else if (Configuration.ORACLE_DB_NAME.equals(dbType)) {
+    } else if (databaseType == DatabaseType.ORACLE) {
       dbAccessor.executeQuery("ALTER TABLE ambari_sequences RENAME COLUMN value to sequence_value");
     } else {
       // Postgres
@@ -1254,7 +1257,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     result.put("zk_data_dir","dataDir");
     return result;
   }
-  
+
   private void upgradePermissionModel() throws SQLException {
     final UserDAO userDAO = injector.getInstance(UserDAO.class);
     final PrincipalDAO principalDAO = injector.getInstance(PrincipalDAO.class);

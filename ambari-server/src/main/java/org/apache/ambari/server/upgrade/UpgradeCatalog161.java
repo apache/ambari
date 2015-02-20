@@ -24,11 +24,12 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
@@ -68,7 +69,7 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
 
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
-    String dbType = getDbType();
+    DatabaseType databaseType = configuration.getDatabaseType();
 
     List<DBColumnInfo> columns;
 
@@ -86,7 +87,7 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
 
     // 1.6.0 initially shipped with restart_required as a BOOELAN so some
     // upgrades might be BOOLEAN but most are probably SMALLINT
-    if (Configuration.POSTGRES_DB_NAME.equals(dbType)) {
+    if (databaseType == DatabaseType.POSTGRES) {
       int columnType = dbAccessor.getColumnType("hostcomponentdesiredstate",
           "restart_required");
 
@@ -97,7 +98,7 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
       }
     }
 
-    if (Configuration.ORACLE_DB_NAME.equals(dbType)) {
+    if (databaseType == DatabaseType.ORACLE) {
       dbAccessor.executeQuery(
           "ALTER TABLE hostcomponentdesiredstate MODIFY (restart_required DEFAULT 0)",
           true);
@@ -125,12 +126,12 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
     dbAccessor.dropConstraint("viewinstance", "FK_viewinst_view_name");
 
     //modify primary key of viewinstancedata
-    if (Configuration.ORACLE_DB_NAME.equals(dbType)
-        || Configuration.MYSQL_DB_NAME.equals(dbType)
-        || Configuration.DERBY_DB_NAME.equals(dbType)) {
+    if (databaseType == DatabaseType.ORACLE
+        || databaseType == DatabaseType.MYSQL
+        || databaseType == DatabaseType.DERBY) {
       dbAccessor.executeQuery("ALTER TABLE viewinstance DROP PRIMARY KEY", true);
       dbAccessor.executeQuery("ALTER TABLE viewinstancedata DROP PRIMARY KEY", true);
-    } else if (Configuration.POSTGRES_DB_NAME.equals(dbType)) {
+    } else if (databaseType == DatabaseType.POSTGRES) {
       dbAccessor.executeQuery("ALTER TABLE viewinstance DROP CONSTRAINT viewinstance_pkey CASCADE", true);
       dbAccessor.executeQuery("ALTER TABLE viewinstancedata DROP CONSTRAINT viewinstancedata_pkey CASCADE", true);
     }
@@ -140,7 +141,7 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn("viewinstancedata",
       new DBAccessor.DBColumnInfo("view_instance_id", Long.class, null, null, true));
 
-    if (Configuration.ORACLE_DB_NAME.equals(dbType)) {
+    if (databaseType == DatabaseType.ORACLE) {
       //sequence looks to be simpler than rownum
       if (dbAccessor.tableHasData("viewinstancedata")) {
         dbAccessor.executeQuery("CREATE SEQUENCE TEMP_SEQ " +
@@ -153,12 +154,12 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
         dbAccessor.executeQuery("UPDATE viewinstance SET view_instance_id = TEMP_SEQ.NEXTVAL");
         dbAccessor.dropSequence("TEMP_SEQ");
       }
-    } else if (Configuration.MYSQL_DB_NAME.equals(dbType)) {
+    } else if (databaseType == DatabaseType.MYSQL) {
       if (dbAccessor.tableHasData("viewinstance")) {
         dbAccessor.executeQuery("UPDATE viewinstance " +
             "SET view_instance_id = (SELECT @a := @a + 1 FROM (SELECT @a := 1) s)");
       }
-    } else if (Configuration.POSTGRES_DB_NAME.equals(dbType)) {
+    } else if (databaseType == DatabaseType.POSTGRES) {
       if (dbAccessor.tableHasData("viewinstance")) {
         //window functions like row_number were added in 8.4, workaround for earlier versions (redhat/centos 5)
         dbAccessor.executeQuery("CREATE SEQUENCE temp_seq START WITH 1");
@@ -169,7 +170,7 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
 
     }
 
-    if (Configuration.DERBY_DB_NAME.equals(dbType)) {
+    if (databaseType == DatabaseType.DERBY) {
       dbAccessor.executeQuery("ALTER TABLE viewinstance ALTER COLUMN view_instance_id DEFAULT 0");
       dbAccessor.executeQuery("ALTER TABLE viewinstance ALTER COLUMN view_instance_id NOT NULL");
       dbAccessor.executeQuery("ALTER TABLE viewinstancedata ALTER COLUMN view_instance_id DEFAULT 0");
@@ -188,14 +189,14 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
         new String[]{"view_name", "view_instance_name"}, "viewinstance", new String[]{"view_name", "name"}, true);
     dbAccessor.addFKConstraint("viewinstance", "FK_viewinst_view_name", "view_name", "viewmain", "view_name", true);
 
-    if (Configuration.POSTGRES_DB_NAME.equals(dbType)) {
+    if (databaseType == DatabaseType.POSTGRES) {
       dbAccessor.executeQuery("UPDATE viewinstancedata " +
         "SET view_instance_id = vi.view_instance_id FROM viewinstance AS vi " +
         "WHERE vi.name = viewinstancedata.view_instance_name AND vi.view_name = viewinstancedata.view_name");
-    } else if (Configuration.ORACLE_DB_NAME.equals(dbType)) {
+    } else if (databaseType == DatabaseType.ORACLE) {
       dbAccessor.executeQuery("UPDATE viewinstancedata vid SET view_instance_id = (" +
         "SELECT view_instance_id FROM viewinstance vi WHERE vi.name = vid.view_instance_name AND vi.view_name = vid.view_name)");
-    } else if (Configuration.MYSQL_DB_NAME.equals(dbType)) {
+    } else if (databaseType == DatabaseType.MYSQL) {
       dbAccessor.executeQuery("UPDATE viewinstancedata AS vid JOIN viewinstance AS vi " +
         "ON vi.name = vid.view_instance_name AND vi.view_name = vid.view_name " +
         "SET vid.view_instance_id = vi.view_instance_id");
@@ -221,8 +222,8 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
     }
 
     String valueColumnName = "\"value\"";
-    if (Configuration.ORACLE_DB_NAME.equals(dbType)
-        || Configuration.MYSQL_DB_NAME.equals(dbType)) {
+    if (databaseType == DatabaseType.ORACLE
+        || databaseType == DatabaseType.MYSQL) {
       valueColumnName = "value";
     }
 
