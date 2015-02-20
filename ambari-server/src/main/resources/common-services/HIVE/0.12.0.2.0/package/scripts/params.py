@@ -404,4 +404,4 @@ ranger_driver_curl_source = format("{jdk_location}/{ranger_jdbc_symlink_name}")
 ranger_driver_curl_target = format("{java_share_dir}/{ranger_jdbc_jar_name}")
 
 if security_enabled:
-  hive_principal = hive_server_principal.replace('_HOST',hive_server_host.lower())
+  hive_principal = hive_server_principal.replace('_HOST',hostname.lower())
