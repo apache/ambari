@@ -116,6 +116,10 @@ public class HBaseTimelineMetricStore extends AbstractService
     if (applicationId == null || applicationId.trim().length() == 0) {
       throw new IllegalArgumentException("No applicationID filter specified.");
     }
+    if ((startTime == null && endTime != null)
+        || (startTime != null && endTime == null)) {
+      throw new IllegalArgumentException("Open ended query not supported ");
+    }
     if (limit != null && limit > PhoenixHBaseAccessor.RESULTSET_LIMIT){
       throw new IllegalArgumentException("Limit too big");
     }
@@ -220,6 +224,10 @@ public class HBaseTimelineMetricStore extends AbstractService
     }
     if (applicationId == null || applicationId.trim().length() == 0) {
       throw new IllegalArgumentException("No applicationID filter specified.");
+    }
+    if ((startTime == null && endTime != null)
+        || (startTime != null && endTime == null)) {
+      throw new IllegalArgumentException("Open ended query not supported ");
     }
     if (limit !=null && limit > PhoenixHBaseAccessor.RESULTSET_LIMIT){
       throw new IllegalArgumentException("Limit too big");
