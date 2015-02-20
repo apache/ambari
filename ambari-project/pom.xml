@@ -18,55 +18,17 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari</artifactId>
-    <version>1.3.0-SNAPSHOT</version>
+    <version>1.7.0-SNAPSHOT</version>
   </parent>
   <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-project</artifactId>
-  <version>1.3.0-SNAPSHOT</version>
+  <version>1.7.0-SNAPSHOT</version>
   <description>Apache Ambari Project POM</description>
   <name>Apache Ambari Project POM</name>
-  <licenses>
-    <license>
-      <name>The Apache Software License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
-  <issueManagement>
-    <system>jira</system>
-    <url>https://issues.apache.org/jira/browse/AMBARI</url>
-  </issueManagement>
   <packaging>pom</packaging>
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <ambari.dir>${project.parent.basedir}</ambari.dir>
   </properties>
-  <pluginRepositories>
-    <pluginRepository>
-      <id>maven2-repository.dev.java.net</id>
-      <name>Java.net Repository for Maven</name>
-      <url>http://download.java.net/maven/2/</url>
-      <layout>default</layout>
-    </pluginRepository>
-    <pluginRepository>
-      <id>maven2-glassfish-repository.dev.java.net</id>
-      <name>Java.net Repository for Maven</name>
-      <url>http://download.java.net/maven/glassfish/</url>
-    </pluginRepository>
-  </pluginRepositories>
-  <repositories>
-    <repository>
-      <id>EclipseLink</id>
-      <url>http://download.eclipse.org/rt/eclipselink/maven.repo</url>
-    </repository>
-    <repository>
-      <id>spring-milestones</id>
-      <name>Spring Milestones</name>
-      <url>http://repo.spring.io/milestone</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
   <profiles>
     <profile>
       <id>dist</id>
@@ -107,11 +69,6 @@
   </profiles>
   <dependencyManagement>
     <dependencies>
-      <dependency>
-        <groupId>org.apache.ambari</groupId>
-        <artifactId>ambari-api</artifactId>
-        <version>1.0.3-SNAPSHOT</version>
-      </dependency>
       <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>

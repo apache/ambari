@@ -21,8 +21,28 @@
   <artifactId>ambari</artifactId>
   <packaging>pom</packaging>
   <name>Ambari Main</name>
-  <version>1.3.0-SNAPSHOT</version>
+  <version>1.7.0-SNAPSHOT</version>
   <description>Ambari</description>
+  <url>http://ambari.apache.org/</url>
+  <scm>
+    <url>https://github.com/apache/ambari</url>
+    <connection>https://git-wip-us.apache.org/repos/asf/ambari.git</connection>
+  </scm>
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <organization>
+    <name>Apache Software Foundation</name>
+    <url>http://www.apache.org</url>
+  </organization>
+  <issueManagement>
+    <system>jira</system>
+    <url>https://issues.apache.org/jira/browse/AMBARI</url>
+  </issueManagement>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <clover.license>${user.home}/clover.license</clover.license>
@@ -32,6 +52,14 @@
     <deb.architecture>i386 amd64</deb.architecture>
     <deb.priority>extra</deb.priority>
     <stack.distribution>HDP</stack.distribution>
+    <ambari.dir>${project.basedir}</ambari.dir>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <distMgmtSnapshotsId>apache.snapshots.https</distMgmtSnapshotsId>
+    <distMgmtSnapshotsName>Apache Development Snapshot Repository</distMgmtSnapshotsName>
+    <distMgmtSnapshotsUrl>https://repository.apache.org/content/repositories/snapshots</distMgmtSnapshotsUrl>
+    <distMgmtStagingId>apache.staging.https</distMgmtStagingId>
+    <distMgmtStagingName>Apache Release Distribution Repository</distMgmtStagingName>
+    <distMgmtStagingUrl>https://repository.apache.org/service/local/staging/deploy/maven2</distMgmtStagingUrl>
   </properties>
   <pluginRepositories>
     <pluginRepository>
@@ -41,17 +69,67 @@
       <layout>default</layout>
     </pluginRepository>
     <pluginRepository>
+      <id>maven2-glassfish-repository.dev.java.net</id>
+      <name>Java.net Repository for Maven</name>
+      <url>http://download.java.net/maven/glassfish/</url>
+    </pluginRepository>
+    <pluginRepository>
        <id>maven2-repository.atlassian</id>
        <name>Atlassian Maven Repository</name>
        <url>https://maven.atlassian.com/repository/public</url>
        <layout>default</layout>
      </pluginRepository>
     <pluginRepository>
-      <id>maven2-glassfish-repository.dev.java.net</id>
-      <name>Java.net Repository for Maven</name>
-      <url>http://download.java.net/maven/glassfish/</url>
+      <id>${distMgmtSnapshotsId}</id>
+      <name>${distMgmtSnapshotsName}</name>
+      <url>${distMgmtSnapshotsUrl}</url>
+      <layout>default</layout>
     </pluginRepository>
   </pluginRepositories>
+
+  <distributionManagement>
+    <repository>
+      <id>${distMgmtStagingId}</id>
+      <name>${distMgmtStagingName}</name>
+      <url>${distMgmtStagingUrl}</url>
+    </repository>
+    <snapshotRepository>
+      <id>${distMgmtSnapshotsId}</id>
+      <name>${distMgmtSnapshotsName}</name>
+      <url>${distMgmtSnapshotsUrl}</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+  <repositories>
+    <repository>
+      <id>oss.sonatype.org</id>
+      <name>OSS Sonatype Staging</name>
+      <url>https://oss.sonatype.org/content/groups/staging</url>
+    </repository>
+    <repository>
+      <id>spring-milestones</id>
+      <name>Spring Milestones</name>
+      <url>http://repo.spring.io/milestone</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>ASF Staging</id>
+      <url>https://repository.apache.org/content/groups/staging/</url>
+    </repository>
+    <repository>
+      <id>ASF Snapshots</id>
+      <url>https://repository.apache.org/content/repositories/snapshots/</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+    </repository>
+  </repositories>
+
   <build>
     <pluginManagement>
       <plugins>
@@ -128,7 +206,7 @@
         <artifactId>maven-assembly-plugin</artifactId>
         <configuration>
           <descriptors>
-            <descriptor>ambari-project/src/main/assemblies/empty.xml</descriptor>
+            <descriptor>${ambari.dir}/ambari-project/src/main/assemblies/empty.xml</descriptor>
           </descriptors>
         </configuration>
         <executions>
@@ -183,7 +261,7 @@
             <exclude>contrib/ambari-scom/msi/src/GUI_Ambari.sln</exclude>
             <exclude>version</exclude>
             <!--IDE and GIT files-->
-            <exclude>.idea/</exclude>
+            <exclude>**/.idea/</exclude>
             <exclude>.git/</exclude>
             <exclude>.pydevproject</exclude>
             <exclude>**/.gitignore</exclude>
@@ -193,7 +271,7 @@
             <exclude>**/.editorconfig</exclude>
               <!--gitignore content-->
             <exclude>.DS_Store</exclude>
-            <exclude>.iml/</exclude>
+            <exclude>**/*.iml</exclude>
             <exclude>.classpath</exclude>
             <exclude>.project</exclude>
             <exclude>.settings</exclude>
@@ -223,6 +301,10 @@
             <exclude>contrib/views/files/src/main/resources/ui/node/**</exclude>
             <exclude>contrib/views/files/src/main/resources/ui/node_modules/**</exclude>
             <exclude>contrib/views/files/src/main/resources/ui/public/**</exclude>
+            <exclude>contrib/views/files/src/main/resources/ui/vendor/**</exclude>
+            <exclude>contrib/views/files/src/main/resources/ui/runner.js</exclude>
+            <exclude>contrib/views/files/src/main/resources/ui/app/assets/stylesheets/**</exclude>
+            <exclude>contrib/views/files/src/main/resources/ui/app/assets/javascripts/**</exclude>
             <exclude>contrib/views/jobs/src/main/resources/ui/.tmp/**</exclude>
             <exclude>contrib/views/jobs/src/main/resources/ui/**/bower_components/**</exclude>
             <exclude>contrib/views/jobs/src/main/resources/ui/dist/**</exclude>
@@ -234,6 +316,9 @@
             <exclude>contrib/views/pig/src/main/resources/ui/pig-web/node/**</exclude>
             <exclude>contrib/views/pig/src/main/resources/ui/pig-web/bower_components/**</exclude>
             <exclude>contrib/views/pig/src/main/resources/ui/pig-web/vendor/**</exclude>
+            <exclude>contrib/views/pig/src/main/resources/ui/pig-web/app/assets/static/stylesheets/**</exclude>
+            <exclude>contrib/views/pig/src/main/resources/ui/pig-web/app/assets/static/javascripts/**</exclude>
+            <exclude>contrib/views/pig/src/main/resources/ui/pig-web/runner.js</exclude>
             <exclude>contrib/views/slider/src/main/resources/ui/public/**</exclude>
             <exclude>contrib/views/slider/src/main/resources/ui/node_modules/**</exclude>
             <exclude>contrib/views/slider/src/main/resources/ui/vendor/**</exclude>
@@ -247,18 +332,23 @@
             <exclude>contrib/views/*/.project</exclude>
             <exclude>contrib/views/*/.settings/**</exclude>
 
+            <exclude>contrib/ambari-scom/ambari-scom-server/pass.txt</exclude>
+            <exclude>contrib/ambari-scom/ambari-scom-server/target/**</exclude>
+            <exclude>contrib/ambari-scom/*/rat.txt</exclude>
+            <exclude>contrib/ambari-scom/metrics-sink/target/**</exclude>
+
             <!--Velocity log -->
             <exclude>**/velocity.log*</exclude>
           </excludes>
         </configuration>
-        <executions>
+        <!--<executions>
           <execution>
             <phase>test</phase>
             <goals>
               <goal>check</goal>
             </goals>
           </execution>
-        </executions>
+        </executions>-->
       </plugin>
       <plugin>
         <groupId>org.vafer</groupId>
@@ -385,6 +475,76 @@
                 <phase>test</phase>
                 <goals>
                   <goal>clover</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>sources</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>javadoc</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <docfilessubdirs>true</docfilessubdirs>
+            </configuration>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- This profile exists to only sign the build artifacts when making a release candidate
+instead of a SNAPSHOT. -->
+    <profile>
+      <id>sign-artifacts</id>
+      <activation>
+        <property>
+          <name>performRelease</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.6</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
                 </goals>
               </execution>
             </executions>

@@ -12,14 +12,14 @@
   <parent>
     <artifactId>ambari-client</artifactId>
     <groupId>org.apache.ambari</groupId>
-    <version>1.3.0-SNAPSHOT</version>
+    <version>1.7.0-SNAPSHOT</version>
     <relativePath>../../ambari-client/</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.ambari</groupId>
   <artifactId>groovy-client</artifactId>
   <packaging>jar</packaging>
-  <version>1.3.0-SNAPSHOT</version>
+  <version>1.7.0-SNAPSHOT</version>
   <name>Ambari Groovy Client</name>
   <description>Ambari Groovy client</description>
   <properties>
