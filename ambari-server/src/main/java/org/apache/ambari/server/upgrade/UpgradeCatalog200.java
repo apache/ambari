@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Collections;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
@@ -51,6 +52,9 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.UpgradeState;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -309,6 +313,27 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     setSecurityType();
     updateTezConfiguration();
     addMissingConfigs();
+    persistHDPRepo();
+  }
+
+  protected void persistHDPRepo() throws AmbariException{
+    AmbariManagementController amc = injector.getInstance(
+            AmbariManagementController.class);
+    AmbariMetaInfo ambariMetaInfo = amc.getAmbariMetaInfo();
+    Map<String, Cluster> clusterMap = amc.getClusters().getClusters();
+    for (Cluster cluster : clusterMap.values()) {
+      StackId stackId = cluster.getCurrentStackVersion();
+      String stackName = stackId.getStackName();
+      String stackVersion = stackId.getStackVersion();
+      String stackRepoId = stackName + "-" + stackVersion;
+
+      for (OperatingSystemInfo osi : ambariMetaInfo.getOperatingSystems(stackName, stackVersion)) {
+        RepositoryInfo repositoryInfo = ambariMetaInfo.getRepository(stackName, stackVersion, osi.getOsType(), stackRepoId);
+        String baseUrl = repositoryInfo.getBaseUrl();
+        ambariMetaInfo.updateRepoBaseURL(stackName, stackVersion, osi.getOsType(),
+                stackRepoId, baseUrl);
+      }
+    }
   }
 
   protected void updateTezConfiguration() throws AmbariException {

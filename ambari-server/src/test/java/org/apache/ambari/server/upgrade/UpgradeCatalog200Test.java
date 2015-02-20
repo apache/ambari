@@ -331,6 +331,7 @@ public class UpgradeCatalog200Test {
     Method updateTezConfiguration = UpgradeCatalog200.class.getDeclaredMethod("updateTezConfiguration");
     Method updateConfigurationProperties = AbstractUpgradeCatalog.class.getDeclaredMethod
             ("updateConfigurationProperties", String.class, Map.class, boolean.class, boolean.class);
+    Method persistHDPRepo = UpgradeCatalog200.class.getDeclaredMethod("persistHDPRepo");
 
     UpgradeCatalog200 upgradeCatalog = createMockBuilder(UpgradeCatalog200.class)
         .addMockedMethod(removeNagiosService)
@@ -339,6 +340,7 @@ public class UpgradeCatalog200Test {
         .addMockedMethod(setSecurityType)
         .addMockedMethod(updateTezConfiguration)
         .addMockedMethod(updateConfigurationProperties)
+        .addMockedMethod(persistHDPRepo)
         .createMock();
 
     upgradeCatalog.removeNagiosService();
@@ -357,6 +359,9 @@ public class UpgradeCatalog200Test {
     upgradeCatalog.updateConfigurationProperties("hive-site",
             Collections.singletonMap("hive.server2.transport.mode", "binary"), false, false);
     expectLastCall();
+
+    upgradeCatalog.persistHDPRepo();
+    expectLastCall().once();
 
     replay(upgradeCatalog);
 
