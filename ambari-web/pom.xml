@@ -30,6 +30,7 @@
   <version>2.0.0-SNAPSHOT</version>
   <description>Ambari Web</description>
   <properties>
+    <ambari.dir>${project.parent.parent.basedir}</ambari.dir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   <build>

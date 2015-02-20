@@ -25,105 +25,10 @@
   <version>2.0.0-SNAPSHOT</version>
   <description>Apache Ambari Project POM</description>
   <name>Apache Ambari Project POM</name>
-  <url>http://ambari.apache.org/</url>
-  <scm>
-    <url>https://github.com/apache/ambari</url>
-    <connection>https://git-wip-us.apache.org/repos/asf/ambari.git</connection>
-  </scm>
-  <licenses>
-    <license>
-      <name>The Apache Software License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
-  <organization>
-    <name>Apache Software Foundation</name>
-    <url>http://www.apache.org</url>
-  </organization>
-  <issueManagement>
-    <system>jira</system>
-    <url>https://issues.apache.org/jira/browse/AMBARI</url>
-  </issueManagement>
   <packaging>pom</packaging>
   <properties>
     <ambari.dir>${project.parent.basedir}</ambari.dir>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <distMgmtSnapshotsId>apache.snapshots.https</distMgmtSnapshotsId>
-    <distMgmtSnapshotsName>Apache Development Snapshot Repository</distMgmtSnapshotsName>
-    <distMgmtSnapshotsUrl>https://repository.apache.org/content/repositories/snapshots</distMgmtSnapshotsUrl>
-    <distMgmtStagingId>apache.staging.https</distMgmtStagingId>
-    <distMgmtStagingName>Apache Release Distribution Repository</distMgmtStagingName>
-    <distMgmtStagingUrl>https://repository.apache.org/service/local/staging/deploy/maven2</distMgmtStagingUrl>
   </properties>
-  <pluginRepositories>
-    <pluginRepository>
-      <id>maven2-repository.dev.java.net</id>
-      <name>Java.net Repository for Maven</name>
-      <url>http://download.java.net/maven/2/</url>
-      <layout>default</layout>
-    </pluginRepository>
-    <pluginRepository>
-      <id>maven2-glassfish-repository.dev.java.net</id>
-      <name>Java.net Repository for Maven</name>
-      <url>http://download.java.net/maven/glassfish/</url>
-    </pluginRepository>
-    <pluginRepository>
-      <id>maven2-repository.atlassian</id>
-      <name>Atlassian Maven Repository</name>
-      <url>https://maven.atlassian.com/repository/public</url>
-      <layout>default</layout>
-    </pluginRepository>
-    <pluginRepository>
-      <id>${distMgmtSnapshotsId}</id>
-      <name>${distMgmtSnapshotsName}</name>
-      <url>${distMgmtSnapshotsUrl}</url>
-      <layout>default</layout>
-    </pluginRepository>
-  </pluginRepositories>
-
-  <distributionManagement>
-    <repository>
-      <id>${distMgmtStagingId}</id>
-      <name>${distMgmtStagingName}</name>
-      <url>${distMgmtStagingUrl}</url>
-    </repository>
-    <snapshotRepository>
-      <id>${distMgmtSnapshotsId}</id>
-      <name>${distMgmtSnapshotsName}</name>
-      <url>${distMgmtSnapshotsUrl}</url>
-    </snapshotRepository>
-  </distributionManagement>
-
-  <repositories>
-    <repository>
-      <id>oss.sonatype.org</id>
-      <name>OSS Sonatype Staging</name>
-      <url>https://oss.sonatype.org/content/groups/staging</url>
-    </repository>
-    <repository>
-      <id>spring-milestones</id>
-      <name>Spring Milestones</name>
-      <url>http://repo.spring.io/milestone</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>ASF Staging</id>
-      <url>https://repository.apache.org/content/groups/staging/</url>
-    </repository>
-    <repository>
-      <id>ASF Snapshots</id>
-      <url>https://repository.apache.org/content/repositories/snapshots/</url>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-    </repository>
-  </repositories>
   <profiles>
     <profile>
       <id>dist</id>
