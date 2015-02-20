@@ -30,8 +30,13 @@ App.KerberosWizardStep6Controller = App.KerberosProgressPageController.extend({
    */
   isBackButtonDisabled: true,
 
-  setRequest: function () {
-    this.set('request', {
+  /**
+   * Start cluster kerberization. On retry just unkerberize and kerbrize cluster.
+   * @param {bool} isRetry
+   */
+  setRequest: function (isRetry) {
+    var self = this;
+    var kerberizeRequest = {
       name: 'KERBERIZE_CLUSTER',
       ajaxName: 'admin.kerberize.cluster',
       ajaxData: {
@@ -41,7 +46,18 @@ App.KerberosWizardStep6Controller = App.KerberosProgressPageController.extend({
           }
         }
       }
-    });
+    };
+    if (isRetry) {
+      // on retry we have to unkerberize cluster
+      this.unkerberizeCluster().always(function() {
+        // clear current request object before start of kerberize process
+        self.set('request', kerberizeRequest);
+        self.clearStage();
+        self.loadStep();
+      });
+    } else {
+      this.set('request', kerberizeRequest);
+    }
   },
 
   /**
