@@ -65,7 +65,14 @@ module.exports = App.WizardRoute.extend({
 
               if (parseInt(currStep) > 3) {
                 var self = this;
-                if(reassignMasterController.get('content.hasCheckDBStep') && currStep !== "7") {
+
+                var step4Controller = router.get('reassignMasterWizardStep4Controller');
+                var testDBTaskId = step4Controller.get('tasks').filterProperty('command', 'testDBConnection').get('firstObject.id');
+
+                if(currStep !== "7" 
+                   && testDBTaskId 
+                   && reassignMasterController.get('content.tasksStatuses').get(testDBTaskId) === "FAILED")
+                {
                   App.showConfirmationPopup(function () {
                     App.router.transitionTo('step7');
                   }, Em.I18n.t('services.reassign.rollback.confirm'));
