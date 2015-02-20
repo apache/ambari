@@ -985,6 +985,8 @@ Em.I18n.translations = {
   'admin.kerberos.disable.step1.task0.title': 'Stop Services',
   'admin.kerberos.disable.step1.task1.title': 'Remove Kerberos',
   'admin.kerberos.disable.step1.task2.title': 'Start Services',
+  'admin.kerberos.disable.unkerberize.header': 'Unkerberize cluster',
+  'admin.kerberos.disable.unkerberize.message': 'You cannot quit wizard while cluster is being unkerberized',
   'admin.kerberos.disable.inProgress': 'Please wait while cluster is being unkerberized',
   'admin.kerberos.disable.notice.completed': 'Services have been successfully tested without kerberos environment.',
   'admin.kerberos.wizard.step1.notice.inProgress': 'Please wait while cluster is being unkerberized',

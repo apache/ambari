@@ -414,11 +414,14 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
                   self.proceedOnClose();
                   return;
                 }
-                var applyingConfigCommand = controller.get('commands').findProperty('name', 'APPLY_CONFIGURATIONS');
-                if (applyingConfigCommand && !applyingConfigCommand.get('isCompleted')) {
-                  if (applyingConfigCommand.get('isStarted')) {
-                    App.showAlertPopup(Em.I18n.t('admin.security.applying.config.header'), Em.I18n.t('admin.security.applying.config.body'));
+                // warn user if disable kerberos command in progress
+                var unkerberizeCommand = controller.get('tasks').findProperty('command', 'unkerberize');
+                if (unkerberizeCommand && !unkerberizeCommand.get('isCompleted')) {
+                  // user cannot exit wizard during removing kerberos
+                  if (unkerberizeCommand.get('status') == 'IN_PROGRESS') {
+                    App.showAlertPopup(Em.I18n.t('admin.kerberos.disable.unkerberize.header'), Em.I18n.t('admin.kerberos.disable.unkerberize.message'));
                   } else {
+                    // otherwise show confirmation window
                     App.showConfirmationPopup(function () {
                       self.proceedOnClose();
                     }, Em.I18n.t('admin.addSecurity.disable.onClose'));
@@ -428,17 +431,25 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
                 }
               },
               proceedOnClose: function () {
-                router.get('kerberosDisableController').clearStep();
+                var self = this;
+                var disableController = router.get('kerberosDisableController');
+                disableController.clearStep();
+                disableController.resetDbNamespace();
                 App.db.setSecurityDeployCommands(undefined);
                 App.router.get('updateController').set('isWorking', true);
                 router.get('mainAdminKerberosController').setDisableSecurityStatus(undefined);
                 router.get('addServiceController').finish();
                 App.clusterStatus.setClusterStatus({
                   clusterName: router.get('content.cluster.name'),
-                  clusterState: 'DEFAULT'
+                  clusterState: 'DEFAULT',
+                  localdb: App.db.data
+                }, {
+                  alwaysCallback: function() {
+                    self.hide();
+                    router.transitionTo('adminKerberos.index');
+                    location.reload();
+                  }
                 });
-                this.hide();
-                router.transitionTo('adminKerberos.index');
               },
               didInsertElement: function () {
                 this.fitHeight();
