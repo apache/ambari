@@ -252,12 +252,7 @@ module.exports = App.WizardRoute.extend({
       var kerberosDescriptor = kerberosWizardController.get('kerberosDescriptorConfigs');
       step6Controller.postKerberosDescriptor(kerberosDescriptor).always(function (data, result, request) {
         if (result === 'error' && data.status === 409) {
-          step6Controller.putKerberosDescriptor(kerberosDescriptor).always(function (data) {
-            step6Controller.unkerberizeCluster().always(function (data) {
-              step6Controller.clearStage();
-              router.transitionTo('step6');
-            });
-          });
+          step6Controller.putKerberosDescriptor(kerberosDescriptor);
         } else {
           router.transitionTo('step6');
         }

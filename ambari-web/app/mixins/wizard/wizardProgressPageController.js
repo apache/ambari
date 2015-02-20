@@ -63,19 +63,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
       var requestIds = this.get('content.tasksRequestIds');
       var currentRequestId = requestIds && requestIds[0][0];
       if (!currentRequestId) {
-        this.submitRequest().done(function (data, result, request) {
-          if (data) {
-            self.set('currentPageRequestId', data.Requests.id);
-            self.doPollingForPageRequest();
-          } else {
-            //Step has been successfully completed
-            if (request.status === 200) {
-              self.set('status', 'COMPLETED');
-              self.set('isSubmitDisabled', false);
-              self.set('isLoaded', true);
-            }
-          }
-        });
+        this.submitRequest();
       } else {
         self.set('currentPageRequestId', currentRequestId);
         self.doPollingForPageRequest();
@@ -131,14 +119,31 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
   },
 
   submitRequest: function () {
-    var dfd;
-    var self = this;
-    dfd = App.ajax.send({
-      name: self.get('request.ajaxName'),
-      data: self.get('request.ajaxData'),
-      sender: this
+    return App.ajax.send({
+      name: this.get('request.ajaxName'),
+      data: this.get('request.ajaxData'),
+      sender: this,
+      success: 'submitRequestSuccess',
+      kdcCancelHandler: 'failTaskOnKdcCheck'
     });
-    return dfd.promise();
+  },
+
+  submitRequestSuccess: function(data, result, request) {
+    if (data) {
+      this.set('currentPageRequestId', data.Requests.id);
+      this.doPollingForPageRequest();
+    } else {
+      //Step has been successfully completed
+      if (request.status === 200) {
+        this.set('status', 'COMPLETED');
+        this.set('isSubmitDisabled', false);
+        this.set('isLoaded', true);
+      }
+    }
+  },
+
+  failTaskOnKdcCheck: function() {
+    App.router.send('back');
   },
 
   doPollingForPageRequest: function () {

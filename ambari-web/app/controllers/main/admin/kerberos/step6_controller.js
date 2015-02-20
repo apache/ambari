@@ -67,8 +67,15 @@ App.KerberosWizardStep6Controller = App.KerberosProgressPageController.extend({
   unkerberizeCluster: function () {
     return App.ajax.send({
       name: 'admin.unkerberize.cluster',
-      sender: this
+      sender: this,
+      success: 'goToNextStep',
+      error: 'goToNextStep'
     });
+  },
+
+  goToNextStep: function() {
+    this.clearStage();
+    App.router.transitionTo('step6');
   },
 
   postKerberosDescriptor: function (kerberosDescriptor) {
@@ -98,7 +105,9 @@ App.KerberosWizardStep6Controller = App.KerberosProgressPageController.extend({
         data: {
           artifact_data: kerberosDescriptor
         }
-      }
+      },
+      success: 'unkerberizeCluster',
+      error: 'unkerberizeCluster'
     });
   },
 
