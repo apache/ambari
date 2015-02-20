@@ -269,7 +269,7 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
    */
   goToService: function (event) {
     if (event && event.context) {
-      App.router.transitionTo('main.services.service', event.context);
+      App.router.transitionTo('main.services.service.summary', event.context);
     }
   },
 

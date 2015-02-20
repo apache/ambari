@@ -205,7 +205,7 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
         gotoService: function (event) {
           if (event && event.context) {
             this.get('parentView').hide();
-            App.router.transitionTo('main.services.service', event.context);
+            App.router.transitionTo('main.services.service.summary', event.context);
           }
         },
 
