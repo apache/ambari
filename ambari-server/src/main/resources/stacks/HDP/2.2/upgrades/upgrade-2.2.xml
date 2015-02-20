@@ -89,6 +89,7 @@
     </group>
     
     <group name="SERVICE_CHECK" title="All Service Checks" xsi:type="service-check">
+      <skippable>true</skippable>
       <direction>UPGRADE</direction>
       <priority>
         <service>HDFS</service>
@@ -120,6 +121,7 @@
     </group>
     
     <group name="SERVICE_CHECK" title="All Service Checks" xsi:type="service-check">
+      <skippable>true</skippable>
       <direction>UPGRADE</direction>
       <priority>
         <service>HDFS</service>
@@ -201,6 +203,7 @@
     </group>
 
     <group name="SERVICE_CHECK" title="All Service Checks" xsi:type="service-check">
+      <skippable>true</skippable>
       <direction>UPGRADE</direction>
       <priority>
         <service>HDFS</service>
