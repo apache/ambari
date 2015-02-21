@@ -1532,6 +1532,7 @@ public class BlueprintConfigurationProcessorTest {
     expect(mockHostGroupOne.getComponents()).andReturn(Collections.singleton("NAMENODE")).atLeastOnce();
     expect(mockHostGroupTwo.getComponents()).andReturn(Collections.singleton("NAMENODE")).atLeastOnce();
     expect(mockStack.getCardinality("NAMENODE")).andReturn(new Cardinality("1-2")).atLeastOnce();
+    expect(mockStack.getCardinality("SECONDARY_NAMENODE")).andReturn(new Cardinality("1")).atLeastOnce();
 
     mockSupport.replayAll();
 
@@ -1539,6 +1540,8 @@ public class BlueprintConfigurationProcessorTest {
       new HashMap<String, Map<String, String>>();
 
     Map<String, String> hdfsSiteProperties =
+      new HashMap<String, String>();
+    Map<String, String> hbaseSiteProperties =
       new HashMap<String, String>();
     Map<String, String> hadoopEnvProperties =
       new HashMap<String, String>();
@@ -1549,6 +1552,7 @@ public class BlueprintConfigurationProcessorTest {
     configProperties.put("hdfs-site", hdfsSiteProperties);
     configProperties.put("hadoop-env", hadoopEnvProperties);
     configProperties.put("core-site", coreSiteProperties);
+    configProperties.put("hbase-site", hbaseSiteProperties);
 
     // setup hdfs HA config for test
     hdfsSiteProperties.put("dfs.nameservices", expectedNameService);
@@ -1563,8 +1567,16 @@ public class BlueprintConfigurationProcessorTest {
     hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeOne, createExportedAddress(expectedPortNum, expectedHostGroupName));
     hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeTwo, createExportedAddress(expectedPortNum, expectedHostGroupName));
 
+    // add properties that require the SECONDARY_NAMENODE, which
+    // is not included in this test
+    hdfsSiteProperties.put("dfs.secondary.http.address", "localhost:8080");
+    hdfsSiteProperties.put("dfs.namenode.secondary.http-address", "localhost:8080");
+
     // configure the defaultFS to use the nameservice URL
     coreSiteProperties.put("fs.defaultFS", "hdfs://" + expectedNameService);
+
+    // configure the hbase rootdir to use the nameservice URL
+    hbaseSiteProperties.put("hbase.rootdir", "hdfs://" + expectedNameService + "/hbase/test/root/dir");
 
     BlueprintConfigurationProcessor configProcessor =
       new BlueprintConfigurationProcessor(configProperties);
@@ -1601,6 +1613,9 @@ public class BlueprintConfigurationProcessorTest {
 
     assertEquals("fs.defaultFS should not be modified by cluster update when NameNode HA is enabled.",
                  "hdfs://" + expectedNameService, coreSiteProperties.get("fs.defaultFS"));
+
+    assertEquals("hbase.rootdir should not be modified by cluster update when NameNode HA is enabled.",
+      "hdfs://" + expectedNameService + "/hbase/test/root/dir", hbaseSiteProperties.get("hbase.rootdir"));
 
     mockSupport.verifyAll();
   }

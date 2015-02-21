@@ -665,10 +665,22 @@ public class BlueprintConfigurationProcessor {
             if (isNameNodeHAEnabled(properties) && isComponentNameNode() && (matchingGroups.size() == 2)) {
               // if this is the defaultFS property, it should reflect the nameservice name,
               // rather than a hostname (used in non-HA scenarios)
-              if (properties.get("core-site").get("fs.defaultFS").equals(origValue)) {
+              if (properties.containsKey("core-site") && properties.get("core-site").get("fs.defaultFS").equals(origValue)) {
                 return origValue;
               }
 
+              if (properties.containsKey("hbase-site") && properties.get("hbase-site").get("hbase.rootdir").equals(origValue)) {
+                // hbase-site's reference to the namenode is handled differently in HA mode, since the
+                // reference must point to the logical nameservice, rather than an individual namenode
+                return origValue;
+              }
+
+            }
+
+            if (isNameNodeHAEnabled(properties) && isComponentSecondaryNameNode() && (matchingGroups.isEmpty())) {
+              // if HDFS HA is enabled, then no replacement is necessary for properties that refer to the SECONDARY_NAMENODE
+              // eventually this type of information should be encoded in the stacks
+              return origValue;
             }
 
             throw new IllegalArgumentException("Unable to update configuration property with topology information. " +
@@ -687,6 +699,17 @@ public class BlueprintConfigurationProcessor {
      */
     private boolean isComponentNameNode() {
       return component.equals("NAMENODE");
+    }
+
+    /**
+     * Utility method to determine if the component associated with this updater
+     * instance is an HDFS Secondary NameNode
+     *
+     * @return true if the component associated is a Secondary NameNode
+     *         false if the component is not a Secondary NameNode
+     */
+    private boolean isComponentSecondaryNameNode() {
+      return component.equals("SECONDARY_NAMENODE");
     }
 
     /**
