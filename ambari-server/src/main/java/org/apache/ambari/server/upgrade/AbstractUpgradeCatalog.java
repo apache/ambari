@@ -61,6 +61,13 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   protected StackUpgradeUtil stackUpgradeUtil;
 
   protected Injector injector;
+
+  /**
+   * The user name to use as the authenticated user when perform authenticated tasks or operations
+   * that require the name of the authenticated user
+   */
+  protected static final String AUTHENTICATED_USER_NAME = "ambari-upgrade";
+
   private static final Logger LOG = LoggerFactory.getLogger
     (AbstractUpgradeCatalog.class);
   private static final Map<String, UpgradeCatalog> upgradeCatalogMap =
@@ -297,7 +304,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
           Config baseConfig = cluster.getConfig(cr.getType(), cr.getVersionTag());
           if (baseConfig != null) {
-            String authName = "ambari-upgrade";
+            String authName = AUTHENTICATED_USER_NAME;
 
             if (cluster.addDesiredConfig(authName, Collections.singleton(baseConfig)) != null) {
               String oldConfigString = (oldConfig != null) ? " from='" + oldConfig.getTag() + "'" : "";
