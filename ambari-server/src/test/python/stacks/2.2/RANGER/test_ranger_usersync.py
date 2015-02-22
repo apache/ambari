@@ -18,6 +18,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import sys
+import os
 from stacks.utils.RMFTestCase import RMFTestCase
 from mock.mock import patch
 
@@ -25,6 +27,11 @@ from mock.mock import patch
 class TestRangerUserSync(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "RANGER/0.4.0/package"
   STACK_VERSION = "2.2"
+
+  def setUp(self):
+    sys.path.insert(0, os.path.join(os.getcwd(),
+      "../../main/resources/common-services", self.COMMON_SERVICES_PACKAGE_DIR,
+      "scripts"))
 
   @patch("setup_ranger.setup_usersync")
   def test_upgrade(self, setup_usersync_mock):
