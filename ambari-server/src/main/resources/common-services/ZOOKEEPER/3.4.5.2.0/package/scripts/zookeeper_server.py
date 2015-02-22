@@ -30,7 +30,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.core.shell import call
 from resource_management.libraries.functions.validate import call_and_match_output
 from resource_management.core.logger import Logger
-
+from resource_management.libraries.functions.check_process_status import check_process_status
 from zookeeper import zookeeper
 from zookeeper_service import zookeeper_service
 
