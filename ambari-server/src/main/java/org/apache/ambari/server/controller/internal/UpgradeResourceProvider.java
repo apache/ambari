@@ -618,7 +618,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         Collections.singletonList(filter),
         params);
     actionContext.setIgnoreMaintenance(true);
-    actionContext.setTimeout(Short.valueOf(s_configuration.getDefaultAgentTaskTimeout()));
+    actionContext.setTimeout(Short.valueOf(s_configuration.getDefaultAgentTaskTimeout(false)));
 
     Map<String, String> hostLevelParams = new HashMap<String, String>();
     hostLevelParams.put(JDK_LOCATION, getManagementController().getJdkResourceUrl());
@@ -679,7 +679,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         cluster.getClusterName(), "RESTART",
         filters,
         restartCommandParams);
-    actionContext.setTimeout(Short.valueOf(s_configuration.getDefaultAgentTaskTimeout()));
+    actionContext.setTimeout(Short.valueOf(s_configuration.getDefaultAgentTaskTimeout(false)));
     actionContext.setIgnoreMaintenance(true);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(
@@ -731,7 +731,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         cluster.getClusterName(), "SERVICE_CHECK",
         filters,
         commandParams);
-    actionContext.setTimeout(Short.valueOf(s_configuration.getDefaultAgentTaskTimeout()));
+    actionContext.setTimeout(Short.valueOf(s_configuration.getDefaultAgentTaskTimeout(false)));
     actionContext.setIgnoreMaintenance(true);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(

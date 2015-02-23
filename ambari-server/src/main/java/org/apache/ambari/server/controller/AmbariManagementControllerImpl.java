@@ -1660,7 +1660,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (commandParams == null) { // if not defined
       commandParams = new TreeMap<String, String>();
     }
-    String agentDefaultCommandTimeout = configs.getDefaultAgentTaskTimeout();
+    boolean isInstallCommand = roleCommand.equals(RoleCommand.INSTALL);
+    String agentDefaultCommandTimeout = configs.getDefaultAgentTaskTimeout(isInstallCommand);
     String scriptCommandTimeout = "";
     /*
      * This script is only used for

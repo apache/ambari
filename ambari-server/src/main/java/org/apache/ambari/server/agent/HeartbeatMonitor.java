@@ -297,7 +297,7 @@ public class HeartbeatMonitor implements Runnable {
     // Fill command params
     Map<String, String> commandParams = statusCmd.getCommandParams();
 
-    String commandTimeout = configuration.getDefaultAgentTaskTimeout();
+    String commandTimeout = configuration.getDefaultAgentTaskTimeout(false);
     CommandScriptDefinition script = componentInfo.getCommandScript();
     if (serviceInfo.getSchemaVersion().equals(AmbariMetaInfo.SCHEMA_VERSION_2)) {
       if (script != null) {

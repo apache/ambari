@@ -240,7 +240,9 @@ public class Configuration {
    */
   public static final String PARALLEL_STAGE_EXECUTION_KEY = "server.stages.parallel";
   public static final String AGENT_TASK_TIMEOUT_KEY = "agent.task.timeout";
+  public static final String AGENT_PACKAGE_INSTALL_TASK_TIMEOUT_KEY = "agent.package.install.task.timeout";
   public static final String AGENT_TASK_TIMEOUT_DEFAULT = "900";
+  public static final String AGENT_PACKAGE_INSTALL_TASK_TIMEOUT_DEFAULT = "1800";
 
   public static final String CUSTOM_ACTION_DEFINITION_KEY = "custom.action.definitions";
   public static final String SHARED_RESOURCES_DIR_KEY = "shared.resources.dir";
@@ -1197,18 +1199,21 @@ public class Configuration {
   }
 
   /**
+   * @param isPackageInstallationTask true, if task is for installing packages
    * @return default task timeout in seconds (string representation). This value
    *         is used at python (agent) code.
    */
-  public String getDefaultAgentTaskTimeout() {
-    String value = properties.getProperty(AGENT_TASK_TIMEOUT_KEY, AGENT_TASK_TIMEOUT_DEFAULT);
+  public String getDefaultAgentTaskTimeout(boolean isPackageInstallationTask) {
+    String key = isPackageInstallationTask ? AGENT_PACKAGE_INSTALL_TASK_TIMEOUT_KEY : AGENT_TASK_TIMEOUT_KEY;
+    String defaultValue = isPackageInstallationTask ? AGENT_PACKAGE_INSTALL_TASK_TIMEOUT_DEFAULT : AGENT_TASK_TIMEOUT_DEFAULT;
+    String value = properties.getProperty(key, defaultValue);
     if (StringUtils.isNumeric(value)) {
       return value;
     } else {
       LOG.warn(String.format("Value of %s (%s) should be a number, " +
           "falling back to default value (%s)",
-          AGENT_TASK_TIMEOUT_KEY, value, AGENT_TASK_TIMEOUT_DEFAULT));
-      return AGENT_TASK_TIMEOUT_DEFAULT;
+          key, value, defaultValue));
+      return defaultValue;
     }
   }
 

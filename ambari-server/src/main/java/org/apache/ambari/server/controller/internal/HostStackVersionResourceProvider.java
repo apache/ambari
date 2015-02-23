@@ -399,7 +399,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
             cluster.getClusterName(), INSTALL_PACKAGES_ACTION,
             Collections.singletonList(filter),
             params);
-    actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout()));
+    actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
 
     String caption = String.format(INSTALL_PACKAGES_FULL_NAME + " on host %s", hostName);
     RequestStageContainer req = createRequest(caption);

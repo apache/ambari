@@ -361,7 +361,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
               cluster.getClusterName(), INSTALL_PACKAGES_ACTION,
               Collections.singletonList(filter),
               params);
-      actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout()));
+      actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
 
       try {
         actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, false);

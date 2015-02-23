@@ -295,6 +295,25 @@ public class ConfigurationTest {
     Assert.assertEquals(6000L, conf.getViewExtractionThreadPoolTimeout());
   }
 
+  @Test()
+  public void testGetDefaultAgentTaskTimeout() {
+    Properties ambariProperties = new Properties();
+    Configuration conf = new Configuration(ambariProperties);
+
+    Assert.assertEquals("900", conf.getDefaultAgentTaskTimeout(false));
+    Assert.assertEquals("1800", conf.getDefaultAgentTaskTimeout(true));
+
+    ambariProperties = new Properties();
+    ambariProperties.setProperty("agent.task.timeout", "4");
+    ambariProperties.setProperty("agent.package.install.task.timeout", "82");
+
+    conf = new Configuration(ambariProperties);
+
+    Assert.assertEquals("4", conf.getDefaultAgentTaskTimeout(false));
+    Assert.assertEquals("82", conf.getDefaultAgentTaskTimeout(true));
+  }
+
+
   @Test
   public void testGetLdapServerProperties_WrongManagerPassword() throws Exception {
     final Properties ambariProperties = new Properties();
