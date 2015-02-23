@@ -17,12 +17,31 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions import default, format
 import status_params
+import re
+
+def get_bare_principal(normalized_principal_name):
+  """
+  Given a normalized principal name (nimbus/c6501.ambari.apache.org@EXAMPLE.COM) returns just the
+  primary component (nimbus)
+  :param normalized_principal_name: a string containing the principal name to process
+  :return: a string containing the primary component value or None if not valid
+  """
+
+  bare_principal = None
+
+  if normalized_principal_name:
+    match = re.match(r"([^/@]+)(?:/[^@])?(?:@.*)?", normalized_principal_name)
+
+    if match:
+      bare_principal = match.group(1)
+
+  return bare_principal
+
 
 # server configurations
 config = Script.get_config()
@@ -73,24 +92,21 @@ security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 if security_enabled:
   _hostname_lowercase = config['hostname'].lower()
-  kerberos_domain = config['configurations']['cluster-env']['kerberos_domain']
   _storm_principal_name = config['configurations']['storm-env']['storm_principal_name']
   storm_jaas_principal = _storm_principal_name.replace('_HOST',_hostname_lowercase)
   storm_keytab_path = config['configurations']['storm-env']['storm_keytab']
-  
+
   if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
     storm_ui_keytab_path = config['configurations']['storm-env']['storm_ui_keytab']
     _storm_ui_jaas_principal_name = config['configurations']['storm-env']['storm_ui_principal_name']
     storm_ui_host = default("/clusterHostInfo/storm_ui_server_hosts", [])
     storm_ui_jaas_principal = _storm_ui_jaas_principal_name.replace('_HOST',storm_ui_host[0].lower())
     
-    storm_bare_jaas_principal = _storm_principal_name.replace('_HOST','').replace('@'+kerberos_domain,'')
-    
-    
-    
+    storm_bare_jaas_principal = get_bare_principal(_storm_principal_name)
+
     _nimbus_principal_name = config['configurations']['storm-env']['nimbus_principal_name']
     nimbus_jaas_principal = _nimbus_principal_name.replace('_HOST', _hostname_lowercase)
-    nimbus_bare_jaas_principal = _nimbus_principal_name.replace('/_HOST','').replace('@'+kerberos_domain,'')
+    nimbus_bare_jaas_principal = get_bare_principal(_nimbus_principal_name)
     nimbus_keytab_path = config['configurations']['storm-env']['nimbus_keytab']
 
 ams_collector_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
