@@ -332,7 +332,7 @@ public class JobResourceManager extends PersonalCRUDResourceManager<PigJob> {
       throw new MisconfigurationFormattedException("webhcat.url");
     }
     return new TempletonApi(context.getProperties().get("webhcat.url"),
-        getTempletonUser(context), getTempletonUser(context), context);
+        getTempletonUser(context), context);
   }
 
   /**

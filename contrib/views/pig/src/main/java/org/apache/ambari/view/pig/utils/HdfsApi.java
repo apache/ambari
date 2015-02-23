@@ -51,23 +51,52 @@ public class HdfsApi {
 
   private final static Logger LOG =
       LoggerFactory.getLogger(HdfsApi.class);
+  private Map<String, String> params;
 
   /**
    * Constructor
    * @param defaultFs hdfs uri
    * @param username user.name
+   * @param params map of parameters
    * @throws IOException
    * @throws InterruptedException
    */
-  public HdfsApi(String defaultFs, String username) throws IOException,
+  public HdfsApi(final String defaultFs, String username, Map<String, String> params) throws IOException,
       InterruptedException {
+    this.params = params;
+
     Thread.currentThread().setContextClassLoader(null);
     conf.set("fs.hdfs.impl", DistributedFileSystem.class.getName());
     conf.set("fs.webhdfs.impl", WebHdfsFileSystem.class.getName());
     conf.set("fs.file.impl", "org.apache.hadoop.fs.LocalFileSystem");
-    fs = FileSystem.get(URI.create(defaultFs), conf);
-    ugi = UserGroupInformation.createProxyUser(username,
-        UserGroupInformation.getLoginUser());
+    ugi = UserGroupInformation.createProxyUser(username, getProxyUser());
+    fs = ugi.doAs(new PrivilegedExceptionAction<FileSystem>() {
+      public FileSystem run() throws IOException {
+        return FileSystem.get(URI.create(defaultFs), conf);
+      }
+    });
+  }
+
+  private UserGroupInformation getProxyUser() throws IOException {
+    UserGroupInformation proxyuser;
+    if (params.containsKey("proxyuser")) {
+      proxyuser = UserGroupInformation.createRemoteUser(params.get("proxyuser"));
+    } else {
+      proxyuser = UserGroupInformation.getCurrentUser();
+    }
+
+    proxyuser.setAuthenticationMethod(getAuthenticationMethod());
+    return proxyuser;
+  }
+
+  private UserGroupInformation.AuthenticationMethod getAuthenticationMethod() {
+    UserGroupInformation.AuthenticationMethod authMethod;
+    if (params.containsKey("auth")) {
+      authMethod = UserGroupInformation.AuthenticationMethod.valueOf(params.get("auth"));
+    } else {
+      authMethod = UserGroupInformation.AuthenticationMethod.SIMPLE;
+    }
+    return authMethod;
   }
 
   /**
@@ -320,7 +349,7 @@ public class HdfsApi {
     }
 
     try {
-      api = new HdfsApi(defaultFS, getHdfsUsername(context));
+      api = new HdfsApi(defaultFS, getHdfsUsername(context), getHdfsAuthParams(context));
       LOG.info("HdfsApi connected OK");
     } catch (IOException e) {
       String message = "HdfsApi IO error: " + e.getMessage();
@@ -332,6 +361,23 @@ public class HdfsApi {
       throw new ServiceFormattedException(message, e);
     }
     return api;
+  }
+
+  private static Map<String, String> getHdfsAuthParams(ViewContext context) {
+    String auth = context.getProperties().get("webhdfs.auth");
+    Map<String, String> params = new HashMap<String, String>();
+    if (auth == null || auth.isEmpty()) {
+      auth = "auth=SIMPLE";
+    }
+    for(String param : auth.split(";")) {
+      String[] keyvalue = param.split("=");
+      if (keyvalue.length != 2) {
+        LOG.error("Can not parse authentication param " + param + " in " + auth);
+        continue;
+      }
+      params.put(keyvalue[0], keyvalue[1]);
+    }
+    return params;
   }
 
   public static String getHdfsUsername(ViewContext context) {

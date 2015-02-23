@@ -20,7 +20,6 @@ package org.apache.ambari.view.pig.templeton.client;
 
 import com.google.gson.Gson;
 import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
@@ -30,7 +29,6 @@ import org.apache.ambari.view.ViewContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.core.MediaType;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
@@ -46,19 +44,16 @@ public class TempletonApi {
       LoggerFactory.getLogger(TempletonApi.class);
 
   protected WebResource service;
-  private String username;
   private String doAs;
   private ViewContext context;
 
   /**
    * TempletonApi constructor
    * @param api webhcat.url
-   * @param username templeton username
    * @param doAs doAs argument
    * @param context context with URLStreamProvider
    */
-  public TempletonApi(String api, String username, String doAs, ViewContext context) {
-    this.username = username;
+  public TempletonApi(String api, String doAs, ViewContext context) {
     this.doAs = doAs;
     this.context = context;
     ClientConfig config = new DefaultClientConfig();
@@ -68,10 +63,10 @@ public class TempletonApi {
   }
 
   /**
-   * @see #TempletonApi(String,String,String,ViewContext)
+   * @see #TempletonApi(String,String,ViewContext)
    */
-  public TempletonApi(String api, String username, ViewContext context) {
-    this(api, username, username, context);
+  public TempletonApi(String api, ViewContext context) {
+    this(api, null, context);
   }
 
   /**
@@ -98,8 +93,8 @@ public class TempletonApi {
       }
     }
 
-    TempletonRequest<JobData> request =
-        new TempletonRequest<JobData>(service.path("pig"), JobData.class, username, doAs, context);
+    JSONRequest<JobData> request =
+        new JSONRequest<JobData>(service.path("pig"), JobData.class, doAs, doAs, context); //FIXME: configurable proxyuser
 
     return request.post(data);
   }
@@ -132,8 +127,8 @@ public class TempletonApi {
    * @throws IOException
    */
   public JobInfo checkJob(String jobId) throws IOException {
-    TempletonRequest<JobInfo> request =
-        new TempletonRequest<JobInfo>(service.path("jobs").path(jobId), JobInfo.class, username, context);
+    JSONRequest<JobInfo> request =
+        new JSONRequest<JobInfo>(service.path("jobs").path(jobId), JobInfo.class, doAs, doAs, context);
 
     return request.get();
   }
@@ -144,8 +139,8 @@ public class TempletonApi {
    * @throws IOException
    */
   public void killJob(String jobId) throws IOException {
-    TempletonRequest<JobInfo> request =
-        new TempletonRequest<JobInfo>(service.path("jobs").path(jobId), JobInfo.class, username, context);
+    JSONRequest<JobInfo> request =
+        new JSONRequest<JobInfo>(service.path("jobs").path(jobId), JobInfo.class, doAs, doAs, context);
 
     try {
       request.delete();
@@ -161,9 +156,9 @@ public class TempletonApi {
    * @throws IOException
    */
   public Status status() throws IOException {
-    TempletonRequest<Status> request =
-        new TempletonRequest<Status>(service.path("status"), Status.class,
-            username, doAs, context);
+    JSONRequest<Status> request =
+        new JSONRequest<Status>(service.path("status"), Status.class,
+            doAs, doAs, context);
     return request.get();
   }
 

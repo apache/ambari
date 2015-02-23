@@ -36,6 +36,13 @@
         <required>false</required>
     </parameter>
 
+    <parameter>
+        <name>webhdfs.auth</name>
+        <description>Semicolon-separated authentication configs. Default: auth=SIMPLE</description>
+        <label>WebHDFS Authentication</label>
+        <required>false</required>
+    </parameter>
+
     <!-- WebHCat Configs -->
     <parameter>
         <name>webhcat.url</name>

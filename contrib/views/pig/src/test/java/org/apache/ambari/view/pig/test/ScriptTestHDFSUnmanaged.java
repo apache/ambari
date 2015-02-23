@@ -23,16 +23,12 @@ import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.pig.HDFSTest;
 import org.apache.ambari.view.pig.persistence.DataStoreStorage;
-import org.apache.ambari.view.pig.persistence.InstanceKeyValueStorage;
 import org.apache.ambari.view.pig.persistence.Storage;
-import org.apache.ambari.view.pig.resources.files.FileService;
 import org.apache.ambari.view.pig.resources.scripts.ScriptService;
 import org.apache.ambari.view.pig.persistence.utils.StorageUtil;
 import org.apache.ambari.view.pig.resources.scripts.models.PigScript;
-import org.apache.ambari.view.pig.services.BaseService;
 import org.apache.ambari.view.pig.utils.HdfsApi;
 import org.apache.ambari.view.pig.utils.MisconfigurationFormattedException;
-import org.apache.ambari.view.pig.utils.NotFoundFormattedException;
 import org.json.simple.JSONObject;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
@@ -64,6 +60,7 @@ public class ScriptTestHDFSUnmanaged extends HDFSTest {
   @Override
   @Before
   public void setUp() throws Exception {
+    super.setUp();
     handler = createNiceMock(ViewResourceHandler.class);
     context = createNiceMock(ViewContext.class);
     HdfsApi.dropAllConnections();

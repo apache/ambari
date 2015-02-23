@@ -24,6 +24,7 @@ import com.google.inject.Injector;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.hadoop.fs.FileUtil;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.junit.*;
 
 import java.io.File;

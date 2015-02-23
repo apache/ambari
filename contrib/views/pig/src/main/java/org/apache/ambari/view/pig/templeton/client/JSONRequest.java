@@ -36,26 +36,32 @@ import java.util.Map;
  * Request handler, supports GET, POST, PUT, DELETE methods
  * @param <RESPONSE> data type to deserialize response from JSON
  */
-public class RequestWrapper<RESPONSE> {
+public class JSONRequest<RESPONSE> {
   protected final Class<RESPONSE> responseClass;
   protected final ViewContext context;
   protected final WebResource resource;
+  private String username;
+  private String doAs;
 
   protected final Gson gson = new Gson();
 
   protected final static Logger LOG =
-      LoggerFactory.getLogger(RequestWrapper.class);
+      LoggerFactory.getLogger(JSONRequest.class);
 
   /**
    * Constructor
    * @param resource object that represents resource
    * @param responseClass model class
+   * @param username will be used to auth as proxyuser
+   * @param doAs run query from this user
    * @param context View Context instance
    */
-  public RequestWrapper(WebResource resource, Class<RESPONSE> responseClass, ViewContext context) {
+  public JSONRequest(WebResource resource, Class<RESPONSE> responseClass, String username, String doAs, ViewContext context) {
     this.resource = resource;
     this.responseClass = responseClass;
+    this.username = username;
     this.context = context;
+    this.doAs = doAs;
   }
 
   /**
@@ -66,8 +72,7 @@ public class RequestWrapper<RESPONSE> {
   public RESPONSE get(WebResource resource) throws IOException {
     LOG.debug("GET " + resource.toString());
 
-    InputStream inputStream = context.getURLStreamProvider().readFrom(resource.toString(), "GET",
-        null, new HashMap<String, String>());
+    InputStream inputStream = readFrom(resource, "GET", null, new HashMap<String, String>());
 
     recordLastCurlCommand(String.format("curl \"" + resource.toString() + "\""));
     String responseJson = IOUtils.toString(inputStream);
@@ -103,23 +108,13 @@ public class RequestWrapper<RESPONSE> {
 
     StringBuilder curlBuilder = new StringBuilder();
 
-    UriBuilder builder = UriBuilder.fromPath("host/");
-    for(String key : data.keySet()) {
-      for(String value : data.get(key)) {
-        builder.queryParam(key, value);
-        curlBuilder.append(String.format("-d %s=\"%s\"", key, value.replace("\"", "\\\"")));
-      }
-    }
-
-    if (data != null)
-      LOG.debug("... data: " + builder.build().getRawQuery());
+    UriBuilder builder = getUriBuilder(data, curlBuilder);
 
     Map<String, String> headers = new HashMap<String, String>();
     headers.put("Content-Type", "application/x-www-form-urlencoded");
 
     recordLastCurlCommand(String.format("curl " + curlBuilder.toString() + " \"" + resource.toString() + "\""));
-    InputStream inputStream = context.getURLStreamProvider().readFrom(resource.toString(),
-        "POST", builder.build().getRawQuery(), headers);
+    InputStream inputStream = readFrom(resource, "POST", builder.build().getRawQuery(), headers);
     String responseJson = IOUtils.toString(inputStream);
 
     LOG.debug(String.format("RESPONSE => %s", responseJson));
@@ -158,28 +153,41 @@ public class RequestWrapper<RESPONSE> {
 
     StringBuilder curlBuilder = new StringBuilder();
 
-    UriBuilder builder = UriBuilder.fromPath("host/");
-    for(String key : data.keySet()) {
-      for(String value : data.get(key)) {
-        builder.queryParam(key, value);
-        curlBuilder.append(String.format("-d %s=\"%s\"", key, value.replace("\"", "\\\"")));
-      }
-    }
-
-    if (data != null)
-      LOG.debug("... data: " + builder.build().getRawQuery());
+    UriBuilder builder = getUriBuilder(data, curlBuilder);
 
     Map<String, String> headers = new HashMap<String, String>();
     headers.put("Content-Type", "application/x-www-form-urlencoded");
 
     recordLastCurlCommand(String.format("curl -X PUT " + curlBuilder.toString() + " \"" + resource.toString() + "\""));
 
-    InputStream inputStream = context.getURLStreamProvider().readFrom(resource.toString(),
-        "PUT", builder.build().getRawQuery(), headers);
+    InputStream inputStream = readFrom(resource, "PUT", builder.build().getRawQuery(), headers);
     String responseJson = IOUtils.toString(inputStream);
 
     LOG.debug(String.format("RESPONSE => %s", responseJson));
     return gson.fromJson(responseJson, responseClass);
+  }
+
+  public UriBuilder getUriBuilder(MultivaluedMapImpl data, StringBuilder curlBuilder) {
+    MultivaluedMapImpl effectiveData;
+    if (data == null)
+      effectiveData = new MultivaluedMapImpl();
+    else
+      effectiveData = new MultivaluedMapImpl(data);
+
+    effectiveData.putSingle("user.name", username);
+    effectiveData.putSingle("doAs", doAs);
+
+    UriBuilder builder = UriBuilder.fromPath("host/");
+    for(String key : effectiveData.keySet()) {
+      for(String value : effectiveData.get(key)) {
+        builder.queryParam(key, value);
+        curlBuilder.append(String.format("-d %s=\"%s\" ", key, value.replace("\"", "\\\"")));
+      }
+    }
+
+    if (data != null)
+      LOG.debug("... data: " + builder.build().getRawQuery());
+    return builder;
   }
 
   /**
@@ -214,24 +222,14 @@ public class RequestWrapper<RESPONSE> {
 
     StringBuilder curlBuilder = new StringBuilder();
 
-    UriBuilder builder = UriBuilder.fromPath("host/");
-    for(String key : data.keySet()) {
-      for(String value : data.get(key)) {
-        builder.queryParam(key, value);
-        curlBuilder.append(String.format("-d %s=\"%s\"", key, value.replace("\"", "\\\"")));
-      }
-    }
-
-    if (data != null)
-      LOG.debug("... data: " + builder.build().getRawQuery());
+    UriBuilder builder = getUriBuilder(data, curlBuilder);
 
     Map<String, String> headers = new HashMap<String, String>();
     headers.put("Content-Type", "application/x-www-form-urlencoded");
 
     recordLastCurlCommand(String.format("curl -X DELETE " + curlBuilder.toString() + " \"" + resource.toString() + "\""));
 
-    InputStream inputStream = context.getURLStreamProvider().readFrom(resource.toString(),
-        "DELETE", builder.build().getRawQuery(), headers);
+    InputStream inputStream = readFrom(resource, "DELETE", builder.build().getRawQuery(), headers);
     String responseJson = IOUtils.toString(inputStream);
 
     LOG.debug(String.format("RESPONSE => %s", responseJson));
@@ -259,13 +257,22 @@ public class RequestWrapper<RESPONSE> {
     return delete(resource.queryParams(params), data);
   }
 
-  private static String lastCurlCommand = null;
   private static void recordLastCurlCommand(String curl) {
     LOG.info(curl);
-    lastCurlCommand = curl;
   }
 
-  public static String getLastCurlCommand() {
-    return lastCurlCommand;
+  public InputStream readFrom(WebResource resource, String method, String body, Map<String, String> headers) throws IOException {
+    InputStream inputStream;
+    resource = resource.queryParam("user.name", username)
+        .queryParam("doAs", doAs);
+
+    if (doAs == null) {
+      inputStream = context.getURLStreamProvider().readFrom(resource.toString(),
+          method, body, headers);
+    } else {
+      inputStream = context.getURLStreamProvider().readAs(resource.toString(),
+          method, body, headers, doAs);
+    }
+    return inputStream;
   }
 }

@@ -20,7 +20,11 @@ package org.apache.ambari.view.pig;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileUtil;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.permission.FsAction;
+import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
@@ -40,10 +44,14 @@ public abstract class HDFSTest extends BasePigTest {
 
     Configuration conf = new Configuration();
     conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, hdfsDir.getAbsolutePath());
+    conf.set("hadoop.proxyuser." + System.getProperty("user.name") + ".groups", "*");
+    conf.set("hadoop.proxyuser." + System.getProperty("user.name") + ".hosts", "*");
 
     MiniDFSCluster.Builder builder = new MiniDFSCluster.Builder(conf);
     hdfsCluster = builder.build();
     hdfsURI = hdfsCluster.getURI().toString();
+    hdfsCluster.getFileSystem().mkdir(new Path("/tmp"), FsPermission.getDefault());
+    hdfsCluster.getFileSystem().setPermission(new Path("/tmp"), new FsPermission(FsAction.ALL, FsAction.ALL, FsAction.ALL));
   }
 
   @AfterClass
@@ -57,5 +65,6 @@ public abstract class HDFSTest extends BasePigTest {
   protected void setupProperties(Map<String, String> properties, File baseDir) throws Exception {
     super.setupProperties(properties, baseDir);
     properties.put("webhdfs.url", hdfsURI);
+    properties.put("webhdfs.username", System.getProperty("user.name"));
   }
 }
