@@ -37,7 +37,7 @@ module.exports = App.ServiceConfigModificationHandler.create({
       if (authEnabled) {
         var nonXaClassIndex = currentClassesList.indexOf(nonXAClass);
         if (nonXaClassIndex > -1) {
-          currentClassesList = currentClassesList.splice(nonXaClassIndex, nonXaClassIndex);
+          currentClassesList.splice(nonXaClassIndex, 1);
           newClassesList = currentClassesList;
         }
         var xaClassIndex = currentClassesList.indexOf(xaAuthCoProcessorClass);
@@ -48,7 +48,7 @@ module.exports = App.ServiceConfigModificationHandler.create({
       } else {
         var xaClassIndex = currentClassesList.indexOf(xaAuthCoProcessorClass);
         if (xaClassIndex > -1) {
-          currentClassesList = currentClassesList.splice(xaClassIndex, xaClassIndex);
+          currentClassesList.splice(xaClassIndex, 1);
           newClassesList = currentClassesList;
         }
         if (addOldValue) {
@@ -92,8 +92,8 @@ module.exports = App.ServiceConfigModificationHandler.create({
       var newRpcProtectionValue = authEnabled ? "privacy" : "authentication";
 
       // Add Hive-Ranger configs
-      this.updateConfigClasses(configMasterClasses, authEnabled, affectedProperties, configAuthEnabled.get('value') != 'true');
-      this.updateConfigClasses(configRegionClasses, authEnabled, affectedProperties, configAuthEnabled.get('value') != 'true');
+      this.updateConfigClasses(configMasterClasses, authEnabled, affectedProperties, configAuthEnabled.get('value') == 'true');
+      this.updateConfigClasses(configRegionClasses, authEnabled, affectedProperties, configAuthEnabled.get('value') == 'true');
       if (newRpcProtectionValue !== configRpcProtection.get('value')) {
         affectedProperties.push({
           serviceName : "HBASE",
