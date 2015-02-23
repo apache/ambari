@@ -19,10 +19,20 @@ limitations under the License.
 """
 import os
 
-from resource_management import *
+from resource_management.core.resources import Directory
+from resource_management.core.resources import File
+from resource_management.core.resources.system import Execute
+from resource_management.core.source import DownloadSource
+from resource_management.core.source import InlineTemplate
+from resource_management.core.source import Template
+from resource_management.libraries.functions import format
+from resource_management.libraries.functions import compare_versions
+from resource_management.libraries.resources.xml_config import XmlConfig
+from resource_management.core.resources.packaging import Package
 
-def oozie(is_server=False # TODO: see if see can remove this
-              ):
+
+# TODO: see if see can remove this
+def oozie(is_server=False):
   import params
 
   if is_server:
@@ -121,8 +131,8 @@ def oozie_server_specific():
     not_if="ls {pid_file} >/dev/null 2>&1 && !(ps `cat {pid_file}` >/dev/null 2>&1)"
   )
   
-  oozie_server_directorties = [format("{oozie_home}/{oozie_tmp_dir}"), params.oozie_pid_dir, params.oozie_log_dir, params.oozie_tmp_dir, params.oozie_data_dir, params.oozie_lib_dir, params.oozie_webapps_dir, params.oozie_webapps_conf_dir, params.oozie_server_dir]
-  Directory( oozie_server_directorties,
+  oozie_server_directories = [format("{oozie_home}/{oozie_tmp_dir}"), params.oozie_pid_dir, params.oozie_log_dir, params.oozie_tmp_dir, params.oozie_data_dir, params.oozie_lib_dir, params.oozie_webapps_dir, params.oozie_webapps_conf_dir, params.oozie_server_dir]
+  Directory( oozie_server_directories,
     owner = params.oozie_user,
     group = params.user_group,
     mode = 0755,

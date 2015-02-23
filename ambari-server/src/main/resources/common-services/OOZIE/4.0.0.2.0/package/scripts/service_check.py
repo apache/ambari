@@ -17,8 +17,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
-from resource_management import *
+from resource_management.core.resources.system import Execute
+from resource_management.core.resources import File
+from resource_management.core.source import StaticFile
+from resource_management.core.system import System
+from resource_management.libraries.functions import format
+from resource_management.libraries.script import Script
 
 class OozieServiceCheck(Script):
   def service_check(self, env):
@@ -29,10 +33,9 @@ class OozieServiceCheck(Script):
     smoke_test_file_name = 'oozieSmoke2.sh'
 
     oozie_smoke_shell_file( smoke_test_file_name)
-  
-def oozie_smoke_shell_file(
-  file_name
-):
+
+
+def oozie_smoke_shell_file(file_name):
   import params
 
   File( format("{tmp_dir}/{file_name}"),
@@ -40,12 +43,10 @@ def oozie_smoke_shell_file(
     mode = 0755
   )
   
-  os_family = System.get_instance().os_family
-  
   if params.security_enabled:
-    sh_cmd = format("{tmp_dir}/{file_name} {os_family} {conf_dir} {oozie_bin_dir} {hadoop_conf_dir} {hadoop_bin_dir} {smokeuser} {security_enabled} {smokeuser_keytab} {kinit_path_local} {smokeuser_principal}")
+    sh_cmd = format("{tmp_dir}/{file_name} {oozie_lib_dir} {conf_dir} {oozie_bin_dir} {hadoop_conf_dir} {hadoop_bin_dir} {smokeuser} {security_enabled} {smokeuser_keytab} {kinit_path_local} {smokeuser_principal}")
   else:
-    sh_cmd = format("{tmp_dir}/{file_name} {os_family} {conf_dir} {oozie_bin_dir} {hadoop_conf_dir} {hadoop_bin_dir} {smokeuser} {security_enabled}")
+    sh_cmd = format("{tmp_dir}/{file_name} {oozie_lib_dir} {conf_dir} {oozie_bin_dir} {hadoop_conf_dir} {hadoop_bin_dir} {smokeuser} {security_enabled}")
 
   Execute( format("{tmp_dir}/{file_name}"),
     command   = sh_cmd,
