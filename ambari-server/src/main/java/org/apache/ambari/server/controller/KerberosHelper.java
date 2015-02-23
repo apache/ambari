@@ -81,6 +81,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosConfigurationDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
@@ -103,6 +104,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -509,6 +511,11 @@ public class KerberosHelper {
         Map<String, String> kerberosDescriptorProperties = kerberosDescriptor.getProperties();
         Map<String, Map<String, String>> kerberosConfigurations = new HashMap<String, Map<String, String>>();
 
+        // While iterating over all the ServiceComponentHosts find hosts that have KERBEROS_CLIENT
+        // components in the INSTALLED state and add them to the hostsWithValidKerberosClient Set.
+        // This is needed to help determine which hosts to perform actions for and create tasks for.
+        Set<String> hostsWithValidKerberosClient = new HashSet<String>();
+
         // Create a temporary directory to store metadata needed to complete this task.  Information
         // such as which principals and keytabs files to create as well as what configurations need
         // to be update are stored in data files in this directory. Any keytab files are stored in
@@ -545,6 +552,16 @@ public class KerberosHelper {
               // keytab files, and configurations need to be created or updated.
               for (ServiceComponentHost sch : serviceComponentHosts) {
                 String serviceName = sch.getServiceName();
+                String componentName = sch.getServiceComponentName();
+
+                // If the current ServiceComponentHost represents the KERBEROS/KERBEROS_CLIENT and
+                // indicates that the KERBEROS_CLIENT component is in the INSTALLED state, add the
+                // current host to the set of hosts that should be handled...
+                if(Service.Type.KERBEROS.name().equals(serviceName) &&
+                    Role.KERBEROS_CLIENT.name().equals(componentName) &&
+                    (sch.getState() == State.INSTALLED)) {
+                  hostsWithValidKerberosClient.add(hostname);
+                }
 
                 // If there is no filter or the filter contains the current service name...
                 if ((serviceComponentFilter == null) || serviceComponentFilter.containsKey(serviceName)) {
@@ -552,7 +569,6 @@ public class KerberosHelper {
                   KerberosServiceDescriptor serviceDescriptor = kerberosDescriptor.getService(serviceName);
 
                   if (serviceDescriptor != null) {
-                    String componentName = sch.getServiceComponentName();
                     int identitiesAdded = 0;
                     List<KerberosIdentityDescriptor> serviceIdentities = serviceDescriptor.getIdentities(true);
 
@@ -604,6 +620,17 @@ public class KerberosHelper {
             } catch (IOException e) {
               LOG.warn("Failed to close the index file writer", e);
             }
+          }
+        }
+
+        // Filter out ServiceComponentHosts not ready for processing from serviceComponentHostsToProcess
+        // by pruning off the ones that on hosts that are not in hostsWithValidKerberosClient
+        Iterator<ServiceComponentHost> iterator = serviceComponentHostsToProcess.iterator();
+        while(iterator.hasNext()) {
+          ServiceComponentHost sch = iterator.next();
+
+          if(!hostsWithValidKerberosClient.contains(sch.getHostName())) {
+            iterator.remove();
           }
         }
 
@@ -1650,7 +1677,7 @@ public class KerberosHelper {
         List<String> hostsToUpdate = createUniqueHostList(serviceComponentHosts, Collections.singleton(HostState.HEALTHY));
         Map<String, String> requestParams = new HashMap<String, String>();
         List<RequestResourceFilter> requestResourceFilters = new ArrayList<RequestResourceFilter>();
-        RequestResourceFilter reqResFilter = new RequestResourceFilter("KERBEROS", "KERBEROS_CLIENT", hostsToUpdate);
+        RequestResourceFilter reqResFilter = new RequestResourceFilter(Service.Type.KERBEROS.name(), Role.KERBEROS_CLIENT.name(), hostsToUpdate);
         requestResourceFilters.add(reqResFilter);
 
         ActionExecutionContext actionExecContext = new ActionExecutionContext(

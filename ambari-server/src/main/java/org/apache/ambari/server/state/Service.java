@@ -133,6 +133,7 @@ public interface Service {
     FLUME,
     YARN,
     MAPREDUCE2,
-    AMBARI_METRICS
+    AMBARI_METRICS,
+    KERBEROS
   }
 }
