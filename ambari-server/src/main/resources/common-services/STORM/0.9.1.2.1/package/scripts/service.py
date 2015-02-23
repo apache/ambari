@@ -49,13 +49,14 @@ def service(
   find_proc = format("{jps_binary} -l  | grep {process_grep}")
   write_pid = format("{find_proc} | awk {{'print $1'}} > {pid_file}")
   crt_pid_cmd = format("{find_proc} && {write_pid}")
+  storm_env = format("source {conf_dir}/storm-env.sh ; export PATH=$PATH:$JAVA_HOME/bin")
 
   if action == "start":
     if name == "rest_api":
-      process_cmd = format("{java64_home}/bin/java -jar {rest_lib_dir}/`ls {rest_lib_dir} | grep -wE storm-rest-[0-9.-]+\.jar` server")
+      process_cmd = format("{storm_env} ; java -jar {rest_lib_dir}/`ls {rest_lib_dir} | grep -wE storm-rest-[0-9.-]+\.jar` server")
       cmd = format("{process_cmd} {rest_api_conf_file} > {log_dir}/restapi.log 2>&1")
     else:
-      cmd = format("env JAVA_HOME={java64_home} PATH=$PATH:{java64_home}/bin storm {name} > {log_dir}/{name}.out 2>&1")
+      cmd = format("{storm_env} ; storm {name} > {log_dir}/{name}.out 2>&1")
 
     Execute(cmd,
            not_if=no_op_test,

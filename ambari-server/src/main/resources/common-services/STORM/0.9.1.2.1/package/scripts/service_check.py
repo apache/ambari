@@ -36,7 +36,7 @@ class ServiceCheck(Script):
          content=StaticFile("wordCount.jar")
     )
 
-    cmd = format("env JAVA_HOME={java64_home} storm jar /tmp/wordCount.jar storm.starter.WordCountTopology WordCount{unique} -c nimbus.host={nimbus_host}")
+    cmd = format("storm jar /tmp/wordCount.jar storm.starter.WordCountTopology WordCount{unique} -c nimbus.host={nimbus_host}")
 
     Execute(cmd,
             logoutput=True,
@@ -44,7 +44,7 @@ class ServiceCheck(Script):
             user=params.storm_user
     )
 
-    Execute(format("env JAVA_HOME={java64_home} storm kill WordCount{unique}"),
+    Execute(format("storm kill WordCount{unique}"),
             path=params.storm_bin_dir,
             user=params.storm_user
     )

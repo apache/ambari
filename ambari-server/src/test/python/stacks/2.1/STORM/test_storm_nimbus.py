@@ -48,11 +48,11 @@ class TestStormNimbus(TestStormBase):
 
     self.assert_configure_default()
 
-    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin storm nimbus > /var/log/storm/nimbus.out 2>&1',
-      wait_for_finish = False,
-      not_if = 'ls /var/run/storm/nimbus.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1',
-      path = ['/usr/bin'],
-      user = 'storm',
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$PATH:$JAVA_HOME/bin ; storm nimbus > /var/log/storm/nimbus.out 2>&1',
+        wait_for_finish = False,
+        path = ['/usr/bin'],
+        user = 'storm',
+        not_if = 'ls /var/run/storm/nimbus.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1',
     )
     self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.nimbus$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.nimbus$ | awk {'print $1'} > /var/run/storm/nimbus.pid",
         logoutput = True,
@@ -105,11 +105,11 @@ class TestStormNimbus(TestStormBase):
 
     self.assert_configure_secured()
 
-    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin storm nimbus > /var/log/storm/nimbus.out 2>&1',
-      wait_for_finish = False,
-      not_if = 'ls /var/run/storm/nimbus.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1',
-      path = ['/usr/bin'],
-      user = 'storm',
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$PATH:$JAVA_HOME/bin ; storm nimbus > /var/log/storm/nimbus.out 2>&1',
+        wait_for_finish = False,
+        path = ['/usr/bin'],
+        user = 'storm',
+        not_if = 'ls /var/run/storm/nimbus.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1',
     )
     self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.nimbus$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.nimbus$ | awk {'print $1'} > /var/run/storm/nimbus.pid",
         logoutput = True,

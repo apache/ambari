@@ -50,11 +50,11 @@ class TestStormSupervisor(TestStormBase):
     self.assertResourceCalled('Execute', 'supervisorctl start storm-supervisor',
       wait_for_finish = False,
     )
-    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin storm logviewer > /var/log/storm/logviewer.out 2>&1',
-      wait_for_finish = False,
-      not_if = 'ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1',
-      path = ['/usr/bin'],
-      user = 'storm',
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$PATH:$JAVA_HOME/bin ; storm logviewer > /var/log/storm/logviewer.out 2>&1',
+        wait_for_finish = False,
+        path = ['/usr/bin'],
+        user = 'storm',
+        not_if = 'ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1',
     )
     self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.logviewer$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.logviewer$ | awk {'print $1'} > /var/run/storm/logviewer.pid",
         logoutput = True,
@@ -113,11 +113,11 @@ class TestStormSupervisor(TestStormBase):
     self.assertResourceCalled('Execute', 'supervisorctl start storm-supervisor',
                         wait_for_finish = False,
     )
-    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 PATH=$PATH:/usr/jdk64/jdk1.7.0_45/bin storm logviewer > /var/log/storm/logviewer.out 2>&1',
-      wait_for_finish = False,
-      not_if = 'ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1',
-      path = ['/usr/bin'],
-      user = 'storm',
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$PATH:$JAVA_HOME/bin ; storm logviewer > /var/log/storm/logviewer.out 2>&1',
+        wait_for_finish = False,
+        path = ['/usr/bin'],
+        user = 'storm',
+        not_if = 'ls /var/run/storm/logviewer.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/logviewer.pid` >/dev/null 2>&1',
     )
     self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.logviewer$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.logviewer$ | awk {'print $1'} > /var/run/storm/logviewer.pid",
         logoutput = True,

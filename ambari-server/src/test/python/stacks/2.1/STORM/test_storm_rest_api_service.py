@@ -47,11 +47,12 @@ class TestStormRestApi(TestStormBase):
 
     self.assert_configure_default()
 
-    self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -jar /usr/lib/storm/contrib/storm-rest/`ls /usr/lib/storm/contrib/storm-rest | grep -wE storm-rest-[0-9.-]+\\.jar` server /etc/storm/conf/config.yaml > /var/log/storm/restapi.log 2>&1',
-      wait_for_finish = False,
-      not_if = 'ls /var/run/storm/restapi.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/restapi.pid` >/dev/null 2>&1',
-      path = ['/usr/bin'],
-      user = 'storm',
+
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$PATH:$JAVA_HOME/bin ; java -jar /usr/lib/storm/contrib/storm-rest/`ls /usr/lib/storm/contrib/storm-rest | grep -wE storm-rest-[0-9.-]+\\.jar` server /etc/storm/conf/config.yaml > /var/log/storm/restapi.log 2>&1',
+        wait_for_finish = False,
+        path = ['/usr/bin'],
+        user = 'storm',
+        not_if = 'ls /var/run/storm/restapi.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/restapi.pid` >/dev/null 2>&1',
     )
     self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep /usr/lib/storm/contrib/storm-rest/storm-rest-.*\\.jar$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep /usr/lib/storm/contrib/storm-rest/storm-rest-.*\\.jar$ | awk {'print $1'} > /var/run/storm/restapi.pid",
         logoutput = True,
@@ -104,13 +105,12 @@ class TestStormRestApi(TestStormBase):
 
     self.assert_configure_secured()
 
-    self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -jar /usr/lib/storm/contrib/storm-rest/`ls /usr/lib/storm/contrib/storm-rest | grep -wE storm-rest-[0-9.-]+\\.jar` server /etc/storm/conf/config.yaml > /var/log/storm/restapi.log 2>&1',
-      wait_for_finish = False,
-      not_if = 'ls /var/run/storm/restapi.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/restapi.pid` >/dev/null 2>&1',
-      path = ['/usr/bin'],
-      user = 'storm',
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$PATH:$JAVA_HOME/bin ; java -jar /usr/lib/storm/contrib/storm-rest/`ls /usr/lib/storm/contrib/storm-rest | grep -wE storm-rest-[0-9.-]+\\.jar` server /etc/storm/conf/config.yaml > /var/log/storm/restapi.log 2>&1',
+        wait_for_finish = False,
+        path = ['/usr/bin'],
+        user = 'storm',
+        not_if = 'ls /var/run/storm/restapi.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/restapi.pid` >/dev/null 2>&1',
     )
-
     self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep /usr/lib/storm/contrib/storm-rest/storm-rest-.*\\.jar$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep /usr/lib/storm/contrib/storm-rest/storm-rest-.*\\.jar$ | awk {'print $1'} > /var/run/storm/restapi.pid",
         logoutput = True,
         path = ['/usr/bin'],
