@@ -411,7 +411,45 @@ public abstract class KerberosOperationHandler {
     return administratorCredentials;
   }
 
-  public void setAdministratorCredentials(KerberosCredential administratorCredentials) {
+  /**
+   * Sets the administrator credentials for this KerberosOperationHandler.
+   * <p/>
+   * If the supplied {@link KerberosCredential} is not <code>null</code>, validates that the administrator
+   * principal is not <code>null</code> or empty and that either the password or the keytab value
+   * is not <code>null</code> or empty. If the credential value does not validate, then a
+   * {@link KerberosAdminAuthenticationException} will be thrown.
+   *
+   * @param administratorCredentials the relevant KerberosCredential
+   * @throws KerberosAdminAuthenticationException if the non-null KerberosCredential fails contain
+   *                                              a non-empty principal and a non-empty password or
+   *                                              keytab value.
+   */
+  public void setAdministratorCredentials(KerberosCredential administratorCredentials)
+      throws KerberosAdminAuthenticationException {
+
+    // Ensure the KerberosCredential is not null
+    if (administratorCredentials == null) {
+      throw new KerberosAdminAuthenticationException("The administrator credential must not be null");
+    }
+
+    String value;
+
+    // Ensure the principal is not null or empty
+    value = administratorCredentials.getPrincipal();
+    if ((value == null) || value.isEmpty()) {
+      throw new KerberosAdminAuthenticationException("Must specify a principal but it is null or empty");
+    }
+
+    // Ensure either the password or the keytab value is not null or empty
+    value = administratorCredentials.getPassword();
+    if ((value == null) || value.isEmpty()) {
+      value = administratorCredentials.getKeytab();
+
+      if ((value == null) || value.isEmpty()) {
+        throw new KerberosAdminAuthenticationException("Must specify either a password or a keytab but both are null or empty");
+      }
+    }
+
     this.administratorCredentials = administratorCredentials;
   }
 

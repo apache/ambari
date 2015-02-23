@@ -278,6 +278,45 @@ public abstract class KerberosOperationHandlerTest extends EasyMockSupport {
     Assert.assertEquals("\\A's are special!", handler.escapeCharacters("A's are special!", Collections.singleton('A'), '\\'));
   }
 
+  @Test(expected = KerberosAdminAuthenticationException.class)
+  public void testAdminCredentialsNullPrincipal() throws KerberosOperationException {
+    KerberosOperationHandler handler = createHandler();
+
+    KerberosCredential credentials = new KerberosCredential(null, "password", null);
+    handler.setAdministratorCredentials(credentials);
+  }
+
+  @Test(expected = KerberosAdminAuthenticationException.class)
+  public void testAdminCredentialsEmptyPrincipal() throws KerberosOperationException {
+    KerberosOperationHandler handler = createHandler();
+
+    KerberosCredential credentials = new KerberosCredential("", "password", null);
+    handler.setAdministratorCredentials(credentials);
+  }
+
+  @Test(expected = KerberosAdminAuthenticationException.class)
+  public void testAdminCredentialsNullCredential() throws KerberosOperationException {
+    KerberosOperationHandler handler = createHandler();
+
+    KerberosCredential credentials = new KerberosCredential("principal", null, null);
+    handler.setAdministratorCredentials(credentials);
+  }
+
+  @Test(expected = KerberosAdminAuthenticationException.class)
+  public void testAdminCredentialsEmptyCredential1() throws KerberosOperationException {
+    KerberosOperationHandler handler = createHandler();
+
+    KerberosCredential credentials = new KerberosCredential("principal", "", null);
+    handler.setAdministratorCredentials(credentials);
+  }
+
+  @Test(expected = KerberosAdminAuthenticationException.class)
+  public void testAdminCredentialsEmptyCredential2() throws KerberosOperationException {
+    KerberosOperationHandler handler = createHandler();
+
+    KerberosCredential credentials = new KerberosCredential("principal", null, "");
+    handler.setAdministratorCredentials(credentials);
+  }
 
   private KerberosOperationHandler createHandler() throws KerberosOperationException {
     KerberosOperationHandler handler = new KerberosOperationHandler() {
