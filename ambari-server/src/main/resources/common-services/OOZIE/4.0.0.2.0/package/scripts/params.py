@@ -62,7 +62,7 @@ if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
   oozie_root = server_role_dir_mapping[command_role]
 
   # using the correct oozie root dir, format the correct location
-  oozie_lib_dir = format("/usr/hdp/current/{oozie_root}/")
+  oozie_lib_dir = format("/usr/hdp/current/{oozie_root}")
   oozie_setup_sh = format("/usr/hdp/current/{oozie_root}/bin/oozie-setup.sh")
   oozie_webapps_dir = format("/usr/hdp/current/{oozie_root}/oozie-server/webapps")
   oozie_webapps_conf_dir = format("/usr/hdp/current/{oozie_root}/oozie-server/conf")
@@ -76,7 +76,7 @@ if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
 else:
   hadoop_bin_dir = "/usr/bin"
   hadoop_lib_home = "/usr/lib/hadoop/lib"
-  oozie_lib_dir = "/var/lib/oozie/"
+  oozie_lib_dir = "/var/lib/oozie"
   oozie_setup_sh = "/usr/lib/oozie/bin/oozie-setup.sh"
   oozie_webapps_dir = "/var/lib/oozie/oozie-server/webapps/"
   oozie_webapps_conf_dir = "/var/lib/oozie/oozie-server/conf"

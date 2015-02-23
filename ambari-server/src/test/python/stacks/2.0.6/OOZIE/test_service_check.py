@@ -57,7 +57,7 @@ class TestServiceCheck(RMFTestCase):
     self.assertResourceCalled('Execute', '/tmp/oozieSmoke2.sh',
         logoutput = True,
         tries = 3,
-        command = '/tmp/oozieSmoke2.sh suse /etc/oozie/conf /usr/bin /etc/hadoop/conf /usr/bin ambari-qa False',
+        command = '/tmp/oozieSmoke2.sh /var/lib/oozie /etc/oozie/conf /usr/bin /etc/hadoop/conf /usr/bin ambari-qa False',
         path = ['/usr/bin:/usr/bin'],
         try_sleep = 5,
     )

@@ -237,7 +237,7 @@ class TestOozieServer(RMFTestCase):
                               mode = 0755,
                               cd_access='a'
                               )
-    self.assertResourceCalled('Directory', '/var/lib/oozie/',
+    self.assertResourceCalled('Directory', '/var/lib/oozie',
                               owner = 'oozie',
                               group = 'hadoop',
                               recursive = True,
@@ -390,7 +390,7 @@ class TestOozieServer(RMFTestCase):
                               mode = 0755,
                               cd_access='a'
                               )
-    self.assertResourceCalled('Directory', '/var/lib/oozie/',
+    self.assertResourceCalled('Directory', '/var/lib/oozie',
                               owner = 'oozie',
                               group = 'hadoop',
                               recursive = True,
