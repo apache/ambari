@@ -134,52 +134,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_idle": {
-            "metric": "cpu_idle",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_nice": {
-            "metric": "cpu_nice",
-            "pointInTime": true,
-            "temporal": true
-          },
-
-          "metrics/cpu/cpu_num": {
-            "metric": "cpu_num",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_speed": {
-            "metric": "cpu_speed",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_system": {
-            "metric": "cpu_system",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_user": {
-            "metric": "cpu_user",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_wio": {
-            "metric": "cpu_wio",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/disk/disk_free": {
-            "metric": "disk_free",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/disk/disk_total": {
-            "metric": "disk_total",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/load_fifteen": {
             "metric": "load_fifteen",
             "pointInTime": true,
@@ -197,26 +151,6 @@
           },
           "metrics/memory/mem_buffers": {
             "metric": "mem_buffers",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_cached": {
-            "metric": "mem_cached",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_free": {
-            "metric": "mem_free",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_shared": {
-            "metric": "mem_shared",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_total": {
-            "metric": "mem_total",
             "pointInTime": true,
             "temporal": true
           },
@@ -242,11 +176,6 @@
           },
           "metrics/process/proc_total": {
             "metric": "proc_total",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/swap_free": {
-            "metric": "swap_free",
             "pointInTime": true,
             "temporal": true
           },
@@ -373,52 +302,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_idle": {
-            "metric": "cpu_idle",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_nice": {
-            "metric": "cpu_nice",
-            "pointInTime": true,
-            "temporal": true
-          },
-
-          "metrics/cpu/cpu_num": {
-            "metric": "cpu_num",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_speed": {
-            "metric": "cpu_speed",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_system": {
-            "metric": "cpu_system",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_user": {
-            "metric": "cpu_user",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_wio": {
-            "metric": "cpu_wio",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/disk/disk_free": {
-            "metric": "disk_free",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/disk/disk_total": {
-            "metric": "disk_total",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/load_fifteen": {
             "metric": "load_fifteen",
             "pointInTime": true,
@@ -436,26 +319,6 @@
           },
           "metrics/memory/mem_buffers": {
             "metric": "mem_buffers",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_cached": {
-            "metric": "mem_cached",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_free": {
-            "metric": "mem_free",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_shared": {
-            "metric": "mem_shared",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_total": {
-            "metric": "mem_total",
             "pointInTime": true,
             "temporal": true
           },
@@ -481,11 +344,6 @@
           },
           "metrics/process/proc_total": {
             "metric": "proc_total",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/swap_free": {
-            "metric": "swap_free",
             "pointInTime": true,
             "temporal": true
           },
@@ -579,52 +437,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_idle": {
-            "metric": "cpu_idle",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_nice": {
-            "metric": "cpu_nice",
-            "pointInTime": true,
-            "temporal": true
-          },
-
-          "metrics/cpu/cpu_num": {
-            "metric": "cpu_num",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_speed": {
-            "metric": "cpu_speed",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_system": {
-            "metric": "cpu_system",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_user": {
-            "metric": "cpu_user",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_wio": {
-            "metric": "cpu_wio",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/disk/disk_free": {
-            "metric": "disk_free",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/disk/disk_total": {
-            "metric": "disk_total",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/load_fifteen": {
             "metric": "load_fifteen",
             "pointInTime": true,
@@ -642,26 +454,6 @@
           },
           "metrics/memory/mem_buffers": {
             "metric": "mem_buffers",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_cached": {
-            "metric": "mem_cached",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_free": {
-            "metric": "mem_free",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_shared": {
-            "metric": "mem_shared",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_total": {
-            "metric": "mem_total",
             "pointInTime": true,
             "temporal": true
           },
@@ -687,11 +479,6 @@
           },
           "metrics/process/proc_total": {
             "metric": "proc_total",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/swap_free": {
-            "metric": "swap_free",
             "pointInTime": true,
             "temporal": true
           },
@@ -839,52 +626,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_idle": {
-            "metric": "cpu_idle",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_nice": {
-            "metric": "cpu_nice",
-            "pointInTime": true,
-            "temporal": true
-          },
-
-          "metrics/cpu/cpu_num": {
-            "metric": "cpu_num",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_speed": {
-            "metric": "cpu_speed",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_system": {
-            "metric": "cpu_system",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_user": {
-            "metric": "cpu_user",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_wio": {
-            "metric": "cpu_wio",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/disk/disk_free": {
-            "metric": "disk_free",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/disk/disk_total": {
-            "metric": "disk_total",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/load_fifteen": {
             "metric": "load_fifteen",
             "pointInTime": true,
@@ -902,26 +643,6 @@
           },
           "metrics/memory/mem_buffers": {
             "metric": "mem_buffers",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_cached": {
-            "metric": "mem_cached",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_free": {
-            "metric": "mem_free",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_shared": {
-            "metric": "mem_shared",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_total": {
-            "metric": "mem_total",
             "pointInTime": true,
             "temporal": true
           },
@@ -947,11 +668,6 @@
           },
           "metrics/process/proc_total": {
             "metric": "proc_total",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/swap_free": {
-            "metric": "swap_free",
             "pointInTime": true,
             "temporal": true
           },
