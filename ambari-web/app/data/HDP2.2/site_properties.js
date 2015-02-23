@@ -138,7 +138,7 @@ hdp22properties.push(
   },
   {
     "id": "site property",
-    "name": "POLICY_USER",
+    "name": "policy_user",
     "value": "ambari-qa",
     "defaultValue": "ambari-qa",
     "displayName": "policy User for HDFS",
@@ -195,7 +195,7 @@ hdp22properties.push(
   },
   {
     "id": "site property",
-    "name": "POLICY_USER",
+    "name": "policy_user",
     "value": "ambari-qa",
     "defaultValue": "ambari-qa",
     "displayName": "policy User for HIVE",
@@ -262,7 +262,7 @@ hdp22properties.push(
   },
   {
     "id": "site property",
-    "name": "POLICY_USER",
+    "name": "policy_user",
     "value": "ambari-qa",
     "defaultValue": "ambari-qa",
     "displayName": "policy User for HBASE",
@@ -283,7 +283,7 @@ hdp22properties.push(
     "name": "REPOSITORY_CONFIG_USERNAME",
     "displayName": "Ranger repository config user",
     "filename": "ranger-hbase-plugin-properties.xml",
-    "category": "RepositoryConfigs",
+    "category": "Advanced ranger-hbase-plugin-properties",
     "serviceName": "HBASE"
   },
   {
@@ -329,7 +329,7 @@ hdp22properties.push(
   },
   {
     "id": "site property",
-    "name": "POLICY_USER",
+    "name": "policy_user",
     "value": "ambari-qa",
     "defaultValue": "ambari-qa",
     "displayName": "policy User for STORM",
@@ -386,7 +386,7 @@ hdp22properties.push(
   },
   {
     "id": "site property",
-    "name": "POLICY_USER",
+    "name": "policy_user",
     "value": "ambari-qa",
     "defaultValue": "ambari-qa",
     "displayName": "policy User for KNOX",
@@ -434,7 +434,7 @@ hdp22properties.push(
   /**********************************************RANGER***************************************/
   {
     "id": "site property",
-    "name": "ambari_user_password",
+    "name": "ranger_admin_password",
     "displayName": "Ranger Admin user's password for Ambari",
     "defaultValue": "ambari",
     "isReconfigurable": true,
@@ -442,7 +442,7 @@ hdp22properties.push(
     "isOverridable": false,
     "isVisible": true,
     "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
+    "filename": "ranger-env.xml",
     "category": "AdminSettings"
   },
   {
@@ -640,7 +640,7 @@ hdp22properties.push(
   },
   {
     "id": "puppet var",
-    "name": "unix_user",
+    "name": "ranger_user",
     "displayName": "Used to create user and assign permission",
     "defaultValue": "ranger",
     "isReconfigurable": true,
@@ -648,12 +648,12 @@ hdp22properties.push(
     "isOverridable": false,
     "isVisible": true,
     "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
+    "filename": "ranger-env.xml",
     "category": "RangerSettings"
   },
   {
     "id": "puppet var",
-    "name": "unix_group",
+    "name": "ranger_group",
     "displayName": "Used to create group and assign permission",
     "defaultValue": "ranger",
     "isReconfigurable": true,
@@ -661,7 +661,7 @@ hdp22properties.push(
     "isOverridable": false,
     "isVisible": true,
     "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
+    "filename": "ranger-env.xml",
     "category": "RangerSettings"
   },
   {
