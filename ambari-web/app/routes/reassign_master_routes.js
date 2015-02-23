@@ -40,6 +40,8 @@ module.exports = App.WizardRoute.extend({
     console.log('in /service/reassign:enter');
     var context = this;
     var reassignMasterController = router.get('reassignMasterController');
+    var currStep = reassignMasterController.get('currentStep');
+
     reassignMasterController.dataLoading().done(function () {
       if (App.router.get('mainHostController.hostsCountMap.TOTAL') > 1) {
         Em.run.next(function () {
@@ -60,9 +62,6 @@ module.exports = App.WizardRoute.extend({
               App.router.transitionTo('main.services.index');
             },
             onClose: function () {
-              var reassignMasterController = router.get('reassignMasterController');
-              var currStep = reassignMasterController.get('currentStep');
-
               if (parseInt(currStep) > 3) {
                 var self = this;
 
@@ -97,11 +96,13 @@ module.exports = App.WizardRoute.extend({
           if (currentClusterStatus) {
             switch (currentClusterStatus.clusterState) {
               case 'REASSIGN_MASTER_INSTALLING' :
-                reassignMasterController.setCurrentStep(currentClusterStatus.localdb.ReassignMaster.currentStep);
+                if (currentClusterStatus.localdb.ReassignMaster.currentStep !== currStep) {
+                  reassignMasterController.setCurrentStep(currentClusterStatus.localdb.ReassignMaster.currentStep);
+                }
                 break;
             }
           }
-          router.transitionTo('step' + reassignMasterController.get('currentStep'));
+          router.transitionTo('step' + currStep);
         });
       } else {
         App.showAlertPopup(Em.I18n.t('common.error'), Em.I18n.t('services.reassign.error.fewHosts'), function () {
