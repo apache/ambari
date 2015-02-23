@@ -1500,6 +1500,53 @@ public class ClusterImpl implements Cluster {
         existingClusterVersion.setState(state);
         existingClusterVersion.setEndTime(System.currentTimeMillis());
         clusterVersionDAO.merge(existingClusterVersion);
+
+        if (RepositoryVersionState.CURRENT == state) {
+          for (HostEntity he : clusterEntity.getHostEntities()) {
+            if (hostHasReportables(existingClusterVersion.getRepositoryVersion(), he)) {
+              continue;
+            }
+
+            Collection<HostVersionEntity> versions = hostVersionDAO.findByHost(
+                he.getHostName());
+
+            if (null == versions || versions.isEmpty()) {
+              // no versions whatsoever
+              HostVersionEntity hve = new HostVersionEntity();
+              hve.setHostEntity(he);
+              hve.setHostName(he.getHostName());
+              hve.setRepositoryVersion(existingClusterVersion.getRepositoryVersion());
+              hve.setState(state);
+              hostVersionDAO.create(hve);
+            } else {
+              HostVersionEntity target = null;
+              // set anything that is marked current as installed
+              for (HostVersionEntity entity : versions) {
+                if (entity.getRepositoryVersion().getId().equals(
+                    existingClusterVersion.getRepositoryVersion().getId())) {
+                  target = entity;
+                  target.setState(state);
+                  hostVersionDAO.merge(target);
+                } else if (entity.getState() == state) {
+                  entity.setState(RepositoryVersionState.INSTALLED);
+                  hostVersionDAO.merge(entity);
+                }
+              }
+              if (null == target) {
+                // not found in existing list, make one
+                HostVersionEntity hve = new HostVersionEntity();
+                hve.setHostEntity(he);
+                hve.setHostName(he.getHostName());
+                hve.setRepositoryVersion(existingClusterVersion.getRepositoryVersion());
+                hve.setState(state);
+                hostVersionDAO.create(hve);
+              }
+
+            }
+          }
+        }
+
+
       }
     } catch (RollbackException e) {
       String message = "Unable to transition stack " + stack + " at version "
@@ -1510,6 +1557,33 @@ public class ClusterImpl implements Cluster {
       clusterGlobalLock.writeLock().unlock();
     }
   }
+
+  /**
+   * Checks if the host has any components reporting version information.
+   * @param repoVersion the repo version
+   * @param host        the host entity
+   * @return {@code true} if the host has any component that report version
+   * @throws AmbariException
+   */
+  private boolean hostHasReportables(RepositoryVersionEntity repoVersion, HostEntity host)
+      throws AmbariException {
+
+    for (HostComponentStateEntity hcse : host.getHostComponentStateEntities()) {
+      ComponentInfo ci = ambariMetaInfo.getComponent(
+          repoVersion.getStackName(),
+          repoVersion.getStackVersion(),
+          hcse.getServiceName(),
+          hcse.getComponentName());
+
+      if (ci.isVersionAdvertised()) {
+        return true;
+      }
+    }
+
+
+    return false;
+  }
+
 
   @Override
   public void setCurrentStackVersion(StackId stackVersion)

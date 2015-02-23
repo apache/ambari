@@ -40,10 +40,6 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 import javax.persistence.RollbackException;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
-import com.google.inject.util.Modules;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
@@ -70,7 +66,6 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
@@ -79,6 +74,7 @@ import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -95,16 +91,17 @@ import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Singleton;
 import com.google.inject.persist.PersistService;
+import com.google.inject.persist.Transactional;
+import com.google.inject.util.Modules;
 
 public class ClusterTest {
-  private static final Logger LOG = LoggerFactory.getLogger(ClusterTest.class);
 
   private Clusters clusters;
   private Cluster c1;
@@ -1160,4 +1157,70 @@ public class ClusterTest {
     checkStackVersionState(stackId.getStackId(), "1.0-1000", RepositoryVersionState.OUT_OF_SYNC);
     checkStackVersionState(stackId.getStackId(), "1.0-2086", RepositoryVersionState.CURRENT);
   }
+
+  @Test
+  public void testTransitionNonReportableHost() throws Exception {
+    String clusterName = "c2";
+    clusters.addCluster(clusterName);
+    Cluster c2 = clusters.getCluster(clusterName);
+    Assert.assertEquals(clusterName, c2.getClusterName());
+    Assert.assertEquals(2, c2.getClusterId());
+
+    clusters.addHost("h-1");
+    clusters.addHost("h-2");
+    clusters.addHost("h-3");
+
+    for (String hostName : new String[] { "h-1", "h-2", "h-3" }) {
+      Host h = clusters.getHost(hostName);
+      h.setIPv4("ipv4");
+      h.setIPv6("ipv6");
+
+      Map<String, String> hostAttributes = new HashMap<String, String>();
+      hostAttributes.put("os_family", "redhat");
+      hostAttributes.put("os_release_version", "5.9");
+      h.setHostAttributes(hostAttributes);
+      h.persist();
+    }
+
+
+    String v1 = "2.0.5-1";
+    String v2 = "2.0.5-2";
+    StackId stackId = new StackId("HDP-2.0.5");
+    c2.setDesiredStackVersion(stackId);
+    RepositoryVersionEntity rve1 = helper.getOrCreateRepositoryVersion(stackId.getStackName(), v1);
+    RepositoryVersionEntity rve2 = helper.getOrCreateRepositoryVersion(stackId.getStackName(), v2);
+
+    c2.setCurrentStackVersion(stackId);
+    c2.createClusterVersion(stackId.getStackName(), v1, "admin", RepositoryVersionState.UPGRADING);
+    c2.transitionClusterVersion(stackId.getStackName(), v1, RepositoryVersionState.CURRENT);
+
+    clusters.mapHostToCluster("h-1", "c2");
+    clusters.mapHostToCluster("h-2", "c2");
+    clusters.mapHostToCluster("h-3", "c2");
+    ClusterVersionDAOMock.failOnCurrentVersionState = false;
+
+    Service service = c2.addService("ZOOKEEPER");
+    ServiceComponent sc = service.addServiceComponent("ZOOKEEPER_SERVER");
+    sc.addServiceComponentHost("h-1");
+    sc.addServiceComponentHost("h-2");
+
+    service = c2.addService("SQOOP");
+    sc = service.addServiceComponent("SQOOP");
+    sc.addServiceComponentHost("h-3");
+
+    List<HostVersionEntity> entities = hostVersionDAO.findByClusterAndHost(clusterName, "h-3");
+    assertTrue("Expected no host versions", null == entities || 0 == entities.size());
+
+    c2.createClusterVersion(stackId.getStackName(), v2, "admin", RepositoryVersionState.INSTALLING);
+    c2.transitionClusterVersion(stackId.getStackName(), v2, RepositoryVersionState.INSTALLED);
+    c2.transitionClusterVersion(stackId.getStackName(), v2, RepositoryVersionState.UPGRADING);
+    c2.transitionClusterVersion(stackId.getStackName(), v2, RepositoryVersionState.UPGRADED);
+
+    c2.transitionClusterVersion(stackId.getStackName(), v2, RepositoryVersionState.CURRENT);
+
+    entities = hostVersionDAO.findByClusterAndHost(clusterName, "h-3");
+
+    assertEquals(1, entities.size());
+  }
+
 }
