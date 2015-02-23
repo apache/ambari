@@ -45,7 +45,6 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Ignore;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -81,6 +80,9 @@ public class FilebrowserTest{
     FileUtil.fullyDelete(baseDir);
     Configuration conf = new Configuration();
     conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, baseDir.getAbsolutePath());
+    conf.set("hadoop.proxyuser." + System.getProperty("user.name") + ".groups", "*");
+    conf.set("hadoop.proxyuser." + System.getProperty("user.name") + ".hosts", "*");
+
     MiniDFSCluster.Builder builder = new MiniDFSCluster.Builder(conf);
     hdfsCluster = builder.build();
     String hdfsURI = hdfsCluster.getURI() + "/";
@@ -89,6 +91,7 @@ public class FilebrowserTest{
     expect(context.getUsername()).andReturn(System.getProperty("user.name")).anyTimes();
     replay(handler, context, httpHeaders, uriInfo);
     fileBrowserService = getService(FileBrowserService.class, handler, context);
+
     FileOperationService.MkdirRequest request = new FileOperationService.MkdirRequest();
     request.path = "/tmp";
     fileBrowserService.fileOps().mkdir(request);
@@ -157,9 +160,9 @@ public class FilebrowserTest{
 
   @Test
   public void testUsername() throws Exception {
-    Assert.assertEquals(System.getProperty("user.name"), fileBrowserService.upload().getUsername(context));
+    Assert.assertEquals(System.getProperty("user.name"), fileBrowserService.upload().getDoAsUsername(context));
     properties.put("webhdfs.username", "test-user");
-    Assert.assertEquals("test-user", fileBrowserService.upload().getUsername(context));
+    Assert.assertEquals("test-user", fileBrowserService.upload().getDoAsUsername(context));
   }
 
   private static <T> T getService(Class<T> clazz,

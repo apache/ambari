@@ -20,7 +20,6 @@ package org.apache.ambari.view.filebrowser;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
-import org.apache.hadoop.fs.permission.AccessControlException;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
 
@@ -42,6 +41,7 @@ import java.util.LinkedHashMap;
  */
 public class HdfsApi {
   private final Configuration conf = new Configuration();
+  private final Map<String, String> params;
 
   private FileSystem fs;
   private UserGroupInformation ugi;
@@ -49,18 +49,46 @@ public class HdfsApi {
   /**
    * Constructor
    * @param defaultFs hdfs uri
-   * @param username user.name
+   * @param params map of parameters
    * @throws IOException
    * @throws InterruptedException
    */
-  public HdfsApi(String defaultFs, String username) throws IOException,
+  public HdfsApi(final String defaultFs, String username, Map<String, String> params) throws IOException,
       InterruptedException {
+    this.params = params;
     conf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
     conf.set("fs.webhdfs.impl", "org.apache.hadoop.hdfs.web.WebHdfsFileSystem");
     conf.set("fs.file.impl", "org.apache.hadoop.fs.LocalFileSystem");
-    fs = FileSystem.get(URI.create(defaultFs), conf, username);
-    ugi = UserGroupInformation.createProxyUser(username,
-        UserGroupInformation.getLoginUser());
+
+    ugi = UserGroupInformation.createProxyUser(username, getProxyUser());
+
+    fs = ugi.doAs(new PrivilegedExceptionAction<FileSystem>() {
+      public FileSystem run() throws IOException {
+        return FileSystem.get(URI.create(defaultFs), conf);
+      }
+    });
+  }
+
+  private UserGroupInformation getProxyUser() throws IOException {
+    UserGroupInformation proxyuser;
+    if (params.containsKey("proxyuser")) {
+      proxyuser = UserGroupInformation.createRemoteUser(params.get("proxyuser"));
+    } else {
+      proxyuser = UserGroupInformation.getCurrentUser();
+    }
+
+    proxyuser.setAuthenticationMethod(getAuthenticationMethod());
+    return proxyuser;
+  }
+
+  private UserGroupInformation.AuthenticationMethod getAuthenticationMethod() {
+    UserGroupInformation.AuthenticationMethod authMethod;
+    if (params.containsKey("auth")) {
+      authMethod = UserGroupInformation.AuthenticationMethod.valueOf(params.get("auth"));
+    } else {
+      authMethod = UserGroupInformation.AuthenticationMethod.SIMPLE;
+    }
+    return authMethod;
   }
 
   /**

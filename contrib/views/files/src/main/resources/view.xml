@@ -18,19 +18,20 @@
     <name>FILES</name>
     <label>Files</label>
     <version>0.1.0</version>
-    <min-ambari-version>1.7.*</min-ambari-version>
 
     <parameter>
         <name>webhdfs.url</name>
-        <description>Enter the WebHDFS FileSystem URI. Typically this is the dfs.namenode.http-address property in the hdfs-site.xml configuration. URL must be accessible from Ambari Server.</description>
-        <label>WebHDFS FileSystem URI</label>
-        <placeholder>webhdfs://namenode:50070</description>
+        <description>WebHDFS FileSystem URI (example: webhdfs://namenode:50070)</description>
         <required>true</required>
     </parameter>
     <parameter>
         <name>webhdfs.username</name>
-        <description>User and doAs for proxy user for HDFS. By default, uses the currently logged-in Ambari user.</description>
-        <label>WebHDFS Username</label>
+        <description>doAs for proxy user for HDFS</description>
+        <required>false</required>
+    </parameter>
+    <parameter>
+        <name>webhdfs.auth</name>
+        <description>Semicolon-separated authentication configs. Default: auth=SIMPLE</description>
         <required>false</required>
     </parameter>
 

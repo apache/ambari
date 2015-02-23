@@ -23,8 +23,13 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.filebrowser.utils.MisconfigurationFormattedException;
 import org.apache.ambari.view.filebrowser.utils.ServiceFormattedException;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Base Hdfs service
@@ -63,12 +68,12 @@ public abstract class HdfsService {
    */
   public HdfsApi getApi(ViewContext context) {
     if (_api == null) {
-      Thread.currentThread().setContextClassLoader(null);
+//      Thread.currentThread().setContextClassLoader(null);
       String defaultFs = context.getProperties().get("webhdfs.url");
       if (defaultFs == null)
         throw new MisconfigurationFormattedException("webhdfs.url");
       try {
-        _api = new HdfsApi(defaultFs, getUsername(context));
+        _api = new HdfsApi(defaultFs, getDoAsUsername(context), getHdfsAuthParams(context));
       } catch (Exception ex) {
         throw new ServiceFormattedException("HdfsApi connection failed. Check \"webhdfs.url\" property", ex);
       }
@@ -76,15 +81,48 @@ public abstract class HdfsService {
     return _api;
   }
 
+  private static Map<String, String> getHdfsAuthParams(ViewContext context) {
+    String auth = context.getProperties().get("webhdfs.auth");
+    Map<String, String> params = new HashMap<String, String>();
+    if (auth == null || auth.isEmpty()) {
+      auth = "auth=SIMPLE";
+    }
+    for(String param : auth.split(";")) {
+      String[] keyvalue = param.split("=");
+      if (keyvalue.length != 2) {
+        logger.error("Can not parse authentication param " + param + " in " + auth);
+        continue;
+      }
+      params.put(keyvalue[0], keyvalue[1]);
+    }
+    return params;
+  }
+
   /**
-   * Get username to use in HDFS
+   * Get doAs username to use in HDFS
    * @param context View Context instance
    * @return user name
    */
-  public String getUsername(ViewContext context) {
+  public String getDoAsUsername(ViewContext context) {
     String username = context.getProperties().get("webhdfs.username");
     if (username == null || username.isEmpty())
       username = context.getUsername();
+    return username;
+  }
+
+  /**
+   * Get proxyuser username to use in HDFS
+   * @param context View Context instance
+   * @return user name
+   */
+  public String getRealUsername(ViewContext context) {
+    String username = context.getProperties().get("webhdfs.proxyuser");
+    if (username == null || username.isEmpty())
+      try {
+        username = UserGroupInformation.getCurrentUser().getShortUserName();
+      } catch (IOException e) {
+        throw new ServiceFormattedException("HdfsApi connection failed. Can't get current user", e);
+      }
     return username;
   }
 }
