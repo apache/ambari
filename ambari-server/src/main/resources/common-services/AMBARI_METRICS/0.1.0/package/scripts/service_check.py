@@ -38,7 +38,7 @@ import socket
 class AMSServiceCheck(Script):
   AMS_METRICS_POST_URL = "/ws/v1/timeline/metrics/"
   AMS_METRICS_GET_URL = "/ws/v1/timeline/metrics?%s"
-  AMS_CONNECT_TRIES = 3
+  AMS_CONNECT_TRIES = 5
   AMS_CONNECT_TIMEOUT = 10
 
   @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
@@ -83,29 +83,35 @@ class AMSServiceCheck(Script):
         conn = httplib.HTTPConnection(params.ams_collector_host_single,
                                         int(params.metric_collector_port))
         conn.request("POST", self.AMS_METRICS_POST_URL, metric_json, headers)
-        break
       except (httplib.HTTPException, socket.error) as ex:
         if i < self.AMS_CONNECT_TRIES - 1:  #range/xrange returns items from start to end-1
           time.sleep(self.AMS_CONNECT_TIMEOUT)
           Logger.info("Connection failed. Next retry in %s seconds."
                       % (self.AMS_CONNECT_TIMEOUT))
+          continue
         else:
           raise Fail("Metrics were not saved. Service check has failed. "
                "\nConnection failed.")
 
-    response = conn.getresponse()
-    Logger.info("Http response: %s %s" % (response.status, response.reason))
+      response = conn.getresponse()
+      Logger.info("Http response: %s %s" % (response.status, response.reason))
 
-    data = response.read()
-    Logger.info("Http data: %s" % data)
-    conn.close()
+      data = response.read()
+      Logger.info("Http data: %s" % data)
+      conn.close()
 
-    if response.status == 200:
-      Logger.info("Metrics were saved.")
-    else:
-      Logger.info("Metrics were not saved. Service check has failed.")
-      raise Fail("Metrics were not saved. Service check has failed. POST request status: %s %s \n%s" %
-                 (response.status, response.reason, data))
+      if response.status == 200:
+        Logger.info("Metrics were saved.")
+        break
+      else:
+        Logger.info("Metrics were not saved. Service check has failed.")
+        if i < self.AMS_CONNECT_TRIES - 1:  #range/xrange returns items from start to end-1
+          time.sleep(self.AMS_CONNECT_TIMEOUT)
+          Logger.info("Next retry in %s seconds."
+                      % (self.AMS_CONNECT_TIMEOUT))
+        else:
+          raise Fail("Metrics were not saved. Service check has failed. POST request status: %s %s \n%s" %
+                     (response.status, response.reason, data))
 
     get_metrics_parameters = {
       "metricNames": "AMBARI_METRICS.SmokeTest.FakeMetric",
