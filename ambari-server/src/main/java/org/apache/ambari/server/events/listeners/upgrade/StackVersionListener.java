@@ -17,26 +17,28 @@
  */
 package org.apache.ambari.server.events.listeners.upgrade;
 
-import com.google.common.eventbus.AllowConcurrentEvents;
-import com.google.common.eventbus.Subscribe;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.events.HostComponentVersionEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import com.google.common.eventbus.AllowConcurrentEvents;
+import com.google.common.eventbus.Subscribe;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
- * The {@link StackVersionListener} class handles the propagation of versions advertised by the {@link org.apache.ambari.server.state.ServiceComponentHost}
- * that bubble up to the {@link org.apache.ambari.server.orm.entities.HostVersionEntity} and eventually the
+ * The {@link StackVersionListener} class handles the propagation of versions
+ * advertised by the {@link org.apache.ambari.server.state.ServiceComponentHost}
+ * that bubble up to the
+ * {@link org.apache.ambari.server.orm.entities.HostVersionEntity} and
+ * eventually the
  * {@link org.apache.ambari.server.orm.entities.ClusterVersionEntity}
  */
 @Singleton
@@ -46,8 +48,6 @@ public class StackVersionListener {
    * Logger.
    */
   private final static Logger LOG = LoggerFactory.getLogger(StackVersionListener.class);
-
-  private AmbariEventPublisher ambariEventPublisher;
 
   /**
    * Used to prevent multiple threads from trying to create host alerts
@@ -62,7 +62,6 @@ public class StackVersionListener {
    */
   @Inject
   public StackVersionListener(AmbariEventPublisher ambariEventPublisher) {
-    this.ambariEventPublisher = ambariEventPublisher;
     ambariEventPublisher.register(this);
   }
 
@@ -71,12 +70,12 @@ public class StackVersionListener {
   public void onAmbariEvent(HostComponentVersionEvent event) {
     LOG.debug("Received event {}", event);
 
+    Cluster cluster = event.getCluster();
     ServiceComponentHost sch = event.getServiceComponentHost();
 
     m_stackVersionLock.lock();
 
     try {
-      Cluster cluster = event.getCluster();
       String repoVersion = sch.recalculateHostVersionState();
       cluster.recalculateClusterVersionState(repoVersion);
     } catch (Exception e) {
