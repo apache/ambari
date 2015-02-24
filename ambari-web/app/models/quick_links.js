@@ -303,7 +303,7 @@ App.QuickLinks.FIXTURES = [
   },
   {
     id: 34,
-    label:'Spark Job History UI',
+    label:'Spark History Server UI',
     url:'%@://%@:%@/',
     service_id: 'SPARK',
     template:'%@://%@:%@/',
