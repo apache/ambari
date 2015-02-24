@@ -408,19 +408,15 @@ public class ServiceImpl implements Service {
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean isPersisted() {
-    clusterGlobalLock.readLock().lock();
-    try {
-      readWriteLock.readLock().lock();
-      try {
-        return persisted;
-      } finally {
-        readWriteLock.readLock().unlock();
-      }
-    } finally {
-      clusterGlobalLock.readLock().unlock();
-    }
+    // a lock around this internal state variable is not required since we
+    // have appropriate locks in the persist() method and this member is
+    // only ever false under the condition that the object is new
+    return persisted;
   }
 
   @Override
