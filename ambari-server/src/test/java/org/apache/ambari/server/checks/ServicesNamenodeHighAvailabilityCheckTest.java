@@ -85,12 +85,12 @@ public class ServicesNamenodeHighAvailabilityCheckTest {
     final Map<String, String> properties = new HashMap<String, String>();
     Mockito.when(config.getProperties()).thenReturn(properties);
 
-    PrerequisiteCheck check = new PrerequisiteCheck(null, null, null, null);
+    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     servicesNamenodeHighAvailabilityCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
 
     properties.put("dfs.nameservices", "anything");
-    check = new PrerequisiteCheck(null, null, null, null);
+    check = new PrerequisiteCheck(null, null);
     servicesNamenodeHighAvailabilityCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
   }

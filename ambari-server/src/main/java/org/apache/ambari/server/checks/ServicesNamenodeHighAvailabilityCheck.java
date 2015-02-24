@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.checks;
 
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
@@ -24,10 +26,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrereqCheckType;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-
-import java.util.Map;
 
 /**
  * Checks that namenode high availability is enabled.
@@ -38,7 +37,7 @@ public class ServicesNamenodeHighAvailabilityCheck extends AbstractCheckDescript
    * Constructor.
    */
   public ServicesNamenodeHighAvailabilityCheck() {
-    super("SERVICES_NAMENODE_HA", PrereqCheckType.SERVICE, "Namenode high availability should be enabled");
+    super(CheckDescription.SERVICES_NAMENODE_HA);
   }
 
   @Override
@@ -63,7 +62,7 @@ public class ServicesNamenodeHighAvailabilityCheck extends AbstractCheckDescript
     if (!config.getProperties().containsKey("dfs.nameservices")) {
       prerequisiteCheck.getFailedOn().add("HDFS");
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason("Namenode high availability is disabled. Verify that dfs.nameservices property is present in hdfs-site.xml");
+      prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
     }
   }
 }

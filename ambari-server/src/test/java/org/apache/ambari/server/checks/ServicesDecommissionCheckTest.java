@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -58,6 +59,13 @@ public class ServicesDecommissionCheckTest {
         return clusters;
       }
     };
+    servicesDecommissionCheck.ambariMetaInfo = new Provider<AmbariMetaInfo>() {
+      @Override
+      public AmbariMetaInfo get() {
+        return Mockito.mock(AmbariMetaInfo.class);
+      }
+    };
+
     final Cluster cluster = Mockito.mock(Cluster.class);
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
@@ -78,12 +86,12 @@ public class ServicesDecommissionCheckTest {
     Mockito.when(serviceComponentHost1.getComponentAdminState()).thenReturn(HostComponentAdminState.DECOMMISSIONED);
     Mockito.when(serviceComponentHost2.getComponentAdminState()).thenReturn(HostComponentAdminState.INSERVICE);
 
-    PrerequisiteCheck check = new PrerequisiteCheck(null, null, null, null);
+    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     servicesDecommissionCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
 
     Mockito.when(serviceComponentHost1.getComponentAdminState()).thenReturn(HostComponentAdminState.INSERVICE);
-    check = new PrerequisiteCheck(null, null, null, null);
+    check = new PrerequisiteCheck(null, null);
     servicesDecommissionCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
   }

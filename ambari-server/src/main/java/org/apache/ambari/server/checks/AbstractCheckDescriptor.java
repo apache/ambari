@@ -17,18 +17,24 @@
  */
 package org.apache.ambari.server.checks;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.stack.PrereqCheckType;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -38,9 +44,7 @@ import com.google.inject.Provider;
  */
 public abstract class AbstractCheckDescriptor {
 
-  public final String id;
-  public final String description;
-  public final PrereqCheckType type;
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractCheckDescriptor.class);
 
   @Inject
   Provider<Clusters> clustersProvider;
@@ -57,17 +61,15 @@ public abstract class AbstractCheckDescriptor {
   @Inject
   Provider<AmbariMetaInfo> ambariMetaInfo;
 
+  private CheckDescription m_description;
+
   /**
    * Constructor.
    *
-   * @param id unique identifier
-   * @param type type
    * @param description description
    */
-  public AbstractCheckDescriptor(String id, PrereqCheckType type, String description) {
-    this.id = id;
-    this.type = type;
-    this.description = description;
+  protected AbstractCheckDescriptor(CheckDescription description) {
+    m_description = description;
   }
 
   /**
@@ -92,6 +94,77 @@ public abstract class AbstractCheckDescriptor {
    */
   public abstract void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException;
 
+
+  public CheckDescription getDescription() {
+    return m_description;
+  }
+
+  public PrereqCheckType getType() {
+    return m_description.getType();
+  }
+
+  /**
+   * Gets the default fail reason
+   * @param prerequisiteCheck the check being performed
+   * @param request           the request
+   * @return the failure string
+   */
+  protected String getFailReason(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) {
+    return getFailReason("default", prerequisiteCheck, request);
+  }
+
+  /**
+   * Gets the fail reason
+   * @param key               the failure text key
+   * @param prerequisiteCheck the check being performed
+   * @param request           the request
+   * @return the failure string
+   */
+  protected String getFailReason(String key,
+      PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) {
+    String fail = m_description.getFail(key);
+
+    if (-1 != fail.indexOf("{{version}}") && null != request.getRepositoryVersion()) {
+      fail = fail.replace("{{version}}", request.getRepositoryVersion());
+    }
+
+    if (-1 != fail.indexOf("{{fails}}")) {
+      List<String> names = prerequisiteCheck.getFailedOn();
+
+      if (getDescription().getType() == PrereqCheckType.SERVICE) {
+        Clusters clusters = clustersProvider.get();
+        AmbariMetaInfo metaInfo = ambariMetaInfo.get();
+
+        try {
+          Cluster c = clusters.getCluster(request.getClusterName());
+          Map<String, ServiceInfo> services = metaInfo.getServices(
+              c.getDesiredStackVersion().getStackName(),
+              c.getDesiredStackVersion().getStackVersion());
+
+          List<String> displays = new ArrayList<String>();
+          for (String name : names) {
+            if (services.containsKey(name)) {
+              displays.add(services.get(name).getDisplayName());
+            } else {
+              displays.add(name);
+            }
+          }
+          names = displays;
+        } catch (Exception e) {
+          LOG.warn("Could not load service info map");
+        }
+
+        fail = fail.replace("{{fails}}", formatEntityList(names));
+
+      }
+
+
+    }
+
+    return fail;
+  }
+
+
   /**
    * Formats lists of given entities to human readable form:
    * [entity1] -> {entity1} {noun}
@@ -110,12 +183,7 @@ public abstract class AbstractCheckDescriptor {
     if (entities.size() > 1) {
       formatted.replace(formatted.lastIndexOf(","), formatted.lastIndexOf(",") + 1, " and");
     }
-    if (type != null) {
-      formatted.append(" ").append(type.name().toLowerCase());
-      if (entities.size() > 1) {
-        formatted.append("s");
-      }
-    }
+
     return formatted.toString();
   }
 

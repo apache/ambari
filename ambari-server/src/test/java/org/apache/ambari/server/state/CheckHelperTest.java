@@ -27,6 +27,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.checks.AbstractCheckDescriptor;
+import org.apache.ambari.server.checks.CheckDescription;
 import org.apache.ambari.server.checks.ServicesUpCheck;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
@@ -88,9 +89,11 @@ public class CheckHelperTest {
     final CheckHelper helper = new CheckHelper();
     List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<AbstractCheckDescriptor>();
     AbstractCheckDescriptor descriptor = EasyMock.createNiceMock(AbstractCheckDescriptor.class);
+
     descriptor.perform(EasyMock.<PrerequisiteCheck> anyObject(), EasyMock.<PrereqCheckRequest> anyObject());
     EasyMock.expectLastCall().andThrow(new AmbariException("error"));
     EasyMock.expect(descriptor.isApplicable(EasyMock.<PrereqCheckRequest> anyObject())).andReturn(true);
+    EasyMock.expect(descriptor.getDescription()).andReturn(CheckDescription.HOSTS_HEARTBEAT).anyTimes();
     EasyMock.replay(descriptor);
     updateChecksRegistry.add(descriptor);
     final List<PrerequisiteCheck> upgradeChecks = helper.performChecks(new PrereqCheckRequest("cluster"), updateChecksRegistry);

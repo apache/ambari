@@ -20,63 +20,61 @@ package org.apache.ambari.server.state.stack;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.ambari.server.checks.CheckDescription;
+
 /**
  * Contains information about performed prerequisite check.
  *
  */
 public class PrerequisiteCheck {
-  private final String id;
-  private final String description;
-  private final PrereqCheckType type;
-  private final String clusterName;
-  private PrereqCheckStatus status = PrereqCheckStatus.PASS;
-  private String failReason = "";
-  private List<String> failedOn = new ArrayList<String>();
+  private final CheckDescription m_description;
+  private final String m_clusterName;
+  private PrereqCheckStatus m_status = PrereqCheckStatus.PASS;
+  private String m_failReason = "";
+  private List<String> m_failedOn = new ArrayList<String>();
 
-  public PrerequisiteCheck(String id, String description, PrereqCheckType type, String clusterName) {
-    this.id = id;
-    this.description = description;
-    this.type = type;
-    this.clusterName = clusterName;
+  public PrerequisiteCheck(CheckDescription description, String clusterName) {
+    m_description = description;
+    m_clusterName = clusterName;
   }
 
   public String getId() {
-    return id;
+    return m_description.name();
   }
 
   public String getDescription() {
-    return description;
+    return m_description.getText();
   }
 
   public PrereqCheckStatus getStatus() {
-    return status;
+    return m_status;
   }
 
   public void setStatus(PrereqCheckStatus status) {
-    this.status = status;
+    m_status = status;
   }
 
   public String getFailReason() {
-    return failReason;
+    return m_failReason;
   }
 
   public void setFailReason(String failReason) {
-    this.failReason = failReason;
+    m_failReason = failReason;
   }
 
   public List<String> getFailedOn() {
-    return failedOn;
+    return m_failedOn;
   }
 
   public void setFailedOn(List<String> failedOn) {
-    this.failedOn = failedOn;
+    m_failedOn = failedOn;
   }
 
   public PrereqCheckType getType() {
-    return type;
+    return m_description.getType();
   }
 
   public String getClusterName() {
-    return clusterName;
+    return m_clusterName;
   }
 }

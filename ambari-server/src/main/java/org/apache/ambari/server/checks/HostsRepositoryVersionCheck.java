@@ -29,7 +29,6 @@ import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrereqCheckType;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 
 /**
@@ -41,7 +40,7 @@ public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
    * Constructor.
    */
   public HostsRepositoryVersionCheck() {
-    super("HOSTS_REPOSITORY_VERSION", PrereqCheckType.HOST, "Hosts should have the new repository version installed");
+    super(CheckDescription.HOSTS_REPOSITORY_VERSION);
   }
 
   @Override
@@ -61,7 +60,7 @@ public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
         final RepositoryVersionEntity repositoryVersion = repositoryVersionDaoProvider.get().findByStackAndVersion(stackId.getStackId(), request.getRepositoryVersion());
         if (repositoryVersion == null) {
           prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-          prerequisiteCheck.setFailReason("Repository version " + request.getRepositoryVersion() + " doesn't exist");
+          prerequisiteCheck.setFailReason(getFailReason("no_repo_version",prerequisiteCheck, request));
           prerequisiteCheck.getFailedOn().addAll(clusterHosts.keySet());
           return;
         }
@@ -73,7 +72,7 @@ public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
     }
     if (!prerequisiteCheck.getFailedOn().isEmpty()) {
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason(formatEntityList(prerequisiteCheck.getFailedOn()) + " must have repository version " + request.getRepositoryVersion() + " installed");
+      prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
     }
   }
 }

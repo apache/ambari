@@ -19,6 +19,7 @@ package org.apache.ambari.server.checks;
 
 import java.util.Collections;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -54,6 +55,15 @@ public class ServicesUpCheckTest {
         return clusters;
       }
     };
+
+    servicesUpCheck.ambariMetaInfo = new Provider<AmbariMetaInfo>() {
+      @Override
+      public AmbariMetaInfo get() {
+        return Mockito.mock(AmbariMetaInfo.class);
+      }
+    };
+
+
     final Cluster cluster = Mockito.mock(Cluster.class);
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
@@ -62,12 +72,12 @@ public class ServicesUpCheckTest {
     Mockito.when(service.isClientOnlyService()).thenReturn(false);
     Mockito.when(service.getDesiredState()).thenReturn(State.UNKNOWN);
 
-    PrerequisiteCheck check = new PrerequisiteCheck(null, null, null, null);
+    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     servicesUpCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
 
     Mockito.when(service.getDesiredState()).thenReturn(State.STARTED);
-    check = new PrerequisiteCheck(null, null, null, null);
+    check = new PrerequisiteCheck(null, null);
     servicesUpCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
   }

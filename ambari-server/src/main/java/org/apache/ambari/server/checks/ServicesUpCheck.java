@@ -17,16 +17,15 @@
  */
 package org.apache.ambari.server.checks;
 
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrereqCheckType;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-
-import java.util.Map;
 
 /**
  * Checks that services are up.
@@ -37,7 +36,7 @@ public class ServicesUpCheck extends AbstractCheckDescriptor {
    * Constructor.
    */
   public ServicesUpCheck() {
-    super("SERVICES_UP", PrereqCheckType.SERVICE, "All services must be up");
+    super(CheckDescription.SERVICES_UP);
   }
 
   @Override
@@ -56,7 +55,7 @@ public class ServicesUpCheck extends AbstractCheckDescriptor {
 
     if (!prerequisiteCheck.getFailedOn().isEmpty()) {
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason(formatEntityList(prerequisiteCheck.getFailedOn()) + " must be STARTED");
+      prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
     }
   }
 }

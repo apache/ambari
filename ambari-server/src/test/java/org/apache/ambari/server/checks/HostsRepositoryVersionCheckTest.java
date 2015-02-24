@@ -98,7 +98,7 @@ public class HostsRepositoryVersionCheckTest {
     Mockito.when(clusters.getHostsForCluster("cluster")).thenReturn(hosts);
     Mockito.when(repositoryVersionDAO.findByStackAndVersion(Mockito.anyString(), Mockito.anyString())).thenReturn(null);
 
-    PrerequisiteCheck check = new PrerequisiteCheck(null, null, null, null);
+    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     hostsRepositoryVersionCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
 
@@ -108,7 +108,7 @@ public class HostsRepositoryVersionCheckTest {
     hostVersion.setState(RepositoryVersionState.INSTALLED);
     Mockito.when(hostVersionDAO.findByClusterStackVersionAndHost(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(hostVersion);
 
-    check = new PrerequisiteCheck(null, null, null, null);
+    check = new PrerequisiteCheck(null, null);
     hostsRepositoryVersionCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
   }
