@@ -236,6 +236,18 @@ App.MainHostAlertsView = App.TableView.extend({
     Em.run.next(this, function () {
       App.tooltip($(".enable-disable-button, .timeago, .alert-text"));
     });
-  }.observes('pageContent.@each')
+  }.observes('pageContent.@each'),
+
+  /**
+   * Run <code>clearFilter</code> in the each child filterView
+   */
+  clearFilters: function() {
+    this.set('filterConditions', []);
+    this.get('childViews').forEach(function(childView) {
+      if (childView['clearFilter']) {
+        childView.clearFilter();
+      }
+    });
+  }
 
 });
