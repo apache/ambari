@@ -229,11 +229,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/memory/mem_total": {
-            "metric": "mem_total",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/jvm/memHeapCommittedM": {
             "metric": "jvm.JvmMetrics.MemHeapCommittedM",
             "pointInTime": true,
@@ -331,11 +326,6 @@
           },
           "metrics/rpc/getServerName/aboveOneSec/_avg_time": {
             "metric": "rpc.rpc.getServerName.aboveOneSec._avg_time",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_nice": {
-            "metric": "cpu_nice",
             "pointInTime": true,
             "temporal": true
           },
@@ -634,11 +624,6 @@
             "pointInTime": false,
             "temporal": true
           },
-          "metrics/memory/mem_free": {
-            "metric": "mem_free",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/execCoprocessor/aboveOneSec/_avg_time": {
             "metric": "rpc.rpc.execCoprocessor.aboveOneSec._avg_time",
             "pointInTime": true,
@@ -691,11 +676,6 @@
           },
           "metrics/rpc/close_num_ops": {
             "metric": "rpc.rpc.close_num_ops",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_cached": {
-            "metric": "mem_cached",
             "pointInTime": true,
             "temporal": true
           },
@@ -909,16 +889,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_user": {
-            "metric": "cpu_user",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/swap_free": {
-            "metric": "swap_free",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/regionServerReport_num_ops": {
             "metric": "rpc.rpc.regionServerReport_num_ops",
             "pointInTime": true,
@@ -974,11 +944,6 @@
             "pointInTime": false,
             "temporal": true
           },
-          "metrics/memory/mem_shared": {
-            "metric": "mem_shared",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/abort_num_ops": {
             "metric": "rpc.rpc.abort_num_ops",
             "pointInTime": true,
@@ -1001,11 +966,6 @@
           },
           "metrics/rpcdetailed/getProtocolVersion_avg_time": {
             "metric": "rpcdetailed.rpcdetailed.getProtocolVersion_avg_time",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_num": {
-            "metric": "cpu_num",
             "pointInTime": true,
             "temporal": true
           },
@@ -1154,11 +1114,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_idle": {
-            "metric": "cpu_idle",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/hbase/regionserver/getRequestLatency_75th_percentile": {
             "metric": "regionserver.Server.Get_75th_percentile",
             "pointInTime": false,
@@ -1226,11 +1181,6 @@
           },
           "metrics/ugi/loginFailure_num_ops": {
             "metric": "ugi.UgiMetrics.LoginFailureNumOps",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_wio": {
-            "metric": "cpu_wio",
             "pointInTime": true,
             "temporal": true
           },
@@ -1624,11 +1574,6 @@
             "pointInTime": false,
             "temporal": true
           },
-          "metrics/disk/disk_total": {
-            "metric": "disk_total",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/get/aboveOneSec/_avg_time": {
             "metric": "rpc.rpc.get.aboveOneSec._avg_time",
             "pointInTime": true,
@@ -1799,11 +1744,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/disk/disk_free": {
-            "metric": "disk_free",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/jvm/threadsWaiting": {
             "metric": "jvm.JvmMetrics.ThreadsWaiting",
             "pointInTime": true,
@@ -1826,11 +1766,6 @@
           },
           "metrics/rpc/regionServerStartup_num_ops": {
             "metric": "rpc.rpc.regionServerStartup_num_ops",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_system": {
-            "metric": "cpu_system",
             "pointInTime": true,
             "temporal": true
           },
@@ -2441,11 +2376,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_idle": {
-            "metric": "cpu_idle",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/hbase/regionserver/getRequestLatency_75th_percentile": {
             "metric": "regionserver.Server.Get_75th_percentile",
             "pointInTime": false,
@@ -2581,11 +2511,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_wio": {
-            "metric": "cpu_wio",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/getConfiguration/aboveOneSec/_avg_time": {
             "metric": "rpc.rpc.getConfiguration.aboveOneSec._avg_time",
             "pointInTime": true,
@@ -2628,11 +2553,6 @@
           },
           "metrics/rpc/disableTable_avg_time": {
             "metric": "rpc.rpc.disableTable_avg_time",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_total": {
-            "metric": "mem_total",
             "pointInTime": true,
             "temporal": true
           },
@@ -2778,11 +2698,6 @@
           },
           "metrics/rpc/ReceivedBytes": {
             "metric": "rpc.rpc.ReceivedBytes",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_nice": {
-            "metric": "cpu_nice",
             "pointInTime": true,
             "temporal": true
           },
@@ -3336,11 +3251,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/memory/mem_free": {
-            "metric": "mem_free",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/hbase/regionserver/readRequestsCount": {
             "metric": "regionserver.Server.readRequestCount",
             "pointInTime": false,
@@ -3424,16 +3334,6 @@
           "metrics/hbase/regionserver/mutationsWithoutWALCount": {
             "metric": "regionserver.Server.mutationsWithoutWALCount",
             "pointInTime": false,
-            "temporal": true
-          },
-          "metrics/memory/mem_cached": {
-            "metric": "mem_cached",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/disk/disk_total": {
-            "metric": "disk_total",
-            "pointInTime": true,
             "temporal": true
           },
           "metrics/rpc/getConfiguration/aboveOneSec/_num_ops": {
@@ -3761,11 +3661,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/disk/disk_free": {
-            "metric": "disk_free",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/unlockRow_num_ops": {
             "metric": "rpc.rpc.unlockRow_num_ops",
             "pointInTime": true,
@@ -3808,21 +3703,6 @@
           },
           "metrics/rpc/bulkLoadHFiles/aboveOneSec/_num_ops": {
             "metric": "rpc.rpc.bulkLoadHFiles.aboveOneSec._num_ops",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_user": {
-            "metric": "cpu_user",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/swap_free": {
-            "metric": "swap_free",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_system": {
-            "metric": "cpu_system",
             "pointInTime": true,
             "temporal": true
           },
@@ -3951,11 +3831,6 @@
             "pointInTime": false,
             "temporal": true
           },
-          "metrics/memory/mem_shared": {
-            "metric": "mem_shared",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/hbase/regionserver/getRequestLatency_max": {
             "metric": "regionserver.Server.Get_max",
             "pointInTime": false,
@@ -4003,11 +3878,6 @@
           },
           "metrics/ugi/loginFailure_avg_time": {
             "metric": "ugi.UgiMetrics.LoginFailureAvgTime",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_num": {
-            "metric": "cpu_num",
             "pointInTime": true,
             "temporal": true
           },
@@ -4505,11 +4375,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_idle": {
-            "metric": "cpu_idle",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/rollHLogWriter/aboveOneSec/_avg_time": {
             "metric": "rpc.rpc.rollHLogWriter.aboveOneSec._avg_time",
             "pointInTime": true,
@@ -4635,11 +4500,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_wio": {
-            "metric": "cpu_wio",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/getConfiguration/aboveOneSec/_avg_time": {
             "metric": "rpc.rpc.getConfiguration.aboveOneSec._avg_time",
             "pointInTime": true,
@@ -4682,11 +4542,6 @@
           },
           "metrics/rpc/disableTable_avg_time": {
             "metric": "rpc.rpc.disableTable_avg_time",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_total": {
-            "metric": "mem_total",
             "pointInTime": true,
             "temporal": true
           },
@@ -4827,11 +4682,6 @@
           },
           "metrics/rpc/getServerName/aboveOneSec/_avg_time": {
             "metric": "rpc.rpc.getServerName.aboveOneSec._avg_time",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_nice": {
-            "metric": "cpu_nice",
             "pointInTime": true,
             "temporal": true
           },
@@ -5255,11 +5105,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/memory/mem_free": {
-            "metric": "mem_free",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/execCoprocessor/aboveOneSec/_avg_time": {
             "metric": "rpc.rpc.execCoprocessor.aboveOneSec._avg_time",
             "pointInTime": true,
@@ -5305,18 +5150,8 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/memory/mem_cached": {
-            "metric": "mem_cached",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/getConfiguration/aboveOneSec/_num_ops": {
             "metric": "rpc.rpc.getConfiguration.aboveOneSec._num_ops",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/disk/disk_total": {
-            "metric": "disk_total",
             "pointInTime": true,
             "temporal": true
           },
@@ -5610,11 +5445,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/disk/disk_free": {
-            "metric": "disk_free",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/unlockRow_num_ops": {
             "metric": "rpc.rpc.unlockRow_num_ops",
             "pointInTime": true,
@@ -5652,21 +5482,6 @@
           },
           "metrics/rpc/bulkLoadHFiles/aboveOneSec/_num_ops": {
             "metric": "rpc.rpc.bulkLoadHFiles.aboveOneSec._num_ops",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_user": {
-            "metric": "cpu_user",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/swap_free": {
-            "metric": "swap_free",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_system": {
-            "metric": "cpu_system",
             "pointInTime": true,
             "temporal": true
           },
@@ -5750,11 +5565,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/memory/mem_shared": {
-            "metric": "mem_shared",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/getProtocolSignature_num_ops": {
             "metric": "rpc.rpc.getProtocolSignature_num_ops",
             "pointInTime": true,
@@ -5772,11 +5582,6 @@
           },
           "metrics/ugi/loginFailure_avg_time": {
             "metric": "ugi.UgiMetrics.LoginFailureAvgTime",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_num": {
-            "metric": "cpu_num",
             "pointInTime": true,
             "temporal": true
           },
@@ -5997,11 +5802,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_idle": {
-            "metric": "cpu_idle",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/rollHLogWriter/aboveOneSec/_avg_time": {
             "metric": "rpc.rpc.rollHLogWriter.aboveOneSec._avg_time",
             "pointInTime": true,
@@ -6112,11 +5912,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_wio": {
-            "metric": "cpu_wio",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/getConfiguration/aboveOneSec/_avg_time": {
             "metric": "rpc.rpc.getConfiguration.aboveOneSec._avg_time",
             "pointInTime": true,
@@ -6159,11 +5954,6 @@
           },
           "metrics/rpc/disableTable_avg_time": {
             "metric": "rpc.rpc.disableTable_avg_time",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_total": {
-            "metric": "mem_total",
             "pointInTime": true,
             "temporal": true
           },
@@ -6299,11 +6089,6 @@
           },
           "metrics/rpc/ReceivedBytes": {
             "metric": "rpc.rpc.ReceivedBytes",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_nice": {
-            "metric": "cpu_nice",
             "pointInTime": true,
             "temporal": true
           },
@@ -6702,11 +6487,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/memory/mem_free": {
-            "metric": "mem_free",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/execCoprocessor/aboveOneSec/_avg_time": {
             "metric": "rpc.rpc.execCoprocessor.aboveOneSec._avg_time",
             "pointInTime": true,
@@ -6749,16 +6529,6 @@
           },
           "metrics/rpc/close_num_ops": {
             "metric": "rpc.rpc.close_num_ops",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_cached": {
-            "metric": "mem_cached",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/disk/disk_total": {
-            "metric": "disk_total",
             "pointInTime": true,
             "temporal": true
           },
@@ -7027,11 +6797,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/disk/disk_free": {
-            "metric": "disk_free",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/unlockRow_num_ops": {
             "metric": "rpc.rpc.unlockRow_num_ops",
             "pointInTime": true,
@@ -7069,21 +6834,6 @@
           },
           "metrics/rpc/bulkLoadHFiles/aboveOneSec/_num_ops": {
             "metric": "rpc.rpc.bulkLoadHFiles.aboveOneSec._num_ops",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_user": {
-            "metric": "cpu_user",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/swap_free": {
-            "metric": "swap_free",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_system": {
-            "metric": "cpu_system",
             "pointInTime": true,
             "temporal": true
           },
@@ -7167,11 +6917,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/memory/mem_shared": {
-            "metric": "mem_shared",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/getProtocolSignature_num_ops": {
             "metric": "rpc.rpc.getProtocolSignature_num_ops",
             "pointInTime": true,
@@ -7189,11 +6934,6 @@
           },
           "metrics/ugi/loginFailure_avg_time": {
             "metric": "ugi.UgiMetrics.LoginFailureAvgTime",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_num": {
-            "metric": "cpu_num",
             "pointInTime": true,
             "temporal": true
           },
@@ -7386,11 +7126,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_idle": {
-            "metric": "cpu_idle",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/modifyTable/aboveOneSec/_num_ops": {
             "metric": "rpc.rpc.modifyTable.aboveOneSec._num_ops",
             "pointInTime": true,
@@ -7486,11 +7221,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_wio": {
-            "metric": "cpu_wio",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/hbase/master/splitTime_num_ops": {
             "metric": "master.FileSystem.HlogSplitTime_num_ops",
             "pointInTime": false,
@@ -7523,11 +7253,6 @@
           },
           "metrics/rpc/disableTable_avg_time": {
             "metric": "rpc.rpc.disableTable_avg_time",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_total": {
-            "metric": "mem_total",
             "pointInTime": true,
             "temporal": true
           },
@@ -7624,11 +7349,6 @@
           "metrics/rpc/ReceivedBytes": {
             "metric": "rpc.rpc.ReceivedBytes",
             "pointInTime": false,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_nice": {
-            "metric": "cpu_nice",
-            "pointInTime": true,
             "temporal": true
           },
           "metrics/rpc/bulkLoadHFiles_num_ops": {
@@ -7946,11 +7666,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/memory/mem_free": {
-            "metric": "mem_free",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/assign_num_ops": {
             "metric": "rpc.rpc.assign_num_ops",
             "pointInTime": true,
@@ -7976,18 +7691,8 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/memory/mem_cached": {
-            "metric": "mem_cached",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/addColumn/aboveOneSec/_num_ops": {
             "metric": "rpc.rpc.addColumn.aboveOneSec._num_ops",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/disk/disk_total": {
-            "metric": "disk_total",
             "pointInTime": true,
             "temporal": true
           },
@@ -8191,11 +7896,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/disk/disk_free": {
-            "metric": "disk_free",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/jvm/threadsWaiting": {
             "metric": "jvm.JvmMetrics.ThreadsWaiting",
             "pointInTime": true,
@@ -8228,21 +7928,6 @@
           },
           "metrics/rpc/regionServerStartup_num_ops": {
             "metric": "rpc.rpc.regionServerStartup_num_ops",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_user": {
-            "metric": "cpu_user",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/swap_free": {
-            "metric": "swap_free",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_system": {
-            "metric": "cpu_system",
             "pointInTime": true,
             "temporal": true
           },
@@ -8316,11 +8001,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/memory/mem_shared": {
-            "metric": "mem_shared",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/getProtocolSignature_num_ops": {
             "metric": "rpc.rpc.getProtocolSignature_num_ops",
             "pointInTime": true,
@@ -8328,11 +8008,6 @@
           },
           "metrics/rpc/getProtocolVersion/aboveOneSec/_num_ops": {
             "metric": "rpc.rpc.getProtocolVersion.aboveOneSec._num_ops",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_num": {
-            "metric": "cpu_num",
             "pointInTime": true,
             "temporal": true
           },
@@ -10593,11 +10268,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_idle": {
-            "metric": "cpu_idle",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/modifyTable/aboveOneSec/_num_ops": {
             "metric": "rpc.rpc.modifyTable.aboveOneSec._num_ops",
             "pointInTime": true,
@@ -10693,11 +10363,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_wio": {
-            "metric": "cpu_wio",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/hbase/master/splitTime_num_ops": {
             "metric": "master.FileSystem.HlogSplitTime_num_ops",
             "pointInTime": false,
@@ -10730,11 +10395,6 @@
           },
           "metrics/rpc/disableTable_avg_time": {
             "metric": "rpc.rpc.disableTable_avg_time",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_total": {
-            "metric": "mem_total",
             "pointInTime": true,
             "temporal": true
           },
@@ -10831,11 +10491,6 @@
           "metrics/rpc/ReceivedBytes": {
             "metric": "rpc.rpc.ReceivedBytes",
             "pointInTime": false,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_nice": {
-            "metric": "cpu_nice",
-            "pointInTime": true,
             "temporal": true
           },
           "metrics/rpc/bulkLoadHFiles_num_ops": {
@@ -11153,11 +10808,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/memory/mem_free": {
-            "metric": "mem_free",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/assign_num_ops": {
             "metric": "rpc.rpc.assign_num_ops",
             "pointInTime": true,
@@ -11183,18 +10833,8 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/memory/mem_cached": {
-            "metric": "mem_cached",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/addColumn/aboveOneSec/_num_ops": {
             "metric": "rpc.rpc.addColumn.aboveOneSec._num_ops",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/disk/disk_total": {
-            "metric": "disk_total",
             "pointInTime": true,
             "temporal": true
           },
@@ -11398,11 +11038,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/disk/disk_free": {
-            "metric": "disk_free",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/jvm/threadsWaiting": {
             "metric": "jvm.JvmMetrics.ThreadsWaiting",
             "pointInTime": true,
@@ -11435,21 +11070,6 @@
           },
           "metrics/rpc/regionServerStartup_num_ops": {
             "metric": "rpc.rpc.regionServerStartup_num_ops",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_user": {
-            "metric": "cpu_user",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/swap_free": {
-            "metric": "swap_free",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_system": {
-            "metric": "cpu_system",
             "pointInTime": true,
             "temporal": true
           },
@@ -11523,11 +11143,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/memory/mem_shared": {
-            "metric": "mem_shared",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/getProtocolSignature_num_ops": {
             "metric": "rpc.rpc.getProtocolSignature_num_ops",
             "pointInTime": true,
@@ -11535,11 +11150,6 @@
           },
           "metrics/rpc/getProtocolVersion/aboveOneSec/_num_ops": {
             "metric": "rpc.rpc.getProtocolVersion.aboveOneSec._num_ops",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_num": {
-            "metric": "cpu_num",
             "pointInTime": true,
             "temporal": true
           },

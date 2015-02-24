@@ -179,11 +179,6 @@
             "pointInTime": false,
             "temporal": true
           },
-          "metrics/cpu/cpu_idle": {
-            "metric": "cpu_idle",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpcdetailed/versionRequest_avg_time": {
             "metric": "rpcdetailed.rpcdetailed.VersionRequestAvgTime",
             "pointInTime": true,
@@ -191,11 +186,6 @@
           },
           "metrics/cpu/cpu_aidle": {
             "metric": "cpu_aidle",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_free": {
-            "metric": "mem_free",
             "pointInTime": true,
             "temporal": true
           },
@@ -239,16 +229,6 @@
             "pointInTime": false,
             "temporal": true
           },
-          "metrics/memory/mem_cached": {
-            "metric": "mem_cached",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/disk/disk_total": {
-            "metric": "disk_total",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpcdetailed/setPermission_avg_time": {
             "metric": "rpcdetailed.rpcdetailed.SetPermissionAvgTime",
             "pointInTime": true,
@@ -289,11 +269,6 @@
             "pointInTime": false,
             "temporal": true
           },
-          "metrics/cpu/cpu_wio": {
-            "metric": "cpu_wio",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpcdetailed/create_avg_time": {
             "metric": "rpcdetailed.rpcdetailed.CreateAvgTime",
             "pointInTime": false,
@@ -302,11 +277,6 @@
           "metrics/dfs/FSNamesystem/PendingReplicationBlocks": {
             "metric": "dfs.FSNamesystem.PendingReplicationBlocks",
             "pointInTime": false,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_speed": {
-            "metric": "cpu_speed",
-            "pointInTime": true,
             "temporal": true
           },
           "metrics/rpcdetailed/delete_avg_time": {
@@ -361,11 +331,6 @@
           },
           "metrics/network/pkts_in": {
             "metric": "pkts_in",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_total": {
-            "metric": "mem_total",
             "pointInTime": true,
             "temporal": true
           },
@@ -469,11 +434,6 @@
             "pointInTime": false,
             "temporal": true
           },
-          "metrics/cpu/cpu_nice": {
-            "metric": "cpu_nice",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/dfs/namenode/blockReport_num_ops": {
             "metric": "dfs.namenode.BlockReportNumOps",
             "pointInTime": false,
@@ -512,11 +472,6 @@
           "metrics/jvm/threadsWaiting": {
             "metric": "jvm.JvmMetrics.ThreadsWaiting",
             "pointInTime": false,
-            "temporal": true
-          },
-          "metrics/disk/disk_free": {
-            "metric": "disk_free",
-            "pointInTime": true,
             "temporal": true
           },
           "metrics/dfs/FSNamesystem/BlocksTotal": {
@@ -559,23 +514,8 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_user": {
-            "metric": "cpu_user",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/swap_free": {
-            "metric": "swap_free",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/load/load_five": {
             "metric": "load_five",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_system": {
-            "metric": "cpu_system",
             "pointInTime": true,
             "temporal": true
           },
@@ -679,11 +619,6 @@
             "pointInTime": false,
             "temporal": true
           },
-          "metrics/memory/mem_shared": {
-            "metric": "mem_shared",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/dfs/FSNamesystem/UnderReplicatedBlocks": {
             "metric": "dfs.FSNamesystem.UnderReplicatedBlocks",
             "pointInTime": false,
@@ -707,11 +642,6 @@
           "metrics/ugi/loginFailure_avg_time": {
             "metric": "ugi.UgiMetrics.LoginFailureAvgTime",
             "pointInTime": false,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_num": {
-            "metric": "cpu_num",
-            "pointInTime": true,
             "temporal": true
           },
           "metrics/rpcdetailed/getProtocolVersion_avg_time": {
@@ -1596,11 +1526,6 @@
             "pointInTime": false,
             "temporal": true
           },
-          "metrics/cpu/cpu_idle": {
-            "metric": "cpu_idle",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpcdetailed/versionRequest_avg_time": {
             "metric": "rpcdetailed.rpcdetailed.VersionRequestAvgTime",
             "pointInTime": true,
@@ -1608,11 +1533,6 @@
           },
           "metrics/cpu/cpu_aidle": {
             "metric": "cpu_aidle",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_free": {
-            "metric": "mem_free",
             "pointInTime": true,
             "temporal": true
           },
@@ -1656,16 +1576,6 @@
             "pointInTime": false,
             "temporal": true
           },
-          "metrics/memory/mem_cached": {
-            "metric": "mem_cached",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/disk/disk_total": {
-            "metric": "disk_total",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpcdetailed/setPermission_avg_time": {
             "metric": "rpcdetailed.rpcdetailed.SetPermissionAvgTime",
             "pointInTime": true,
@@ -1706,11 +1616,6 @@
             "pointInTime": false,
             "temporal": true
           },
-          "metrics/cpu/cpu_wio": {
-            "metric": "cpu_wio",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpcdetailed/create_avg_time": {
             "metric": "rpcdetailed.rpcdetailed.CreateAvgTime",
             "pointInTime": false,
@@ -1719,11 +1624,6 @@
           "metrics/dfs/FSNamesystem/PendingReplicationBlocks": {
             "metric": "dfs.FSNamesystem.PendingReplicationBlocks",
             "pointInTime": false,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_speed": {
-            "metric": "cpu_speed",
-            "pointInTime": true,
             "temporal": true
           },
           "metrics/rpcdetailed/delete_avg_time": {
@@ -1778,11 +1678,6 @@
           },
           "metrics/network/pkts_in": {
             "metric": "pkts_in",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_total": {
-            "metric": "mem_total",
             "pointInTime": true,
             "temporal": true
           },
@@ -1886,11 +1781,6 @@
             "pointInTime": false,
             "temporal": true
           },
-          "metrics/cpu/cpu_nice": {
-            "metric": "cpu_nice",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/dfs/namenode/blockReport_num_ops": {
             "metric": "dfs.namenode.BlockReportNumOps",
             "pointInTime": false,
@@ -1929,11 +1819,6 @@
           "metrics/jvm/threadsWaiting": {
             "metric": "jvm.JvmMetrics.ThreadsWaiting",
             "pointInTime": false,
-            "temporal": true
-          },
-          "metrics/disk/disk_free": {
-            "metric": "disk_free",
-            "pointInTime": true,
             "temporal": true
           },
           "metrics/dfs/FSNamesystem/BlocksTotal": {
@@ -1976,23 +1861,8 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_user": {
-            "metric": "cpu_user",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/swap_free": {
-            "metric": "swap_free",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/load/load_five": {
             "metric": "load_five",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_system": {
-            "metric": "cpu_system",
             "pointInTime": true,
             "temporal": true
           },
@@ -2096,11 +1966,6 @@
             "pointInTime": false,
             "temporal": true
           },
-          "metrics/memory/mem_shared": {
-            "metric": "mem_shared",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/dfs/FSNamesystem/UnderReplicatedBlocks": {
             "metric": "dfs.FSNamesystem.UnderReplicatedBlocks",
             "pointInTime": false,
@@ -2124,11 +1989,6 @@
           "metrics/ugi/loginFailure_avg_time": {
             "metric": "ugi.UgiMetrics.LoginFailureAvgTime",
             "pointInTime": false,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_num": {
-            "metric": "cpu_num",
-            "pointInTime": true,
             "temporal": true
           },
           "metrics/rpcdetailed/getProtocolVersion_avg_time": {
@@ -2965,11 +2825,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_idle": {
-            "metric": "cpu_idle",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/rollHLogWriter/aboveOneSec/_avg_time": {
             "metric": "rpc.rpc.rollHLogWriter.aboveOneSec._avg_time",
             "pointInTime": true,
@@ -3100,11 +2955,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_wio": {
-            "metric": "cpu_wio",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/getConfiguration/aboveOneSec/_avg_time": {
             "metric": "rpc.rpc.getConfiguration.aboveOneSec._avg_time",
             "pointInTime": true,
@@ -3157,11 +3007,6 @@
           },
           "metrics/rpc/disableTable_avg_time": {
             "metric": "rpc.rpc.disableTable_avg_time",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_total": {
-            "metric": "mem_total",
             "pointInTime": true,
             "temporal": true
           },
@@ -3302,11 +3147,6 @@
           },
           "metrics/rpc/ReceivedBytes": {
             "metric": "rpc.rpc.ReceivedBytes",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_nice": {
-            "metric": "cpu_nice",
             "pointInTime": true,
             "temporal": true
           },
@@ -3780,11 +3620,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/memory/mem_free": {
-            "metric": "mem_free",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/execCoprocessor/aboveOneSec/_avg_time": {
             "metric": "rpc.rpc.execCoprocessor.aboveOneSec._avg_time",
             "pointInTime": true,
@@ -3830,18 +3665,8 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/memory/mem_cached": {
-            "metric": "mem_cached",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/getConfiguration/aboveOneSec/_num_ops": {
             "metric": "rpc.rpc.getConfiguration.aboveOneSec._num_ops",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/disk/disk_total": {
-            "metric": "disk_total",
             "pointInTime": true,
             "temporal": true
           },
@@ -4160,11 +3985,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/disk/disk_free": {
-            "metric": "disk_free",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/jvm/threadsWaiting": {
             "metric": "jvm.JvmMetrics.ThreadsWaiting",
             "pointInTime": true,
@@ -4207,21 +4027,6 @@
           },
           "metrics/rpc/bulkLoadHFiles/aboveOneSec/_num_ops": {
             "metric": "rpc.rpc.bulkLoadHFiles.aboveOneSec._num_ops",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_user": {
-            "metric": "cpu_user",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/swap_free": {
-            "metric": "swap_free",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_system": {
-            "metric": "cpu_system",
             "pointInTime": true,
             "temporal": true
           },
@@ -4315,11 +4120,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/memory/mem_shared": {
-            "metric": "mem_shared",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/getProtocolSignature_num_ops": {
             "metric": "rpc.rpc.getProtocolSignature_num_ops",
             "pointInTime": true,
@@ -4337,11 +4137,6 @@
           },
           "metrics/ugi/loginFailure_avg_time": {
             "metric": "ugi.UgiMetrics.LoginFailureAvgTime",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_num": {
-            "metric": "cpu_num",
             "pointInTime": true,
             "temporal": true
           },
@@ -4592,11 +4387,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_idle": {
-            "metric": "cpu_idle",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/rollHLogWriter/aboveOneSec/_avg_time": {
             "metric": "rpc.rpc.rollHLogWriter.aboveOneSec._avg_time",
             "pointInTime": true,
@@ -4712,11 +4502,6 @@
             "pointInTime": false,
             "temporal": true
           },
-          "metrics/cpu/cpu_wio": {
-            "metric": "cpu_wio",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/getConfiguration/aboveOneSec/_avg_time": {
             "metric": "rpc.rpc.getConfiguration.aboveOneSec._avg_time",
             "pointInTime": true,
@@ -4769,11 +4554,6 @@
           },
           "metrics/rpc/disableTable_avg_time": {
             "metric": "rpc.rpc.disableTable_avg_time",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_total": {
-            "metric": "mem_total",
             "pointInTime": true,
             "temporal": true
           },
@@ -4910,11 +4690,6 @@
           "metrics/rpc/ReceivedBytes": {
             "metric": "rpc.rpc.ReceivedBytes",
             "pointInTime": false,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_nice": {
-            "metric": "cpu_nice",
-            "pointInTime": true,
             "temporal": true
           },
           "metrics/rpc/bulkLoadHFiles_num_ops": {
@@ -5362,11 +5137,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/memory/mem_free": {
-            "metric": "mem_free",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/execCoprocessor/aboveOneSec/_avg_time": {
             "metric": "rpc.rpc.execCoprocessor.aboveOneSec._avg_time",
             "pointInTime": true,
@@ -5412,18 +5182,8 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/memory/mem_cached": {
-            "metric": "mem_cached",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/getConfiguration/aboveOneSec/_num_ops": {
             "metric": "rpc.rpc.getConfiguration.aboveOneSec._num_ops",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/disk/disk_total": {
-            "metric": "disk_total",
             "pointInTime": true,
             "temporal": true
           },
@@ -5712,11 +5472,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/disk/disk_free": {
-            "metric": "disk_free",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/jvm/threadsWaiting": {
             "metric": "jvm.JvmMetrics.ThreadsWaiting",
             "pointInTime": false,
@@ -5759,21 +5514,6 @@
           },
           "metrics/rpc/bulkLoadHFiles/aboveOneSec/_num_ops": {
             "metric": "rpc.rpc.bulkLoadHFiles.aboveOneSec._num_ops",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_user": {
-            "metric": "cpu_user",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/swap_free": {
-            "metric": "swap_free",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_system": {
-            "metric": "cpu_system",
             "pointInTime": true,
             "temporal": true
           },
@@ -5867,11 +5607,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/memory/mem_shared": {
-            "metric": "mem_shared",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpc/getProtocolSignature_num_ops": {
             "metric": "rpc.rpc.getProtocolSignature_num_ops",
             "pointInTime": true,
@@ -5890,11 +5625,6 @@
           "metrics/ugi/loginFailure_avg_time": {
             "metric": "ugi.UgiMetrics.LoginFailureAvgTime",
             "pointInTime": false,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_num": {
-            "metric": "cpu_num",
-            "pointInTime": true,
             "temporal": true
           },
           "metrics/rpc/rollHLogWriter_num_ops": {
@@ -6501,11 +6231,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_idle": {
-            "metric": "cpu_idle",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/dfs/journalNode/syncs60s99thPercentileLatencyMicros": {
             "metric": "dfs.JournalNode.Syncs60s99thPercentileLatencyMicros",
             "pointInTime": true,
@@ -6513,11 +6238,6 @@
           },
           "metrics/cpu/cpu_aidle": {
             "metric": "cpu_aidle",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_free": {
-            "metric": "mem_free",
             "pointInTime": true,
             "temporal": true
           },
@@ -6551,16 +6271,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/memory/mem_cached": {
-            "metric": "mem_cached",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/disk/disk_total": {
-            "metric": "disk_total",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/dfs/journalNode/lastPromisedEpoch": {
             "metric": "dfs.JournalNode.LastPromisedEpoch",
             "pointInTime": true,
@@ -6586,18 +6296,8 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_wio": {
-            "metric": "cpu_wio",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpcdetailed/acceptRecovery_avg_time": {
             "metric": "rpcdetailed.rpcdetailed.AcceptRecoveryAvgTime",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_speed": {
-            "metric": "cpu_speed",
             "pointInTime": true,
             "temporal": true
           },
@@ -6618,11 +6318,6 @@
           },
           "metrics/network/pkts_in": {
             "metric": "pkts_in",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_total": {
-            "metric": "mem_total",
             "pointInTime": true,
             "temporal": true
           },
@@ -6696,11 +6391,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_nice": {
-            "metric": "cpu_nice",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/dfs/journalNode/batchesWritten": {
             "metric": "dfs.JournalNode.BatchesWritten",
             "pointInTime": true,
@@ -6733,11 +6423,6 @@
           },
           "metrics/jvm/threadsWaiting": {
             "metric": "jvm.JvmMetrics.ThreadsWaiting",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/disk/disk_free": {
-            "metric": "disk_free",
             "pointInTime": true,
             "temporal": true
           },
@@ -6776,23 +6461,8 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_user": {
-            "metric": "cpu_user",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/swap_free": {
-            "metric": "swap_free",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/load/load_five": {
             "metric": "load_five",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_system": {
-            "metric": "cpu_system",
             "pointInTime": true,
             "temporal": true
           },
@@ -6856,11 +6526,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/memory/mem_shared": {
-            "metric": "mem_shared",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/dfs/journalNode/syncs3600s50thPercentileLatencyMicros": {
             "metric": "dfs.JournalNode.Syncs3600s50thPercentileLatencyMicros",
             "pointInTime": true,
@@ -6873,11 +6538,6 @@
           },
           "metrics/ugi/loginFailure_avg_time": {
             "metric": "ugi.UgiMetrics.LoginFailureAvgTime",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_num": {
-            "metric": "cpu_num",
             "pointInTime": true,
             "temporal": true
           },
@@ -7023,11 +6683,6 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_idle": {
-            "metric": "cpu_idle",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/dfs/journalNode/syncs60s99thPercentileLatencyMicros": {
             "metric": "dfs.JournalNode.Syncs60s99thPercentileLatencyMicros",
             "pointInTime": true,
@@ -7035,11 +6690,6 @@
           },
           "metrics/cpu/cpu_aidle": {
             "metric": "cpu_aidle",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_free": {
-            "metric": "mem_free",
             "pointInTime": true,
             "temporal": true
           },
@@ -7073,16 +6723,6 @@
             "pointInTime": false,
             "temporal": true
           },
-          "metrics/memory/mem_cached": {
-            "metric": "mem_cached",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/disk/disk_total": {
-            "metric": "disk_total",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/dfs/journalNode/lastPromisedEpoch": {
             "metric": "dfs.JournalNode.LastPromisedEpoch",
             "pointInTime": true,
@@ -7108,19 +6748,9 @@
             "pointInTime": false,
             "temporal": true
           },
-          "metrics/cpu/cpu_wio": {
-            "metric": "cpu_wio",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/rpcdetailed/acceptRecovery_avg_time": {
             "metric": "rpcdetailed.rpcdetailed.AcceptRecoveryAvgTime",
             "pointInTime": false,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_speed": {
-            "metric": "cpu_speed",
-            "pointInTime": true,
             "temporal": true
           },
           "metrics/rpc/RpcProcessingTime_avg_time": {
@@ -7140,11 +6770,6 @@
           },
           "metrics/network/pkts_in": {
             "metric": "pkts_in",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/mem_total": {
-            "metric": "mem_total",
             "pointInTime": true,
             "temporal": true
           },
@@ -7218,11 +6843,6 @@
             "pointInTime": false,
             "temporal": true
           },
-          "metrics/cpu/cpu_nice": {
-            "metric": "cpu_nice",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/dfs/journalNode/batchesWritten": {
             "metric": "dfs.JournalNode.BatchesWritten",
             "pointInTime": true,
@@ -7256,11 +6876,6 @@
           "metrics/jvm/threadsWaiting": {
             "metric": "jvm.JvmMetrics.ThreadsWaiting",
             "pointInTime": false,
-            "temporal": true
-          },
-          "metrics/disk/disk_free": {
-            "metric": "disk_free",
-            "pointInTime": true,
             "temporal": true
           },
           "metrics/rpcdetailed/newEpoch_avg_time": {
@@ -7298,23 +6913,8 @@
             "pointInTime": true,
             "temporal": true
           },
-          "metrics/cpu/cpu_user": {
-            "metric": "cpu_user",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/memory/swap_free": {
-            "metric": "swap_free",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/load/load_five": {
             "metric": "load_five",
-            "pointInTime": true,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_system": {
-            "metric": "cpu_system",
             "pointInTime": true,
             "temporal": true
           },
@@ -7378,11 +6978,6 @@
             "pointInTime": false,
             "temporal": true
           },
-          "metrics/memory/mem_shared": {
-            "metric": "mem_shared",
-            "pointInTime": true,
-            "temporal": true
-          },
           "metrics/dfs/journalNode/syncs3600s50thPercentileLatencyMicros": {
             "metric": "dfs.JournalNode.Syncs3600s50thPercentileLatencyMicros",
             "pointInTime": true,
@@ -7396,11 +6991,6 @@
           "metrics/ugi/loginFailure_avg_time": {
             "metric": "ugi.UgiMetrics.LoginFailureAvgTime",
             "pointInTime": false,
-            "temporal": true
-          },
-          "metrics/cpu/cpu_num": {
-            "metric": "cpu_num",
-            "pointInTime": true,
             "temporal": true
           },
           "metrics/rpcdetailed/journal_num_ops": {
