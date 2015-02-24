@@ -135,10 +135,10 @@ public class EventsTest {
    */
   @Test
   public void testServiceInstalledEvent() throws Exception {
-    Class<?> eventClass = ServiceInstalledEvent.class;
-    Assert.assertFalse(m_listener.isEventReceived(eventClass));
+    Class<? extends AmbariEvent> eventClass = ServiceInstalledEvent.class;
+    Assert.assertFalse(m_listener.isAmbariEventReceived(eventClass));
     installHdfsService();
-    Assert.assertTrue(m_listener.isEventReceived(eventClass));
+    Assert.assertTrue(m_listener.isAmbariEventReceived(eventClass));
   }
 
   /**
@@ -148,11 +148,11 @@ public class EventsTest {
    */
   @Test
   public void testServiceRemovedEvent() throws Exception {
-    Class<?> eventClass = ServiceRemovedEvent.class;
-    Assert.assertFalse(m_listener.isEventReceived(eventClass));
+    Class<? extends AmbariEvent> eventClass = ServiceRemovedEvent.class;
+    Assert.assertFalse(m_listener.isAmbariEventReceived(eventClass));
     installHdfsService();
     m_cluster.deleteAllServices();
-    Assert.assertTrue(m_listener.isEventReceived(eventClass));
+    Assert.assertTrue(m_listener.isAmbariEventReceived(eventClass));
   }
 
   /**
@@ -162,13 +162,13 @@ public class EventsTest {
    */
   @Test
   public void testServiceComponentUninstalledEvent() throws Exception {
-    Class<?> eventClass = ServiceComponentUninstalledEvent.class;
+    Class<? extends AmbariEvent> eventClass = ServiceComponentUninstalledEvent.class;
     installHdfsService();
 
-    Assert.assertFalse(m_listener.isEventReceived(eventClass));
+    Assert.assertFalse(m_listener.isAmbariEventReceived(eventClass));
     m_cluster.getServiceComponentHosts(HOSTNAME).get(0).delete();
 
-    Assert.assertTrue(m_listener.isEventReceived(eventClass));
+    Assert.assertTrue(m_listener.isAmbariEventReceived(eventClass));
   }
 
   /**
@@ -180,32 +180,32 @@ public class EventsTest {
   public void testMaintenanceModeEvents() throws Exception {
     installHdfsService();
     Service service = m_cluster.getService("HDFS");
-    Class<?> eventClass = MaintenanceModeEvent.class;
+    Class<? extends AmbariEvent> eventClass = MaintenanceModeEvent.class;
 
-    Assert.assertFalse(m_listener.isEventReceived(eventClass));
+    Assert.assertFalse(m_listener.isAmbariEventReceived(eventClass));
     service.setMaintenanceState(MaintenanceState.ON);
-    Assert.assertTrue(m_listener.isEventReceived(eventClass));
-    Assert.assertEquals(1, m_listener.getEventReceivedCount(eventClass));
+    Assert.assertTrue(m_listener.isAmbariEventReceived(eventClass));
+    Assert.assertEquals(1, m_listener.getAmbariEventReceivedCount(eventClass));
 
     m_listener.reset();
-    Assert.assertFalse(m_listener.isEventReceived(eventClass));
+    Assert.assertFalse(m_listener.isAmbariEventReceived(eventClass));
 
     List<ServiceComponentHost> componentHosts = m_cluster.getServiceComponentHosts(HOSTNAME);
     ServiceComponentHost componentHost = componentHosts.get(0);
     componentHost.setMaintenanceState(MaintenanceState.OFF);
 
-    Assert.assertTrue(m_listener.isEventReceived(eventClass));
-    Assert.assertEquals(1, m_listener.getEventReceivedCount(eventClass));
+    Assert.assertTrue(m_listener.isAmbariEventReceived(eventClass));
+    Assert.assertEquals(1, m_listener.getAmbariEventReceivedCount(eventClass));
 
     m_listener.reset();
-    Assert.assertFalse(m_listener.isEventReceived(eventClass));
+    Assert.assertFalse(m_listener.isAmbariEventReceived(eventClass));
 
     Host host = m_clusters.getHost(HOSTNAME);
     host.setMaintenanceState(m_cluster.getClusterId(), MaintenanceState.ON);
     host.setMaintenanceState(m_cluster.getClusterId(), MaintenanceState.OFF);
 
-    Assert.assertTrue(m_listener.isEventReceived(eventClass));
-    Assert.assertEquals(2, m_listener.getEventReceivedCount(eventClass));
+    Assert.assertTrue(m_listener.isAmbariEventReceived(eventClass));
+    Assert.assertEquals(2, m_listener.getAmbariEventReceivedCount(eventClass));
   }
 
   /**

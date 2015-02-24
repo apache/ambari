@@ -22,6 +22,7 @@ import java.text.MessageFormat;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.AlertStateChangeEvent;
+import org.apache.ambari.server.events.InitialAlertEvent;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.orm.dao.AlertSummaryDTO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
@@ -72,12 +73,27 @@ public class AlertAggregateListener {
   }
 
   /**
-   * Consume an alert that was received.
+   * Consumes an {@link InitialAlertEvent}.
    */
   @Subscribe
-  public void onAlertEvent(AlertStateChangeEvent event) {
+  public void onInitialAlertEvent(InitialAlertEvent event) {
+    onAlertEvent(event.getClusterId(), event.getAlert());
+  }
+
+  /**
+   * Consumes an {@link AlertStateChangeEvent}.
+   */
+  @Subscribe
+  public void onAlertStateChangeEvent(AlertStateChangeEvent event) {
+    onAlertEvent(event.getClusterId(), event.getAlert());
+  }
+
+  /**
+   * Calculates the aggregate alert state for the aggregated alert specified.
+   */
+  private void onAlertEvent(long clusterId, Alert alert) {
     AlertDefinition aggregateDefinition = m_aggregateMapping.getAggregateDefinition(
-        event.getClusterId(), event.getAlert().getName());
+        clusterId, alert.getName());
 
     if (null == aggregateDefinition || null == m_alertsDao) {
       return;
@@ -85,8 +101,8 @@ public class AlertAggregateListener {
 
     AggregateSource aggregateSource = (AggregateSource) aggregateDefinition.getSource();
 
-    AlertSummaryDTO summary = m_alertsDao.findAggregateCounts(
-        event.getClusterId(), aggregateSource.getAlertName());
+    AlertSummaryDTO summary = m_alertsDao.findAggregateCounts(clusterId,
+        aggregateSource.getAlertName());
 
     // OK should be based off of true OKs and those in maintenance mode
     int okCount = summary.getOkCount() + summary.getMaintenanceCount();
@@ -96,16 +112,16 @@ public class AlertAggregateListener {
     int unknownCount = summary.getUnknownCount();
     int totalCount = okCount + warningCount + criticalCount + unknownCount;
 
-    Alert alert = new Alert(aggregateDefinition.getName(), null,
+    Alert aggregateAlert = new Alert(aggregateDefinition.getName(), null,
         aggregateDefinition.getServiceName(), null, null, AlertState.UNKNOWN);
 
-    alert.setLabel(aggregateDefinition.getLabel());
-    alert.setTimestamp(System.currentTimeMillis());
+    aggregateAlert.setLabel(aggregateDefinition.getLabel());
+    aggregateAlert.setTimestamp(System.currentTimeMillis());
 
     if (0 == totalCount) {
-      alert.setText("There are no instances of the aggregated alert.");
+      aggregateAlert.setText("There are no instances of the aggregated alert.");
     } else if (summary.getUnknownCount() > 0) {
-      alert.setText("There are alerts with a state of UNKNOWN.");
+      aggregateAlert.setText("There are alerts with a state of UNKNOWN.");
     } else {
       Reporting reporting = aggregateSource.getReporting();
 
@@ -115,25 +131,29 @@ public class AlertAggregateListener {
       double value = (double) (numerator) / denominator;
 
       if (value >= reporting.getCritical().getValue()) {
-        alert.setState(AlertState.CRITICAL);
-        alert.setText(MessageFormat.format(reporting.getCritical().getText(),
+        aggregateAlert.setState(AlertState.CRITICAL);
+        aggregateAlert.setText(MessageFormat.format(
+            reporting.getCritical().getText(),
             denominator, numerator));
 
       } else if (value >= reporting.getWarning().getValue()) {
-        alert.setState(AlertState.WARNING);
-        alert.setText(MessageFormat.format(reporting.getWarning().getText(),
+        aggregateAlert.setState(AlertState.WARNING);
+        aggregateAlert.setText(MessageFormat.format(
+            reporting.getWarning().getText(),
             denominator, numerator));
 
       } else {
-        alert.setState(AlertState.OK);
-        alert.setText(MessageFormat.format(reporting.getOk().getText(),
+        aggregateAlert.setState(AlertState.OK);
+        aggregateAlert.setText(MessageFormat.format(
+            reporting.getOk().getText(),
             denominator, numerator));
       }
-
     }
 
     // make a new event and allow others to consume it
-    AlertReceivedEvent aggEvent = new AlertReceivedEvent(event.getClusterId(), alert);
+    AlertReceivedEvent aggEvent = new AlertReceivedEvent(clusterId,
+        aggregateAlert);
+
     m_publisher.publish(aggEvent);
   }
 }
