@@ -24,6 +24,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
 from resource_management.core import shell
 from setup_ranger import setup_ranger
+from ranger_service import ranger_service
 import upgrade
 
 class RangerAdmin(Script):
@@ -33,7 +34,7 @@ class RangerAdmin(Script):
 
   def install(self, env):
     self.install_packages(env)
-    setup_ranger()
+    self.configure(env)
 
   def stop(self, env, rolling_restart=False):
     import params
@@ -48,11 +49,10 @@ class RangerAdmin(Script):
 
   def start(self, env, rolling_restart=False):
     import params
-    
     env.set_params(params)
-    setup_ranger()
-    no_op_test = format('ps -ef | grep proc_rangeradmin | grep -v grep')
-    Execute(format('{params.ranger_start}'), user=params.unix_user, not_if=no_op_test)
+    self.configure(env)
+    ranger_service('ranger_admin')
+
 
   def status(self, env):
     cmd = 'ps -ef | grep proc_rangeradmin | grep -v grep'
@@ -65,8 +65,9 @@ class RangerAdmin(Script):
 
   def configure(self, env):
     import params
-
     env.set_params(params)
+    
+    setup_ranger()
 
 
 if __name__ == "__main__":

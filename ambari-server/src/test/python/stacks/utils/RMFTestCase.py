@@ -238,6 +238,8 @@ def Template(name, **kwargs):
 def StaticFile(name, **kwargs):
   with RMFTestCase.env:
     from resource_management.core.source import StaticFile
+    from resource_management.core import sudo
+    sudo.read_file = lambda path: 'dummy_output'
     return StaticFile(name, **kwargs)
   
 def InlineTemplate(name, **kwargs):

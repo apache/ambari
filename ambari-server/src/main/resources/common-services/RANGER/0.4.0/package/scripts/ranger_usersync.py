@@ -24,6 +24,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
 from resource_management.core import shell
 from setup_ranger import setup_usersync
+from ranger_service import ranger_service
 import upgrade
 
 class RangerUsersync(Script):
@@ -33,7 +34,7 @@ class RangerUsersync(Script):
 
   def install(self, env):
     self.install_packages(env)
-    setup_usersync()
+    self.configure(env)
 
   def stop(self, env, rolling_restart=False):
     import params
@@ -48,11 +49,10 @@ class RangerUsersync(Script):
 
   def start(self, env, rolling_restart=False):
     import params
-
     env.set_params(params)
-    setup_usersync()
-    no_op_test = format('ps -ef | grep proc_rangerusersync | grep -v grep')
-    Execute(format('{params.usersync_start}'), not_if=no_op_test)
+    self.configure(env)
+    ranger_service('ranger_usersync')
+
 
   def status(self, env):
     cmd = 'ps -ef | grep proc_rangerusersync | grep -v grep'
@@ -65,8 +65,8 @@ class RangerUsersync(Script):
 
   def configure(self, env):
     import params
-
     env.set_params(params)
+    setup_usersync()
 
 
 if __name__ == "__main__":

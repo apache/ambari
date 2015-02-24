@@ -19,7 +19,6 @@ limitations under the License.
 """
 import sys
 import fileinput
-import shutil
 import os
 from resource_management import *
 from resource_management.core.logger import Logger
@@ -37,12 +36,12 @@ def setup_ranger():
               path=["/bin", "/usr/bin/"],
               sudo=True)                        
 
-    file_path = params.ranger_home + '/install.properties'
-
-    if os.path.isfile(file_path):
-      shutil.copyfile(file_path, params.ranger_home + '/install-bk.properties')
-    else:
-      raise Fail('Ranger admin {0} file does not exist'.format(file_path))
+    file_path = format("{ranger_home}/install.properties")
+    bk_file_path = format("{ranger_home}/install-bk.properties")
+    
+    File(bk_file_path,
+         content = StaticFile(file_path),
+    )
 
     write_properties_to_file(file_path, admin_properties())
     ##if db flavor == oracle - set oracle home env variable
@@ -50,21 +49,32 @@ def setup_ranger():
       env_dict = {'JAVA_HOME': params.java_home, 'ORACLE_HOME':params.oracle_home, 'LD_LIBRARY_PATH':params.oracle_home} 
     else: 
       env_dict = {'JAVA_HOME': params.java_home}
-    cmd = format('cd {params.ranger_home} && {params.ranger_home}/setup.sh')
+    setup_sh = format("cd {ranger_home} && ") + as_sudo([format('{ranger_home}/setup.sh')])
     
     try:
-      Execute(cmd, environment=env_dict, logoutput=True)
-    except Exception, e:
-      if os.path.isfile(params.ranger_home + '/install-bk.properties'):
-        os.remove(file_path)
-        os.rename(params.ranger_home + '/install-bk.properties', file_path)
+      Execute(setup_sh, 
+              environment=env_dict, 
+              logoutput=True,
+      )
+    except Fail, e:
+      if os.path.isfile(bk_file_path):
+        File(file_path,
+          action = "delete",
+        )
+        Execute(('mv', bk_file_path, file_path),
+          sudo = True,
+        )
       raise Fail('Ranger installation Failed, {0}'.format(str(e)))
 
     do_post_installation()
 
-    if os.path.isfile(params.ranger_home + '/install-bk.properties'):
-      os.remove(file_path)
-      os.rename(params.ranger_home + '/install-bk.properties', file_path)
+    if os.path.isfile(bk_file_path):
+      File(file_path,
+        action = "delete",
+      )
+      Execute(('mv', bk_file_path, file_path),
+        sudo = True,
+      )
     else:
       raise Fail('Ranger admin install.properties backup file doesnot exist')
 
@@ -73,7 +83,7 @@ def do_post_installation():
 
   Logger.info('Performing Ranger post installation')
 
-  file_path = params.ranger_conf + '/ranger_webserver.properties'
+  file_path = format("{ranger_conf}/ranger_webserver.properties")
   ranger_site = dict()
   ranger_site['http.service.port'] = params.http_service_port
   ranger_site['https.service.port'] = params.https_service_port
@@ -85,7 +95,7 @@ def do_post_installation():
 
   ranger_site.clear()
 
-  file_path = params.ranger_conf + '/xa_system.properties'
+  file_path = format("{ranger_conf}/xa_system.properties")
   ranger_site['http.enabled'] = params.http_enabled
   write_properties_to_file(file_path, ranger_site)
   Logger.info('Performing Ranger post installation DONE')
@@ -94,11 +104,17 @@ def do_post_installation():
 def setup_usersync():
   import params
 
-  file_path = params.usersync_home + '/install.properties'
+  file_path = format("{usersync_home}/install.properties")
   write_properties_to_file(file_path, usersync_properties())
 
-  cmd = format('cd {params.usersync_home} && {params.usersync_home}/setup.sh')
+  cmd = format("cd {usersync_home} && ") + as_sudo([format('{usersync_home}/setup.sh')])
   Execute(cmd, environment={'JAVA_HOME': params.java_home}, logoutput=True)
+  Execute(('chown', params.unix_user, params.usersync_start),
+    sudo = True,
+  )
+  Execute(('chown', params.unix_user, params.usersync_stop),
+    sudo = True,
+  )
 
 def write_properties_to_file(file_path, value):
   for key in value:
@@ -112,8 +128,14 @@ def modify_config(filepath, variable, setting):
 
   if ' ' in S:
     S = '%s' % S
+    
+  tmp_filepath = format("{tmp_dir}/temporary_ranger_config.properties")
+  # we need to copy so non-root user is able to read it.
+  File(tmp_filepath,
+    content = StaticFile(filepath),
+  )
 
-  for line in fileinput.input(filepath, inplace=1):
+  for line in fileinput.input(tmp_filepath, inplace=1):
     if not line.lstrip(' ').startswith('#') and '=' in line:
       _infile_var = str(line.split('=')[0].rstrip(' '))
       _infile_set = str(line.split('=')[1].lstrip(' ').rstrip())
@@ -122,13 +144,17 @@ def modify_config(filepath, variable, setting):
         if _infile_set.lstrip(' ') == S:
           already_set = True
         else:
-          line = "%s=%s\n" % (V, S)
+          line = format("{V}={S}\n")
 
     sys.stdout.write(line)
+    
+  # copy it back
+  File(filepath,
+    content = StaticFile(tmp_filepath),
+  )
 
   if not var_found:
-    with open(filepath, "a") as f:
-      f.write("%s=%s\n" % (V, S))
+    Execute(format("echo '{V}={S}\\n' | ") + as_sudo(['tee', '-a', filepath]))
   elif already_set == True:
     pass
   else:

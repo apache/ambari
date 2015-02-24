@@ -25,6 +25,7 @@ from resource_management.core.source import StaticFile
 from resource_management.core.source import DownloadSource
 from resource_management.core.source import Template
 from resource_management.core.source import InlineTemplate
+from resource_management.core import sudo
 
 from ambari_jinja2 import UndefinedError, TemplateNotFound
 import urllib2
@@ -34,46 +35,41 @@ import os
 @patch.object(System, "os_family", new = 'redhat')
 class TestContentSources(TestCase):
 
-  @patch("__builtin__.open")
+  @patch.object(os.path, "isfile")
   @patch.object(os.path, "join")
-  def test_static_file_absolute_path(self, join_mock, open_mock):
+  def test_static_file_absolute_path(self, join_mock, is_file_mock):
     """
     Testing StaticFile source with absolute path
     """
-    file_mock = MagicMock(name = 'file_mock')
-    file_mock.__enter__.return_value = file_mock
-    file_mock.read.return_value = 'content'
-    open_mock.return_value = file_mock
+    sudo.read_file = lambda path: 'content'
+    is_file_mock.return_value = True
 
     with Environment("/base") as env:
       static_file = StaticFile("/absolute/path/file")
       content = static_file.get_content()
 
     self.assertEqual('content', content)
-    self.assertEqual(file_mock.read.call_count, 1)
+    self.assertEqual(is_file_mock.call_count, 1)
     self.assertEqual(join_mock.call_count, 0)
 
 
-  @patch("__builtin__.open")
+  @patch.object(os.path, "isfile")
   @patch.object(os.path, "join")
-  def test_static_file_relative_path(self, join_mock, open_mock):
+  def test_static_file_relative_path(self, join_mock, is_file_mock):
     """
     Testing StaticFile source with relative path
     """
-    file_mock = MagicMock(name = 'file_mock')
-    file_mock.__enter__.return_value = file_mock
-    file_mock.read.return_value = 'content'
-    open_mock.return_value = file_mock
+    sudo.read_file = lambda path: 'content'
+    is_file_mock.return_value = True
 
     with Environment("/base") as env:
       static_file = StaticFile("relative/path/file")
       content = static_file.get_content()
 
     self.assertEqual('content', content)
-    self.assertEqual(file_mock.read.call_count, 1)
+    self.assertEqual(is_file_mock.call_count, 1)
     self.assertEqual(join_mock.call_count, 1)
     join_mock.assert_called_with('/base', 'files', 'relative/path/file')
-    self.assertEqual(open_mock.call_count, 1)
 
   @patch.object(urllib2, "build_opener")
   @patch.object(urllib2, "Request")

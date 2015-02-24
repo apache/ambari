@@ -25,6 +25,7 @@ from resource_management.core.environment import Environment
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.core.utils import checked_unite
+from resource_management.core import sudo
 
 __all__ = ["Source", "Template", "InlineTemplate", "StaticFile", "DownloadSource"]
 
@@ -69,8 +70,11 @@ class StaticFile(Source):
       basedir = self.env.config.basedir
       path = os.path.join(basedir, "files", self.name)
       
-    with open(path, "rb") as fp:
-      return fp.read()
+    if not os.path.isfile(path) and not os.path.islink(path):
+      raise Fail("{0} Source file {1} is not found".format(repr(self), path))
+    
+    return sudo.read_file(path)
+    
 
 
 try:
