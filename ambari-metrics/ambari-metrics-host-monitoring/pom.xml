@@ -28,6 +28,7 @@
   <packaging>pom</packaging>
   <version>2.0.0-SNAPSHOT</version>
   <artifactId>ambari-metrics-host-monitoring</artifactId>
+  <name>Ambari Metrics Monitor</name>
   <properties>
     <resmonitor.install.dir>
       /usr/lib/python2.6/site-packages/resource_monitoring

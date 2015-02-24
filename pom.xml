@@ -345,6 +345,7 @@
 
             <!-- Metrics module -->
             <!-- psutil : external lib, Apache 2.0 license included as a source file -->
+            <exclude>ambari-metrics/target/**</exclude>
             <exclude>ambari-metrics/ambari-metrics-host-monitoring/src/main/python/psutil/**</exclude>
             <exclude>ambari-metrics/target/rpm/ambari-metrics/SPECS/ambari-metrics.spec</exclude>
             <exclude>ambari-metrics/ambari-metrics-timelineservice/src/test/resources/lib/org/apache/phoenix/phoenix-core-tests/4.2.0/phoenix-core-tests-4.2.0.pom</exclude>
@@ -417,6 +418,7 @@
         <module>ambari-agent</module>
         <module>ambari-client</module>
         <module>ambari-shell</module>
+        <module>ambari-metrics/ambari-metrics-common</module>
       </modules>
     </profile>
     <profile>
@@ -429,6 +431,7 @@
         <module>ambari-agent</module>
         <module>ambari-client</module>
         <module>ambari-shell</module>
+        <module>ambari-metrics/ambari-metrics-common</module>
       </modules>
     </profile>
     <profile>
@@ -447,6 +450,7 @@
         <module>ambari-agent</module>
         <module>ambari-client</module>
         <module>ambari-shell</module>
+        <module>ambari-metrics/ambari-metrics-common</module>
       </modules>
     </profile>
     <profile>
@@ -472,6 +476,7 @@
         <module>ambari-agent</module>
         <module>ambari-client</module>
         <module>ambari-shell</module>
+        <module>ambari-metrics/ambari-metrics-common</module>
       </modules>
     </profile>
     <profile>
