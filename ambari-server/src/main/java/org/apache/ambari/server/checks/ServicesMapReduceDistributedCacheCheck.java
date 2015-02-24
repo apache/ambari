@@ -26,7 +26,10 @@ import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.PrereqCheckType;
+import org.apache.commons.lang.StringUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -57,18 +60,37 @@ public class ServicesMapReduceDistributedCacheCheck extends AbstractCheckDescrip
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
-    final String configType = "mapred-site";
+    final String mrConfigType = "mapred-site";
+    final String coreSiteConfigType = "core-site";
     final Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
-    final DesiredConfig desiredConfig = desiredConfigs.get(configType);
-    final Config config = cluster.getConfig(configType, desiredConfig.getTag());
-    final String frameworkPath = config.getProperties().get("mapreduce.application.framework.path");
-    final String applicationClasspath = config.getProperties().get("mapreduce.application.classpath");
-    if (frameworkPath == null || applicationClasspath == null || !frameworkPath.startsWith("hdfs:/")) {
+    final DesiredConfig mrDesiredConfig = desiredConfigs.get(mrConfigType);
+    final DesiredConfig coreSiteDesiredConfig = desiredConfigs.get(coreSiteConfigType);
+    final Config mrConfig = cluster.getConfig(mrConfigType, mrDesiredConfig.getTag());
+    final Config coreSiteConfig = cluster.getConfig(coreSiteConfigType, coreSiteDesiredConfig.getTag());
+    final String applicationClasspath = mrConfig.getProperties().get("mapreduce.application.classpath");
+    final String frameworkPath = mrConfig.getProperties().get("mapreduce.application.framework.path");
+    final String defaultFS = coreSiteConfig.getProperties().get("fs.defaultFS");
+
+    List<String> errorMessages = new ArrayList<String>();
+    if (applicationClasspath == null || applicationClasspath.isEmpty()) {
+      errorMessages.add("Property mapreduce.application.classpath is missing from mapred-site, please add it.");
+    }
+
+    if (frameworkPath == null || frameworkPath.isEmpty()) {
+      errorMessages.add("Property mapreduce.application.framework.path is missing from mapred-site, please add it.");
+    }
+
+    if (!errorMessages.isEmpty()) {
       prerequisiteCheck.getFailedOn().add("MAP_REDUCE");
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason("MapReduce should reference hadoop libraries from the distributed cache. Make sure that "
-          + "mapreduce.application.framework.path and mapreduce.application.classpath properties are present in mapred.site.xml "
-          + "and point to hdfs:/... urls");
+      prerequisiteCheck.setFailReason(StringUtils.join(errorMessages, " "));
+      return;
+    }
+
+    if (!frameworkPath.matches("^[^:]*dfs:.*") && (defaultFS == null || !defaultFS.matches("^[^:]*dfs:.*"))) {
+      prerequisiteCheck.getFailedOn().add("MAP_REDUCE");
+      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+      prerequisiteCheck.setFailReason("MapReduce should reference hadoop libraries from the distributed cache. Please make sure that either mapred-site's mapreduce.application.framework.path or core-site's fs.defaultFS begins with *dfs:");
     }
   }
 }

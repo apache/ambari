@@ -34,7 +34,6 @@ import org.apache.ambari.server.checks.ServicesMapReduceDistributedCacheCheck;
 import org.apache.ambari.server.checks.ServicesMaintenanceModeCheck;
 import org.apache.ambari.server.checks.ServicesNamenodeHighAvailabilityCheck;
 import org.apache.ambari.server.checks.SecondaryNamenodeDeletedCheck;
-import org.apache.ambari.server.checks.ServicesOozieDistributedCacheCheck;
 import org.apache.ambari.server.checks.ServicesTezDistributedCacheCheck;
 import org.apache.ambari.server.checks.ServicesUpCheck;
 import org.apache.ambari.server.checks.ServicesYarnWorkPreservingCheck;
@@ -92,8 +91,6 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
   @Inject
   private static ServicesUpCheck servicesUpCheck;
   @Inject
-  private static ServicesOozieDistributedCacheCheck servicesOozieDistributedCacheCheck;
-  @Inject
   private static ServicesTezDistributedCacheCheck servicesTezDistributedCacheCheck;
 
   /**
@@ -112,7 +109,6 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
       add(servicesJobsDistributedCacheCheck);
       add(heartbeatCheck);
       add(servicesUpCheck);
-      add(servicesOozieDistributedCacheCheck);
       add(servicesTezDistributedCacheCheck);
     }
   };

@@ -26,7 +26,10 @@ import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.PrereqCheckType;
+import org.apache.commons.lang.StringUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -57,29 +60,47 @@ public class ServicesTezDistributedCacheCheck extends AbstractCheckDescriptor {
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
-    final String configType = "tez-site";
+    final String tezConfigType = "tez-site";
+    final String coreSiteConfigType = "core-site";
     final Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
-    final DesiredConfig desiredConfig = desiredConfigs.get(configType);
-    final Config config = cluster.getConfig(configType, desiredConfig.getTag());
-    final String libUris = config.getProperties().get("tez.lib.uris");
-    final String useHadoopLibs = config.getProperties().get("tez.use.cluster.hadoop-libs");
-    if (libUris == null || useHadoopLibs == null) {
+    final DesiredConfig tezDesiredConfig = desiredConfigs.get(tezConfigType);
+    final Config tezConfig = cluster.getConfig(tezConfigType, tezDesiredConfig.getTag());
+    final DesiredConfig coreSiteDesiredConfig = desiredConfigs.get(coreSiteConfigType);
+    final Config coreSiteConfig = cluster.getConfig(coreSiteConfigType, coreSiteDesiredConfig.getTag());
+    final String libUris = tezConfig.getProperties().get("tez.lib.uris");
+    final String useHadoopLibs = tezConfig.getProperties().get("tez.use.cluster.hadoop-libs");
+    final String defaultFS = coreSiteConfig.getProperties().get("fs.defaultFS");
+
+    List<String> errorMessages = new ArrayList<String>();
+    if (libUris == null || libUris.isEmpty()) {
+      errorMessages.add("Property tez.lib.uris is missing from tez-site, please add it.");
+    }
+
+    if (useHadoopLibs == null || useHadoopLibs.isEmpty()) {
+      errorMessages.add("Property tez.use.cluster.hadoop-libs is missing from tez-site, please add it.");
+    }
+
+    if (!errorMessages.isEmpty()) {
       prerequisiteCheck.getFailedOn().add("TEZ");
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason("tez-site should have properties tez.lib.uris and tez.use.cluster.hadoop-libs");
+      prerequisiteCheck.setFailReason(StringUtils.join(errorMessages, " "));
       return;
     }
-    if (!libUris.startsWith("hdfs:/") || !libUris.contains("tar.gz")) {
-      prerequisiteCheck.getFailedOn().add("TEZ");
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason("tez-site property tez.lib.uris should point to hdfs:/... url with .tar.gz archive of TEZ binaries");
-      return;
+
+    if (!libUris.matches("^[^:]*dfs:.*") && (defaultFS == null || !defaultFS.matches("^[^:]*dfs:.*"))) {
+      errorMessages.add("Property tez.lib.uris in tez-site should use a distributed file system. Please make sure that either tez-site's tez.lib.uris or core-site's fs.defaultFS begins with *dfs:");
+    }
+    if (!libUris.contains("tar.gz")) {
+      errorMessages.add("Property tez.lib.uris in tez-site should end in tar.gz");
     }
     if (Boolean.parseBoolean(useHadoopLibs)) {
+      errorMessages.add("Property tez.use.cluster.hadoop-libs in tez-site should be set to false");
+    }
+
+    if (!errorMessages.isEmpty()) {
       prerequisiteCheck.getFailedOn().add("TEZ");
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason("tez-site property tez.use.cluster.hadoop-libs should be set to false");
-      return;
+      prerequisiteCheck.setFailReason(StringUtils.join(errorMessages, " "));
     }
   }
 }
