@@ -248,9 +248,6 @@ public abstract class AbstractProviderModule implements ProviderModule,
     } catch (SystemException e) {
       LOG.error("Exception during checkInit.", e);
     }
-    if (clusterGangliaCollectorMap.isEmpty() && clusterMetricCollectorMap.isEmpty()) {
-      resetMetricProviderMap();
-    }
 
     if (!clusterMetricCollectorMap.isEmpty()) {
       return TIMELINE_METRICS;
@@ -258,68 +255,6 @@ public abstract class AbstractProviderModule implements ProviderModule,
       return GANGLIA;
     }
     return null;
-  }
-
-  private void resetMetricProviderMap() {
-    LOG.info("Resetting metric property provider.");
-    ResourceProvider provider = getResourceProvider(Resource.Type.Cluster);
-
-    Set<String> propertyIds = new HashSet<String>();
-    propertyIds.add(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID);
-
-    Map<String, String> requestInfoProperties = new HashMap<String, String>();
-    requestInfoProperties.put(ClusterResourceProvider.GET_IGNORE_PERMISSIONS_PROPERTY_ID, "true");
-
-    Request request = PropertyHelper.getReadRequest(propertyIds,
-      requestInfoProperties, null, null, null);
-
-    try {
-      Set<Resource> clusters = provider.getResources(request, null);
-
-      if (clusters != null && !clusters.isEmpty()) {
-        for (Resource cluster : clusters) {
-          String clusterName = (String) cluster.getPropertyValue(CLUSTER_NAME_PROPERTY_ID);
-
-          request = PropertyHelper.getReadRequest(HOST_COMPONENT_HOST_NAME_PROPERTY_ID,
-            HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
-
-          Predicate predicate =
-            new PredicateBuilder().property(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID)
-              .equals(clusterName).and().property(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID)
-              .equals(GANGLIA_SERVER).toPredicate();
-
-          provider = getResourceProvider(Resource.Type.HostComponent);
-          Set<Resource> hostComponents = provider.getResources(request, predicate);
-
-          if (hostComponents != null && !hostComponents.isEmpty()) {
-            Resource hostComponent = hostComponents.iterator().next();
-            String hostName = (String) hostComponent.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID);
-            clusterGangliaCollectorMap.put(clusterName, hostName);
-          }
-
-          predicate = new PredicateBuilder().property(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID)
-            .equals(clusterName).and().property(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID)
-            .equals(METRIC_SERVER).toPredicate();
-
-          hostComponents = provider.getResources(request, predicate);
-          if (hostComponents != null && !hostComponents.isEmpty()) {
-            Resource hostComponent = hostComponents.iterator().next();
-            String hostName = (String) hostComponent.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID);
-            clusterMetricCollectorMap.put(clusterName, hostName);
-          }
-        }
-      }
-
-    } catch (SystemException e) {
-      LOG.warn("Error finding metrics provider.", e);
-    } catch (UnsupportedPropertyException e) {
-      LOG.warn("Error finding metrics provider.", e);
-    } catch (NoSuchResourceException e) {
-      LOG.warn("Error finding metrics provider.", e);
-    } catch (NoSuchParentResourceException e) {
-      LOG.warn("Error finding metrics provider.", e);
-    }
-
   }
 
   // ----- MetricsHostProvider ------------------------------------------------
