@@ -1761,6 +1761,11 @@
       <artifactId>snmp4j</artifactId>
       <version>1.10.1</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.ambari</groupId>
+      <artifactId>ambari-metrics-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 
   <pluginRepositories>
