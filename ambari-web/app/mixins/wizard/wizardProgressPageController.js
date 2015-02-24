@@ -203,7 +203,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
         + tasksInCurrentStage.filterProperty('Tasks.status', 'TIMEDOUT').length;
       var queuedActions = tasksInCurrentStage.filterProperty('Tasks.status', 'QUEUED').length;
       var inProgressActions = tasksInCurrentStage.filterProperty('Tasks.status', 'IN_PROGRESS').length;
-      var progress = Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / tasksInCurrentStage.length * 100);
+      var progress = completedActions == this.get('tasks.length') ? 100 : Math.floor(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / tasksInCurrentStage.length * 100);
       this.get('tasks').findProperty('id', currentTaskId).set('progress', progress);
     }
 
