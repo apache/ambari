@@ -401,6 +401,8 @@ App.MainAlertDefinitionsView = App.TableView.extend({
       this.set('value', '');
     },
 
+    emptyValue: '',
+
     /**
      * Update list of <code>App.AlertGroup</code> used in the filter
      * @method updateContent
@@ -446,6 +448,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
         if (selectEntry) {
           selectEntry.set('selected', true);
         }
+        this.get('parentView').updateFilter(this.get('column'), value, 'alert_group');
       } else {
         this.set('value', '');
         this.get('parentView').updateFilter(this.get('column'), '', 'alert_group');
