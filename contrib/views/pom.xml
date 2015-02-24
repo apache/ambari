@@ -38,6 +38,7 @@
     <module>pig</module>
     <module>slider</module>
     <module>capacity-scheduler</module>
+    <module>hive</module>
     <module>tez</module>
   </modules>
   <build>
