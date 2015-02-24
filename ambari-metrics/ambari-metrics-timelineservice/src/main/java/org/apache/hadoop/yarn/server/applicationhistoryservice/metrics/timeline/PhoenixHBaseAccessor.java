@@ -34,7 +34,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -408,6 +407,7 @@ public class PhoenixHBaseAccessor {
 
     Connection conn = getConnection();
     PreparedStatement stmt = null;
+    ResultSet rs = null;
     TimelineMetrics metrics = new TimelineMetrics();
 
     try {
@@ -416,14 +416,20 @@ public class PhoenixHBaseAccessor {
         stmt = getLatestMetricRecords(condition, conn, metrics);
       } else {
         stmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
-
-        ResultSet rs = stmt.executeQuery();
+        rs = stmt.executeQuery();
         while (rs.next()) {
           appendMetricFromResultSet(metrics, condition, metricFunctions, rs);
         }
       }
 
     } finally {
+      if (rs != null) {
+        try {
+          rs.close();
+        } catch (SQLException e) {
+          // Ignore
+        }
+      }
       if (stmt != null) {
         try {
           stmt.close();
@@ -492,11 +498,21 @@ public class PhoenixHBaseAccessor {
       splitCondition.setCurrentMetric(metricName);
       stmt = PhoenixTransactSQL.prepareGetLatestMetricSqlStmt(conn,
         splitCondition);
-
-      ResultSet rs = stmt.executeQuery();
-      while (rs.next()) {
-        TimelineMetric metric = getLastTimelineMetricFromResultSet(rs);
-        metrics.getMetrics().add(metric);
+      ResultSet rs = null;
+      try {
+        rs = stmt.executeQuery();
+        while (rs.next()) {
+          TimelineMetric metric = getLastTimelineMetricFromResultSet(rs);
+          metrics.getMetrics().add(metric);
+        }
+      } finally {
+        if (rs != null) {
+          try {
+            rs.close();
+          } catch (SQLException e) {
+            // Ignore
+          }
+        }
       }
     }
 
@@ -601,12 +617,22 @@ public class PhoenixHBaseAccessor {
       splitCondition.setCurrentMetric(metricName);
       stmt = PhoenixTransactSQL.prepareGetLatestAggregateMetricSqlStmt(conn,
         splitCondition);
-
-      ResultSet rs = stmt.executeQuery();
-      while (rs.next()) {
-        TimelineMetric metric = getAggregateTimelineMetricFromResultSet(rs,
-          new Function());
-        metrics.getMetrics().add(metric);
+      ResultSet rs = null;
+      try {
+        rs = stmt.executeQuery();
+        while (rs.next()) {
+          TimelineMetric metric = getAggregateTimelineMetricFromResultSet(rs,
+            new Function());
+          metrics.getMetrics().add(metric);
+        }
+      } finally {
+        if (rs != null) {
+          try {
+            rs.close();
+          } catch (SQLException e) {
+            // Ignore
+          }
+        }
       }
     }
 
