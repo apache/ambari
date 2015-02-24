@@ -79,15 +79,6 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
     ],
     '2': [
       {
-        type: 'sync',
-        callback: function () {
-          this.loadMasterComponentHosts();
-          this.load('hosts');
-        }
-      }
-    ],
-    '2': [
-      {
         type: 'async',
         callback: function () {
           var dfd = $.Deferred();
