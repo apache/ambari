@@ -27,6 +27,7 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ambari-metrics-assembly</artifactId>
+  <name>Ambari Metrics Assembly</name>
   <packaging>pom</packaging>
   <version>2.0.0-SNAPSHOT</version>
 
