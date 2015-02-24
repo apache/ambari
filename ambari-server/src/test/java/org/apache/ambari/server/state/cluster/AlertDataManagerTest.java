@@ -440,7 +440,7 @@ public class AlertDataManagerTest {
     AlertStateChangeEvent event = new AlertStateChangeEvent(
         m_cluster.getClusterId(), alert, current, AlertState.OK);
 
-    listener.onAlertEvent(event);
+    listener.onAlertStateChangeEvent(event);
     assertNotNull(ref.get());
     assertEquals(AlertState.OK, ref.get().getState());
     assertTrue(ref.get().getText().indexOf("0/4") > -1);
@@ -449,7 +449,7 @@ public class AlertDataManagerTest {
     current.getAlertHistory().setAlertState(AlertState.CRITICAL);
     m_dao.merge(current.getAlertHistory());
 
-    listener.onAlertEvent(event);
+    listener.onAlertStateChangeEvent(event);
     assertEquals("aggregate_test", ref.get().getName());
     assertEquals(AlertState.OK, ref.get().getState());
     assertTrue(ref.get().getText().indexOf("1/4") > -1);
@@ -461,7 +461,7 @@ public class AlertDataManagerTest {
     current.getAlertHistory().setAlertState(AlertState.WARNING);
     m_dao.merge(current.getAlertHistory());
 
-    listener.onAlertEvent(event);
+    listener.onAlertStateChangeEvent(event);
     assertEquals("aggregate_test", ref.get().getName());
     assertEquals(AlertState.WARNING, ref.get().getState());
     assertTrue(ref.get().getText().indexOf("2/4") > -1);
@@ -473,7 +473,7 @@ public class AlertDataManagerTest {
     current.getAlertHistory().setAlertState(AlertState.CRITICAL);
     m_dao.merge(current.getAlertHistory());
 
-    listener.onAlertEvent(event);
+    listener.onAlertStateChangeEvent(event);
     assertEquals("aggregate_test", ref.get().getName());
     assertEquals(AlertState.CRITICAL, ref.get().getState());
     assertTrue(ref.get().getText().indexOf("3/4") > -1);

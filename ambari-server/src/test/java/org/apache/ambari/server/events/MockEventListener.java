@@ -37,13 +37,20 @@ public class MockEventListener {
    * When an event is received, its class is captured and the event object is
    * added to the list.
    */
-  private final Map<Class<?>, List<Object>> m_receivedEvents = new HashMap<Class<?>, List<Object>>();
+  private final Map<Class<?>, List<Object>> m_receivedAmbariEvents = new HashMap<Class<?>, List<Object>>();
+
+  /**
+   * When an event is received, its class is captured and the event object is
+   * added to the list.
+   */
+  private final Map<Class<?>, List<Object>> m_receivedAlertEvents = new HashMap<Class<?>, List<Object>>();
 
   /**
    * Resets the captured events.
    */
   public void reset() {
-    m_receivedEvents.clear();
+    m_receivedAmbariEvents.clear();
+    m_receivedAlertEvents.clear();
   }
 
   /**
@@ -52,12 +59,26 @@ public class MockEventListener {
    * @param clazz
    * @return
    */
-  public boolean isEventReceived(Class<?> clazz) {
-    if (!m_receivedEvents.containsKey(clazz)) {
+  public boolean isAmbariEventReceived(Class<? extends AmbariEvent> clazz) {
+    if (!m_receivedAmbariEvents.containsKey(clazz)) {
       return false;
     }
 
-    return m_receivedEvents.get(clazz).size() > 0;
+    return m_receivedAmbariEvents.get(clazz).size() > 0;
+  }
+
+  /**
+   * Gets whether an event of the specified class was received.
+   *
+   * @param clazz
+   * @return
+   */
+  public boolean isAlertEventReceived(Class<? extends AlertEvent> clazz) {
+    if (!m_receivedAlertEvents.containsKey(clazz)) {
+      return false;
+    }
+
+    return m_receivedAlertEvents.get(clazz).size() > 0;
   }
 
   /**
@@ -66,32 +87,51 @@ public class MockEventListener {
    * @param clazz
    * @return
    */
-  public int getEventReceivedCount(Class<?> clazz){
-    if (!m_receivedEvents.containsKey(clazz)) {
+  public int getAmbariEventReceivedCount(Class<? extends AmbariEvent> clazz) {
+    if (!m_receivedAmbariEvents.containsKey(clazz)) {
       return 0;
     }
 
-    return m_receivedEvents.get(clazz).size();
+    return m_receivedAmbariEvents.get(clazz).size();
+  }
+
+  /**
+   * Gets the total number of events received for the specified class.
+   *
+   * @param clazz
+   * @return
+   */
+  public int getAlertEventReceivedCount(Class<? extends AlertEvent> clazz) {
+    if (!m_receivedAlertEvents.containsKey(clazz)) {
+      return 0;
+    }
+
+    return m_receivedAlertEvents.get(clazz).size();
   }
 
   /**
    * @param event
    */
   @Subscribe
-  public void onEvent(AmbariEvent event) {
-    handleEvent(event);
+  public void onAmbariEvent(AmbariEvent event) {
+    List<Object> events = m_receivedAmbariEvents.get(event.getClass());
+    if (null == events) {
+      events = new ArrayList<Object>();
+      m_receivedAmbariEvents.put(event.getClass(), events);
+    }
+
+    events.add(event);
   }
 
   /**
-   * Inserts the event into the map of class to event invocations.
-   *
    * @param event
    */
-  private void handleEvent(Object event) {
-    List<Object> events = m_receivedEvents.get(event.getClass());
+  @Subscribe
+  public void onAlertEvent(AlertEvent event) {
+    List<Object> events = m_receivedAlertEvents.get(event.getClass());
     if (null == events) {
       events = new ArrayList<Object>();
-      m_receivedEvents.put(event.getClass(), events);
+      m_receivedAlertEvents.put(event.getClass(), events);
     }
 
     events.add(event);
