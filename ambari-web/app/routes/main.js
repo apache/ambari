@@ -556,15 +556,16 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         Em.run.next(function () {
           var controller = router.get('mainController');
           controller.dataLoading().done(function () {
-            var service = router.get('mainServiceItemController.content');
-            if (!service || !service.get('isLoaded')) {
-              service = App.Service.find().objectAt(0); // getting the first service to display
-            }
-            if (router.get('mainServiceItemController').get('routeToConfigs')) {
-              router.transitionTo('service.configs', service);
-            }
-            else {
-              router.transitionTo('service.summary', service);
+            if (router.currentState.parentState.name === 'services' && router.currentState.name === 'index') {
+              var service = router.get('mainServiceItemController.content');
+              if (!service || !service.get('isLoaded')) {
+                service = App.Service.find().objectAt(0); // getting the first service to display
+              }
+              if (router.get('mainServiceItemController').get('routeToConfigs')) {
+                router.transitionTo('service.configs', service);
+              } else {
+                router.transitionTo('service.summary', service);
+              }
             }
           });
         });
