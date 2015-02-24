@@ -24,76 +24,128 @@
   <property>
     <name>spark.yarn.executor.memoryOverhead</name>
     <value>384</value>
+    <description>
+      The amount of off heap memory (in megabytes) to be allocated per executor.
+      This is memory that accounts for things like VM overheads, interned strings,
+      other native overheads, etc.
+    </description>
   </property>
 
   <property>
     <name>spark.yarn.driver.memoryOverhead</name>
     <value>384</value>
+    <description>
+      The amount of off heap memory (in megabytes) to be allocated per driver.
+      This is memory that accounts for things like VM overheads, interned strings,
+      other native overheads, etc.
+    </description>
   </property>
 
   <property>
     <name>spark.yarn.applicationMaster.waitTries</name>
     <value>10</value>
+    <description>
+      Set the number of times the ApplicationMaster waits for the the Spark master and then
+      also the number of tries it waits for the SparkContext to be initialized.
+    </description>
   </property>
 
   <property>
     <name>spark.yarn.scheduler.heartbeat.interval-ms</name>
     <value>5000</value>
+    <description>
+      The interval in ms in which the Spark application master heartbeats into the YARN ResourceManager.
+    </description>
   </property>
 
   <property>
     <name>spark.yarn.max.executor.failures</name>
     <value>3</value>
+    <description>
+      The maximum number of executor failures before failing the application.
+    </description>
   </property>
 
   <property>
     <name>spark.yarn.queue</name>
     <value>default</value>
+    <description>
+      The name of the YARN queue to which the application is submitted.
+    </description>
   </property>
 
   <property>
     <name>spark.yarn.containerLauncherMaxThreads</name>
     <value>25</value>
+    <description>
+      The maximum number of threads to use in the application master for launching executor containers.
+    </description>
   </property>
 
   <property>
     <name>spark.yarn.submit.file.replication</name>
     <value>3</value>
+    <description>
+      HDFS replication level for the files uploaded into HDFS for the application.
+      These include things like the Spark jar, the app jar, and any distributed cache files/archives.
+    </description>
   </property>
 
   <property>
     <name>spark.yarn.preserve.staging.files</name>
     <value>false</value>
+    <description>
+      Set to true to preserve the staged files (Spark jar, app jar, distributed cache files) at the 
+      end of the job rather then delete them.
+    </description>
   </property>
 
   <property>
     <name>spark.history.provider</name>
     <value>org.apache.spark.deploy.yarn.history.YarnHistoryProvider</value>
+    <description>
+      Name of the class implementing the application history backend which publishes to YARN Application Timeline Service.
+    </description>
   </property>
 
   <property>
     <name>spark.history.ui.port</name>
     <value>18080</value>
+    <description>
+      The port to which the web interface of the History Server binds.
+    </description>
   </property>
 
   <property>
     <name>spark.driver.extraJavaOptions</name>
     <value></value>
+    <description>
+      Specifies parameters that are passed to the JVM of the Spark driver.
+    </description>
   </property>
 
   <property>
     <name>spark.yarn.am.extraJavaOptions</name>
     <value></value>
+    <description>
+      Specifies the parameters that are passed to the JVM of the Spark Application Master.
+    </description>
   </property>
 
   <property>
     <name>spark.history.kerberos.principal</name>
     <value>none</value>
+    <description>
+      Kerberos principal name for the Spark History Server.
+    </description>
   </property>
 
   <property>
     <name>spark.history.kerberos.keytab</name>
     <value>none</value>
+    <description>
+      Location of the kerberos keytab file for the Spark History Server.
+    </description>
   </property>
 
 </configuration>
