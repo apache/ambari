@@ -43,10 +43,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashSet;
 
 import javax.persistence.EntityManager;
 
 import com.google.inject.AbstractModule;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
@@ -70,9 +72,12 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.state.StackId;
 import org.easymock.Capture;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
@@ -382,6 +387,46 @@ public class UpgradeCatalog200Test {
     upgradeCatalog.executeDMLUpdates();
 
     verify(upgradeCatalog);
+  }
+
+  @Test
+  public void testPersistHDPRepo() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createStrictMock(AmbariManagementController.class);
+    final AmbariMetaInfo mockAmbariMetaInfo = easyMockSupport.createStrictMock(AmbariMetaInfo.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockCluster = easyMockSupport.createStrictMock(Cluster.class);
+    final Map<String, Cluster> clusterMap = new HashMap<String, Cluster>();
+    clusterMap.put("c1",mockCluster);
+    OperatingSystemInfo osi = new OperatingSystemInfo("redhat6");
+    HashSet<OperatingSystemInfo> osiSet = new HashSet<OperatingSystemInfo>();
+    osiSet.add(osi);
+    StackId stackId = new StackId("HDP","2.2");
+    RepositoryInfo mockRepositoryInfo = easyMockSupport.createStrictMock(RepositoryInfo.class);
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getAmbariMetaInfo()).andReturn(mockAmbariMetaInfo);
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(clusterMap).once();
+    expect(mockCluster.getCurrentStackVersion()).andReturn(stackId).once();
+    expect(mockAmbariMetaInfo.getOperatingSystems("HDP", "2.2")).andReturn(osiSet).once();
+    expect(mockAmbariMetaInfo.getRepository("HDP", "2.2", "redhat6", "HDP-2.2")).andReturn(mockRepositoryInfo).once();
+    expect(mockRepositoryInfo.getDefaultBaseUrl()).andReturn("http://baseurl").once();
+    mockAmbariMetaInfo.updateRepoBaseURL("HDP", "2.2", "redhat6", "HDP-2.2", "http://baseurl");
+    expectLastCall().once();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog200.class).persistHDPRepo();
+    easyMockSupport.verifyAll();
   }
 
   @Test

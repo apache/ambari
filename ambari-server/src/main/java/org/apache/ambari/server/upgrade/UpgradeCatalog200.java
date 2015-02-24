@@ -36,6 +36,7 @@ import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
+import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.ServiceDesiredStateDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
@@ -331,10 +332,17 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
       String stackRepoId = stackName + "-" + stackVersion;
 
       for (OperatingSystemInfo osi : ambariMetaInfo.getOperatingSystems(stackName, stackVersion)) {
-        RepositoryInfo repositoryInfo = ambariMetaInfo.getRepository(stackName, stackVersion, osi.getOsType(), stackRepoId);
-        String baseUrl = repositoryInfo.getBaseUrl();
-        ambariMetaInfo.updateRepoBaseURL(stackName, stackVersion, osi.getOsType(),
-                stackRepoId, baseUrl);
+        MetainfoDAO metaInfoDAO = injector.getInstance(MetainfoDAO.class);
+        String repoMetaKey = AmbariMetaInfo.generateRepoMetaKey(stackName,stackVersion,osi.getOsType(),
+                stackRepoId,AmbariMetaInfo.REPOSITORY_XML_PROPERTY_BASEURL);
+        // Check if default repo is used and not persisted
+        if (metaInfoDAO.findByKey(repoMetaKey) == null) {
+          RepositoryInfo repositoryInfo = ambariMetaInfo.getRepository(stackName, stackVersion, osi.getOsType(), stackRepoId);
+          // We save default base url which has not changed during upgrade as base url
+          String baseUrl = repositoryInfo.getDefaultBaseUrl();
+          ambariMetaInfo.updateRepoBaseURL(stackName, stackVersion, osi.getOsType(),
+                  stackRepoId, baseUrl);
+        }
       }
     }
    
