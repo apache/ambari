@@ -77,4 +77,16 @@ public interface StackDefinitionModule <T, I> {
    * @return the module state
    */
   public ModuleState getModuleState();
+  
+  /**
+   * 
+   * @return valid module flag
+   */
+  public boolean isValid();
+
+  /**
+   * 
+   * @param valid set validity flag
+   */
+  public void setValid(boolean valid);
 }

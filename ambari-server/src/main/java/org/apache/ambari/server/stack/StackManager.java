@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -247,11 +248,21 @@ public class StackManager {
           String serviceVersion = serviceFolder.getName();
           ServiceDirectory serviceDirectory = new CommonServiceDirectory(serviceFolder.getPath());
           ServiceMetainfoXml metaInfoXml = serviceDirectory.getMetaInfoFile();
-          for (ServiceInfo serviceInfo : metaInfoXml.getServices()) {
-            ServiceModule serviceModule = new ServiceModule(stackContext, serviceInfo, serviceDirectory, true);
+          if (metaInfoXml != null) {
+            if (metaInfoXml.isValid()) {
+              for (ServiceInfo serviceInfo : metaInfoXml.getServices()) {
+                ServiceModule serviceModule = new ServiceModule(stackContext, serviceInfo, serviceDirectory, true);
 
-            String commonServiceKey = serviceInfo.getName() + StackManager.PATH_DELIMITER + serviceInfo.getVersion();
-            commonServiceModules.put(commonServiceKey, serviceModule);
+                String commonServiceKey = serviceInfo.getName() + StackManager.PATH_DELIMITER + serviceInfo.getVersion();
+                commonServiceModules.put(commonServiceKey, serviceModule);
+              }
+            } else {
+              ServiceModule serviceModule = new ServiceModule(stackContext, new ServiceInfo(), serviceDirectory, true);
+              serviceModule.setValid(false);
+              serviceModule.setErrors(metaInfoXml.getErrors());
+              commonServiceModules.put(metaInfoXml.getSchemaVersion(), serviceModule);
+              metaInfoXml.setSchemaVersion(null);
+            }
           }
         }
       }

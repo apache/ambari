@@ -26,12 +26,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.controller.StackVersionResponse;
+import org.apache.ambari.server.stack.Validable;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.apache.ambari.server.state.stack.UpgradePack;
 
-public class StackInfo implements Comparable<StackInfo>{
+public class StackInfo implements Comparable<StackInfo>, Validable{
   private String name;
   private String version;
   private String minUpgradeVersion;
@@ -46,7 +48,43 @@ public class StackInfo implements Comparable<StackInfo>{
   private Map<String, Map<String, Map<String, String>>> configTypes;
   private Map<String, UpgradePack> upgradePacks;
   private StackRoleCommandOrder roleCommandOrder;
+  private boolean valid = true;
 
+  /**
+   * 
+   * @return valid xml flag
+   */
+  @Override
+  public boolean isValid() {
+    return valid;
+  }
+
+  /**
+   * 
+   * @param valid set validity flag
+   */
+  @Override
+  public void setValid(boolean valid) {
+    this.valid = valid;
+  }    
+
+  private Set<String> errorSet = new HashSet<String>();
+  
+  @Override
+  public void setErrors(String error) {
+    errorSet.add(error);
+  }
+
+  @Override
+  public Collection getErrors() {
+    return errorSet;
+  }   
+  
+  @Override
+  public void setErrors(Collection error) {
+    this.errorSet.addAll(error);
+  }
+  
   /**
    * Meaning: stores subpath from stack root to exact hooks folder for stack. These hooks are
    * applied to all commands for services in current stack.
@@ -153,7 +191,7 @@ public class StackInfo implements Comparable<StackInfo>{
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("Stack name:" + name + "\nversion:" +
-      version + "\nactive:" + active);
+      version + "\nactive:" + active + " \nvalid:" + isValid());
     if (services != null) {
       sb.append("\n\t\tService:");
       for (ServiceInfo service : services) {
@@ -215,7 +253,8 @@ public class StackInfo implements Comparable<StackInfo>{
         isActive(), getParentStackVersion(), getConfigTypeAttributes(),
         (stackDescriptorFileFilePath == null) ? null : new File(stackDescriptorFileFilePath),
         serviceDescriptorFiles,
-        null == upgradePacks ? Collections.<String>emptySet() : upgradePacks.keySet());
+        null == upgradePacks ? Collections.<String>emptySet() : upgradePacks.keySet(),
+        isValid(), getErrors());
   }
 
   public String getMinUpgradeVersion() {

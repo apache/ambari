@@ -18,15 +18,20 @@
 package org.apache.ambari.server.state.stack;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.bind.annotation.XmlAnyAttribute;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.namespace.QName;
+import org.apache.ambari.server.stack.Validable;
 
 import org.apache.ambari.server.state.PropertyInfo;
 
@@ -34,13 +39,52 @@ import org.apache.ambari.server.state.PropertyInfo;
  * The elements within a service's configuration file.
  */
 @XmlRootElement(name="configuration")
-public class ConfigurationXml {
+public class ConfigurationXml implements Validable{
   
   @XmlAnyAttribute
   private Map<QName, String> attributes = new HashMap<QName, String>();
 
   @XmlElement(name="property")
   private List<PropertyInfo> properties = new ArrayList<PropertyInfo>();
+
+  @XmlTransient
+  private boolean valid = true;
+
+  /**
+   * 
+   * @return valid xml flag
+   */
+  @Override
+  public boolean isValid() {
+    return valid;
+  }
+
+  /**
+   * 
+   * @param valid set validity flag
+   */
+  @Override
+  public void setValid(boolean valid) {
+    this.valid = valid;
+  }
+
+  @XmlTransient
+  private Set<String> errorSet = new HashSet<String>();
+  
+  @Override
+  public void setErrors(String error) {
+    errorSet.add(error);
+  }
+
+  @Override
+  public Collection getErrors() {
+    return errorSet;
+  }   
+ 
+  @Override
+  public void setErrors(Collection error) {
+    this.errorSet.addAll(error);
+  }  
   
   /**
    * @return the list of properties contained in a configuration file

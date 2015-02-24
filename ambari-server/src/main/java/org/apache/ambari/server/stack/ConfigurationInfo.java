@@ -20,7 +20,9 @@ package org.apache.ambari.server.stack;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.state.PropertyInfo;
 import org.slf4j.Logger;
@@ -30,7 +32,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Encapsulates configuration properties and attributes for a single type.
  */
-public class ConfigurationInfo {
+public class ConfigurationInfo implements Validable{
   /**
    * Collection of properties
    */
@@ -46,6 +48,11 @@ public class ConfigurationInfo {
    */
   private final static Logger LOG = LoggerFactory.getLogger(ConfigurationInfo.class);
 
+  /**
+   * validity flag
+   */
+  protected boolean valid = true;
+  
   /**
    * Constructor.
    *
@@ -112,7 +119,33 @@ public class ConfigurationInfo {
     this.attributes = attributes;
   }
 
+  @Override
+  public boolean isValid() {
+    return valid;
+  }
 
+  @Override
+  public void setValid(boolean valid) {
+    this.valid = valid;
+  }
+
+  private Set<String> errorSet = new HashSet<String>();
+  
+  @Override
+  public void setErrors(String error) {
+    errorSet.add(error);
+  }
+
+  @Override
+  public Collection getErrors() {
+    return errorSet;
+  }   
+
+  @Override
+  public void setErrors(Collection error) {
+    this.errorSet.addAll(error);
+  }  
+  
   /**
    * Service configuration-types can support different abilities. This
    * enumerates the various abilities that configuration-types can support.

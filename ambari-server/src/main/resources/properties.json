@@ -202,6 +202,8 @@
         "Versions/stack_version",
         "Versions/min_upgrade_version",
         "Versions/active",
+        "Versions/valid",
+        "Versions/stack-errors",
         "Versions/parent_stack_version",
         "Versions/config_types",
         "Versions/kerberos_descriptor",

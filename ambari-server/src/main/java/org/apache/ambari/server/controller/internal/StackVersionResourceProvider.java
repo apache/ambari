@@ -55,6 +55,8 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
   public static final String STACK_NAME_PROPERTY_ID        = PropertyHelper.getPropertyId("Versions", "stack_name");
   public static final String STACK_MIN_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("Versions", "min_upgrade_version");
   public static final String STACK_ACTIVE_PROPERTY_ID      = PropertyHelper.getPropertyId("Versions", "active");
+  public static final String STACK_VALID_PROPERTY_ID      = PropertyHelper.getPropertyId("Versions", "valid");
+  public static final String STACK_ERROR_SET      = PropertyHelper.getPropertyId("Versions", "stack-errors");
   public static final String STACK_CONFIG_TYPES            = PropertyHelper.getPropertyId("Versions", "config_types");
   public static final String STACK_PARENT_PROPERTY_ID      = PropertyHelper.getPropertyId("Versions", "parent_stack_version");
   public static final String KERBEROS_DESCRIPTOR_PROPERTY_ID = PropertyHelper.getPropertyId("Versions", "kerberos_descriptor");
@@ -122,6 +124,12 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
       setResourceProperty(resource, STACK_ACTIVE_PROPERTY_ID,
           response.isActive(), requestedIds);
 
+      setResourceProperty(resource, STACK_VALID_PROPERTY_ID,
+          response.isValid(), requestedIds);
+      
+      setResourceProperty(resource, STACK_ERROR_SET,
+          response.getErrors(), requestedIds);
+      
       setResourceProperty(resource, STACK_PARENT_PROPERTY_ID,
         response.getParentVersion(), requestedIds);
 

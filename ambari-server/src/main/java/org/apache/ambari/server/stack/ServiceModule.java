@@ -37,7 +37,7 @@ import org.apache.ambari.server.state.ServiceInfo;
  * Service module which provides all functionality related to parsing and fully
  * resolving services from the stack definition.
  */
-public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> {
+public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implements Validable{
   /**
    * Corresponding service info
    */
@@ -70,6 +70,11 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> {
    */
   private boolean isCommonService;
 
+  /**
+   * validity flag
+   */
+  protected boolean valid = true;  
+  
   /**
    * Constructor.
    *
@@ -116,7 +121,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> {
       ServiceModule parentModule, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices)
       throws AmbariException {
     ServiceInfo parent = parentModule.getModuleInfo();
-
+    
     if (serviceInfo.getComment() == null) {
       serviceInfo.setComment(parent.getComment());
     }
@@ -243,6 +248,13 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> {
     if (configDirectory != null) {
       for (ConfigurationModule config : configDirectory.getConfigurationModules()) {
           ConfigurationInfo info = config.getModuleInfo();
+          if (isValid()){
+            setValid(config.isValid() && info.isValid());
+            if (!isValid()){
+              setErrors(config.getErrors());
+              setErrors(info.getErrors());
+            }
+          }          
           serviceInfo.getProperties().addAll(info.getProperties());
           serviceInfo.setTypeAttributes(config.getConfigType(), info.getAttributes());
           configurationModules.put(config.getConfigType(), config);
@@ -384,4 +396,31 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> {
       serviceInfo.setTypeAttributes(config.getConfigType(), configInfo.getAttributes());
     }
   }
+
+  @Override
+  public boolean isValid() {
+    return valid;
+  }
+
+  @Override
+  public void setValid(boolean valid) {
+    this.valid = valid;
+  }
+  
+  private Set<String> errorSet = new HashSet<String>();
+  
+  @Override
+  public void setErrors(String error) {
+    errorSet.add(error);
+  }
+
+  @Override
+  public Collection getErrors() {
+    return errorSet;
+  }
+  
+  @Override
+  public void setErrors(Collection error) {
+    this.errorSet.addAll(error);
+  }  
 }

@@ -37,13 +37,14 @@ import javax.xml.bind.annotation.XmlElements;
 import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.stack.Validable;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonFilter;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonFilter("propertiesfilter")
-public class ServiceInfo {
+public class ServiceInfo implements Validable{
 
   /**
    * Format version. Added at schema ver 2
@@ -110,7 +111,45 @@ public class ServiceInfo {
 
   @XmlTransient
   private File kerberosDescriptorFile = null;
+  
+  @XmlTransient
+  private boolean valid = true;
 
+  /**
+   * 
+   * @return valid xml flag
+   */
+  @Override
+  public boolean isValid() {
+    return valid;
+  }
+
+  /**
+   * 
+   * @param valid set validity flag
+   */
+  @Override
+  public void setValid(boolean valid) {
+    this.valid = valid;
+  }
+
+  @XmlTransient
+  private Set<String> errorSet = new HashSet<String>();
+  
+  @Override
+  public void setErrors(String error) {
+    errorSet.add(error);
+  }
+
+  @Override
+  public Collection getErrors() {
+    return errorSet;
+  }   
+  
+  @Override
+  public void setErrors(Collection error) {
+    this.errorSet.addAll(error);
+  }
   /**
    * Internal list of os-specific details (loaded from xml). Added at schema ver 2
    */

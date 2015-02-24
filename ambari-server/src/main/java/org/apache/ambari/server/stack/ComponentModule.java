@@ -26,17 +26,24 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Component module which provides all functionality related to parsing and fully
  * resolving service components from the stack definition.
  */
-public class ComponentModule extends BaseModule<ComponentModule, ComponentInfo> {
+public class ComponentModule extends BaseModule<ComponentModule, ComponentInfo> implements Validable {
   /**
    * Corresponding component info
    */
   private ComponentInfo componentInfo;
+  
+  /**
+   * validity flag
+   */
+  protected boolean valid = true;
 
+          
   /**
    * Constructor.
    *
@@ -49,7 +56,13 @@ public class ComponentModule extends BaseModule<ComponentModule, ComponentInfo> 
   @Override
   public void resolve(ComponentModule parent, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices) {
     ComponentInfo parentInfo = parent.getModuleInfo();
-
+    if (parent != null){
+      if (!parent.isValid()){
+        setValid(false);
+        setErrors(parent.getErrors());
+      }
+    }
+    
     if (componentInfo.getCommandScript() == null) {
       componentInfo.setCommandScript(parentInfo.getCommandScript());
     }
@@ -148,4 +161,31 @@ public class ComponentModule extends BaseModule<ComponentModule, ComponentInfo> 
       }
     }
   }
+
+  @Override
+  public boolean isValid() {
+    return valid;
+  }
+
+  @Override
+  public void setValid(boolean valid) {
+    this.valid = valid;
+  }
+
+  private Set<String> errorSet = new HashSet<String>();
+  
+  @Override
+  public void setErrors(String error) {
+    errorSet.add(error);
+  }
+
+  @Override
+  public Collection getErrors() {
+    return errorSet;
+  }
+  
+  @Override
+  public void setErrors(Collection error) {
+    this.errorSet.addAll(error);
+  }  
 }
