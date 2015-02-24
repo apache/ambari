@@ -36,6 +36,7 @@ public class LdapServerProperties {
   private String managerPassword;
   private String baseDN;
   private String dnAttribute;
+  private String referralMethod;
 
   //LDAP group properties
   private String groupBase;
@@ -225,6 +226,14 @@ public class LdapServerProperties {
     this.dnAttribute = dnAttribute;
   }
 
+  public void setReferralMethod(String referralMethod) {
+    this.referralMethod = referralMethod;
+  }
+
+  public String getReferralMethod() {
+    return referralMethod;
+  }
+
   @Override
   public boolean equals(Object obj) {
     if (this == obj) return true;
@@ -260,6 +269,7 @@ public class LdapServerProperties {
         that.groupSearchFilter) : that.groupSearchFilter != null) return false;
     if (dnAttribute != null ? !dnAttribute.equals(
         that.dnAttribute) : that.dnAttribute != null) return false;
+    if (referralMethod != null ? !referralMethod.equals(that.referralMethod) : that.referralMethod != null) return false;
 
     return true;
   }
@@ -283,6 +293,7 @@ public class LdapServerProperties {
     result = 31 * result + (adminGroupMappingRules != null ? adminGroupMappingRules.hashCode() : 0);
     result = 31 * result + (groupSearchFilter != null ? groupSearchFilter.hashCode() : 0);
     result = 31 * result + (dnAttribute != null ? dnAttribute.hashCode() : 0);
+    result = 31 * result + (referralMethod != null ? referralMethod.hashCode() : 0);
     return result;
   }
 

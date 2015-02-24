@@ -47,22 +47,46 @@ import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.ContextMapper;
 import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.LdapTemplate;
+import org.springframework.ldap.core.support.LdapContextSource;
 
 import static junit.framework.Assert.*;
 import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.createNiceMock;
 
 public class AmbariLdapDataPopulatorTest {
-  public static class AmbariLdapDataPopulatorTestInstance extends AmbariLdapDataPopulator {
-
+  public static class AmbariLdapDataPopulatorTestInstance extends TestAmbariLdapDataPopulator {
     public AmbariLdapDataPopulatorTestInstance(Configuration configuration, Users users) {
       super(configuration, users);
     }
 
-    private LdapTemplate ldapTemplate;
-
     @Override
     protected LdapTemplate loadLdapTemplate() {
       return ldapTemplate;
+    }
+  }
+
+  public static class TestAmbariLdapDataPopulator extends AmbariLdapDataPopulator {
+
+    protected LdapTemplate ldapTemplate;
+    private LdapContextSource ldapContextSource;
+
+    public TestAmbariLdapDataPopulator(Configuration configuration, Users users) {
+      super(configuration, users);
+    }
+
+    @Override
+    protected LdapContextSource createLdapContextSource() {
+      return ldapContextSource;
+    }
+
+    @Override
+    protected LdapTemplate createLdapTemplate(LdapContextSource ldapContextSource) {
+      this.ldapContextSource = ldapContextSource;
+      return ldapTemplate;
+    }
+
+    public void setLdapContextSource(LdapContextSource ldapContextSource) {
+      this.ldapContextSource = ldapContextSource;
     }
 
     public void setLdapTemplate(LdapTemplate ldapTemplate) {
@@ -75,6 +99,10 @@ public class AmbariLdapDataPopulatorTest {
 
     public void setLdapServerProperties(LdapServerProperties ldapServerProperties) {
       this.ldapServerProperties = ldapServerProperties;
+    }
+
+    public LdapContextSource getLdapContextSource() {
+      return ldapContextSource;
     }
   }
 
@@ -95,6 +123,34 @@ public class AmbariLdapDataPopulatorTest {
 
     assertFalse(populator.isLdapEnabled());
     verify(populator.loadLdapTemplate(), configuration);
+  }
+
+  @Test
+  public void testReferralMethod() {
+    final Configuration configuration = createNiceMock(Configuration.class);
+    final Users users = createNiceMock(Users.class);
+    LdapContextSource ldapContextSource = createNiceMock(LdapContextSource.class);
+
+    List<String> ldapUrls = Collections.singletonList("url");
+
+    LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
+    LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
+    expect(configuration.getLdapServerProperties()).andReturn(ldapServerProperties).anyTimes();
+    expect(ldapServerProperties.getLdapUrls()).andReturn(ldapUrls).anyTimes();
+    expect(ldapServerProperties.getReferralMethod()).andReturn("follow");
+    ldapContextSource.setReferral("follow");
+    ldapTemplate.setIgnorePartialResultException(true);
+
+    replay(ldapTemplate, configuration, ldapServerProperties, ldapContextSource);
+
+    final TestAmbariLdapDataPopulator populator = new TestAmbariLdapDataPopulator(configuration, users);
+    populator.setLdapContextSource(ldapContextSource);
+    populator.setLdapTemplate(ldapTemplate);
+    populator.setLdapServerProperties(ldapServerProperties);
+
+    populator.loadLdapTemplate();
+
+    verify(ldapTemplate, configuration, ldapServerProperties, ldapContextSource);
   }
 
   @Test

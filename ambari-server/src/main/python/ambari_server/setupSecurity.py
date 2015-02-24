@@ -54,6 +54,7 @@ REGEX_IP_ADDRESS = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-
 REGEX_HOSTNAME = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
 REGEX_HOSTNAME_PORT = "^(.*:[0-9]{1,5}$)"
 REGEX_TRUE_FALSE = "^(true|false)?$"
+REGEX_REFERRAL = "^(follow|ignore)?$"
 REGEX_ANYTHING = ".*"
 
 CLIENT_SECURITY_KEY = "client.security"
@@ -539,6 +540,7 @@ def init_ldap_properties_list_reqd(properties):
     LdapPropTemplate(properties, "authentication.ldap.useSSL", "Use SSL* [true/false] {0}: ", REGEX_TRUE_FALSE, False, "false"),
     LdapPropTemplate(properties, "authentication.ldap.usernameAttribute", "User name attribute* {0}: ", REGEX_ANYTHING, False, "uid"),
     LdapPropTemplate(properties, "authentication.ldap.baseDn", "Base DN* {0}: ", REGEX_ANYTHING, False),
+    LdapPropTemplate(properties, "authentication.ldap.referral", "Referral method [follow/ignore] {0}: ", REGEX_REFERRAL, True),
     LdapPropTemplate(properties, "authentication.ldap.bindAnonymously" "Bind anonymously* [true/false] {0}: ", REGEX_TRUE_FALSE, False, "false")
   ]
   return ldap_properties
@@ -556,6 +558,7 @@ def init_ldap_properties_list_reqd(properties):
     LdapPropTemplate(properties, "authentication.ldap.groupMembershipAttr", "Group member attribute* {0}: ", REGEX_ANYTHING, False, "memberUid"),
     LdapPropTemplate(properties, "authentication.ldap.dnAttribute", "Distinguished name attribute* {0}: ", REGEX_ANYTHING, False, "dn"),
     LdapPropTemplate(properties, "authentication.ldap.baseDn", "Base DN* {0}: ", REGEX_ANYTHING, False),
+    LdapPropTemplate(properties, "authentication.ldap.referral", "Referral method [follow/ignore] {0}: ", REGEX_REFERRAL, True),
     LdapPropTemplate(properties, "authentication.ldap.bindAnonymously", "Bind anonymously* [true/false] {0}: ", REGEX_TRUE_FALSE, False, "false")
   ]
   return ldap_properties

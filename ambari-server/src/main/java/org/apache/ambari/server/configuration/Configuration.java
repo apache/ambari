@@ -140,6 +140,7 @@ public class Configuration {
   public static final String LDAP_GROUP_MEMEBERSHIP_ATTR_KEY = "authentication.ldap.groupMembershipAttr";
   public static final String LDAP_ADMIN_GROUP_MAPPING_RULES_KEY = "authorization.ldap.adminGroupMappingRules";
   public static final String LDAP_GROUP_SEARCH_FILTER_KEY = "authorization.ldap.groupSearchFilter";
+  public static final String LDAP_REFERRAL_KEY = "authentication.ldap.referral";
   public static final String SERVER_EC_CACHE_SIZE = "server.ecCacheSize";
   public static final String SERVER_STALE_CONFIG_CACHE_ENABLED_KEY = "server.cache.isStale.enabled";
   public static final String SERVER_PERSISTENCE_TYPE_KEY = "server.persistence.type";
@@ -285,6 +286,7 @@ public class Configuration {
   private static final String LDAP_GROUP_MEMBERSHIP_ATTR_DEFAULT = "member";
   private static final String LDAP_ADMIN_GROUP_MAPPING_RULES_DEFAULT = "Ambari Administrators";
   private static final String LDAP_GROUP_SEARCH_FILTER_DEFAULT = "";
+  private static final String LDAP_REFERRAL_DEFAULT = "follow";
 
   /**
    * !!! TODO: for development purposes only, should be changed to 'false'
@@ -969,6 +971,7 @@ public class Configuration {
         LDAP_ADMIN_GROUP_MAPPING_RULES_KEY, LDAP_ADMIN_GROUP_MAPPING_RULES_DEFAULT));
     ldapServerProperties.setGroupSearchFilter(properties.getProperty(
         LDAP_GROUP_SEARCH_FILTER_KEY, LDAP_GROUP_SEARCH_FILTER_DEFAULT));
+    ldapServerProperties.setReferralMethod(properties.getProperty(LDAP_REFERRAL_KEY, LDAP_REFERRAL_DEFAULT));
 
     if (properties.containsKey(LDAP_GROUP_BASE_KEY) ||
         properties.containsKey(LDAP_GROUP_OBJECT_CLASS_KEY) ||

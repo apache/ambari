@@ -583,7 +583,7 @@ public class AmbariLdapDataPopulator {
       LOG.info("Reloading properties");
       ldapServerProperties = properties;
 
-      final LdapContextSource ldapContextSource = new LdapContextSource();
+      final LdapContextSource ldapContextSource = createLdapContextSource();
       final List<String> ldapUrls = ldapServerProperties.getLdapUrls();
       ldapContextSource.setUrls(ldapUrls.toArray(new String[ldapUrls.size()]));
 
@@ -599,9 +599,33 @@ public class AmbariLdapDataPopulator {
         throw new UsernameNotFoundException("LDAP Context Source not loaded", e);
       }
 
-      ldapTemplate = new LdapTemplate(ldapContextSource);
+      ldapContextSource.setReferral(ldapServerProperties.getReferralMethod());
+
+      ldapTemplate = createLdapTemplate(ldapContextSource);
+
+      ldapTemplate.setIgnorePartialResultException(true);
     }
     return ldapTemplate;
+  }
+
+  /**
+   * LdapContextSource factory method.
+   *
+   * @return new context source
+   */
+  protected LdapContextSource createLdapContextSource() {
+    return new LdapContextSource();
+  }
+
+  /**
+   * LdapTemplate factory method.
+   *
+   * @param ldapContextSource  the LDAP context source
+   *
+   * @return new LDAP template
+   */
+  protected LdapTemplate createLdapTemplate(LdapContextSource ldapContextSource) {
+    return new LdapTemplate(ldapContextSource);
   }
 
   //
