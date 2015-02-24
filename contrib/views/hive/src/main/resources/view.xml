@@ -1,0 +1,160 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<view>
+    <name>HIVE</name>
+    <label>Hive</label>
+    <version>0.0.1</version>
+
+    <!-- HDFS Configs -->
+    <parameter>
+        <name>webhdfs.url</name>
+        <description>WebHDFS FileSystem URI (example: webhdfs://namenode:50070)</description>
+        <required>true</required>
+    </parameter>
+
+    <parameter>
+        <name>webhdfs.username</name>
+        <description>User and doAs for proxy user for HDFS</description>
+        <required>false</required>
+    </parameter>
+
+    <parameter>
+        <name>webhdfs.auth</name>
+        <description>Semicolon-separated authentication configs. Default: auth=SIMPLE</description>
+        <required>false</required>
+    </parameter>
+
+    <!-- General Configs -->
+
+    <parameter>
+        <name>dataworker.username</name>
+        <description>The username (defaults to ViewContext username)</description>
+        <required>false</required>
+    </parameter>
+
+    <parameter>
+        <name>scripts.dir</name>
+        <description>HDFS directory path to store Hive scripts (example: /users/${username})</description>
+        <required>true</required>
+    </parameter>
+
+    <parameter>
+        <name>jobs.dir</name>
+        <description>HDFS directory path to store Hive job status (example: /users/${username})</description>
+        <required>true</required>
+    </parameter>
+
+    <parameter>
+        <name>hive.host</name>
+        <description>HiveServer2 hostname or IP (example: 127.0.0.1)</description>
+        <required>true</required>
+    </parameter>
+
+    <parameter>
+        <name>hive.port</name>
+        <description>HiveServer2 Thrift port (example: 10000)</description>
+        <required>true</required>
+    </parameter>
+
+    <parameter>
+        <name>hive.auth</name>
+        <description>Semicolon-separated authentication configs. Default: auth=NOSASL</description>
+        <required>false</required>
+    </parameter>
+
+    <resource>
+        <name>savedQuery</name>
+        <plural-name>savedQueries</plural-name>
+        <id-property>id</id-property>
+        <resource-class>org.apache.ambari.view.hive.resources.savedQueries.SavedQuery</resource-class>
+        <provider-class>org.apache.ambari.view.hive.resources.savedQueries.SavedQueryResourceProvider</provider-class>
+        <service-class>org.apache.ambari.view.hive.resources.savedQueries.SavedQueryService</service-class>
+    </resource>
+
+    <resource>
+        <name>fileResource</name>
+        <plural-name>fileResources</plural-name>
+        <id-property>id</id-property>
+        <resource-class>org.apache.ambari.view.hive.resources.resources.FileResourceItem</resource-class>
+        <provider-class>org.apache.ambari.view.hive.resources.resources.FileResourceResourceProvider</provider-class>
+        <service-class>org.apache.ambari.view.hive.resources.resources.FileResourceService</service-class>
+    </resource>
+
+    <resource>
+        <name>udf</name>
+        <plural-name>udfs</plural-name>
+        <id-property>id</id-property>
+        <resource-class>org.apache.ambari.view.hive.resources.udfs.UDF</resource-class>
+        <provider-class>org.apache.ambari.view.hive.resources.udfs.UDFResourceProvider</provider-class>
+        <service-class>org.apache.ambari.view.hive.resources.udfs.UDFService</service-class>
+    </resource>
+
+    <resource>
+        <name>job</name>
+        <plural-name>jobs</plural-name>
+        <id-property>id</id-property>
+        <resource-class>org.apache.ambari.view.hive.resources.jobs.JobImpl</resource-class>
+        <provider-class>org.apache.ambari.view.hive.resources.jobs.JobResourceProvider</provider-class>
+        <service-class>org.apache.ambari.view.hive.resources.jobs.JobService</service-class>
+    </resource>
+
+    <resource>
+        <name>file</name>
+        <service-class>org.apache.ambari.view.hive.resources.files.FileService</service-class>
+    </resource>
+
+    <resource>
+        <name>ddl</name>
+        <service-class>org.apache.ambari.view.hive.resources.browser.HiveBrowserService</service-class>
+    </resource>
+
+    <resource>
+        <name>hive</name>
+        <service-class>org.apache.ambari.view.hive.HelpService</service-class>
+    </resource>
+
+    <persistence>
+        <entity>
+            <class>org.apache.ambari.view.hive.persistence.DataStoreStorage$SmokeTestEntity</class>
+            <id-property>id</id-property>
+        </entity>
+        <entity>
+            <class>org.apache.ambari.view.hive.resources.jobs.JobImpl</class>
+            <id-property>id</id-property>
+        </entity>
+        <entity>
+            <class>org.apache.ambari.view.hive.resources.jobs.StoredOperationHandle</class>
+            <id-property>id</id-property>
+        </entity>
+        <entity>
+            <class>org.apache.ambari.view.hive.resources.savedQueries.SavedQuery</class>
+            <id-property>id</id-property>
+        </entity>
+        <entity>
+            <class>org.apache.ambari.view.hive.resources.udfs.UDF</class>
+            <id-property>id</id-property>
+        </entity>
+        <entity>
+            <class>org.apache.ambari.view.hive.resources.resources.FileResourceItem</class>
+            <id-property>id</id-property>
+        </entity>
+        <entity>
+            <class>org.apache.ambari.view.hive.TestBean</class>
+            <id-property>id</id-property>
+        </entity>
+    </persistence>
+</view>
