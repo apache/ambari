@@ -17,23 +17,67 @@
  */
 package org.apache.ambari.server.state.stack;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+import org.apache.ambari.server.stack.Validable;
 
 /**
  * Represents the stack <code>metainfo.xml</code> file.
  */
 @XmlRootElement(name="metainfo")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class StackMetainfoXml {
+public class StackMetainfoXml implements Validable{
   
   @XmlElement(name="extends")
   private String extendsVersion = null;
   
   @XmlElement(name="versions")
   private Version version = new Version();
+
+  @XmlTransient
+  private boolean valid = true;
+
+  /**
+   * 
+   * @return valid xml flag
+   */
+  @Override
+  public boolean isValid() {
+    return valid;
+  }
+
+  /**
+   * 
+   * @param valid set validity flag
+   */
+  @Override
+  public void setValid(boolean valid) {
+    this.valid = valid;
+  }
+  
+  @XmlTransient
+  private Set<String> errorSet = new HashSet<String>();
+  
+  @Override
+  public void setErrors(String error) {
+    errorSet.add(error);
+  }
+
+  @Override
+  public Collection getErrors() {
+    return errorSet;
+  }   
+
+  @Override
+  public void setErrors(Collection error) {
+    this.errorSet.addAll(error);
+  }
   
   /**
    * @return the parent stack version number

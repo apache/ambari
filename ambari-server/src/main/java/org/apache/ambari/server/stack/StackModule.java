@@ -21,8 +21,10 @@ package org.apache.ambari.server.stack;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -70,7 +72,7 @@ import org.slf4j.LoggerFactory;
  * </p>
  *
  */
-public class StackModule extends BaseModule<StackModule, StackInfo> {
+public class StackModule extends BaseModule<StackModule, StackInfo> implements Validable {
 
   /**
    * Context which provides access to external functionality
@@ -102,6 +104,11 @@ public class StackModule extends BaseModule<StackModule, StackInfo> {
    */
   private String id;
 
+  /**
+   * validity flag
+   */
+  protected boolean valid = true;  
+  
   /**
    * Logger
    */
@@ -314,10 +321,22 @@ public class StackModule extends BaseModule<StackModule, StackInfo> {
     String baseServiceKey = parentToks[1] + StackManager.PATH_DELIMITER + parentToks[2];
     ServiceModule baseService = commonServices.get(baseServiceKey);
     if (baseService == null) {
-      throw new AmbariException("The service '" + serviceInfo.getName() + "' in stack '" + stackInfo.getName() + ":"
-          + stackInfo.getVersion() + "' extends a non-existent service: '" + parent + "'");
+      setValid(false);
+      stackInfo.setValid(false);
+      String error = "The service '" + serviceInfo.getName() + "' in stack '" + stackInfo.getName() + ":"
+          + stackInfo.getVersion() + "' extends a non-existent service: '" + parent + "'";
+      setErrors(error);
+      stackInfo.setErrors(error);
+    } else {
+      if (baseService.isValid()) {
+        service.resolve(baseService, allStacks, commonServices);
+      } else {
+        setValid(false);
+        stackInfo.setValid(false);
+        setErrors(baseService.getErrors());
+        stackInfo.setErrors(baseService.getErrors());        
+      }
     }
-    service.resolve(baseService, allStacks, commonServices);
   }
 
   /**
@@ -358,7 +377,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> {
     if (baseService == null) {
       throw new AmbariException("The service '" + serviceInfo.getName() + "' in stack '" + stackInfo.getName() + ":"
           + stackInfo.getVersion() + "' extends a non-existent service: '" + parent + "'");
-    }
+      }
     service.resolve(baseService, allStacks, commonServices);
   }
 
@@ -379,6 +398,10 @@ public class StackModule extends BaseModule<StackModule, StackInfo> {
     //odo: give additional thought on handling missing metainfo.xml
     StackMetainfoXml smx = stackDirectory.getMetaInfoFile();
     if (smx != null) {
+      if (!smx.isValid()) {
+        stackInfo.setValid(false);
+        stackInfo.setErrors(smx.getErrors());
+      }
       stackInfo.setMinUpgradeVersion(smx.getVersion().getUpgrade());
       stackInfo.setActive(smx.getVersion().isActive());
       stackInfo.setParentStackVersion(smx.getExtends());
@@ -392,13 +415,28 @@ public class StackModule extends BaseModule<StackModule, StackInfo> {
     }
 
     try {
+      //configurationModules
+      RepositoryXml rxml = stackDirectory.getRepoFile();
+      if (rxml != null && !rxml.isValid()) {
+        stackInfo.setValid(false);
+        stackInfo.setErrors(rxml.getErrors());
+      }
       // Read the service and available configs for this stack
       populateServices();
+      if (!stackInfo.isValid()) {
+        setValid(false);
+        setErrors(stackInfo.getErrors());
+      }
+      
       //todo: shouldn't blindly catch Exception, re-evaluate this.
     } catch (Exception e) {
-      LOG.error("Exception caught while populating services for stack: " +
-          stackInfo.getName() + "-" + stackInfo.getVersion());
-      e.printStackTrace();
+      String error = "Exception caught while populating services for stack: " +
+          stackInfo.getName() + "-" + stackInfo.getVersion();
+      setValid(false);
+      stackInfo.setValid(false);
+      setErrors(error);
+      stackInfo.setErrors(error);
+      LOG.error(error);
     }
   }
 
@@ -421,10 +459,24 @@ public class StackModule extends BaseModule<StackModule, StackInfo> {
     // unfortunately, we allow multiple services to be specified in the same metainfo.xml,
     // so we can't move the unmarshal logic into ServiceModule
     ServiceMetainfoXml metaInfoXml = serviceDirectory.getMetaInfoFile();
+    if (!metaInfoXml.isValid()){
+      stackInfo.setValid(metaInfoXml.isValid());
+      setValid(metaInfoXml.isValid());
+      stackInfo.setErrors(metaInfoXml.getErrors());
+      setErrors(metaInfoXml.getErrors());      
+      return;
+    }
     List<ServiceInfo> serviceInfos = metaInfoXml.getServices();
 
     for (ServiceInfo serviceInfo : serviceInfos) {
-      serviceModules.add(new ServiceModule(stackContext, serviceInfo, serviceDirectory));
+      ServiceModule serviceModule = new ServiceModule(stackContext, serviceInfo, serviceDirectory);
+      serviceModules.add(serviceModule);
+      if (!serviceModule.isValid()){
+        stackInfo.setValid(false);
+        setValid(false);
+        stackInfo.setErrors(serviceModule.getErrors());
+        setErrors(serviceModule.getErrors());        
+      }
     }
     addServices(serviceModules);
   }
@@ -439,6 +491,10 @@ public class StackModule extends BaseModule<StackModule, StackInfo> {
 
     if (configDirectory != null) {
       for (ConfigurationModule config : configDirectory.getConfigurationModules()) {
+        if (stackInfo.isValid()){
+          stackInfo.setValid(config.isValid());
+          stackInfo.setErrors(config.getErrors());
+        }
         stackInfo.getProperties().addAll(config.getModuleInfo().getProperties());
         stackInfo.setConfigTypeAttributes(config.getConfigType(), config.getModuleInfo().getAttributes());
         configurationModules.put(config.getConfigType(), config);
@@ -477,13 +533,19 @@ public class StackModule extends BaseModule<StackModule, StackInfo> {
    * @throws AmbariException if unable to resolve the stack
    */
   private void resolveStack(
-      StackModule stackToBeResolved, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices)
-      throws AmbariException {
+          StackModule stackToBeResolved, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices)
+          throws AmbariException {
     if (stackToBeResolved.getModuleState() == ModuleState.INIT) {
       stackToBeResolved.resolve(null, allStacks, commonServices);
     } else if (stackToBeResolved.getModuleState() == ModuleState.VISITED) {
       //todo: provide more information to user about cycle
       throw new AmbariException("Cycle detected while parsing stack definition");
+    }
+    if (!stackToBeResolved.isValid() || (stackToBeResolved.getModuleInfo() != null && !stackToBeResolved.getModuleInfo().isValid())) {
+      setValid(stackToBeResolved.isValid());
+      stackInfo.setValid(stackToBeResolved.stackInfo.isValid());
+      setErrors(stackToBeResolved.getErrors());
+      stackInfo.setErrors(stackToBeResolved.getErrors());
     }
   }
 
@@ -588,4 +650,32 @@ public class StackModule extends BaseModule<StackModule, StackInfo> {
     stackInfo.getRoleCommandOrder().merge(parentStack.stackInfo.getRoleCommandOrder());
 
   }
+
+  @Override
+  public boolean isValid() {
+    return valid;
+  }
+
+  @Override
+  public void setValid(boolean valid) {
+    this.valid = valid;
+  }
+
+  private Set<String> errorSet = new HashSet<String>();
+  
+  @Override
+  public void setErrors(String error) {
+    errorSet.add(error);
+  }
+
+  @Override
+  public Collection getErrors() {
+    return errorSet;
+  }   
+
+  @Override
+  public void setErrors(Collection error) {
+    this.errorSet.addAll(error);
+  }
+  
 }

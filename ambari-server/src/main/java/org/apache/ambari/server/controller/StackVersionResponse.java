@@ -21,16 +21,19 @@ package org.apache.ambari.server.controller;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.apache.ambari.server.stack.Validable;
 
 
-public class StackVersionResponse {
+public class StackVersionResponse implements Validable{
 
   private String stackName;
   private String stackVersion;
   private String minUpgradeVersion;
   private boolean active;
+  private boolean valid;
   private String parentVersion;
   private Map<String, Map<String, Map<String, String>>> configTypes;
 
@@ -54,7 +57,7 @@ public class StackVersionResponse {
                               Map<String, Map<String, Map<String, String>>> configTypes,
                               File stackKerberosDescriptorFile,
                               Collection<File> serviceKerberosDescriptorFiles,
-                              Set<String> upgradePacks) {
+                              Set<String> upgradePacks, boolean valid, Collection errorSet) {
     setStackVersion(stackVersion);
     setMinUpgradeVersion(minUpgradeVersion);
     setActive(active);
@@ -63,8 +66,37 @@ public class StackVersionResponse {
     setKerberosDescriptorFile(stackKerberosDescriptorFile);
     setServiceKerberosDescriptorFiles(serviceKerberosDescriptorFiles);
     setUpgradePacks(upgradePacks);
+    setValid(valid);
+    setErrors(errorSet);
   }
 
+  @Override
+  public boolean isValid() {
+    return valid;
+  }
+
+  @Override
+  public void setValid(boolean valid) {
+    this.valid = valid;
+  }  
+
+  private Set<String> errorSet = new HashSet<String>();
+  
+  @Override
+  public void setErrors(String error) {
+    errorSet.add(error);
+  }
+
+  @Override
+  public Collection getErrors() {
+    return errorSet;
+  }   
+
+  @Override
+  public void setErrors(Collection error) {
+    this.errorSet.addAll(error);
+  }  
+  
   public String getStackName() {
     return stackName;
   }

@@ -32,6 +32,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.UnmarshalException;
+import org.xml.sax.SAXParseException;
 
 /**
  * Encapsulates IO operations on a stack definition configuration directory.
@@ -81,15 +84,30 @@ public class ConfigurationDirectory extends StackDefinitionDirectory {
     if (configFiles != null) {
       for (File configFile : configFiles) {
         if (configFile.getName().endsWith(AmbariMetaInfo.SERVICE_CONFIG_FILE_NAME_POSTFIX)) {
+          String configType = ConfigHelper.fileNameToConfigType(configFile.getName());
+          ConfigurationXml config = null;
           try {
-            String configType = ConfigHelper.fileNameToConfigType(configFile.getName());
-            ConfigurationXml config = unmarshaller.unmarshal(ConfigurationXml.class, configFile);
+            config = unmarshaller.unmarshal(ConfigurationXml.class, configFile);
             ConfigurationInfo configInfo = new ConfigurationInfo(parseProperties(config,
                 configFile.getName()), parseAttributes(config));
             ConfigurationModule module = new ConfigurationModule(configType, configInfo);
             configurationModules.put(configType, module);
           } catch (Exception e) {
-            LOG.error("Could not load configuration for " + configFile, e);
+            String error = null;
+            if (e instanceof JAXBException || e instanceof UnmarshalException || e instanceof SAXParseException) {
+              error = "Could not parse XML " + configFile + ": " + e;
+            } else {
+              error = "Could not load configuration for " + configFile;
+            }
+            config = new ConfigurationXml();
+            config.setValid(false);
+            config.setErrors(error);
+            ConfigurationInfo configInfo = new ConfigurationInfo(parseProperties(config,
+                configFile.getName()), parseAttributes(config));
+            configInfo.setValid(false);
+            configInfo.setErrors(error);
+            ConfigurationModule module = new ConfigurationModule(configType, configInfo);
+            configurationModules.put(configType, module);
           }
         }
       }

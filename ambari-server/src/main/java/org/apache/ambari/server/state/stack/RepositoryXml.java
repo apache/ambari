@@ -18,26 +18,70 @@
 package org.apache.ambari.server.state.stack;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+import org.apache.ambari.server.stack.Validable;
 
 /**
  * Represents the repository file <code>$STACK_VERSION/repos/repoinfo.xml</code>.
  */
 @XmlRootElement(name="reposinfo")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class RepositoryXml {
+public class RepositoryXml implements Validable{
 
   @XmlElement(name="latest")
   private String latestUri;
   @XmlElement(name="os")
   private List<Os> oses = new ArrayList<Os>();
 
+  @XmlTransient
+  private boolean valid = true;
+
+  /**
+   * 
+   * @return valid xml flag
+   */
+  @Override
+  public boolean isValid() {
+    return valid;
+  }
+
+  /**
+   * 
+   * @param valid set validity flag
+   */
+  @Override
+  public void setValid(boolean valid) {
+    this.valid = valid;
+  }    
+  
+  @XmlTransient
+  private Set<String> errorSet = new HashSet<String>();
+  
+  @Override
+  public void setErrors(String error) {
+    errorSet.add(error);
+  }
+
+  @Override
+  public Collection getErrors() {
+    return errorSet;
+  } 
+ 
+  @Override
+  public void setErrors(Collection error) {
+    this.errorSet.addAll(error);
+  }  
+  
   /**
    * @return the latest URI defined, if any.
    */

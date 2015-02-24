@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -32,7 +33,7 @@ import java.util.Map;
  * resolving a configuration from the stack definition. Each instance is specific
  * to a configuration type.
  */
-public class ConfigurationModule extends BaseModule<ConfigurationModule, ConfigurationInfo> {
+public class ConfigurationModule extends BaseModule<ConfigurationModule, ConfigurationInfo> implements Validable{
   /**
    * Configuration type
    */
@@ -48,7 +49,23 @@ public class ConfigurationModule extends BaseModule<ConfigurationModule, Configu
    */
   private boolean isDeleted;
 
+  /**
+   * validity flag
+   */
+  protected boolean valid = true;
 
+  private Set<String> errorSet = new HashSet<String>();
+  
+  @Override
+  public void setErrors(String error) {
+    errorSet.add(error);
+  }
+
+  @Override
+  public Collection getErrors() {
+    return errorSet;
+  }   
+  
   /**
    * Constructor.
    *
@@ -58,11 +75,27 @@ public class ConfigurationModule extends BaseModule<ConfigurationModule, Configu
   public ConfigurationModule(String configType, ConfigurationInfo info) {
     this.configType = configType;
     this.info = info;
+    if (info != null && !info.isValid()){
+      setValid(info.isValid());
+      setErrors(info.getErrors());
+    }
   }
 
   @Override
   public void resolve(ConfigurationModule parent, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices) throws AmbariException {
     // merge properties also removes deleted props so should be called even if extension is disabled
+   
+    if (parent != null && parent.info != null){
+      if (!parent.isValid() || !parent.info.isValid()){
+        setValid(false);
+        info.setValid(false);
+        setErrors(parent.getErrors());
+        setErrors(parent.info.getErrors());
+        info.setErrors(parent.getErrors());
+        info.setErrors(parent.info.getErrors());
+      }
+    }
+    
     mergeProperties(parent);
 
     if (isExtensionEnabled()) {
@@ -166,5 +199,20 @@ public class ConfigurationModule extends BaseModule<ConfigurationModule, Configu
 
     String val = supportsMap.get(ConfigurationInfo.Supports.DO_NOT_EXTEND.getPropertyName());
     return val == null || val.equals("false");
+  }
+
+  @Override
+  public boolean isValid() {
+    return valid;
+  }
+
+  @Override
+  public void setValid(boolean valid) {
+    this.valid = valid;
+  }
+
+  @Override
+  public void setErrors(Collection error) {
+    this.errorSet.addAll(error);
   }
 }

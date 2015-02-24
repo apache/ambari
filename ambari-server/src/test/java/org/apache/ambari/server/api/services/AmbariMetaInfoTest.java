@@ -803,13 +803,12 @@ public class AmbariMetaInfoTest {
     }
     LOG.info("Stacks file " + stackRoot.getAbsolutePath());
 
-    try {
-      createAmbariMetaInfo(stackRoot, version, true);
-      fail("Exception expected due to bad stack");
-    } catch(AmbariException e) {
-      e.printStackTrace();
-      assertTrue(e.getCause() instanceof JAXBException);
-    }
+
+    TestAmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRoot, version, true);
+    Assert.assertEquals(1, ambariMetaInfo.getStackManager().getStacks().size());
+    Assert.assertEquals(false, ambariMetaInfo.getStackManager().getStack("HDP", "0.1").isValid());
+    Assert.assertEquals(2, ambariMetaInfo.getStackManager().getStack("HDP", "0.1").getErrors().size());
+
   }
 
   @Test

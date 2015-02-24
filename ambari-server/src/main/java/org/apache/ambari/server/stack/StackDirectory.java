@@ -302,13 +302,15 @@ public class StackDirectory extends StackDefinitionDirectory {
         try {
           repoFile = unmarshaller.unmarshal(RepositoryXml.class, repositoryFile);
         } catch (JAXBException e) {
-          throw new AmbariException("Unable to parse repo file at location: " +
-              repositoryFile.getAbsolutePath(), e);
+          repoFile = new RepositoryXml();
+          repoFile.setValid(false);
+          repoFile.setErrors("Unable to parse repo file at location: " +
+              repositoryFile.getAbsolutePath());
         }
       }
     }
 
-    if (repoFile == null) {
+    if (repoFile == null || !repoFile.isValid()) {
       LOG.warn("No repository information defined for "
           + ", stackName=" + getStackDirName()
           + ", stackVersion=" + getPath()
@@ -334,8 +336,10 @@ public class StackDirectory extends StackDefinitionDirectory {
       try {
         metaInfoXml = unmarshaller.unmarshal(StackMetainfoXml.class, stackMetaInfoFile);
       } catch (JAXBException e) {
-        throw new AmbariException("Unable to parse stack metainfo.xml file at location: " +
-            stackMetaInfoFile.getAbsolutePath(), e);
+        metaInfoXml = new StackMetainfoXml();
+        metaInfoXml.setValid(false);
+        metaInfoXml.setErrors("Unable to parse stack metainfo.xml file at location: " +
+            stackMetaInfoFile.getAbsolutePath());
       }
     }
   }
