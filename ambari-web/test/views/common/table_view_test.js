@@ -265,4 +265,25 @@ describe('App.TableView', function () {
 
   });
 
+  describe("#showFilteredContent", function() {
+    beforeEach(function() {
+      view = App.TableView.create({});
+    });
+
+    it('hide clear filters link', function () {
+      view.set('filterConditions', []);
+      expect(view.get('showFilteredContent')).to.be.false;
+    });
+
+    it('shows clear filters link', function () {
+      view.set('filterConditions', [{value: "1"}]);
+      expect(view.get('showFilteredContent')).to.be.true;
+    });
+
+    it('shows clear filters link for array filter', function () {
+      view.set('filterConditions', [{value: ["1", "2"]}]);
+      expect(view.get('showFilteredContent')).to.be.true;
+    });
+  });
+
 });

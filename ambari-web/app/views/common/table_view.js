@@ -413,6 +413,26 @@ App.TableView = Em.View.extend(App.UserPref, {
   }.property('filteredCount', 'startIndex', 'endIndex'),
 
   /**
+   * flag to toggle displaying filtered hosts counter
+   */
+  showFilteredContent: function () {
+    var result = false;
+    if (this.get('filterConditions.length') > 0) {
+      this.get('filterConditions').forEach(function(f) {
+        if (f.value) {
+          if (Em.typeOf(f.value) == "array") {
+            if (f.value[0] || f.value[1]) {
+              result = true;
+            }
+          } else {
+            result = true;
+          }
+        }
+      });
+    }
+    return result;
+  }.property('filteredContent'),
+  /**
    * Filter table by filterConditions
    */
   filter: function () {

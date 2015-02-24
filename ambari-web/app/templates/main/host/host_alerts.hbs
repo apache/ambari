@@ -72,8 +72,10 @@
 
   <div class="page-bar">
     <div class="filtered-info span4">
-      <label>{{view.filteredContentInfo}} - <a {{action clearFilters target="view"}}
-          href="#">{{t tableView.filters.clearAllFilters}}</a></label>
+      {{#if view.showFilteredContent}}
+        <label>{{view.filteredContentInfo}} - <a {{action clearFilters target="view"}}
+            href="#">{{t tableView.filters.clearAllFilters}}</a></label>
+      {{/if}}
     </div>
     <div class="selected-hosts-info span4">
     </div>
