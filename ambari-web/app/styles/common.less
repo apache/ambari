@@ -17,12 +17,21 @@
  */
 
 /************************************************************************
+* Health status(service/host/host component health)icons class names
+***********************************************************************/
+@health-status-red-icon:  icon-warning-sign;
+@health-status-green-icon:  icon-ok-sign;
+@health-status-yellow-icon:  icon-question-sign;
+@health-status-orange-icon:  icon-minus-sign;
+@maintenance-icon: icon-medkit;
+/************************************************************************
 * Health status(service/host/host component health)icon colors
 ***********************************************************************/
 @health-status-red: #ff0000;
 @health-status-green: #5AB400;
 @health-status-yellow: #FFD13D;
 @health-status-orange: #FF8E00;
+@maintenance-black: #000000;
 /************************************************************************
 * Health status(service/host/host component health)icon colors ends
 ***********************************************************************/
@@ -31,6 +40,22 @@
 @space-l: 20px;
 @green: #69BE28;
 @blue: #0572ff;
+
+(~".@{health-status-red-icon}") {
+  color: @health-status-red;
+}
+(~".@{health-status-green-icon}") {
+  color: @health-status-green;
+}
+(~".@{health-status-yellow-icon}") {
+  color: @health-status-yellow;
+}
+(~".@{health-status-orange-icon}") {
+  color: @health-status-orange;
+}
+(~".@{maintenance-icon}") {
+  color: @maintenance-black;
+}
 
 @-webkit-keyframes orangePulse {
   from { background-color: #fdb82f; }
