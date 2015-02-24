@@ -5480,7 +5480,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     }
 
     get_ambari_properties_method.return_value = configs
-    raw_input_mock.side_effect = ['a:3', 'b:b', 'hody', 'b:2', 'false', 'user', 'uid', 'group', 'cn', 'member', 'dn', 'base', 'true']
+    raw_input_mock.side_effect = ['a:3', 'b:b', 'hody', 'b:2', 'false', 'user', 'uid', 'group', 'cn', 'member', 'dn', 'base', 'follow', 'true']
     set_silent(False)
     get_YN_input_method.return_value = True
 
@@ -5498,6 +5498,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
         "authentication.ldap.groupMembershipAttr": "member",
         "authentication.ldap.dnAttribute": "dn",
         "authentication.ldap.baseDn": "base",
+        "authentication.ldap.referral": "follow",
         "authentication.ldap.bindAnonymously": "true",
         "client.security": "ldap",
         "ambari.ldap.isConfigured": "true"
@@ -5511,7 +5512,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(8, raw_input_mock.call_count)
 
     raw_input_mock.reset_mock()
-    raw_input_mock.side_effect = ['a:3', '', 'b:2', 'false', 'user', 'uid', 'group', 'cn', 'member', 'dn', 'base', 'true']
+    raw_input_mock.side_effect = ['a:3', '', 'b:2', 'false', 'user', 'uid', 'group', 'cn', 'member', 'dn', 'base', 'follow', 'true']
 
     setup_ldap()
 
@@ -5526,6 +5527,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
         "authentication.ldap.groupMembershipAttr": "member",
         "authentication.ldap.dnAttribute": "dn",
         "authentication.ldap.baseDn": "base",
+        "authentication.ldap.referral": "follow",
         "authentication.ldap.bindAnonymously": "true",
         "client.security": "ldap",
         "ambari.ldap.isConfigured": "true"
@@ -5623,6 +5625,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
         "authentication.ldap.groupMembershipAttr": "test",
         "authentication.ldap.groupNamingAttr": "test",
         "authentication.ldap.dnAttribute": "test",
+        "authentication.ldap.referral": "test",
         "client.security": "ldap", \
         LDAP_MGR_PASSWORD_PROPERTY: "ldap-password.dat",
         "ambari.ldap.isConfigured": "true"
