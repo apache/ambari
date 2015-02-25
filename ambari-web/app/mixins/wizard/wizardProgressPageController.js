@@ -63,6 +63,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
       var requestIds = this.get('content.tasksRequestIds');
       var currentRequestId = requestIds && requestIds[0][0];
       if (!currentRequestId) {
+        this.set('isLoaded', false);
         this.submitRequest();
       } else {
         self.set('currentPageRequestId', currentRequestId);
@@ -123,6 +124,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
       name: this.get('request.ajaxName'),
       data: this.get('request.ajaxData'),
       sender: this,
+      error: 'onSingleRequestError',
       success: 'submitRequestSuccess',
       kdcCancelHandler: 'failTaskOnKdcCheck'
     });
@@ -143,7 +145,9 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
   },
 
   failTaskOnKdcCheck: function() {
-    App.router.send('back');
+    this.set('status', 'FAILED');
+    this.set('isLoaded', true);
+    this.set('showRetry', true);
   },
 
   doPollingForPageRequest: function () {
@@ -350,6 +354,13 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
     this.setTaskStatus(this.get('currentTaskId'), 'FAILED');
   },
 
+  onSingleRequestError: function (jqXHR, ajaxOptions, error, opt) {
+    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
+    this.set('status', 'FAILED');
+    this.set('isLoaded', true);
+    this.set('showRetry', true);
+  },
+
   onTaskCompleted: function () {
     this.setTaskStatus(this.get('currentTaskId'), 'COMPLETED');
   },
@@ -383,6 +394,8 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
   createComponent: function (componentName, hostName, serviceName) {
     var hostNames = (Array.isArray(hostName)) ? hostName : [hostName];
     var self = this;
+
+    this.set('showRetry', false);
 
     this.checkInstalledComponents(componentName, hostNames).then(function (data) {
       var hostsWithComponents = data.items.mapProperty('HostRoles.host_name');
