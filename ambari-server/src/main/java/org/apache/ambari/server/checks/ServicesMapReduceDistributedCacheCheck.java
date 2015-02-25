@@ -36,6 +36,10 @@ import org.apache.commons.lang.StringUtils;
  */
 public class ServicesMapReduceDistributedCacheCheck extends AbstractCheckDescriptor {
 
+  static final String KEY_APP_CLASSPATH = "app_classpath";
+  static final String KEY_FRAMEWORK_PATH = "framework_path";
+  static final String KEY_NOT_DFS = "not_dfs";
+
   @Override
   public boolean isApplicable(PrereqCheckRequest request)
     throws AmbariException {
@@ -79,11 +83,11 @@ public class ServicesMapReduceDistributedCacheCheck extends AbstractCheckDescrip
 
     List<String> errorMessages = new ArrayList<String>();
     if (applicationClasspath == null || applicationClasspath.isEmpty()) {
-      errorMessages.add(getFailReason("app_classpath", prerequisiteCheck, request));
+      errorMessages.add(getFailReason(KEY_APP_CLASSPATH, prerequisiteCheck, request));
     }
 
     if (frameworkPath == null || frameworkPath.isEmpty()) {
-      errorMessages.add(getFailReason("framework_path", prerequisiteCheck, request));
+      errorMessages.add(getFailReason(KEY_FRAMEWORK_PATH, prerequisiteCheck, request));
     }
 
     if (!errorMessages.isEmpty()) {
@@ -96,7 +100,7 @@ public class ServicesMapReduceDistributedCacheCheck extends AbstractCheckDescrip
     if (!frameworkPath.matches("^[^:]*dfs:.*") && (defaultFS == null || !defaultFS.matches("^[^:]*dfs:.*"))) {
       prerequisiteCheck.getFailedOn().add("MAPREDUCE2");
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason(getFailReason("not_dfs", prerequisiteCheck, request));
+      prerequisiteCheck.setFailReason(getFailReason(KEY_NOT_DFS, prerequisiteCheck, request));
     }
   }
 }

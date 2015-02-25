@@ -46,6 +46,8 @@ public abstract class AbstractCheckDescriptor {
 
   private static final Logger LOG = LoggerFactory.getLogger(AbstractCheckDescriptor.class);
 
+  protected static final String DEFAULT = "default";
+
   @Inject
   Provider<Clusters> clustersProvider;
 
@@ -110,7 +112,7 @@ public abstract class AbstractCheckDescriptor {
    * @return the failure string
    */
   protected String getFailReason(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) {
-    return getFailReason("default", prerequisiteCheck, request);
+    return getFailReason(DEFAULT, prerequisiteCheck, request);
   }
 
   /**
