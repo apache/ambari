@@ -39,6 +39,9 @@ import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
  */
 public class HostsMasterMaintenanceCheck extends AbstractCheckDescriptor {
 
+  static final String KEY_NO_UPGRADE_NAME = "no_upgrade_name";
+  static final String KEY_NO_UPGRADE_PACK = "no_upgrade_pack";
+
   /**
    * Constructor.
    */
@@ -60,14 +63,14 @@ public class HostsMasterMaintenanceCheck extends AbstractCheckDescriptor {
     final String upgradePackName = repositoryVersionHelper.get().getUpgradePackageName(stackId.getStackName(), stackId.getStackVersion(), request.getRepositoryVersion());
     if (upgradePackName == null) {
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      String fail = getFailReason("no_upgrade_name", prerequisiteCheck, request);
+      String fail = getFailReason(KEY_NO_UPGRADE_NAME, prerequisiteCheck, request);
       prerequisiteCheck.setFailReason(String.format(fail, stackId.getStackName(), stackId.getStackVersion()));
       return;
     }
     final UpgradePack upgradePack = ambariMetaInfo.get().getUpgradePacks(stackId.getStackName(), stackId.getStackVersion()).get(upgradePackName);
     if (upgradePack == null) {
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      String fail = getFailReason("no_upgrade_pack", prerequisiteCheck, request);
+      String fail = getFailReason(KEY_NO_UPGRADE_PACK, prerequisiteCheck, request);
       prerequisiteCheck.setFailReason(String.format(fail, upgradePackName));
       return;
     }

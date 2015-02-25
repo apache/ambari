@@ -36,6 +36,12 @@ import org.apache.commons.lang.StringUtils;
  */
 public class ServicesTezDistributedCacheCheck extends AbstractCheckDescriptor {
 
+  static final String KEY_LIB_URI_MISSING = "tez_lib_uri_missing";
+  static final String KEY_USE_HADOOP_LIBS = "tez_use_hadoop_libs";
+  static final String KEY_LIB_NOT_DFS = "lib_not_dfs";
+  static final String KEY_LIB_NOT_TARGZ = "lib_not_targz";
+  static final String KEY_USE_HADOOP_LIBS_FALSE = "tez_use_hadoop_libs_false";
+
   @Override
   public boolean isApplicable(PrereqCheckRequest request)
     throws AmbariException {
@@ -79,11 +85,11 @@ public class ServicesTezDistributedCacheCheck extends AbstractCheckDescriptor {
 
     List<String> errorMessages = new ArrayList<String>();
     if (libUris == null || libUris.isEmpty()) {
-      errorMessages.add(getFailReason("tez_lib_uri_missing", prerequisiteCheck, request));
+      errorMessages.add(getFailReason(KEY_LIB_URI_MISSING, prerequisiteCheck, request));
     }
 
     if (useHadoopLibs == null || useHadoopLibs.isEmpty()) {
-      errorMessages.add(getFailReason("tez_use_hadoop_libs", prerequisiteCheck, request));
+      errorMessages.add(getFailReason(KEY_USE_HADOOP_LIBS, prerequisiteCheck, request));
     }
 
     if (!errorMessages.isEmpty()) {
@@ -94,15 +100,15 @@ public class ServicesTezDistributedCacheCheck extends AbstractCheckDescriptor {
     }
 
     if (!libUris.matches("^[^:]*dfs:.*") && (defaultFS == null || !defaultFS.matches("^[^:]*dfs:.*"))) {
-      errorMessages.add(getFailReason("lib_not_dfs", prerequisiteCheck, request));
+      errorMessages.add(getFailReason(KEY_LIB_NOT_DFS, prerequisiteCheck, request));
     }
 
     if (!libUris.contains("tar.gz")) {
-      errorMessages.add(getFailReason("lib_not_targz", prerequisiteCheck, request));
+      errorMessages.add(getFailReason(KEY_LIB_NOT_TARGZ, prerequisiteCheck, request));
     }
 
     if (Boolean.parseBoolean(useHadoopLibs)) {
-      errorMessages.add(getFailReason("tez_use_hadoop_libs_false", prerequisiteCheck, request));
+      errorMessages.add(getFailReason(KEY_USE_HADOOP_LIBS_FALSE, prerequisiteCheck, request));
     }
 
     if (!errorMessages.isEmpty()) {

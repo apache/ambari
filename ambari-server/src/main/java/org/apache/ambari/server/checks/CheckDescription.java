@@ -31,65 +31,65 @@ public enum CheckDescription {
   HOSTS_HEARTBEAT(PrereqCheckType.HOST,
       "All hosts must be heartbeating with the Ambari Server unless they are in Maintenance Mode",
       new HashMap<String, String>() {{
-        put("default",
+        put(AbstractCheckDescriptor.DEFAULT,
             "The following hosts must be heartbeating to the Ambari Server: {{fails}}.");
       }}),
 
   HOSTS_MASTER_MAINTENANCE(PrereqCheckType.HOST,
       "Hosts in Maintenance Mode must not have any master components",
       new HashMap<String, String>() {{
-        put("default",
+        put(AbstractCheckDescriptor.DEFAULT,
           "The following hosts must not be in in Maintenance Mode since they host Master components: {{fails}}.");
-        put("no_upgrade_name",
+        put(HostsMasterMaintenanceCheck.KEY_NO_UPGRADE_NAME,
           "Could not find suitable upgrade pack for %s %s to version {{version}}.");
-        put("no_upgrade_pack",
+        put(HostsMasterMaintenanceCheck.KEY_NO_UPGRADE_PACK,
           "Could not find upgrade pack named %s.");
       }}),
 
   HOSTS_REPOSITORY_VERSION(PrereqCheckType.HOST,
       "All hosts should have target version installed",
       new HashMap<String, String>() {{
-        put("default",
+        put(AbstractCheckDescriptor.DEFAULT,
           "The following hosts must have version {{version}} installed: {{fails}}.");
-        put("no_repo_version",
+        put(HostsRepositoryVersionCheck.KEY_NO_REPO_VERSION,
           "Repository version {{version}} does not exist.");
       }}),
 
   SECONDARY_NAMENODE_MUST_BE_DELETED(PrereqCheckType.SERVICE,
       "The SNameNode component must be deleted from all hosts",
       new HashMap<String, String>() {{
-        put("default", "The SNameNode component must be deleted from host: {{fails}}.");
+        put(AbstractCheckDescriptor.DEFAULT, "The SNameNode component must be deleted from host: {{fails}}.");
       }}),
 
   SERVICES_DECOMMISSION(PrereqCheckType.SERVICE,
       "Services should not have components in decommission state",
       new HashMap<String, String>() {{
-        put("default",
+        put(AbstractCheckDescriptor.DEFAULT,
           "The following Services must not have components in decommissioned or decommissioning state: {{fails}}.");
       }}),
 
   SERVICES_MAINTENANCE_MODE(PrereqCheckType.SERVICE,
       "No services can be in Maintenance Mode",
       new HashMap<String, String>() {{
-        put("default",
+        put(AbstractCheckDescriptor.DEFAULT,
           "The following Services must not be in Maintenance Mode: {{fails}}.");
       }}),
 
   SERVICES_MR_DISTRIBUTED_CACHE(PrereqCheckType.SERVICE,
       "MapReduce should reference Hadoop libraries from the distributed cache in HDFS",
       new HashMap<String, String>() {{
-        put("app_classpath",
+        put(ServicesMapReduceDistributedCacheCheck.KEY_APP_CLASSPATH,
           "The mapred-site.xml property mapreduce.application.classpath should be set.");
-        put("framework_path",
+        put(ServicesMapReduceDistributedCacheCheck.KEY_FRAMEWORK_PATH,
           "The mapred-site.xml property mapreduce.application.framework.path should be set.");
-        put("not_dfs",
+        put(ServicesMapReduceDistributedCacheCheck.KEY_NOT_DFS,
           "The mapred-site.xml property mapreduce.application.framework.path or the core-site.xml property fs.defaultFS should point to *dfs:/ url.");
       }}),
 
   SERVICES_NAMENODE_HA(PrereqCheckType.SERVICE,
       "NameNode High Availability must  be enabled",
       new HashMap<String, String>() {{
-        put("default",
+        put(AbstractCheckDescriptor.DEFAULT,
           "NameNode High Availability is not enabled. Verify that dfs.nameservices property is present in hdfs-site.xml.");
       }}),
 
@@ -97,29 +97,29 @@ public enum CheckDescription {
   SERVICES_TEZ_DISTRIBUTED_CACHE(PrereqCheckType.SERVICE,
       "Tez should reference Hadoop libraries from the distributed cache in HDFS",
       new HashMap<String, String>() {{
-        put("tez_lib_uri_missing",
+        put(ServicesTezDistributedCacheCheck.KEY_LIB_URI_MISSING,
           "The tez-site.xml property tez.lib.uris should be set.");
-        put("tez_use_hadoop_libs",
+        put(ServicesTezDistributedCacheCheck.KEY_USE_HADOOP_LIBS,
           "The tez-site.xml property tez.use.cluster-hadoop-libs should be set.");
-        put("lib_not_dfs",
+        put(ServicesTezDistributedCacheCheck.KEY_LIB_NOT_DFS,
           "The tez-site.xml property tez.lib.uris or the core-site.xml property fs.defaultFS should point to *dfs:/ url.");
-        put("lib_not_targz",
+        put(ServicesTezDistributedCacheCheck.KEY_LIB_NOT_TARGZ,
           "The tez-site.xml property tez.lib.uris should point to tar.gz file.");
-        put("tez_use_hadoop_libs_false",
+        put(ServicesTezDistributedCacheCheck.KEY_USE_HADOOP_LIBS_FALSE,
           "The tez-site.xml property tez.use.cluster.hadoop-libs should be set to false.");
       }}),
 
   SERVICES_UP(PrereqCheckType.SERVICE,
       "All services must be started",
       new HashMap<String, String>() {{
-        put("default",
+        put(AbstractCheckDescriptor.DEFAULT,
           "The following Services must be started: {{fails}}");
       }}),
 
   SERVICES_YARN_WP(PrereqCheckType.SERVICE,
       "YARN work preserving restart should be enabled",
       new HashMap<String, String>() {{
-        put("default",
+        put(AbstractCheckDescriptor.DEFAULT,
           "YARN should have work preserving restart enabled. The yarn-site.xml property yarn.resourcemanager.work-preserving-recovery.enabled property should be set to true.");
       }});
 

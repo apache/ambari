@@ -36,6 +36,8 @@ import org.apache.ambari.server.state.stack.PrerequisiteCheck;
  */
 public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
 
+  static final String KEY_NO_REPO_VERSION = "no_repo_version";
+
   /**
    * Constructor.
    */
@@ -60,7 +62,7 @@ public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
         final RepositoryVersionEntity repositoryVersion = repositoryVersionDaoProvider.get().findByStackAndVersion(stackId.getStackId(), request.getRepositoryVersion());
         if (repositoryVersion == null) {
           prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-          prerequisiteCheck.setFailReason(getFailReason("no_repo_version",prerequisiteCheck, request));
+          prerequisiteCheck.setFailReason(getFailReason(KEY_NO_REPO_VERSION, prerequisiteCheck, request));
           prerequisiteCheck.getFailedOn().addAll(clusterHosts.keySet());
           return;
         }
