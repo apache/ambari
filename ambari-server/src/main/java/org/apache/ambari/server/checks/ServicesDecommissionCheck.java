@@ -17,14 +17,17 @@
  */
 package org.apache.ambari.server.checks;
 
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.state.*;
-import org.apache.ambari.server.state.stack.PrereqCheckType;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.HostComponentAdminState;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-
-import java.util.Map;
+import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 
 /**
  * Checks that there are no services in decommission state.
@@ -35,7 +38,7 @@ public class ServicesDecommissionCheck extends AbstractCheckDescriptor {
    * Constructor.
    */
   public ServicesDecommissionCheck() {
-    super("SERVICES_DECOMMISSION", PrereqCheckType.SERVICE, "Services should not be in Decommission state");
+    super(CheckDescription.SERVICES_DECOMMISSION);
   }
 
   @Override
@@ -56,7 +59,7 @@ public class ServicesDecommissionCheck extends AbstractCheckDescriptor {
     }
     if (!prerequisiteCheck.getFailedOn().isEmpty()) {
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason(formatEntityList(prerequisiteCheck.getFailedOn()) + " must not be in decommissioned or decommissioning state");
+      prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
     }
   }
 }

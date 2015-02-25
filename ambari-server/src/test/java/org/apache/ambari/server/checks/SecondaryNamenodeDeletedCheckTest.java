@@ -20,6 +20,7 @@ package org.apache.ambari.server.checks;
 import java.util.Collections;
 
 import org.apache.ambari.server.ServiceNotFoundException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.state.Cluster;
@@ -49,10 +50,16 @@ public class SecondaryNamenodeDeletedCheckTest {
   @Before
   public void setup() {
     secondaryNamenodeDeletedCheck.clustersProvider = new Provider<Clusters>() {
-
       @Override
       public Clusters get() {
         return clusters;
+      }
+    };
+
+    secondaryNamenodeDeletedCheck.ambariMetaInfo = new Provider<AmbariMetaInfo>() {
+      @Override
+      public AmbariMetaInfo get() {
+        return Mockito.mock(AmbariMetaInfo.class);
       }
     };
 
@@ -68,6 +75,17 @@ public class SecondaryNamenodeDeletedCheckTest {
     final Service service = Mockito.mock(Service.class);
     Mockito.when(cluster.getService("HDFS")).thenReturn(service);
     Assert.assertTrue(secondaryNamenodeDeletedCheck.isApplicable(new PrereqCheckRequest("cluster")));
+
+    PrereqCheckRequest req = new PrereqCheckRequest("cluster");
+    req.addResult(CheckDescription.SERVICES_NAMENODE_HA, PrereqCheckStatus.FAIL);
+    Mockito.when(cluster.getService("HDFS")).thenReturn(service);
+    Assert.assertFalse(secondaryNamenodeDeletedCheck.isApplicable(req));
+
+    req.addResult(CheckDescription.SERVICES_NAMENODE_HA, PrereqCheckStatus.PASS);
+    Mockito.when(cluster.getService("HDFS")).thenReturn(service);
+    Assert.assertTrue(secondaryNamenodeDeletedCheck.isApplicable(req));
+
+
 
     Mockito.when(cluster.getService("HDFS")).thenThrow(new ServiceNotFoundException("no", "service"));
     Assert.assertFalse(secondaryNamenodeDeletedCheck.isApplicable(new PrereqCheckRequest("cluster")));
@@ -85,12 +103,12 @@ public class SecondaryNamenodeDeletedCheckTest {
     Mockito.when(service.getServiceComponent("SECONDARY_NAMENODE")).thenReturn(serviceComponent);
     Mockito.when(serviceComponent.getServiceComponentHosts()).thenReturn(Collections.<String, ServiceComponentHost>singletonMap("host", null));
 
-    PrerequisiteCheck check = new PrerequisiteCheck(null, null, null, null);
+    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     secondaryNamenodeDeletedCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
 
     Mockito.when(serviceComponent.getServiceComponentHosts()).thenReturn(Collections.<String, ServiceComponentHost> emptyMap());
-    check = new PrerequisiteCheck(null, null, null, null);
+    check = new PrerequisiteCheck(null, null);
     secondaryNamenodeDeletedCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
   }

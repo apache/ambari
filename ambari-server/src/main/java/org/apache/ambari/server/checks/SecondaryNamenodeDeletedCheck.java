@@ -17,7 +17,9 @@
  */
 package org.apache.ambari.server.checks;
 
-import com.google.inject.Inject;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
@@ -29,13 +31,9 @@ import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrereqCheckType;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.commons.lang.StringUtils;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.google.inject.Inject;
 
 /**
  * Checks that the Secondary NameNode is not present on any of the hosts.
@@ -47,7 +45,7 @@ public class SecondaryNamenodeDeletedCheck extends AbstractCheckDescriptor {
    * Constructor.
    */
   public SecondaryNamenodeDeletedCheck() {
-    super("SECONDARY_NAMENODE_MUST_BE_DELETED", PrereqCheckType.SERVICE, "The SECONDARY_NAMENODE component must be deleted from all hosts");
+    super(CheckDescription.SECONDARY_NAMENODE_MUST_BE_DELETED);
   }
 
   @Override
@@ -58,6 +56,12 @@ public class SecondaryNamenodeDeletedCheck extends AbstractCheckDescriptor {
     } catch (ServiceNotFoundException ex) {
       return false;
     }
+
+    PrereqCheckStatus ha = request.getResult(CheckDescription.SERVICES_NAMENODE_HA);
+    if (null != ha && ha == PrereqCheckStatus.FAIL) {
+      return false;
+    }
+
     return true;
   }
 
@@ -91,7 +95,7 @@ public class SecondaryNamenodeDeletedCheck extends AbstractCheckDescriptor {
     if (!hosts.isEmpty()) {
       prerequisiteCheck.getFailedOn().add(SECONDARY_NAMENODE);
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason("The SECONDARY_NAMENODE component must be deleted from host(s): " + StringUtils.join(hosts, ", ") + ". Please delete it from the Host Components.");
+      prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
     }
   }
 }

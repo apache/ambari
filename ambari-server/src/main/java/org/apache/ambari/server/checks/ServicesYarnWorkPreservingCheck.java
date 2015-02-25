@@ -17,18 +17,17 @@
  */
 package org.apache.ambari.server.checks;
 
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrereqCheckType;
+import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.commons.lang.BooleanUtils;
-
-import java.util.Map;
 
 /**
  * Checks that YARN has work-preserving restart enabled.
@@ -39,7 +38,7 @@ public class ServicesYarnWorkPreservingCheck extends AbstractCheckDescriptor {
    * Constructor.
    */
   public ServicesYarnWorkPreservingCheck() {
-    super("SERVICES_YARN_WP", PrereqCheckType.SERVICE, "YARN work preserving restart should be enabled");
+    super(CheckDescription.SERVICES_YARN_WP);
   }
 
   @Override
@@ -65,8 +64,7 @@ public class ServicesYarnWorkPreservingCheck extends AbstractCheckDescriptor {
       !BooleanUtils.toBoolean(config.getProperties().get("yarn.resourcemanager.work-preserving-recovery.enabled"))) {
       prerequisiteCheck.getFailedOn().add("YARN");
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason("YARN doesn't have work preserving restart. Verify that yarn.resourcemanager.work-preserving-recovery.enabled property"
-          + " is present in yarn-site.xml and is set to true");
+      prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
     }
   }
 }

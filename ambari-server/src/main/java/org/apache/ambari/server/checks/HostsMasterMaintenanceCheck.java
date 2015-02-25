@@ -17,18 +17,22 @@
  */
 package org.apache.ambari.server.checks;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.state.*;
-import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.ambari.server.state.stack.PrereqCheckType;
-import org.apache.ambari.server.state.stack.UpgradePack;
-import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
-
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.stack.PrereqCheckStatus;
+import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradePack;
+import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 
 /**
  * Checks that all hosts in maintenance state do not have master components.
@@ -39,7 +43,7 @@ public class HostsMasterMaintenanceCheck extends AbstractCheckDescriptor {
    * Constructor.
    */
   public HostsMasterMaintenanceCheck() {
-    super("HOSTS_MASTER_MAINTENANCE", PrereqCheckType.HOST, "Hosts in Maintenance Mode must not have any master components");
+    super(CheckDescription.HOSTS_MASTER_MAINTENANCE);
   }
 
   @Override
@@ -56,13 +60,15 @@ public class HostsMasterMaintenanceCheck extends AbstractCheckDescriptor {
     final String upgradePackName = repositoryVersionHelper.get().getUpgradePackageName(stackId.getStackName(), stackId.getStackVersion(), request.getRepositoryVersion());
     if (upgradePackName == null) {
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason("Could not find suitable upgrade pack for " + stackId.getStackName() + " " + stackId.getStackVersion() + " to version " + request.getRepositoryVersion());
+      String fail = getFailReason("no_upgrade_name", prerequisiteCheck, request);
+      prerequisiteCheck.setFailReason(String.format(fail, stackId.getStackName(), stackId.getStackVersion()));
       return;
     }
     final UpgradePack upgradePack = ambariMetaInfo.get().getUpgradePacks(stackId.getStackName(), stackId.getStackVersion()).get(upgradePackName);
     if (upgradePack == null) {
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason("Could not find upgrade pack named " + upgradePackName);
+      String fail = getFailReason("no_upgrade_pack", prerequisiteCheck, request);
+      prerequisiteCheck.setFailReason(String.format(fail, upgradePackName));
       return;
     }
     final Set<String> componentsFromUpgradePack = new HashSet<String>();
@@ -85,7 +91,7 @@ public class HostsMasterMaintenanceCheck extends AbstractCheckDescriptor {
     }
     if (!prerequisiteCheck.getFailedOn().isEmpty()) {
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason(formatEntityList(prerequisiteCheck.getFailedOn()) + " must not be in in Maintenance Mode as they have master components installed");
+      prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
     }
   }
 }

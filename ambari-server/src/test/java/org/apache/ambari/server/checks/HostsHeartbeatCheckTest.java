@@ -82,12 +82,12 @@ public class HostsHeartbeatCheckTest {
     hosts.put("host3", host3);
     Mockito.when(clusters.getHostsForCluster("cluster")).thenReturn(hosts);
 
-    PrerequisiteCheck check = new PrerequisiteCheck(null, null, null, null);
+    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     hostHeartbeatCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
 
     Mockito.when(status3.getHealthStatus()).thenReturn(HealthStatus.HEALTHY);
-    check = new PrerequisiteCheck(null, null, null, null);
+    check = new PrerequisiteCheck(null, null);
     hostHeartbeatCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
 

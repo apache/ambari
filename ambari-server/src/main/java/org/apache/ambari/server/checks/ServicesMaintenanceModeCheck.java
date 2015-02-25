@@ -17,17 +17,16 @@
  */
 package org.apache.ambari.server.checks;
 
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
-import org.apache.ambari.server.state.stack.PrereqCheckType;
-
-import java.util.Map;
+import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 
 /**
  * Checks that services are in the maintenance mode.
@@ -38,7 +37,7 @@ public class ServicesMaintenanceModeCheck extends AbstractCheckDescriptor {
    * Constructor.
    */
   public ServicesMaintenanceModeCheck() {
-    super("SERVICES_MAINTENANCE_MODE", PrereqCheckType.SERVICE, "No service can be in maintenance mode");
+    super(CheckDescription.SERVICES_MAINTENANCE_MODE);
   }
 
   @Override
@@ -53,7 +52,7 @@ public class ServicesMaintenanceModeCheck extends AbstractCheckDescriptor {
     }
     if (!prerequisiteCheck.getFailedOn().isEmpty()) {
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason(formatEntityList(prerequisiteCheck.getFailedOn()) + " must not be in Maintenance Mode");
+      prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
     }
   }
 }

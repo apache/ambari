@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.checks;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
@@ -25,12 +29,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.ambari.server.state.stack.PrereqCheckType;
 import org.apache.commons.lang.StringUtils;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Checks that Tez jobs reference hadoop libraries from the distributed cache.
@@ -46,6 +45,12 @@ public class ServicesTezDistributedCacheCheck extends AbstractCheckDescriptor {
     } catch (ServiceNotFoundException ex) {
       return false;
     }
+
+    PrereqCheckStatus ha = request.getResult(CheckDescription.SERVICES_NAMENODE_HA);
+    if (null != ha && ha == PrereqCheckStatus.FAIL) {
+      return false;
+    }
+
     return true;
   }
 
@@ -53,7 +58,7 @@ public class ServicesTezDistributedCacheCheck extends AbstractCheckDescriptor {
    * Constructor.
    */
   public ServicesTezDistributedCacheCheck() {
-    super("SERVICES_TEZ_DISTRIBUTED_CACHE", PrereqCheckType.SERVICE, "TEZ should reference hadoop libraries from the distributed cache");
+    super(CheckDescription.SERVICES_TEZ_DISTRIBUTED_CACHE);
   }
 
   @Override
@@ -63,6 +68,7 @@ public class ServicesTezDistributedCacheCheck extends AbstractCheckDescriptor {
     final String tezConfigType = "tez-site";
     final String coreSiteConfigType = "core-site";
     final Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
+
     final DesiredConfig tezDesiredConfig = desiredConfigs.get(tezConfigType);
     final Config tezConfig = cluster.getConfig(tezConfigType, tezDesiredConfig.getTag());
     final DesiredConfig coreSiteDesiredConfig = desiredConfigs.get(coreSiteConfigType);
@@ -73,11 +79,11 @@ public class ServicesTezDistributedCacheCheck extends AbstractCheckDescriptor {
 
     List<String> errorMessages = new ArrayList<String>();
     if (libUris == null || libUris.isEmpty()) {
-      errorMessages.add("Property tez.lib.uris is missing from tez-site, please add it.");
+      errorMessages.add(getFailReason("tez_lib_uri_missing", prerequisiteCheck, request));
     }
 
     if (useHadoopLibs == null || useHadoopLibs.isEmpty()) {
-      errorMessages.add("Property tez.use.cluster.hadoop-libs is missing from tez-site, please add it.");
+      errorMessages.add(getFailReason("tez_use_hadoop_libs", prerequisiteCheck, request));
     }
 
     if (!errorMessages.isEmpty()) {
@@ -88,13 +94,15 @@ public class ServicesTezDistributedCacheCheck extends AbstractCheckDescriptor {
     }
 
     if (!libUris.matches("^[^:]*dfs:.*") && (defaultFS == null || !defaultFS.matches("^[^:]*dfs:.*"))) {
-      errorMessages.add("Property tez.lib.uris in tez-site should use a distributed file system. Please make sure that either tez-site's tez.lib.uris or core-site's fs.defaultFS begins with *dfs:");
+      errorMessages.add(getFailReason("lib_not_dfs", prerequisiteCheck, request));
     }
+
     if (!libUris.contains("tar.gz")) {
-      errorMessages.add("Property tez.lib.uris in tez-site should end in tar.gz");
+      errorMessages.add(getFailReason("lib_not_targz", prerequisiteCheck, request));
     }
+
     if (Boolean.parseBoolean(useHadoopLibs)) {
-      errorMessages.add("Property tez.use.cluster.hadoop-libs in tez-site should be set to false");
+      errorMessages.add(getFailReason("tez_use_hadoop_libs_false", prerequisiteCheck, request));
     }
 
     if (!errorMessages.isEmpty()) {

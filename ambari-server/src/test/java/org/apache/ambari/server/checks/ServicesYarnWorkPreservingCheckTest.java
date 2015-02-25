@@ -85,12 +85,12 @@ public class ServicesYarnWorkPreservingCheckTest {
     final Map<String, String> properties = new HashMap<String, String>();
     Mockito.when(config.getProperties()).thenReturn(properties);
 
-    PrerequisiteCheck check = new PrerequisiteCheck(null, null, null, null);
+    PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     servicesYarnWorkPreservingCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
 
     properties.put("yarn.resourcemanager.work-preserving-recovery.enabled", "true");
-    check = new PrerequisiteCheck(null, null, null, null);
+    check = new PrerequisiteCheck(null, null);
     servicesYarnWorkPreservingCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
   }

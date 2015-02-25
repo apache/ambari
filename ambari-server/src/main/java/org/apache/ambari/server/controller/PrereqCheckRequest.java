@@ -17,27 +17,52 @@
  */
 package org.apache.ambari.server.controller;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.ambari.server.checks.CheckDescription;
+import org.apache.ambari.server.state.stack.PrereqCheckStatus;
+
 /**
  * Represents a prerequisite check request.
  */
 public class PrereqCheckRequest {
-  private final String clusterName;
-  private String repositoryVersion;
+  private String m_clusterName;
+  private String m_repositoryVersion;
+  private Map<CheckDescription, PrereqCheckStatus> m_results =
+      new HashMap<CheckDescription, PrereqCheckStatus>();
 
-  //TODO make repositoryVersionName also final as soon as UI will be changed to always provide it to API
   public PrereqCheckRequest(String clusterName) {
-    this.clusterName = clusterName;
+    m_clusterName = clusterName;
   }
 
   public String getClusterName() {
-    return clusterName;
+    return m_clusterName;
   }
 
   public String getRepositoryVersion() {
-    return repositoryVersion;
+    return m_repositoryVersion;
   }
 
   public void setRepositoryVersion(String repositoryVersion) {
-    this.repositoryVersion = repositoryVersion;
+    m_repositoryVersion = repositoryVersion;
+  }
+
+  /**
+   * Sets the result of a check.
+   * @param description the description
+   * @param status      the status result
+   */
+  public void addResult(CheckDescription description, PrereqCheckStatus status) {
+    m_results.put(description, status);
+  }
+
+  /**
+   * Gets the result of a check of the supplied description
+   * @param description the description
+   * @return the return value, or {@code null} if it has not been run
+   */
+  public PrereqCheckStatus getResult(CheckDescription description) {
+    return m_results.get(description);
   }
 }

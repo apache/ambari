@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.checks;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
@@ -25,12 +29,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.ambari.server.state.stack.PrereqCheckType;
 import org.apache.commons.lang.StringUtils;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Checks that MR jobs reference hadoop libraries from the distributed cache.
@@ -46,6 +45,12 @@ public class ServicesMapReduceDistributedCacheCheck extends AbstractCheckDescrip
     } catch (ServiceNotFoundException ex) {
       return false;
     }
+
+    PrereqCheckStatus ha = request.getResult(CheckDescription.SERVICES_NAMENODE_HA);
+    if (null != ha && ha == PrereqCheckStatus.FAIL) {
+      return false;
+    }
+
     return true;
   }
 
@@ -53,7 +58,7 @@ public class ServicesMapReduceDistributedCacheCheck extends AbstractCheckDescrip
    * Constructor.
    */
   public ServicesMapReduceDistributedCacheCheck() {
-    super("SERVICES_MR_DISTRIBUTED_CACHE", PrereqCheckType.SERVICE, "MapReduce should reference hadoop libraries from the distributed cache");
+    super(CheckDescription.SERVICES_MR_DISTRIBUTED_CACHE);
   }
 
   @Override
@@ -63,6 +68,7 @@ public class ServicesMapReduceDistributedCacheCheck extends AbstractCheckDescrip
     final String mrConfigType = "mapred-site";
     final String coreSiteConfigType = "core-site";
     final Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
+
     final DesiredConfig mrDesiredConfig = desiredConfigs.get(mrConfigType);
     final DesiredConfig coreSiteDesiredConfig = desiredConfigs.get(coreSiteConfigType);
     final Config mrConfig = cluster.getConfig(mrConfigType, mrDesiredConfig.getTag());
@@ -73,24 +79,24 @@ public class ServicesMapReduceDistributedCacheCheck extends AbstractCheckDescrip
 
     List<String> errorMessages = new ArrayList<String>();
     if (applicationClasspath == null || applicationClasspath.isEmpty()) {
-      errorMessages.add("Property mapreduce.application.classpath is missing from mapred-site, please add it.");
+      errorMessages.add(getFailReason("app_classpath", prerequisiteCheck, request));
     }
 
     if (frameworkPath == null || frameworkPath.isEmpty()) {
-      errorMessages.add("Property mapreduce.application.framework.path is missing from mapred-site, please add it.");
+      errorMessages.add(getFailReason("framework_path", prerequisiteCheck, request));
     }
 
     if (!errorMessages.isEmpty()) {
-      prerequisiteCheck.getFailedOn().add("MAP_REDUCE");
+      prerequisiteCheck.getFailedOn().add("MAPREDUCE2");
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
       prerequisiteCheck.setFailReason(StringUtils.join(errorMessages, " "));
       return;
     }
 
     if (!frameworkPath.matches("^[^:]*dfs:.*") && (defaultFS == null || !defaultFS.matches("^[^:]*dfs:.*"))) {
-      prerequisiteCheck.getFailedOn().add("MAP_REDUCE");
+      prerequisiteCheck.getFailedOn().add("MAPREDUCE2");
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason("MapReduce should reference hadoop libraries from the distributed cache. Please make sure that either mapred-site's mapreduce.application.framework.path or core-site's fs.defaultFS begins with *dfs:");
+      prerequisiteCheck.setFailReason(getFailReason("not_dfs", prerequisiteCheck, request));
     }
   }
 }

@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.checks;
 
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
@@ -25,9 +27,6 @@ import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.ambari.server.state.stack.PrereqCheckType;
-
-import java.util.Map;
 
 /**
  * Checks that all hosts are either in maintenance mode or heartbeating with the server.
@@ -38,7 +37,7 @@ public class HostsHeartbeatCheck extends AbstractCheckDescriptor {
    * Constructor.
    */
   public HostsHeartbeatCheck() {
-    super("HOSTS_HEARTBEAT", PrereqCheckType.HOST, "All hosts must be heartbeating with the server unless they are in Maintenance Mode");
+    super(CheckDescription.HOSTS_HEARTBEAT);
   }
 
   @Override
@@ -54,7 +53,7 @@ public class HostsHeartbeatCheck extends AbstractCheckDescriptor {
     }
     if (!prerequisiteCheck.getFailedOn().isEmpty()) {
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-      prerequisiteCheck.setFailReason(formatEntityList(prerequisiteCheck.getFailedOn()) + " must be heartbeating with the server");
+      prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
     }
   }
 }

@@ -17,17 +17,18 @@
  */
 package org.apache.ambari.server.state;
 
-import com.google.inject.Singleton;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.checks.AbstractCheckDescriptor;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
+import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.google.inject.Singleton;
 
 @Singleton
 public class CheckHelper {
@@ -49,24 +50,41 @@ public class CheckHelper {
     final List<PrerequisiteCheck> prerequisiteCheckResults = new ArrayList<PrerequisiteCheck>();
     for (AbstractCheckDescriptor checkDescriptor : checksRegistry) {
       final PrerequisiteCheck prerequisiteCheck = new PrerequisiteCheck(
-        checkDescriptor.id, checkDescriptor.description,
-        checkDescriptor.type, clusterName);
+          checkDescriptor.getDescription(), clusterName);
       try {
         if (checkDescriptor.isApplicable(request)) {
           checkDescriptor.perform(prerequisiteCheck, request);
           prerequisiteCheckResults.add(prerequisiteCheck);
+
+          request.addResult(checkDescriptor.getDescription(), prerequisiteCheck.getStatus());
         }
       } catch (ClusterNotFoundException ex) {
         prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
         prerequisiteCheck.setFailReason("Cluster with name " + clusterName + " doesn't exists");
         prerequisiteCheckResults.add(prerequisiteCheck);
+
+        request.addResult(checkDescriptor.getDescription(), prerequisiteCheck.getStatus());
       } catch (Exception ex) {
-        LOG.error("Check " + checkDescriptor.id + " failed", ex);
+        LOG.error("Check " + checkDescriptor.getDescription().name() + " failed", ex);
         prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
         prerequisiteCheck.setFailReason("Unexpected server error happened");
         prerequisiteCheckResults.add(prerequisiteCheck);
+
+        request.addResult(checkDescriptor.getDescription(), prerequisiteCheck.getStatus());
       }
+
+
+
+
+
+
+
+
+
+
     }
+
+
     return prerequisiteCheckResults;
   }
 }

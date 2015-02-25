@@ -34,9 +34,15 @@ import org.junit.Test;
 public class AbstractCheckDescriptorTest {
 
   private class TestCheckImpl extends AbstractCheckDescriptor {
+    private PrereqCheckType m_type;
+    public TestCheckImpl(PrereqCheckType type) {
+      super(null);
+      m_type = type;
+    }
 
-    public TestCheckImpl(String id, PrereqCheckType type, String description) {
-      super(id, type, description);
+    @Override
+    public PrereqCheckType getType() {
+      return m_type;
     }
 
     @Override
@@ -47,7 +53,7 @@ public class AbstractCheckDescriptorTest {
 
   @Test
   public void testFormatEntityList() {
-    AbstractCheckDescriptor check = new TestCheckImpl(null, PrereqCheckType.HOST, null);
+    AbstractCheckDescriptor check = new TestCheckImpl(PrereqCheckType.HOST);
 
     Assert.assertEquals("", check.formatEntityList(null));
 
@@ -55,21 +61,21 @@ public class AbstractCheckDescriptorTest {
     Assert.assertEquals("", check.formatEntityList(failedOn));
 
     failedOn.add("host1");
-    Assert.assertEquals("host1 host", check.formatEntityList(failedOn));
+    Assert.assertEquals("host1", check.formatEntityList(failedOn));
 
     failedOn.add("host2");
-    Assert.assertEquals("host1 and host2 hosts", check.formatEntityList(failedOn));
+    Assert.assertEquals("host1 and host2", check.formatEntityList(failedOn));
 
     failedOn.add("host3");
-    Assert.assertEquals("host1, host2 and host3 hosts", check.formatEntityList(failedOn));
+    Assert.assertEquals("host1, host2 and host3", check.formatEntityList(failedOn));
 
-    check = new TestCheckImpl(null, PrereqCheckType.CLUSTER, null);
-    Assert.assertEquals("host1, host2 and host3 clusters", check.formatEntityList(failedOn));
+    check = new TestCheckImpl(PrereqCheckType.CLUSTER);
+    Assert.assertEquals("host1, host2 and host3", check.formatEntityList(failedOn));
 
-    check = new TestCheckImpl(null, PrereqCheckType.SERVICE, null);
-    Assert.assertEquals("host1, host2 and host3 services", check.formatEntityList(failedOn));
+    check = new TestCheckImpl(PrereqCheckType.SERVICE);
+    Assert.assertEquals("host1, host2 and host3", check.formatEntityList(failedOn));
 
-    check = new TestCheckImpl(null, null, null);
+    check = new TestCheckImpl(null);
     Assert.assertEquals("host1, host2 and host3", check.formatEntityList(failedOn));
   }
 
