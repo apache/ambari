@@ -1026,7 +1026,7 @@ App.CheckDBConnectionView = Ember.View.extend({
   /** @property {String} masterHostName - host name location of Master Component related to Service **/
   masterHostName: function() {
     var serviceMasterMap = {
-      'OOZIE': 'oozieserver_host',
+      'OOZIE': 'oozie_ambari_host',
       'HDFS': 'hadoop_host',
       'HIVE': 'hive_ambari_host',
       'KERBEROS': 'kdc_host'

@@ -1608,7 +1608,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     if (configs.someProperty('name', 'oozie_database')) {
       var oozieDb = configs.findProperty('name', 'oozie_database');
       if (oozieDb.value === 'New Derby Database') {
-        configs = configs.without(configs.findProperty('name', 'oozie_ambari_host'));
         configs = configs.without(configs.findProperty('name', 'oozie_ambari_database'));
         configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_host'));
         configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_database'));
@@ -1642,7 +1641,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         if (existingMySqlHost) {
           dbHostPropertyName = 'oozie_existing_mysql_host';
         }
-        configs = configs.without(configs.findProperty('name', 'oozie_ambari_host'));
         configs = configs.without(configs.findProperty('name', 'oozie_ambari_database'));
         configs = configs.without(configs.findProperty('name', 'oozie_existing_oracle_host'));
         configs = configs.without(configs.findProperty('name', 'oozie_existing_oracle_database'));
@@ -1660,7 +1658,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         if (existingPostgreSqlHost) {
           dbHostPropertyName = 'oozie_existing_postgresql_host';
         }
-        configs = configs.without(configs.findProperty('name', 'oozie_ambari_host'));
         configs = configs.without(configs.findProperty('name', 'oozie_ambari_database'));
         configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_host'));
         configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_database'));
@@ -1676,7 +1673,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         if (existingOracleHost) {
           dbHostPropertyName = 'oozie_existing_oracle_host';
         }
-        configs = configs.without(configs.findProperty('name', 'oozie_ambari_host'));
         configs = configs.without(configs.findProperty('name', 'oozie_ambari_database'));
         configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_host'));
         configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_database'));
@@ -1690,7 +1686,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         if (existingMySqlServerHost) {
           dbHostPropertyName = 'oozie_existing_mssql_server_host';
         }
-        configs = configs.without(configs.findProperty('name', 'oozie_ambari_host'));
         configs = configs.without(configs.findProperty('name', 'oozie_ambari_database'));
         configs = configs.without(configs.findProperty('name', 'oozie_existing_oracle_host'));
         configs = configs.without(configs.findProperty('name', 'oozie_existing_oracle_database'));
@@ -1706,7 +1701,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         if (existingMySql2ServerHost) {
           dbHostPropertyName = 'oozie_existing_mssql_server_2_host';
         }
-        configs = configs.without(configs.findProperty('name', 'oozie_ambari_host'));
         configs = configs.without(configs.findProperty('name', 'oozie_ambari_database'));
         configs = configs.without(configs.findProperty('name', 'oozie_existing_oracle_host'));
         configs = configs.without(configs.findProperty('name', 'oozie_existing_oracle_database'));
@@ -2205,7 +2199,20 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       m: true
     },
     {
+      hostProperty: 'hive_ambari_host',
+      componentName: 'HIVE_SERVER',
+      serviceName: 'HIVE',
+      serviceUseThis: []
+    },
+    {
       hostProperty: 'oozieserver_host',
+      componentName: 'OOZIE_SERVER',
+      serviceName: 'OOZIE',
+      serviceUseThis: [],
+      m: true
+    },
+    {
+      hostProperty: 'oozie_ambari_host',
       componentName: 'OOZIE_SERVER',
       serviceName: 'OOZIE',
       serviceUseThis: []

@@ -461,7 +461,7 @@ App.ServiceConfigProperty = Em.Object.extend({
         }
         break;
       case 'oozieserver_host':
-        this.set('value', masterComponentHostsInDB.findProperty('component', 'OOZIE_SERVER').hostName);
+        this.set('value', masterComponentHostsInDB.filterProperty('component', 'OOZIE_SERVER').mapProperty('hostName'));
         break;
       case 'oozie.base.url':
         var oozieHost = masterComponentHostsInDB.findProperty('component', 'OOZIE_SERVER').hostName;
@@ -527,7 +527,7 @@ App.ServiceConfigProperty = Em.Object.extend({
         this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'SUPERVISOR').hosts.mapProperty('hostName'));
         break;
       case 'knox_gateway_host':
-        this.set('value', masterComponentHostsInDB.findProperty('component', 'KNOX_GATEWAY').hostName);
+        this.set('value', masterComponentHostsInDB.filterProperty('component', 'KNOX_GATEWAY').mapProperty('hostName'));
         break;
       case 'kafka_broker_hosts':
         this.set('value', masterComponentHostsInDB.filterProperty('component', 'KAFKA_BROKER').mapProperty('hostName'));

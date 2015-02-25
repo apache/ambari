@@ -625,7 +625,7 @@ describe('App.CheckDBConnectionView', function () {
       ],
       categoryConfigsAll = [
         Em.Object.create({
-          name: 'oozieserver_host',
+          name: 'oozie_ambari_host',
           value: 'h0'
         }),
         Em.Object.create({

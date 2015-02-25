@@ -846,6 +846,38 @@ describe('App.ServiceConfigProperty', function () {
         defaultValue: 'localhost:2181',
         value: 'h0:2182',
         title: 'should add ZK host and port dynamically'
+      },
+      'oozieserver_host': {
+        localDB: {
+          masterComponentHosts: [
+            {
+              component: 'OOZIE_SERVER',
+              hostName: 'h0'
+            },
+            {
+              component: 'OOZIE_SERVER',
+              hostName: 'h1'
+            }
+          ]
+        },
+        value: ['h0', 'h1'],
+        title: 'array that contains names of hosts with Oozie Server'
+      },
+      'knox_gateway_host': {
+        localDB: {
+          masterComponentHosts: [
+            {
+              component: 'KNOX_GATEWAY',
+              hostName: 'h0'
+            },
+            {
+              component: 'KNOX_GATEWAY',
+              hostName: 'h1'
+            }
+          ]
+        },
+        value: ['h0', 'h1'],
+        title: 'array that contains names of hosts with Knox Gateway'
       }
     };
 
@@ -960,6 +992,18 @@ describe('App.ServiceConfigProperty', function () {
       serviceConfigProperty.initialValue(cases['yarn.resourcemanager.zk-address'].localDB, cases['yarn.resourcemanager.zk-address'].dependencies);
       expect(serviceConfigProperty.get('value')).to.equal(cases['yarn.resourcemanager.zk-address'].value);
       expect(serviceConfigProperty.get('defaultValue')).to.equal(cases['yarn.resourcemanager.zk-address'].value);
+    });
+
+    it(cases['oozieserver_host'].title, function () {
+      serviceConfigProperty.set('name', 'oozieserver_host');
+      serviceConfigProperty.initialValue(cases['oozieserver_host'].localDB);
+      expect(serviceConfigProperty.get('value')).to.eql(cases['oozieserver_host'].value);
+    });
+
+    it(cases['knox_gateway_host'].title, function () {
+      serviceConfigProperty.set('name', 'knox_gateway_host');
+      serviceConfigProperty.initialValue(cases['knox_gateway_host'].localDB);
+      expect(serviceConfigProperty.get('value')).to.eql(cases['knox_gateway_host'].value);
     });
 
   });

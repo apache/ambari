@@ -302,7 +302,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   removeOozieConfigs: function (configs) {
     var oozieDb = configs.findProperty('name', 'oozie_database');
     if (oozieDb) {
-      var oozie_properties = Em.A(['oozie_ambari_host', 'oozie_ambari_database']);
+      var oozie_properties = Em.A(['oozie_ambari_database']);
 
       switch (oozieDb.value) {
         case 'New Derby Database':
