@@ -23,8 +23,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -100,6 +102,7 @@ import com.google.inject.Singleton;
 import com.google.inject.persist.PersistService;
 import com.google.inject.persist.Transactional;
 import com.google.inject.util.Modules;
+import org.mockito.ArgumentCaptor;
 
 public class ClusterTest {
 
@@ -118,6 +121,7 @@ public class ClusterTest {
   @Singleton
   static class ClusterVersionDAOMock extends ClusterVersionDAO {
     static boolean failOnCurrentVersionState;
+    static List<ClusterVersionEntity> mockedClusterVersions;
 
     @Override
     @Transactional
@@ -126,6 +130,16 @@ public class ClusterTest {
         return super.merge(entity);
       } else {
         throw new RollbackException();
+      }
+    }
+
+    @Override
+    @Transactional
+    public List<ClusterVersionEntity> findByCluster(String clusterName) {
+      if (mockedClusterVersions == null) {
+        return super.findByCluster(clusterName);
+      } else {
+        return mockedClusterVersions;
       }
     }
   }
@@ -1221,6 +1235,88 @@ public class ClusterTest {
     entities = hostVersionDAO.findByClusterAndHost(clusterName, "h-3");
 
     assertEquals(1, entities.size());
+  }
+
+  @Test
+  public void testTransitionHostVersionState_OutOfSync_BlankCurrent() throws Exception {
+    /**
+     * Checks case when there are 2 cluster stack versions present (CURRENT and OUT_OF_SYNC),
+     * and we add a new host to cluster. On a new host, both CURRENT and OUT_OF_SYNC host
+     * versions should be present
+     */
+    String clusterName = "c2";
+    clusters.addCluster(clusterName);
+    final Cluster c2 = clusters.getCluster(clusterName);
+    Assert.assertEquals(clusterName, c2.getClusterName());
+    Assert.assertEquals(2, c2.getClusterId());
+
+    clusters.addHost("h-1");
+    clusters.addHost("h-2");
+    String h3 = "h-3";
+    clusters.addHost(h3);
+
+    for (String hostName : new String[] { "h-1", "h-2", h3}) {
+      Host h = clusters.getHost(hostName);
+      h.setIPv4("ipv4");
+      h.setIPv6("ipv6");
+
+      Map<String, String> hostAttributes = new HashMap<String, String>();
+      hostAttributes.put("os_family", "redhat");
+      hostAttributes.put("os_release_version", "5.9");
+      h.setHostAttributes(hostAttributes);
+      h.persist();
+    }
+
+    String v1 = "2.0.5-1";
+    String v2 = "2.0.5-2";
+    StackId stackId = new StackId("HDP-2.0.5");
+    c2.setDesiredStackVersion(stackId);
+    RepositoryVersionEntity rve1 = helper.getOrCreateRepositoryVersion(stackId.getStackId()
+            , v1);
+    RepositoryVersionEntity rve2 = helper.getOrCreateRepositoryVersion(stackId.getStackId(), v2);
+
+    c2.setCurrentStackVersion(stackId);
+    c2.createClusterVersion(stackId.getStackId(), v1, "admin", RepositoryVersionState.UPGRADING);
+    c2.transitionClusterVersion(stackId.getStackId(), v1, RepositoryVersionState.CURRENT);
+
+    clusters.mapHostToCluster("h-1", "c2");
+    clusters.mapHostToCluster("h-2", "c2");
+
+    ClusterVersionDAOMock.failOnCurrentVersionState = false;
+
+    Service service = c2.addService("ZOOKEEPER");
+    ServiceComponent sc = service.addServiceComponent("ZOOKEEPER_SERVER");
+    sc.addServiceComponentHost("h-1");
+    sc.addServiceComponentHost("h-2");
+
+    c2.createClusterVersion(stackId.getStackId(), v2, "admin", RepositoryVersionState.INSTALLING);
+    c2.transitionClusterVersion(stackId.getStackId(), v2, RepositoryVersionState.INSTALLED);
+    c2.transitionClusterVersion(stackId.getStackId(), v2, RepositoryVersionState.OUT_OF_SYNC);
+
+    clusters.mapHostToCluster(h3, "c2");
+
+    // This method is usually called when we receive heartbeat from new host
+    HostEntity hostEntity3 = mock(HostEntity.class);
+    when(hostEntity3.getHostName()).thenReturn(h3);
+
+    // HACK: to workaround issue with NullPointerException at
+    // org.eclipse.persistence.internal.sessions.MergeManager.registerObjectForMergeCloneIntoWorkingCopy(MergeManager.java:1037)
+    // during hostVersionDAO.merge()
+    HostVersionDAO hostVersionDAOMock = mock(HostVersionDAO.class);
+    Field field = ClusterImpl.class.getDeclaredField("hostVersionDAO");
+    field.setAccessible(true);
+    field.set(c2, hostVersionDAOMock);
+
+    ArgumentCaptor<HostVersionEntity> hostVersionCaptor = ArgumentCaptor.forClass(HostVersionEntity.class);
+
+    ClusterVersionDAOMock.mockedClusterVersions = new ArrayList<ClusterVersionEntity>() {{
+      addAll(c2.getAllClusterVersions());
+    }};
+
+    c2.transitionHostVersionState(hostEntity3, rve1, stackId);
+
+    verify(hostVersionDAOMock).merge(hostVersionCaptor.capture());
+    assertEquals(hostVersionCaptor.getValue().getState(), RepositoryVersionState.CURRENT);
   }
 
 }
