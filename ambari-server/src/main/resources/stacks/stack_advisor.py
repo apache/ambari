@@ -396,13 +396,27 @@ class DefaultStackAdvisor(StackAdvisor):
             hostsForComponent = []
 
           if self.isSlaveComponent(component):
-            hostsForComponent.extend(freeHosts)
+            cardinality = str(component["StackServiceComponents"]["cardinality"])
+            if self.isComponentUsingCardinalityForLayout(componentName) and cardinality:
+              # cardinality types: 1+, 1-2, 1, ALL
+              if "+" in cardinality:
+                hostsMin = int(cardinality[:-1])
+              elif "-" in cardinality:
+                nums = cardinality.split("-")
+                hostsMin = int(nums[0])
+              else:
+                hostsMin = int(cardinality)
+              if hostsMin > len(hostsForComponent):
+                hostsForComponent.extend(freeHosts[0:hostsMin-len(hostsForComponent)])
+            else:
+              hostsForComponent.extend(freeHosts)
+              if not hostsForComponent:  # hostsForComponent is empty
+                hostsForComponent = hostsList[-1:]
             hostsForComponent = list(set(hostsForComponent))  # removing duplicates
           elif self.isClientComponent(component) and not componentIsPopulated:
             hostsForComponent = freeHosts[0:1]
-
-          if not hostsForComponent:  # hostsForComponent is empty
-            hostsForComponent = hostsList[-1:]
+            if not hostsForComponent:  # hostsForComponent is empty
+              hostsForComponent = hostsList[-1:]
 
         #extend 'hostsComponentsMap' with 'hostsForComponent'
         for hostName in hostsForComponent:
@@ -422,6 +436,9 @@ class DefaultStackAdvisor(StackAdvisor):
 
     return recommendations
   pass
+
+  def isComponentUsingCardinalityForLayout(self, componentName):
+    return False
 
   def createValidationResponse(self, services, validationItems):
     """Returns array of Validation objects about issues with hostnames components assigned to"""
