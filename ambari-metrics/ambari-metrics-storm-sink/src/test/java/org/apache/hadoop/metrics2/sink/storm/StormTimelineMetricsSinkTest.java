@@ -18,24 +18,18 @@
 
 package org.apache.hadoop.metrics2.sink.storm;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-
-import java.io.IOException;
-import java.net.SocketAddress;
-import java.util.Collections;
-
+import backtype.storm.metric.api.IMetricsConsumer;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
 import org.junit.Test;
 
-import backtype.storm.metric.api.IMetricsConsumer;
+import java.io.IOException;
+import java.net.SocketAddress;
+import java.util.Collections;
+
+import static org.easymock.EasyMock.*;
 
 public class StormTimelineMetricsSinkTest {
   @Test
