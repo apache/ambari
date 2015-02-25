@@ -25,33 +25,11 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ambari-metrics-common</artifactId>
-  <name>Ambari Metrics Common</name>
   <build>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.0</version>
-      </plugin>
-      <plugin>
-        <groupId>org.vafer</groupId>
-        <artifactId>jdeb</artifactId>
-        <version>1.0.1</version>
-        <executions>
-          <execution>
-            <!--Stub execution on direct plugin call - workaround for ambari deb build process-->
-            <id>stub-execution</id>
-            <phase>none</phase>
-            <goals>
-              <goal>jdeb</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <skip>true</skip>
-          <attach>false</attach>
-          <submodules>false</submodules>
-          <controlDir>${project.basedir}/../src/main/package/deb/control</controlDir>
-        </configuration>
       </plugin>
     </plugins>
   </build>
