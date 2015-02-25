@@ -1501,15 +1501,18 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     final StackId stackId = cluster.getDesiredStackVersion();
     final StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
 
-    RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(stackId.getStackId(), version);
-    if (repositoryVersion == null) {
-      repositoryVersion = createRepositoryVersion(version, stackId, stackInfo);
-    }
+    writeLock.lock();
+    try {
+      RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(stackId.getStackId(), version);
+      if (repositoryVersion == null) {
+        repositoryVersion = createRepositoryVersion(version, stackId, stackInfo);
+      }
 
-    final HostEntity host = hostDAO.findByName(hostName);
-    cluster.transitionHostVersionState(host, repositoryVersion, stackId);
+      final HostEntity host = hostDAO.findByName(hostName);
+      cluster.transitionHostVersionState(host, repositoryVersion, stackId);
+    } finally {
+      writeLock.unlock();
+    }
     return version;
   }
-
-
 }

@@ -27,6 +27,7 @@
           <name>GANGLIA_SERVER</name>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <versionAdvertised>false</versionAdvertised>
           <commandScript>
             <script>scripts/ganglia_server.py</script>
             <scriptType>PYTHON</scriptType>
@@ -38,6 +39,7 @@
           <name>GANGLIA_MONITOR</name>
           <category>SLAVE</category>
           <cardinality>ALL</cardinality>
+          <versionAdvertised>false</versionAdvertised>
           <auto-deploy>
             <enabled>true</enabled>
           </auto-deploy>

@@ -92,13 +92,13 @@ public class StackManagerTest {
   @Test
   public void testGetStacks_count() throws Exception {
     Collection<StackInfo> stacks = stackManager.getStacks();
-    assertEquals(17, stacks.size());
+    assertEquals(18, stacks.size());
   }
 
   @Test
   public void testGetStack_name__count() {
     Collection<StackInfo> stacks = stackManager.getStacks("HDP");
-    assertEquals(13, stacks.size());
+    assertEquals(14, stacks.size());
 
     stacks = stackManager.getStacks("OTHER");
     assertEquals(2, stacks.size());
