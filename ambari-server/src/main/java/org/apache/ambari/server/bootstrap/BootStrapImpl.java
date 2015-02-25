@@ -114,14 +114,27 @@ public class BootStrapImpl {
     }
     requestId++;
 
-    bsRunner = new BSRunner(this, info, bootStrapDir.toString(),
-        bootScript, bootSetupAgentScript, bootSetupAgentPassword, requestId, 0L,
-        this.masterHostname, info.isVerbose(), this.clusterOsFamily, this.projectVersion, this.serverPort);
-    bsRunner.start();
-    response.setStatus(BSRunStat.OK);
-    response.setLog("Running Bootstrap now.");
-    response.setRequestId(requestId);
-    return response;
+    if (info.getHosts() == null || info.getHosts().isEmpty()) {
+      BootStrapStatus status = new BootStrapStatus();
+      status.setLog("Host list is empty.");
+      status.setHostsStatus(new ArrayList<BSHostStatus>());
+      status.setStatus(BootStrapStatus.BSStat.ERROR);
+      updateStatus(requestId, status);
+
+      response.setStatus(BSRunStat.OK);
+      response.setLog("Host list is empty.");
+      response.setRequestId(requestId);
+      return response;
+    } else {
+      bsRunner = new BSRunner(this, info, bootStrapDir.toString(),
+          bootScript, bootSetupAgentScript, bootSetupAgentPassword, requestId, 0L,
+          this.masterHostname, info.isVerbose(), this.clusterOsFamily, this.projectVersion, this.serverPort);
+      bsRunner.start();
+      response.setStatus(BSRunStat.OK);
+      response.setLog("Running Bootstrap now.");
+      response.setRequestId(requestId);
+      return response;
+    }
   }
 
   /**
