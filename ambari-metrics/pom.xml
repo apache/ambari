@@ -164,51 +164,6 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <!--Stub execution on direct plugin call - workaround for ambari rpm build process-->
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>rpm-maven-plugin</artifactId>
-        <version>2.0.1</version>
-        <executions>
-          <execution>
-            <id>stub-execution</id>
-            <!-- unbinds rpm creation from maven lifecycle -->
-            <phase>none</phase>
-            <goals>
-              <goal>attached-rpm</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <copyright>2012, Apache Software Foundation</copyright>
-          <group>Development</group>
-          <description>Maven Recipe: RPM Package.</description>
-          <release>${package-release}</release>
-          <version>${package-version}</version>
-          <mappings/>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.vafer</groupId>
-        <artifactId>jdeb</artifactId>
-        <version>1.0.1</version>
-        <executions>
-          <execution>
-            <!--Stub execution on direct plugin call - workaround for ambari deb build process-->
-            <id>stub-execution</id>
-            <phase>none</phase>
-            <goals>
-              <goal>jdeb</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <skip>true</skip>
-          <attach>false</attach>
-          <submodules>true</submodules>
-          <controlDir>${project.basedir}/src/main/package/deb/control</controlDir>
-        </configuration>
-      </plugin>
     </plugins>
   </build>
 
