@@ -307,7 +307,7 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     Resource resource = new ResourceImpl(Resource.Type.Stage);
 
     Long clusterId = entity.getClusterId();
-    if (clusterId != null) {
+    if (clusterId != null && !clusterId.equals(Long.valueOf(-1L))) {
       try {
         Cluster cluster = clusters.getClusterById(clusterId);
 
