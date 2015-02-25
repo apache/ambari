@@ -521,7 +521,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
   }),
   memorySort: sort.fieldView.extend({
     column: 4,
-    name:'memory',
+    name:'memoryFormatted',
     displayName: Em.I18n.t('common.ram'),
     type: 'number'
   }),
