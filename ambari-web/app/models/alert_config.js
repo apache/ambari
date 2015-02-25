@@ -240,8 +240,7 @@ App.AlertConfigProperties = {
     isValid: function () {
       var value = this.get('value');
       if (!value) return false;
-      value = ('' + value).trim();
-      return !isNaN(value) && value >= 1;
+      return String(value) === String(parseInt(value, 10)) && value >= 1;
     }.property('value')
   }),
 
