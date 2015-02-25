@@ -263,7 +263,7 @@
       {
         "name": "namenode_directory_status",
         "label": "NameNode Directory Status",
-        "description": "This host-level alert is triggered if any of the the NameNode's NameDirStatuses metric reports a failed directory. The threshold values are in the number of directories that are not healthy",
+        "description": "This host-level alert is triggered if the NameNode NameDirStatuses metric (name=NameNodeInfo/NameDirStatuses) reports a failed directory. The threshold values are in the number of directories that are not healthy.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,
