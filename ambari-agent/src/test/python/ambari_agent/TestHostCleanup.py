@@ -112,9 +112,9 @@ class TestHostCleanup(TestCase):
     sys.stdout = sys.__stdout__
 
   class HostCleanupOptions:
-    def __init__(self, outputfile, inputfile, skip, verbose, silent, java_home):
+    def __init__(self, outputfile, inputfiles, skip, verbose, silent, java_home):
       self.outputfile = outputfile
-      self.inputfile = inputfile
+      self.inputfiles = inputfiles
       self.skip = skip
       self.verbose = verbose
       self.silent = silent
@@ -131,7 +131,9 @@ class TestHostCleanup(TestCase):
   @patch.object(optparse.OptionParser, 'parse_args')
   def test_options(self, parser_mock, file_handler_mock, logging_mock, read_host_check_file_mock,
                    set_formatter_mock, user_root_mock, do_cleanup_mock, get_yn_input_mock, clear_cache_mock):
-    parser_mock.return_value = (TestHostCleanup.HostCleanupOptions('/someoutputfile', '/someinputfile', '', False,
+    open('/tmp/someinputfile1', 'a').close()
+    open('/tmp/someinputfile2', 'a').close()
+    parser_mock.return_value = (TestHostCleanup.HostCleanupOptions('/someoutputfile', '/tmp/someinputfile1,/tmp/someinputfile2', '', False,
                                                                    False, 'java_home'), [])
     file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
     user_root_mock.return_value = True
@@ -145,7 +147,7 @@ class TestHostCleanup(TestCase):
     #test --verbose
     logging_mock.assert_called_with(level=logging.INFO)
     # test --in
-    read_host_check_file_mock.assert_called_with('/someinputfile')
+    read_host_check_file_mock.assert_called_with('tmp_hostcheck.result')
     self.assertTrue(get_yn_input_mock.called)
 
   @patch.object(HostCleanup.HostCleanup, 'get_files_in_dir')
@@ -179,7 +181,9 @@ class TestHostCleanup(TestCase):
   @patch.object(optparse.OptionParser, 'parse_args')
   def test_options_silent(self, parser_mock, file_handler_mock, logging_mock, read_host_check_file_mock,
                    set_formatter_mock, user_root_mock, do_cleanup_mock, get_yn_input_mock, clear_cache_mock):
-    parser_mock.return_value = (TestHostCleanup.HostCleanupOptions('/someoutputfile', '/someinputfile', '', False,
+    open('/tmp/someinputfile1', 'a').close()
+    open('/tmp/someinputfile2', 'a').close()
+    parser_mock.return_value = (TestHostCleanup.HostCleanupOptions('/someoutputfile', '/tmp/someinputfile1,/tmp/someinputfile2', '', False,
                                                                    True, 'java_home'), [])
     file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
     user_root_mock.return_value = True
@@ -193,7 +197,7 @@ class TestHostCleanup(TestCase):
     #test --verbose
     logging_mock.assert_called_with(level=logging.INFO)
     # test --in
-    read_host_check_file_mock.assert_called_with('/someinputfile')
+    read_host_check_file_mock.assert_called_with('tmp_hostcheck.result')
     self.assertFalse(get_yn_input_mock.called)
 
   @patch.object(HostCleanup.HostCleanup, 'do_clear_cache')
