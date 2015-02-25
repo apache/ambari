@@ -24,16 +24,20 @@ import os
 import subprocess
 import socket
 
+from resource_management.libraries.functions import packages_analyzer
 from ambari_commons import os_utils
 from ambari_commons.os_check import OSCheck, OSConst
 from ambari_commons.inet_utils import download_file
 from resource_management import Script, Execute, format
 from ambari_agent.HostInfo import HostInfo
+from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
 
 CHECK_JAVA_HOME = "java_home_check"
 CHECK_DB_CONNECTION = "db_connection_check"
 CHECK_HOST_RESOLUTION = "host_resolution_check"
 CHECK_LAST_AGENT_ENV = "last_agent_env_check"
+CHECK_INSTALLED_PACKAGES = "installed_packages"
+CHECK_EXISTING_REPOS = "existing_repos"
 
 DB_MYSQL = "mysql"
 DB_ORACLE = "oracle"
@@ -52,9 +56,42 @@ JDBC_DRIVER_SYMLINK_MSSQL = "sqljdbc4.jar"
 JDBC_AUTH_SYMLINK_MSSQL = "sqljdbc_auth.dll"
 
 class CheckHost(Script):
+  # Packages that are used to find repos (then repos are used to find other packages)
+  PACKAGES = [
+    "hadoop_2_2_*", "hadoop-2-2-.*", "zookeeper_2_2_*", "zookeeper-2-2-.*",
+    "hadoop", "zookeeper", "webhcat", "*-manager-server-db", "*-manager-daemons"
+  ]
+  
+
+  # ignore packages from repos whose names start with these strings
+  IGNORE_PACKAGES_FROM_REPOS = [
+    "ambari", "installed"
+  ]
+  
+
+  # ignore required packages
+  IGNORE_PACKAGES = [
+    "epel-release"
+  ]
+  
+  # Additional packages to look for (search packages that start with these)
+  ADDITIONAL_PACKAGES = [
+    "rrdtool", "rrdtool-python", "ganglia", "gmond", "gweb", "libconfuse",
+    "ambari-log4j", "hadoop", "zookeeper", "oozie", "webhcat"
+  ]
+  
+  # ignore repos from the list of repos to be cleaned
+  IGNORE_REPOS = [
+    "ambari", "HDP-UTILS"
+  ]
+  
+  def __init__(self):
+    self.reportFileHandler = HostCheckReportFileHandler()
+  
   def actionexecute(self, env):
     config = Script.get_config()
     tmp_dir = Script.get_tmp_dir()
+    report_file_handler_dict = {}
 
     #print "CONFIG: " + str(config)
 
@@ -93,8 +130,42 @@ class CheckHost(Script):
       except Exception, exception :
         print "There was an unknown error while checking last host environment details: " + str(exception)
         structured_output[CHECK_LAST_AGENT_ENV] = {"exit_code" : 1, "message": str(exception)}
-
+        
+    # CHECK_INSTALLED_PACKAGES and CHECK_EXISTING_REPOS required to run together for
+    # reasons of not doing the same common work twice for them as it takes some time, especially on Ubuntu.
+    if CHECK_INSTALLED_PACKAGES in check_execute_list and CHECK_EXISTING_REPOS in check_execute_list:
+      try :
+        installed_packages, repos = self.execute_existing_repos_and_installed_packages_check(config)
+        structured_output[CHECK_INSTALLED_PACKAGES] = installed_packages
+        structured_output[CHECK_EXISTING_REPOS] = repos
+      except Exception, exception :
+        print "There was an unknown error while checking installed packages and existing repositories: " + str(exception)
+        structured_output[CHECK_INSTALLED_PACKAGES] = {"exit_code" : 1, "message": str(exception)}
+        structured_output[CHECK_EXISTING_REPOS] = {"exit_code" : 1, "message": str(exception)}
+        
+    # this is necessary for HostCleanup to know later what were the results.
+    self.reportFileHandler.writeHostChecksCustomActionsFile(structured_output)
+    
     self.put_structured_out(structured_output)
+
+  def execute_existing_repos_and_installed_packages_check(self, config):
+      installedPackages = []
+      availablePackages = []
+      packages_analyzer.allInstalledPackages(installedPackages)
+      packages_analyzer.allAvailablePackages(availablePackages)
+
+      repos = []
+      packages_analyzer.getInstalledRepos(self.PACKAGES, installedPackages + availablePackages,
+                                      self.IGNORE_PACKAGES_FROM_REPOS, repos)
+      packagesInstalled = packages_analyzer.getInstalledPkgsByRepo(repos, self.IGNORE_PACKAGES, installedPackages)
+      additionalPkgsInstalled = packages_analyzer.getInstalledPkgsByNames(
+        self.ADDITIONAL_PACKAGES, installedPackages)
+      allPackages = list(set(packagesInstalled + additionalPkgsInstalled))
+      
+      installedPackages = packages_analyzer.getPackageDetails(installedPackages, allPackages)
+      repos = packages_analyzer.getReposToRemove(repos, self.IGNORE_REPOS)
+
+      return installedPackages, repos
 
 
   def execute_java_home_available_check(self, config):

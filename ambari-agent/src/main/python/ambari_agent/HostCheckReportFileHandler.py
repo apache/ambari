@@ -22,6 +22,7 @@ import datetime
 import os.path
 import logging
 import traceback
+from AmbariConfig import AmbariConfig
 import ConfigParser;
 
 logger = logging.getLogger()
@@ -29,12 +30,58 @@ logger = logging.getLogger()
 class HostCheckReportFileHandler:
 
   HOST_CHECK_FILE = "hostcheck.result"
+  HOST_CHECK_CUSTOM_ACTIONS_FILE = "hostcheck_custom_actions.result"
 
-  def __init__(self, config):
+  def __init__(self, config=None):
     self.hostCheckFilePath = None
-    if config is not None:
-      hostCheckFileDir = config.get('agent', 'prefix')
-      self.hostCheckFilePath = os.path.join(hostCheckFileDir, self.HOST_CHECK_FILE)
+    
+    if config is None:
+      config = self.resolve_ambari_config()
+      
+    hostCheckFileDir = config.get('agent', 'prefix')
+    self.hostCheckFilePath = os.path.join(hostCheckFileDir, self.HOST_CHECK_FILE)
+    self.hostCheckCustomActionsFilePath = os.path.join(hostCheckFileDir, self.HOST_CHECK_CUSTOM_ACTIONS_FILE)
+    
+  def resolve_ambari_config(self):
+    try:
+      config = AmbariConfig()
+      if os.path.exists(AmbariConfig.getConfigFile()):
+        config.read(AmbariConfig.getConfigFile())
+      else:
+        raise Exception("No config found, use default")
+
+    except Exception, err:
+      logger.warn(err)
+    return config
+    
+  def writeHostChecksCustomActionsFile(self, structuredOutput):
+    if self.hostCheckCustomActionsFilePath is None:
+      return
+    
+    try:
+      logger.info("Host check custom action report at " + self.hostCheckCustomActionsFilePath)
+      config = ConfigParser.RawConfigParser()
+      config.add_section('metadata')
+      config.set('metadata', 'created', str(datetime.datetime.now()))
+      
+      if 'installed_packages' in structuredOutput.keys():
+        items = []
+        for itemDetail in structuredOutput['installed_packages']:
+          items.append(itemDetail['name'])
+        config.add_section('packages')
+        config.set('packages', 'pkg_list', ','.join(map(str, items)))
+
+      if 'existing_repos' in structuredOutput.keys():
+        config.add_section('repositories')
+        config.set('repositories', 'repo_list', ','.join(structuredOutput['existing_repos']))
+        
+      self.removeFile(self.hostCheckCustomActionsFilePath)
+      self.touchFile(self.hostCheckCustomActionsFilePath)
+      with open(self.hostCheckCustomActionsFilePath, 'wb') as configfile:
+        config.write(configfile)
+    except Exception, err:
+      logger.error("Can't write host check file at %s :%s " % (self.hostCheckFilePath, err.message))
+      traceback.print_exc()
 
   def writeHostCheckFile(self, hostInfo):
     if self.hostCheckFilePath is None:
@@ -81,33 +128,22 @@ class HostCheckReportFileHandler:
           config.add_section('processes')
           config.set('processes', 'proc_list', ','.join(map(str, items)))
 
-      if 'installedPackages' in hostInfo.keys():
-        items = []
-        for itemDetail in hostInfo['installedPackages']:
-          items.append(itemDetail['name'])
-        config.add_section('packages')
-        config.set('packages', 'pkg_list', ','.join(map(str, items)))
-
-      if 'existingRepos' in hostInfo.keys():
-        config.add_section('repositories')
-        config.set('repositories', 'repo_list', ','.join(hostInfo['existingRepos']))
-
-      self.removeFile()
-      self.touchFile()
+      self.removeFile(self.hostCheckFilePath)
+      self.touchFile(self.hostCheckFilePath)
       with open(self.hostCheckFilePath, 'wb') as configfile:
         config.write(configfile)
     except Exception, err:
       logger.error("Can't write host check file at %s :%s " % (self.hostCheckFilePath, err.message))
       traceback.print_exc()
 
-  def removeFile(self):
-    if os.path.isfile(self.hostCheckFilePath):
-      logger.info("Removing old host check file at %s" % self.hostCheckFilePath)
-      os.remove(self.hostCheckFilePath)
+  def removeFile(self, path):
+    if os.path.isfile(path):
+      logger.info("Removing old host check file at %s" % path)
+      os.remove(path)
 
-  def touchFile(self):
-    if not os.path.isfile(self.hostCheckFilePath):
-      logger.info("Creating host check file at %s" % self.hostCheckFilePath)
-      open(self.hostCheckFilePath, 'w').close()
+  def touchFile(self, path):
+    if not os.path.isfile(path):
+      logger.info("Creating host check file at %s" % path)
+      open(path, 'w').close()
 
 

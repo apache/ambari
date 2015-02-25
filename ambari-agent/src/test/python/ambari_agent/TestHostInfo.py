@@ -83,20 +83,6 @@ class TestHostInfo(TestCase):
     self.assertTrue(installedPackages[6][1], "11-38.13.9")
 
   @not_for_platform(PLATFORM_WINDOWS)
-  def test_getReposToRemove(self):
-    l1 = ["Hortonworks Data Platform Utils Version - HDP-UTILS-1.1.0.15", "Ambari 1.x", "HDP"]
-    l2 = ["Ambari", "HDP-UTIL"]
-    hostInfo = HostInfoLinux()
-    l3 = hostInfo.getReposToRemove(l1, l2)
-    self.assertTrue(1, len(l3))
-    self.assertEqual(l3[0], "HDP")
-
-    l1 = ["AMBARI.dev-1.x", "HDP-1.3.0"]
-    l3 = hostInfo.getReposToRemove(l1, l2)
-    self.assertTrue(1, len(l3))
-    self.assertEqual(l3[0], "HDP-1.3.0")
-
-  @not_for_platform(PLATFORM_WINDOWS)
   def test_perform_package_analysis(self):
     installedPackages = [
       ["hadoop-a", "2.3", "HDP"], ["zk", "3.1", "HDP"], ["webhcat", "3.1", "HDP"],
@@ -286,14 +272,9 @@ class TestHostInfo(TestCase):
     dict = {}
     hostInfo.register(dict, False, False)
     self.assertTrue(cit_mock.called)
-    self.assertTrue(gir_mock.called)
-    self.assertTrue(gpd_mock.called)
-    self.assertTrue(aip_mock.called)
-    self.assertTrue(aap_mock.called)
     self.assertTrue(os_umask_mock.called)
     self.assertTrue(whcf_mock.called)
 
-    self.assertTrue(0 < len(dict['installedPackages']))
     self.assertTrue('agentTimeStampAtReporting' in dict['hostHealth'])
 
   @not_for_platform(PLATFORM_WINDOWS)
@@ -342,25 +323,14 @@ class TestHostInfo(TestCase):
     hostInfo = HostInfoLinux()
     dict = {}
     hostInfo.register(dict, False, False)
-    self.assertTrue(gir_mock.called)
-    self.assertTrue(gpd_mock.called)
-    self.assertTrue(aip_mock.called)
     self.assertTrue(cit_mock.called)
     self.assertEqual(1, cit_mock.call_count)
-
-    for existingPkg in ["pkg1", "pkg2"]:
-      self.assertTrue(existingPkg in dict['installedPackages'])
-    args, kwargs = gpd_mock.call_args_list[0]
-    for existingPkg in ["pkg1", "pkg2"]:
-      self.assertTrue(existingPkg in args[1])
 
   def verifyReturnedValues(self, dict):
     hostInfo = HostInfoLinux()
     self.assertEqual(dict['alternatives'], [])
     self.assertEqual(dict['stackFoldersAndFiles'], [])
     self.assertEqual(dict['existingUsers'], [])
-    self.assertEqual(dict['existingRepos'][0], hostInfo.RESULT_UNAVAILABLE)
-    self.assertEqual(dict['installedPackages'], [])
     self.assertTrue(dict['iptablesIsRunning'])
 
   @patch("os.path.exists")
