@@ -17,6 +17,7 @@
  */
 package org.apache.hadoop.metrics2.sink.timeline.cache;
 
+import org.apache.hadoop.metrics2.MetricType;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.junit.Test;
 
@@ -40,13 +41,13 @@ public class TimelineMetricsCacheTest {
     TimelineMetric metric = createTimelineMetric(new TreeMap<Long, Double>() {{
       put(1L, 10.0);
     }}, DEFAULT_START_TIME);
-    timelineMetricsCache.putTimelineMetric(metric, true);
+    timelineMetricsCache.putTimelineMetric(metric, MetricType.COUNTER);
     metric = createTimelineMetric(new TreeMap<Long, Double>() {{
       put(2L, 10.0);
       put(3L, 20.0);
       put(4L, 30.0);
     }}, DEFAULT_START_TIME + 2 * TimelineMetricsCache.MAX_EVICTION_TIME_MILLIS);
-    timelineMetricsCache.putTimelineMetric(metric, true);
+    timelineMetricsCache.putTimelineMetric(metric, MetricType.COUNTER);
     TimelineMetric cachedMetric
         = timelineMetricsCache.getTimelineMetric(METRIC_NAME);
     assertEquals(0, cachedMetric.getMetricValues().get(1L), delta);
@@ -59,12 +60,12 @@ public class TimelineMetricsCacheTest {
       put(6L, 120.0);
       put(7L, 230.0);
     }}, DEFAULT_START_TIME + 3 * TimelineMetricsCache.MAX_EVICTION_TIME_MILLIS);
-    timelineMetricsCache.putTimelineMetric(metric, true);
+    timelineMetricsCache.putTimelineMetric(metric, MetricType.COUNTER);
     metric = createTimelineMetric(new TreeMap<Long, Double>() {{
       put(8L, 300.0);
     }}, DEFAULT_START_TIME + 5 * TimelineMetricsCache.MAX_EVICTION_TIME_MILLIS);
 
-    timelineMetricsCache.putTimelineMetric(metric, true);
+    timelineMetricsCache.putTimelineMetric(metric, MetricType.COUNTER);
     cachedMetric = timelineMetricsCache.getTimelineMetric(METRIC_NAME);
     assertEquals(70, cachedMetric.getMetricValues().get(5L), delta);
     assertEquals(20, cachedMetric.getMetricValues().get(6L), delta);

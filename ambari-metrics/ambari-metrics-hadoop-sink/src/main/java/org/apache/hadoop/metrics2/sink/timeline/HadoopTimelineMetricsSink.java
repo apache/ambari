@@ -17,32 +17,20 @@
  */
 package org.apache.hadoop.metrics2.sink.timeline;
 
-import java.io.IOException;
-import java.net.SocketAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.configuration.SubsetConfiguration;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
-import org.apache.hadoop.metrics2.AbstractMetric;
-import org.apache.hadoop.metrics2.MetricsException;
-import org.apache.hadoop.metrics2.MetricsRecord;
-import org.apache.hadoop.metrics2.MetricsSink;
-import org.apache.hadoop.metrics2.MetricsTag;
-import org.apache.hadoop.metrics2.MetricType;
+import org.apache.hadoop.metrics2.*;
 import org.apache.hadoop.metrics2.impl.MsInfo;
 import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
 import org.apache.hadoop.metrics2.util.Servers;
 import org.apache.hadoop.net.DNS;
+
+import java.io.IOException;
+import java.net.SocketAddress;
+import java.net.UnknownHostException;
+import java.util.*;
 
 @InterfaceAudience.Public
 @InterfaceStability.Evolving
@@ -176,8 +164,7 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
         timelineMetric.setType(ClassUtils.getShortCanonicalName(value, "Number"));
         timelineMetric.getMetricValues().put(startTime, value.doubleValue());
         // Put intermediate values into the cache until it is time to send
-        boolean isCounter = MetricType.COUNTER == metric.type();
-        metricsCache.putTimelineMetric(timelineMetric, isCounter);
+        metricsCache.putTimelineMetric(timelineMetric, metric.type());
 
         // Retrieve all values from cache if it is time to send
         TimelineMetric cachedMetric = metricsCache.getTimelineMetric(name);
