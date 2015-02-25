@@ -41,8 +41,8 @@
         <div class="log-list-wrap">{{t hostPopup.noServicesToShow}}</div>
       {{else}}
         {{#each servicesInfo in view.services}}
-          <div {{bindAttr class="servicesInfo.isVisible::hidden :log-list-wrap"}}>
-            <div {{action gotoHosts servicesInfo}} class="task-list-line-cursor">
+          <div {{action gotoHosts servicesInfo}} {{bindAttr class="servicesInfo.isVisible::hidden :log-list-wrap"}}>
+            <div class="task-list-line-cursor">
               <div class="operation-name-icon-wrap">
                 {{view statusIcon servicesInfoBinding="servicesInfo"}}
                 <a href="#">
@@ -116,8 +116,8 @@
           <div class="log-list-wrap">{{t hostPopup.noHostsToShow}}</div>
         {{else}}
           {{#each hostInfo in view.pageContent}}
-            <div {{bindAttr class="hostInfo.isVisible::hidden :log-list-wrap"}}>
-              <div {{action gotoTasks hostInfo}} class="task-list-line-cursor">
+            <div {{action gotoTasks hostInfo}} {{bindAttr class="hostInfo.isVisible::hidden :log-list-wrap"}}>
+              <div class="task-list-line-cursor">
                 <div class="host-name-icon-wrap">
                   {{view statusIcon servicesInfoBinding="hostInfo"}}
                   <a href="#">
@@ -165,8 +165,8 @@
         <div class="log-list-wrap">{{t hostPopup.noTasksToShow}}</div>
       {{else}}
         {{#each taskInfo in view.tasks}}
-          <div {{bindAttr class="taskInfo.isVisible::hidden :log-list-wrap"}}>
-            <div {{action toggleTaskLog taskInfo}} class="task-list-line-cursor">
+          <div {{action toggleTaskLog taskInfo}} {{bindAttr class="taskInfo.isVisible::hidden :log-list-wrap"}}>
+            <div class="task-list-line-cursor">
               <div class="operation-name-icon-wrap">
                 {{view statusIcon servicesInfoBinding="taskInfo"}}
                 <a href="#">
