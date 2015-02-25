@@ -293,12 +293,13 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
         sender: this,
         data: {},
         success: 'updateStatusCountersSuccessCallback',
-        error: 'updateStatusCountersErrorCallback'
+        error: 'updateStatusCountersErrorCallback',
+        callback: function() {
+          setTimeout(function () {
+            self.updateStatusCounters();
+          }, App.get('hostStatusCountersUpdateInterval'));
+        }
       });
-
-      setTimeout(function () {
-        self.updateStatusCounters();
-      }, App.get('hostStatusCountersUpdateInterval'));
     }
   },
 
