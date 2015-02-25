@@ -226,6 +226,19 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   },
 
   /**
+   * Override <code>App.AddSecurityConfigs</code>.
+   * @returns {$.Deferred}
+   */
+  getDescriptorConfigs: function() {
+    var self = this;
+    // handle not existing artifact resource cluster
+    return this._super().fail(function() {
+      // if artifacts/kerberos_descriptor absent we should kerberize cluster.
+      self.set('securityEnabled', false);
+    });
+  },
+
+  /**
    * Override <code>App.KerberosWizardStep4Controller</code>
    *
    * @param {App.ServiceConfigProperty[]} properties

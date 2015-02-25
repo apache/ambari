@@ -143,4 +143,38 @@ describe('App.MainAdminKerberosController', function() {
     });
 
   });
+
+  describe('#loadStep', function() {
+
+    it('security enabled but kerberos descriptor resource doesn\'t exist for cluster, security can be enabled', function() {
+      var controller = App.MainAdminKerberosController.create({ securityEnabled: true });
+      sinon.stub(App.router, 'get').withArgs('mainAdminKerberosController.securityEnabled').returns(true);
+      sinon.spy(controller, 'setStepConfigs');
+      sinon.stub(controller, 'loadClusterDescriptorConfigs').returns($.Deferred().reject());
+      controller.loadStep();
+      App.router.get.restore();
+      controller.loadClusterDescriptorConfigs.restore();
+      // configurations will not set
+      expect(controller.setStepConfigs.called).to.be.false;
+      controller.setStepConfigs.restore();
+      // security status should change to `false`
+      expect(controller.get('securityEnabled')).to.be.false;
+    });
+
+    it('security enabled and kerberos descriptor artifacts resource saved, security was enabled successfully', function() {
+      var controller = App.MainAdminKerberosController.create({ securityEnabled: true });
+      sinon.stub(App.router, 'get').withArgs('mainAdminKerberosController.securityEnabled').returns(true);
+      sinon.stub(controller, 'setStepConfigs').returns(true);
+      sinon.stub(controller, 'createServicesStackDescriptorConfigs').returns($.Deferred().resolve());
+      sinon.stub(controller, 'loadClusterDescriptorConfigs').returns($.Deferred().resolve());
+      controller.loadStep();
+      App.router.get.restore();
+      controller.createServicesStackDescriptorConfigs.restore();
+      controller.loadClusterDescriptorConfigs.restore();
+      // configurations will set with current descriptor object
+      expect(controller.setStepConfigs.called).to.be.true;
+      controller.setStepConfigs.restore();
+    });
+
+  });
 });
