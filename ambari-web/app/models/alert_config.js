@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var validator = require('utils/validator');
 
 App.AlertConfigProperty = Ember.Object.extend({
 
@@ -302,7 +303,7 @@ App.AlertConfigProperties = {
     apiProperty: [],
 
     init: function () {
-      this.valueWasChanged();
+      this.set('displayValue', this.getNewValue());
       this._super();
     },
 
@@ -361,7 +362,7 @@ App.AlertConfigProperties = {
     valueWasChanged: function () {
       var displayValue = this.get('displayValue');
       var newDisplayValue = this.getNewValue();
-      if (Math.abs(newDisplayValue - displayValue) > 0.000001) {
+      if (newDisplayValue !== displayValue && !(isNaN(newDisplayValue) ||isNaN(displayValue))) {
         this.set('displayValue', newDisplayValue);
       }
     }.observes('value'),
@@ -378,10 +379,23 @@ App.AlertConfigProperties = {
     displayValueWasChanged: function () {
       var value = this.get('value');
       var newValue = this.getNewDisplayValue();
-      if (Math.abs(newValue - value) > 0.000001) {
+      if (newValue !== value && !(isNaN(newValue) ||isNaN(value))) {
         this.set('value', newValue);
       }
-    }.observes('displayValue')
+    }.observes('displayValue'),
+
+    /**
+     * Check if <code>displayValue</code> is valid float number
+     * If this value isn't shown (see <code>showInputForValue</code>), result is always true
+     * @return {boolean}
+     */
+    isValid: function () {
+      if (!this.get('showInputForValue')) return true;
+      var value = this.get('displayValue');
+      if (Em.isNone(value)) return false;
+      value = ('' + value).trim();
+      return validator.isValidFloat(value);
+    }.property('displayValue', 'showInputForValue')
 
   }),
 
@@ -487,21 +501,7 @@ App.AlertConfigProperties.Thresholds = {
         ret.push('source.reporting.warning.text');
       }
       return ret;
-    }.property('showInputForValue', 'showInputForText'),
-
-    isValid: function () {
-      var value = this.get('displayValue');
-      if (!value && this.get('type') === 'WEB') return true;
-      if (!value) return false;
-      value = ('' + value).trim();
-      if (this.get('type') === 'AGGREGATE') {
-        return this.get('showInputForValue') ? !isNaN(value) && value > 0 && value <= 100 : true;
-      } else if (this.get('type') === 'PORT') {
-        return this.get('showInputForValue') ? !isNaN(value) && value > 0 : true;
-      } else {
-        return this.get('showInputForValue') ? !isNaN(value) : true;
-      }
-    }.property('displayValue', 'showInputForValue')
+    }.property('showInputForValue', 'showInputForText')
 
   }),
 
@@ -520,21 +520,8 @@ App.AlertConfigProperties.Thresholds = {
         ret.push('source.reporting.critical.text');
       }
       return ret;
-    }.property('showInputForValue', 'showInputForText'),
+    }.property('showInputForValue', 'showInputForText')
 
-    isValid: function () {
-      var value = this.get('displayValue');
-      if (!value && this.get('type') === 'WEB') return true;
-      if (!value) return false;
-      value = ('' + value).trim();
-        if (this.get('type') === 'AGGREGATE') {
-            return this.get('showInputForValue') ? !isNaN(value) && value > 0 && value <= 100 : true;
-        } else if (this.get('type') === 'PORT') {
-            return this.get('showInputForValue') ? !isNaN(value) && value > 0 : true;
-        } else {
-            return this.get('showInputForValue') ? !isNaN(value) : true;
-        }
-    }.property('displayValue', 'showInputForValue')
   }),
 
   /**
@@ -548,6 +535,7 @@ App.AlertConfigProperties.Thresholds = {
       var value = this.get('displayValue');
       if (!value) return false;
       value = ('' + value).trim();
+      value = parseFloat(value);
       return this.get('showInputForValue') ? !isNaN(value) && value > 0 && value <= 100 : true;
     }.property('displayValue', 'showInputForValue'),
 
@@ -568,6 +556,24 @@ App.AlertConfigProperties.Thresholds = {
       var displayValue = this.get('displayValue');
       return (displayValue && !isNaN(displayValue)) ? (Number(displayValue) / 100) + '' : displayValue;
     }
+
+  }),
+
+  /**
+   * Mixin for <code>App.AlertConfigProperties.Threshold</code>
+   * Used to validate values that should be greater than 0
+   * @type {Em.Mixin}
+   */
+  PositiveMixin: Em.Mixin.create({
+
+    isValid: function () {
+      if (!this.get('showInputForValue')) return true;
+      var value = this.get('displayValue');
+      if (!value) return false;
+      value = ('' + value).trim();
+      value = parseFloat(value);
+      return !isNaN(value) && value > 0;
+    }.property('displayValue', 'showInputForValue')
 
   })
 

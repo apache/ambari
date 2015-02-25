@@ -141,6 +141,32 @@ describe('App.AlertConfigProperties', function () {
 
     });
 
+    describe('#isValid', function () {
+
+      it('should be true if showInputForValue is false', function () {
+        model.set('showInputForValue', false);
+        expect(model.get('isValid')).to.be.true;
+      });
+
+      it('should be false if displayValue is null', function () {
+        model.set('displayValue', null);
+        expect(model.get('isValid')).to.be.false;
+
+        model.set('displayValue', undefined);
+        expect(model.get('isValid')).to.be.false;
+      });
+
+      it('should be true if displayValue is valid float', function () {
+        model.set('displayValue', '123.456');
+        expect(model.get('isValid')).to.be.true;
+
+        model.set('displayValue', '$1234.444');
+        expect(model.get('isValid')).to.be.false;
+      });
+
+
+    });
+
   });
 
   describe('App.AlertConfigProperties.Thresholds', function () {

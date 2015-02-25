@@ -87,13 +87,36 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
    */
   changeType: function (selectedType) {
     if (selectedType === 'alert_type_service') {
-      this.get('configs').findProperty('name', 'service').set('isDisabled', false).set('options', this.get('allServices')).set('value', this.get('allServices')[0]);
-      this.get('configs').findProperty('name', 'component').set('isDisabled', false).set('value', 'No component');
-      this.get('configs').findProperty('name', 'scope').set('isDisabled', false).set('options', this.get('allScopes')).set('value', this.get('allScopes')[0]);
+      this.get('configs').findProperty('name', 'service').setProperties({
+        isDisabled: false,
+        options: this.get('allServices'),
+        value: this.get('allServices')[0]
+      });
+      this.get('configs').findProperty('name', 'component').setProperties({
+        isDisabled: false,
+        value: 'No component'
+      });
+      this.get('configs').findProperty('name', 'scope').setProperties({
+        isDisabled: false,
+        options: this.get('allScopes'),
+        value: this.get('allScopes')[0]
+      });
     } else {
-      this.get('configs').findProperty('name', 'service').set('isDisabled', true).set('options', ['Ambari']).set('value', 'Ambari');
-      this.get('configs').findProperty('name', 'component').set('isDisabled', true).set('options', ['Ambari Agent']).set('value', 'Ambari Agent');
-      this.get('configs').findProperty('name', 'scope').set('isDisabled', true).set('options', ['Host']).set('value', 'Host');
+      this.get('configs').findProperty('name', 'service').setProperties({
+        isDisabled: true,
+        options: ['Ambari'],
+        value: 'Ambari'
+      });
+      this.get('configs').findProperty('name', 'component').setProperties({
+        isDisabled: true,
+        options: ['Ambari Agent'],
+        value: 'Ambari Agent'
+      });
+      this.get('configs').findProperty('name', 'scope').setProperties({
+        isDisabled: true,
+        options: ['Host'],
+        value: 'Host'
+      });
     }
   },
 
@@ -165,14 +188,12 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         text: isWizard ? '' : this.getThresholdsProperty('ok', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('ok', 'value')
       }),
-      App.AlertConfigProperties.Thresholds.WarningThreshold.create({
-        type: 'PORT',
+      App.AlertConfigProperties.Thresholds.WarningThreshold.create(App.AlertConfigProperties.Thresholds.PositiveMixin, {
         valueMetric: 'Seconds',
         text: isWizard ? '' : this.getThresholdsProperty('warning', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('warning', 'value')
       }),
-      App.AlertConfigProperties.Thresholds.CriticalThreshold.create({
-        type: 'PORT',
+      App.AlertConfigProperties.Thresholds.CriticalThreshold.create(App.AlertConfigProperties.Thresholds.PositiveMixin, {
         valueMetric: 'Seconds',
         text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
@@ -212,13 +233,11 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         value: isWizard ? '' : this.getThresholdsProperty('ok', 'value')
       }),
       App.AlertConfigProperties.Thresholds.WarningThreshold.create({
-        type: 'METRIC',
         valueMetric: units,
         text: isWizard ? '' : this.getThresholdsProperty('warning', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('warning', 'value')
       }),
       App.AlertConfigProperties.Thresholds.CriticalThreshold.create({
-        type: 'METRIC',
         valueMetric: units,
         text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
@@ -256,13 +275,11 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         value: isWizard ? '' : this.getThresholdsProperty('ok', 'value')
       }),
       App.AlertConfigProperties.Thresholds.WarningThreshold.create({
-        type: 'WEB',
         showInputForValue: false,
         text: isWizard ? '' : this.getThresholdsProperty('warning', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('warning', 'value')
       }),
       App.AlertConfigProperties.Thresholds.CriticalThreshold.create({
-        type: 'WEB',
         showInputForValue: false,
         text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
@@ -320,13 +337,11 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         value: isWizard ? '' : this.getThresholdsProperty('ok', 'value')
       }),
       App.AlertConfigProperties.Thresholds.WarningThreshold.create(App.AlertConfigProperties.Thresholds.PercentageMixin, {
-        type: 'AGGREGATE',
         text: isWizard ? '' : this.getThresholdsProperty('warning', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('warning', 'value'),
         valueMetric: '%'
       }),
       App.AlertConfigProperties.Thresholds.CriticalThreshold.create(App.AlertConfigProperties.Thresholds.PercentageMixin, {
-        type: 'AGGREGATE',
         text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
         value: isWizard ? '' : this.getThresholdsProperty('critical', 'value'),
         valueMetric: '%'
