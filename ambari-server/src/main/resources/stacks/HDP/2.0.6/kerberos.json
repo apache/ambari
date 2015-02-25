@@ -27,7 +27,8 @@
       "principal": {
         "value": "${hadoop-env/hdfs_user}@${realm}",
         "type" : "user" ,
-        "configuration": "hadoop-env/hdfs_principal_name"
+        "configuration": "hadoop-env/hdfs_principal_name",
+        "local_username" : "${hadoop-env/hdfs_user}"
       },
       "keytab": {
         "file": "${keytab_dir}/hdfs.headless.keytab",
@@ -47,7 +48,8 @@
       "principal": {
         "value": "${cluster-env/smokeuser}@${realm}",
         "type" : "user",
-        "configuration": "cluster-env/smokeuser_principal_name"
+        "configuration": "cluster-env/smokeuser_principal_name",
+        "local_username" : "${cluster-env/smokeuser}"
       },
       "keytab": {
         "file": "${keytab_dir}/smokeuser.headless.keytab",
