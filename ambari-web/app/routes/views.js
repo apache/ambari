@@ -37,7 +37,7 @@ module.exports = Em.Route.extend({
       // find and set content for `mainViewsDetails` and associated controller
 
       var href = ['/views', params.viewName, params.version, params.instanceName].join('/');
-      var viewPath = this.parseViewPath(params.instanceName);
+      var viewPath = this.parseViewPath(window.location.href.slice(window.location.href.indexOf('?')));
       if (viewPath) {
         href = ['/views', params.viewName, params.version, params.instanceName.slice(0, params.instanceName.lastIndexOf('?'))].join('/');
       }
