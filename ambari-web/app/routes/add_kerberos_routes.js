@@ -254,7 +254,7 @@ module.exports = App.WizardRoute.extend({
         if (result === 'error' && data.status === 409) {
           step6Controller.putKerberosDescriptor(kerberosDescriptor);
         } else {
-          router.transitionTo('step6');
+          step6Controller.unkerberizeCluster();
         }
       });
     }
