@@ -27,6 +27,9 @@
   <packaging>jar</packaging>
   <name>Ambari Simple View</name>
   <url>http://maven.apache.org</url>
+  <properties>
+    <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>org.apache.ambari</groupId>
