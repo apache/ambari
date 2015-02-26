@@ -66,7 +66,13 @@ describe('App.upgradeTaskView', function () {
 
   describe("#doPolling()", function () {
     beforeEach(function () {
-      sinon.stub(view, 'getTaskDetails', Em.K);
+      sinon.stub(view, 'getTaskDetails', function() {
+        return {
+          done: function (callback) {
+            callback();
+          }
+        }
+      });
       sinon.spy(view, 'doPolling');
       this.clock = sinon.useFakeTimers();
     });
@@ -120,8 +126,9 @@ describe('App.upgradeTaskView', function () {
 
   describe("#getTaskDetails()", function () {
     beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
-
+      sinon.stub(App.ajax, 'send').returns({
+        then: Em.K
+      });
     });
     afterEach(function () {
       App.ajax.send.restore();

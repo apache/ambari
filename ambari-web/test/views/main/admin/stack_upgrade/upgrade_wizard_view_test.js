@@ -139,7 +139,13 @@ describe('App.upgradeWizardView', function () {
 
   describe("#doPolling()", function () {
     beforeEach(function () {
-      sinon.stub(view.get('controller'), 'loadUpgradeData', Em.K);
+      sinon.stub(view.get('controller'), 'loadUpgradeData', function () {
+        return {
+          done: function (callback) {
+            callback();
+          }
+        }
+      });
       sinon.spy(view, 'doPolling');
       this.clock = sinon.useFakeTimers();
     });
