@@ -182,19 +182,33 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
    * @returns {$.Deferred}
    */
   getSecurityStatus: function () {
-    var dfd;
+    var self = this;
+    var dfd = $.Deferred();
     if (App.get('testMode')) {
-      dfd = $.Deferred();
       this.set('securityEnabled', !App.get('testEnableSecurity'));
       this.set('dataIsLoaded', true);
       dfd.resolve();
     } else {
       //get Security Status From Server
-      dfd = App.ajax.send({
+      App.ajax.send({
         name: 'admin.security_status',
         sender: this,
         success: 'getSecurityStatusSuccessCallback',
         error: 'errorCallback'
+      }).always(function() {
+        // check for kerberos descriptor artifact
+        if (self.get('securityEnabled')) {
+          self.loadClusterDescriptorConfigs().then(function() {
+            dfd.resolve();
+          }, function() {
+            // if kerberos descriptor doesn't exist in cluster artifacts we have to kerberize cluster. 
+            // Show `Enable kerberos` button and set unsecure status.
+            self.set('securityEnabled', false);
+            dfd.resolve();
+          });
+        } else {
+          dfd.resolve();
+        }
       });
     }
     return dfd.promise();
@@ -222,19 +236,6 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
       bodyClass: Ember.View.extend({
         template: Ember.Handlebars.compile('<p>{{t admin.security.status.error}}</p>')
       })
-    });
-  },
-
-  /**
-   * Override <code>App.AddSecurityConfigs</code>.
-   * @returns {$.Deferred}
-   */
-  getDescriptorConfigs: function() {
-    var self = this;
-    // handle not existing artifact resource cluster
-    return this._super().fail(function() {
-      // if artifacts/kerberos_descriptor absent we should kerberize cluster.
-      self.set('securityEnabled', false);
     });
   },
 
