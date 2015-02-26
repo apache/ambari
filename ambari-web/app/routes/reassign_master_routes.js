@@ -40,7 +40,6 @@ module.exports = App.WizardRoute.extend({
     console.log('in /service/reassign:enter');
     var context = this;
     var reassignMasterController = router.get('reassignMasterController');
-    var currStep = reassignMasterController.get('currentStep');
 
     reassignMasterController.dataLoading().done(function () {
       if (App.router.get('mainHostController.hostsCountMap.TOTAL') > 1) {
@@ -62,6 +61,7 @@ module.exports = App.WizardRoute.extend({
               App.router.transitionTo('main.services.index');
             },
             onClose: function () {
+              var currStep = reassignMasterController.get('currentStep');
               if (parseInt(currStep) > 3) {
                 var self = this;
 
@@ -92,6 +92,7 @@ module.exports = App.WizardRoute.extend({
           reassignMasterController.set('popup', popup);
           reassignMasterController.loadSecurityEnabled();
           reassignMasterController.loadComponentToReassign();
+          var currStep = reassignMasterController.get('currentStep');
           var currentClusterStatus = App.clusterStatus.get('value');
           if (currentClusterStatus) {
             switch (currentClusterStatus.clusterState) {
