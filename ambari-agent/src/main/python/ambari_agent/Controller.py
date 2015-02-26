@@ -35,6 +35,7 @@ import hostname
 import security
 import ssl
 import AmbariConfig
+
 from Heartbeat import Heartbeat
 from Register import Register
 from ActionQueue import ActionQueue
@@ -42,6 +43,7 @@ from FileCache import FileCache
 from NetUtil import NetUtil
 from LiveStatus import LiveStatus
 from AlertSchedulerHandler import AlertSchedulerHandler
+from ClusterConfiguration import  ClusterConfiguration
 from HeartbeatHandlers import HeartbeatStopHandlers, bind_signal_handlers
 
 logger = logging.getLogger()
@@ -89,9 +91,13 @@ class Controller(threading.Thread):
     common_services_cache_dir = os.path.join(cache_dir, FileCache.COMMON_SERVICES_DIRECTORY)
     host_scripts_cache_dir = os.path.join(cache_dir, FileCache.HOST_SCRIPTS_CACHE_DIRECTORY)
     alerts_cache_dir = os.path.join(cache_dir, 'alerts')
-    
+    cluster_config_cache_dir = os.path.join(cache_dir, 'cluster_configuration')
+
+    self.cluster_configuration = ClusterConfiguration(cluster_config_cache_dir)
+
     self.alert_scheduler_handler = AlertSchedulerHandler(alerts_cache_dir, 
-        stacks_cache_dir, common_services_cache_dir, host_scripts_cache_dir, config)
+      stacks_cache_dir, common_services_cache_dir, host_scripts_cache_dir,
+      self.cluster_configuration, config)
 
 
   def __del__(self):
@@ -149,12 +155,11 @@ class Controller(threading.Thread):
         else:
           self.hasMappedComponents = False
 
-        if 'alertDefinitionCommands' in ret.keys():
-          logger.info("Got alert definition update on registration " + pprint.pformat(ret['alertDefinitionCommands']))
-          self.alert_scheduler_handler.update_definitions(ret['alertDefinitionCommands'])
-          pass
+        # always update cached cluster configurations on registration
+        self.cluster_configuration.update_configurations_from_heartbeat(ret)
 
-        pass
+        # always update alert definitions on registration
+        self.alert_scheduler_handler.update_definitions(ret)
       except ssl.SSLError:
         self.repeatRegistration = False
         self.isRegistered = False
@@ -258,6 +263,10 @@ class Controller(threading.Thread):
         else:
           self.responseId = serverId
 
+        # if the response contains configurations, update the in-memory and
+        # disk-based configuration cache (execution and alert commands have this)
+        self.cluster_configuration.update_configurations_from_heartbeat(response)
+
         response_keys = response.keys()
         if 'cancelCommands' in response_keys:
           self.cancelCommandInQueue(response['cancelCommands'])
@@ -265,13 +274,12 @@ class Controller(threading.Thread):
         if 'executionCommands' in response_keys:
           execution_commands = response['executionCommands']
           self.addToQueue(execution_commands)
-          self.alert_scheduler_handler.update_configurations(execution_commands)
 
         if 'statusCommands' in response_keys:
           self.addToStatusQueue(response['statusCommands'])
 
         if 'alertDefinitionCommands' in response_keys:
-          self.alert_scheduler_handler.update_definitions(response['alertDefinitionCommands'], True)
+          self.alert_scheduler_handler.update_definitions(response)
 
         if 'alertExecutionCommands' in response_keys:
           self.alert_scheduler_handler.execute_alert(response['alertExecutionCommands'])

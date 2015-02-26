@@ -24,7 +24,6 @@ import os
 import re
 from alerts.base_alert import BaseAlert
 from resource_management.core.environment import Environment
-from symbol import parameters
 
 logger = logging.getLogger()
 
@@ -59,32 +58,26 @@ class ScriptAlert(BaseAlert):
 
     if 'host_scripts_directory' in alert_source_meta:
       self.host_scripts_dir = alert_source_meta['host_scripts_directory']
-      
-    # execute the get_tokens() method so that this script correctly populates
-    # its list of keys
-    try:
-      cmd_module = self._load_source()
-      tokens = cmd_module.get_tokens()
-        
-      # for every token, populate the array keys that this alert will need
-      if tokens is not None:
-        for token in tokens:
-          # append the key to the list of keys for this alert
-          self._find_lookup_property(token)
-    except:
-      logger.exception("[Alert][{0}] Unable to parameterize tokens for script {1}".format(
-        self.get_name(), self.path))
-              
-    
+
   def _collect(self):
     cmd_module = self._load_source()
+
     if cmd_module is not None:
-      # convert the dictionary from 
-      # {'foo-site/bar': 'baz'} into 
-      # {'{{foo-site/bar}}': 'baz'}
       parameters = {}
-      for key in self.config_value_dict:
-        parameters['{{' + key + '}}'] = self.config_value_dict[key]
+
+      try:
+        tokens = cmd_module.get_tokens()
+        if tokens is not None:
+          # for each token, if there is a value, store in; otherwise don't store
+          # a key with a value of None
+          for token in tokens:
+            value = self._get_configuration_value(token)
+            if value is not None:
+              parameters[token] = value
+      except AttributeError:
+        # it's OK if the module doesn't have get_tokens() ; no tokens will
+        # be passed in so hopefully the script doesn't need any
+        logger.debug("The script {0} does not have a get_tokens() function".format(str(cmd_module)))
 
       # try to get basedir for scripts
       # it's needed for server side scripts to properly use resource management
@@ -135,7 +128,7 @@ class ScriptAlert(BaseAlert):
 
       return None
 
-    return imp.load_source(self._find_value('name'), self.path_to_script)
+    return imp.load_source(self._get_alert_meta_value_safely('name'), self.path_to_script)
 
 
   def _get_reporting_text(self, state):
