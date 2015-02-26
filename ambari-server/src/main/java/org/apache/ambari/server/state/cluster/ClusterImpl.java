@@ -1305,25 +1305,18 @@ public class ClusterImpl implements Cluster {
   @Override
   @Transactional
   public HostVersionEntity transitionHostVersionState(HostEntity host, final RepositoryVersionEntity repositoryVersion, final StackId stack) throws AmbariException {
+    HostVersionEntity hostVersionEntity = null;
     List<HostVersionEntity> hostVersions = hostVersionDAO.findByHost(host.getHostName());
-
-    // Check if there is a CURRENT version for host
-    boolean currentHostVerExists = false;
-    if (hostVersions != null && ! hostVersions.isEmpty()) {
-      for (HostVersionEntity hostVersion : hostVersions) {
-        if (hostVersion.getState() == RepositoryVersionState.CURRENT) {
-          currentHostVerExists = true;
-        }
-      }
-    }
-
-    HostVersionEntity hostVersionEntity = hostVersionDAO.findByClusterStackVersionAndHost(getClusterName(),
-            repositoryVersion.getStack(), repositoryVersion.getVersion(), host.getHostName());
-    if (hostVersionEntity == null) {
-      // Since the host has no version, allow bootstrapping a version
+    if (hostVersions == null || hostVersions.isEmpty()) {
+      // Since the host has no versions, allow bootstrapping a version for it.
       hostVersionEntity = new HostVersionEntity(host.getHostName(), repositoryVersion, RepositoryVersionState.UPGRADING);
       hostVersionEntity.setHostEntity(host);
       hostVersionDAO.create(hostVersionEntity);
+    } else {
+      hostVersionEntity = hostVersionDAO.findByClusterStackVersionAndHost(getClusterName(), repositoryVersion.getStack(), repositoryVersion.getVersion(), host.getHostName());
+      if (hostVersionEntity == null) {
+        throw new AmbariException("Host " + host.getHostName() + " is expected to have a Host Version for stack " + repositoryVersion.getStackVersion());
+      }
     }
 
     final ServiceComponentHostSummary hostSummary = new ServiceComponentHostSummary(ambariMetaInfo, host, stack);
@@ -1333,7 +1326,7 @@ public class ClusterImpl implements Cluster {
     // If multiple cluster versions exist, then it means that the change in versions is happening due to an Upgrade,
     // so should only allow transitioning to UPGRADED or UPGRADING, depending on further circumstances.
     List<ClusterVersionEntity> clusterVersions = clusterVersionDAO.findByCluster(getClusterName());
-    if (clusterVersions.size() <= 1 || ! currentHostVerExists) {
+    if (clusterVersions.size() <= 1) {
       // Transition from UPGRADING -> CURRENT. This is allowed because Host Version Entity is bootstrapped in an UPGRADING state.
       // This also covers hosts that do not advertise a version when the cluster was created, and then have another component added
       // that does advertise a version.
