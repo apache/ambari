@@ -19,6 +19,7 @@ package org.apache.ambari.server.state.stack.upgrade;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -35,6 +36,10 @@ import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 /**
  * Used for co-located services grouped together.
@@ -150,9 +155,11 @@ public class ColocatedGrouping extends Grouping {
       results.addAll(befores);
 
       if (!befores.isEmpty()) {
+
         ManualTask task = new ManualTask();
         task.summary = m_batch.summary;
         task.message = m_batch.message;
+        formatFirstBatch(ctx, task, befores);
 
         StageWrapper wrapper = new StageWrapper(
             StageWrapper.Type.SERVER_SIDE_ACTION,
@@ -222,6 +229,69 @@ public class ColocatedGrouping extends Grouping {
       return results;
     }
 
+    /**
+     * Formats the first batch's text and adds json for use if needed.
+     * @param ctx       the upgrade context to load component display names
+     * @param task      the manual task representing the verification message
+     * @param wrappers  the list of stage wrappers
+     */
+    private void formatFirstBatch(UpgradeContext ctx, ManualTask task, List<StageWrapper> wrappers) {
+      List<String> compNames = new ArrayList<String>();
+      Map<String, Set<String>> compLocations = new HashMap<String, Set<String>>();
+
+      for (StageWrapper sw : wrappers) {
+        for (TaskWrapper tw : sw.getTasks()) {
+          if (StringUtils.isNotEmpty(tw.getService()) &&
+              StringUtils.isNotBlank(tw.getComponent())) {
+
+            for (String host : tw.getHosts()) {
+              if (!compLocations.containsKey(host)) {
+                compLocations.put(host, new HashSet<String>());
+              }
+              compLocations.get(host).add(tw.getComponent());
+            }
+
+            compNames.add(ctx.getComponentDisplay(
+                tw.getService(), tw.getComponent()));
+          }
+        }
+      }
+
+      // !!! add the display names to the message, if needed
+      if (task.message.contains("{{components}}")) {
+        StringBuilder sb = new StringBuilder();
+
+        if (compNames.size() == 1) {
+          sb.append(compNames.get(0));
+        } else if (compNames.size() > 1) {
+          String last = compNames.remove(compNames.size() - 1);
+          sb.append(StringUtils.join(compNames, ", "));
+          sb.append(" and ").append(last);
+        }
+
+        task.message = task.message.replace("{{components}}", sb.toString());
+      }
+
+      // !!! build the structured out to attach to the manual task
+      JsonArray arr = new JsonArray();
+      for (Entry<String, Set<String>> entry : compLocations.entrySet()) {
+        JsonObject obj = new JsonObject();
+        obj.addProperty("host_name", entry.getKey());
+
+        JsonArray comps = new JsonArray();
+        for (String comp : entry.getValue()) {
+          comps.add(new JsonPrimitive(comp));
+        }
+        obj.add("components", comps);
+
+        arr.add(obj);
+      }
+
+      JsonObject master = new JsonObject();
+      master.add("topology", arr);
+
+      task.structuredOut = master.toString();
+    }
   }
 
   /**
