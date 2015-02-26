@@ -333,6 +333,15 @@ App.ReassignMasterController = App.WizardController.extend({
     this.set('content.cluster', this.getCluster());
   },
 
+  setCurrentStep: function (currentStep, completed) {
+    this._super(currentStep, completed);
+    App.clusterStatus.setClusterStatus({
+      clusterName: this.get('content.cluster.name'),
+      wizardControllerName: 'reassignMasterController',
+      localdb: App.db.data
+    });
+  },
+
   /**
    * Clear all temporary data
    */
