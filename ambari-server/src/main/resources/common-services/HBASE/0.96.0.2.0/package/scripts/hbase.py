@@ -65,6 +65,14 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
             group = params.user_group
   )
 
+  XmlConfig( "core-site.xml",
+             conf_dir = params.hbase_conf_dir,
+             configurations = params.config['configurations']['core-site'],
+             configuration_attributes=params.config['configuration_attributes']['core-site'],
+             owner = params.hbase_user,
+             group = params.user_group
+  )
+
   if 'hdfs-site' in params.config['configurations']:
     XmlConfig( "hdfs-site.xml",
             conf_dir = params.hbase_conf_dir,
