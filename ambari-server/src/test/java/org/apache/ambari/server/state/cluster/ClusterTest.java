@@ -1315,6 +1315,9 @@ public class ClusterTest {
 
     c2.transitionHostVersionState(hostEntity3, rve1, stackId);
 
+    // Revert fields of static instance
+    ClusterVersionDAOMock.mockedClusterVersions = null;
+
     verify(hostVersionDAOMock).merge(hostVersionCaptor.capture());
     assertEquals(hostVersionCaptor.getValue().getState(), RepositoryVersionState.CURRENT);
   }
