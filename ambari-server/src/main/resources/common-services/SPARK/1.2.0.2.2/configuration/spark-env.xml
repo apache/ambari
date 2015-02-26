@@ -86,7 +86,16 @@ SPARK_NICENESS=0
 export HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}
 export HADOOP_CONF_DIR=${HADOOP_CONF_DIR:-{{hadoop_conf_dir}}}
 
-    </value>
+# The java implementation to use.
+export JAVA_HOME={{java_home}}
+
+if [ -d "/etc/tez/conf/" ]; then
+  export TEZ_CONF_DIR=/etc/tez/conf
+else
+  export TEZ_CONF_DIR=
+fi
+
+</value>
   </property>
 
 </configuration>

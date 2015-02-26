@@ -45,6 +45,7 @@ stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_sta
 
 if stack_is_hdp22_or_further:
   hadoop_home = "/usr/hdp/current/hadoop-client"
+  hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
   spark_conf = '/etc/spark/conf'
   spark_log_dir = config['configurations']['spark-env']['spark_log_dir']
   spark_pid_dir = status_params.spark_pid_dir
@@ -63,10 +64,14 @@ else:
 
 java_home = config['hostLevelParams']['java_home']
 hadoop_conf_dir = "/etc/hadoop/conf"
+hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
+hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
+hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 
 spark_user = status_params.spark_user
 spark_group = status_params.spark_group
 user_group = status_params.user_group
+spark_hdfs_user_dir = format("/user/{spark_user}")
 spark_history_server_pid_file = status_params.spark_history_server_pid_file
 
 spark_history_server_start = format("{spark_home}/sbin/start-history-server.sh")
@@ -86,6 +91,7 @@ else:
 
 # spark-defaults params
 spark_yarn_historyServer_address = default(spark_history_server_host, "localhost")
+
 spark_yarn_applicationMaster_waitTries = default(
   "/configurations/spark-defaults/spark.yarn.applicationMaster.waitTries", '10')
 spark_yarn_submit_file_replication = default("/configurations/spark-defaults/spark.yarn.submit.file.replication", '3')
@@ -130,3 +136,18 @@ spark_kerberos_keytab =  config['configurations']['spark-defaults']['spark.histo
 spark_kerberos_principal =  config['configurations']['spark-defaults']['spark.history.kerberos.principal']
 if security_enabled:
   spark_principal = spark_kerberos_principal.replace('_HOST',spark_history_server_host.lower())
+
+
+
+import functools
+#create partial functions with common arguments for every HdfsDirectory call
+#to create hdfs directory we need to call params.HdfsDirectory in code
+HdfsDirectory = functools.partial(
+  HdfsDirectory,
+  conf_dir=hadoop_conf_dir,
+  hdfs_user=hdfs_principal_name if security_enabled else hdfs_user,
+  security_enabled = security_enabled,
+  keytab = hdfs_user_keytab,
+  kinit_path_local = kinit_path_local,
+  bin_dir = hadoop_bin_dir
+)
