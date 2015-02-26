@@ -855,7 +855,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       this.getHostCheckSuccess();
     } else {
       var data = this.getDataForCheckRequest("host_resolution_check", true);
-      this.requestToPerformHostCheck(data);
+      data ? this.requestToPerformHostCheck(data) : this.stopHostCheck();
     }
   },
 
@@ -864,8 +864,18 @@ App.WizardStep3Controller = Em.Controller.extend({
       this.getHostInfo();
     } else {
       var data = this.getDataForCheckRequest("last_agent_env_check", false);
-      this.requestToPerformHostCheck(data);
+      data ? this.requestToPerformHostCheck(data) : this.stopHostCheck();
     }
+  },
+
+  /**
+   * set all fields from which depends runnig host check to true value
+   * which force finish checking;
+   */
+  stopHostCheck: function() {
+    this.set('stopChecking', true);
+    this.set('isJDKWarningsLoaded', true);
+    this.set('isHostsWarningsLoaded', true);
   },
 
   getHostCheckSuccess: function(response) {
@@ -881,12 +891,12 @@ App.WizardStep3Controller = Em.Controller.extend({
    *  <code>"last_agent_env_check"<code>
    *  <code>"host_resolution_check"<code>
    * @param {boolean} addHosts - true
+   * @return {object|null}
    * @method getDataForCheckRequest
    */
   getDataForCheckRequest: function (checkExecuteList, addHosts) {
-    var hosts = (!this.get('content.installOptions.manualInstall'))
-      ? this.get('bootHosts').filterProperty('bootStatus', 'REGISTERED').getEach('name').join(",")
-      : this.get('bootHosts').getEach('name').join(",");
+    var hosts = this.get('bootHosts').filterProperty('bootStatus', 'REGISTERED').getEach('name').join(",");
+    if (hosts.length == 0) return null;
     var jdk_location = App.router.get('clusterController.ambariProperties.jdk_location');
     var RequestInfo = {
       "action": "check_host",
