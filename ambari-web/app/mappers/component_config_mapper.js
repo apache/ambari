@@ -52,7 +52,8 @@ App.componentConfigMapper = App.QuickDataMapper.create({
     });
     this.get('model').find().forEach(function (hostComponent) {
       var hostComponentJson = hostComponentJsonMap[hostComponent.get('id')];
-      if (!hostComponentJson && !hostComponent.get('isMaster')) {
+      if (!hostComponentJson &&
+        !App.StackServiceComponent.find().findProperty('componentName', hostComponent.get('componentName')).get('isMaster')) {
         hostComponent.set('staleConfigs', false);
       }
       if (hostComponentJson!=null && hostComponent.get('staleConfigs') &&
