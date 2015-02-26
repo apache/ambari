@@ -667,6 +667,7 @@ class JDKSetupLinux(JDKSetup):
     self.JAVA_BIN = "java"
 
     self.CREATE_JDK_DIR_CMD = "/bin/mkdir -p {0}"
+    self.CHMOD_JDK_DIR_CMD = "chmod a+x {0}"
     self.MAKE_FILE_EXECUTABLE_CMD = "chmod a+x {0}"
 
     # use --no-same-owner when running as root to prevent uucp as the user (AMBARI-6478)
@@ -677,6 +678,7 @@ class JDKSetupLinux(JDKSetup):
     print "Installing JDK to {0}".format(jdk_inst_dir)
 
     retcode, out, err = run_os_command(self.CREATE_JDK_DIR_CMD.format(jdk_inst_dir))
+    retcode, out, err = run_os_command(self.CHMOD_JDK_DIR_CMD.format(jdk_inst_dir))
     savedPath = os.getcwd()
     os.chdir(jdk_inst_dir)
 
@@ -687,7 +689,7 @@ class JDKSetupLinux(JDKSetup):
       elif java_inst_file.endswith(".gz"):
         retcode, out, err = run_os_command(self.UNTAR_JDK_ARCHIVE.format(java_inst_file))
       else:
-        err = "JDK installation failed.Unknown file mask."
+        err = "JDK installation failed.Unknown file extension."
         raise FatalException(1, err)
     finally:
       os.chdir(savedPath)
