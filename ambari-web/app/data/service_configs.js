@@ -28,7 +28,7 @@ module.exports = [
     serviceName: 'MISC',
     displayName: 'Misc',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'Users and Groups', displayName : 'Users and Groups'}),
+      App.ServiceConfigCategory.create({ name: 'Users and Groups', displayName : 'Services Accounts'}),
       App.ServiceConfigCategory.create({ name: 'Notifications', displayName : 'Notifications', isCustomView: true, customView: App.NotificationsConfigsView, siteFileName: 'alert_notification'})
     ],
     configTypes: {
