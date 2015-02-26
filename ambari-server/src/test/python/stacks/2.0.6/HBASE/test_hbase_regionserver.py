@@ -153,6 +153,13 @@ class TestHbaseRegionServer(RMFTestCase):
       configurations = self.getConfig()['configurations']['hbase-site'],
       configuration_attributes = self.getConfig()['configuration_attributes']['hbase-site']
     )
+    self.assertResourceCalled('XmlConfig', 'core-site.xml',
+      owner = 'hbase',
+      group = 'hadoop',
+      conf_dir = '/etc/hbase/conf',
+      configurations = self.getConfig()['configurations']['core-site'],
+      configuration_attributes = self.getConfig()['configuration_attributes']['core-site']
+    )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
       owner = 'hbase',
       group = 'hadoop',
@@ -262,6 +269,13 @@ class TestHbaseRegionServer(RMFTestCase):
       conf_dir = '/etc/hbase/conf',
       configurations = self.getConfig()['configurations']['hbase-site'],
       configuration_attributes = self.getConfig()['configuration_attributes']['hbase-site']
+    )
+    self.assertResourceCalled('XmlConfig', 'core-site.xml',
+      owner = 'hbase',
+      group = 'hadoop',
+      conf_dir = '/etc/hbase/conf',
+      configurations = self.getConfig()['configurations']['core-site'],
+      configuration_attributes = self.getConfig()['configuration_attributes']['core-site']
     )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
       owner = 'hbase',
@@ -383,7 +397,13 @@ class TestHbaseRegionServer(RMFTestCase):
       conf_dir = '/etc/hbase/conf',
       configurations = self.getConfig()['configurations']['hbase-site'],
       configuration_attributes = self.getConfig()['configuration_attributes']['hbase-site'])
-
+    self.assertResourceCalled('XmlConfig', 'core-site.xml',
+                              owner = 'hbase',
+                              group = 'hadoop',
+                              conf_dir = '/etc/hbase/conf',
+                              configurations = self.getConfig()['configurations']['core-site'],
+                              configuration_attributes = self.getConfig()['configuration_attributes']['core-site']
+    )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
       owner = 'hbase',
       group = 'hadoop',
