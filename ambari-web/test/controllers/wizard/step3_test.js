@@ -2532,4 +2532,77 @@ describe('App.WizardStep3Controller', function () {
     });
 
   });
+
+  describe('#getDataForCheckRequest', function() {
+    var tests = [
+      {
+        bootHosts: [
+          Em.Object.create({'bootStatus': 'REGISTERED', 'name': 'h1'}),
+          Em.Object.create({'bootStatus': 'FAILED', 'name': 'h2'})
+        ],
+        addHosts: true,
+        rez: {
+          RequestInfo: {
+            "action": "check_host",
+            "context": "Check host",
+            "parameters": {
+              "check_execute_list": 'checkExecuteList',
+              "jdk_location" : "jdk_location",
+              "threshold": "20",
+              "hosts": "h1"
+            }
+          },
+          resource_filters: {
+              "hosts": "h1"
+          }
+        },
+        m: 'with add host param'
+      },
+      {
+        bootHosts: [
+          Em.Object.create({'bootStatus': 'REGISTERED', 'name': 'h1'}),
+          Em.Object.create({'bootStatus': 'FAILED', 'name': 'h2'})
+        ],
+        addHosts: false,
+        rez: {
+          RequestInfo: {
+            "action": "check_host",
+            "context": "Check host",
+            "parameters": {
+              "check_execute_list": 'checkExecuteList',
+              "jdk_location" : "jdk_location",
+              "threshold": "20"
+            }
+          },
+          resource_filters: {
+            "hosts": "h1"
+          }
+        },
+        m: 'without add host param'
+      },
+      {
+        bootHosts: [
+          Em.Object.create({'bootStatus': 'FAILED', 'name': 'h1'}),
+          Em.Object.create({'bootStatus': 'FAILED', 'name': 'h2'})
+        ],
+        rez: null,
+        m: 'with all hosts failed'
+      }
+    ];
+
+    beforeEach(function() {
+      sinon.stub(App.get('router'), 'get' , function(p) {
+        return p === 'clusterController.ambariProperties.jdk_location' ? 'jdk_location' : Em.get(App.get('router'), p);
+      })
+    });
+    afterEach(function() {
+      App.get('router').get.restore();
+    });
+    tests.forEach(function(t) {
+      it(t.m, function() {
+        c.set('bootHosts', t.bootHosts);
+        expect(c.getDataForCheckRequest('checkExecuteList', t.addHosts)).to.be.eql(t.rez);
+      });
+    })
+  });
 });
