@@ -106,10 +106,11 @@ App.upgradeTaskView = Em.View.extend({
     var self = this;
 
     if (this.get('content.isExpanded') || this.get('outsideView')) {
-      this.getTaskDetails();
-      this.set('timer', setTimeout(function () {
-        self.doPolling();
-      }, App.bgOperationsUpdateInterval));
+      this.getTaskDetails().done(function() {
+        self.set('timer', setTimeout(function () {
+          self.doPolling();
+        }, App.bgOperationsUpdateInterval));
+      });
     } else {
       clearTimeout(this.get('timer'));
     }
@@ -117,19 +118,25 @@ App.upgradeTaskView = Em.View.extend({
 
   /**
    * request task details from server
-   * @return {$.ajax|null}
+   * @return {$.Deferred}
    */
   getTaskDetails: function () {
-    if (Em.isNone(this.get('content'))) return null;
-    return App.ajax.send({
-      name: 'admin.upgrade.task',
-      sender: this,
-      data: {
-        upgradeId: this.get('content.request_id'),
-        taskId: this.get('content.id')
-      },
-      success: 'getTaskDetailsSuccessCallback'
-    });
+    var deferred = $.Deferred();
+
+    if (Em.isNone(this.get('content'))) {
+      deferred.resolve();
+    } else {
+      App.ajax.send({
+        name: 'admin.upgrade.task',
+        sender: this,
+        data: {
+          upgradeId: this.get('content.request_id'),
+          taskId: this.get('content.id')
+        },
+        success: 'getTaskDetailsSuccessCallback'
+      }).then(deferred.resolve);
+    }
+    return deferred.promise();
   },
 
   /**

@@ -142,8 +142,9 @@ App.MainAlertInstancesController = Em.Controller.extend({
     var self = this;
     if (this.get('isUpdating')) {
       this.set('updateTimer', setTimeout(function () {
-        self.fetchAlertInstances();
-        self.scheduleUpdate();
+        self.fetchAlertInstances().complete(function() {
+          self.scheduleUpdate();
+        });
       }, App.get('alertInstancesUpdateInterval')));
     }
     else {

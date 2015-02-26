@@ -217,8 +217,8 @@ App.upgradeWizardView = Em.View.extend({
     if (App.get('clusterName')) {
       this.get('controller').loadUpgradeData().done(function () {
         self.set('isLoaded', true);
+        self.doPolling();
       });
-      this.doPolling();
     }
   }.observes('App.clusterName'),
 
@@ -243,8 +243,9 @@ App.upgradeWizardView = Em.View.extend({
   doPolling: function () {
     var self = this;
     this.set('updateTimer', setTimeout(function () {
-      self.get('controller').loadUpgradeData();
-      self.doPolling();
+      self.get('controller').loadUpgradeData().done(function() {
+        self.doPolling();
+      });
     }, App.bgOperationsUpdateInterval));
   },
 
