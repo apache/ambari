@@ -49,6 +49,7 @@ App.ReassignMasterWizardStep7Controller = App.ReassignMasterWizardStep4Controlle
     }
 
     this.removeUnneededTasks();
+    this.set('isLoaded', true);
   },
 
   putHostComponentsInMaintenanceMode: function () {
