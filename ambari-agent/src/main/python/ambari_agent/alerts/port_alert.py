@@ -41,9 +41,8 @@ class PortAlert(BaseAlert):
     self.warning_timeout = DEFAULT_WARNING_TIMEOUT
     self.critical_timeout = DEFAULT_CRITICAL_TIMEOUT
 
-    # can be parameterized or static
     if 'uri' in alert_source_meta:
-      self.uri = self._find_lookup_property(alert_source_meta['uri'])
+      self.uri = alert_source_meta['uri']
 
     # always static
     if 'default_port' in alert_source_meta:
@@ -80,8 +79,10 @@ class PortAlert(BaseAlert):
 
 
   def _collect(self):
+    # can be parameterized or static
     # if not parameterized, this will return the static value
-    uri_value = self._lookup_property_value(self.uri)
+    uri_value = self._get_configuration_value(self.uri)
+
     if uri_value is None:
       uri_value = self.host_name
       logger.debug("[Alert][{0}] Setting the URI to this host since it wasn't specified".format(
@@ -128,7 +129,8 @@ class PortAlert(BaseAlert):
 
       start_time = time.time()
       s.connect((host, port))
-      milliseconds = time.time() - start_time
+      end_time = time.time()
+      milliseconds = end_time - start_time
       seconds = milliseconds / 1000.0
 
       # not sure why this happens sometimes, but we don't always get a

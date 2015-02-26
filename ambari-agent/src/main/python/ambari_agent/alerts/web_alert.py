@@ -120,7 +120,7 @@ class WebAlert(BaseAlert):
       kerberos_principal = None
 
       if self.uri_property_keys.kerberos_principal is not None:
-        kerberos_principal = self._lookup_property_value(
+        kerberos_principal = self._get_configuration_value(
           self.uri_property_keys.kerberos_principal)
 
         if kerberos_principal is not None:
@@ -128,7 +128,7 @@ class WebAlert(BaseAlert):
           kerberos_principal = kerberos_principal.replace('_HOST', self.host_name)
 
       if self.uri_property_keys.kerberos_keytab is not None:
-        kerberos_keytab = self._lookup_property_value(self.uri_property_keys.kerberos_keytab)
+        kerberos_keytab = self._get_configuration_value(self.uri_property_keys.kerberos_keytab)
 
       if kerberos_principal is not None and kerberos_keytab is not None:
         os.system("kinit -kt {0} {1} > /dev/null".format(kerberos_keytab, kerberos_principal))

@@ -28,6 +28,14 @@ NODEMANAGER_HTTP_ADDRESS_KEY = '{{yarn-site/yarn.resourcemanager.webapp.address}
 NODEMANAGER_HTTPS_ADDRESS_KEY = '{{yarn-site/yarn.resourcemanager.webapp.https.address}}'
 YARN_HTTP_POLICY_KEY = '{{yarn-site/yarn.http.policy}}'
   
+def get_tokens():
+  """
+  Returns a tuple of tokens in the format {{site/property}} that will be used
+  to build the dictionary passed into execute
+  """
+  return NODEMANAGER_HTTP_ADDRESS_KEY, NODEMANAGER_HTTPS_ADDRESS_KEY, \
+    YARN_HTTP_POLICY_KEY
+
 
 def execute(parameters=None, host_name=None):
   """

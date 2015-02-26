@@ -35,7 +35,7 @@ class BaseAlert(object):
   def __init__(self, alert_meta, alert_source_meta):
     self.alert_meta = alert_meta
     self.alert_source_meta = alert_source_meta
-    self.cluster = ''
+    self.cluster_name = ''
     self.host_name = ''
     self._lookup_keys = []
     
@@ -70,16 +70,28 @@ class BaseAlert(object):
     return self.alert_meta['uuid']
 
 
-  def set_helpers(self, collector, value_dict):
-    """ sets helper objects for alerts without having to use them in a constructor """
+  def set_helpers(self, collector, cluster_configuration):
+    """
+    sets helper objects for alerts without having to use them in a constructor
+    """
     self.collector = collector
-    self.config_value_dict = value_dict
+    self.cluster_configuration = cluster_configuration
 
 
-  def set_cluster(self, cluster, host):
+  def set_cluster(self, cluster_name, host_name):
     """ sets cluster information for the alert """
-    self.cluster = cluster
-    self.host_name = host
+    self.cluster_name = cluster_name
+    self.host_name = host_name
+
+
+  def _get_alert_meta_value_safely(self, meta_key):
+    """
+    safe way to get a value when outputting result json.  will not throw an exception
+    """
+    if self.alert_meta.has_key(meta_key):
+      return self.alert_meta[meta_key]
+    else:
+      return None
 
 
   def collect(self):
@@ -129,73 +141,51 @@ class BaseAlert(object):
       logger.debug("[Alert][{0}] result = {1}".format(self.get_name(), str(res)))
       
     data = {}
-    data['name'] = self._find_value('name')
-    data['label'] = self._find_value('label')
+    data['name'] = self._get_alert_meta_value_safely('name')
+    data['label'] = self._get_alert_meta_value_safely('label')
     data['state'] = res[0]
     data['text'] = res_base_text.format(*res[1])
-    data['cluster'] = self.cluster
-    data['service'] = self._find_value('serviceName')
-    data['component'] = self._find_value('componentName')
+    data['cluster'] = self.cluster_name
+    data['service'] = self._get_alert_meta_value_safely('serviceName')
+    data['component'] = self._get_alert_meta_value_safely('componentName')
     data['timestamp'] = long(time.time() * 1000)
-    data['uuid'] = self._find_value('uuid')
-    data['enabled'] = self._find_value('enabled')
+    data['uuid'] = self._get_alert_meta_value_safely('uuid')
+    data['enabled'] = self._get_alert_meta_value_safely('enabled')
 
     if logger.isEnabledFor(logging.DEBUG):
       logger.debug("[Alert][{0}] text = {1}".format(self.get_name(), data['text']))
     
-    self.collector.put(self.cluster, data)
+    self.collector.put(self.cluster_name, data)
 
 
-  def _find_value(self, meta_key):
-    """ safe way to get a value when outputting result json.  will not throw an exception """
-    if self.alert_meta.has_key(meta_key):
-      return self.alert_meta[meta_key]
-    else:
-      return None
-
-
-  def get_lookup_keys(self):
-    """ returns a list of lookup keys found for this alert """
-    return self._lookup_keys
-
-
-  def _find_lookup_property(self, key):
+  def _get_configuration_value(self, key):
     """
-    check if the supplied key is parameterized and appends the extracted key
-    to the array of keys
+    Gets the value of the specified configuration key from the cache. The key
+    should be of the form {{foo-bar/baz}}. If the key is not a lookup key
+    and is instead a constant, such as "foo" or "5", then the constant is
+    returned.
+    :return:
     """
-    keys = re.findall("{{([\S]+)}}", key)
-    
-    if len(keys) > 0:
-      if logger.isEnabledFor(logging.DEBUG):
-        logger.debug("[Alert][{0}] Found parameterized key {1} for {2}".format(
-          self.get_name(), str(keys), str(self)))
+    # parse {{foo-bar/baz}}
+    placeholder_keys = re.findall("{{([\S]+)}}", key)
 
-      self._lookup_keys.append(keys[0])
-      return keys[0]
-      
-    return key
-
-
-  def _lookup_property_value(self, key):
-    """
-    in the case of specifying a configuration path, lookup that path's value
-    """
-    if not key in self._lookup_keys:
+    # if none found, then return the original
+    if len(placeholder_keys) == 0:
       return key
 
-    if key in self.config_value_dict:
-      return self.config_value_dict[key]
-    else:
-      return None
+    # this is a lookup key, so transform it into a value from the config cache
+    placeholder_key = placeholder_keys[0]
+
+    return self.cluster_configuration.get_configuration_value(
+      self.cluster_name, placeholder_key)
 
     
   def _lookup_uri_property_keys(self, uri_structure):
     """
     Loads the configuration lookup keys that the URI structure needs. This
     will return a named tuple that contains the keys needed to lookup
-    parameterized URI values from the URI structure. The URI structure looks 
-    something like:
+    parameterized URI values from the cached configuration.
+    The URI structure looks something like:
     
     "uri":{ 
       "http": foo,
@@ -216,13 +206,13 @@ class BaseAlert(object):
     kerberos_principal = None
     
     if 'http' in uri_structure:
-      http_key = self._find_lookup_property(uri_structure['http'])
+      http_key = uri_structure['http']
     
     if 'https' in uri_structure:
-      https_key = self._find_lookup_property(uri_structure['https'])
+      https_key = uri_structure['https']
       
     if 'https_property' in uri_structure:
-      https_property_key = self._find_lookup_property(uri_structure['https_property'])
+      https_property_key = uri_structure['https_property']
       
     if 'https_property_value' in uri_structure:
       https_property_value_key = uri_structure['https_property_value']
@@ -231,10 +221,10 @@ class BaseAlert(object):
       default_port = uri_structure['default_port']
 
     if 'kerberos_keytab' in uri_structure:
-      kerberos_keytab = self._find_lookup_property(uri_structure['kerberos_keytab'])
+      kerberos_keytab = uri_structure['kerberos_keytab']
 
     if 'kerberos_principal' in uri_structure:
-      kerberos_principal = self._find_lookup_property(uri_structure['kerberos_principal'])
+      kerberos_principal = uri_structure['kerberos_principal']
 
     AlertUriLookupKeys = namedtuple('AlertUriLookupKeys', 
         'http https https_property https_property_value default_port kerberos_keytab kerberos_principal')
@@ -274,16 +264,16 @@ class BaseAlert(object):
     # attempt to parse and parameterize the various URIs; properties that
     # do not exist int he lookup map are returned as None
     if alert_uri_lookup_keys.http is not None:
-      http_uri = self._lookup_property_value(alert_uri_lookup_keys.http)
+      http_uri = self._get_configuration_value(alert_uri_lookup_keys.http)
     
     if alert_uri_lookup_keys.https is not None:
-      https_uri = self._lookup_property_value(alert_uri_lookup_keys.https)
+      https_uri = self._get_configuration_value(alert_uri_lookup_keys.https)
 
     if alert_uri_lookup_keys.https_property is not None:
-      https_property = self._lookup_property_value(alert_uri_lookup_keys.https_property)
+      https_property = self._get_configuration_value(alert_uri_lookup_keys.https_property)
 
     if alert_uri_lookup_keys.https_property_value is not None:
-      https_property_value = self._lookup_property_value(alert_uri_lookup_keys.https_property_value)
+      https_property_value = self._get_configuration_value(alert_uri_lookup_keys.https_property_value)
 
     # without a URI, there's no way to create the structure we need - return
     # the default port if specified, otherwise throw an exception
