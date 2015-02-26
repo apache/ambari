@@ -55,9 +55,7 @@ ALT_ERASE_CMD = "alternatives --remove {0} {1}"
 REPO_PATH_RHEL = "/etc/yum.repos.d"
 REPO_PATH_SUSE = "/etc/zypp/repos.d/"
 SKIP_LIST = []
-TMP_HOST_CHECK_FILE_NAME = "tmp_hostcheck.result"
 HOST_CHECK_FILE_NAME = "hostcheck.result"
-HOST_CHECK_CUSTOM_ACTIONS_FILE = "hostcheck_custom_actions.result"
 OUTPUT_FILE_NAME = "hostcleanup.result"
 
 PACKAGE_SECTION = "packages"
@@ -525,15 +523,13 @@ def main():
   config = h.resolve_ambari_config()
   hostCheckFileDir = config.get('agent', 'prefix')
   hostCheckFilePath = os.path.join(hostCheckFileDir, HOST_CHECK_FILE_NAME)
-  hostCheckCustomActionsFilePath = os.path.join(hostCheckFileDir, HOST_CHECK_CUSTOM_ACTIONS_FILE)
-  hostCheckFilesPaths = hostCheckFilePath + "," + hostCheckCustomActionsFilePath
   hostCheckResultPath = os.path.join(hostCheckFileDir, OUTPUT_FILE_NAME)
 
   parser = optparse.OptionParser()
   parser.add_option("-v", "--verbose", dest="verbose", action="store_false",
                     default=False, help="output verbosity.")
-  parser.add_option("-f", "--file", dest="inputfiles",
-                    default=hostCheckFilesPaths,
+  parser.add_option("-f", "--file", dest="inputfile",
+                    default=hostCheckFilePath,
                     help="host check result file to read.", metavar="FILE")
   parser.add_option("-o", "--out", dest="outputfile",
                     default=hostCheckResultPath,
@@ -579,15 +575,8 @@ def main():
         print 'Exiting. Use option --skip="users" to skip deleting users'
         sys.exit(1)
 
-  hostcheckfile, hostcheckfileca  = options.inputfiles.split(",")
-  
-  with open(TMP_HOST_CHECK_FILE_NAME, "wb") as tmp_f:
-    with open(hostcheckfile, "rb") as f1:
-      with open(hostcheckfileca, "rb") as f2:
-        tmp_f.write(f1.read())
-        tmp_f.write(f2.read())
-  
-  propMap = h.read_host_check_file(TMP_HOST_CHECK_FILE_NAME)
+  hostcheckfile = options.inputfile
+  propMap = h.read_host_check_file(hostcheckfile)
 
   if propMap:
     h.do_cleanup(propMap)
