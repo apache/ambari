@@ -84,12 +84,6 @@ class TestHostCheckReportFileHandler(TestCase):
     procs = configValidator.get('processes', 'proc_list')
     self.assertEquals(procs, '')
 
-    pkgs = configValidator.get('packages', 'pkg_list')
-    self.assertEquals(pkgs, '')
-
-    repos = configValidator.get('repositories', 'repo_list')
-    self.assertEquals(repos, '')
-
     time = configValidator.get('metadata', 'created')
     self.assertTrue(time != None)
 
@@ -114,11 +108,6 @@ class TestHostCheckReportFileHandler(TestCase):
       {'pid':355,'hadoop':True,'command':'some command','user':'root'},
       {'pid':455,'hadoop':True,'command':'some command','user':'hdfs'}
     ]
-    dict['installedPackages'] = [
-      {'name':'hadoop','version':'3.2.3','repoName':'HDP'},
-      {'name':'hadoop-lib','version':'3.2.3','repoName':'HDP'}
-    ]
-    dict['existingRepos'] = ['HDP', 'HDP-epel']
     handler.writeHostCheckFile(dict)
 
     configValidator = ConfigParser.RawConfigParser()
@@ -140,6 +129,18 @@ class TestHostCheckReportFileHandler(TestCase):
     procs = configValidator.get('processes', 'proc_list')
     self.chkItemsEqual(procs, ['455', '355'])
 
+
+    dict['installed_packages'] = [
+      {'name':'hadoop','version':'3.2.3','repoName':'HDP'},
+      {'name':'hadoop-lib','version':'3.2.3','repoName':'HDP'}
+    ]
+    dict['existing_repos'] = ['HDP', 'HDP-epel']
+    
+    handler.writeHostChecksCustomActionsFile(dict)
+    configValidator = ConfigParser.RawConfigParser()
+    configPath_ca = os.path.join(os.path.dirname(tmpfile), HostCheckReportFileHandler.HOST_CHECK_CUSTOM_ACTIONS_FILE)
+    configValidator.read(configPath_ca)
+    
     pkgs = configValidator.get('packages', 'pkg_list')
     self.chkItemsEqual(pkgs, ['hadoop', 'hadoop-lib'])
 

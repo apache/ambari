@@ -261,3 +261,15 @@ def getPackageDetails(installedPackages, foundPackages):
         pkgDetail['repoName'] = installedPackage[2]
     packageDetails.append(pkgDetail)
   return packageDetails
+
+def getReposToRemove(repos, ignoreList):
+  reposToRemove = []
+  for repo in repos:
+    addToRemoveList = True
+    for ignoreRepo in ignoreList:
+      if nameMatch(ignoreRepo, repo):
+        addToRemoveList = False
+        continue
+    if addToRemoveList:
+      reposToRemove.append(repo)
+  return reposToRemove
