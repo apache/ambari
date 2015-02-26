@@ -114,9 +114,9 @@
       </service>
 
       <batch>
-        <percent>33</percent>
+        <percent>20</percent>
         <summary>Verification Required</summary>
-        <message>Core Services have been {{direction.past}}. You are advised to perform cluster/workload-specific tests against your cluster to ensure proper operation before proceeding with {{direction.text}} of the remaining services.</message>
+        <message>The initial batch of {{components}} hosts have been {{direction.past}}. You are advised to check the hosts and perform cluster/workload-specific tests against your cluster to ensure proper operation before proceeding with {{direction.text}} of the remaining services.</message>
       </batch>
     </group>
     

@@ -48,6 +48,7 @@ import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
+import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
 import org.easymock.EasyMock;
 import org.junit.After;
@@ -154,6 +155,20 @@ public class UpgradeHelperTest {
     // check that the display name is being used
     assertTrue(group.items.get(1).getText().contains("ZooKeeper1 Server2"));
     assertEquals(group.items.get(5).getText(), "Service Check Zk");
+
+    group = groups.get(3);
+    assertEquals(8, group.items.size());
+    StageWrapper sw = group.items.get(3);
+    assertEquals("Validate Partial Upgrade", sw.getText());
+    assertEquals(1, sw.getTasks().size());
+    assertEquals(1, sw.getTasks().get(0).getTasks().size());
+    Task t = sw.getTasks().get(0).getTasks().get(0);
+    assertEquals(ManualTask.class, t.getClass());
+    ManualTask mt = (ManualTask) t;
+    assertTrue(mt.message.contains("DataNode and NodeManager"));
+    assertNotNull(mt.structuredOut);
+    assertTrue(mt.structuredOut.contains("DATANODE"));
+    assertTrue(mt.structuredOut.contains("NODEMANAGER"));
 
     UpgradeGroupHolder postGroup = groups.get(5);
     assertEquals(postGroup.name, "POST_CLUSTER");

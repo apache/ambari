@@ -76,7 +76,7 @@
       
       <batch>
         <percent>20</percent>
-        <message>Please run additional tests</message>
+        <message>Please run additional tests on {{components}}</message>
       </batch>
     </group>
     
