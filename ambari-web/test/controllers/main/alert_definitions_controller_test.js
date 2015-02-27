@@ -69,8 +69,8 @@ describe('App.MainAlertDefinitionsController', function() {
         bodyView = controller.showPopup().get('bodyClass').create();
       });
 
-      it('#contents', function () {
-        expect(bodyView.get('contents.length')).to.equal(4);
+      it('#content', function () {
+        expect(bodyView.get('content.length')).to.equal(4);
       });
 
       it('#isLoaded', function () {

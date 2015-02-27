@@ -94,13 +94,11 @@ describe('App.alertInstanceMapper', function () {
 
   });
 
-  it('should delete not existing models', function () {
+  it('shouldn\'t delete not existing models', function () {
 
     App.alertInstanceMapper.map(json);
 
-    expect(App.alertInstanceMapper.deleteRecord.calledTwice).to.be.true;
-    expect(App.alertInstanceMapper.deleteRecord.args[0][0].id).to.equal(1);
-    expect(App.alertInstanceMapper.deleteRecord.args[1][0].id).to.equal(4);
+    expect(App.alertInstanceMapper.deleteRecord.called).to.be.false;
 
   });
 
