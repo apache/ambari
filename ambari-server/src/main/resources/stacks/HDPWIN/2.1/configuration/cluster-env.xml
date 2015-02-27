@@ -45,6 +45,7 @@
   </property>
   <property>
     <name>ignore_groupsusers_create</name>
+    <property-type>USER</property-type>
     <value>false</value>
     <description>Whether to ignore failures on users and group creation</description>
   </property>
