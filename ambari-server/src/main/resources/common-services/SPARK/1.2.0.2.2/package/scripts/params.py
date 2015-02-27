@@ -1,3 +1,5 @@
+  bin_dir = hadoop_bin_dir
+)
 #!/usr/bin/python
 """
 Licensed to the Apache Software Foundation (ASF) under one
@@ -125,7 +127,7 @@ if spark_javaopts_properties.find('-Dhdp.version') == -1:
   spark_javaopts_properties = spark_javaopts_properties+ ' -Dhdp.version=' + str(hdp_full_version)
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
-kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path()
 spark_kerberos_keytab =  config['configurations']['spark-defaults']['spark.history.kerberos.keytab']
 spark_kerberos_principal =  config['configurations']['spark-defaults']['spark.history.kerberos.principal']
 if security_enabled:

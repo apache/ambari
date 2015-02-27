@@ -16,18 +16,25 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
+Ambari Agent
+
 """
 
-from resource_management import *
+__all__ = ["get_kdestroy_path"]
+import os
 
-config = Script.get_config()
+def get_kdestroy_path():
 
-oozie_pid_dir = config['configurations']['oozie-env']['oozie_pid_dir']
-pid_file = format("{oozie_pid_dir}/oozie.pid")
+  kdestroy_path = ""
 
-security_enabled = config['configurations']['cluster-env']['security_enabled']
-kinit_path_local = functions.get_kinit_path()
-conf_dir = "/etc/oozie/conf"
-tmp_dir = Script.get_tmp_dir()
-oozie_user = config['configurations']['oozie-env']['oozie_user']
-hostname = config["hostname"]
+  for x in ["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"]:
+    if not x:
+      continue
+
+    path = os.path.join(x,"kdestroy")
+
+    if os.path.isfile(path):
+      kdestroy_path = path
+      break
+
+  return kdestroy_path

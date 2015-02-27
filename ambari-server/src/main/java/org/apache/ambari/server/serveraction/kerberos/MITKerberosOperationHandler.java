@@ -18,6 +18,10 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import org.apache.ambari.server.StaticallyInject;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +43,7 @@ import java.util.regex.Pattern;
  * It is assumed that a MIT Kerberos client is installed and that the kdamin shell command is
  * available
  */
+@StaticallyInject
 public class MITKerberosOperationHandler extends KerberosOperationHandler {
 
   /**
@@ -49,6 +54,8 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
 
   private final static Logger LOG = LoggerFactory.getLogger(MITKerberosOperationHandler.class);
 
+  @Inject
+  private static Injector injector;
 
   /**
    * Prepares and creates resources to be used by this KerberosOperationHandler
@@ -85,6 +92,17 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
   public void close() throws KerberosOperationException {
     // There is nothing to do here.
     setOpen(false);
+  }
+
+  /**
+   * Statically initialize the Injector
+   * <p/>
+   * This should only be used for unit tests.
+   *
+   * @param injector the Injector to (manually) statically inject
+   */
+  public static void init(Injector injector) {
+    MITKerberosOperationHandler.injector = injector;
   }
 
   /**
@@ -307,15 +325,23 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
           ? null
           : administratorCredentials.getPrincipal();
 
+      String pathToCommand = "";
+
+      Configuration configuration = injector.getInstance(Configuration.class);
+
+      if (configuration.getServerOsFamily().equals("redhat5")) {
+        pathToCommand = "/usr/kerberos/sbin/";
+      }
+
       if ((adminPrincipal == null) || adminPrincipal.isEmpty()) {
         // Set the kdamin interface to be kadmin.local
-        command.add("kadmin.local");
+        command.add(pathToCommand + "kadmin.local");
       } else {
         String adminPassword = administratorCredentials.getPassword();
         String adminKeyTab = administratorCredentials.getKeytab();
 
         // Set the kdamin interface to be kadmin
-        command.add("kadmin");
+        command.add(pathToCommand + "kadmin");
 
         // Add the administrative principal
         command.add("-p");

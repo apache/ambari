@@ -34,6 +34,6 @@ ams_monitor_pid_dir = config['configurations']['ams-env']['metrics_monitor_pid_d
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 ams_hbase_conf_dir = format("{hbase_conf_dir}")
 
-kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path()
 hostname = config['hostname']
 tmp_dir = Script.get_tmp_dir()

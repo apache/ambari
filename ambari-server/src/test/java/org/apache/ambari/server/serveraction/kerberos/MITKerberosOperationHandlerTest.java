@@ -18,10 +18,15 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import junit.framework.Assert;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.utils.ShellCommandUtil;
-import org.easymock.EasyMockSupport;
 import org.easymock.IAnswer;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -31,6 +36,7 @@ import java.util.Map;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+import static org.mockito.Mockito.mock;
 
 
 public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTest {
@@ -38,6 +44,14 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
   private static final String DEFAULT_ADMIN_PRINCIPAL = "admin/admin";
   private static final String DEFAULT_ADMIN_PASSWORD = "hadoop";
   private static final String DEFAULT_REALM = "EXAMPLE.COM";
+
+  private static Injector injector;
+
+  @BeforeClass
+  public static void beforeClass() throws AmbariException {
+    injector = Guice.createInjector(new MockModule());
+    MITKerberosOperationHandler.init(injector);
+  }
 
   private static final Map<String, String> KERBEROS_ENV_MAP = new HashMap<String, String>() {
     {
@@ -424,6 +438,13 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
     handler.open(credentials, realm, KERBEROS_ENV_MAP);
     handler.testAdministratorCredentials();
     handler.close();
+  }
+
+  public static class MockModule extends AbstractModule {
+    @Override
+    protected void configure() {
+      bind(Clusters.class).toInstance(mock(Clusters.class));
+    }
   }
 
 }
