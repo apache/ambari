@@ -109,12 +109,8 @@ public class HBaseTimelineMetricStore extends AbstractService
       Long startTime, Long endTime, Precision precision, Integer limit,
       boolean groupedByHosts) throws SQLException, IOException {
 
-
     if (metricNames == null || metricNames.isEmpty()) {
       throw new IllegalArgumentException("No metric name filter specified.");
-    }
-    if (applicationId == null || applicationId.trim().length() == 0) {
-      throw new IllegalArgumentException("No applicationID filter specified.");
     }
     if ((startTime == null && endTime != null)
         || (startTime != null && endTime == null)) {
@@ -221,9 +217,6 @@ public class HBaseTimelineMetricStore extends AbstractService
 
     if (metricName == null || metricName.isEmpty()) {
       throw new IllegalArgumentException("No metric name filter specified.");
-    }
-    if (applicationId == null || applicationId.trim().length() == 0) {
-      throw new IllegalArgumentException("No applicationID filter specified.");
     }
     if ((startTime == null && endTime != null)
         || (startTime != null && endTime == null)) {
