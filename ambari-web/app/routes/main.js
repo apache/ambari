@@ -48,7 +48,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
                     var currentClusterStatus = App.clusterStatus.get('value');
                     if (currentClusterStatus) {
                       if (self.get('installerStatuses').contains(currentClusterStatus.clusterState)) {
-                        self.redirectToInstaller(router, currentClusterStatus, false);
+                        if (App.isAccessible('ADMIN')) {
+                          self.redirectToInstaller(router, currentClusterStatus, false);
+                        } else {
+                          Em.run.next(function () {
+                            App.router.transitionTo('main.views.index');
+                          });
+                        }
                       }
                     }
                   });
