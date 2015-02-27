@@ -85,6 +85,18 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
 
   reconfigureHDFS: function () {
     var data = this.get('content.serviceConfigProperties');
+    if (App.router.get('mainAdminKerberosController.securityEnabled')) {
+      this.reconfigureSecureHDFS();
+    } else {
+      this.updateConfigProperties(data);
+    }
+  },
+
+  /**
+   * Update service configurations
+   * @param {Object} data - config object to update
+   */
+  updateConfigProperties: function(data) {
     var siteNames = ['hdfs-site','core-site'];
     var configData = this.reconfigureSites(siteNames, data);
     App.ajax.send({
@@ -95,7 +107,7 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
       },
       error: 'onTaskError',
       success: 'installHDFSClients'
-    })
+    });
   },
 
   installHDFSClients: function () {
@@ -110,6 +122,36 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
       wizardControllerName: this.get('content.controllerName'),
       localdb: App.db.data
     });
+  },
+
+  /**
+   * Process configurations for hdfs on kerberized cluster.
+   * Secure properties will be applied to hdfs and core site after installing JournalNode.
+   * For this case we need to pull updated configurations from API, merge them with configurations created
+   * during `Review` step and store new configurations.
+   */
+  reconfigureSecureHDFS: function() {
+    App.router.get('highAvailabilityWizardStep3Controller').loadConfigsTags.call(this);
+  },
+
+  onLoadConfigsTags: function() {
+    App.router.get('highAvailabilityWizardStep3Controller').onLoadConfigsTags.apply(this, [].slice.call(arguments));
+  },
+
+  onLoadConfigs: function(data) {
+    var self = this;
+    var configController = App.router.get('highAvailabilityWizardStep3Controller');
+    var configData = $.extend({}, data);
+    var configItems = data.items.map(function(item) {
+      var fileName = Em.get(item, 'type');
+      var configTypeObject = self.get('content.serviceConfigProperties').items.findProperty('type', fileName);
+      if (configTypeObject) {
+        $.extend(item.properties, configTypeObject.properties);
+      }
+      return item;
+    });
+    configItems = configController.removeConfigs(configController.get('configsToRemove'), {items: configItems});
+    this.updateConfigProperties(configItems);
   }
 });
 
