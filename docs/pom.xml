@@ -127,7 +127,7 @@
             <email>alejandro@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
@@ -688,7 +688,7 @@
             <email>yusaku@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>PMC</role>
+                <role>PMC Chair</role>
             </roles>
             <organization>
                 Hortonworks
