@@ -83,7 +83,7 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
 
   onLoadConfigs: function (data) {
     this.set('serverConfigData',data);
-    this.removeConfigs(this.get('configsToRemove'));
+    this.removeConfigs(this.get('configsToRemove'), this.get('serverConfigData'));
     this.tweakServiceConfigs(this.get('haConfig.configs'));
     this.renderServiceConfigs(this.get('haConfig'));
     this.set('isLoaded', true);
@@ -146,10 +146,10 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
   /**
    * Find and remove config properties in <code>serverConfigData</code>
    * @param configsToRemove - map of config sites and properties to remove
+   * @param configs - configuration object
    * @returns {Object}
    */
-  removeConfigs:function (configsToRemove) {
-    var configs = this.get('serverConfigData');
+  removeConfigs:function (configsToRemove, configs) {
     Em.keys(configsToRemove).forEach(function(site){
       var siteConfigs = configs.items.findProperty('type', site);
       if (siteConfigs) {

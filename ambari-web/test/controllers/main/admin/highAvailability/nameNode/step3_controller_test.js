@@ -138,8 +138,9 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
           configsToRemove: test.toRemove,
           serverConfigData: test.configs
         });
-        controller.removeConfigs(test.toRemove);
+        var result = controller.removeConfigs(test.toRemove, controller.get('serverConfigData'));
         expect(JSON.stringify(controller.get('serverConfigData'))).to.equal(JSON.stringify(test.expected));
+        expect(JSON.stringify(result)).to.equal(JSON.stringify(test.expected));
       });
     });
   });
