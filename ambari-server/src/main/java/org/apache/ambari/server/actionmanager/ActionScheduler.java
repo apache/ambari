@@ -652,11 +652,16 @@ class ActionScheduler implements Runnable {
         new ServiceComponentHostOpFailedEvent(componentName,
           hostname, timestamp);
 
-      Service svc = cluster.getService(serviceName);
-      ServiceComponent svcComp = svc.getServiceComponent(componentName);
-      ServiceComponentHost svcCompHost =
-        svcComp.getServiceComponentHost(hostname);
-      svcCompHost.handleEvent(failedEvent);
+      if (serviceName != null) {
+        Service svc = cluster.getService(serviceName);
+        ServiceComponent svcComp = svc.getServiceComponent(componentName);
+        ServiceComponentHost svcCompHost =
+                svcComp.getServiceComponentHost(hostname);
+        svcCompHost.handleEvent(failedEvent);
+      } else {
+        LOG.info("Service name is null, skipping sending ServiceComponentHostOpFailedEvent for " + componentName);
+      }
+
 
     } catch (ServiceComponentNotFoundException scnex) {
       LOG.debug(componentName + " associated with service " + serviceName +
