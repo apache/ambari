@@ -126,8 +126,9 @@ export HBASE_ZOOKEEPER_OPTS="$HBASE_ZOOKEEPER_OPTS -Djava.security.auth.login.co
 # use embedded native libs
 _HADOOP_NATIVE_LIB="/usr/lib/ams-hbase/lib/hadoop-native/"
 export HBASE_OPTS="$HBASE_OPTS -Djava.library.path=${_HADOOP_NATIVE_LIB}"
+
 # Unset HADOOP_HOME to avoid importing HADOOP installed cluster related configs like: /usr/hdp/2.2.0.0-2041/hadoop/conf/
-export HADOOP_HOME=`pwd`
+export HADOOP_HOME={{ams_hbase_home_dir}}
     </value>
   </property>
 

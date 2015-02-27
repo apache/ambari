@@ -182,6 +182,12 @@ def ams(name=None):
               recursive=True
     )
 
+    # Hack to allow native HBase libs to be included for embedded hbase
+    File(os.path.join(params.ams_hbase_home_dir, "bin", "hadoop"),
+         owner=params.ams_user,
+         mode=0755
+    )
+
     pass
 
   elif name == 'monitor':
