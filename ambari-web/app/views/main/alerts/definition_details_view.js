@@ -43,6 +43,7 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
   }.property('controller.alerts.@each'),
 
   willInsertElement: function () {
+    this._super();
     this.get('controller').clearStep();
     var self = this,
       updater = App.router.get('updateController');
@@ -99,6 +100,44 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
     didInsertElement: function () {
       App.tooltip($("[rel=tooltip]"));
     }
-  })
+  }),
+
+  paginationLeftClass: function () {
+    if (this.get("startIndex") > 1) {
+      return "paginate_previous";
+    }
+    return "paginate_disabled_previous";
+  }.property("startIndex", 'filteredCount'),
+
+  /**
+   * Determines how display "next"-link - as link or text
+   * @type {string}
+   */
+  paginationRightClass: function () {
+    if ((this.get("endIndex")) < this.get("filteredCount")) {
+      return "paginate_next";
+    }
+    return "paginate_disabled_next";
+  }.property("endIndex", 'filteredCount'),
+
+  /**
+   * Show previous-page if user not in the first page
+   * @method previousPage
+   */
+  previousPage: function () {
+    if (this.get('paginationLeftClass') === 'paginate_previous') {
+      this._super();
+    }
+  },
+
+  /**
+   * Show next-page if user not in the last page
+   * @method nextPage
+   */
+  nextPage: function () {
+    if (this.get('paginationRightClass') === 'paginate_next') {
+      this._super();
+    }
+  }
 
 });

@@ -18,7 +18,7 @@
 
 {{#if view.isLoaded}}
 
-<div id="alert-definition-details">
+  <div id="alert-definition-details">
   <div class="row-fluid">
 
     {{! Left column }}
@@ -30,7 +30,8 @@
             {{view Em.TextField valueBinding="controller.editing.label.value"}}
           </div>
           <div class="edit-buttons">
-            <button {{action cancelEdit controller.editing.label target="controller"}} class="btn cancel-button">{{t common.cancel}}</button>
+            <button {{action cancelEdit controller.editing.label target="controller"}}
+                class="btn cancel-button">{{t common.cancel}}</button>
             <button {{bindAttr disabled="controller.editing.label.isError"}} {{action saveEdit controller.editing.label target="controller"}}
                 class="btn btn-primary save-button">{{t common.save}}
             </button>
@@ -42,13 +43,15 @@
         {{/if}}
         {{#unless controller.editing.label.isEditing}}
           {{#isAccessible ADMIN}}
-            <a {{action edit controller.editing.label target="controller"}} class="edit-description-button"><i class="icon-pencil"></i></a>
+            <a {{action edit controller.editing.label target="controller"}} class="edit-description-button"><i
+                class="icon-pencil"></i></a>
           {{/isAccessible}}
         {{/unless}}
       </div>
       {{! Alert Definition Name end }}
 
-      <div><a href="javascript:void(null)" data-toggle="modal" {{action back}}><i class="icon-arrow-left"></i>&nbsp;{{t common.back}}</a></div>
+      <div><a href="javascript:void(null)" data-toggle="modal" {{action back}}><i
+          class="icon-arrow-left"></i>&nbsp;{{t common.back}}</a></div>
 
       {{! Alert Definition Configs }}
       <div class="box">
@@ -57,19 +60,21 @@
             <h4>{{t common.configuration}}</h4>
           </div>
           <div class="pull-right span5 row-fluid" style="padding:0 10px;">
-          {{#isAccessible ADMIN}}
-            {{#unless App.router.mainAlertDefinitionConfigsController.canEdit}}
-              <a {{action editConfigs target="App.router.mainAlertDefinitionConfigsController"}} class="pull-right edit-link">
-                {{t common.edit}}
-              </a>
-            {{/unless}}
-          {{/isAccessible}}
+            {{#isAccessible ADMIN}}
+              {{#unless App.router.mainAlertDefinitionConfigsController.canEdit}}
+                <a {{action editConfigs target="App.router.mainAlertDefinitionConfigsController"}}
+                    class="pull-right edit-link">
+                  {{t common.edit}}
+                </a>
+              {{/unless}}
+            {{/isAccessible}}
           </div>
         </div>
         {{view App.AlertDefinitionConfigsView contentBinding="view.controller.content" alertDefinitionTypeBinding="view.controller.content.type" canEdit=false}}
         {{#if App.router.mainAlertDefinitionConfigsController.canEdit}}
           <div class="edit-buttons">
-            <button {{action cancelEditConfigs target="App.router.mainAlertDefinitionConfigsController"}} class="btn">{{t common.cancel}}</button>
+            <button {{action cancelEditConfigs target="App.router.mainAlertDefinitionConfigsController"}}
+                class="btn">{{t common.cancel}}</button>
             <button {{bindAttr disabled="App.router.mainAlertDefinitionConfigsController.hasErrors"}} {{action saveConfigs target="App.router.mainAlertDefinitionConfigsController"}}
                 class="btn btn-primary">{{t common.save}}
             </button>
@@ -92,60 +97,64 @@
             {{#if controller.content.enabled}}
               {{#isAccessible ADMIN}}
                 <a href="#" {{action "toggleState" controller.content target="controller"}} {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
-                  <span class="enable-disable-button" {{translateAttr data-original-title="alerts.table.state.enabled.tooltip"}}>
-                      {{view.enabledDisplay}}
+                  <span
+                      class="enable-disable-button" {{translateAttr data-original-title="alerts.table.state.enabled.tooltip"}}>
+                    {{view.enabledDisplay}}
                   </span>
                 </a>
               {{/isAccessible}}
               {{#isAccessible NON_ADMIN}}
                 <span {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
-                      {{t alerts.table.state.enabled}}
+                  {{t alerts.table.state.enabled}}
                 </span>
               {{/isAccessible}}
             {{else}}
               {{#isAccessible ADMIN}}
                 <a href="#" {{action "toggleState" controller.content target="controller"}} {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
-                  <span class="enable-disable-button" {{translateAttr data-original-title="alerts.table.state.disabled.tooltip"}}>
+                  <span
+                      class="enable-disable-button" {{translateAttr data-original-title="alerts.table.state.disabled.tooltip"}}>
                     {{view.disabledDisplay}}
                   </span>
                 </a>
               {{/isAccessible}}
               {{#isAccessible NON_ADMIN}}
                 <span {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
-                      {{t alerts.table.state.disabled}}
+                  {{t alerts.table.state.disabled}}
                 </span>
               {{/isAccessible}}
             {{/if}}
           </div>
         </div>
         {{#if controller.content.serviceDisplayName}}
-        <div class="row-fluid">
-          <div class="span4 property-name">{{t common.service}}:</div>
-          <div class="span8"><span>{{controller.content.serviceDisplayName}}</span></div>
-        </div>
+          <div class="row-fluid">
+            <div class="span4 property-name">{{t common.service}}:</div>
+            <div class="span8"><span>{{controller.content.serviceDisplayName}}</span></div>
+          </div>
         {{/if}}
         {{#if controller.content.componentNameFormatted}}
-        <div class="row-fluid">
-          <div class="span4 property-name">{{t common.component}}:</div>
-          <div class="span8">{{controller.content.componentNameFormatted}}</div>
-        </div>
+          <div class="row-fluid">
+            <div class="span4 property-name">{{t common.component}}:</div>
+            <div class="span8">{{controller.content.componentNameFormatted}}</div>
+          </div>
         {{/if}}
         <div class="row-fluid">
           <div class="span4 property-name">{{t common.type}}:</div>
-          <div class="span8"><span {{bindAttr class=":type-icon  controller.content.typeIconClass"}}></span> {{controller.content.type}}</div>
-        </div>
-      {{#if controller.groupsList.length}}
-        <div class="row-fluid">
-          <div class="span4 property-name">{{t alerts.definition.details.groups}}:</div>
           <div class="span8">
-            <ul>
-              {{#each groupName in controller.groupsList}}
-                <li>{{groupName}}</li>
-              {{/each}}
-            </ul>
+            <span {{bindAttr class=":type-icon  controller.content.typeIconClass"}}></span> {{controller.content.type}}
           </div>
         </div>
-      {{/if}}
+        {{#if controller.groupsList.length}}
+          <div class="row-fluid">
+            <div class="span4 property-name">{{t alerts.definition.details.groups}}:</div>
+            <div class="span8">
+              <ul>
+                {{#each groupName in controller.groupsList}}
+                  <li>{{groupName}}</li>
+                {{/each}}
+              </ul>
+            </div>
+          </div>
+        {{/if}}
         <div class="row-fluid">
           <div class="span4 property-name">{{t alerts.table.header.lastTrigger}}:</div>
           <div class="span8">{{controller.content.lastTriggeredFormatted}}</div>
@@ -153,9 +162,9 @@
       </div>
     </div>
   </div>
-  {{! Right column end }}
+    {{! Right column end }}
 
-  {{! List of alerts }}
+    {{! List of alerts }}
   <div class="definition-details-block">
   <span>
     <strong>{{t alerts.definition.details.instances}}</strong>
@@ -165,42 +174,61 @@
 
       {{#if App.router.mainAlertInstancesController.isLoaded}}
 
-      <table class="table advanced-header-table table-bordered table-striped alerts-table" id="alert-instances-table">
-        <thead>
-        <tr>
-          <th class="first">{{t alerts.definition.details.serviceHost}}</th>
-          <th>{{t common.status}}</th>
-          <th>{{t alerts.definition.details.24-hour}}</th>
-          <th>{{t alerts.table.header.check.response}}</th>
-        </tr>
-        </thead>
-        <tbody>
-        {{#if view.pageContent}}
-          {{#each instance in view.pageContent}}
-            {{#view view.instanceTableRow}}
-              <td class="first">
-                <a {{action goToService instance.service target="controller"}} href="#">{{instance.service.displayName}}</a>
-                {{#if instance.host.hostName}}
-                  {{#if instance.service.displayName}}
-                    &nbsp;/&nbsp;
-                  {{/if}}
-                  <a {{action goToHostAlerts instance.host target="controller"}} href="#">{{instance.host.hostName}}</a>
-                {{/if}}
-              </td>
-              <td>{{{instance.status}}}  <time class="timeago" rel="tooltip"  {{bindAttr data-original-title="instance.statusChangedAndLastCheckedFormatted"}}>{{instance.lastTriggeredForFormatted}}</time></td>
-              <td>{{view view.parentView.lastDayCount hostBinding="instance.host"}}</td>
-              <td><span class="alert-text" rel="tooltip" {{bindAttr data-original-title="instance.text"}} class="alert-text">{{instance.text}}</span></td>
-            {{/view}}
-          {{/each}}
-        {{else}}
+        <table class="table advanced-header-table table-bordered table-striped alerts-table" id="alert-instances-table">
+          <thead>
           <tr>
-            <td class="first" colspan="5">
-              {{t alerts.definition.details.noAlerts}}
-            </td>
+            <th class="first">{{t alerts.definition.details.serviceHost}}</th>
+            <th>{{t common.status}}</th>
+            <th>{{t alerts.definition.details.24-hour}}</th>
+            <th>{{t alerts.table.header.check.response}}</th>
           </tr>
-        {{/if}}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {{#if view.pageContent}}
+              {{#each instance in view.pageContent}}
+                {{#view view.instanceTableRow}}
+                <td class="first">
+                  <a {{action goToService instance.service target="controller"}}
+                      href="#">{{instance.service.displayName}}</a>
+                  {{#if instance.host.hostName}}
+                    {{#if instance.service.displayName}}
+                      &nbsp;/&nbsp;
+                    {{/if}}
+                    <a {{action goToHostAlerts instance.host target="controller"}}
+                        href="#">{{instance.host.hostName}}</a>
+                  {{/if}}
+                </td>
+                <td>{{{instance.status}}}
+                  <time class="timeago"
+                        rel="tooltip"  {{bindAttr data-original-title="instance.statusChangedAndLastCheckedFormatted"}}>{{instance.lastTriggeredForFormatted}}</time>
+                </td>
+                <td>{{view view.parentView.lastDayCount hostBinding="instance.host"}}</td>
+                <td><span class="alert-text" rel="tooltip" {{bindAttr data-original-title="instance.text"}}
+                          class="alert-text">{{instance.text}}</span></td>
+                {{/view}}
+              {{/each}}
+            {{else}}
+            <tr>
+              <td class="first" colspan="5">
+                {{t alerts.definition.details.noAlerts}}
+              </td>
+            </tr>
+            {{/if}}
+          </tbody>
+        </table>
+
+        <div class="page-bar">
+          <div class="items-on-page">
+            <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
+          </div>
+          <div class="info">{{view.paginationInfo}}</div>
+          <div class="paging_two_button">
+            <a {{bindAttr class="view.paginationLeftClass"}}{{action previousPage target="view"}}><i
+                class="icon-arrow-left"></i></a>
+            <a {{bindAttr class="view.paginationRightClass"}}{{action nextPage target="view"}}><i
+                class="icon-arrow-right"></i></a>
+          </div>
+        </div>
 
       {{else}}
         <div class="spinner"></div>
@@ -208,9 +236,9 @@
 
     </div>
   </div>
-  {{! List of alerts end }}
+    {{! List of alerts end }}
 
-</div>
+  </div>
 {{else}}
   <div class="spinner"></div>
 {{/if}}

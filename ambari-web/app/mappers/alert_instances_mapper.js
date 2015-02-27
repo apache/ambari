@@ -52,10 +52,6 @@ App.alertInstanceMapper = App.QuickDataMapper.create({
         alertsToDelete = alertsToDelete.without(alert.id);
       }, this);
 
-      alertsToDelete.forEach(function(alertId) {
-        self.deleteRecord(model.find(alertId));
-      });
-
       App.store.loadMany(model, alertInstances);
     }
   }

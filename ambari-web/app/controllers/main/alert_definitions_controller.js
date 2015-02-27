@@ -168,13 +168,15 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
         App.router.transitionTo('main.alerts.index');
       },
 
-      bodyClass: Em.View.extend({
+      bodyClass: App.TableView.extend({
 
         templateName: require('templates/common/modal_popups/alerts_popup'),
 
         controller: self,
 
-        contents: function () {
+        isPaginate: true,
+
+        content: function () {
           return this.get('controller.unhealthyAlertInstances');
         }.property('controller.unhealthyAlertInstances.length', 'controller.unhealthyAlertInstances.@each.state'),
 
@@ -183,8 +185,16 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
         }.property('controller.unhealthyAlertInstances'),
 
         isAlertEmptyList: function () {
-          return !this.get('contents.length');
-        }.property('contents.length'),
+          return !this.get('content.length');
+        }.property('content.length'),
+
+        /**
+         * No filtering for alert definitions
+         * @method filter
+         */
+        filter: function() {
+          this.set('filteredContent', this.get('content'));
+        }.observes('content.length'),
 
         /**
          * Router transition to alert definition details page
@@ -221,6 +231,7 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
         },
 
         didInsertElement: function () {
+          this.filter();
           Em.run.next(this, function () {
             App.tooltip($(".timeago"));
           });
