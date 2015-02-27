@@ -43,5 +43,5 @@ class TestRangerUserSync(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertTrue(setup_usersync_mock.called)
-    self.assertResourceCalled("Execute", "/usr/bin/ranger-usersync-stop")
+    self.assertResourceCalled("Execute", ("/usr/bin/ranger-usersync-stop",), sudo=True)
     self.assertResourceCalled("Execute", "hdp-select set ranger-usersync 2.2.2.0-2399")

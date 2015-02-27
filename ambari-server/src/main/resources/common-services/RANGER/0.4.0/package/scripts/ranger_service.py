@@ -27,7 +27,8 @@ def ranger_service(name):
     Execute(format('{params.ranger_start}'), user=params.unix_user, not_if=no_op_test)
   elif name == 'ranger_usersync':
     no_op_test = format('ps -ef | grep proc_rangerusersync | grep -v grep')
-    Execute(params.usersync_start, 
+    # Usersync requires to be run as root.
+    Execute((params.usersync_start,), 
             not_if=no_op_test,
-            user=params.unix_user,
+            sudo=True,
     )
