@@ -39,7 +39,7 @@ else:
   hadoop_bin_dir = "/usr/bin"
 hadoop_conf_dir = "/etc/hadoop/conf"
 
-kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path()
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']

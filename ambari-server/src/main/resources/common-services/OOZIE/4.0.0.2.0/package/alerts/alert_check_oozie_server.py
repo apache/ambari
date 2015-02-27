@@ -80,7 +80,7 @@ def execute(parameters=None, host_name=None):
       else:
         return (RESULT_CODE_UNKNOWN, ['The Oozie keytab and principal are required parameters when security is enabled.'])
 
-      kinit_path_local = get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+      kinit_path_local = get_kinit_path()
       kinit_command = format("{kinit_path_local} -kt {oozie_keytab} {oozie_principal}; ")
 
       # kinit

@@ -101,7 +101,7 @@ def execute(parameters=None, host_name=None):
     smokeuser_keytab = SMOKEUSER_KEYTAB_DEFAULT
     if SMOKEUSER_KEYTAB_KEY in parameters:
       smokeuser_keytab = parameters[SMOKEUSER_KEYTAB_KEY]
-    kinit_path_local = get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+    kinit_path_local = get_kinit_path()
     kinitcmd=format("{kinit_path_local} -kt {smokeuser_keytab} {smokeuser}; ")
   else:
     hive_server_principal = None

@@ -23,7 +23,7 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 hostname = config['hostname']
-kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path()
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 

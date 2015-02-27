@@ -50,7 +50,7 @@ smokeuser = config['configurations']['cluster-env']['smokeuser']
 smokeuser_principal = config['configurations']['cluster-env']['smokeuser_principal_name']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 smokeuser_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
-kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path()
 slider_env_sh_template = config['configurations']['slider-env']['content']
 
 java64_home = config['hostLevelParams']['java_home']

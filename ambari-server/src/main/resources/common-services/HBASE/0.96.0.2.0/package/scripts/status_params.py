@@ -28,7 +28,7 @@ hbase_user = config['configurations']['hbase-env']['hbase_user']
 # Security related/required params
 hostname = config['hostname']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
-kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path()
 tmp_dir = Script.get_tmp_dir()
 
 

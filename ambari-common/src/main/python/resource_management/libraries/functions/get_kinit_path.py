@@ -23,13 +23,11 @@ Ambari Agent
 __all__ = ["get_kinit_path"]
 import os
 
-def get_kinit_path(pathes_list):
-  """
-  @param pathes: comma separated list
-  """
+def get_kinit_path():
+
   kinit_path = ""
   
-  for x in pathes_list:
+  for x in ["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"]:
     if not x:
       continue
     

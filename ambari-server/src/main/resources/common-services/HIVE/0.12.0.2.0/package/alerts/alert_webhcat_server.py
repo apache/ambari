@@ -101,7 +101,7 @@ def execute(parameters=None, host_name=None):
       # substitute _HOST in kerberos principal with actual fqdn
       webhcat_principal = webhcat_principal.replace('_HOST', host_name)
 
-      kinit_path_local = get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+      kinit_path_local = get_kinit_path()
       kinit_command = format("{kinit_path_local} -kt {webhcat_keytab} {webhcat_principal}; ")
 
       # kinit so that curl will work with --negotiate
