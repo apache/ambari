@@ -38,6 +38,11 @@ def setup_spark(env):
             group=params.user_group,
             recursive=True
   )
+  params.HdfsDirectory(params.spark_hdfs_user_dir,
+                       action="create",
+                       owner=params.spark_user,
+                       mode=0775
+  )
 
   file_path = params.spark_conf + '/spark-defaults.conf'
   create_file(file_path)
@@ -101,6 +106,10 @@ def get_hive_config():
 def spark_properties(params):
   spark_dict = dict()
 
+  all_spark_config  = params.config['configurations']['spark-defaults']
+  #Add all configs unfiltered first to handle Custom case.
+  spark_dict = all_spark_config.copy()
+
   spark_dict['spark.yarn.executor.memoryOverhead'] = params.spark_yarn_executor_memoryOverhead
   spark_dict['spark.yarn.driver.memoryOverhead'] = params.spark_yarn_driver_memoryOverhead
   spark_dict['spark.yarn.applicationMaster.waitTries'] = params.spark_yarn_applicationMaster_waitTries
@@ -120,6 +129,7 @@ def spark_properties(params):
 
   spark_dict['spark.driver.extraJavaOptions'] = params.spark_driver_extraJavaOptions
   spark_dict['spark.yarn.am.extraJavaOptions'] = params.spark_yarn_am_extraJavaOptions
+
 
   return spark_dict
 
@@ -184,6 +194,7 @@ def get_hdp_version():
       'Unable to determine the current version because of a non-zero return code of {0}'.format(str(return_code)))
 
   hdp_version = re.sub('hadoop-client - ', '', hdp_output)
+  hdp_version = hdp_version.rstrip()
   match = re.match('[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+', hdp_version)
 
   if match is None:
