@@ -584,7 +584,7 @@ class TestHbaseRegionServer(RMFTestCase):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_regionserver.py",
                    classname = "HbaseRegionServer",
                    command = "security_status",
-                   config_file="secured.json",
+                   config_file="default.json",
                    hdp_stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )

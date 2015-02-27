@@ -124,33 +124,37 @@ class JournalNode(Script):
 
     security_params = get_params_from_filesystem(status_params.hadoop_conf_dir,
                                                  {'core-site.xml': FILE_TYPE_XML})
-    result_issues = validate_security_config_properties(security_params, hdfs_expectations)
-    if not result_issues:  # If all validations passed successfully
-      try:
-        # Double check the dict before calling execute
-        if ('hdfs-site' not in security_params or
-                'dfs.journalnode.kerberos.keytab.file' not in security_params['hdfs-site'] or
-                'dfs.journalnode.kerberos.principal' not in security_params['hdfs-site']):
-          self.put_structured_out({"securityState": "UNSECURED"})
-          self.put_structured_out(
-            {"securityIssuesFound": "Keytab file or principal are not set property."})
-          return
+    if 'core-site' in security_params and 'hadoop.security.authentication' in security_params['core-site'] and \
+        security_params['core-site']['hadoop.security.authentication'].lower() == 'kerberos':
+      result_issues = validate_security_config_properties(security_params, hdfs_expectations)
+      if not result_issues:  # If all validations passed successfully
+        try:
+          # Double check the dict before calling execute
+          if ('hdfs-site' not in security_params or
+                  'dfs.journalnode.kerberos.keytab.file' not in security_params['hdfs-site'] or
+                  'dfs.journalnode.kerberos.principal' not in security_params['hdfs-site']):
+            self.put_structured_out({"securityState": "UNSECURED"})
+            self.put_structured_out(
+              {"securityIssuesFound": "Keytab file or principal are not set property."})
+            return
 
-        cached_kinit_executor(status_params.kinit_path_local,
-                              status_params.hdfs_user,
-                              security_params['hdfs-site']['dfs.journalnode.kerberos.keytab.file'],
-                              security_params['hdfs-site']['dfs.journalnode.kerberos.principal'],
-                              status_params.hostname,
-                              status_params.tmp_dir)
-        self.put_structured_out({"securityState": "SECURED_KERBEROS"})
-      except Exception as e:
-        self.put_structured_out({"securityState": "ERROR"})
-        self.put_structured_out({"securityStateErrorInfo": str(e)})
+          cached_kinit_executor(status_params.kinit_path_local,
+                                status_params.hdfs_user,
+                                security_params['hdfs-site']['dfs.journalnode.kerberos.keytab.file'],
+                                security_params['hdfs-site']['dfs.journalnode.kerberos.principal'],
+                                status_params.hostname,
+                                status_params.tmp_dir)
+          self.put_structured_out({"securityState": "SECURED_KERBEROS"})
+        except Exception as e:
+          self.put_structured_out({"securityState": "ERROR"})
+          self.put_structured_out({"securityStateErrorInfo": str(e)})
+      else:
+        issues = []
+        for cf in result_issues:
+          issues.append("Configuration file %s did not pass the validation. Reason: %s" % (cf, result_issues[cf]))
+        self.put_structured_out({"securityIssuesFound": ". ".join(issues)})
+        self.put_structured_out({"securityState": "UNSECURED"})
     else:
-      issues = []
-      for cf in result_issues:
-        issues.append("Configuration file %s did not pass the validation. Reason: %s" % (cf, result_issues[cf]))
-      self.put_structured_out({"securityIssuesFound": ". ".join(issues)})
       self.put_structured_out({"securityState": "UNSECURED"})
 
 
