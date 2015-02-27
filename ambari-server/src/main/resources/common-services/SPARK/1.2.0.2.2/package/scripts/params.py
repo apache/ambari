@@ -1,3 +1,5 @@
+  bin_dir = hadoop_bin_dir
+)
 #!/usr/bin/python
 """
 Licensed to the Apache Software Foundation (ASF) under one
