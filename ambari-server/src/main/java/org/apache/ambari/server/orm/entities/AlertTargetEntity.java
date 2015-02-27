@@ -17,8 +17,11 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.persistence.Basic;
@@ -38,6 +41,7 @@ import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
 import javax.persistence.PreRemove;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
@@ -99,7 +103,13 @@ public class AlertTargetEntity {
   @ElementCollection(targetClass = AlertState.class)
   @CollectionTable(name = "alert_target_states", joinColumns = @JoinColumn(name = "target_id"))
   @Column(name = "alert_state")
-  private Set<AlertState> alertStates;
+  private Set<AlertState> alertStates = EnumSet.allOf(AlertState.class);
+
+  /**
+   * Bi-directional one-to-many association to {@link AlertNoticeEntity}.
+   */
+  @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "alertTarget")
+  private List<AlertNoticeEntity> alertNotices;
 
   /**
    * Gets the unique ID of this alert target.
@@ -296,18 +306,31 @@ public class AlertTargetEntity {
   }
 
   /**
+   * Adds the specified notice to the notices that have been sent out for this
+   * target.
+   *
+   * @param notice
+   *          the notice.
+   */
+  protected void addAlertNotice(AlertNoticeEntity notice) {
+    if (null == alertNotices) {
+      alertNotices = new ArrayList<AlertNoticeEntity>();
+    }
+
+    alertNotices.add(notice);
+  }
+
+  /**
    * Called before {@link EntityManager#remove(Object)} for this entity, removes
    * the non-owning relationship between targets and groups.
    */
   @PreRemove
   public void preRemove() {
     Set<AlertGroupEntity> groups = getAlertGroups();
-    if (groups.isEmpty()) {
-      return;
-    }
-
-    for (AlertGroupEntity group : groups) {
-      group.removeAlertTarget(this);
+    if (!groups.isEmpty()) {
+      for (AlertGroupEntity group : groups) {
+        group.removeAlertTarget(this);
+      }
     }
   }
 

@@ -835,6 +835,15 @@ public class AlertsDAOTest {
 
     assertEquals(newHistory.getAlertState(),
         newCurrent.getAlertHistory().getAlertState());
+
+    newCurrent = m_dao.findCurrentById(current.getAlertId());
+
+    assertEquals(newHistory.getAlertId(),
+        newCurrent.getAlertHistory().getAlertId());
+
+    assertEquals(newHistory.getAlertState(),
+        newCurrent.getAlertHistory().getAlertState());
+
   }
 
   /**

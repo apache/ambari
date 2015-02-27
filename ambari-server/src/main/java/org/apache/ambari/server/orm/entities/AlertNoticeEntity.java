@@ -18,6 +18,7 @@
 package org.apache.ambari.server.orm.entities;
 
 import javax.persistence.Basic;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -74,7 +75,7 @@ public class AlertNoticeEntity {
   /**
    * Bi-directional many-to-one association to {@link AlertTargetEntity}
    */
-  @ManyToOne
+  @ManyToOne(cascade = { CascadeType.REFRESH })
   @JoinColumn(name = "target_id", nullable = false)
   private AlertTargetEntity alertTarget;
 
@@ -181,6 +182,7 @@ public class AlertNoticeEntity {
    */
   public void setAlertTarget(AlertTargetEntity alertTarget) {
     this.alertTarget = alertTarget;
+    alertTarget.addAlertNotice(this);
   }
 
   /**

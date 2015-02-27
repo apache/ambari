@@ -444,12 +444,50 @@ public class AlertDispatchDAOTest {
   public void testDeleteTarget() throws Exception {
     AlertTargetEntity target = m_helper.createAlertTarget();
     target = m_dao.findTargetById(target.getTargetId());
+    assertTrue(target.getAlertStates().size() > 0);
+
     assertNotNull(target);
 
     m_dao.remove(target);
 
     target = m_dao.findTargetById(target.getTargetId());
     assertNull(target);
+  }
+
+  /**
+  *
+  */
+  @Test
+  public void testDeleteTargetWithNotices() throws Exception {
+    AlertTargetEntity target = m_helper.createAlertTarget();
+
+    List<AlertDefinitionEntity> definitions = createDefinitions();
+    AlertDefinitionEntity definition = definitions.get(0);
+
+    AlertHistoryEntity history = new AlertHistoryEntity();
+    history.setServiceName(definition.getServiceName());
+    history.setClusterId(m_cluster.getClusterId());
+    history.setAlertDefinition(definition);
+    history.setAlertLabel("Label");
+    history.setAlertState(AlertState.OK);
+    history.setAlertText("Alert Text");
+    history.setAlertTimestamp(System.currentTimeMillis());
+    m_alertsDao.create(history);
+
+    AlertNoticeEntity notice = new AlertNoticeEntity();
+    notice.setUuid(UUID.randomUUID().toString());
+    notice.setAlertTarget(target);
+    notice.setAlertHistory(history);
+    notice.setNotifyState(NotificationState.PENDING);
+    m_dao.create(notice);
+
+    notice = m_dao.findNoticeById(notice.getNotificationId());
+    assertEquals(target.getTargetId(), notice.getAlertTarget().getTargetId());
+
+    target = m_dao.findTargetById(target.getTargetId());
+    m_dao.remove(target);
+    notice = m_dao.findNoticeById(notice.getNotificationId());
+    assertNull(notice);
   }
 
   /**
