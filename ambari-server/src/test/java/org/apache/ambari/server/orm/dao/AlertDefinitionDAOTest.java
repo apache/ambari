@@ -364,4 +364,23 @@ public class AlertDefinitionDAOTest {
 
     assertEquals(0, dispatchDao.findAllGroups(clusterId).size());
   }
+
+  @Test
+  public void testNestedClusterEntity() throws Exception {
+    AlertDefinitionEntity definition = new AlertDefinitionEntity();
+    definition.setDefinitionName("nested-cluster-entity-test");
+    definition.setServiceName("HDFS");
+    definition.setComponentName(null);
+    definition.setClusterId(clusterId);
+    definition.setHash(UUID.randomUUID().toString());
+    definition.setScheduleInterval(60);
+    definition.setScope(Scope.SERVICE);
+    definition.setSource("{\"type\" : \"SCRIPT\"}");
+    definition.setSourceType(SourceType.SCRIPT);
+    dao.create(definition);
+
+    definition = dao.findById(definition.getDefinitionId());
+    assertNotNull(definition.getCluster());
+    assertEquals(clusterId, definition.getCluster().getClusterId());
+  }
 }

@@ -103,7 +103,7 @@ public class AlertStateChangedEventTest {
    */
   @Test
   public void testAlertNoticeCreationFromEvent() throws Exception {
-    AlertTargetEntity alertTarget = EasyMock.createMock(AlertTargetEntity.class);
+    AlertTargetEntity alertTarget = EasyMock.createNiceMock(AlertTargetEntity.class);
     AlertGroupEntity alertGroup = EasyMock.createMock(AlertGroupEntity.class);
     List<AlertGroupEntity> groups = new ArrayList<AlertGroupEntity>();
     Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();

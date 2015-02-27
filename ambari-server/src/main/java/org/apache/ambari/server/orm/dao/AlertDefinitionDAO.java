@@ -291,7 +291,8 @@ public class AlertDefinitionDAO {
   @Transactional
   public void create(AlertDefinitionEntity alertDefinition)
       throws AmbariException {
-    entityManagerProvider.get().persist(alertDefinition);
+    EntityManager entityManager = entityManagerProvider.get();
+    entityManager.persist(alertDefinition);
 
     AlertGroupEntity group = dispatchDao.findDefaultServiceGroup(
         alertDefinition.getClusterId(), alertDefinition.getServiceName());
@@ -319,6 +320,8 @@ public class AlertDefinitionDAO {
       LOG.warn("Unable to broadcast alert registration event for {}",
           alertDefinition.getDefinitionName());
     }
+
+    entityManager.refresh(alertDefinition);
   }
 
   /**
