@@ -256,3 +256,66 @@ class TestInstallPackages(RMFTestCase):
     self.assertResourceCalled('Package', 'ambari-log4j', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
     self.assertNoMoreResources()
 
+
+  @patch("ambari_commons.os_check.OSCheck.is_suse_family")
+  @patch("resource_management.core.resources.packaging.Package")
+  @patch("resource_management.libraries.script.Script.put_structured_out")
+  @patch("resource_management.libraries.functions.packages_analyzer.allInstalledPackages")
+  def test_exclude_packages(self,allInstalledPackages_mock, put_structured_out_mock,
+                               package_mock, is_suse_family_mock):
+    allInstalledPackages_mock = MagicMock(side_effect = TestInstallPackages._add_packages)
+    is_suse_family_mock.return_value = True
+
+    config_file = self._getSrcFolder()+"/test/python/custom_actions/configs/install_packages_config.json"
+    with open(config_file, "r") as f:
+      config_dict = json.load(f)
+
+    config_dict['roleParams']['package_list'] = '[{\"name\":\"mysql-connector-java\"},{\"name\":\"hive_2_2_*\"},' \
+                                                     '{\"name\":\"hive_2_2_*-hcatalog\"},{\"name\":\"hive_2_2_*-webhcat\"},' \
+                                                     '{\"name\":\"mysql\"},{\"name\":\"mysql-client\"}]'
+
+    self.executeScript("scripts/install_packages.py",
+                       classname="InstallPackages",
+                       command="actionexecute",
+                       config_dict=config_dict,
+                       target=RMFTestCase.TARGET_CUSTOM_ACTIONS,
+                       os_type=('Suse', '11', 'Final'),
+                       )
+    self.assertTrue(put_structured_out_mock.called)
+    self.assertEquals(put_structured_out_mock.call_args[0][0],
+                      {'package_installation_result': 'SUCCESS',
+                       'installed_repository_version': u'2.2.0.1-885',
+                       'stack_id': 'HDP-2.2',
+                       'ambari_repositories': []})
+    self.assertResourceCalled('Repository', 'HDP-UTILS-2.2.0.1-885',
+                              base_url=u'http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0',
+                              action=['create'],
+                              components=[u'HDP-UTILS', 'main'],
+                              repo_template='repo_suse_rhel.j2',
+                              repo_file_name=u'HDP-2.2.0.1-885',
+                              mirror_list=None,
+                              append_to_file=False,
+                              )
+    self.assertResourceCalled('Repository', 'HDP-2.2.0.1-885',
+                              base_url=u'http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0',
+                              action=['create'],
+                              components=[u'HDP', 'main'],
+                              repo_template='repo_suse_rhel.j2',
+                              repo_file_name=u'HDP-2.2.0.1-885',
+                              mirror_list=None,
+                              append_to_file=True,
+                              )
+    self.assertResourceCalled('Package', 'hive_2_2_0_1_885*',
+                              use_repos=['base', 'HDP-UTILS-2.2.0.1-885',
+                                         'HDP-2.2.0.1-885'],
+    )
+    self.assertResourceCalled('Package', 'hive_2_2_0_1_885*-hcatalog',
+                              use_repos=['base', 'HDP-UTILS-2.2.0.1-885',
+                                         'HDP-2.2.0.1-885'],
+    )
+    self.assertResourceCalled('Package', 'hive_2_2_0_1_885*-webhcat',
+                              use_repos=['base', 'HDP-UTILS-2.2.0.1-885',
+                                         'HDP-2.2.0.1-885'],
+    )
+    self.assertNoMoreResources()
+
