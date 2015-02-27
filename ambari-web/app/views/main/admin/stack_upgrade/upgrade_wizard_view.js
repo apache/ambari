@@ -151,7 +151,7 @@ App.upgradeWizardView = Em.View.extend({
    * @type {boolean}
    */
   isManualProceedDisabled: function () {
-    return !this.get('isManualDone');
+    return !this.get('isManualDone') || this.get('controller.requestInProgress');
   }.property('isManualDone'),
 
   /**

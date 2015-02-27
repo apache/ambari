@@ -299,15 +299,11 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         value: '2.2',
         label: 'HDP-2.2'
       });
-      expect(App.ajax.send.getCall(0).args[0]).to.eql({
-        name: 'admin.upgrade.start',
-        sender: controller,
-        data: {
-          value: '2.2',
-          label: 'HDP-2.2'
-        },
-        success: 'upgradeSuccessCallback'
-      });
+      expect(App.ajax.send.getCall(0).args[0].data).to.eql({"value": '2.2', "label": 'HDP-2.2'});
+      expect(App.ajax.send.getCall(0).args[0].name).to.eql('admin.upgrade.start');
+      expect(App.ajax.send.getCall(0).args[0].sender).to.eql(controller);
+      expect(App.ajax.send.getCall(0).args[0].success).to.eql('upgradeSuccessCallback');
+      expect(App.ajax.send.getCall(0).args[0].callback).to.be.called;
       expect(controller.setDBProperty.calledWith('currentVersion', {
         repository_version: '2.2'
       })).to.be.true;
@@ -562,16 +558,11 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         repository_name: 'HDP-2.2'
       }), {context: 'context'});
       expect(controller.abortUpgrade.calledOnce).to.be.true;
-      expect(App.ajax.send.getCall(0).args[0]).to.eql({
-        name: 'admin.downgrade.start',
-        sender: controller,
-        data: {
-          value: '2.2',
-          label: 'HDP-2.2',
-          isDowngrade: true
-        },
-        success: 'upgradeSuccessCallback'
-      });
+      expect(App.ajax.send.getCall(0).args[0].data).to.eql({"value": '2.2', "label": 'HDP-2.2', isDowngrade: true});
+      expect(App.ajax.send.getCall(0).args[0].name).to.eql('admin.downgrade.start');
+      expect(App.ajax.send.getCall(0).args[0].sender).to.eql(controller);
+      expect(App.ajax.send.getCall(0).args[0].success).to.eql('upgradeSuccessCallback');
+      expect(App.ajax.send.getCall(0).args[0].callback).to.be.called;
     });
   });
 
@@ -651,16 +642,10 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         group_id: 1
       });
       controller.setUpgradeItemStatus(item, 'PENDING');
-      expect(App.ajax.send.getCall(0).args[0]).to.eql({
-        name: 'admin.upgrade.upgradeItem.setState',
-        sender: controller,
-        data: {
-          upgradeId: 1,
-          itemId: 1,
-          groupId: 1,
-          status: 'PENDING'
-        }
-      });
+      expect(App.ajax.send.getCall(0).args[0].data).to.eql({upgradeId: 1, itemId: 1, groupId: 1, status: 'PENDING'});
+      expect(App.ajax.send.getCall(0).args[0].name).to.eql('admin.upgrade.upgradeItem.setState');
+      expect(App.ajax.send.getCall(0).args[0].sender).to.eql(controller);
+      expect(App.ajax.send.getCall(0).args[0].callback).to.be.called;
       expect(item.get('status')).to.equal('PENDING');
     });
   });

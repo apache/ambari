@@ -65,12 +65,12 @@
             {{#if view.isHoldingState}}
               <div class="button-row">
                 {{#if view.isDowngradeAvailable}}
-                  <button class="btn btn-danger" {{action confirmDowngrade view.failedItem target="controller"}}>{{t common.downgrade}}</button>
+                  <button class="btn btn-danger" {{bindAttr disabled="controller.requestInProgress"}} {{action confirmDowngrade view.failedItem target="controller"}}>{{t common.downgrade}}</button>
                 {{/if}}
                 {{#if view.failedItem.skippable}}
-                  <button class="btn btn-warning" {{action continue view.failedItem target="view"}}>{{t admin.stackUpgrade.dialog.continue}}</button>
+                  <button class="btn btn-warning" {{bindAttr disabled="controller.requestInProgress"}} {{action continue view.failedItem target="view"}}>{{t admin.stackUpgrade.dialog.continue}}</button>
                 {{/if}}
-                <button class="btn" {{action retry view.failedItem target="view"}}>{{t common.retry}}</button>
+                <button class="btn" {{bindAttr disabled="controller.requestInProgress"}} {{action retry view.failedItem target="view"}}>{{t common.retry}}</button>
               </div>
             {{/if}}
           </div>
@@ -91,7 +91,7 @@
               </label>
               <div class="button-row">
                 {{#if view.isDowngradeAvailable}}
-                  <button class="btn btn-danger" {{action confirmDowngrade view.manualItem target="controller"}}>{{t common.downgrade}}</button>
+                  <button class="btn btn-danger" {{bindAttr disabled="controller.requestInProgress"}} {{action confirmDowngrade view.manualItem target="controller"}}>{{t common.downgrade}}</button>
                 {{/if}}
                 <button class="btn" {{action closeWizard target="view.parentView"}}>{{t admin.stackUpgrade.finalize.later}}</button>
                 <button class="btn btn-success" {{bindAttr disabled="view.isManualProceedDisabled"}} {{action complete view.manualItem target="view"}}>
@@ -110,7 +110,7 @@
               </label>
               <div class="button-row">
                 {{#if view.isDowngradeAvailable}}
-                  <button class="btn btn-danger" {{action confirmDowngrade view.manualItem target="controller"}}>{{t common.downgrade}}</button>
+                  <button class="btn btn-danger" {{bindAttr disabled="controller.requestInProgress"}} {{action confirmDowngrade view.manualItem target="controller"}}>{{t common.downgrade}}</button>
                 {{/if}}
                 <button class="btn" {{action closeWizard target="view.parentView"}}>{{t admin.stackUpgrade.pauseUpgrade}}</button>
                 <button class="btn btn-success" {{bindAttr disabled="view.isManualProceedDisabled"}} {{action complete view.manualItem target="view"}}>
