@@ -65,6 +65,10 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   targetVersions: [],
 
   /**
+   * @type {boolean} true if some request that should disable actions is in progress
+   */
+  requestInProgress: false,
+  /**
    * properties that stored to localStorage to resume wizard progress
    */
   wizardStorageProperties: ['upgradeId', 'upgradeVersion', 'currentVersion', 'isDowngrade'],
@@ -135,6 +139,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     this.loadUpgradeData(true).done(function() {
       self.loadStackVersionsToModel(true).done(function () {
         self.loadRepoVersionsToModel().done(function() {
+          self.set('requestInProgress', false);
           var currentVersion = App.StackVersion.find().findProperty('state', 'CURRENT');
           if (currentVersion) {
             self.set('currentVersion', {
@@ -283,6 +288,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @param {object} event
    */
   downgrade: function (currentVersion, event) {
+    this.set('requestInProgress', true);
     this.abortUpgrade();
     App.ajax.send({
       name: 'admin.downgrade.start',
@@ -292,7 +298,10 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         label: currentVersion.repository_name,
         isDowngrade: true
       },
-      success: 'upgradeSuccessCallback'
+      success: 'upgradeSuccessCallback',
+      callback: function() {
+        this.sender.set('requestInProgress', false);
+      }
     });
   },
 
@@ -314,11 +323,15 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @param {object} version
    */
   upgrade: function (version) {
+    this.set('requestInProgress', true);
     App.ajax.send({
       name: 'admin.upgrade.start',
       sender: this,
       data: version,
-      success: 'upgradeSuccessCallback'
+      success: 'upgradeSuccessCallback',
+      callback: function() {
+        this.sender.set('requestInProgress', false);
+      }
     });
     this.setDBProperty('currentVersion', this.get('currentVersion'));
   },
@@ -424,6 +437,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @method installRepoVersion
    */
   installRepoVersion: function (repo) {
+    this.set('requestInProgress', true);
     var data = {
       ClusterStackVersions: {
         stack: repo.get('stackVersionType'),
@@ -436,7 +450,10 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       name: 'admin.stack_version.install.repo_version',
       sender: this,
       data: data,
-      success: 'installRepoVersionSuccess'
+      success: 'installRepoVersionSuccess',
+      callback: function() {
+        this.sender.set('requestInProgress', false);
+      }
     });
   },
 
@@ -662,6 +679,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @param status
    */
   setUpgradeItemStatus: function(item, status) {
+    this.set('requestInProgress', true);
     return App.ajax.send({
       name: 'admin.upgrade.upgradeItem.setState',
       sender: this,
@@ -670,6 +688,9 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         itemId: item.get('stage_id'),
         groupId: item.get('group_id'),
         status: status
+      },
+      callback: function() {
+        this.sender.set('requestInProgress', false);
       }
     }).done(function () {
       item.set('status', status);
