@@ -1409,62 +1409,6 @@ describe('App.WizardStep3Controller', function () {
           ])
         },
         {
-          m: 'parse installedPackages',
-          tests: Em.A([
-            {
-              items: [
-                {Hosts: {host_name: 'c1', last_agent_env: {installedPackages: []}}}
-              ],
-              m: 'empty installedPackages',
-              e: {
-                warnings: [],
-                warningsByHost: [0]
-              }
-            },
-            {
-              items: [
-                {Hosts: {host_name: 'c1', last_agent_env: {installedPackages: [
-                  {name: 'n1'}
-                ]}}}
-              ],
-              m: 'not empty installedPackages',
-              e: {
-                warnings: [
-                  {
-                    name: 'n1',
-                    hosts: ['c1'],
-                    onSingleHost: true,
-                    category: 'packages'
-                  }
-                ],
-                warningsByHost: [1]
-              }
-            },
-            {
-              items: [
-                {Hosts: {host_name: 'c1', last_agent_env: {installedPackages: [
-                  {name: 'n1'}
-                ]}}},
-                {Hosts: {host_name: 'c2', last_agent_env: {installedPackages: [
-                  {name: 'n1'}
-                ]}}}
-              ],
-              m: 'not empty installedPackages on two hosts',
-              e: {
-                warnings: [
-                  {
-                    name: 'n1',
-                    hosts: ['c1', 'c2'],
-                    onSingleHost: false,
-                    category: 'packages'
-                  }
-                ],
-                warningsByHost: [1]
-              }
-            }
-          ])
-        },
-        {
           m: 'parse hostHealth.liveServices',
           tests: Em.A([
             {
@@ -2523,12 +2467,50 @@ describe('App.WizardStep3Controller', function () {
       Requests: {
         request_status: "COMPLETED",
         inputs: "last_agent_env_check"
-      }
+      },
+      tasks: [
+        {
+          Tasks: {
+            host_name: 'h1',
+            structured_out: {
+              "installed_packages": [
+                {
+                  "version": "b1",
+                  "name": "n1",
+                  "repoName": "r1"
+                },
+                {
+                  "version": "b2",
+                  "name": "n2",
+                  "repoName": "r2"
+                }
+              ]
+            }
+          }
+        }
+      ]
     };
     it('run getHostInfo', function() {
       c.getHostCheckTasksSuccess(lastAgentEnvCheckComplete);
       expect(c.get('stopChecking')).to.be.true;
       expect(c.getHostInfo.calledOnce).to.be.true;
+      expect(c.get('hostsPackagesData')).eql([
+        {
+          hostName: 'h1',
+          installedPackages: [
+            {
+              "version": "b1",
+              "name": "n1",
+              "repoName": "r1"
+            },
+            {
+              "version": "b2",
+              "name": "n2",
+              "repoName": "r2"
+            }
+          ]
+        }
+      ]);
     });
 
   });
