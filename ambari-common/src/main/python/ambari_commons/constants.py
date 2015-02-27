@@ -1,0 +1,1 @@
+AMBARI_SUDO_BINARY = "ambari-sudo.sh"

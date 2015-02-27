@@ -167,9 +167,9 @@ def format_namenode(force=None):
                     conf_dir=hadoop_conf_dir)
     else:
       if not is_namenode_formatted(params):
-        Execute(format(
-          'sudo su {hdfs_user} - -s /bin/bash -c "export PATH=$PATH:{hadoop_bin_dir} ; yes Y | hdfs --config {hadoop_conf_dir} namenode -format"'),
-                path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin",
+        Execute(format("yes Y | hdfs --config {hadoop_conf_dir} namenode -format"),
+                user = params.hdfs_user,
+                path = [params.hadoop_bin_dir]
         )
         for m_dir in mark_dir:
           Directory(m_dir,
@@ -180,9 +180,9 @@ def format_namenode(force=None):
       if params.hostname == params.dfs_ha_namenode_active:
         # check and run the format command in the HA deployment scenario
         # only format the "active" namenode in an HA deployment
-        Execute(format(
-          'sudo su {hdfs_user} - -s /bin/bash -c "export PATH=$PATH:{hadoop_bin_dir} ; yes Y | hdfs --config {hadoop_conf_dir} namenode -format"'),
-                path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin",
+        Execute(format("yes Y | hdfs --config {hadoop_conf_dir} namenode -format"),
+                user = params.hdfs_user,
+                path = [params.hadoop_bin_dir]
         )
         for m_dir in mark_dir:
           Directory(m_dir,
@@ -213,33 +213,27 @@ def is_namenode_formatted(params):
   for old_mark_dir in old_mark_dirs:
     if os.path.isdir(old_mark_dir):
       for mark_dir in mark_dirs:
-        Execute(format(
-          "sudo cp -ar {old_mark_dir} {mark_dir}"),
-                path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin"
+        Execute(['cp', '-ar', old_mark_dir, mark_dir],
+                sudo = True
         )
         marked = True
-      Execute(format(
-        "sudo rm -rf {old_mark_dir}"),
-              path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin"
-      )           
+      Directory(old_mark_dir,
+        action = "delete"
+      )    
     elif os.path.isfile(old_mark_dir):
       for mark_dir in mark_dirs:
-        Execute(format(
-          "sudo mkdir -p ${mark_dir}"),
-                path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin"
+        Directory(mark_dir,
+                  recursive = True,
         )
-      Execute(format(
-        "sudo rm -f {old_mark_dir}"),
-              path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin"
-      )  
+      Directory(old_mark_dir,
+        action = "delete"
+      )
       marked = True
       
   # Check if name dirs are not empty
   for name_dir in nn_name_dirs:
     try:
-      Execute(format(
-        "sudo ls {name_dir} | wc -l  | grep -q ^0$"),
-              path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin"
+      Execute(format("ls {name_dir} | wc -l  | grep -q ^0$"),
       )
       marked = False
     except Exception:

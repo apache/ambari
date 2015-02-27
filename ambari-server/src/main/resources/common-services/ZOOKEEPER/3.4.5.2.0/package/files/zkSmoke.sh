@@ -37,7 +37,7 @@ zk_node1=`echo $zkhosts | tr ' ' '\n' | head -n 1`
 echo "zk_node1=$zk_node1"
 if [[ $security_enabled == "True" ]]; then
   kinitcmd="$kinit_path_local -kt $smoke_user_keytab $smokeuser_principal"
-  sudo su $smoke_user -s /bin/bash - -c "$kinitcmd"
+  /var/lib/ambari-agent/ambari-sudo.sh su $smoke_user -s /bin/bash - -c "$kinitcmd"
 fi
 
 function verify_output() {
@@ -52,17 +52,17 @@ function verify_output() {
 }
 
 # Delete /zk_smoketest znode if exists
-sudo su $smoke_user -s /bin/bash - -c "source $conf_dir/zookeeper-env.sh ;  echo delete /zk_smoketest | ${zk_cli_shell} -server $zk_node1:$client_port" 2>&1>$test_output_file
+/var/lib/ambari-agent/ambari-sudo.sh su $smoke_user -s /bin/bash - -c "source $conf_dir/zookeeper-env.sh ;  echo delete /zk_smoketest | ${zk_cli_shell} -server $zk_node1:$client_port" 2>&1>$test_output_file
 # Create /zk_smoketest znode on one zookeeper server
-sudo su $smoke_user -s /bin/bash - -c "source $conf_dir/zookeeper-env.sh ; echo create /zk_smoketest smoke_data | ${zk_cli_shell} -server $zk_node1:$client_port" 2>&1>>$test_output_file
+/var/lib/ambari-agent/ambari-sudo.sh su $smoke_user -s /bin/bash - -c "source $conf_dir/zookeeper-env.sh ; echo create /zk_smoketest smoke_data | ${zk_cli_shell} -server $zk_node1:$client_port" 2>&1>>$test_output_file
 verify_output
 
 for i in $zkhosts ; do
   echo "Running test on host $i"
   # Verify the data associated with znode across all the nodes in the zookeeper quorum
-  sudo su $smoke_user -s /bin/bash - -c "source $conf_dir/zookeeper-env.sh ; echo 'get /zk_smoketest' | ${zk_cli_shell} -server $i:$client_port"
-  sudo su $smoke_user -s /bin/bash - -c "source $conf_dir/zookeeper-env.sh ; echo 'ls /' | ${zk_cli_shell} -server $i:$client_port"
-  output=$(sudo su $smoke_user -s /bin/bash - -c "source $conf_dir/zookeeper-env.sh ; echo 'get /zk_smoketest' | ${zk_cli_shell} -server $i:$client_port")
+  /var/lib/ambari-agent/ambari-sudo.sh su $smoke_user -s /bin/bash - -c "source $conf_dir/zookeeper-env.sh ; echo 'get /zk_smoketest' | ${zk_cli_shell} -server $i:$client_port"
+  /var/lib/ambari-agent/ambari-sudo.sh su $smoke_user -s /bin/bash - -c "source $conf_dir/zookeeper-env.sh ; echo 'ls /' | ${zk_cli_shell} -server $i:$client_port"
+  output=$(/var/lib/ambari-agent/ambari-sudo.sh su $smoke_user -s /bin/bash - -c "source $conf_dir/zookeeper-env.sh ; echo 'get /zk_smoketest' | ${zk_cli_shell} -server $i:$client_port")
   echo $output | grep smoke_data
   if [[ $? -ne 0 ]] ; then
     echo "Data associated with znode /zk_smoketests is not consistent on host $i"
@@ -70,7 +70,7 @@ for i in $zkhosts ; do
   fi
 done
 
-sudo su $smoke_user -s /bin/bash - -c "source $conf_dir/zookeeper-env.sh ; echo 'delete /zk_smoketest' | ${zk_cli_shell} -server $zk_node1:$client_port"
+/var/lib/ambari-agent/ambari-sudo.sh su $smoke_user -s /bin/bash - -c "source $conf_dir/zookeeper-env.sh ; echo 'delete /zk_smoketest' | ${zk_cli_shell} -server $zk_node1:$client_port"
 if [[ "$ZOOKEEPER_EXIT_CODE" -ne "0" ]] ; then
   echo "Zookeeper Smoke Test: Failed" 
 else

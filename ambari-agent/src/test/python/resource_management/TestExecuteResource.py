@@ -185,7 +185,7 @@ class TestExecuteResource(TestCase):
       )
       
 
-    expected_command = ['/bin/bash', '--login', '--noprofile', '-c', '/usr/bin/sudo su test_user -l -s /bin/bash -c \'export  PATH=' + os.environ['PATH'] + ':/bin JAVA_HOME=/test/java/home ; echo "1"\'']
+    expected_command = ['/bin/bash', '--login', '--noprofile', '-c', 'ambari-sudo.sh su test_user -l -s /bin/bash -c \'export  PATH=' + os.environ['PATH'] + ':/bin JAVA_HOME=/test/java/home ; echo "1"\'']
     self.assertEqual(popen_mock.call_args_list[0][0][0], expected_command)
 
 

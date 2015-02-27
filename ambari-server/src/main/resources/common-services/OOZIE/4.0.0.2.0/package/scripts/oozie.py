@@ -171,15 +171,15 @@ def oozie_server_specific():
 
   #falcon el extension
   if params.has_falcon_host:
-    Execute(format('sudo cp {falcon_home}/oozie/ext/falcon-oozie-el-extension-*.jar {oozie_libext_dir}'),
+    Execute(format('{sudo} cp {falcon_home}/oozie/ext/falcon-oozie-el-extension-*.jar {oozie_libext_dir}'),
       not_if  = no_op_test,
     )
-    Execute(format('sudo chown {oozie_user}:{user_group} {oozie_libext_dir}/falcon-oozie-el-extension-*.jar'),
+    Execute(format('{sudo} chown {oozie_user}:{user_group} {oozie_libext_dir}/falcon-oozie-el-extension-*.jar'),
       not_if  = no_op_test,
     )
   if params.lzo_enabled:
     Package(params.lzo_packages_for_current_host)
-    Execute(format('sudo cp {hadoop_lib_home}/hadoop-lzo*.jar {oozie_lib_dir}'),
+    Execute(format('{sudo} cp {hadoop_lib_home}/hadoop-lzo*.jar {oozie_lib_dir}'),
       not_if  = no_op_test,
     )
 

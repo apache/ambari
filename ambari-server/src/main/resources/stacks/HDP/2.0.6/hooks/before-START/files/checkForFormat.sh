@@ -36,8 +36,8 @@ export list_of_non_empty_dirs=""
 
 mark_file=/var/run/hadoop/hdfs/namenode-formatted
 if [[ -f ${mark_file} ]] ; then
-  sudo rm -f ${mark_file}
-  sudo mkdir -p ${mark_dir}
+  /var/lib/ambari-agent/ambari-sudo.sh rm -f ${mark_file}
+  /var/lib/ambari-agent/ambari-sudo.sh mkdir -p ${mark_dir}
 fi
 
 if [[ ! -d $mark_dir ]] ; then
@@ -52,7 +52,7 @@ if [[ ! -d $mark_dir ]] ; then
   done
 
   if [[ $EXIT_CODE == 0 ]] ; then
-    sudo su ${hdfs_user} - -s /bin/bash -c "export PATH=$PATH:$bin_dir ; yes Y | hdfs --config ${conf_dir} ${command}"
+    /var/lib/ambari-agent/ambari-sudo.sh su ${hdfs_user} - -s /bin/bash -c "export PATH=$PATH:$bin_dir ; yes Y | hdfs --config ${conf_dir} ${command}"
     (( EXIT_CODE = $EXIT_CODE | $? ))
   else
     echo "ERROR: Namenode directory(s) is non empty. Will not format the namenode. List of non-empty namenode dirs ${list_of_non_empty_dirs}"

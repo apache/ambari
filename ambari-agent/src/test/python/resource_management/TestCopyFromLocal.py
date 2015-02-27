@@ -39,7 +39,7 @@ class TestCopyFromLocal(TestCase):
       self.assertEqual('fs -copyFromLocal /user/testdir/*.files /apps/test/',
                        call_arg_list[0][0][0].command)
       print call_arg_list[0][0][0].arguments
-      self.assertEquals({'not_if': "/usr/bin/sudo su user1 -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]PATH=$PATH:/usr/bin hadoop fs -ls /apps/test//*.files'", 'bin_dir': '/usr/bin', 'user': 'user1', 'conf_dir': '/etc/hadoop/conf'},
+      self.assertEquals({'not_if': "ambari-sudo.sh su user1 -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]PATH=$PATH:/usr/bin hadoop fs -ls /apps/test//*.files'", 'bin_dir': '/usr/bin', 'user': 'user1', 'conf_dir': '/etc/hadoop/conf'},
                         call_arg_list[0][0][0].arguments)
       self.assertEquals('fs -chown user1 /apps/test//*.files', call_arg_list[1][0][0].command)
       self.assertEquals({'user': 'hdfs', 'bin_dir': '/usr/bin', 'conf_dir': '/etc/hadoop/conf'}, call_arg_list[1][0][0].arguments)
@@ -60,7 +60,7 @@ class TestCopyFromLocal(TestCase):
       call_arg_list = execute_hadoop_mock.call_args_list
       self.assertEqual('fs -copyFromLocal /user/testdir/*.files /apps/test/',
                        call_arg_list[0][0][0].command)
-      self.assertEquals({'not_if': "/usr/bin/sudo su user1 -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]PATH=$PATH:/usr/bin hadoop fs -ls /apps/test//*.files'", 'bin_dir': '/usr/bin', 'user': 'user1', 'conf_dir': '/etc/hadoop/conf'},
+      self.assertEquals({'not_if': "ambari-sudo.sh su user1 -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]PATH=$PATH:/usr/bin hadoop fs -ls /apps/test//*.files'", 'bin_dir': '/usr/bin', 'user': 'user1', 'conf_dir': '/etc/hadoop/conf'},
                         call_arg_list[0][0][0].arguments)
       self.assertEquals('fs -chown user1:hdfs /apps/test//*.files', call_arg_list[1][0][0].command)
       self.assertEquals({'user': 'hdfs', 'bin_dir': '/usr/bin', 'conf_dir': '/etc/hadoop/conf'}, call_arg_list[1][0][0].arguments)

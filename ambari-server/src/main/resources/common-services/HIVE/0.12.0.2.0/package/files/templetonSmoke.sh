@@ -36,7 +36,7 @@ fi
 
 export no_proxy=$ttonhost
 cmd="${kinitcmd}curl --negotiate -u : -s -w 'http_code <%{http_code}>'    $ttonurl/status 2>&1"
-retVal=`sudo su ${smoke_test_user} -s /bin/bash - -c "$cmd"`
+retVal=`/var/lib/ambari-agent/ambari-sudo.sh su ${smoke_test_user} -s /bin/bash - -c "$cmd"`
 httpExitCode=`echo $retVal |sed 's/.*http_code <\([0-9]*\)>.*/\1/'`
 
 if [[ "$httpExitCode" -ne "200" ]] ; then
@@ -50,7 +50,7 @@ exit 0
 #try hcat ddl command
 echo "user.name=${smoke_test_user}&exec=show databases;" /tmp/show_db.post.txt
 cmd="${kinitcmd}curl --negotiate -u : -s -w 'http_code <%{http_code}>' -d  \@${destdir}/show_db.post.txt  $ttonurl/ddl 2>&1"
-retVal=`sudo su ${smoke_test_user} -s /bin/bash - -c "$cmd"`
+retVal=`/var/lib/ambari-agent/ambari-sudo.sh su ${smoke_test_user} -s /bin/bash - -c "$cmd"`
 httpExitCode=`echo $retVal |sed 's/.*http_code <\([0-9]*\)>.*/\1/'`
 
 if [[ "$httpExitCode" -ne "200" ]] ; then
@@ -76,17 +76,17 @@ echo "B = foreach A generate \$0 as id; " >> /tmp/$ttonTestScript
 echo "store B into '$ttonTestOutput';" >> /tmp/$ttonTestScript
 
 #copy pig script to hdfs
-sudo su ${smoke_test_user} -s /bin/bash - -c "hadoop dfs -copyFromLocal /tmp/$ttonTestScript /tmp/$ttonTestScript"
+/var/lib/ambari-agent/ambari-sudo.sh su ${smoke_test_user} -s /bin/bash - -c "hadoop dfs -copyFromLocal /tmp/$ttonTestScript /tmp/$ttonTestScript"
 
 #copy input file to hdfs
-sudo su ${smoke_test_user} -s /bin/bash - -c "hadoop dfs -copyFromLocal /etc/passwd $ttonTestInput"
+/var/lib/ambari-agent/ambari-sudo.sh su ${smoke_test_user} -s /bin/bash - -c "hadoop dfs -copyFromLocal /etc/passwd $ttonTestInput"
 
 #create, copy post args file
 echo -n "user.name=${smoke_test_user}&file=/tmp/$ttonTestScript" > /tmp/pig_post.txt
 
 #submit pig query
 cmd="curl -s -w 'http_code <%{http_code}>' -d  \@${destdir}/pig_post.txt  $ttonurl/pig 2>&1"
-retVal=`sudo su ${smoke_test_user} -s /bin/bash - -c "$cmd"`
+retVal=`/var/lib/ambari-agent/ambari-sudo.sh su ${smoke_test_user} -s /bin/bash - -c "$cmd"`
 httpExitCode=`echo $retVal |sed 's/.*http_code <\([0-9]*\)>.*/\1/'`
 if [[ "$httpExitCode" -ne "200" ]] ; then
   echo "Templeton Smoke Test (pig cmd): Failed. : $retVal"

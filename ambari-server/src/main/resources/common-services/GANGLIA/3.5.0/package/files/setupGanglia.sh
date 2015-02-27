@@ -47,7 +47,7 @@ function instantiateGmetadConf()
   source ./gmetadLib.sh;
 
   generateGmetadConf > ${TMP_GANGLIA_FILE};
-  sudo -H -E cp ${TMP_GANGLIA_FILE} ${GMETAD_CONF_FILE}
+  /var/lib/ambari-agent/ambari-sudo.sh -H -E cp ${TMP_GANGLIA_FILE} ${GMETAD_CONF_FILE}
 }
 
 function instantiateGmondConf()
@@ -65,7 +65,7 @@ function instantiateGmondConf()
     
     # Always blindly generate the core gmond config - that goes on every box running gmond. 
     generateGmondCoreConf ${gmondClusterName} > ${TMP_GANGLIA_FILE};
-    sudo -H -E cp ${TMP_GANGLIA_FILE} `getGmondCoreConfFileName ${gmondClusterName}`;
+    /var/lib/ambari-agent/ambari-sudo.sh -H -E cp ${TMP_GANGLIA_FILE} `getGmondCoreConfFileName ${gmondClusterName}`;
 
     isMasterGmond=${2};
 
@@ -73,13 +73,13 @@ function instantiateGmondConf()
     if [ "0" -eq "${isMasterGmond}" ]
     then
       generateGmondSlaveConf ${gmondClusterName} > ${TMP_GANGLIA_FILE};
-      sudo -H -E cp ${TMP_GANGLIA_FILE} `getGmondSlaveConfFileName ${gmondClusterName}`;
+      /var/lib/ambari-agent/ambari-sudo.sh -H -E cp ${TMP_GANGLIA_FILE} `getGmondSlaveConfFileName ${gmondClusterName}`;
     else
       generateGmondMasterConf ${gmondClusterName} > ${TMP_GANGLIA_FILE}
-      sudo -H -E cp ${TMP_GANGLIA_FILE} `getGmondMasterConfFileName ${gmondClusterName}`;
+      /var/lib/ambari-agent/ambari-sudo.sh -H -E cp ${TMP_GANGLIA_FILE} `getGmondMasterConfFileName ${gmondClusterName}`;
     fi
 
-    sudo -H -E chown -R ${3}:${4} ${GANGLIA_CONF_DIR}/${gmondClusterName}
+    /var/lib/ambari-agent/ambari-sudo.sh -H -E chown -R ${3}:${4} ${GANGLIA_CONF_DIR}/${gmondClusterName}
 
   else
     echo "No gmondClusterName passed in, nothing to instantiate";
@@ -122,8 +122,8 @@ done
 createDirectory ${GANGLIA_CONF_DIR};
 createDirectory ${GANGLIA_RUNTIME_DIR};
 # So rrdcached can drop its PID files in here.
-sudo -H -E chmod -R o+rw ${GANGLIA_RUNTIME_DIR};
-sudo -H -E chown ${owner}:${group} ${GANGLIA_CONF_DIR};
+/var/lib/ambari-agent/ambari-sudo.sh -H -E chmod -R o+rw ${GANGLIA_RUNTIME_DIR};
+/var/lib/ambari-agent/ambari-sudo.sh -H -E chown ${owner}:${group} ${GANGLIA_CONF_DIR};
 
 if [ -n "${gmondClusterName}" ]
 then

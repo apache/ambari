@@ -69,7 +69,7 @@ def storm():
         content=Template("storm-metrics2.properties.j2")
     )
 
-    Execute(format("sudo ln -s {metric_collector_sink_jar} {storm_lib_dir}/ambari-metrics-storm-sink.jar"),
+    Execute(format("{sudo} ln -s {metric_collector_sink_jar} {storm_lib_dir}/ambari-metrics-storm-sink.jar"),
             not_if=format("ls {storm_lib_dir}/ambari-metrics-storm-sink.jar"),
             only_if=format("ls {metric_collector_sink_jar}")
     )

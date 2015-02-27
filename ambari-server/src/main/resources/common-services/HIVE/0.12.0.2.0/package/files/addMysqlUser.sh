@@ -27,11 +27,11 @@ userhost=$4
 
 # The restart (not start) is required to pick up mysql configuration changes made by sed
 # during install, in case mysql is already started. The changes are required by Hive later on.
-sudo service $mysqldservice restart
+/var/lib/ambari-agent/ambari-sudo.sh service $mysqldservice restart
   
 echo "Adding user $mysqldbuser@% and removing users with empty name"
-sudo su mysql -s /bin/bash - -c "mysql -u root -e \"CREATE USER '$mysqldbuser'@'%' IDENTIFIED BY '$mysqldbpasswd';\""
-sudo su mysql -s /bin/bash - -c "mysql -u root -e \"GRANT ALL PRIVILEGES ON *.* TO '$mysqldbuser'@'%';\""
-sudo su mysql -s /bin/bash - -c "mysql -u root -e \"DELETE FROM mysql.user WHERE user='';\""
-sudo su mysql -s /bin/bash - -c "mysql -u root -e \"flush privileges;\""
+/var/lib/ambari-agent/ambari-sudo.sh su mysql -s /bin/bash - -c "mysql -u root -e \"CREATE USER '$mysqldbuser'@'%' IDENTIFIED BY '$mysqldbpasswd';\""
+/var/lib/ambari-agent/ambari-sudo.sh su mysql -s /bin/bash - -c "mysql -u root -e \"GRANT ALL PRIVILEGES ON *.* TO '$mysqldbuser'@'%';\""
+/var/lib/ambari-agent/ambari-sudo.sh su mysql -s /bin/bash - -c "mysql -u root -e \"DELETE FROM mysql.user WHERE user='';\""
+/var/lib/ambari-agent/ambari-sudo.sh su mysql -s /bin/bash - -c "mysql -u root -e \"flush privileges;\""
 

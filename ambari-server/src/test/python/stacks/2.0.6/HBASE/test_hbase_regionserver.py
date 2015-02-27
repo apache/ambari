@@ -63,7 +63,7 @@ class TestHbaseRegionServer(RMFTestCase):
     )
     
     self.assertResourceCalled('Execute', '/usr/lib/hbase/bin/hbase-daemon.sh --config /etc/hbase/conf stop regionserver',
-        on_timeout = '! ( ls /var/run/hbase/hbase-hbase-regionserver.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1 ) || sudo -H -E kill -9 `cat /var/run/hbase/hbase-hbase-regionserver.pid`',
+        on_timeout = '! ( ls /var/run/hbase/hbase-hbase-regionserver.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1 ) || ambari-sudo.sh -H -E kill -9 `cat /var/run/hbase/hbase-hbase-regionserver.pid`',
         timeout = 30,
         user = 'hbase',
     )
@@ -110,7 +110,7 @@ class TestHbaseRegionServer(RMFTestCase):
     )
 
     self.assertResourceCalled('Execute', '/usr/lib/hbase/bin/hbase-daemon.sh --config /etc/hbase/conf stop regionserver',
-        on_timeout = '! ( ls /var/run/hbase/hbase-hbase-regionserver.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1 ) || sudo -H -E kill -9 `cat /var/run/hbase/hbase-hbase-regionserver.pid`',
+        on_timeout = '! ( ls /var/run/hbase/hbase-hbase-regionserver.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1 ) || ambari-sudo.sh -H -E kill -9 `cat /var/run/hbase/hbase-hbase-regionserver.pid`',
         timeout = 30,
         user = 'hbase',
     )

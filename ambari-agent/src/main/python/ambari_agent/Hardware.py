@@ -22,6 +22,7 @@ import os.path
 import logging
 import subprocess
 import platform
+from ambari_commons.constants import AMBARI_SUDO_BINARY
 from ambari_commons.shell import shellRunner
 from Facter import Facter
 from ambari_commons.os_check import OSConst, OSCheck
@@ -86,7 +87,7 @@ class Hardware:
 
   @staticmethod
   def _chk_mount(mountpoint):
-    if subprocess.call("sudo test -w '{0}'".format(mountpoint), shell=True) == 0:
+    if subprocess.call("{0} test -w '{1}'".format(AMBARI_SUDO_BINARY, mountpoint), shell=True) == 0:
       return True
     else:
       return False

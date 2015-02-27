@@ -44,9 +44,9 @@ function checkOozieJobStatus {
   local i=0
   local rc=1
   local cmd="source ${oozie_conf_dir}/oozie-env.sh ; ${oozie_bin_dir}/oozie job -oozie ${OOZIE_SERVER} -info $job_id"
-  sudo su ${smoke_test_user} -s /bin/bash - -c "$cmd"
+  /var/lib/ambari-agent/ambari-sudo.sh su ${smoke_test_user} -s /bin/bash - -c "$cmd"
   while [ $i -lt $num_of_tries ] ; do
-    cmd_output=`sudo su ${smoke_test_user} -s /bin/bash - -c "$cmd"`
+    cmd_output=`/var/lib/ambari-agent/ambari-sudo.sh su ${smoke_test_user} -s /bin/bash - -c "$cmd"`
     (IFS='';echo $cmd_output)
     act_status=$(IFS='';echo $cmd_output | grep ^Status | cut -d':' -f2 | sed 's| ||g')
     echo "workflow_status=$act_status"
@@ -80,15 +80,15 @@ fi
 
 cd $OOZIE_EXAMPLES_DIR
 
-sudo tar -zxf oozie-examples.tar.gz
-sudo chmod -R o+rx examples
+/var/lib/ambari-agent/ambari-sudo.sh tar -zxf oozie-examples.tar.gz
+/var/lib/ambari-agent/ambari-sudo.sh chmod -R o+rx examples
 
-sudo sed -i "s|nameNode=hdfs://localhost:8020|nameNode=$NAMENODE|g"  examples/apps/map-reduce/job.properties
-sudo sed -i "s|nameNode=hdfs://localhost:9000|nameNode=$NAMENODE|g"  examples/apps/map-reduce/job.properties
-sudo sed -i "s|jobTracker=localhost:8021|jobTracker=$JOBTRACKER|g" examples/apps/map-reduce/job.properties
-sudo sed -i "s|jobTracker=localhost:9001|jobTracker=$JOBTRACKER|g" examples/apps/map-reduce/job.properties
-sudo sed -i "s|jobTracker=localhost:8032|jobTracker=$JOBTRACKER|g" examples/apps/map-reduce/job.properties
-sudo sed -i "s|oozie.wf.application.path=hdfs://localhost:9000|oozie.wf.application.path=$NAMENODE|g" examples/apps/map-reduce/job.properties
+/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|nameNode=hdfs://localhost:8020|nameNode=$NAMENODE|g"  examples/apps/map-reduce/job.properties
+/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|nameNode=hdfs://localhost:9000|nameNode=$NAMENODE|g"  examples/apps/map-reduce/job.properties
+/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|jobTracker=localhost:8021|jobTracker=$JOBTRACKER|g" examples/apps/map-reduce/job.properties
+/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|jobTracker=localhost:9001|jobTracker=$JOBTRACKER|g" examples/apps/map-reduce/job.properties
+/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|jobTracker=localhost:8032|jobTracker=$JOBTRACKER|g" examples/apps/map-reduce/job.properties
+/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|oozie.wf.application.path=hdfs://localhost:9000|oozie.wf.application.path=$NAMENODE|g" examples/apps/map-reduce/job.properties
 
 if [[ $security_enabled == "True" ]]; then
   kinitcmd="${kinit_path_local} -kt ${smoke_user_keytab} ${smokeuser_principal}; "
@@ -96,14 +96,14 @@ else
   kinitcmd=""
 fi
 
-sudo su ${smoke_test_user} -s /bin/bash - -c "${hadoop_bin_dir}/hdfs --config ${hadoop_conf_dir} dfs -rm -r examples"
-sudo su ${smoke_test_user} -s /bin/bash - -c "${hadoop_bin_dir}/hdfs --config ${hadoop_conf_dir} dfs -rm -r input-data"
-sudo su ${smoke_test_user} -s /bin/bash - -c "${hadoop_bin_dir}/hdfs --config ${hadoop_conf_dir} dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples examples"
-sudo su ${smoke_test_user} -s /bin/bash - -c "${hadoop_bin_dir}/hdfs --config ${hadoop_conf_dir} dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples/input-data input-data"
+/var/lib/ambari-agent/ambari-sudo.sh su ${smoke_test_user} -s /bin/bash - -c "${hadoop_bin_dir}/hdfs --config ${hadoop_conf_dir} dfs -rm -r examples"
+/var/lib/ambari-agent/ambari-sudo.sh su ${smoke_test_user} -s /bin/bash - -c "${hadoop_bin_dir}/hdfs --config ${hadoop_conf_dir} dfs -rm -r input-data"
+/var/lib/ambari-agent/ambari-sudo.sh su ${smoke_test_user} -s /bin/bash - -c "${hadoop_bin_dir}/hdfs --config ${hadoop_conf_dir} dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples examples"
+/var/lib/ambari-agent/ambari-sudo.sh su ${smoke_test_user} -s /bin/bash - -c "${hadoop_bin_dir}/hdfs --config ${hadoop_conf_dir} dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples/input-data input-data"
 
 cmd="${kinitcmd}source ${oozie_conf_dir}/oozie-env.sh ; ${oozie_bin_dir}/oozie -Doozie.auth.token.cache=false job -oozie $OOZIE_SERVER -config $OOZIE_EXAMPLES_DIR/examples/apps/map-reduce/job.properties  -run"
 echo $cmd
-job_info=`sudo su ${smoke_test_user} -s /bin/bash - -c "$cmd" | grep "job:"`
+job_info=`/var/lib/ambari-agent/ambari-sudo.sh su ${smoke_test_user} -s /bin/bash - -c "$cmd" | grep "job:"`
 job_id="`echo $job_info | cut -d':' -f2`"
 checkOozieJobStatus "$job_id" 15
 OOZIE_EXIT_CODE="$?"

@@ -18,6 +18,7 @@ limitations under the License.
 
 """
 
+from ambari_commons.constants import AMBARI_SUDO_BINARY
 from functions import calc_xmn_from_xms
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from resource_management.libraries.functions.default import default
@@ -27,6 +28,7 @@ import status_params
 # server configurations
 config = Script.get_config()
 exec_tmp_dir = Script.get_tmp_dir()
+sudo = AMBARI_SUDO_BINARY
 
 stack_name = default("/hostLevelParams/stack_name", None)
 

@@ -17,11 +17,13 @@ limitations under the License.
 
 """
 
+from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from resource_management import *
 from resource_management.core.system import System
 
 config = Script.get_config()
+sudo = AMBARI_SUDO_BINARY
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
