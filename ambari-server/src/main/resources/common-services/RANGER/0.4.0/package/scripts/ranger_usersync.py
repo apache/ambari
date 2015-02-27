@@ -40,7 +40,7 @@ class RangerUsersync(Script):
     import params
 
     env.set_params(params)
-    Execute(format('{params.usersync_stop}'))
+    Execute((params.usersync_stop,), sudo=True)
 
   def pre_rolling_restart(self, env):
     import params
