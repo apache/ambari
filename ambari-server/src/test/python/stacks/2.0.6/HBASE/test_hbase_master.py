@@ -646,7 +646,7 @@ class TestHBaseMaster(RMFTestCase):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_master.py",
                    classname = "HbaseMaster",
                    command = "security_status",
-                   config_file="secured.json",
+                   config_file="default.json",
                    hdp_stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )

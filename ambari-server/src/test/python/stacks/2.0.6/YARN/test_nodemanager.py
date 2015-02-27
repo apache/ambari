@@ -675,8 +675,7 @@ class TestNodeManager(RMFTestCase):
     security_params['yarn-site']['yarn.nodemanager.webapp.spnego-keytab-file'] = 'path/to/nodemanager/webapp/keytab'
     security_params['yarn-site']['yarn.nodemanager.webapp.spnego-principal'] = 'nodemanager_webapp_principal'
     result_issues = []
-    props_value_check = {"yarn.timeline-service.enabled": "true",
-                         "yarn.timeline-service.http-authentication.type": "kerberos",
+    props_value_check = {"yarn.timeline-service.http-authentication.type": "kerberos",
                          "yarn.acl.enable": "true"}
     props_empty_check = ["yarn.nodemanager.principal",
                          "yarn.nodemanager.keytab",

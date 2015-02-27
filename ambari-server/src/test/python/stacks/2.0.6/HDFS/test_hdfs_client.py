@@ -78,3 +78,100 @@ class Test(RMFTestCase):
     self.assertResourceCalled("Execute", "hdp-select set hadoop-client 2.2.1.0-2067")
 
     # for now, it's enough that hdp-select is confirmed
+
+  @patch("resource_management.libraries.functions.security_commons.build_expectations")
+  @patch("resource_management.libraries.functions.security_commons.get_params_from_filesystem")
+  @patch("resource_management.libraries.functions.security_commons.validate_security_config_properties")
+  @patch("resource_management.libraries.functions.security_commons.cached_kinit_executor")
+  @patch("resource_management.libraries.script.Script.put_structured_out")
+  def test_security_status(self, put_structured_out_mock, cached_kinit_executor_mock, validate_security_config_mock, get_params_mock, build_exp_mock):
+    # Test that function works when is called with correct parameters
+    import status_params
+
+    security_params = {}
+    security_params['core-site'] = {}
+    security_params['core-site']['hadoop.security.authentication'] = 'kerberos'
+
+    props_value_check = {"hadoop.security.authentication": "kerberos",
+                         "hadoop.security.authorization": "true"}
+    props_empty_check = ["hadoop.security.auth_to_local"]
+    props_read_check = None
+
+    result_issues = []
+
+    get_params_mock.return_value = security_params
+    validate_security_config_mock.return_value = result_issues
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hdfs_client.py",
+                       classname = "HdfsClient",
+                       command = "security_status",
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+
+    build_exp_mock.assert_called_with('core-site', props_value_check, props_empty_check, props_read_check)
+    put_structured_out_mock.assert_called_with({"securityState": "SECURED_KERBEROS"})
+    cached_kinit_executor_mock.called_with(status_params.kinit_path_local,
+                                           status_params.hdfs_user,
+                                           status_params.hdfs_user_keytab,
+                                           status_params.hdfs_user_principal,
+                                           status_params.hostname,
+                                           status_params.tmp_dir)
+
+    # Testing that the exception throw by cached_executor is caught
+    cached_kinit_executor_mock.reset_mock()
+    cached_kinit_executor_mock.side_effect = Exception("Invalid command")
+
+    try:
+      self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hdfs_client.py",
+                         classname = "HdfsClient",
+                         command = "security_status",
+                         config_file="secured.json",
+                         hdp_stack_version = self.STACK_VERSION,
+                         target = RMFTestCase.TARGET_COMMON_SERVICES
+      )
+    except:
+      self.assertTrue(True)
+
+    # Testing when hadoop.security.authentication is simple
+    security_params['core-site']['hadoop.security.authentication'] = 'simple'
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hdfs_client.py",
+                       classname = "HdfsClient",
+                       command = "security_status",
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+
+    put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
+    security_params['core-site']['hadoop.security.authentication'] = 'kerberos'
+
+    # Testing with not empty result_issues
+    result_issues_with_params = {}
+    result_issues_with_params['hdfs-site']="Something bad happened"
+
+    validate_security_config_mock.reset_mock()
+    get_params_mock.reset_mock()
+    validate_security_config_mock.return_value = result_issues_with_params
+    get_params_mock.return_value = security_params
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hdfs_client.py",
+                       classname = "HdfsClient",
+                       command = "security_status",
+                       config_file="secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+    put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
+
+    # Testing with empty hdfs_user_principal and hdfs_user_keytab
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hdfs_client.py",
+                       classname = "HdfsClient",
+                       command = "security_status",
+                       config_file="default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+    put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})

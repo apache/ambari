@@ -469,6 +469,8 @@
         },
       "cluster-env": {
         "security_enabled": "false",
+        "hdfs_user_principal" : "",
+        "hdfs_user_keytab" : "",
         "ignore_groupsusers_create": "false",
         "smokeuser": "ambari-qa",
         "kerberos_domain": "EXAMPLE.COM",

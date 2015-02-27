@@ -80,20 +80,21 @@ class ZkfcSlave(Script):
     import status_params
 
     env.set_params(status_params)
-    if status_params.security_enabled:
-      props_value_check = {"hadoop.security.authentication": "kerberos",
-                           "hadoop.security.authorization": "true"}
-      props_empty_check = ["hadoop.security.auth_to_local"]
-      props_read_check = None
-      core_site_expectations = build_expectations('core-site', props_value_check, props_empty_check,
-                                                  props_read_check)
 
-      hdfs_expectations = {}
-      hdfs_expectations.update(core_site_expectations)
+    props_value_check = {"hadoop.security.authentication": "kerberos",
+                         "hadoop.security.authorization": "true"}
+    props_empty_check = ["hadoop.security.auth_to_local"]
+    props_read_check = None
+    core_site_expectations = build_expectations('core-site', props_value_check, props_empty_check,
+                                                props_read_check)
+    hdfs_expectations = {}
+    hdfs_expectations.update(core_site_expectations)
 
-      security_params = get_params_from_filesystem(status_params.hadoop_conf_dir,
+    security_params = get_params_from_filesystem(status_params.hadoop_conf_dir,
                                                    {'core-site.xml': FILE_TYPE_XML})
-      result_issues = validate_security_config_properties(security_params, hdfs_expectations)
+    result_issues = validate_security_config_properties(security_params, hdfs_expectations)
+    if 'core-site' in security_params and 'hadoop.security.authentication' in security_params['core-site'] and \
+        security_params['core-site']['hadoop.security.authentication'].lower() == 'kerberos':
       if not result_issues:  # If all validations passed successfully
         if status_params.hdfs_user_principal or status_params.hdfs_user_keytab:
           try:
