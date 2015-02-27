@@ -50,7 +50,7 @@ ams_monitor_dir = "/usr/lib/python2.6/site-packages/resource_monitoring"
 ams_monitor_pid_dir = status_params.ams_monitor_pid_dir
 ams_monitor_script = "/usr/sbin/ambari-metrics-monitor"
 
-
+ams_hbase_home_dir = "/usr/lib/ams-hbase/"
 
 #hadoop params
 

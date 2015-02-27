@@ -34,7 +34,7 @@ if rpm_version is not None:
   #RPM versioning support
   rpm_version = default("/configurations/hadoop-env/rpm_version", None)
 
-hadoop_native_lib = format("/usr/lib/hadoop/lib/native")
+hadoop_native_lib = format("/usr/lib/ams-hbase/lib/hadoop-native")
 hadoop_bin_dir = "/usr/bin"
 daemon_script = "/usr/lib/ams-hbase/bin/hbase-daemon.sh"
 region_mover = "/usr/lib/ams-hbase/bin/region_mover.rb"
