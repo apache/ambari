@@ -90,7 +90,8 @@ class InstallPackages(Script):
         allInstalledPackages(packages_installed_before)
         packages_installed_before = [package[0] for package in packages_installed_before]
         packages_were_checked = True
-        for package in package_list:
+        filtered_package_list = self.filter_package_list(package_list)
+        for package in filtered_package_list:
           name = self.format_package_name(package['name'], repository_version)
           Package(name, use_repos=list(current_repo_files) if OSCheck.is_ubuntu_family() else current_repositories)
         package_install_result = True
@@ -192,6 +193,22 @@ class InstallPackages(Script):
       return []
 
 
+  def filter_package_list(self, package_list):
+    """
+    Here we filter packages that are managed with custom logic in package
+    scripts. Usually this packages come from system repositories, and either
+     are not available when we restrict repository list, or should not be
+    installed on host at all.
+    :param package_list: original list
+    :return: filtered package_list
+    """
+    filtered_package_list = []
+    for package in package_list:
+      # mysql* package logic is managed at HIVE scripts
+      if package['name'].startswith('mysql'):
+        continue
+      filtered_package_list.append(package)
+    return filtered_package_list
 
 if __name__ == "__main__":
   InstallPackages().execute()
