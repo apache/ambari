@@ -36,6 +36,7 @@ import shlex
 import datetime
 from AmbariConfig import AmbariConfig
 from ambari_commons import OSCheck, OSConst
+from ambari_commons.constants import AMBARI_SUDO_BINARY
 
 
 logger = logging.getLogger()
@@ -476,7 +477,7 @@ class HostCleanup:
   # Run command as sudoer by default, if root no issues
   def run_os_command(self, cmd, runWithSudo=True):
     if runWithSudo:
-      cmd = 'sudo ' + cmd
+      cmd = AMBARI_SUDO_BINARY + cmd
     logger.info('Executing command: ' + str(cmd))
     if type(cmd) == str:
       cmd = shlex.split(cmd)

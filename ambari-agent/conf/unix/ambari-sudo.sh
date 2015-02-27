@@ -1,3 +1,4 @@
+#/bin/bash
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -11,9 +12,41 @@
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
-# limitations under the License
 
-# To change a passphrase used by the agent adjust the line below. This value is used when no passphrase is
-# given through environment variable
-AMBARI_PASSPHRASE="DEV"
-export PATH=$PATH:/var/lib/ambari-agent
+SUDO_BINARY="/usr/bin/sudo"
+
+if [[ $# -eq 0 ]] ; then
+  echo 'usage: ambari-sudo.sh [sudo_arg1, sudo_arg2 ...] command [arg1, arg2 ...]'
+  exit 1
+fi
+
+$SUDO_BINARY -S -l 2>/dev/null 1>/dev/null
+
+if [ $? == 0 ] ; then
+  $SUDO_BINARY "$@"
+else
+  ENV=()
+  SUDO_ARGS=()
+
+  for i ; do
+    if [[ "$i" == *"="* ]] ; then
+      ENV+=("$i")
+      shift
+    elif [[ "$i" == "-"* ]] ; then
+      SUDO_ARGS+=("$i")
+      shift
+    else
+      break
+    fi
+  done
+  
+  #echo "sudo arguments: ${SUDO_ARGS[@]}"
+  #echo "env: ${ENV[@]}"
+  #echo "args: $@"
+
+  if [ "$ENV" ] ; then
+    export "${ENV[@]}"
+  fi
+
+  "$@"
+fi

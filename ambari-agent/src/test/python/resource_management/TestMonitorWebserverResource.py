@@ -32,9 +32,9 @@ class TestMonitorWebserverResource(TestCase):
       MonitorWebserverProvider(MonitorWebserver("start")).action_start()
     defined_resources = env.resource_list
     expected_resources = '[u"MonitorWebserver[\'start\']", u"Execute[\'grep -E \'KeepAlive (On|Off)\' ' \
-                         '/etc/httpd/conf/httpd.conf && /usr/bin/sudo [RMF_ENV_PLACEHOLDER] -H -E sed -i ' \
+                         '/etc/httpd/conf/httpd.conf && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E sed -i ' \
                          '\'s/KeepAlive Off/KeepAlive On/\' /etc/httpd/conf/httpd.conf || echo \'KeepAlive On\' ' \
-                         '| /usr/bin/sudo [RMF_ENV_PLACEHOLDER] -H -E tee --append /etc/httpd/conf/httpd.conf > /dev/null\']"' \
+                         '| ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E tee --append /etc/httpd/conf/httpd.conf > /dev/null\']"' \
                          ', u"Execute[\'(\'/etc/init.d/httpd\', \'start\')\']"]'
     self.assertEqual(str(defined_resources), expected_resources)
 
@@ -44,9 +44,9 @@ class TestMonitorWebserverResource(TestCase):
       MonitorWebserverProvider(MonitorWebserver("start")).action_start()
     defined_resources = env.resource_list
     expected_resources = '[u"MonitorWebserver[\'start\']", u"Execute[\'grep -E \'KeepAlive (On|Off)\' ' \
-                         '/etc/apache2/httpd.conf && /usr/bin/sudo [RMF_ENV_PLACEHOLDER] -H -E sed -i ' \
+                         '/etc/apache2/httpd.conf && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E sed -i ' \
                          '\'s/KeepAlive Off/KeepAlive On/\' /etc/apache2/httpd.conf || echo \'KeepAlive On\' ' \
-                         '| /usr/bin/sudo [RMF_ENV_PLACEHOLDER] -H -E tee --append /etc/apache2/httpd.conf > /dev/null\']",' \
+                         '| ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E tee --append /etc/apache2/httpd.conf > /dev/null\']",' \
                          ' u"Execute[\'(\'/etc/init.d/apache2\', \'start\')\']"]'
     self.assertEqual(str(defined_resources), expected_resources)
 

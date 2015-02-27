@@ -51,7 +51,7 @@ class TestHookBeforeInstall(RMFTestCase):
         not_if = 'test -e /usr/jdk64/jdk1.7.0_45/bin/java',
         sudo = True,
     )
-    self.assertResourceCalled('Execute', 'mkdir -p /tmp/jdk && cd /tmp/jdk && tar -xf /tmp/AMBARI-artifacts//jdk-7u67-linux-x64.tar.gz && sudo cp -r /tmp/jdk/* /usr/jdk64',
+    self.assertResourceCalled('Execute', 'mkdir -p /tmp/jdk && cd /tmp/jdk && tar -xf /tmp/AMBARI-artifacts//jdk-7u67-linux-x64.tar.gz && ambari-sudo.sh cp -r /tmp/jdk/* /usr/jdk64',
         not_if = 'test -e /usr/jdk64/jdk1.7.0_45/bin/java',
     )
     self.assertResourceCalled('Execute', ('chgrp', '-R', u'hadoop', u'/usr/jdk64/jdk1.7.0_45'),

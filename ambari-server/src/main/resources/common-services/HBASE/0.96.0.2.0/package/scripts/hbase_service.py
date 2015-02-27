@@ -45,7 +45,7 @@ def hbase_service(
         user = params.hbase_user,
         # BUGFIX: hbase regionserver sometimes hangs when nn is in safemode
         timeout = 30,
-        on_timeout = format("! ( {no_op_test} ) || sudo -H -E kill -9 `cat {pid_file}`"),
+        on_timeout = format("! ( {no_op_test} ) || {sudo} -H -E kill -9 `cat {pid_file}`"),
       )
       
       Execute (format("rm -f {pid_file}"))

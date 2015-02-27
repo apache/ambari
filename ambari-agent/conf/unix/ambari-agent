@@ -48,20 +48,19 @@ AMBARI_AGENT_PY_SCRIPT=/usr/lib/python2.6/site-packages/ambari_agent/AmbariAgent
 OK=1
 NOTOK=0
 
+current_user=`awk -v val=$EUID -F ":" '$3==val{print $1}' /etc/passwd`
 echo "" | sudo -S -l > /dev/null 2>&1
-if [ "$?" != "0" ]; then
+if [ "$?" != "0" ] && [ "$current_user" != "root" ] ; then
  echo "You can't perform this operation as non-sudoer user. Please, re-login as one"
  exit 0
 fi
 
-current_user=`awk -v val=$EUID -F ":" '$3==val{print $1}' /etc/passwd`
-
 change_files_permissions() {
-	sudo chown -R $current_user "/var/run/ambari-agent"
-	sudo chown -R $current_user "/var/log/ambari-agent"
-	sudo chown -R $current_user "/var/lib/ambari-agent/data"
-	sudo chown -R $current_user "/var/lib/ambari-agent/cache"
-	sudo chown 	  $current_user "/usr/lib/ambari-agent"
+	ambari-sudo.sh chown -R $current_user "/var/run/ambari-agent"
+	ambari-sudo.sh chown -R $current_user "/var/log/ambari-agent"
+	ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/data"
+	ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/cache"
+	ambari-sudo.sh chown 	  $current_user "/usr/lib/ambari-agent"
 }
 
 if [ -a /usr/bin/python2.7 ] && [ -z "$PYTHON" ]; then
@@ -85,7 +84,7 @@ fi
 
 # Reading the environment file
 if [ -a /var/lib/ambari-agent/ambari-env.sh ]; then
-  sudo chown -R $current_user "/var/lib/ambari-agent/ambari-env.sh"
+  /var/lib/ambari-agent/ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/ambari-env.sh"
   . /var/lib/ambari-agent/ambari-env.sh
 fi
 

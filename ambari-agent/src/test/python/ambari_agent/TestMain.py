@@ -219,7 +219,7 @@ class TestMain(unittest.TestCase):
     # Testing normal exit
     exists_mock.return_value = False
     main.stop_agent()
-    kill_mock.assert_called_with(['sudo', 'kill', '-15', pid])
+    kill_mock.assert_called_with(['ambari-sudo.sh', 'kill', '-15', pid])
     _exit_mock.assert_called_with(0)
 
     # Restore
@@ -230,8 +230,8 @@ class TestMain(unittest.TestCase):
     # Testing exit when failed to remove pid file
     exists_mock.return_value = True
     main.stop_agent()
-    kill_mock.assert_any_call(['sudo', 'kill', '-15', pid])
-    kill_mock.assert_any_call(['sudo', 'kill', '-9', pid])
+    kill_mock.assert_any_call(['ambari-sudo.sh', 'kill', '-15', pid])
+    kill_mock.assert_any_call(['ambari-sudo.sh', 'kill', '-9', pid])
     _exit_mock.assert_called_with(1)
 
     # Restore

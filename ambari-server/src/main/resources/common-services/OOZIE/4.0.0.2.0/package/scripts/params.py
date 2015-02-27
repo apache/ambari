@@ -18,6 +18,7 @@ limitations under the License.
 
 """
 
+from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.core import System
 from resource_management.libraries import Script
 from resource_management.libraries.functions import default
@@ -35,6 +36,7 @@ import os
 # server configurations
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
+sudo = AMBARI_SUDO_BINARY
 
 hostname = config["hostname"]
 

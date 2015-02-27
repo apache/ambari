@@ -41,6 +41,7 @@ from ambari_commons.shell import shellRunner
 from ambari_commons import shell
 import HeartbeatHandlers
 from HeartbeatHandlers import bind_signal_handlers
+from ambari_commons.constants import AMBARI_SUDO_BINARY
 logger = logging.getLogger()
 
 formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
@@ -153,7 +154,7 @@ def stop_agent():
     pid = int(pid)
     f.close()
     runner = shellRunner()
-    runner.run(['sudo', 'kill', '-15', str(pid)])
+    runner.run([AMBARI_SUDO_BINARY, 'kill', '-15', str(pid)])
     time.sleep(5)
     if os.path.exists(ProcessHelper.pidfile):
       raise Exception("PID file still exists.")
@@ -162,7 +163,7 @@ def stop_agent():
     if pid == -1:
       print ("Agent process is not running")
     else:
-      res = runner.run(['sudo', 'kill', '-9', str(pid)])
+      res = runner.run([AMBARI_SUDO_BINARY, 'kill', '-9', str(pid)])
       if res['exitCode'] != 0:
         raise Exception("Error while performing agent stop. " + res['error'] + res['output'])
     os._exit(1)

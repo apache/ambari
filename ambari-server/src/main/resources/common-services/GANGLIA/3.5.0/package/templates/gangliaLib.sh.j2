@@ -57,7 +57,7 @@ function createDirectory()
 
     if [ "x" != "x${directoryPath}" ]
     then
-        sudo -H -E mkdir -p ${directoryPath};
+        /var/lib/ambari-agent/ambari-sudo.sh -H -E mkdir -p ${directoryPath};
     fi
 }
 

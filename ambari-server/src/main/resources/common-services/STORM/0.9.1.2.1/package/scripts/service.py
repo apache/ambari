@@ -75,10 +75,10 @@ def service(
   elif action == "stop":
     process_dont_exist = format("! ({no_op_test})")
     pid = format("`cat {pid_file}`")
-    Execute(format("sudo kill {pid}"),
+    Execute(format("{sudo} kill {pid}"),
             not_if=process_dont_exist
     )
-    Execute(format("sudo kill -9 {pid}"),
+    Execute(format("{sudo} kill -9 {pid}"),
             not_if=format("sleep 2; {process_dont_exist} || sleep 20; {process_dont_exist}"),
             ignore_failures=True
     )

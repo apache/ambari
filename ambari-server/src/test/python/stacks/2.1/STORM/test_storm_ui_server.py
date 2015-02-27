@@ -69,10 +69,10 @@ class TestStormUiServer(TestStormBase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled('Execute', 'sudo kill `cat /var/run/storm/ui.pid`',
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh kill `cat /var/run/storm/ui.pid`',
         not_if = '! (ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1)',
     )
-    self.assertResourceCalled('Execute', 'sudo kill -9 `cat /var/run/storm/ui.pid`',
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh kill -9 `cat /var/run/storm/ui.pid`',
         not_if = 'sleep 2; ! (ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1) || sleep 20; ! (ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1)',
         ignore_failures = True,
     )
@@ -126,10 +126,10 @@ class TestStormUiServer(TestStormBase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled('Execute', 'sudo kill `cat /var/run/storm/ui.pid`',
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh kill `cat /var/run/storm/ui.pid`',
         not_if = '! (ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1)',
     )
-    self.assertResourceCalled('Execute', 'sudo kill -9 `cat /var/run/storm/ui.pid`',
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh kill -9 `cat /var/run/storm/ui.pid`',
         not_if = 'sleep 2; ! (ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1) || sleep 20; ! (ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1)',
         ignore_failures = True,
     )

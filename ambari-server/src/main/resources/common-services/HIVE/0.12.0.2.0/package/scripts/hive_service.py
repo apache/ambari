@@ -102,8 +102,8 @@ def hive_service(name, action='start', rolling_restart=False):
             
   elif action == 'stop':
 
-    daemon_kill_cmd = format("sudo kill `cat {pid_file}`")
-    daemon_hard_kill_cmd = format("sudo kill -9 `cat {pid_file}`")
+    daemon_kill_cmd = format("{sudo} kill `cat {pid_file}`")
+    daemon_hard_kill_cmd = format("{sudo} kill -9 `cat {pid_file}`")
 
     Execute(daemon_kill_cmd,
       not_if = format("! ({process_id_exists_command})")
