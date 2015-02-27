@@ -554,7 +554,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
           + tasks.filterProperty('Tasks.status', 'TIMEDOUT').length;
         var queuedActions = tasks.filterProperty('Tasks.status', 'QUEUED').length;
         var inProgressActions = tasks.filterProperty('Tasks.status', 'IN_PROGRESS').length;
-        var progress = Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / actionsPerHost * 100);
+        var progress = Math.floor(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / actionsPerHost * 100);
         this.get('tasks').findProperty('id', currentTaskId).set('progress', progress);
         window.setTimeout(function () {
           self.doPolling();
