@@ -36,7 +36,13 @@
                       {{#if alertInstance.service.displayName}}
                         &nbsp;/&nbsp;
                       {{/if}}
-                      <a {{action "goToHostAlerts" alertInstance.host target="view"}} href="#">{{alertInstance.host.hostName}}</a>
+                      <a {{action "goToHostAlerts" alertInstance.host target="view"}} href="#">
+                        {{#if alertInstance.host.hostName}}
+                          {{alertInstance.host.hostName}}
+                        {{else}}
+                          {{alertInstance.host.id}}
+                        {{/if}}
+                      </a>
                     {{/if}}
                   </div>
                   <div class="name-text">
