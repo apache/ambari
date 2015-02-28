@@ -194,8 +194,13 @@
                     {{#if instance.service.displayName}}
                       &nbsp;/&nbsp;
                     {{/if}}
-                    <a {{action goToHostAlerts instance.host target="controller"}}
-                        href="#">{{instance.host.hostName}}</a>
+                    <a {{action goToHostAlerts instance.host target="controller"}} href="#">
+                      {{#if instance.host.hostName}}
+                      {{instance.host.hostName}}
+                    {{else}}
+                      {{instance.host.id}}
+                    {{/if}}
+                    </a>
                   {{/if}}
                 </td>
                 <td>{{{instance.status}}}
