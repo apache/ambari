@@ -61,3 +61,5 @@ topology.metrics.consumer.register:
     parallelism.hint: 1
 metrics.reporter.register: "org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter"
 {% endif %}
+
+storm.log.dir: "{{log_dir}}"
