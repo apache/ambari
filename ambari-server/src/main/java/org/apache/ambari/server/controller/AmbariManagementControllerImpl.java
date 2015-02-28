@@ -97,6 +97,7 @@ import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
 import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.security.ldap.LdapSyncDto;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
+import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -1310,7 +1311,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
         if (!isStateTransitionValid) {
           LOG.warn(
-              "Invalid cluster provisioning state {} cannot be set on the cluster {} because the current state is {}",
+              "Invalid cluster provisioning 2state {} cannot be set on the cluster {} because the current state is {}",
               provisioningState, request.getClusterName(), oldProvisioningState);
 
           throw new AmbariException("Invalid transition for"
@@ -1365,7 +1366,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       // if any custom operations are valid and requested, the process of executing them should be initiated,
       // most of the validation logic will be left to the KerberosHelper to avoid polluting the controller
       if (kerberosHelper.shouldExecuteCustomOperations(securityType, requestProperties)) {
-        requestStageContainer = kerberosHelper.executeCustomOperations(cluster, requestProperties, requestStageContainer);
+        try {
+          requestStageContainer = kerberosHelper.executeCustomOperations(cluster, requestProperties, requestStageContainer);
+        } catch (KerberosOperationException e) {
+          throw new IllegalArgumentException(e.getMessage(), e);
+        }
       } else if (cluster.getSecurityType() != securityType) {
         LOG.info("Received cluster security type change request from {} to {}",
             cluster.getSecurityType().name(), securityType.name());
@@ -1374,7 +1379,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           // Since the security state of the cluster has changed, invoke toggleKerberos to handle
           // adding or removing Kerberos from the cluster. This may generate multiple stages
           // or not depending the current state of the cluster.
-          requestStageContainer = kerberosHelper.toggleKerberos(cluster, securityType, requestStageContainer);
+          try {
+            requestStageContainer = kerberosHelper.toggleKerberos(cluster, securityType, requestStageContainer);
+          } catch (KerberosOperationException e) {
+            throw new IllegalArgumentException(e.getMessage(), e);
+          }
         } else {
           throw new IllegalArgumentException(String.format("Unexpected security type encountered: %s", securityType.name()));
         }
@@ -2143,7 +2152,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           componentFilter.add(scHost.getServiceComponentName());
         }
 
-        kerberosHelper.ensureIdentities(cluster, serviceFilter, null, requestStages);
+        try {
+          kerberosHelper.ensureIdentities(cluster, serviceFilter, null, requestStages);
+        } catch (KerberosOperationException e) {
+          throw new IllegalArgumentException(e.getMessage(), e);
+        }
       }
 
       List<Stage> stages = requestStages.getStages();
@@ -2892,12 +2905,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // If the request is to perform the Kerberos service check, set up the stages to
     // ensure that the (cluster-level) smoke user principal and keytab is available on all hosts
     if (Role.KERBEROS_SERVICE_CHECK.name().equals(actionRequest.getCommandName())) {
-      Map<String, Collection<String>> serviceComponentFilter = new HashMap<String, Collection<String>>();
-      Collection<String> identityFilter = Arrays.asList("/smokeuser");
-
-      serviceComponentFilter.put("KERBEROS", null);
-
-      requestStageContainer = kerberosHelper.ensureIdentities(cluster, serviceComponentFilter, identityFilter, requestStageContainer);
+      try {
+        requestStageContainer = kerberosHelper.ensureIdentities(cluster,
+            Collections.<String, Collection<String>>singletonMap(Service.Type.KERBEROS.name(), null),
+            Collections.singleton("/smokeuser"), requestStageContainer);
+      } catch (KerberosOperationException e) {
+        throw new IllegalArgumentException(e.getMessage(), e);
+      }
     }
 
     ExecuteCommandJson jsons = customCommandExecutionHelper.getCommandJson(
@@ -2925,6 +2939,20 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     if (stages != null && !stages.isEmpty()) {
       requestStageContainer.addStages(stages);
+    }
+
+    // If the request is to perform the Kerberos service check and (Kerberos) security is not enabled,
+    // delete that the (cluster-level) smoke user principal and keytab that was created for the
+    // service check
+    if (Role.KERBEROS_SERVICE_CHECK.name().equals(actionRequest.getCommandName()) &&
+        !kerberosHelper.isClusterKerberosEnabled(cluster)) {
+      try {
+        requestStageContainer = kerberosHelper.deleteIdentities(cluster,
+            Collections.<String, Collection<String>>singletonMap(Service.Type.KERBEROS.name(), null),
+            Collections.singleton("/smokeuser"), requestStageContainer);
+      } catch (KerberosOperationException e) {
+        throw new IllegalArgumentException(e.getMessage(), e);
+      }
     }
 
     requestStageContainer.persist();

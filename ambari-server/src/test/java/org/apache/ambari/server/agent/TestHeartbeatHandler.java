@@ -2485,34 +2485,64 @@ public class TestHeartbeatHandler {
 
   @Test
   public void testInjectKeytabApplicableHost() throws Exception {
-    List<Map<String, String>> kcp = testInjectKeytab("c6403.ambari.apache.org");
+    List<Map<String, String>> kcp;
+    Map<String, String> properties;
 
+    kcp = testInjectKeytabSetKeytab("c6403.ambari.apache.org");
     Assert.assertNotNull(kcp);
     Assert.assertEquals(1, kcp.size());
-    Assert.assertEquals("c6403.ambari.apache.org", kcp.get(0).get(KerberosActionDataFile.HOSTNAME));
-    Assert.assertEquals("HDFS", kcp.get(0).get(KerberosActionDataFile.SERVICE));
-    Assert.assertEquals("DATANODE", kcp.get(0).get(KerberosActionDataFile.COMPONENT));
-    Assert.assertEquals("dn/_HOST@_REALM", kcp.get(0).get(KerberosActionDataFile.PRINCIPAL));
-    Assert.assertEquals("hdfs-site/dfs.namenode.kerberos.principal", kcp.get(0).get(KerberosActionDataFile.PRINCIPAL_CONFIGURATION));
-    Assert.assertEquals("/etc/security/keytabs/dn.service.keytab", kcp.get(0).get(KerberosActionDataFile.KEYTAB_FILE_PATH));
-    Assert.assertEquals("hdfs", kcp.get(0).get(KerberosActionDataFile.KEYTAB_FILE_OWNER_NAME));
-    Assert.assertEquals("r", kcp.get(0).get(KerberosActionDataFile.KEYTAB_FILE_OWNER_ACCESS));
-    Assert.assertEquals("hadoop", kcp.get(0).get(KerberosActionDataFile.KEYTAB_FILE_GROUP_NAME));
-    Assert.assertEquals("", kcp.get(0).get(KerberosActionDataFile.KEYTAB_FILE_GROUP_ACCESS));
-    Assert.assertEquals("hdfs-site/dfs.namenode.keytab.file", kcp.get(0).get(KerberosActionDataFile.KEYTAB_FILE_CONFIGURATION));
+
+    properties = kcp.get(0);
+    Assert.assertNotNull(properties);
+    Assert.assertEquals("c6403.ambari.apache.org", properties.get(KerberosActionDataFile.HOSTNAME));
+    Assert.assertEquals("HDFS", properties.get(KerberosActionDataFile.SERVICE));
+    Assert.assertEquals("DATANODE", properties.get(KerberosActionDataFile.COMPONENT));
+    Assert.assertEquals("dn/_HOST@_REALM", properties.get(KerberosActionDataFile.PRINCIPAL));
+    Assert.assertEquals("hdfs-site/dfs.namenode.kerberos.principal", properties.get(KerberosActionDataFile.PRINCIPAL_CONFIGURATION));
+    Assert.assertEquals("/etc/security/keytabs/dn.service.keytab", properties.get(KerberosActionDataFile.KEYTAB_FILE_PATH));
+    Assert.assertEquals("hdfs", properties.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_NAME));
+    Assert.assertEquals("r", properties.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_ACCESS));
+    Assert.assertEquals("hadoop", properties.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_NAME));
+    Assert.assertEquals("", properties.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_ACCESS));
+    Assert.assertEquals("hdfs-site/dfs.namenode.keytab.file", properties.get(KerberosActionDataFile.KEYTAB_FILE_CONFIGURATION));
 
     Assert.assertEquals(Base64.encodeBase64String("hello".getBytes()), kcp.get(0).get(KerberosServerAction.KEYTAB_CONTENT_BASE64));
 
+
+    kcp = testInjectKeytabRemoveKeytab("c6403.ambari.apache.org");
+
+    Assert.assertNotNull(kcp);
+    Assert.assertEquals(1, kcp.size());
+
+    properties = kcp.get(0);
+    Assert.assertNotNull(properties);
+    Assert.assertEquals("c6403.ambari.apache.org", properties.get(KerberosActionDataFile.HOSTNAME));
+    Assert.assertEquals("HDFS", properties.get(KerberosActionDataFile.SERVICE));
+    Assert.assertEquals("DATANODE", properties.get(KerberosActionDataFile.COMPONENT));
+    Assert.assertEquals("dn/_HOST@_REALM", properties.get(KerberosActionDataFile.PRINCIPAL));
+    Assert.assertFalse(properties.containsKey(KerberosActionDataFile.PRINCIPAL_CONFIGURATION));
+    Assert.assertEquals("/etc/security/keytabs/dn.service.keytab", properties.get(KerberosActionDataFile.KEYTAB_FILE_PATH));
+    Assert.assertFalse(properties.containsKey(KerberosActionDataFile.KEYTAB_FILE_OWNER_NAME));
+    Assert.assertFalse(properties.containsKey(KerberosActionDataFile.KEYTAB_FILE_OWNER_ACCESS));
+    Assert.assertFalse(properties.containsKey(KerberosActionDataFile.KEYTAB_FILE_GROUP_NAME));
+    Assert.assertFalse(properties.containsKey(KerberosActionDataFile.KEYTAB_FILE_GROUP_ACCESS));
+    Assert.assertFalse(properties.containsKey(KerberosActionDataFile.KEYTAB_FILE_CONFIGURATION));
+    Assert.assertFalse(properties.containsKey(KerberosServerAction.KEYTAB_CONTENT_BASE64));
   }
 
   @Test
   public void testInjectKeytabNotApplicableHost() throws Exception {
-    List<Map<String, String>> kcp = testInjectKeytab("c6401.ambari.apache.org");
+    List<Map<String, String>> kcp;
+    kcp = testInjectKeytabSetKeytab("c6401.ambari.apache.org");
+    Assert.assertNotNull(kcp);
+    Assert.assertTrue(kcp.isEmpty());
+
+    kcp = testInjectKeytabRemoveKeytab("c6401.ambari.apache.org");
     Assert.assertNotNull(kcp);
     Assert.assertTrue(kcp.isEmpty());
   }
 
-  private List<Map<String, String>> testInjectKeytab(String targetHost) throws Exception {
+  private List<Map<String, String>> testInjectKeytabSetKeytab(String targetHost) throws Exception {
 
     ExecutionCommand executionCommand = new ExecutionCommand();
 
@@ -2537,7 +2567,38 @@ public class TestHeartbeatHandler {
         }});
     replay(am);
 
-    getHeartBeatHandler(am, aq).injectKeytab(executionCommand, targetHost);
+    getHeartBeatHandler(am, aq).injectKeytab(executionCommand, "SET_KEYTAB", targetHost);
+
+    return executionCommand.getKerberosCommandParams();
+  }
+
+
+  private List<Map<String, String>> testInjectKeytabRemoveKeytab(String targetHost) throws Exception {
+
+    ExecutionCommand executionCommand = new ExecutionCommand();
+
+    Map<String, String> hlp = new HashMap<String, String>();
+    hlp.put("custom_command", "REMOVE_KEYTAB");
+    executionCommand.setHostLevelParams(hlp);
+
+    Map<String, String> commandparams = new HashMap<String, String>();
+    commandparams.put(KerberosServerAction.AUTHENTICATED_USER_NAME, "admin");
+    commandparams.put(KerberosServerAction.DATA_DIRECTORY, createTestKeytabData().getAbsolutePath());
+    executionCommand.setCommandParams(commandparams);
+
+    ActionQueue aq = new ActionQueue();
+
+    final HostRoleCommand command = new HostRoleCommand(DummyHostname1,
+        Role.DATANODE, null, null);
+
+    ActionManager am = getMockActionManager();
+    expect(am.getTasks(anyObject(List.class))).andReturn(
+        new ArrayList<HostRoleCommand>() {{
+          add(command);
+        }});
+    replay(am);
+
+    getHeartBeatHandler(am, aq).injectKeytab(executionCommand, "REMOVE_KEYTAB", targetHost);
 
     return executionCommand.getKerberosCommandParams();
   }

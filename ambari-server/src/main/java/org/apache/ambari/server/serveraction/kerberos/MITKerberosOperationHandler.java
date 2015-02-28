@@ -19,8 +19,6 @@
 package org.apache.ambari.server.serveraction.kerberos;
 
 import com.google.inject.Inject;
-import com.google.inject.Injector;
-import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.slf4j.Logger;
@@ -43,7 +41,6 @@ import java.util.regex.Pattern;
  * It is assumed that a MIT Kerberos client is installed and that the kdamin shell command is
  * available
  */
-@StaticallyInject
 public class MITKerberosOperationHandler extends KerberosOperationHandler {
 
   /**
@@ -55,7 +52,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
   private final static Logger LOG = LoggerFactory.getLogger(MITKerberosOperationHandler.class);
 
   @Inject
-  private static Injector injector;
+  private Configuration configuration;
 
   /**
    * Prepares and creates resources to be used by this KerberosOperationHandler
@@ -92,17 +89,6 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
   public void close() throws KerberosOperationException {
     // There is nothing to do here.
     setOpen(false);
-  }
-
-  /**
-   * Statically initialize the Injector
-   * <p/>
-   * This should only be used for unit tests.
-   *
-   * @param injector the Injector to (manually) statically inject
-   */
-  public static void init(Injector injector) {
-    MITKerberosOperationHandler.injector = injector;
   }
 
   /**
@@ -245,6 +231,18 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
   }
 
   /**
+   * Initialize this MITKerberosOperationHandler with instances of objects that should normally
+   * be injected.
+   * <p/>
+   * This should only be used for unit tests.
+   *
+   * @param configuration the Configuration to (manually) inject
+   */
+  public void init(Configuration configuration) {
+    this.configuration = configuration;
+  }
+
+  /**
    * Retrieves the current key number assigned to the identity identified by the specified principal
    *
    * @param principal a String declaring the principal to look up
@@ -326,8 +324,6 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
           : administratorCredentials.getPrincipal();
 
       String pathToCommand = "";
-
-      Configuration configuration = injector.getInstance(Configuration.class);
 
       if (configuration.getServerOsFamily().equals("redhat5")) {
         pathToCommand = "/usr/kerberos/sbin/";

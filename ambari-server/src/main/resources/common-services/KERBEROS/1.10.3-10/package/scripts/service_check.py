@@ -26,6 +26,9 @@ class KerberosServiceCheck(KerberosScript):
   def service_check(self, env):
     import params
 
+    if params.smoke_test_principal is None:
+      params.smoke_test_principal = params.smoke_user
+
     # First attempt to test using the smoke test user, if data is available
     if ((params.smoke_test_principal is not None) and
           (params.smoke_test_keytab_file is not None) and
@@ -37,20 +40,9 @@ class KerberosServiceCheck(KerberosScript):
       }, user=params.smoke_user)
       test_performed = True
 
-    # Else if a test credentials is specified, try to test using that
-    elif params.test_principal is not None:
-      print "Performing kinit using test user: %s" % params.test_principal
-      code, out = self.test_kinit({
-        'principal': params.test_principal,
-        'keytab_file': params.test_keytab_file,
-        'keytab': params.test_keytab,
-        'password': params.test_password
-      }, user=params.smoke_user)
-      test_performed = True
-
     else:
-      code = 0
-      out = ''
+      code = -1
+      out = 'No principal or keytab found'
       test_performed = False
 
     if test_performed:

@@ -59,5 +59,8 @@ class KerberosClient(KerberosScript):
   def set_keytab(self, env):
     self.write_keytab_file()
 
+  def remove_keytab(self, env):
+    self.delete_keytab_file()
+
 if __name__ == "__main__":
   KerberosClient().execute()
