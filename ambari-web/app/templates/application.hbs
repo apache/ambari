@@ -22,16 +22,19 @@
       <div class="navbar-inner">
         <div class="container main-container">
           {{#if isExistingClusterDataLoaded}}
-            <a {{translateAttr href="topnav.logo.href"}} class="logo"><img src="/img/logo-white.png" alt="Apache Ambari" title="Apache Ambari"></a>
+            <a {{translateAttr href="topnav.logo.href"}} class="logo"><img src="/img/logo-white.png" alt="Apache Ambari"
+                                                                           title="Apache Ambari"></a>
             <a class="brand" {{translateAttr href="topnav.logo.href"}} title="Apache Ambari">{{t app.name}}</a>
             <a class="brand cluster-name" href="javascript:void(null);" {{bindAttr title="clusterName"}}>
               <span {{action "showPopup" target="App.router.backgroundOperationsController"}} >{{clusterDisplayName}} </span>
               {{#with App.router.backgroundOperationsController}}
                 {{#if allOperationsCount}}
-                  <i class="icon-caret-left ops-count"></i><span id="span-bg-operation-count" class="label operations-count" {{action "showPopup" target="App.router.backgroundOperationsController"}}>
+                  <i class="icon-caret-left ops-count"></i><span id="span-bg-operation-count"
+                                                                 class="label operations-count" {{action "showPopup" target="App.router.backgroundOperationsController"}}>
                     {{allOperationsCount}} {{pluralize allOperationsCount singular="t:op" plural="t:ops"}}</span>
                 {{else}}
-                  <i class="icon-caret-left"></i><span id="span-bg-operation-count" class="label" {{action "showPopup" target="App.router.backgroundOperationsController"}}>
+                  <i class="icon-caret-left"></i><span id="span-bg-operation-count"
+                                                       class="label" {{action "showPopup" target="App.router.backgroundOperationsController"}}>
                     {{allOperationsCount}} {{pluralize allOperationsCount singular="t:op" plural="t:ops"}}</span>
                 {{/if}}
               {{/with}}
@@ -40,28 +43,11 @@
                   <span {{bindAttr class=":label isCriticalAlerts:alert-crit-count:alert-warn-count"}} {{action "showPopup" target="App.router.mainAlertDefinitionsController"}}>
                   {{allAlertsCount}} {{pluralize allAlertsCount singular="alert" plural="alerts"}}</span>
                 {{else}}
-                  <span rel="tooltip" {{translateAttr title="titlebar.alerts.noAlerts"}} class="label alerts-none-count" {{action "showPopup" target="App.router.mainAlertDefinitionsController"}}>
+                  <span rel="tooltip" {{translateAttr title="titlebar.alerts.noAlerts"}}
+                        class="label alerts-none-count" {{action "showPopup" target="App.router.mainAlertDefinitionsController"}}>
                   {{allAlertsCount}} {{pluralize allAlertsCount singular="alert" plural="alerts"}}</span>
                 {{/if}}
               {{/with}}
-              {{#if App.upgradeInProgress}}
-                {{#if App.router.mainAdminStackAndUpgradeController.isDowngrade}}
-                  <span class="label upgrade-in-progress" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
-                     <i class="icon-cog"></i>&nbsp;{{t admin.stackVersions.version.downgrade.running}}</span>
-                {{else}}
-                  <span class="label upgrade-in-progress" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
-                     <i class="icon-cog"></i>&nbsp;{{t admin.stackVersions.version.upgrade.running}}</span>
-                {{/if}}
-              {{/if}}
-              {{#if App.upgradeHolding}}
-                {{#if App.router.mainAdminStackAndUpgradeController.isDowngrade}}
-                  <span class="label upgrade-holding" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
-                  <i class="icon-pause"></i>&nbsp;{{t admin.stackVersions.version.downgrade.pause}}</span>
-                {{else}}
-                  <span class="label upgrade-holding" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
-                  <i class="icon-pause"></i>&nbsp;{{t admin.stackVersions.version.upgrade.pause}}</span>
-                {{/if}}
-              {{/if}}
             </a>
           {{else}}
             <a class="logo"><img src="/img/logo-white.png" alt="Apache Ambari" title="Apache Ambari"></a>
@@ -70,20 +56,24 @@
 
           {{#if App.router.loggedIn}}
             <div class="top-nav-user btn-group">
-              <button class="btn dropdown-toggle"  data-toggle="dropdown">
-                  <i class="icon-user"></i>&nbsp;{{App.router.loginName}}&nbsp;<span class="caret"></span>
+              <button class="btn dropdown-toggle" data-toggle="dropdown">
+                <i class="icon-user"></i>&nbsp;{{App.router.loginName}}&nbsp;<span class="caret"></span>
               </button>
               <ul class="dropdown-menu">
-                  <li><a href="" id="about" {{action showAboutPopup target="controller"}}>{{t app.aboutAmbari}}</a></li>
+                <li><a href="" id="about" {{action showAboutPopup target="controller"}}>{{t app.aboutAmbari}}</a></li>
                 {{#if App.router.clusterInstallCompleted}}
                   {{#if isClusterDataLoaded}}
                     {{#isAccessible upgrade_ONLY_ADMIN}}
-                      <li><a href="" id="manage-ambari" {{action goToAdminView target="controller"}}>{{t app.manageAmbari}}</a></li>
+                      <li><a href=""
+                             id="manage-ambari" {{action goToAdminView target="controller"}}>{{t app.manageAmbari}}</a>
+                      </li>
                     {{/isAccessible}}
                   {{/if}}
                 {{else}}
                   {{#isAccessible upgrade_ONLY_ADMIN}}
-                    <li><a href="" id="manage-ambari" {{action goToAdminView target="controller"}}>{{t app.manageAmbari}}</a></li>
+                    <li><a href=""
+                           id="manage-ambari" {{action goToAdminView target="controller"}}>{{t app.manageAmbari}}</a>
+                    </li>
                   {{/isAccessible}}
                 {{/if}}
                 {{#if isClusterDataLoaded}}
@@ -91,8 +81,8 @@
                     <li><a href="" {{action showSettingsPopup target="controller"}}>{{t app.settings}}</a></li>
                   {{/isAccessible}}
                 {{/if}}
-                  <li class="break"></li>
-                  <li><a href="" id="sign-out" {{action logoff}}>{{t app.signout}}</a></li>
+                <li class="break"></li>
+                <li><a href="" id="sign-out" {{action logoff}}>{{t app.signout}}</a></li>
               </ul>
             </div>
           {{/if}}
@@ -105,9 +95,39 @@
   </div>
   <div class="container main-container">
     <div id="content">
+      <div class="ru-badge span12">
+        <div class="navbar navbar-static-top clearfix">
+          <div class="span4 offset4">
+            {{#if isExistingClusterDataLoaded}}
+              <a class="brand cluster-name" href="#">
+                {{#if App.upgradeInProgress}}
+                  {{#if App.router.mainAdminStackAndUpgradeController.isDowngrade}}
+                    <span
+                        class="label upgrade-in-progress" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
+                             <i class="icon-cog"></i>&nbsp;{{t admin.stackVersions.version.downgrade.running}}</span>
+                  {{else}}
+                    <span
+                        class="label upgrade-in-progress" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
+                             <i class="icon-cog"></i>&nbsp;{{t admin.stackVersions.version.upgrade.running}}</span>
+                  {{/if}}
+                {{/if}}
+                {{#if App.upgradeHolding}}
+                  {{#if App.router.mainAdminStackAndUpgradeController.isDowngrade}}
+                    <span
+                        class="label upgrade-holding" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
+                          <i class="icon-pause"></i>&nbsp;{{t admin.stackVersions.version.downgrade.pause}}</span>
+                  {{else}}
+                    <span
+                        class="label upgrade-holding" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
+                          <i class="icon-pause"></i>&nbsp;{{t admin.stackVersions.version.upgrade.pause}}</span>
+                  {{/if}}
+                {{/if}}
+              </a>
+            {{/if}}
+          </div>
+        </div>
+      </div>
       {{outlet}}
     </div>
   </div>
 </div>
-
-
