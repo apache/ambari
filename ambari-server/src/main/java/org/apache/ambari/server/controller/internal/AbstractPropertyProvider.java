@@ -31,10 +31,10 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.ambari.server.controller.metrics.MetricReportingAdapter;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
-import org.apache.http.client.utils.URIBuilder;
 
 /**
  *  Abstract property provider implementation.
@@ -69,19 +69,7 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
    */
   private static final String FIND_REGEX_IN_METRIC_REGEX = "\\([^)]+\\)";
 
-  private static final Set<String> PERCENTAGE_METRIC;
   private static final DecimalFormat decimalFormat = new DecimalFormat("#.00");
-
-  static {
-    Set<String> temp = new HashSet<String>();
-    temp.add("cpu_wio");
-    temp.add("cpu_idle");
-    temp.add("cpu_nice");
-    temp.add("cpu_aidle");
-    temp.add("cpu_system");
-    temp.add("cpu_user");
-    PERCENTAGE_METRIC = Collections.unmodifiableSet(temp);
-  }
 
   // ----- Constructors ------------------------------------------------------
 
@@ -369,26 +357,10 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
 
   // Normalize percent values: Copied over from Ganglia Metric
   private static Number[][] getGangliaLikeDatapoints(TimelineMetric metric) {
-    Number[][] datapointsArray = new Number[metric.getMetricValues().size()][2];
-    int cnt = 0;
+    MetricReportingAdapter rpt = new MetricReportingAdapter(metric);
 
-    for (Map.Entry<Long, Double> metricEntry : metric.getMetricValues().entrySet()) {
-      Double value = metricEntry.getValue();
-      Long time = metricEntry.getKey();
-      if (time > 9999999999l) {
-        time = time / 1000;
-      }
-
-      if (PERCENTAGE_METRIC.contains(metric.getMetricName())) {
-        value = new Double(decimalFormat.format(value / 100));
-      }
-
-      datapointsArray[cnt][0] = value;
-      datapointsArray[cnt][1] = time;
-      cnt++;
-    }
-
-    return datapointsArray;
+    //TODO Don't we always need to downsample?
+    return rpt.reportMetricData(metric);
   }
 
   /**
