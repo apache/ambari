@@ -106,23 +106,103 @@ test('validateAppNameSuccessCallback', function () {
 
 test('isSubmitDisabled', function () {
 
+  expect(6);
+
   var controller = this.subject({
-    availableTypes: {
-      content: [
-        {}
-      ]
-    },
-    isNameError: false,
-    newApp: {
-      name: 'some'
-    }
-  });
+      availableTypes: {
+        content: [
+          {}
+        ]
+      },
+      isNameError: false,
+      newApp: {
+        name: 'some'
+      }
+    }),
+    cases = [
+      {
+        key: 'validateAppNameRequestExecuting',
+        title: 'request is executing'
+      },
+      {
+        key: 'isNameError',
+        title: 'app name is invalid'
+      },
+      {
+        key: 'no app types are available',
+        title: 'request is executing'
+      },
+      {
+        key: 'isFrequencyError',
+        title: 'frequency value is invalid'
+      }
+    ],
+    keys = cases.mapProperty('key'),
+    failTitle = 'submit button is disabled when {0}';
 
   equal(controller.get('isSubmitDisabled'), false);
-  Em.run(function () {
-    controller.set('validateAppNameRequestExecuting', true);
+
+  cases.forEach(function (item) {
+    Em.run(function () {
+      keys.forEach(function (key) {
+        controller.set(key, item.key != key);
+      });
+    });
+    equal(controller.get('isSubmitDisabled'), true, failTitle.format(item.title));
   });
 
-  equal(controller.get('isSubmitDisabled'), true, 'button disabled when request executing');
+  Em.run(function () {
+    keys.forEach(function (key) {
+      controller.set(key, true);
+    });
+    controller.set('newApp.name', '');
+  });
+  equal(controller.get('isSubmitDisabled'), true, failTitle.format('no app name is specified'));
+
+});
+
+test('frequencyValidator', function () {
+
+  expect(8);
+
+  var controller = this.subject(),
+    cases = [
+      {
+        value: '123',
+        isFrequencyError: false,
+        frequencyErrorMessage: '',
+        title: 'numeric value'
+      },
+      {
+        value: '123a',
+        isFrequencyError: true,
+        frequencyErrorMessage: Em.I18n.t('wizard.step1.frequencyError'),
+        title: 'value contains letter'
+      },
+      {
+        value: '123-',
+        isFrequencyError: true,
+        frequencyErrorMessage: Em.I18n.t('wizard.step1.frequencyError'),
+        title: 'value contains special symbol'
+      },
+      {
+        value: '123 ',
+        isFrequencyError: true,
+        frequencyErrorMessage: Em.I18n.t('wizard.step1.frequencyError'),
+        title: 'value contains space'
+      }
+    ],
+    errorTitle = '{0}: isFrequencyError is set correctly',
+    messageTitle = '{0}: error message is set correctly';
+
+  cases.forEach(function (item) {
+    Em.run(function () {
+      controller.set('newApp', {
+        frequency: item.value
+      });
+    });
+    equal(controller.get('isFrequencyError'), item.isFrequencyError, errorTitle.format(item.title));
+    equal(controller.get('frequencyErrorMessage'), item.frequencyErrorMessage, messageTitle.format(item.title));
+  });
 
 });

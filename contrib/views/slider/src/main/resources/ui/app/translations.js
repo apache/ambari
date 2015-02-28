@@ -143,6 +143,7 @@ Em.I18n.translations = {
   'wizard.step1.nameRepeatError': 'App with entered Name already exists.',
   'wizard.step1.validateAppNameError': 'Application with name \'{0}\' already exists',
   'wizard.step1.noAppTypesError': 'No Slider Application packages have been installed on this server. Please contact your Ambari server administrator to install Slider Application packages into /var/lib/ambari-server/resources/apps/ folder and restart Ambari server.',
+  'wizard.step1.frequencyError': 'Frequency value should be numeric',
   'wizard.step2.name': 'Allocate Resources',
   'wizard.step2.header': ' application requires resources to be allocated on the cluster. Provide resource allocation requests for each component of the application below.',
   'wizard.step2.table.instances': 'Instances',

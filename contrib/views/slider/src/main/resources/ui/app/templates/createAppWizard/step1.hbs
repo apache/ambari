@@ -151,7 +151,7 @@
       </div>
     </div>
     <div class="row">
-      <div class="col-xs-3">
+      <div class="col-xs-3" {{bind-attr class=":col-xs-3 controller.isFrequencyError:error"}}>
         <label class="control-label">{{t common.frequency}}</label>
       </div>
       <div class="col-xs-7">
@@ -161,6 +161,13 @@
         </div>
       </div>
     </div>
+    {{#if controller.isFrequencyError}}
+      <div class="row">
+        <div class="col-xs-12 alert alert-danger">
+          {{controller.frequencyErrorMessage}}
+        </div>
+      </div>
+    {{/if}}
     <!-- Log Aggregation end -->
     <div class="btn-area">
       <button
