@@ -229,7 +229,7 @@ java64_home = config['hostLevelParams']['java_home']
 check_cpu_on = is_jdk_greater_6(java64_home)
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 nagios_keytab_path = default("/configurations/nagios-env/nagios_keytab_path", "/etc/security/keytabs/nagios.service.keytab")
-kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path()
 
 dfs_ha_enabled = False
 dfs_ha_nameservices = default("/configurations/hdfs-site/dfs.nameservices", None)

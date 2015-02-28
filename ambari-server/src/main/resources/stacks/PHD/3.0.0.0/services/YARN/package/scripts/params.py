@@ -64,7 +64,7 @@ smokeuser = config['configurations']['cluster-env']['smokeuser']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 yarn_executor_container_group = config['configurations']['yarn-site']['yarn.nodemanager.linux-container-executor.group']
-kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path()
 rm_hosts = config['clusterHostInfo']['rm_host']
 rm_host = rm_hosts[0]
 rm_port = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'].split(':')[-1]
@@ -149,9 +149,7 @@ jobhistory_heapsize = default("/configurations/mapred-env/jobhistory_heapsize", 
 #for create_hdfs_directory
 hostname = config["hostname"]
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
-hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
-kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 import functools
 #create partial functions with common arguments for every HdfsDirectory call
 #to create hdfs directory we need to call params.HdfsDirectory in code

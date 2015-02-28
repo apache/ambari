@@ -131,7 +131,7 @@ java_home = config['hostLevelParams']['java_home']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
-kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path()
 if security_enabled:
   knox_keytab_path = config['configurations']['knox-env']['knox_keytab_path']
   _hostname_lowercase = config['hostname'].lower()

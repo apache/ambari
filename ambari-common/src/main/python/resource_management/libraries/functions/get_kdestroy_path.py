@@ -21,20 +21,14 @@ Ambari Agent
 """
 
 __all__ = ["get_kdestroy_path"]
-import os
+from find_path import find_path
+
 
 def get_kdestroy_path():
-
-  kdestroy_path = ""
-
-  for x in ["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"]:
-    if not x:
-      continue
-
-    path = os.path.join(x,"kdestroy")
-
-    if os.path.isfile(path):
-      kdestroy_path = path
-      break
-
-  return kdestroy_path
+  """
+  Searches for the kdestroy executable using a default set of of paths to search:
+    /usr/bin
+    /usr/kerberos/bin
+    /usr/sbin
+  """
+  return find_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"], "kdestroy")

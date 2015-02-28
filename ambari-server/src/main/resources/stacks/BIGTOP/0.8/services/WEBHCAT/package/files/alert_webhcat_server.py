@@ -24,9 +24,13 @@ import socket
 import time
 import urllib2
 
+from resource_management.core.environment import Environment
 from resource_management.core.resources import Execute
+from resource_management.core.shell import call
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.functions import get_klist_path
+from os import getpid, sep
 
 RESULT_CODE_OK = "OK"
 RESULT_CODE_CRITICAL = "CRITICAL"
@@ -101,16 +105,30 @@ def execute(parameters=None, host_name=None):
       # substitute _HOST in kerberos principal with actual fqdn
       webhcat_principal = webhcat_principal.replace('_HOST', host_name)
 
-      kinit_path_local = get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
-      kinit_command = format("{kinit_path_local} -kt {webhcat_keytab} {webhcat_principal}; ")
+      # Create the kerberos credentials cache (ccache) file and set it in the environment to use
+      # when executing curl
+      env = Environment.get_instance()
+      ccache_file = "{0}{1}webhcat_alert_cc_{2}".format(env.tmp_dir, sep, getpid())
+      kerberos_env = {'KRB5CCNAME': ccache_file}
 
-      # kinit so that curl will work with --negotiate
-      Execute(kinit_command)
+      klist_path_local = get_klist_path()
+      klist_command = format("{klist_path_local} -s {ccache_file}")
+
+      # Determine if we need to kinit by testing to see if the relevant cache exists and has
+      # non-expired tickets.  Tickets are marked to expire after 5 minutes to help reduce the number
+      # it kinits we do but recover quickly when keytabs are regenerated
+      return_code, _ = call(klist_command)
+      if return_code != 0:
+        kinit_path_local = get_kinit_path()
+        kinit_command = format("{kinit_path_local} -l 5m -c {ccache_file} -kt {webhcat_keytab} {webhcat_principal}; ")
+
+        # kinit so that curl will work with --negotiate
+        Execute(kinit_command)
 
       # make a single curl call to get just the http code
       curl = subprocess.Popen(['curl', '--negotiate', '-u', ':', '-sL', '-w',
         '%{http_code}', '--connect-timeout', CURL_CONNECTION_TIMEOUT,
-        '-o', '/dev/null', query_url], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        '-o', '/dev/null', query_url], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=kerberos_env)
 
       stdout, stderr = curl.communicate()
 
@@ -134,7 +152,7 @@ def execute(parameters=None, host_name=None):
       start_time = time.time()
       curl = subprocess.Popen(['curl', '--negotiate', '-u', ':', '-sL',
         '--connect-timeout', CURL_CONNECTION_TIMEOUT, query_url, ],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=kerberos_env)
 
       stdout, stderr = curl.communicate()
       total_time = time.time() - start_time

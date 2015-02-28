@@ -17,11 +17,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from resource_management.core.environment import Environment
 from resource_management.core.resources import Execute
+from resource_management.core.shell import call
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.functions import get_klist_path
 from ambari_commons.os_check import OSConst, OSCheck
-
+from os import getpid, sep
 from urlparse import urlparse
 
 RESULT_CODE_OK = 'OK'
@@ -70,6 +73,8 @@ def execute(parameters=None, host_name=None):
 
   try:
     # kinit if security is enabled so that oozie-env.sh can make the web request
+    kerberos_env = None
+
     if security_enabled:
       if OOZIE_KEYTAB in parameters and OOZIE_PRINCIPAL in parameters:
         oozie_keytab = parameters[OOZIE_KEYTAB]
@@ -80,14 +85,28 @@ def execute(parameters=None, host_name=None):
       else:
         return (RESULT_CODE_UNKNOWN, ['The Oozie keytab and principal are required parameters when security is enabled.'])
 
-      kinit_path_local = get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
-      kinit_command = format("{kinit_path_local} -kt {oozie_keytab} {oozie_principal}; ")
+      # Create the kerberos credentials cache (ccache) file and set it in the environment to use
+      # when executing curl
+      env = Environment.get_instance()
+      ccache_file = "{0}{1}oozie_alert_cc_{2}".format(env.tmp_dir, sep, getpid())
+      kerberos_env = {'KRB5CCNAME': ccache_file}
 
-      # kinit
-      Execute(kinit_command)
+      klist_path_local = get_klist_path()
+      klist_command = format("{klist_path_local} -s {ccache_file}")
+
+      # Determine if we need to kinit by testing to see if the relevant cache exists and has
+      # non-expired tickets.  Tickets are marked to expire after 5 minutes to help reduce the number
+      # it kinits we do but recover quickly when keytabs are regenerated
+      return_code, _ = call(klist_command)
+      if return_code != 0:
+        kinit_path_local = get_kinit_path()
+        kinit_command = format("{kinit_path_local} -l 5m -kt {oozie_keytab} {oozie_principal}; ")
+
+        # kinit
+        Execute(kinit_command, environment=kerberos_env)
 
     # execute the command
-    Execute(command)
+    Execute(command, environment=kerberos_env)
 
     return (RESULT_CODE_OK, ["Successful connection to {0}".format(oozie_url)])
 
