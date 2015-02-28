@@ -75,6 +75,15 @@ public class AlertUri {
   private int m_port = 0;
 
   /**
+   * If present, then the component supports HA mode and the properties
+   * contained within need to be checked to see if an HA URI is required to be
+   * constructed instead of using {@link #m_httpProperty} and
+   * {@link #m_httpsProperty}.
+   */
+  @SerializedName("high_availability")
+  private HighAvailability m_highAvailability;
+
+  /**
    * Gets the plaintext (HTTP) URI that can be used to retrieve alert
    * information.
    *
@@ -142,6 +151,97 @@ public class AlertUri {
    */
   public String getKerberosPrincipal() {
     return m_kerberosPrincipal;
+  }
+
+  /**
+   * Gets the HA structure to use when determining if the component is in HA
+   * mode and requires the URL to be built dynamically.
+   *
+   * @return the HA structure or {@code null} if the component does not support
+   *         HA mode.
+   */
+  public HighAvailability getHighAvailability() {
+    return m_highAvailability;
+  }
+
+  /**
+   * The {@link HighAvailability} structure is used to hold information about
+   * how HA URIs are constructed if the service supports HA mode. For example
+   *
+   * <pre>
+   * high_availability": {
+   *   "nameservice": "{{hdfs-site/dfs.nameservices}}",
+   *   "alias_key" : "dfs.ha.namenodes.{{ha-nameservice}}",
+   *   "http_pattern" : "dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}",
+   *   "https_pattern" : "dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}"
+   * }
+   * </pre>
+   *
+   * Where the nameservice is {@code c1ha} and the alias key is
+   * {@code dfs.ha.namenodes.c1ha}. In this case the http pattern is defined as
+   * dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}
+   */
+  public class HighAvailability {
+    /**
+     * The key that represents the name service. The alert will use the
+     * existance of this key as the marker for HA mode.
+     */
+    @SerializedName("nameservice")
+    private String m_nameservice;
+
+    /**
+     * The key that will be used to retrieve the aliases for each host.
+     */
+    @SerializedName("alias_key")
+    private String m_aliasKey;
+
+    /**
+     * The parameterized pattern for determining the HTTP URL to use.
+     */
+    @SerializedName("http_pattern")
+    private String m_httpPattern;
+
+    /**
+     * The parameterized pattern for determining the HTTPS URL to use.
+     */
+    @SerializedName("https_pattern")
+    private String m_httpsPattern;
+
+    /**
+     * Gets the nameservice name.
+     *
+     * @return the nameservice
+     */
+    public String getNameservice() {
+      return m_nameservice;
+    }
+
+    /**
+     * Gets the parameterized key to use when retrieving the host aliases.
+     *
+     * @return the alias key
+     */
+    public String getAliasKey() {
+      return m_aliasKey;
+    }
+
+    /**
+     * Get the parameterized HTTP pattern to use.
+     *
+     * @return the httpPattern
+     */
+    public String getHttpPattern() {
+      return m_httpPattern;
+    }
+
+    /**
+     * Get the parameterized HTTPS pattern to use.
+     *
+     * @return the httpsPattern
+     */
+    public String getHttpsPattern() {
+      return m_httpsPattern;
+    }
   }
 
   /**
