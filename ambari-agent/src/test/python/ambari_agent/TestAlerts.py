@@ -24,6 +24,7 @@ import sys
 
 from ambari_agent.AlertSchedulerHandler import AlertSchedulerHandler
 from ambari_agent.alerts.collector import AlertCollector
+from ambari_agent.alerts.base_alert import BaseAlert
 from ambari_agent.alerts.metric_alert import MetricAlert
 from ambari_agent.alerts.port_alert import PortAlert
 from ambari_agent.alerts.script_alert import ScriptAlert
@@ -893,6 +894,112 @@ class TestAlerts(TestCase):
     self.assertEquals('bar is rendered-bar2, baz is rendered-baz2', alerts[0]['text'])
 
 
+  def test_uri_structure_parsing(self):
+    uri_structure = {
+      "http": "{{hdfs-site/dfs.namenode.http.address}}",
+      "https": "{{hdfs-site/dfs.namenode.https.address}}",
+      "https_property": "{{hdfs-site/dfs.http.policy}}",
+      "https_property_value": "HTTPS_ONLY",
+      "high_availability": {
+        "nameservice": "{{hdfs-site/dfs.nameservices}}",
+        "alias_key" : "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
+        "http_pattern" : "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
+        "https_pattern" : "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
+      }
+    }
+
+    configuration = {'hdfs-site' :
+      { 'dfs.namenode.http.address' : '1.2.3.4:80',
+        'dfs.namenode.https.address' : '1.2.3.4:443' }
+    }
+
+    collector = AlertCollector()
+    cluster_configuration = self.__get_cluster_configuration()
+    self.__update_cluster_configuration(cluster_configuration, configuration)
+
+    alert = MockAlert()
+    alert.set_helpers(collector, cluster_configuration)
+    alert.set_cluster("c1", "c6401.ambari.apache.org")
+    uri_keys = alert._lookup_uri_property_keys(uri_structure)
+    self.assertFalse(alert._check_uri_ssl_property(uri_keys))
+
+    uri = alert._get_uri_from_structure(uri_keys)
+    self.assertEqual( '1.2.3.4:80', uri.uri )
+    self.assertEqual( False, uri.is_ssl_enabled )
+
+    configuration = {'hdfs-site' :
+      { 'dfs.http.policy' : 'HTTP_ONLY',
+        'dfs.namenode.http.address' : '1.2.3.4:80',
+        'dfs.namenode.https.address' : '1.2.3.4:443' }
+    }
+
+    self.__update_cluster_configuration(cluster_configuration, configuration)
+    uri_keys = alert._lookup_uri_property_keys(uri_structure)
+    self.assertFalse(alert._check_uri_ssl_property(uri_keys))
+
+    uri = alert._get_uri_from_structure(uri_keys)
+    self.assertEqual( '1.2.3.4:80', uri.uri )
+    self.assertEqual( False, uri.is_ssl_enabled )
+
+    # switch to SSL
+    configuration = {'hdfs-site' :
+      { 'dfs.http.policy' : 'HTTPS_ONLY',
+        'dfs.namenode.http.address' : '1.2.3.4:80',
+        'dfs.namenode.https.address' : '1.2.3.4:443' }
+    }
+
+    self.__update_cluster_configuration(cluster_configuration, configuration)
+    uri_keys = alert._lookup_uri_property_keys(uri_structure)
+    self.assertTrue(alert._check_uri_ssl_property(uri_keys))
+
+    uri = alert._get_uri_from_structure(uri_keys)
+    self.assertEqual( '1.2.3.4:443', uri.uri )
+    self.assertEqual( True, uri.is_ssl_enabled )
+
+    # test HA
+    configuration = {'hdfs-site' :
+      { 'dfs.http.policy' : 'HTTP_ONLY',
+        'dfs.namenode.http.address' : '1.2.3.4:80',
+        'dfs.namenode.https.address' : '1.2.3.4:443',
+        'dfs.nameservices' : 'c1ha',
+        'dfs.ha.namenodes.c1ha' : 'nn1, nn2',
+        'dfs.namenode.http-address.c1ha.nn1' : 'c6401.ambari.apache.org:8080',
+        'dfs.namenode.http-address.c1ha.nn2' : 'c6402.ambari.apache.org:8080',
+      }
+    }
+
+    self.__update_cluster_configuration(cluster_configuration, configuration)
+    uri_keys = alert._lookup_uri_property_keys(uri_structure)
+    self.assertFalse(alert._check_uri_ssl_property(uri_keys))
+
+    uri = alert._get_uri_from_structure(uri_keys)
+    self.assertEqual( 'c6401.ambari.apache.org:8080', uri.uri )
+    self.assertEqual( False, uri.is_ssl_enabled )
+
+    # test HA SSL
+    configuration = {'hdfs-site' :
+      { 'dfs.http.policy' : 'HTTPS_ONLY',
+        'dfs.namenode.http.address' : '1.2.3.4:80',
+        'dfs.namenode.https.address' : '1.2.3.4:443',
+        'dfs.nameservices' : 'c1ha',
+        'dfs.ha.namenodes.c1ha' : 'nn1, nn2',
+        'dfs.namenode.http-address.c1ha.nn1' : 'c6401.ambari.apache.org:8080',
+        'dfs.namenode.http-address.c1ha.nn2' : 'c6402.ambari.apache.org:8080',
+        'dfs.namenode.https-address.c1ha.nn1' : 'c6401.ambari.apache.org:8443',
+        'dfs.namenode.https-address.c1ha.nn2' : 'c6402.ambari.apache.org:8443',
+      }
+    }
+
+    self.__update_cluster_configuration(cluster_configuration, configuration)
+    uri_keys = alert._lookup_uri_property_keys(uri_structure)
+    self.assertTrue(alert._check_uri_ssl_property(uri_keys))
+
+    uri = alert._get_uri_from_structure(uri_keys)
+    self.assertEqual( 'c6401.ambari.apache.org:8443', uri.uri )
+    self.assertEqual( True, uri.is_ssl_enabled )
+
+
+
   def __get_cluster_configuration(self):
     """
     Gets an instance of the cluster cache where the file read and write
@@ -922,3 +1029,14 @@ class TestAlerts(TestCase):
       return file_mock
     else:
       return self.original_open(file, mode)
+
+
+class MockAlert(BaseAlert):
+  """
+  Mock class for testing
+  """
+  def __init__(self):
+    super(MockAlert, self).__init__(None, None)
+
+  def get_name(self):
+    return "mock_alert"
