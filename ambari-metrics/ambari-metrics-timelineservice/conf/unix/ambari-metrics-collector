@@ -18,9 +18,9 @@
 PIDFILE=/var/run/ambari-metrics-collector/ambari-metrics-collector.pid
 OUTFILE=/var/log/ambari-metrics-collector/ambari-metrics-collector.out
 
-HBASE_ZK_PID=/var/run/ams-hbase/hbase-hbase-zookeeper.pid
-HBASE_MASTER_PID=/var/run/ams-hbase/hbase-hbase-master.pid
-HBASE_RS_PID=/var/run/ams-hbase/hbase-hbase-regionserver.pid
+HBASE_ZK_PID=/var/run/ams-hbase/hbase-${USER}-zookeeper.pid
+HBASE_MASTER_PID=/var/run/ams-hbase/hbase-${USER}-master.pid
+HBASE_RS_PID=/var/run/ams-hbase/hbase-${USER}-regionserver.pid
 
 HBASE_DIR=/usr/lib/ams-hbase
 
@@ -142,6 +142,92 @@ function daemon_status()
   return 3
 }
 
+function start()
+{
+  hadoop_java_setup
+
+
+  # hbase_daemon "zookeeper" "start"
+  #	hbase_daemon "master" "start"
+  #	hbase_daemon "regionserver" "start"
+  if [ !"${DISTRIBUTED_HBASE}" ]; then
+    echo "Starting HBase."
+    hbase_daemon "master" "start"
+  else
+    echo "Launching in distributed mode. Assuming Hbase daemons up and running."
+  fi
+
+	CLASS='org.apache.hadoop.yarn.server.applicationhistoryservice.ApplicationHistoryServer'
+	# YARN_OPTS="${YARN_OPTS} ${YARN_TIMELINESERVER_OPTS}"
+	# if [[ -n "${YARN_TIMELINESERVER_HEAPSIZE}" ]]; then
+	#   JAVA_HEAP_MAX="-Xmx${YARN_TIMELINESERVER_HEAPSIZE}m"
+	# fi
+
+	# check if this is needed?
+	# export PHOENIX_JAR_PATH=/usr/lib/ambari-metrics/timelineservice/phoenix-client.jar
+	# export HBASE_CONF_DIR=${HBASE_DIR}/conf
+
+  daemon_status "${PIDFILE}"
+  if [[ $? == 0  ]]; then
+    echo "AMS is running as process $(cat "${PIDFILE}"). Exiting"
+    exit 0
+  else
+    # stale pid file, so just remove it and continue on
+    rm -f "${PIDFILE}" >/dev/null 2>&1
+  fi
+
+  nohup "${JAVA}" "-cp" "/usr/lib/ambari-metrics-collector/*:${COLLECTOR_CONF_DIR}" "${AMS_COLLECTOR_OPTS}" "-Djava.net.preferIPv4Stack=true" "-Dams.log.dir=${AMS_COLLECTOR_LOG_DIR}" "-Dproc_${DAEMON_NAME}" "${CLASS}" "$@" > $OUTFILE 2>&1 &
+  PID=$!
+  write_pidfile "${PIDFILE}"
+  sleep 2
+
+  echo "Verifying ${METRIC_COLLECTOR} process status..."
+  if [ -z "`ps ax -o pid | grep ${PID}`" ]; then
+    if [ -s ${OUTFILE} ]; then
+      echo "ERROR: ${METRIC_COLLECTOR} start failed. For more details, see ${OUTFILE}:"
+      echo "===================="
+      tail -n 10 ${OUTFILE}
+      echo "===================="
+    else
+      echo "ERROR: ${METRIC_COLLECTOR} start failed"
+      rm -f ${PIDFILE}
+    fi
+    echo "Collector out at: ${OUTFILE}"
+    exit -1
+  fi
+
+  echo "Collector successfully started."
+}
+
+function stop()
+{
+  pidfile=${PIDFILE}
+
+  if [[ -f "${pidfile}" ]]; then
+    pid=$(cat "$pidfile")
+
+    kill "${pid}" >/dev/null 2>&1
+    sleep "${STOP_TIMEOUT}"
+
+    if kill -0 "${pid}" > /dev/null 2>&1; then
+      echo "WARNING: ${METRIC_COLLECTOR} did not stop gracefully after ${STOP_TIMEOUT} seconds: Trying to kill with kill -9"
+      kill -9 "${pid}" >/dev/null 2>&1
+    fi
+
+    if ps -p "${pid}" > /dev/null 2>&1; then
+      echo "ERROR: Unable to kill ${pid}"
+    else
+      rm -f "${pidfile}" >/dev/null 2>&1
+    fi
+  fi
+
+  #stop hbase daemons
+  if [ !"${DISTRIBUTED_HBASE}" ]; then
+    echo "Stopping HBase master"
+    hbase_daemon "master" "stop"
+  fi
+}
+
 while [[ -z "${_ams_configs_done}" ]]; do
   case $1 in
     --config)
@@ -182,9 +268,9 @@ if [[ -n "${AMS_COLLECTOR_PID_DIR}" ]]; then
 fi
 
 if [[ -n "${AMS_HBASE_PID_DIR}" ]]; then
-  HBASE_ZK_PID=${AMS_HBASE_PID_DIR}/hbase-hbase-zookeeper.pid
-  HBASE_MASTER_PID=${AMS_HBASE_PID_DIR}/hbase-hbase-master.pid
-  HBASE_RS_PID=${AMS_HBASE_PID_DIR}/hbase-hbase-regionserver.pid
+  HBASE_ZK_PID=${AMS_HBASE_PID_DIR}/hbase-${USER}-zookeeper.pid
+  HBASE_MASTER_PID=${AMS_HBASE_PID_DIR}/hbase-${USER}-master.pid
+  HBASE_RS_PID=${AMS_HBASE_PID_DIR}/hbase-${USER}-regionserver.pid
 fi
 
 # set out file path
@@ -196,88 +282,19 @@ fi
 case "$1" in
 
 	start)
-		hadoop_java_setup
-
-
-#     hbase_daemon "zookeeper" "start"
-#		  hbase_daemon "master" "start"
-#		  hbase_daemon "regionserver" "start"
-    if [ !"${DISTRIBUTED_HBASE}" ]; then
-      echo "Starting HBase."
-      hbase_daemon "master" "start"
-    else
-      echo "Launching in distributed mode. Assuming Hbase daemons up and running."
-    fi
-
-		CLASS='org.apache.hadoop.yarn.server.applicationhistoryservice.ApplicationHistoryServer'
-		# YARN_OPTS="${YARN_OPTS} ${YARN_TIMELINESERVER_OPTS}"
-		# if [[ -n "${YARN_TIMELINESERVER_HEAPSIZE}" ]]; then
-		#   JAVA_HEAP_MAX="-Xmx${YARN_TIMELINESERVER_HEAPSIZE}m"
-		# fi
-		
-		# check if this is needed?
-		# export PHOENIX_JAR_PATH=/usr/lib/ambari-metrics/timelineservice/phoenix-client.jar
-		# export HBASE_CONF_DIR=${HBASE_DIR}/conf
-
+    daemon_status "${HBASE_MASTER_PID}"
+    HBASE_DAEMON_STATUS=$?
     daemon_status "${PIDFILE}"
-    if [[ $? == 0  ]]; then
-        echo "AMS is running as process $(cat "${PIDFILE}"). Exiting"
-        exit 0
-    else
-        # stale pid file, so just remove it and continue on
-        rm -f "${PIDFILE}" >/dev/null 2>&1
+    DAEMON_STATUS=$?
+
+    if [[ !"${DISTRIBUTED_HBASE}"  && ( ${DAEMON_STATUS} != 0 || ${HBASE_DAEMON_STATUS} != 0 ) ]]; then
+      stop
     fi
-
-    nohup "${JAVA}" "-cp" "/usr/lib/ambari-metrics-collector/*:${COLLECTOR_CONF_DIR}" "${AMS_COLLECTOR_OPTS}" "-Djava.net.preferIPv4Stack=true" "-Dams.log.dir=${AMS_COLLECTOR_LOG_DIR}" "-Dproc_${DAEMON_NAME}" "${CLASS}" "$@" > $OUTFILE 2>&1 &
-    PID=$!
-    write_pidfile "${PIDFILE}"
-    sleep 2
-
-    echo "Verifying ${METRIC_COLLECTOR} process status..."
-    if [ -z "`ps ax -o pid | grep ${PID}`" ]; then
-      if [ -s ${OUTFILE} ]; then
-        echo "ERROR: ${METRIC_COLLECTOR} start failed. For more details, see ${OUTFILE}:"
-        echo "===================="
-        tail -n 10 ${OUTFILE}
-        echo "===================="
-      else
-        echo "ERROR: ${METRIC_COLLECTOR} start failed"
-        rm -f ${PIDFILE}
-      fi
-      echo "Collector out at: ${OUTFILE}"
-      exit -1
-    fi
-
-    echo "Collector successfully started."
+    start
 
   ;;
 	stop)
-	    pidfile=${PIDFILE}
-
-	    if [[ -f "${pidfile}" ]]; then
-          pid=$(cat "$pidfile")
-
-          kill "${pid}" >/dev/null 2>&1
-          sleep "${STOP_TIMEOUT}"
-
-          if kill -0 "${pid}" > /dev/null 2>&1; then
-            echo "WARNING: ${METRIC_COLLECTOR} did not stop gracefully after ${STOP_TIMEOUT} seconds: Trying to kill with kill -9"
-            kill -9 "${pid}" >/dev/null 2>&1
-          fi
-
-          if ps -p "${pid}" > /dev/null 2>&1; then
-            echo "ERROR: Unable to kill ${pid}"
-          else
-            rm -f "${pidfile}" >/dev/null 2>&1
-          fi
-      fi
-
-      #stop hbase daemons
-      if [ !"${DISTRIBUTED_HBASE}" ]; then
-        echo "Stopping HBase master"
-        hbase_daemon "master" "stop"
-      fi
-
+    stop
 
     ;;
 	status)
@@ -290,6 +307,8 @@ case "$1" in
         #print embedded hbase daemons statuses?
     ;;
 	restart)
+	  stop
+	  start
 	;;
 
 esac
