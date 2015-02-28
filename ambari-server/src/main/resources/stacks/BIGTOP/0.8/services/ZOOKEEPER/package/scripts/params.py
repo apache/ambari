@@ -77,7 +77,7 @@ security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 smokeuser = config['configurations']['cluster-env']['smokeuser']
-kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path()
 
 #log4j.properties
 if (('zookeeper-log4j' in config['configurations']) and ('content' in config['configurations']['zookeeper-log4j'])):

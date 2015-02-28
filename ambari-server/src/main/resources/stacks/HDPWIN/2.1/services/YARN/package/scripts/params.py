@@ -38,7 +38,7 @@ hadoop_ssl_enabled = default("/configurations/core-site/hadoop.ssl.enabled", Fal
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
 smoke_user_keytab = config['configurations']['hadoop-env']['smokeuser_keytab']
-kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path()
 rm_host = config['clusterHostInfo']['rm_host'][0]
 rm_port = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'].split(':')[-1]
 rm_https_port = "8090"

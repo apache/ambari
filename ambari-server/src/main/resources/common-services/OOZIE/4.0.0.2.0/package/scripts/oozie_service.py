@@ -70,7 +70,8 @@ def oozie_service(action = 'start', rolling_restart=False):
       Execute( cmd1, user = params.oozie_user, not_if = no_op_test,
         ignore_failures = True )
 
-      not_if_command = format("{kinit_if_needed} hadoop --config {hadoop_conf_dir} dfs -ls /user/oozie/share | awk 'BEGIN {{count=0;}} /share/ {{count++}} END {{if (count > 0) {{exit 0}} else {{exit 1}}}}'")
+      not_if_command = as_user(format("{kinit_if_needed} hadoop --config {hadoop_conf_dir} dfs -ls /user/oozie/share | awk 'BEGIN {{count=0;}} /share/ {{count++}} END {{if (count > 0) {{exit 0}} else {{exit 1}}}}'"),
+                               params.oozie_user)
       Execute( cmd2, user = params.oozie_user, not_if = not_if_command,
         path = params.execute_path )
     

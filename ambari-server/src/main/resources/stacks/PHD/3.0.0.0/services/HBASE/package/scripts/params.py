@@ -102,7 +102,7 @@ master_keytab_path = config['configurations']['hbase-site']['hbase.master.keytab
 regionserver_keytab_path = config['configurations']['hbase-site']['hbase.regionserver.keytab.file']
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 hbase_user_keytab = config['configurations']['hbase-env']['hbase_user_keytab']
-kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path()
 if security_enabled:
   kinit_cmd = format("{kinit_path_local} -kt {hbase_user_keytab} {hbase_principal_name};")
 else:
@@ -123,7 +123,6 @@ hostname = config["hostname"]
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
-kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 import functools
 #create partial functions with common arguments for every HdfsDirectory call
 #to create hdfs directory we need to call params.HdfsDirectory in code

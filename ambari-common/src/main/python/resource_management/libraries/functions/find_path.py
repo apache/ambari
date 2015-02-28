@@ -20,15 +20,22 @@ Ambari Agent
 
 """
 
-__all__ = ["get_kdestroy_path"]
-from find_path import find_path
+__all__ = ["find_path"]
+import os
 
 
-def get_kdestroy_path():
+def find_path(search_directories, filename):
   """
-  Searches for the kdestroy executable using a default set of of paths to search:
-    /usr/bin
-    /usr/kerberos/bin
-    /usr/sbin
+  @param search_directories: comma separated list of (absolute paths to) directories to search (in order of preference)
+  @param filename: the name of the file for which to search
   """
-  return find_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"], "kdestroy")
+  path = ""
+
+  for current_directory in search_directories:
+    if current_directory:  # current_directory neither None nor empty
+      current_path = os.path.join(current_directory, filename)
+      if os.path.isfile(current_path):
+        path = current_path
+        break
+
+  return path

@@ -101,7 +101,7 @@ catalina_properties_common_loader = "/usr/lib/hive-hcatalog/share/hcatalog/*.jar
 if (len(hive_jar_files) != 0):
     catalina_properties_common_loader = hive_jar_files + "," + catalina_properties_common_loader
 
-kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path()
 oozie_service_keytab = config['configurations']['oozie-site']['oozie.service.HadoopAccessorService.keytab.file']
 oozie_principal = config['configurations']['oozie-site']['oozie.service.HadoopAccessorService.kerberos.principal']
 smokeuser_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
@@ -118,7 +118,6 @@ oozie_log_dir = config['configurations']['oozie-env']['oozie_log_dir']
 oozie_data_dir = config['configurations']['oozie-env']['oozie_data_dir']
 oozie_server_port = get_port_from_url(config['configurations']['oozie-site']['oozie.base.url'])
 oozie_server_admin_port = config['configurations']['oozie-env']['oozie_admin_port']
-oozie_env_sh_template = config['configurations']['oozie-env']['content']
 fs_root = config['configurations']['core-site']['fs.defaultFS']
 
 put_shared_lib_to_hdfs_cmd = format("{oozie_setup_sh} sharelib create -fs {fs_root} -locallib {oozie_shared_lib}")
@@ -145,14 +144,11 @@ if (('oozie-log4j' in config['configurations']) and ('content' in config['config
 else:
   log4j_props = None
 
-oozie_hdfs_user_dir = format("/user/{oozie_user}")
 oozie_hdfs_user_mode = 0775
 #for create_hdfs_directory
-hostname = config["hostname"]
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
-kinit_path_local = functions.get_kinit_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 import functools
 #create partial functions with common arguments for every HdfsDirectory call
 #to create hdfs directory we need to call params.HdfsDirectory in code

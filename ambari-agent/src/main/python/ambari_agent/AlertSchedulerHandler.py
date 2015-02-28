@@ -268,7 +268,7 @@ class AlertSchedulerHandler():
       source['host_scripts_directory'] = self.host_scripts_dir
       alert = ScriptAlert(json_definition, source, self.config)
     elif source_type == AlertSchedulerHandler.TYPE_WEB:
-      alert = WebAlert(json_definition, source)
+      alert = WebAlert(json_definition, source, self.config)
 
     if alert is not None:
       alert.set_cluster(clusterName, hostName)

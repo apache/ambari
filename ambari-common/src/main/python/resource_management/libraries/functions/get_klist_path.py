@@ -20,15 +20,15 @@ Ambari Agent
 
 """
 
-__all__ = ["get_kdestroy_path"]
+__all__ = ["get_klist_path"]
 from find_path import find_path
 
 
-def get_kdestroy_path():
+def get_klist_path():
   """
-  Searches for the kdestroy executable using a default set of of paths to search:
+  Searches for the klist executable using a default set of of paths to search:
     /usr/bin
     /usr/kerberos/bin
     /usr/sbin
   """
-  return find_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"], "kdestroy")
+  return find_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"], "klist")
