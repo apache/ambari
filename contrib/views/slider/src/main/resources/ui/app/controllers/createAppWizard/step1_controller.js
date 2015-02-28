@@ -53,6 +53,18 @@ App.CreateAppWizardStep1Controller = Ember.Controller.extend(App.AjaxErrorHandle
   nameErrorMessage: '',
 
   /**
+   * Define if <code>frequency</code> value is valid
+   * @type {Boolean}
+   */
+  isFrequencyError: false,
+
+  /**
+   * Error message describing frequency validation error
+   * @type {String}
+   */
+  frequencyErrorMessage: '',
+
+  /**
    * Determines if request for validating new App name is sent
    * If true - "Next" button should be disabled
    * Set to false after request is finished
@@ -81,8 +93,9 @@ App.CreateAppWizardStep1Controller = Ember.Controller.extend(App.AjaxErrorHandle
    * @type {bool}
    */
   isSubmitDisabled: function () {
-    return this.get('validateAppNameRequestExecuting') || !this.get('newApp.name') || this.get('isNameError') || this.get('isAppTypesError');
-  }.property('newApp.name', 'isNameError', 'isAppTypesError', 'validateAppNameRequestExecuting'),
+    return this.get('validateAppNameRequestExecuting') || !this.get('newApp.name') || this.get('isNameError') ||
+      this.get('isFrequencyError') || this.get('isAppTypesError');
+  }.property('newApp.name', 'isNameError', 'isAppTypesError', 'validateAppNameRequestExecuting', 'isFrequencyError'),
 
   /**
    * Initialize new App and set it to <code>newApp</code>
@@ -143,6 +156,22 @@ App.CreateAppWizardStep1Controller = Ember.Controller.extend(App.AjaxErrorHandle
     this.set('isNameError', false);
     return true;
   }.observes('newApp.name'),
+
+  /**
+   * Validate <code>frequency</code> value
+   * It should be numeric
+   * @method frequencyValidator
+   * @return {Boolean}
+   */
+  frequencyValidator: function () {
+    var frequency = this.get('newApp.frequency');
+    var isFrequencyError = frequency && /\D/.test(frequency);
+    this.setProperties({
+      isFrequencyError: isFrequencyError,
+      frequencyErrorMessage: isFrequencyError ? Em.I18n.t('wizard.step1.frequencyError') : ''
+    });
+    return !isFrequencyError;
+  }.observes('newApp.frequency'),
 
   /**
    * Proceed if app name has passed server validation

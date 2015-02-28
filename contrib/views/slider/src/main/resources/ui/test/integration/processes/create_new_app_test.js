@@ -88,7 +88,7 @@ var selectors = {
     type: 'HBASE',
     includeFilePatterns: 'includeFilePatterns1',
     excludeFilePatterns: 'excludeFilePatterns1',
-    frequency: 'frequency1',
+    frequency: '1',
     queueName: 'queueName1',
     specialLabel: 'specialLabel1',
     selectedYarnLabel: 'selectedYarnLabel1',
