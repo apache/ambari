@@ -508,7 +508,7 @@ class TestAlerts(TestCase):
     cluster_configuration = self.__get_cluster_configuration()
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
-    alert = WebAlert(definition_json, definition_json['source'])
+    alert = WebAlert(definition_json, definition_json['source'], None)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
     alert.collect()
@@ -524,7 +524,7 @@ class TestAlerts(TestCase):
 
     wa_make_web_request_mock.return_value = WebResponse(500,1.234,None)
     collector = AlertCollector()
-    alert = WebAlert(definition_json, definition_json['source'])
+    alert = WebAlert(definition_json, definition_json['source'], None)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
     alert.collect()
@@ -539,7 +539,7 @@ class TestAlerts(TestCase):
     wa_make_web_request_mock.return_value = WebResponse(0,0,'error message')
      
     collector = AlertCollector()
-    alert = WebAlert(definition_json, definition_json['source'])
+    alert = WebAlert(definition_json, definition_json['source'], None)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
     alert.collect()
@@ -560,7 +560,7 @@ class TestAlerts(TestCase):
     self.__update_cluster_configuration(cluster_configuration, configuration)
 
     collector = AlertCollector()
-    alert = WebAlert(definition_json, definition_json['source'])
+    alert = WebAlert(definition_json, definition_json['source'], None)
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
 
@@ -821,7 +821,7 @@ class TestAlerts(TestCase):
     self.assertEquals(alert._get_reporting_text(alert.RESULT_CRITICAL), 'Connection failed: {0} to {1}:{2}')
 
     definition_json['source']['type'] = 'WEB'
-    alert = WebAlert(definition_json, definition_json['source'])
+    alert = WebAlert(definition_json, definition_json['source'], None)
     self.assertEquals(alert._get_reporting_text(alert.RESULT_OK), 'HTTP {0} response in {2:.4f} seconds')
     self.assertEquals(alert._get_reporting_text(alert.RESULT_WARNING), 'HTTP {0} response in {2:.4f} seconds')
     self.assertEquals(alert._get_reporting_text(alert.RESULT_CRITICAL), 'Connection failed to {1}')
