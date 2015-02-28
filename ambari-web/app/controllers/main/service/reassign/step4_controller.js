@@ -191,7 +191,23 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
           principal: 'yarn.resourcemanager.webapp.spnego-principal'
         }
       ]
+    },
+    {
+      componentName: 'OOZIE_SERVER',
+      configs: [
+        {
+          site: 'oozie-site',
+          keytab: 'oozie.authentication.kerberos.keytab',
+          principal: 'oozie.authentication.kerberos.principal'
+        },
+        {
+          site: 'oozie-site',
+          keytab: 'oozie.service.HadoopAccessorService.keytab.file',
+          principal: 'oozie.service.HadoopAccessorService.kerberos.principal'
+        }
+      ]
     }
+
   ],
 
   /**
