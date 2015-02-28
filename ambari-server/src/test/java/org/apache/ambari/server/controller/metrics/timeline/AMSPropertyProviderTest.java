@@ -137,7 +137,7 @@ public class AMSPropertyProviderTest {
     uriBuilder.addParameter("appId", "HOST");
     Assert.assertEquals(uriBuilder.toString(), streamProvider.getLastSpec());
     Double val = (Double) res.getPropertyValue(PROPERTY_ID1);
-    Assert.assertEquals(40.45, val, 0.001);
+    Assert.assertEquals(41.088, val, 0.001);
   }
 
   @Test
@@ -180,7 +180,7 @@ public class AMSPropertyProviderTest {
     Assert.assertTrue(uriBuilder.toString().equals(streamProvider.getLastSpec())
         || uriBuilder2.toString().equals(streamProvider.getLastSpec()));
     Double val1 = (Double) res.getPropertyValue(PROPERTY_ID1);
-    Assert.assertEquals(40.45, val1, 0.001);
+    Assert.assertEquals(41.088, val1, 0.001);
     Double val2 = (Double)res.getPropertyValue(PROPERTY_ID2);
     Assert.assertEquals(2.47025664E8, val2, 0.1);
   }
