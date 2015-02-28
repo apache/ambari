@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.inject.Singleton;
 
 /**
@@ -25,6 +27,9 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class KerberosOperationHandlerFactory {
+
+  @Inject
+  private Injector injector;
 
   /**
    * Gets the relevant KerberosOperationHandler for some KDCType.
@@ -43,9 +48,9 @@ public class KerberosOperationHandlerFactory {
 
     switch (kdcType) {
       case MIT_KDC:
-        return new MITKerberosOperationHandler();
+        return injector.getInstance(MITKerberosOperationHandler.class);
       case ACTIVE_DIRECTORY:
-        return new ADKerberosOperationHandler();
+        return injector.getInstance(ADKerberosOperationHandler.class);
       default:
         throw new IllegalArgumentException(String.format("Unexpected kdcType value: %s", kdcType.name()));
     }

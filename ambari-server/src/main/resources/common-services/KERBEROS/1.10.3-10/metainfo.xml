@@ -52,6 +52,14 @@
                 <timeout>1000</timeout>
               </commandScript>
             </customCommand>
+            <customCommand>
+              <name>REMOVE_KEYTAB</name>
+              <commandScript>
+                <script>scripts/kerberos_client.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1000</timeout>
+              </commandScript>
+            </customCommand>
           </customCommands>
           <configFiles>
             <configFile>

@@ -179,6 +179,18 @@ public class KerberosPrincipalHostDAO {
   }
 
   /**
+   * Remove KerberosPrincipalHostEntity instance for the specified principal and host
+   *
+   * @param principalName a String indicating the name of the principal
+   * @param hostName      a String indicating the name of the host
+   * @see #remove(org.apache.ambari.server.orm.entities.KerberosPrincipalHostEntity)
+   */
+  @Transactional
+  public void remove(String principalName, String hostName) {
+    remove(new KerberosPrincipalHostEntity(principalName, hostName));
+  }
+
+  /**
    * Tests the existence of a principal on at least one host
    *
    * @param principalName a String indicating the name of the principal to test

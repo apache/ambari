@@ -18,22 +18,49 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.state.Clusters;
+import org.easymock.EasyMock;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 
 public class KerberosOperationHandlerFactoryTest {
 
 
+  private static Injector injector;
+
+  @BeforeClass
+  public static void beforeClass() throws AmbariException {
+    injector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        Configuration configuration = EasyMock.createNiceMock(Configuration.class);
+        expect(configuration.getServerOsFamily()).andReturn("redhat6").anyTimes();
+        replay(configuration);
+
+        bind(Configuration.class).toInstance(configuration);
+      }
+    });
+  }
+
   @Test
   public void testForAD() {
     Assert.assertEquals(MITKerberosOperationHandler.class,
-      new KerberosOperationHandlerFactory().getKerberosOperationHandler(KDCType.MIT_KDC).getClass());
+      injector.getInstance(KerberosOperationHandlerFactory.class).getKerberosOperationHandler(KDCType.MIT_KDC).getClass());
   }
 
   @Test
   public void testForMIT() {
     Assert.assertEquals(ADKerberosOperationHandler.class,
-      new KerberosOperationHandlerFactory().getKerberosOperationHandler(KDCType.ACTIVE_DIRECTORY).getClass());
+        injector.getInstance(KerberosOperationHandlerFactory.class).getKerberosOperationHandler(KDCType.ACTIVE_DIRECTORY).getClass());
   }
 
   @Test(expected = IllegalArgumentException.class)

@@ -26,6 +26,7 @@ import tempfile
 
 from resource_management import *
 from utils import get_property_value
+from ambari_commons.os_utils import remove_file
 
 class KerberosScript(Script):
   KRB5_REALM_PROPERTIES = [
@@ -405,3 +406,25 @@ class KerberosScript(Script):
               curr_content['keytabs'][principal.replace("_HOST", params.hostname)] = keytab_file_path
 
               self.put_structured_out(curr_content)
+
+  def delete_keytab_file(self):
+    import params
+
+    if params.kerberos_command_params is not None:
+      for item in params.kerberos_command_params:
+        keytab_file_path = get_property_value(item, 'keytab_file_path')
+        if (keytab_file_path is not None) and (len(keytab_file_path) > 0):
+
+          # Delete the keytab file
+          File(keytab_file_path, action="delete")
+
+          principal = get_property_value(item, 'principal')
+          if principal is not None:
+            curr_content = Script.structuredOut
+
+            if "keytabs" not in curr_content:
+              curr_content['keytabs'] = {}
+
+            curr_content['keytabs'][principal.replace("_HOST", params.hostname)] = '_REMOVED_'
+
+            self.put_structured_out(curr_content)

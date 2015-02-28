@@ -311,3 +311,39 @@ class TestKerberosClient(RMFTestCase):
                                                    "PK6UkwyUSMAAAA3AAEAC0VYQU1QTEUuQ09NAAlhbWJhcmkt"
                                                    "cWEAAAABVKHYCgEAEQAQVqISRJwXIQnG28lI34mfeA=="))
     )
+
+  def test_delete_keytab(self):
+    config_file = "stacks/2.2/configs/default.json"
+
+    with open(config_file, "r") as f:
+      json_data = json.load(f)
+
+    json_data['kerberosCommandParams'] = []
+    json_data['kerberosCommandParams'].append({
+      "service": "HDFS",
+      "hostname": "c6501.ambari.apache.org",
+      "component": "NAMENODE",
+      "keytab_file_path": "/etc/security/keytabs/spnego.service.keytab",
+      "principal": "HTTP/_HOST@EXAMPLE.COM"
+    })
+
+    json_data['kerberosCommandParams'].append({
+      "service": "HDFS",
+      "hostname": "c6501.ambari.apache.org",
+      "component": "NAMENODE",
+      "keytab_file_path": "/etc/security/keytabs/smokeuser.headless.keytab",
+      "principal": "ambari-qa@EXAMPLE.COM"
+    })
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/kerberos_client.py",
+                       classname="KerberosClient",
+                       command="remove_keytab",
+                       config_dict=json_data,
+                       hdp_stack_version=self.STACK_VERSION,
+                       target=RMFTestCase.TARGET_COMMON_SERVICES
+    )
+
+    self.assertResourceCalled('File', "/etc/security/keytabs/spnego.service.keytab",
+                              action=['delete'])
+    self.assertResourceCalled('File', "/etc/security/keytabs/smokeuser.headless.keytab",
+                              action=['delete'])

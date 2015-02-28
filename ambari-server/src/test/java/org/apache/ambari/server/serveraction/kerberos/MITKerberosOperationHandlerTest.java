@@ -23,21 +23,23 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.utils.ShellCommandUtil;
+import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
-import static org.mockito.Mockito.mock;
-
 
 public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTest {
 
@@ -47,21 +49,30 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
 
   private static Injector injector;
 
-  @BeforeClass
-  public static void beforeClass() throws AmbariException {
-    injector = Guice.createInjector(new MockModule());
-    MITKerberosOperationHandler.init(injector);
-  }
-
   private static final Map<String, String> KERBEROS_ENV_MAP = new HashMap<String, String>() {
     {
       put(MITKerberosOperationHandler.KERBEROS_ENV_ENCRYPTION_TYPES, null);
     }
   };
 
+  @BeforeClass
+  public static void beforeClass() throws AmbariException {
+    injector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        Configuration configuration =EasyMock.createNiceMock(Configuration.class);
+        expect(configuration.getServerOsFamily()).andReturn("redhat6").anyTimes();
+        replay(configuration);
+
+        bind(Clusters.class).toInstance(EasyMock.createNiceMock(Clusters.class));
+        bind(Configuration.class).toInstance(configuration);
+      }
+    });
+  }
+
   @Test
   public void testSetPrincipalPasswordExceptions() throws Exception {
-    MITKerberosOperationHandler handler = new MITKerberosOperationHandler();
+    MITKerberosOperationHandler handler = injector.getInstance(MITKerberosOperationHandler.class);
     handler.open(new KerberosCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD, null), DEFAULT_REALM, KERBEROS_ENV_MAP);
 
     try {
@@ -135,6 +146,8 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
         .addMockedMethod(KerberosOperationHandler.class.getDeclaredMethod("executeCommand", String[].class))
         .createNiceMock();
 
+    setConfiguration(handler, "redhat6");
+
     expect(handler.executeCommand(anyObject(String[].class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
           @Override
@@ -167,6 +180,8 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
     MITKerberosOperationHandler handler = createMockBuilder(MITKerberosOperationHandler.class)
         .addMockedMethod(KerberosOperationHandler.class.getDeclaredMethod("executeCommand", String[].class))
         .createNiceMock();
+
+    setConfiguration(handler, "redhat6");
 
     expect(handler.executeCommand(anyObject(String[].class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
@@ -201,6 +216,8 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
         .addMockedMethod(KerberosOperationHandler.class.getDeclaredMethod("executeCommand", String[].class))
         .createNiceMock();
 
+    setConfiguration(handler, "redhat6");
+
     expect(handler.executeCommand(anyObject(String[].class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
           @Override
@@ -233,6 +250,8 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
     MITKerberosOperationHandler handler = createMockBuilder(MITKerberosOperationHandler.class)
         .addMockedMethod(KerberosOperationHandler.class.getDeclaredMethod("executeCommand", String[].class))
         .createNiceMock();
+
+    setConfiguration(handler, "redhat6");
 
     expect(handler.executeCommand(anyObject(String[].class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
@@ -267,6 +286,8 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
         .addMockedMethod(KerberosOperationHandler.class.getDeclaredMethod("executeCommand", String[].class))
         .createNiceMock();
 
+    setConfiguration(handler, "redhat6");
+
     expect(handler.executeCommand(anyObject(String[].class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
           @Override
@@ -299,6 +320,8 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
     MITKerberosOperationHandler handler = createMockBuilder(MITKerberosOperationHandler.class)
         .addMockedMethod(KerberosOperationHandler.class.getDeclaredMethod("executeCommand", String[].class))
         .createNiceMock();
+
+    setConfiguration(handler, "redhat6");
 
     expect(handler.executeCommand(anyObject(String[].class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
@@ -333,6 +356,8 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
         .addMockedMethod(KerberosOperationHandler.class.getDeclaredMethod("executeCommand", String[].class))
         .createNiceMock();
 
+    setConfiguration(handler, "redhat6");
+
     expect(handler.executeCommand(anyObject(String[].class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
           @Override
@@ -365,6 +390,8 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
     MITKerberosOperationHandler handler = createMockBuilder(MITKerberosOperationHandler.class)
         .addMockedMethod(KerberosOperationHandler.class.getDeclaredMethod("executeCommand", String[].class))
         .createNiceMock();
+
+    setConfiguration(handler, "redhat6");
 
     expect(handler.executeCommand(anyObject(String[].class)))
         .andAnswer(new IAnswer<ShellCommandUtil.Result>() {
@@ -440,11 +467,11 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
     handler.close();
   }
 
-  public static class MockModule extends AbstractModule {
-    @Override
-    protected void configure() {
-      bind(Clusters.class).toInstance(mock(Clusters.class));
-    }
-  }
+  private static void setConfiguration(MITKerberosOperationHandler handler, String osType) throws Exception {
+    Configuration configuration = EasyMock.createNiceMock(Configuration.class);
+    expect(configuration.getServerOsFamily()).andReturn("redhat6").anyTimes();
+    replay(configuration);
 
+    handler.init(configuration);
+  }
 }
