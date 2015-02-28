@@ -124,6 +124,9 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         configs: {
           'oozie-site': {
             'oozie.base.url': 'http://<replace-value>:11000/oozie'
+          },
+          'core-site': {
+            'hadoop.proxyuser.oozie.hosts': '<replace-value>'
           }
         }
     },
@@ -475,6 +478,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         break;
       case 'OOZIE_SERVER':
         urlParams.push('(type=oozie-site&tag=' + data.Clusters.desired_configs['oozie-site'].tag + ')');
+        urlParams.push('(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')');
         break;
       case 'HIVE_SERVER':
       case 'HIVE_METASTORE':

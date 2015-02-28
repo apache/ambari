@@ -1784,7 +1784,15 @@ Em.I18n.translations = {
       '</div>',
   'services.reassign.step5.body.oozie_server':
     '<div class="alert alert-info">' +
-    'Copy the contents of <b>/hadoop/oozie/data/oozie-db</b> on the source host <b>{1}</b> to <b>/hadoop/oozie/data/oozie-db</b> on the target host <b>{2}</b>.' +
+    '<ol>' +
+    '<li>On <b>{1}</b> copy the contents of' +
+    '<div class="code-snippet"><b>/hadoop/oozie/data/oozie-db</b></div></li>' +
+    '<li>To the target host <b>{2}</b></li>' +
+    '<li>If the directory doesn\'t exists you can create by running' +
+    '<div class="code-snippet">mkdir -p /hadoop/oozie/data/oozie-db</div></li>' +
+    '<li>Update directory permissions by running' +
+    '<div class="code-snippet">chown -R oozie:{5} /hadoop/oozie/data</div></li>' +
+    '</ol>' +
     '</div>',
   'services.reassign.step5.body.mysql_server':
     '<div class="alert alert-info">' +

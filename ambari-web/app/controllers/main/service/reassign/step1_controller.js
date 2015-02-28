@@ -104,6 +104,8 @@ App.ReassignMasterWizardStep1Controller = Em.Controller.extend({
 
     if (databaseType !== 'derby') {
       App.router.reassignMasterController.set('content.hasManualSteps', false);
+    } else {
+      App.router.reassignMasterController.set('content.hasManualSteps', true);
     }
 
     var serviceDbProp = this.get('content.reassign.service_id').toLowerCase() + "_database";

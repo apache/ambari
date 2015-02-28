@@ -504,7 +504,8 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       {
         componentName: 'OOZIE_SERVER',
         result: [
-          "(type=oozie-site&tag=6)"
+          "(type=oozie-site&tag=6)",
+          "(type=core-site&tag=2)"
         ]
       },
       {
