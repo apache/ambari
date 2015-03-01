@@ -877,6 +877,36 @@ var urls = {
     'mock': '/data/services/metrics/hbase/regionserver_rw_requests.json',
     'testInProduction': true
   },
+  'service.metrics.ambari_metrics.master.average_load': {
+    'real': '/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/master/AverageLoad[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'mock': '/data/services/metrics/ambari_metrics/master_average_load.json',
+    'testInProduction': true
+  },
+  'service.metrics.ambari_metrics.region_server.store_files': {
+    'real': '/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/storefiles[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'mock': '/data/services/metrics/ambari_metrics/regionserver_store_files.json',
+    'testInProduction': true
+  },
+  'service.metrics.ambari_metrics.region_server.regions': {
+    'real': '/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/regions[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'mock': '/data/services/metrics/ambari_metrics/regionserver_regions.json',
+    'testInProduction': true
+  },
+  'service.metrics.ambari_metrics.region_server.request': {
+    'real': '/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/requests[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'mock': '/data/services/metrics/ambari_metrics/regionserver_requests.json',
+    'testInProduction': true
+  },
+  'service.metrics.ambari_metrics.region_server.block_cache_hit_percent': {
+    'real': '/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/blockCacheHitPercent[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'mock': '/data/services/metrics/ambari_metrics/regionserver_blockcache_hitpercent.json',
+    'testInProduction': true
+  },
+  'service.metrics.ambari_metrics.region_server.compaction_queue_size': {
+    'real': '/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/compactionQueueSize[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'mock': '/data/services/metrics/ambari_metrics/regionserver_compaction_queue_size.json',
+    'testInProduction': true
+  },
   'service.metrics.hdfs.block_status': {
     'real': '/clusters/{clusterName}/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/dfs/FSNamesystem/PendingReplicationBlocks[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/FSNamesystem/UnderReplicatedBlocks[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/hdfs/block_status.json',

@@ -60,6 +60,15 @@ App.service_graph_config = {
 		'HBASE_HlogSplitSize'
 	],
 
+  'ambari_metrics': [
+    'AMS_MasterAverageLoad',
+    'AMS_RegionServerStoreFiles',
+    'AMS_RegionServerRegions',
+    'AMS_RegionServerRequests',
+    'AMS_RegionServerBlockCacheHitPercent',
+    'AMS_RegionServerCompactionQueueSize'
+  ],
+
 	'flume': [
 		'Flume_ChannelSizeMMA',
 		'Flume_ChannelSizeSum',

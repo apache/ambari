@@ -208,6 +208,7 @@ var files = ['test/init_model_test',
   'test/views/main/service/item_test',
   'test/views/main/service/info/config_test',
   'test/views/main/service/info/summary_test',
+  'test/views/main/service/info/metrics/ambari_metrics/regionserver_base_test',
   'test/views/main/service/services/ranger_test',
   'test/views/main/admin/highAvailability/nameNode/step1_view_test',
   'test/views/main/admin/highAvailability/nameNode/step3_view_test',
@@ -263,8 +264,8 @@ var files = ['test/init_model_test',
   'test/routes/views_test',
   //contains test with fake timers that affect Date
   'test/utils/lazy_loading_test'
-
 ];
+
 App.initialize();
 describe('Ambari Web Unit tests', function() {
 
