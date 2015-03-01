@@ -20,6 +20,7 @@ limitations under the License.
 
 from resource_management import *
 import sys
+import os
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
@@ -41,7 +42,7 @@ class KnoxServiceCheck(Script):
         validateKnoxFileName = "validateKnoxStatus.py"
         validateKnoxFilePath = format("{tmp_dir}/{validateKnoxFileName}")
         python_executable = sys.executable
-        validateStatusCmd = format("{python_executable} {validateKnoxFilePath} -p {knox_host_port} -n {knox_host_name}")
+        validateStatusCmd = (format("{python_executable}"), format("{validateKnoxFilePath}"), "-p", format("{knox_host_port}"), "-n", format("{knox_host_name}"))
         if params.security_enabled:
           kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};")
           smoke_cmd = format("{kinit_cmd} {validateStatusCmd}")
@@ -55,15 +56,27 @@ class KnoxServiceCheck(Script):
           content=StaticFile(validateKnoxFileName),
           mode=0755
           )
-
-        Execute(smoke_cmd,
-          tries=3,
-          try_sleep=5,
-          path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-          user=params.smokeuser,
-          timeout=5,
-          logoutput=True
-        )
+        oldmask = os.umask (022)
+        os.umask (oldmask)
+        if oldmask == 027:
+          Execute(smoke_cmd,
+            tries=3,
+            try_sleep=5,
+            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+            user=params.smokeuser,
+            timeout=5,
+            logoutput=True,
+            sudo=True
+          )
+        else:  
+          Execute(smoke_cmd,
+            tries=3,
+            try_sleep=5,
+            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+            user=params.smokeuser,
+            timeout=5,
+            logoutput=True
+          )
 
 if __name__ == "__main__":
     KnoxServiceCheck().execute()
