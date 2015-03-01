@@ -589,6 +589,8 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     var query = [];
     var hostNames = [];
     var hostsMap = {};
+    var context = this,
+        shouldRun = false;
 
     data.items.forEach(function (host) {
       host.host_components.forEach(function (hostComponent) {
@@ -600,19 +602,28 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
           }
         }
       });
+      hostsMap[host.Hosts.host_name].healthStatus = context.dataSource.filterProperty('hostName', host.Hosts.host_name)[0].get('healthStatus');
     });
 
     for (var hostName in hostsMap) {
       var subQuery = '(HostRoles/component_name.in(%@)&HostRoles/host_name=' + hostName + ')';
       var components = hostsMap[hostName];
+      var action = operationData.get('action'),
+          healthStatus = hostsMap[hostName].healthStatus;
+
       if (components.length) {
         query.push(subQuery.fmt(components.join(',')));
       }
       hostNames.push(hostName);
-    }
 
+      if ((action === App.HostComponentStatus.started && healthStatus !== 'HEALTHY') || // start all and already started
+          (action === App.HostComponentStatus.stopped && healthStatus !== 'UNHEALTHY')) { // stop all and already stopped
+        shouldRun = true;
+      }
+    }
     hostNames = hostNames.join(",");
-    if (query.length) {
+
+    if (query.length && shouldRun) {
       query = query.join('|');
       App.ajax.send({
         name: 'common.host_components.update',
