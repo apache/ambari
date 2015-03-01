@@ -989,7 +989,8 @@ App.config = Em.Object.create({
       'smokeuser': 'Smoke Test User',
       'user_group': 'Hadoop Group',
       'mapred_user': 'MapReduce User',
-      'zk_user': 'ZooKeeper User'
+      'zk_user': 'ZooKeeper User',
+      'ignore_groupsusers_create': 'Skip group modifications during install'
     };
     if (config.property_type.contains('USER') || config.property_type.contains('GROUP')) {
       propertyData.id = "puppet var";

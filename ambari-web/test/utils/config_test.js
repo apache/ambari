@@ -833,4 +833,159 @@ describe('App.config', function () {
     });
   });
 
+  describe('#advancedConfigIdentityData', function () {
+
+    var configs = [
+      {
+        input: {
+          property_type: ['USER'],
+          property_name: 'hdfs_user'
+        },
+        output: {
+          id: 'puppet var',
+          category: 'Users and Groups',
+          isVisible: true,
+          serviceName: 'MISC',
+          isOverridable: false,
+          isReconfigurable: false,
+          displayName: 'HDFS User',
+          displayType: 'user',
+          index: 30
+        },
+        title: 'user, no service name specified, default display name behaviour'
+      },
+      {
+        input: {
+          property_type: ['GROUP'],
+          property_name: 'knox_group',
+          service_name: 'KNOX'
+        },
+        output: {
+          id: 'puppet var',
+          category: 'Users and Groups',
+          isVisible: true,
+          serviceName: 'MISC',
+          isOverridable: false,
+          isReconfigurable: false,
+          displayName: 'Knox Group',
+          displayType: 'user',
+          index: 0
+        },
+        title: 'group, service_name = KNOX, default display name behaviour'
+      },
+      {
+        input: {
+          property_type: ['USER']
+        },
+        output: {
+          isVisible: false
+        },
+        isHDPWIN: true,
+        title: 'HDPWIN stack'
+      },
+      {
+        input: {
+          property_type: ['USER'],
+          property_name: 'smokeuser',
+          service_name: 'MISC'
+        },
+        output: {
+          displayName: 'Smoke Test User',
+          serviceName: 'MISC',
+          belongsToService: ['MISC'],
+          index: 30
+        },
+        title: 'smokeuser, service_name = MISC'
+      },
+      {
+        input: {
+          property_type: ['GROUP'],
+          property_name: 'user_group'
+        },
+        output: {
+          displayName: 'Hadoop Group'
+        },
+        title: 'user_group'
+      },
+      {
+        input: {
+          property_type: ['USER'],
+          property_name: 'mapred_user'
+        },
+        output: {
+          displayName: 'MapReduce User'
+        },
+        title: 'mapred_user'
+      },
+      {
+        input: {
+          property_type: ['USER'],
+          property_name: 'zk_user'
+        },
+        output: {
+          displayName: 'ZooKeeper User'
+        },
+        title: 'zk_user'
+      },
+      {
+        input: {
+          property_type: ['USER'],
+          property_name: 'ignore_groupsusers_create'
+        },
+        output: {
+          displayName: 'Skip group modifications during install',
+          displayType: 'checkbox'
+        },
+        title: 'ignore_groupsusers_create'
+      },
+      {
+        input: {
+          property_type: ['GROUP'],
+          property_name: 'proxyuser_group'
+        },
+        output: {
+          belongsToService: ['HIVE', 'OOZIE', 'FALCON']
+        },
+        title: 'proxyuser_group'
+      },
+      {
+        input: {
+          property_type: ['PASSWORD'],
+          property_name: 'javax.jdo.option.ConnectionPassword'
+        },
+        output: {
+          displayType: 'password'
+        },
+        title: 'password'
+      }
+    ];
+
+    before(function () {
+      sinon.stub(App.StackService, 'find').returns([
+        {
+          serviceName: 'KNOX'
+        }
+      ]);
+    });
+
+    afterEach(function () {
+      App.get.restore();
+    });
+
+    after(function () {
+      App.StackService.find.restore();
+    });
+
+    configs.forEach(function (item) {
+      it(item.title, function () {
+        sinon.stub(App, 'get').withArgs('isHadoopWindowsStack').returns(Boolean(item.isHDPWIN));
+        var propertyData = App.config.advancedConfigIdentityData(item.input);
+        Em.keys(item.output).forEach(function (key) {
+          expect(propertyData[key]).to.eql(item.output[key]);
+        });
+      });
+    });
+
+  });
+
 });
