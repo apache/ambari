@@ -25,7 +25,7 @@ from status import check_service_status
 
 class AmsMonitor(Script):
   def install(self, env):
-    self.install_packages(env)
+    self.install_packages(env, exclude_packages = ['ambari-metrics-collector'])
     self.configure(env) # for security
 
   def configure(self, env):
