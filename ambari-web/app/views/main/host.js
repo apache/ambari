@@ -91,17 +91,12 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
    * called when trigger property(<code>refreshTriggers</code>) is changed
    */
   refresh: function () {
-    var self = this;
     this.set('filteringComplete', false);
     var updaterMethodName = this.get('updater.tableUpdaterMap')[this.get('tableName')];
-    this.get('updater')[updaterMethodName](function () {
-      self.set('filteringComplete', true);
-      self.propertyDidChange('pageContent');
-    }, function() {
-      self.set('requestError', arguments);
-    });
+    this.get('updater')[updaterMethodName](this.updaterSuccessCb.bind(this), this.updaterErrorCb.bind(this));
     return true;
   },
+
   /**
    * reset filters value by column to which filter belongs
    * @param columns {Array}

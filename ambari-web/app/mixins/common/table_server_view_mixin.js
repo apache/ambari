@@ -87,6 +87,23 @@ App.TableServerViewMixin = Em.Mixin.create({
       this.refresh();
     }
   },
+
+  /**
+   * success callback for updater request
+   */
+  updaterSuccessCb: function () {
+    clearTimeout(this.get('timeOut'));
+    this.set('filteringComplete', true);
+    this.propertyDidChange('pageContent');
+  },
+
+  /**
+   * error callback for updater request
+   */
+  updaterErrorCb: function () {
+    this.set('requestError', arguments);
+  },
+
   /**
    * synchronize properties of view with controller to generate query parameters
    */

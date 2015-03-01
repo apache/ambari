@@ -162,6 +162,24 @@ describe('App.MainConfigHistoryView', function() {
       expect(view.get('controller.resetStartIndex')).to.be.true;
       expect(view.refresh.calledOnce).to.be.true;
     });
+
+    it('clear filters - refresh() clears timer', function () {
+      this.clock = sinon.useFakeTimers();
+
+      //clear filters simulation
+      view.set('filteringComplete', false);
+      view.updateFilter(0, '', 'string');
+
+      //filters cleared success
+      view.updaterSuccessCb();
+
+      //timeout in updateFilter() runs out
+      this.clock.tick(view.get('filterWaitingTime'));
+
+      //should not call update filter again
+      expect(view.updateFilter.calledOnce).to.be.true;
+      this.clock.restore();
+    })
   });
 
   describe('#resetStartIndex()', function() {
