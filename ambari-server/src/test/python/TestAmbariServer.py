@@ -298,15 +298,9 @@ class TestAmbariServer(TestCase):
 
     get_validated_string_input_mock.return_value = '2'
     _ambari_server_.setup_security(args)
-    self.assertTrue(setup_component_https_mock.called)
-    setup_component_https_mock.assert_called_with("Ganglia", "setup-ganglia-https",
-                          GANGLIA_HTTPS, "ganglia_cert")
-
-    get_validated_string_input_mock.return_value = '3'
-    _ambari_server_.setup_security(args)
     self.assertTrue(setup_master_key_mock.called)
 
-    get_validated_string_input_mock.return_value = '4'
+    get_validated_string_input_mock.return_value = '3'
     _ambari_server_.setup_security(args)
     self.assertTrue(setup_ambari_krb5_jaas_mock.called)
     pass
