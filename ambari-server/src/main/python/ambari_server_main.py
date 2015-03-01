@@ -268,7 +268,8 @@ def wait_for_server_start(pidFile, scmStatus):
     raise FatalException(-1, AMBARI_SERVER_DIE_MSG.format(exitcode, configDefaults.SERVER_OUT_FILE))
   else:
     save_main_pid_ex(pids, pidFile, [locate_file('sh', '/bin'),
-                                     locate_file('bash', '/bin')], True)
+                                     locate_file('bash', '/bin'),
+                                     locate_file('dash', '/bin')], True)
 
 
 def server_process_main(options, scmStatus=None):
