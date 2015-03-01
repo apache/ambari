@@ -496,7 +496,3 @@ def setup_component_https(component, command, property, alias):
     properties.store(f, "Changed by 'ambari-server " + command + "' command")
   else:
     print command + " is not enabled in silent mode."
-
-def setup_ganglia_https():
-  setup_component_https("Ganglia", "setup-ganglia-https", GANGLIA_HTTPS,
-                        "ganglia_cert")
