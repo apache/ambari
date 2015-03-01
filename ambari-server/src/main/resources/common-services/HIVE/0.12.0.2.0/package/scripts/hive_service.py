@@ -20,6 +20,7 @@ limitations under the License.
 
 from resource_management import *
 import sys
+import os
 import time
 from resource_management.core import shell
 
@@ -54,9 +55,18 @@ def hive_service(name, action='start', rolling_restart=False):
       hive_kinit_cmd = format("{kinit_path_local} -kt {hive_server2_keytab} {hive_principal}; ")
       Execute(hive_kinit_cmd, user=params.hive_user)
 
-    Execute(demon_cmd, user=params.hive_user,
-      environment={'HADOOP_HOME': params.hadoop_home}, path=params.execute_path,
-      not_if=process_id_exists_command )
+    # need tuple to run as sudo if (need if UMASK is not 022)
+    oldmask = os.umask (022)
+    os.umask (oldmask)
+    if oldmask == 027:
+      Execute(tuple(demon_cmd.split()), user=params.hive_user,
+        environment={'HADOOP_HOME': params.hadoop_home}, path=params.execute_path,
+        not_if=process_id_exists_command,
+        sudo=True )
+    else:
+      Execute(demon_cmd, user=params.hive_user,
+        environment={'HADOOP_HOME': params.hadoop_home}, path=params.execute_path,
+        not_if=process_id_exists_command )      
 
     if params.hive_jdbc_driver == "com.mysql.jdbc.Driver" or \
        params.hive_jdbc_driver == "org.postgresql.Driver" or \

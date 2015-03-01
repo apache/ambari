@@ -60,6 +60,42 @@ class TestHiveMetastore(RMFTestCase):
 
     self.assertNoMoreResources()
 
+  @patch("os.umask")
+  def test_start_default_umask_027(self, umask_mock):
+    umask_mock.return_value = 027
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_metastore.py",
+                       classname = "HiveMetastore",
+                       command = "start",
+                       config_file="../../2.1/configs/default.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+
+    self.assert_configure_default()
+    self.assertResourceCalled('Execute', (u'env',
+                                          u'HADOOP_HOME=/usr',
+                                          u'JAVA_HOME=/usr/jdk64/jdk1.7.0_45',
+                                          u'/tmp/start_metastore_script',
+                                          u'/var/log/hive/hive.out',
+                                          u'/var/log/hive/hive.log',
+                                          u'/var/run/hive/hive.pid',
+                                          u'/etc/hive/conf.server',
+                                          u'/var/log/hive'),
+                              environment = {'HADOOP_HOME': '/usr'},
+                              not_if = 'ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1',
+                              sudo = True,
+                              user = 'hive',
+                              path = ['/bin:/usr/lib/hive/bin:/usr/bin'],
+                              )
+
+    self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/lib/hive/lib//mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive aaa com.mysql.jdbc.Driver',
+                              path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+                              tries = 5,
+                              try_sleep = 10,
+                              )
+
+    self.assertNoMoreResources()
+
   def test_stop_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_metastore.py",
                        classname = "HiveMetastore",
