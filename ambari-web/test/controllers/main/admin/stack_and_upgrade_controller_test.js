@@ -365,12 +365,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
             group_id: 1,
             upgradeItems: [
               Em.Object.create({
-                stage_id: 1,
-                tasks: [
-                  Em.Object.create({
-                    id: 1
-                  })
-                ]
+                stage_id: 1
               })
             ]
           })
@@ -393,15 +388,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
                   stage_id: 1,
                   status: 'COMPLETED',
                   progress_percent: 100
-                },
-                tasks: [
-                  {
-                    Tasks: {
-                      id: 1,
-                      status: 'COMPLETED'
-                    }
-                  }
-                ]
+                }
               }
             ]
           }
@@ -413,7 +400,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(controller.get('upgradeData.upgradeGroups')[0].get('progress_percent')).to.equal(100);
       expect(controller.get('upgradeData.upgradeGroups')[0].get('upgradeItems')[0].get('status')).to.equal('COMPLETED');
       expect(controller.get('upgradeData.upgradeGroups')[0].get('upgradeItems')[0].get('progress_percent')).to.equal(100);
-      expect(controller.get('upgradeData.upgradeGroups')[0].get('upgradeItems')[0].get('tasks')[0].get('status')).to.equal('COMPLETED');
     });
   });
 
@@ -432,26 +418,12 @@ describe('App.MainAdminStackAndUpgradeController', function() {
               {
                 UpgradeItem: {
                   stage_id: 1
-                },
-                tasks: [
-                  {
-                    Tasks: {
-                      id: 1
-                    }
-                  }
-                ]
+                }
               },
               {
                 UpgradeItem: {
                   stage_id: 2
-                },
-                tasks: [
-                  {
-                    Tasks: {
-                      id: 2
-                    }
-                  }
-                ]
+                }
               }
             ]
           },
@@ -459,9 +431,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
             UpgradeGroup: {
               group_id: 2
             },
-            upgrade_items: [
-
-            ]
+            upgrade_items: []
           }
         ]
       };
@@ -471,7 +441,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(controller.get('upgradeData.upgradeGroups')[1].get('group_id')).to.equal(1);
       expect(controller.get('upgradeData.upgradeGroups')[1].get('upgradeItems')[0].get('stage_id')).to.equal(2);
       expect(controller.get('upgradeData.upgradeGroups')[1].get('upgradeItems')[1].get('stage_id')).to.equal(1);
-      expect(controller.get('upgradeData.upgradeGroups')[1].get('upgradeItems')[0].get('tasks')[0].get('id')).to.equal(2);
     });
   });
 

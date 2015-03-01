@@ -189,7 +189,7 @@ App.MainAdminStackVersionsView = Em.View.extend({
   doPolling: function () {
     var self = this;
     this.set('updateTimer', window.setTimeout(function () {
-      self.poll();
+      self.poll.apply(self);
     }, App.bgOperationsUpdateInterval));
   },
 

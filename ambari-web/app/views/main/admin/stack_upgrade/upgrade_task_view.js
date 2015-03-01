@@ -57,17 +57,6 @@ App.upgradeTaskView = Em.View.extend({
   tasks: [],
 
   /**
-   * poll timer
-   * @type {number|null}
-   */
-  timer: null,
-
-  /**
-   * @type {Array}
-   */
-  taskDetailsProperties: ['status', 'stdout', 'stderr', 'error_log', 'host_name', 'output_log'],
-
-  /**
    * @type {string}
    */
   logTabId: function () {
@@ -94,62 +83,6 @@ App.upgradeTaskView = Em.View.extend({
   errorTabIdLInk: function () {
     return '#' + this.get('errorTabId');
   }.property(''),
-
-  didInsertElement: function () {
-    if (this.get('outsideView')) this.doPolling();
-  },
-
-  /**
-   * poll for task details when task is expanded
-   */
-  doPolling: function () {
-    var self = this;
-
-    if (this.get('content.isExpanded') || this.get('outsideView')) {
-      this.getTaskDetails().done(function() {
-        self.set('timer', setTimeout(function () {
-          self.doPolling();
-        }, App.bgOperationsUpdateInterval));
-      });
-    } else {
-      clearTimeout(this.get('timer'));
-    }
-  }.observes('content.isExpanded', 'outsideView'),
-
-  /**
-   * request task details from server
-   * @return {$.Deferred}
-   */
-  getTaskDetails: function () {
-    var deferred = $.Deferred();
-
-    if (Em.isNone(this.get('content'))) {
-      deferred.resolve();
-    } else {
-      App.ajax.send({
-        name: 'admin.upgrade.task',
-        sender: this,
-        data: {
-          upgradeId: this.get('content.request_id'),
-          taskId: this.get('content.id')
-        },
-        success: 'getTaskDetailsSuccessCallback'
-      }).then(deferred.resolve);
-    }
-    return deferred.promise();
-  },
-
-  /**
-   * success callback of <code>getTaskDetails</code>
-   * @param {object} data
-   */
-  getTaskDetailsSuccessCallback: function (data) {
-    //TODO change request to get only one task when API ready
-    var task = data.items[0].upgrade_items[0].tasks[0].Tasks;
-    this.get('taskDetailsProperties').forEach(function (property) {
-      this.set('content.' + property, task[property]);
-    }, this);
-  },
 
   /**
    * open error log in textarea to give ability to cope content

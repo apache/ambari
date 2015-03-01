@@ -1362,20 +1362,32 @@ var urls = {
     'mock': '/data/wizard/{mock}'
   },
   'admin.upgrade.data': {
-    'real': '/clusters/{clusterName}/upgrades/{id}?fields=Upgrade,upgrade_groups/UpgradeGroup,upgrade_groups/upgrade_items/*,' +
-      'upgrade_groups/upgrade_items/tasks/Tasks/id,' +
-      'upgrade_groups/upgrade_items/tasks/Tasks/command_detail,' +
-      'upgrade_groups/upgrade_items/tasks/Tasks/request_id,' +
-      'upgrade_groups/upgrade_items/tasks/Tasks/status',
+    'real': '/clusters/{clusterName}/upgrades/{id}?upgrade_groups/UpgradeGroup/status!=PENDING&fields=' +
+    'Upgrade/progress_percent,Upgrade/request_context,Upgrade/request_status,Upgrade/direction,' +
+    'upgrade_groups/UpgradeGroup,' +
+    'upgrade_groups/upgrade_items/UpgradeItem/status,' +
+    'upgrade_groups/upgrade_items/UpgradeItem/context,' +
+    'upgrade_groups/upgrade_items/UpgradeItem/group_id,' +
+    'upgrade_groups/upgrade_items/UpgradeItem/progress_percent,' +
+    'upgrade_groups/upgrade_items/UpgradeItem/request_id,' +
+    'upgrade_groups/upgrade_items/UpgradeItem/skippable,' +
+    'upgrade_groups/upgrade_items/UpgradeItem/stage_id,' +
+    'upgrade_groups/upgrade_items/UpgradeItem/status,' +
+    'upgrade_groups/upgrade_items/UpgradeItem/text&' +
+    'minimal_response=true',
     'mock': '/data/stack_versions/upgrade.json'
   },
   'admin.upgrade.state': {
     'real': '/clusters/{clusterName}/upgrades/{id}?fields=Upgrade',
     'mock': '/data/stack_versions/upgrade.json'
   },
-  'admin.upgrade.task': {
-    'real': '/clusters/{clusterName}/upgrades/{upgradeId}/upgrade_groups?upgrade_items/tasks/Tasks/id={taskId}&fields=upgrade_items/tasks/Tasks/*',
-    'mock': '/data/stack_versions/upgrade_task.json'
+  'admin.upgrade.upgrade_item': {
+    'real': '/clusters/{clusterName}/upgrades/{upgradeId}/upgrade_groups/{groupId}/upgrade_items/{stageId}?fields=' +
+    'UpgradeItem/group_id,' +
+    'UpgradeItem/stage_id,' +
+    'tasks/Tasks/*&' +
+    'minimal_response=true',
+    'mock': '/data/stack_versions/upgrade_item.json'
   },
   'admin.upgrade.start': {
     'real': '/clusters/{clusterName}/upgrades',

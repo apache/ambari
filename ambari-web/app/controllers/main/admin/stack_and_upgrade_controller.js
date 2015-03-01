@@ -209,9 +209,6 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         groupsMap[newGroup.UpgradeGroup.group_id] = newGroup.UpgradeGroup;
         newGroup.upgrade_items.forEach(function (item) {
           itemsMap[item.UpgradeItem.stage_id] = item.UpgradeItem;
-          item.tasks.forEach(function (task) {
-            tasksMap[task.Tasks.id] = task.Tasks;
-          });
         })
       });
 
@@ -222,9 +219,6 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         oldGroup.upgradeItems.forEach(function (item) {
           item.set('status', itemsMap[item.get('stage_id')].status);
           item.set('progress_percent', itemsMap[item.get('stage_id')].progress_percent);
-          item.tasks.forEach(function (task) {
-            task.set('status', tasksMap[task.get('id')].status);
-          });
         })
       });
       oldData.set('Upgrade', newData.Upgrade);
@@ -247,9 +241,6 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       newGroup.upgrade_items.forEach(function (item) {
         var oldItem = App.upgradeEntity.create({type: 'ITEM'}, item.UpgradeItem);
         var tasks = [];
-        item.tasks.forEach(function (task) {
-          tasks.pushObject(App.upgradeEntity.create({type: 'TASK'}, task.Tasks));
-        });
         oldItem.set('tasks', tasks);
         upgradeItems.pushObject(oldItem);
       });
