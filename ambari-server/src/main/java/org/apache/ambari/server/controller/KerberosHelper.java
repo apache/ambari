@@ -652,17 +652,6 @@ public class KerberosHelper {
           }
         }
 
-        // Filter out ServiceComponentHosts not ready for processing from serviceComponentHostsToProcess
-        // by pruning off the ones that on hosts that are not in hostsWithValidKerberosClient
-        Iterator<ServiceComponentHost> iterator = serviceComponentHostsToProcess.iterator();
-        while(iterator.hasNext()) {
-          ServiceComponentHost sch = iterator.next();
-
-          if(!hostsWithValidKerberosClient.contains(sch.getHostName())) {
-            iterator.remove();
-          }
-        }
-
         // If there are ServiceComponentHosts to process, make sure the administrator credentials
         // are available
         if (!serviceComponentHostsToProcess.isEmpty()) {
@@ -719,7 +708,7 @@ public class KerberosHelper {
         // Use the handler implementation to setup the relevant stages.
         handler.createStages(cluster, hosts, kerberosConfigurations, clusterHostInfoJson,
             hostParamsJson, event, roleCommandOrder, kerberosDetails, dataDirectory,
-            requestStageContainer, serviceComponentHostsToProcess);
+            requestStageContainer, serviceComponentHostsToProcess, hostsWithValidKerberosClient);
 
         // Add the cleanup stage...
         Map<String, String> commandParameters = new HashMap<String, String>();
@@ -1636,7 +1625,8 @@ public class KerberosHelper {
                                RoleCommandOrder roleCommandOrder,
                                KerberosDetails kerberosDetails, File dataDirectory,
                                RequestStageContainer requestStageContainer,
-                               List<ServiceComponentHost> serviceComponentHosts)
+                               List<ServiceComponentHost> serviceComponentHosts,
+                               Set<String> hostsWithValidKerberosClient)
         throws AmbariException;
 
 
@@ -1713,8 +1703,21 @@ public class KerberosHelper {
                                               String clusterHostInfoJson, String hostParamsJson,
                                               Map<String, String> commandParameters,
                                               RoleCommandOrder roleCommandOrder,
-                                              RequestStageContainer requestStageContainer)
+                                              RequestStageContainer requestStageContainer,
+                                              Set<String> hostsWithValidKerberosClient)
         throws AmbariException {
+
+      Iterator<ServiceComponentHost> iterator = new HashSet<ServiceComponentHost>(serviceComponentHosts).iterator();
+      //Filter out ServiceComponentHosts not ready for processing from serviceComponentHostsToProcess
+      // by pruning off the ones that on hosts that are not in hostsWithValidKerberosClient
+      while(iterator.hasNext()) {
+        ServiceComponentHost sch = iterator.next();
+
+        if(!hostsWithValidKerberosClient.contains(sch.getHostName())) {
+          iterator.remove();
+        }
+      }
+
       Stage stage = createNewStage(requestStageContainer.getLastStageId(),
           cluster,
           requestStageContainer.getId(),
@@ -1847,7 +1850,8 @@ public class KerberosHelper {
                              ServiceComponentHostServerActionEvent event,
                              RoleCommandOrder roleCommandOrder, KerberosDetails kerberosDetails,
                              File dataDirectory, RequestStageContainer requestStageContainer,
-                             List<ServiceComponentHost> serviceComponentHosts)
+                             List<ServiceComponentHost> serviceComponentHosts,
+                             Set<String> hostsWithValidKerberosClient)
         throws AmbariException {
       // If there are principals, keytabs, and configurations to process, setup the following sages:
       //  1) generate principals
@@ -1919,7 +1923,7 @@ public class KerberosHelper {
       // *****************************************************************
       // Create stage to distribute keytabs
       addDistributeKeytabFilesStage(cluster, serviceComponentHosts, clusterHostInfoJson, hostParamsJson,
-          commandParameters, roleCommandOrder, requestStageContainer);
+          commandParameters, roleCommandOrder, requestStageContainer, hostsWithValidKerberosClient);
 
       // *****************************************************************
       // Create stage to update configurations of services
@@ -1977,7 +1981,8 @@ public class KerberosHelper {
                              ServiceComponentHostServerActionEvent event,
                              RoleCommandOrder roleCommandOrder, KerberosDetails kerberosDetails,
                              File dataDirectory, RequestStageContainer requestStageContainer,
-                             List<ServiceComponentHost> serviceComponentHosts) throws AmbariException {
+                             List<ServiceComponentHost> serviceComponentHosts,
+                             Set<String> hostsWithValidKerberosClient) throws AmbariException {
       //  1) revert configurations
 
       // If a RequestStageContainer does not already exist, create a new one...
@@ -2141,7 +2146,8 @@ public class KerberosHelper {
                              ServiceComponentHostServerActionEvent event,
                              RoleCommandOrder roleCommandOrder, KerberosDetails kerberosDetails,
                              File dataDirectory, RequestStageContainer requestStageContainer,
-                             List<ServiceComponentHost> serviceComponentHosts)
+                             List<ServiceComponentHost> serviceComponentHosts,
+                             Set<String> hostsWithValidKerberosClient)
         throws AmbariException {
       // If there are principals and keytabs to process, setup the following sages:
       //  1) generate principals
@@ -2177,7 +2183,7 @@ public class KerberosHelper {
 
       // Create stage to distribute keytabs
       addDistributeKeytabFilesStage(cluster, serviceComponentHosts, clusterHostInfoJson,
-          hostParamsJson, commandParameters, roleCommandOrder, requestStageContainer);
+          hostParamsJson, commandParameters, roleCommandOrder, requestStageContainer, hostsWithValidKerberosClient);
 
       return requestStageContainer.getLastStageId();
     }
@@ -2223,7 +2229,8 @@ public class KerberosHelper {
                              ServiceComponentHostServerActionEvent event,
                              RoleCommandOrder roleCommandOrder, KerberosDetails kerberosDetails,
                              File dataDirectory, RequestStageContainer requestStageContainer,
-                             List<ServiceComponentHost> serviceComponentHosts)
+                             List<ServiceComponentHost> serviceComponentHosts,
+                             Set<String> hostsWithValidKerberosClient)
         throws AmbariException {
       // If there are principals and keytabs to process, setup the following sages:
       //  1) delete principals
