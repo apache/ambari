@@ -213,7 +213,7 @@ def is_namenode_formatted(params):
   for old_mark_dir in old_mark_dirs:
     if os.path.isdir(old_mark_dir):
       for mark_dir in mark_dirs:
-        Execute(['cp', '-ar', old_mark_dir, mark_dir],
+        Execute(('cp', '-ar', old_mark_dir, mark_dir),
                 sudo = True
         )
         marked = True
