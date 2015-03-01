@@ -136,6 +136,11 @@
     <value>1000</value>
     <description></description>
   </property>
+  <property>
+    <name>*.falcon.graph.preserve.history</name>
+    <value>false</value>
+    <description></description>
+  </property>
   <!--properties without default values-->
   <property>
     <name>*.falcon.http.authentication.cookie.domain</name>
