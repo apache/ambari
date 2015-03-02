@@ -646,8 +646,8 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     HostDAO hostDAO = injector.getInstance(HostDAO.class);
 
     HostEntity hostEntity = hostDAO.findByName(stateEntity.getHostName());
-    hostEntity.getHostComponentStateEntities().add(stateEntity);
-    hostEntity.getHostComponentDesiredStateEntities().add(desiredStateEntity);
+    hostEntity.addHostComponentStateEntity(stateEntity);
+    hostEntity.addHostComponentDesiredStateEntity(desiredStateEntity);
 
     serviceComponentDesiredStateEntity.getHostComponentDesiredStateEntities().add(desiredStateEntity);
 

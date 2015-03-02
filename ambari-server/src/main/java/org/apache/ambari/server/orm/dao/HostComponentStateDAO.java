@@ -25,6 +25,7 @@ import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
+import org.apache.ambari.server.orm.entities.HostEntity;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -37,6 +38,9 @@ public class HostComponentStateDAO {
   Provider<EntityManager> entityManagerProvider;
   @Inject
   DaoUtils daoUtils;
+
+  @Inject
+  HostDAO hostDAO;
 
   @RequiresSession
   public HostComponentStateEntity findByPK(HostComponentStateEntityPK primaryKey) {
@@ -84,7 +88,13 @@ public class HostComponentStateDAO {
 
   @Transactional
   public void remove(HostComponentStateEntity hostComponentStateEntity) {
+    HostEntity hostEntity = hostDAO.findByName(hostComponentStateEntity.getHostName());
+
     entityManagerProvider.get().remove(merge(hostComponentStateEntity));
+
+    // Make sure that the state entity is removed from its host entity
+    hostEntity.removeHostComponentStateEntity(hostComponentStateEntity);
+    hostDAO.merge(hostEntity);
   }
 
   @Transactional

@@ -1195,8 +1195,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   @Transactional
   protected void persistEntities() {
     HostEntity hostEntity = hostDAO.findByName(getHostName());
-    hostEntity.getHostComponentStateEntities().add(stateEntity);
-    hostEntity.getHostComponentDesiredStateEntities().add(desiredStateEntity);
+    hostEntity.addHostComponentStateEntity(stateEntity);
+    hostEntity.addHostComponentDesiredStateEntity(desiredStateEntity);
 
     ServiceComponentDesiredStateEntityPK dpk = new ServiceComponentDesiredStateEntityPK();
     dpk.setClusterId(serviceComponent.getClusterId());
@@ -1333,6 +1333,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     desiredPK.setHostName(desiredStateEntity.getHostName());
 
     hostComponentDesiredStateDAO.removeByPK(desiredPK);
+
+    // make sure that the state entities are removed from the associated (detached) host entity
+    stateEntity.getHostEntity().removeHostComponentStateEntity(stateEntity);
+    desiredStateEntity.getHostEntity().removeHostComponentDesiredStateEntity(desiredStateEntity);
   }
 
   @Override
