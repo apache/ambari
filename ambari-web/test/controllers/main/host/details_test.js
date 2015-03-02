@@ -682,6 +682,61 @@ describe('App.MainHostDetailsController', function () {
 
   describe('#saveZkConfigs()', function () {
 
+    var yarnCases = [
+        {
+          isYARNInstalled: true,
+          isHadoop22Stack: true,
+          isRMHaEnabled: true,
+          shouldYarnSiteBeModified: true,
+          title: 'HDP 2.2, YARN installed, RM HA enabled'
+        },
+        {
+          isYARNInstalled: true,
+          isHadoop22Stack: false,
+          isRMHaEnabled: true,
+          shouldYarnSiteBeModified: true,
+          title: 'HDP < 2.2, YARN installed, RM HA enabled'
+        },
+        {
+          isYARNInstalled: true,
+          isHadoop22Stack: true,
+          isRMHaEnabled: false,
+          shouldYarnSiteBeModified: true,
+          title: 'HDP 2.2, YARN installed, RM HA disabled'
+        },
+        {
+          isYARNInstalled: false,
+          isHadoop22Stack: true,
+          isRMHaEnabled: false,
+          shouldYarnSiteBeModified: false,
+          title: 'HDP 2.2, YARN not installed'
+        },
+        {
+          isYARNInstalled: true,
+          isHadoop22Stack: false,
+          isRMHaEnabled: false,
+          shouldYarnSiteBeModified: false,
+          title: 'HDP < 2.2, YARN installed, RM HA disabled'
+        },
+        {
+          isYARNInstalled: false,
+          isHadoop22Stack: false,
+          isRMHaEnabled: false,
+          shouldYarnSiteBeModified: false,
+          title: 'HDP < 2.2, YARN not installed'
+        }
+      ],
+      yarnData = {
+        items: [
+          {
+            type: 'yarn-site',
+            properties: {
+              p: 'v'
+            }
+          }
+        ]
+      };
+
     beforeEach(function () {
       sinon.stub(controller, "getZkServerHosts", Em.K);
       sinon.stub(controller, "concatZkNames", Em.K);
@@ -700,6 +755,25 @@ describe('App.MainHostDetailsController', function () {
       controller.saveZkConfigs(data);
       expect(controller.saveConfigsBatch.calledOnce).to.be.true;
     });
+
+    yarnCases.forEach(function (item) {
+      it(item.title, function () {
+        var servicesMock = item.isYARNInstalled ? [
+          {
+            serviceName: 'YARN'
+          }
+        ] : [];
+        sinon.stub(App, 'get').withArgs('isHadoop22Stack').returns(item.isHadoop22Stack).
+          withArgs('isRMHaEnabled').returns(item.isRMHaEnabled);
+        sinon.stub(App.Service, 'find').returns(servicesMock);
+        controller.saveZkConfigs(yarnData);
+        expect(controller.saveConfigsBatch.firstCall.args[0].someProperty('properties.yarn-site')).to.equal(item.shouldYarnSiteBeModified);
+        expect(controller.saveConfigsBatch.firstCall.args[0].someProperty('properties_attributes.yarn-site')).to.equal(item.shouldYarnSiteBeModified);
+        App.get.restore();
+        App.Service.find.restore();
+      });
+    });
+
   });
 
   describe("#saveConfigsBatch()", function() {
