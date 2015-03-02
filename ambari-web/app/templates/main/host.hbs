@@ -68,7 +68,7 @@
         {{view view.parentView.memorySort}}
         {{view view.parentView.diskUsageSort}}
         {{view view.parentView.loadAvgSort}}
-        <th {{bindAttr class="App.supports.stackUpgrade::hidden :sort-view-11"}}>
+        <th {{bindAttr class="App.supports.stackUpgrade::hidden App.stackVersionsAvailable::hidden :sort-view-11"}}>
           {{t hosts.host.menu.stackVersions}}
         </th>
         <th class="sort-view-6">{{t common.components}}</th>
@@ -84,7 +84,7 @@
         <th>{{view view.ramFilterView}}</th>
         <th> </th>
         <th>{{view view.loadAvgFilterView}}</th>
-        <th {{bindAttr class="App.supports.stackUpgrade::hidden"}}>
+        <th {{bindAttr class="App.supports.stackUpgrade::hidden App.stackVersionsAvailable::hidden"}}>
           {{view view.versionsFilterView}}
         </th>
         <th>{{view view.componentsFilterView}}</th>
@@ -132,7 +132,7 @@
           </td>
 
           <td class="load-avg">{{host.loadAvg}}</td>
-          <td {{bindAttr class="App.supports.stackUpgrade::hidden view.hasSingleVersion:not-active-link :host-table-versions"}}>
+          <td {{bindAttr class="App.supports.stackUpgrade::hidden App.stackVersionsAvailable::hidden view.hasSingleVersion:not-active-link :host-table-versions"}}>
             <a href="#" class="expander black" {{action toggleVersions target="view"}}>
               {{#unless view.hasSingleVersion}}
                 <span {{bindAttr class="view.isVersionsCollapsed:icon-caret-right:icon-caret-down"}}></span>

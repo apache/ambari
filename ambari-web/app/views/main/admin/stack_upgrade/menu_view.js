@@ -23,18 +23,21 @@ App.MainAdminStackMenuView = Em.CollectionView.extend({
   classNames: ["nav", "nav-tabs"],
   defaultRoute: 'services',
 
-  content: [
-    Em.Object.create({
-      name: 'services',
-      label: Em.I18n.t('common.stack'),
-      routing: 'services'
-    }),
-    Em.Object.create({
-      name: 'versions',
-      label: Em.I18n.t('common.versions'),
-      routing: 'versions'
-    })
-  ],
+  content: function () {
+    return [
+      Em.Object.create({
+        name: 'services',
+        label: Em.I18n.t('common.stack'),
+        routing: 'services'
+      }),
+      Em.Object.create({
+        name: 'versions',
+        label: Em.I18n.t('common.versions'),
+        routing: 'versions',
+        hidden: !App.get('stackVersionsAvailable')
+      })
+    ]
+  }.property('App.stackVersionsAvailable'),
 
   didInsertElement: function () {
     this.activateView();
@@ -56,6 +59,6 @@ App.MainAdminStackMenuView = Em.CollectionView.extend({
   itemViewClass: Em.View.extend({
     classNameBindings: ["active"],
     active: "",
-    template: Ember.Handlebars.compile('<a {{action stackNavigate view.content.routing }} href="#"> {{unbound view.content.label}}</a>')
+    template: Ember.Handlebars.compile('{{#unless view.content.hidden}}<a {{action stackNavigate view.content.routing }} href="#"> {{unbound view.content.label}}</a>{{/unless}}')
   })
 });

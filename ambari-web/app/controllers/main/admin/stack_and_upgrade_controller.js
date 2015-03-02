@@ -693,5 +693,60 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     var currentVersionObject = App.RepositoryVersion.find().findProperty('status', 'CURRENT');
     var versionName = currentVersionObject && currentVersionObject.get('stackVersionType');
     App.set('isStormMetricsSupported', versionName != 'HDP' || stringUtils.compareVersions(versionNumber, '2.2.2') > -1 || !versionNumber);
-  }.observes('currentVersion.repository_version')
+  }.observes('currentVersion.repository_version'),
+
+  /**
+   * get the installed repositories of HDP from server
+   */
+  loadRepositories: function () {
+    if (App.router.get('clusterController.isLoaded')) {
+      var nameVersionCombo = App.get('currentStackVersion');
+      var stackName = nameVersionCombo.split('-')[0];
+      var stackVersion = nameVersionCombo.split('-')[1];
+      App.ajax.send({
+        name: 'cluster.load_repositories',
+        sender: this,
+        data: {
+          stackName: stackName,
+          stackVersion: stackVersion
+        },
+        success: 'loadRepositoriesSuccessCallback',
+        error: 'loadRepositoriesErrorCallback'
+      });
+    }
+  }.observes('App.router.clusterController.isLoaded'),
+
+  loadRepositoriesSuccessCallback: function (data) {
+    var allRepos = [];
+    data.items.forEach(function (os) {
+      os.repositories.forEach(function (repository) {
+        var osType = repository.Repositories.os_type;
+        var repo = Em.Object.create({
+          baseUrl: repository.Repositories.base_url,
+          osType: osType,
+          repoId: repository.Repositories.repo_id,
+          repoName : repository.Repositories.repo_name,
+          stackName : repository.Repositories.stack_name,
+          stackVersion : repository.Repositories.stack_version,
+          isFirst: false
+        });
+        var group = allRepos.findProperty('name', osType);
+        if (!group) {
+          group = {
+            name: osType,
+            repositories: []
+          };
+          repo.set('isFirst', true);
+          allRepos.push(group);
+        }
+        group.repositories.push(repo);
+      });
+    }, this);
+    allRepos.stackVersion = App.get('currentStackVersionNumber');
+    this.set('allRepos', allRepos);
+  },
+
+  loadRepositoriesErrorCallback: function (request, ajaxOptions, error) {
+    console.log('Error message is: ' + request.responseText);
+  }
 });
