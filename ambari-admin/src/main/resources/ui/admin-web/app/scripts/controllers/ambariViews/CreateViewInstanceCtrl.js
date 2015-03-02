@@ -31,7 +31,6 @@ angular.module('ambariAdminConsole')
 
       angular.forEach(parameters, function (item) {
         item.value = item['defaultValue'];
-        item.name = item.name.replace(/\./g, '\.\u200B');
       });
 
       $scope.instance = {
