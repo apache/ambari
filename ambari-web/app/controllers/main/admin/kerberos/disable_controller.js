@@ -24,7 +24,7 @@ App.KerberosDisableController = App.KerberosProgressPageController.extend({
 
   name: 'kerberosDisableController',
   clusterDeployState: 'DEFAULT',
-  commands: ['stopServices', 'unkerberize', 'startServices'],
+  commands: ['stopServices', 'unkerberize', 'deleteKerberos', 'startServices'],
 
   tasksMessagesPrefix: 'admin.kerberos.disable.step',
 
@@ -39,26 +39,19 @@ App.KerberosDisableController = App.KerberosProgressPageController.extend({
   stopServices: function () {
     App.ajax.send({
       name: 'common.services.update',
+      sender: this,
       data: {
         context: "Stop services",
         "ServiceInfo": {
           "state": "INSTALLED"
         }
       },
-      sender: this,
       success: 'startPolling',
       error: 'onTaskError'
     });
   },
 
   unkerberize: function () {
-    var self = this;
-    this.deleteKerberos().always(function () {
-      self.reconfigureServices();
-    });
-  },
-
-  reconfigureServices: function () {
     return App.ajax.send({
       name: 'admin.unkerberize.cluster',
       sender: this,
@@ -73,7 +66,9 @@ App.KerberosDisableController = App.KerberosProgressPageController.extend({
       sender: this,
       data: {
         serviceName: 'KERBEROS'
-      }
+      },
+      success: 'onTaskCompleted',
+      error: 'onTaskCompleted'
     });
   },
 
