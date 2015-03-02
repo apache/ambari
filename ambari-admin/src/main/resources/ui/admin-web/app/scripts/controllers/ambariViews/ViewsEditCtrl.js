@@ -53,6 +53,9 @@ angular.module('ambariAdminConsole')
   // Get META for properties
   View.getMeta($routeParams.viewId, $routeParams.version).then(function(data) {
     $scope.configurationMeta = data.data.ViewVersionInfo.parameters;
+    angular.forEach($scope.configurationMeta, function (item) {
+      item.displayName = item.name.replace(/\./g, '\.\u200B');
+    });
     reloadViewInfo();
   });
 

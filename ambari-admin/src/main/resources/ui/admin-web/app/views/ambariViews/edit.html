@@ -137,7 +137,7 @@
     <form name="propertiesForm" class="form-horizontal property-form" ng-hide="isConfigurationEmpty" novalidate>
       <fieldset>
         <div class="form-group" ng-repeat="property in configurationMeta" ng-class="{'has-error' : (!editConfigurationDisabled && ((property.required && propertiesForm[property.name].$error.required && !editConfigurationDisabled) || propertiesForm[property.name].validationError))}">
-          <label for="" class="control-label col-sm-3" ng-class="{'not-required': !property.required}">{{property.label || property.name}}{{property.required ? '*' : ''}}</label>
+          <label for="" class="control-label col-sm-3" ng-class="{'not-required': !property.required}">{{property.label || property.displayName}}{{property.required ? '*' : ''}}</label>
           <div ng-switch="property.type">
             <div class="col-sm-9 checkbox" ng-switch-when="boolean">
               <input type="checkbox" class="propertie-input" ng-disabled="editConfigurationDisabled" name="{{property.name}}" ng-model="configuration[property.name]" ng-true-value="true" ng-false-value="false" popover="{{property.description}}" popover-title="{{property.name}}" popover-trigger="mouseenter">
