@@ -40,21 +40,53 @@ App.alertInstanceMapper = App.QuickDataMapper.create({
     text: 'Alert.text'
   },
 
-  map: function(json) {
+  map: function(json, skipDelete) {
     if (json.items) {
-      var self = this,
-        alertInstances = [],
-        model = this.get('model'),
-        alertsToDelete = model.find().mapProperty('id');
+      var alertInstances = (skipDelete) ? this.mapWithoutDelete(json) : this.mapAndDelete(json);
 
-      json.items.forEach(function (item) {
-        var alert = this.parseIt(item, this.get('config'));
-        alertInstances.push(alert);
-        alertsToDelete = alertsToDelete.without(alert.id);
-      }, this);
-
-      App.store.loadMany(model, alertInstances);
+      App.store.loadMany(this.get('model'), alertInstances);
     }
+  },
+
+  /**
+   * method that used when we not on alert definition state
+   * in this case we need to delete alerts that is not critical and not warning
+   * @param json
+   * @returns {Array}
+   */
+  mapAndDelete: function(json) {
+    var self = this,
+      alertInstances = [],
+      model = this.get('model'),
+      alertsToDelete = model.find().mapProperty('id');
+
+    json.items.forEach(function (item) {
+      var alert = this.parseIt(item, this.get('config'));
+      alertInstances.push(alert);
+      alertsToDelete = alertsToDelete.without(alert.id);
+    }, this);
+
+
+    alertsToDelete.forEach(function(alertId) {
+      var item = model.find(alertId);
+      self.deleteRecord(item);
+    });
+
+    return alertInstances;
+  },
+
+  /**
+   * this method is used on alert definition page
+   * @param json
+   * @returns {Array}
+   */
+  mapWithoutDelete: function(json) {
+    var alertInstances = [];
+    json.items.forEach(function (item) {
+      var alert = this.parseIt(item, this.get('config'));
+      alertInstances.push(alert);
+    }, this);
+    return alertInstances;
   }
 
 });
