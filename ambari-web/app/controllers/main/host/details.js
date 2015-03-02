@@ -696,7 +696,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         properties = group.properties;
 
       for (var site in properties) {
-        if (!properties.hasOwnProperty(site)) continue;
+        if (!properties.hasOwnProperty(site) || Em.isNone(properties[site])) continue;
         desiredConfigs.push({
           "type": site,
           "tag": tag,
@@ -917,16 +917,20 @@ App.MainHostDetailsController = Em.Controller.extend({
           'hive-site': attributes['hive-site'],
           'webhcat-site': attributes['webhcat-site']
         }
-      },
-      {
-        properties: {
-          'yarn-site': configs['yarn-site']
-        },
-        properties_attributes: {
-          'yarn-site': attributes['yarn-site']
-        }
       }
     ];
+    if ((App.Service.find().someProperty('serviceName', 'YARN') && App.get('isHadoop22Stack')) || App.get('isRMHaEnabled')) {
+      groups.push(
+        {
+          properties: {
+            'yarn-site': configs['yarn-site']
+          },
+          properties_attributes: {
+            'yarn-site': attributes['yarn-site']
+          }
+        }
+      );
+    }
     this.saveConfigsBatch(groups);
   },
   /**
