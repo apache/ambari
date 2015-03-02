@@ -22,9 +22,18 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
+import org.apache.directory.kerberos.client.KdcConfig;
+import org.apache.directory.kerberos.client.KdcConnection;
+import org.apache.directory.shared.kerberos.exceptions.ErrorType;
+import org.apache.directory.shared.kerberos.exceptions.KerberosException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,6 +62,11 @@ public class KdcServerConnectionVerification {
   private static Logger LOG = LoggerFactory.getLogger(KdcServerConnectionVerification.class);
 
   private Configuration config;
+
+  /**
+   * UDP connection timeout in seconds.
+   */
+  private int udpTimeout = 10;
   
   @Inject
   public KdcServerConnectionVerification(Configuration config) {
@@ -84,15 +98,30 @@ public class KdcServerConnectionVerification {
       return false;
     }
   }
+
   /**
-   * Given server IP or hostname, checks if server is reachable i.e.
-   * we can make a socket connection to it.
-   * 
+   * Given a host and port, checks if server is reachable meaning that we
+   * can communicate with it.  First we attempt to connect via TCP and if
+   * that is unsuccessful, attempt via UDP. It is important to understand that
+   * we are not validating credentials, only attempting to communicate with server
+   * process for the give host and port.
+   *
    * @param server KDC server IP or hostname
    * @param port	 KDC port
    * @return	true, if server is accepting connection given port; false otherwise.
    */
-  public boolean isKdcReachable(String server, Integer port) {
+  public boolean isKdcReachable(String server, int port) {
+    return isKdcReachableViaTCP(server, port) || isKdcReachableViaUDP(server, port);
+  }
+
+  /**
+   * Attempt to connect to KDC server over TCP.
+   * 
+   * @param server KDC server IP or hostname
+   * @param port	 KDC server port
+   * @return	true, if server is accepting connection given port; false otherwise.
+   */
+  public boolean isKdcReachableViaTCP(String server, int port) {
     Socket socket = null;
     try {
       socket = new Socket();
@@ -117,17 +146,104 @@ public class KdcServerConnectionVerification {
   }
 
   /**
+   * Attempt to communicate with KDC server over UDP.
+   * @param server KDC hostname or IP address
+   * @param port   KDC server port
+   * @return  true if communication is successful; false otherwise
+   */
+  public boolean isKdcReachableViaUDP(final String server, final int port) {
+    int timeoutMillis = udpTimeout * 1000;
+    final KdcConfig config = KdcConfig.getDefaultConfig();
+    config.setHostName(server);
+    config.setKdcPort(port);
+    config.setUseUdp(true);
+    config.setTimeout(timeoutMillis);
+
+    final KdcConnection connection = getKdcUdpConnection(config);
+    FutureTask<Boolean> future = new FutureTask<Boolean>(new Callable<Boolean>() {
+      @Override
+      public Boolean call() {
+        try {
+          // we are only testing whether we can communicate with server and not
+          // validating credentials
+          connection.getTgt("noUser@noRealm", "noPassword");
+        } catch (KerberosException e) {
+          // unfortunately, need to look at msg as error 60 is a generic error code
+          return ! (e.getErrorCode() == ErrorType.KRB_ERR_GENERIC.getValue() &&
+                    e.getMessage().contains("TimeOut"));
+          //todo: evaluate other error codes to provide better information
+          //todo: as there may be other error codes where we should return false
+        } catch (Exception e) {
+          // some bad unexpected thing occurred
+          throw new RuntimeException(e);
+        }
+        return true;
+      }
+    });
+
+    new Thread(future).start();
+    Boolean result;
+    try {
+      // timeout after specified timeout
+      result = future.get(timeoutMillis, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      LOG.error("Interrupted while trying to communicate with KDC server over UDP");
+      result = false;
+      future.cancel(true);
+    } catch (ExecutionException e) {
+      LOG.error("An unexpected exception occurred while attempting to communicate with the KDC server over UDP", e);
+      result = false;
+    } catch (TimeoutException e) {
+      LOG.error("Timeout occurred while attempting to to communicate with KDC server over UDP");
+      result = false;
+      future.cancel(true);
+    }
+
+    return result;
+  }
+
+  /**
+   * Get a KDC UDP connection for the given configuration.
+   * This has been extracted into it's own method primarily
+   * for unit testing purposes.
+   *
+   * @param config KDC connection configuration
+   * @return new KDC connection
+   */
+  protected KdcConnection getKdcUdpConnection(KdcConfig config) {
+    return new KdcConnection(config);
+  }
+
+  /**
+   * Set the UDP connection timeout.
+   * This is the amount of time that we will attempt to read data from UDP connection.
+   *
+   * @param timeoutSeconds  timeout in seconds
+   */
+  public void setUdpTimeout(int timeoutSeconds) {
+    udpTimeout = (timeoutSeconds < 1) ? 1 : timeoutSeconds;
+  }
+
+  /**
+   * Get the UDP timeout value.
+   *
+   * @return the UDP connection timeout value in seconds
+   */
+  public int getUdpTimeout() {
+    return udpTimeout;
+  }
+
+  /**
    * Parses port number from given string.
    * @param port port number string
    * @throws NumberFormatException if given string cannot be parsed
    * @throws IllegalArgumentException if given string is null or empty
    * @return parsed port number
    */
-  private final int parsePort(String port) {
+  private int parsePort(String port) {
     if (StringUtils.isEmpty(port)) {
       throw new IllegalArgumentException("Port number must be non-empty, non-null positive integer");
     }
     return Integer.parseInt(port);
   }
-
 }
