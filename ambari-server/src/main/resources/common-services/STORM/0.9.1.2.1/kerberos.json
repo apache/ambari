@@ -12,7 +12,7 @@
         {
           "name": "storm_components",
           "principal": {
-            "value": "storm/_HOST@${realm}",
+            "value": "storm@${realm}",
             "type": "service",
             "configuration": "storm-env/storm_principal_name"
           },
@@ -112,7 +112,7 @@
             {
               "name": "storm_components",
               "principal": {
-                "value": "storm/_HOST@${realm}",
+                "value": "storm@${realm}",
                 "type": "service",
                 "configuration": "storm-env/storm_principal_name"
               },
