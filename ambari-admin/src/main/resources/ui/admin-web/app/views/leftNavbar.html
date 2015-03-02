@@ -69,7 +69,7 @@
           <li><p class="noclusters">No clusters</p></li>
         </ul>
       </div>
-      <ul class="nav nav-pills nav-stacked" ng-show="cluster">
+      <ul class="nav nav-pills nav-stacked" ng-show="cluster && totalRepos > 0">
         <li ng-class="{active: isActive('stackVersions.list')}">
           <a href="#/stackVersions">Versions</a>
         </li>

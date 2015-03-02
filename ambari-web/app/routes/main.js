@@ -240,7 +240,12 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       stackVersions: Em.Route.extend({
         route: '/stackVersions',
         connectOutlets: function (router, context) {
-          router.get('mainHostDetailsController').connectOutlet('mainHostStackVersions');
+          if (App.get('stackVersionsAvailable')) {
+            router.get('mainHostDetailsController').connectOutlet('mainHostStackVersions');
+          }
+          else {
+            router.transitionTo('summary');
+          }
         }
       }),
 

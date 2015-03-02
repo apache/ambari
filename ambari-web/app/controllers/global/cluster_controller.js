@@ -325,6 +325,9 @@ App.ClusterController = Em.Controller.extend({
     }
     App.router.get('mainAdminStackAndUpgradeController').initDBProperties();
     App.router.get('mainAdminStackAndUpgradeController').loadUpgradeData(true);
+    App.router.get('mainAdminStackAndUpgradeController').loadStackVersionsToModel(true).done(function () {
+      App.set('stackVersionsAvailable', App.StackVersion.find().content.length > 0);
+    });
   },
 
   loadRootService: function () {

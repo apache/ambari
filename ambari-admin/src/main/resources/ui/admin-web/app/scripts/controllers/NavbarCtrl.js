@@ -18,8 +18,9 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('NavbarCtrl',['$scope', 'Cluster', '$location', 'Alert', 'ROUTES', 'ConfirmationModal', '$rootScope', function($scope, Cluster, $location, Alert, ROUTES, ConfirmationModal, $rootScope) {
+.controller('NavbarCtrl',['$scope', 'Cluster', '$location', 'Alert', 'ROUTES', 'ConfirmationModal', '$rootScope', 'Stack', function($scope, Cluster, $location, Alert, ROUTES, ConfirmationModal, $rootScope, Stack) {
   $scope.cluster = null;
+  $scope.totalRepos = 0;
   $scope.editCluster = {
     name        : '',
     editingName : false
@@ -28,6 +29,13 @@ angular.module('ambariAdminConsole')
   function loadClusterData() {
     Cluster.getStatus().then(function (cluster) {
       $scope.cluster = cluster;
+      Stack.allRepos({version: '',
+        cluster: {
+          options: [],
+          current: null
+        }}, {}).then(function (repos) {
+          $scope.totalRepos = repos.itemTotal;
+        });
       if (cluster && cluster.Clusters.provisioning_state === 'INIT') {
         setTimeout(loadClusterData, 1000);
       }

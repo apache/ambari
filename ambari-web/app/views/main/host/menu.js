@@ -23,37 +23,39 @@ App.MainHostMenuView = Em.CollectionView.extend({
   classNames: ["nav", "nav-tabs"],
   host: null,
 
-  content: [
-    Em.Object.create({
-      name: 'summary',
-      label: Em.I18n.t('common.summary'),
-      routing: 'summary',
-      id: 'host-details-summary-tab'
-    }),
-    Em.Object.create({
-      name: 'configs',
-      label: Em.I18n.t('common.configs'),
-      routing: 'configs',
-      id: 'host-details-summary-configs'
-    }),
-    Em.Object.create({
-      name: 'alerts',
-      label: Em.I18n.t('hosts.host.alerts.label'),
-      routing: 'alerts',
-      badgeText: '0',
-      badgeClasses: 'label',
-      id: 'host-details-summary-alerts'
-    }),
-    Em.Object.create({
-      name: 'versions',
-      label: Em.I18n.t('hosts.host.menu.stackVersions'),
-      routing: 'stackVersions',
-      hidden: function() {
-        return !App.get('supports.stackUpgrade')
-      }.property('App.get.supports.stackUpgrade'),
-      id: 'host-details-summary-version'
-    })
-  ],
+  content: function () {
+    return [
+      Em.Object.create({
+        name: 'summary',
+        label: Em.I18n.t('common.summary'),
+        routing: 'summary',
+        id: 'host-details-summary-tab'
+      }),
+      Em.Object.create({
+        name: 'configs',
+        label: Em.I18n.t('common.configs'),
+        routing: 'configs',
+        id: 'host-details-summary-configs'
+      }),
+      Em.Object.create({
+        name: 'alerts',
+        label: Em.I18n.t('hosts.host.alerts.label'),
+        routing: 'alerts',
+        badgeText: '0',
+        badgeClasses: 'label',
+        id: 'host-details-summary-alerts'
+      }),
+      Em.Object.create({
+        name: 'versions',
+        label: Em.I18n.t('hosts.host.menu.stackVersions'),
+        routing: 'stackVersions',
+        hidden: function () {
+          return !App.get('supports.stackUpgrade') || !App.get('stackVersionsAvailable')
+        }.property('App.supports.stackUpgrade'),
+        id: 'host-details-summary-version'
+      })
+    ];
+  }.property('App.stackVersionsAvailable'),
 
   /**
    * Update Alerts menu option counter text and class

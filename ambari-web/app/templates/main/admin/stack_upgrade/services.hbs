@@ -27,7 +27,7 @@
   </tr>
   </thead>
   <tbody>
-  {{#each service in view.services}}
+    {{#each service in view.services}}
     <tr>
       <td class="service-display-name">{{service.displayName}}</td>
       <td class="service-stack-version">{{service.serviceVersion}}</td>
@@ -41,6 +41,80 @@
       </td>
       <td class="service-description">{{{service.comments}}}</td>
     </tr>
-  {{/each}}
+    {{/each}}
   </tbody>
 </table>
+
+{{#unless App.stackVersionsAvailable}}
+
+  <div class="header">
+    <strong>{{t admin.cluster.repositories.repositories}}</strong>
+  </div>
+  <ul class="nav nav-tabs">
+    <li class="active">
+      <a href="javascript:void(null);">{{view.allRepositoriesGroups.stackVersion}}</a>
+    </li>
+  </ul>
+
+  <div class="admin-cluster">
+    <div class="repositories-table">
+      <div class="thead">
+        <div class="th os-th">{{t common.os}}</div>
+        <div class="th name-th">{{t common.name}}</div>
+        <div class="th url-th">{{t installer.step1.advancedRepo.localRepo.column.baseUrl}}</div>
+      </div>
+      <div class="tbody">
+        {{#each repoGroup in view.allRepositoriesGroups}}
+          <div class="trow">
+            <div class="os-td">
+              <label>
+                <span class="os">{{repoGroup.name}}</span>
+              </label>
+            </div>
+            <div style="width:89%">
+              {{#each repository in repoGroup.repositories}}
+                <div class="sub-trow">
+                  <div class="name-td">{{repository.repoId}}</div>
+                  <!--edit mode for current url-->
+                  {{#if repository.onEdit}}
+                    <div {{bindAttr class=":url-td repository.empty-error:textfield-error repository.invalid-error:textfield-error"}}>
+                      {{view Ember.TextField valueBinding="repository.baseUrl"}}
+                    </div>
+                    <div class="clear-td">
+                      {{#if repository.clearAll}}
+                        <a {{action "clearGroupLocalRepository" repository target="view" }}>
+                          <i class="icon-remove-sign"></i>
+                        </a>
+                      {{/if}}
+                    </div>
+                    <div class="edit-buttons-td">
+                      <a class="btn" {{action doCancel repository target="view"}}>{{t common.cancel}}</a>
+                    </div>
+                    <div class="edit-buttons-td">
+                      {{#if repository.empty-error}}
+                        <a class="btn btn-primary" disabled="disabled">{{t common.save}}</a>
+                      {{else}}
+                        <a class="btn btn-primary" {{action saveRepoUrls repository target="view"}}>{{t common.save}}</a>
+                      {{/if}}
+                    </div>
+                    <!--non-edit mode for current url-->
+                  {{else}}
+                    <div class="url-text-td">
+                      {{repository.baseUrl}}
+                    </div>
+                    <div class="edit-td">
+                      <a {{action "onEditClick" repository target="view" }}>
+                        <i class="icon-edit"></i> {{t common.edit}}
+                      </a>
+                    </div>
+                  {{/if}}
+                </div>
+              {{/each}}
+            </div>
+          </div>
+        {{/each}}
+      </div>
+    </div>
+  </div>
+
+{{/unless}}
