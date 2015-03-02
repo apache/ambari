@@ -73,10 +73,11 @@ def _get_tar_source_and_dest_folder(tarball_prefix):
   return component_tar_source_file, component_tar_destination_folder
 
 
-def _copy_files(source_and_dest_pairs, file_owner, group_owner, kinit_if_needed):
+def _copy_files(source_and_dest_pairs, component_user, file_owner, group_owner, kinit_if_needed):
   """
   :param source_and_dest_pairs: List of tuples (x, y), where x is the source file in the local file system,
   and y is the destination file path in HDFS
+  :param component_user:  User that will execute the Hadoop commands, usually smokeuser
   :param file_owner: Owner to set for the file copied to HDFS (typically hdfs account)
   :param group_owner: Owning group to set for the file copied to HDFS (typically hadoop group)
   :param kinit_if_needed: kinit command if it is needed, otherwise an empty string
@@ -96,6 +97,7 @@ def _copy_files(source_and_dest_pairs, file_owner, group_owner, kinit_if_needed)
         params.HdfsDirectory(destination_dir,
                              action="create",
                              owner=file_owner,
+                             hdfs_user=params.hdfs_user,   # this will be the user to run the commands as
                              mode=0555
         )
 
@@ -103,13 +105,15 @@ def _copy_files(source_and_dest_pairs, file_owner, group_owner, kinit_if_needed)
                       mode=0444,
                       owner=file_owner,
                       group=group_owner,
+                      user=params.hdfs_user,               # this will be the user to run the commands as
                       dest_dir=destination_dir,
                       kinnit_if_needed=kinit_if_needed,
                       hdfs_user=params.hdfs_user,
                       hadoop_bin_dir=params.hadoop_bin_dir,
                       hadoop_conf_dir=params.hadoop_conf_dir
         )
-      except:
+      except Exception, e:
+        Logger.error("Failed to copy file. Source: %s, Destination: %s. Error: %s" % (source, destination, e.message))
         return_value = 1
   return return_value
 
@@ -118,8 +122,8 @@ def copy_tarballs_to_hdfs(tarball_prefix, hdp_select_component_name, component_u
   """
   :param tarball_prefix: Prefix of the tarball must be one of tez, hive, mr, pig
   :param hdp_select_component_name: Component name to get the status to determine the version
-  :param component_user: User that will execute the Hadoop commands
-  :param file_owner: Owner of the files copied to HDFS (typically hdfs account)
+  :param component_user: User that will execute the Hadoop commands, usually smokeuser
+  :param file_owner: Owner of the files copied to HDFS (typically hdfs user)
   :param group_owner: Group owner of the files copied to HDFS (typically hadoop group)
   :return: Returns 0 on success, 1 if no files were copied, and in some cases may raise an exception.
 
@@ -192,5 +196,5 @@ def copy_tarballs_to_hdfs(tarball_prefix, hdp_select_component_name, component_u
 
   if not does_hdfs_file_exist:
     source_and_dest_pairs = [(component_tar_source_file, destination_file), ]
-    return _copy_files(source_and_dest_pairs, file_owner, group_owner, kinit_if_needed)
+    return _copy_files(source_and_dest_pairs, component_user, file_owner, group_owner, kinit_if_needed)
   return 1

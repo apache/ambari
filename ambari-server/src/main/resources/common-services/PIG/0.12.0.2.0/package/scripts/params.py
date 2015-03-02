@@ -70,7 +70,7 @@ import functools
 HdfsDirectory = functools.partial(
   HdfsDirectory,
   conf_dir=hadoop_conf_dir,
-  hdfs_user=hdfs_principal_name if security_enabled else hdfs_user,
+  hdfs_user=hdfs_user,
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,

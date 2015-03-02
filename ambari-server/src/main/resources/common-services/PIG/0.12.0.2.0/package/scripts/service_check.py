@@ -91,14 +91,14 @@ class PigServiceCheck(Script):
                 user=params.smokeuser
         )
 
-      Execute( format("pig -x tez {tmp_dir}/pigSmoke.sh"),
+      Execute(format("pig -x tez {tmp_dir}/pigSmoke.sh"),
         tries     = 3,
         try_sleep = 5,
         path      = format('{pig_bin_dir}:/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'),
         user      = params.smokeuser
       )
 
-      ExecuteHadoop( test_cmd,
+      ExecuteHadoop(test_cmd,
         user      = params.smokeuser,
         conf_dir = params.hadoop_conf_dir,
         bin_dir = params.hadoop_bin_dir

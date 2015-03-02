@@ -29,10 +29,11 @@ class CopyFromLocal(Resource):
   path = ResourceArgument(default=lambda obj: obj.name)
   dest_dir = ResourceArgument(required=True)
   dest_file = ResourceArgument()
-  owner = ResourceArgument(required=True)
-  group = ResourceArgument()
-  mode = ResourceArgument()
+  owner = ResourceArgument(required=True)  # file user owner
+  group = ResourceArgument()               # file group user
+  mode = ResourceArgument()                # file ACL mode
   kinnit_if_needed = ResourceArgument(default='')
+  user = ResourceArgument()                # user to perform commands as. If not provided, default to the owner
   hadoop_conf_dir = ResourceArgument(default='/etc/hadoop/conf')
   hdfs_user = ResourceArgument(default='hdfs')
   hadoop_bin_dir = ResourceArgument(default='/usr/bin')
