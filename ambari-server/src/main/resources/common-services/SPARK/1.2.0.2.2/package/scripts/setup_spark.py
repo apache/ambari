@@ -38,11 +38,11 @@ def setup_spark(env):
             group=params.user_group,
             recursive=True
   )
-  params.HdfsDirectory(params.spark_hdfs_user_dir,
-                       action="create",
-                       owner=params.spark_user,
-                       mode=0775
-  )
+  #params.HdfsDirectory(params.spark_hdfs_user_dir,
+  #                     action="create",
+  #                     owner=params.spark_user,
+  #                     mode=0775
+  #)
 
   file_path = params.spark_conf + '/spark-defaults.conf'
   create_file(file_path)
