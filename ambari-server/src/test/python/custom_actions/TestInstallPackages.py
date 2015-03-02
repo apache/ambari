@@ -272,7 +272,7 @@ class TestInstallPackages(RMFTestCase):
 
     config_dict['roleParams']['package_list'] = '[{\"name\":\"mysql-connector-java\"},{\"name\":\"hive_2_2_*\"},' \
                                                      '{\"name\":\"hive_2_2_*-hcatalog\"},{\"name\":\"hive_2_2_*-webhcat\"},' \
-                                                     '{\"name\":\"mysql\"},{\"name\":\"mysql-client\"}]'
+                                                     '{\"name\":\"mysql\"},{\"name\":\"mysql-client\"}, {\"name\":\"ambari-metrics-collector\"}]'
 
     self.executeScript("scripts/install_packages.py",
                        classname="InstallPackages",

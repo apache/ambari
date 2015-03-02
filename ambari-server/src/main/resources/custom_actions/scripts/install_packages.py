@@ -207,6 +207,9 @@ class InstallPackages(Script):
       # mysql* package logic is managed at HIVE scripts
       if package['name'].startswith('mysql'):
         continue
+      # Ambari metrics packages should not be upgraded during RU
+      if package['name'].startswith('ambari-metrics'):
+        continue
       filtered_package_list.append(package)
     return filtered_package_list
 
