@@ -158,7 +158,7 @@ App.MainAlertInstancesController = Em.Controller.extend({
    * @method getAlertInstancesSuccessCallback
    */
   getAlertInstancesSuccessCallback: function (json) {
-    App.alertInstanceMapper.map(json);
+    App.alertInstanceMapper.map(json, true);
     this.set('isLoaded', true);
     this.set('reload', !this.get('reload'));
   },
