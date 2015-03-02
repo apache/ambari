@@ -19,7 +19,6 @@
 package org.apache.ambari.server.state.svccomphost;
 
 
-import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
@@ -31,6 +30,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Set;
 
 
 /**
@@ -39,26 +39,33 @@ import java.util.HashSet;
 public class ServiceComponentHostSummary  {
 
   private Collection<HostComponentStateEntity> allHostComponents;
-  private Collection<HostComponentStateEntity> versionedHostComponents;
-  private Collection<HostComponentStateEntity> noVersionNeededComponents;
+  private Collection<HostComponentStateEntity> haveAdvertisedVersion;
+  private Collection<HostComponentStateEntity> waitingToAdvertiseVersion;
+  private Collection<HostComponentStateEntity> noVersionToAdvertise;
+  private Set<String> versions;
 
 
   public ServiceComponentHostSummary(AmbariMetaInfo ambariMetaInfo, HostEntity host, String stackName, String stackVersion) throws AmbariException {
     allHostComponents = host.getHostComponentStateEntities();
-    versionedHostComponents = new HashSet<HostComponentStateEntity>();
-    noVersionNeededComponents = new HashSet<HostComponentStateEntity>();
+    haveAdvertisedVersion = new HashSet<HostComponentStateEntity>();
+    waitingToAdvertiseVersion = new HashSet<HostComponentStateEntity>();
+    noVersionToAdvertise = new HashSet<HostComponentStateEntity>();
+    versions = new HashSet<String>();
 
     for (HostComponentStateEntity hostComponentStateEntity: allHostComponents) {
-      if (!hostComponentStateEntity.getVersion().equalsIgnoreCase(State.UNKNOWN.toString())) {
-        versionedHostComponents.add(hostComponentStateEntity);
-      } else {
-        // Some Components cannot advertise a version. E.g., ZKF, AMBARI_METRICS, Kerberos
-        ComponentInfo compInfo = ambariMetaInfo.getComponent(
-            stackName, stackVersion, hostComponentStateEntity.getServiceName(),
-            hostComponentStateEntity.getComponentName());
+      ComponentInfo compInfo = ambariMetaInfo.getComponent(
+          stackName, stackVersion, hostComponentStateEntity.getServiceName(),
+          hostComponentStateEntity.getComponentName());
 
-        if (!compInfo.isVersionAdvertised()) {
-          noVersionNeededComponents.add(hostComponentStateEntity);
+      if (!compInfo.isVersionAdvertised()) {
+        // Some Components cannot advertise a version. E.g., ZKF, AMBARI_METRICS, Kerberos
+        noVersionToAdvertise.add(hostComponentStateEntity);
+      } else {
+        if (hostComponentStateEntity.getVersion() == null || hostComponentStateEntity.getVersion().isEmpty() || hostComponentStateEntity.getVersion().equalsIgnoreCase(State.UNKNOWN.toString())) {
+          waitingToAdvertiseVersion.add(hostComponentStateEntity);
+        } else {
+          haveAdvertisedVersion.add(hostComponentStateEntity);
+          versions.add(hostComponentStateEntity.getVersion());
         }
       }
     }
@@ -68,26 +75,33 @@ public class ServiceComponentHostSummary  {
     this(ambariMetaInfo, host, stackId.getStackName(), stackId.getStackVersion());
   }
 
-  public Collection<HostComponentStateEntity> getAllHostComponents() {
-    return allHostComponents;
+  public Collection<HostComponentStateEntity> getHaveAdvertisedVersion() {
+    return haveAdvertisedVersion;
   }
 
-  public Collection<HostComponentStateEntity> getVersionedHostComponents() {
-    return versionedHostComponents;
-  }
-
-  public Collection<HostComponentStateEntity> getNoVersionNeededComponents() {
-    return noVersionNeededComponents;
+  public boolean isUpgradeFinished() {
+    return haveAllComponentsFinishedAdvertisingVersion() && haveSameVersion(getHaveAdvertisedVersion());
   }
 
   /**
-   * Determine if all of the components on this host have finished advertising a version, which occurs when all of the
-   * components that advertise a version, plus the components that do not advertise a version, equal the total number
-   * of components.
+   * @param currentRepoVersion Repo Version that is CURRENT for this host
+   * @return Return true if multiple component versions are found for this host, or if it does not coincide with the
+   * CURRENT repo version.
+   */
+  public boolean isUpgradeInProgress(String currentRepoVersion) {
+    // Exactly one CURRENT version must exist
+    // We can only detect an upgrade if the Host has at least one component that advertises a version and has done so already
+    // If distinct versions have been advertises, then an upgrade is in progress.
+    // If exactly one version has been advertises, but it doesn't coincide with the CURRENT HostVersion, then an upgrade is in progress.
+    return currentRepoVersion != null && (versions.size() > 1 || (versions.size() == 1 && !versions.iterator().next().equals(currentRepoVersion)));
+  }
+
+  /**
+   * Determine if all of the components on that need to advertise a version have finished doing so.
    * @return Return a bool indicating if all components that can report a version have done so.
    */
   public boolean haveAllComponentsFinishedAdvertisingVersion() {
-    return allHostComponents.size() == versionedHostComponents.size() + noVersionNeededComponents.size();
+    return waitingToAdvertiseVersion.size() == 0;
   }
 
   /**

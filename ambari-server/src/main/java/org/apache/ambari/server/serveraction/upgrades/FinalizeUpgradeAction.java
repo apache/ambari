@@ -125,7 +125,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
       List<HostVersionEntity> hostVersions = hostVersionDAO.findByClusterStackAndVersion(clusterName, stackId, version);
 
       // Will include hosts whose state is UPGRADED, and potentially INSTALLED
-      Set<HostVersionEntity> hostsWithAllowedVersion = new HashSet<HostVersionEntity>();
+      Set<HostVersionEntity> hostVersionsAllowed = new HashSet<HostVersionEntity>();
       Set<String> hostsWithoutCorrectVersionState = new HashSet<String>();
       Set<String> hostsToUpdate = new HashSet<String>();
       // If true, then the cluster version is still in UPGRADING and allowed to transition to UPGRADED, and then CURRENT
@@ -152,7 +152,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
         }
 
         if (isStateCorrect) {
-          hostsWithAllowedVersion.add(hostVersion);
+          hostVersionsAllowed.add(hostVersion);
           hostsToUpdate.add(hostVersion.getHostName());
         } else {
           hostsWithoutCorrectVersionState.add(hostVersion.getHostName());
@@ -169,7 +169,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
         throw new AmbariException(message);
       }
 
-      // Allow the cluster version to transition from UPGRADING to CURRENT
+      // May need to first transition to UPGRADED
       if (atLeastOneHostInInstalledState) {
         cluster.transitionClusterVersion(stackId, version, RepositoryVersionState.UPGRADED);
         upgradingClusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(clusterName,
@@ -181,9 +181,10 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
             upgradingClusterVersion.getState(), RepositoryVersionState.CURRENT.toString()));
       }
 
-      outSB.append(String.format("Will finalize the upgraded state of host components in %d host(s).\n", hostsWithAllowedVersion.size()));
+      outSB.append(String.format("Will finalize the upgraded state of host components in %d host(s).\n", hostVersionsAllowed.size()));
 
-      for (HostVersionEntity hostVersion : hostsWithAllowedVersion) {
+      // Reset the upgrade state
+      for (HostVersionEntity hostVersion : hostVersionsAllowed) {
         Collection<HostComponentStateEntity> hostComponentStates = hostComponentStateDAO.findByHost(hostVersion.getHostName());
         for (HostComponentStateEntity hostComponentStateEntity: hostComponentStates) {
           hostComponentStateEntity.setUpgradeState(UpgradeState.NONE);
@@ -191,7 +192,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
         }
       }
 
-      outSB.append(String.format("Will finalize the version for %d host(s).\n", hostsWithAllowedVersion.size()));
+      outSB.append(String.format("Will finalize the version for %d host(s).\n", hostVersionsAllowed.size()));
 
       // Impacts all hosts that have a version
       cluster.mapHostVersions(hostsToUpdate, upgradingClusterVersion, RepositoryVersionState.CURRENT);

@@ -152,23 +152,10 @@ public interface Cluster {
    * @throws AmbariException
    */
   public void inferHostVersions(ClusterVersionEntity sourceClusterVersion) throws AmbariException;
-
-  /**
-   * Update state of a cluster stack version for cluster based on states of host versions.
-   * May be called multiple times.
-   * As of now, only transition from INSTALLING to INSTALLING/INSTALLED/INSTALL_FAILED/OUT_OF_SYNC
-   * is supported
-   *
-   * @param repositoryVersion repository version (e.g. 2.2.1.0-100)
-   *
-   * @throws AmbariException
-   */
-  void recalculateClusterVersionState(String repositoryVersion) throws AmbariException;
-
+  
   /**
    * For a given host, will either either update an existing Host Version Entity for the given version, or create
-   * one if it doesn't exist. The object will be created with a state of
-   * {@link org.apache.ambari.server.state.RepositoryVersionState#UPGRADING}
+   * one if it doesn't exist
    *
    * @param host Host Entity object
    * @param repositoryVersion Repository Version that the host is transitioning to
@@ -179,10 +166,14 @@ public interface Cluster {
   public HostVersionEntity transitionHostVersionState(HostEntity host, final RepositoryVersionEntity repositoryVersion, final StackId stack) throws AmbariException;
 
   /**
+   * Update state of a cluster stack version for cluster based on states of host versions.
+   * @param repositoryVersion repository version (e.g. 2.2.1.0-100)
+   * @throws AmbariException
+   */
+  void recalculateClusterVersionState(String repositoryVersion) throws AmbariException;
+
+  /**
    * Update state of all cluster stack versions for cluster based on states of host versions.
-   * May be called multiple times.
-   * As of now, only transition from INSTALLING to INSTALLING/INSTALLED/INSTALL_FAILED/OUT_OF_SYNC
-   * is supported
    * @throws AmbariException
    */
   public void recalculateAllClusterVersionStates() throws AmbariException;
@@ -198,7 +189,6 @@ public interface Cluster {
    * @throws AmbariException
    */
   public void createClusterVersion(String stack, String version, String userName, RepositoryVersionState state) throws AmbariException;
-
 
   /**
    * Transition an existing cluster version from one state to another.

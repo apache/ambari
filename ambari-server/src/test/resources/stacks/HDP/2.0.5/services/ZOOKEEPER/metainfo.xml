@@ -41,6 +41,7 @@
           <name>ZOOKEEPER_CLIENT</name>
           <category>CLIENT</category>
           <cardinality>0+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/zookeeper_client.py</script>
             <scriptType>PYTHON</scriptType>
