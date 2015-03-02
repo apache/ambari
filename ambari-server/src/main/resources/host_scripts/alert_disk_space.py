@@ -26,7 +26,12 @@ from ambari_commons import OSConst
 
 DiskInfo = collections.namedtuple('DiskInfo', 'total used free')
 MIN_FREE_SPACE = 5000000000L   # 5GB
-USR_HDP = '/usr/hdp'
+
+# the location where HDP installs components when using HDP 2.2+
+HDP_HOME_DIR = "/usr/hdp"
+
+# the location where HDP installs components when using HDP 2.0 to 2.1
+HDP_HOME_LEGACY_DIR = "/usr/lib"
 
 def get_tokens():
   """
@@ -53,13 +58,21 @@ def execute(parameters=None, host_name=None):
   except NotImplementedError, platform_error:
     return 'CRITICAL', [str(platform_error)]
 
-  if result_code == 'OK':
-    # Root partition seems to be OK, let's check /usr/hdp
+  # determine the location of HDP home; if it exists then we should also
+  # check it in addition to /
+  hdp_home = None
+  if os.path.isdir(HDP_HOME_DIR):
+    hdp_home = HDP_HOME_DIR
+  elif os.path.isdir(HDP_HOME_LEGACY_DIR):
+    hdp_home = HDP_HOME_LEGACY_DIR
+
+  if result_code == 'OK' and hdp_home:
+    # Root partition seems to be OK, let's check HDP home
     try:
-      disk_usage = _get_disk_usage(USR_HDP)
+      disk_usage = _get_disk_usage(hdp_home)
       result_code_usr_hdp, label_usr_hdp = _get_warnings_for_partition(disk_usage)
       if result_code_usr_hdp != 'OK':
-        label = "{0}. Insufficient space at {1}: {2}".format(label, USR_HDP, label_usr_hdp)
+        label = "{0}. Insufficient space at {1}: {2}".format(label, hdp_home, label_usr_hdp)
         result_code = 'WARNING'
     except NotImplementedError, platform_error:
       return 'CRITICAL', [str(platform_error)]
@@ -87,7 +100,7 @@ def _get_warnings_for_partition(disk_usage):
     # Check absolute disk space value
     if disk_usage.free < MIN_FREE_SPACE:
       result_code = 'WARNING'
-      label += '. Free space < {0}'.format(_get_formatted_size(MIN_FREE_SPACE))
+      label += '. Total free space is less than {0}'.format(_get_formatted_size(MIN_FREE_SPACE))
 
   return result_code, label
 
