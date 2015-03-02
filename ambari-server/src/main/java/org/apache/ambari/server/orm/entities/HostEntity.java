@@ -31,6 +31,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import java.util.Collection;
+import java.util.Collections;
 
 import static org.apache.commons.lang.StringUtils.defaultString;
 
@@ -266,16 +267,62 @@ public class HostEntity implements Comparable<HostEntity> {
     return this.hostName.compareTo(other.hostName);
   }
 
+  /**
+   * Get the read-only collection of host component desired state entities associated with this host entity.
+   *
+   * @return the read-only collection of host component desired state entities
+   */
   public Collection<HostComponentDesiredStateEntity> getHostComponentDesiredStateEntities() {
-    return hostComponentDesiredStateEntities;
+    return Collections.unmodifiableCollection(hostComponentDesiredStateEntities);
+  }
+
+  /**
+   * Add a host component desired state entity to this host entity.
+   *
+   * @param stateEntity the host component desired state entity
+   */
+  public void addHostComponentDesiredStateEntity(HostComponentDesiredStateEntity stateEntity) {
+    hostComponentDesiredStateEntities.add(stateEntity);
+  }
+
+  /**
+   * Remove a host component desired state entity from this host entity.
+   *
+   * @param stateEntity the host component desired state entity
+   */
+  public void removeHostComponentDesiredStateEntity(HostComponentDesiredStateEntity stateEntity) {
+    hostComponentDesiredStateEntities.remove(stateEntity);
   }
 
   public void setHostComponentDesiredStateEntities(Collection<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities) {
     this.hostComponentDesiredStateEntities = hostComponentDesiredStateEntities;
   }
 
+  /**
+   * Get the read-only collection of host component state entities associated with this host entity.
+   *
+   * @return the read-only collection of host component state entities
+   */
   public Collection<HostComponentStateEntity> getHostComponentStateEntities() {
-    return hostComponentStateEntities;
+    return Collections.unmodifiableCollection(hostComponentStateEntities);
+  }
+
+  /**
+   * Add a host component state entity to this host entity.
+   *
+   * @param stateEntity the host component state entity
+   */
+  public void addHostComponentStateEntity(HostComponentStateEntity stateEntity) {
+    hostComponentStateEntities.add(stateEntity);
+  }
+
+  /**
+   * Remove a host component state entity from this host entity.
+   *
+   * @param stateEntity the host component state entity
+   */
+  public void removeHostComponentStateEntity(HostComponentStateEntity stateEntity) {
+    hostComponentStateEntities.remove(stateEntity);
   }
 
   public void setHostComponentStateEntities(Collection<HostComponentStateEntity> hostComponentStateEntities) {

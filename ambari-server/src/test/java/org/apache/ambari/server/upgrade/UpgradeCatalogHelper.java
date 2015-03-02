@@ -198,9 +198,8 @@ public class UpgradeCatalogHelper {
     componentDesiredStateEntity.setHostComponentStateEntities(Collections.singletonList(hostComponentStateEntity));
     componentDesiredStateEntity.setHostComponentDesiredStateEntities(Collections.singletonList(hostComponentDesiredStateEntity));
 
-    hostEntity.getHostComponentStateEntities().add(hostComponentStateEntity);
-    hostEntity.getHostComponentDesiredStateEntities().add(
-        hostComponentDesiredStateEntity);
+    hostEntity.addHostComponentStateEntity(hostComponentStateEntity);
+    hostEntity.addHostComponentDesiredStateEntity(hostComponentDesiredStateEntity);
 
     clusterServiceEntity.getServiceComponentDesiredStateEntities().add(
         componentDesiredStateEntity);
