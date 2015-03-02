@@ -335,19 +335,37 @@ public class DBAccessorImpl implements DBAccessor {
                               String referenceColumn, boolean ignoreFailure) throws SQLException {
 
     addFKConstraint(tableName, constraintName, new String[]{keyColumn}, referenceTableName,
-      new String[]{referenceColumn}, ignoreFailure);
+        new String[]{referenceColumn}, false, ignoreFailure);
+  }
+  @Override
+  public void addFKConstraint(String tableName, String constraintName,
+                              String keyColumn, String referenceTableName,
+                              String referenceColumn, boolean shouldCascadeOnDelete,
+                              boolean ignoreFailure) throws SQLException {
+
+    addFKConstraint(tableName, constraintName, new String[]{keyColumn}, referenceTableName,
+      new String[]{referenceColumn}, shouldCascadeOnDelete, ignoreFailure);
   }
 
   @Override
   public void addFKConstraint(String tableName, String constraintName,
                               String[] keyColumns, String referenceTableName,
-                              String[] referenceColumns, boolean ignoreFailure) throws SQLException {
+                              String[] referenceColumns,
+                              boolean ignoreFailure) throws SQLException {
+    addFKConstraint(tableName, constraintName, keyColumns, referenceTableName, referenceColumns, false, ignoreFailure);
+  }
+
+  @Override
+  public void addFKConstraint(String tableName, String constraintName,
+                              String[] keyColumns, String referenceTableName,
+                              String[] referenceColumns, boolean shouldCascadeOnDelete,
+                              boolean ignoreFailure) throws SQLException {
     if (!tableHasForeignKey(tableName, referenceTableName, keyColumns, referenceColumns)) {
       String query = dbmsHelper.getAddForeignKeyStatement(tableName, constraintName,
           Arrays.asList(keyColumns),
           referenceTableName,
-          Arrays.asList(referenceColumns)
-      );
+          Arrays.asList(referenceColumns),
+          shouldCascadeOnDelete);
 
       try {
         executeQuery(query, ignoreFailure);

@@ -237,9 +237,9 @@ public class UpgradeCatalog200Test {
     dbAccessor.createTable(eq("kerberos_principal_host"), capture(kerberosPrincipalHostCapture),
         eq("principal_name"), eq("host_name"));
     dbAccessor.addFKConstraint(eq("kerberos_principal_host"), eq("FK_krb_pr_host_hostname"),
-        eq("host_name"), eq("hosts"), eq("host_name"), eq(false));
+        eq("host_name"), eq("hosts"), eq("host_name"), eq(true), eq(false));
     dbAccessor.addFKConstraint(eq("kerberos_principal_host"), eq("FK_krb_pr_host_principalname"),
-        eq("principal_name"), eq("kerberos_principal"), eq("principal_name"), eq(false));
+        eq("principal_name"), eq("kerberos_principal"), eq("principal_name"), eq(true), eq(false));
 
     setViewInstancePropertyExpectations(dbAccessor, valueColumnCapture);
     setViewInstanceDataExpectations(dbAccessor, dataValueColumnCapture);
@@ -341,7 +341,6 @@ public class UpgradeCatalog200Test {
     Method updateHiveDatabaseType = UpgradeCatalog200.class.getDeclaredMethod("updateHiveDatabaseType");
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod
         ("addNewConfigurationsFromXml");
-    Method setSecurityType = UpgradeCatalog200.class.getDeclaredMethod("setSecurityType");
     Method updateTezConfiguration = UpgradeCatalog200.class.getDeclaredMethod("updateTezConfiguration");
     Method updateClusterEnvConfiguration = UpgradeCatalog200.class.getDeclaredMethod("updateClusterEnvConfiguration");
     Method updateConfigurationProperties = AbstractUpgradeCatalog.class.getDeclaredMethod
@@ -352,7 +351,6 @@ public class UpgradeCatalog200Test {
         .addMockedMethod(removeNagiosService)
         .addMockedMethod(updateHiveDatabaseType)
         .addMockedMethod(addNewConfigurationsFromXml)
-        .addMockedMethod(setSecurityType)
         .addMockedMethod(updateTezConfiguration)
         .addMockedMethod(updateConfigurationProperties)
         .addMockedMethod(updateClusterEnvConfiguration)
@@ -365,8 +363,6 @@ public class UpgradeCatalog200Test {
     expectLastCall();
     
     upgradeCatalog.updateHiveDatabaseType();
-    expectLastCall().once();
-    upgradeCatalog.setSecurityType();
     expectLastCall().once();
 
     upgradeCatalog.updateTezConfiguration();
