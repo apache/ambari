@@ -39,8 +39,8 @@
           "uri": {
             "http": "{{falcon-env/falcon_port}}",
             "default_port": 15000,
-            "kerberos_keytab": "{{core-site/hadoop.http.authentication.kerberos.keytab}}",
-            "kerberos_principal": "{{core-site/hadoop.http.authentication.kerberos.principal}}"
+            "kerberos_keytab": "{{falcon-startup.properties/*.falcon.http.authentication.kerberos.keytab}}",
+            "kerberos_principal": "{{falcon-startup.properties/*.falcon.http.authentication.kerberos.principal}}"
           },
           "reporting": {
             "ok": {
