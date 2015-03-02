@@ -180,7 +180,18 @@ public class AlertTargetResourceProvider extends
     modifyResources(new Command<Void>() {
       @Override
       public Void invoke() throws AmbariException {
-        updateAlertTargets(request.getProperties());
+        Set<Map<String, Object>> requestMaps = request.getProperties();
+        for (Map<String, Object> requestMap : requestMaps) {
+          String stringId = (String) requestMap.get(ALERT_TARGET_ID);
+
+          if (StringUtils.isEmpty(stringId)) {
+            throw new IllegalArgumentException(
+                "The ID of the alert target is required when updating an existing target");
+          }
+
+          long alertTargetId = Long.parseLong(stringId);
+          updateAlertTargets(alertTargetId, requestMap);
+        }
         return null;
       }
     });
@@ -237,10 +248,7 @@ public class AlertTargetResourceProvider extends
   @SuppressWarnings("unchecked")
   private void createAlertTargets(Set<Map<String, Object>> requestMaps, Map<String, String> requestInfoProps)
       throws AmbariException {
-    List<AlertTargetEntity> entities = new ArrayList<AlertTargetEntity>();
     for (Map<String, Object> requestMap : requestMaps) {
-      AlertTargetEntity entity = new AlertTargetEntity();
-
       String name = (String) requestMap.get(ALERT_TARGET_NAME);
       String description = (String) requestMap.get(ALERT_TARGET_DESCRIPTION);
       String notificationType = (String) requestMap.get(ALERT_TARGET_NOTIFICATION_TYPE);
@@ -265,9 +273,15 @@ public class AlertTargetResourceProvider extends
             "Alert targets must be created with their connection properties");
       }
 
-      String validationProperty =  requestInfoProps.get(AlertTargetResourceDefinition.VALIDATE_CONFIG_DIRECTIVE);
-      if (validationProperty != null && validationProperty.equalsIgnoreCase("true")) {
+      String validationDirective = requestInfoProps.get(AlertTargetResourceDefinition.VALIDATE_CONFIG_DIRECTIVE);
+      if (validationDirective != null
+          && validationDirective.equalsIgnoreCase("true")) {
         validateTargetConfig(notificationType, properties);
+      }
+
+      boolean overwriteExisting = false;
+      if (requestInfoProps.containsKey(AlertTargetResourceDefinition.OVERWRITE_DIRECTIVE)) {
+        overwriteExisting = true;
       }
 
       // global not required
@@ -285,6 +299,16 @@ public class AlertTargetResourceProvider extends
         }
       } else {
         alertStateSet = EnumSet.allOf(AlertState.class);
+      }
+
+      // if we are overwriting an existing, determine if one exists first
+      AlertTargetEntity entity = null;
+      if( overwriteExisting ) {
+        entity = s_dao.findTargetByName(name);
+      }
+
+      if (null == entity) {
+        entity = new AlertTargetEntity();
       }
 
       // groups are not required on creation
@@ -305,10 +329,12 @@ public class AlertTargetResourceProvider extends
       entity.setAlertStates(alertStateSet);
       entity.setGlobal(isGlobal);
 
-      entities.add(entity);
+      if (null == entity.getTargetId() || 0 == entity.getTargetId()) {
+        s_dao.create(entity);
+      } else {
+        s_dao.merge(entity);
+      }
     }
-
-    s_dao.createTargets(entities);
   }
 
   /**
@@ -320,81 +346,72 @@ public class AlertTargetResourceProvider extends
    *           if the entity could not be found.
    */
   @SuppressWarnings("unchecked")
-  private void updateAlertTargets(Set<Map<String, Object>> requestMaps)
+  private void updateAlertTargets(long alertTargetId,
+      Map<String, Object> requestMap)
       throws AmbariException {
 
-    for (Map<String, Object> requestMap : requestMaps) {
-      String stringId = (String) requestMap.get(ALERT_TARGET_ID);
+    AlertTargetEntity entity = s_dao.findTargetById(alertTargetId);
 
-      if (StringUtils.isEmpty(stringId)) {
-        throw new IllegalArgumentException(
-            "The ID of the alert target is required when updating an existing target");
-      }
+    if (null == entity) {
+      String message = MessageFormat.format(
+          "The alert target with ID {0} could not be found", alertTargetId);
 
-      long id = Long.parseLong(stringId);
-      AlertTargetEntity entity = s_dao.findTargetById(id);
-
-      if (null == entity) {
-        String message = MessageFormat.format(
-            "The alert target with ID {0} could not be found", id);
-        throw new AmbariException(message);
-      }
-
-      String name = (String) requestMap.get(ALERT_TARGET_NAME);
-      String description = (String) requestMap.get(ALERT_TARGET_DESCRIPTION);
-      String notificationType = (String) requestMap.get(ALERT_TARGET_NOTIFICATION_TYPE);
-      Collection<String> alertStates = (Collection<String>) requestMap.get(ALERT_TARGET_STATES);
-      Collection<Long> groupIds = (Collection<Long>) requestMap.get(ALERT_TARGET_GROUPS);
-
-      if (!StringUtils.isBlank(name)) {
-        entity.setTargetName(name);
-      }
-
-      if (null != description) {
-        entity.setDescription(description);
-      }
-
-      if (!StringUtils.isBlank(notificationType)) {
-        entity.setNotificationType(notificationType);
-      }
-
-      String properties = s_gson.toJson(extractProperties(requestMap));
-      if (!StringUtils.isEmpty(properties)) {
-        entity.setProperties(properties);
-      }
-
-      // a null alert state implies that the key was not set and no update
-      // should occur for this field, while an empty list implies all alert
-      // states should be set
-      if (null != alertStates) {
-        final Set<AlertState> alertStateSet;
-        if (alertStates.isEmpty()) {
-          alertStateSet = EnumSet.allOf(AlertState.class);
-        } else {
-          alertStateSet = new HashSet<AlertState>(alertStates.size());
-          for (String state : alertStates) {
-            alertStateSet.add(AlertState.valueOf(state));
-          }
-        }
-
-        entity.setAlertStates(alertStateSet);
-      }
-
-      // if groups were supplied, replace existing
-      if (null != groupIds) {
-        Set<AlertGroupEntity> groups = new HashSet<AlertGroupEntity>();
-
-        List<Long> ids = new ArrayList<Long>(groupIds);
-
-        if (ids.size() > 0) {
-          groups.addAll(s_dao.findGroupsById(ids));
-        }
-
-        entity.setAlertGroups(groups);
-      }
-
-      s_dao.merge(entity);
+      throw new AmbariException(message);
     }
+
+    String name = (String) requestMap.get(ALERT_TARGET_NAME);
+    String description = (String) requestMap.get(ALERT_TARGET_DESCRIPTION);
+    String notificationType = (String) requestMap.get(ALERT_TARGET_NOTIFICATION_TYPE);
+    Collection<String> alertStates = (Collection<String>) requestMap.get(ALERT_TARGET_STATES);
+    Collection<Long> groupIds = (Collection<Long>) requestMap.get(ALERT_TARGET_GROUPS);
+
+    if (!StringUtils.isBlank(name)) {
+      entity.setTargetName(name);
+    }
+
+    if (null != description) {
+      entity.setDescription(description);
+    }
+
+    if (!StringUtils.isBlank(notificationType)) {
+      entity.setNotificationType(notificationType);
+    }
+
+    String properties = s_gson.toJson(extractProperties(requestMap));
+    if (!StringUtils.isEmpty(properties)) {
+      entity.setProperties(properties);
+    }
+
+    // a null alert state implies that the key was not set and no update
+    // should occur for this field, while an empty list implies all alert
+    // states should be set
+    if (null != alertStates) {
+      final Set<AlertState> alertStateSet;
+      if (alertStates.isEmpty()) {
+        alertStateSet = EnumSet.allOf(AlertState.class);
+      } else {
+        alertStateSet = new HashSet<AlertState>(alertStates.size());
+        for (String state : alertStates) {
+          alertStateSet.add(AlertState.valueOf(state));
+        }
+      }
+
+      entity.setAlertStates(alertStateSet);
+    }
+
+    // if groups were supplied, replace existing
+    if (null != groupIds) {
+      Set<AlertGroupEntity> groups = new HashSet<AlertGroupEntity>();
+      List<Long> ids = new ArrayList<Long>(groupIds);
+
+      if (ids.size() > 0) {
+        groups.addAll(s_dao.findGroupsById(ids));
+      }
+
+      entity.setAlertGroups(groups);
+    }
+
+    s_dao.merge(entity);
   }
 
   /**

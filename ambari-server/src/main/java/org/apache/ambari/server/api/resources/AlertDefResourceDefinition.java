@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.api.resources;
 
+import java.util.Collection;
+
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -24,18 +26,26 @@ import org.apache.ambari.server.controller.spi.Resource;
  */
 public class AlertDefResourceDefinition extends BaseResourceDefinition {
 
+  public static final String EXECUTE_IMMEDIATE_DIRECTIVE = "run_now";
+
   public AlertDefResourceDefinition() {
     super(Resource.Type.AlertDefinition);
   }
-  
+
   @Override
   public String getPluralName() {
     return "alert_definitions";
   }
-  
+
   @Override
   public String getSingularName() {
     return "alert_definition";
   }
-  
+
+  @Override
+  public Collection<String> getUpdateDirectives() {
+    Collection<String> directives = super.getCreateDirectives();
+    directives.add(EXECUTE_IMMEDIATE_DIRECTIVE);
+    return directives;
+  }
 }
