@@ -28,6 +28,7 @@ App.AlertInstance = DS.Model.extend({
   serviceName: DS.attr('string'),
   componentName: DS.attr('string'),
   host: DS.belongsTo('App.Host'),
+  hostName: DS.attr('string'),
   scope: DS.attr('string'),
   originalTimestamp: DS.attr('number'),
   latestTimestamp: DS.attr('number'),
