@@ -40,7 +40,7 @@ else:
 
 
 class TestCheckHost(TestCase):
-
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("os.path.isfile")
   @patch.object(Script, 'get_config')
   @patch.object(Script, 'get_tmp_dir')
@@ -69,7 +69,7 @@ class TestCheckHost(TestCase):
     self.assertEquals(structured_out_mock.call_args[0][0], {'java_home_check': {"message": "Java home doesn't exist!",
                                                                                 "exit_code" : 1}})
 
-
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(Script, 'get_config')
   @patch.object(Script, 'get_tmp_dir')
   @patch("check_host.download_file")
@@ -179,7 +179,7 @@ class TestCheckHost(TestCase):
             'available on host. Please install it. Java home should be the same as on server. \n', 'exit_code': 1}})
 
 
-
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("socket.gethostbyname")
   @patch.object(Script, 'get_config')
   @patch.object(Script, 'get_tmp_dir')
@@ -219,7 +219,8 @@ class TestCheckHost(TestCase):
                     {'cause': (), 'host': u'!!!', 'type': 'FORWARD_LOOKUP'}], 
        'message': 'There were 5 host(s) that could not resolve to an IP address.', 
        'failed_count': 5, 'success_count': 0, 'exit_code': 0}})
-    
+
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(Script, 'get_config')
   @patch.object(Script, 'get_tmp_dir')
   @patch("resource_management.libraries.script.Script.put_structured_out")
