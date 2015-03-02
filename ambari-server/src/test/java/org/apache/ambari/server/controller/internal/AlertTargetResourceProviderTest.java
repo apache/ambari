@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.api.resources.AlertTargetResourceDefinition;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
@@ -205,9 +206,8 @@ public class AlertTargetResourceProviderTest {
    */
   @Test
   public void testCreateResources() throws Exception {
-    Capture<List<AlertTargetEntity>> listCapture = new Capture<List<AlertTargetEntity>>();
-
-    m_dao.createTargets(capture(listCapture));
+    Capture<AlertTargetEntity> targetCapture = new Capture<AlertTargetEntity>();
+    m_dao.create(capture(targetCapture));
     expectLastCall();
 
     replay(m_amc, m_dao);
@@ -218,8 +218,8 @@ public class AlertTargetResourceProviderTest {
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
     provider.createResources(request);
 
-    Assert.assertTrue(listCapture.hasCaptured());
-    AlertTargetEntity entity = listCapture.getValue().get(0);
+    Assert.assertTrue(targetCapture.hasCaptured());
+    AlertTargetEntity entity = targetCapture.getValue();
     Assert.assertNotNull(entity);
 
     assertEquals(ALERT_TARGET_NAME, entity.getTargetName());
@@ -241,8 +241,6 @@ public class AlertTargetResourceProviderTest {
    */
   @Test
   public void testCreateResourcesWithGroups() throws Exception {
-    Capture<List<AlertTargetEntity>> listCapture = new Capture<List<AlertTargetEntity>>();
-
     List<Long> groupIds = Arrays.asList(1L, 2L, 3L);
     List<AlertGroupEntity> groups = new ArrayList<AlertGroupEntity>();
     AlertGroupEntity group1 = new AlertGroupEntity();
@@ -254,7 +252,8 @@ public class AlertTargetResourceProviderTest {
     groups.addAll(Arrays.asList(group1, group2, group3));
     expect(m_dao.findGroupsById(groupIds)).andReturn(groups).once();
 
-    m_dao.createTargets(capture(listCapture));
+    Capture<AlertTargetEntity> targetCapture = new Capture<AlertTargetEntity>();
+    m_dao.create(capture(targetCapture));
     expectLastCall();
 
     replay(m_amc, m_dao);
@@ -268,8 +267,8 @@ public class AlertTargetResourceProviderTest {
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
     provider.createResources(request);
 
-    Assert.assertTrue(listCapture.hasCaptured());
-    AlertTargetEntity entity = listCapture.getValue().get(0);
+    Assert.assertTrue(targetCapture.hasCaptured());
+    AlertTargetEntity entity = targetCapture.getValue();
     Assert.assertNotNull(entity);
 
     assertEquals(ALERT_TARGET_NAME, entity.getTargetName());
@@ -292,9 +291,8 @@ public class AlertTargetResourceProviderTest {
    */
   @Test
   public void testCreateGlobalTarget() throws Exception {
-    Capture<List<AlertTargetEntity>> listCapture = new Capture<List<AlertTargetEntity>>();
-
-    m_dao.createTargets(capture(listCapture));
+    Capture<AlertTargetEntity> targetCapture = new Capture<AlertTargetEntity>();
+    m_dao.create(capture(targetCapture));
     expectLastCall();
 
     replay(m_amc, m_dao);
@@ -310,8 +308,8 @@ public class AlertTargetResourceProviderTest {
 
     provider.createResources(request);
 
-    Assert.assertTrue(listCapture.hasCaptured());
-    AlertTargetEntity entity = listCapture.getValue().get(0);
+    Assert.assertTrue(targetCapture.hasCaptured());
+    AlertTargetEntity entity = targetCapture.getValue();
     Assert.assertNotNull(entity);
 
     assertEquals(ALERT_TARGET_NAME, entity.getTargetName());
@@ -333,9 +331,8 @@ public class AlertTargetResourceProviderTest {
    */
   @Test
   public void testCreateResourceWithRecipientArray() throws Exception {
-    Capture<List<AlertTargetEntity>> listCapture = new Capture<List<AlertTargetEntity>>();
-
-    m_dao.createTargets(capture(listCapture));
+    Capture<AlertTargetEntity> targetCapture = new Capture<AlertTargetEntity>();
+    m_dao.create(capture(targetCapture));
     expectLastCall();
 
     replay(m_amc, m_dao);
@@ -348,8 +345,8 @@ public class AlertTargetResourceProviderTest {
 
     provider.createResources(request);
 
-    Assert.assertTrue(listCapture.hasCaptured());
-    AlertTargetEntity entity = listCapture.getValue().get(0);
+    Assert.assertTrue(targetCapture.hasCaptured());
+    AlertTargetEntity entity = targetCapture.getValue();
     Assert.assertNotNull(entity);
 
     assertEquals(ALERT_TARGET_NAME, entity.getTargetName());
@@ -373,9 +370,8 @@ public class AlertTargetResourceProviderTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testCreateResourceWithAlertStates() throws Exception {
-    Capture<List<AlertTargetEntity>> listCapture = new Capture<List<AlertTargetEntity>>();
-
-    m_dao.createTargets(capture(listCapture));
+    Capture<AlertTargetEntity> targetCapture = new Capture<AlertTargetEntity>();
+    m_dao.create(capture(targetCapture));
     expectLastCall();
 
     replay(m_amc, m_dao);
@@ -391,8 +387,8 @@ public class AlertTargetResourceProviderTest {
 
     provider.createResources(request);
 
-    Assert.assertTrue(listCapture.hasCaptured());
-    AlertTargetEntity entity = listCapture.getValue().get(0);
+    Assert.assertTrue(targetCapture.hasCaptured());
+    AlertTargetEntity entity = targetCapture.getValue();
     Assert.assertNotNull(entity);
 
     assertEquals(ALERT_TARGET_NAME, entity.getTargetName());
@@ -417,8 +413,7 @@ public class AlertTargetResourceProviderTest {
   @SuppressWarnings("unchecked")
   public void testUpdateResources() throws Exception {
     Capture<AlertTargetEntity> entityCapture = new Capture<AlertTargetEntity>();
-
-    m_dao.createTargets(EasyMock.anyObject(List.class));
+    m_dao.create(capture(entityCapture));
     expectLastCall().times(1);
 
     AlertTargetEntity target = new AlertTargetEntity();
@@ -468,8 +463,7 @@ public class AlertTargetResourceProviderTest {
   @SuppressWarnings("unchecked")
   public void testUpdateResourcesWithGroups() throws Exception {
     Capture<AlertTargetEntity> entityCapture = new Capture<AlertTargetEntity>();
-
-    m_dao.createTargets(EasyMock.anyObject(List.class));
+    m_dao.create(capture(entityCapture));
     expectLastCall().times(1);
 
     AlertTargetEntity target = new AlertTargetEntity();
@@ -525,10 +519,8 @@ public class AlertTargetResourceProviderTest {
   @Test
   public void testDeleteResources() throws Exception {
     Capture<AlertTargetEntity> entityCapture = new Capture<AlertTargetEntity>();
-    Capture<List<AlertTargetEntity>> listCapture = new Capture<List<AlertTargetEntity>>();
-
-    m_dao.createTargets(capture(listCapture));
-    expectLastCall();
+    m_dao.create(capture(entityCapture));
+    expectLastCall().times(1);
 
     replay(m_amc, m_dao);
 
@@ -538,8 +530,8 @@ public class AlertTargetResourceProviderTest {
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
     provider.createResources(request);
 
-    Assert.assertTrue(listCapture.hasCaptured());
-    AlertTargetEntity entity = listCapture.getValue().get(0);
+    Assert.assertTrue(entityCapture.hasCaptured());
+    AlertTargetEntity entity = entityCapture.getValue();
     Assert.assertNotNull(entity);
 
     Predicate p = new PredicateBuilder().property(
@@ -562,6 +554,48 @@ public class AlertTargetResourceProviderTest {
 
     verify(m_amc, m_dao);
   }
+
+  @Test
+  public void testOverwriteDirective() throws Exception {
+    // mock out returning an existing entity
+    AlertTargetEntity entity = getMockEntities().get(0);
+    expect(m_dao.findTargetByName(ALERT_TARGET_NAME)).andReturn(entity).atLeastOnce();
+    Capture<AlertTargetEntity> targetCapture = new Capture<AlertTargetEntity>();
+    expect(m_dao.merge(capture(targetCapture))).andReturn(entity).once();
+
+    replay(m_amc, m_dao);
+
+    AlertTargetResourceProvider provider = createProvider(m_amc);
+    Map<String, Object> requestProps = getCreationProperties();
+
+    // mock out the directive
+    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    requestInfoProperties.put(
+        AlertTargetResourceDefinition.OVERWRITE_DIRECTIVE, "true");
+
+    Request request = PropertyHelper.getCreateRequest(
+        Collections.singleton(requestProps), requestInfoProperties);
+
+    provider.createResources(request);
+
+    Assert.assertTrue(targetCapture.hasCaptured());
+    entity = targetCapture.getValue();
+    Assert.assertNotNull(entity);
+
+    assertEquals(ALERT_TARGET_NAME, entity.getTargetName());
+    assertEquals(ALERT_TARGET_DESC, entity.getDescription());
+    assertEquals(ALERT_TARGET_TYPE, entity.getNotificationType());
+    assertEquals(ALERT_TARGET_PROPS, entity.getProperties());
+    assertEquals(false, entity.isGlobal());
+
+    // no alert states were set explicitely in the request, so all should be set
+    // by the backend
+    assertNotNull(entity.getAlertStates());
+    assertEquals(EnumSet.allOf(AlertState.class), entity.getAlertStates());
+
+    verify(m_amc, m_dao);
+  }
+
 
   /**
    * @param amc

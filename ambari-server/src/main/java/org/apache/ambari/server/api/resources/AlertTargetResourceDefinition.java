@@ -17,8 +17,9 @@
  */
 package org.apache.ambari.server.api.resources;
 
-import org.apache.ambari.server.controller.spi.Resource;
 import java.util.Collection;
+
+import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * The {@link AlertTargetResourceDefinition} class is used to register alert
@@ -27,6 +28,7 @@ import java.util.Collection;
 public class AlertTargetResourceDefinition extends BaseResourceDefinition {
 
   public static final String VALIDATE_CONFIG_DIRECTIVE = "validate_config";
+  public static final String OVERWRITE_DIRECTIVE = "overwrite_existing";
 
   /**
    * Constructor.
@@ -55,6 +57,7 @@ public class AlertTargetResourceDefinition extends BaseResourceDefinition {
   public Collection<String> getCreateDirectives() {
     Collection<String> directives = super.getCreateDirectives();
     directives.add(VALIDATE_CONFIG_DIRECTIVE);
+    directives.add(OVERWRITE_DIRECTIVE);
     return directives;
   }
 }

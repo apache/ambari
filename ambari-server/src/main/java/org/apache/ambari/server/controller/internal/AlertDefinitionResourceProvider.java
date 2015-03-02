@@ -33,6 +33,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.AlertExecutionCommand;
+import org.apache.ambari.server.api.resources.AlertDefResourceDefinition;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -85,8 +86,6 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
 
   protected static final String ALERT_DEF_SOURCE = "AlertDefinition/source";
   protected static final String ALERT_DEF_SOURCE_TYPE = "AlertDefinition/source/type";
-
-  protected static final String ALERT_DEF_ACTION_RUN_NOW = "AlertDefinition/run_now";
 
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(ALERT_DEF_ID, ALERT_DEF_NAME));
@@ -147,7 +146,6 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     PROPERTY_IDS.add(ALERT_DEF_SCOPE);
     PROPERTY_IDS.add(ALERT_DEF_IGNORE_HOST);
     PROPERTY_IDS.add(ALERT_DEF_SOURCE);
-    PROPERTY_IDS.add(ALERT_DEF_ACTION_RUN_NOW);
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.AlertDefinition, ALERT_DEF_ID);
@@ -266,18 +264,18 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    // check the predicate to see if there is a reques to run
+    // check the update directives to see if there is a request to run
     // the alert definition immediately
-    if( null != predicate ){
+    Map<String, String> requestInfoProps = request.getRequestInfoProperties();
+    if (null != requestInfoProps
+        && requestInfoProps.containsKey(AlertDefResourceDefinition.EXECUTE_IMMEDIATE_DIRECTIVE)) {
+
       Set<Map<String,Object>> predicateMaps = getPropertyMaps(predicate);
       for (Map<String, Object> propertyMap : predicateMaps) {
-        String runNow = (String) propertyMap.get(ALERT_DEF_ACTION_RUN_NOW);
-        if (null != runNow) {
-          if (Boolean.valueOf(runNow) == Boolean.TRUE) {
-            scheduleImmediateAlert(propertyMap);
-          }
-        }
+        scheduleImmediateAlert(propertyMap);
       }
+
+      return getRequestStatus(null);
     }
 
     // if an AlertDefinition property body was specified, perform the update
