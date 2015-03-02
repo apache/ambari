@@ -59,7 +59,8 @@ public interface DbmsHelper {
   String getAddForeignKeyStatement(String tableName, String constraintName,
                                    List<String> keyColumns,
                                    String referenceTableName,
-                                   List<String> referenceColumns);
+                                   List<String> referenceColumns,
+                                   boolean shouldCascadeOnDelete);
 
   String getAddColumnStatement(String tableName, DBAccessor.DBColumnInfo columnInfo);
 

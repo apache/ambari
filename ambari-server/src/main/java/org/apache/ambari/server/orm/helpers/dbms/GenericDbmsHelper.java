@@ -193,12 +193,14 @@ public class GenericDbmsHelper implements DbmsHelper {
   public String getAddForeignKeyStatement(String tableName, String constraintName,
                                           List<String> keyColumns,
                                           String referenceTableName,
-                                          List<String> referenceColumns) {
+                                          List<String> referenceColumns,
+                                          boolean shouldCascadeOnDelete) {
     ForeignKeyConstraint foreignKeyConstraint = new ForeignKeyConstraint();
     foreignKeyConstraint.setName(constraintName);
     foreignKeyConstraint.setTargetTable(referenceTableName);
     foreignKeyConstraint.setSourceFields(keyColumns);
     foreignKeyConstraint.setTargetFields(referenceColumns);
+    foreignKeyConstraint.setShouldCascadeOnDelete(shouldCascadeOnDelete);
 
     TableDefinition tableDefinition = new TableDefinition();
     tableDefinition.setName(tableName);

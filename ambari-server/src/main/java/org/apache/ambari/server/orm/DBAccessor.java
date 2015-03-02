@@ -63,7 +63,6 @@ public interface DBAccessor {
   public void createIndex(String indexName, String tableName,
                           String... columnNames) throws SQLException;
 
-
   /**
    * Add foreign key for a relation
    * @param tableName
@@ -80,11 +79,51 @@ public interface DBAccessor {
                               boolean ignoreFailure) throws SQLException;
 
   /**
-   * Add foreign key for a relation
+   *
    * @param tableName
    * @param constraintName
    * @param keyColumn
+   * @param referenceTableName
    * @param referenceColumn
+   * @param shouldCascadeOnDelete
+   * @param ignoreFailure
+   * @throws SQLException
+   */
+  public void addFKConstraint(String tableName,
+                              String constraintName,
+                              String keyColumn,
+                              String referenceTableName,
+                              String referenceColumn,
+                              boolean shouldCascadeOnDelete,
+                              boolean ignoreFailure) throws SQLException;
+
+  /**
+   * Add foreign key for a relation
+   * @param tableName
+   * @param constraintName
+   * @param keyColumns
+   * @param referenceTableName
+   * @param referenceColumns
+   * @param shouldCascadeOnDelete
+   * @param ignoreFailure
+   * @throws SQLException
+   */
+  public void addFKConstraint(String tableName,
+                              String constraintName,
+                              String[] keyColumns,
+                              String referenceTableName,
+                              String[] referenceColumns,
+                              boolean shouldCascadeOnDelete,
+                              boolean ignoreFailure) throws SQLException;
+
+  /**
+   * Add foreign key for a relation
+   * @param tableName
+   * @param constraintName
+   * @param keyColumns
+   * @param referenceTableName
+   * @param referenceColumns
+   * @param ignoreFailure
    * @throws SQLException
    */
   public void addFKConstraint(String tableName,
@@ -93,7 +132,6 @@ public interface DBAccessor {
                               String referenceTableName,
                               String[] referenceColumns,
                               boolean ignoreFailure) throws SQLException;
-
   /**
    * Add column to existing table
    * @param tableName

@@ -297,8 +297,8 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("principal_name", String.class, 255, null, false));
     columns.add(new DBColumnInfo("host_name", String.class, 255, null, false));
     dbAccessor.createTable(KERBEROS_PRINCIPAL_HOST_TABLE, columns, "principal_name", "host_name");
-    dbAccessor.addFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_krb_pr_host_hostname", "host_name", "hosts", "host_name", false);
-    dbAccessor.addFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_krb_pr_host_principalname", "principal_name", KERBEROS_PRINCIPAL_TABLE, "principal_name", false);
+    dbAccessor.addFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_krb_pr_host_hostname", "host_name", "hosts", "host_name", true, false);
+    dbAccessor.addFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_krb_pr_host_principalname", "principal_name", KERBEROS_PRINCIPAL_TABLE, "principal_name", true, false);
   }
 
   // ----- UpgradeCatalog ----------------------------------------------------
@@ -312,7 +312,6 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     removeNagiosService();
     addNewConfigurationsFromXml();
     updateHiveDatabaseType();
-    setSecurityType();
     updateTezConfiguration();
     addMissingConfigs();
     persistHDPRepo();
@@ -391,43 +390,6 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
    */
   protected void removeNagiosService() {
     executeInTransaction(new RemoveNagiosRunnable());
-  }
-
-  /**
-   * Processes existing clusters to set it's security type as indicated by it's <code>cluster-env/security_enabled</code> flag.
-   * <p/>
-   * If the <code>cluster-env/security_enabled</code is set to "true", the cluster's security state
-   * will be set to "KERBEROS" since that is the only option. Else, the value will be set to  "NONE".
-   */
-  protected void setSecurityType() {
-    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    Clusters clusters = ambariManagementController.getClusters();
-
-    if (clusters != null) {
-      Map<String, Cluster> clusterMap = clusters.getClusters();
-
-      if (clusterMap != null) {
-        for (final Cluster cluster : clusterMap.values()) {
-          Config configClusterEnv = cluster.getDesiredConfigByType("cluster-env");
-
-          if (configClusterEnv != null) {
-            Map<String, String> properties = configClusterEnv.getProperties();
-
-            if (properties != null) {
-              String securityEnabled = properties.get("security_enabled");
-
-              if ("true".equalsIgnoreCase(securityEnabled)) {
-                // Currently the only security option is Kerberos. If security is enabled, blindly
-                // set security type to SecurityType.KERBEROS
-                cluster.setSecurityType(SecurityType.KERBEROS);
-              } else {
-                cluster.setSecurityType(SecurityType.NONE);
-              }
-            }
-          }
-        }
-      }
-    }
   }
 
   /**
