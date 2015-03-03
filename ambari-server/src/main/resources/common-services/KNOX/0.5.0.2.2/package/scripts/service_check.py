@@ -56,27 +56,14 @@ class KnoxServiceCheck(Script):
           content=StaticFile(validateKnoxFileName),
           mode=0755
           )
-        oldmask = os.umask (022)
-        os.umask (oldmask)
-        if oldmask == 027:
-          Execute(smoke_cmd,
-            tries=3,
-            try_sleep=5,
-            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-            user=params.smokeuser,
-            timeout=5,
-            logoutput=True,
-            sudo=True
-          )
-        else:  
-          Execute(smoke_cmd,
-            tries=3,
-            try_sleep=5,
-            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-            user=params.smokeuser,
-            timeout=5,
-            logoutput=True
-          )
+        Execute(smoke_cmd,
+          tries=3,
+          try_sleep=5,
+          path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+          user=params.smokeuser,
+          timeout=5,
+          logoutput=True
+        )
 
 if __name__ == "__main__":
     KnoxServiceCheck().execute()

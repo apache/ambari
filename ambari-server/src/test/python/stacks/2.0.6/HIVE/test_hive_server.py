@@ -62,9 +62,9 @@ class TestHiveServer(RMFTestCase):
         environment = {'PATH' : "/bin:/usr/lib/hive/bin:/usr/bin"},
         user = 'hive',
     )
-    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/start_hiveserver2_script /var/log/hive/hive-server2.out /var/log/hive/hive-server2.log /var/run/hive/hive-server.pid /etc/hive/conf.server /var/log/hive',
+    self.assertResourceCalled('Execute', '/tmp/start_hiveserver2_script /var/log/hive/hive-server2.out /var/log/hive/hive-server2.log /var/run/hive/hive-server.pid /etc/hive/conf.server /var/log/hive',
                               not_if = 'ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1',
-                              environment = {'HADOOP_HOME' : '/usr'},
+                              environment = {'HADOOP_HOME' : '/usr', 'JAVA_HOME':'/usr/jdk64/jdk1.7.0_45'},
                               path = ["/bin:/usr/lib/hive/bin:/usr/bin"],
                               user = 'hive'
     )
@@ -134,9 +134,9 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hive.service.keytab hive/c6401.ambari.apache.org@EXAMPLE.COM; ',
                               user = 'hive',
                               )
-    self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/start_hiveserver2_script /var/log/hive/hive-server2.out /var/log/hive/hive-server2.log /var/run/hive/hive-server.pid /etc/hive/conf.server /var/log/hive',
+    self.assertResourceCalled('Execute', '/tmp/start_hiveserver2_script /var/log/hive/hive-server2.out /var/log/hive/hive-server2.log /var/run/hive/hive-server.pid /etc/hive/conf.server /var/log/hive',
                               not_if = 'ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1',
-                              environment = {'HADOOP_HOME' : '/usr'},
+                              environment = {'HADOOP_HOME' : '/usr', 'JAVA_HOME': '/usr/jdk64/jdk1.7.0_45'},
                               path = ["/bin:/usr/lib/hive/bin:/usr/bin"],
                               user = 'hive'
     )
@@ -335,18 +335,21 @@ class TestHiveServer(RMFTestCase):
                               group = 'hadoop',
                               mode = 0755,
                               recursive = True,
+                              cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/var/log/hive',
                               owner = 'hive',
                               group = 'hadoop',
                               mode = 0755,
                               recursive = True,
+                              cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/var/lib/hive',
                               owner = 'hive',
                               group = 'hadoop',
                               mode = 0755,
                               recursive = True,
+                              cd_access = 'a',
                               )
 
 
@@ -453,18 +456,21 @@ class TestHiveServer(RMFTestCase):
                               group = 'hadoop',
                               mode = 0755,
                               recursive = True,
+                              cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/var/log/hive',
                               owner = 'hive',
                               group = 'hadoop',
                               mode = 0755,
                               recursive = True,
+                              cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/var/lib/hive',
         owner = 'hive',
         group = 'hadoop',
         mode = 0755,
         recursive = True,
+        cd_access = 'a',
     )
 
   @patch("hive_service.check_fs_root")
