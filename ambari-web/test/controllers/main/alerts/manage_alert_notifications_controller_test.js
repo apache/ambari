@@ -24,11 +24,11 @@ describe('App.ManageAlertNotificationsController', function () {
 
   beforeEach(function () {
     controller = App.ManageAlertNotificationsController.create({});
-    sinon.stub(App.ajax, 'send');
+    sinon.stub($, 'ajax', Em.K);
   });
 
   afterEach(function () {
-    App.ajax.send.restore();
+    $.ajax.restore();
   });
 
   describe('#alertNotifications', function () {
@@ -572,7 +572,8 @@ describe('App.ManageAlertNotificationsController', function () {
     it("should send ajax request", function () {
 
       controller.createAlertNotification();
-      expect(App.ajax.send.calledOnce).to.be.true;
+      expect($.ajax.calledOnce).to.be.true;
+      expect($.ajax.args[0][0].url.contains('overwriteExisting=true')).to.be.false;
     });
 
   });
@@ -607,7 +608,7 @@ describe('App.ManageAlertNotificationsController', function () {
     it("should send ajax request", function () {
 
       controller.updateAlertNotification();
-      expect(App.ajax.send.calledOnce).to.be.true;
+      expect($.ajax.calledOnce).to.be.true;
     });
 
   });
@@ -653,7 +654,7 @@ describe('App.ManageAlertNotificationsController', function () {
 
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
-      expect(App.ajax.send.calledOnce).to.be.true;
+      expect($.ajax.calledOnce).to.be.true;
     });
 
   });

@@ -415,7 +415,7 @@ var urls = {
     'type': 'DELETE'
   },
   'alerts.create_alert_notification': {
-    'real': '/alert_targets',
+    'real': '/alert_targets?{urlParams}',
     'mock': '',
     'format': function (data) {
       return {

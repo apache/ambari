@@ -1369,10 +1369,8 @@ describe('App.WizardStep8Controller', function () {
     describe('#createNotification', function () {
 
       beforeEach(function () {
-        sinon.stub(App, 'get', function (k) {
-          if ('testMode' === k) return false;
-          return Em.get(App, k);
-        });
+        var stub = sinon.stub(App, 'get');
+        stub.withArgs('testMode').returns(false);
         installerStep8Controller.clearStep();
         installerStep8Controller.set('content', {controllerName: 'installerController'});
         installerStep8Controller.set('configs', [
@@ -1389,16 +1387,20 @@ describe('App.WizardStep8Controller', function () {
           {name: 'some_p', value: 'some_v', serviceName: 'MISC', filename: 'alert_notification'}
         ]);
         installerStep8Controller.get('ajaxRequestsQueue').clear();
+        sinon.stub($, 'ajax', function () {return {complete: Em.K}});
       });
 
       afterEach(function () {
         App.get.restore();
+        $.ajax.restore();
       });
 
       it('should add request to queue', function () {
         installerStep8Controller.createNotification();
         expect(installerStep8Controller.get('ajaxRequestsQueue.queue.length')).to.equal(1);
-
+        installerStep8Controller.get('ajaxRequestsQueue').runNextRequest();
+        expect($.ajax.calledOnce).to.be.true;
+        expect($.ajax.args[0][0].url.contains('overwriteExisting=true')).to.be.true;
       });
 
       it('sent data should be valid', function () {
