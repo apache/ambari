@@ -65,6 +65,14 @@ module.exports = Em.Application.create({
   }.property('upgradeState'),
 
   /**
+   * RU is running
+   * @type {boolean}
+   */
+  upgradeIsRunning: function() {
+    return this.get('upgradeInProgress') || this.get('upgradeHolding');
+  }.property('upgradeInProgress', 'upgradeHolding'),
+
+  /**
    * compute user access rights by permission type
    * types:
    *  - ADMIN

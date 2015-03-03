@@ -95,38 +95,40 @@
   </div>
   <div class="container main-container">
     <div id="content">
-      <div class="ru-badge span12">
-        <div class="navbar navbar-static-top clearfix">
-          <div class="span4 offset4">
-            {{#if isExistingClusterDataLoaded}}
-              <a class="brand cluster-name" href="#">
-                {{#if App.upgradeInProgress}}
-                  {{#if App.router.mainAdminStackAndUpgradeController.isDowngrade}}
-                    <span
-                        class="label upgrade-in-progress" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
+      {{#if App.upgradeIsRunning}}
+        <div class="ru-badge span12">
+          <div class="navbar navbar-static-top clearfix">
+            <div class="span4 offset4">
+              {{#if isExistingClusterDataLoaded}}
+                <a class="brand cluster-name" href="#">
+                  {{#if App.upgradeInProgress}}
+                    {{#if App.router.mainAdminStackAndUpgradeController.isDowngrade}}
+                      <span
+                          class="label upgrade-in-progress" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
                              <i class="icon-cog"></i>&nbsp;{{t admin.stackVersions.version.downgrade.running}}</span>
-                  {{else}}
-                    <span
-                        class="label upgrade-in-progress" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
+                    {{else}}
+                      <span
+                          class="label upgrade-in-progress" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
                              <i class="icon-cog"></i>&nbsp;{{t admin.stackVersions.version.upgrade.running}}</span>
+                    {{/if}}
                   {{/if}}
-                {{/if}}
-                {{#if App.upgradeHolding}}
-                  {{#if App.router.mainAdminStackAndUpgradeController.isDowngrade}}
-                    <span
-                        class="label upgrade-holding" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
+                  {{#if App.upgradeHolding}}
+                    {{#if App.router.mainAdminStackAndUpgradeController.isDowngrade}}
+                      <span
+                          class="label upgrade-holding" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
                           <i class="icon-pause"></i>&nbsp;{{t admin.stackVersions.version.downgrade.pause}}</span>
-                  {{else}}
-                    <span
-                        class="label upgrade-holding" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
+                    {{else}}
+                      <span
+                          class="label upgrade-holding" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
                           <i class="icon-pause"></i>&nbsp;{{t admin.stackVersions.version.upgrade.pause}}</span>
+                    {{/if}}
                   {{/if}}
-                {{/if}}
-              </a>
-            {{/if}}
+                </a>
+              {{/if}}
+            </div>
           </div>
         </div>
-      </div>
+      {{/if}}
       {{outlet}}
     </div>
   </div>
