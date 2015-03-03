@@ -783,8 +783,9 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
           String metricsUrl = quickLinks.get(METRICS_API_NAME);
           MetricsHolder metricsHolder = appMetrics.get(matchedAppType
               .uniqueName());
-          app.setMetrics(sliderAppClient.getMetrics(metricsUrl,
-              metrics, null, viewContext, matchedAppType, metricsHolder));
+          app.setMetrics(sliderAppClient.getMetrics(yarnApp.getName(),
+              metricsUrl, metrics, null, viewContext, matchedAppType,
+              metricsHolder));
         }
       }
     }

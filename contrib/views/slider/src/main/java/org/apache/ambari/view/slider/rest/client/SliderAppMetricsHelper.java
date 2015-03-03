@@ -42,6 +42,10 @@ public class SliderAppMetricsHelper {
       .getLogger(SliderAppMetricsHelper.class);
   private static ObjectMapper mapper;
   private final static ObjectReader timelineObjectReader;
+  private final static String URI_PARAM_APP_ID = "appId";
+  private final static String URI_PARAM_METRIC_NAMES = "metricNames";
+  private final static String URI_PARAM_START_TIME = "startTime";
+  private final static String URI_PARAM_END_TIME = "endTime";
 
   static {
     mapper = new ObjectMapper();
@@ -108,30 +112,33 @@ public class SliderAppMetricsHelper {
     return metricValues;
   }
 
-  public static String getUrlWithParams(String metricUrl,
+  public static String getUrlWithParams(String appName, String metricUrl,
       Set<String> metricSet, TemporalInfo temporalInfo) throws SystemException,
       URISyntaxException {
     String metrics = getSetString(metricSet, -1);
     URIBuilder uriBuilder = new URIBuilder(metricUrl);
 
+    if (appName != null) {
+      uriBuilder.setParameter(URI_PARAM_APP_ID, appName);
+    }
     if (metrics.length() > 0) {
-      uriBuilder.setParameter("metricNames", metrics);
+      uriBuilder.setParameter(URI_PARAM_METRIC_NAMES, metrics);
     }
 
     if (temporalInfo != null) {
       long startTime = temporalInfo.getStartTime();
       if (startTime != -1) {
-        uriBuilder.setParameter("startTime", String.valueOf(startTime));
+        uriBuilder.setParameter(URI_PARAM_START_TIME, String.valueOf(startTime));
       }
       long endTime = temporalInfo.getEndTime();
       if (endTime != -1) {
-        uriBuilder.setParameter("endTime", String.valueOf(endTime));
+        uriBuilder.setParameter(URI_PARAM_END_TIME, String.valueOf(endTime));
       }
     } else {
       long endTime = System.currentTimeMillis() / 1000;
       long startTime = System.currentTimeMillis() / 1000 - 60 * 60;
-      uriBuilder.setParameter("endTime", String.valueOf(endTime));
-      uriBuilder.setParameter("startTime", String.valueOf(startTime));
+      uriBuilder.setParameter(URI_PARAM_END_TIME, String.valueOf(endTime));
+      uriBuilder.setParameter(URI_PARAM_START_TIME, String.valueOf(startTime));
     }
     return uriBuilder.toString();
   }
