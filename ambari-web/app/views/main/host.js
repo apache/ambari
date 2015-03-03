@@ -798,6 +798,15 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
         this.get('parentView').updateFilter(category.get('column'), category.get('filterValue'), category.get('type'));
       }
     },
+
+    /**
+     * set value
+     * @param {string} value
+     */
+    setValue: function (value) {
+      this.set('value', value);
+    },
+
     clearFilter: function() {
       this.get('categories').setEach('isActive', false);
       this.set('value', '');
