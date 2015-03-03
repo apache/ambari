@@ -45,11 +45,11 @@ class TestHiveMetastore(RMFTestCase):
     )
 
     self.assert_configure_default()
-    self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.log /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
+    self.assertResourceCalled('Execute', '/tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.log /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
+        environment = {'HADOOP_HOME': '/usr', 'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         not_if = 'ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1',
-        environment = {'HADOOP_HOME' : '/usr'},
-        path = ["/bin:/usr/lib/hive/bin:/usr/bin"],
         user = 'hive',
+        path = ['/bin:/usr/lib/hive/bin:/usr/bin'],
     )
     self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/lib/hive/lib//mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
         path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
@@ -105,11 +105,11 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hive.service.keytab hive/c6401.ambari.apache.org@EXAMPLE.COM; ',
                               user = 'hive',
                               )
-    self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.log /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
+    self.assertResourceCalled('Execute', '/tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.log /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
+        environment = {'HADOOP_HOME': '/usr', 'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         not_if = 'ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive.pid` >/dev/null 2>&1',
-        environment = {'HADOOP_HOME' : '/usr'},
-        path = ["/bin:/usr/lib/hive/bin:/usr/bin"],
         user = 'hive',
+        path = ['/bin:/usr/lib/hive/bin:/usr/bin'],
     )
     self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/lib/hive/lib//mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
         path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
@@ -215,18 +215,21 @@ class TestHiveMetastore(RMFTestCase):
                               group = 'hadoop',
                               mode = 0755,
                               recursive = True,
+                              cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/var/log/hive',
                               owner = 'hive',
                               group = 'hadoop',
                               mode = 0755,
                               recursive = True,
+                              cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/var/lib/hive',
                               owner = 'hive',
                               group = 'hadoop',
                               mode = 0755,
                               recursive = True,
+                              cd_access = 'a',
                               )
 
   def assert_configure_secured(self):
@@ -301,16 +304,19 @@ class TestHiveMetastore(RMFTestCase):
                               group = 'hadoop',
                               mode = 0755,
                               recursive = True,
+                              cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/var/log/hive',
                               owner = 'hive',
                               group = 'hadoop',
                               mode = 0755,
                               recursive = True,
+                              cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/var/lib/hive',
                               owner = 'hive',
                               group = 'hadoop',
                               mode = 0755,
                               recursive = True,
+                              cd_access = 'a',
                               )

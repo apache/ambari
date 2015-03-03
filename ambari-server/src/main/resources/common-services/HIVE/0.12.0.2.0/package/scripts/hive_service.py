@@ -30,12 +30,10 @@ def hive_service(name, action='start', rolling_restart=False):
 
   if name == 'metastore':
     pid_file = format("{hive_pid_dir}/{hive_metastore_pid}")
-    cmd = format(
-      "env HADOOP_HOME={hadoop_home} JAVA_HOME={java64_home} {start_metastore_path} {hive_log_dir}/hive.out {hive_log_dir}/hive.log {pid_file} {hive_server_conf_dir} {hive_log_dir}")
+    cmd = format("{start_metastore_path} {hive_log_dir}/hive.out {hive_log_dir}/hive.log {pid_file} {hive_server_conf_dir} {hive_log_dir}")
   elif name == 'hiveserver2':
     pid_file = format("{hive_pid_dir}/{hive_pid}")
-    cmd = format(
-      "env JAVA_HOME={java64_home} {start_hiveserver2_path} {hive_log_dir}/hive-server2.out {hive_log_dir}/hive-server2.log {pid_file} {hive_server_conf_dir} {hive_log_dir}")
+    cmd = format("{start_hiveserver2_path} {hive_log_dir}/hive-server2.out {hive_log_dir}/hive-server2.log {pid_file} {hive_server_conf_dir} {hive_log_dir}")
 
   process_id_exists_command = format("ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1")
 
@@ -43,7 +41,7 @@ def hive_service(name, action='start', rolling_restart=False):
     if name == 'hiveserver2':
       check_fs_root()
 
-    demon_cmd = format("{cmd}")
+    demon_cmd = cmd
 
     # upgrading hiveserver2 (rolling_restart) means that there is an existing,
     # de-registering hiveserver2; the pid will still exist, but the new
@@ -54,19 +52,13 @@ def hive_service(name, action='start', rolling_restart=False):
     if params.security_enabled:
       hive_kinit_cmd = format("{kinit_path_local} -kt {hive_server2_keytab} {hive_principal}; ")
       Execute(hive_kinit_cmd, user=params.hive_user)
-
-    # need tuple to run as sudo if (need if UMASK is not 022)
-    oldmask = os.umask (022)
-    os.umask (oldmask)
-    if oldmask == 027:
-      Execute(tuple(demon_cmd.split()), user=params.hive_user,
-        environment={'HADOOP_HOME': params.hadoop_home}, path=params.execute_path,
-        not_if=process_id_exists_command,
-        sudo=True )
-    else:
-      Execute(demon_cmd, user=params.hive_user,
-        environment={'HADOOP_HOME': params.hadoop_home}, path=params.execute_path,
-        not_if=process_id_exists_command )      
+      
+    Execute(demon_cmd, 
+      user=params.hive_user,
+      environment={'HADOOP_HOME': params.hadoop_home, 'JAVA_HOME': params.java64_home},
+      path=params.execute_path,
+      not_if=process_id_exists_command
+    )
 
     if params.hive_jdbc_driver == "com.mysql.jdbc.Driver" or \
        params.hive_jdbc_driver == "org.postgresql.Driver" or \

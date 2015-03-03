@@ -170,6 +170,7 @@ def crt_directory(name):
 
   Directory(name,
             recursive=True,
+            cd_access='a',
             owner=params.hive_user,
             group=params.user_group,
             mode=0755)
