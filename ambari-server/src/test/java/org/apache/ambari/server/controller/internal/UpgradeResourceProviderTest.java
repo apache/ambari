@@ -32,6 +32,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.RequestStatus;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.api.resources.UpgradeResourceDefinition;
@@ -46,9 +47,11 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
@@ -538,6 +541,54 @@ public class UpgradeResourceProviderTest {
     assertEquals("Execution items increased from 1 to 2", 2, group.getItems().size());
   }
 
+
+  @Test
+  public void testPercents() throws Exception {
+    org.apache.ambari.server.controller.spi.RequestStatus status = testCreateResources();
+
+    Set<Resource> createdResources = status.getAssociatedResources();
+    assertEquals(1, createdResources.size());
+    Resource res = createdResources.iterator().next();
+    Long id = (Long) res.getPropertyValue("Upgrade/request_id");
+    assertNotNull(id);
+    assertEquals(Long.valueOf(1), id);
+
+    StageDAO stageDao = injector.getInstance(StageDAO.class);
+    HostRoleCommandDAO hrcDao = injector.getInstance(HostRoleCommandDAO.class);
+
+    List<StageEntity> stages = stageDao.findByRequestId(id);
+    List<HostRoleCommandEntity> tasks = hrcDao.findByRequest(id);
+
+    Set<Long> stageIds = new HashSet<Long>();
+    for (StageEntity se : stages) {
+      stageIds.add(se.getStageId());
+    }
+
+    CalculatedStatus calc = null;
+    int i = 0;
+    for (HostRoleCommandEntity hrce : tasks) {
+      hrce.setStatus(HostRoleStatus.IN_PROGRESS);
+      hrcDao.merge(hrce);
+      calc = CalculatedStatus.statusFromStageSummary(hrcDao.findAggregateCounts(id), stageIds);
+      assertEquals(((i++) + 1) * 4.375d, calc.getPercent(), 0.01d);
+      assertEquals(HostRoleStatus.IN_PROGRESS, calc.getStatus());
+    }
+
+    i = 0;
+    for (HostRoleCommandEntity hrce : tasks) {
+      hrce.setStatus(HostRoleStatus.COMPLETED);
+      hrcDao.merge(hrce);
+      calc = CalculatedStatus.statusFromStageSummary(hrcDao.findAggregateCounts(id), stageIds);
+      assertEquals(35 + (((i++) + 1) * 8.125), calc.getPercent(), 0.01d);
+      if (i < 8) {
+        assertEquals(HostRoleStatus.IN_PROGRESS, calc.getStatus());
+      }
+    }
+
+    calc = CalculatedStatus.statusFromStageSummary(hrcDao.findAggregateCounts(id), stageIds);
+    assertEquals(HostRoleStatus.COMPLETED, calc.getStatus());
+    assertEquals(100d, calc.getPercent(), 0.01d);
+  }
 
   /**
    * @param amc

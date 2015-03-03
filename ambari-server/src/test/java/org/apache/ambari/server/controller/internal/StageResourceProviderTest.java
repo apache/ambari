@@ -17,11 +17,25 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.util.Modules;
+import static org.easymock.EasyMock.anyLong;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.fail;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -33,32 +47,23 @@ import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.easymock.EasyMock.anyLong;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.*;
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.util.Modules;
 
 public class StageResourceProviderTest {
 
@@ -67,12 +72,23 @@ public class StageResourceProviderTest {
   private Cluster cluster = null;
   private AmbariManagementController managementController = null;
   private Injector injector;
+  private HostRoleCommandDAO hrcDao = null;
 
   @Before
   public void before() {
     dao = createStrictMock(StageDAO.class);
     clusters = createStrictMock(Clusters.class);
     cluster = createStrictMock(Cluster.class);
+    hrcDao = createStrictMock(HostRoleCommandDAO.class);
+
+    expect(hrcDao.findAggregateCounts(EasyMock.anyObject(Long.class))).andReturn(
+        new HashMap<Long, HostRoleCommandStatusSummaryDTO>() {{
+          put(0L, new HostRoleCommandStatusSummaryDTO(
+              0, 1000L, 2500L, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0));
+        }}).anyTimes();
+
+    replay(hrcDao);
+
     managementController = createNiceMock(AmbariManagementController.class);
 
     // create an injector which will inject the mocks
@@ -243,6 +259,7 @@ public class StageResourceProviderTest {
       binder.bind(StageDAO.class).toInstance(dao);
       binder.bind(Clusters.class).toInstance(clusters);
       binder.bind(Cluster.class).toInstance(cluster);
+      binder.bind(HostRoleCommandDAO.class).toInstance(hrcDao);
       binder.bind(AmbariManagementController.class).toInstance(managementController);
       binder.bind(ActionMetadata.class);
     }

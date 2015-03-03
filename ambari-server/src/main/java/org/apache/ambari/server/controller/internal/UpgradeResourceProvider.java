@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -60,9 +59,13 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
@@ -109,6 +112,21 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   protected static final String UPGRADE_REQUEST_STATUS = "Upgrade/request_status";
   protected static final String UPGRADE_ABORT_REASON = "Upgrade/abort_reason";
 
+
+  /*
+   * Lifted from RequestResourceProvider
+   */
+  private static final String REQUEST_CONTEXT_ID = "Upgrade/request_context";
+  private static final String REQUEST_TYPE_ID = "Upgrade/type";
+  private static final String REQUEST_CREATE_TIME_ID = "Upgrade/create_time";
+  private static final String REQUEST_START_TIME_ID = "Upgrade/start_time";
+  private static final String REQUEST_END_TIME_ID = "Upgrade/end_time";
+  private static final String REQUEST_EXCLUSIVE_ID = "Upgrade/exclusive";
+
+  private static final String REQUEST_PROGRESS_PERCENT_ID = "Upgrade/progress_percent";
+  private static final String REQUEST_STATUS_PROPERTY_ID = "Upgrade/request_status";
+
+
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
       Arrays.asList(UPGRADE_REQUEST_ID, UPGRADE_CLUSTER_NAME));
   private static final Set<String> PROPERTY_IDS = new HashSet<String>();
@@ -145,6 +163,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   @Inject
   private static Provider<AmbariCustomCommandExecutionHelper> s_commandExecutionHelper;
 
+  @Inject
+  private static RequestDAO s_requestDAO = null;
+
+  @Inject
+  private static HostRoleCommandDAO s_hostRoleCommandDAO = null;
+
   /**
    * Used to generated the correct tasks and stages during an upgrade.
    */
@@ -153,8 +177,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
   @Inject
   private static Configuration s_configuration;
-
-  private static Map<String, String> REQUEST_PROPERTY_MAP = new HashMap<String, String>();
 
   static {
     // properties
@@ -166,11 +188,14 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     PROPERTY_IDS.add(UPGRADE_TO_VERSION);
     PROPERTY_IDS.add(UPGRADE_DIRECTION);
 
-    // !!! boo
-    for (String requestPropertyId : RequestResourceProvider.PROPERTY_IDS) {
-      REQUEST_PROPERTY_MAP.put(requestPropertyId, requestPropertyId.replace("Requests/", "Upgrade/"));
-    }
-    PROPERTY_IDS.addAll(REQUEST_PROPERTY_MAP.values());
+    PROPERTY_IDS.add(REQUEST_CONTEXT_ID);
+    PROPERTY_IDS.add(REQUEST_CREATE_TIME_ID);
+    PROPERTY_IDS.add(REQUEST_END_TIME_ID);
+    PROPERTY_IDS.add(REQUEST_EXCLUSIVE_ID);
+    PROPERTY_IDS.add(REQUEST_PROGRESS_PERCENT_ID);
+    PROPERTY_IDS.add(REQUEST_START_TIME_ID);
+    PROPERTY_IDS.add(REQUEST_STATUS_PROPERTY_ID);
+    PROPERTY_IDS.add(REQUEST_TYPE_ID);
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.Upgrade, UPGRADE_REQUEST_ID);
@@ -274,15 +299,22 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         Resource r = toResource(entity, clusterName, requestPropertyIds);
         results.add(r);
 
-        // !!! not terribly efficient, but that's ok in this case.  The handful-per-year
-        // an upgrade is done won't kill performance.
-        Resource r1 = s_upgradeHelper.getRequestResource(clusterName,
-            entity.getRequestId());
-        for (Entry<String, String> entry : REQUEST_PROPERTY_MAP.entrySet()) {
-          Object o = r1.getPropertyValue(entry.getKey());
+        RequestEntity rentity = s_requestDAO.findByPK(entity.getRequestId());
 
-          setResourceProperty(r, entry.getValue(), o, requestPropertyIds);
-        }
+        setResourceProperty(r, REQUEST_CONTEXT_ID, rentity.getRequestContext(), requestPropertyIds);
+        setResourceProperty(r, REQUEST_TYPE_ID, rentity.getRequestType(), requestPropertyIds);
+        setResourceProperty(r, REQUEST_CREATE_TIME_ID, rentity.getCreateTime(), requestPropertyIds);
+        setResourceProperty(r, REQUEST_START_TIME_ID, rentity.getStartTime(), requestPropertyIds);
+        setResourceProperty(r, REQUEST_END_TIME_ID, rentity.getEndTime(), requestPropertyIds);
+        setResourceProperty(r, REQUEST_EXCLUSIVE_ID, rentity.isExclusive(), requestPropertyIds);
+
+        Map<Long, HostRoleCommandStatusSummaryDTO> summary = s_hostRoleCommandDAO.findAggregateCounts(entity.getRequestId());
+
+        CalculatedStatus calc = CalculatedStatus.statusFromStageSummary(
+            summary, summary.keySet());
+
+        setResourceProperty(r, REQUEST_STATUS_PROPERTY_ID, calc.getStatus(), requestPropertyIds);
+        setResourceProperty(r, REQUEST_PROGRESS_PERCENT_ID, calc.getPercent(), requestPropertyIds);
       }
     }
 

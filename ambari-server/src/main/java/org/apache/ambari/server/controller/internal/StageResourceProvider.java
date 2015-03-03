@@ -17,6 +17,20 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.inject.Inject;
+import javax.inject.Provider;
+
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -34,23 +48,12 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-
-import javax.inject.Inject;
-import javax.inject.Provider;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * ResourceProvider for Stage
@@ -212,10 +215,18 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     Set<Resource> results     = new LinkedHashSet<Resource>();
     Set<String>   propertyIds = getRequestPropertyIds(request, predicate);
 
+    // !!! poor mans cache.  toResource() shouldn't be calling the db
+    // every time, when the request id is likely the same for each stageEntity
+    Map<Long, Map<Long, HostRoleCommandStatusSummaryDTO>> cache =
+        new HashMap<Long, Map<Long, HostRoleCommandStatusSummaryDTO>>();
+
     List<StageEntity> entities = dao.findAll(request, predicate);
     for (StageEntity entity : entities) {
-      results.add(toResource(entity, propertyIds));
+      results.add(toResource(cache, entity, propertyIds));
     }
+
+    cache.clear();
+
     return results;
   }
 
@@ -301,8 +312,10 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
    *
    * @return the new resource
    */
-  private Resource toResource(StageEntity entity,
-                              Set<String> requestedIds) {
+  private Resource toResource(
+      Map<Long, Map<Long, HostRoleCommandStatusSummaryDTO>> cache,
+      StageEntity entity,
+      Set<String> requestedIds) {
 
     Resource resource = new ResourceImpl(Resource.Type.Stage);
 
@@ -317,6 +330,12 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
       }
     }
 
+    if (!cache.containsKey(entity.getRequestId())) {
+      cache.put(entity.getRequestId(), hostRoleCommandDAO.findAggregateCounts(entity.getRequestId()));
+    }
+
+    Map<Long, HostRoleCommandStatusSummaryDTO> summary = cache.get(entity.getRequestId());
+
     setResourceProperty(resource, STAGE_STAGE_ID, entity.getStageId(), requestedIds);
     setResourceProperty(resource, STAGE_REQUEST_ID, entity.getRequestId(), requestedIds);
     setResourceProperty(resource, STAGE_CONTEXT, entity.getRequestContext(), requestedIds);
@@ -325,20 +344,17 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     setResourceProperty(resource, STAGE_HOST_PARAMS, entity.getHostParamsStage(), requestedIds);
     setResourceProperty(resource, STAGE_SKIPPABLE, entity.isSkippable(), requestedIds);
 
-    Collection<HostRoleCommandEntity> tasks = entity.getHostRoleCommands();
-
-    Long startTime = tasks.isEmpty() ? 0L : Long.MAX_VALUE;
-    Long endTime   = 0L;
-
-    for (HostRoleCommandEntity task : tasks) {
-      startTime = Math.min(task.getStartTime(), startTime);
-      endTime   = Math.max(task.getEndTime(), endTime);
+    Long startTime = Long.MAX_VALUE;
+    Long endTime = 0L;
+    if (summary.containsKey(entity.getStageId())) {
+      startTime = summary.get(entity.getStageId()).getStartTime();
+      endTime = summary.get(entity.getStageId()).getEndTime();
     }
 
     setResourceProperty(resource, STAGE_START_TIME, startTime, requestedIds);
     setResourceProperty(resource, STAGE_END_TIME, endTime, requestedIds);
 
-    CalculatedStatus status = CalculatedStatus.statusFromTaskEntities(tasks, entity.isSkippable());
+    CalculatedStatus status = CalculatedStatus.statusFromStageSummary(summary, Collections.singleton(entity.getStageId()));
 
     setResourceProperty(resource, STAGE_PROGRESS_PERCENT, status.getPercent(), requestedIds);
     setResourceProperty(resource, STAGE_STATUS, status.getStatus().toString(), requestedIds);

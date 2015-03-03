@@ -28,7 +28,6 @@ import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.controller.internal.RequestResourceProvider;
 import org.apache.ambari.server.controller.internal.StageResourceProvider;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.spi.ClusterController;
@@ -480,40 +479,6 @@ public class UpgradeHelper {
         request, new AndPredicate(p1, p2, p3));
 
     return response.getResources();
-  }
-
-  /**
-   * Gets a Request resource to aggreate with an Upgrade
-   * @param clusterName the cluster name
-   * @param requestId the request id
-   * @return the resource for the Request
-   * @throws UnsupportedPropertyException
-   * @throws NoSuchResourceException
-   * @throws NoSuchParentResourceException
-   * @throws SystemException
-   */
-  // !!! FIXME this feels very wrong
-  public Resource getRequestResource(String clusterName, Long requestId)
-      throws UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException, SystemException {
-
-    ClusterController clusterController = ClusterControllerHelper.getClusterController();
-
-    Request request = PropertyHelper.getReadRequest();
-
-    Predicate predicate = new PredicateBuilder().property(RequestResourceProvider.REQUEST_CLUSTER_NAME_PROPERTY_ID).equals(clusterName).and()
-        // !!! RequestResourceProvider is expecting a string, not a Long for the requestId
-        .property(RequestResourceProvider.REQUEST_ID_PROPERTY_ID).equals(requestId.toString()).toPredicate();
-
-    QueryResponse response = clusterController.getResources(Resource.Type.Request,
-        request, predicate);
-
-    Set<Resource> resources = response.getResources();
-    if (1 != resources.size()) {
-      throw new SystemException(String.format(
-          "Cannot uniquely identify the request resource for %s", requestId));
-    }
-
-    return resources.iterator().next();
   }
 
   /**
