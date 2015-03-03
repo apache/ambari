@@ -28,7 +28,7 @@ from resource_management.core.logger import Logger
 from resource_management.core import shell
 
 
-def setup_spark(env):
+def setup_spark(env, type, action = None):
   import params
 
   env.set_params(params)
@@ -38,11 +38,13 @@ def setup_spark(env):
             group=params.user_group,
             recursive=True
   )
-  #params.HdfsDirectory(params.spark_hdfs_user_dir,
-  #                     action="create",
-  #                     owner=params.spark_user,
-  #                     mode=0775
-  #)
+  if type == 'server':
+    if action == 'start' or action == 'config':
+      params.HdfsDirectory(params.spark_hdfs_user_dir,
+                         action="create",
+                         owner=params.spark_user,
+                         mode=0775
+      )
 
   file_path = params.spark_conf + '/spark-defaults.conf'
   create_file(file_path)
