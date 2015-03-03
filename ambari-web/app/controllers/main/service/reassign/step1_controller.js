@@ -102,7 +102,7 @@ App.ReassignMasterWizardStep1Controller = Em.Controller.extend({
     databaseType = databaseProperty.match(/MySQL|PostgreS|Oracle|Derby|MSSQL/gi)[0];
     this.set('databaseType', databaseType);
 
-    if (databaseType !== 'derby') {
+    if (this.get('content.reassign.component_name') == 'OOZIE_SERVER' && databaseType !== 'derby') {
       App.router.reassignMasterController.set('content.hasManualSteps', false);
     } else {
       App.router.reassignMasterController.set('content.hasManualSteps', true);
