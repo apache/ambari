@@ -42,7 +42,7 @@ class KnoxServiceCheck(Script):
         validateKnoxFileName = "validateKnoxStatus.py"
         validateKnoxFilePath = format("{tmp_dir}/{validateKnoxFileName}")
         python_executable = sys.executable
-        validateStatusCmd = (format("{python_executable}"), format("{validateKnoxFilePath}"), "-p", format("{knox_host_port}"), "-n", format("{knox_host_name}"))
+        validateStatusCmd = format("{python_executable} {validateKnoxFilePath} -p {knox_host_port} -n {knox_host_name}")
         if params.security_enabled:
           kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};")
           smoke_cmd = format("{kinit_cmd} {validateStatusCmd}")
