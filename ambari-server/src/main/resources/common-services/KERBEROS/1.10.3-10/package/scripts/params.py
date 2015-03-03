@@ -40,6 +40,7 @@ kadm5_acl_file = 'kadm5.acl'
 kadm5_acl_path = kadm5_acl_dir + '/' + kadm5_acl_file
 
 config = Script.get_config()
+tmp_dir = Script.get_tmp_dir()
 
 command_params = None
 configurations = None
@@ -68,6 +69,8 @@ if config is not None:
   command_params = get_property_value(config, 'commandParams')
   if command_params is not None:
     keytab_details = get_unstructured_data(command_params, 'keytab')
+    smoke_test_principal = get_property_value(command_params, 'principal_name', None, True, None)
+    smoke_test_keytab_file = get_property_value(command_params, 'keytab_file', None, True, None)
 
   kerberos_command_params = get_property_value(config, 'kerberosCommandParams')
 
@@ -76,8 +79,10 @@ if config is not None:
     cluster_env = get_property_value(configurations, 'cluster-env')
 
     if cluster_env is not None:
-      smoke_test_principal = get_property_value(cluster_env, 'smokeuser_principal_name', None, True, None)
-      smoke_test_keytab_file = get_property_value(cluster_env, 'smokeuser_keytab', None, True, None)
+      if smoke_test_principal is None:
+        smoke_test_principal = get_property_value(cluster_env, 'smokeuser_principal_name', None, True, None)
+      if smoke_test_keytab_file is None:
+        smoke_test_keytab_file = get_property_value(cluster_env, 'smokeuser_keytab', None, True, None)
 
       default_group = get_property_value(cluster_env, 'user_group')
 
