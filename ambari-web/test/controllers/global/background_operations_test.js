@@ -163,6 +163,10 @@ describe('App.BackgroundOperationsController', function () {
       expect(controller.isUpgradeRequest({Requests: {request_context: "UPGRADING"}})).to.be.true;
     });
 
+    it('defines if request is downgrade task (true - with uppercase)', function() {
+      expect(controller.isUpgradeRequest({Requests: {request_context: "downgrading"}})).to.be.true;
+    });
+
     it('defines if request is upgrade task (false)', function() {
       expect(controller.isUpgradeRequest({Requests: {request_context: "install"}})).to.be.false;
     });

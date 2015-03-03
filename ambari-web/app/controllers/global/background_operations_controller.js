@@ -196,7 +196,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
    */
   isUpgradeRequest: function(request) {
     var context = Em.get(request, 'Requests.request_context');
-    return context ? context.toLowerCase().contains('upgrading') : false;
+    return context ? /(upgrading|downgrading)/.test(context.toLowerCase()) : false;
   },
   /**
    * Prepare, received from server, requests for host component popup
