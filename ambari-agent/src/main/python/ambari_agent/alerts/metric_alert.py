@@ -24,7 +24,9 @@ import logging
 import re
 import urllib2
 import uuid
+
 from alerts.base_alert import BaseAlert
+from ambari_commons.urllib_handlers import RefreshHeaderProcessor
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
 
 logger = logging.getLogger()
@@ -69,7 +71,6 @@ class MetricAlert(BaseAlert):
       pass
 
     collect_result = None
-    check_value = None
     value_list = []
 
     if isinstance(self.metric_info, JmxMetric):
@@ -142,20 +143,29 @@ class MetricAlert(BaseAlert):
     
   def _load_jmx(self, ssl, host, port, jmx_metric):
     """ creates a JmxMetric object that holds info about jmx-based metrics """
-    
-    logger.debug(str(jmx_metric.property_map))
-    
     value_list = []
 
-    for k, v in jmx_metric.property_map.iteritems():
+    if logger.isEnabledFor(logging.DEBUG):
+      logger.debug(str(jmx_metric.property_map))
+
+    for jmx_property_key, jmx_property_value in jmx_metric.property_map.iteritems():
       url = "{0}://{1}:{2}/jmx?qry={3}".format(
-        "https" if ssl else "http", host, str(port), k)
-        
-      response = urllib2.urlopen(url)
-      json_response = json.loads(response.read())
+        "https" if ssl else "http", host, str(port), jmx_property_key)
+
+      # use a customer header processor that will look for the non-standard
+      # "Refresh" header and attempt to follow the redirect
+      url_opener = urllib2.build_opener(RefreshHeaderProcessor())
+      response = url_opener.open(url)
+
+      content = response.read()
+
+      json_response = json.loads(content)
       json_data = json_response['beans'][0]
       
-      for attr in v:
+      for attr in jmx_property_value:
+        if attr not in json_data:
+          raise Exception("Unable to find {0} in JSON from {1} ".format(attr, url))
+
         value_list.append(json_data[attr])
         
     return value_list

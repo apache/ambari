@@ -21,6 +21,7 @@ limitations under the License.
 import os
 import socket
 import sys
+import urllib2
 
 from ambari_agent.AlertSchedulerHandler import AlertSchedulerHandler
 from ambari_agent.alerts.collector import AlertCollector
@@ -31,6 +32,7 @@ from ambari_agent.alerts.script_alert import ScriptAlert
 from ambari_agent.alerts.web_alert import WebAlert
 from ambari_agent.apscheduler.scheduler import Scheduler
 from ambari_agent.ClusterConfiguration import ClusterConfiguration
+from ambari_commons.urllib_handlers import RefreshHeaderProcessor
 
 from collections import namedtuple
 from mock.mock import MagicMock, patch
@@ -68,33 +70,7 @@ class TestAlerts(TestCase):
   @patch('time.time')
   @patch.object(socket.socket,"connect")
   def test_port_alert(self, socket_connect_mock, time_mock):
-    definition_json = { "name": "namenode_process",
-      "service": "HDFS",
-      "component": "NAMENODE",
-      "label": "NameNode process",
-      "interval": 6,
-      "scope": "host",
-      "enabled": True,
-      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
-      "source": {
-        "type": "PORT",
-        "uri": "{{hdfs-site/my-key}}",
-        "default_port": 50070,
-        "reporting": {
-          "ok": {
-            "text": "(Unit Tests) TCP OK - {0:.4f} response time on port {1}"
-          },
-          "warning": {
-            "text": "(Unit Tests) TCP WARN - {0:.4f} response time on port {1}",
-            "value": 1.5
-          },
-          "critical": {
-            "text": "(Unit Tests) Could not load process info: {0}",
-            "value": 5.0
-          }
-        }
-      }
-    }
+    definition_json = self._get_port_alert_definition()
 
     configuration = { 'hdfs-site' : { 'my-key': 'value1' } }
 
@@ -136,28 +112,7 @@ class TestAlerts(TestCase):
 
   @patch.object(socket.socket,"connect")
   def test_port_alert_complex_uri(self, socket_connect_mock):
-    definition_json = { "name": "namenode_process",
-      "service": "HDFS",
-      "component": "NAMENODE",
-      "label": "NameNode process",
-      "interval": 6,
-      "scope": "host",
-      "enabled": True,
-      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
-      "source": {
-        "type": "PORT",
-        "uri": "{{hdfs-site/my-key}}",
-        "default_port": 50070,
-        "reporting": {
-          "ok": {
-            "text": "(Unit Tests) TCP OK - {0:.4f} response time on port {1}"
-          },
-          "critical": {
-            "text": "(Unit Tests) Could not load process info: {0}"
-          }
-        }
-      }
-    }
+    definition_json = self._get_port_alert_definition()
 
     configuration = {'hdfs-site' :
       { 'my-key': 'c6401.ambari.apache.org:2181,c6402.ambari.apache.org:2181,c6403.ambari.apache.org:2181'}
@@ -222,20 +177,7 @@ class TestAlerts(TestCase):
 
 
   def test_script_alert(self):
-    definition_json = {
-      "name": "namenode_process",
-      "service": "HDFS",
-      "component": "NAMENODE",
-      "label": "NameNode process",
-      "interval": 6,
-      "scope": "host",
-      "enabled": True,
-      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
-      "source": {
-        "type": "SCRIPT",
-        "path": "test_script.py",
-      }
-    }
+    definition_json = self._get_script_alert_definition()
 
     # normally set by AlertSchedulerHandler
     definition_json['source']['stacks_directory'] = os.path.join('ambari_agent', 'dummy_files')
@@ -270,47 +212,9 @@ class TestAlerts(TestCase):
 
   @patch.object(MetricAlert, "_load_jmx")
   def test_metric_alert(self, ma_load_jmx_mock):
-    definition_json = {
-      "name": "cpu_check",
-      "service": "HDFS",
-      "component": "NAMENODE",
-      "label": "NameNode process",
-      "interval": 6,
-      "scope": "host",
-      "enabled": True,
-      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
-      "source": {
-        "type": "METRIC",
-        "uri": {
-          "http": "{{hdfs-site/dfs.datanode.http.address}}"
-        },
-        "jmx": {
-          "property_list": [
-            "someJmxObject/value",
-            "someOtherJmxObject/value"
-          ],
-          "value": "{0} * 100 + 123"
-        },
-        "reporting": {
-          "ok": {
-            "text": "(Unit Tests) ok_arr: {0} {1} {2}",
-          },
-          "warning": {
-            "text": "",
-            "value": 13
-          },
-          "critical": {
-            "text": "(Unit Tests) crit_arr: {0} {1} {2}",
-            "value": 72
-          }
-        }
-      }
-    }
-
-    ma_load_jmx_mock.return_value = [1, 3]
-
+    definition_json = self._get_metric_alert_definition()
     configuration = {'hdfs-site' :
-      { 'dfs.datanode.http.address': '1.2.3.4:80'}
+      { 'dfs.datanode.http.address': 'c6401.ambari.apache.org:80'}
     }
 
     collector = AlertCollector()
@@ -321,13 +225,32 @@ class TestAlerts(TestCase):
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
 
+    # trip an OK
+    ma_load_jmx_mock.return_value = [1, 25]
+
     alert.collect()
-    
     alerts = collector.alerts()
     self.assertEquals(0, len(collector.alerts()))
-    
+    self.assertEquals('OK', alerts[0]['state'])
+    self.assertEquals('(Unit Tests) OK: 1 25 125', alerts[0]['text'])
+
+    # trip a warning
+    ma_load_jmx_mock.return_value = [1, 75]
+
+    alert.collect()
+    alerts = collector.alerts()
+    self.assertEquals(0, len(collector.alerts()))
+    self.assertEquals('WARNING', alerts[0]['state'])
+    self.assertEquals('(Unit Tests) Warning: 1 75 175', alerts[0]['text'])
+
+    # trip a critical now
+    ma_load_jmx_mock.return_value = [1, 150]
+
+    alert.collect()
+    alerts = collector.alerts()
+    self.assertEquals(0, len(collector.alerts()))
     self.assertEquals('CRITICAL', alerts[0]['state'])
-    self.assertEquals('(Unit Tests) crit_arr: 1 3 223', alerts[0]['text'])
+    self.assertEquals('(Unit Tests) Critical: 1 150 250', alerts[0]['text'])
 
     del definition_json['source']['jmx']['value']
     collector = AlertCollector()
@@ -336,58 +259,21 @@ class TestAlerts(TestCase):
     alert.set_helpers(collector, cluster_configuration)
     alert.set_cluster("c1", "c6401.ambari.apache.org")
 
-    alert.collect()
+    # now try without any jmx value to compare to
+    ma_load_jmx_mock.return_value = [1, 25]
 
+    alert.collect()
     alerts = collector.alerts()
     self.assertEquals(0, len(collector.alerts()))
-
     self.assertEquals('OK', alerts[0]['state'])
-    self.assertEquals('(Unit Tests) ok_arr: 1 3 None', alerts[0]['text'])
+    self.assertEquals('(Unit Tests) OK: 1 25 None', alerts[0]['text'])
 
 
   @patch.object(MetricAlert, "_load_jmx")
   def test_alert_uri_structure(self, ma_load_jmx_mock):
-    definition_json = {
-      "name": "cpu_check",
-      "service": "HDFS",
-      "component": "NAMENODE",
-      "label": "NameNode process",
-      "interval": 6,
-      "scope": "host",
-      "enabled": True,
-      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
-      "source": {
-        "type": "METRIC",
-        "uri": {
-          "http": "{{hdfs-site/dfs.datanode.http.address}}",
-          "https": "{{hdfs-site/dfs.datanode.https.address}}",
-          "https_property": "{{hdfs-site/dfs.http.policy}}",
-          "https_property_value": "HTTPS_ONLY"
-        },
-        "jmx": {
-          "property_list": [
-            "someJmxObject/value",
-            "someOtherJmxObject/value"
-          ],
-          "value": "{0}"
-        },
-        "reporting": {
-          "ok": {
-            "text": "(Unit Tests) ok_arr: {0} {1} {2}",
-          },
-          "warning": {
-            "text": "",
-            "value": 10
-          },
-          "critical": {
-            "text": "(Unit Tests) crit_arr: {0} {1} {2}",
-            "value": 20
-          }
-        }
-      }
-    }
+    definition_json = self._get_metric_alert_definition()
 
-    ma_load_jmx_mock.return_value = [1,1]
+    ma_load_jmx_mock.return_value = [0,0]
     
     # run the alert without specifying any keys; an exception should be thrown
     # indicating that there was no URI and the result is UNKNOWN
@@ -418,7 +304,8 @@ class TestAlerts(TestCase):
     
     # set an actual property key (http)
     configuration = {'hdfs-site' :
-      { 'dfs.http.policy' : 'HTTP_ONLY', 'dfs.datanode.http.address' : '1.2.3.4:80' }
+      { 'dfs.http.policy' : 'HTTP_ONLY',
+        'dfs.datanode.http.address' : 'c6401.ambari.apache.org:80' }
     }
 
     self.__update_cluster_configuration(cluster_configuration, configuration)
@@ -433,7 +320,8 @@ class TestAlerts(TestCase):
     
     # set an actual property key (https)
     configuration = {'hdfs-site' :
-      { 'dfs.http.policy' : 'HTTP_ONLY', 'dfs.datanode.https.address' : '1.2.3.4:443' }
+      { 'dfs.http.policy' : 'HTTP_ONLY',
+        'dfs.datanode.https.address' : 'c6401.ambari.apache.org:443' }
     }
 
     self.__update_cluster_configuration(cluster_configuration, configuration)
@@ -444,13 +332,13 @@ class TestAlerts(TestCase):
     alert.set_cluster("c1", "c6401.ambari.apache.org")
     alert.collect()
     
-    self.assertEquals('OK', collector.alerts()[0]['state'])    
+    self.assertEquals('OK', collector.alerts()[0]['state'])
 
     # set both (http and https)
     configuration = {'hdfs-site' :
       { 'dfs.http.policy' : 'HTTP_ONLY',
-        'dfs.datanode.http.address' : '1.2.3.4:80',
-        'dfs.datanode.https.address' : '1.2.3.4:443' }
+        'dfs.datanode.http.address' : 'c6401.ambari.apache.org:80',
+        'dfs.datanode.https.address' : 'c6401.ambari.apache.org:443' }
     }
 
     self.__update_cluster_configuration(cluster_configuration, configuration)
@@ -466,43 +354,14 @@ class TestAlerts(TestCase):
 
   @patch.object(WebAlert, "_make_web_request")
   def test_web_alert(self, wa_make_web_request_mock):
-    definition_json = {
-      "name": "webalert_test",
-      "service": "HDFS",
-      "component": "DATANODE",
-      "label": "WebAlert Test",
-      "interval": 1,
-      "scope": "HOST",
-      "enabled": True,
-      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
-      "source": {
-        "type": "WEB",
-        "uri": {
-          "http": "{{hdfs-site/dfs.datanode.http.address}}",
-          "https": "{{hdfs-site/dfs.datanode.https.address}}",
-          "https_property": "{{hdfs-site/dfs.http.policy}}",
-          "https_property_value": "HTTPS_ONLY"
-        },
-        "reporting": {
-          "ok": {
-            "text": "(Unit Tests) ok: {0}",
-          },
-          "warning": {
-            "text": "(Unit Tests) warning: {0}",
-          },
-          "critical": {
-            "text": "(Unit Tests) critical: {1}. {3}",
-          }
-        }
-      }
-    }
+    definition_json = self._get_web_alert_definition()
 
     WebResponse = namedtuple('WebResponse', 'status_code time_millis error_msg')
     wa_make_web_request_mock.return_value = WebResponse(200,1.234,None)
 
     # run the alert and check HTTP 200    
     configuration = {'hdfs-site' :
-      { 'dfs.datanode.http.address' : '1.2.3.4:80' }
+      { 'dfs.datanode.http.address' : 'c6401.ambari.apache.org:80' }
     }
 
     collector = AlertCollector()
@@ -550,12 +409,12 @@ class TestAlerts(TestCase):
     
     # http assertion indicating that we properly determined non-SSL
     self.assertEquals('CRITICAL', alerts[0]['state'])
-    self.assertEquals('(Unit Tests) critical: http://1.2.3.4:80. error message', alerts[0]['text'])
+    self.assertEquals('(Unit Tests) critical: http://c6401.ambari.apache.org:80. error message', alerts[0]['text'])
 
     configuration = {'hdfs-site' :
       { 'dfs.http.policy' : 'HTTPS_ONLY',
-        'dfs.datanode.http.address' : '1.2.3.4:80',
-        'dfs.datanode.https.address' : '1.2.3.4:443' }
+        'dfs.datanode.http.address' : 'c6401.ambari.apache.org:80',
+        'dfs.datanode.https.address' : 'c6401.ambari.apache.org:443' }
     }
 
     self.__update_cluster_configuration(cluster_configuration, configuration)
@@ -572,7 +431,7 @@ class TestAlerts(TestCase):
     
     # SSL assertion
     self.assertEquals('CRITICAL', alerts[0]['state'])
-    self.assertEquals('(Unit Tests) critical: https://1.2.3.4:443. error message', alerts[0]['text'])
+    self.assertEquals('(Unit Tests) critical: https://c6401.ambari.apache.org:443. error message', alerts[0]['text'])
 
   def test_reschedule(self):
     test_file_path = os.path.join('ambari_agent', 'dummy_files')
@@ -594,28 +453,7 @@ class TestAlerts(TestCase):
 
 
   def test_alert_collector_purge(self):
-    definition_json = { "name": "namenode_process",
-      "service": "HDFS",
-      "component": "NAMENODE",
-      "label": "NameNode process",
-      "interval": 6,
-      "scope": "host",
-      "enabled": True,
-      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
-      "source": {
-        "type": "PORT",
-        "uri": "{{hdfs-site/my-key}}",
-        "default_port": 50070,
-        "reporting": {
-          "ok": {
-            "text": "(Unit Tests) TCP OK - {0:.4f} response time on port {1}"
-          },
-          "critical": {
-            "text": "(Unit Tests) Could not load process info: {0}"
-          }
-        }
-      }
-    }
+    definition_json = self._get_port_alert_definition()
 
     configuration = {'hdfs-site' :
       { 'my-key': 'value1' }
@@ -658,28 +496,7 @@ class TestAlerts(TestCase):
 
     self.assertEquals(1, ash.get_job_count())
 
-    definition_json = { "name": "namenode_process",
-      "service": "HDFS",
-      "component": "NAMENODE",
-      "label": "NameNode process",
-      "interval": 6,
-      "scope": "host",
-      "enabled": True,
-      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
-      "source": {
-        "type": "PORT",
-        "uri": "{{hdfs-site/my-key}}",
-        "default_port": 50070,
-        "reporting": {
-          "ok": {
-            "text": "(Unit Tests) TCP OK - {0:.4f} response time on port {1}"
-          },
-          "critical": {
-            "text": "(Unit Tests) Could not load process info: {0}"
-          }
-        }
-      }
-    }
+    definition_json = self._get_port_alert_definition()
 
     alert = PortAlert(definition_json, definition_json['source'])
     ash.schedule_definition(alert)
@@ -713,37 +530,14 @@ class TestAlerts(TestCase):
 
     ash.start()
 
-
     self.assertEquals(1, ash.get_job_count())
     self.assertEquals(0, len(ash._collector.alerts()))
 
     execution_commands = [ {
-        "clusterName": "c1",
-        "hostName": "c6401.ambari.apache.org",
-        "alertDefinition": {
-          "name": "namenode_process",
-          "service": "HDFS",
-          "component": "NAMENODE",
-          "label": "NameNode process",
-          "interval": 6,
-          "scope": "host",
-          "enabled": True,
-          "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
-          "source": {
-            "type": "PORT",
-            "uri": "{{hdfs-site/my-key}}",
-            "default_port": 50070,
-            "reporting": {
-              "ok": {
-                "text": "(Unit Tests) TCP OK - {0:.4f} response time on port {1}"
-              },
-              "critical": {
-                "text": "(Unit Tests) Could not load process info: {0}"
-              }
-            }
-          }
-        }
-      } ]
+      "clusterName": "c1",
+      "hostName": "c6401.ambari.apache.org",
+      "alertDefinition": self._get_port_alert_definition()
+    } ]
 
     # execute the alert immediately and verify that the collector has the result
     ash.execute_alert(execution_commands)
@@ -751,20 +545,7 @@ class TestAlerts(TestCase):
 
 
   def test_skipped_alert(self):
-    definition_json = {
-      "name": "namenode_process",
-      "service": "HDFS",
-      "component": "NAMENODE",
-      "label": "NameNode process",
-      "interval": 6,
-      "scope": "host",
-      "enabled": True,
-      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
-      "source": {
-        "type": "SCRIPT",
-        "path": "test_script.py",
-      }
-    }
+    definition_json = self._get_script_alert_definition()
 
     # normally set by AlertSchedulerHandler
     definition_json['source']['stacks_directory'] = os.path.join('ambari_agent', 'dummy_files')
@@ -795,20 +576,7 @@ class TestAlerts(TestCase):
 
 
   def test_default_reporting_text(self):
-    definition_json = {
-      "name": "namenode_process",
-      "service": "HDFS",
-      "component": "NAMENODE",
-      "label": "NameNode process",
-      "interval": 6,
-      "scope": "host",
-      "enabled": True,
-      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
-      "source": {
-        "type": "SCRIPT",
-        "path": "test_script.py",
-      }
-    }
+    definition_json = self._get_script_alert_definition()
 
     alert = ScriptAlert(definition_json, definition_json['source'], None)
     self.assertEquals(alert._get_reporting_text(alert.RESULT_OK), '{0}')
@@ -835,20 +603,7 @@ class TestAlerts(TestCase):
 
 
   def test_configuration_updates(self):
-    definition_json = {
-      "name": "namenode_process",
-      "service": "HDFS",
-      "component": "NAMENODE",
-      "label": "NameNode process",
-      "interval": 6,
-      "scope": "host",
-      "enabled": True,
-      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
-      "source": {
-        "type": "SCRIPT",
-        "path": "test_script.py",
-      }
-    }
+    definition_json = self._get_script_alert_definition()
 
     # normally set by AlertSchedulerHandler
     definition_json['source']['stacks_directory'] = os.path.join('ambari_agent', 'dummy_files')
@@ -909,8 +664,8 @@ class TestAlerts(TestCase):
     }
 
     configuration = {'hdfs-site' :
-      { 'dfs.namenode.http.address' : '1.2.3.4:80',
-        'dfs.namenode.https.address' : '1.2.3.4:443' }
+      { 'dfs.namenode.http.address' : 'c6401.ambari.apache.org:80',
+        'dfs.namenode.https.address' : 'c6401.ambari.apache.org:443' }
     }
 
     collector = AlertCollector()
@@ -924,13 +679,13 @@ class TestAlerts(TestCase):
     self.assertFalse(alert._check_uri_ssl_property(uri_keys))
 
     uri = alert._get_uri_from_structure(uri_keys)
-    self.assertEqual( '1.2.3.4:80', uri.uri )
+    self.assertEqual( 'c6401.ambari.apache.org:80', uri.uri )
     self.assertEqual( False, uri.is_ssl_enabled )
 
     configuration = {'hdfs-site' :
       { 'dfs.http.policy' : 'HTTP_ONLY',
-        'dfs.namenode.http.address' : '1.2.3.4:80',
-        'dfs.namenode.https.address' : '1.2.3.4:443' }
+        'dfs.namenode.http.address' : 'c6401.ambari.apache.org:80',
+        'dfs.namenode.https.address' : 'c6401.ambari.apache.org:443' }
     }
 
     self.__update_cluster_configuration(cluster_configuration, configuration)
@@ -938,14 +693,14 @@ class TestAlerts(TestCase):
     self.assertFalse(alert._check_uri_ssl_property(uri_keys))
 
     uri = alert._get_uri_from_structure(uri_keys)
-    self.assertEqual( '1.2.3.4:80', uri.uri )
+    self.assertEqual( 'c6401.ambari.apache.org:80', uri.uri )
     self.assertEqual( False, uri.is_ssl_enabled )
 
     # switch to SSL
     configuration = {'hdfs-site' :
       { 'dfs.http.policy' : 'HTTPS_ONLY',
-        'dfs.namenode.http.address' : '1.2.3.4:80',
-        'dfs.namenode.https.address' : '1.2.3.4:443' }
+        'dfs.namenode.http.address' : 'c6401.ambari.apache.org:80',
+        'dfs.namenode.https.address' : 'c6401.ambari.apache.org:443' }
     }
 
     self.__update_cluster_configuration(cluster_configuration, configuration)
@@ -953,14 +708,14 @@ class TestAlerts(TestCase):
     self.assertTrue(alert._check_uri_ssl_property(uri_keys))
 
     uri = alert._get_uri_from_structure(uri_keys)
-    self.assertEqual( '1.2.3.4:443', uri.uri )
+    self.assertEqual( 'c6401.ambari.apache.org:443', uri.uri )
     self.assertEqual( True, uri.is_ssl_enabled )
 
     # test HA
     configuration = {'hdfs-site' :
       { 'dfs.http.policy' : 'HTTP_ONLY',
-        'dfs.namenode.http.address' : '1.2.3.4:80',
-        'dfs.namenode.https.address' : '1.2.3.4:443',
+        'dfs.namenode.http.address' : 'c6401.ambari.apache.org:80',
+        'dfs.namenode.https.address' : 'c6401.ambari.apache.org:443',
         'dfs.nameservices' : 'c1ha',
         'dfs.ha.namenodes.c1ha' : 'nn1, nn2',
         'dfs.namenode.http-address.c1ha.nn1' : 'c6401.ambari.apache.org:8080',
@@ -979,8 +734,8 @@ class TestAlerts(TestCase):
     # test HA SSL
     configuration = {'hdfs-site' :
       { 'dfs.http.policy' : 'HTTPS_ONLY',
-        'dfs.namenode.http.address' : '1.2.3.4:80',
-        'dfs.namenode.https.address' : '1.2.3.4:443',
+        'dfs.namenode.http.address' : 'c6401.ambari.apache.org:80',
+        'dfs.namenode.https.address' : 'c6401.ambari.apache.org:443',
         'dfs.nameservices' : 'c1ha',
         'dfs.ha.namenodes.c1ha' : 'nn1, nn2',
         'dfs.namenode.http-address.c1ha.nn1' : 'c6401.ambari.apache.org:8080',
@@ -998,6 +753,175 @@ class TestAlerts(TestCase):
     self.assertEqual( 'c6401.ambari.apache.org:8443', uri.uri )
     self.assertEqual( True, uri.is_ssl_enabled )
 
+
+  def test_uri_structure_parsing_without_namespace(self):
+    """
+    Tests that we can parse an HA URI that only includes an alias and
+    not a namespace
+    :return:
+    """
+    uri_structure = {
+      "http": "{{yarn-site/yarn.resourcemanager.webapp.address}}",
+      "https": "{{yarn-site/yarn.resourcemanager.webapp.http.address}}",
+      "https_property": "{{yarn-site/yarn.http.policy}}",
+      "https_property_value": "HTTPS_ONLY",
+      "high_availability": {
+        "alias_key" : "{{yarn-site/yarn.resourcemanager.ha.rm-ids}}",
+        "http_pattern" : "{{yarn-site/yarn.resourcemanager.webapp.address.{{alias}}}}",
+        "https_pattern" : "{{yarn-site/yarn.resourcemanager.webapp.https.address.{{alias}}}}"
+      }
+    }
+
+    configuration = { 'yarn-site' :
+      { 'yarn.http.policy' : 'HTTPS_ONLY',
+        'yarn.resourcemanager.webapp.address' : 'c6401.ambari.apache.org:80',
+        'yarn.resourcemanager.webapp.http.address' : 'c6401.ambari.apache.org:443',
+        'yarn.resourcemanager.webapp.address.rm1' : 'c6401.ambari.apache.org:8080',
+        'yarn.resourcemanager.webapp.https.address.rm1' : 'c6401.ambari.apache.org:8443',
+        'yarn.resourcemanager.webapp.address.rm2' : 'c6402.ambari.apache.org:8080',
+        'yarn.resourcemanager.webapp.https.address.rm2' : 'c6402.ambari.apache.org:8443',
+        'yarn.resourcemanager.ha.rm-ids' : 'rm1, rm2'
+      }
+    }
+
+    collector = AlertCollector()
+    cluster_configuration = self.__get_cluster_configuration()
+    self.__update_cluster_configuration(cluster_configuration, configuration)
+
+    alert = MockAlert()
+    alert.set_helpers(collector, cluster_configuration)
+    alert.set_cluster("c1", "c6402.ambari.apache.org")
+    uri_keys = alert._lookup_uri_property_keys(uri_structure)
+    self.assertTrue(alert._check_uri_ssl_property(uri_keys))
+
+    uri = alert._get_uri_from_structure(uri_keys)
+    self.assertEqual( 'c6402.ambari.apache.org:8443', uri.uri )
+    self.assertEqual( True, uri.is_ssl_enabled )
+
+
+  @patch('httplib.HTTPConnection')
+  @patch.object(RefreshHeaderProcessor, 'http_response')
+  def test_metric_alert_uses_refresh_processor(self, http_response_mock, http_connection_mock):
+    """
+    Tests that the RefreshHeaderProcessor is correctly chained and called
+    :param http_response_mock:
+    :param http_connection_mock:
+    :return:
+    """
+    http_conn = http_connection_mock.return_value
+    http_conn.getresponse.return_value = MagicMock(status=200)
+    http_response_mock.return_value = MagicMock(code=200)
+
+    url_opener = urllib2.build_opener(RefreshHeaderProcessor())
+    response = url_opener.open("http://foo.bar.baz/jmx")
+
+    self.assertFalse(response is None)
+    self.assertTrue(http_conn.request.called)
+    self.assertTrue(http_conn.getresponse.called)
+    self.assertTrue(http_response_mock.called)
+
+    # now we know that the refresh header is intercepting, reset the mocks
+    # and try with a METRIC alert
+    MagicMock.reset_mock(http_response_mock)
+    MagicMock.reset_mock(http_connection_mock)
+
+    definition_json = self._get_metric_alert_definition()
+
+    configuration = {'hdfs-site' :
+      { 'dfs.datanode.http.address': 'c6401.ambari.apache.org:80'}
+    }
+
+    collector = AlertCollector()
+    cluster_configuration = self.__get_cluster_configuration()
+    self.__update_cluster_configuration(cluster_configuration, configuration)
+
+    alert = MetricAlert(definition_json, definition_json['source'])
+    alert.set_helpers(collector, cluster_configuration)
+    alert.set_cluster("c1", "c6401.ambari.apache.org")
+
+    alert.collect()
+
+    self.assertFalse(response is None)
+    self.assertTrue(http_conn.request.called)
+    self.assertTrue(http_conn.getresponse.called)
+    self.assertTrue(http_response_mock.called)
+
+
+  def test_urllib2_refresh_header_processor(self):
+    from urllib2 import Request
+
+    # setup the original request
+    original_url = "http://foo.bar.baz/jmx?qry=someQuery"
+    request = Request(original_url)
+
+    # ensure that we get back a 200 with a refresh header to redirect us
+    response = MagicMock(code=200)
+    info_response = MagicMock()
+    info_response.keys.return_value = ["Refresh"]
+    info_response.getheader.return_value = "3; url=http://foobar.baz.qux:8080"
+
+    response.info.return_value = info_response
+
+    # add a mock parent to the refresh processor
+    parent_mock = MagicMock()
+    refresh_processor = RefreshHeaderProcessor()
+    refresh_processor.parent = parent_mock
+
+    # execute
+    refresh_processor.http_response(request, response)
+
+    # ensure that the parent was called with the modified URL
+    parent_mock.open.assert_called_with("http://foobar.baz.qux:8080/jmx?qry=someQuery")
+
+    # reset mocks
+    MagicMock.reset_mock(parent_mock)
+
+    # alter the refresh header to remove the time value
+    info_response.getheader.return_value = "url=http://foobar.baz.qux:8443"
+
+    # execute
+    refresh_processor.http_response(request, response)
+
+    # ensure that the parent was called with the modified URL
+    parent_mock.open.assert_called_with("http://foobar.baz.qux:8443/jmx?qry=someQuery")
+
+    # reset mocks
+    MagicMock.reset_mock(parent_mock)
+
+    # use an invalid refresh header
+    info_response.getheader.return_value = "http://foobar.baz.qux:8443"
+
+    # execute
+    refresh_processor.http_response(request, response)
+
+    # ensure that the parent was not called
+    self.assertFalse(parent_mock.open.called)
+
+    # reset mocks
+    MagicMock.reset_mock(parent_mock)
+
+    # remove the refresh header
+    info_response.keys.return_value = ["SomeOtherHeaders"]
+
+    # execute
+    refresh_processor.http_response(request, response)
+
+    # ensure that the parent was not called
+    self.assertFalse(parent_mock.open.called)
+
+    # reset mocks
+    MagicMock.reset_mock(parent_mock)
+
+    # use and invalid http code but include a refresh header
+    response.code = 401
+    info_response.keys.return_value = ["Refresh"]
+    info_response.getheader.return_value = "3; url=http://foobar.baz.qux:8080"
+
+    # execute
+    refresh_processor.http_response(request, response)
+
+    # ensure that the parent was not called
+    self.assertFalse(parent_mock.open.called)
 
 
   def __get_cluster_configuration(self):
@@ -1030,6 +954,127 @@ class TestAlerts(TestCase):
     else:
       return self.original_open(file, mode)
 
+
+  def _get_script_alert_definition(self):
+    return {
+      "name": "namenode_process",
+      "service": "HDFS",
+      "component": "NAMENODE",
+      "label": "NameNode process",
+      "interval": 6,
+      "scope": "host",
+      "enabled": True,
+      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
+      "source": {
+        "type": "SCRIPT",
+        "path": "test_script.py",
+      }
+    }
+
+
+  def _get_port_alert_definition(self):
+    return { "name": "namenode_process",
+      "service": "HDFS",
+      "component": "NAMENODE",
+      "label": "NameNode process",
+      "interval": 6,
+      "scope": "host",
+      "enabled": True,
+      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
+      "source": {
+        "type": "PORT",
+        "uri": "{{hdfs-site/my-key}}",
+        "default_port": 50070,
+        "reporting": {
+          "ok": {
+            "text": "(Unit Tests) TCP OK - {0:.4f} response time on port {1}"
+          },
+          "warning": {
+            "text": "(Unit Tests) TCP WARN - {0:.4f} response time on port {1}",
+            "value": 1.5
+          },
+          "critical": {
+            "text": "(Unit Tests) Could not load process info: {0}",
+            "value": 5.0
+          }
+        }
+      }
+    }
+
+
+  def _get_metric_alert_definition(self):
+    return {
+      "name": "DataNode CPU Check",
+      "service": "HDFS",
+      "component": "DATANODE",
+      "label": "DataNode Process",
+      "interval": 6,
+      "scope": "host",
+      "enabled": True,
+      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
+      "source": {
+        "type": "METRIC",
+        "uri": {
+          "http": "{{hdfs-site/dfs.datanode.http.address}}",
+          "https": "{{hdfs-site/dfs.datanode.https.address}}",
+          "https_property": "{{hdfs-site/dfs.http.policy}}",
+          "https_property_value": "HTTPS_ONLY"
+        },
+        "jmx": {
+          "property_list": [
+            "someJmxObject/value",
+            "someOtherJmxObject/value"
+          ],
+          "value": "({0} * 100) + {1}"
+        },
+        "reporting": {
+          "ok": {
+            "text": "(Unit Tests) OK: {0} {1} {2}",
+          },
+          "warning": {
+            "text": "(Unit Tests) Warning: {0} {1} {2}",
+            "value": 150
+          },
+          "critical": {
+            "text": "(Unit Tests) Critical: {0} {1} {2}",
+            "value": 200
+          }
+        }
+      }
+    }
+
+
+  def _get_web_alert_definition(self):
+    return {
+      "name": "webalert_test",
+      "service": "HDFS",
+      "component": "DATANODE",
+      "label": "WebAlert Test",
+      "interval": 1,
+      "scope": "HOST",
+      "enabled": True,
+      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
+      "source": {
+        "type": "WEB",
+        "uri": {
+          "http": "{{hdfs-site/dfs.datanode.http.address}}",
+          "https": "{{hdfs-site/dfs.datanode.https.address}}",
+          "https_property": "{{hdfs-site/dfs.http.policy}}",
+          "https_property_value": "HTTPS_ONLY"
+        },
+        "reporting": {
+          "ok": {
+            "text": "(Unit Tests) ok: {0}",
+          },
+          "warning": {
+            "text": "(Unit Tests) warning: {0}",
+          },
+          "critical": {
+            "text": "(Unit Tests) critical: {1}. {3}",
+          }
+        }
+      }
+    }
 
 class MockAlert(BaseAlert):
   """

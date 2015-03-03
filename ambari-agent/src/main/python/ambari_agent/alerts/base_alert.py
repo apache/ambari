@@ -129,8 +129,9 @@ class BaseAlert(object):
       if res_base_text is None:
         res_base_text = self._get_reporting_text(result_state)
 
-    except Exception as e:
-      message = "[Alert][{0}] Unable to run the alert".format(self.get_name())
+    except Exception as exception:
+      message = "[Alert][{0}] Unable to execute alert. {1}".format(
+        self.get_name(), str(exception))
       
       # print the exception if in DEBUG, otherwise just log the warning
       if logger.isEnabledFor(logging.DEBUG):
@@ -138,7 +139,7 @@ class BaseAlert(object):
       else:
         logger.warning(message)
 
-      res = (BaseAlert.RESULT_UNKNOWN, [str(e)])
+      res = (BaseAlert.RESULT_UNKNOWN, [str(exception)])
       res_base_text = "{0}"
     
     
@@ -292,7 +293,7 @@ class BaseAlert(object):
     # first thing is first; if there are HA keys then try to dynamically build
     # the property which is used to get the actual value of the uri
     # (ie dfs.namenode.http-address.c1ha.nn2)
-    if alert_uri_lookup_keys.ha_nameservice is not None:
+    if alert_uri_lookup_keys.ha_nameservice is not None or alert_uri_lookup_keys.ha_alias_key is not None:
       alert_uri = self._get_uri_from_ha_structure(alert_uri_lookup_keys)
       if alert_uri is not None:
         return alert_uri
@@ -338,7 +339,7 @@ class BaseAlert(object):
     :param alert_uri_lookup_keys:
     :return: the AlertUri named tuple if there is a valid HA URL, otherwise None
     """
-    if alert_uri_lookup_keys is None or alert_uri_lookup_keys.ha_nameservice is None:
+    if alert_uri_lookup_keys is None:
       return None
 
     logger.debug("[Alert][{0}] HA URI structure detected in definition, attempting to lookup dynamic HA properties".format(self.get_name()))
@@ -378,9 +379,16 @@ class BaseAlert(object):
 
       return None
 
+    if self.HA_NAMESERVICE_PARAM in ha_pattern and ha_nameservice is None:
+      logger.warning("[Alert][{0}] An HA URI pattern of {1} was detected, but there is no nameservice key".format(
+        self.get_name(), ha_pattern))
+
+      return None
+
     # convert dfs.namenode.http-address.{{ha-nameservice}}.{{alias}} into
     # dfs.namenode.http-address.c1ha.{{alias}}
-    ha_pattern = ha_pattern.replace(self.HA_NAMESERVICE_PARAM, ha_nameservice)
+    if ha_nameservice is not None:
+      ha_pattern = ha_pattern.replace(self.HA_NAMESERVICE_PARAM, ha_nameservice)
 
     # for each alias, grab it and check to see if this host matches
     for alias in ha_nameservice_alias.split(','):
