@@ -191,6 +191,7 @@ App.MainServiceController = Em.ArrayController.extend({
     if (this.get('isAllServicesInstalled')) {
       return;
     }
+    App.router.get('addServiceController').setDBProperty('onClosePath', 'main.services.index');
     App.router.transitionTo('main.serviceAdd');
   }
 });

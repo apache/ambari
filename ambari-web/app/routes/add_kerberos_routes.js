@@ -70,6 +70,7 @@ module.exports = App.WizardRoute.extend({
           var self = this;
           var kerberosProgressPageController = App.router.get('kerberosProgressPageController');
           var controller = App.router.get('kerberosWizardController');
+          var exitPath = controller.getDBProperty('onClosePath') || 'adminKerberos.index';
           controller.clearTasksData();
           controller.finish();
           App.get('router.updateController').set('isWorking', true);
@@ -84,7 +85,7 @@ module.exports = App.WizardRoute.extend({
           }, {
             alwaysCallback: function () {
               self.hide();
-              App.get('router').transitionTo('adminKerberos.index');
+              App.get('router').transitionTo(exitPath);
               location.reload();
             }
           });
