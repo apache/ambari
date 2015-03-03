@@ -59,7 +59,8 @@ App.ReassignMasterController = App.WizardController.extend({
     hasManualSteps: false,
     hasCheckDBStep: false,
     componentsWithCheckDBStep: ['HIVE_METASTORE', 'HIVE_SERVER', 'OOZIE_SERVER'],
-    securityEnabled: false
+    securityEnabled: false,
+    componentsWithoutSecurityConfigs: ['MYSQL_SERVER']
   }),
 
   /**
@@ -287,12 +288,15 @@ App.ReassignMasterController = App.WizardController.extend({
   loadDatabaseType: function () {
     var databaseType = this.getDBProperty('databaseType');
     this.set('content.databaseType', databaseType);
+    var component = this.get('content.reassign.component_name');
 
-    if (this.get('content.hasCheckDBStep') && databaseType && databaseType !== 'derby') {
-      // components with manual commands
-      var manual = App.router.reassignMasterController.get('content.componentsWithManualCommands').without('OOZIE_SERVER');
-      App.router.reassignMasterController.set('content.hasManualSteps', false);
-      App.router.reassignMasterController.set('content.componentsWithManualCommands', manual);
+    if (component === 'OOZIE_SERVER') {
+      if (this.get('content.hasCheckDBStep') && databaseType && databaseType !== 'derby') {
+        // components with manual commands
+        var manual = App.router.reassignMasterController.get('content.componentsWithManualCommands').without('OOZIE_SERVER');
+        App.router.reassignMasterController.set('content.hasManualSteps', false);
+        App.router.reassignMasterController.set('content.componentsWithManualCommands', manual);
+      }
     }
   },
 

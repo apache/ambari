@@ -49,6 +49,10 @@ App.ReassignMasterWizardStep5View = Em.View.extend({
   securityNotice: function () {
     var secureConfigs = this.get('controller.content.secureConfigs');
     var proceedMsg = Em.I18n.t('services.reassign.step5.body.proceedMsg');
+    var hasSecureConfigs = !this.get('controller.content.componentsWithoutSecurityConfigs').contains(this.get('controller.content.reassign.component_name'));
+    if(!hasSecureConfigs) {
+      secureConfigs = [];
+    }
     if (!this.get('controller.content.securityEnabled') || !secureConfigs.length) {
       return proceedMsg;
     }

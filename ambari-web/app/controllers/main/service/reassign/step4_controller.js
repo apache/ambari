@@ -206,6 +206,41 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
           principal: 'oozie.service.HadoopAccessorService.kerberos.principal'
         }
       ]
+    },
+    {
+      componentName: 'WEBHCAT_SERVER',
+      configs: [
+        {
+          site: 'webhcat-site',
+          keytab: 'templeton.kerberos.keytab',
+          principal: 'templeton.kerberos.principal'
+        }
+      ]
+    },
+    {
+      componentName: 'HIVE_SERVER',
+      configs: [
+        {
+          site: 'hive-site',
+          keytab: 'hive.server2.authentication.kerberos.keytab',
+          principal: 'hive.server2.authentication.kerberos.principal'
+        },
+        {
+          site: 'hive-site',
+          keytab: 'hive.server2.authentication.spnego.keytab',
+          principal: 'hive.server2.authentication.spnego.principal'
+        }
+      ]
+    },
+    {
+      componentName: 'HIVE_METASTORE',
+      configs: [
+        {
+          site: 'hive-site',
+          keytab: 'hive.metastore.kerberos.keytab.file',
+          principal: 'hive.metastore.kerberos.principal'
+        }
+      ]
     }
 
   ],
