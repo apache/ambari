@@ -17,15 +17,19 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 
@@ -225,6 +229,72 @@ public class CalculatedStatus {
       hostRoleStatuses.add(hostRoleCommand.getStatus());
     }
     return calculateStatusCounts(hostRoleStatuses);
+  }
+
+  /**
+   * Return counts of task statuses.
+   * @param stageDto  the map of stage-to-summary value objects
+   * @param stageIds  the stage ids to consider from the value objects
+   * @return the map of status to counts
+   */
+  public static Map<HostRoleStatus, Integer> calculateTaskStatusCounts(
+      Map<Long, HostRoleCommandStatusSummaryDTO> stageDto, Set<Long> stageIds) {
+
+    Map<HostRoleStatus, Integer> result = new HashMap<HostRoleStatus, Integer>();
+
+    for (Long stageId : stageIds) {
+      if (!stageDto.containsKey(stageId)) {
+        continue;
+      }
+
+      HostRoleCommandStatusSummaryDTO dto = stageDto.get(stageId);
+
+      for (Entry<HostRoleStatus, Integer> entry : dto.getCounts().entrySet()) {
+        if (!result.containsKey(entry.getKey())) {
+          result.put(entry.getKey(), 0);
+        }
+
+        Integer old = result.get(entry.getKey());
+        result.put(entry.getKey(), old + entry.getValue());
+      }
+
+    }
+
+    return result;
+  }
+
+  /**
+   * Calculates the overall status
+   * @param stageDto  the map of stage-to-summary value objects
+   * @param stageIds  the stage ids to consider from the value objects
+   * @return the calculated status
+   */
+  public static CalculatedStatus statusFromStageSummary(Map<Long, HostRoleCommandStatusSummaryDTO> stageDto,
+      Set<Long> stageIds) {
+
+    Collection<HostRoleStatus> stageStatuses = new HashSet<HostRoleStatus>();
+    Collection<HostRoleStatus> taskStatuses = new ArrayList<HostRoleStatus>();
+
+    for (Long stageId : stageIds) {
+      if (!stageDto.containsKey(stageId)) {
+        continue;
+      }
+
+      HostRoleCommandStatusSummaryDTO summary = stageDto.get(stageId);
+      HostRoleStatus stageStatus = calculateSummaryStatus(summary.getCounts(),
+          summary.getTaskTotal(), summary.isStageSkippable());
+
+      stageStatuses.add(stageStatus);
+
+      taskStatuses.addAll(summary.getTaskStatuses());
+    }
+
+    // calculate the overall status from the stage statuses
+    HostRoleStatus status = calculateSummaryStatus(calculateStatusCounts(stageStatuses), stageStatuses.size(), false);
+
+    double progressPercent = calculateProgressPercent(calculateStatusCounts(taskStatuses), taskStatuses.size());
+
+    return new CalculatedStatus(status, progressPercent);
   }
 
   /**

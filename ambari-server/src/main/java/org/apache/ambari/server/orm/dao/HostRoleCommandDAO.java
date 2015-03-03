@@ -46,6 +46,26 @@ import com.google.inject.persist.Transactional;
 @Singleton
 public class HostRoleCommandDAO {
 
+  private static final String SUMMARY_DTO = String.format(
+    "SELECT NEW %s(" +
+      "MIN(hrc.startTime), " +
+      "MAX(hrc.endTime), " +
+      "MIN(hrc.stage.skippable), " +
+      "hrc.stageId, " +
+      "SUM(CASE WHEN hrc.status = :aborted THEN 1 ELSE 0 END), " +
+      "SUM(CASE WHEN hrc.status = :completed THEN 1 ELSE 0 END), " +
+      "SUM(CASE WHEN hrc.status = :failed THEN 1 ELSE 0 END), " +
+      "SUM(CASE WHEN hrc.status = :holding THEN 1 ELSE 0 END), " +
+      "SUM(CASE WHEN hrc.status = :holding_failed THEN 1 ELSE 0 END), " +
+      "SUM(CASE WHEN hrc.status = :holding_timedout THEN 1 ELSE 0 END), " +
+      "SUM(CASE WHEN hrc.status = :in_progress THEN 1 ELSE 0 END), " +
+      "SUM(CASE WHEN hrc.status = :pending THEN 1 ELSE 0 END), " +
+      "SUM(CASE WHEN hrc.status = :queued THEN 1 ELSE 0 END), " +
+      "SUM(CASE WHEN hrc.status = :timedout THEN 1 ELSE 0 END)" +
+      ") FROM HostRoleCommandEntity hrc " +
+      " GROUP BY hrc.requestId, hrc.stageId HAVING hrc.requestId = :requestId",
+      HostRoleCommandStatusSummaryDTO.class.getName());
+
   @Inject
   Provider<EntityManager> entityManagerProvider;
   @Inject
@@ -349,4 +369,40 @@ public class HostRoleCommandDAO {
   public void removeByPK(int taskId) {
     remove(findByPK(taskId));
   }
+
+
+  /**
+   * Finds the counts of tasks for a request and groups them by stage id.
+   * This allows for very efficient loading when there are a huge number of stages
+   * and tasks to iterate (for example, during a Rolling Upgrade).
+   * @param requestId the request id
+   * @return the map of stage-to-summary objects
+   */
+  @RequiresSession
+  public Map<Long, HostRoleCommandStatusSummaryDTO> findAggregateCounts(Long requestId) {
+
+    TypedQuery<HostRoleCommandStatusSummaryDTO> query = entityManagerProvider.get().createQuery(
+        SUMMARY_DTO, HostRoleCommandStatusSummaryDTO.class);
+
+    query.setParameter("requestId", requestId);
+    query.setParameter("aborted", HostRoleStatus.ABORTED);
+    query.setParameter("completed", HostRoleStatus.COMPLETED);
+    query.setParameter("failed", HostRoleStatus.FAILED);
+    query.setParameter("holding", HostRoleStatus.HOLDING);
+    query.setParameter("holding_failed", HostRoleStatus.HOLDING_FAILED);
+    query.setParameter("holding_timedout", HostRoleStatus.HOLDING_TIMEDOUT);
+    query.setParameter("in_progress", HostRoleStatus.IN_PROGRESS);
+    query.setParameter("pending", HostRoleStatus.PENDING);
+    query.setParameter("queued", HostRoleStatus.QUEUED);
+    query.setParameter("timedout", HostRoleStatus.TIMEDOUT);
+
+    Map<Long, HostRoleCommandStatusSummaryDTO> map = new HashMap<Long, HostRoleCommandStatusSummaryDTO>();
+
+    for (HostRoleCommandStatusSummaryDTO dto : daoUtils.selectList(query)) {
+      map.put(dto.getStageId(), dto);
+    }
+
+    return map;
+  }
+
 }

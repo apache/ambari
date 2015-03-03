@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -236,7 +237,7 @@ public class ColocatedGrouping extends Grouping {
      * @param wrappers  the list of stage wrappers
      */
     private void formatFirstBatch(UpgradeContext ctx, ManualTask task, List<StageWrapper> wrappers) {
-      List<String> compNames = new ArrayList<String>();
+      Set<String> names = new LinkedHashSet<String>();
       Map<String, Set<String>> compLocations = new HashMap<String, Set<String>>();
 
       for (StageWrapper sw : wrappers) {
@@ -251,7 +252,7 @@ public class ColocatedGrouping extends Grouping {
               compLocations.get(host).add(tw.getComponent());
             }
 
-            compNames.add(ctx.getComponentDisplay(
+            names.add(ctx.getComponentDisplay(
                 tw.getService(), tw.getComponent()));
           }
         }
@@ -261,9 +262,11 @@ public class ColocatedGrouping extends Grouping {
       if (task.message.contains("{{components}}")) {
         StringBuilder sb = new StringBuilder();
 
+        List<String> compNames = new ArrayList<String>(names);
+
         if (compNames.size() == 1) {
           sb.append(compNames.get(0));
-        } else if (compNames.size() > 1) {
+        } else if (names.size() > 1) {
           String last = compNames.remove(compNames.size() - 1);
           sb.append(StringUtils.join(compNames, ", "));
           sb.append(" and ").append(last);
