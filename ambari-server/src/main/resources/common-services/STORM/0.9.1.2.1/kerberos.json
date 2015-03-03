@@ -13,7 +13,7 @@
           "name": "storm_components",
           "principal": {
             "value": "storm@${realm}",
-            "type": "service",
+            "type": "user",
             "configuration": "storm-env/storm_principal_name"
           },
           "keytab": {
@@ -113,7 +113,7 @@
               "name": "storm_components",
               "principal": {
                 "value": "storm@${realm}",
-                "type": "service",
+                "type": "user",
                 "configuration": "storm-env/storm_principal_name"
               },
               "keytab": {
