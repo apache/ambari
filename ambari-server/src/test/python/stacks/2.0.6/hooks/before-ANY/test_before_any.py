@@ -125,7 +125,7 @@ class TestHookBeforeInstall(RMFTestCase):
         mode = 0555,
     )
     self.assertResourceCalled('Execute', '/tmp/changeUid.sh ambari-qa /tmp/hadoop-ambari-qa,/tmp/hsperfdata_ambari-qa,/home/ambari-qa,/tmp/ambari-qa,/tmp/sqoop-ambari-qa',
-        not_if = 'test $(id -u ambari-qa) -gt 1000',
+        not_if = '(test $(id -u ambari-qa) -gt 1000) || (false)',
     )
     self.assertResourceCalled('Directory', '/hadoop/hbase',
         owner = 'hbase',
@@ -138,7 +138,7 @@ class TestHookBeforeInstall(RMFTestCase):
         mode = 0555,
     )
     self.assertResourceCalled('Execute', '/tmp/changeUid.sh hbase /home/hbase,/tmp/hbase,/usr/bin/hbase,/var/log/hbase,/hadoop/hbase',
-        not_if = 'test $(id -u hbase) -gt 1000',
+        not_if = '(test $(id -u hbase) -gt 1000) || (false)',
     )
     self.assertResourceCalled('User', 'test_user1',
         ignore_failures = False
@@ -154,6 +154,7 @@ class TestHookBeforeInstall(RMFTestCase):
     )
     self.assertResourceCalled('User', 'hdfs',
         groups = [u'hadoop', u'hdfs', u'test_group'],
+        ignore_failures = False
     )
     self.assertResourceCalled('Directory', '/etc/hadoop',
         mode = 0755
