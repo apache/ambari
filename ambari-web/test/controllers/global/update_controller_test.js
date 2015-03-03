@@ -135,8 +135,7 @@ describe('App.UpdateController', function () {
             }
           }
         ],
-        result: ["host_components/metrics/flume/flume,"+
-          "host_components/processes/HostComponentProcess"]
+        result: ["host_components/processes/HostComponentProcess"]
       },
       {
         title: 'YARN service',
