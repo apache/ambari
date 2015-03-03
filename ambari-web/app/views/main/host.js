@@ -52,17 +52,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
    * List of hosts in cluster
    * @type {Array}
    */
-  content: function () {
-    var controllerName = this.get('controller.name');
-    var selectedHosts = App.db.getSelectedHosts(controllerName);
-    if (this.get('controller')) {
-      return this.get('controller.content').filter(function (host) {
-        host.set('selected', selectedHosts.contains(host.get('hostName')));
-        return true;
-      });
-    }
-    return [];
-  }.property('controller.content'),
+  contentBinding: 'controller.content',
 
   onRequestErrorHandler: function() {
     this.set('requestError', null);

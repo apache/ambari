@@ -88,6 +88,7 @@ App.hostsMapper = App.QuickDataMapper.create({
       var cacheServices = App.cache['services'];
       var loadedServiceComponentsMap = App.get('componentConfigMapper').buildServiceComponentMap(cacheServices);
       var serviceToHostComponentIdMap = {};
+      var selectedHosts = App.db.getSelectedHosts('mainHostController');
 
       json.items.forEach(function (item, index) {
         item.host_components = item.host_components || [];
@@ -130,6 +131,7 @@ App.hostsMapper = App.QuickDataMapper.create({
         }
         var parsedItem = this.parseIt(item, this.config);
         parsedItem.is_requested = true;
+        parsedItem.selected = selectedHosts.contains(parsedItem.host_name);
 
         hostIds[item.Hosts.host_name] = parsedItem;
 
