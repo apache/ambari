@@ -157,7 +157,8 @@ public class SliderAppMasterClient extends BaseHttpClient {
     return configsMap;
   }
 
-  public Map<String, Number[][]> getMetrics(String metricsUrl,
+  public Map<String, Number[][]> getMetrics(String appName,
+                                            String metricsUrl,
                                             Set<String> metricsRequested,
                                             TemporalInfo temporalInfo,
                                             ViewContext context,
@@ -194,7 +195,7 @@ public class SliderAppMasterClient extends BaseHttpClient {
     if (metricsToRead.size() != 0) {
       try {
         String specWithParams = SliderAppMetricsHelper.getUrlWithParams(
-            metricsUrl, metricsToRead, temporalInfo);
+            appName, metricsUrl, metricsToRead, temporalInfo);
         logger.info("Using spec: " + specWithParams);
         if (specWithParams != null) {
 
