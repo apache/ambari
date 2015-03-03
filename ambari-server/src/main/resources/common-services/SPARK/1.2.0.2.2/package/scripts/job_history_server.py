@@ -43,15 +43,12 @@ class JobHistoryServer(Script):
   def install(self, env):
     self.install_packages(env)
     import params
-
     env.set_params(params)
-    self.configure(env)
 
   def stop(self, env, rolling_restart=False):
     import params
 
     env.set_params(params)
-    self.configure(env)
     daemon_cmd = format('{spark_history_server_stop}')
     Execute(daemon_cmd,
             user=params.spark_user,
@@ -65,17 +62,11 @@ class JobHistoryServer(Script):
     import params
 
     env.set_params(params)
-    self.configure(env)
+    setup_spark(env, 'server', action = 'start')
 
     if params.security_enabled:
       spark_kinit_cmd = format("{kinit_path_local} -kt {spark_kerberos_keytab} {spark_principal}; ")
       Execute(spark_kinit_cmd, user=params.spark_user)
-
-    # FIXME! TODO! remove this after soft link bug is fixed:
-    #if not os.path.islink('/usr/hdp/current/spark'):
-    #  hdp_version = get_hdp_version()
-    #  cmd = 'ln -s /usr/hdp/' + hdp_version + '/spark /usr/hdp/current/spark'
-    #  Execute(cmd)
 
     daemon_cmd = format('{spark_history_server_start}')
     no_op_test = format(
@@ -94,12 +85,12 @@ class JobHistoryServer(Script):
     # Recursively check all existing gmetad pid files
     check_process_status(pid_file)
 
-
+  # Note: This function is not called from start()/install()
   def configure(self, env):
     import params
 
     env.set_params(params)
-    setup_spark(env)
+    setup_spark(env, 'server', action = 'config')
 
 if __name__ == "__main__":
   JobHistoryServer().execute()

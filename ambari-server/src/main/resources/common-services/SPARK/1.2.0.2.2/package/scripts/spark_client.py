@@ -46,7 +46,7 @@ class SparkClient(Script):
     import params
 
     env.set_params(params)
-    setup_spark(env)
+    setup_spark(env, 'client', action = 'config')
 
   def status(self, env):
     raise ClientComponentHasNoStatus()
