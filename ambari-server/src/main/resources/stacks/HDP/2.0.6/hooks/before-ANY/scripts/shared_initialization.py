@@ -113,7 +113,8 @@ def create_dfs_cluster_admins():
     )
 
   User(params.hdfs_user,
-    groups = params.user_to_groups_dict[params.hdfs_user] + groups_list
+    groups = params.user_to_groups_dict[params.hdfs_user] + groups_list,
+    ignore_failures = params.ignore_groupsusers_create
   )
 
 
@@ -128,8 +129,9 @@ def set_uid(user, user_dirs):
   File(format("{tmp_dir}/changeUid.sh"),
        content=StaticFile("changeToSecureUid.sh"),
        mode=0555)
+  ignore_groupsusers_create_str = str(params.ignore_groupsusers_create).lower()
   Execute(format("{tmp_dir}/changeUid.sh {user} {user_dirs}"),
-          not_if = format("test $(id -u {user}) -gt 1000"))
+          not_if = format("(test $(id -u {user}) -gt 1000) || ({ignore_groupsusers_create_str})"))
     
 def setup_hadoop_env():
   import params
