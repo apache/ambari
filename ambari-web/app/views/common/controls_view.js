@@ -280,22 +280,17 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
  */
 App.ServiceConfigCheckboxWithDependencies = App.ServiceConfigCheckbox.extend({
 
-  didInsertElement: function() {
-    this._super();
-    this.toggleDependentConfigs();
-  },
-
   toggleDependentConfigs: function() {
     if (this.get('serviceConfig.dependentConfigPattern')) {
       if (this.get('serviceConfig.dependentConfigPattern') === "CATEGORY") {
-        this.disableEnableCategoryCongis();
+        this.disableEnableCategoryConfigs();
       } else {
         this.showHideDependentConfigs();
       }
     }
   }.observes('checked'),
 
-  disableEnableCategoryCongis: function () {
+  disableEnableCategoryConfigs: function () {
     this.get('categoryConfigsAll').setEach('isEditable', this.get('checked'));
     this.set('serviceConfig.isEditable', true);
   },
