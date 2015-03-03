@@ -27,7 +27,7 @@
     <description>
       Ambari Metrics service uses HBase as default storage backend. Set the rootdir for
       HBase to either local filesystem path if using Ambari Metrics in embedded mode or
-      to a HDFS dir, example: hdfs://namenode.example.org:9000/hbase.
+      to a HDFS dir, example: hdfs://namenode.example.org:8020/amshbase.
     </description>
   </property>
   <property>
