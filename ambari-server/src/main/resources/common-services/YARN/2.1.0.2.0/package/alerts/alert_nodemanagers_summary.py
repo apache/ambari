@@ -21,6 +21,8 @@ limitations under the License.
 import urllib2
 import json
 
+from ambari_commons.urllib_handlers import RefreshHeaderProcessor
+
 ERROR_LABEL = '{0} NodeManager{1} {2} unhealthy.'
 OK_LABEL = 'All NodeManagers are healthy'
 
@@ -100,8 +102,12 @@ def execute(parameters=None, host_name=None):
   return ((result_code, [label]))
 
 
-def get_value_from_jmx(qry, property):
-  response = urllib2.urlopen(qry)
+def get_value_from_jmx(url, property):
+  # use a customer header process that will look for the non-standard
+  # "Refresh" header and attempt to follow the redirect
+  url_opener = urllib2.build_opener(RefreshHeaderProcessor())
+  response = url_opener.open(url)
+
   data=response.read()
   data_dict = json.loads(data)
   return data_dict["beans"][0][property]

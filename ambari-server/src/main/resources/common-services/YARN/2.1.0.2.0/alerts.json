@@ -222,7 +222,12 @@
             "https_property": "{{yarn-site/yarn.http.policy}}",
             "https_property_value": "HTTPS_ONLY",
             "kerberos_keytab": "{{yarn-site/yarn.resourcemanager.webapp.spnego-keytab-file}}",
-            "kerberos_principal": "{{yarn-site/yarn.resourcemanager.webapp.spnego-principal}}"
+            "kerberos_principal": "{{yarn-site/yarn.resourcemanager.webapp.spnego-principal}}",
+            "high_availability": {
+              "alias_key" : "{{yarn-site/yarn.resourcemanager.ha.rm-ids}}",
+              "http_pattern" : "{{yarn-site/yarn.resourcemanager.webapp.address.{{alias}}}}",
+              "https_pattern" : "{{yarn-site/yarn.resourcemanager.webapp.https.address.{{alias}}}}"
+            }
           },
           "reporting": {
             "ok": {
@@ -250,7 +255,12 @@
             "http": "{{yarn-site/yarn.resourcemanager.webapp.address}}",
             "https": "{{yarn-site/yarn.resourcemanager.webapp.https.address}}",
             "https_property": "{{yarn-site/yarn.http.policy}}",
-            "https_property_value": "HTTPS_ONLY"
+            "https_property_value": "HTTPS_ONLY",
+            "high_availability": {
+              "alias_key" : "{{yarn-site/yarn.resourcemanager.ha.rm-ids}}",
+              "http_pattern" : "{{yarn-site/yarn.resourcemanager.webapp.address.{{alias}}}}",
+              "https_pattern" : "{{yarn-site/yarn.resourcemanager.webapp.https.address.{{alias}}}}"
+            }
           },
           "reporting": {
             "ok": {
@@ -288,7 +298,12 @@
             "http": "{{yarn-site/yarn.resourcemanager.webapp.address}}",
             "https": "{{yarn-site/yarn.resourcemanager.webapp.https.address}}",
             "https_property": "{{yarn-site/yarn.http.policy}}",
-            "https_property_value": "HTTPS_ONLY"
+            "https_property_value": "HTTPS_ONLY",
+            "high_availability": {
+              "alias_key" : "{{yarn-site/yarn.resourcemanager.ha.rm-ids}}",
+              "http_pattern" : "{{yarn-site/yarn.resourcemanager.webapp.address.{{alias}}}}",
+              "https_pattern" : "{{yarn-site/yarn.resourcemanager.webapp.https.address.{{alias}}}}"
+            }
           },
           "reporting": {
             "ok": {
