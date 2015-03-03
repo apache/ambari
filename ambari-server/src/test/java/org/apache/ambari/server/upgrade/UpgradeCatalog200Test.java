@@ -41,13 +41,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.HashSet;
 
 import javax.persistence.EntityManager;
 
-import com.google.inject.AbstractModule;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -85,6 +84,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -166,7 +166,7 @@ public class UpgradeCatalog200Test {
         capture(alertDefinitionDescriptionColumnCapture));
 
     dbAccessor.createTable(eq("alert_target_states"),
-        capture(alertTargetStatesCapture), eq("target_id"));
+        capture(alertTargetStatesCapture));
 
     // alert target
     dbAccessor.addColumn(eq("alert_target"),
@@ -236,8 +236,10 @@ public class UpgradeCatalog200Test {
     // kerberos_principal_host
     dbAccessor.createTable(eq("kerberos_principal_host"), capture(kerberosPrincipalHostCapture),
         eq("principal_name"), eq("host_name"));
+
     dbAccessor.addFKConstraint(eq("kerberos_principal_host"), eq("FK_krb_pr_host_hostname"),
         eq("host_name"), eq("hosts"), eq("host_name"), eq(true), eq(false));
+
     dbAccessor.addFKConstraint(eq("kerberos_principal_host"), eq("FK_krb_pr_host_principalname"),
         eq("principal_name"), eq("kerberos_principal"), eq("principal_name"), eq(true), eq(false));
 
@@ -361,7 +363,7 @@ public class UpgradeCatalog200Test {
     expectLastCall().once();
     upgradeCatalog.addNewConfigurationsFromXml();
     expectLastCall();
-    
+
     upgradeCatalog.updateHiveDatabaseType();
     expectLastCall().once();
 

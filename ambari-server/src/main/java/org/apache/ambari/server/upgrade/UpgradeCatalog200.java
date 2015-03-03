@@ -125,6 +125,16 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     createArtifactTable();
     createKerberosPrincipalTables();
 
+    // add viewparameter columns
+    dbAccessor.addColumn("viewparameter", new DBColumnInfo("label",
+        String.class, 255, null, true));
+
+    dbAccessor.addColumn("viewparameter", new DBColumnInfo("placeholder",
+        String.class, 255, null, true));
+
+    dbAccessor.addColumn("viewparameter", new DBColumnInfo("default_value",
+        String.class, 2000, null, true));
+
     // add security_type to clusters
     dbAccessor.addColumn("clusters", new DBColumnInfo(
         "security_type", String.class, 32, SecurityType.NONE.toString(), false));
@@ -163,16 +173,11 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn(ALERT_TARGET_TABLE, new DBColumnInfo("is_global",
         Short.class, 1, 0, false));
 
-    // add viewparameter columns
-    dbAccessor.addColumn("viewparameter", new DBColumnInfo("label", String.class, 255, null, true));
-    dbAccessor.addColumn("viewparameter", new DBColumnInfo("placeholder", String.class, 255, null, true));
-    dbAccessor.addColumn("viewparameter", new DBColumnInfo("default_value", String.class, 2000, null, true));
-
     // create alert_target_states table
     ArrayList<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBColumnInfo("target_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("alert_state", String.class, 255, null, false));
-    dbAccessor.createTable(ALERT_TARGET_STATES_TABLE, columns, "target_id");
+    dbAccessor.createTable(ALERT_TARGET_STATES_TABLE, columns);
     dbAccessor.addFKConstraint(ALERT_TARGET_STATES_TABLE,
         "fk_alert_tgt_states_tgt_id", "target_id", ALERT_TARGET_TABLE,
         "target_id", false);
@@ -344,7 +349,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
         }
       }
     }
-   
+
   }
 
   protected void updateTezConfiguration() throws AmbariException {
