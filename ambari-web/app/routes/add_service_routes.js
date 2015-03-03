@@ -49,12 +49,13 @@ module.exports = App.WizardRoute.extend({
             App.router.get('updateController').updateServices(function(){
               App.router.get('updateController').updateServiceMetric();
             });
+            var exitPath = addServiceController.getDBProperty('onClosePath') || 'main.services.index';
             addServiceController.finish();
             // We need to do recovery based on whether we are in Add Host or Installer wizard
             App.clusterStatus.setClusterStatus({
               clusterName: App.router.get('content.cluster.name'),
               clusterState: 'DEFAULT'
-            }, {alwaysCallback: function() {self.hide();App.router.transitionTo('main.services.index');location.reload();}});
+            }, {alwaysCallback: function() {self.hide();App.router.transitionTo(exitPath);location.reload();}});
 
           },
           didInsertElement: function(){

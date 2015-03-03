@@ -42,13 +42,14 @@ describe('App.MainAdminStackServicesView', function () {
       expect(view.get('services')).to.eql([
         Em.Object.create({serviceName: 'S1', isInstalled: true}),
         Em.Object.create({serviceName: 'S2', isInstalled: false})
-      ])
+      ]);
     });
   });
 
   describe("#goToAddService()" , function() {
     var mock = Em.Object.create({
-      checkAndStartKerberosWizard: Em.K
+      checkAndStartKerberosWizard: Em.K,
+      setDBProperty: sinon.spy()
     });
     beforeEach(function() {
       sinon.stub(App.get('router'), 'transitionTo', Em.K);
@@ -60,13 +61,15 @@ describe('App.MainAdminStackServicesView', function () {
       App.router.get.restore();
       mock.checkAndStartKerberosWizard.restore();
     });
-    it("routes to Add Service Wizard", function() {
+    it("routes to Add Service Wizard and set redirect path on wizard close", function() {
       view.goToAddService({context: "serviceName"});
+      expect(App.router.get.calledWith('addServiceController') && mock.setDBProperty.calledWith('onClosePath', 'main.admin.stackAndUpgrade.services')).to.be.true;
       expect(App.get('router').transitionTo.calledWith('main.serviceAdd')).to.be.true;
       expect(mock.get('serviceToInstall')).to.be.equal("serviceName");
     });
     it("routes to Security Wizard", function() {
       view.goToAddService({context: "KERBEROS"});
+      expect(App.router.get.calledWith('kerberosWizardController') && mock.setDBProperty.calledWith('onClosePath', 'main.admin.stackAndUpgrade.services')).to.be.true;
       expect(mock.checkAndStartKerberosWizard.calledOnce).to.be.true;
     });
   });
