@@ -310,7 +310,13 @@ module.exports = App.WizardRoute.extend({
       }
     },
     next: function (router) {
-      router.get('addServiceController').installServices();
+      var addServiceController = router.get('addServiceController');
+      addServiceController.installServices(function () {
+        router.get('wizardStep8Controller').set('servicesInstalled', true);
+        addServiceController.setInfoForStep9();
+        addServiceController.saveClusterState('ADD_SERVICES_INSTALLING_3');
+        App.router.transitionTo('step7');
+      });
     }
   }),
 

@@ -524,33 +524,28 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
   },
 
   /**
-   * run this method after success/error callbacks
-   * for <code>installServicesRequest<code>
-   */
-  installServicesComplete: function () {
-    App.get('router.wizardStep8Controller').set('servicesInstalled', true);
-    this.setInfoForStep9();
-    this.saveClusterState('ADD_SERVICES_INSTALLING_3');
-    App.router.transitionTo('step7');
-  },
-
-  /**
-   * main method for installinf clients
+   * main method for installing additional clients and services
+   * @param {function} callback
    * @method installServices
    */
-  installServices: function () {
+  installServices: function (callback) {
     var self = this;
     this.set('content.cluster.oldRequestsId', []);
     this.installAdditionalClients().done(function () {
-      self.installSelectedServices();
+      self.installSelectedServices(callback);
     });
   },
 
-  installSelectedServices: function () {
+  /**
+   * method to install added services
+   * @param {function} callback
+   * @method installSelectedServices
+   */
+  installSelectedServices: function (callback) {
     var name = 'common.services.update';
     var selectedServices = this.get('content.services').filterProperty('isInstalled', false).filterProperty('isSelected', true).mapProperty('serviceName');
     var data = this.generateDataForInstallServices(selectedServices);
-    this.installServicesRequest(name, data, this.installServicesComplete.bind(this));
+    this.installServicesRequest(name, data, callback.bind(this));
   },
 
   installServicesRequest: function (name, data, callback) {
