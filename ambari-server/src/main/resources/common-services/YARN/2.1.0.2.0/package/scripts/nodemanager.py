@@ -116,15 +116,13 @@ class Nodemanager(Script):
                                 security_params['yarn-site']['yarn.nodemanager.keytab'],
                                 security_params['yarn-site']['yarn.nodemanager.principal'],
                                 status_params.hostname,
-                                status_params.tmp_dir,
-                                30)
+                                status_params.tmp_dir)
           cached_kinit_executor(status_params.kinit_path_local,
                                 status_params.yarn_user,
                                 security_params['yarn-site']['yarn.nodemanager.webapp.spnego-keytab-file'],
                                 security_params['yarn-site']['yarn.nodemanager.webapp.spnego-principal'],
                                 status_params.hostname,
-                                status_params.tmp_dir,
-                                30)
+                                status_params.tmp_dir)
           self.put_structured_out({"securityState": "SECURED_KERBEROS"})
         except Exception as e:
           self.put_structured_out({"securityState": "ERROR"})

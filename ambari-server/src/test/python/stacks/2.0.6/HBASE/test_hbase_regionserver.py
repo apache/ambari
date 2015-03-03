@@ -495,12 +495,13 @@ class TestHbaseRegionServer(RMFTestCase):
   @patch("resource_management.libraries.script.Script.put_structured_out")
   def test_security_status(self, put_structured_out_mock, cached_kinit_executor_mock, validate_security_config_mock, get_params_mock, build_exp_mock):
     # Test that function works when is called with correct parameters
-    import status_params
 
-    security_params = {}
-    security_params['hbase-site'] = {}
-    security_params['hbase-site']['hbase.regionserver.keytab.file'] = '/path/to/hbase_keytab'
-    security_params['hbase-site']['hbase.regionserver.kerberos.principal'] = 'hbase_principal'
+    security_params = {
+      'hbase-site': {
+        'hbase.regionserver.keytab.file': '/path/to/hbase_keytab',
+        'hbase.regionserver.kerberos.principal': 'hbase_principal'
+      }
+    }
 
     result_issues = []
     props_value_check = {"hbase.security.authentication": "kerberos",
@@ -523,13 +524,12 @@ class TestHbaseRegionServer(RMFTestCase):
 
     build_exp_mock.assert_called_with('hbase-site', props_value_check, props_empty_check, props_read_check)
     put_structured_out_mock.assert_called_with({"securityState": "SECURED_KERBEROS"})
-    cached_kinit_executor_mock.called_with(status_params.kinit_path_local,
-                              status_params.hbase_user,
-                              security_params['hbase-site']['hbase.regionserver.keytab.file'],
-                              security_params['hbase-site']['hbase.regionserver.kerberos.principal'],
-                              status_params.hostname,
-                              status_params.tmp_dir,
-                              30)
+    cached_kinit_executor_mock.called_with('/usr/bin/kinit',
+                                           self.config_dict['configurations']['hbase-env']['hbase_user'],
+                                           security_params['hbase-site']['hbase.regionserver.keytab.file'],
+                                           security_params['hbase-site']['hbase.regionserver.kerberos.principal'],
+                                           self.config_dict['hostname'],
+                                           '/tmp')
 
      # Testing that the exception throw by cached_executor is caught
     cached_kinit_executor_mock.reset_mock()
@@ -563,8 +563,9 @@ class TestHbaseRegionServer(RMFTestCase):
     put_structured_out_mock.assert_called_with({"securityIssuesFound": "Keytab file or principal are not set property."})
 
     # Testing with not empty result_issues
-    result_issues_with_params = {}
-    result_issues_with_params['hbase-site']="Something bad happened"
+    result_issues_with_params = {
+      'hbase-site' : "Something bad happened"
+    }
 
     validate_security_config_mock.reset_mock()
     get_params_mock.reset_mock()

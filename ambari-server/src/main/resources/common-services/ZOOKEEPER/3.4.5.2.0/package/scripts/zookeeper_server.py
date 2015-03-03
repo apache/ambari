@@ -135,8 +135,7 @@ class ZookeeperServer(Script):
                                 security_params['zookeeper_jaas']['Server']['keyTab'],
                                 security_params['zookeeper_jaas']['Server']['principal'],
                                 status_params.hostname,
-                                status_params.tmp_dir,
-                                30)
+                                status_params.tmp_dir)
           self.put_structured_out({"securityState": "SECURED_KERBEROS"})
         else:
           issues = []

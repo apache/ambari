@@ -527,18 +527,16 @@ class TestOozieServer(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
-    import status_params
-
-    get_params_mock.assert_called_with(status_params.conf_dir, {'oozie-site.xml': 'XML'})
+    get_params_mock.assert_called_with("/etc/oozie/conf", {'oozie-site.xml': 'XML'})
     build_exp_mock.assert_called_with('oozie-site', props_value_check, props_empty_check, props_read_check)
     put_structured_out_mock.assert_called_with({"securityState": "SECURED_KERBEROS"})
     self.assertTrue(cached_kinit_executor_mock.call_count, 2)
-    cached_kinit_executor_mock.assert_called_with(status_params.kinit_path_local,
-                                                  status_params.oozie_user,
+    cached_kinit_executor_mock.assert_called_with('/usr/bin/kinit',
+                                                  self.config_dict['configurations']['oozie-env']['oozie_user'],
                                                   security_params['oozie-site']['oozie.service.HadoopAccessorService.keytab.file'],
                                                   security_params['oozie-site']['oozie.service.HadoopAccessorService.kerberos.principal'],
-                                                  status_params.hostname,
-                                                  status_params.tmp_dir)
+                                                  self.config_dict['hostname'],
+                                                  '/tmp')
 
     # Testing that the exception throw by cached_executor is caught
     cached_kinit_executor_mock.reset_mock()
@@ -572,8 +570,9 @@ class TestOozieServer(RMFTestCase):
     put_structured_out_mock.assert_called_with({"securityIssuesFound": "Keytab file or principal are not set property."})
 
     # Testing with not empty result_issues
-    result_issues_with_params = {}
-    result_issues_with_params['oozie-site']="Something bad happened"
+    result_issues_with_params = {
+      'oozie-site': "Something bad happened"
+    }
 
     validate_security_config_mock.reset_mock()
     get_params_mock.reset_mock()

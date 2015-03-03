@@ -235,13 +235,15 @@ class TestZookeeperServer(RMFTestCase):
   @patch("resource_management.libraries.script.Script.put_structured_out")
   def test_security_status(self, put_structured_out_mock, cached_kinit_executor_mock, validate_security_config_mock, get_params_mock, build_exp_mock):
     # Test that function works when is called with correct parameters
-    import status_params
 
-    security_params = {}
-    security_params['zookeeper_jaas'] = {}
-    security_params['zookeeper_jaas']['Server'] = {}
-    security_params['zookeeper_jaas']['Server']['keyTab'] = 'path/to/zookeeper/service/keytab'
-    security_params['zookeeper_jaas']['Server']['principal'] = 'zookeeper_keytab'
+    security_params = {
+      'zookeeper_jaas': {
+        'Server': {
+          'keyTab': 'path/to/zookeeper/service/keytab',
+          'principal': 'zookeeper_keytab'
+        }
+      }
+    }
     result_issues = []
     props_value_check = None
     props_empty_check = ['Server/keyTab', 'Server/principal']
@@ -261,13 +263,12 @@ class TestZookeeperServer(RMFTestCase):
     build_exp_mock.assert_called_with('zookeeper_jaas', props_value_check, props_empty_check, props_read_check)
     put_structured_out_mock.assert_called_with({"securityState": "SECURED_KERBEROS"})
     self.assertTrue(cached_kinit_executor_mock.call_count, 2)
-    cached_kinit_executor_mock.assert_called_with(status_params.kinit_path_local,
-                              status_params.zk_user,
-                              security_params['zookeeper_jaas']['Server']['keyTab'],
-                              security_params['zookeeper_jaas']['Server']['principal'],
-                              status_params.hostname,
-                              status_params.tmp_dir,
-                              30)
+    cached_kinit_executor_mock.assert_called_with('/usr/bin/kinit',
+                                                  self.config_dict['configurations']['zookeeper-env']['zk_user'],
+                                                  security_params['zookeeper_jaas']['Server']['keyTab'],
+                                                  security_params['zookeeper_jaas']['Server']['principal'],
+                                                  self.config_dict['hostname'],
+                                                  '/tmp')
 
     # Testing that the exception throw by cached_executor is caught
     cached_kinit_executor_mock.reset_mock()
@@ -301,8 +302,9 @@ class TestZookeeperServer(RMFTestCase):
     put_structured_out_mock.assert_called_with({"securityIssuesFound": "Keytab file or principal are not set property."})
 
     # Testing with not empty result_issues
-    result_issues_with_params = {}
-    result_issues_with_params['zookeeper_jaas']="Something bad happened"
+    result_issues_with_params = {
+      'zookeeper_jaas': "Something bad happened"
+    }
 
     validate_security_config_mock.reset_mock()
     get_params_mock.reset_mock()

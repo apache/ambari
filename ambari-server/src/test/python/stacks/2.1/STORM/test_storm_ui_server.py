@@ -157,11 +157,12 @@ class TestStormUiServer(TestStormBase):
     # Test that function works when is called with correct parameters
     result_issues = []
 
-    security_params = {}
-    security_params['storm_ui'] = {}
-    security_params['storm_ui']['storm_ui_principal_name'] = 'HTTP/_HOST'
-    security_params['storm_ui']['storm_ui_keytab'] = '/etc/security/keytabs/spnego.service.keytab'
-
+    security_params = {
+      'storm_ui': {
+        'storm_ui_principal_name': 'HTTP/_HOST',
+        'storm_ui_keytab': '/etc/security/keytabs/spnego.service.keytab'
+      }
+    }
     props_value_check = None
     props_empty_check = ['storm_ui_principal_name', 'storm_ui_keytab']
     props_read_check = ['storm_ui_keytab']
@@ -176,19 +177,16 @@ class TestStormUiServer(TestStormBase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
-    import status_params
-
     build_exp_mock.assert_called_with('storm_ui', props_value_check, props_empty_check, props_read_check)
     put_structured_out_mock.assert_called_with({"securityState": "SECURED_KERBEROS"})
     self.assertTrue(cached_kinit_executor_mock.call_count, 2)
 
-    cached_kinit_executor_mock.assert_called_with(status_params.kinit_path_local,
-                                status_params.storm_user,
-                                security_params['storm_ui']['storm_ui_keytab'],
-                                security_params['storm_ui']['storm_ui_principal_name'],
-                                status_params.hostname,
-                                status_params.tmp_dir,
-                                30)
+    cached_kinit_executor_mock.assert_called_with('/usr/bin/kinit',
+                                                  self.config_dict['configurations']['storm-env']['storm_user'],
+                                                  security_params['storm_ui']['storm_ui_keytab'],
+                                                  security_params['storm_ui']['storm_ui_principal_name'],
+                                                  self.config_dict['hostname'],
+                                                  '/tmp')
 
     # Testing that the exception throw by cached_executor is caught
     cached_kinit_executor_mock.reset_mock()

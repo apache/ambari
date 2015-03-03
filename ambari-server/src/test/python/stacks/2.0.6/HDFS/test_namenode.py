@@ -804,15 +804,16 @@ class TestNamenode(RMFTestCase):
   @patch("resource_management.libraries.script.Script.put_structured_out")
   def test_security_status(self, put_structured_out_mock, cached_kinit_executor_mock, validate_security_config_mock, get_params_mock, build_exp_mock):
     # Test that function works when is called with correct parameters
-    import status_params
 
-    security_params = {}
-    security_params['core-site'] = {}
-    security_params['core-site']['hadoop.security.authentication'] = 'kerberos'
-    security_params['hdfs-site'] = {}
-    security_params['hdfs-site']['dfs.namenode.keytab.file'] = 'path/to/namenode/keytab/file'
-    security_params['hdfs-site']['dfs.namenode.kerberos.principal'] = 'namenode_principal'
-
+    security_params = {
+      'core-site': {
+        'hadoop.security.authentication': 'kerberos'
+      },
+      'hdfs-site': {
+        'dfs.namenode.keytab.file': 'path/to/namenode/keytab/file',
+        'dfs.namenode.kerberos.principal': 'namenode_principal'
+      }
+    }
     props_value_check = None
     props_empty_check = ['dfs.namenode.kerberos.internal.spnego.principal',
                        'dfs.namenode.keytab.file',
@@ -834,12 +835,12 @@ class TestNamenode(RMFTestCase):
 
     build_exp_mock.assert_called_with('hdfs-site', props_value_check, props_empty_check, props_read_check)
     put_structured_out_mock.assert_called_with({"securityState": "SECURED_KERBEROS"})
-    cached_kinit_executor_mock.called_with(status_params.kinit_path_local,
-                                           status_params.hdfs_user,
+    cached_kinit_executor_mock.called_with('/usr/bin/kinit',
+                                           self.config_dict['configurations']['hadoop-env']['hdfs_user'],
                                            security_params['hdfs-site']['dfs.namenode.keytab.file'],
                                            security_params['hdfs-site']['dfs.namenode.kerberos.principal'],
-                                           status_params.hostname,
-                                           status_params.tmp_dir)
+                                           self.config_dict['hostname'],
+                                           '/tmp')
 
     # Testing when hadoop.security.authentication is simple
     security_params['core-site']['hadoop.security.authentication'] = 'simple'
@@ -871,9 +872,11 @@ class TestNamenode(RMFTestCase):
       self.assertTrue(True)
 
     # Testing with a security_params which doesn't contains hdfs-site
-    empty_security_params = {}
-    empty_security_params['core-site'] = {}
-    empty_security_params['core-site']['hadoop.security.authentication'] = 'kerberos'
+    empty_security_params = {
+      'core-site': {
+        'hadoop.security.authentication': 'kerberos'
+      }
+    }
     cached_kinit_executor_mock.reset_mock()
     get_params_mock.reset_mock()
     put_structured_out_mock.reset_mock()
@@ -890,8 +893,9 @@ class TestNamenode(RMFTestCase):
     put_structured_out_mock.assert_called_with({"securityIssuesFound": "Keytab file or principal are not set property."})
 
     # Testing with not empty result_issues
-    result_issues_with_params = {}
-    result_issues_with_params['hdfs-site']="Something bad happened"
+    result_issues_with_params = {
+      'hdfs-site': "Something bad happened"
+    }
 
     validate_security_config_mock.reset_mock()
     get_params_mock.reset_mock()

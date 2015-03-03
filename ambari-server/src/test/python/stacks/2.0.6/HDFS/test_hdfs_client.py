@@ -86,11 +86,12 @@ class Test(RMFTestCase):
   @patch("resource_management.libraries.script.Script.put_structured_out")
   def test_security_status(self, put_structured_out_mock, cached_kinit_executor_mock, validate_security_config_mock, get_params_mock, build_exp_mock):
     # Test that function works when is called with correct parameters
-    import status_params
 
-    security_params = {}
-    security_params['core-site'] = {}
-    security_params['core-site']['hadoop.security.authentication'] = 'kerberos'
+    security_params = {
+      'core-site': {
+        'hadoop.security.authentication': 'kerberos'
+      }
+    }
 
     props_value_check = {"hadoop.security.authentication": "kerberos",
                          "hadoop.security.authorization": "true"}
@@ -112,12 +113,12 @@ class Test(RMFTestCase):
 
     build_exp_mock.assert_called_with('core-site', props_value_check, props_empty_check, props_read_check)
     put_structured_out_mock.assert_called_with({"securityState": "SECURED_KERBEROS"})
-    cached_kinit_executor_mock.called_with(status_params.kinit_path_local,
-                                           status_params.hdfs_user,
-                                           status_params.hdfs_user_keytab,
-                                           status_params.hdfs_user_principal,
-                                           status_params.hostname,
-                                           status_params.tmp_dir)
+    cached_kinit_executor_mock.called_with('/usr/bin/kinit',
+                                           self.config_dict['configurations']['hadoop-env']['hdfs_user'],
+                                           self.config_dict['configurations']['hadoop-env']['hdfs_user_keytab'],
+                                           self.config_dict['configurations']['hadoop-env']['hdfs_user_principal_name'],
+                                           self.config_dict['hostname'],
+                                           '/tmp')
 
     # Testing that the exception throw by cached_executor is caught
     cached_kinit_executor_mock.reset_mock()
@@ -149,8 +150,9 @@ class Test(RMFTestCase):
     security_params['core-site']['hadoop.security.authentication'] = 'kerberos'
 
     # Testing with not empty result_issues
-    result_issues_with_params = {}
-    result_issues_with_params['hdfs-site']="Something bad happened"
+    result_issues_with_params = {
+      'hdfs-site': "Something bad happened"
+    }
 
     validate_security_config_mock.reset_mock()
     get_params_mock.reset_mock()

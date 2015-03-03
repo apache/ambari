@@ -334,7 +334,6 @@ class TestWebHCatServer(RMFTestCase):
   @patch("resource_management.libraries.script.Script.put_structured_out")
   def test_security_status(self, put_structured_out_mock, cached_kinit_executor_mock, validate_security_config_mock, get_params_mock, build_exp_mock):
     # Test that function works when is called with correct parameters
-    import status_params
 
     security_params = {
       'webhcat-site': {
@@ -373,15 +372,15 @@ class TestWebHCatServer(RMFTestCase):
 
     build_exp_mock.assert_called_with('hive-site', hive_props_value_check, hive_props_empty_check, hive_props_read_check)
     # get_params_mock.assert_called_with(status_params.hive_conf_dir, {'hive-site.xml': "XML"})
-    get_params_mock.assert_called_with(status_params.webhcat_conf_dir, {'webhcat-site.xml': "XML"})
+    get_params_mock.assert_called_with('/etc/hive-webhcat/conf', {'webhcat-site.xml': "XML"})
     put_structured_out_mock.assert_called_with({"securityState": "SECURED_KERBEROS"})
     self.assertTrue(cached_kinit_executor_mock.call_count, 2)
-    cached_kinit_executor_mock.assert_called_with(status_params.kinit_path_local,
-                                                  status_params.webhcat_user,
+    cached_kinit_executor_mock.assert_called_with('/usr/bin/kinit',
+                                                  self.config_dict['configurations']['hive-env']['webhcat_user'],
                                                   security_params['webhcat-site']['templeton.kerberos.keytab'],
                                                   security_params['webhcat-site']['templeton.kerberos.principal'],
-                                                  status_params.hostname,
-                                                  status_params.tmp_dir)
+                                                  self.config_dict['hostname'],
+                                                  '/tmp')
 
     # Testing that the exception throw by cached_executor is caught
     cached_kinit_executor_mock.reset_mock()
@@ -415,8 +414,9 @@ class TestWebHCatServer(RMFTestCase):
     put_structured_out_mock.assert_called_with({"securityIssuesFound": "Keytab file or principal are not set property."})
 
     # Testing with not empty result_issues
-    result_issues_with_params = {}
-    result_issues_with_params['hive-site']="Something bad happened"
+    result_issues_with_params = {
+      'hive-site': "Something bad happened"
+    }
 
     validate_security_config_mock.reset_mock()
     get_params_mock.reset_mock()

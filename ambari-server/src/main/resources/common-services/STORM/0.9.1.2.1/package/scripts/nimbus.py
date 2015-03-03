@@ -110,8 +110,7 @@ class Nimbus(Script):
                                 security_params['storm_jaas']['StormServer']['keyTab'],
                                 security_params['storm_jaas']['StormServer']['principal'],
                                 status_params.hostname,
-                                status_params.tmp_dir,
-                                30)
+                                status_params.tmp_dir)
           self.put_structured_out({"securityState": "SECURED_KERBEROS"})
         else:
           issues = []
