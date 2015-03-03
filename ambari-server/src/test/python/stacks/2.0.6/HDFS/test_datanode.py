@@ -523,14 +523,16 @@ class TestDatanode(RMFTestCase):
   @patch("resource_management.libraries.script.Script.put_structured_out")
   def test_security_status(self, put_structured_out_mock, cached_kinit_executor_mock, validate_security_config_mock, get_params_mock, build_exp_mock):
     # Test that function works when is called with correct parameters
-    import status_params
 
-    security_params = {}
-    security_params['core-site'] = {}
-    security_params['core-site']['hadoop.security.authentication'] = 'kerberos'
-    security_params['hdfs-site'] = {}
-    security_params['hdfs-site']['dfs.datanode.keytab.file'] = 'path/to/datanode/keytab/file'
-    security_params['hdfs-site']['dfs.datanode.kerberos.principal'] = 'datanode_principal'
+    security_params = {
+      'core-site': {
+        'hadoop.security.authentication': 'kerberos'
+      },
+      'hdfs-site': {
+        'dfs.datanode.keytab.file': 'path/to/datanode/keytab/file',
+        'dfs.datanode.kerberos.principal': 'datanode_principal'
+      }
+    }
 
     props_value_check = None
     props_empty_check = ['dfs.datanode.keytab.file',
@@ -552,12 +554,12 @@ class TestDatanode(RMFTestCase):
 
     build_exp_mock.assert_called_with('hdfs-site', props_value_check, props_empty_check, props_read_check)
     put_structured_out_mock.assert_called_with({"securityState": "SECURED_KERBEROS"})
-    cached_kinit_executor_mock.called_with(status_params.kinit_path_local,
-                                           status_params.hdfs_user,
+    cached_kinit_executor_mock.called_with('/usr/bin/kinit',
+                                           self.config_dict['configurations']['hadoop-env']['hdfs_user'],
                                            security_params['hdfs-site']['dfs.datanode.keytab.file'],
                                            security_params['hdfs-site']['dfs.datanode.kerberos.principal'],
-                                           status_params.hostname,
-                                           status_params.tmp_dir)
+                                           self.config_dict['hostname'],
+                                           '/tmp')
 
     # Testing when hadoop.security.authentication is simple
     security_params['core-site']['hadoop.security.authentication'] = 'simple'

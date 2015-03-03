@@ -561,9 +561,7 @@ class TestHistoryServer(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
-    import status_params
-
-    get_params_mock.assert_called_with(status_params.hadoop_conf_dir, {'mapred-site.xml': 'XML'})
+    get_params_mock.assert_called_with("/etc/hadoop/conf", {'mapred-site.xml': 'XML'})
     build_exp_mock.assert_called_with('mapred-site',
                                       None,
                                       [
@@ -575,12 +573,12 @@ class TestHistoryServer(RMFTestCase):
                                       None)
     put_structured_out_mock.assert_called_with({"securityState": "SECURED_KERBEROS"})
     self.assertTrue(cached_kinit_executor_mock.call_count, 2)
-    cached_kinit_executor_mock.assert_called_with(status_params.kinit_path_local,
-                                                  status_params.mapred_user,
+    cached_kinit_executor_mock.assert_called_with('/usr/bin/kinit',
+                                                  self.config_dict['configurations']['mapred-env']['mapred_user'],
                                                   security_params['mapred-site']['mapreduce.jobhistory.webapp.spnego-keytab-file'],
                                                   security_params['mapred-site']['mapreduce.jobhistory.webapp.spnego-principal'],
-                                                  status_params.hostname,
-                                                  status_params.tmp_dir)
+                                                  self.config_dict['hostname'],
+                                                  '/tmp')
 
     # Testing that the exception throw by cached_executor is caught
     cached_kinit_executor_mock.reset_mock()

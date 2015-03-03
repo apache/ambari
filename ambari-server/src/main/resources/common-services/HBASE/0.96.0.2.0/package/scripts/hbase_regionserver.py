@@ -111,8 +111,7 @@ class HbaseRegionServer(Script):
                                 security_params['hbase-site']['hbase.regionserver.keytab.file'],
                                 security_params['hbase-site']['hbase.regionserver.kerberos.principal'],
                                 status_params.hostname,
-                                status_params.tmp_dir,
-                                30)
+                                status_params.tmp_dir)
           self.put_structured_out({"securityState": "SECURED_KERBEROS"})
         except Exception as e:
           self.put_structured_out({"securityState": "ERROR"})

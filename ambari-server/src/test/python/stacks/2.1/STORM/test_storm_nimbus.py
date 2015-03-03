@@ -158,14 +158,15 @@ class TestStormNimbus(TestStormBase):
   @patch("resource_management.libraries.script.Script.put_structured_out")
   def test_security_status(self, put_structured_out_mock, cached_kinit_executor_mock, validate_security_config_mock, get_params_mock, build_exp_mock):
     # Test that function works when is called with correct parameters
-    import status_params
 
-    security_params = {}
-    security_params = {}
-    security_params['storm_jaas'] = {}
-    security_params['storm_jaas']['StormServer'] = {}
-    security_params['storm_jaas']['StormServer']['keyTab'] = 'path/to/storm/service/keytab'
-    security_params['storm_jaas']['StormServer']['principal'] = 'storm_keytab'
+    security_params = {
+      'storm_jaas': {
+        'StormServer': {
+          'keyTab': 'path/to/storm/service/keytab',
+          'principal': 'storm_keytab'
+        }
+      }
+    }
     result_issues = []
 
     props_value_check = None
@@ -186,13 +187,12 @@ class TestStormNimbus(TestStormBase):
     build_exp_mock.assert_called_with('storm_jaas', props_value_check, props_empty_check, props_read_check)
     put_structured_out_mock.assert_called_with({"securityState": "SECURED_KERBEROS"})
     self.assertTrue(cached_kinit_executor_mock.call_count, 2)
-    cached_kinit_executor_mock.assert_called_with(status_params.kinit_path_local,
-                              status_params.storm_user,
-                              security_params['storm_jaas']['StormServer']['keyTab'],
-                              security_params['storm_jaas']['StormServer']['principal'],
-                              status_params.hostname,
-                              status_params.tmp_dir,
-                              30)
+    cached_kinit_executor_mock.assert_called_with('/usr/bin/kinit',
+                                                  self.config_dict['configurations']['storm-env']['storm_user'],
+                                                  security_params['storm_jaas']['StormServer']['keyTab'],
+                                                  security_params['storm_jaas']['StormServer']['principal'],
+                                                  self.config_dict['hostname'],
+                                                  '/tmp')
 
     # Testing that the exception throw by cached_executor is caught
     cached_kinit_executor_mock.reset_mock()
@@ -226,9 +226,9 @@ class TestStormNimbus(TestStormBase):
     put_structured_out_mock.assert_called_with({"securityIssuesFound": "Keytab file or principal are not set property."})
 
     # Testing with not empty result_issues
-    result_issues_with_params = {}
-    result_issues_with_params['storm_jaas']="Something bad happened"
-
+    result_issues_with_params = {
+      'storm_jaas': "Something bad happened"
+    }
     validate_security_config_mock.reset_mock()
     get_params_mock.reset_mock()
     validate_security_config_mock.return_value = result_issues_with_params

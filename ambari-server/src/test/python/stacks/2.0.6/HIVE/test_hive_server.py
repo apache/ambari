@@ -541,7 +541,6 @@ class TestHiveServer(RMFTestCase):
   @patch("resource_management.libraries.script.Script.put_structured_out")
   def test_security_status(self, put_structured_out_mock, cached_kinit_executor_mock, validate_security_config_mock, get_params_mock, build_exp_mock):
     # Test that function works when is called with correct parameters
-    import status_params
 
     security_params = {
       'hive-site': {
@@ -577,16 +576,16 @@ class TestHiveServer(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
-    get_params_mock.assert_called_with(status_params.hive_conf_dir, {'hive-site.xml': "XML"})
+    get_params_mock.assert_called_with('/etc/hive/conf', {'hive-site.xml': "XML"})
     build_exp_mock.assert_called_with('hive-site', props_value_check, props_empty_check, props_read_check)
     put_structured_out_mock.assert_called_with({"securityState": "SECURED_KERBEROS"})
     self.assertTrue(cached_kinit_executor_mock.call_count, 2)
-    cached_kinit_executor_mock.assert_called_with(status_params.kinit_path_local,
-                                                  status_params.hive_user,
+    cached_kinit_executor_mock.assert_called_with('/usr/bin/kinit',
+                                                  self.config_dict['configurations']['hive-env']['hive_user'],
                                                   security_params['hive-site']['hive.server2.authentication.spnego.keytab'],
                                                   security_params['hive-site']['hive.server2.authentication.spnego.principal'],
-                                                  status_params.hostname,
-                                                  status_params.tmp_dir)
+                                                  self.config_dict['hostname'],
+                                                  '/tmp')
 
     # Testing that the exception throw by cached_executor is caught
     cached_kinit_executor_mock.reset_mock()

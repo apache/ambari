@@ -239,14 +239,15 @@ class TestAppTimelineServer(RMFTestCase):
   @patch("resource_management.libraries.script.Script.put_structured_out")
   def test_security_status(self, put_structured_out_mock, cached_kinit_executor_mock, validate_security_config_mock, get_params_mock, build_exp_mock):
     # Test that function works when is called with correct parameters
-    import status_params
 
-    security_params = {}
-    security_params['yarn-site'] = {}
-    security_params['yarn-site']['yarn.timeline-service.keytab'] = '/path/to/applicationtimeline/keytab'
-    security_params['yarn-site']['yarn.timeline-service.principal'] = 'applicationtimeline_principal'
-    security_params['yarn-site']['yarn.timeline-service.http-authentication.kerberos.keytab'] = 'path/to/timeline/kerberos/keytab'
-    security_params['yarn-site']['yarn.timeline-service.http-authentication.kerberos.principal'] = 'timeline_principal'
+    security_params = {
+      'yarn-site': {
+        'yarn.timeline-service.keytab': '/path/to/applicationtimeline/keytab',
+        'yarn.timeline-service.principal': 'applicationtimeline_principal',
+        'yarn.timeline-service.http-authentication.kerberos.keytab': 'path/to/timeline/kerberos/keytab',
+        'yarn.timeline-service.http-authentication.kerberos.principal': 'timeline_principal'
+      }
+    }
     result_issues = []
     props_value_check = {"yarn.timeline-service.enabled": "true",
                          "yarn.timeline-service.http-authentication.type": "kerberos",
@@ -273,13 +274,12 @@ class TestAppTimelineServer(RMFTestCase):
     build_exp_mock.assert_called_with('yarn-site', props_value_check, props_empty_check, props_read_check)
     put_structured_out_mock.assert_called_with({"securityState": "SECURED_KERBEROS"})
     self.assertTrue(cached_kinit_executor_mock.call_count, 2)
-    cached_kinit_executor_mock.assert_called_with(status_params.kinit_path_local,
-                                                  status_params.yarn_user,
+    cached_kinit_executor_mock.assert_called_with('/usr/bin/kinit',
+                                                  self.config_dict['configurations']['yarn-env']['yarn_user'],
                                                   security_params['yarn-site']['yarn.timeline-service.http-authentication.kerberos.keytab'],
                                                   security_params['yarn-site']['yarn.timeline-service.http-authentication.kerberos.principal'],
-                                                  status_params.hostname,
-                                                  status_params.tmp_dir,
-                                                  30)
+                                                  self.config_dict['hostname'],
+                                                  '/tmp')
 
     # Testing that the exception throw by cached_executor is caught
     cached_kinit_executor_mock.reset_mock()
@@ -313,8 +313,9 @@ class TestAppTimelineServer(RMFTestCase):
     put_structured_out_mock.assert_called_with({"securityIssuesFound": "Keytab file or principal are not set property."})
 
     # Testing with not empty result_issues
-    result_issues_with_params = {}
-    result_issues_with_params['yarn-site']="Something bad happened"
+    result_issues_with_params = {
+      'yarn-site': "Something bad happened"
+    }
 
     validate_security_config_mock.reset_mock()
     get_params_mock.reset_mock()

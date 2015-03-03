@@ -106,8 +106,7 @@ class HbaseMaster(Script):
                                 security_params['hbase-site']['hbase.master.keytab.file'],
                                 security_params['hbase-site']['hbase.master.kerberos.principal'],
                                 status_params.hostname,
-                                status_params.tmp_dir,
-                                30)
+                                status_params.tmp_dir)
           self.put_structured_out({"securityState": "SECURED_KERBEROS"})
         except Exception as e:
           self.put_structured_out({"securityState": "ERROR"})
