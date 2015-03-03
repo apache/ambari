@@ -409,8 +409,7 @@ App.UpdateController = Em.Controller.extend({
   getConditionalFields: function () {
     var conditionalFields = [];
     var serviceSpecificParams = {
-      'FLUME': "host_components/metrics/flume/flume," +
-        "host_components/processes/HostComponentProcess",
+      'FLUME': "host_components/processes/HostComponentProcess",
       'YARN': "host_components/metrics/yarn/Queue," +
         "ServiceComponentInfo/rm_metrics/cluster/activeNMcount," +
         "ServiceComponentInfo/rm_metrics/cluster/lostNMcount," +
