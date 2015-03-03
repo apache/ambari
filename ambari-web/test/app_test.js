@@ -529,4 +529,31 @@ describe('App', function () {
 
   });
 
+  describe('#upgradeIsRunning', function () {
+
+    Em.A([
+        {
+          upgradeState: 'IN_PROGRESS',
+          m: 'should be true (1)',
+          e: true
+        },
+        {
+          upgradeState: 'HOLDING',
+          m: 'should be true (2)',
+          e: true
+        },
+        {
+          upgradeState: 'FAKE',
+          m: 'should be false',
+          e: false
+        }
+      ]).forEach(function (test) {
+        it(test.m, function () {
+          App.set('upgradeState', test.upgradeState);
+          expect(App.get('upgradeIsRunning')).to.equal(test.e);
+        });
+      });
+
+  });
+
 });
