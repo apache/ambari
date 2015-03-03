@@ -147,7 +147,7 @@
     {{/unless}}
   </div>
   <div class="btn-area">
-    <button class="btn pull-left installer-back-btn" {{bindAttr disabled="isRegistrationInProgress"}} {{action back}}>&larr; {{t common.back}}</button>
+    <button class="btn pull-left installer-back-btn" {{bindAttr disabled="isBackDisabled"}} {{action back}}>&larr; {{t common.back}}</button>
     <button class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.next}} &rarr;</button>
   </div>
 </div>

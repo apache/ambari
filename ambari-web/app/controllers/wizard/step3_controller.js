@@ -71,6 +71,14 @@ App.WizardStep3Controller = Em.Controller.extend({
   isRetryDisabled: true,
 
   /**
+   * Is Back button disabled
+   * @return {bool}
+   */
+  isBackDisabled: function () {
+    return this.get('isRegistrationInProgress') || !this.get('isWarningsLoaded');
+  }.property('isRegistrationInProgress', 'isWarningsLoaded'),
+
+  /**
    * @type {bool}
    */
   isLoaded: false,
@@ -457,11 +465,11 @@ App.WizardStep3Controller = Em.Controller.extend({
   disablePreviousSteps: function () {
     App.router.get('installerController.isStepDisabled').filter(function (step) {
       return step.step >= 0 && step.step <= 2;
-    }).setEach('value', this.get('isRegistrationInProgress'));
-    if (this.get('isRegistrationInProgress')) {
+    }).setEach('value', this.get('isBackDisabled'));
+    if (this.get('isBackDisabled')) {
       this.set('isSubmitDisabled', true);
     }
-  }.observes('isRegistrationInProgress'),
+  }.observes('isBackDisabled'),
 
   /**
    * Do bootstrap calls
