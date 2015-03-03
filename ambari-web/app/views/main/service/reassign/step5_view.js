@@ -46,6 +46,9 @@ App.ReassignMasterWizardStep5View = Em.View.extend({
     return Em.I18n.t('services.reassign.step5.body.' + this.get('controller.content.reassign.component_name').toLowerCase() + ha).format(componentDir, sourceHost, targetHost, user, nnStartedHost,this.get('controller.content.group'), componentDirCmd);
   }.property('controller.content.reassign.component_name', 'controller.content.componentDir', 'controller.content.masterComponentHosts', 'controller.content.reassign.host_id', 'controller.content.hdfsUser'),
 
+  /**
+   * security notice to generate keytab manually is not used any more
+   */
   securityNotice: function () {
     var secureConfigs = this.get('controller.content.secureConfigs');
     var proceedMsg = Em.I18n.t('services.reassign.step5.body.proceedMsg');
