@@ -116,6 +116,7 @@ has_metric_collector = not len(ams_collector_hosts) == 0
 if has_metric_collector:
   metric_collector_host = ams_collector_hosts[0]
   metric_collector_report_interval = 60
+  metric_collector_app_id = "nimbus"
 metric_collector_sink_jar = "/usr/lib/storm/lib/ambari-metrics-storm-sink*.jar"
 
 # ranger host
