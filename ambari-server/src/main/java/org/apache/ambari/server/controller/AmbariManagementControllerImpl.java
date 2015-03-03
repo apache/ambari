@@ -1214,6 +1214,15 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         } else {
           isConfigurationCreationNeeded = true;
         }
+        if (requestConfigProperties == null || requestConfigProperties.isEmpty()) {
+          Config existingConfig = cluster.getConfig(desiredConfig.getType(), desiredConfig.getVersionTag());
+          if (existingConfig != null) {
+            if (!StringUtils.equals(existingConfig.getTag(), clusterConfig.getTag())) {
+              isConfigurationCreationNeeded = true;
+              break;
+            }
+          }
+        }
         if (requestConfigProperties != null && clusterConfigProperties != null) {
           if (requestConfigProperties.size() != clusterConfigProperties.size()) {
             isConfigurationCreationNeeded = true;
