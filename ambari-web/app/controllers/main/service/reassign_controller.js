@@ -82,8 +82,8 @@ App.ReassignMasterController = App.WizardController.extend({
   ],
 
   addManualSteps: function () {
-    this.set('content.hasManualSteps', this.get('content.componentsWithManualCommands').contains(this.get('content.reassign.component_name')) || this.get('content.securityEnabled'));
-  }.observes('content.reassign.component_name', 'content.securityEnabled'),
+    this.set('content.hasManualSteps', this.get('content.componentsWithManualCommands').contains(this.get('content.reassign.component_name')));
+  }.observes('content.reassign.component_name'),
 
   addCheckDBStep: function () {
     this.set('content.hasCheckDBStep', this.get('content.componentsWithCheckDBStep').contains(this.get('content.reassign.component_name')));

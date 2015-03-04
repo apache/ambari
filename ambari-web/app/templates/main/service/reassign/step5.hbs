@@ -17,9 +17,9 @@
 }}
 <h2>{{t services.reassign.step5.header}}</h2>
 {{{view.manualCommands}}}
-{{#if view.securityNotice}}
-  {{{view.securityNotice}}}
-{{/if}}
+{{!#if view.securityNotice}}
+  {{!{view.securityNotice}}
+{{!/if}}
 <div class="btn-area">
   <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action next}}>{{t common.next}} &rarr;</a>
 </div>
