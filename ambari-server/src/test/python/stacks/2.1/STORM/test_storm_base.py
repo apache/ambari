@@ -49,7 +49,6 @@ class TestStormBase(RMFTestCase):
       cd_access='a'
     )
     self.assertResourceCalled('Directory', '/etc/storm/conf',
-      owner = 'storm',
       group = 'hadoop',
       recursive = True,
       cd_access='a'
@@ -91,7 +90,6 @@ class TestStormBase(RMFTestCase):
       cd_access='a'
     )
     self.assertResourceCalled('Directory', '/etc/storm/conf',
-      owner = 'storm',
       group = 'hadoop',
       recursive = True,
       cd_access='a'
