@@ -107,29 +107,7 @@
           ]
         },
         {
-          "name": "SUPERVISOR",
-          "identities": [
-            {
-              "name": "storm_components",
-              "principal": {
-                "value": "storm@${realm}",
-                "type": "user",
-                "configuration": "storm-env/storm_principal_name"
-              },
-              "keytab": {
-                "file": "${keytab_dir}/storm.service.keytab",
-                "owner": {
-                  "name": "${storm-env/storm_user}",
-                  "access": "r"
-                },
-                "group": {
-                  "name": "${cluster-env/user_group}",
-                  "access": ""
-                },
-                "configuration": "storm-env/storm_keytab"
-              }
-            }
-          ]
+          "name" : "SUPERVISOR"
         }
       ]
     }
