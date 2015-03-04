@@ -18,21 +18,24 @@
 
 package org.apache.ambari.server.orm.dao;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.StageEntityPK;
 import org.apache.ambari.server.utils.StageUtils;
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Collection;
-import java.util.Map;
+
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
 @Singleton
 public class StageDAO {
@@ -82,12 +85,13 @@ public class StageDAO {
   }
 
   @RequiresSession
-  public List<StageEntity> findByCommandStatuses(Collection<HostRoleStatus> statuses) {
-    TypedQuery<StageEntity> query = entityManagerProvider.get().createQuery("SELECT stage " +
-          "FROM StageEntity stage WHERE stage.stageId IN (SELECT hrce.stageId FROM " +
-          "HostRoleCommandEntity hrce WHERE stage.requestId = hrce.requestId and hrce.status IN ?1 ) " +
-          "ORDER BY stage.requestId, stage.stageId", StageEntity.class);
-    return daoUtils.selectList(query, statuses);
+  public List<StageEntity> findByCommandStatuses(
+      Collection<HostRoleStatus> statuses) {
+    TypedQuery<StageEntity> query = entityManagerProvider.get().createNamedQuery(
+        "StageEntity.findByCommandStatuses", StageEntity.class);
+
+    query.setParameter("statuses", statuses);
+    return daoUtils.selectList(query);
   }
 
   @RequiresSession
@@ -114,10 +118,12 @@ public class StageDAO {
       "SELECT stage.requestContext " + "FROM StageEntity stage " +
         "WHERE stage.requestId=?1", String.class);
     String result =  daoUtils.selectOne(query, requestId);
-    if (result != null)
+    if (result != null) {
       return result;
-    else
+    }
+    else {
       return ""; // Since it is defined as empty string in the StageEntity
+    }
   }
 
   @Transactional

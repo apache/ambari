@@ -36,6 +36,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
@@ -45,15 +47,17 @@ import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.commons.lang.ArrayUtils;
 
-@Table(name = "host_role_command")
 @Entity
+@Table(name = "host_role_command")
 @TableGenerator(name = "host_role_command_id_generator",
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
     , pkColumnValue = "host_role_command_id_seq"
     , initialValue = 1
     , allocationSize = 50
 )
-
+@NamedQueries({
+    @NamedQuery(name = "HostRoleCommandEntity.findCountByCommandStatuses", query = "SELECT COUNT(command.taskId) FROM HostRoleCommandEntity command WHERE command.status IN :statuses"),
+    @NamedQuery(name = "HostRoleCommandEntity.findByCommandStatuses", query = "SELECT command FROM HostRoleCommandEntity command WHERE command.status IN :statuses ORDER BY command.requestId, command.stageId") })
 public class HostRoleCommandEntity {
 
   private static int MAX_COMMAND_DETAIL_LENGTH = 250;
@@ -190,7 +194,7 @@ public class HostRoleCommandEntity {
   }
 
   public Role getRole() {
-    return Role.valueOf(this.role);
+    return Role.valueOf(role);
   }
 
   public void setRole(Role role) {
@@ -317,29 +321,66 @@ public class HostRoleCommandEntity {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     HostRoleCommandEntity that = (HostRoleCommandEntity) o;
 
-    if (attemptCount != null ? !attemptCount.equals(that.attemptCount) : that.attemptCount != null) return false;
-    if (event != null ? !event.equals(that.event) : that.event != null) return false;
-    if (exitcode != null ? !exitcode.equals(that.exitcode) : that.exitcode != null) return false;
-    if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
-    if (lastAttemptTime != null ? !lastAttemptTime.equals(that.lastAttemptTime) : that.lastAttemptTime != null)
+    if (attemptCount != null ? !attemptCount.equals(that.attemptCount) : that.attemptCount != null) {
       return false;
-    if (requestId != null ? !requestId.equals(that.requestId) : that.requestId != null) return false;
-    if (role != null ? !role.equals(that.role) : that.role != null) return false;
-    if (stageId != null ? !stageId.equals(that.stageId) : that.stageId != null) return false;
-    if (startTime != null ? !startTime.equals(that.startTime) : that.startTime != null) return false;
-    if (status != null ? !status.equals(that.status) : that.status != null) return false;
-    if (stdError != null ? !Arrays.equals(stdError, that.stdError) : that.stdError != null) return false;
-    if (stdOut != null ? !Arrays.equals(stdOut, that.stdOut) : that.stdOut != null) return false;
-    if (outputLog != null ? !outputLog.equals(that.outputLog) : that.outputLog != null) return false;
-    if (errorLog != null ? !errorLog.equals(that.errorLog) : that.errorLog != null) return false;
-    if (taskId != null ? !taskId.equals(that.taskId) : that.taskId != null) return false;
-    if (structuredOut != null ? !Arrays.equals(structuredOut, that.structuredOut) : that.structuredOut != null) return false;
-    if (endTime != null ? !endTime.equals(that.endTime) : that.endTime != null) return false;
+    }
+    if (event != null ? !event.equals(that.event) : that.event != null) {
+      return false;
+    }
+    if (exitcode != null ? !exitcode.equals(that.exitcode) : that.exitcode != null) {
+      return false;
+    }
+    if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) {
+      return false;
+    }
+    if (lastAttemptTime != null ? !lastAttemptTime.equals(that.lastAttemptTime) : that.lastAttemptTime != null) {
+      return false;
+    }
+    if (requestId != null ? !requestId.equals(that.requestId) : that.requestId != null) {
+      return false;
+    }
+    if (role != null ? !role.equals(that.role) : that.role != null) {
+      return false;
+    }
+    if (stageId != null ? !stageId.equals(that.stageId) : that.stageId != null) {
+      return false;
+    }
+    if (startTime != null ? !startTime.equals(that.startTime) : that.startTime != null) {
+      return false;
+    }
+    if (status != null ? !status.equals(that.status) : that.status != null) {
+      return false;
+    }
+    if (stdError != null ? !Arrays.equals(stdError, that.stdError) : that.stdError != null) {
+      return false;
+    }
+    if (stdOut != null ? !Arrays.equals(stdOut, that.stdOut) : that.stdOut != null) {
+      return false;
+    }
+    if (outputLog != null ? !outputLog.equals(that.outputLog) : that.outputLog != null) {
+      return false;
+    }
+    if (errorLog != null ? !errorLog.equals(that.errorLog) : that.errorLog != null) {
+      return false;
+    }
+    if (taskId != null ? !taskId.equals(that.taskId) : that.taskId != null) {
+      return false;
+    }
+    if (structuredOut != null ? !Arrays.equals(structuredOut, that.structuredOut) : that.structuredOut != null) {
+      return false;
+    }
+    if (endTime != null ? !endTime.equals(that.endTime) : that.endTime != null) {
+      return false;
+    }
 
     return true;
   }
@@ -371,7 +412,7 @@ public class HostRoleCommandEntity {
   }
 
   public void setExecutionCommand(ExecutionCommandEntity executionCommandsByTaskId) {
-    this.executionCommand = executionCommandsByTaskId;
+    executionCommand = executionCommandsByTaskId;
   }
 
   public StageEntity getStage() {

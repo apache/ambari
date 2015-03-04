@@ -17,15 +17,15 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import com.google.inject.persist.Transactional;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.inject.persist.Transactional;
 
 public interface ActionDBAccessor {
 
@@ -57,10 +57,24 @@ public interface ActionDBAccessor {
   public void timeoutHostRole(String host, long requestId, long stageId, String role);
 
   /**
-   * Returns all the pending stages, including queued and not-queued.
-   * A stage is considered in progress if it is in progress for any host.
+   * Returns all the pending stages, including queued and not-queued. A stage is
+   * considered in progress if it is in progress for any host.
+   * <p/>
+   * The results will be sorted by request ID and then stage ID making this call
+   * expensive in some scenarios. Use {@link #getCommandsInProgressCount()} in
+   * order to determine if there are stages that are in progress before getting
+   * the stages from this method.
+   *
+   * @see HostRoleStatus#IN_PROGRESS_STATUSES
    */
   public List<Stage> getStagesInProgress();
+
+  /**
+   * Gets the number of commands in progress.
+   *
+   * @return the number of commands in progress.
+   */
+  public int getCommandsInProgressCount();
 
   /**
    * Persists all tasks for a given request
@@ -147,11 +161,6 @@ public interface ActionDBAccessor {
    * Given a list of task ids, get all the host role commands
    */
   public Collection<HostRoleCommand> getTasks(Collection<Long> taskIds);
-
-  /**
-   * Get all stages that contain tasks with specified host role statuses
-   */
-  public List<Stage> getStagesByHostRoleStatus(Set<HostRoleStatus> statuses);
 
   /**
    * Gets the host role command corresponding to the task id

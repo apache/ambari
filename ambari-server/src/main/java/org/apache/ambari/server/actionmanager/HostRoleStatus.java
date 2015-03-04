@@ -19,6 +19,7 @@ package org.apache.ambari.server.actionmanager;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 
 public enum HostRoleStatus {
@@ -34,6 +35,12 @@ public enum HostRoleStatus {
   private static List<HostRoleStatus> COMPLETED_STATES = Arrays.asList(FAILED, TIMEDOUT, ABORTED, COMPLETED);
   private static List<HostRoleStatus> FAILED_STATES = Arrays.asList(FAILED, TIMEDOUT, ABORTED);
 
+  /**
+   * The {@link HostRoleStatus}s that represent any commands which are
+   * considered to be "In Progress".
+   */
+  public static final EnumSet<HostRoleStatus> IN_PROGRESS_STATUSES = EnumSet.of(
+      HostRoleStatus.QUEUED, HostRoleStatus.IN_PROGRESS, HostRoleStatus.PENDING);
 
   private HostRoleStatus(int status) {
     this.status = status;

@@ -18,14 +18,28 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import javax.persistence.*;
-import java.util.Collection;
-
 import static org.apache.commons.lang.StringUtils.defaultString;
 
-@IdClass(org.apache.ambari.server.orm.entities.StageEntityPK.class)
-@Table(name = "stage")
+import java.util.Collection;
+
+import javax.persistence.Basic;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.IdClass;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
 @Entity
+@Table(name = "stage")
+@IdClass(org.apache.ambari.server.orm.entities.StageEntityPK.class)
+@NamedQueries({ @NamedQuery(name = "StageEntity.findByCommandStatuses", query = "SELECT stage from StageEntity stage WHERE EXISTS (SELECT roleCommand.stageId from HostRoleCommandEntity roleCommand WHERE roleCommand.status IN :statuses AND roleCommand.stageId = stage.stageId AND roleCommand.requestId = stage.requestId ) ORDER by stage.requestId, stage.stageId") })
 public class StageEntity {
 
   @Column(name = "cluster_id", updatable = false, nullable = false)
@@ -47,11 +61,11 @@ public class StageEntity {
   @Column(name = "request_context")
   @Basic
   private String requestContext = "";
-  
+
   @Column(name = "cluster_host_info")
   @Basic
   private byte[] clusterHostInfo;
- 
+
   @Column(name = "command_params")
   @Basic
   private byte[] commandParamsStage;
@@ -63,7 +77,7 @@ public class StageEntity {
   @ManyToOne
   @JoinColumn(name = "request_id", referencedColumnName = "request_id", nullable = false)
   private RequestEntity request;
-  
+
 
   @OneToMany(mappedBy = "stage", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
   private Collection<HostRoleCommandEntity> hostRoleCommands;
@@ -114,7 +128,7 @@ public class StageEntity {
   public void setClusterHostInfo(String clusterHostInfo) {
     this.clusterHostInfo = clusterHostInfo.getBytes();
   }
- 
+
   public String getCommandParamsStage() {
     return commandParamsStage == null ? new String() : new String(commandParamsStage);
   }
@@ -139,18 +153,36 @@ public class StageEntity {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     StageEntity that = (StageEntity) o;
 
-    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
-    if (logInfo != null ? !logInfo.equals(that.logInfo) : that.logInfo != null) return false;
-    if (requestId != null ? !requestId.equals(that.requestId) : that.requestId != null) return false;
-    if (stageId != null ? !stageId.equals(that.stageId) : that.stageId != null) return false;
-    if (clusterHostInfo != null ? !clusterHostInfo.equals(that.clusterHostInfo) : that.clusterHostInfo != null) return false;
-    if (commandParamsStage != null ? !commandParamsStage.equals(that.commandParamsStage) : that.commandParamsStage != null) return false;
-    if (hostParamsStage != null ? !hostParamsStage.equals(that.hostParamsStage) : that.hostParamsStage != null) return false;
+    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) {
+      return false;
+    }
+    if (logInfo != null ? !logInfo.equals(that.logInfo) : that.logInfo != null) {
+      return false;
+    }
+    if (requestId != null ? !requestId.equals(that.requestId) : that.requestId != null) {
+      return false;
+    }
+    if (stageId != null ? !stageId.equals(that.stageId) : that.stageId != null) {
+      return false;
+    }
+    if (clusterHostInfo != null ? !clusterHostInfo.equals(that.clusterHostInfo) : that.clusterHostInfo != null) {
+      return false;
+    }
+    if (commandParamsStage != null ? !commandParamsStage.equals(that.commandParamsStage) : that.commandParamsStage != null) {
+      return false;
+    }
+    if (hostParamsStage != null ? !hostParamsStage.equals(that.hostParamsStage) : that.hostParamsStage != null) {
+      return false;
+    }
     return !(requestContext != null ? !requestContext.equals(that.requestContext) : that.requestContext != null);
 
   }

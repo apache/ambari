@@ -18,26 +18,30 @@
 
 package org.apache.ambari.server.orm.dao;
 
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
-import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.orm.RequiresSession;
-import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
-import org.apache.ambari.server.orm.entities.StageEntity;
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
+import static org.apache.ambari.server.orm.DBAccessor.DbType.ORACLE;
+import static org.apache.ambari.server.orm.dao.DaoUtils.ORACLE_LIST_LIMIT;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import static org.apache.ambari.server.orm.DBAccessor.DbType.ORACLE;
-import static org.apache.ambari.server.orm.dao.DaoUtils.ORACLE_LIST_LIMIT;
+
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.orm.RequiresSession;
+import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.orm.entities.StageEntity;
+
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
 @Singleton
 public class HostRoleCommandDAO {
@@ -192,6 +196,40 @@ public class HostRoleCommandDAO {
       "FROM HostRoleCommandEntity command " +
       "WHERE command.requestId=?1 ORDER BY command.taskId", Long.class);
     return daoUtils.selectList(query, requestId);
+  }
+
+  /**
+   * Gets the commands in a particular status.
+   *
+   * @param statuses
+   *          the statuses to include (not {@code null}).
+   * @return the commands in the given set of statuses.
+   */
+  @RequiresSession
+  public List<HostRoleCommandEntity> findByStatus(
+      Collection<HostRoleStatus> statuses) {
+    TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createNamedQuery(
+        "HostRoleCommandEntity.findByCommandStatuses",
+        HostRoleCommandEntity.class);
+
+    query.setParameter("statuses", statuses);
+    return daoUtils.selectList(query);
+  }
+
+  /**
+   * Gets the number of commands in a particular status.
+   *
+   * @param statuses
+   *          the statuses to include (not {@code null}).
+   * @return the count of commands in the given set of statuses.
+   */
+  @RequiresSession
+  public Number getCountByStatus(Collection<HostRoleStatus> statuses) {
+    TypedQuery<Number> query = entityManagerProvider.get().createNamedQuery(
+        "HostRoleCommandEntity.findCountByCommandStatuses", Number.class);
+
+    query.setParameter("statuses", statuses);
+    return daoUtils.selectSingle(query);
   }
 
   @RequiresSession

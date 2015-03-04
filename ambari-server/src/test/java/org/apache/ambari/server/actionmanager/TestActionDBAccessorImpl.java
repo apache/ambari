@@ -17,15 +17,19 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Singleton;
-import com.google.inject.persist.PersistService;
-import com.google.inject.persist.UnitOfWork;
-import com.google.inject.util.Modules;
+import static org.apache.ambari.server.orm.DBAccessor.DbType.ORACLE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import javax.persistence.EntityManager;
+
 import junit.framework.Assert;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -40,6 +44,7 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessorImpl;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
@@ -51,13 +56,16 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.apache.ambari.server.orm.DBAccessor.DbType.ORACLE;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
+import com.google.inject.persist.PersistService;
+import com.google.inject.persist.UnitOfWork;
+import com.google.inject.util.Modules;
 
 public class TestActionDBAccessorImpl {
   private static final Logger log = LoggerFactory.getLogger(TestActionDBAccessorImpl.class);
@@ -73,10 +81,18 @@ public class TestActionDBAccessorImpl {
 
   @Inject
   private Clusters clusters;
+
   @Inject
   private ExecutionCommandDAO executionCommandDAO;
+
   @Inject
   private HostRoleCommandDAO hostRoleCommandDAO;
+
+  @Inject
+  private Provider<EntityManager> entityManagerProvider;
+
+  @Inject
+  private DaoUtils daoUtils;
 
   @Before
   public void setup() throws AmbariException {
@@ -157,27 +173,103 @@ public class TestActionDBAccessorImpl {
             "(command report status should be ignored)",
             HostRoleStatus.ABORTED,s.getHostRoleStatus(hostname, "HBASE_MASTER"));
   }
-  
+
   @Test
   public void testGetStagesInProgress() throws AmbariException {
-    String hostname = "host1";
     List<Stage> stages = new ArrayList<Stage>();
-    stages.add(createStubStage(hostname, requestId, stageId));
-    stages.add(createStubStage(hostname, requestId, stageId + 1));
+    stages.add(createStubStage(hostName, requestId, stageId));
+    stages.add(createStubStage(hostName, requestId, stageId + 1));
     Request request = new Request(stages, clusters);
     db.persistActions(request);
     assertEquals(2, stages.size());
   }
-  
+
   @Test
   public void testGetStagesInProgressWithFailures() throws AmbariException {
-    String hostname = "host1";
-    populateActionDB(db, hostname, requestId, stageId);
-    populateActionDB(db, hostname, requestId+1, stageId);
-    db.abortOperation(requestId);
+    populateActionDB(db, hostName, requestId, stageId);
+    populateActionDB(db, hostName, requestId + 1, stageId);
     List<Stage> stages = db.getStagesInProgress();
+    assertEquals(2, stages.size());
+
+    db.abortOperation(requestId);
+    stages = db.getStagesInProgress();
     assertEquals(1, stages.size());
     assertEquals(requestId+1, stages.get(0).getRequestId());
+  }
+
+  @Test
+  public void testGetStagesInProgressWithManyStages() throws AmbariException {
+    // create 3 request; each request will have 3 stages, each stage 2 commands
+    populateActionDBMultipleStages(3, db, hostName, requestId, stageId);
+    populateActionDBMultipleStages(3, db, hostName, requestId + 1, stageId + 3);
+    populateActionDBMultipleStages(3, db, hostName, requestId + 2, stageId + 3);
+
+    // verify stages and proper ordering
+    int commandsInProgressCount = db.getCommandsInProgressCount();
+    List<Stage> stages = db.getStagesInProgress();
+    assertEquals(18, commandsInProgressCount);
+    assertEquals(9, stages.size());
+
+    long lastRequestId = Integer.MIN_VALUE;
+    for (Stage stage : stages) {
+      assertTrue(stage.getRequestId() >= lastRequestId);
+      lastRequestId = stage.getRequestId();
+    }
+
+    // cancel the first one, removing 3 stages
+    db.abortOperation(requestId);
+
+    // verify stages and proper ordering
+    commandsInProgressCount = db.getCommandsInProgressCount();
+    stages = db.getStagesInProgress();
+    assertEquals(12, commandsInProgressCount);
+    assertEquals(6, stages.size());
+
+    // find the first stage, and change one command to COMPLETED
+    stages.get(0).setHostRoleStatus(hostName, Role.HBASE_MASTER.toString(),
+        HostRoleStatus.COMPLETED);
+
+    db.hostRoleScheduled(stages.get(0), hostName, Role.HBASE_MASTER.toString());
+
+    // the first stage still has at least 1 command IN_PROGRESS
+    commandsInProgressCount = db.getCommandsInProgressCount();
+    stages = db.getStagesInProgress();
+    assertEquals(11, commandsInProgressCount);
+    assertEquals(6, stages.size());
+
+    // find the first stage, and change the other command to COMPLETED
+    stages.get(0).setHostRoleStatus(hostName,
+        Role.HBASE_REGIONSERVER.toString(), HostRoleStatus.COMPLETED);
+
+    db.hostRoleScheduled(stages.get(0), hostName,
+        Role.HBASE_REGIONSERVER.toString());
+
+    // verify stages and proper ordering
+    commandsInProgressCount = db.getCommandsInProgressCount();
+    stages = db.getStagesInProgress();
+    assertEquals(10, commandsInProgressCount);
+    assertEquals(5, stages.size());
+  }
+
+  @Test
+  public void testGetStagesInProgressWithManyCommands() throws AmbariException {
+    // 1000 hosts
+    for (int i = 0; i < 1000; i++) {
+      String hostName = "c64-" + i;
+      clusters.addHost(hostName);
+      clusters.getHost(hostName).persist();
+    }
+
+    // create 1 request, 3 stages per host, each with 2 commands
+    for (int i = 0; i < 1000; i++) {
+      String hostName = "c64-" + i;
+      populateActionDBMultipleStages(3, db, hostName, requestId + i, stageId);
+    }
+
+    int commandsInProgressCount = db.getCommandsInProgressCount();
+    List<Stage> stages = db.getStagesInProgress();
+    assertEquals(6000, commandsInProgressCount);
+    assertEquals(3000, stages.size());
   }
 
   @Test
@@ -310,7 +402,7 @@ public class TestActionDBAccessorImpl {
     populateActionDB(db, hostName, requestId + 1, stageId);
     List<Long> requestIdsResult =
       db.getRequestsByStatus(null, BaseRequest.DEFAULT_PAGE_SIZE, false);
-    
+
     assertNotNull("List of request IDs is null", requestIdsResult);
     assertEquals("Request IDs not matches", requestIds, requestIdsResult);
   }
@@ -484,6 +576,20 @@ public class TestActionDBAccessorImpl {
     Stage s = createStubStage(hostname, requestId, stageId);
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
+    Request request = new Request(stages, clusters);
+    db.persistActions(request);
+  }
+
+  private void populateActionDBMultipleStages(int numberOfStages,
+      ActionDBAccessor db, String hostname, long requestId, long stageId)
+      throws AmbariException {
+
+    List<Stage> stages = new ArrayList<Stage>();
+    for (int i = 0; i < numberOfStages; i++) {
+      Stage stage = createStubStage(hostname, requestId, stageId + i);
+      stages.add(stage);
+    }
+
     Request request = new Request(stages, clusters);
     db.persistActions(request);
   }

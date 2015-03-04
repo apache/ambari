@@ -128,22 +128,22 @@ class ActionScheduler implements Runnable {
       ActionDBAccessor db, ActionQueue actionQueue, Clusters fsmObject,
       int maxAttempts, HostsMap hostsMap, ServerActionManager serverActionManager,
       UnitOfWork unitOfWork, Configuration configuration) {
-    this.sleepTime = sleepTimeMilliSec;
+    sleepTime = sleepTimeMilliSec;
     this.hostsMap = hostsMap;
-    this.actionTimeout = actionTimeoutMilliSec;
+    actionTimeout = actionTimeoutMilliSec;
     this.db = db;
     this.actionQueue = actionQueue;
     this.fsmObject = fsmObject;
     this.maxAttempts = (short) maxAttempts;
     this.serverActionManager = serverActionManager;
     this.unitOfWork = unitOfWork;
-    this.clusterHostInfoCache = CacheBuilder.newBuilder().
+    clusterHostInfoCache = CacheBuilder.newBuilder().
         expireAfterAccess(5, TimeUnit.MINUTES).
         build();
-    this.commandParamsStageCache = CacheBuilder.newBuilder().
+    commandParamsStageCache = CacheBuilder.newBuilder().
       expireAfterAccess(5, TimeUnit.MINUTES).
       build();
-    this.hostParamsStageCache = CacheBuilder.newBuilder().
+    hostParamsStageCache = CacheBuilder.newBuilder().
       expireAfterAccess(5, TimeUnit.MINUTES).
       build();
     this.configuration = configuration;
@@ -202,6 +202,18 @@ class ActionScheduler implements Runnable {
       // The first thing to do is to abort requests that are cancelled
       processCancelledRequestsList();
 
+      // !!! getting the stages in progress could be a very expensive call due
+      // to the join being used; there's no need to make it if there are
+      // no commands in progress
+      if (db.getCommandsInProgressCount() == 0) {
+        // Nothing to do
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("There are no stages currently in progress.");
+        }
+
+        return;
+      }
+
       Set<Long> runningRequestIds = new HashSet<Long>();
       List<Stage> stages = db.getStagesInProgress();
       if (LOG.isDebugEnabled()) {
@@ -209,14 +221,14 @@ class ActionScheduler implements Runnable {
         LOG.debug("Processing {} in progress stages ", stages.size());
       }
       if (stages.isEmpty()) {
-        //Nothing to do
+        // Nothing to do
         if (LOG.isDebugEnabled()) {
-          LOG.debug("No stage in progress..nothing to do");
+          LOG.debug("There are no stages currently in progress.");
         }
         return;
       }
       int i_stage = 0;
-      
+
       stages = filterParallelPerHostStages(stages);
 
       boolean exclusiveRequestIsGoing = false;
@@ -420,7 +432,7 @@ class ActionScheduler implements Runnable {
       s.setHostRoleStatus(hostName, roleName, HostRoleStatus.QUEUED);
       db.hostRoleScheduled(s, hostName, roleName);
       String actionName = cmd.getRoleParams().get(ServerAction.ACTION_NAME);
-      this.serverActionManager.executeAction(actionName, cmd.getCommandParams());
+      serverActionManager.executeAction(actionName, cmd.getCommandParams());
       reportServerActionSuccess(s, cmd);
 
     } catch (AmbariException e) {
@@ -569,12 +581,12 @@ class ActionScheduler implements Runnable {
 
         // Check that service host component is not deleted
         if (hostDeleted) {
-          
+
           String message = String.format(
             "Host not found when trying to schedule an execution command. " +
             "The most probable reason for that is that host or host component " +
             "has been deleted recently. The command has been aborted and dequeued." +
-            "Execution command details: " + 
+            "Execution command details: " +
             "cmdId: %s; taskId: %s; roleCommand: %s",
             c.getCommandId(), c.getTaskId(), c.getRoleCommand());
           LOG.warn("Host {} has been detected as non-available. {}", host, message);
@@ -609,7 +621,7 @@ class ActionScheduler implements Runnable {
           LOG.trace("===>commandsToSchedule(first_time)=" + commandsToSchedule.size());
         }
 
-        this.updateRoleStats(status, roleStats.get(roleStr));
+        updateRoleStats(status, roleStats.get(roleStr));
       }
     }
     LOG.debug("Collected {} commands to schedule in this wakeup.", commandsToSchedule.size());
@@ -772,7 +784,7 @@ class ActionScheduler implements Runnable {
     }
 
     cmd.setClusterHostInfo(clusterHostInfo);
- 
+
     //Try to get commandParams from cache and merge them with command-level parameters
     Map<String, String> commandParams = commandParamsStageCache.getIfPresent(stagePk);
 
@@ -888,10 +900,10 @@ class ActionScheduler implements Runnable {
       LOG.error("Unknown status " + status.name());
     }
   }
-  
-  
+
+
   public void setTaskTimeoutAdjustment(boolean val) {
-    this.taskTimeoutAdjustment = val;
+    taskTimeoutAdjustment = val;
   }
 
   static class RoleStats {
@@ -906,7 +918,7 @@ class ActionScheduler implements Runnable {
     final float successFactor;
 
     RoleStats(int total, float successFactor) {
-      this.totalHosts = total;
+      totalHosts = total;
       this.successFactor = successFactor;
     }
 
@@ -938,6 +950,7 @@ class ActionScheduler implements Runnable {
       }
     }
 
+    @Override
     public String toString() {
       StringBuilder builder = new StringBuilder();
       builder.append("numQueued="+numQueued);
