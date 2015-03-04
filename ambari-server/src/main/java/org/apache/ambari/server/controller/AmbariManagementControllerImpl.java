@@ -1915,6 +1915,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           clusterHostInfoJson, "{}", HostParamsJson);
 
       Collection<ServiceComponentHost> componentsToEnableKerberos = new ArrayList<ServiceComponentHost>();
+      Set<String> hostsToForceKerberosOperations = new HashSet<String>();
 
       //HACK
       String jobtrackerHost = getJobTrackerHost(cluster);
@@ -1968,6 +1969,16 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                     }
 
                     componentsToEnableKerberos.add(scHost);
+
+                    if(Service.Type.KERBEROS.name().equalsIgnoreCase(scHost.getServiceName()) &&
+                        Role.KERBEROS_CLIENT.name().equalsIgnoreCase(scHost.getServiceComponentName())) {
+                      // Since the KERBEROS/KERBEROS_CLIENT is about to be moved from the INIT to the
+                      // INSTALLED state (and it should be by the time the stages (in this request)
+                      // that need to be execute), collect the relevant hostname to make sure the
+                      // Kerberos logic doest not skip operations for it.
+                      hostsToForceKerberosOperations.add(scHost.getHostName());
+                    }
+
                   }
                 } else if (oldSchState == State.STARTED
                       // TODO: oldSchState == State.INSTALLED is always false, looks like a bug
@@ -2168,7 +2179,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
 
         try {
-          kerberosHelper.ensureIdentities(cluster, serviceFilter, null, requestStages);
+          kerberosHelper.ensureIdentities(cluster, serviceFilter, null, hostsToForceKerberosOperations, requestStages);
         } catch (KerberosOperationException e) {
           throw new IllegalArgumentException(e.getMessage(), e);
         }
