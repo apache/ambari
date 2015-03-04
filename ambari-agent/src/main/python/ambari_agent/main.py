@@ -233,11 +233,10 @@ def main(heartbeat_stop_callback=None):
 
   perform_prestart_checks(expected_hostname)
 
-  if not OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:
-    daemonize()
-
   # Starting ping port listener
   try:
+    #This acts as a single process machine-wide lock (albeit incomplete, since
+    # we still need an extra file to track the Agent PID)
     ping_port_listener = PingPortListener(config)
   except Exception as ex:
     err_message = "Failed to start ping port listener of: " + str(ex)
@@ -250,6 +249,9 @@ def main(heartbeat_stop_callback=None):
 
   server_hostname = config.get('server', 'hostname')
   server_url = config.get_api_url()
+
+  if not OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:
+    daemonize()
 
   try:
     server_ip = socket.gethostbyname(server_hostname)

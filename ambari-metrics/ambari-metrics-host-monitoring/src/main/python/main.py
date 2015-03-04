@@ -58,8 +58,6 @@ def server_process_main(stop_handler, scmStatus=None):
   if scmStatus is not None:
     scmStatus.reportStartPending()
 
-  save_pid(os.getpid(), PID_OUT_FILE)
-
   config = Configuration()
   _init_logging(config)
   controller = Controller(config, stop_handler)
@@ -69,6 +67,8 @@ def server_process_main(stop_handler, scmStatus=None):
 
   print "Server out at: " + SERVER_OUT_FILE
   print "Server log at: " + SERVER_LOG_FILE
+
+  save_pid(os.getpid(), PID_OUT_FILE)
 
   if scmStatus is not None:
     scmStatus.reportStarted()
