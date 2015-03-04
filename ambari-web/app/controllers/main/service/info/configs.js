@@ -910,6 +910,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
     serviceConfig = App.config.createServiceConfig(this.get('content.serviceName'));
     this.loadConfigs(this.get('allConfigs'), serviceConfig);
+    this.setVisibilityForRangerProperties(serviceConfig);
     this.checkOverrideProperty(serviceConfig);
     this.checkDatabaseProperties(serviceConfig);
     this.get('stepConfigs').pushObject(serviceConfig);
@@ -1012,6 +1013,28 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
     return serviceConfigProperty;
   },
+
+  /**
+   * hide properties from Advanced ranger category that match pattern
+   * if property with dependentConfigPattern is false otherwise don't hide
+   * @param serviceConfig
+   * @method setVisibilityForRangerProperties
+   */
+  setVisibilityForRangerProperties: function(serviceConfig) {
+    var category = "Advanced ranger-{0}-plugin-properties".format(this.get('content.serviceName').toLowerCase());
+    if (serviceConfig.configCategories.findProperty('name', category)) {
+      var patternConfig = serviceConfig.configs.findProperty('dependentConfigPattern');
+      if (patternConfig) {
+        var value = patternConfig.get('value') === true || ["yes", "true"].contains(patternConfig.get('value').toLowerCase());
+
+        serviceConfig.configs.filter(function(c) {
+          if (c.get('category') === category && c.get('name').match(patternConfig.get('dependentConfigPattern')) && c.get('name') != patternConfig.get('name'))
+            c.set('isVisible', value);
+        });
+      }
+    }
+  },
+  /**
 
   /**
    * trigger addOverrideProperty
@@ -1914,7 +1937,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       var oldAttributes = oldConfig["properties_attributes"] || {};
       var newProperties = configSite.properties || {};
       var newAttributes = configSite["properties_attributes"] || {};
-      if (this.isAttributesChanged(oldAttributes, newAttributes) || this.isConfigChanged(oldProperties, newProperties)) {
+      if (this.isAttributesChanged(oldAttributes, newAttributes) || this.isConfigChanged(oldProperties, newProperties) || this.get('modifiedFileNames').contains(App.config.getOriginalFileName(configSite.type))) {
         changedConfigs.push(configSite);
       }
     }, this);
