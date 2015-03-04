@@ -40,7 +40,7 @@
 
       <execute-stage service="HIVE" component="HIVE_METASTORE" title="Pre Upgrade Hive">
         <task xsi:type="manual">
-          <message>Before continuing, please backup the Hive Metastore database located on the following host(s): {{hosts.all}}.  During the upgrade process, you will be instructed when it is time to upgrade the Hive Metastore database.  To prepare, review the README documentation at /usr/hdp/{{version}}/hive/scripts/metastore/upgrade for when you are asked to perform this manual step (during the Hive stage of upgrade).  Do not upgrade the database at this time.  You will be prompted when to perform the database upgrade.</message>
+          <message>Before continuing, please backup the Hive Metastore database located on the following host(s): {{hosts.all}}.  During the upgrade process, you will be instructed when it is time to upgrade the Hive Metastore database.  To prepare, review the README documentation at /usr/hdp/{{version}}/hive/scripts/metastore/upgrade/[db] for the correct database type when you are asked to perform this manual step (during the Hive stage of upgrade).  Do NOT upgrade the database at this time.  You will be prompted when to perform the database upgrade.</message>
         </task>
       </execute-stage>
 
@@ -427,7 +427,7 @@
       <component name="HIVE_METASTORE">
         <pre-upgrade>
           <task xsi:type="manual">
-            <message>The Hive Metastore database schema must be upgraded before proceeding.  Please consult the README documentation at /usr/hdp/{{version}}/hive/scripts/metastore/upgrade to correctly upgrade the Hive Metastore database. This database upgrade should be performed on the following host(s): {{hosts.all}}.</message>
+            <message>The Hive Metastore database schema must be upgraded before proceeding.  Please consult the README documentation at /usr/hdp/{{version}}/hive/scripts/metastore/upgrade/[db] for the correct database type to correctly upgrade the Hive Metastore database.  Note that the README may indicate to stop the Metastore; this step is not required, as Ambari will restart the required processes.  The database upgrade should be performed on the following host(s): {{hosts.all}}.</message>
           </task>
         </pre-upgrade>
         <pre-downgrade />
