@@ -524,7 +524,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
     this.set('logs', []);
     for (var i = 0; i < requestIds.length; i++) {
       App.ajax.send({
-        name: 'admin.high_availability.polling',
+        name: 'background_operations.get_by_request',
         sender: this,
         data: {
           requestId: requestIds[i]

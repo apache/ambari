@@ -68,6 +68,10 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
    */
   spinnerPopup: null,
 
+  isTaskPolling: false,
+
+  taskInfo: null,
+
   /**
    * Get info for <code>requestIds</code> and initialize <code>App.HostPopup</code>
    * @param popupTitle {String}
@@ -102,8 +106,8 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
   getHosts: function () {
     var requestIds = this.get('requestIds');
     var stageId = this.get('stageId');
-    var name = 'admin.high_availability.polling';
-    if (stageId) {
+    var name = 'background_operations.get_by_request';
+    if (!Em.isNone(stageId)) {
       name = 'common.request.polling';
     }
     requestIds.forEach(function (requestId) {
@@ -215,6 +219,46 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
       }
     });
     return result;
+  },
+
+  startTaskPolling: function (requestId, taskId) {
+    this.setProperties({
+      isTaskPolling: true,
+      taskInfo: {
+        id: taskId,
+        requestId: requestId
+      }
+    });
+    App.updater.run(this, 'updateTask', 'isTaskPolling', App.bgOperationsUpdateInterval);
+    App.updater.immediateRun('updateTask');
+  },
+
+  stopTaskPolling: function () {
+    this.set('isTaskPolling', false);
+  },
+
+  updateTask: function (callback) {
+    App.ajax.send({
+      name: 'background_operations.get_by_task',
+      sender: this,
+      data: {
+        requestId: this.get('taskInfo.requestId'),
+        taskId: this.get('taskInfo.id')
+      },
+      success: 'updateTaskSuccessCallback',
+      callback: callback
+    })
+  },
+
+  updateTaskSuccessCallback: function (data) {
+    this.setProperties({
+      'taskInfo.stderr': data.Tasks.stderr,
+      'taskInfo.stdout': data.Tasks.stdout,
+      'taskInfo.outputLog': data.Tasks.output_log,
+      'taskInfo.errorLog': data.Tasks.error_log,
+      'isTaskPolling': !['FAILED', 'COMPLETED', 'TIMEDOUT', 'ABORTED'].contains(data.Tasks.status)
+    });
   }
+
 });
 
