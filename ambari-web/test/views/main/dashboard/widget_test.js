@@ -23,7 +23,7 @@ describe('App.DashboardWidgetView', function () {
   var dashboardWidgetView = App.DashboardWidgetView.create({
     parentView: Em.Object.create({
       widgetsMapper: Em.K,
-      getUserPref: Em.K,
+      getUserPref: function () {return {complete: Em.K}},
       postUserPref: Em.K,
       translateToReal: Em.K,
       visibleWidgets: [],
