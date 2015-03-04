@@ -346,7 +346,6 @@ class TestZkfc(RMFTestCase):
   @patch("resource_management.libraries.functions.security_commons.cached_kinit_executor")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   def test_security_status(self, put_structured_out_mock, cached_kinit_executor_mock, validate_security_config_mock, get_params_mock, build_exp_mock):
-    print "HELLO WORLD!!!!"
 
     # Test that function works when is called with correct parameters
     security_params = {
