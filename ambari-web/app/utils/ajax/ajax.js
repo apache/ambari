@@ -187,7 +187,7 @@ var urls = {
   },
 
   'common.request.polling': {
-    'real': '/clusters/{clusterName}/requests/{requestId}?fields=tasks/*,Requests/*&tasks/Tasks/stage_id={stageId}',
+    'real': '/clusters/{clusterName}/requests/{requestId}?fields=tasks/Tasks/request_id,tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/exit_code,Requests/*&tasks/Tasks/stage_id={stageId}',
     'mock': '/data/background_operations/host_upgrade_tasks.json'
   },
 
@@ -449,7 +449,7 @@ var urls = {
     'testInProduction': true
   },
   'background_operations.get_by_request': {
-    'real': '/clusters/{clusterName}/requests/{requestId}?fields=*,tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/exit_code,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true',
+    'real': '/clusters/{clusterName}/requests/{requestId}?fields=*,tasks/Tasks/request_id,tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/exit_code,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true',
     'mock': '/data/background_operations/task_by_request{requestId}.json',
     'testInProduction': true
   },

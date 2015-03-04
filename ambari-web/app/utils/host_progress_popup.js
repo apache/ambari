@@ -68,6 +68,13 @@ App.HostPopup = Em.Object.create({
    */
   isPopup: null,
 
+  detailedProperties: {
+    stdout: 'stdout',
+    stderr: 'stderr',
+    outputLog: 'output_log',
+    errorLog: 'error_log'
+  },
+
   abortIcon: Em.View.extend({
     tagName: 'i',
     classNames: ['abort-icon', 'icon-remove-circle', 'pointer'],
@@ -445,6 +452,7 @@ App.HostPopup = Em.Object.create({
       role: App.format.role(_task.Tasks.role),
       stderr: _task.Tasks.stderr,
       stdout: _task.Tasks.stdout,
+      request_id: _task.Tasks.request_id,
       isVisible: true,
       startTime: date.startTime(_task.Tasks.start_time),
       duration: date.durationSummary(_task.Tasks.start_time, _task.Tasks.end_time),
@@ -516,11 +524,12 @@ App.HostPopup = Em.Object.create({
                 if (existTask) {
                   var status = _task.Tasks.status;
                   existTask.set('status', App.format.taskStatus(status));
-                  existTask.set('stdout', _task.Tasks.stdout);
-                  existTask.set('stderr', _task.Tasks.stderr);
-                  // Verified that this is needed.
-                  existTask.set('outputLog', _task.Tasks.output_log);
-                  existTask.set('errorLog', _task.Tasks.error_log);
+                  Em.keys(this.get('detailedProperties')).forEach(function (key) {
+                    var value = _task.Tasks[this.get('detailedProperties')[key]];
+                    if (!Em.isNone(value)) {
+                      existTask.set(key, value);
+                    }
+                  }, this);
                   existTask.set('startTime', date.startTime(_task.Tasks.start_time));
                   existTask.set('duration', date.durationSummary(_task.Tasks.start_time, _task.Tasks.end_time));
                   // Puts some command information to render it 
@@ -642,6 +651,8 @@ App.HostPopup = Em.Object.create({
        * @type {bool}
        */
       isOpen: false,
+
+      detailedProperties: self.get('detailedProperties'),
 
       didInsertElement: function(){
         this._super();
@@ -768,6 +779,12 @@ App.HostPopup = Em.Object.create({
           }
           return [];
         }.property('currentHost.tasks', 'currentHost.tasks.@each.status'),
+
+        willDestroyElement: function () {
+          if (this.get('controller.dataSourceController.name') == 'highAvailabilityProgressPopupController') {
+            this.set('controller.dataSourceController.isTaskPolling', false);
+          }
+        },
 
         /**
          * Preset values on init
@@ -934,6 +951,26 @@ App.HostPopup = Em.Object.create({
             } else {
               dataSourceController.stopUpdatingTask(this.get('controller.currentServiceId'));
             }
+          } else if (dataSourceController.get('name') == 'highAvailabilityProgressPopupController') {
+            if (levelName === 'TASK_DETAILS') {
+              this.set('isLevelLoaded', false);
+              dataSourceController.startTaskPolling(this.get('openedTask.request_id'), this.get('openedTask.id'));
+              Em.keys(this.get('parentView.detailedProperties')).forEach(function (key) {
+                dataSourceController.addObserver('taskInfo.' + this.get('parentView.detailedProperties')[key], this, 'updateTaskInfo');
+              }, this);
+            } else {
+              dataSourceController.stopTaskPolling();
+            }
+          }
+        },
+        updateTaskInfo: function () {
+          var dataSourceController = this.get('controller.dataSourceController');
+          var openedTask = this.get('openedTask');
+          if (openedTask && openedTask.get('id') == dataSourceController.get('taskInfo.id')) {
+            this.set('isLevelLoaded', true);
+            Em.keys(this.get('parentView.detailedProperties')).forEach(function (key) {
+              openedTask.set(key, dataSourceController.get('taskInfo.' + key));
+            }, this);
           }
         },
         /**
