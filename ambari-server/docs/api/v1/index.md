@@ -350,6 +350,9 @@ Rolling upgrades check resources store information about successful/unsuccessful
 
 [Rolling Upgrade Check Resources](rolling-upgrade-check-resources.md)
 
+#### upgrades
+[Upgrade Resources](upgrades.md)
+
 Partial Response
 ----
 
