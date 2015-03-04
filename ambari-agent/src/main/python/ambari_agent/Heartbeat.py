@@ -20,14 +20,13 @@ limitations under the License.
 
 import json
 import logging
+import os
 import time
 from pprint import pformat
 
-from ActionQueue import ActionQueue
-import AmbariConfig
-import hostname
-from HostInfo import HostInfo
-from Hardware import Hardware
+from ambari_agent.hostname import hostname
+from ambari_agent.HostInfo import HostInfo
+from ambari_agent.Hardware import Hardware
 
 
 logger = logging.getLogger()
@@ -52,7 +51,7 @@ class Heartbeat:
 
     heartbeat = { 'responseId'        : int(id),
                   'timestamp'         : timestamp,
-                  'hostname'          : hostname.hostname(self.config),
+                  'hostname'          : hostname(self.config),
                   'nodeStatus'        : nodeStatus
                 }
 
@@ -98,7 +97,18 @@ class Heartbeat:
     return heartbeat
 
 def main(argv=None):
-  actionQueue = ActionQueue(AmbariConfig.config)
+  from ambari_agent.ActionQueue import ActionQueue
+  from ambari_agent.AmbariConfig import AmbariConfig
+  from ambari_agent.Controller import Controller
+
+  cfg = AmbariConfig()
+  if os.path.exists(AmbariConfig.getConfigFile()):
+    cfg.read(AmbariConfig.getConfigFile())
+  else:
+    raise Exception("No config found, use default")
+
+  ctl = Controller(cfg)
+  actionQueue = ActionQueue(cfg, ctl)
   heartbeat = Heartbeat(actionQueue)
   print json.dumps(heartbeat.build('3',3))
 

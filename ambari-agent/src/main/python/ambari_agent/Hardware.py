@@ -26,6 +26,7 @@ from ambari_commons.constants import AMBARI_SUDO_BINARY
 from ambari_commons.shell import shellRunner
 from Facter import Facter
 from ambari_commons.os_check import OSConst, OSCheck
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 logger = logging.getLogger()
 
 class Hardware:
@@ -34,7 +35,7 @@ class Hardware:
 
   def __init__(self):
     self.hardware = {}
-    osdisks = self.osdisks()
+    osdisks = Hardware.osdisks()
     self.hardware['mounts'] = osdisks
     otherInfo = Facter().facterInfo()
     self.hardware.update(otherInfo)
@@ -62,14 +63,8 @@ class Hardware:
       return None
 
   @staticmethod
+  @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
   def osdisks():
-    if OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:
-      return Hardware._osdisks_win()
-    else:
-      return Hardware._osdisks_linux()
-
-  @staticmethod
-  def _osdisks_linux():
     """ Run df to find out the disks on the host. Only works on linux
     platforms. Note that this parser ignores any filesystems with spaces
     and any mounts with spaces. """
@@ -93,7 +88,8 @@ class Hardware:
       return False
 
   @staticmethod
-  def _osdisks_win():
+  @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
+  def osdisks():
     mounts = []
     runner = shellRunner()
     command_result = runner.runPowershell(script_block=Hardware.WINDOWS_GET_DRIVES_CMD)

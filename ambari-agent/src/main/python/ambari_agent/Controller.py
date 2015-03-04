@@ -36,15 +36,15 @@ import security
 import ssl
 import AmbariConfig
 
-from Heartbeat import Heartbeat
-from Register import Register
-from ActionQueue import ActionQueue
-from FileCache import FileCache
-from NetUtil import NetUtil
-from LiveStatus import LiveStatus
-from AlertSchedulerHandler import AlertSchedulerHandler
-from ClusterConfiguration import  ClusterConfiguration
-from HeartbeatHandlers import HeartbeatStopHandlers, bind_signal_handlers
+from ambari_agent.Heartbeat import Heartbeat
+from ambari_agent.Register import Register
+from ambari_agent.ActionQueue import ActionQueue
+from ambari_agent.FileCache import FileCache
+from ambari_agent.NetUtil import NetUtil
+from ambari_agent.LiveStatus import LiveStatus
+from ambari_agent.AlertSchedulerHandler import AlertSchedulerHandler
+from ambari_agent.ClusterConfiguration import  ClusterConfiguration
+from ambari_agent.HeartbeatHandlers import HeartbeatStopHandlers, bind_signal_handlers
 
 logger = logging.getLogger()
 
