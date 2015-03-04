@@ -381,6 +381,9 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       mountPoints[mountPoint["mountpoint"]] = to_number(mountPoint["available"])
     mountPoint = getMountPointForDir(dir, mountPoints.keys())
 
+    if not mountPoints:
+      return self.getErrorItem("No disk info found on host {0}", hostInfo["host_name"])
+
     if mountPoints[mountPoint] < reqiuredDiskSpace:
       msg = "Ambari Metrics disk space requirements not met. \n" \
             "Recommended disk space for partition {0} is {1}G"
