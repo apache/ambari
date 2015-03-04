@@ -346,7 +346,11 @@ public class MasterHostResolver {
 
       return jmxBeans.get("beans").get(0).get(attributeName);
     } catch (Exception e) {
-      LOG.info("Could not load JMX from {}/{} from {}", beanName, attributeName, hostname, e);
+      if (LOG.isDebugEnabled()) {
+        LOG.info("Could not load JMX from {}/{} from {}", beanName, attributeName, hostname, e);
+      } else {
+        LOG.info("Could not load JMX from {}/{} from {}", beanName, attributeName, hostname);
+      }
     }
 
     return null;
