@@ -31,11 +31,32 @@ limitations under the License.
   <packaging>jar</packaging>
 
   <properties>
-    <storm.version>0.9.3.2.2.1.0-2341</storm.version>
+    <storm.version>0.9.3</storm.version>
   </properties>
 
   <build>
     <plugins>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <configuration>
+              <descriptors>
+                <descriptor>src/main/assemblies/jar-with-common.xml</descriptor>
+              </descriptors>
+              <attach>false</attach>
+              <tarLongFileMode>gnu</tarLongFileMode>
+              <appendAssemblyId>false</appendAssemblyId>
+              <finalName>${project.artifactId}-with-common-${project.version}</finalName>
+            </configuration>
+            <id>build-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.0</version>
@@ -77,58 +98,6 @@ limitations under the License.
             <phase>none</phase>
           </execution>
         </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>2.2</version>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <outputFile>${project.build.directory}/${project.artifactId}-with-common-${project.version}.jar</outputFile>
-          <minimizeJar>false</minimizeJar>
-          <keepDependenciesWithProvidedScope>true</keepDependenciesWithProvidedScope>
-          <artifactSet>
-            <includes>
-              <include>org.apache.ambari:ambari-metrics-common</include>
-              <include>org.codehaus.jackson:jackson-mapper-asl</include>
-              <include>org.codehaus.jackson:jackson-core-asl</include>
-              <include>org.codehaus.jackson:jackson-xc</include>
-              <include>org.apache.hadoop:hadoop-annotations</include>
-              <include>commons-httpclient:commons-httpclient</include>
-              <include>commons-logging:commons-logging</include>
-              <include>commons-lang:commons-lang</include>
-            </includes>
-          </artifactSet>
-          <relocations>
-            <relocation>
-              <pattern>org.apache.commons.logging</pattern>
-              <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.commons.logging</shadedPattern>
-            </relocation>
-            <relocation>
-              <pattern>org.apache.commons.httpclient</pattern>
-              <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.commons.httpclient</shadedPattern>
-            </relocation>
-            <relocation>
-              <pattern>org.apache.commons.lang</pattern>
-              <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.commons.lang</shadedPattern>
-            </relocation>
-            <relocation>
-              <pattern>org.apache.hadoop.classification</pattern>
-              <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.hadoop.classification</shadedPattern>
-            </relocation>
-            <relocation>
-              <pattern>org.codehaus.jackson</pattern>
-              <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.jackson</shadedPattern>
-            </relocation>
-          </relocations>
-        </configuration>
       </plugin>
     </plugins>
   </build>
