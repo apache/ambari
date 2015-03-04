@@ -205,10 +205,10 @@ public class KerberosHelper {
 
     if (securityType == SecurityType.KERBEROS) {
       LOG.info("Configuring Kerberos for realm {} on cluster, {}", kerberosDetails.getDefaultRealm(), cluster.getClusterName());
-      requestStageContainer = handle(cluster, kerberosDetails, null, null, requestStageContainer, new EnableKerberosHandler());
+      requestStageContainer = handle(cluster, kerberosDetails, null, null, null, requestStageContainer, new EnableKerberosHandler());
     } else if (securityType == SecurityType.NONE) {
       LOG.info("Disabling Kerberos from cluster, {}", cluster.getClusterName());
-      requestStageContainer = handle(cluster, kerberosDetails, null, null, requestStageContainer, new DisableKerberosHandler());
+      requestStageContainer = handle(cluster, kerberosDetails, null, null, null, requestStageContainer, new DisableKerberosHandler());
     } else {
       throw new AmbariException(String.format("Unexpected security type value: %s", securityType.name()));
     }
@@ -248,10 +248,10 @@ public class KerberosHelper {
               }
 
               if ("true".equalsIgnoreCase(value) || "all".equalsIgnoreCase(value)) {
-                requestStageContainer = handle(cluster, getKerberosDetails(cluster), null, null,
+                requestStageContainer = handle(cluster, getKerberosDetails(cluster), null, null, null,
                     requestStageContainer, new CreatePrincipalsAndKeytabsHandler(true));
               } else if ("missing".equalsIgnoreCase(value)) {
-                requestStageContainer = handle(cluster, getKerberosDetails(cluster), null, null,
+                requestStageContainer = handle(cluster, getKerberosDetails(cluster), null, null, null,
                     requestStageContainer, new CreatePrincipalsAndKeytabsHandler(false));
               } else {
                 throw new AmbariException(String.format("Unexpected directive value: %s", value));
@@ -269,6 +269,7 @@ public class KerberosHelper {
     return requestStageContainer;
   }
 
+
   /**
    * Ensures the set of filtered principals and keytabs exist on the cluster.
    * <p/>
@@ -283,27 +284,35 @@ public class KerberosHelper {
    * It is expected tht the "kerberos-env" configuration type is available.   It is used to obtain
    * information about the Kerberos configuration, generally specific to the KDC being used.
    *
-   * @param cluster                the relevant Cluster
-   * @param serviceComponentFilter a Map of service names to component names indicating the relevant
-   *                               set of services and components - if null, no filter is relevant;
-   *                               if empty, the filter indicates no relevant services or components
-   * @param identityFilter         a Collection of identity names indicating the relevant identities -
-   *                               if null, no filter is relevant; if empty, the filter indicates no
-   *                               relevant identities
-   * @param requestStageContainer  a RequestStageContainer to place generated stages, if needed -
-   *                               if null a new RequestStageContainer will be created.
+   * @param cluster                        the relevant Cluster
+   * @param serviceComponentFilter         a Map of service names to component names indicating the
+   *                                       relevant set of services and components - if null, no
+   *                                       filter is relevant; if empty, the filter indicates no
+   *                                       relevant services or components
+   * @param identityFilter                 a Collection of identity names indicating the relevant
+   *                                       identities - if null, no filter is relevant; if empty,
+   *                                       the filter indicates no relevant identities
+   * @param hostsToForceKerberosOperations a set of host names on which it is expected that the
+   *                                       Kerberos client is or will be in the INSTALLED state by
+   *                                       the time the operations targeted for them are to be
+   *                                       executed - if empty or null, this no hosts will be
+   *                                       "forced"
+   * @param requestStageContainer          a RequestStageContainer to place generated stages, if
+   *                                       needed - if null a new RequestStageContainer will be
+   *                                       created.
    * @return the updated or a new RequestStageContainer containing the stages that need to be
    * executed to complete this task; or null if no stages need to be executed.
    * @throws AmbariException
    * @throws KerberosOperationException
    * @throws KerberosInvalidConfigurationException if an issue occurs trying to get the
-   * Kerberos-specific configuration details
+   *                                               Kerberos-specific configuration details
    */
   public RequestStageContainer ensureIdentities(Cluster cluster, Map<String, ? extends Collection<String>> serviceComponentFilter,
-                                                Collection<String> identityFilter, RequestStageContainer requestStageContainer)
+                                                Collection<String> identityFilter, Set<String> hostsToForceKerberosOperations,
+                                                RequestStageContainer requestStageContainer)
       throws AmbariException, KerberosOperationException {
     return handle(cluster, getKerberosDetails(cluster), serviceComponentFilter, identityFilter,
-        requestStageContainer, new CreatePrincipalsAndKeytabsHandler(false));
+        hostsToForceKerberosOperations, requestStageContainer, new CreatePrincipalsAndKeytabsHandler(false));
  }
 
   /**
@@ -339,7 +348,7 @@ public class KerberosHelper {
   public RequestStageContainer deleteIdentities(Cluster cluster, Map<String, ? extends Collection<String>> serviceComponentFilter,
                                                 Collection<String> identityFilter, RequestStageContainer requestStageContainer)
       throws AmbariException, KerberosOperationException {
-    return handle(cluster, getKerberosDetails(cluster), serviceComponentFilter, identityFilter,
+    return handle(cluster, getKerberosDetails(cluster), serviceComponentFilter, identityFilter, null,
         requestStageContainer, new DeletePrincipalsAndKeytabsHandler());
   }
 
@@ -642,6 +651,11 @@ public class KerberosHelper {
    *                               relevant identities
    * @param requestStageContainer  a RequestStageContainer to place generated stages, if needed -
    *                               if null a new RequestStageContainer will be created.
+   * @param hostsToForceKerberosOperations a set of host names on which it is expected that the
+   *                                       Kerberos client is or will be in the INSTALLED state by
+   *                                       the time the operations targeted for them are to be
+   *                                       executed - if empty or null, this no hosts will be
+   *                                       "forced"
    * @param handler                a Handler to use to provide guidance and set up stages
    *                               to perform the work needed to complete the relative action
    * @return the updated or a new RequestStageContainer containing the stages that need to be
@@ -655,8 +669,10 @@ public class KerberosHelper {
                                        KerberosDetails kerberosDetails,
                                        Map<String, ? extends Collection<String>> serviceComponentFilter,
                                        Collection<String> identityFilter,
+                                       Set<String> hostsToForceKerberosOperations,
                                        RequestStageContainer requestStageContainer,
-                                       Handler handler) throws AmbariException, KerberosOperationException {
+                                       Handler handler)
+      throws AmbariException, KerberosOperationException {
 
     Map<String, Service> services = cluster.getServices();
 
@@ -676,6 +692,12 @@ public class KerberosHelper {
         // components in the INSTALLED state and add them to the hostsWithValidKerberosClient Set.
         // This is needed to help determine which hosts to perform actions for and create tasks for.
         Set<String> hostsWithValidKerberosClient = new HashSet<String>();
+
+        // Ensure that that hosts that should be assumed to be in the correct state when needed are
+        // in the hostsWithValidKerberosClient collection.
+        if(hostsToForceKerberosOperations != null) {
+          hostsWithValidKerberosClient.addAll(hostsToForceKerberosOperations);
+        }
 
         // Create a temporary directory to store metadata needed to complete this task.  Information
         // such as which principals and keytabs files to create as well as what configurations need
