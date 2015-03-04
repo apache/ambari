@@ -39,6 +39,7 @@ from resource_management.libraries.functions.version_select_util import get_comp
 from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.script.config_dictionary import ConfigDictionary, UnknownConfiguration
+from resource_management.core.resources.system import Execute
 
 if OSCheck.is_windows_family():
   from resource_management.libraries.functions.install_hdp_msi import install_windows_msi
@@ -60,7 +61,7 @@ USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEV
 
 _PASSWORD_MAP = {"/configurations/cluster-env/hadoop.user.name":"/configurations/cluster-env/hadoop.user.password"}
 
-def get_path_form_configuration(name, configuration):
+def get_path_from_configuration(name, configuration):
   subdicts = filter(None, name.split('/'))
 
   for x in subdicts:
@@ -192,14 +193,14 @@ class Script(object):
       reload_windows_env()
 
     try:
-      with open(self.command_data_file, "r") as f:
+      with open(self.command_data_file) as f:
         pass
         Script.config = ConfigDictionary(json.load(f))
-        #load passwords here(used on windows to impersonate different users)
+        # load passwords here(used on windows to impersonate different users)
         Script.passwords = {}
         for k, v in _PASSWORD_MAP.iteritems():
-          if get_path_form_configuration(k,Script.config) and get_path_form_configuration(v, Script.config):
-            Script.passwords[get_path_form_configuration(k,Script.config)] = get_path_form_configuration(v, Script.config)
+          if get_path_from_configuration(k, Script.config) and get_path_from_configuration(v, Script.config):
+            Script.passwords[get_path_from_configuration(k, Script.config)] = get_path_from_configuration(v, Script.config)
 
     except IOError:
       logger.exception("Can not read json file with command parameters: ")
@@ -211,6 +212,8 @@ class Script(object):
       with Environment(self.basedir, tmp_dir=Script.tmp_dir) as env:
         env.config.download_path = Script.tmp_dir
         method(env)
+        if command_name == "install":
+          self.set_version()
     except ClientComponentHasNoStatus or ComponentIsNotRunning:
       # Support of component status checks.
       # Non-zero exit code is interpreted as an INSTALLED status of a component
@@ -293,10 +296,10 @@ class Script(object):
                           config["hostLevelParams"]["agentCacheDir"], "hdp.msi", self.get_password("hadoop"),
                           str(config['hostLevelParams']['stack_version']))
       reload_windows_env()
-    # RepoInstaller.remove_repos(config)
     pass
 
-  def fail_with_error(self, message):
+  @staticmethod
+  def fail_with_error(message):
     """
     Prints error message and exits with non-zero exit code
     """
@@ -331,7 +334,7 @@ class Script(object):
     """
     config = self.get_config()
     componentCategory = None
-    try :
+    try:
       componentCategory = config['roleParams']['component_category']
     except KeyError:
       pass
@@ -462,3 +465,18 @@ class Script(object):
       archive_dir(output_filename, conf_tmp_dir)
     finally:
       Directory(conf_tmp_dir, action="delete")
+
+  def set_version(self):
+    from resource_management.libraries.functions.default import default
+    stack_name = default("/hostLevelParams/stack_name", None)
+    version = default("/commandParams/version", None)
+    stack_version_unformatted = str(default("/hostLevelParams/stack_version", ""))
+    hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+    stack_to_component = self.get_stack_to_component()
+    if stack_to_component:
+      component_name = stack_to_component[stack_name] if stack_name in stack_to_component else None
+      if component_name and stack_name and version and \
+              compare_versions(format_hdp_stack_version(hdp_stack_version), '2.2.0.0') >= 0:
+        Execute("/usr/bin/hdp-select set {component_name} {version}".format(
+            component_name=component_name, version=version))
+
