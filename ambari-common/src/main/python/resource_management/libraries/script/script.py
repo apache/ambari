@@ -110,7 +110,12 @@ class Script(object):
     # version is only set in a specific way and should not be carried 
     if "version" in Script.structuredOut:
       del Script.structuredOut["version"]
-  
+    # reset security issues and errors found on previous runs
+    if "securityIssuesFound" in Script.structuredOut:
+      del Script.structuredOut["securityIssuesFound"]
+    if "securityStateErrorInfo" in Script.structuredOut:
+      del Script.structuredOut["securityStateErrorInfo"]
+
   def put_structured_out(self, sout):
     curr_content = Script.structuredOut.copy()
     Script.structuredOut.update(sout)
