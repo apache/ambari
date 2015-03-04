@@ -36,6 +36,11 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
   isSubmitDisabled: true,
   isBackButtonDisabled: true,
   stages: [],
+  /**
+   * List of statuses that inform about the end of request progress.
+   * @type {String[]}
+   */
+  completedStatuses: ['COMPLETED', 'FAILED', 'TIMEDOUT', 'ABORTED'],
   currentPageRequestId: null,
   isSingleRequestPage: false,
   isCommandLevelRetry: function () {
@@ -207,12 +212,12 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
         + tasksInCurrentStage.filterProperty('Tasks.status', 'TIMEDOUT').length;
       var queuedActions = tasksInCurrentStage.filterProperty('Tasks.status', 'QUEUED').length;
       var inProgressActions = tasksInCurrentStage.filterProperty('Tasks.status', 'IN_PROGRESS').length;
-      var progress = completedActions == this.get('tasks.length') ? 100 : Math.floor(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / tasksInCurrentStage.length * 100);
+      var progress = Math.floor(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / tasksInCurrentStage.length * 100);
       this.get('tasks').findProperty('id', currentTaskId).set('progress', progress);
     }
 
-    // start polling if current step status not completed or failed
-    if (!(this.get('status') === 'COMPLETED' && this.get('status') === 'FAILED')) {
+    // start polling if current request not completed
+    if (!(this.get('completedStatuses').contains(this.get('status')))) {
       window.setTimeout(function () {
         self.doPollingForPageRequest();
       }, self.POLL_INTERVAL);
