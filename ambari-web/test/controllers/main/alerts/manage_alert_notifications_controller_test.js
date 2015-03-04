@@ -573,7 +573,7 @@ describe('App.ManageAlertNotificationsController', function () {
 
       controller.createAlertNotification();
       expect($.ajax.calledOnce).to.be.true;
-      expect($.ajax.args[0][0].url.contains('overwriteExisting=true')).to.be.false;
+      expect($.ajax.args[0][0].url.contains('overwrite_existing=true')).to.be.false;
     });
 
   });
