@@ -1400,7 +1400,7 @@ describe('App.WizardStep8Controller', function () {
         expect(installerStep8Controller.get('ajaxRequestsQueue.queue.length')).to.equal(1);
         installerStep8Controller.get('ajaxRequestsQueue').runNextRequest();
         expect($.ajax.calledOnce).to.be.true;
-        expect($.ajax.args[0][0].url.contains('overwriteExisting=true')).to.be.true;
+        expect($.ajax.args[0][0].url.contains('overwrite_existing=true')).to.be.true;
       });
 
       it('sent data should be valid', function () {

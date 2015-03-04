@@ -1853,7 +1853,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     this.addRequestToAjaxQueue({
       name: 'alerts.create_alert_notification',
       data: {
-        urlParams: 'overwriteExisting=true',
+        urlParams: 'overwrite_existing=true',
         data: apiObject
       }
     });
