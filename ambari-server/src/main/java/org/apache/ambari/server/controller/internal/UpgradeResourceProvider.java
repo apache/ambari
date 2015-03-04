@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -131,7 +132,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       Arrays.asList(UPGRADE_REQUEST_ID, UPGRADE_CLUSTER_NAME));
   private static final Set<String> PROPERTY_IDS = new HashSet<String>();
 
-  private static final String COMMAND_PARAM_VERSION = "version";
+  private static final String COMMAND_PARAM_VERSION = VERSION;
   private static final String COMMAND_PARAM_CLUSTER_NAME = "clusterName";
   private static final String COMMAND_PARAM_DIRECTION = "upgrade_direction";
   private static final String COMMAND_PARAM_RESTART_TYPE = "restart_type";

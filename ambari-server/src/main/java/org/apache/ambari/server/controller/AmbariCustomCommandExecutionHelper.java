@@ -63,6 +63,7 @@ import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.metadata.ActionMetadata;
+import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.CommandScriptDefinition;
@@ -371,6 +372,11 @@ public class AmbariCustomCommandExecutionHelper {
           serviceInfo.getServicePackageFolder());
 
       commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
+
+      ClusterVersionEntity currentClusterVersion = cluster.getCurrentClusterVersion();
+      if (currentClusterVersion != null) {
+       commandParams.put(KeyNames.VERSION, currentClusterVersion.getRepositoryVersion().getVersion());
+      }
 
       execCmd.setCommandParams(commandParams);
 

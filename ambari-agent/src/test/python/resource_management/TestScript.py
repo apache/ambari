@@ -111,6 +111,49 @@ class TestScript(TestCase):
     self.assertEqual(Script.structuredOut, {"1": "3", "2": "2"})
 
 
+  @patch.object(Script, 'get_stack_to_component')
+  def test_set_version(self, get_stack_to_component_mock):
+    good_config = {
+      'hostLevelParams': {
+        'stack_name': "HDP",
+        'stack_version': "2.2"
+      },
+      'commandParams': {
+        'version': "2.2.0.0-2041"
+      }
+    }
+    get_stack_to_component_mock.return_value = {"HDP": "kafka-broker"}
+
+    # Testing default workflow
+    with Environment(".", test_mode=True) as env:
+      script = Script()
+      Script.config = good_config
+      script.set_version()
+    resource_dump = pprint.pformat(env.resource_list)
+    self.assertEquals(resource_dump, '[u"Execute[\'/usr/bin/hdp-select set kafka-broker 2.2.0.0-2041\']"]')
+
+    # Component does not provide mapping
+    get_stack_to_component_mock.return_value = {}
+
+    with Environment(".", test_mode=True) as env:
+      script = Script()
+      Script.config = good_config
+      script.set_version()
+    resource_dump = pprint.pformat(env.resource_list)
+    self.assertEquals(resource_dump, '[]')
+
+    # Component provided mapping, but configuration is not complete (testing fallback)
+    get_stack_to_component_mock.return_value = {"HDP": "kafka-broker"}
+    bad_config = {}
+
+    with Environment(".", test_mode=True) as env:
+      script = Script()
+      Script.config = bad_config
+      script.set_version()
+    resource_dump = pprint.pformat(env.resource_list)
+    self.assertEquals(resource_dump, '[]')
+
+
   def tearDown(self):
     # enable stdout
     sys.stdout = sys.__stdout__
