@@ -86,9 +86,11 @@ App.TableView = Em.View.extend(App.UserPref, {
           self.initFilters();
         });
       } else {
-        this.getUserPref(this.displayLengthKey()).complete(function () {
-          self.initFilters();
-        });
+        if (!$.mocho) {
+          this.getUserPref(this.displayLengthKey()).complete(function () {
+            self.initFilters();
+          });
+        }
       }
     }
   },

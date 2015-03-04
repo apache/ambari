@@ -414,16 +414,31 @@ describe('App.MainDashboardWidgetsView', function () {
   });
 
   describe("#getUserPrefSuccessCallback()", function () {
+
     it("response is null", function () {
       view.set('currentPrefObject', null);
       view.getUserPrefSuccessCallback(null, {}, {});
       expect(view.get('currentPrefObject')).to.be.null;
     });
+
     it("response is correct", function () {
       view.set('currentPrefObject', null);
       view.getUserPrefSuccessCallback({}, {}, {});
       expect(view.get('currentPrefObject')).to.eql({});
     });
+
+    it('should update missing thresholds', function () {
+
+      view.set('currentPrefObject', null);
+      view.getUserPrefSuccessCallback({
+        threshold: {
+          17: []
+        }
+      }, {}, {});
+      expect(view.get('currentPrefObject.threshold')['17']).to.eql([70, 90]);
+
+    });
+
   });
 
   describe("#resetAllWidgets()", function () {

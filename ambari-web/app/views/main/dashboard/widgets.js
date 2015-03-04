@@ -477,6 +477,15 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, {
   getUserPrefSuccessCallback: function (response, request, data) {
     if (response) {
       console.log('Got persist value from server with key ' + data.key + '. Value is: ' + response);
+      var initPrefObject = this.get('initPrefObject');
+      initPrefObject.get('threshold');
+      for(var k in response.threshold) {
+        if (response.threshold.hasOwnProperty(k)) {
+          if (response.threshold[k].length === 0 && initPrefObject.get('threshold')[k] && initPrefObject.get('threshold')[k].length) {
+            response.threshold[k] = initPrefObject.get('threshold')[k];
+          }
+        }
+      }
       this.set('currentPrefObject', response);
     }
   },
