@@ -38,8 +38,14 @@ def storm():
             recursive=True
   )
 
-  Directory([params.pid_dir, params.local_dir, params.conf_dir],
+  Directory([params.pid_dir, params.local_dir],
             owner=params.storm_user,
+            group=params.user_group,
+            recursive=True,
+            cd_access="a",
+  )
+
+  Directory(params.conf_dir,
             group=params.user_group,
             recursive=True,
             cd_access="a",
