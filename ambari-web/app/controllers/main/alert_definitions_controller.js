@@ -196,6 +196,15 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
           this.set('filteredContent', this.get('content'));
         }.observes('content.length'),
 
+        refreshTooltips: function () {
+          this.ensureTooltip();
+        }.observes('contents.length'),
+
+        ensureTooltip: function () {
+          Em.run.next(this, function () {
+            App.tooltip($(".timeago"));
+          });
+        },
         /**
          * Router transition to alert definition details page
          * @param event
@@ -232,9 +241,7 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
 
         didInsertElement: function () {
           this.filter();
-          Em.run.next(this, function () {
-            App.tooltip($(".timeago"));
-          });
+          this.ensureTooltip();
         }
       })
     });
