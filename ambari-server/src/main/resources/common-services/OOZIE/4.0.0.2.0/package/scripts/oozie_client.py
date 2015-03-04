@@ -24,7 +24,7 @@ from resource_management import *
 from oozie import oozie
 from oozie_service import oozie_service
 
-         
+
 class OozieClient(Script):
 
   def get_stack_to_component(self):
@@ -57,6 +57,16 @@ class OozieClient(Script):
     Logger.info("Executing Oozie Client Rolling Upgrade pre-restart")
     Execute(format("hdp-select set oozie-client {version}"))
 
-    
+  # We substitute some configs (oozie.authentication.kerberos.principal) before generation (see oozie.py and params.py).
+  # This function returns changed configs (it's used for config generation before config download)
+  def generate_configs_get_xml_file_content(self, filename, dictionary):
+    if dictionary == 'oozie-site':
+      import params
+      config = self.get_config()
+      return {'configurations': params.oozie_site,
+              'configuration_attributes': config['configuration_attributes'][dictionary]}
+    else:
+      return super(OozieClient, self).generate_configs_get_xml_file_content(filename, dictionary)
+
 if __name__ == "__main__":
   OozieClient().execute()
