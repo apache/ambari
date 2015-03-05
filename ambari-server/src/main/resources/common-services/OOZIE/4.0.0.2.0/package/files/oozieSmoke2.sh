@@ -29,7 +29,7 @@ export smoke_test_user=$6
 export security_enabled=$7
 export smoke_user_keytab=$8
 export kinit_path_local=$9
-export smokeuser_principal=$10
+export smokeuser_principal=${10}
 
 function getValueFromField {
   xmllint $1 | grep "<name>$2</name>" -C 2 | grep '<value>' | cut -d ">" -f2 | cut -d "<" -f1
