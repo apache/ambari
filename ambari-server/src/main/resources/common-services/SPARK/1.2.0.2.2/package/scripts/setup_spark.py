@@ -99,7 +99,7 @@ def get_hive_config():
     hive_conf_dict['hive.metastore.kerberos.principal'] = params.config['configurations']['hive-site']['hive.metastore.kerberos.principal']
     hive_conf_dict['hive.server2.authentication.kerberos.principal'] = params.config['configurations']['hive-site']['hive.server2.authentication.kerberos.principal']
     hive_conf_dict['hive.server2.authentication.kerberos.keytab'] =  params.config['configurations']['hive-site']['hive.server2.authentication.kerberos.keytab']
-    hive_conf_dict['hive.security.authorization.enabled']=  str(params.config['configurations']['hive-site']['hive.security.authorization.enabled']).lower()
+    hive_conf_dict['hive.security.authorization.enabled'] = params.spark_hive_sec_authorization_enabled
     hive_conf_dict['hive.server2.enable.doAs'] =  str(params.config['configurations']['hive-site']['hive.server2.enable.doAs']).lower()
 
   return hive_conf_dict

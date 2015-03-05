@@ -90,6 +90,7 @@ else:
   spark_history_server_host = "localhost"
 
 # spark-defaults params
+spark_hive_sec_authorization_enabled = "false"
 spark_yarn_historyServer_address = default(spark_history_server_host, "localhost")
 
 spark_yarn_applicationMaster_waitTries = default(
