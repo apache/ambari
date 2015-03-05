@@ -279,6 +279,13 @@
     <description>List of Oozie services</description>
   </property>
   <property>
+    <name>oozie.service.HadoopAccessorService.kerberos.enabled</name>
+    <value>false</value>
+    <description>
+       Indicates if Oozie is configured to use Kerberos.
+    </description>
+  </property>
+  <property>
     <name>oozie.service.URIHandlerService.uri.handlers</name>
     <value>org.apache.oozie.dependency.FSURIHandler,org.apache.oozie.dependency.HCatURIHandler</value>
     <description>
