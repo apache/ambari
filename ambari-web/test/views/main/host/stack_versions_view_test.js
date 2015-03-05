@@ -21,7 +21,11 @@ var App = require('app');
 describe('App.MainHostStackVersionsView', function() {
   var view = App.MainHostStackVersionsView.create({
     filteredCount: 0,
-    totalCount: 0
+    totalCount: 0,
+    host: {
+      id: 1,
+      stackVersions: []
+    }
   });
 
   describe("#host", function () {
@@ -39,9 +43,7 @@ describe('App.MainHostStackVersionsView', function() {
     });
     it("", function () {
       view.propertyDidChange('host');
-      expect(view.get('host')).to.eql(Em.Object.create({
-        id: 1
-      }));
+      expect(view.get('host.id')).to.equal(1);
     });
   });
 

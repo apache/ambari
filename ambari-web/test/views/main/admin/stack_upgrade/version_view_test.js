@@ -33,10 +33,12 @@ describe('App.mainAdminStackVersionsView', function () {
   describe("#filterBy()", function () {
     var versions = [
       Em.Object.create({
-        status: "INIT"
+        status: "INIT",
+        repositoryVersion: "2.2.1.1"
       }),
       Em.Object.create({
-        status: "INSTALLING"
+        status: "INSTALLING",
+        repositoryVersion: "2.2.1.1"
       }),
       Em.Object.create({
         status: "INSTALLED",
@@ -47,19 +49,24 @@ describe('App.mainAdminStackVersionsView', function () {
         repositoryVersion: "2.2.2.1"
       }),
       Em.Object.create({
-        status: "INSTALL_FAILED"
+        status: "INSTALL_FAILED",
+        repositoryVersion: "2.2.1.1"
       }),
       Em.Object.create({
-        status: "OUT_OF_SYNC"
+        status: "OUT_OF_SYNC",
+        repositoryVersion: "2.2.1.1"
       }),
       Em.Object.create({
-        status: "UPGRADING"
+        status: "UPGRADING",
+        repositoryVersion: "2.2.1.1"
       }),
       Em.Object.create({
-        status: "UPGRADED"
+        status: "UPGRADED",
+        repositoryVersion: "2.2.1.1"
       }),
       Em.Object.create({
-        status: "CURRENT"
+        status: "CURRENT",
+        repositoryVersion: "2.2.1.1"
       })
     ];
 
@@ -70,33 +77,36 @@ describe('App.mainAdminStackVersionsView', function () {
         }),
         filteredVersions: [
           Em.Object.create({
-            status: "INIT"
+            status: "INIT",
+            repositoryVersion: "2.2.1.1"
           }),
           Em.Object.create({
-            status: "INSTALLING"
-          }),
-          Em.Object.create({
-            status: "INSTALLED",
-            repositoryVersion: "2.2.0.1"
+            status: "INSTALLING",
+            repositoryVersion: "2.2.1.1"
           }),
           Em.Object.create({
             status: "INSTALLED",
             repositoryVersion: "2.2.2.1"
           }),
           Em.Object.create({
-            status: "INSTALL_FAILED"
+            status: "INSTALL_FAILED",
+            repositoryVersion: "2.2.1.1"
           }),
           Em.Object.create({
-            status: "OUT_OF_SYNC"
+            status: "OUT_OF_SYNC",
+            repositoryVersion: "2.2.1.1"
           }),
           Em.Object.create({
-            status: "UPGRADING"
+            status: "UPGRADING",
+            repositoryVersion: "2.2.1.1"
           }),
           Em.Object.create({
-            status: "UPGRADED"
+            status: "UPGRADED",
+            repositoryVersion: "2.2.1.1"
           }),
           Em.Object.create({
-            status: "CURRENT"
+            status: "CURRENT",
+            repositoryVersion: "2.2.1.1"
           })
         ]
       },
@@ -106,16 +116,20 @@ describe('App.mainAdminStackVersionsView', function () {
         }),
         filteredVersions: [
           Em.Object.create({
-            status: "INIT"
+            status: "INIT",
+            repositoryVersion: "2.2.1.1"
           }),
           Em.Object.create({
-            status: "INSTALLING"
+            status: "INSTALLING",
+            repositoryVersion: "2.2.1.1"
           }),
           Em.Object.create({
-            status: "INSTALL_FAILED"
+            status: "INSTALL_FAILED",
+            repositoryVersion: "2.2.1.1"
           }),
           Em.Object.create({
-            status: "OUT_OF_SYNC"
+            status: "OUT_OF_SYNC",
+            repositoryVersion: "2.2.1.1"
           })
         ]
       },
@@ -124,10 +138,7 @@ describe('App.mainAdminStackVersionsView', function () {
           value: 'INSTALLED'
         }),
         filteredVersions: [
-          Em.Object.create({
-            status: "INSTALLED",
-            repositoryVersion: "2.2.0.1"
-          })
+
         ]
       },
       {
@@ -147,7 +158,8 @@ describe('App.mainAdminStackVersionsView', function () {
         }),
         filteredVersions: [
           Em.Object.create({
-            status: "CURRENT"
+            status: "CURRENT",
+            repositoryVersion: "2.2.1.1"
           })
         ]
       },
@@ -157,7 +169,8 @@ describe('App.mainAdminStackVersionsView', function () {
         }),
         filteredVersions: [
           Em.Object.create({
-            status: "UPGRADING"
+            status: "UPGRADING",
+            repositoryVersion: "2.2.1.1"
           })
         ]
       },
@@ -167,7 +180,8 @@ describe('App.mainAdminStackVersionsView', function () {
         }),
         filteredVersions: [
           Em.Object.create({
-            status: "UPGRADED"
+            status: "UPGRADED",
+            repositoryVersion: "2.2.1.1"
           })
         ]
       }

@@ -64,6 +64,7 @@ App.enableExperimental = false;
 App.supports = {
   preUpgradeCheck: true,
   stackUpgrade: true,
+  displayOlderVersions: false,
   autoRollbackHA: false,
   alwaysEnableManagedMySQLForHive: false,
   preKerberizeCheck: false,
