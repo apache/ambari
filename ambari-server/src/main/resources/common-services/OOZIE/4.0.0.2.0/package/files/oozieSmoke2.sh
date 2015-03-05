@@ -20,16 +20,17 @@
 #
 #
 
-export oozie_lib_dir=$1
-export oozie_conf_dir=$2
-export oozie_bin_dir=$3
-export hadoop_conf_dir=$4
-export hadoop_bin_dir=$5
-export smoke_test_user=$6
-export security_enabled=$7
-export smoke_user_keytab=$8
-export kinit_path_local=$9
-export smokeuser_principal=${10}
+export os_family = $1
+export oozie_lib_dir=$2
+export oozie_conf_dir=$3
+export oozie_bin_dir=$4
+export hadoop_conf_dir=$5
+export hadoop_bin_dir=$6
+export smoke_test_user=$7
+export security_enabled=$8
+export smoke_user_keytab=$9
+export kinit_path_local=${10}
+export smokeuser_principal=${11}
 
 function getValueFromField {
   xmllint $1 | grep "<name>$2</name>" -C 2 | grep '<value>' | cut -d ">" -f2 | cut -d "<" -f1
@@ -72,6 +73,14 @@ export OOZIE_SERVER=`getValueFromField ${oozie_conf_dir}/oozie-site.xml oozie.ba
 
 # search for the oozie examples JAR and, if found, store the directory name
 export OOZIE_EXAMPLES_DIR=`find "${oozie_lib_dir}/" -name "oozie-examples.tar.gz" | xargs dirname`
+if [[ -z "$OOZIE_EXAMPLES_DIR" ]] ; then
+  if [ "$os_family" == "ubuntu" ] ; then
+    LIST_PACKAGE_FILES_CMD='dpkg-query -L'
+  else
+    LIST_PACKAGE_FILES_CMD='rpm -ql'
+  fi
+  export OOZIE_EXAMPLES_DIR=`$LIST_PACKAGE_FILES_CMD oozie-client | grep 'oozie-examples.tar.gz$' | xargs dirname`
+fi
 if [[ -z "$OOZIE_EXAMPLES_DIR" ]] ; then
   export OOZIE_EXAMPLES_DIR='/usr/hdp/current/oozie-client/doc/'
 else

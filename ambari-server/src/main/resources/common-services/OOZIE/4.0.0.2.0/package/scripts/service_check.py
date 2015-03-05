@@ -42,11 +42,13 @@ def oozie_smoke_shell_file(file_name):
     content = StaticFile(file_name),
     mode = 0755
   )
-  
+
+  os_family = System.get_instance().os_family
+
   if params.security_enabled:
-    sh_cmd = format("{tmp_dir}/{file_name} {oozie_lib_dir} {conf_dir} {oozie_bin_dir} {hadoop_conf_dir} {hadoop_bin_dir} {smokeuser} {security_enabled} {smokeuser_keytab} {kinit_path_local} {smokeuser_principal}")
+    sh_cmd = format("{tmp_dir}/{file_name} {os_family} {oozie_lib_dir} {conf_dir} {oozie_bin_dir} {hadoop_conf_dir} {hadoop_bin_dir} {smokeuser} {security_enabled} {smokeuser_keytab} {kinit_path_local} {smokeuser_principal}")
   else:
-    sh_cmd = format("{tmp_dir}/{file_name} {oozie_lib_dir} {conf_dir} {oozie_bin_dir} {hadoop_conf_dir} {hadoop_bin_dir} {smokeuser} {security_enabled}")
+    sh_cmd = format("{tmp_dir}/{file_name} {os_family} {oozie_lib_dir} {conf_dir} {oozie_bin_dir} {hadoop_conf_dir} {hadoop_bin_dir} {smokeuser} {security_enabled}")
 
   Execute( format("{tmp_dir}/{file_name}"),
     command   = sh_cmd,
