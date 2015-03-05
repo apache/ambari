@@ -28,7 +28,8 @@ describe('App.upgradeWizardView', function () {
     controller: Em.Object.create({
       upgradeData: Em.Object.create(),
       loadUpgradeData: Em.K,
-      setUpgradeItemStatus: Em.K
+      setUpgradeItemStatus: Em.K,
+      getUpgradeItem: Em.K
     })
   });
   view.removeObserver('App.clusterName', view, 'startPolling');
@@ -40,9 +41,9 @@ describe('App.upgradeWizardView', function () {
       expect(view.get('upgradeGroups')).to.be.empty;
     });
     it("upgradeGroups is valid", function () {
-      view.set('controller.upgradeData.upgradeGroups', [1]);
+      view.set('controller.upgradeData.upgradeGroups', [Em.Object.create()]);
       view.propertyDidChange('upgradeGroups');
-      expect(view.get('upgradeGroups')).to.eql([1]);
+      expect(view.get('upgradeGroups')).to.not.be.empty;
     });
   });
 
@@ -172,6 +173,7 @@ describe('App.upgradeWizardView', function () {
     it("", function () {
       view.continue({context: Em.Object.create({'status': 'HOLDING_FAILED'})});
       expect(view.get('controller').setUpgradeItemStatus.calledWith(Em.Object.create({'status': 'HOLDING_FAILED'}), 'FAILED')).to.be.true;
+      expect(view.get('isDetailsOpened')).to.be.false;
     });
   });
 
@@ -199,6 +201,7 @@ describe('App.upgradeWizardView', function () {
     it("", function () {
       view.retry({context: Em.Object.create({'status': 'FAILED'})});
       expect(view.get('controller').setUpgradeItemStatus.calledWith(Em.Object.create({'status': 'FAILED'}), 'PENDING')).to.be.true;
+      expect(view.get('isDetailsOpened')).to.be.false;
     });
   });
 
@@ -251,10 +254,10 @@ describe('App.upgradeWizardView', function () {
     });
     it("running item present", function () {
       view.set('activeGroup.upgradeItems', [
-        {status: 'IN_PROGRESS'}
+        Em.Object.create({status: 'IN_PROGRESS'})
       ]);
       view.propertyDidChange('runningItem');
-      expect(view.get('runningItem')).to.be.eql({status: 'IN_PROGRESS'});
+      expect(view.get('runningItem')).to.be.eql(Em.Object.create({status: 'IN_PROGRESS'}));
     });
   });
 
@@ -591,6 +594,54 @@ describe('App.upgradeWizardView', function () {
           expect(view.get('upgradeStatusLabel')).to.equal(test.result);
         });
       });
+  });
+
+  describe("#doUpgradeItemPolling()", function () {
+    beforeEach(function () {
+      sinon.stub(view.get('controller'), 'getUpgradeItem', function () {
+        return {
+          complete: function (callback) {
+            callback();
+          }
+        }
+      });
+      sinon.spy(view, 'doUpgradeItemPolling');
+      this.clock = sinon.useFakeTimers();
+    });
+    afterEach(function () {
+      view.get('controller').getUpgradeItem.restore();
+      view.doUpgradeItemPolling.restore();
+      this.clock.restore();
+    });
+    it("running item details", function () {
+      view.reopen({
+        runningItem: {},
+        failedItem: null
+      });
+      view.set('isDetailsOpened', true);
+      //doUpgradeItemPolling triggered by observer
+      expect(view.get('controller').getUpgradeItem.calledOnce).to.be.true;
+      this.clock.tick(App.bgOperationsUpdateInterval);
+      expect(view.doUpgradeItemPolling.calledTwice).to.be.true;
+    });
+    it("failed item details", function () {
+      view.reopen({
+        failedItem: {},
+        runningItem: null
+      });
+      view.set('isDetailsOpened', true);
+      view.doUpgradeItemPolling();
+      expect(view.get('controller').getUpgradeItem.calledOnce).to.be.true;
+      this.clock.tick(App.bgOperationsUpdateInterval);
+      expect(view.doUpgradeItemPolling.calledTwice).to.be.true;
+    });
+    it("details not opened", function () {
+      view.set('isDetailsOpened', false);
+      //doUpgradeItemPolling triggered by observer
+      expect(view.get('controller').getUpgradeItem.calledOnce).to.be.false;
+      this.clock.tick(App.bgOperationsUpdateInterval);
+      expect(view.doUpgradeItemPolling.calledOnce).to.be.true;
+    });
   });
 
 });

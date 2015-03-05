@@ -22,44 +22,48 @@
   </div>
 {{/unless}}
 {{#if view.showContent}}
-  <div class="task-details task-detail-info">
-    <ul class="nav nav-tabs">
-      <li class="active"><a data-toggle="tab" {{bindAttr href="view.logTabIdLink"}}>{{t common.stdout}}</a></li>
-      <li><a {{bindAttr href="view.errorTabIdLInk"}} data-toggle="tab">{{t common.stderr}}</a></li>
-    </ul>
-    <div class="tab-content">
-      <div class="tab-pane active" {{bindAttr id="view.logTabId"}}>
-        <p>{{view.content.host_name}}</p>
-        <div class="row-fluid">
-          <p class="pull-left">{{view.content.output_log}}</p>
-          <div class="manage-controls pull-right">
-            <a title="Click to Copy" {{action copyOutLog view.content target="view"}} class="task-detail-copy">
-              <i class="icon-copy"></i> {{t common.copy}}
-            </a>
-            <a title="Open in New Window" {{action openOutLog target="view"}} class="task-detail-open-dialog">
-              <i class="icon-external-link"></i> {{t common.open}}
-            </a>
+  {{#if view.content}}
+    <div class="task-details task-detail-info">
+      <ul class="nav nav-tabs">
+        <li class="active"><a data-toggle="tab" {{bindAttr href="view.logTabIdLink"}}>{{t common.stdout}}</a></li>
+        <li><a {{bindAttr href="view.errorTabIdLInk"}} data-toggle="tab">{{t common.stderr}}</a></li>
+      </ul>
+      <div class="tab-content">
+        <div class="tab-pane active" {{bindAttr id="view.logTabId"}}>
+          <p>{{view.content.host_name}}</p>
+          <div class="row-fluid">
+            <p class="pull-left">{{view.content.output_log}}</p>
+            <div class="manage-controls pull-right">
+              <a title="Click to Copy" {{action copyOutLog view.content target="view"}} class="task-detail-copy">
+                <i class="icon-copy"></i> {{t common.copy}}
+              </a>
+              <a title="Open in New Window" {{action openOutLog target="view"}} class="task-detail-open-dialog">
+                <i class="icon-external-link"></i> {{t common.open}}
+              </a>
+            </div>
           </div>
+          <pre {{bindAttr class="view.outputLogOpened:hidden :stdout"}}>{{view.content.stdout}}</pre>
+          {{view Ember.TextArea valueBinding="view.content.stdout" classBinding="view.outputLogOpened::hidden" readonly="readonly"}}
         </div>
-        <pre {{bindAttr class="view.outputLogOpened:hidden :stdout"}}>{{view.content.stdout}}</pre>
-        {{view Ember.TextArea valueBinding="view.content.stdout" classBinding="view.outputLogOpened::hidden" readonly="readonly"}}
-      </div>
-      <div class="tab-pane" {{bindAttr id="view.errorTabId"}}>
-        <p>{{view.content.host_name}}</p>
-        <div class="row-fluid">
-          <p class="pull-left">{{view.content.error_log}}</p>
-          <div class="manage-controls pull-right">
-            <a title="Click to Copy" {{action copyErrLog view.content target="view"}} class="task-detail-copy">
-              <i class="icon-copy"></i> {{t common.copy}}
-            </a>
-            <a title="Open in New Window" {{action openErrorLog target="view"}} class="task-detail-open-dialog">
-              <i class="icon-external-link"></i> {{t common.open}}
-            </a>
+        <div class="tab-pane" {{bindAttr id="view.errorTabId"}}>
+          <p>{{view.content.host_name}}</p>
+          <div class="row-fluid">
+            <p class="pull-left">{{view.content.error_log}}</p>
+            <div class="manage-controls pull-right">
+              <a title="Click to Copy" {{action copyErrLog view.content target="view"}} class="task-detail-copy">
+                <i class="icon-copy"></i> {{t common.copy}}
+              </a>
+              <a title="Open in New Window" {{action openErrorLog target="view"}} class="task-detail-open-dialog">
+                <i class="icon-external-link"></i> {{t common.open}}
+              </a>
+            </div>
           </div>
+          <pre {{bindAttr class="view.errorLogOpened:hidden :stderr"}}>{{view.content.stderr}}</pre>
+          {{view Ember.TextArea valueBinding="view.content.stderr" classBinding="view.errorLogOpened::hidden" readonly="readonly"}}
         </div>
-        <pre {{bindAttr class="view.errorLogOpened:hidden :stderr"}}>{{view.content.stderr}}</pre>
-        {{view Ember.TextArea valueBinding="view.content.stderr" classBinding="view.errorLogOpened::hidden" readonly="readonly"}}
       </div>
     </div>
-  </div>
+  {{else}}
+    <div class="spinner"></div>
+  {{/if}}
 {{/if}}

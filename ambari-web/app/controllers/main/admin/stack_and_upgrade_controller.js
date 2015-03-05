@@ -74,6 +74,12 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   wizardStorageProperties: ['upgradeId', 'upgradeVersion', 'currentVersion', 'isDowngrade'],
 
   /**
+   * mutable properties of Upgrade Task
+   * @type {Array}
+   */
+  taskDetailsProperties: ['status', 'stdout', 'stderr', 'error_log', 'host_name', 'output_log'],
+
+  /**
    * path to the mock json
    * @type {String}
    */
@@ -199,10 +205,9 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   updateUpgradeData: function (newData) {
     var oldData = this.get('upgradeData'),
       groupsMap = {},
-      itemsMap = {},
-      tasksMap = {};
+      itemsMap = {};
 
-    if (Em.isNone(oldData)) {
+    if (Em.isNone(oldData) || (newData.upgrade_groups.length !== oldData.upgradeGroups.length)) {
       this.initUpgradeData(newData);
     } else {
       //create entities maps
@@ -241,8 +246,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       var upgradeItems = [];
       newGroup.upgrade_items.forEach(function (item) {
         var oldItem = App.upgradeEntity.create({type: 'ITEM'}, item.UpgradeItem);
-        var tasks = [];
-        oldItem.set('tasks', tasks);
+        oldItem.set('tasks', []);
         upgradeItems.pushObject(oldItem);
       });
       upgradeItems.reverse();
@@ -254,6 +258,54 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       upgradeGroups: upgradeGroups,
       Upgrade: newData.Upgrade
     }));
+  },
+
+  /**
+   * request Upgrade Item and its tasks from server
+   * @return {$.ajax}
+   */
+  getUpgradeItem: function (item) {
+    return App.ajax.send({
+      name: 'admin.upgrade.upgrade_item',
+      sender: this,
+      data: {
+        upgradeId: item.get('request_id'),
+        groupId: item.get('group_id'),
+        stageId: item.get('stage_id')
+      },
+      success: 'getUpgradeItemSuccessCallback'
+    });
+  },
+
+  /**
+   * success callback of <code>getTasks</code>
+   * @param {object} data
+   */
+  getUpgradeItemSuccessCallback: function (data) {
+    this.get('upgradeData.upgradeGroups').forEach(function (group) {
+      if (group.get('group_id') === data.UpgradeItem.group_id) {
+        group.get('upgradeItems').forEach(function (item) {
+          if (item.get('stage_id') === data.UpgradeItem.stage_id) {
+            if (item.get('tasks.length')) {
+              item.set('isTasksLoaded', true);
+              data.tasks.forEach(function (task) {
+                var currentTask = item.get('tasks').findProperty('id', task.Tasks.id);
+                this.get('taskDetailsProperties').forEach(function (property) {
+                  currentTask.set(property, task.Tasks[property]);
+                }, this);
+              }, this);
+            } else {
+              var tasks = [];
+              data.tasks.forEach(function (task) {
+                tasks.pushObject(App.upgradeEntity.create({type: 'TASK'}, task.Tasks));
+              });
+              item.set('tasks', tasks);
+            }
+            item.set('isTasksLoaded', true);
+          }
+        }, this);
+      }
+    }, this);
   },
 
   /**

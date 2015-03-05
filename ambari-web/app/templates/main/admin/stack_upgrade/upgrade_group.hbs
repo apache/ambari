@@ -57,19 +57,20 @@
           </div>
         {{/if}}
       </div>
-    {{/if}}
-    {{#if item.isExpanded}}
 
-      {{#if item.isTasksLoaded}}
-      {{! List of Tasks}}
-        <div class="task-list margin-bottom-5">
-          {{#each task in item.tasks}}
-            {{view App.upgradeTaskView contentBinding="task" tasksBinding="item.tasks"}}
-          {{/each}}
-        </div>
-      {{else}}
-        <div class="spinner"></div>
+      {{#if item.isExpanded}}
+        {{#if item.isTasksLoaded}}
+        {{! List of Tasks}}
+          <div class="task-list margin-bottom-5">
+            {{#each task in item.tasks}}
+              {{view App.upgradeTaskView contentBinding="task" tasksBinding="item.tasks"}}
+            {{/each}}
+          </div>
+        {{else}}
+          <div class="spinner"></div>
+        {{/if}}
       {{/if}}
+
     {{/if}}
   {{/each}}
 </div>

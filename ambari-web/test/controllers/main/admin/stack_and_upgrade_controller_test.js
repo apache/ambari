@@ -185,6 +185,33 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
   });
 
+  describe("#getUpgradeItem()", function() {
+    beforeEach(function () {
+      sinon.stub(App.ajax, 'send', Em.K);
+    });
+    afterEach(function () {
+      App.ajax.send.restore();
+    });
+    it("", function() {
+      var item = Em.Object.create({
+        request_id: 1,
+        group_id: 2,
+        stage_id: 3
+      });
+      controller.getUpgradeItem(item);
+      expect(App.ajax.send.getCall(0).args[0]).to.eql({
+        name: 'admin.upgrade.upgrade_item',
+        sender: controller,
+        data: {
+          upgradeId: 1,
+          groupId: 2,
+          stageId: 3
+        },
+        success: 'getUpgradeItemSuccessCallback'
+      });
+    });
+  });
+
   describe("#openUpgradeDialog()", function () {
     before(function () {
       sinon.stub(App.router, 'transitionTo', Em.K);
