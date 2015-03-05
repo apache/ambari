@@ -153,11 +153,13 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   describe("#loadUpgradeDataSuccessCallback()", function() {
     beforeEach(function () {
       sinon.stub(controller, 'updateUpgradeData', Em.K);
+      sinon.stub(controller, 'setDBProperty', Em.K);
     });
     afterEach(function () {
       controller.updateUpgradeData.restore();
+      controller.setDBProperty.restore();
     });
-    it("", function() {
+    it("correct data", function() {
       var data = {
         "Upgrade": {
           "request_status": "UPGRADED"
@@ -172,7 +174,14 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         ]};
       controller.loadUpgradeDataSuccessCallback(data);
       expect(App.get('upgradeState')).to.equal('UPGRADED');
-      expect(controller.updateUpgradeData.called).to.be.true;
+      expect(controller.updateUpgradeData.calledOnce).to.be.true;
+      expect(controller.setDBProperty.calledWith('upgradeState', 'UPGRADED')).to.be.true;
+    });
+    it("data is null", function() {
+      var data = null;
+      controller.loadUpgradeDataSuccessCallback(data);
+      expect(controller.updateUpgradeData.called).to.be.false;
+      expect(controller.setDBProperty.called).to.be.false;
     });
   });
 
