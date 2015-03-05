@@ -339,4 +339,88 @@ describe('App.AddServiceController', function() {
     });
 
   });
+
+  describe('#loadServices', function() {
+    beforeEach(function() {
+      this.controller = App.AddServiceController.create({});
+      this.db = {};
+      sinon.stub(this.controller, 'getDBProperty');
+      sinon.stub(this.controller, 'setDBProperty', function(key, value) {
+        this.db = value;
+      }.bind(this));
+    });
+
+    afterEach(function() {
+      this.controller.getDBProperty.restore();
+      this.controller.setDBProperty.restore();
+    });
+
+    var tests = [
+      {
+        appStackService: [
+          Em.Object.create({ id: 'HDFS', serviceName: 'HDFS', coSelectedServices: []}),
+          Em.Object.create({ id: 'YARN', serviceName: 'YARN', coSelectedServices: ['MAPREDUCE2']}),
+          Em.Object.create({ id: 'MAPREDUCE2', serviceName: 'MAPREDUCE2', coSelectedServices: []}),
+          Em.Object.create({ id: 'FALCON', serviceName: 'FALCON', coSelectedServices: []}),
+          Em.Object.create({ id: 'STORM', serviceName: 'STORM', coSelectedServices: []})
+        ],
+        appService: [
+          Em.Object.create({ id: 'HDFS', serviceName: 'HDFS'}),
+          Em.Object.create({ id: 'STORM', serviceName: 'STORM'})
+        ],
+        servicesFromDB: false,
+        serviceToInstall: 'MAPREDUCE2',
+        e: {
+          selectedServices: ['HDFS', 'YARN', 'MAPREDUCE2', 'STORM'],
+          installedServices: ['HDFS', 'STORM']
+        },
+        m: 'MapReduce selected on Admin -> Stack Versions Page, Yarn service should be selected because it coselected'
+      },
+      {
+        appStackService: [
+          Em.Object.create({ id: 'HDFS', serviceName: 'HDFS', coSelectedServices: []}),
+          Em.Object.create({ id: 'YARN', serviceName: 'YARN', coSelectedServices: ['MAPREDUCE2']}),
+          Em.Object.create({ id: 'HBASE', serviceName: 'HBASE', coSelectedServices: []}),
+          Em.Object.create({ id: 'STORM', serviceName: 'STORM', coSelectedServices: []})
+        ],
+        appService: [
+          Em.Object.create({ id: 'HDFS', serviceName: 'HDFS'}),
+          Em.Object.create({ id: 'STORM', serviceName: 'STORM'})
+        ],
+        servicesFromDB: {
+          selectedServices: ['HBASE'],
+          installedServices: ['HDFS', 'STORM']
+        },
+        serviceToInstall: null,
+        e: {
+          selectedServices: ['HDFS', 'HBASE', 'STORM'],
+          installedServices: ['HDFS', 'STORM']
+        },
+        m: 'HDFS and STORM are installed. Select HBASE'
+      }
+    ];
+
+    tests.forEach(function(test) {
+      it(test.m, function() {
+        sinon.stub(App.StackService, 'find').returns(test.appStackService);
+        sinon.stub(App.Service, 'find').returns(test.appService);
+        this.controller.getDBProperty.withArgs('services').returns(test.servicesFromDB);
+        this.controller.set('serviceToInstall', test.serviceToInstall);
+        this.controller.loadServices();
+        App.StackService.find.restore();
+        App.Service.find.restore();
+        if (!test.servicesFromDB) {
+          // verify saving to local db on first enter to the wizard
+          expect(this.db.selectedServices).to.be.eql(test.e.selectedServices);
+          expect(this.db.installedServices).to.be.eql(test.e.installedServices);
+        } else {
+          // verify values for App.StackService
+          expect(test.appStackService.filterProperty('isSelected', true).mapProperty('serviceName')).to.be.eql(test.e.selectedServices);
+          expect(test.appStackService.filterProperty('isInstalled', true).mapProperty('serviceName')).to.be.eql(test.e.installedServices);
+        }
+        expect(this.controller.get('serviceToInstall')).to.be.null;
+      });
+    }, this);
+  });
+
 });
