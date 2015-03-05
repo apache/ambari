@@ -38,8 +38,8 @@ class TestXmlConfigResource(TestCase):
 
   @patch("resource_management.core.providers.system._ensure_metadata")
   @patch.object(sudo, "create_file")
-  @patch.object(os.path, "exists")
-  @patch.object(os.path, "isdir")
+  @patch.object(sudo, "path_exists")
+  @patch.object(sudo, "path_isdir")
   @patch.object(time, "asctime")
   def test_action_create_empty_xml_config(self,
                                           time_asctime_mock,
@@ -67,8 +67,8 @@ class TestXmlConfigResource(TestCase):
 
   @patch("resource_management.core.providers.system._ensure_metadata")
   @patch.object(sudo, "create_file")
-  @patch.object(os.path, "exists")
-  @patch.object(os.path, "isdir")
+  @patch.object(sudo, "path_exists")
+  @patch.object(sudo, "path_isdir")
   @patch.object(time, "asctime")
   def test_action_create_simple_xml_config(self,
                                            time_asctime_mock,
@@ -96,8 +96,8 @@ class TestXmlConfigResource(TestCase):
 
   @patch("resource_management.core.providers.system._ensure_metadata")
   @patch.object(sudo, "create_file")
-  @patch.object(os.path, "exists")
-  @patch.object(os.path, "isdir")
+  @patch.object(sudo, "path_exists")
+  @patch.object(sudo, "path_isdir")
   @patch.object(time, "asctime")
   def test_action_create_xml_config_with_metacharacters(self,
                                                         time_asctime_mock,
@@ -148,8 +148,8 @@ class TestXmlConfigResource(TestCase):
 
   @patch("resource_management.core.providers.system._ensure_metadata")
   @patch.object(sudo, "create_file")
-  @patch.object(os.path, "exists")
-  @patch.object(os.path, "isdir")
+  @patch.object(sudo, "path_exists")
+  @patch.object(sudo, "path_isdir")
   @patch.object(time, "asctime")
   def test_action_create_xml_config_sorted_by_key(self,
                                                   time_asctime_mock,
@@ -180,8 +180,8 @@ class TestXmlConfigResource(TestCase):
     create_file_mock.assert_called_with('/dir/conf/file.xml', u'<!--Wed 2014-02-->\n    <configuration>\n    \n    <property>\n      <name></name>\n      <value></value>\n    </property>\n    \n    <property>\n      <name>first</name>\n      <value>should be first</value>\n    </property>\n    \n    <property>\n      <name>second</name>\n      <value>should be second</value>\n    </property>\n    \n    <property>\n      <name>third</name>\n      <value>should be third</value>\n    </property>\n    \n    <property>\n      <name>z_last</name>\n      <value>should be last</value>\n    </property>\n    \n  </configuration>\n')
 
   @patch("resource_management.libraries.providers.xml_config.File")
-  @patch.object(os.path, "exists")
-  @patch.object(os.path, "isdir")
+  @patch.object(sudo, "path_exists")
+  @patch.object(sudo, "path_isdir")
   def test_action_create_arguments(self, os_path_isdir_mock ,os_path_exists_mock, file_mock):
 
     os_path_isdir_mock.side_effect = [False, True]

@@ -30,8 +30,8 @@ import os
 class TestLinkResource(TestCase):
 
   @patch.object(os.path, "realpath")
-  @patch.object(os.path, "lexists")
-  @patch.object(os.path, "islink")
+  @patch.object(sudo,  "path_lexists")
+  @patch.object(sudo,  "path_lexists")
   @patch.object(sudo, "unlink")
   @patch.object(sudo, "symlink")
   def test_action_create_relink(self, symlink_mock, unlink_mock, 
@@ -49,13 +49,11 @@ class TestLinkResource(TestCase):
     symlink_mock.assert_called_with("/a/b/link_to_path", "/some_path")
     
   @patch.object(os.path, "realpath")
-  @patch.object(os.path, "lexists")
-  @patch.object(os.path, "islink")
-  def test_action_create_failed_due_to_file_exists(self, islink_mock, 
+  @patch.object(sudo,  "path_lexists")
+  def test_action_create_failed_due_to_file_exists(self, 
                          lexists_mock, realmock):
-    lexists_mock.return_value = True
+    lexists_mock.side_effect = [True, False]
     realmock.return_value = "/old_to_link_path"
-    islink_mock.return_value = False
     with Environment('/') as env:
       try:
         Link("/some_path",
@@ -67,7 +65,7 @@ class TestLinkResource(TestCase):
         self.assertEqual("LinkProvider[Link['/some_path']] trying to create a symlink with the same name as an existing file or directory",
                        str(e))
         
-  @patch.object(os.path, "lexists")
+  @patch.object(sudo,  "path_lexists")
   @patch.object(sudo, "symlink")
   def test_action_create_symlink_clean_create(self, symlink_mock, lexists_mock):
     lexists_mock.return_value = False
@@ -80,8 +78,8 @@ class TestLinkResource(TestCase):
     symlink_mock.assert_called_with("/a/b/link_to_path", "/some_path")
     
   @patch.object(os.path, "isdir")
-  @patch.object(os.path, "exists")  
-  @patch.object(os.path, "lexists")
+  @patch.object(sudo, "path_exists")  
+  @patch.object(sudo,  "path_lexists")
   @patch.object(sudo, "link")
   def test_action_create_hardlink_clean_create(self, link_mock, lexists_mock,
                                         exists_mock, isdir_mock):
@@ -97,8 +95,8 @@ class TestLinkResource(TestCase):
       
     link_mock.assert_called_with("/a/b/link_to_path", "/some_path")
     
-  @patch.object(os.path, "exists")  
-  @patch.object(os.path, "lexists")
+  @patch.object(sudo, "path_exists")  
+  @patch.object(sudo,  "path_lexists")
   def test_action_create_hardlink_target_doesnt_exist(self, lexists_mock,
                                         exists_mock):
     lexists_mock.return_value = False
@@ -115,9 +113,9 @@ class TestLinkResource(TestCase):
         self.assertEqual('Failed to apply u"Link[\'/some_path\']", linking to nonexistent location /a/b/link_to_path',
                        str(e))
         
-  @patch.object(os.path, "isdir") 
-  @patch.object(os.path, "exists")  
-  @patch.object(os.path, "lexists")
+  @patch.object(sudo, "path_isdir") 
+  @patch.object(sudo, "path_exists")  
+  @patch.object(sudo,  "path_lexists")
   def test_action_create_hardlink_target_is_dir(self, lexists_mock,
                                         exists_mock, isdir_mock):
     lexists_mock.return_value = False
@@ -136,7 +134,7 @@ class TestLinkResource(TestCase):
                        str(e)) 
         
   @patch.object(sudo, "unlink")
-  @patch.object(os.path, "exists")
+  @patch.object(sudo, "path_exists")
   def test_action_delete(self, exists_mock, unlink_mock):     
     exists_mock.return_value = True
     

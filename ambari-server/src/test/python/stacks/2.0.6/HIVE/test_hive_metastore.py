@@ -203,6 +203,9 @@ class TestHiveMetastore(RMFTestCase):
                               path = ['/bin', '/usr/bin/'],
                               sudo = True,
                               )
+    self.assertResourceCalled('File', '/usr/lib/hive/lib//mysql-connector-java.jar',
+        mode = 0644,
+    )
     self.assertResourceCalled('File', '/usr/lib/ambari-agent/DBConnectionVerification.jar',
         content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar'),
     )
@@ -292,6 +295,9 @@ class TestHiveMetastore(RMFTestCase):
                               path = ['/bin', '/usr/bin/'],
                               sudo = True,
                               )
+    self.assertResourceCalled('File', '/usr/lib/hive/lib//mysql-connector-java.jar',
+        mode = 0644,
+    )
     self.assertResourceCalled('File', '/usr/lib/ambari-agent/DBConnectionVerification.jar',
         content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar'),
     )

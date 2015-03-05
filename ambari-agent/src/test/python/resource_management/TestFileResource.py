@@ -32,7 +32,7 @@ import resource_management
 @patch.object(System, "os_family", new = 'redhat')
 class TestFileResource(TestCase):
   @patch.object(os.path, "dirname")
-  @patch.object(os.path, "isdir")
+  @patch.object(sudo, "path_isdir")
   def test_action_create_dir_exist(self, isdir_mock, dirname_mock):
     """
     Tests if 'create' action fails when path is existent directory
@@ -53,7 +53,7 @@ class TestFileResource(TestCase):
     self.assertFalse(dirname_mock.called)
 
   @patch.object(os.path, "dirname")
-  @patch.object(os.path, "isdir")
+  @patch.object(sudo, "path_isdir")
   def test_action_create_parent_dir_non_exist(self, isdir_mock, dirname_mock):
     """
     Tests if 'create' action fails when parent directory of path
@@ -79,8 +79,8 @@ class TestFileResource(TestCase):
   @patch("resource_management.core.providers.system._ensure_metadata")
   @patch.object(sudo, "read_file")
   @patch.object(sudo, "create_file")
-  @patch.object(os.path, "exists")
-  @patch.object(os.path, "isdir")
+  @patch.object(sudo, "path_exists")
+  @patch.object(sudo, "path_isdir")
   def test_action_create_non_existent_file(self, isdir_mock, exists_mock, create_file_mock, read_file_mock, ensure_mock):
     """
     Tests if 'create' action create new non existent file and write proper data
@@ -103,8 +103,8 @@ class TestFileResource(TestCase):
   @patch("resource_management.core.providers.system._ensure_metadata")
   @patch.object(sudo, "read_file")
   @patch.object(sudo, "create_file")
-  @patch.object(os.path, "exists")
-  @patch.object(os.path, "isdir")
+  @patch.object(sudo, "path_exists")
+  @patch.object(sudo, "path_isdir")
   def test_action_create_replace(self, isdir_mock, exists_mock, create_file_mock, read_file_mock, ensure_mock):
     """
     Tests if 'create' action rewrite existent file with new data
@@ -125,8 +125,8 @@ class TestFileResource(TestCase):
 
 
   @patch.object(sudo, "unlink")
-  @patch.object(os.path, "exists")
-  @patch.object(os.path, "isdir")
+  @patch.object(sudo, "path_exists")
+  @patch.object(sudo, "path_isdir")
   def test_action_delete_is_directory(self, isdir_mock, exist_mock, unlink_mock):
     """
     Tests if 'delete' action fails when path is directory
@@ -151,8 +151,8 @@ class TestFileResource(TestCase):
     self.assertEqual(unlink_mock.call_count, 0)
 
   @patch.object(sudo, "unlink")
-  @patch.object(os.path, "exists")
-  @patch.object(os.path, "isdir")
+  @patch.object(sudo, "path_exists")
+  @patch.object(sudo, "path_isdir")
   def test_action_delete(self, isdir_mock, exist_mock, unlink_mock):
     """
     Tests if 'delete' action removes file
@@ -173,7 +173,7 @@ class TestFileResource(TestCase):
     self.assertEqual(unlink_mock.call_count, 1)
 
 
-  @patch.object(os.path, "isdir")
+  @patch.object(sudo, "path_isdir")
   def test_attribute_path(self, isdir_mock):
     """
     Tests 'path' attribute
@@ -198,8 +198,8 @@ class TestFileResource(TestCase):
   @patch("resource_management.core.providers.system._ensure_metadata")
   @patch.object(sudo, "read_file")
   @patch.object(sudo, "create_file")
-  @patch.object(os.path, "exists")
-  @patch.object(os.path, "isdir")
+  @patch.object(sudo, "path_exists")
+  @patch.object(sudo, "path_isdir")
   def test_attribute_backup(self, isdir_mock, exists_mock, create_file_mock,  read_file_mock, ensure_mock, backup_file_mock):
     """
     Tests 'backup' attribute
@@ -233,8 +233,8 @@ class TestFileResource(TestCase):
 
   @patch("resource_management.core.providers.system._ensure_metadata")
   @patch("__builtin__.open")
-  @patch.object(os.path, "exists")
-  @patch.object(os.path, "isdir")
+  @patch.object(sudo, "path_exists")
+  @patch.object(sudo, "path_isdir")
   def test_attribute_replace(self, isdir_mock, exists_mock, open_mock, ensure_mock):
     """
     Tests 'replace' attribute
@@ -265,10 +265,10 @@ class TestFileResource(TestCase):
   @patch("resource_management.core.providers.system._coerce_gid")
   @patch.object(sudo, "chown")
   @patch.object(sudo, "chmod")
-  @patch.object(os, "stat")
+  @patch.object(sudo, "stat")
   @patch.object(sudo, "create_file")
-  @patch.object(os.path, "exists")
-  @patch.object(os.path, "isdir")
+  @patch.object(sudo, "path_exists")
+  @patch.object(sudo, "path_isdir")
   def test_ensure_metadata(self, isdir_mock, exists_mock, create_file_mock, stat_mock, chmod_mock, chown_mock, gid_mock,
                            uid_mock):
     """
@@ -327,8 +327,8 @@ class TestFileResource(TestCase):
   @patch("resource_management.core.providers.system.FileProvider._get_content")
   @patch.object(sudo, "read_file")
   @patch.object(sudo, "create_file")
-  @patch.object(os.path, "exists")
-  @patch.object(os.path, "isdir")
+  @patch.object(sudo, "path_exists")
+  @patch.object(sudo, "path_isdir")
   def test_action_create_encoding(self, isdir_mock, exists_mock, create_file_mock, read_file_mock, get_content_mock ,ensure_mock):
 
     isdir_mock.side_effect = [False, True]

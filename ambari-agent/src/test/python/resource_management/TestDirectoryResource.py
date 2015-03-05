@@ -19,7 +19,6 @@ limitations under the License.
 from unittest import TestCase
 from mock.mock import patch, MagicMock
 import os
-import shutil
 from resource_management.core.system import System
 from resource_management.core import Environment, Fail, sudo
 from resource_management.core.resources import Directory
@@ -27,10 +26,10 @@ from resource_management.core.resources import Directory
 @patch.object(System, "os_family", new = 'redhat')
 class TestDirectoryResource(TestCase):
   
-  @patch.object(os.path, "exists")
+  @patch.object(sudo, "path_exists")
   @patch.object(sudo, "makedirs")
-  @patch.object(os.path, "isdir")
-  @patch.object(os, "stat")
+  @patch.object(sudo, "path_isdir")
+  @patch.object(sudo, "stat")
   @patch.object(sudo,"chmod")
   @patch.object(sudo,"chown")
   @patch("resource_management.core.providers.system._coerce_uid")
@@ -59,11 +58,11 @@ class TestDirectoryResource(TestCase):
     os_chown_mock.assert_any_call('/a/b/c/d', 'hdfs', None)
     os_chown_mock.assert_any_call('/a/b/c/d', None, 'hadoop')
   
-  @patch.object(os.path, "exists")
+  @patch.object(sudo, "path_exists")
   @patch.object(os.path, "dirname")
-  @patch.object(os.path, "isdir")
+  @patch.object(sudo, "path_isdir")
   @patch.object(sudo, "makedir")
-  @patch.object(os, "stat")
+  @patch.object(sudo, "stat")
   @patch.object(sudo,"chmod")
   @patch.object(sudo,"chown")
   @patch("resource_management.core.providers.system._coerce_uid")
@@ -92,9 +91,9 @@ class TestDirectoryResource(TestCase):
     os_chown_mock.assert_any_call('/a/b/c/d', 'hdfs', None)
     os_chown_mock.assert_any_call('/a/b/c/d', None, 'hadoop')
     
-  @patch.object(os.path, "exists")
+  @patch.object(sudo, "path_exists")
   @patch.object(os.path, "dirname")
-  @patch.object(os.path, "isdir")
+  @patch.object(sudo, "path_isdir")
   def test_create_directory_failed_no_parent(self, isdir_mock, os_dirname_mock, 
                                       os_path_exists_mock):
     os_path_exists_mock.return_value = False
@@ -115,8 +114,8 @@ class TestDirectoryResource(TestCase):
       self.assertEqual('Applying u"Directory[\'/a/b/c/d\']" failed, parent directory /a/b/c doesn\'t exist',
                        str(e))
 
-  @patch.object(os.path, "exists")
-  @patch.object(os.path, "isdir")
+  @patch.object(sudo, "path_exists")
+  @patch.object(sudo, "path_isdir")
   def test_create_directory_path_is_file_or_line(self, isdir_mock, os_path_exists_mock):
     os_path_exists_mock.return_value = True
     isdir_mock.return_value = False
@@ -134,9 +133,9 @@ class TestDirectoryResource(TestCase):
       self.assertEqual('Applying u"Directory[\'/a/b/c/d\']" failed, file /a/b/c/d already exists',
                        str(e))
   
-  @patch.object(shutil, "rmtree")
-  @patch.object(os.path, "exists")
-  @patch.object(os.path, "isdir")
+  @patch.object(sudo, "rmtree")
+  @patch.object(sudo, "path_exists")
+  @patch.object(sudo, "path_isdir")
   def test_delete_directory(self, isdir_mock, os_path_exists_mock, rmtree_mock):
     os_path_exists_mock.return_value = True
     isdir_mock.return_value = True
@@ -148,7 +147,7 @@ class TestDirectoryResource(TestCase):
       
     rmtree_mock.assert_called_with('/a/b/c/d')
     
-  @patch.object(os.path, "exists")
+  @patch.object(sudo, "path_exists")
   def test_delete_noexisting_directory(self, os_path_exists_mock):
     os_path_exists_mock.return_value = False
     
@@ -157,9 +156,9 @@ class TestDirectoryResource(TestCase):
            action='delete'
       )
   
-  @patch.object(shutil, "rmtree")
-  @patch.object(os.path, "exists")
-  @patch.object(os.path, "isdir")
+  @patch.object(sudo, "rmtree")
+  @patch.object(sudo, "path_exists")
+  @patch.object(sudo, "path_isdir")
   def test_delete_directory_with_path_to_file(self, isdir_mock, os_path_exists_mock, rmtree_mock):
     os_path_exists_mock.return_value = True
     isdir_mock.return_value = False

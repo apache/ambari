@@ -17,3 +17,4 @@
 # given through environment variable
 AMBARI_PASSPHRASE="DEV"
 export PATH=$PATH:/var/lib/ambari-agent
+export PYTHONPATH=$PYTHONPATH:/usr/lib/python2.6/site-packages

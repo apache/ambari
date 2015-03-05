@@ -222,6 +222,9 @@ class TestHiveMetastore(RMFTestCase):
                               path = ['/bin', '/usr/bin/'],
                               sudo = True,
                               )
+    self.assertResourceCalled('File', '/usr/lib/hive/lib//mysql-connector-java.jar',
+        mode = 0644,
+    )
     self.assertResourceCalled('File', '/usr/lib/ambari-agent/DBConnectionVerification.jar',
         content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar'),
     )
@@ -230,8 +233,9 @@ class TestHiveMetastore(RMFTestCase):
                               mode = 0755,
                               )
     self.assertResourceCalled('Execute', 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -initSchema -dbType mysql -userName hive -passWord aaa',
-                              not_if = 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -info -dbType mysql -userName hive -passWord aaa',
-                              )
+        not_if = "ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -info -dbType mysql -userName hive -passWord aaa'",
+        user = 'hive',
+    )
     self.assertResourceCalled('Directory', '/var/run/hive',
                               owner = 'hive',
                               group = 'hadoop',
@@ -302,6 +306,9 @@ class TestHiveMetastore(RMFTestCase):
                               path = ['/bin', '/usr/bin/'],
                               sudo = True,
                               )
+    self.assertResourceCalled('File', '/usr/lib/hive/lib//mysql-connector-java.jar',
+        mode = 0644,
+    )
     self.assertResourceCalled('File', '/usr/lib/ambari-agent/DBConnectionVerification.jar',
         content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar'),
     )
@@ -310,8 +317,9 @@ class TestHiveMetastore(RMFTestCase):
                               mode = 0755,
                               )
     self.assertResourceCalled('Execute', 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -initSchema -dbType mysql -userName hive -passWord asd',
-                              not_if = 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -info -dbType mysql -userName hive -passWord asd',
-                              )
+        not_if = "ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -info -dbType mysql -userName hive -passWord asd'",
+        user = 'hive',
+    )
     self.assertResourceCalled('Directory', '/var/run/hive',
                               owner = 'hive',
                               group = 'hadoop',
