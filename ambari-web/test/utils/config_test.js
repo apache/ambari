@@ -988,4 +988,202 @@ describe('App.config', function () {
 
   });
 
+  describe('#addUserProperty', function () {
+
+    var cases = [
+        {
+          stored: {
+            id: 0,
+            name: 'prop_name0',
+            serviceName: 's0',
+            value: 'v0',
+            defaultValue: 'dv0',
+            filename: 'fn0.xml',
+            overrides: null,
+            isVisible: false,
+            isFinal: true,
+            defaultIsFinal: false,
+            supportsFinal: true,
+            category: 'c0'
+          },
+          expected: {
+            id: 0,
+            name: 'prop_name0',
+            displayName: 'Prop Name0',
+            serviceName: 's0',
+            value: 'v0',
+            defaultValue: 'dv0',
+            displayType: 'advanced',
+            filename: 'fn0.xml',
+            isUserProperty: false,
+            hasInitialValue: false,
+            isOverridable: true,
+            overrides: null,
+            isRequired: false,
+            isVisible: false,
+            isFinal: true,
+            defaultIsFinal: false,
+            supportsFinal: true,
+            showLabel: true,
+            category: 'c0'
+          },
+          title: 'default case'
+        },
+        {
+          stored: {
+            name: 'n1',
+            value: 'multi\nline',
+            filename: 'fn1.xml',
+            isUserProperty: true,
+            hasInitialValue: true,
+            showLabel: false
+          },
+          expected: {
+            displayType: 'multiLine',
+            isUserProperty: true,
+            hasInitialValue: true,
+            showLabel: false
+          },
+          title: 'multiline user property with initial value, label not to be shown'
+        },
+        {
+          stored: {
+            name: 'n2',
+            filename: 'fn2.xml'
+          },
+          expected: {
+            isUserProperty: false,
+            showLabel: true
+          },
+          title: 'isUserProperty and showLabel not set'
+        },
+        {
+          stored: {
+            name: 'ignore_groupsusers_create',
+            category: 'Users and Groups',
+            filename: 'fn3.xml'
+          },
+          expected: {
+            displayName: 'dn0',
+            displayType: 'checkbox',
+            index: 0
+          }
+        },
+        {
+          stored: {
+            name: 'smokeuser',
+            category: 'Users and Groups',
+            filename: 'fn4.xml'
+          },
+          expected: {
+            displayName: 'dn1',
+            index: 1
+          }
+        },
+        {
+          stored: {
+            name: 'user_group',
+            category: 'Users and Groups',
+            filename: 'fn5.xml'
+          },
+          expected: {
+            displayName: 'dn1',
+            index: 2
+          }
+        },
+        {
+          stored: {
+            name: 'mapred_user',
+            category: 'Users and Groups',
+            filename: 'fn6.xml'
+          },
+          expected: {
+            displayName: 'dn1',
+            index: 3
+          }
+        },
+        {
+          stored: {
+            name: 'zk_user',
+            category: 'Users and Groups',
+            filename: 'fn7.xml'
+          },
+          expected: {
+            displayName: 'dn1',
+            index: 4
+          }
+        }
+      ],
+      advancedConfigs = [
+        {
+          name: 'ignore_groupsusers_create',
+          displayName: 'dn0',
+          displayType: 'checkbox',
+          index: 0
+        },
+        {
+          name: 'smokeuser',
+          displayName: 'dn1',
+          index: 1
+        },
+        {
+          name: 'user_group',
+          displayName: 'dn1',
+          index: 2
+        },
+        {
+          name: 'mapred_user',
+          displayName: 'dn1',
+          index: 3
+        },
+        {
+          name: 'zk_user',
+          displayName: 'dn1',
+          index: 4
+        }
+      ];
+
+    cases.forEach(function (item) {
+      it(item.title || item.stored.name, function () {
+        var configData = App.config.addUserProperty(item.stored, true, advancedConfigs);
+        Em.keys(item.expected).forEach(function (key) {
+          expect(configData[key]).to.equal(item.expected[key]);
+        });
+      });
+    });
+
+  });
+
+  describe('#getOriginalConfigAttribute', function () {
+
+    var stored = {
+        name: 'p',
+        displayName: 'dn'
+      },
+      cases = [
+        {
+          advancedConfigs: [
+            {
+              name: 'p',
+              displayName: 'dn0'
+            }
+          ],
+          expected: 'dn0',
+          title: 'should take attribute from advancedConfigs'
+        },
+        {
+          advancedConfigs: [],
+          expected: 'dn',
+          title: 'property is absent in advancedConfigs'
+        }
+      ];
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        expect(App.config.getOriginalConfigAttribute(stored, 'displayName', item.advancedConfigs)).to.equal(item.expected);
+      });
+    });
+
+  });
+
 });
