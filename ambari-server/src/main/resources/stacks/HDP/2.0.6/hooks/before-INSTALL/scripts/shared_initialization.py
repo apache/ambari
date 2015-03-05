@@ -20,6 +20,7 @@ limitations under the License.
 import os
 
 from resource_management import *
+import getpass
 
 def setup_java():
   """
@@ -62,6 +63,9 @@ def setup_java():
   )
   
   Execute(("chgrp","-R", params.user_group, params.java_home),
+          sudo = True,          
+  )
+  Execute(("chown","-R", getpass.getuser(), params.java_home),
           sudo = True,          
   )
 

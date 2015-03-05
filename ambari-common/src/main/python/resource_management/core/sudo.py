@@ -59,6 +59,10 @@ def link(source, link_name):
 def unlink(path):
   shell.checked_call(["rm","-f", path], sudo=True)
   
+# shutil.rmtree
+def rmtree(path):
+  shell.checked_call(["rm","-rf", path], sudo=True)
+  
 # fp.write replacement
 def create_file(filename, content):
   """
@@ -84,3 +88,28 @@ def read_file(filename):
   with tmpf:
     with open(tmpf.name, "rb") as fp:
       return fp.read()
+    
+# os.path.exists
+def path_exists(path):
+  return (shell.call(["test", "-e", path], sudo=True)[0] == 0)
+
+# os.path.isdir
+def path_isdir(path):
+  return (shell.call(["test", "-d", path], sudo=True)[0] == 0)
+
+# os.path.lexists
+def path_lexists(path):
+  return (shell.call(["test", "-L", path], sudo=True)[0] == 0)
+
+# os.stat
+def stat(path):
+  class Stat:
+    def __init__(self, path):
+      # TODO: check this on Ubuntu
+      out = shell.checked_call(["stat", "-c", "%u %g %a", path], sudo=True)[1]
+      uid_str, gid_str, mode_str = out.split(' ')
+      self.st_uid = int(uid_str)
+      self.st_gid = int(gid_str)
+      self.st_mode = int(mode_str, 8)
+      
+  return Stat(path)

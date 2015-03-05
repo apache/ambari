@@ -38,8 +38,8 @@ class TestPropertiesFIleResource(TestCase):
 
   @patch("resource_management.core.providers.system._ensure_metadata")
   @patch.object(sudo, "create_file")
-  @patch.object(os.path, "exists")
-  @patch.object(os.path, "isdir")
+  @patch.object(sudo, "path_exists")
+  @patch.object(sudo, "path_isdir")
   @patch.object(time, "asctime")
   def test_action_create_empty_properties_without_dir(self,
                                                       time_asctime_mock,
@@ -71,8 +71,8 @@ class TestPropertiesFIleResource(TestCase):
 
   @patch("resource_management.core.providers.system._ensure_metadata")
   @patch.object(sudo, "create_file")
-  @patch.object(os.path, "exists")
-  @patch.object(os.path, "isdir")
+  @patch.object(sudo, "path_exists")
+  @patch.object(sudo, "path_isdir")
   @patch.object(time, "asctime")
   def test_action_create_empty_properties_with_dir(self,
                                                    time_asctime_mock,
@@ -104,8 +104,8 @@ class TestPropertiesFIleResource(TestCase):
 
   @patch("resource_management.core.providers.system._ensure_metadata")
   @patch.object(sudo, "create_file")
-  @patch.object(os.path, "exists")
-  @patch.object(os.path, "isdir")
+  @patch.object(sudo, "path_exists")
+  @patch.object(sudo, "path_isdir")
   @patch.object(time, "asctime")
   def test_action_create_properties_simple(self,
                                            time_asctime_mock,
@@ -137,8 +137,8 @@ class TestPropertiesFIleResource(TestCase):
 
   @patch("resource_management.core.providers.system._ensure_metadata")
   @patch.object(sudo, "create_file")
-  @patch.object(os.path, "exists")
-  @patch.object(os.path, "isdir")
+  @patch.object(sudo, "path_exists")
+  @patch.object(sudo, "path_isdir")
   @patch.object(time, "asctime")
   def test_action_create_properties_with_metacharacters(self,
                                                         time_asctime_mock,
@@ -176,8 +176,8 @@ class TestPropertiesFIleResource(TestCase):
   @patch("resource_management.core.providers.system._ensure_metadata")
   @patch.object(sudo, "read_file")
   @patch.object(sudo, "create_file")
-  @patch.object(os.path, "exists")
-  @patch.object(os.path, "isdir")
+  @patch.object(sudo, "path_exists")
+  @patch.object(sudo, "path_isdir")
   @patch.object(time, "asctime")
   def test_action_create_properties_rewrite_content(self,
                                                     time_asctime_mock,

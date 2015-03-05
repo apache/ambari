@@ -91,14 +91,15 @@ def hive(name=None):
                                  "-userName {hive_metastore_user_name} "
                                  "-passWord {hive_metastore_user_passwd!p}")
 
-      check_schema_created_cmd = format("export HIVE_CONF_DIR={hive_server_conf_dir} ; "
+      check_schema_created_cmd = as_user(format("export HIVE_CONF_DIR={hive_server_conf_dir} ; "
                                         "{hive_bin}/schematool -info "
                                         "-dbType {hive_metastore_db_type} "
                                         "-userName {hive_metastore_user_name} "
-                                        "-passWord {hive_metastore_user_passwd!p}")
+                                        "-passWord {hive_metastore_user_passwd!p}"), params.hive_user)
 
       Execute(create_schema_cmd,
-              not_if = check_schema_created_cmd
+              not_if = check_schema_created_cmd,
+              user = params.hive_user
       )
   elif name == 'hiveserver2':
     File(params.start_hiveserver2_path,
@@ -214,3 +215,7 @@ def jdbc_connector():
             path=["/bin", "/usr/bin/"],
             sudo=True
     )
+    
+  File(params.target,
+       mode = 0644,
+  )

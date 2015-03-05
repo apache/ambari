@@ -21,7 +21,9 @@ limitations under the License.
 from mock.mock import MagicMock, call, patch
 from resource_management import *
 from stacks.utils.RMFTestCase import *
+import getpass
 
+@patch.object(getpass, "getuser", new = MagicMock(return_value='some_user'))
 @patch.object(Hook, "run_custom_hook", new = MagicMock())
 class TestHookBeforeInstall(RMFTestCase):
   def test_hook_default(self):
@@ -55,6 +57,9 @@ class TestHookBeforeInstall(RMFTestCase):
         not_if = 'test -e /usr/jdk64/jdk1.7.0_45/bin/java',
     )
     self.assertResourceCalled('Execute', ('chgrp', '-R', u'hadoop', u'/usr/jdk64/jdk1.7.0_45'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Execute', ('chown', '-R', 'some_user', u'/usr/jdk64/jdk1.7.0_45'),
         sudo = True,
     )
     self.assertNoMoreResources()

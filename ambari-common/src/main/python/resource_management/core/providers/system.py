@@ -27,7 +27,6 @@ import grp
 import os
 import pwd
 import time
-import shutil
 from resource_management.core import shell
 from resource_management.core import sudo
 from resource_management.core.base import Fail
@@ -59,8 +58,8 @@ def _coerce_gid(group):
 
 
 def _ensure_metadata(path, user, group, mode=None, cd_access=None):
-  stat = os.stat(path)
-  
+  stat = sudo.stat(path)
+
   if user:
     uid = _coerce_uid(user)
     if stat.st_uid != uid:
@@ -77,10 +76,9 @@ def _ensure_metadata(path, user, group, mode=None, cd_access=None):
       sudo.chown(path, None, group)
       
   if mode:
-    existing_mode = stat.st_mode & 07777
-    if existing_mode != mode:
+    if stat.st_mode != mode:
       Logger.info("Changing permission for %s from %o to %o" % (
-      path, existing_mode, mode))
+      path, stat.st_mode, mode))
       sudo.chmod(path, mode)
       
   if cd_access:
@@ -89,7 +87,7 @@ def _ensure_metadata(path, user, group, mode=None, cd_access=None):
     
     dir_path = path
     while dir_path != os.sep:
-      if os.path.isdir(dir_path):
+      if sudo.path_isdir(dir_path):
         sudo.chmod_extended(dir_path, cd_access+"+x")
         
       dir_path = os.path.split(dir_path)[0]
@@ -99,16 +97,16 @@ class FileProvider(Provider):
   def action_create(self):
     path = self.resource.path
     
-    if os.path.isdir(path):
+    if sudo.path_isdir(path):
       raise Fail("Applying %s failed, directory with name %s exists" % (self.resource, path))
     
     dirname = os.path.dirname(path)
-    if not os.path.isdir(dirname):
+    if not sudo.path_isdir(dirname):
       raise Fail("Applying %s failed, parent directory %s doesn't exist" % (self.resource, dirname))
     
     write = False
     content = self._get_content()
-    if not os.path.exists(path):
+    if not sudo.path_exists(path):
       write = True
       reason = "it doesn't exist"
     elif self.resource.replace:
@@ -135,10 +133,10 @@ class FileProvider(Provider):
   def action_delete(self):
     path = self.resource.path
     
-    if os.path.isdir(path):
+    if sudo.path_isdir(path):
       raise Fail("Applying %s failed, %s is directory not file!" % (self.resource, path))
     
-    if os.path.exists(path):
+    if sudo.path_exists(path):
       Logger.info("Deleting %s" % self.resource)
       sudo.unlink(path)
 
@@ -157,7 +155,7 @@ class DirectoryProvider(Provider):
   def action_create(self):
     path = self.resource.path
 
-    if not os.path.exists(path):
+    if not sudo.path_exists(path):
       Logger.info("Creating directory %s" % self.resource)
       if self.resource.recursive:
         if self.resource.recursive_permission:
@@ -167,12 +165,12 @@ class DirectoryProvider(Provider):
           sudo.makedirs(path, self.resource.mode or 0755)
       else:
         dirname = os.path.dirname(path)
-        if not os.path.isdir(dirname):
+        if not sudo.path_isdir(dirname):
           raise Fail("Applying %s failed, parent directory %s doesn't exist" % (self.resource, dirname))
         
         sudo.makedir(path, self.resource.mode or 0755)
       
-    if not os.path.isdir(path):
+    if not sudo.path_isdir(path):
       raise Fail("Applying %s failed, file %s already exists" % (self.resource, path))
     
     _ensure_metadata(path, self.resource.owner, self.resource.group,
@@ -191,44 +189,44 @@ class DirectoryProvider(Provider):
     dir_prefix=""
     for folder in folders:
       dir_prefix=os.path.join(dir_prefix, folder)
-      if not os.path.exists(dir_prefix):
+      if not sudo.path_exists(dir_prefix):
         sudo.makedir(dir_prefix, mode or 0755)
         _ensure_metadata(dir_prefix, None, None, mode)
 
   def action_delete(self):
     path = self.resource.path
-    if os.path.exists(path):
-      if not os.path.isdir(path):
+    if sudo.path_exists(path):
+      if not sudo.path_isdir(path):
         raise Fail("Applying %s failed, %s is not a directory" % (self.resource, path))
       
       Logger.info("Removing directory %s and all its content" % self.resource)
-      shutil.rmtree(path)
+      sudo.rmtree(path)
 
 
 class LinkProvider(Provider):
   def action_create(self):
     path = self.resource.path
 
-    if os.path.lexists(path):
+    if sudo.path_lexists(path):
       oldpath = os.path.realpath(path)
       if oldpath == self.resource.to:
         return
-      if not os.path.islink(path):
+      if not sudo.path_lexists(path):
         raise Fail(
           "%s trying to create a symlink with the same name as an existing file or directory" % self)
       Logger.info("%s replacing old symlink to %s" % (self.resource, oldpath))
       sudo.unlink(path)
       
     if self.resource.hard:
-      if not os.path.exists(self.resource.to):
+      if not sudo.path_exists(self.resource.to):
         raise Fail("Failed to apply %s, linking to nonexistent location %s" % (self.resource, self.resource.to))
-      if os.path.isdir(self.resource.to):
+      if sudo.path_isdir(self.resource.to):
         raise Fail("Failed to apply %s, cannot create hard link to a directory (%s)" % (self.resource, self.resource.to))
       
       Logger.info("Creating hard %s" % self.resource)
       sudo.link(self.resource.to, path)
     else:
-      if not os.path.exists(self.resource.to):
+      if not sudo.path_exists(self.resource.to):
         Logger.info("Warning: linking to nonexistent location %s" % self.resource.to)
         
       Logger.info("Creating symbolic %s" % self.resource)
@@ -236,7 +234,7 @@ class LinkProvider(Provider):
 
   def action_delete(self):
     path = self.resource.path
-    if os.path.exists(path):
+    if sudo.path_exists(path):
       Logger.info("Deleting %s" % self.resource)
       sudo.unlink(path)
 
@@ -254,7 +252,7 @@ def _preexec_fn(resource):
 class ExecuteProvider(Provider):
   def action_run(self):
     if self.resource.creates:
-      if os.path.exists(self.resource.creates):
+      if sudo.path_exists(self.resource.creates):
         Logger.info("Skipping %s due to creates" % self.resource)
         return
       
