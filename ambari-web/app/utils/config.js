@@ -1235,16 +1235,21 @@ App.config = Em.Object.create({
    */
   addUserProperty: function (stored, isAdvanced, advancedConfigs) {
     var
-      skipChangeOfDisplayType = ['ignore_groupsusers_create'],
-      originalDispType = advancedConfigs.findProperty('name', stored.name) ? advancedConfigs.findProperty('name', stored.name).displayType : stored.displayType;
+      skipAttributeChanges = {
+        displayType: ['ignore_groupsusers_create'],
+        displayName: ['ignore_groupsusers_create', 'smokeuser', 'user_group', 'mapred_user', 'zk_user']
+      },
       configData = {
         id: stored.id,
         name: stored.name,
-        displayName: App.format.normalizeName(stored.name),
+        displayName: skipAttributeChanges.displayName.contains(stored.name) ?
+          this.getOriginalConfigAttribute(stored, 'displayName', advancedConfigs) : App.format.normalizeName(stored.name),
         serviceName: stored.serviceName,
         value: stored.value,
         defaultValue: stored.defaultValue,
-        displayType: skipChangeOfDisplayType.contains(stored.name) ? originalDispType : (stringUtils.isSingleLine(stored.value) ? 'advanced' : 'multiLine'),
+        displayType: skipAttributeChanges.displayType.contains(stored.name) ?
+          this.getOriginalConfigAttribute(stored, 'displayType', advancedConfigs) :
+          (stringUtils.isSingleLine(stored.value) ? 'advanced' : 'multiLine'),
         filename: stored.filename,
         isUserProperty: stored.isUserProperty === true,
         hasInitialValue: !!stored.hasInitialValue,
@@ -1258,9 +1263,17 @@ App.config = Em.Object.create({
         showLabel: stored.showLabel !== false,
         category: stored.category
       };
+    if (stored.category == 'Users and Groups') {
+      configData.index = this.getOriginalConfigAttribute(stored, 'index', advancedConfigs);
+    }
 
     App.get('config').calculateConfigProperties(configData, isAdvanced, advancedConfigs);
     return configData;
+  },
+
+  getOriginalConfigAttribute: function (stored, key, advancedConfigs) {
+    return advancedConfigs.findProperty('name', stored.name) ?
+      advancedConfigs.findProperty('name', stored.name)[key] : stored[key];
   },
 
   complexConfigsTemplate: [
