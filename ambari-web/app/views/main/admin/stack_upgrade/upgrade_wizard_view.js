@@ -42,6 +42,13 @@ App.upgradeWizardView = Em.View.extend({
   updateTimer: null,
 
   /**
+   * update timer of Upgrade Item
+   * @type {number|null}
+   * @default null
+   */
+  upgradeItemTimer: null,
+
+  /**
    * @type {boolean}
    */
   isLoaded: false,
@@ -210,6 +217,15 @@ App.upgradeWizardView = Em.View.extend({
   },
 
   /**
+   * close details block if no active task present
+   */
+  closeDetails: function () {
+    if (this.get('noActiveItem')) {
+      this.set('isDetailsOpened', false);
+    }
+  }.observes('noActiveItem'),
+
+  /**
    * start polling upgrade data
    */
   startPolling: function () {
@@ -234,6 +250,7 @@ App.upgradeWizardView = Em.View.extend({
    */
   willDestroyElement: function () {
     clearTimeout(this.get('updateTimer'));
+    clearTimeout(this.get('upgradeItemTimer'));
     this.set('isLoaded', false);
   },
 
@@ -250,12 +267,31 @@ App.upgradeWizardView = Em.View.extend({
   },
 
   /**
+   * poll for tasks when item is expanded
+   */
+  doUpgradeItemPolling: function () {
+    var self = this;
+    var item = this.get('runningItem') || this.get('failedItem');
+
+    if (item && this.get('isDetailsOpened')) {
+      this.get('controller').getUpgradeItem(item).complete(function () {
+        self.set('upgradeItemTimer', setTimeout(function () {
+          self.doUpgradeItemPolling();
+        }, App.bgOperationsUpdateInterval));
+      });
+    } else {
+      clearTimeout(this.get('upgradeItemTimer'));
+    }
+  }.observes('isDetailsOpened'),
+
+  /**
    * set current upgrade item state to FAILED (for HOLDING_FAILED) or TIMED_OUT (for HOLDING_TIMED_OUT)
    * in order to ignore fail and continue Upgrade
    * @param {object} event
    */
   continue: function (event) {
     this.get('controller').setUpgradeItemStatus(event.context, event.context.get('status').slice(8));
+    this.set('isDetailsOpened', false);
   },
 
   /**
@@ -264,6 +300,7 @@ App.upgradeWizardView = Em.View.extend({
    */
   retry: function (event) {
     this.get('controller').setUpgradeItemStatus(event.context, 'PENDING');
+    this.set('isDetailsOpened', false);
   },
 
   /**

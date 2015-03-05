@@ -39,10 +39,14 @@
             <div class="row-fluid">
               <div class="pull-left">{{t admin.stackUpgrade.dialog.inProgress}}&nbsp;{{view.runningItem.text}}</div>
               {{#if view.isDetailsOpened}}
-                <a href="#" class="pull-right" {{action toggleDetails target="view"}}>{{t admin.stackUpgrade.dialog.details.hide}}</a>
-                <div class="clear">
-                  {{view App.upgradeTaskView contentBinding="view.taskDetails" outsideViewBinding="view.outsideView"}}
-                </div>
+                  <a href="#" class="pull-right" {{action toggleDetails target="view"}}>{{t admin.stackUpgrade.dialog.details.hide}}</a>
+                {{#if view.runningItem.isTasksLoaded}}
+                  <div class="clear">
+                    {{view App.upgradeTaskView contentBinding="view.taskDetails" outsideViewBinding="view.outsideView"}}
+                  </div>
+                {{else}}
+                  <div class="clear spinner"></div>
+                {{/if}}
               {{else}}
                 <a href="#" class="pull-right" {{action toggleDetails target="view"}}>{{t admin.stackUpgrade.dialog.details.open}}</a>
               {{/if}}
@@ -54,11 +58,15 @@
             <div class="row-fluid">
               <div class="pull-left">{{t admin.stackUpgrade.dialog.failed}}&nbsp;{{view.failedItem.text}}</div>
               {{#if view.isDetailsOpened}}
-                <a href="#" class="pull-right" {{action toggleDetails target="view"}}>{{t admin.stackUpgrade.dialog.details.hide}}</a>
-                <div class="clear">
-                  {{view App.upgradeTaskView contentBinding="view.taskDetails" outsideViewBinding="view.outsideView"}}
-                </div>
-              {{else}}
+                  <a href="#" class="pull-right" {{action toggleDetails target="view"}}>{{t admin.stackUpgrade.dialog.details.hide}}</a>
+                {{#if view.failedItem.isTasksLoaded}}
+                  <div class="clear">
+                    {{view App.upgradeTaskView contentBinding="view.taskDetails" outsideViewBinding="view.outsideView"}}
+                  </div>
+                {{else}}
+                  <div class="clear spinner"></div>
+                {{/if}}
+               {{else}}
                 <a href="#" class="pull-right" {{action toggleDetails target="view"}}>{{t admin.stackUpgrade.dialog.details.open}}</a>
               {{/if}}
             </div>

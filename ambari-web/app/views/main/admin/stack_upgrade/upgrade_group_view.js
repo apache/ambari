@@ -23,11 +23,6 @@ App.upgradeGroupView = Em.View.extend({
   templateName: require('templates/main/admin/stack_upgrade/upgrade_group'),
 
   /**
-   * @type {Array}
-   */
-  taskDetailsProperties: ['status', 'stdout', 'stderr', 'error_log', 'host_name', 'output_log'],
-
-  /**
    * Only one UpgradeGroup or UpgradeItem could be expanded at a time
    * @param {object} event
    */
@@ -69,7 +64,7 @@ App.upgradeGroupView = Em.View.extend({
     var self = this;
 
     if (item && item.get('isExpanded')) {
-      this.getTasks(item).complete(function () {
+      this.get('controller').getUpgradeItem(item).complete(function () {
         self.set('timer', setTimeout(function () {
           self.doPolling(item);
         }, App.bgOperationsUpdateInterval));
@@ -77,54 +72,6 @@ App.upgradeGroupView = Em.View.extend({
     } else {
       clearTimeout(this.get('timer'));
     }
-  },
-
-  /**
-   * request tasks from server
-   * @return {$.ajax}
-   */
-  getTasks: function (item) {
-    return App.ajax.send({
-      name: 'admin.upgrade.upgrade_item',
-      sender: this,
-      data: {
-        upgradeId: item.get('request_id'),
-        groupId: item.get('group_id'),
-        stageId: item.get('stage_id')
-      },
-      success: 'getTasksSuccessCallback'
-    });
-  },
-
-  /**
-   * success callback of <code>getTasks</code>
-   * @param {object} data
-   */
-  getTasksSuccessCallback: function (data) {
-    this.get('controller.upgradeData.upgradeGroups').forEach(function (group) {
-      if (group.get('group_id') === data.UpgradeItem.group_id) {
-        group.get('upgradeItems').forEach(function (item) {
-          if (item.get('stage_id') === data.UpgradeItem.stage_id) {
-            if (item.get('tasks.length')) {
-              item.set('isTasksLoaded', true);
-              data.tasks.forEach(function (task) {
-                var currentTask = item.get('tasks').findProperty('id', task.Tasks.id);
-                this.get('taskDetailsProperties').forEach(function (property) {
-                  currentTask.set(property, task.Tasks[property]);
-                }, this);
-              }, this);
-            } else {
-              var tasks = [];
-              data.tasks.forEach(function (task) {
-                tasks.pushObject(App.upgradeEntity.create({type: 'TASK'}, task.Tasks));
-              });
-              item.set('tasks', tasks);
-            }
-            item.set('isTasksLoaded', true);
-          }
-        }, this);
-      }
-    }, this);
   },
 
   willDestroyElement: function () {
