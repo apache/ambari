@@ -24,7 +24,7 @@ App.HostStackVersion = DS.Model.extend({
   repo: DS.belongsTo('App.Repository'),
   repoVersion: DS.attr('string'),
   displayName: DS.attr('string'),
-
+  isVisible: DS.attr('boolean', {defaultValue: true}),
   /**
    * possible property value defined at App.HostStackVersion.statusDefinition
    * @type {string}

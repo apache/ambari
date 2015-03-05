@@ -594,7 +594,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
      * @returns {Boolean}
      */
     hasSingleVersion: function() {
-      return this.get('content.stackVersions.length') < 2;
+      return this.get('content.stackVersions').filterProperty('isVisible', true).length < 2;
     }.property('content.stackVersions.length'),
 
     /**
@@ -611,8 +611,10 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
      * String with list of host components <code>displayName</code>
      * @returns {String}
      */
-    versionlabels: function () {
-      return this.get('content.stackVersions').filterProperty('isCurrent', false).map(function (version) {
+    versionLabels: function () {
+      return this.get('content.stackVersions').filter(function(sv) {
+        return sv.get('isVisible') === true && sv.get('isCurrent') === false;
+      }).map(function (version) {
         return version.get('displayName');
       }).join("<br />");
     }.property('content.stackVersions.length'),
@@ -1042,7 +1044,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
               value: '',
               label: Em.I18n.t('common.all')
             }
-          ].concat(this.get('controller.allHostStackVersions').mapProperty('displayName').uniq().map(function (version) {
+          ].concat(this.get('controller.allHostStackVersions').filterProperty('isVisible', true).mapProperty('displayName').uniq().map(function (version) {
             return {
               value: version,
               label: version

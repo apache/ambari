@@ -74,7 +74,8 @@ App.hostsMapper = App.QuickDataMapper.create({
     version: 'HostStackVersions.version',
     status: 'HostStackVersions.state',
     host_name: 'host_name',
-    host_id: 'host_name'
+    host_id: 'host_name',
+    is_visible: 'is_visible'
   },
   map: function (json, returnMapped) {
     returnMapped = !!returnMapped;
@@ -109,8 +110,12 @@ App.hostsMapper = App.QuickDataMapper.create({
         }, this);
 
         if (App.get('supports.stackUpgrade')) {
+          var currentVersion = item.stack_versions.findProperty('HostStackVersions.state', 'CURRENT');
+          var currentVersionNumber = Em.get(currentVersion.repository_versions[0], 'RepositoryVersions.repository_version');
           item.stack_versions.forEach(function (stackVersion) {
             stackVersion.host_name = item.Hosts.host_name;
+            stackVersion.is_visible = stringUtils.compareVersions(Em.get(stackVersion.repository_versions[0], 'RepositoryVersions.repository_version'), currentVersionNumber) >= 0
+              || App.get('supports.displayOlderVersions') || !currentVersionNumber;
             stackVersions.push(this.parseIt(stackVersion, this.stackVersionConfig));
           }, this);
         }
