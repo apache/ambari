@@ -283,7 +283,7 @@ public class PhoenixTransactSQL {
     StringBuilder sb = new StringBuilder(stmtStr);
     sb.append(" WHERE ");
     sb.append(condition.getConditionClause());
-    String orderByClause = condition.getOrderByClause();
+    String orderByClause = condition.getOrderByClause(true);
 
     if (orderByClause != null) {
       sb.append(orderByClause);
@@ -398,11 +398,11 @@ public class PhoenixTransactSQL {
     StringBuilder sb = new StringBuilder(stmtStr);
     sb.append(" WHERE ");
     sb.append(condition.getConditionClause());
-    String orderByClause = condition.getOrderByClause();
+    String orderByClause = condition.getOrderByClause(false);
     if (orderByClause != null) {
       sb.append(orderByClause);
     } else {
-      sb.append(" ORDER BY SERVER_TIME DESC, METRIC_NAME  ");
+      sb.append(" ORDER BY METRIC_NAME DESC, HOSTNAME DESC, SERVER_TIME DESC ");
     }
 
     sb.append(" LIMIT ").append(condition.getMetricNames().size());
@@ -533,11 +533,11 @@ public class PhoenixTransactSQL {
     StringBuilder sb = new StringBuilder(stmtStr);
     sb.append(" WHERE ");
     sb.append(condition.getConditionClause());
-    String orderByClause = condition.getOrderByClause();
+    String orderByClause = condition.getOrderByClause(false);
     if (orderByClause != null) {
       sb.append(orderByClause);
     } else {
-      sb.append(" ORDER BY SERVER_TIME DESC, METRIC_NAME  ");
+      sb.append(" ORDER BY METRIC_NAME DESC, SERVER_TIME DESC  ");
     }
 
     sb.append(" LIMIT ").append(condition.getMetricNames().size());
@@ -581,7 +581,7 @@ public class PhoenixTransactSQL {
     String getAppId();
     String getInstanceId();
     StringBuilder getConditionClause();
-    String getOrderByClause();
+    String getOrderByClause(boolean asc);
     String getStatement();
     Long getStartTime();
     Long getEndTime();
@@ -790,7 +790,7 @@ public class PhoenixTransactSQL {
       orderByColumns.add(column);
     }
 
-    public String getOrderByClause() {
+    public String getOrderByClause(boolean asc) {
       String orderByStr = " ORDER BY ";
       if (!orderByColumns.isEmpty()) {
         StringBuilder sb = new StringBuilder(orderByStr);
@@ -799,6 +799,9 @@ public class PhoenixTransactSQL {
             sb.append(", ");
           }
           sb.append(orderByColumn);
+          if (!asc) {
+            sb.append(" DESC");
+          }
         }
         sb.append(" ");
         return sb.toString();
@@ -912,8 +915,8 @@ public class PhoenixTransactSQL {
     }
 
     @Override
-    public String getOrderByClause() {
-      return adaptee.getOrderByClause();
+    public String getOrderByClause(boolean asc) {
+      return adaptee.getOrderByClause(asc);
     }
 
     @Override
