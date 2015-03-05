@@ -184,6 +184,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @param data
    */
   loadUpgradeDataSuccessCallback: function (data) {
+    if (Em.isNone(data)) return;
     App.set('upgradeState', data.Upgrade.request_status);
     this.setDBProperty('upgradeState', data.Upgrade.request_status);
     if (data.upgrade_groups) {
