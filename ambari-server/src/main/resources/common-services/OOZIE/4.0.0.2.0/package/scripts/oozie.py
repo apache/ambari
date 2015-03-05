@@ -213,5 +213,4 @@ def oozie_server_specific():
         group = params.user_group,
         mode = 0664
     )
-  pass
-  
+  Execute (format("chown -R {oozie_user}:{user_group} {oozie_server_dir}"))
