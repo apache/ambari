@@ -30,7 +30,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
   hideBackButton: true,
 
   /**
-   * @type {object}
+   * @type {string}
    * @default null
    */
   serviceToInstall: null,
@@ -201,7 +201,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
       };
       App.StackService.find().forEach(function (item) {
         var isInstalled = App.Service.find().someProperty('id', item.get('serviceName'));
-        var isSelected = item.get('serviceName') == this.get('serviceToInstall');
+        var isSelected = (item.get('serviceName') == this.get('serviceToInstall')) || item.get('coSelectedServices').contains(this.get('serviceToInstall'));
         item.set('isSelected', isInstalled || isSelected);
         item.set('isInstalled', isInstalled);
         if (isInstalled) {
@@ -227,6 +227,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
         this.get('isStepDisabled').findProperty('step', 3).set('value', this.get('content.skipSlavesStep'));
       }
     }
+    this.set('serviceToInstall', null);
     this.set('content.services', App.StackService.find());
   },
 
