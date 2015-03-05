@@ -78,6 +78,9 @@ regionserver_xmn_max = config['configurations']['hbase-env']['hbase_regionserver
 regionserver_xmn_percent = config['configurations']['hbase-env']['hbase_regionserver_xmn_ratio']
 regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, regionserver_xmn_percent, regionserver_xmn_max)
 
+if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
+  hbase_max_direct_memory_size  = config['configurations']['hbase-env']['hbase_max_direct_memory_size']
+
 pid_dir = status_params.pid_dir
 tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
 # TODO UPGRADE default, update site during upgrade

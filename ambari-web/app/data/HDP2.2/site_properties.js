@@ -787,6 +787,53 @@ hdp22properties.push(
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
     "category": "ADSettings"
+  },
+  {
+    "id": "site property",
+    "name": "hbase.bucketcache.ioengine",
+    "displayName": "hbase.bucketcache.ioengine",
+    "isRequired": false,
+    "serviceName": "HBASE",
+    "filename": "hbase-site.xml",
+    "category": "Advanced hbase-site"
+  },
+  {
+    "id": "site property",
+    "name": "hbase.bucketcache.size",
+    "displayName": "hbase.bucketcache.size",
+    "displayType": "int",
+    "isRequired": false,
+    "serviceName": "HBASE",
+    "filename": "hbase-site.xml",
+    "category": "Advanced hbase-site"
+  },
+  {
+    "id": "site property",
+    "name": "hbase.bucketcache.percentage.in.combinedcache",
+    "displayName": "hbase.bucketcache.percentage.in.combinedcache",
+    "displayType": "float",
+    "isRequired": false,
+    "serviceName": "HBASE",
+    "filename": "hbase-site.xml",
+    "category": "Advanced hbase-site"
+  },
+  {
+    "id": "site property",
+    "name": "hbase_max_direct_memory_size",
+    "displayName": "HBase off-heap MaxDirectMemorySize",
+    "displayType": "int",
+    "isRequired": false,
+    "serviceName": "HBASE",
+    "filename": "hbase-env.xml",
+    "category": "Advanced hbase-env"
+  },
+  {
+    "id": "site property",
+    "name": "hbase.regionserver.global.memstore.size",
+    "displayName": "hbase.regionserver.global.memstore.size",
+    "category": "Advanced hbase-site",
+    "serviceName": "HBASE",
+    "filename": "hbase-site.xml"
   }
 );
 

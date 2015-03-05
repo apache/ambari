@@ -61,5 +61,29 @@
     worse, we OOME.
     </description>
   </property>
-
+  <property>
+    <name>hbase.bucketcache.ioengine</name>
+    <value></value>
+    <description>Where to store the contents of the bucketcache. One of: onheap,
+      offheap, or file. If a file, set it to file:PATH_TO_FILE.</description>
+  </property>
+  <property>
+    <name>hbase.bucketcache.size</name>
+    <value></value>
+    <description>The size of the buckets for the bucketcache if you only use a single size.</description>
+  </property>
+  <property>
+    <name>hbase.bucketcache.percentage.in.combinedcache</name>
+    <value></value>
+    <description>Value to be set between 0.0 and 1.0</description>
+  </property>
+  <property>
+    <name>hbase.regionserver.global.memstore.size</name>
+    <value>${hbase.regionserver.global.memstore.upperLimit}</value>
+    <description>Maximum size of all memstores in a region server before new
+      updates are blocked and flushes are forced. Defaults to 40% of heap.
+      Updates are blocked and flushes are forced until size of all memstores
+      in a region server hits hbase.regionserver.global.memstore.size.lower.limit.
+    </description>
+  </property>
 </configuration>

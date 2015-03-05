@@ -17,6 +17,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import math
+
+
 class HDP22StackAdvisor(HDP21StackAdvisor):
 
   def getServiceConfigurationRecommenderDict(self):
@@ -81,6 +84,46 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
         putHbaseSiteProperty("hbase.coprocessor.master.classes", 'com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor')
         putHbaseSiteProperty("hbase.coprocessor.region.classes", 'com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor')
 
+    # Recommend configs for bucket cache
+    threshold = 23 # 2 Gb is reserved for other offheap memory
+    mb = 1024
+    if (int(clusterData["hbaseRam"]) > threshold):
+      # To enable cache - calculate values
+      regionserver_total_ram = int(clusterData["hbaseRam"]) * mb
+      regionserver_heap_size = 20480
+      regionserver_max_direct_memory_size = regionserver_total_ram - regionserver_heap_size
+      hfile_block_cache_size = '0.4'
+      block_cache_heap = 8192 # int(regionserver_heap_size * hfile_block_cache_size)
+      hbase_regionserver_global_memstore_size = '0.4'
+      reserved_offheap_memory = 2048
+      bucketcache_offheap_memory = regionserver_max_direct_memory_size - reserved_offheap_memory
+      hbase_bucketcache_size = block_cache_heap + bucketcache_offheap_memory
+      hbase_bucketcache_percentage_in_combinedcache = float(bucketcache_offheap_memory) / hbase_bucketcache_size
+      hbase_bucketcache_percentage_in_combinedcache_str = "{0:.4f}".format(math.ceil(hbase_bucketcache_percentage_in_combinedcache * 10000) / 10000.0)
+
+      # Set values in hbase-site
+      putHbaseProperty = self.putProperty(configurations, "hbase-site")
+      putHbaseProperty('hfile.block.cache.size', hfile_block_cache_size)
+      putHbaseProperty('hbase.regionserver.global.memstore.upperLimit', hbase_regionserver_global_memstore_size)
+      putHbaseProperty('hbase.bucketcache.ioengine', 'offheap')
+      putHbaseProperty('hbase.bucketcache.size', hbase_bucketcache_size)
+      putHbaseProperty('hbase.bucketcache.percentage.in.combinedcache', hbase_bucketcache_percentage_in_combinedcache_str)
+
+      # Enable in hbase-env
+      putHbaseEnvProperty = self.putProperty(configurations, "hbase-env")
+      putHbaseEnvProperty('hbase_max_direct_memory_size', regionserver_max_direct_memory_size)
+      putHbaseEnvProperty('hbase_regionserver_heapsize', regionserver_heap_size)
+    else:
+      # Disable
+      putHbaseProperty = self.putProperty(configurations, "hbase-site")
+      putHbaseProperty('hbase.bucketcache.ioengine', '')
+      putHbaseProperty('hbase.bucketcache.size', '')
+      putHbaseProperty('hbase.bucketcache.percentage.in.combinedcache', '')
+
+      putHbaseEnvProperty = self.putProperty(configurations, "hbase-env")
+      putHbaseEnvProperty('hbase_max_direct_memory_size', '')
+
+
   def recommendTezConfigurations(self, configurations, clusterData, services, hosts):
     putTezProperty = self.putProperty(configurations, "tez-site")
     putTezProperty("tez.am.resource.memory.mb", int(clusterData['amMemory']) * 2 if int(clusterData['amMemory']) < 3072 else int(clusterData['amMemory']))
@@ -97,7 +140,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       "HDFS": {"hdfs-site": self.validateHDFSConfigurations,
                "hadoop-env": self.validateHDFSConfigurationsEnv},
       "HIVE": {"hiveserver2-site": self.validateHiveServer2Configurations, "hive-site": self.validateHiveConfigurations},
-      "HBASE": {"hbase-site": self.validateHBASEConfigurations},
+      "HBASE": {"hbase-site": self.validateHBASEConfigurations,
+                "hbase-env": self.validateHBASEEnvConfigurations},
       "MAPREDUCE2": {"mapred-site": self.validateMapReduce2Configurations},
       "TEZ": {"tez-site": self.validateTezConfigurations}
     }
@@ -386,7 +430,45 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                                 "item": self.getWarnItem(
                                 "If Ranger HBase Plugin is enabled."\
                                 " {0} needs to contain {1} instead of {2}".format(prop_name,prop_val,exclude_val))})
+
+    # Validate bucket cache correct config
+    prop_name = "hbase.bucketcache.ioengine"
+    prop_val = "offheap"
+    if not (not hbase_site[prop_name] or hbase_site[prop_name] == prop_val):
+      validationItems.append({"config-name": prop_name,
+                              "item": self.getWarnItem(
+                                "Recommended values of " \
+                                " {0} is empty or '{1}'".format(prop_name,prop_val))})
+
+    prop_name1 = "hbase.bucketcache.ioengine"
+    prop_name2 = "hbase.bucketcache.size"
+    prop_name3 = "hbase.bucketcache.percentage.in.combinedcache"
+
+    if hbase_site[prop_name1] and not hbase_site[prop_name2]:
+      validationItems.append({"config-name": prop_name2,
+                              "item": self.getWarnItem(
+                                "If bucketcache ioengine is enabled, {0} should be set".format(prop_name2))})
+    if hbase_site[prop_name1] and not hbase_site[prop_name3]:
+      validationItems.append({"config-name": prop_name3,
+                              "item": self.getWarnItem(
+                                "If bucketcache ioengine is enabled, {0} should be set".format(prop_name3))})
+
     return self.toConfigurationValidationProblems(validationItems, "hbase-site")
+
+  def validateHBASEEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    hbase_env = properties
+    validationItems = [ {"config-name": 'hbase_regionserver_heapsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hbase_regionserver_heapsize')},
+                        {"config-name": 'hbase_master_heapsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hbase_master_heapsize')} ]
+    prop_name = "hbase_max_direct_memory_size"
+    hbase_site_properties = getSiteProperties(configurations, "hbase-site")
+    prop_name1 = "hbase.bucketcache.ioengine"
+
+    if hbase_site_properties[prop_name1] and hbase_site_properties[prop_name1] == "offheap" and not hbase_env[prop_name]:
+      validationItems.append({"config-name": prop_name,
+                              "item": self.getWarnItem(
+                                "If bucketcache ioengine is enabled, {0} should be set".format(prop_name))})
+
+    return self.toConfigurationValidationProblems(validationItems, "hbase-env")
 
   def getMastersWithMultipleInstances(self):
     result = super(HDP22StackAdvisor, self).getMastersWithMultipleInstances()
