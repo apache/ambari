@@ -20,8 +20,11 @@ limitations under the License.
 
 import sys
 import os
-from resource_management import *
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions.dynamic_variable_interpretation import copy_tarballs_to_hdfs
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.core.resources import Execute
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.core import shell
@@ -39,6 +42,7 @@ class JobHistoryServer(Script):
     env.set_params(params)
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       Execute(format("hdp-select set spark-historyserver {version}"))
+      copy_tarballs_to_hdfs('tez', 'spark-historyserver', params.spark_user, params.hdfs_user, params.user_group)
 
   def install(self, env):
     self.install_packages(env)
@@ -62,11 +66,13 @@ class JobHistoryServer(Script):
     import params
 
     env.set_params(params)
-    setup_spark(env, 'server', action = 'start')
+    setup_spark(env, 'server', action='start')
 
     if params.security_enabled:
       spark_kinit_cmd = format("{kinit_path_local} -kt {spark_kerberos_keytab} {spark_principal}; ")
       Execute(spark_kinit_cmd, user=params.spark_user)
+
+    copy_tarballs_to_hdfs('tez', 'spark-historyserver', params.spark_user, params.hdfs_user, params.user_group)
 
     daemon_cmd = format('{spark_history_server_start}')
     no_op_test = format(
