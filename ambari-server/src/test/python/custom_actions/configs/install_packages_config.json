@@ -24,7 +24,7 @@
     "roleParams": {
         "stack_id": "HDP-2.2",
         "repository_version": "2.2.0.1-885",
-        "base_urls": "[{\"name\":\"HDP-UTILS\",\"baseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0\",\"repositoryId\":\"HDP-UTILS-1.1.0.20\"},{\"name\":\"HDP\",\"baseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0\",\"repositoryId\":\"HDP-2.2\"}]",
+        "base_urls": "[{\"name\":\"HDP-UTILS\",\"baseUrl\":\"http://repo1/HDP/centos5/2.x/updates/2.2.0.0\",\"repositoryId\":\"HDP-UTILS-1.1.0.20\"},{\"name\":\"HDP\",\"baseUrl\":\"http://repo1/HDP/centos5/2.x/updates/2.2.0.0\",\"repositoryId\":\"HDP-2.2\"}]",
         "package_list": "[{\"name\":\"hadoop_2_2_*\"},{\"name\":\"snappy\"},{\"name\":\"snappy-devel\"},{\"name\":\"lzo\"},{\"name\":\"hadooplzo_2_2_*\"},{\"name\":\"hadoop_2_2_*-libhdfs\"},{\"name\":\"ambari-log4j\"}]"
     }, 
     "serviceName": "null", 
@@ -37,7 +37,7 @@
         "command_timeout": "60", 
         "script_type": "PYTHON",
         "repository_version": "2.2.0.1-885",
-        "base_urls": "[{\"name\":\"HDP-UTILS\",\"baseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0\",\"repositoryId\":\"HDP-UTILS-1.1.0.20\"},{\"name\":\"HDP\",\"baseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0\",\"repositoryId\":\"HDP-2.2\"}]",
+        "base_urls": "[{\"name\":\"HDP-UTILS\",\"baseUrl\":\"http://repo1/HDP/centos5/2.x/updates/2.2.0.0\",\"repositoryId\":\"HDP-UTILS-1.1.0.20\"},{\"name\":\"HDP\",\"baseUrl\":\"http://repo1/HDP/centos5/2.x/updates/2.2.0.0\",\"repositoryId\":\"HDP-2.2\"}]",
         "package_list": "[{\"name\":\"hadoop_2_2_*\"},{\"name\":\"snappy\"},{\"name\":\"snappy-devel\"},{\"name\":\"lzo\"},{\"name\":\"hadooplzo_2_2_*\"},{\"name\":\"hadoop_2_2_*-libhdfs\"},{\"name\":\"ambari-log4j\"}]",
         "script": "install_packages.py"
     }, 

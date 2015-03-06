@@ -29,6 +29,7 @@ from resource_management.libraries.functions.list_ambari_managed_repos import li
 from ambari_commons.os_check import OSCheck, OSConst
 from resource_management.libraries.functions.packages_analyzer import allInstalledPackages
 from resource_management.core.shell import call
+from resource_management.libraries.functions.default import default
 
 
 class InstallPackages(Script):
@@ -204,13 +205,24 @@ class InstallPackages(Script):
     """
     filtered_package_list = []
     for package in package_list:
+      skip_package = False
       # mysql* package logic is managed at HIVE scripts
       if package['name'].startswith('mysql'):
-        continue
+        skip_package = True
       # Ambari metrics packages should not be upgraded during RU
       if package['name'].startswith('ambari-metrics'):
-        continue
-      filtered_package_list.append(package)
+        skip_package = True
+      # hadooplzo package is installed only if LZO comperession is enabled
+      io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)
+      if not io_compression_codecs or "com.hadoop.compression.lzo" not in io_compression_codecs:
+        lzo_packages = ['hadoop-lzo', 'lzo', 'hadoop-lzo-native', 'liblzo2-2', 'hadooplzo']
+        for lzo_package in lzo_packages:
+          if package['name'].startswith(lzo_package):
+            skip_package = True
+            break
+
+      if not skip_package:
+        filtered_package_list.append(package)
     return filtered_package_list
 
 if __name__ == "__main__":
