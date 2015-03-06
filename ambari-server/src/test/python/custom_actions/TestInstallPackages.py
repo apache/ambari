@@ -63,7 +63,7 @@ class TestInstallPackages(RMFTestCase):
                        'stack_id': 'HDP-2.2',
                        'ambari_repositories': []})
     self.assertResourceCalled('Repository', 'HDP-UTILS-2.2.0.1-885',
-                              base_url=u'http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0',
+                              base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP-UTILS', 'main'],
                               repo_template='repo_suse_rhel.j2',
@@ -72,7 +72,7 @@ class TestInstallPackages(RMFTestCase):
                               append_to_file=False,
     )
     self.assertResourceCalled('Repository', 'HDP-2.2.0.1-885',
-                              base_url=u'http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0',
+                              base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP', 'main'],
                               repo_template='repo_suse_rhel.j2',
@@ -83,8 +83,6 @@ class TestInstallPackages(RMFTestCase):
     self.assertResourceCalled('Package', 'hadoop_2_2_*', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
     self.assertResourceCalled('Package', 'snappy', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
     self.assertResourceCalled('Package', 'snappy-devel', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
-    self.assertResourceCalled('Package', 'lzo', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
-    self.assertResourceCalled('Package', 'hadooplzo_2_2_*', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
     self.assertResourceCalled('Package', 'hadoop_2_2_*-libhdfs', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
     self.assertResourceCalled('Package', 'ambari-log4j', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
     self.assertNoMoreResources()
@@ -113,7 +111,7 @@ class TestInstallPackages(RMFTestCase):
                        'stack_id': 'HDP-2.2',
                        'ambari_repositories': ["HDP-UTILS-2.2.0.1-885"]})
     self.assertResourceCalled('Repository', 'HDP-UTILS-2.2.0.1-885',
-                              base_url=u'http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0',
+                              base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP-UTILS', 'main'],
                               repo_template=u'repo_suse_rhel.j2',
@@ -122,7 +120,7 @@ class TestInstallPackages(RMFTestCase):
                               append_to_file=False,
     )
     self.assertResourceCalled('Repository', 'HDP-2.2.0.1-885',
-                              base_url='http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0',
+                              base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP', 'main'],
                               repo_template=u'repo_suse_rhel.j2',
@@ -133,8 +131,6 @@ class TestInstallPackages(RMFTestCase):
     self.assertResourceCalled('Package', 'hadoop_2_2_*', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
     self.assertResourceCalled('Package', 'snappy', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
     self.assertResourceCalled('Package', 'snappy-devel', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
-    self.assertResourceCalled('Package', 'lzo', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
-    self.assertResourceCalled('Package', 'hadooplzo_2_2_*', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
     self.assertResourceCalled('Package', 'hadoop_2_2_*-libhdfs', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
     self.assertResourceCalled('Package', 'ambari-log4j', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
     self.assertNoMoreResources()
@@ -186,7 +182,7 @@ class TestInstallPackages(RMFTestCase):
     self.assertEquals(put_structured_out_mock.call_args[0][0],
                       {'stack_id': 'HDP-2.2', 'installed_repository_version': u'2.2.0.1-885', 'ambari_repositories': [], 'package_installation_result': 'FAIL'})
     self.assertResourceCalled('Repository', 'HDP-UTILS-2.2.0.1-885',
-                              base_url=u'http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0',
+                              base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP-UTILS', 'main'],
                               repo_template=u'repo_suse_rhel.j2',
@@ -195,7 +191,7 @@ class TestInstallPackages(RMFTestCase):
                               append_to_file=False,
                               )
     self.assertResourceCalled('Repository', 'HDP-2.2.0.1-885',
-                              base_url=u'http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0',
+                              base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP', 'main'],
                               repo_template=u'repo_suse_rhel.j2',
@@ -230,7 +226,7 @@ class TestInstallPackages(RMFTestCase):
                        'stack_id': 'HDP-2.2',
                        'ambari_repositories': []})
     self.assertResourceCalled('Repository', 'HDP-UTILS-2.2.0.1-885',
-                              base_url=u'http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0',
+                              base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP-UTILS', 'main'],
                               repo_template='repo_suse_rhel.j2',
@@ -239,7 +235,7 @@ class TestInstallPackages(RMFTestCase):
                               append_to_file=False,
                               )
     self.assertResourceCalled('Repository', 'HDP-2.2.0.1-885',
-                              base_url=u'http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0',
+                              base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP', 'main'],
                               repo_template='repo_suse_rhel.j2',
@@ -250,8 +246,6 @@ class TestInstallPackages(RMFTestCase):
     self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885*', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
     self.assertResourceCalled('Package', 'snappy', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
     self.assertResourceCalled('Package', 'snappy-devel', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
-    self.assertResourceCalled('Package', 'lzo', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
-    self.assertResourceCalled('Package', 'hadooplzo_2_2_0_1_885*', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
     self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885*-libhdfs', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
     self.assertResourceCalled('Package', 'ambari-log4j', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'])
     self.assertNoMoreResources()
@@ -272,7 +266,8 @@ class TestInstallPackages(RMFTestCase):
 
     config_dict['roleParams']['package_list'] = '[{\"name\":\"mysql-connector-java\"},{\"name\":\"hive_2_2_*\"},' \
                                                      '{\"name\":\"hive_2_2_*-hcatalog\"},{\"name\":\"hive_2_2_*-webhcat\"},' \
-                                                     '{\"name\":\"mysql\"},{\"name\":\"mysql-client\"}, {\"name\":\"ambari-metrics-collector\"}]'
+                                                     '{\"name\":\"mysql\"},{\"name\":\"mysql-client\"}, {\"name\":\"ambari-metrics-collector\"},' \
+                                                     ' {\"name\":\"hadooplzo_2_2_2_0_2538-native\"}]'
 
     self.executeScript("scripts/install_packages.py",
                        classname="InstallPackages",
@@ -288,7 +283,7 @@ class TestInstallPackages(RMFTestCase):
                        'stack_id': 'HDP-2.2',
                        'ambari_repositories': []})
     self.assertResourceCalled('Repository', 'HDP-UTILS-2.2.0.1-885',
-                              base_url=u'http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0',
+                              base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP-UTILS', 'main'],
                               repo_template='repo_suse_rhel.j2',
@@ -297,7 +292,7 @@ class TestInstallPackages(RMFTestCase):
                               append_to_file=False,
                               )
     self.assertResourceCalled('Repository', 'HDP-2.2.0.1-885',
-                              base_url=u'http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0',
+                              base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP', 'main'],
                               repo_template='repo_suse_rhel.j2',
@@ -317,5 +312,67 @@ class TestInstallPackages(RMFTestCase):
                               use_repos=['base', 'HDP-UTILS-2.2.0.1-885',
                                          'HDP-2.2.0.1-885'],
     )
+    self.assertNoMoreResources()
+
+    # Check case when LZO is enabled
+    config_file = self._getSrcFolder()+"/test/python/custom_actions/configs/install_packages_config.json"
+    with open(config_file, "r") as f:
+      config_dict = json.load(f)
+    config_dict['configurations']['core-site'] = {
+      'io.compression.codecs': "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,"
+                               "org.apache.hadoop.io.compress.SnappyCodec,com.hadoop.compression.lzo"
+    }
+    config_dict['roleParams']['package_list'] = '[{\"name\":\"mysql-connector-java\"},{\"name\":\"hive_2_2_*\"},' \
+                                                '{\"name\":\"hive_2_2_*-hcatalog\"},{\"name\":\"hive_2_2_*-webhcat\"},' \
+                                                '{\"name\":\"mysql\"},{\"name\":\"mysql-client\"}, {\"name\":\"ambari-metrics-collector\"},' \
+                                                ' {\"name\":\"hadooplzo_2_2_2_0_2538-native\"}]'
+
+    self.executeScript("scripts/install_packages.py",
+                       classname="InstallPackages",
+                       command="actionexecute",
+                       config_dict=config_dict,
+                       target=RMFTestCase.TARGET_CUSTOM_ACTIONS,
+                       os_type=('Suse', '11', 'Final'),
+                       )
+    self.assertTrue(put_structured_out_mock.called)
+    self.assertEquals(put_structured_out_mock.call_args[0][0],
+                      {'package_installation_result': 'SUCCESS',
+                       'installed_repository_version': u'2.2.0.1-885',
+                       'stack_id': 'HDP-2.2',
+                       'ambari_repositories': []})
+    self.assertResourceCalled('Repository', 'HDP-UTILS-2.2.0.1-885',
+                              base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+                              action=['create'],
+                              components=[u'HDP-UTILS', 'main'],
+                              repo_template='repo_suse_rhel.j2',
+                              repo_file_name=u'HDP-2.2.0.1-885',
+                              mirror_list=None,
+                              append_to_file=False,
+                              )
+    self.assertResourceCalled('Repository', 'HDP-2.2.0.1-885',
+                              base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
+                              action=['create'],
+                              components=[u'HDP', 'main'],
+                              repo_template='repo_suse_rhel.j2',
+                              repo_file_name=u'HDP-2.2.0.1-885',
+                              mirror_list=None,
+                              append_to_file=True,
+                              )
+    self.assertResourceCalled('Package', 'hive_2_2_0_1_885*',
+                              use_repos=['base', 'HDP-UTILS-2.2.0.1-885',
+                                         'HDP-2.2.0.1-885'],
+                              )
+    self.assertResourceCalled('Package', 'hive_2_2_0_1_885*-hcatalog',
+                              use_repos=['base', 'HDP-UTILS-2.2.0.1-885',
+                                         'HDP-2.2.0.1-885'],
+                              )
+    self.assertResourceCalled('Package', 'hive_2_2_0_1_885*-webhcat',
+                              use_repos=['base', 'HDP-UTILS-2.2.0.1-885',
+                                         'HDP-2.2.0.1-885'],
+                              )
+    self.assertResourceCalled('Package', 'hadooplzo_2_2_2_0_2538-native',
+                              use_repos=['base', 'HDP-UTILS-2.2.0.1-885',
+                                         'HDP-2.2.0.1-885'],
+                              )
     self.assertNoMoreResources()
 
