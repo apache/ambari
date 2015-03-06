@@ -28,7 +28,7 @@ IS_WINDOWS = platform.system() == "Windows"
 if not IS_WINDOWS:
   for dir in os.walk(path).next()[1]:
     if 'lib' in dir:
-      sys.path.append(os.path.join(path, dir))
+      sys.path.insert(1, os.path.join(path, dir))
 
 try:
   import psutil
