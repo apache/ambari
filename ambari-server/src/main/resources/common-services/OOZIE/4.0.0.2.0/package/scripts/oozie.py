@@ -168,6 +168,11 @@ def oozie_server_specific():
             #creates=params.target, TODO: uncomment after ranger_hive_plugin will not provide jdbc
             path=["/bin", "/usr/bin/"],
             sudo = True)
+            
+    File ( params.target,
+      owner = params.oozie_user,
+      group = params.user_group
+    )
 
   #falcon el extension
   if params.has_falcon_host:
