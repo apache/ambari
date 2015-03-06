@@ -5,34 +5,38 @@
       "identities": [
         {
           "name": "/smokeuser"
+        },
+        {
+          "name": "/hdfs"
+        },
+        {
+          "name": "sparkuser",
+          "principal": {
+            "value": "${spark-env/spark_user}@${realm}",
+            "type" : "user",
+            "configuration": "spark-defaults/spark.history.kerberos.principal",
+            "local_username" : "${spark-env/spark_user}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/spark.headless.keytab",
+            "owner": {
+              "name": "${spark-env/spark_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+               "access": ""
+            },
+            "configuration": "spark-defaults/spark.history.kerberos.keytab"
+           }
         }
       ],
       "components": [
         {
-          "name": "SPARK_JOBHISTORYSERVER",
-          "identities": [
-            {
-              "name": "spark_historyserver",
-              "principal": {
-                "value": "spark/_HOST@${realm}",
-                "type" : "service",
-                "configuration": "spark-defaults/spark.history.kerberos.principal",
-                "local_username" : "${spark-env/spark_user}"
-              },
-              "keytab": {
-                "file": "${keytab_dir}/spark.service.keytab",
-                "owner": {
-                  "name": "${spark-env/spark_user}",
-                  "access": "r"
-                },
-                "group": {
-                  "name": "${cluster-env/user_group}",
-                  "access": ""
-                },
-                "configuration": "spark-defaults/spark.history.kerberos.keytab"
-              }
-            }
-          ]
+          "name": "SPARK_JOBHISTORYSERVER"
+        },
+        {
+          "name": "SPARK_CLIENT"
         }
       ]
     }
