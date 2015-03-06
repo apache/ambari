@@ -61,6 +61,52 @@ module.exports =
         "filename": "yarn-site",
         serviceName: 'MISC'
       },
+
+      {
+        "id": "site property",
+        "name": "yarn.resourcemanager.webapp.address.rm1",
+        "displayName": "yarn.resourcemanager.webapp.address.rm1",
+        "isReconfigurable": false,
+        "defaultValue": "",
+        "value": "",
+        "category": "YARN",
+        "filename": "yarn-site",
+        serviceName: 'MISC'
+      },
+      {
+        "id": "site property",
+        "name": "yarn.resourcemanager.webapp.address.rm2",
+        "displayName": "yarn.resourcemanager.webapp.address.rm2",
+        "isReconfigurable": false,
+        "defaultValue": "",
+        "value": "",
+        "category": "YARN",
+        "filename": "yarn-site",
+        serviceName: 'MISC'
+      },
+      {
+        "id": "site property",
+        "name": "yarn.resourcemanager.webapp.https.address.rm1",
+        "displayName": "yarn.resourcemanager.webapp.https.address.rm1",
+        "isReconfigurable": false,
+        "defaultValue": "",
+        "value": "",
+        "category": "YARN",
+        "filename": "yarn-site",
+        serviceName: 'MISC'
+      },
+      {
+        "id": "site property",
+        "name": "yarn.resourcemanager.webapp.https.address.rm2",
+        "displayName": "yarn.resourcemanager.webapp.https.address.rm2",
+        "isReconfigurable": false,
+        "defaultValue": "",
+        "value": "",
+        "category": "YARN",
+        "filename": "yarn-site",
+        serviceName: 'MISC'
+      },
+
       {
         "id": "site property",
         "name": "yarn.resourcemanager.hostname.rm2",
