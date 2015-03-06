@@ -2418,6 +2418,7 @@ Em.I18n.translations = {
   'rolling.nothingToDo.body': '{0} on selected hosts are already in selected state or in Maintenance Mode.',
 
   'restart.service.all': 'Restart All',
+  'restart.service.all.affected': 'Restart All Affected',
   'restart.service.rest.context': 'Restart {0}s',
 
   'menu.item.dashboard':'Dashboard',
