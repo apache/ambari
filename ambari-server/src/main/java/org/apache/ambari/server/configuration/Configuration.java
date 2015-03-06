@@ -1343,6 +1343,8 @@ public class Configuration {
       databaseType = DatabaseType.MYSQL;
     } else if (dbUrl.contains(DatabaseType.DERBY.getName())) {
       databaseType = DatabaseType.DERBY;
+    } else if (dbUrl.contains(DatabaseType.SQL_SERVER.getName())) {
+      databaseType = DatabaseType.SQL_SERVER;
     } else {
       throw new RuntimeException(
           "The database type could be not determined from the JDBC URL "

@@ -437,5 +437,8 @@ public class ConfigurationTest {
 
     ambariProperties.setProperty(Configuration.SERVER_JDBC_URL_KEY, "jdbc:derby://server");
     Assert.assertEquals( DatabaseType.DERBY, configuration.getDatabaseType() );
+
+    ambariProperties.setProperty(Configuration.SERVER_JDBC_URL_KEY, "jdbc:sqlserver://server");
+    Assert.assertEquals( DatabaseType.SQL_SERVER, configuration.getDatabaseType() );
   }
 }
