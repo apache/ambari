@@ -477,15 +477,19 @@ var urls = {
     'real': '/clusters/{clusterName}/requests',
     'mock': '/data/wizard/deploy/poll_1.json',
     'format': function (data) {
+      var requestData = {
+        "RequestInfo": {
+          "context": data.displayName + " Service Check",
+          "command": data.actionName
+        },
+        "Requests/resource_filters": [{"service_name": data.serviceName}]
+      };
+      if (data.operationLevel) {
+        requestData.RequestInfo.operation_level = data.operationLevel;
+      }
       return {
         'type': 'POST',
-        data: JSON.stringify({
-          "RequestInfo": {
-            "context": data.displayName + " Service Check",
-            "command": data.actionName
-          },
-          "Requests/resource_filters": [{"service_name": data.serviceName}]
-        })
+        data: JSON.stringify(requestData)
       };
     }
   },
