@@ -51,6 +51,9 @@ class AmsCollector(Script):
     import params
     env.set_params(params)
 
+    # Sometimes, stop() may be called before start(), in case restart() is initiated right after installation
+    self.configure(env) # for security
+
     ams_service( 'collector', action = 'stop')
 
   def status(self, env):
