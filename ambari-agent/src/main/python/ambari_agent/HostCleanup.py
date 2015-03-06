@@ -477,7 +477,7 @@ class HostCleanup:
   # Run command as sudoer by default, if root no issues
   def run_os_command(self, cmd, runWithSudo=True):
     if runWithSudo:
-      cmd = AMBARI_SUDO_BINARY + cmd
+      cmd = "/var/lib/ambari-agent/"+AMBARI_SUDO_BINARY + " " + cmd
     logger.info('Executing command: ' + str(cmd))
     if type(cmd) == str:
       cmd = shlex.split(cmd)
