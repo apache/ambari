@@ -78,6 +78,7 @@ class TestUpgradeHelper(TestCase):
       report = "report.txt"
       warnings = []
       printonly = False
+      repo_version = None
 
     args = ["update-configs"]
     modify_action_mock.return_value = MagicMock()
@@ -91,6 +92,58 @@ class TestUpgradeHelper(TestCase):
     self.assertEqual(modify_action_mock.call_count, 1)
     self.assertEqual({"user": options.user, "pass": options.password}, upgradeHelper.Options.API_TOKENS)
     self.assertEqual(options.clustername, upgradeHelper.Options.CLUSTER_NAME)
+
+
+  @patch("optparse.OptionParser")
+  @patch("upgradeHelper.finalize_ru")
+  @patch("__builtin__.open")
+  def test_Finalize_options(self, open_mock, finalize_ru_mock, option_parser_mock):
+    class options(object):
+      user = "test_user"
+      hostname = "127.0.0.1"
+      clustername = "test1"
+      password = "test_password"
+      upgrade_json =  None
+      from_stack = None
+      to_stack = None
+      logfile = "test.log"
+      report = None
+      warnings = []
+      printonly = False
+      repo_version = None
+
+    args = ["finalize-ru"]
+    test_mock = MagicMock()
+    test_mock.parse_args = lambda: (options, args)
+    option_parser_mock.return_value = test_mock
+
+    try:
+      upgradeHelper.main()
+    except upgradeHelper.FatalException:
+      # Expected
+      pass
+
+    class options(object):
+      user = "test_user"
+      hostname = "127.0.0.1"
+      clustername = "test1"
+      password = "test_password"
+      upgrade_json =  None
+      from_stack = None
+      to_stack = None
+      logfile = "test.log"
+      report = None
+      warnings = []
+      printonly = False
+      repo_version = 'HDP-2.2.2.0-2561'
+
+    args = ["finalize-ru"]
+    test_mock = MagicMock()
+    test_mock.parse_args = lambda: (options, args)
+    option_parser_mock.return_value = test_mock
+
+    upgradeHelper.main()
+    self.assertTrue(finalize_ru_mock.called)
 
 
 if __name__ == "__main__":
