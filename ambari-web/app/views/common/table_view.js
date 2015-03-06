@@ -455,7 +455,7 @@ App.TableView = Em.View.extend(App.UserPref, {
       });
       this.set('filteredContent', result);
     } else {
-      this.set('filteredContent', content.toArray());
+      this.set('filteredContent', content ? content.toArray() : []);
     }
   }.observes('content.length'),
 

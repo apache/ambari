@@ -286,4 +286,101 @@ describe('App.TableView', function () {
     });
   });
 
+  describe('#filter', function () {
+
+    var cases = [
+      {
+        filterConditions: [
+          {
+            iColumn: 1,
+            type: 'string',
+            value: 'v0'
+          }
+        ],
+        content: [
+          Em.Object.create({
+            c0: 'v0'
+          }),
+          Em.Object.create({
+            c1: 'v1'
+          })
+        ],
+        filteredContent: [],
+        title: 'no matches'
+      },
+      {
+        filterConditions: [
+          {
+            iColumn: 0,
+            type: 'string',
+            value: 'v1'
+          }
+        ],
+        content: [
+          Em.Object.create({
+            c0: 'v1'
+          }),
+          Em.Object.create({
+            c0: 'v11'
+          }),
+          Em.Object.create({
+            c1: 'v01'
+          })
+        ],
+        filteredContent: [
+          Em.Object.create({
+            c0: 'v1'
+          }),
+          Em.Object.create({
+            c0: 'v11'
+          })
+        ],
+        title: 'matches present'
+      },
+      {
+        filterConditions: [],
+        content: [
+          Em.Object.create({
+            c0: 'v0'
+          }),
+          Em.Object.create({
+            c1: 'v1'
+          })
+        ],
+        filteredContent: [
+          Em.Object.create({
+            c0: 'v0'
+          }),
+          Em.Object.create({
+            c1: 'v1'
+          })
+        ],
+        title: 'no filter conditions'
+      },
+      {
+        filterConditions: [],
+        filteredContent: [],
+        title: 'no filter conditions, no content'
+      }
+    ];
+
+    beforeEach(function () {
+      view = App.TableView.create({
+        colPropAssoc: ['c0', 'c1']
+      });
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        view.setProperties({
+          filterConditions: item.filterConditions,
+          content: item.content
+        });
+        view.filter();
+        expect(view.get('filteredContent')).to.eql(item.filteredContent);
+      });
+    });
+
+  });
+
 });
