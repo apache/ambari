@@ -56,6 +56,12 @@ do_install(){
   if [ $? -ne 0 ] ; then
     echo '#includedir /etc/sudoers.d' >> /etc/sudoers
   fi
+  
+  # on nano Ubuntu, when umask=027 those folders are created without 'x' bit for 'others'.
+  # which causes failures when hadoop users try to access tmp_dir
+  chmod a+x /var/lib/ambari-agent
+  chmod a+x /var/lib/ambari-agent/data
+  chmod a+x /var/lib/ambari-agent/data/tmp
 }
 
 do_remove(){
