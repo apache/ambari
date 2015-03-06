@@ -22,6 +22,7 @@ import java.util.Map;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -118,6 +119,22 @@ public class ClusterStackVersionService extends BaseService {
   @Produces("text/plain")
   public Response createRequests(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.POST, createResource(null));
+  }
+
+
+  /**
+   * Handles: POST /{clustername}/stack_versions requests
+   * triggering Finalize during manual Rolling Upgrade
+   *
+   * @param body        http body
+   * @param headers     http headers
+   * @param ui          uri info
+   * @return information regarding the created services
+   */
+  @PUT
+  @Produces("text/plain")
+  public Response updateRequests(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, body, ui, Request.Type.PUT, createResource(null));
   }
 
   /**

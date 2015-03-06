@@ -27,13 +27,21 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
+import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.Role;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ActionExecutionContext;
@@ -58,6 +66,7 @@ import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryVersionState;
@@ -109,7 +118,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       add(CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
       add(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID);
       add(CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID);
-      add(CLUSTER_STACK_VERSION_STATE_PROPERTY_ID);
       add(CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID);
       add(CLUSTER_STACK_VERSION_STATE_PROPERTY_ID);
       add(CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
@@ -149,6 +157,16 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
   @Inject
   private static Configuration configuration;
+
+  @Inject
+  private static Injector injector;
+
+  /**
+   * We have to include such a hack here, because if we
+   * make finalizeUpgradeAction field static and request injection
+   * for it, there will be a circle dependency error
+   */
+  private FinalizeUpgradeAction finalizeUpgradeAction = injector.getInstance(FinalizeUpgradeAction.class);
 
   /**
    * Constructor.
@@ -410,12 +428,90 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     return requestStages;
   }
 
-
+  /**
+   * The only appliance of this method is triggering Finalize during
+   * manual Rolling Upgrade
+   */
   @Override
   public RequestStatus updateResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
-    throw new SystemException("Method not supported");
+    try {
+      Iterator<Map<String, Object>> iterator = request.getProperties().iterator();
+      String clName;
+      final String desiredRepoVersion;
+      if (request.getProperties().size() != 1) {
+        throw new UnsupportedOperationException("Multiple requests cannot be executed at the same time.");
+      }
+      Map<String, Object> propertyMap = iterator.next();
+
+      Set<String> requiredProperties = new HashSet<String>() {{
+        add(CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
+        add(CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
+        add(CLUSTER_STACK_VERSION_STATE_PROPERTY_ID);
+      }};
+
+      for (String requiredProperty : requiredProperties) {
+        if (!propertyMap.containsKey(requiredProperty)) {
+          throw new IllegalArgumentException(
+                  String.format("The required property %s is not defined",
+                          requiredProperty));
+        }
+      }
+
+      clName = (String) propertyMap.get(CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
+      String desiredDisplayRepoVersion = (String) propertyMap.get(CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
+      RepositoryVersionEntity rve = repositoryVersionDAO.findByDisplayName(desiredDisplayRepoVersion);
+      if (rve == null) {
+        throw new IllegalArgumentException(
+                  String.format("Repository version with display name %s does not exist",
+                          desiredDisplayRepoVersion));
+      }
+      desiredRepoVersion = rve.getVersion();
+      String newStateStr = (String) propertyMap.get(CLUSTER_STACK_VERSION_STATE_PROPERTY_ID);
+
+      LOG.info("Initiating finalization for manual upgrade to version {} for cluster {}",
+              desiredRepoVersion, clName);
+
+      Map<String, String> args = new HashMap<String, String>();
+      if (newStateStr.equals(RepositoryVersionState.CURRENT.toString())) {
+        // Finalize upgrade workflow
+        args.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
+      } else if (newStateStr.equals(RepositoryVersionState.INSTALLED.toString())) {
+        // Finalize downgrade workflow
+        args.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "downgrade");
+      } else {
+        throw new IllegalArgumentException(
+          String.format("Invalid desired state %s. Should be either CURRENT or INSTALLED",
+                  newStateStr));
+      }
+      args.put(FinalizeUpgradeAction.VERSION_KEY, desiredRepoVersion);
+      args.put(FinalizeUpgradeAction.CLUSTER_NAME_KEY, clName);
+
+      ExecutionCommand command = new ExecutionCommand();
+      command.setCommandParams(args);
+      command.setClusterName(clName);
+      finalizeUpgradeAction.setExecutionCommand(command);
+      HostRoleCommand hostRoleCommand = new HostRoleCommand("none",
+              Role.AMBARI_SERVER_ACTION, null, null);
+      finalizeUpgradeAction.setHostRoleCommand(hostRoleCommand);
+
+      CommandReport report = finalizeUpgradeAction.execute(null);
+
+      LOG.info("Finalize output:");
+      LOG.info("STDERR: {}", report.getStdErr());
+      LOG.info("STDOUT: {}", report.getStdOut());
+
+      if (report.getStatus().equals(HostRoleStatus.COMPLETED.toString())) {
+        return getRequestStatus(null);
+      } else {
+        throw new SystemException("Finalization failed");
+      }
+    } catch (AmbariException e) {
+      throw new SystemException("Can not perform request", e);
+    } catch (InterruptedException e) {
+      throw new SystemException("Can not perform request", e);
+    }
   }
 
   @Override

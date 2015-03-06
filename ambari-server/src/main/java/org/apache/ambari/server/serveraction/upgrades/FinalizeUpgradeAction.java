@@ -54,6 +54,9 @@ import com.google.inject.Inject;
  */
 public class FinalizeUpgradeAction extends AbstractServerAction {
 
+  public static final String CLUSTER_NAME_KEY = "cluster_name";
+  public static final String UPGRADE_DIRECTION_KEY = "upgrade_direction";
+  public static final String VERSION_KEY = "version";
 
   /**
    * The Cluster that this ServerAction implementation is executing on
@@ -79,10 +82,11 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
 
     Map<String, String> commandParams = getExecutionCommand().getCommandParams();
 
-    boolean isDowngrade = commandParams.containsKey("upgrade_direction") &&
-        "downgrade".equals(commandParams.get("upgrade_direction").toLowerCase());
+    boolean isDowngrade = commandParams.containsKey(UPGRADE_DIRECTION_KEY) &&
+        "downgrade".equals(commandParams.get(UPGRADE_DIRECTION_KEY).toLowerCase());
 
-    String version = commandParams.get("version");
+    String version = commandParams.get(VERSION_KEY);
+
     String clusterName = getExecutionCommand().getClusterName();
 
     if (isDowngrade) {
