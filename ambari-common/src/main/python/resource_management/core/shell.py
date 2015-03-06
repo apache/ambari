@@ -23,7 +23,6 @@ Ambari Agent
 __all__ = ["non_blocking_call", "checked_call", "call", "quote_bash_args", "as_user", "as_sudo"]
 
 import os
-import pty
 import select
 import sys
 import logging
@@ -137,6 +136,7 @@ def _call(command, logoutput=None, throw_on_failure=True,
   for placeholder, replacement in PLACEHOLDERS_TO_STR.iteritems():
     command = command.replace(placeholder, replacement.format(env_str=env_str))
 
+  import pty
   master_fd, slave_fd = pty.openpty()
 
   # --noprofile is used to preserve PATH set for ambari-agent

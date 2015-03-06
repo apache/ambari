@@ -183,10 +183,6 @@ class NameNode(Script):
     threshold = name_node_parameters['threshold']
     _print("Starting balancer with threshold = %s\n" % threshold)
 
-    if params.security_enabled:
-      Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
-              user = params.hdfs_user)
-
     def calculateCompletePercent(first, current):
       return 1.0 - current.bytesLeftToMove/first.bytesLeftToMove
 
