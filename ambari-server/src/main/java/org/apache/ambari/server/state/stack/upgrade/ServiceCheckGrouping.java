@@ -33,17 +33,22 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Grouping that is used to create stages that are service checks for a cluster.
  */
 @XmlType(name="service-check")
 public class ServiceCheckGrouping extends Grouping {
+
+  private static Logger LOG = LoggerFactory.getLogger(ServiceCheckGrouping.class);
 
   @XmlElementWrapper(name="priority")
   @XmlElement(name="service")
@@ -98,7 +103,7 @@ public class ServiceCheckGrouping extends Grouping {
         }
       }
 
-      // create stages for everything else
+      // create stages for everything else, as long it is valid
       for (String service : clusterServices) {
         if (checkServiceValidity(ctx, service, serviceMap)) {
           StageWrapper wrapper = new StageWrapper(
@@ -120,36 +125,24 @@ public class ServiceCheckGrouping extends Grouping {
      * @return {@code true} if the service is valid and can execute a service check
      */
     private boolean checkServiceValidity(UpgradeContext ctx, String service, Map<String, Service> clusterServices) {
-      if (!clusterServices.containsKey(service)) {
-        return false;
-      } else {
+      if (clusterServices.containsKey(service)) {
         Service svc = clusterServices.get(service);
-        if (null == svc) {
-          return false;
-        } else {
-          if (svc.isClientOnlyService()) {
-            return false;
-          } else {
-            StackId stackId = m_cluster.getDesiredStackVersion();
-            try {
-              ServiceInfo si = m_metaInfo.getService(stackId.getStackName(),
-                  stackId.getStackVersion(), service);
-
+        if (null != svc) {
+          // Services that only have clients such as Pig can still have service check scripts.
+          StackId stackId = m_cluster.getDesiredStackVersion();
+          try {
+            ServiceInfo si = m_metaInfo.getService(stackId.getStackName(), stackId.getStackVersion(), service);
+            CommandScriptDefinition script = si.getCommandScript();
+            if (null != script && null != script.getScript() && !script.getScript().isEmpty()) {
               ctx.setServiceDisplay(service, si.getDisplayName());
-
-              if (null == si.getCommandScript()) {
-                return false;
-              }
-            } catch (AmbariException e) {
-              return false;
+              return true;
             }
+          } catch (AmbariException e) {
+            LOG.error("Could not determine if service " + service + " can run a service check. Exception: " + e.getMessage());
           }
         }
       }
-
-      return true;
+      return false;
     }
-
   }
-
 }

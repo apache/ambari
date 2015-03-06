@@ -145,7 +145,7 @@ public class UpgradeContext {
    * @param displayName the display name for the service
    */
   public void setServiceDisplay(String service, String displayName) {
-    m_serviceNames.put(service, displayName);
+    m_serviceNames.put(service, (displayName == null) ? service : displayName);
   }
 
   /**

@@ -25,12 +25,16 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -431,9 +435,25 @@ public class UpgradeHelperTest {
     assertNotNull(upgrade);
 
     Cluster c = makeCluster();
-    c.addService("HBASE");
+    // HBASE and PIG have service checks, but not TEZ.
+    Set<String> additionalServices = new HashSet<String>() {{ add("HBASE"); add("PIG"); add("TEZ"); }};
+    for(String service : additionalServices) {
+      c.addService(service);
+    }
 
-
+    int numServiceChecksExpected = 0;
+    Collection<Service> services = c.getServices().values();
+    for(Service service : services) {
+      ServiceInfo si = ambariMetaInfo.getService(c.getCurrentStackVersion().getStackName(),
+          c.getCurrentStackVersion().getStackVersion(), service.getName());
+      if (null != si.getCommandScript()) {
+        numServiceChecksExpected++;
+        if (service.getName().equalsIgnoreCase("TEZ")) {
+          assertTrue("Expect Tez to not have any service checks", false);
+        }
+        continue;
+      }
+    }
 
     UpgradeContext context = new UpgradeContext(m_masterHostResolver,
         UPGRADE_VERSION, Direction.UPGRADE);
@@ -444,14 +464,20 @@ public class UpgradeHelperTest {
 
     UpgradeGroupHolder holder = groups.get(3);
     assertEquals(holder.name, "SERVICE_CHECK_1");
-    assertEquals(5, holder.items.size());
-    boolean found = false;
+    assertEquals(6, holder.items.size());
+    int numServiceChecksActual = 0;
     for (StageWrapper sw : holder.items) {
-      if (sw.getText().contains("HBase")) {
-        found = true;
+      for(Service service : services) {
+        Pattern p = Pattern.compile(".*" + service.getName(), Pattern.CASE_INSENSITIVE);
+        Matcher matcher = p.matcher(sw.getText());
+        if (matcher.matches()) {
+          numServiceChecksActual++;
+          continue;
+        }
       }
     }
-    assertTrue("Expected string 'HBase' in text", found);
+
+    assertEquals(numServiceChecksActual, numServiceChecksExpected);
 
     // grab the manual task out of ZK which has placeholder text
     UpgradeGroupHolder zookeeperGroup = groups.get(1);

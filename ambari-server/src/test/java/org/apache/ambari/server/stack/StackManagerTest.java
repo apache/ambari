@@ -191,7 +191,7 @@ public class StackManagerTest {
     Collection<ServiceInfo> services = stack.getServices();
 
     //should include all stacks in hierarchy
-    assertEquals(14, services.size());
+    assertEquals(15, services.size());
     HashSet<String> expectedServices = new HashSet<String>();
     expectedServices.add("GANGLIA");
     expectedServices.add("HBASE");
@@ -207,6 +207,7 @@ public class StackManagerTest {
     expectedServices.add("STORM");
     expectedServices.add("FLUME");
     expectedServices.add("FAKENAGIOS");
+    expectedServices.add("TEZ");
 
     ServiceInfo pigService = null;
     for (ServiceInfo service : services) {
