@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageController.extend({
+App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageController.extend(App.WizardEnableDone, {
 
   isReassign: true,
 

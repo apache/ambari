@@ -16,22 +16,24 @@
  * limitations under the License.
  */
 
+var App = require('app');
 
-// load all mixins here
+describe('App.WizardEnableDone', function () {
+  var baseObject = Em.Object.extend({
+        statusChangeCallback: function (data) {
+          isSubmitDisabled: true
+        }
+      }),
+      mixedObject = baseObject.extend(App.WizardEnableDone);
+  beforeEach(function () {
+    mixedObjectInstance = mixedObject.create({
+      tasks: [{id: 77, status: 'FAILED'}],
+      currentTaskId: 77
+    });
+  });
 
-require('mixins/common/blueprint');
-require('mixins/common/localStorage');
-require('mixins/common/userPref');
-require('mixins/common/serverValidator');
-require('mixins/common/table_server_view_mixin');
-require('mixins/common/table_server_mixin');
-require('mixins/main/host/details/host_components/decommissionable');
-require('mixins/routers/redirections');
-require('mixins/wizard/wizardProgressPageController');
-require('mixins/wizard/wizardDeployProgressController');
-require('mixins/wizard/wizardProgressPageView');
-require('mixins/wizard/wizardDeployProgressView');
-require('mixins/wizard/wizardEnableDone');
-require('mixins/wizard/selectHost');
-require('mixins/wizard/addSecurityConfigs');
-require('mixins/wizard/wizard_menu_view');
+  it('#statusChangeCallback should enable done/complete button', function () {
+    mixedObjectInstance.statusChangeCallback();
+    expect(mixedObjectInstance.isSubmitDisabled).to.be.false;
+  });
+});

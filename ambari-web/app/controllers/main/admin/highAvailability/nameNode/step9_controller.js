@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageController.extend({
+App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageController.extend(App.WizardEnableDone, {
 
   name:"highAvailabilityWizardStep9Controller",
 

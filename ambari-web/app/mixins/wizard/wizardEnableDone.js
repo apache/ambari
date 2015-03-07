@@ -16,22 +16,20 @@
  * limitations under the License.
  */
 
+var App = require('app');
 
-// load all mixins here
-
-require('mixins/common/blueprint');
-require('mixins/common/localStorage');
-require('mixins/common/userPref');
-require('mixins/common/serverValidator');
-require('mixins/common/table_server_view_mixin');
-require('mixins/common/table_server_mixin');
-require('mixins/main/host/details/host_components/decommissionable');
-require('mixins/routers/redirections');
-require('mixins/wizard/wizardProgressPageController');
-require('mixins/wizard/wizardDeployProgressController');
-require('mixins/wizard/wizardProgressPageView');
-require('mixins/wizard/wizardDeployProgressView');
-require('mixins/wizard/wizardEnableDone');
-require('mixins/wizard/selectHost');
-require('mixins/wizard/addSecurityConfigs');
-require('mixins/wizard/wizard_menu_view');
+/**
+ * Mixin for wizard controller for enabling done/complete buttons if last task fails
+ * This should
+ * @type {Ember.Mixin}
+ */
+App.WizardEnableDone = Em.Mixin.create({
+  statusChangeCallback: function (data) {
+    this._super(data);
+    if (this.get('tasks.lastObject.id') === this.get('currentTaskId')) {
+      if (this.get('tasks.lastObject.status') === 'FAILED') {
+        this.set('isSubmitDisabled', false);
+      }
+    }
+  }
+});

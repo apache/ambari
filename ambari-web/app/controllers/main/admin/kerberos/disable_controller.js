@@ -20,7 +20,7 @@ var App = require('app');
 require('controllers/main/admin/kerberos/progress_controller');
 require('controllers/main/admin/security/security_progress_controller');
 
-App.KerberosDisableController = App.KerberosProgressPageController.extend({
+App.KerberosDisableController = App.KerberosProgressPageController.extend(App.WizardEnableDone, {
 
   name: 'kerberosDisableController',
   clusterDeployState: 'DEFAULT',
