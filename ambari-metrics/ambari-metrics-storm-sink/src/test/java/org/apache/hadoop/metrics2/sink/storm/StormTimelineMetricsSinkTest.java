@@ -64,7 +64,6 @@ public class StormTimelineMetricsSinkTest {
     HttpClient httpClient = createNiceMock(HttpClient.class);
     stormTimelineMetricsSink.setHttpClient(httpClient);
     expect(httpClient.executeMethod(anyObject(PostMethod.class))).andReturn(200).once();
-    stormTimelineMetricsSink.setServerSocketAddress(createNiceMock(SocketAddress.class));
     replay(timelineMetricsCache, httpClient);
     stormTimelineMetricsSink.handleDataPoints(
         new IMetricsConsumer.TaskInfo("localhost", 1234, "testComponent", 42, 20000L, 60),

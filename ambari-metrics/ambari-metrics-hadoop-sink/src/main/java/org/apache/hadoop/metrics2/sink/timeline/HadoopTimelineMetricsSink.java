@@ -131,13 +131,6 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
     return conf.getPrefix();
   }
 
-  protected SocketAddress getServerSocketAddress() {
-    if (metricsServers != null && !metricsServers.isEmpty()) {
-      return metricsServers.get(0);
-    }
-    return null;
-  }
-
   @Override
   protected String getCollectorUri() {
     return collectorUri;

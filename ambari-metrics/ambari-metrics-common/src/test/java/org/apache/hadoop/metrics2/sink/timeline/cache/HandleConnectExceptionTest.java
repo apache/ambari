@@ -65,10 +65,6 @@ public class HandleConnectExceptionTest {
   }
   class TestTimelineMetricsSink extends AbstractTimelineMetricsSink{
     @Override
-    protected SocketAddress getServerSocketAddress() {
-      return new InetSocketAddress("host", 13);
-    }
-    @Override
     protected String getCollectorUri() {
       return COLLECTOR_URL;
     }
