@@ -29,11 +29,9 @@ import org.apache.commons.lang.Validate;
 import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
-import org.apache.hadoop.metrics2.sink.util.Servers;
+import org.apache.hadoop.metrics2.sink.timeline.UnableToConnectException;
 
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,18 +46,12 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
   public static final String APP_ID = "appId";
 
   private String hostname;
-  private SocketAddress socketAddress;
   private String collectorUri;
   private NimbusClient nimbusClient;
   private String applicationId;
 
   public StormTimelineMetricsReporter() {
 
-  }
-
-  @Override
-  protected SocketAddress getServerSocketAddress() {
-    return this.socketAddress;
   }
 
   @Override
@@ -85,11 +77,6 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
       String port = cf.get(COLLECTOR_PORT).toString();
       applicationId = cf.get(APP_ID).toString();
       collectorUri = "http://" + collectorHostname + ":" + port + "/ws/v1/timeline/metrics";
-      List<InetSocketAddress> socketAddresses =
-        Servers.parse(collectorHostname, Integer.valueOf(port));
-      if (socketAddresses != null && !socketAddresses.isEmpty()) {
-        socketAddress = socketAddresses.get(0);
-      }
     } catch (Exception e) {
       LOG.warn("Could not initialize metrics collector, please specify host, " +
         "port under $STORM_HOME/conf/config.yaml ", e);
@@ -139,7 +126,11 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
     TimelineMetrics timelineMetrics = new TimelineMetrics();
     timelineMetrics.setMetrics(totalMetrics);
 
-    emitMetrics(timelineMetrics);
+    try {
+      emitMetrics(timelineMetrics);
+    } catch (UnableToConnectException e) {
+      LOG.warn("Unable to connect to Metrics Collector " + e.getConnectUrl() + ". " + e.getMessage());
+    }
 
   }
 

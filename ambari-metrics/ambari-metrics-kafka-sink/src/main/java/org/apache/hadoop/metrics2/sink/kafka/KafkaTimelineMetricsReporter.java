@@ -20,8 +20,6 @@ package org.apache.hadoop.metrics2.sink.kafka;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +38,6 @@ import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
-import org.apache.hadoop.metrics2.sink.util.Servers;
 
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
@@ -73,14 +70,8 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink im
   private final Object lock = new Object();
   private String collectorUri;
   private String hostname;
-  private SocketAddress socketAddress;
   private TimelineScheduledReporter reporter;
   private TimelineMetricsCache metricsCache;
-
-  @Override
-  protected SocketAddress getServerSocketAddress() {
-    return socketAddress;
-  }
 
   @Override
   protected String getCollectorUri() {
@@ -110,18 +101,12 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink im
         String metricCollectorPort = props.getString(TIMELINE_PORT_PROPERTY, TIMELINE_DEFAULT_PORT);
         setMetricsCache(new TimelineMetricsCache(maxRowCacheSize, metricsSendInterval));
         collectorUri = "http://" + metricCollectorHost + ":" + metricCollectorPort + "/ws/v1/timeline/metrics";
-        List<InetSocketAddress> socketAddresses = Servers.parse(metricCollectorHost,
-            Integer.parseInt(metricCollectorPort));
-        if (socketAddresses != null && !socketAddresses.isEmpty()) {
-          socketAddress = socketAddresses.get(0);
-        }
         initializeReporter();
         if (props.getBoolean(TIMELINE_REPORTER_ENABLED_PROPERTY, false)) {
           startReporter(metricsConfig.pollingIntervalSecs());
         }
         if (LOG.isTraceEnabled()) {
           LOG.trace("CollectorUri = " + collectorUri);
-          LOG.trace("SocketAddress = " + socketAddress);
           LOG.trace("MetricsSendInterval = " + metricsSendInterval);
           LOG.trace("MaxRowCacheSize = " + maxRowCacheSize);
         }
