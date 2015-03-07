@@ -22,7 +22,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.events.HostComponentVersionEvent;
-import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.events.publishers.VersionEventPublisher;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.slf4j.Logger;
@@ -58,11 +58,11 @@ public class StackVersionListener {
   /**
    * Constructor.
    *
-   * @param ambariEventPublisher
+   * @param eventPublisher  the publisher
    */
   @Inject
-  public StackVersionListener(AmbariEventPublisher ambariEventPublisher) {
-    ambariEventPublisher.register(this);
+  public StackVersionListener(VersionEventPublisher eventPublisher) {
+    eventPublisher.register(this);
   }
 
   @Subscribe
