@@ -1005,9 +1005,10 @@ App.WizardStep3Controller = Em.Controller.extend({
       if (data.Requests.inputs.indexOf("last_agent_env_check") != -1) {
         this.set('stopChecking', true);
         this.set('hostsPackagesData', data.tasks.map(function (task) {
+          var installed_packages = Em.get(task, 'Tasks.structured_out.installed_packages');
           return {
             hostName: Em.get(task, 'Tasks.host_name'),
-            installedPackages: Em.get(task, 'Tasks.structured_out.installed_packages')
+            installedPackages: installed_packages ? installed_packages : []
           }
         }));
         this.getHostInfo();
@@ -1479,9 +1480,9 @@ App.WizardStep3Controller = Em.Controller.extend({
       }, this);
 
       //parse all package warnings for host
-      var hostPackagesData = hostsPackagesData.findProperty('hostName', _host.Hosts.host_name);
-      if (hostPackagesData) {
-        hostPackagesData.installedPackages.forEach(function (_package) {
+      var _hostPackagesData = hostsPackagesData.findProperty('hostName', _host.Hosts.host_name);
+      if (_hostPackagesData) {
+        _hostPackagesData.installedPackages.forEach(function (_package) {
           warning = warningCategories.packagesWarnings[_package.name];
           if (warning) {
             warning.hosts.push(_host.Hosts.host_name);
