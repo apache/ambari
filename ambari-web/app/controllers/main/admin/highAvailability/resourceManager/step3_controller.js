@@ -118,7 +118,7 @@ App.RMHighAvailabilityWizardStep3Controller = Em.Controller.extend({
       currentRMHost = this.get('content.rmHosts.currentRM'),
       additionalRMHost = this.get('content.rmHosts.additionalRM'),
       zooKeeperHostsWithPort = App.HostComponent.find().filterProperty('componentName', 'ZOOKEEPER_SERVER').map(function (item) {
-        return item.get('host.hostName') + ':' + zkPort;
+        return item.get('hostName') + ':' + zkPort;
       }).join(',');
 
     configProperties.findProperty('name', 'yarn.resourcemanager.hostname.rm1').set('value', currentRMHost).set('defaultValue', currentRMHost);

@@ -246,21 +246,15 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
         return [
           Em.Object.create({
             componentName: 'ZOOKEEPER_SERVER',
-            host: {
               hostName: 'h2'
-            }
           }),
           Em.Object.create({
             componentName: 'ZOOKEEPER_SERVER',
-            host: {
               hostName: 'h3'
-            }
           }),
           Em.Object.create({
             componentName: 'RESOURCEMANAGER',
-            host: {
               hostName: 'h4'
-            }
           })
         ];
       });
