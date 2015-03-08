@@ -217,8 +217,9 @@ class TestOozieServer(RMFTestCase):
                               not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
                               user = 'oozie',
                               )
-    self.assertResourceCalled('Execute', 'chown -R oozie:hadoop /var/lib/oozie/oozie-server',)
-    self.assertNoMoreResources()
+    self.assertResourceCalled('Execute', ('chown', '-R', u'oozie', u'hadoop', '/var/lib/oozie/oozie-server'),
+        sudo = True,
+    )
 
   @patch("os.path.isfile")
   def test_start_default(self, isfile_mock):
@@ -473,7 +474,9 @@ class TestOozieServer(RMFTestCase):
         not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
         user = 'oozie',
     )
-    self.assertResourceCalled('Execute', 'chown -R oozie:hadoop /var/lib/oozie/oozie-server',)
+    self.assertResourceCalled('Execute', ('chown', '-R', u'oozie', u'hadoop', '/var/lib/oozie/oozie-server'),
+        sudo = True,
+    )
 
 
   def assert_configure_secured(self):
@@ -627,7 +630,9 @@ class TestOozieServer(RMFTestCase):
         not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
         user = 'oozie',
     )
-    self.assertResourceCalled('Execute', 'chown -R oozie:hadoop /var/lib/oozie/oozie-server',)
+    self.assertResourceCalled('Execute', ('chown', '-R', u'oozie', u'hadoop', '/var/lib/oozie/oozie-server'),
+        sudo = True,
+    )
 
     def test_configure_default_hdp22(self):
       config_file = "stacks/2.0.6/configs/default.json"
