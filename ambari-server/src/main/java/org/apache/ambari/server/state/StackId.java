@@ -121,7 +121,7 @@ public class StackId implements Comparable<StackId> {
 
   public static void parseStackIdHelper(StackId stackVersion,
       String stackId) {
-    if (stackId.isEmpty()) {
+    if (stackId == null || stackId.isEmpty()) {
       stackVersion.stackName = "";
       stackVersion.stackVersion = "";
       return;
