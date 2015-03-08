@@ -1014,7 +1014,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   public StackId getStackVersion() {
     readLock.lock();
     try {
-      return gson.fromJson(getStateEntity().getCurrentStackVersion(), StackId.class);
+      HostComponentStateEntity schStateEntity = getStateEntity();
+      if (schStateEntity == null) {
+        return new StackId();
+      }
+      return gson.fromJson(schStateEntity.getCurrentStackVersion(), StackId.class);
     } finally {
       readLock.unlock();
     }
