@@ -217,7 +217,7 @@ class TestOozieServer(RMFTestCase):
                               not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
                               user = 'oozie',
                               )
-    self.assertResourceCalled('Execute', ('chown', '-R', u'oozie', u'hadoop', '/var/lib/oozie/oozie-server'),
+    self.assertResourceCalled('Execute', ('chown', '-R', u'oozie:hadoop', '/var/lib/oozie/oozie-server'),
         sudo = True,
     )
 
@@ -474,7 +474,7 @@ class TestOozieServer(RMFTestCase):
         not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
         user = 'oozie',
     )
-    self.assertResourceCalled('Execute', ('chown', '-R', u'oozie', u'hadoop', '/var/lib/oozie/oozie-server'),
+    self.assertResourceCalled('Execute', ('chown', '-R', u'oozie:hadoop', '/var/lib/oozie/oozie-server'),
         sudo = True,
     )
 
@@ -630,7 +630,7 @@ class TestOozieServer(RMFTestCase):
         not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
         user = 'oozie',
     )
-    self.assertResourceCalled('Execute', ('chown', '-R', u'oozie', u'hadoop', '/var/lib/oozie/oozie-server'),
+    self.assertResourceCalled('Execute', ('chown', '-R', u'oozie:hadoop', '/var/lib/oozie/oozie-server'),
         sudo = True,
     )
 

@@ -218,6 +218,6 @@ def oozie_server_specific():
         group = params.user_group,
         mode = 0664
     )
-  Execute(('chown', '-R', params.oozie_user, params.user_group, params.oozie_server_dir), 
+  Execute(('chown', '-R', format("{oozie_user}:{user_group}"), params.oozie_server_dir), 
           sudo=True
   )
