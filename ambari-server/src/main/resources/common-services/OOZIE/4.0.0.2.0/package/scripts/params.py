@@ -121,7 +121,7 @@ oozie_service_keytab = config['configurations']['oozie-site']['oozie.service.Had
 oozie_principal = config['configurations']['oozie-site']['oozie.service.HadoopAccessorService.kerberos.principal']
 http_principal = config['configurations']['oozie-site']['oozie.authentication.kerberos.principal']
 oozie_site = config['configurations']['oozie-site']
-if security_enabled:
+if security_enabled and hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') < 0:
   #older versions of oozie have problems when using _HOST in principal
   oozie_site = dict(config['configurations']['oozie-site'])
   oozie_site['oozie.service.HadoopAccessorService.kerberos.principal'] = \
