@@ -160,7 +160,7 @@ public class HostRoleCommandEntity {
   @JoinColumns({@JoinColumn(name = "request_id", referencedColumnName = "request_id", nullable = false), @JoinColumn(name = "stage_id", referencedColumnName = "stage_id", nullable = false)})
   private StageEntity stage;
 
-  @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+  @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH})
   @JoinColumn(name = "host_name", referencedColumnName = "host_name", nullable = false)
   private HostEntity host;
 
