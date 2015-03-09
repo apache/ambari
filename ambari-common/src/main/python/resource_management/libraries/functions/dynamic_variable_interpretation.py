@@ -23,6 +23,7 @@ import os
 import glob
 import re
 import tempfile
+import uuid
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.resources.copy_from_local import CopyFromLocal
@@ -101,16 +102,34 @@ def _copy_files(source_and_dest_pairs, component_user, file_owner, group_owner, 
                              mode=0555
         )
 
+        # Because CopyFromLocal does not guarantee synchronization, it's possible for two processes to first attempt to
+        # copy the file to a temporary location, then process 2 fails because the temporary file was already created by
+        # process 1, so process 2 tries to clean up by deleting the temporary file, and then process 1
+        # cannot finish the copy to the final destination, and both fail!
+        # For this reason, the file name on the destination must be unique, and we then rename it to the intended value.
+        # The rename operation is synchronized by the Namenode.
+        orig_dest_file_name = os.path.split(destination)[1]
+        unique_string = str(uuid.uuid4())[:8]
+        new_dest_file_name = orig_dest_file_name + "." + unique_string
+        new_destination = os.path.join(destination_dir, new_dest_file_name)
         CopyFromLocal(source,
                       mode=0444,
                       owner=file_owner,
                       group=group_owner,
                       user=params.hdfs_user,               # this will be the user to run the commands as
                       dest_dir=destination_dir,
+                      dest_file=new_dest_file_name,
                       kinnit_if_needed=kinit_if_needed,
                       hdfs_user=params.hdfs_user,
                       hadoop_bin_dir=params.hadoop_bin_dir,
                       hadoop_conf_dir=params.hadoop_conf_dir
+        )
+
+        mv_command = format("fs -mv {new_destination} {destination}")
+        ExecuteHadoop(mv_command,
+                      user=params.hdfs_user,
+                      bin_dir=params.hadoop_bin_dir,
+                      conf_dir=params.hadoop_conf_dir
         )
       except Exception, e:
         Logger.error("Failed to copy file. Source: %s, Destination: %s. Error: %s" % (source, destination, e.message))
