@@ -33,7 +33,7 @@ class TestStormBase(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/log/storm',
       owner = 'storm',
       group = 'hadoop',
-      mode = 0775,
+      mode = 0777,
       recursive = True,
     )
     self.assertResourceCalled('Directory', '/var/run/storm',
@@ -74,7 +74,7 @@ class TestStormBase(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/log/storm',
       owner = 'storm',
       group = 'hadoop',
-      mode = 0775,
+      mode = 0777,
       recursive = True,
     )
     self.assertResourceCalled('Directory', '/var/run/storm',

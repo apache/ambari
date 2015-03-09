@@ -34,7 +34,7 @@ def storm():
   Directory(params.log_dir,
             owner=params.storm_user,
             group=params.user_group,
-            mode=0775,
+            mode=0777,
             recursive=True
   )
 
