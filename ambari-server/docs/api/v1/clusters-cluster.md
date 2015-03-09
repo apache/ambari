@@ -133,14 +133,19 @@ Get information for the cluster "cluster001".
 			}
 		}
 	},
-	"alerts" : {
-		"summary" : {
-			"CRITICAL" : 1,
-			"OK" : 2,
-			"PASSIVE" : 0,
-			"WARNING" : 0
-		}
-	},
+    "alerts_summary" : {
+      "CRITICAL" : 0,
+      "MAINTENANCE" : 0,
+      "OK" : 65,
+      "UNKNOWN" : 0,
+      "WARNING" : 0
+    },
+    "alerts_summary_hosts" : {
+      "CRITICAL" : 0,
+      "OK" : 3,
+      "UNKNOWN" : 0,
+      "WARNING" : 0
+    },
 	"requests" : [
 		{
 			"href" : "http://your.ambari.server/api/v1/clusters/cluster001/requests/304",

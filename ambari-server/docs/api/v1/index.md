@@ -353,6 +353,15 @@ Rolling upgrades check resources store information about successful/unsuccessful
 #### upgrades
 [Upgrade Resources](upgrades.md)
 
+#### alerts
+Alert resources contain the relationships between definitions, history, and the dispatching of outbound notifications. Ambari leverages its own alert framework in order to monitor a service, component, or host and produce notifications to interested parties.
+
+- [Alert Definitions](alert-definitions.md) Definitions are the templates that are used to distribute alerts to the appropriate Ambari agents. They govern the type of alert, the threshold values, and the information to be used when notifying a target.
+
+- [Alert Dispatching](alert-dispatching.md) Dispatching involves creating groups of alert definitions and adding notification targets to those groups.
+
+- [Alert History](alerts.md) The current state of an alert and all of its historical events are available for querying.
+
 Partial Response
 ----
 
