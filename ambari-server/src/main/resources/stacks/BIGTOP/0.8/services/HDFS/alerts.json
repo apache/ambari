@@ -366,7 +366,7 @@
               "text": "Dead/Stale Datanode(s): {0}/{1} out of {2}",
               "value": 1
             },
-            "units" : "DataNode(s)"
+            "units" : "DNs"
           },
           "jmx": {
             "property_list": [

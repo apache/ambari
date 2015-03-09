@@ -18,7 +18,19 @@
 
 package org.apache.ambari.server.api.services;
 
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import junit.framework.Assert;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
@@ -36,15 +48,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.lang.reflect.Field;
-import java.util.*;
-
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.fail;
 
 public class KerberosServiceMetaInfoTest {
   private final static Logger LOG = LoggerFactory.getLogger(KerberosServiceMetaInfoTest.class);
@@ -68,9 +71,9 @@ public class KerberosServiceMetaInfoTest {
       AutoDeployInfo expectedAutoDeploy = expectedAutoDeployMap.get(component.getName());
       AutoDeployInfo componentAutoDeploy = component.getAutoDeploy();
 
-      if (expectedAutoDeploy == null)
+      if (expectedAutoDeploy == null) {
         Assert.assertNull(componentAutoDeploy);
-      else {
+      } else {
         Assert.assertNotNull(componentAutoDeploy);
         Assert.assertEquals(expectedAutoDeploy.isEnabled(), componentAutoDeploy.isEnabled());
         Assert.assertEquals(expectedAutoDeploy.getCoLocate(), componentAutoDeploy.getCoLocate());
@@ -106,9 +109,9 @@ public class KerberosServiceMetaInfoTest {
       Map<String, ? extends DependencyInfo> expectedDependencyMap = expectedDependenciesMap.get(component.getName());
       List<DependencyInfo> componentDependencies = component.getDependencies();
 
-      if (expectedDependencyMap == null)
+      if (expectedDependencyMap == null) {
         Assert.assertNull(componentDependencies);
-      else {
+      } else {
         Assert.assertEquals(expectedDependencyMap.size(), componentDependencies.size());
 
         for (DependencyInfo componentDependency : componentDependencies) {
@@ -124,9 +127,9 @@ public class KerberosServiceMetaInfoTest {
           Assert.assertEquals(expectedDependency.getComponentName(), componentDependency.getComponentName());
           Assert.assertEquals(expectedDependency.getScope(), componentDependency.getScope());
 
-          if (expectedDependencyAutoDeploy == null)
+          if (expectedDependencyAutoDeploy == null) {
             Assert.assertNull(componentDependencyAutoDeploy);
-          else {
+          } else {
             Assert.assertNotNull(componentDependencyAutoDeploy);
             Assert.assertEquals(expectedDependencyAutoDeploy.isEnabled(), componentDependencyAutoDeploy.isEnabled());
             Assert.assertEquals(expectedDependencyAutoDeploy.getCoLocate(), componentDependencyAutoDeploy.getCoLocate());
@@ -143,7 +146,9 @@ public class KerberosServiceMetaInfoTest {
     LOG.info("Stacks file " + stackRoot.getAbsolutePath());
     LOG.info("Common Services file " + commonServicesRoot.getAbsolutePath());
 
-    AmbariMetaInfo metaInfo = createAmbariMetaInfo(stackRoot, commonServicesRoot, new File("target/version"), true);
+    AmbariMetaInfo metaInfo = createAmbariMetaInfo(stackRoot,
+        commonServicesRoot, new File("src/test/resources/version"), true);
+
     metaInfo.init();
 
     serviceInfo = metaInfo.getService("HDP", "2.2", "KERBEROS");
