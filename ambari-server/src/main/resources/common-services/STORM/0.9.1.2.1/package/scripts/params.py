@@ -102,7 +102,7 @@ if security_enabled:
     storm_ui_keytab_path = config['configurations']['storm-env']['storm_ui_keytab']
     _storm_ui_jaas_principal_name = config['configurations']['storm-env']['storm_ui_principal_name']
     storm_ui_host = default("/clusterHostInfo/storm_ui_server_hosts", [])
-    storm_ui_jaas_principal = _storm_ui_jaas_principal_name.replace('_HOST',storm_ui_host[0].lower())
+    storm_ui_jaas_principal = _storm_ui_jaas_principal_name.replace('_HOST',_hostname_lowercase)
     
     storm_bare_jaas_principal = get_bare_principal(_storm_principal_name)
 
