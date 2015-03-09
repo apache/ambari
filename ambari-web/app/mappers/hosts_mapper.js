@@ -111,7 +111,8 @@ App.hostsMapper = App.QuickDataMapper.create({
 
         if (App.get('supports.stackUpgrade')) {
           var currentVersion = item.stack_versions.findProperty('HostStackVersions.state', 'CURRENT');
-          var currentVersionNumber = Em.get(currentVersion.repository_versions[0], 'RepositoryVersions.repository_version');
+          var currentVersionNumber = currentVersion && currentVersion.repository_versions
+            ? Em.get(currentVersion.repository_versions[0], 'RepositoryVersions.repository_version') : '';
           item.stack_versions.forEach(function (stackVersion) {
             stackVersion.host_name = item.Hosts.host_name;
             stackVersion.is_visible = stringUtils.compareVersions(Em.get(stackVersion.repository_versions[0], 'RepositoryVersions.repository_version'), currentVersionNumber) >= 0
