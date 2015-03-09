@@ -48,9 +48,9 @@ public class HostRoleCommandDAO {
 
   private static final String SUMMARY_DTO = String.format(
     "SELECT NEW %s(" +
+      "MAX(hrc.stage.skippable), " +
       "MIN(hrc.startTime), " +
       "MAX(hrc.endTime), " +
-      "MIN(hrc.stage.skippable), " +
       "hrc.stageId, " +
       "SUM(CASE WHEN hrc.status = :aborted THEN 1 ELSE 0 END), " +
       "SUM(CASE WHEN hrc.status = :completed THEN 1 ELSE 0 END), " +

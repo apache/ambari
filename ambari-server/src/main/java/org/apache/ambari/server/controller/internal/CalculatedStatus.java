@@ -281,8 +281,12 @@ public class CalculatedStatus {
       }
 
       HostRoleCommandStatusSummaryDTO summary = stageDto.get(stageId);
-      HostRoleStatus stageStatus = calculateSummaryStatus(summary.getCounts(),
-          summary.getTaskTotal(), summary.isStageSkippable());
+
+      int total = summary.getTaskTotal();
+      boolean skip = summary.isStageSkippable();
+      Map<HostRoleStatus, Integer> counts = calculateStatusCounts(summary.getTaskStatuses());
+
+      HostRoleStatus stageStatus = calculateSummaryStatus(counts, total, skip);
 
       stageStatuses.add(stageStatus);
 
