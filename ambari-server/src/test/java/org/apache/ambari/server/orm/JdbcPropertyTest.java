@@ -40,7 +40,7 @@ public class JdbcPropertyTest {
     properties = new Properties();
     properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
     properties.setProperty(Configuration.METADETA_DIR_PATH, "src/test/resources/stacks");
-    properties.setProperty(Configuration.SERVER_VERSION_FILE, "target/version");
+    properties.setProperty(Configuration.SERVER_VERSION_FILE, "src/test/resources/version");
     properties.setProperty(Configuration.OS_VERSION_KEY, "centos5");
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
   }
@@ -57,7 +57,7 @@ public class JdbcPropertyTest {
 
     injector.getInstance(Clusters.class);
   }
-  
+
   @Test
   public void testJdbcProperty() throws Exception {
     properties.setProperty(Configuration.SERVER_JDBC_PROPERTIES_PREFIX + "shutdown", "true");
@@ -71,5 +71,5 @@ public class JdbcPropertyTest {
     }
   }
 
-  
+
 }

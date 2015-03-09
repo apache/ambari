@@ -40,7 +40,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.EntityManager;
-import javax.xml.bind.JAXBException;
 
 import junit.framework.Assert;
 
@@ -141,7 +140,7 @@ public class AmbariMetaInfoTest {
   @Before
   public void before() throws Exception {
     File stacks = new File("src/test/resources/stacks");
-    File version = new File("target/version");
+    File version = new File("src/test/resources/version");
     if (System.getProperty("os.name").contains("Windows")) {
       stacks = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
       version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
@@ -536,7 +535,7 @@ public class AmbariMetaInfoTest {
   public void testMetaInfoFileFilter() throws Exception {
     String buildDir = tmpFolder.getRoot().getAbsolutePath();
     File stackRoot = new File("src/test/resources/stacks");
-    File version = new File("target/version");
+    File version = new File("src/test/resources/version");
     if (System.getProperty("os.name").contains("Windows")) {
       stackRoot = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
       version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
@@ -796,7 +795,7 @@ public class AmbariMetaInfoTest {
   @Test
   public void testBadStack() throws Exception {
     File stackRoot = new File("src/test/resources/bad-stacks");
-    File version = new File("target/version");
+    File version = new File("src/test/resources/version");
     if (System.getProperty("os.name").contains("Windows")) {
       stackRoot = new File(ClassLoader.getSystemClassLoader().getResource("bad-stacks").getPath());
       version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
@@ -1777,7 +1776,7 @@ public class AmbariMetaInfoTest {
   private TestAmbariMetaInfo setupTempAmbariMetaInfo(String buildDir, boolean replayMocks) throws Exception {
     File stackRootTmp = new File(buildDir + "/ambari-metaInfo");
     File stackRoot = new File("src/test/resources/stacks");
-    File version = new File("target/version");
+    File version = new File("src/test/resources/version");
 
     if (System.getProperty("os.name").contains("Windows")) {
       stackRoot = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());

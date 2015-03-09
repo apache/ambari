@@ -17,10 +17,12 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-import com.google.inject.AbstractModule;
 import java.util.Properties;
+
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
+
+import com.google.inject.AbstractModule;
 
 public class AuthorizationTestModuleForLdapDNWithSpace extends AbstractModule {
   @Override
@@ -28,12 +30,9 @@ public class AuthorizationTestModuleForLdapDNWithSpace extends AbstractModule {
     Properties properties = new Properties();
     properties.setProperty(Configuration.CLIENT_SECURITY_KEY, "ldap");
     properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
-    properties.setProperty(Configuration.METADETA_DIR_PATH,
-        "src/test/resources/stacks");
-    properties.setProperty(Configuration.SERVER_VERSION_FILE,
-        "target/version");
-    properties.setProperty(Configuration.OS_VERSION_KEY,
-        "centos5");
+    properties.setProperty(Configuration.METADETA_DIR_PATH,"src/test/resources/stacks");
+    properties.setProperty(Configuration.SERVER_VERSION_FILE,"src/test/resources/version");
+    properties.setProperty(Configuration.OS_VERSION_KEY,"centos5");
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
     //make ambari detect active configuration
     properties.setProperty(Configuration.LDAP_BASE_DN_KEY, "dc=ambari,dc=the apache,dc=org");

@@ -18,15 +18,46 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Key;
-import com.google.inject.TypeLiteral;
-import com.google.inject.persist.PersistService;
+import java.io.IOException;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.SQLNonTransientConnectionException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.orm.dao.*;
+import org.apache.ambari.server.orm.dao.BlueprintDAO;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
+import org.apache.ambari.server.orm.dao.ClusterStateDAO;
+import org.apache.ambari.server.orm.dao.ConfigGroupConfigMappingDAO;
+import org.apache.ambari.server.orm.dao.ConfigGroupDAO;
+import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
+import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
+import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
+import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
+import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.HostStateDAO;
+import org.apache.ambari.server.orm.dao.KeyValueDAO;
+import org.apache.ambari.server.orm.dao.MetainfoDAO;
+import org.apache.ambari.server.orm.dao.RequestDAO;
+import org.apache.ambari.server.orm.dao.RequestScheduleBatchRequestDAO;
+import org.apache.ambari.server.orm.dao.RequestScheduleDAO;
+import org.apache.ambari.server.orm.dao.RoleSuccessCriteriaDAO;
+import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.ServiceDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.StageDAO;
+import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.orm.dao.ViewDAO;
+import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.easymock.EasyMock;
@@ -36,11 +67,11 @@ import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.SQLNonTransientConnectionException;
-import java.util.*;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.TypeLiteral;
+import com.google.inject.persist.PersistService;
 
 @RunWith(Parameterized.class)
 public class UpgradeTest {
@@ -62,12 +93,9 @@ public class UpgradeTest {
     properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "remote");
     properties.setProperty(Configuration.SERVER_JDBC_URL_KEY, Configuration.JDBC_IN_MEMORY_URL);
     properties.setProperty(Configuration.SERVER_JDBC_DRIVER_KEY, Configuration.JDBC_IN_MEMROY_DRIVER);
-    properties.setProperty(Configuration.METADETA_DIR_PATH,
-      "src/test/resources/stacks");
-    properties.setProperty(Configuration.SERVER_VERSION_FILE,
-      "target/version");
-    properties.setProperty(Configuration.OS_VERSION_KEY,
-      "centos5");
+    properties.setProperty(Configuration.METADETA_DIR_PATH,"src/test/resources/stacks");
+    properties.setProperty(Configuration.SERVER_VERSION_FILE,"src/test/resources/version");
+    properties.setProperty(Configuration.OS_VERSION_KEY,"centos5");
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
   }
 

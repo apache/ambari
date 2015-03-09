@@ -18,16 +18,17 @@ package org.apache.ambari.server.orm;
  * limitations under the License.
  */
 
-import com.google.inject.AbstractModule;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.ControllerModule;
-import org.springframework.beans.factory.config.BeanDefinition;
-
 import java.io.File;
 import java.util.Collections;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.ControllerModule;
+import org.springframework.beans.factory.config.BeanDefinition;
+
+import com.google.inject.AbstractModule;
 
 public class InMemoryDefaultTestModule extends AbstractModule {
 
@@ -60,7 +61,7 @@ public class InMemoryDefaultTestModule extends AbstractModule {
   @Override
   protected void configure() {
     String stacks = "src/test/resources/stacks";
-    String version = "target/version";
+    String version = "src/test/resources/version";
     String sharedResourcesDir = "src/test/resources/";
     if (System.getProperty("os.name").contains("Windows")) {
       stacks = ClassLoader.getSystemClassLoader().getResource("stacks").getPath();
