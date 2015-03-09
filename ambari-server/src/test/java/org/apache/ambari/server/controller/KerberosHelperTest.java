@@ -215,10 +215,10 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final Map<String, String> kerberosEnvProperties = createNiceMock(Map.class);
     expect(kerberosEnvProperties.get("realm")).andReturn("EXAMPLE.COM").once();
+    expect(kerberosEnvProperties.get("kdc_host")).andReturn("10.0.100.1").once();
+    expect(kerberosEnvProperties.get("kadmin_host")).andReturn("10.0.100.1").once();
 
     final Map<String, String> krb5ConfProperties = createNiceMock(Map.class);
-    expect(krb5ConfProperties.get("kdc_host")).andReturn("10.0.100.1").once();
-    expect(krb5ConfProperties.get("kadmin_host")).andReturn("10.0.100.1").once();
 
     final Config krb5ConfConfig = createNiceMock(Config.class);
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).once();
@@ -543,6 +543,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(keytabDescriptor1.getGroupName()).andReturn("hadoop").once();
     expect(keytabDescriptor1.getGroupAccess()).andReturn("").once();
     expect(keytabDescriptor1.getConfiguration()).andReturn("service1-site/component1.keytab.file").once();
+    expect(keytabDescriptor1.isCachable()).andReturn(false).once();
 
     final KerberosKeytabDescriptor keytabDescriptor2 = createNiceMock(KerberosKeytabDescriptor.class);
     expect(keytabDescriptor2.getFile()).andReturn("${keytab_dir}/service2.keytab").once();
@@ -551,6 +552,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(keytabDescriptor2.getGroupName()).andReturn("hadoop").once();
     expect(keytabDescriptor2.getGroupAccess()).andReturn("").once();
     expect(keytabDescriptor2.getConfiguration()).andReturn("service2-site/component2.keytab.file").once();
+    expect(keytabDescriptor2.isCachable()).andReturn(false).once();
 
     final KerberosIdentityDescriptor identityDescriptor1 = createNiceMock(KerberosIdentityDescriptor.class);
     expect(identityDescriptor1.getPrincipalDescriptor()).andReturn(principalDescriptor1).once();
@@ -819,6 +821,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(keytabDescriptor1.getGroupName()).andReturn("hadoop").once();
     expect(keytabDescriptor1.getGroupAccess()).andReturn("").once();
     expect(keytabDescriptor1.getConfiguration()).andReturn("service1-site/component1.keytab.file").once();
+    expect(keytabDescriptor1.isCachable()).andReturn(false).once();
 
     final KerberosKeytabDescriptor keytabDescriptor2 = createNiceMock(KerberosKeytabDescriptor.class);
     expect(keytabDescriptor2.getFile()).andReturn("${keytab_dir}/service2.keytab").once();
@@ -827,6 +830,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(keytabDescriptor2.getGroupName()).andReturn("hadoop").once();
     expect(keytabDescriptor2.getGroupAccess()).andReturn("").once();
     expect(keytabDescriptor2.getConfiguration()).andReturn("service2-site/component2.keytab.file").once();
+    expect(keytabDescriptor2.isCachable()).andReturn(false).once();
 
     final KerberosIdentityDescriptor identityDescriptor1 = createNiceMock(KerberosIdentityDescriptor.class);
     expect(identityDescriptor1.getPrincipalDescriptor()).andReturn(principalDescriptor1).once();
@@ -1106,6 +1110,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(keytabDescriptor1.getGroupName()).andReturn("hadoop").once();
     expect(keytabDescriptor1.getGroupAccess()).andReturn("").once();
     expect(keytabDescriptor1.getConfiguration()).andReturn("service1-site/component1.keytab.file").once();
+    expect(keytabDescriptor1.isCachable()).andReturn(false).once();
 
     final KerberosKeytabDescriptor keytabDescriptor2 = createNiceMock(KerberosKeytabDescriptor.class);
     expect(keytabDescriptor2.getFile()).andReturn("${keytab_dir}/service2.keytab").once();
@@ -1114,6 +1119,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(keytabDescriptor2.getGroupName()).andReturn("hadoop").once();
     expect(keytabDescriptor2.getGroupAccess()).andReturn("").once();
     expect(keytabDescriptor2.getConfiguration()).andReturn("service2-site/component2.keytab.file").once();
+    expect(keytabDescriptor2.isCachable()).andReturn(false).once();
 
     final KerberosIdentityDescriptor identityDescriptor1 = createNiceMock(KerberosIdentityDescriptor.class);
     expect(identityDescriptor1.getPrincipalDescriptor()).andReturn(principalDescriptor1).once();
@@ -1489,6 +1495,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(keytabDescriptor1.getGroupName()).andReturn("hadoop").times(3);
     expect(keytabDescriptor1.getGroupAccess()).andReturn("").times(3);
     expect(keytabDescriptor1.getConfiguration()).andReturn("service1-site/component1.keytab.file").times(3);
+    expect(keytabDescriptor1.isCachable()).andReturn(false).times(3);
 
     final KerberosKeytabDescriptor keytabDescriptor3 = createMock(KerberosKeytabDescriptor.class);
     expect(keytabDescriptor3.getFile()).andReturn("${keytab_dir}/service3.keytab").once();
@@ -1497,6 +1504,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(keytabDescriptor3.getGroupName()).andReturn("hadoop").once();
     expect(keytabDescriptor3.getGroupAccess()).andReturn("").once();
     expect(keytabDescriptor3.getConfiguration()).andReturn("service3-site/component3.keytab.file").once();
+    expect(keytabDescriptor3.isCachable()).andReturn(false).times(1);
 
     final KerberosIdentityDescriptor identityDescriptor1a = createMock(KerberosIdentityDescriptor.class);
     expect(identityDescriptor1a.getName()).andReturn("identity1a").anyTimes();
@@ -1773,6 +1781,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(keytabDescriptor1.getGroupName()).andReturn("hadoop").once();
     expect(keytabDescriptor1.getGroupAccess()).andReturn("").once();
     expect(keytabDescriptor1.getConfiguration()).andReturn("service1-site/component1.keytab.file").once();
+    expect(keytabDescriptor1.isCachable()).andReturn(false).once();
 
     final KerberosKeytabDescriptor keytabDescriptor3 = createMock(KerberosKeytabDescriptor.class);
     expect(keytabDescriptor3.getFile()).andReturn("${keytab_dir}/service3.keytab").once();
@@ -1781,6 +1790,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(keytabDescriptor3.getGroupName()).andReturn("hadoop").once();
     expect(keytabDescriptor3.getGroupAccess()).andReturn("").once();
     expect(keytabDescriptor3.getConfiguration()).andReturn("service3-site/component3.keytab.file").once();
+    expect(keytabDescriptor3.isCachable()).andReturn(false).once();
 
     final KerberosIdentityDescriptor identityDescriptor1a = createMock(KerberosIdentityDescriptor.class);
     expect(identityDescriptor1a.getName()).andReturn("identity1a").anyTimes();

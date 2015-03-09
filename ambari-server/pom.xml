@@ -486,6 +486,12 @@
               <groupname>root</groupname>
             </mapping>
             <mapping>
+              <directory>/var/lib/ambari-server/data/cache</directory>
+              <filemode>700</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+            </mapping>
+            <mapping>
               <directory>/var/lib/ambari-server/resources/apps</directory>
               <filemode>755</filemode>
               <username>root</username>
@@ -667,6 +673,7 @@
                 <path>/var/log/ambari-server</path>
                 <path>/var/lib/ambari-server/resources/upgrade</path>
                 <path>/var/lib/ambari-server/data/tmp</path>
+                <path>/var/lib/ambari-server/data/cache</path>
               </paths>
             </data>
             <!-- TODO: should be included all subdirs, if exists-->

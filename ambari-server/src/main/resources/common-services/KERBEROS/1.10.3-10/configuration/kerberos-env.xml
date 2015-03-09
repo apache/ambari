@@ -61,8 +61,24 @@
     <value/>
   </property>
 
+  <property require-input="true">
+    <name>kdc_host</name>
+    <description>
+      The IP address or FQDN for the KDC host. Optionally a port number may be included.
+    </description>
+    <value/>
+  </property>
 
-    <property require-input="true">
+  <property>
+    <name>admin_server_host</name>
+    <description>
+      The IP address or FQDN for the KDC Kerberos administrative host. Optionally a port number may be included.
+    </description>
+    <value/>
+  </property>
+
+
+  <property require-input="true">
     <name>create_attributes_template</name>
     <description>
       A Velocity template to use to generate a JSON-formatted document containing the set of

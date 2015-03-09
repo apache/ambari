@@ -70,13 +70,16 @@ public class KerberosActionDataFileBuilder extends AbstractKerberosDataFileBuild
    *                                (expected to be the type and name of the configuration property
    *                                to use to store the keytab file's absolute path in
    *                                - i.e., config-type/property)
+   * @param keytabFileCanCache      a String containing a boolean value (true, false) indicating
+   *                                whether the generated keytab can be cached or not
    * @throws IOException
    */
   public void addRecord(String hostName, String serviceName, String serviceComponentName,
                         String principal, String principalType, String principalConfiguration,
                         String keytabFilePath, String keytabFileOwnerName,
                         String keytabFileOwnerAccess, String keytabFileGroupName,
-                        String keytabFileGroupAccess, String keytabFileConfiguration)
+                        String keytabFileGroupAccess, String keytabFileConfiguration,
+                        String keytabFileCanCache)
       throws IOException {
     super.appendRecord(hostName,
         serviceName,
@@ -89,7 +92,8 @@ public class KerberosActionDataFileBuilder extends AbstractKerberosDataFileBuild
         keytabFileOwnerAccess,
         keytabFileGroupName,
         keytabFileGroupAccess,
-        keytabFileConfiguration);
+        keytabFileConfiguration,
+        keytabFileCanCache);
   }
 
   @Override
@@ -105,6 +109,7 @@ public class KerberosActionDataFileBuilder extends AbstractKerberosDataFileBuild
         KEYTAB_FILE_OWNER_ACCESS,
         KEYTAB_FILE_GROUP_NAME,
         KEYTAB_FILE_GROUP_ACCESS,
-        KEYTAB_FILE_CONFIGURATION);
+        KEYTAB_FILE_CONFIGURATION,
+        KEYTAB_FILE_IS_CACHABLE);
   }
 }

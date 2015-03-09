@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -78,6 +79,16 @@ public abstract class KerberosOperationHandler {
    * Kerberos-env configuration property name: encryption_types
    */
   public final static String KERBEROS_ENV_ENCRYPTION_TYPES = "encryption_types";
+
+  /**
+   * Kerberos-env configuration property name: kdc_host
+   */
+  public final static String KERBEROS_ENV_KDC_HOST = "kdc_host";
+
+  /**
+   * Kerberos-env configuration property name: admin_server_host
+   */
+  public final static String KERBEROS_ENV_ADMIN_SERVER_HOST = "admin_server_host";
 
   /**
    * The set of available characters to use when generating a secure password
@@ -317,94 +328,185 @@ public abstract class KerberosOperationHandler {
   }
 
   /**
-   * Create or append to a keytab file using the specified principal and password.
+   * Create a keytab using the specified principal and password.
    *
-   * @param principal  a String containing the principal to test
-   * @param password   a String containing the password to use when creating the principal
-   * @param keytabFile a File containing the absolute path to the keytab file
-   * @return true if the keytab file was successfully created; false otherwise
+   * @param principal a String containing the principal to test
+   * @param password  a String containing the password to use when creating the principal
+   * @param keyNumber a Integer indicating the key number for the keytab entries
+   * @return the created Keytab
    * @throws KerberosOperationException
    */
-  public boolean createKeytabFile(String principal, String password, Integer keyNumber, File keytabFile)
+  protected Keytab createKeytab(String principal, String password, Integer keyNumber)
       throws KerberosOperationException {
-    boolean success = false;
 
     if ((principal == null) || principal.isEmpty()) {
       throw new KerberosOperationException("Failed to create keytab file, missing principal");
-    } else if (password == null) {
+    }
+
+    if (password == null) {
       throw new KerberosOperationException(String.format("Failed to create keytab file for %s, missing password", principal));
-    } else if (keytabFile == null) {
-      throw new KerberosOperationException(String.format("Failed to create keytab file for %s, missing file path", principal));
-    } else {
-      Keytab keytab;
-      Set<EncryptionType> ciphers = new HashSet<EncryptionType>(keyEncryptionTypes);
-      List<KeytabEntry> keytabEntries = new ArrayList<KeytabEntry>();
+    }
 
-      if (keytabFile.exists() && keytabFile.canRead() && (keytabFile.length() > 0)) {
-        // If the keytab file already exists, read it in and append the new keytabs to it so that
-        // potentially important data is not lost
-        try {
-          keytab = Keytab.read(keytabFile);
-        } catch (IOException e) {
-          // There was an issue reading in the existing keytab file... we might loose some keytabs
-          // but that is unlikely...
-          keytab = new Keytab();
+    Set<EncryptionType> ciphers = new HashSet<EncryptionType>(keyEncryptionTypes);
+    List<KeytabEntry> keytabEntries = new ArrayList<KeytabEntry>();
+    Keytab keytab = new Keytab();
+
+
+    if (!ciphers.isEmpty()) {
+      // Create a set of keys and relevant keytab entries
+      Map<EncryptionType, EncryptionKey> keys = KerberosKeyFactory.getKerberosKeys(principal, password, ciphers);
+
+      if (keys != null) {
+        byte keyVersion = (keyNumber == null) ? 0 : keyNumber.byteValue();
+        KerberosTime timestamp = new KerberosTime();
+
+        for (EncryptionKey encryptionKey : keys.values()) {
+          keytabEntries.add(new KeytabEntry(principal, 1, timestamp, keyVersion, encryptionKey));
         }
 
-        // In case there were any existing keytab entries, add them to the new entries list so
-        // they are not lost.  While at it, remove ciphers that already exist for the given principal
-        // so duplicate entries aren't added to the file.
-        List<KeytabEntry> existingEntries = keytab.getEntries();
-        if ((existingEntries != null) && !existingEntries.isEmpty()) {
-
-          for (KeytabEntry entry : existingEntries) {
-            // Remove ciphers that will cause duplicate entries
-            if (principal.equals(entry.getPrincipalName())) {
-              ciphers.remove(entry.getKey().getKeyType());
-            }
-
-            keytabEntries.add(entry);
-          }
-        }
-      } else {
-        keytab = new Keytab();
-      }
-
-      if (ciphers.isEmpty()) {
-        // There are no new keys to create
-        success = true;
-      } else {
-        // Create a set of keys and relevant keytab entries
-        Map<EncryptionType, EncryptionKey> keys = KerberosKeyFactory.getKerberosKeys(principal, password, ciphers);
-
-        if (keys != null) {
-          byte keyVersion = (keyNumber == null) ? 0 : keyNumber.byteValue();
-          KerberosTime timestamp = new KerberosTime();
-
-          for (EncryptionKey encryptionKey : keys.values()) {
-            keytabEntries.add(new KeytabEntry(principal, 1, timestamp, keyVersion, encryptionKey));
-          }
-
-          keytab.setEntries(keytabEntries);
-
-          try {
-            keytab.write(keytabFile);
-            success = true;
-          } catch (IOException e) {
-            String message = String.format("Failed to export keytab file for %s", principal);
-            LOG.error(message, e);
-
-            if (!keytabFile.delete()) {
-              keytabFile.deleteOnExit();
-            }
-
-            throw new KerberosOperationException(message, e);
-          }
-        }
+        keytab.setEntries(keytabEntries);
       }
     }
 
-    return success;
+    return keytab;
+  }
+
+  /**
+   * Create or append to a keytab file using keytab data from another keytab file.
+   * <p/>
+   * If the destination keytab file contains keytab data, that data will be merged with the new data
+   * to create a composite set of keytab entries.
+   *
+   * @param sourceKeytabFile      a File containing the absolute path to the file with the keytab data to store
+   * @param destinationKeytabFile a File containing the absolute path to where the keytab data is to be stored
+   * @return true if the keytab file was successfully created; false otherwise
+   * @throws KerberosOperationException
+   * @see #createKeytabFile(org.apache.directory.server.kerberos.shared.keytab.Keytab, java.io.File)
+   */
+  protected boolean createKeytabFile(File sourceKeytabFile, File destinationKeytabFile)
+      throws KerberosOperationException {
+    return createKeytabFile(readKeytabFile(sourceKeytabFile), destinationKeytabFile);
+  }
+
+  /**
+   * Create or append to a keytab file using the specified principal and password.
+   * <p/>
+   * If the destination keytab file contains keytab data, that data will be merged with the new data
+   * to create a composite set of keytab entries.
+   *
+   * @param principal             a String containing the principal to test
+   * @param password              a String containing the password to use when creating the principal
+   * @param keyNumber             an Integer declaring the relevant key number to use for the keytabs entries
+   * @param destinationKeytabFile a File containing the absolute path to where the keytab data is to be stored
+   * @return true if the keytab file was successfully created; false otherwise
+   * @throws KerberosOperationException
+   * @see #createKeytabFile(org.apache.directory.server.kerberos.shared.keytab.Keytab, java.io.File)
+   */
+  protected boolean createKeytabFile(String principal, String password, Integer keyNumber, File destinationKeytabFile)
+      throws KerberosOperationException {
+    return createKeytabFile(createKeytab(principal, password, keyNumber), destinationKeytabFile);
+  }
+
+  /**
+   * Create or append to a keytab file using the specified Keytab
+   * <p/>
+   * If the destination keytab file contains keytab data, that data will be merged with the new data
+   * to create a composite set of keytab entries.
+   *
+   * @param keytab                the Keytab containing the data to add to the keytab file
+   * @param destinationKeytabFile a File containing the absolute path to where the keytab data is to be stored
+   * @return true if the keytab file was successfully created; false otherwise
+   * @throws KerberosOperationException
+   */
+  protected boolean createKeytabFile(Keytab keytab, File destinationKeytabFile)
+      throws KerberosOperationException {
+
+    if (destinationKeytabFile == null) {
+      throw new KerberosOperationException("The destination file path is null");
+    }
+
+    try {
+      mergeKeytabs(readKeytabFile(destinationKeytabFile), keytab).write(destinationKeytabFile);
+      return true;
+    } catch (IOException e) {
+      String message = "Failed to export keytab file";
+      LOG.error(message, e);
+
+      if (!destinationKeytabFile.delete()) {
+        destinationKeytabFile.deleteOnExit();
+      }
+
+      throw new KerberosOperationException(message, e);
+    }
+  }
+
+  /**
+   * Merge the keytab data from one keytab with the keytab data from a different keytab.
+   * <p/>
+   * If similar key entries exist for the same principal, the updated values will be used
+   *
+   * @param keytab  a Keytab with the base keytab data
+   * @param updates a Keytab containing the updated keytab data
+   * @return a Keytab with the merged data
+   */
+  protected Keytab mergeKeytabs(Keytab keytab, Keytab updates) {
+    List<KeytabEntry> keytabEntries = (keytab == null)
+        ? Collections.<KeytabEntry>emptyList()
+        : new ArrayList<KeytabEntry>(keytab.getEntries());
+    List<KeytabEntry> updateEntries = (updates == null)
+        ? Collections.<KeytabEntry>emptyList()
+        : new ArrayList<KeytabEntry>(updates.getEntries());
+    List<KeytabEntry> mergedEntries = new ArrayList<KeytabEntry>();
+
+    if (keytabEntries.isEmpty()) {
+      mergedEntries.addAll(updateEntries);
+    } else if (updateEntries.isEmpty()) {
+      mergedEntries.addAll(keytabEntries);
+    } else {
+      Iterator<KeytabEntry> iterator = keytabEntries.iterator();
+
+      while (iterator.hasNext()) {
+        KeytabEntry keytabEntry = iterator.next();
+
+        for (KeytabEntry entry : updateEntries) {
+          if (entry.getPrincipalName().equals(keytabEntry.getPrincipalName()) &&
+              entry.getKey().getKeyType().equals(keytabEntry.getKey().getKeyType())) {
+            iterator.remove();
+            break;
+          }
+        }
+      }
+
+      mergedEntries.addAll(keytabEntries);
+      mergedEntries.addAll(updateEntries);
+    }
+
+    Keytab mergedKeytab = new Keytab();
+    mergedKeytab.setEntries(mergedEntries);
+    return mergedKeytab;
+  }
+
+  /**
+   * Reads a file containing keytab data into a new Keytab
+   *
+   * @param file A File containing the path to the file from which to read keytab data
+   * @return a Keytab or null if the file was not readable
+   */
+  protected Keytab readKeytabFile(File file) {
+    Keytab keytab;
+
+    if (file.exists() && file.canRead() && (file.length() > 0)) {
+      try {
+        keytab = Keytab.read(file);
+      } catch (IOException e) {
+        // There was an issue reading in the existing keytab file... quietly assume no data
+        keytab = null;
+      }
+    } else {
+      keytab = null;
+    }
+
+    return keytab;
   }
 
   public KerberosCredential getAdministratorCredentials() {

@@ -1888,7 +1888,7 @@ var hdp2properties = [
     "isRequiredByAgent": true,
     "displayType": "supportTextConnection",
     "serviceName": "KERBEROS",
-    "filename": "krb5-conf.xml",
+    "filename": "kerberos-env.xml",
     "category": "KDC",
     "index": 1
   },
@@ -1964,7 +1964,7 @@ var hdp2properties = [
     "isVisible": true,
     "isRequiredByAgent": true,
     "serviceName": "KERBEROS",
-    "filename": "krb5-conf.xml",
+    "filename": "kerberos-env.xml",
     "category": "Kadmin",
     "index": 0
   },
@@ -2036,36 +2036,6 @@ var hdp2properties = [
     "filename": "krb5-conf.xml",
     "category": "Advanced krb5-conf",
     "index": 2
-  },
-  {
-    "id": "puppet var",
-    "name": "libdefaults_default_tgs_enctypes",
-    "displayName": "libdefaults_default_tgs_enctypes",
-    "value": "",
-    "defaultValue": "",
-    "description": "",
-    "isOverridable": false,
-    "isVisible": true,
-    "isRequiredByAgent": true,
-    "isRequired": false,
-    "serviceName": "KERBEROS",
-    "filename": "krb5-conf.xml",
-    "category": "Advanced krb5-conf"
-  },
-  {
-    "id": "puppet var",
-    "name": "libdefaults_default_tkt_enctypes",
-    "displayName": "libdefaults_default_tkt_enctypes",
-    "value": "",
-    "defaultValue": "",
-    "description": "",
-    "isOverridable": false,
-    "isVisible": true,
-    "isRequiredByAgent": true,
-    "isRequired": false,
-    "serviceName": "KERBEROS",
-    "filename": "krb5-conf.xml",
-    "category": "Advanced krb5-conf"
   },
 /********************************************* flume-agent *****************************/
   {

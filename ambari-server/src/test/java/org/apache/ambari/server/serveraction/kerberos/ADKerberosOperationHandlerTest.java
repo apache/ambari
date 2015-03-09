@@ -21,7 +21,6 @@ package org.apache.ambari.server.serveraction.kerberos;
 import junit.framework.Assert;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
-import org.easymock.EasyMockSupport;
 import org.easymock.IAnswer;
 import org.junit.Ignore;
 import org.junit.Test;

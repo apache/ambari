@@ -28,7 +28,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.naming.InvalidNameException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Collections;
@@ -203,6 +202,29 @@ public abstract class KerberosOperationHandlerTest extends EasyMockSupport {
         f.deleteOnExit();
       }
     }
+  }
+
+  @Test
+  public void testMergeKeytabs() throws KerberosOperationException {
+    KerberosOperationHandler handler = createHandler();
+
+    Keytab keytab1 = handler.createKeytab("principal@EXAMPLE.COM", "password", 1);
+    Keytab keytab2 = handler.createKeytab("principal@EXAMPLE.COM", "password1", 1);
+    Keytab keytab3 = handler.createKeytab("principal1@EXAMPLE.COM", "password", 4);
+
+    Keytab merged;
+
+    merged = handler.mergeKeytabs(keytab1, keytab2);
+    Assert.assertEquals(keytab1.getEntries().size(), merged.getEntries().size());
+
+    merged = handler.mergeKeytabs(keytab1, keytab3);
+    Assert.assertEquals(keytab1.getEntries().size() + keytab3.getEntries().size(), merged.getEntries().size());
+
+    merged = handler.mergeKeytabs(keytab2, keytab3);
+    Assert.assertEquals(keytab2.getEntries().size() + keytab3.getEntries().size(), merged.getEntries().size());
+
+    merged = handler.mergeKeytabs(keytab2, merged);
+    Assert.assertEquals(keytab2.getEntries().size() + keytab3.getEntries().size(), merged.getEntries().size());
   }
 
   @Test

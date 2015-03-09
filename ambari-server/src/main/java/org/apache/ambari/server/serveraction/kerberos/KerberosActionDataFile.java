@@ -37,4 +37,5 @@ public class KerberosActionDataFile {
   public static final String KEYTAB_FILE_GROUP_NAME = "keytab_file_group_name";
   public static final String KEYTAB_FILE_GROUP_ACCESS = "keytab_file_group_access";
   public static final String KEYTAB_FILE_CONFIGURATION = "keytab_file_configuration";
+  public static final String KEYTAB_FILE_IS_CACHABLE = "keytab_file_is_cachable";
 }

@@ -54,6 +54,8 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
   @Inject
   private Configuration configuration;
 
+  private String adminServerHost = null;
+
   /**
    * Prepares and creates resources to be used by this KerberosOperationHandler
    * <p/>
@@ -80,6 +82,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
 
     if (kerberosConfiguration != null) {
       setKeyEncryptionTypes(translateEncryptionTypes(kerberosConfiguration.get(KERBEROS_ENV_ENCRYPTION_TYPES), "\\s+"));
+      setAdminServerHost(kerberosConfiguration.get(KERBEROS_ENV_ADMIN_SERVER_HOST));
     }
 
     setOpen(true);
@@ -339,6 +342,12 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
         // Set the kdamin interface to be kadmin
         command.add(pathToCommand + "kadmin");
 
+        // Add explicit KDC admin host, if available
+        if(getAdminServerHost() != null) {
+          command.add("-s");
+          command.add(getAdminServerHost());
+        }
+
         // Add the administrative principal
         command.add("-p");
         command.add(adminPrincipal);
@@ -438,5 +447,23 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
     }
 
     return result;
+  }
+
+  /**
+   * Sets the KDC administrator server host address
+   *
+   * @param adminServerHost the ip address or FQDN of the KDC administrator server
+   */
+  public void setAdminServerHost(String adminServerHost) {
+    this.adminServerHost = adminServerHost;
+  }
+
+  /**
+   * Gets the IP address or FQDN of the KDC administrator server
+   *
+   * @return the IP address or FQDN of the KDC administrator server
+   */
+  public String getAdminServerHost() {
+    return adminServerHost;
   }
 }

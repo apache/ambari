@@ -88,20 +88,6 @@ if config is not None:
   # ################################################################################################
   # Get krb5.conf template data
   # ################################################################################################
-  logging_default = 'FILE:/var/log/krb5libs.log'
-  logging_kdc = 'FILE:/var/log/krb5kdc.log'
-  logging_admin_server = 'FILE:/var/log/kadmind.log'
-  libdefaults_dns_lookup_realm = 'false'
-  libdefaults_dns_lookup_kdc = 'false'
-  libdefaults_ticket_lifetime = '24h'
-  libdefaults_renew_lifetime = '7d'
-  libdefaults_forwardable = 'true'
-  libdefaults_default_tgs_enctypes = 'aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96 des3-cbc-sha1 ' \
-                                     'arcfour-hmac-md5 camellia256-cts-cmac camellia128-cts-cmac ' \
-                                     'des-cbc-crc des-cbc-md5 des-cbc-md4'
-  libdefaults_default_tkt_enctypes = 'aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96 des3-cbc-sha1 ' \
-                                     'arcfour-hmac-md5 camellia256-cts-cmac camellia128-cts-cmac ' \
-                                     'des-cbc-crc des-cbc-md5 des-cbc-md4'
   realm = 'EXAMPLE.COM'
   domains = ''
   kdc_host = 'localhost'
@@ -127,33 +113,12 @@ if config is not None:
   if kerberos_env is not None:
     encryption_types = get_property_value(kerberos_env, "encryption_types", None)
     realm = get_property_value(kerberos_env, "realm", None)
+    kdc_host = get_property_value(kerberos_env, 'kdc_host', kdc_host)
+    admin_server_host = get_property_value(kerberos_env, 'admin_server_host', admin_server_host)
 
   if krb5_conf_data is not None:
-    logging_default = get_property_value(krb5_conf_data, 'logging_default', logging_default)
-    logging_kdc = get_property_value(krb5_conf_data, 'logging_kdc', logging_kdc)
-    logging_admin_server = get_property_value(krb5_conf_data, 'logging_admin_server',
-                                              logging_admin_server)
-    libdefaults_dns_lookup_realm = get_property_value(krb5_conf_data,
-                                                      'libdefaults_dns_lookup_realm',
-                                                      libdefaults_dns_lookup_realm)
-    libdefaults_dns_lookup_kdc = get_property_value(krb5_conf_data, 'libdefaults_dns_lookup_kdc',
-                                                    libdefaults_dns_lookup_kdc)
-    libdefaults_ticket_lifetime = get_property_value(krb5_conf_data, 'libdefaults_ticket_lifetime',
-                                                     libdefaults_ticket_lifetime)
-    libdefaults_renew_lifetime = get_property_value(krb5_conf_data, 'libdefaults_renew_lifetime',
-                                                    libdefaults_renew_lifetime)
-    libdefaults_forwardable = get_property_value(krb5_conf_data, 'libdefaults_forwardable',
-                                                 libdefaults_forwardable)
-    libdefaults_default_tgs_enctypes = get_property_value(krb5_conf_data,
-                                                          'libdefaults_default_tgs_enctypes',
-                                                          encryption_types)
-    libdefaults_default_tkt_enctypes = get_property_value(krb5_conf_data,
-                                                          'libdefaults_default_tkt_enctypes',
-                                                          encryption_types)
     realm = get_property_value(krb5_conf_data, 'realm', realm)
     domains = get_property_value(krb5_conf_data, 'domains', domains)
-    kdc_host = get_property_value(krb5_conf_data, 'kdc_host', kdc_host)
-    admin_server_host = get_property_value(krb5_conf_data, 'admin_server_host', admin_server_host)
 
     admin_principal = get_property_value(krb5_conf_data, 'admin_principal', admin_principal)
     admin_password = get_property_value(krb5_conf_data, 'admin_password', admin_password)

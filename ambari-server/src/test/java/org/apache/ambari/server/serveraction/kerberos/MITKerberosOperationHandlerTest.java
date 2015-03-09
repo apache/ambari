@@ -24,7 +24,6 @@ import com.google.inject.Injector;
 import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.easymock.EasyMock;
@@ -33,7 +32,6 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -52,6 +50,8 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
   private static final Map<String, String> KERBEROS_ENV_MAP = new HashMap<String, String>() {
     {
       put(MITKerberosOperationHandler.KERBEROS_ENV_ENCRYPTION_TYPES, null);
+      put(MITKerberosOperationHandler.KERBEROS_ENV_KDC_HOST, "localhost");
+      put(MITKerberosOperationHandler.KERBEROS_ENV_ADMIN_SERVER_HOST, "localhost");
     }
   };
 
