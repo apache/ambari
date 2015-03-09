@@ -70,6 +70,7 @@ public class ActionMetadata {
     serviceClients.put("pig"        , Role.PIG.toString());
     serviceClients.put("sqoop"      , Role.SQOOP.toString());
     serviceClients.put("yarn"       , Role.YARN_CLIENT.toString());
+    serviceClients.put("kerberos"   , Role.KERBEROS_CLIENT.toString());
   }
 
   public List<String> getActions(String serviceName) {
