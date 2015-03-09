@@ -22,9 +22,11 @@ import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
+import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
@@ -95,7 +97,20 @@ public class DestroyPrincipalsServerAction extends KerberosServerAction {
     }
 
     try {
-      kerberosPrincipalDAO.remove(evaluatedPrincipal);
+      KerberosPrincipalEntity principalEntity = kerberosPrincipalDAO.find(evaluatedPrincipal);
+
+      if(principalEntity != null) {
+        String cachedKeytabPath = principalEntity.getCachedKeytabPath();
+
+        kerberosPrincipalDAO.remove(principalEntity);
+
+        // If a cached  keytabs file exists for this principal, delete it.
+        if (cachedKeytabPath != null) {
+          if (!new File(cachedKeytabPath).delete()) {
+            LOG.debug(String.format("Failed to remove cached keytab for %s", evaluatedPrincipal));
+          }
+        }
+      }
     }
     catch (Throwable t) {
       message = String.format("Failed to remove identity for %s from the Ambari database - %s", evaluatedPrincipal, t.getMessage());

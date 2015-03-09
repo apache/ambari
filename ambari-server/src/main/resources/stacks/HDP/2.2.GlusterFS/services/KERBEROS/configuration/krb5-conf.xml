@@ -21,75 +21,10 @@
 -->
 
 <configuration>
-  <property>
-    <name>logging_default</name>
-    <value>FILE:/var/log/krb5libs.log</value>
-  </property>
-  <property>
-    <name>logging_kdc</name>
-    <value>FILE:/var/log/krb5kdc.log</value>
-  </property>
-  <property>
-    <name>logging_admin_server</name>
-    <value>FILE:/var/log/kadmind.log</value>
-  </property>
-
-  <property>
-    <name>libdefaults_dns_lookup_realm</name>
-    <value>false</value>
-  </property>
-  <property>
-    <name>libdefaults_dns_lookup_kdc</name>
-    <value>false</value>
-  </property>
-  <property>
-    <name>libdefaults_ticket_lifetime</name>
-    <value>24h</value>
-  </property>
-  <property>
-    <name>libdefaults_renew_lifetime</name>
-    <value>7d</value>
-  </property>
-  <property>
-    <name>libdefaults_forwardable</name>
-    <value>true</value>
-  </property>
-  <property require-input="false">
-    <name>libdefaults_default_tgs_enctypes</name>
-    <description>
-      A space-delimited list of session key encryption types supported by the KDC or Active
-      Directory
-    </description>
-    <value/>
-  </property>
-  <property require-input="false">
-    <name>libdefaults_default_tkt_enctypes</name>
-    <description>
-      A space-delimited list of session key encryption types supported by the KDC or Active
-      Directory
-    </description>
-    <value/>
-  </property>
   <property require-input="false">
     <name>domains</name>
     <description>
       A comma-delimited list of domain names that the realm serves (optional)
-    </description>
-    <value/>
-  </property>
-  <property require-input="true">
-    <name>kdc_host</name>
-    <description>
-      The IP address or FQDN of the KDC or Active Directory server, optionally a port number may be
-      provided
-    </description>
-    <value/>
-  </property>
-  <property>
-    <name>admin_server_host</name>
-    <description>
-      The IP address or FQDN of the administrative Kerberos server, optionally a port number may be
-      provided
     </description>
     <value/>
   </property>
@@ -138,18 +73,14 @@
     <description>The jinja template for the krb5.conf file</description>
     <value>
 [libdefaults]
-  renew_lifetime = {{libdefaults_renew_lifetime}}
-  forwardable = {{libdefaults_forwardable}}
+  renew_lifetime = 7d
+  forwardable = true
   default_realm = {{realm|upper()}}
-  ticket_lifetime = {{libdefaults_ticket_lifetime}}
-  dns_lookup_realm = {{libdefaults_dns_lookup_realm}}
-  dns_lookup_kdc = {{libdefaults_dns_lookup_kdc}}
-  {% if libdefaults_default_tgs_enctypes %}
-  default_tgs_enctypes = {{libdefaults_default_tgs_enctypes}}
-  {% endif %}
-  {% if libdefaults_default_tkt_enctypes %}
-  default_tkt_enctypes = {{libdefaults_default_tkt_enctypes}}
-  {% endif %}
+  ticket_lifetime = 24h
+  dns_lookup_realm = false
+  dns_lookup_kdc = false
+  #default_tgs_enctypes = {{encryption_types}}
+  #default_tkt_enctypes = {{encryption_types}}
 
 {% if domains %}
 [domain_realm]
@@ -159,12 +90,9 @@
 {% endif %}
 
 [logging]
-  default = {{logging_default}}
-{#
-# The following options are unused unless a managed KDC is installed
-  admin_server = {{logging_admin_server}}
-  kdc = {{logging_admin_kdc}}
-#}
+  default = FILE:/var/log/krb5kdc.log
+  admin_server = FILE:/var/log/kadmind.log
+  kdc = FILE:/var/log/krb5kdc.log
 
 [realms]
   {{realm}} = {

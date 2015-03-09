@@ -50,7 +50,7 @@ public class KerberosActionDataFileTest {
           "principal" + i, "principal_type" + i, "principalConfiguration" + i, "keytabFilePath" + i,
           "keytabFileOwnerName" + i, "keytabFileOwnerAccess" + i,
           "keytabFileGroupName" + i, "keytabFileGroupAccess" + i,
-          "keytabFileConfiguration" + i);
+          "keytabFileConfiguration" + i, "false");
     }
 
     // Add some odd characters
@@ -58,7 +58,7 @@ public class KerberosActionDataFileTest {
         "principal", "principal_type", "principalConfiguration", "keytabFilePath",
         "'keytabFileOwnerName'", "<keytabFileOwnerAccess>",
         "\"keytabFileGroupName\"", "keytab,File,Group,Access",
-        "\"keytab,'File',Configuration\"");
+        "\"keytab,'File',Configuration\"", "false");
 
     builder.close();
     Assert.assertTrue(builder.isClosed());
@@ -88,6 +88,7 @@ public class KerberosActionDataFileTest {
         Assert.assertEquals("keytabFileGroupName" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_NAME));
         Assert.assertEquals("keytabFileGroupAccess" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_ACCESS));
         Assert.assertEquals("keytabFileConfiguration" + i, record.get(KerberosActionDataFile.KEYTAB_FILE_CONFIGURATION));
+        Assert.assertEquals("false", record.get(KerberosActionDataFile.KEYTAB_FILE_IS_CACHABLE));
       } else {
         Assert.assertEquals("hostName's", record.get(KerberosActionDataFile.HOSTNAME));
         Assert.assertEquals("serviceName#", record.get(KerberosActionDataFile.SERVICE));
@@ -101,6 +102,7 @@ public class KerberosActionDataFileTest {
         Assert.assertEquals("\"keytabFileGroupName\"", record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_NAME));
         Assert.assertEquals("keytab,File,Group,Access", record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_ACCESS));
         Assert.assertEquals("\"keytab,'File',Configuration\"", record.get(KerberosActionDataFile.KEYTAB_FILE_CONFIGURATION));
+        Assert.assertEquals("false", record.get(KerberosActionDataFile.KEYTAB_FILE_IS_CACHABLE));
       }
 
       i++;
@@ -155,7 +157,7 @@ public class KerberosActionDataFileTest {
         "principal","principal_type", "principalConfiguration", "keytabFilePath",
         "keytabFileOwnerName", "keytabFileOwnerAccess",
         "keytabFileGroupName", "keytabFileGroupAccess",
-        "keytabFileConfiguration");
+        "keytabFileConfiguration", "true");
 
     builder.close();
     Assert.assertTrue(builder.isClosed());
@@ -181,7 +183,7 @@ public class KerberosActionDataFileTest {
         "principal", "principal_type", "principalConfiguration", "keytabFilePath",
         "keytabFileOwnerName", "keytabFileOwnerAccess",
         "keytabFileGroupName", "keytabFileGroupAccess",
-        "keytabFileConfiguration");
+        "keytabFileConfiguration", "true");
 
     builder.close();
     Assert.assertTrue(builder.isClosed());

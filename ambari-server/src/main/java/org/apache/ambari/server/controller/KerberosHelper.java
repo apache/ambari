@@ -156,6 +156,9 @@ public class KerberosHelper {
   private ConfigHelper configHelper;
 
   @Inject
+  private Configuration configuration;
+
+  @Inject
   private KerberosOperationHandlerFactory kerberosOperationHandlerFactory;
 
   @Inject
@@ -191,7 +194,7 @@ public class KerberosHelper {
    * executed to complete this task; or null if no stages need to be executed.
    * @throws AmbariException
    * @throws KerberosInvalidConfigurationException if an issue occurs trying to get the
-   * Kerberos-specific configuration details
+   *                                               Kerberos-specific configuration details
    * @throws KerberosOperationException
    */
   public RequestStageContainer toggleKerberos(Cluster cluster, SecurityType securityType,
@@ -228,7 +231,7 @@ public class KerberosHelper {
    * @throws AmbariException
    * @throws KerberosOperationException
    * @throws KerberosInvalidConfigurationException if an issue occurs trying to get the
-   * Kerberos-specific configuration details
+   *                                               Kerberos-specific configuration details
    */
   public RequestStageContainer executeCustomOperations(Cluster cluster, Map<String, String> requestProperties,
                                                        RequestStageContainer requestStageContainer)
@@ -313,7 +316,7 @@ public class KerberosHelper {
       throws AmbariException, KerberosOperationException {
     return handle(cluster, getKerberosDetails(cluster), serviceComponentFilter, identityFilter,
         hostsToForceKerberosOperations, requestStageContainer, new CreatePrincipalsAndKeytabsHandler(false));
- }
+  }
 
   /**
    * Deletes the set of filtered principals and keytabs from the cluster.
@@ -455,7 +458,6 @@ public class KerberosHelper {
    * Validate the KDC admin credentials.
    *
    * @param cluster associated cluster
-   *
    * @throws AmbariException if any other error occurs while trying to validate the credentials
    */
   public void validateKDCCredentials(Cluster cluster) throws KerberosMissingAdminCredentialsException,
@@ -641,28 +643,28 @@ public class KerberosHelper {
    * need to be done.  Calls into the Handler implementation to provide guidance and set up stages
    * to perform the work needed to complete the relative action.
    *
-   * @param cluster                the relevant Cluster
-   * @param kerberosDetails        a KerberosDetails containing information about relevant Kerberos configuration
-   * @param serviceComponentFilter a Map of service names to component names indicating the relevant
-   *                               set of services and components - if null, no filter is relevant;
-   *                               if empty, the filter indicates no relevant services or components
-   * @param identityFilter         a Collection of identity names indicating the relevant identities -
-   *                               if null, no filter is relevant; if empty, the filter indicates no
-   *                               relevant identities
-   * @param requestStageContainer  a RequestStageContainer to place generated stages, if needed -
-   *                               if null a new RequestStageContainer will be created.
+   * @param cluster                        the relevant Cluster
+   * @param kerberosDetails                a KerberosDetails containing information about relevant Kerberos configuration
+   * @param serviceComponentFilter         a Map of service names to component names indicating the relevant
+   *                                       set of services and components - if null, no filter is relevant;
+   *                                       if empty, the filter indicates no relevant services or components
+   * @param identityFilter                 a Collection of identity names indicating the relevant identities -
+   *                                       if null, no filter is relevant; if empty, the filter indicates no
+   *                                       relevant identities
+   * @param requestStageContainer          a RequestStageContainer to place generated stages, if needed -
+   *                                       if null a new RequestStageContainer will be created.
    * @param hostsToForceKerberosOperations a set of host names on which it is expected that the
    *                                       Kerberos client is or will be in the INSTALLED state by
    *                                       the time the operations targeted for them are to be
    *                                       executed - if empty or null, this no hosts will be
    *                                       "forced"
-   * @param handler                a Handler to use to provide guidance and set up stages
-   *                               to perform the work needed to complete the relative action
+   * @param handler                        a Handler to use to provide guidance and set up stages
+   *                                       to perform the work needed to complete the relative action
    * @return the updated or a new RequestStageContainer containing the stages that need to be
    * executed to complete this task; or null if no stages need to be executed.
    * @throws AmbariException
    * @throws KerberosInvalidConfigurationException if an issue occurs trying to get the
-   * Kerberos-specific configuration details
+   *                                               Kerberos-specific configuration details
    */
   @Transactional
   private RequestStageContainer handle(Cluster cluster,
@@ -695,7 +697,7 @@ public class KerberosHelper {
 
         // Ensure that that hosts that should be assumed to be in the correct state when needed are
         // in the hostsWithValidKerberosClient collection.
-        if(hostsToForceKerberosOperations != null) {
+        if (hostsToForceKerberosOperations != null) {
           hostsWithValidKerberosClient.addAll(hostsToForceKerberosOperations);
         }
 
@@ -733,7 +735,7 @@ public class KerberosHelper {
                 // If the current ServiceComponentHost represents the KERBEROS/KERBEROS_CLIENT and
                 // indicates that the KERBEROS_CLIENT component is in the INSTALLED state, add the
                 // current host to the set of hosts that should be handled...
-                if(Service.Type.KERBEROS.name().equals(serviceName) &&
+                if (Service.Type.KERBEROS.name().equals(serviceName) &&
                     Role.KERBEROS_CLIENT.name().equals(componentName) &&
                     (sch.getState() == State.INSTALLED)) {
                   hostsWithValidKerberosClient.add(hostname);
@@ -915,7 +917,7 @@ public class KerberosHelper {
                                                    Map<String, String> commandParameters, RequestStageContainer requestStageContainer,
                                                    Handler handler) throws AmbariException, KerberosOperationException {
 
-    if(commandParameters == null) {
+    if (commandParameters == null) {
       throw new AmbariException("The properties map must not be null.  It is needed to store data related to the service check identity");
     }
 
@@ -969,6 +971,8 @@ public class KerberosHelper {
                       put("name", "${cluster-env/user_group}");
                       put("access", "r");
                     }});
+
+                    put("cachable", "false");
                   }
                 });
           }
@@ -1005,7 +1009,7 @@ public class KerberosHelper {
                 // If the current ServiceComponentHost represents the KERBEROS/KERBEROS_CLIENT and
                 // indicates that the KERBEROS_CLIENT component is in the INSTALLED state, add the
                 // current host to the set of hosts that should be handled...
-                if(Service.Type.KERBEROS.name().equals(serviceName) &&
+                if (Service.Type.KERBEROS.name().equals(serviceName) &&
                     Role.KERBEROS_CLIENT.name().equals(componentName) &&
                     (sch.getState() == State.INSTALLED)) {
                   hostsWithValidKerberosClient.add(hostname);
@@ -1023,7 +1027,7 @@ public class KerberosHelper {
 
                   if (identitiesAdded > 0) {
                     // Add the relevant principal name and keytab file data to the command params state
-                    if(!commandParameters.containsKey("principal_name") || !commandParameters.containsKey("keytab_file")) {
+                    if (!commandParameters.containsKey("principal_name") || !commandParameters.containsKey("keytab_file")) {
                       commandParameters.put("principal_name",
                           KerberosDescriptor.replaceVariables(identity.getPrincipalDescriptor().getValue(), configurations));
                       commandParameters.put("keytab_file",
@@ -1154,7 +1158,7 @@ public class KerberosHelper {
 
     KDCType kdcType;
     String kdcTypeProperty = kerberosEnvProperties.get("kdc_type");
-    if(kdcTypeProperty == null) {
+    if (kdcTypeProperty == null) {
       String message = "The 'kerberos-env/kdc_type' value must be set to a valid KDC type";
       LOG.error(message);
       throw new KerberosInvalidConfigurationException(message);
@@ -1290,7 +1294,12 @@ public class KerberosHelper {
    * @throws AmbariException if a new temporary directory cannot be created
    */
   private File createTemporaryDirectory() throws AmbariException {
-    String tempDirectoryPath = System.getProperty("java.io.tmpdir");
+    String tempDirectoryPath = configuration.getProperty(Configuration.SERVER_TMP_DIR_KEY);
+
+    if ((tempDirectoryPath == null) || tempDirectoryPath.isEmpty()) {
+      tempDirectoryPath = System.getProperty("java.io.tmpdir");
+    }
+
     try {
       if (tempDirectoryPath == null) {
         throw new IOException("The System property 'java.io.tmpdir' does not specify a temporary directory");
@@ -1316,8 +1325,7 @@ public class KerberosHelper {
       }
 
       return directory;
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       String message = "Failed to create the temporary data directory.";
       LOG.error(message, e);
       throw new AmbariException(message, e);
@@ -1451,7 +1459,8 @@ public class KerberosHelper {
                 keytabFileOwnerAccess,
                 keytabFileGroupName,
                 keytabFileGroupAccess,
-                keytabFileConfiguration);
+                keytabFileConfiguration,
+                (keytabDescriptor.isCachable()) ? "true" : "false");
 
             identitiesAdded++;
           }

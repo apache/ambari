@@ -99,7 +99,7 @@ public class UpdateKerberosConfigsServerActionTest {
     kerberosActionDataFileBuilder.addRecord("c6403.ambari.apache.org", "HDFS", "DATANODE",
       "dn/_HOST@_REALM", "service", "hdfs-site/dfs.namenode.kerberos.principal",
       "/etc/security/keytabs/dn.service.keytab",
-      "hdfs", "r", "hadoop", "", "hdfs-site/dfs.namenode.keytab.file");
+      "hdfs", "r", "hadoop", "", "hdfs-site/dfs.namenode.keytab.file", "false");
 
     kerberosActionDataFileBuilder.close();
     File hostDirectory = new File(dataDir, "c6403.ambari.apache.org");

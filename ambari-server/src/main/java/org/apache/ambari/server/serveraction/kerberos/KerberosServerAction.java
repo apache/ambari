@@ -491,10 +491,6 @@ public abstract class KerberosServerAction extends AbstractServerAction {
         // by replacing the _HOST and _REALM variables.
         String evaluatedPrincipal = principal.replace("_HOST", host).replace("_REALM", defaultRealm);
 
-        String message = String.format("Processing identity for %s", evaluatedPrincipal);
-        actionLog.writeStdOut(message);
-        LOG.info(message);
-
         commandReport = processIdentity(record, evaluatedPrincipal, operationHandler, requestSharedDataContext);
       }
     }

@@ -21,12 +21,12 @@ import json
 
 krb5_conf_template = \
   '[libdefaults]\n' \
-  '  renew_lifetime = {{libdefaults_renew_lifetime}}\n' \
-  '  forwardable = {{libdefaults_forwardable}}\n' \
+  '  renew_lifetime = 7d\n' \
+  '  forwardable = true\n' \
   '  realm = {{realm|upper()}}\n' \
-  '  ticket_lifetime = {{libdefaults_ticket_lifetime}}\n' \
-  '  dns_lookup_realm = {{libdefaults_dns_lookup_realm}}\n' \
-  '  dns_lookup_kdc = {{libdefaults_dns_lookup_kdc}}\n' \
+  '  ticket_lifetime = 24h\n' \
+  '  dns_lookup_realm = false\n' \
+  '  dns_lookup_kdc = false\n' \
   '\n' \
   '{% if domains %}\n' \
   '[domain_realm]\n' \
@@ -36,12 +36,10 @@ krb5_conf_template = \
   '{% endif %}\n' \
   '\n' \
   '[logging]\n' \
-  '  default = {{logging_default}}\n' \
-  '{#\n' \
-  ' # The following options are unused unless a managed KDC is installed\n' \
-  '  admin_server = {{logging_admin_server}}\n' \
-  'kdc = {{logging_admin_kdc}}\n' \
-  '#}\n' \
+  '  default = FILE:/var/log/krb5kdc.log\n' \
+  '  admin_server = FILE:/var/log/kadmind.log\n' \
+  '  kdc = FILE:/var/log/krb5kdc.log\n' \
+  '\n' \
   '[realms]\n' \
   '  {{realm}} = {\n' \
   '    admin_server = {{admin_server_host|default(kdc_host, True)}}\n' \
@@ -75,11 +73,11 @@ def get_manged_kdc_use_case():
 
   json_data['clusterHostInfo']['kdc_server_hosts'] = ['c6401.ambari.apache.org']
   json_data['configurations']['kerberos-env'] = {
-    'kdc_type': 'mit-kdc'
+    'kdc_type': 'mit-kdc',
+    'kdc_host': 'c6401.ambari.apache.org'
   }
   json_data['configurations']['krb5-conf'] = {
     'realm': 'MANAGED_REALM.COM',
-    'kdc_host': 'c6401.ambari.apache.org',
     'admin_principal': "admin/admin",
     'admin_password': "hadoop"
   }
@@ -94,6 +92,7 @@ def get_unmanged_kdc_use_case():
     json_data = json.load(f)
 
   json_data['configurations']['kerberos-env'] = {
+    'kdc_host': 'ad.oscorp_industries.com',
     'kdc_type': 'mit-kdc'
   }
   json_data['configurations']['krb5-conf'] = {
@@ -101,7 +100,6 @@ def get_unmanged_kdc_use_case():
     'conf_file': 'krb5_unmanaged.conf',
     'content': krb5_conf_template,
     'realm': 'OSCORPINDUSTRIES.COM',
-    'kdc_host': 'ad.oscorp_industries.com',
     'admin_principal': "admin/admin",
     'admin_password': "hadoop"
   }
@@ -125,12 +123,14 @@ def get_unmanged_krb5conf_use_case():
   json_data['configurations']['krb5-conf'] = {
     'realm': 'MANAGED_REALM.COM',
     'kdc_type': 'mit-kdc',
-    'kdc_host': 'c6401.ambari.apache.org',
     'admin_principal': "admin/admin",
     'admin_password': "hadoop",
     'manage_krb5_conf': "false"
   }
-  json_data['configurations']['kerberos-env'] = { 'encryption_types' : 'aes256-cts-hmac-sha1-96'}
+  json_data['configurations']['kerberos-env'] = {
+    'kdc_host': 'c6401.ambari.apache.org',
+    'encryption_types' : 'aes256-cts-hmac-sha1-96'
+  }
 
   return json_data
 
@@ -140,6 +140,7 @@ def get_unmanged_ad_use_case():
     json_data = json.load(f)
 
   json_data['configurations']['kerberos-env'] = {
+    'kdc_host': 'ad.oscorp_industries.com',
     'kdc_type': 'active-directory',
   }
   json_data['configurations']['krb5-conf'] = {
@@ -147,7 +148,6 @@ def get_unmanged_ad_use_case():
     'conf_file': 'krb5_ad.conf',
     'content': krb5_conf_template,
     'realm': 'OSCORPINDUSTRIES.COM',
-    'kdc_host': 'ad.oscorp_industries.com',
     'admin_principal': "admin/admin",
     'admin_password': "hadoop"
   }
@@ -173,12 +173,12 @@ def get_cross_realm_use_case():
 
   json_data['clusterHostInfo']['kdc_server_hosts'] = ['c6401.ambari.apache.org']
   json_data['configurations']['kerberos-env'] = {
+    'kdc_host': 'c6401.ambari.apache.org',
     'kdc_type': 'mit-kdc'
   }
   json_data['configurations']['krb5-conf'] = {
     'content': _krb5_conf_template,
     'realm': 'MANAGED_REALM.COM',
-    'kdc_host': 'c6401.ambari.apache.org',
     'admin_principal': "admin/admin",
     'admin_password': "hadoop"
   }

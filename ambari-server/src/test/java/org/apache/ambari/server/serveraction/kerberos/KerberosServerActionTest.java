@@ -105,7 +105,7 @@ public class KerberosServerActionTest {
           "principal|_HOST|_REALM" + i, "principal_type", "principalConfiguration" + i, "keytabFilePath" + i,
           "keytabFileOwnerName" + i, "keytabFileOwnerAccess" + i,
           "keytabFileGroupName" + i, "keytabFileGroupAccess" + i,
-          "keytabFileConfiguration" + i);
+          "keytabFileConfiguration" + i, "false");
     }
     builder.close();
 

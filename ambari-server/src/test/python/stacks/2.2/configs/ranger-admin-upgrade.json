@@ -153,23 +153,11 @@
             "mapreduce.admin.map.child.java.opts": "-server -XX:NewRatio=8 -Djava.net.preferIPv4Stack=true -Dhdp.version=${hdp.version}"
         }, 
         "krb5-conf": {
-            "kdc_host": "c6407.ambari.apache.org", 
-            "admin_server_host": "c6407.ambari.apache.org", 
-            "libdefaults_forwardable": "true", 
-            "conf_dir": "/etc", 
-            "libdefaults_dns_lookup_kdc": "false", 
-            "logging_admin_server": "FILE:/var/log/kadmind.log", 
-            "libdefaults_default_tgs_enctypes": "", 
-            "content": "\n[libdefaults]\n  renew_lifetime = {{libdefaults_renew_lifetime}}\n  forwardable = {{libdefaults_forwardable}}\n  default_realm = {{realm|upper()}}\n  ticket_lifetime = {{libdefaults_ticket_lifetime}}\n  dns_lookup_realm = {{libdefaults_dns_lookup_realm}}\n  dns_lookup_kdc = {{libdefaults_dns_lookup_kdc}}\n  {% if libdefaults_default_tgs_enctypes %}\n  default_tgs_enctypes = {{libdefaults_default_tgs_enctypes}}\n  {% endif %}\n  {% if libdefaults_default_tkt_enctypes %}\n  default_tkt_enctypes = {{libdefaults_default_tkt_enctypes}}\n  {% endif %}\n\n{% if domains %}\n[domain_realm]\n{% for domain in domains.split(',') %}\n  {{domain}} = {{realm|upper()}}\n{% endfor %}\n{% endif %}\n\n[logging]\n  default = {{logging_default}}\n{#\n# The following options are unused unless a managed KDC is installed\n  admin_server = {{logging_admin_server}}\n  kdc = {{logging_admin_kdc}}\n#}\n\n[realms]\n  {{realm}} = {\n    admin_server = {{admin_server_host|default(kdc_host, True)}}\n    kdc = {{kdc_host}}\n  }\n\n{# Append additional realm declarations below #}\n    ", 
-            "libdefaults_ticket_lifetime": "24h", 
-            "logging_kdc": "FILE:/var/log/krb5kdc.log", 
-            "domains": "", 
-            "manage_krb5_conf": "true", 
-            "logging_default": "FILE:/var/log/krb5libs.log", 
-            "libdefaults_dns_lookup_realm": "false", 
-            "libdefaults_renew_lifetime": "7d", 
-            "libdefaults_default_tkt_enctypes": ""
-        }, 
+            "conf_dir": "/etc",
+            "content": "\n[libdefaults]\n  renew_lifetime = 7d\n  forwardable = true\n  default_realm = {{realm|upper()}}\n  ticket_lifetime = 24h\n  dns_lookup_realm = false\n  dns_lookup_kdc = false\n  #default_tgs_enctypes = {{encryption_types}}\n  #default_tkt_enctypes = {{encryption_types}}\n\n{% if domains %}\n[domain_realm]\n{% for domain in domains.split(',') %}\n  {{domain}} = {{realm|upper()}}\n{% endfor %}\n{% endif %}\n\n[logging]\n  default = FILE:/var/log/krb5kdc.log\n  admin_server = FILE:/var/log/kadmind.log\n  kdc = FILE:/var/log/krb5kdc.log\n\n[realms]\n  {{realm}} = {\n    admin_server = {{admin_server_host|default(kdc_host, True)}}\n    kdc = {{kdc_host}}\n  }\n\n{# Append additional realm declarations below #}\n    ",
+            "domains": "",
+            "manage_krb5_conf": "true"
+        },
         "kafka-log4j": {
             "content": "\n#\n#\n# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#   http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing,\n# software distributed under the License is distributed on an\n# \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY\n# KIND, either express or implied.  See the License for the\n# specific language governing permissions and limitations\n# under the License.\n#\n#\n#\nkafka.logs.dir=logs\n\nlog4j.rootLogger=INFO, stdout\n\nlog4j.appender.stdout=org.apache.log4j.ConsoleAppender\nlog4j.appender.stdout.layout=org.apache.log4j.PatternLayout\nlog4j.appender.stdout.layout.ConversionPattern=[%d] %p %m (%c)%n\n\nlog4j.appender.kafkaAppender=org.apache.log4j.DailyRollingFileAppender\nlog4j.appender.kafkaAppender.DatePattern='.'yyyy-MM-dd-HH\nlog4j.appender.kafkaAppender.File=${kafka.logs.dir}/server.log\nlog4j.appender.kafkaAppender.layout=org.apache.log4j.PatternLayout\nlog4j.appender.kafkaAppender.layout.ConversionPattern=[%d] %p %m (%c)%n\n\nlog4j.appender.stateChangeAppender=org.apache.log4j.DailyRollingFileAppender\nlog4j.appender.stateChangeAppender.DatePattern='.'yyyy-MM-dd-HH\nlog4j.appender.stateChangeAppender.File=${kafka.logs.dir}/state-change.log\nlog4j.appender.stateChangeAppender.layout=org.apache.log4j.PatternLayout\nlog4j.appender.stateChangeAppender.layout.ConversionPattern=[%d] %p %m (%c)%n\n\nlog4j.appender.requestAppender=org.apache.log4j.DailyRollingFileAppender\nlog4j.appender.requestAppender.DatePattern='.'yyyy-MM-dd-HH\nlog4j.appender.requestAppender.File=${kafka.logs.dir}/kafka-request.log\nlog4j.appender.requestAppender.layout=org.apache.log4j.PatternLayout\nlog4j.appender.requestAppender.layout.ConversionPattern=[%d] %p %m (%c)%n\n\nlog4j.appender.cleanerAppender=org.apache.log4j.DailyRollingFileAppender\nlog4j.appender.cleanerAppender.DatePattern='.'yyyy-MM-dd-HH\nlog4j.appender.cleanerAppender.File=${kafka.logs.dir}/log-cleaner.log\nlog4j.appender.cleanerAppender.layout=org.apache.log4j.PatternLayout\nlog4j.appender.cleanerAppender.layout.ConversionPattern=[%d] %p %m (%c)%n\n\nlog4j.appender.controllerAppender=org.apache.log4j.DailyRollingFileAppender\nlog4j.appender.controllerAppender.DatePattern='.'yyyy-MM-dd-HH\nlog4j.appender.controllerAppender.File=${kafka.logs.dir}/controller.log\nlog4j.appender.controllerAppender.layout=org.apache.log4j.PatternLayout\nlog4j.appender.controllerAppender.layout.ConversionPattern=[%d] %p %m (%c)%n\n\n# Turn on all our debugging info\n#log4j.logger.kafka.producer.async.DefaultEventHandler=DEBUG, kafkaAppender\n#log4j.logger.kafka.client.ClientUtils=DEBUG, kafkaAppender\n#log4j.logger.kafka.perf=DEBUG, kafkaAppender\n#log4j.logger.kafka.perf.ProducerPerformance$ProducerThread=DEBUG, kafkaAppender\n#log4j.logger.org.I0Itec.zkclient.ZkClient=DEBUG\nlog4j.logger.kafka=INFO, kafkaAppender\nlog4j.logger.kafka.network.RequestChannel$=WARN, requestAppender\nlog4j.additivity.kafka.network.RequestChannel$=false\n\n#log4j.logger.kafka.network.Processor=TRACE, requestAppender\n#log4j.logger.kafka.server.KafkaApis=TRACE, requestAppender\n#log4j.additivity.kafka.server.KafkaApis=false\nlog4j.logger.kafka.request.logger=WARN, requestAppender\nlog4j.additivity.kafka.request.logger=false\n\nlog4j.logger.kafka.controller=TRACE, controllerAppender\nlog4j.additivity.kafka.controller=false\n\nlog4j.logger.kafka.log.LogCleaner=INFO, cleanerAppender\nlog4j.additivity.kafka.log.LogCleaner=false\n\nlog4j.logger.state.change.logger=TRACE, stateChangeAppender\nlog4j.additivity.state.change.logger=false"
         }, 
@@ -204,7 +192,9 @@
             "realm": "EXAMPLE.COM", 
             "container_dn": "", 
             "ldap_url": "", 
-            "encryption_types": "aes des3-cbc-sha1 rc4 des-cbc-md5", 
+            "encryption_types": "aes des3-cbc-sha1 rc4 des-cbc-md5",
+            "kdc_host": "c6407.ambari.apache.org",
+            "admin_server_host": "c6407.ambari.apache.org",
             "kdc_type": "mit-kdc"
         }, 
         "ams-hbase-security-site": {

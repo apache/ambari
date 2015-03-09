@@ -322,6 +322,8 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
       ("/var/run/ambari-server/stack-recommendations/", "755", "{0}", False),
       ("/var/lib/ambari-server/data/tmp/", "644", "{0}", True),
       ("/var/lib/ambari-server/data/tmp/", "755", "{0}", False),
+      ("/var/lib/ambari-server/data/cache/", "600", "{0}", True),
+      ("/var/lib/ambari-server/data/cache/", "700", "{0}", False),
       # Also, /etc/ambari-server/conf/password.dat
       # is generated later at store_password_file
     ]

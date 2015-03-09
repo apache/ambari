@@ -143,8 +143,10 @@
             "container_dn": "", 
             "ldap_url": "", 
             "encryption_types": "aes des3-cbc-sha1 rc4 des-cbc-md5", 
-            "kdc_type": "mit-kdc"
-        }, 
+            "kdc_type": "mit-kdc",
+            "kdc_host": "c6401.ambari.apache.org",
+            "admin_server_host": "c6401.ambari.apache.org"
+        },
         "tez-site": {
             "tez.task.get-task.sleep.interval-ms.max": "200", 
             "tez.task.max-events-per-heartbeat": "500", 
@@ -280,23 +282,11 @@
             "mapred_log_dir_prefix": "/var/log/hadoop-mapreduce"
         }, 
         "krb5-conf": {
-            "kdc_host": "c6401.ambari.apache.org", 
-            "admin_server_host": "c6401.ambari.apache.org", 
-            "libdefaults_forwardable": "true", 
-            "conf_dir": "/etc", 
-            "libdefaults_dns_lookup_kdc": "false", 
-            "logging_admin_server": "FILE:/var/log/kadmind.log", 
-            "libdefaults_default_tgs_enctypes": "", 
-            "content": "\n[libdefaults]\n  renew_lifetime = {{libdefaults_renew_lifetime}}\n  forwardable = {{libdefaults_forwardable}}\n  default_realm = {{realm|upper()}}\n  ticket_lifetime = {{libdefaults_ticket_lifetime}}\n  dns_lookup_realm = {{libdefaults_dns_lookup_realm}}\n  dns_lookup_kdc = {{libdefaults_dns_lookup_kdc}}\n  {% if libdefaults_default_tgs_enctypes %}\n  default_tgs_enctypes = {{libdefaults_default_tgs_enctypes}}\n  {% endif %}\n  {% if libdefaults_default_tkt_enctypes %}\n  default_tkt_enctypes = {{libdefaults_default_tkt_enctypes}}\n  {% endif %}\n\n{% if domains %}\n[domain_realm]\n{% for domain in domains.split(',') %}\n  {{domain}} = {{realm|upper()}}\n{% endfor %}\n{% endif %}\n\n[logging]\n  default = {{logging_default}}\n{#\n# The following options are unused unless a managed KDC is installed\n  admin_server = {{logging_admin_server}}\n  kdc = {{logging_admin_kdc}}\n#}\n\n[realms]\n  {{realm}} = {\n    admin_server = {{admin_server_host|default(kdc_host, True)}}\n    kdc = {{kdc_host}}\n  }\n\n{# Append additional realm declarations below #}\n    ", 
-            "libdefaults_ticket_lifetime": "24h", 
-            "logging_kdc": "FILE:/var/log/krb5kdc.log", 
-            "domains": "", 
-            "manage_krb5_conf": "true", 
-            "logging_default": "FILE:/var/log/krb5libs.log", 
-            "libdefaults_dns_lookup_realm": "false", 
-            "libdefaults_renew_lifetime": "7d", 
-            "libdefaults_default_tkt_enctypes": ""
-        }, 
+            "conf_dir": "/etc",
+            "content": "\n[libdefaults]\n  renew_lifetime = 7d\n  forwardable = true\n  default_realm = {{realm|upper()}}\n  ticket_lifetime = 24h\n  dns_lookup_realm = false\n  dns_lookup_kdc = false\n  #default_tgs_enctypes = {{encryption_types}}\n  #default_tkt_enctypes = {{encryption_types}}\n\n{% if domains %}\n[domain_realm]\n{% for domain in domains.split(',') %}\n  {{domain}} = {{realm|upper()}}\n{% endfor %}\n{% endif %}\n\n[logging]\n  default = FILE:/var/log/krb5kdc.log\n  admin_server = FILE:/var/log/kadmind.log\n  kdc = FILE:/var/log/krb5kdc.log\n\n[realms]\n  {{realm}} = {\n    admin_server = {{admin_server_host|default(kdc_host, True)}}\n    kdc = {{kdc_host}}\n  }\n\n{# Append additional realm declarations below #}\n    ",
+            "domains": "",
+            "manage_krb5_conf": "true"
+        },
         "pig-properties": {
             "content": "\n# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#   http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing,\n# software distributed under the License is distributed on an\n# \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY\n# KIND, either express or implied.  See the License for the\n# specific language governing permissions and limitations\n# under the License.\n\n# Pig default configuration file. All values can be overwritten by pig.properties and command line arguments.\n# see bin/pig -help\n\n# brief logging (no timestamps)\nbrief=false\n\n# debug level, INFO is default\ndebug=INFO\n\n# verbose print all log messages to screen (default to print only INFO and above to screen)\nverbose=false\n\n# exectype local|mapreduce, mapreduce is default\nexectype=mapreduce\n\n# Enable insertion of information about script into hadoop job conf \npig.script.info.enabled=true\n\n# Do not spill temp files smaller than this size (bytes)\npig.spill.size.threshold=5000000\n\n# EXPERIMENT: Activate garbage collection when spilling a file bigger than this size (bytes)\n# This should help reduce the number of files being spilled.\npig.spill.gc.activation.size=40000000\n\n# the following two parameters are to help estimate the reducer number\npig.exec.reducers.bytes.per.reducer=1000000000\npig.exec.reducers.max=999\n\n# Temporary location to store the intermediate data.\npig.temp.dir=/tmp/\n\n# Threshold for merging FRJoin fragment files\npig.files.concatenation.threshold=100\npig.optimistic.files.concatenation=false;\n\npig.disable.counter=false\n\n# Avoid pig failures when multiple jobs write to the same location\npig.location.check.strict=false\n\nhcat.bin=/usr/bin/hcat"
         }, 
