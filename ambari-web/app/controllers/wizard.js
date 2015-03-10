@@ -1132,5 +1132,21 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
     if (hosts) {
       this.set('content.hosts', hosts);
     }
+  },
+
+  /**
+   * Determine if <code>Assign Slaves and Clients</code> step should be skipped
+   * @method setSkipSlavesStep
+   * @param services
+   * @param step
+   */
+  setSkipSlavesStep: function (services, step) {
+    var hasServicesWithSlave = services.someProperty('hasSlave');
+    var hasServicesWithClient = services.someProperty('hasClient');
+    var hasServicesWithCustomAssignedNonMasters = services.someProperty('hasNonMastersWithCustomAssignment');
+    this.set('content.skipSlavesStep', !hasServicesWithSlave && !hasServicesWithClient || !hasServicesWithCustomAssignedNonMasters);
+    if (this.get('content.skipSlavesStep')) {
+      this.get('isStepDisabled').findProperty('step', step).set('value', this.get('content.skipSlavesStep'));
+    }
   }
 });

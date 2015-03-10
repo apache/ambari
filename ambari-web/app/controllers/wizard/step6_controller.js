@@ -136,14 +136,14 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
    * true if validation has any error message (general or host specific)
    */
   anyErrors: function() {
-    return this.get('anyGeneralErrors') || this.get('hosts').some(function(h) { return h.get('errorMessages').length > 0; });
+    return this.get('anyGeneralErrors') || this.get('hosts').some(function(h) { return h.get('errorMessages.length') > 0; });
   }.property('anyGeneralErrors', 'hosts.@each.errorMessages'),
 
   /**
    * true if validation has any warning message (general or host specific)
    */
   anyWarnings: function() {
-    return this.get('anyGeneralWarnings') || this.get('hosts').some(function(h) { return h.get('warnMessages').length > 0; });
+    return this.get('anyGeneralWarnings') || this.get('hosts').some(function(h) { return h.get('warnMessages.length') > 0; });
   }.property('anyGeneralWarnings', 'hosts.@each.warnMessages'),
 
   openSlavesAndClientsIssues: function () {

@@ -219,13 +219,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
         item.set('isSelected', isSelected || (this.get("currentStep") == "1" ? isInstalled : isSelected));
         item.set('isInstalled', isInstalled);
       }, this);
-      var isServiceWithSlave = App.StackService.find().filterProperty('isSelected').filterProperty('hasSlave').filterProperty('isInstalled', false).length;
-      var isServiceWithClient = App.StackService.find().filterProperty('isSelected').filterProperty('hasClient').filterProperty('isInstalled', false).length;
-      var isServiceWithCustomAssignedNonMasters = App.StackService.find().filterProperty('isSelected').filterProperty('hasNonMastersWithCustomAssignment').filterProperty('isInstalled', false).length;
-      this.set('content.skipSlavesStep', !isServiceWithSlave && !isServiceWithClient || !isServiceWithCustomAssignedNonMasters);
-      if (this.get('content.skipSlavesStep')) {
-        this.get('isStepDisabled').findProperty('step', 3).set('value', this.get('content.skipSlavesStep'));
-      }
+      this.setSkipSlavesStep(App.StackService.find().filterProperty('isSelected').filterProperty('isInstalled', false), 3);
     }
     this.set('serviceToInstall', null);
     this.set('content.services', App.StackService.find());
@@ -240,8 +234,9 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
       selectedServices: [],
       installedServices: []
     };
-    var selectedServices = stepController.get('content').filterProperty('isSelected', true).filterProperty('isInstalled', false).mapProperty('serviceName');
-    services.selectedServices.pushObjects(selectedServices);
+    var selectedServices = stepController.get('content').filterProperty('isSelected', true).filterProperty('isInstalled', false);
+    var selectedServiceNames = selectedServices.mapProperty('serviceName');
+    services.selectedServices.pushObjects(selectedServiceNames);
     services.installedServices.pushObjects(stepController.get('content').filterProperty('isInstalled', true).mapProperty('serviceName'));
     // save services that already installed but ignored on choose services page
     // these services marked by `isInstallable` flag with value `false`, for example `Kerberos` service
@@ -251,14 +246,9 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
     this.setDBProperty('services', services);
     console.log('AddServiceController.saveServices: saved data', stepController.get('content'));
 
-    this.set('content.selectedServiceNames', selectedServices);
-    this.setDBProperty('selectedServiceNames', selectedServices);
-    var isServiceWithSlave = stepController.get('content').filterProperty('isSelected').filterProperty('hasSlave').filterProperty('isInstalled', false).mapProperty('serviceName').length;
-    var isServiceWithClient = App.StackService.find().filterProperty('isSelected').filterProperty('hasClient').filterProperty('isInstalled', false).mapProperty('serviceName').length;
-    this.set('content.skipSlavesStep', !isServiceWithSlave && !isServiceWithClient);
-    if (this.get('content.skipSlavesStep')) {
-      this.get('isStepDisabled').findProperty('step', 3).set('value', this.get('content.skipSlavesStep'));
-    }
+    this.set('content.selectedServiceNames', selectedServiceNames);
+    this.setDBProperty('selectedServiceNames', selectedServiceNames);
+    this.setSkipSlavesStep(selectedServices, 3);
   },
 
   /**

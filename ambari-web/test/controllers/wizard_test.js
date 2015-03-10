@@ -238,4 +238,74 @@ describe('App.WizardController', function () {
     });
 
   });
+
+  describe('#setSkipSlavesStep', function () {
+
+    var step = 6,
+      cases = [
+        {
+          services: [
+            {
+              hasSlave: true,
+              hasNonMastersWithCustomAssignment: true
+            }
+          ],
+          skipSlavesStep: false,
+          title: 'service with customizable slave selected'
+        },
+        {
+          services: [
+            {
+              hasClient: true,
+              hasNonMastersWithCustomAssignment: true
+            }
+          ],
+          skipSlavesStep: false,
+          title: 'service with customizable client selected'
+        },
+        {
+          services: [
+            {
+              hasSlave: true,
+              hasNonMastersWithCustomAssignment: false
+            },
+            {
+              hasClient: true,
+              hasNonMastersWithCustomAssignment: false
+            }
+          ],
+          skipSlavesStep: true,
+          title: 'no service with customizable slaves or clients selected'
+        },
+        {
+          services: [
+            {
+              hasSlave: false,
+              hasClient: false
+            }
+          ],
+          skipSlavesStep: true,
+          title: 'no service with slaves or clients selected'
+        }
+      ];
+
+    beforeEach(function () {
+      c.reopen({
+        isStepDisabled: [
+          Em.Object.create({
+            step: 6
+          })
+        ],
+        content: {}
+      });
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        c.setSkipSlavesStep(item.services, step);
+        expect(Boolean(c.get('isStepDisabled').findProperty('step', step).get('value'))).to.equal(item.skipSlavesStep);
+      });
+    });
+
+  });
 });

@@ -637,6 +637,7 @@ App.InstallerController = App.WizardController.extend({
       {
         type: 'sync',
         callback: function () {
+          this.setSkipSlavesStep(App.StackService.find().filterProperty('isSelected'), 6);
           this.loadMasterComponentHosts();
           this.loadConfirmedHosts();
           this.loadRecommendations();
