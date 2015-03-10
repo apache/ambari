@@ -318,7 +318,7 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
       ("/etc/ambari-server/conf/password.dat", "640", "{0}", False),
       ("/var/lib/ambari-server/keys/pass.txt", "600", "{0}", False),
       ("/etc/ambari-server/conf/ldap-password.dat", "640", "{0}", False),
-      ("/var/run/ambari-server/stack-recommendations/", "644", "{0}", True),
+      ("/var/run/ambari-server/stack-recommendations/", "744", "{0}", True),
       ("/var/run/ambari-server/stack-recommendations/", "755", "{0}", False),
       ("/var/lib/ambari-server/data/tmp/", "644", "{0}", True),
       ("/var/lib/ambari-server/data/tmp/", "755", "{0}", False),
