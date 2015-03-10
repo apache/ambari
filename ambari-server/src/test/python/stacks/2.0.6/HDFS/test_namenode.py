@@ -18,6 +18,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 from ambari_commons import OSCheck
 '''
+import os
+import tempfile
 from stacks.utils.RMFTestCase import *
 from mock.mock import MagicMock, patch
 import resource_management
@@ -776,6 +778,31 @@ class TestNamenode(RMFTestCase):
           on_new_line = FunctionMock('handle_new_line'),
       )
       self.assertNoMoreResources()
+
+  @patch("resource_management.libraries.script.Script.put_structured_out")
+  @patch("os.system")
+  def test_rebalance_secured_hdfs(self, pso, system_mock):
+
+    system_mock.return_value = -1
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
+                       classname = "NameNode",
+                       command = "rebalancehdfs",
+                       config_file = "rebalancehdfs_secured.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+    tempdir = tempfile.gettempdir()
+    ccache_path =  os.path.join(tempfile.gettempdir(), "hdfs_rebalance_cc_7add60ca651f1bd1ed909a6668937ba9")
+    kinit_cmd = "/usr/bin/kinit -c {0} -kt /etc/security/keytabs/hdfs.headless.keytab hdfs@EXAMPLE.COM".format(ccache_path)
+    rebalance_cmd = "ambari-sudo.sh su hdfs -l -s /bin/bash -c 'export  PATH=/bin:/usr/bin KRB5CCNAME={0} ; hdfs --config /etc/hadoop/conf balancer -threshold -1'".format(ccache_path)
+    self.assertResourceCalled('Execute', kinit_cmd,
+                              user = 'hdfs',
+                              )
+    self.assertResourceCalled('Execute', rebalance_cmd,
+                              logoutput = False,
+                              on_new_line = FunctionMock('handle_new_line'),
+                              )
+    self.assertNoMoreResources()
 
   @patch("os.path.isfile")
   def test_ranger_installed_missing_file(self, isfile_mock):
