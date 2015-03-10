@@ -50,7 +50,7 @@ class TestStormSupervisor(TestStormBase):
     self.assertResourceCalled('Execute', 'supervisorctl start storm-supervisor',
       wait_for_finish = False,
     )
-    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$PATH:$JAVA_HOME/bin ; storm logviewer > /var/log/storm/logviewer.out 2>&1',
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm logviewer > /var/log/storm/logviewer.out 2>&1',
         wait_for_finish = False,
         path = ['/usr/bin'],
         user = 'storm',
@@ -113,7 +113,7 @@ class TestStormSupervisor(TestStormBase):
     self.assertResourceCalled('Execute', 'supervisorctl start storm-supervisor',
                         wait_for_finish = False,
     )
-    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$PATH:$JAVA_HOME/bin ; storm logviewer > /var/log/storm/logviewer.out 2>&1',
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm logviewer > /var/log/storm/logviewer.out 2>&1',
         wait_for_finish = False,
         path = ['/usr/bin'],
         user = 'storm',

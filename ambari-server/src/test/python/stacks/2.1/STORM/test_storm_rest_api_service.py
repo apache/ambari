@@ -48,7 +48,7 @@ class TestStormRestApi(TestStormBase):
     self.assert_configure_default()
 
 
-    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$PATH:$JAVA_HOME/bin ; java -jar /usr/lib/storm/contrib/storm-rest/`ls /usr/lib/storm/contrib/storm-rest | grep -wE storm-rest-[0-9.-]+\\.jar` server /etc/storm/conf/config.yaml > /var/log/storm/restapi.log 2>&1',
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; java -jar /usr/lib/storm/contrib/storm-rest/`ls /usr/lib/storm/contrib/storm-rest | grep -wE storm-rest-[0-9.-]+\\.jar` server /etc/storm/conf/config.yaml > /var/log/storm/restapi.log 2>&1',
         wait_for_finish = False,
         path = ['/usr/bin'],
         user = 'storm',
@@ -105,7 +105,7 @@ class TestStormRestApi(TestStormBase):
 
     self.assert_configure_secured()
 
-    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$PATH:$JAVA_HOME/bin ; java -jar /usr/lib/storm/contrib/storm-rest/`ls /usr/lib/storm/contrib/storm-rest | grep -wE storm-rest-[0-9.-]+\\.jar` server /etc/storm/conf/config.yaml > /var/log/storm/restapi.log 2>&1',
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; java -jar /usr/lib/storm/contrib/storm-rest/`ls /usr/lib/storm/contrib/storm-rest | grep -wE storm-rest-[0-9.-]+\\.jar` server /etc/storm/conf/config.yaml > /var/log/storm/restapi.log 2>&1',
         wait_for_finish = False,
         path = ['/usr/bin'],
         user = 'storm',

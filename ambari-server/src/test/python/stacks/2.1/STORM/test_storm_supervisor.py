@@ -47,7 +47,7 @@ class TestStormSupervisor(TestStormBase):
 
     self.assert_configure_default()
 
-    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$PATH:$JAVA_HOME/bin ; storm supervisor > /var/log/storm/supervisor.out 2>&1',
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm supervisor > /var/log/storm/supervisor.out 2>&1',
         wait_for_finish = False,
         path = ['/usr/bin'],
         user = 'storm',
@@ -60,7 +60,7 @@ class TestStormSupervisor(TestStormBase):
         user = 'storm',
         try_sleep = 10,
     )
-    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$PATH:$JAVA_HOME/bin ; storm logviewer > /var/log/storm/logviewer.out 2>&1',
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm logviewer > /var/log/storm/logviewer.out 2>&1',
         wait_for_finish = False,
         path = ['/usr/bin'],
         user = 'storm',
@@ -127,7 +127,7 @@ class TestStormSupervisor(TestStormBase):
 
     self.assert_configure_secured()
 
-    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$PATH:$JAVA_HOME/bin ; storm supervisor > /var/log/storm/supervisor.out 2>&1',
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm supervisor > /var/log/storm/supervisor.out 2>&1',
         wait_for_finish = False,
         path = ['/usr/bin'],
         user = 'storm',
@@ -140,7 +140,7 @@ class TestStormSupervisor(TestStormBase):
         user = 'storm',
         try_sleep = 10,
     )
-    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$PATH:$JAVA_HOME/bin ; storm logviewer > /var/log/storm/logviewer.out 2>&1',
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm logviewer > /var/log/storm/logviewer.out 2>&1',
         wait_for_finish = False,
         path = ['/usr/bin'],
         user = 'storm',
