@@ -145,18 +145,11 @@ def setup_hadoop_env():
     Directory(params.hadoop_dir,
               mode=0755
     )
-    if stackversion.find('Gluster') >= 0:
-        Directory(params.hadoop_conf_empty_dir,
+    Directory(params.hadoop_conf_empty_dir,
               recursive=True,
               owner="root",
               group=params.user_group
-        )
-    else:
-        Directory(params.hadoop_conf_empty_dir,
-              recursive=True,
-              owner=tc_owner,
-              group=params.user_group
-        )
+    )
     Link(params.hadoop_conf_dir,
          to=params.hadoop_conf_empty_dir,
          not_if=format("ls {hadoop_conf_dir}")
