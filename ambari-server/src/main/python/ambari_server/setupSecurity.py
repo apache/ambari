@@ -45,7 +45,7 @@ from ambari_server.serverConfiguration import configDefaults, \
   SECURITY_PROVIDER_KEY_CMD, SECURITY_MASTER_KEY_FILENAME, SSL_TRUSTSTORE_PASSWORD_ALIAS, \
   SSL_TRUSTSTORE_PASSWORD_PROPERTY, SSL_TRUSTSTORE_PATH_PROPERTY, SSL_TRUSTSTORE_TYPE_PROPERTY, \
   SSL_API, SSL_API_PORT, DEFAULT_SSL_API_PORT, CLIENT_API_PORT
-from ambari_server.serverUtils import is_server_runing
+from ambari_server.serverUtils import is_server_runing, get_ambari_server_api_base
 from ambari_server.setupActions import SETUP_ACTION, LDAP_SETUP_ACTION
 from ambari_server.userInput import get_validated_string_input, get_prompt_default, read_password, get_YN_input
 
@@ -59,11 +59,7 @@ REGEX_ANYTHING = ".*"
 
 CLIENT_SECURITY_KEY = "client.security"
 
-# Ambari server API properties
-SERVER_API_HOST = '127.0.0.1'
-SERVER_API_PROTOCOL = 'http'
-SERVER_API_SSL_PROTOCOL = 'https'
-SERVER_API_LDAP_URL = '/api/v1/ldap_sync_events'
+SERVER_API_LDAP_URL = 'ldap_sync_events'
 
 
 def read_master_key(isReset=False):
@@ -225,7 +221,11 @@ def sync_ldap(options):
     err = 'Ambari Server is not running.'
     raise FatalException(1, err)
 
-  ldap_configured = get_ambari_properties().get_property(IS_LDAP_CONFIGURED)
+  properties = get_ambari_properties()
+  if properties == -1:
+    raise FatalException(1, "Failed to read properties file.")
+
+  ldap_configured = properties.get_property(IS_LDAP_CONFIGURED)
   if ldap_configured != 'true':
     err = "LDAP is not configured. Run 'ambari-server setup-ldap' first."
     raise FatalException(1, err)
@@ -244,26 +244,7 @@ def sync_ldap(options):
                                               pattern=None, description=None,
                                               is_pass=True, allowEmpty=False)
 
-  properties = get_ambari_properties()
-  if properties == -1:
-    raise FatalException(1, "Failed to read properties file.")
-
-  api_protocol = SERVER_API_PROTOCOL
-  api_port = CLIENT_API_PORT
-
-  api_ssl = False
-  api_ssl_prop = properties.get_property(SSL_API)
-  if api_ssl_prop is not None:
-    api_ssl = api_ssl_prop.lower() == "true"
-
-  if api_ssl:
-    api_protocol = SERVER_API_SSL_PROTOCOL
-    api_port = DEFAULT_SSL_API_PORT
-    api_port_prop = properties.get_property(SSL_API_PORT)
-    if api_port_prop is not None:
-      api_port = api_port_prop
-
-  url = '{0}://{1}:{2!s}{3}'.format(api_protocol, SERVER_API_HOST, api_port, SERVER_API_LDAP_URL)
+  url = get_ambari_server_api_base(properties) + SERVER_API_LDAP_URL
   admin_auth = base64.encodestring('%s:%s' % (admin_login, admin_password)).replace('\n', '')
   request = urllib2.Request(url)
   request.add_header('Authorization', 'Basic %s' % admin_auth)

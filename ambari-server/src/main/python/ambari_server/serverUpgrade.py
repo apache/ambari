@@ -20,10 +20,13 @@ limitations under the License.
 
 import json
 import os
+import sys
 import shutil
+import base64
+import urllib2
 
 from ambari_commons.exceptions import FatalException
-from ambari_commons.logging_utils import print_info_msg, print_warning_msg, print_error_msg
+from ambari_commons.logging_utils import print_info_msg, print_warning_msg, print_error_msg, get_verbose
 from ambari_commons.os_utils import is_root, run_os_command
 from ambari_server.dbConfiguration import DBMSConfigFactory, check_jdbc_drivers
 from ambari_server.properties import Properties
@@ -35,6 +38,8 @@ from ambari_server.serverConfiguration import configDefaults, \
   SETUP_OR_UPGRADE_MSG
 from ambari_server.setupSecurity import adjust_directory_permissions
 from ambari_server.utils import compare_versions
+from ambari_server.serverUtils import is_server_runing, get_ambari_server_api_base
+from ambari_server.userInput import get_validated_string_input, get_prompt_default, read_password, get_YN_input
 
 # constants
 STACK_NAME_VER_SEP = "-"
@@ -323,3 +328,83 @@ def upgrade(args):
   # check if ambari has obsolete LDAP configuration
   if properties.get_property(LDAP_PRIMARY_URL_PROPERTY) and not properties.get_property(IS_LDAP_CONFIGURED):
     args.warnings.append("Existing LDAP configuration is detected. You must run the \"ambari-server setup-ldap\" command to adjust existing LDAP configuration.")
+
+
+#
+# Set current cluster version (run Finalize during manual RU)
+#
+def set_current(options):
+  server_status, pid = is_server_runing()
+  if not server_status:
+    err = 'Ambari Server is not running.'
+    raise FatalException(1, err)
+
+  finalize_options = SetCurrentVersionOptions(options)
+
+  if finalize_options.no_finalize_options_set():
+    err = 'Must specify --cluster-name and --version-display-name. Please invoke ambari-server.py --help to print the options.'
+    raise FatalException(1, err)
+
+  admin_login = get_validated_string_input(prompt="Enter Ambari Admin login: ", default=None,
+                                           pattern=None, description=None,
+                                           is_pass=False, allowEmpty=False)
+  admin_password = get_validated_string_input(prompt="Enter Ambari Admin password: ", default=None,
+                                              pattern=None, description=None,
+                                              is_pass=True, allowEmpty=False)
+
+  properties = get_ambari_properties()
+  if properties == -1:
+    raise FatalException(1, "Failed to read properties file.")
+
+  base_url = get_ambari_server_api_base(properties)
+  url = base_url + "clusters/{0}/stack_versions".format(finalize_options.cluster_name)
+  admin_auth = base64.encodestring('%s:%s' % (admin_login, admin_password)).replace('\n', '')
+  request = urllib2.Request(url)
+  request.add_header('Authorization', 'Basic %s' % admin_auth)
+  request.add_header('X-Requested-By', 'ambari')
+
+  data = {
+    "ClusterStackVersions": {
+      "repository_version": finalize_options.desired_repo_version,
+      "state": "CURRENT"
+    }
+  }
+
+  if get_verbose():
+    sys.stdout.write('\nCalling API ' + url + ' : ' + str(data) + '\n')
+
+  request.add_data(json.dumps(data))
+  request.get_method = lambda: 'PUT'
+
+  try:
+    response = urllib2.urlopen(request)
+  except urllib2.HTTPError, e:
+    code = e.getcode()
+    content = e.read()
+    err = 'Error during setting current version. Http status code - {0}. \n {1}'.format(
+      code, content)
+    raise FatalException(1, err)
+  except Exception as e:
+    err = 'Setting current version failed. Error details: %s' % e
+    raise FatalException(1, err)
+
+  sys.stdout.write('\nCurrent version successfully updated to ' + finalize_options.desired_repo_version)
+
+  sys.stdout.write('\n')
+  sys.stdout.flush()
+
+
+class SetCurrentVersionOptions:
+  def __init__(self, options):
+    try:
+      self.cluster_name = options.cluster_name
+    except AttributeError:
+      self.cluster_name = None
+
+    try:
+      self.desired_repo_version = options.desired_repo_version
+    except AttributeError:
+      self.desired_repo_version = None
+
+  def no_finalize_options_set(self):
+    return self.cluster_name is None or self.desired_repo_version is None

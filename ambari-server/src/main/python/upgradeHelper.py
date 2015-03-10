@@ -165,7 +165,6 @@ class Options(Const):
   MODIFY_CONFIG_ACTION = "update-configs"
   BACKUP_CONFIG_ACTION = "backup-configs"
   INSTALL_YARN_MR2_ACTION = "install-yarn-mr2"
-  FINALIZE_RU_ACTION = "finalize-ru"
 
   MR_MAPPING_FILE = "mr_mapping"
   CAPACITY_SCHEDULER_TAG = "capacity-scheduler"
@@ -196,9 +195,6 @@ class Options(Const):
 
   # for verify action
   REPORT_FILE = None
-
-  # for finalize action
-  REPO_VERSION = None
 
   API_TOKENS = {
     "user": None,
@@ -901,9 +897,7 @@ def install_services():
                          "the status of the install requests."
 
 
-def validate_response(response, expect_body, http_code):
-  if http_code is not None and http_code < 200 or http_code >= 300:
-    return 1, "HTTP code {0}\n".format(http_code) + response
+def validate_response(response, expect_body):
   if expect_body:
     if "\"href\" : \"" not in response:
       return 1, response
@@ -916,13 +910,16 @@ def validate_response(response, expect_body, http_code):
 
 
 def curl(url, tokens=None, headers=None, request_type="GET", data=None, parse=False,
-         simulate=None, validate=False, validate_expect_body=False, request_http_code=False):
+         simulate=None, validate=False, validate_expect_body=False):
 
   simulate_only = Options.CURL_PRINT_ONLY is not None or (simulate is not None and simulate is True)
   print_url = Options.CURL_PRINT_ONLY is not None and simulate is not None
 
   curl_path = '/usr/bin/curl'
-  curl_list = [curl_path, '-X', request_type]
+  curl_list = [curl_path]
+
+  curl_list.append('-X')
+  curl_list.append(request_type)
 
   if tokens is not None:
     curl_list.append('-u')
@@ -930,9 +927,6 @@ def curl(url, tokens=None, headers=None, request_type="GET", data=None, parse=Fa
   elif Options.API_TOKENS is not None:
     curl_list.append('-u')
     curl_list.append("%s:%s" % (Options.API_TOKENS["user"], Options.API_TOKENS["pass"]))
-
-  if request_http_code:
-    curl_list += ['-w', '\n%{http_code}']
 
   if request_type in Options.POST_REQUESTS:
     curl_list.append(url)
@@ -955,17 +949,12 @@ def curl(url, tokens=None, headers=None, request_type="GET", data=None, parse=Fa
   if print_url:
     Options.logger.info(" ".join(curl_list))
 
-  http_code = None
   if not simulate_only:
     osStat = subprocess.Popen(
       curl_list,
       stderr=subprocess.PIPE,
       stdout=subprocess.PIPE)
     out, err = osStat.communicate()
-    if request_http_code:
-      out_lines = out.splitlines()
-      http_code = int(out_lines[-1])
-      out = '\n'.join(out_lines[0:-1])
     if 0 != osStat.returncode:
       error = "curl call failed. out: " + out + " err: " + err
       Options.logger.error(error)
@@ -976,7 +965,7 @@ def curl(url, tokens=None, headers=None, request_type="GET", data=None, parse=Fa
     out = "{}"
 
   if validate and not simulate_only:
-    retcode, errdata = validate_response(out, validate_expect_body, http_code)
+    retcode, errdata = validate_response(out, validate_expect_body)
     if not retcode == 0:
       raise FatalException(retcode, errdata)
 
@@ -1145,18 +1134,6 @@ def verify_configuration():
       Options.logger.error("Report file close error: %s" % e.message)
 
 
-def finalize_ru():
-  TARGET_URL = Options.CLUSTER_URL + '/stack_versions'
-  request = {
-    "ClusterStackVersions": {
-       "repository_version": Options.REPO_VERSION,
-       "state": "CURRENT"
-    }
-  }
-  curl(TARGET_URL, request_type="PUT", data=request,
-       validate=True, validate_expect_body=False, request_http_code=True)
-
-
 def report_formatter(report_file, config_item, analyzed_list_item):
   prefix = "Configuration item %s" % config_item
   if analyzed_list_item["fail"]["count"] > 0:
@@ -1178,8 +1155,7 @@ def main():
                    Options.MODIFY_CONFIG_ACTION: modify_configs,
                    Options.INSTALL_YARN_MR2_ACTION: install_services,
                    Options.BACKUP_CONFIG_ACTION: backup_configs,
-                   Options.VERIFY_ACTION: verify_configuration,
-                   Options.FINALIZE_RU_ACTION: finalize_ru
+                   Options.VERIFY_ACTION: verify_configuration
   }
 
   parser = optparse.OptionParser(usage="usage: %prog [options] action\n  Valid actions: "
@@ -1202,8 +1178,6 @@ def main():
   parser.add_option('--user', default=None, help="Ambari admin user", dest="user")
   parser.add_option('--password', default=None, help="Ambari admin password", dest="password")
   parser.add_option('--clustername', default=None, help="Cluster name", dest="clustername")
-
-  parser.add_option('--repository-version', default=None, help="Repository version", dest="repo_version")
 
   (options, args) = parser.parse_args()
   Options.initialize_logger(options.logfile)
@@ -1237,10 +1211,6 @@ def main():
     if options.report is None:
       options.warnings.append("Should be provided report option")
 
-  if action == Options.FINALIZE_RU_ACTION:
-    if options.repo_version is None:
-      options.warnings.append("Should be provided repository-version option")
-
   if len(options.warnings) != 0:
     print parser.print_help()
     for warning in options.warnings:
@@ -1261,7 +1231,6 @@ def main():
     "pass": options.password
   }
   Options.REPORT_FILE = options.report
-  Options.REPO_VERSION = options.repo_version
 
   if action in action_list:
     Options.initialize()
