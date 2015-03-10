@@ -27,7 +27,7 @@ App.HostComponentView = Em.View.extend({
    * @type {App.HostComponent}
    */
   content: null,
-
+  excludedMasterCommands: ['DECOMMISSION', 'RECOMMISSION'],
   /**
    * @type {App.HostComponent}
    */
@@ -222,6 +222,21 @@ App.HostComponentView = Em.View.extend({
   },
 
   /**
+   * Gets number of current running components that are applied to the cluster
+   * @returns {Number}
+   */
+  runningComponentCounter: function () {
+    var runningComponents;
+    var self = this;
+
+    runningComponents = App.HostComponent.find().filter(function (component) {
+      return (component.get('componentName') === self.get('content.componentName') && [App.HostComponentStatus.started, App.HostComponentStatus.starting].contains(component.get('workStatus')))
+    });
+
+    return runningComponents ? runningComponents.length : 0;
+  },
+
+  /**
    * Check if component may be reassinged to another host
    * @type {bool}
    */
@@ -290,25 +305,92 @@ App.HostComponentView = Em.View.extend({
    * Get custom commands for slave components
    */
   customCommands: function() {
+    var customCommands;
     var hostComponent = this.get('content');
     var component = App.StackServiceComponent.find(hostComponent.get('componentName'));
-    var customCommands = [];
-    var commands;
 
-    if (component.get('isSlave')) {
-      commands = component.get('customCommands');
-      commands.forEach(function(command) {
-        customCommands.push({
-          label: Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format(command),
-          service: component.get('serviceName'),
-          hosts: hostComponent.get('hostName'),
-          component: component.get('componentName'),
-          command: command
-        });
-      });
-    }
+    customCommands = this.getCustomCommands(component, hostComponent, component.get('isSlave'));
 
     return customCommands;
-  }.property('content')
+  }.property('content', 'workStatus'),
+
+  /**
+   * Get a list of custom commands
+   *
+   * @param component
+   * @param hostComponent
+   * @param isSlave
+   * @returns {Array}
+   */
+  getCustomCommands: function (component, hostComponent, isSlave) {
+    isSlave = isSlave || false;
+
+    if (!component || !hostComponent) {
+      return [];
+    }
+
+    var self = this;
+    var commands = component.get('customCommands');
+    var customCommands = [];
+
+    commands.forEach(function(command) {
+      if (!isSlave && !self.meetsCustomCommandReq(component, command)) {
+        return;
+      }
+      customCommands.push({
+        label: self.getCustomCommandLabel(command, isSlave),
+        service: component.get('serviceName'),
+        hosts: hostComponent.get('hostName'),
+        context: isSlave ? null : App.HostComponentActionMap.getMap(self)[command].context,
+        component: component.get('componentName'),
+        command: command
+      });
+    });
+
+    return customCommands;
+  },
+
+  /**
+   * Get the Label of the custom command
+   *
+   * @param command
+   * @returns {String}
+   */
+  getCustomCommandLabel: function (command, isSlave) {
+    if (isSlave) {
+      return Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format(command)
+    }
+    return App.HostComponentActionMap.getMap(this)[command].label;
+  },
+
+  /**
+   * The custom command meets the requirements to be active on master
+   *
+   * @param component
+   * @param command
+   *
+   * @return {Boolean}
+   */
+  meetsCustomCommandReq: function (component, command) {
+    var excludedMasterCommands = this.get('excludedMasterCommands');
+
+    if (excludedMasterCommands.indexOf(command) >= 0) {
+      return false;
+    }
+
+    if (component.get('cardinality') !== '1') {
+      if (!this.get('isStart')) {
+        if (this.componentCounter() > 1) {
+          if (this.runningComponentCounter()) {
+            return false;
+          }
+        } else {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
 
 });

@@ -44,107 +44,6 @@ App.MainServiceItemView = Em.View.extend({
     'KNOX_GATEWAY': ['STARTDEMOLDAP','STOPDEMOLDAP']
   },
 
-  actionMap: function() {
-    return {
-      RESTART_ALL: {
-        action: 'restartAllHostComponents',
-        context: this.get('serviceName'),
-        label: Em.I18n.t('restart.service.all'),
-        cssClass: 'icon-repeat',
-        disabled: false
-      },
-      RUN_SMOKE_TEST: {
-        action: 'runSmokeTest',
-        label: Em.I18n.t('services.service.actions.run.smoke'),
-        cssClass: 'icon-thumbs-up-alt'
-      },
-      REFRESH_CONFIGS: {
-        action: 'refreshConfigs',
-        label: Em.I18n.t('hosts.host.details.refreshConfigs'),
-        cssClass: 'icon-refresh',
-        disabled: !this.get('controller.content.isRestartRequired')
-      },
-      REFRESH_YARN_QUEUE: {
-        action: 'refreshYarnQueues',
-        customCommand: 'REFRESHQUEUES',
-        label: Em.I18n.t('services.service.actions.run.yarnRefreshQueues.menu'),
-        cssClass: 'icon-refresh',
-        disabled: false
-      },
-      ROLLING_RESTART: {
-        action: 'rollingRestart',
-        context: this.get('rollingRestartComponent'),
-        label: Em.I18n.t('rollingrestart.dialog.title'),
-        cssClass: 'icon-time',
-        disabled: false
-      },
-      TOGGLE_PASSIVE: {
-        action: 'turnOnOffPassive',
-        context: this.get('isPassive') ? Em.I18n.t('passiveState.turnOffFor').format(this.get('displayName')) : Em.I18n.t('passiveState.turnOnFor').format(this.get('displayName')),
-        label: this.get('isPassive') ? Em.I18n.t('passiveState.turnOff') : Em.I18n.t('passiveState.turnOn'),
-        cssClass: 'icon-medkit',
-        disabled: false
-      },
-      TOGGLE_NN_HA: {
-        action: App.get('isHaEnabled') ? 'disableHighAvailability' : 'enableHighAvailability',
-        label: App.get('isHaEnabled') ? Em.I18n.t('admin.highAvailability.button.disable') : Em.I18n.t('admin.highAvailability.button.enable'),
-        cssClass: App.get('isHaEnabled') ? 'icon-arrow-down' : 'icon-arrow-up',
-        isHidden: (App.get('isHaEnabled') || (/^1.3/.test(App.get('currentStackVersionNumber')))),
-        disabled: App.get('isSingleNode')
-      },
-      TOGGLE_RM_HA: {
-        action: 'enableRMHighAvailability',
-        label: Em.I18n.t('admin.rm_highAvailability.button.enable'),
-        cssClass: 'icon-arrow-up',
-        isHidden: App.get('isRMHaEnabled'),
-        disabled: App.get('isSingleNode')
-      },
-      MOVE_COMPONENT: {
-        action: 'reassignMaster',
-        context: '',
-        label: Em.I18n.t('services.service.actions.reassign.master'),
-        cssClass: 'icon-share-alt'
-      },
-      STARTDEMOLDAP: {
-        action: 'startLdapKnox',
-        customCommand: 'STARTDEMOLDAP',
-        label: Em.I18n.t('services.service.actions.run.startLdapKnox.context'),
-        cssClass: 'icon-play-sign',
-        disabled: false
-      },
-      STOPDEMOLDAP: {
-        action: 'stopLdapKnox',
-        customCommand: 'STOPDEMOLDAP',
-        label: Em.I18n.t('services.service.actions.run.stopLdapKnox.context'),
-        cssClass: 'icon-stop',
-        disabled: false
-      },
-      REBALANCE_HDFS: {
-        action: 'rebalanceHdfsNodes',
-        customCommand: 'REBALANCEHDFS',
-        context: Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes.context'),
-        label: Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes'),
-        cssClass: 'icon-refresh',
-        disabled: false
-      },
-      DOWNLOAD_CLIENT_CONFIGS: {
-        action: this.get('controller.isSeveralClients') ? '' : 'downloadClientConfigs',
-        label: Em.I18n.t('services.service.actions.downloadClientConfigs'),
-        cssClass: 'icon-download-alt',
-        isHidden: !!this.get('controller.content.clientComponents') ? this.get('controller.content.clientComponents').rejectProperty('totalCount', 0).length == 0 : false,
-        disabled: false,
-        hasSubmenu: this.get('controller.isSeveralClients'),
-        submenuOptions: this.get('controller.clientComponents')
-      },
-      MASTER_CUSTOM_COMMAND: {
-        action: 'executeCustomCommand',
-        cssClass: 'icon-play-circle',
-        isHidden: false,
-        disabled: false
-      }
-    }
-  },
-
    addActionMap: function() {
      return [
       {
@@ -184,7 +83,7 @@ App.MainServiceItemView = Em.View.extend({
   /**
    * Create option for MOVE_COMPONENT or ROLLING_RESTART task.
    *
-   * @param {Object} option - one of the options that return by <code>actionMap()</code>
+   * @param {Object} option - one of the options that return by <code>App.HostComponentActionMap.getMap()</code>
    * @param {Object} fields - option fields to add/rewrite
    * @return {Object}
    */
@@ -204,7 +103,7 @@ App.MainServiceItemView = Em.View.extend({
     var service = this.get('controller.content');
     var allMasters = service.get('hostComponents').filterProperty('isMaster').mapProperty('componentName').uniq();
     var allSlaves = service.get('slaveComponents').rejectProperty('totalCount', 0).mapProperty('componentName');
-    var actionMap = this.actionMap();
+    var actionMap = App.HostComponentActionMap.getMap(this);
     var serviceCheckSupported = App.get('services.supportsServiceCheck').contains(service.get('serviceName'));
     var hasConfigTab = this.get('hasConfigTab');
     var excludedCommands = this.get('mastersExcludedCommands');
@@ -221,7 +120,7 @@ App.MainServiceItemView = Em.View.extend({
         options.push(actionMap.REFRESH_CONFIGS);
       }
       if (this.get('serviceName') === 'YARN') {
-        options.push(actionMap.REFRESH_YARN_QUEUE);
+        options.push(actionMap.REFRESHQUEUES);
       }
       options.push(actionMap.RESTART_ALL);
       allSlaves.filter(function (slave) {
@@ -261,7 +160,7 @@ App.MainServiceItemView = Em.View.extend({
       if (serviceName === 'HDFS' && nnComponent) {
         var namenodeCustomCommands = nnComponent.get('customCommands');
         if (namenodeCustomCommands && namenodeCustomCommands.contains('REBALANCEHDFS'))
-        options.push(actionMap.REBALANCE_HDFS);
+        options.push(actionMap.REBALANCEHDFS);
       }
 
       if (serviceName === 'KNOX' && knoxGatewayComponent) {

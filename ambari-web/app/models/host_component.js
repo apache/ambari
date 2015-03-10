@@ -225,3 +225,108 @@ App.HostComponentStatus = {
   }
 };
 
+App.HostComponentActionMap = {
+  getMap: function(ctx) {
+    return {
+      RESTART_ALL: {
+        action: 'restartAllHostComponents',
+        context: ctx.get('serviceName'),
+        label: Em.I18n.t('restart.service.all'),
+        cssClass: 'icon-repeat',
+        disabled: false
+      },
+      RUN_SMOKE_TEST: {
+        action: 'runSmokeTest',
+        label: Em.I18n.t('services.service.actions.run.smoke'),
+        cssClass: 'icon-thumbs-up-alt'
+      },
+      REFRESH_CONFIGS: {
+        action: 'refreshConfigs',
+        label: Em.I18n.t('hosts.host.details.refreshConfigs'),
+        cssClass: 'icon-refresh',
+        disabled: !ctx.get('controller.content.isRestartRequired')
+      },
+      REFRESHQUEUES: {
+        action: 'refreshYarnQueues',
+        customCommand: 'REFRESHQUEUES',
+        context : Em.I18n.t('services.service.actions.run.yarnRefreshQueues.context'),
+        label: Em.I18n.t('services.service.actions.run.yarnRefreshQueues.menu'),
+        cssClass: 'icon-refresh',
+        disabled: false
+      },
+      ROLLING_RESTART: {
+        action: 'rollingRestart',
+        context: ctx.get('rollingRestartComponent'),
+        label: Em.I18n.t('rollingrestart.dialog.title'),
+        cssClass: 'icon-time',
+        disabled: false
+      },
+      TOGGLE_PASSIVE: {
+        action: 'turnOnOffPassive',
+        context: ctx.get('isPassive') ? Em.I18n.t('passiveState.turnOffFor').format(ctx.get('displayName')) : Em.I18n.t('passiveState.turnOnFor').format(ctx.get('displayName')),
+        label: ctx.get('isPassive') ? Em.I18n.t('passiveState.turnOff') : Em.I18n.t('passiveState.turnOn'),
+        cssClass: 'icon-medkit',
+        disabled: false
+      },
+      TOGGLE_NN_HA: {
+        action: App.get('isHaEnabled') ? 'disableHighAvailability' : 'enableHighAvailability',
+        label: App.get('isHaEnabled') ? Em.I18n.t('admin.highAvailability.button.disable') : Em.I18n.t('admin.highAvailability.button.enable'),
+        cssClass: App.get('isHaEnabled') ? 'icon-arrow-down' : 'icon-arrow-up',
+        isHidden: (App.get('isHaEnabled') || (/^1.3/.test(App.get('currentStackVersionNumber')))),
+        disabled: App.get('isSingleNode')
+      },
+      TOGGLE_RM_HA: {
+        action: 'enableRMHighAvailability',
+        label: Em.I18n.t('admin.rm_highAvailability.button.enable'),
+        cssClass: 'icon-arrow-up',
+        isHidden: App.get('isRMHaEnabled'),
+        disabled: App.get('isSingleNode')
+      },
+      MOVE_COMPONENT: {
+        action: 'reassignMaster',
+        context: '',
+        label: Em.I18n.t('services.service.actions.reassign.master'),
+        cssClass: 'icon-share-alt'
+      },
+      STARTDEMOLDAP: {
+        action: 'startLdapKnox',
+        customCommand: 'STARTDEMOLDAP',
+        context: Em.I18n.t('services.service.actions.run.startLdapKnox.context'),
+        label: Em.I18n.t('services.service.actions.run.startLdapKnox.context'),
+        cssClass: 'icon-play-sign',
+        disabled: false
+      },
+      STOPDEMOLDAP: {
+        action: 'stopLdapKnox',
+        customCommand: 'STOPDEMOLDAP',
+        context: Em.I18n.t('services.service.actions.run.stopLdapKnox.context'),
+        label: Em.I18n.t('services.service.actions.run.stopLdapKnox.context'),
+        cssClass: 'icon-stop',
+        disabled: false
+      },
+      REBALANCEHDFS: {
+        action: 'rebalanceHdfsNodes',
+        customCommand: 'REBALANCEHDFS',
+        context: Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes.context'),
+        label: Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes'),
+        cssClass: 'icon-refresh',
+        disabled: false
+      },
+      DOWNLOAD_CLIENT_CONFIGS: {
+        action: ctx.get('controller.isSeveralClients') ? '' : 'downloadClientConfigs',
+        label: Em.I18n.t('services.service.actions.downloadClientConfigs'),
+        cssClass: 'icon-download-alt',
+        isHidden: !!ctx.get('controller.content.clientComponents') ? ctx.get('controller.content.clientComponents').rejectProperty('totalCount', 0).length == 0 : false,
+        disabled: false,
+        hasSubmenu: ctx.get('controller.isSeveralClients'),
+        submenuOptions: ctx.get('controller.clientComponents')
+      },
+      MASTER_CUSTOM_COMMAND: {
+        action: 'executeCustomCommand',
+        cssClass: 'icon-play-circle',
+        isHidden: false,
+        disabled: false
+      }
+    }
+  }
+};

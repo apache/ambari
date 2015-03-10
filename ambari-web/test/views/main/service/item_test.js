@@ -42,7 +42,7 @@ describe('App.MainServiceItemView', function () {
     var allMastersExcludedCommands = mastersExcludedCommands.reduce(function (previous, current) {
       return previous.concat(current);
     });
-    var actionMap = view.actionMap();
+    var actionMap = App.HostComponentActionMap.getMap(view);
 
     var customActionsArray = [];
     for (var iter in actionMap) {
@@ -174,7 +174,7 @@ describe('App.MainServiceItemView', function () {
             })
           ],
           result: [
-            {"action": "refreshYarnQueues", "customCommand": "REFRESHQUEUES", "label": "Refresh YARN Capacity Scheduler", "cssClass": "icon-refresh", "disabled": false},
+            {"action": "refreshYarnQueues", "customCommand": "REFRESHQUEUES", "context": "Refresh YARN Capacity Scheduler", "label": "Refresh YARN Capacity Scheduler", "cssClass": "icon-refresh", "disabled": false},
             {"action": "restartAllHostComponents", "context": "YARN", "label": "Restart All", "cssClass": "icon-repeat", "disabled": false},
             {"action": "rollingRestart", "label": "Restart NodeManagers", "cssClass": "icon-time", "disabled": false, "context": "NODEMANAGER"},
             {"action": "reassignMaster", "context": "APP_TIMELINE_SERVER", "label": "Move App Timeline Server", "cssClass": "icon-share-alt", "disabled": false},
@@ -336,8 +336,8 @@ describe('App.MainServiceItemView', function () {
             {"action": "restartAllHostComponents", "context": "KNOX", "label": "Restart All", "cssClass": "icon-repeat", "disabled": false},
             {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt"},
             {"action": "turnOnOffPassive", "context": "Turn On Maintenance Mode for Knox", "label": "Turn On Maintenance Mode", "cssClass": "icon-medkit", "disabled": false},
-            {"action": "startLdapKnox", "customCommand": "STARTDEMOLDAP", "label": "Start Demo LDAP", "cssClass": "icon-play-sign", "disabled": false},
-            {"action": "stopLdapKnox", "customCommand": "STOPDEMOLDAP", "label": "Stop Demo LDAP", "cssClass": "icon-stop", "disabled": false},
+            {"action": "startLdapKnox", "customCommand": "STARTDEMOLDAP", "context": "Start Demo LDAP",  "label": "Start Demo LDAP", "cssClass": "icon-play-sign", "disabled": false},
+            {"action": "stopLdapKnox", "customCommand": "STOPDEMOLDAP", "context": "Stop Demo LDAP", "label": "Stop Demo LDAP", "cssClass": "icon-stop", "disabled": false},
             {"action": "downloadClientConfigs", "label": "Download Client Configs", "cssClass": "icon-download-alt", "isHidden": true, "disabled": false, "hasSubmenu": false, "submenuOptions": []}
           ]
         }

@@ -455,4 +455,131 @@ describe('App.HostComponentView', function() {
     });
   });
 
+  describe('#masterCustomCommands', function() {
+    var content = [
+      {
+        componentName: 'MASTER_COMPONENT',
+        hostName: '01'
+      }
+    ];
+
+    beforeEach(function () {
+      sinon.stub(App.HostComponentActionMap, 'getMap', function () {
+        return {
+          REFRESHQUEUES: {
+            action: 'refreshYarnQueues',
+            customCommand: 'REFRESHQUEUES',
+            context : Em.I18n.t('services.service.actions.run.yarnRefreshQueues.context'),
+            label: Em.I18n.t('services.service.actions.run.yarnRefreshQueues.menu'),
+            cssClass: 'icon-refresh',
+            disabled: false
+          }
+        }
+      });
+    });
+
+
+    //two components, one running, active one is stopped
+    it('Should not get custom commands for master component if component not running', function() {
+      sinon.stub(App.StackServiceComponent, 'find', function() {
+        return Em.Object.create({
+          componentName: 'MASTER_COMPONENT',
+          isSlave: false,
+          isMaster: true,
+          isStart: false,
+          customCommands: ['DECOMMISSION', 'REFRESHQUEUES']
+        });
+      });
+
+      sinon.stub(hostComponentView, 'componentCounter', function() {
+        return 2;
+      });
+
+      sinon.stub(hostComponentView, 'runningComponentCounter', function () {
+        return 1;
+      });
+
+      hostComponentView.set('content', content);
+      expect(hostComponentView.get('customCommands')).to.have.length(0);
+    });
+
+    //two components, none running
+    it('Should get custom commands for master component when all components are stopped', function() {
+      sinon.stub(App.StackServiceComponent, 'find', function() {
+        return Em.Object.create({
+          componentName: 'MASTER_COMPONENT',
+          isSlave: false,
+          isMaster: true,
+          isStart: false,
+          customCommands: ['DECOMMISSION', 'REFRESHQUEUES']
+        });
+      });
+
+      sinon.stub(hostComponentView, 'componentCounter', function() {
+        return 2;
+      });
+
+      sinon.stub(hostComponentView, 'runningComponentCounter', function () {
+        return 0;
+      });
+
+      hostComponentView.set('content', content);
+      expect(hostComponentView.get('customCommands')).to.have.length(1);
+    });
+
+    //two components, two running, only commission and decommission custom commands
+    it('Should not show COMMISSION and DECOMMISSION on master', function() {
+      sinon.stub(App.StackServiceComponent, 'find', function() {
+        return Em.Object.create({
+          componentName: 'MASTER_COMPONENT',
+          isSlave: false,
+          isMaster: true,
+          isStart: false,
+          customCommands: ['DECOMMISSION', 'RECOMMISSION']
+        });
+      });
+
+      sinon.stub(hostComponentView, 'componentCounter', function() {
+        return 2;
+      });
+
+      sinon.stub(hostComponentView, 'runningComponentCounter', function () {
+        return 2;
+      });
+
+      hostComponentView.set('content', content);
+      expect(hostComponentView.get('customCommands')).to.have.length(0);
+    });
+
+    //one component, one running, cardinality 1
+    it('Should show custom command for cardinality 1', function() {
+      sinon.stub(App.StackServiceComponent, 'find', function() {
+        return Em.Object.create({
+          isSlave: false,
+          cardinality: '1',
+          isMaster: true,
+          isStart: true,
+          customCommands: ['DECOMMISSION', 'REFRESHQUEUES']
+        });
+      });
+
+      sinon.stub(hostComponentView, 'componentCounter', function() {
+        return 1;
+      });
+
+      sinon.stub(hostComponentView, 'runningComponentCounter', function () {
+        return 1;
+      });
+
+      hostComponentView.set('content', content);
+      expect(hostComponentView.get('customCommands')).to.have.length(1);
+    });
+
+    afterEach(function() {
+      App.HostComponentActionMap.getMap.restore();
+      App.StackServiceComponent.find.restore();
+      hostComponentView.componentCounter.restore();
+      hostComponentView.runningComponentCounter.restore();
+    });
+  });
 });

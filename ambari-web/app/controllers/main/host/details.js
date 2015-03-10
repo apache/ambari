@@ -1910,7 +1910,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         sender: controller,
         data : {
           command : context.command,
-          context : Em.I18n.t('services.service.actions.run.executeCustomCommand.context').format(context.command),
+          context : context.context || Em.I18n.t('services.service.actions.run.executeCustomCommand.context').format(context.command),
           hosts : context.hosts,
           serviceName : context.service,
           componentName : context.component
