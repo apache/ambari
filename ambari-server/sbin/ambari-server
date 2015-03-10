@@ -123,6 +123,10 @@ case "$1" in
         echo -e "Syncing with LDAP..."
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
+  set-current)
+        echo -e "Setting current version..."
+        $PYTHON /usr/sbin/ambari-server.py $@
+        ;;
   setup-security)
         echo -e "Security setup options..."
         $PYTHON /usr/sbin/ambari-server.py $@
@@ -141,7 +145,7 @@ case "$1" in
         ;;
   *)
         echo "Usage: /usr/sbin/ambari-server
-        {start|stop|restart|setup|setup-jce|upgrade|status|upgradestack|setup-ldap|sync-ldap|setup-security|refresh-stack-hash|backup|restore} [options]
+        {start|stop|restart|setup|setup-jce|upgrade|status|upgradestack|setup-ldap|sync-ldap|set-current|setup-security|refresh-stack-hash|backup|restore} [options]
         Use usr/sbin/ambari-server <action> --help to get details on options available.
         Or, simply invoke ambari-server.py --help to print the options."
         exit 1

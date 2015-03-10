@@ -499,13 +499,16 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       CommandReport report = finalizeUpgradeAction.execute(null);
 
       LOG.info("Finalize output:");
-      LOG.info("STDERR: {}", report.getStdErr());
       LOG.info("STDOUT: {}", report.getStdOut());
+      LOG.info("STDERR: {}", report.getStdErr());
 
       if (report.getStatus().equals(HostRoleStatus.COMPLETED.toString())) {
         return getRequestStatus(null);
       } else {
-        throw new SystemException("Finalization failed");
+        String detailedOutput = "Finalization failed. More details: \n" +
+                "STDOUT: " + report.getStdOut() + "\n" +
+                "STDERR: " + report.getStdErr();
+        throw new SystemException(detailedOutput);
       }
     } catch (AmbariException e) {
       throw new SystemException("Can not perform request", e);
