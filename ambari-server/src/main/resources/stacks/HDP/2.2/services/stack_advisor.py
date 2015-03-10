@@ -490,10 +490,6 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     result['METRICS_COLLECTOR'] = {"min": 1}
     return result
 
-  def getComponentLayoutSchemes(self):
-    result = super(HDP22StackAdvisor, self).getComponentLayoutSchemes()
-    result['METRICS_COLLECTOR'] = {"else": 2}
-    return result
 
 def is_number(s):
   try:
